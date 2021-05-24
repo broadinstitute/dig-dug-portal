@@ -70,6 +70,9 @@ new Vue({
             tableData: [],
             tableDataFormat: {},
             annotations: {},
+            plottedTissues: [],
+            selectedTissues: {},
+            selectedPosition: null,
             canvasHeight: null,
             colorIndex: ["#048845", "#8490C8", "#BF61A5", "#EE3124", "#FCD700", "#5555FF", "#7aaa1c", "#9F78AC", "#F88084", "#F5A4C7", "#CEE6C1", "#cccc00", "#6FC7B6", "#D5A768", "#D4D4D4"],
             annotationColors: ["#D5A768", "#6FC7B6", "#cccc00", "#CEE6C1", "#F5A4C7", "#F88084", "#9F78AC", "#7aaa1c", "#5555FF", "#FCD700", "#EE3124", "#BF61A5", "#8490C8", "#048845"],
@@ -174,29 +177,17 @@ new Vue({
             });
         },
 
+        addTissue(event) {
+
+            if (this.selectedTissues[event.tissue] == undefined) {
+                this.selectedTissues[event.tissue] = event;
+            }
+
+            this.renderTissuesPlot();
+        },
+
         getDotInfo(dotId) {
-            /* {
-  "alt": "A",
-  "ancestry": "EU",
-  "beta": -0.1100000000000004,
-  "chromosome": "8",
-  "credibleSetId": "20302",
-  "dataset": "GWAS_DIAMANTE_eu",
-  "eaf": 0.31,
-  "maf": 0.31,
-  "multiAllelic": false,
-  "n": 231420,
-  "oddsRatio": 0.8958341352965279,
-  "pValue": 6.3e-55,
-  "phenotype": "T2D",
-  "position": 118185025,
-  "posteriorProbability": 0.56993,
-  "reference": "G",
-  "stdErr": 0.007047115876281957,
-  "varId": "8:118185025:G:A",
-  "zScore": -15.609222543114498,
-  "colorIndex": 0
-} */
+
             let contents = "<strong>" + dotId.varId + "</strong></br>";
             contents += "Credible Set: " + dotId.credibleSetId + "</br>";
             contents += "Reference: " + dotId.reference + "</br>";
@@ -320,28 +311,7 @@ new Vue({
             }
         },
         setTableData() {
-            /*
-            alt: "A"
-ancestry: "EU"
-beta: 0.05499999999999582
-chromosome: "8"
-colorIndex: 2
-credibleSetId: "20303"
-dataset: "GWAS_DIAMANTE_eu"
-eaf: 0.021
-maf: 0.021
-multiAllelic: false
-n: 231420
-oddsRatio: 1.0565406146754899
-pValue: 0.016
-phenotype: "T2D"
-position: 117905012
-posteriorProbability: 0.000065792
-reference: "G"
-stdErr: 0.022831850662235375
-varId: "8:117905012:G:A"
-zScore: 2.408915545815461
-*/
+
             let tableFormat = { "top rows": ["Locus", "Allele", "P/P", "Credible set ID", "Ancestry", "Beta", "Odds Ratio"] };
             let credibleData = this.credibleSetsDataSorted;
             let annotationData = this.annotations;
@@ -392,9 +362,6 @@ zScore: 2.408915545815461
 
             this.tableData = mergedData;
             this.tableDataFormat = tableFormat;
-
-
-
         },
         renderAnnotationsPlot() {
             let data = this.annotations;
@@ -493,33 +460,184 @@ zScore: 2.408915545815461
 
                 tissueNames.innerHTML = tissueNamesContent;
 
-                //let tissueNamesWrapper = document.getElementById(annotation);
                 targetWrapper.appendChild(tissueNames);
                 annotationIndex++;
             }
+        },
+        renderTissuesPlot() {
+
+            let data = this.annotations;
+
+            document.getElementById("tissuesWrapper").innerHTML = "";
+
+            for (const selectedTissue in this.selectedTissues) {
+                console.log("this.selectedTissue", selectedTissue);
+
+                let wrapper = document.createElement('div');
+                wrapper.id = selectedTissue.replace(/ /g, '');
+                wrapper.className = "cs-plot-field-value-tissue cs-plot-wrapper";
+                let plotsWrapper = document.getElementById("tissuesWrapper");
+                plotsWrapper.appendChild(wrapper);
+
+
+
+                // Get number of annotations with the selected tissue
+                let antnWSTissue = 0;
+
+                for (const annotation in this.annotations) {
+                    if (!!this.annotations[annotation][selectedTissue]) {
+                        antnWSTissue++;
+                    }
+                };
+
+                let xBump = this.plotsConfig.hBump,
+                    yBump = 5,
+                    itemWidth = this.plotsConfig.itemWidth,
+                    itemHeight = 20,
+                    itemMargin = this.plotsConfig.itemMargin,
+                    itemWrapperMargin = this.plotsConfig.itemWrapperMargin,
+                    lineHeight = 5,
+                    font = this.plotsConfig.font;
+
+                var canvas = document.createElement('canvas');
+                canvas.width = this.canvasHeight; //canvasHeight is the width of the variants canvas since it turned -90deg
+                canvas.height = (itemHeight * antnWSTissue) + (yBump * 2);
+                canvas.style.position = "relative";
+
+                var ctx = canvas.getContext("2d");
+
+                let annotationIndex = 0;
+                let rectTop = yBump;
+                for (const annotation in this.annotations) {
+                    if (!!this.annotations[annotation][selectedTissue]) {
+
+                        this.annotations[annotation][selectedTissue].map(t => {
+
+                            let itemLeft = xBump;
+                            for (const variant in this.credibleSetsDataSorted) {
+                                let position = this.credibleSetsDataSorted[variant][0].position;
+
+                                if (position >= t.start && position <= t.end) {
+
+                                    ctx.fillStyle = this.annotationColors[annotationIndex];
+                                    //ctx.fillRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight);
+
+                                    ctx.roundRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight, 3).fill();
+
+                                }
+
+                                itemLeft += (((itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length)) + itemWrapperMargin;
+                            }
+                        })
+
+                        rectTop += itemHeight
+                    }
+
+                    annotationIndex++;
+                };
+
+                var targetWrapper = document.getElementById(selectedTissue.replace(/ /g, ''));
+                targetWrapper.appendChild(canvas);
+
+                //for (const annotation in this.annotations) {
+
+
+
+                /*
+                if (!!this.annotations[annotation][selectedTissue]) {
+
+
+                    this.annotations[annotation][selectedTissue].map(t => {
+
+                        let atLeast1 = false;
+                        for (const variant in this.credibleSetsDataSorted) {
+                            let position = this.credibleSetsDataSorted[variant][0].position;
+                            if (position >= t.start && position <= t.end) {
+                                atLeast1 = true;
+                            }
+                        }
+
+                        if (atLeast1 == true) {
+                            let itemLeft = xBump;
+                            for (const variant in this.credibleSetsDataSorted) {
+                                let position = this.credibleSetsDataSorted[variant][0].position;
+
+                                if (position >= t.start && position <= t.end) {
+
+                                    ctx.fillStyle = this.annotationColors[annotationIndex];
+                                    //ctx.fillRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight);
+
+                                    ctx.roundRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight, 3).fill();
+
+                                }
+
+                                itemLeft += (((itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length)) + itemWrapperMargin;
+                            }
+                        }
+
+                        if (atLeast1 == true) {
+                            ctx.font = font;
+                            ctx.textBaseline = "middle";
+                            ctx.textAlign = "left";
+                            ctx.fillStyle = "#aaaaaa";
+                            let fillingText = selectedTissue + "/" + formatters.floatFormatter(this.globalEnrichmentFolds[annotation][selectedTissue]);
+                            ctx.fillText(fillingText, 5, rectTop);
+
+                            rectTop += itemHeight;
+                        }
+                    })
+
+
+
+
+
+                    annotationIndex++;
+
+                }*/
+
+                //}
+            }
+            if (this.selectedPosition != null) { this.scrollPlotsTo(this.selectedPosition) };
         },
         setTissueNamesLeft(leftPos) {
 
             let elements = document.querySelectorAll('.cs-plot-annotation-tissue-names');
 
             elements.forEach(function (element) {
-
-
                 element.style['left'] = leftPos + "px";
             });
 
         },
+        filterTableDataByPosition(index) {
+            let data = this.tableData;
+
+            let filteredData = [];
+
+            for (let i = index - 5; i <= index + 5; i++) {
+                filteredData.push(data[i]);
+            }
+
+            this.$store.dispatch("filteredData", filteredData);
+        },
+
+        cancelTableDataFilters() {
+
+            this.$store.dispatch("filteredData", this.tableData);
+
+        },
+
         scrollPlotsTo(position) {
 
+            this.selectedPosition = position;
             let elements = document.querySelectorAll('.cs-plot-wrapper');
-
             let leftPos = this.getScrollLeft(position);
 
             elements.forEach(function (element) {
                 element.scrollLeft = leftPos;
             });
 
-            this.setTissueNamesLeft(leftPos)
+            this.setTissueNamesLeft(leftPos);
+            this.filterTableDataByPosition(position);
         },
         getScrollLeft(position) {
             let widthConfig = this.plotsConfig;
@@ -660,14 +778,6 @@ zScore: 2.408915545815461
             );
             return annotations;
         },
-        globalEnrichmentTissues() {
-            let tissues = sortUtils.uniqBy(
-                this.$store.state.globalEnrichment.data,
-                el => el.tissue
-            );
-            //sort the tissues
-            return tissues;
-        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {
@@ -696,10 +806,29 @@ zScore: 2.408915545815461
                 })
                 this.annotations[data.annotation] = tempObj;
 
-                if (Object.keys(this.annotations).length != 0) { this.renderAnnotationsPlot(); };
-                if (Object.keys(this.credibleSetsDataSorted).length != 0) { this.renderCredibleSetsPlot(); };
-                this.setTableData()
+                if (Object.keys(this.annotations).length != 0) {
+                    this.renderAnnotationsPlot();
 
+                    let plottedAnnotations = [];
+
+                    for (const annotation in this.annotations) {
+                        plottedAnnotations.push(annotation);
+                    }
+
+                    let plottedTissues = this.$store.state.globalEnrichment.data.filter(t => plottedAnnotations.includes(t.annotation));
+
+                    this.plottedTissues = sortUtils.uniqBy(
+                        plottedTissues,
+                        el => el.tissue
+                    );
+                };
+
+                if (this.selectedPosition != null) { this.scrollPlotsTo(this.selectedPosition) };
+
+                if (Object.keys(this.credibleSetsDataSorted).length != 0) { this.renderCredibleSetsPlot(); };
+                if (Object.keys(this.selectedTissues).length != 0) { this.renderTissuesPlot(); };
+
+                this.setTableData()
             }
         },
 
@@ -775,6 +904,7 @@ zScore: 2.408915545815461
         },
         credibleSetsDataSorted(data) {
             if (Object.keys(this.annotations).length != 0) { this.renderAnnotationsPlot(); };
+            if (Object.keys(this.selectedTissues).length != 0) { this.renderTissuesPlot(); };
             if (Object.keys(this.credibleSetsDataSorted).length != 0) { this.renderCredibleSetsPlot(); };
             this.setTableData();
         }

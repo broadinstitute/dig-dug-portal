@@ -143,56 +143,46 @@
                                     @annotation="$parent.addAnnotation($event)"
                                 />
                             </div>
+                            <div
+                                class="col filter-col-md"
+                                v-if="
+                                    Object.keys($parent.annotations).length > 0
+                                "
+                            >
+                                <div class="label" style="margin-bottom: 5px">
+                                    Add tissue
+                                </div>
+                                <tissue-selectpicker
+                                    :tissues="$parent.plottedTissues"
+                                    :clearOnSelected="true"
+                                    @tissue="$parent.addTissue($event)"
+                                />
+                            </div>
                         </b-row>
                     </b-container>
-                    <!--
-                    <criterion-function-group>
-                        <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add tissue
-                            </div>
-                            <tissue-selectpicker
-                                :tissues="$parent.globalEnrichmentTissues"
-                                :clearOnSelected="true"
-                                @tissue="
-                                    $parent.addTissueIntervalsPanel($event)
-                                "
-                            />
-                        </div>
-
-                    </criterion-function-group>
-                    <criterion-function-group>
-                        <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add tissue
-                            </div>
-                            <tissue-selectpicker
-                                :tissues="$parent.globalEnrichmentTissues"
-                                :clearOnSelected="true"
-                                @tissue="
-                                    $parent.addTissueIntervalsPanel($event)
-                                "
-                            />
-                        </div>
-
-                        <span style="display: inline-block">
-                            <div class="label">
-                                Filter annotations by global enrichment
-                            </div>
-                            <filter-pvalue-control :field="'pValue'">
-                                <span class="label">P-Value (&le;)</span>
-                            </filter-pvalue-control>
-                            <filter-greater-control :field="'fold'">
-                                <span class="label">Fold (&ge;)</span>
-                            </filter-greater-control>
-                        </span>
-                    </criterion-function-group>
-                    -->
 
                     <b-container fluid class="cs-plot-wrapper">
                         <b-row fluid :style="'flex-wrap: nowrap !important'">
                             <!-- track names-->
                             <div class="cs-plot-field-names">
+                                <div class="cs-plot-field-name-tissues">
+                                    <div>
+                                        <span class="cs-plot-field-name-title"
+                                            >Tissues</span
+                                        >
+                                    </div>
+                                    <div
+                                        v-for="(
+                                            tissue, tKey, index
+                                        ) in $parent.selectedTissues"
+                                        :key="tKey"
+                                        :style="'color: #333333;'"
+                                        v-html="
+                                            tKey +
+                                            '&nbsp;<span class=\'remove\'>X</span>'
+                                        "
+                                    ></div>
+                                </div>
                                 <div class="cs-plot-field-name-annotations">
                                     <div>
                                         <span class="cs-plot-field-name-title"
@@ -331,7 +321,10 @@
                                             @click="
                                                 $parent.scrollPlotsTo(
                                                     value[0].position
-                                                )
+                                                );
+                                                $parent.filterTableDataByPosition(
+                                                    index
+                                                );
                                             "
                                             v-for="(vDot, vIndex) in value"
                                             class="variant-dot"
@@ -357,6 +350,11 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!-- selected tissues -->
+                                <div
+                                    class="cs-plot-field-value-tissues"
+                                    id="tissuesWrapper"
+                                ></div>
                                 <!-- Annotations -->
                                 <div
                                     class="cs-plot-field-value-annotations"
@@ -583,12 +581,26 @@
 
 .cs-plot-field-value-annotations {
 }
+
+.cs-plot-field-value-tissues {
+}
 .cs-plot-field-value-annotation {
-    max-height: 150px;
+    max-height: 145px;
     overflow-x: hidden;
     width: calc(100% + 8px);
     border-top: solid 1px #ddd;
     border-bottom: solid 1px #ddd;
+    margin-top: 10px;
+    position: relative;
+    padding-top: 5px;
+}
+
+.cs-plot-field-value-tissue {
+    overflow-x: hidden;
+    width: 100%;
+    border-top: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
+    background-color: #eeeeee;
     margin-top: 10px;
     position: relative;
     padding-top: 5px;
