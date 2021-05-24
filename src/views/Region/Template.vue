@@ -244,6 +244,8 @@
                             <div class="label">Phenotypes:</div>
                         </filter-enumeration-control>
 
+                        <b-col class="divider"></b-col>
+
                         <div class="col filter-col-md">
                             <div class="label" style="margin-bottom: 5px">
                                 Add tissue
@@ -256,6 +258,7 @@
                                 "
                             />
                         </div>
+
                         <div class="col filter-col-md">
                             <div class="label" style="margin-bottom: 5px">
                                 Add annotation
@@ -329,37 +332,8 @@
                                     slot="filtered"
                                     slot-scope="{ filter }"
                                 >
-                                    <associations-table
-                                        id="associations-table"
-                                        v-if="
-                                            $parent.selectedPhenotypes.length >
-                                                0 &&
-                                            $parent.pageAssociations.length > 0
-                                        "
-                                        :phenotypes="$parent.selectedPhenotypes"
-                                        :associations="$parent.pageAssociations"
-                                        :filter="filter"
-                                        :exclusive="false"
-                                    ></associations-table>
                                 </template>
-                            </criterion-function-group>
-                            <h4 class="card-title">
-                                Variants in region
-                                <!--<span
-                            v-for="p in $parent.selectedPhenotypes"
-                            class="item"
-                            >{{ p.description }}</span
-                        >-->
-                                &nbsp;
-                                <tooltip-documentation
-                                    name="region.topassoc.tooltip"
-                                    :isHover="true"
-                                    :noIcon="false"
-                                ></tooltip-documentation>
-                            </h4>
-                            <documentation
-                                name="region.variantassociation.subheader"
-                            ></documentation></b-tab
+                            </criterion-function-group> </b-tab
                         ><b-tab title="Annotations by global enrichment"
                             >tab2</b-tab
                         >
@@ -422,6 +396,35 @@
                             </template>
                         </criterion-function-group>
                     </div>
+
+                    <h4 class="card-title">
+                        Variants in region
+                        <!--<span
+                            v-for="p in $parent.selectedPhenotypes"
+                            class="item"
+                            >{{ p.description }}</span
+                        >-->
+                        &nbsp;
+                        <tooltip-documentation
+                            name="region.topassoc.tooltip"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
+                    </h4>
+                    <documentation
+                        name="region.variantassociation.subheader"
+                    ></documentation>
+                    <associations-table
+                        id="associations-table"
+                        v-if="
+                            $parent.selectedPhenotypes.length > 0 &&
+                            $parent.pageAssociations.length > 0
+                        "
+                        :phenotypes="$parent.selectedPhenotypes"
+                        :associations="$parent.pageAssociations"
+                        :filter="$parent.associationsFilter"
+                        :exclusive="false"
+                    ></associations-table>
                 </div>
             </div>
         </div>
