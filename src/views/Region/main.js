@@ -116,11 +116,9 @@ new Vue({
         postAlertError,
         closeAlert,
         requestCredibleSets(eventData) {
-            console.log("change data", eventData);
             const { start, end } = eventData;
             if (!!start && !!end) {
                 let that = this;
-                console.log("got start end");
                 this.$store.dispatch("credibleSets/clear");
                 this.selectedPhenotypes.forEach(p => {
                     const queryString = `${p.name},${
@@ -145,7 +143,6 @@ new Vue({
         },
 
         updatePageAssociations({ phenotype, data }) {
-            console.log('updatePageAssociations')
             this.pageAssociationsMap[phenotype] = data;
             this.pageAssociations = Object.entries(
                 this.pageAssociationsMap

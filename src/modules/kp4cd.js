@@ -182,7 +182,6 @@ export default {
         },
         async getResearchData(context, targetDataPoint) {
 
-            console.log(targetDataPoint);
             let json = await fetch(targetDataPoint).then(resp => resp.json());
 
             context.commit("setResearchData", json);
