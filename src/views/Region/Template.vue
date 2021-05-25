@@ -214,6 +214,7 @@
                     </h6>
 
                     <criterion-list-group
+                        class="first"
                         v-model="$parent.regionPageSearchCriterion"
                         :header="''"
                     >
@@ -293,6 +294,15 @@
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h6>
+
+                    <b-alert
+                        class="text-center my-3"
+                        variant="info"
+                        :show="!$parent.selectedPhenotypes.length"
+                        ><b-icon icon="info-circle"></b-icon> Select a phenotype
+                        to start viewing associations and annotations</b-alert
+                    >
+
                     <b-tabs
                         ><b-tab title="Variant associations" key="associations">
                             <criterion-function-group
@@ -325,12 +335,12 @@
                                 >
                                     <div class="label">Effect (+/-)</div>
                                 </filter-effect-direction-control>
-
+                                <!--
                                 <template
                                     slot="filtered"
                                     slot-scope="{ filter }"
                                 >
-                                </template>
+                                </template> -->
                             </criterion-function-group>
                         </b-tab>
                         <b-tab title="Annotations by global enrichment">
@@ -345,17 +355,18 @@
                                         <div class="label">Fold (&ge;)</div>
                                     </filter-greater-control>
 
-                                    <template
+                                    <!-- <template
                                         slot="filtered"
                                         slot-scope="{ filter }"
                                     >
-                                    </template>
+                                    </template> -->
                                 </criterion-function-group>
                             </div>
                         </b-tab>
                     </b-tabs>
 
                     <locuszoom
+                        v-show="$parent.selectedPhenotypes.length"
                         ref="locuszoom"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
@@ -391,34 +402,37 @@
                         </p>
                     </locuszoom>
 
-                    <h4 class="card-title">
-                        Variants in region
-                        <!--<span
-                            v-for="p in $parent.selectedPhenotypes"
-                            class="item"
-                            >{{ p.description }}</span
-                        >-->
-                        &nbsp;
-                        <tooltip-documentation
-                            name="region.topassoc.tooltip"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation>
-                    </h4>
-                    <documentation
-                        name="region.variantassociation.subheader"
-                    ></documentation>
-                    <associations-table
-                        id="associations-table"
+                    <template
                         v-if="
                             $parent.selectedPhenotypes.length > 0 &&
                             $parent.pageAssociations.length > 0
                         "
-                        :phenotypes="$parent.selectedPhenotypes"
-                        :associations="$parent.pageAssociations"
-                        :filter="$parent.associationsFilter"
-                        :exclusive="false"
-                    ></associations-table>
+                    >
+                        <h4 class="card-title">
+                            Variants in region
+                            <!--<span
+                            v-for="p in $parent.selectedPhenotypes"
+                            class="item"
+                            >{{ p.description }}</span
+                        >-->
+                            &nbsp;
+                            <tooltip-documentation
+                                name="region.topassoc.tooltip"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+                        <documentation
+                            name="region.variantassociation.subheader"
+                        ></documentation>
+                        <associations-table
+                            id="associations-table"
+                            :phenotypes="$parent.selectedPhenotypes"
+                            :associations="$parent.pageAssociations"
+                            :filter="$parent.associationsFilter"
+                            :exclusive="false"
+                        ></associations-table
+                    ></template>
                 </div>
             </div>
         </div>
@@ -430,12 +444,17 @@
 <style>
 ul.nav-tabs {
     border-bottom: unset;
+    margin-left: 5px;
 }
 .nav-tabs a.nav-link.active {
     background-color: #efefef;
 }
 .tab-pane div.filtering-ui-wrapper {
     border-top: none;
-    border-radius: 0 0 5px 5px;
+    /* border-radius: 0 0 5px 5px; */
+}
+.first div.filtering-ui-wrapper {
+    background-color: #ddefff;
+    border: solid 1px #bbdfff;
 }
 </style>
