@@ -1,7 +1,7 @@
 <template>
     <div>
         <div v-if="rows > 0">
-            <b-table
+            <!-- <b-table
                 hover
                 small
                 responsive="sm"
@@ -10,11 +10,13 @@
                 :per-page="perPage"
                 :current-page="currentPage"
             >
-                <template
-                    v-slot:cell(consequence)="v"
-                >{{consequenceFormatter(v.item.consequence_terms[0])}}</template>
+                <template v-slot:cell(consequence)="v">{{
+                    consequenceFormatter(v.item.consequence_terms[0])
+                }}</template>
                 <template v-slot:cell(gene)="v">
-                    <a :href="'/gene.html?gene=' + v.item.gene_symbol">{{v.item.gene_symbol}}</a>
+                    <a :href="'/gene.html?gene=' + v.item.gene_symbol">{{
+                        v.item.gene_symbol
+                    }}</a>
                 </template>
             </b-table>
             <b-pagination
@@ -22,7 +24,118 @@
                 v-model="currentPage"
                 :total-rows="rows"
                 :per-page="perPage"
-            ></b-pagination>
+            ></b-pagination> -->
+            <b-row>
+                <b-col cols="9">
+                    <div class="legends" v-show="tableData.length">
+                        <strong class="mr-2">Impact:</strong>
+                        <b-btn
+                            disabled
+                            variant="outline-danger"
+                            size="sm"
+                            class="mr-1 btn-mini"
+                            >HIGH</b-btn
+                        >
+                        <b-btn
+                            disabled
+                            variant="outline-warning"
+                            size="sm"
+                            class="mr-1 btn-mini"
+                            >MODERATE</b-btn
+                        >
+                        <b-btn
+                            disabled
+                            variant="outline-success"
+                            size="sm"
+                            class="mr-1 btn-mini"
+                            >LOW</b-btn
+                        >
+                        <b-btn
+                            disabled
+                            variant="outline-secondary"
+                            size="sm"
+                            class="btn-mini"
+                            >MODIFIER</b-btn
+                        >
+                    </div>
+                </b-col>
+                <b-col class="text-right mb-2">
+                    <csv-download
+                        v-if="tableData.length"
+                        :data="tableData"
+                        filename="variant-consequences"
+                    ></csv-download
+                ></b-col>
+            </b-row>
+            <div v-show="tableData.length">
+                <b-table
+                    hover
+                    small
+                    sort-icon-left
+                    responsive="sm"
+                    :items="tableData"
+                    :fields="subFields"
+                    :per-page="perPage"
+                    :tbody-tr-class="rowPickClass"
+                    ><template #cell(varId)="data">
+                        <a :href="`/variant.html?variant=${data.item.varId}`">{{
+                            data.item.varId
+                        }}</a>
+                    </template>
+                    <template #head(transcriptId)="data">
+                        <span class="external_source"
+                            >Feature
+                            <b-badge
+                                pill
+                                disabled
+                                class="ml-1"
+                                variant="secondary"
+                                title="Link to external source."
+                                >E</b-badge
+                            ></span
+                        >
+                    </template>
+                    <template #cell(transcriptId)="data">
+                        <a
+                            v-if="data.item.transcriptId"
+                            :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                            >{{ data.item.transcriptId }}</a
+                        >
+                    </template>
+                    <template #cell(position)="data">
+                        {{
+                            data.item.proteinStart !== data.item.proteinEnd
+                                ? `${data.item.proteinStart}-${data.item.proteinEnd}`
+                                : data.item.proteinStart
+                        }}
+                    </template>
+                    <template #cell(consequenceTerms)="data">
+                        <div class="border-color" :class="data.item.impact">
+                            <span
+                                v-for="(c, i) in data.item.consequenceTerms"
+                                :key="c"
+                                >{{ consequenceFormatter(c)
+                                }}{{
+                                    i < data.item.consequenceTerms.length - 1
+                                        ? ", "
+                                        : ""
+                                }}</span
+                            >
+                        </div></template
+                    >
+                    <template #cell(siftPrediction)="data">
+                        {{ siftFormatter(data.item.siftPrediction) }}
+                    </template>
+                </b-table>
+                <b-pagination
+                    class="pagination-sm justify-content-center"
+                    v-model="currentPage"
+                    :total-rows="rows"
+                    :per-page="perPage"
+                ></b-pagination>
+            </div>
         </div>
         <div v-else>No predicted transcript consequences found.</div>
     </div>
@@ -74,6 +187,65 @@ export default Vue.component("transcript-consequence-table", {
                     label: "Amino Acids",
                 },
             ],
+            subFields: [
+                {
+                    key: "transcriptId",
+                    label: "Feature",
+                },
+                {
+                    key: "position",
+                    label: "Position",
+                },
+                {
+                    key: "aminoAcids",
+                    label: "Amino Acids",
+                },
+                {
+                    key: "consequenceTerms",
+                    label: "Consequence",
+                    tdClass: "border-color",
+                },
+                {
+                    key: "hgncId",
+                    label: "HGNC",
+                },
+                {
+                    key: "hgvsc",
+                    label: "HGVSc",
+                },
+                {
+                    key: "hgvsp",
+                    label: "HGVSp",
+                },
+                {
+                    key: "polyphen2HdivPred",
+                    label: "PolyPhen (HDIV)",
+                },
+                {
+                    key: "polyphen2HvarPred",
+                    label: "PolyPhen (HVAR)",
+                },
+                {
+                    key: "siftPrediction",
+                    label: "SIFT Prediction",
+                },
+                {
+                    key: "lrtPred",
+                    label: "LRT",
+                },
+                {
+                    key: "mutationTaster",
+                    label: "Mutation Taster",
+                },
+                {
+                    key: "caddRawRankscore",
+                    label: "CADD-Phred Score",
+                },
+                {
+                    key: "gnomadGenomesPopmaxAf",
+                    label: "gnomAD AF",
+                },
+            ],
             perPage: 5,
             currentPage: 1,
         };
@@ -100,7 +272,7 @@ export default Vue.component("transcript-consequence-table", {
         tableData() {
             let dataRows = this.sortedTranscriptConsequences;
             if (!!this.filter) {
-                dataRows = dataRows.filter(association => {
+                dataRows = dataRows.filter((association) => {
                     return this.filter(association);
                 });
             }
@@ -109,6 +281,16 @@ export default Vue.component("transcript-consequence-table", {
     },
     methods: {
         consequenceFormatter: Formatters.consequenceFormatter,
+        siftFormatter(name) {
+            return Formatters.snakeFormatter(name);
+        },
+        rowPickClass(item, type) {
+            if (!item || type !== "row") return;
+            if (item.pick === 1) return "row-pick";
+        },
     },
 });
 </script>
+<style>
+@import url("/css/table.css");
+</style>
