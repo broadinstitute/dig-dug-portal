@@ -1,30 +1,6 @@
 <template>
     <div>
         <div v-if="rows > 0">
-            <!-- <b-table
-                hover
-                small
-                responsive="sm"
-                :items="tableData"
-                :fields="fields"
-                :per-page="perPage"
-                :current-page="currentPage"
-            >
-                <template v-slot:cell(consequence)="v">{{
-                    consequenceFormatter(v.item.consequence_terms[0])
-                }}</template>
-                <template v-slot:cell(gene)="v">
-                    <a :href="'/gene.html?gene=' + v.item.gene_symbol">{{
-                        v.item.gene_symbol
-                    }}</a>
-                </template>
-            </b-table>
-            <b-pagination
-                class="pagination-sm justify-content-center"
-                v-model="currentPage"
-                :total-rows="rows"
-                :per-page="perPage"
-            ></b-pagination> -->
             <b-row>
                 <b-col cols="9">
                     <div class="legends" v-show="tableData.length">
@@ -74,7 +50,7 @@
                     sort-icon-left
                     responsive="sm"
                     :items="tableData"
-                    :fields="subFields"
+                    :fields="fields"
                     :per-page="perPage"
                     :tbody-tr-class="rowPickClass"
                     ><template #cell(varId)="data">
@@ -137,18 +113,17 @@
                 ></b-pagination>
             </div>
         </div>
-        <div v-else>No predicted transcript consequences found.</div>
+        <div v-else>
+            <b-alert show variant="warning" class="text-center">
+                <b-icon icon="exclamation-triangle"></b-icon> No predicted
+                transcript consequences found.</b-alert
+            >
+        </div>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 
 export default Vue.component("transcript-consequence-table", {
@@ -156,38 +131,6 @@ export default Vue.component("transcript-consequence-table", {
     data() {
         return {
             fields: [
-                {
-                    key: "consequence",
-                    label: "Consequence",
-                },
-                {
-                    key: "gene",
-                    label: "Gene",
-                },
-                {
-                    key: "transcript_id",
-                    label: "Transcript",
-                },
-                {
-                    key: "biotype",
-                    label: "Biotype",
-                    formatter: Formatters.bioTypeFormatter,
-                },
-                {
-                    key: "distance",
-                    label: "Distance",
-                    formatter: Formatters.intFormatter,
-                },
-                {
-                    key: "impact",
-                    label: "Impact",
-                },
-                {
-                    key: "amino_acids",
-                    label: "Amino Acids",
-                },
-            ],
-            subFields: [
                 {
                     key: "transcriptId",
                     label: "Feature",
@@ -250,18 +193,19 @@ export default Vue.component("transcript-consequence-table", {
             currentPage: 1,
         };
     },
-
     computed: {
         rows() {
             return this.tableData.length;
         },
         sortedTranscriptConsequences() {
-            let picked = this.transcriptConsequences.filter((a) => a.pick == 1);
+            let picked = this.transcriptConsequences.filter(
+                (a) => a.pick === 1
+            );
             let unpicked = this.transcriptConsequences.filter((a) => !a.pick);
 
             return picked
                 .concat(unpicked)
-                .sort((a, b) => a.pick == 1)
+                .sort((a, b) => a.pick === 1)
                 .map((cqs) => {
                     return {
                         _rowVariant: cqs.pick === 1 ? "success" : null,
