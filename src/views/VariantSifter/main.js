@@ -77,7 +77,7 @@ new Vue({
             colorIndex: ["#048845", "#8490C8", "#BF61A5", "#EE3124", "#FCD700", "#5555FF", "#7aaa1c", "#9F78AC", "#F88084", "#F5A4C7", "#CEE6C1", "#cccc00", "#6FC7B6", "#D5A768", "#D4D4D4"],
             annotationColors: ["#D5A768", "#6FC7B6", "#cccc00", "#CEE6C1", "#F5A4C7", "#F88084", "#9F78AC", "#7aaa1c", "#5555FF", "#FCD700", "#EE3124", "#BF61A5", "#8490C8", "#048845"],
             tissuesOnSearch: ["pancreas", "uterus"],
-            plotsConfig: { hBump: 5.5, vBump: 5.5, itemWidth: 20, itemMargin: 2, itemWrapperMargin: 3, font: "12px Arial" },
+            plotsConfig: { hBump: 5.5, vBump: 5.5, itemWidth: 15, itemMargin: 1, itemWrapperMargin: 2, font: "11px Arial" },
         };
     },
 
@@ -293,7 +293,7 @@ new Vue({
                     ctx.textBaseline = "middle";
                     ctx.textAlign = "left";
                     ctx.fillStyle = "#000000";
-                    ctx.fillText(variant, xBump + 7, rectTop + 11);
+                    ctx.fillText(variant, xBump + 7, rectTop + 8);
 
                     //pp
 
@@ -368,6 +368,7 @@ new Vue({
 
             document.getElementById("annotationsWrapper").innerHTML = "";
 
+
             let annotationIndex = 0;
             for (const annotation in data) {
 
@@ -388,7 +389,7 @@ new Vue({
                 let xBump = this.plotsConfig.hBump,
                     yBump = this.plotsConfig.vBump,
                     itemWidth = this.plotsConfig.itemWidth,
-                    itemHeight = 20,
+                    itemHeight = 14,
                     itemMargin = this.plotsConfig.itemMargin,
                     itemWrapperMargin = this.plotsConfig.itemWrapperMargin,
                     lineHeight = 5,
@@ -405,6 +406,8 @@ new Vue({
                 let rectTop = yBump;
 
                 for (const tissue in annotationData) {
+
+                    //console.log("tissue no matter", tissue)
 
                     let atLeast1 = false;
                     annotationData[tissue].map(t => {
@@ -440,12 +443,14 @@ new Vue({
                     })
 
                     if (atLeast1 == true) {
+                        //console.log("tissue at least 1", tissue)
+
+                        let fillingText = tissue + "/" + formatters.floatFormatter(this.globalEnrichmentFolds[annotation][tissue]);
                         /*ctx.font = font;
                         ctx.textBaseline = "middle";
                         ctx.textAlign = "left";
-                        ctx.fillStyle = "#aaaaaa";*/
-                        let fillingText = tissue + "/" + formatters.floatFormatter(this.globalEnrichmentFolds[annotation][tissue]);
-                        //ctx.fillText(fillingText, 5, rectTop);
+                        ctx.fillStyle = "#aaaaaa";
+                        ctx.fillText(fillingText, 5, rectTop);*/
 
                         tissueNamesContent += fillingText + "</br>"
 
@@ -455,6 +460,11 @@ new Vue({
 
                 var targetWrapper = document.getElementById(annotation);
                 targetWrapper.appendChild(canvas);
+
+                let indicator = document.createElement('div');
+                indicator.className = "viewing-area-indicator";
+                indicator.style.height = (Object.keys(annotationData).length * itemHeight) + (yBump * 2) + "px";
+                targetWrapper.appendChild(indicator);
 
                 /* add tissue names */
 
@@ -539,63 +549,6 @@ new Vue({
                 var targetWrapper = document.getElementById(selectedTissue.replace(/ /g, ''));
                 targetWrapper.appendChild(canvas);
 
-                //for (const annotation in this.annotations) {
-
-
-
-                /*
-                if (!!this.annotations[annotation][selectedTissue]) {
-
-
-                    this.annotations[annotation][selectedTissue].map(t => {
-
-                        let atLeast1 = false;
-                        for (const variant in this.credibleSetsDataSorted) {
-                            let position = this.credibleSetsDataSorted[variant][0].position;
-                            if (position >= t.start && position <= t.end) {
-                                atLeast1 = true;
-                            }
-                        }
-
-                        if (atLeast1 == true) {
-                            let itemLeft = xBump;
-                            for (const variant in this.credibleSetsDataSorted) {
-                                let position = this.credibleSetsDataSorted[variant][0].position;
-
-                                if (position >= t.start && position <= t.end) {
-
-                                    ctx.fillStyle = this.annotationColors[annotationIndex];
-                                    //ctx.fillRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight);
-
-                                    ctx.roundRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight, 3).fill();
-
-                                }
-
-                                itemLeft += (((itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length)) + itemWrapperMargin;
-                            }
-                        }
-
-                        if (atLeast1 == true) {
-                            ctx.font = font;
-                            ctx.textBaseline = "middle";
-                            ctx.textAlign = "left";
-                            ctx.fillStyle = "#aaaaaa";
-                            let fillingText = selectedTissue + "/" + formatters.floatFormatter(this.globalEnrichmentFolds[annotation][selectedTissue]);
-                            ctx.fillText(fillingText, 5, rectTop);
-
-                            rectTop += itemHeight;
-                        }
-                    })
-
-
-
-
-
-                    annotationIndex++;
-
-                }*/
-
-                //}
             }
             if (this.selectedPosition != null) { this.scrollPlotsTo(this.selectedPosition) };
         },
@@ -608,16 +561,39 @@ new Vue({
             });
 
         },
+        setViewingAreaIndicator(index) {
+
+            let elements = document.querySelectorAll('.viewing-area-indicator');
+
+            let indicatorPos = index - 5;
+
+
+            let xBump = this.plotsConfig.hBump,
+                yBump = this.plotsConfig.vBump,
+                itemWidth = this.plotsConfig.itemWidth,
+                itemMargin = this.plotsConfig.itemMargin,
+                itemWrapperMargin = this.plotsConfig.itemWrapperMargin,
+                font = this.plotsConfig.font;
+
+
+            elements.forEach(function (element) {
+                element.style['left'] = xBump + ((itemWidth + itemMargin + itemWrapperMargin) * (index - 5)) + "px";
+                element.style['width'] = ((itemWidth + itemMargin + itemWrapperMargin) * 10) + "px";
+            });
+
+        },
         filterTableDataByPosition(index) {
             let data = this.tableData;
 
             let filteredData = [];
 
-            for (let i = index - 5; i <= index + 5; i++) {
+            for (let i = index - 5; i <= index + 4; i++) {
                 filteredData.push(data[i]);
             }
 
             this.$store.dispatch("filteredData", filteredData);
+
+            this.setViewingAreaIndicator(index)
         },
 
         cancelTableDataFilters() {

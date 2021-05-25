@@ -251,6 +251,10 @@
                                             class="annotation-summary-tissue"
                                         >
                                             <span
+                                                class="annotation-summary-tissue-name"
+                                                v-html="tKey"
+                                            ></span>
+                                            <span
                                                 v-for="(
                                                     tRegion, rIndex
                                                 ) in tissue"
@@ -350,20 +354,26 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- selected tissues -->
-                                <div
-                                    class="cs-plot-field-value-tissues"
-                                    id="tissuesWrapper"
-                                ></div>
+
                                 <!-- Annotations -->
                                 <div
                                     class="cs-plot-field-value-annotations"
                                     id="annotationsWrapper"
-                                ></div>
+                                >
+                                    <div class="viewing-area-indicator"></div>
+                                </div>
+                                <!-- selected tissues -->
+                                <div
+                                    class="cs-plot-field-value-tissues"
+                                    id="tissuesWrapper"
+                                >
+                                    <div class="viewing-area-indicator"></div>
+                                </div>
                                 <!-- credible sets variants -->
                                 <div
                                     class="cs-plot-field-value-variants cs-plot-wrapper"
                                 >
+                                    <div class="viewing-area-indicator"></div>
                                     <canvas
                                         id="credibleVariants"
                                         height="0"
@@ -399,6 +409,15 @@
 @import url("/css/effectorGenes.css");
 @import url("/css/colors.css");
 
+.viewing-area-indicator {
+    position: absolute;
+    top: 0;
+    z-index: 100;
+    background-color: #aaaaaa30;
+    width: 100px;
+    height: 100%;
+}
+
 #scrollPanel {
     width: 100%;
     height: 30px;
@@ -410,11 +429,11 @@
 
 .cs-plot-annotation-tissue-names {
     position: absolute;
-    top: -2px;
+    top: 10px;
     border: solid 0px #ff0000;
     font-size: 13px;
     text-align: left;
-    line-height: 20px;
+    line-height: 14px;
     white-space: nowrap;
     padding-left: 15px;
 }
@@ -447,18 +466,29 @@
 }
 
 .annotation-summary-tissue {
-    height: 5px;
+    height: 4px;
     position: relative;
+}
+
+.annotation-summary-tissue-name {
+    display: none;
+    position: absolute;
+    left: 10px;
+    z-index: 10;
 }
 
 .annotation-summary-tissue:hover {
     background-color: #ddd;
 }
 
+.annotation-summary-tissue:hover > .annotation-summary-tissue-name {
+    display: block;
+}
+
 .tissue-enriched {
     display: block;
     position: absolute;
-    height: 5px;
+    height: 4px;
 }
 
 .tissue-enriched:hover {
@@ -580,9 +610,11 @@
 }
 
 .cs-plot-field-value-annotations {
+    position: relative;
 }
 
 .cs-plot-field-value-tissues {
+    position: relative;
 }
 .cs-plot-field-value-annotation {
     max-height: 145px;
