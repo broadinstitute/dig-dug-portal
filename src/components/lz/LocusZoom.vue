@@ -1,7 +1,9 @@
 <template>
     <span>
         <div :id="`lz_${salt}`">
-            <slot v-if="locuszoommounted"></slot>
+            <div @panel-mounted="onPanelMounted">
+                <slot v-if="locuszoommounted"></slot>
+            </div>
         </div>
     </span>
 </template>
@@ -123,6 +125,9 @@ export default Vue.component("locuszoom", {
 
     },
     methods: {
+        onPanelMounted() {
+            console.log('panel mounted')
+        },
         zoomOut(expandLeft = 50000, expandRight = 50000) {
             this.plot.applyState({
                 start: this.plot.state.start - expandLeft,
@@ -135,7 +140,7 @@ export default Vue.component("locuszoom", {
             // A DataSource name is given to the panel, for a particular data type
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
             // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
-
+            console.log(this.dataSources._items)
             if (
                 !!!this.dataSources._items.has(
                     panelClass.datasource_namespace_symbol_for_panel

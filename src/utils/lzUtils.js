@@ -48,6 +48,7 @@ export class LZBioIndexSource extends BaseAdapter {
         this.onError = onError;
     };
     getCacheKey(state /*, chain, fields*/) {
+        console.log('getting cache key')
         return [state.chr, state.start, state.end].join('_');
     }
     fetchRequest(state, chain, fields) {

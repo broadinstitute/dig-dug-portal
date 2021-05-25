@@ -145,6 +145,7 @@ new Vue({
         },
 
         updatePageAssociations({ phenotype, data }) {
+            console.log('updatePageAssociations')
             this.pageAssociationsMap[phenotype] = data;
             this.pageAssociations = Object.entries(
                 this.pageAssociationsMap
