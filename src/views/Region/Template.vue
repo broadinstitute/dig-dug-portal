@@ -366,7 +366,7 @@
                     </b-tabs>
 
                     <locuszoom
-                        v-show="$parent.selectedPhenotypes.length"
+                        v-if="$parent.selectedPhenotypes.length > 0"
                         ref="locuszoom"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
