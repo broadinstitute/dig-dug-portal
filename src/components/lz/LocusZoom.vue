@@ -15,15 +15,12 @@ import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
-import { LZAssociationsPanel } from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import { LZIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
 import { LZCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
-import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnnotationsPanel";
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
 
-import { makeSource, makeLayout } from "@/utils/lzUtils";
 import { ToggleLogLog, ldlz2_pop_selector_menu, download_png } from "./widgets";
 
 import jsonQuery from "json-query";
@@ -138,12 +135,12 @@ export default Vue.component("locuszoom", {
 
             if (
                 !!!this.dataSources._items.has(
-                    panelClass.datasource_namespace_symbol_for_panel
+                    panelClass.sources[0][0]
                 )
             ) {
                 this.dataSources.add(
-                    panelClass.datasource_namespace_symbol_for_panel,
-                    panelClass.bioIndexToLZReader
+                    panelClass.sources[0][0],
+                    panelClass.sources[0][1]
                 );
             }
 
@@ -178,13 +175,13 @@ export default Vue.component("locuszoom", {
             // applyState runs on the end so we don't refresh this multiple times on accident.
             if (!!this.filter) this.applyFilter(this.filter);
             if (
-                !!this.filterAssociations &&
-                panelClass.panel_layout_type.includes("association")
+                !!this.filterAssociations
+                // && panelClass.panel_layout_type.includes("association")
             )
                 this.applyFilter(this.filterAssociations, "association");
             if (
-                !!this.filterAnnotations &&
-                panelClass.panel_layout_type.includes("intervals")
+                !!this.filterAnnotations 
+                // && panelClass.panel_layout_type.includes("intervals")
             )
                 this.applyFilter(this.filterAnnotations, "intervals");
             this.plot.applyState();

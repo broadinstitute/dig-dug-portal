@@ -36,15 +36,13 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
                 style: { "font-size": "18px" },
                 x: -0.5,
             }
-        })
-        .addFields('association', 'assoc', 
+        }).addFields('association', 'assoc', 
             ['pValue', 'position', 'consequence', 'nearest', 'beta']
         );
 
     // modify one of the data layers
     // https://statgen.github.io/locuszoom/docs/guides/interactivity.html#helper-functions-for-modifying-nested-layouts
     const associationDataLayerQ = '$..data_layers[?(@.tag === "association")]';
-
     layout.setProperty(`${associationDataLayerQ}.tooltip`, {
         widgets: [
             {
@@ -62,17 +60,14 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
                 position: "right",
             },
         ],
-    })
-    .addProperty(`${associationDataLayerQ}`, 'match', {
+    }).addProperty(`${associationDataLayerQ}`, 'match', {
         send: `assoc:position`,
         receive: `assoc:position`,
-    })
-    .addProperty(`${associationDataLayerQ}`, 'y_axis', {
+    }).addProperty(`${associationDataLayerQ}`, 'y_axis', {
         axis: 1,
         field: `assoc:log_pvalue`,
         upper_buffer: 0.1,
-    })
-    .addRule(`${associationDataLayerQ}.color`, {
+    }).addRule(`${associationDataLayerQ}.color`, {
         field: "lz_highlight_match", // Special field name whose presence triggers custom rendering
         scale_function: "if",
         parameters: {
