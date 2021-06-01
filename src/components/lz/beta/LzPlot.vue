@@ -159,6 +159,7 @@ export default Vue.component('lz-plot',{
             return callback(this.data_sources);
         },
         addPanels(panel_options, source_options) {
+            console.log(arguments)
             addPanels(this.plot, this.data_sources, panel_options, source_options);
         },
     },

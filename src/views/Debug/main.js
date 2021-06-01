@@ -5,6 +5,8 @@ import store from "./store.js";
 import LzPlot from "@/components/lz/beta/LzPlot"
 import LzAssociations from "@/components/lz/beta/LzAssociationsPanel"
 
+import lzConfiguration from "@/components/lz/beta/lzConfiguration"
+
 Vue.config.productionTip = false;
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 

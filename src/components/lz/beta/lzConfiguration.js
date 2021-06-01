@@ -1,6 +1,6 @@
 import LocusZoom from "locuszoom"
-import idCounter from "@/utils/idUtils"
-
+import { LZBioIndexSource } from "@/utils/lzUtils"
+import idCounter from "@/utils/idCounter"
 // Layout wrapper
 // new LzLayout(locuszoom_layout_object)
 // new LzLayout(locuszoom_layout_object, optionals)
@@ -10,42 +10,73 @@ import idCounter from "@/utils/idUtils"
 // - withNamespace(original, target)
 // - addFields(fieldnames)
 // - configuredWith(property, value)
+// - addRule
 // getters
 // - full
 
 class LzLayout {
-    #layout = null;
+    layout = null;
     constructor(firstParam, secondParam) {
         if (firstParam === Object(firstParam) && typeof secondParam !== 'undefined') {
-            this.#layout = LocusZoom.Layouts.merge(firstParam, secondParam);
+            this.layout = LocusZoom.Layouts.merge(firstParam, secondParam);
         } else if (firstParam === Object(firstParam)) {
-            this.#layout = firstParam;
+            this.layout = firstParam;
         } else if (typeof firstParam === 'string' && typeof secondParam !== 'undefined') {
-            this.#layout = LocusZoom.get('panel', firstParam, secondParam);
+            console.log(`${firstParam} is string, secondParam is object`)
+            this.layout = LocusZoom.Layouts.get('panel', firstParam, secondParam);
         } else if (typeof firstParam === 'string') {
-            this.#layout = LocusZoom.get('panel', firstParam)
+            this.layout = LocusZoom.Layouts.get('panel', firstParam)
         }
     }
     
     withNamespace(original_namespace, target_namespace) {
-        this.#layout = LocusZoom.Layouts.renameFields(
-            this.#layout, 
+        this.layout = LocusZoom.Layouts.renameField(
+            this.layout, 
             original_namespace, 
             target_namespace, 
-            warn_transforms = true
+            // warn_transforms = true
         )
         return this;
     }
 
-    setProperty(property, value) {
-        this.#layout = LocusZoom.Layouts.mutate_attrs(this.#layout, property, value);
+    mergeLayoutObject(object_query, new_object) {
+        const attribute = LocusZoom.Layouts.query_attrs(this.layout, object_query)[0];
+        if (typeof attribute === 'object' && !Array.isArray(attribute)) {
+            LocusZoom.Layouts.mutate_attrs(this.layout, object_query, object => {
+                return Object.assign(object, new_object)
+            })
+        } else {
+            console.warn("Can't give a non-object an object to merge with")
+        }
+        return this;
+    }
+
+    addProperty(object_query, property, value_object) {
+        const new_object = {
+            [property]: value_object
+        }
+        this.mergeLayoutObject(object_query, new_object);
+        return this;
+    }
+
+    setProperty(property, value, overrideArray=false) {
+        const attribute = LocusZoom.Layouts.query_attrs(this.layout, property);
+        if (attribute) {
+            const isArray = Array.isArray(attribute[0]);
+            if (isArray && overrideArray === false) {
+                console.warn(`NOTE: ${property} is an Array! Pass 'overrideArray' as 'true' to replace the value of ${property} with ${value}. Use 'addRule' if you want to add an entry to ${property}.`)
+                return this;
+            }
+        }
+        // side effect
+        LocusZoom.Layouts.mutate_attrs(this.layout, property, value);
         return this;
     }
 
     addRule(property, value, prepend=false) {
-        const isArray = Array.isArray(LocusZoom.Layouts.query_attrs(this.#layout, 'fields'));
+        const isArray = Array.isArray(LocusZoom.Layouts.query_attrs(this.layout, property)[0]);
         if (isArray) {
-            this.#layout = this.setProperty(property, id => {
+            this.setProperty(property, id => {
                 if (prepend) {
                     return [
                         value,
@@ -57,26 +88,28 @@ class LzLayout {
                         value
                     ]
                 }
-            });
+            }, true);
         } else {
             console.warn(property, 'not an array for the given layout');
         }
         return this;
     }
 
-    addFields(binder, ...fieldnames) {
+    addFields(data_layer, binder, fieldnames) {
         fieldnames.forEach(fieldname => {
-            this.addRule('fields', `${binder}:${fieldname}`);
+            this.addRule(`$..data_layers[?(@.tag === "${data_layer}")].fields`, `${binder}:${fieldname}`);
         });
         return this;
     }
 
     get full() {
         try {
-            if (this.#layout !== null) {
-                return this.#layout;
+            console.log('trying layout')
+            if (this.layout !== null) {
+                console.log('returning layout', this.layout)
+                return this.layout;
             }
-            throw Error(`Layout hasn't been properly initialized. layout: ${this.#layout}`);
+            throw Error(`Layout hasn't been properly initialized. layout: ${this.layout}`);
         } catch(e) {
             console.warn(e);
         } finally {
@@ -99,41 +132,47 @@ class LzLayout {
 // - full
 
 class LzDataSource {
-    #name = null;
-    #datasource = null;
+    name = null;
+    datasource = null;
+    params = {};
     constructor(firstParam, secondParam, thirdParam) {
         if (firstParam === Object(firstParam)) {
-            // 
+            this.datasource = firstParam;
         } else if (typeof firstParam === 'string') {
-            this.#name = firstParam;
+            this.name = firstParam;
         }
         if (secondParam === Object(secondParam)) {
             // 
         }
+        this.params = thirdParam;
     }
 
     withName(target) {
-        this.#name = target;
+        this.name = target;
         // TODO
         return this;
     }
 
     withParams(target) {
-        // TODO
+        this.params = target;
         return this;     
     }
 
     withParam(name, value) {
-        // TODO
+        this.params = {
+            ...this.params,
+            // overrides previous params
+            [name]: value
+        }
         return this;
     }
 
-    get full() {
+    full() {
         try {
-            if (this.#name !== null && this.#datasource !== null) {
-                return [this.#name, this.#datasource];
+            if (this.name !== null && this.datasource !== null) {
+                return [this.name, this.datasource(params)];
             }
-            throw Error(`One of 'name' or 'datasource' hasn't been initialized. name: ${this.#name} datasource: ${this.#datasource}`);
+            throw Error(`One of 'name' or 'datasource' hasn't been initialized. name: ${this.name} datasource: ${this.datasource}`);
         } catch(e) {
             console.warn(e);
             return null;
@@ -164,43 +203,48 @@ class LzPanelClass {
         if (typeof shared_field === 'string') {
             this.initialize(shared_field);
         } else {
-            console.warn('Remember to bind the lazyout and datasource together with `initialize(shared_field?)`');
+            console.info('Remember to bind the layout and datasource together with `initialize(shared_field?)`');
         }
     }
+
     initialize(shared_field) {
         this.#identifier = idCounter.getUniqueId();
         this.#namespace_symbol = `${shared_field}_${this.#identifier}`;
-        this.#layout = lzLayout.withNamespace(shared_field, this.#namespace_symbol);
-        this.#datasource = lzDataSource.withName(this.#namespace_symbol);
+        this.#layout = this.#layout.withNamespace(shared_field, this.#namespace_symbol);
+        this.#datasource = this.#datasource.withName(this.#namespace_symbol);
+        return this;
     }
+
     get full() {
         return {
-            layout: this.#layout.full(),
-            datasource: this.#datasource.full()
+            layout: this.#layout.layout,
+            datasource: [this.#datasource.name, this.#datasource.datasource]
         }
     }
 }
 
-new LzPanelClass(
-    new LzLayout('associations_catalog'),
-    new LzDataSource(BioIndexDataSource, {
-        index: 'associations-index',
-        firstParam: `${phenotype}`,
-    }),
-    'assoc'
-)
+const phenotype = 'T2D';
 
-new LzPanelClass(
-    new LzLayout('associations_catalog'),
-    new LzDataSource('BioindexDatasource', {
-        index: 'associations',
-        // indexes the query string
-        firstParam: `${phenotype}`,
-        // overrides region information for query
-        // secondParam: ``
-    }),
-    'assoc'
-)
+// new LzPanelClass(
+//     new LzLayout('association_catalog'),
+//     new LzDataSource(LZBioIndexSource, {
+//         index: 'associations-index',
+//         firstParam: `${phenotype}`,
+//     }),
+//     'assoc'
+// )
+
+// new LzPanelClass(
+//     new LzLayout('association_catalog'),
+//     new LzDataSource('BioindexDatasource', {
+//         index: 'associations',
+//         // indexes the query string
+//         firstParam: `${phenotype}`,
+//         // overrides region information for query
+//         // secondParam: ``
+//     }),
+//     'assoc'
+// )
 
 // Testing
 // In the end, these interfaces are meant to replace what are essentially the same data structures
@@ -439,19 +483,105 @@ class LZAssociationsPanel {
 }
 
 
+function bioIndexParams(index, firstKey, translator, secondKey, onLoad, onResolve, onError, initialData) {
+    return {
+        index,
+        queryStringMaker: !!secondKey ? () => `${firstKey},${secondKey}` : (chr, start, end) => `${firstKey},${chr}:${start}-${end}`,
+        translator: !!translator ? translator : id => id,
+        onLoad,
+        onResolve,
+        onError,
+        initialData
+    }
+}
+
 const oldAssocationsPanelLayout = new LZAssociationsPanel('T2D').layouts[0];
 
-const layout1 = new LzLayout('associations_catalog')
-    .addFields('assoc', ['pvalue', 'fold' /* etc */]);
 
-const datasource = new LzDataSource(BioIndexDataSource)
-    .withParams({ index: 'associations', firstParam: `${phenotype}` });
+export function makeAssociationsPanel(phenotype, title = '', onLoad) {
+    // https://statgen.github.io/locuszoom/docs/guides/interactivity.html#helper-functions-for-modifying-nested-layouts
+    const associationDataLayerQ = '$..data_layers[?(@.tag === "association")]';
 
-const associations_panel = new LzPanelClass(layout1, datasource).initialize('assoc');
+    const layout = new LzLayout('association_catalog', {
+            title: {
+                text: !!title
+                    ? `${title} Variant Associations`
+                    : "Variant Associations",
+                style: { "font-size": "18px" },
+                x: -0.5,
+            }
+        })
+        .setProperty(`${associationDataLayerQ}.tooltip`, {
+            widgets: [
+                {
+                    type: "remove_panel",
+                    color: "red",
+                    position: "right",
+                },
+                {
+                    type: "toggle_legend",
+                    position: "right",
+                },
+                {
+                    type: "toggleloglog",
+                    color: "gray",
+                    position: "right",
+                },
+            ],
+        })
+        .addProperty(`${associationDataLayerQ}`, 'match', {
+            send: `assoc:position`,
+            receive: `assoc:position`,
+        })
+        .addProperty(`${associationDataLayerQ}`, 'y_axis', {
+            axis: 1,
+            field: `assoc:log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+            upper_buffer: 0.1,
+        })
+        .addRule(`${associationDataLayerQ}.color`, {
+            field: "lz_highlight_match", // Special field name whose presence triggers custom rendering
+            scale_function: "if",
+            parameters: {
+                field_value: true,
+                then: "#FF00FF",
+            },
+        }, true)
+        .addFields('association', 'assoc', 
+            ['pValue', 'fold', 'position', 'consequence', 'nearest', 'beta']
+        );
+        
 
-console.log(oldAssocationsPanelLayout === layout.full())
-console.log(oldAssocationsPanelLayout === associations_panel.full().layout)
+    const translator = (associations) => {
+        
+        function varId2OtherVarId(varId) {
+            const [a, b, c, d] = varId.split(':'); // ['9', '22132076', 'A', 'G']
+            return `${a}:${b}_${c}/${d}`
+        }
 
-const layout2 = new LzLayout(LocusZoom.Layouts.get('panel', 'associations_catalog')).withNamespace('assoc', 'assoc')
+        return associations.map((association) => ({
+            chromosome: association.chromosome,
+            id: varId2OtherVarId(association.varId),
+            position: association.position,
+            pValue: association.pValue,
+            log_pvalue: -1 * Math.log10(association.pValue), // .toPrecision(4),
+            variant: varId2OtherVarId(association.varId),
+            ref_allele: association.reference,
+            consequence: association.consequence,
+            beta: association.beta,
+            nearest: association.nearest,
+        }));
+        
+    };
+    const datasource = new LzDataSource(LZBioIndexSource)
+        .withParams(bioIndexParams(
+            'associations',
+            phenotype, 
+            translator, 
+            onLoad
+        ));
 
-console.log(oldAssocationsPanelLayout === layout2.full())
+    const associations_panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
+
+    return associations_panel.full;
+
+}

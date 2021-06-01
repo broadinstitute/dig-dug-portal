@@ -4,6 +4,7 @@ import Vue from "vue";
 import LzPanel from "./LzPanel"
 import LocusZoom from "locuszoom"
 import { LZBioIndexSource } from "@/utils/lzUtils"
+import { makeAssociationsPanel } from "./lzConfiguration";
 
 export default Vue.component('lz-associations', {
     components: {
@@ -14,6 +15,13 @@ export default Vue.component('lz-associations', {
     },
     created() {
         this.panelClass = new LZAssociationsPanel(
+            this.phenotype, 
+            'Type 2 Diabetes', 
+            () => this.$emit('input'),
+            () => this.$emit('load'),
+            () => this.$emit('error')
+        )
+        this.otherPanelClass = makeAssociationsPanel(
             this.phenotype, 
             'Type 2 Diabetes', 
             () => this.$emit('input'),
