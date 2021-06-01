@@ -185,6 +185,9 @@ export class LZCatalogAnnotationsPanel {
             onError,
             initialData: this.initialData,
         });
+
+        this.sources = [[this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]]
+
     }
 }
 </script>

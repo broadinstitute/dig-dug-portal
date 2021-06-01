@@ -15,11 +15,11 @@ import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
-import { LZIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
+import { LZIntervalsPanel, makeIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
 import { LZCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
-import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
+import { makePhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
 
 import { ToggleLogLog, ldlz2_pop_selector_menu, download_png } from "./widgets";
 
@@ -293,7 +293,7 @@ export default Vue.component("locuszoom", {
             onError
         ) {
             const panelId = this.addPanelAndDataSource(
-                new LZPhewasPanel(
+                makePhewasPanel(
                     varOrGeneId,
                     index,
                     phenotypeMap,

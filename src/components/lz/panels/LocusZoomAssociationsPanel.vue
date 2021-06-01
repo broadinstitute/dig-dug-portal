@@ -5,10 +5,7 @@
 <script>
 import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
-
-import LocusZoom from "locuszoom";
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
-import idCounter from "@/utils/idCounter";
 import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
 
 export default Vue.component("lz-associations-panel", {
@@ -83,6 +80,7 @@ export default Vue.component("lz-associations-panel", {
 });
 
 export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError, initialData) {
+    const associationDataLayerQ = '$..data_layers[?(@.tag === "association")]';
 
     // get a base layout, give it a title and add some fields under the 'assoc' namespace
     const layout = new LzLayout('association_catalog', {
@@ -95,15 +93,12 @@ export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, on
             },
             y_index: 0
         })
-        .addFields('association', 'assoc', 
+        .addFields(associationDataLayerQ, 'assoc', 
             ['pValue', 'position', 'consequence', 'nearest', 'beta']
         );
 
-
-
     // modify one of the data layers
     // https://statgen.github.io/locuszoom/docs/guides/interactivity.html#helper-functions-for-modifying-nested-layouts
-    const associationDataLayerQ = '$..data_layers[?(@.tag === "association")]';
     layout.setProperty(`${associationDataLayerQ}.tooltip`, {
         widgets: [
             {
@@ -140,8 +135,6 @@ export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, on
         },
     }, true);
 
-
-
     // TODO: eliminate the translator function with field renaming!
     const translator = (associations) => {
         function varId2OtherVarId(varId) {
@@ -174,7 +167,6 @@ export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, on
                 initialData
             )
         );
-
 
     const associations_panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
     return associations_panel.unwrap;

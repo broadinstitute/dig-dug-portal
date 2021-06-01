@@ -26,6 +26,7 @@ export default Vue.component('lz-associations', {
 })
 
 function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) {
+    const associationDataLayerQ = '$..data_layers[?(@.tag === "association")]';
 
     // get a base layout, give it a title and add some fields under the 'assoc' namespace
     const layout = new LzLayout('association_catalog', {
@@ -36,13 +37,12 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
                 style: { "font-size": "18px" },
                 x: -0.5,
             }
-        }).addFields('association', 'assoc', 
+        }).addFields(associationDataLayerQ, 'assoc', 
             ['pValue', 'position', 'consequence', 'nearest', 'beta']
         );
 
     // modify one of the data layers
     // https://statgen.github.io/locuszoom/docs/guides/interactivity.html#helper-functions-for-modifying-nested-layouts
-    const associationDataLayerQ = '$..data_layers[?(@.tag === "association")]';
     layout.setProperty(`${associationDataLayerQ}.tooltip`, {
         widgets: [
             {
@@ -109,10 +109,8 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
             )
         );
 
-    const associations_panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
-
-    return associations_panel.unwrap;
-
+    const panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
+    return panel.unwrap;
 }
 
 </script>

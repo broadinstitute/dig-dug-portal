@@ -13,7 +13,7 @@ import {
 } from "@/utils/lzUtils";
 import bioIndexGroups from "@/utils/bioIndexGroups"
 import idCounter from "@/utils/idCounter";
-
+import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
 import LocusZoom from "locuszoom";
 
 export default Vue.component("lz-intervals-panel", {
@@ -51,7 +51,7 @@ export default Vue.component("lz-intervals-panel", {
                 ? (result) => this.$emit("input", result)
                 : this.onLoad;
             this.panelId = this.$parent.addPanelAndDataSource(
-                new LZIntervalsPanel(
+                LZIntervalsPanel(
                     this.index,
                     this.primaryKey,
                     this.secondaryKey,
@@ -192,6 +192,93 @@ export class LZIntervalsPanel {
             onError,
             initialData: this.initialData,
         });
+
+        this.sources = [[this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]]
+
     }
 }
+
+export function makeIntervalsPanel(
+        index,
+        primaryKey,
+        secondaryKey,
+        scoring,
+        title,
+        onLoad,
+        onResolve,
+        onError,
+        initialData
+    ) {
+
+    const dataLayerQ = '$..data_layers[?(@.id === "intervals")]';
+
+    // get a base layout, give it a title and add some fields under the 'intervals' namespace
+    const layout = new LzLayout('intervals', {
+            y_index: 2,
+            title: {
+                text: `${title} Regions`,
+            }     
+        }).addFields(dataLayerQ, 'intervals', 
+            ['pValue', 'fold']
+        );
+
+    // TODO: eliminate the translator function with field renaming!
+    const translator = function (intervals) {
+            const tissueIntervals = !!intervals
+                ? intervals
+                      .map((interval) => {
+                            const { r, g, b } = rgb(
+                                color(
+                                    LZColorScheme.getColor(interval[secondaryKey])
+                                )
+                            );
+
+                            if (!interval[secondaryKey]) return null;
+
+                            // workaround for when no global enrichment exists for a defined
+                            // possibly an issue with bioindex ingest?
+                            const score = scoring[`${interval.annotation}___${interval.tissue}`] || { minP: undefined, maxFold: undefined }; 
+
+                            return {
+                                name: primaryKey,
+                            
+                                pValue: score.minP,
+                                fold: score.maxFold,
+
+                                // some data (not displayed by default)
+                                // region information
+                                chr: interval.chromosome,
+                                start: interval.start,
+                                end: interval.end,
+                                state_id: `${interval[secondaryKey]}`,
+                                // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
+                                state_name: `${interval[secondaryKey]}`,
+                                // a string-encoded list of RGB coords, e.g. '255,0,128'
+                                itemRgb: [r, g, b].join(),
+                            };
+                      })
+                      .filter((el) => !!el)
+                : [];
+
+            return tissueIntervals;
+        };
+
+    const datasource = new LzDataSource(LZBioIndexSource)
+        .withParams(
+            bioIndexParams(
+                index,
+                primaryKey, 
+                translator, 
+                undefined,
+                onLoad,
+                onError,
+                onResolve,
+                initialData
+            )
+        );
+
+    const panel = new LzPanelClass(layout, datasource).initialize('intervals'); // 'assoc' binds both the datasource presented and the layout given uniquely
+    return panel.unwrap;
+}
+
 </script>

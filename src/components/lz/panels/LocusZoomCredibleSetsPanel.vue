@@ -170,6 +170,9 @@ export class LZCredibleVariantsPanel {
             onError,
             initialData: this.initalData,
         });
+
+        this.sources = [[this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]]
+
     }
 }
 

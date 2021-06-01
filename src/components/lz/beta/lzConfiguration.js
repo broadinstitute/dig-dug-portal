@@ -26,6 +26,7 @@ export class LzLayout {
         } else if (typeof firstParam === 'string') {
             this.layout = LocusZoom.Layouts.get('panel', firstParam)
         }
+        this.layout = Object.assign(this.layout, { id: idCounter.getUniqueId() });
     }
     
     withNamespace(original_namespace, target_namespace) {
@@ -95,7 +96,7 @@ export class LzLayout {
 
     addFields(data_layer, binder, fieldnames) {
         fieldnames.forEach(fieldname => {
-            this.addRule(`$..data_layers[?(@.tag === "${data_layer}")].fields`, `${binder}:${fieldname}`);
+            this.addRule(`${data_layer}.fields`, `${binder}:${fieldname}`);
         });
         return this;
     }
@@ -229,7 +230,7 @@ export class LzPanelClass {
 export function bioIndexParams(index, firstKey, translator, secondKey, onLoad=id=>id, onResolve=id=>id, onError=id=>id, initialData=[]) {
     return {
         index,
-        queryStringMaker: !!secondKey ? () => `${firstKey},${secondKey}` : (chr, start, end) => `${firstKey},${chr}:${start}-${end}`,
+        queryStringMaker: !!secondKey ? () => `${firstKey},${secondKey}` : (chr, start, end) => `${firstKey}${!!chr && !!start && !!end ? `,${chr}:${start}-${end}` : ''}`,
         translator: !!translator ? translator : id => id,
         onLoad,
         onResolve, 
