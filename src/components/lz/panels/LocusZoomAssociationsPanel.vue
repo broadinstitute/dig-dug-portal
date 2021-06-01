@@ -49,13 +49,15 @@ export default Vue.component("lz-associations-panel", {
                 ? (result) => this.$emit("input", result)
                 : this.onLoad;
 
-            this.id = this.$parent.addAssociationsPanel(
-                this.phenotype,
-                this.title,
-                this.value,
-                onLoad,
-                this.onResolve,
-                this.onError
+            this.id = this.$parent.addPanelAndDataSource(
+                new LZAssociationsPanel(
+                    this.phenotype,
+                    this.title,
+                    onLoad,
+                    this.onResolve,
+                    this.onError,
+                    this.value
+                )
             );
         },
     },

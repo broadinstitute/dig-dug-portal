@@ -50,16 +50,18 @@ export default Vue.component("lz-intervals-panel", {
             const onLoad = !!!this.onLoad
                 ? (result) => this.$emit("input", result)
                 : this.onLoad;
-            this.panelId = this.$parent.addIntervalsPanel(
-                this.index,
-                this.primaryKey,
-                this.secondaryKey,
-                this.scoring,
-                this.title,
-                this.initialData,
-                onLoad,
-                this.onResolve,
-                this.onError
+            this.panelId = this.$parent.addPanelAndDataSource(
+                new LZIntervalsPanel(
+                    this.index,
+                    this.primaryKey,
+                    this.secondaryKey,
+                    this.scoring,
+                    this.title,
+                    onLoad,
+                    this.onResolve,
+                    this.onError,
+                    this.initialData
+                )
             );
         },
     },

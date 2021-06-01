@@ -9,6 +9,7 @@
             :end="114835424">
             <lz-associations
                 :phenotype="'T2D'"
+                @input="$parent.tap"
             ></lz-associations>
         </lz-plot>
     </div>

@@ -44,14 +44,17 @@ export default Vue.component("lz-phewas-panel", {
         updatePanel() {
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
             const onLoad = !!!this.onLoad ? result => this.$emit('input', result) : this.onLoad;
-            this.panelId = this.$parent.addPhewasPanel(
-                this.id,
-                this.type,
-                this.phenotypeMap,
-                this.value,
-                onLoad,
-                this.onResolve,
-                this.onError
+            this.panelId = this.$parent.addPanelAndDataSource(
+                new LZPhewasPanel(
+                    this.id,
+                    this.type,
+                    this.phenotypeMap,
+                    onLoad,
+                    this.onResolve,
+                    this.onError,
+                    this.value
+                )
+
             );
         },
     },

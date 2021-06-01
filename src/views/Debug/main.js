@@ -102,6 +102,9 @@ new Vue({
     },
 
     methods: {
+        tap() {
+            console.log(arguments)
+        }
     },
 
     computed: {

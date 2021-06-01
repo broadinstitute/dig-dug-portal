@@ -47,14 +47,16 @@ export default Vue.component("lz-annotation-intervals-panel", {
             const onLoad = !!!this.onLoad
                 ? (result) => this.$emit("input", result)
                 : this.onLoad;
-            this.panelId = this.$parent.addAnnotationIntervalsPanel(
-                this.annotation,
-                this.title,
-                this.scoring,
-                this.initialData,
-                onLoad,
-                this.onResolve,
-                this.onError
+            this.panelId = this.$parent.addPanelAndDataSources(
+                new LZAnnotationIntervalsPanel(
+                    this.annotation,
+                    this.title,
+                    this.scoring,
+                    onLoad,
+                    this.onResolve,
+                    this.onError,
+                    this.initialData
+                )
             );
         },
     },

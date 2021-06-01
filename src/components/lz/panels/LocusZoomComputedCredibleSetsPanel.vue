@@ -48,13 +48,15 @@ export default Vue.component("lz-computed-credset-panel", {
         updatePanel() {
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
             const onLoad = !!!this.onLoad ? result => this.$emit('input', result) : this.onLoad;
-            this.panelId = this.$parent.addCredibleVariantsPanel(
-                this.phenotype,
-                this.credibleSetId,
-                this.initialData,
-                onLoad,
-                this.onResolve,
-                this.onError
+            this.panelId = this.addPanelAndDataSource(
+                new LZCredibleVariantsPanel(
+                    this.phenotype,
+                    this.credibleSetId,
+                    onLoad,
+                    this.onResolve,
+                    this.onError,
+                    this.value
+                )
             );
         },
     },

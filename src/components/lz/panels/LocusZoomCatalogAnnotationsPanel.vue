@@ -45,13 +45,15 @@ export default Vue.component("lz-catalog-annotations-panel", {
             const onLoad = !!!this.onLoad
                 ? (result) => this.$emit("input", result)
                 : this.onLoad;
-            this.id = this.$parent.addCatalogAnnotationsPanel(
-                this.phenotype,
-                this.title,
-                this.value,
-                onLoad,
-                this.onResolve,
-                this.onError
+            this.id = this.$parent.addPanelAndDataSource(
+                new LZCatalogAnnotationsPanel(
+                    this.phenotype,
+                    this.title,
+                    onLoad,
+                    this.onResolve,
+                    this.onError,
+                    this.value
+                )
             );
         },
     },
