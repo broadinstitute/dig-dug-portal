@@ -176,7 +176,6 @@ function createStudyTabixSources(label, tabix_reader, parser_options) {
 }
 
 function addPanels(plot, data_sources, panel_options, source_options) {
-    console.log(plot, data_sources, panel_options, source_options)
     source_options.forEach((source) => data_sources.add(...source));
     panel_options.forEach((panel_layout) => {
         panel_layout.y_index = -1; // Make sure genes track is always the last one

@@ -14,20 +14,22 @@ export default Vue.component('lz-associations', {
         phenotype: String
     },
     created() {
-        this.panelClass = new LZAssociationsPanel(
+        this.otherPanelClass = new LZAssociationsPanel(
             this.phenotype, 
             'Type 2 Diabetes', 
             () => this.$emit('input'),
             () => this.$emit('load'),
             () => this.$emit('error')
         )
-        this.otherPanelClass = makeAssociationsPanel(
+        this.panelClass = makeAssociationsPanel(
             this.phenotype, 
             'Type 2 Diabetes', 
             () => this.$emit('input'),
             () => this.$emit('load'),
             () => this.$emit('error')
         )
+        console.log(this.panelClass)
+        console.log(this.otherPanelClass)
         // hack - needs to be replaced
         this.addPanels = this.$parent.addPanels;
     }

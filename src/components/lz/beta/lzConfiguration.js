@@ -22,7 +22,6 @@ class LzLayout {
         } else if (firstParam === Object(firstParam)) {
             this.layout = firstParam;
         } else if (typeof firstParam === 'string' && typeof secondParam !== 'undefined') {
-            console.log(`${firstParam} is string, secondParam is object`)
             this.layout = LocusZoom.Layouts.get('panel', firstParam, secondParam);
         } else if (typeof firstParam === 'string') {
             this.layout = LocusZoom.Layouts.get('panel', firstParam)
@@ -170,7 +169,7 @@ class LzDataSource {
     full() {
         try {
             if (this.name !== null && this.datasource !== null) {
-                return [this.name, this.datasource(params)];
+                return [this.name, new this.datasource(params)];
             }
             throw Error(`One of 'name' or 'datasource' hasn't been initialized. name: ${this.name} datasource: ${this.datasource}`);
         } catch(e) {
@@ -217,8 +216,12 @@ class LzPanelClass {
 
     get full() {
         return {
-            layout: this.#layout.layout,
-            datasource: [this.#datasource.name, this.#datasource.datasource]
+            layouts: [
+                this.#layout.layout
+            ],
+            sources: [
+                [this.#datasource.name, new this.#datasource.datasource(this.#datasource.params)]
+            ]
         }
     }
 }
@@ -489,16 +492,16 @@ function bioIndexParams(index, firstKey, translator, secondKey, onLoad, onResolv
         queryStringMaker: !!secondKey ? () => `${firstKey},${secondKey}` : (chr, start, end) => `${firstKey},${chr}:${start}-${end}`,
         translator: !!translator ? translator : id => id,
         onLoad,
-        onResolve,
-        onError,
-        initialData
+        onResolve: id=>id,
+        onError: id=>id,
+        initialData: []
     }
 }
 
 const oldAssocationsPanelLayout = new LZAssociationsPanel('T2D').layouts[0];
 
 
-export function makeAssociationsPanel(phenotype, title = '', onLoad) {
+export function makeAssociationsPanel(phenotype, title = '', onLoad, onResolve, onError) {
     // https://statgen.github.io/locuszoom/docs/guides/interactivity.html#helper-functions-for-modifying-nested-layouts
     const associationDataLayerQ = '$..data_layers[?(@.tag === "association")]';
 
@@ -547,7 +550,7 @@ export function makeAssociationsPanel(phenotype, title = '', onLoad) {
             },
         }, true)
         .addFields('association', 'assoc', 
-            ['pValue', 'fold', 'position', 'consequence', 'nearest', 'beta']
+            ['pValue', 'position', 'consequence', 'nearest', 'beta']
         );
         
 
@@ -577,7 +580,10 @@ export function makeAssociationsPanel(phenotype, title = '', onLoad) {
             'associations',
             phenotype, 
             translator, 
-            onLoad
+            undefined,
+            onLoad,
+            onError,
+            onResolve,
         ));
 
     const associations_panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
