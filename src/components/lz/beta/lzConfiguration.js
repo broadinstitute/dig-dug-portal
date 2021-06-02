@@ -230,7 +230,9 @@ export class LzPanelClass {
 export function bioIndexParams(index, firstKey, translator, secondKey, onLoad=id=>id, onResolve=id=>id, onError=id=>id, initialData=[]) {
     return {
         index,
-        queryStringMaker: !!secondKey ? () => `${firstKey},${secondKey}` : (chr, start, end) => `${firstKey}${!!chr && !!start && !!end ? `,${chr}:${start}-${end}` : ''}`,
+        queryStringMaker: !!secondKey ? 
+                            () => `${firstKey},${secondKey}` : 
+                            (chr, start, end) => `${firstKey}${!!chr && !!start && !!end ? `,${chr}:${start}-${end}` : ''}`,
         translator: !!translator ? translator : id => id,
         onLoad,
         onResolve, 
@@ -239,6 +241,8 @@ export function bioIndexParams(index, firstKey, translator, secondKey, onLoad=id
     }
 }
 
+export const queryForDataLayerById = data_layer_id => `$..data_layers[?(@.id === "${data_layer_id}")]`;
+
 // Testing
 // In the end, these interfaces are meant to replace what are essentially the same data structures
 // So I can test for equivalence of the different ways to use the data structures with the final result.
@@ -246,8 +250,8 @@ export function bioIndexParams(index, firstKey, translator, secondKey, onLoad=id
 // new LzPanelClass(
 //     new LzLayout('association_catalog'),
 //     new LzDataSource(LZBioIndexSource, {
-//         index: 'associations-index',
-//         firstParam: `${phenotype}`,
+//         index: 'associations',
+//         firstParam: `${phenotype}`
 //     }),
 //     'assoc'
 // )

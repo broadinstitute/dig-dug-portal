@@ -3,7 +3,7 @@
 import Vue from "vue";
 import LzPanel from "./LzPanel"
 import { LZBioIndexSource } from "@/utils/lzUtils"
-import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "./lzConfiguration";
+import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams, queryForDataLayerById } from "./lzConfiguration";
 
 export default Vue.component('lz-associations', {
     components: {
@@ -17,7 +17,7 @@ export default Vue.component('lz-associations', {
             this.phenotype, 
             'Type 2 Diabetes', 
             event => this.$emit('input', event),
-            event => this.$emit('load', event),
+            event => this.$emit('resolve', event),
             event => this.$emit('error', event)
         )
         // hack - needs to be replaced
@@ -43,7 +43,7 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
 
     // modify one of the data layers
     // https://statgen.github.io/locuszoom/docs/guides/interactivity.html#helper-functions-for-modifying-nested-layouts
-    layout.setProperty(`${associationDataLayerQ}.tooltip`, {
+    layout.addProperty(`${associationDataLayerQ}`, 'toolbar', {
         widgets: [
             {
                 type: "remove_panel",
@@ -74,7 +74,7 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
             field_value: true,
             then: "#FF00FF",
         },
-    }, true);
+    }, true); //prepend rule
 
     // TODO: eliminate the translator function with field renaming!
     const translator = (associations) => {
@@ -112,7 +112,6 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
     const panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
     return panel.unwrap;
 }
-
 </script>
 
 <template>

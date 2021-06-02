@@ -6,6 +6,7 @@
 import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
+
 import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
 
 export default Vue.component("lz-associations-panel", {
@@ -80,7 +81,9 @@ export default Vue.component("lz-associations-panel", {
 });
 
 export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError, initialData) {
-    const associationDataLayerQ = '$..data_layers[?(@.tag === "association")]';
+    
+    const datalayer = data_layer_id => `$..data_layers[?(@.id === ${data_layer_id})]`;
+    const associationDataLayerQ = datalayer('associationspvaluecatalog');
 
     // get a base layout, give it a title and add some fields under the 'assoc' namespace
     const layout = new LzLayout('association_catalog', {
@@ -92,14 +95,13 @@ export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, on
                 x: -0.5,
             },
             y_index: 0
-        })
-        .addFields(associationDataLayerQ, 'assoc', 
+        }).addFields(associationDataLayerQ, 'assoc', 
             ['pValue', 'position', 'consequence', 'nearest', 'beta']
         );
 
     // modify one of the data layers
     // https://statgen.github.io/locuszoom/docs/guides/interactivity.html#helper-functions-for-modifying-nested-layouts
-    layout.setProperty(`${associationDataLayerQ}.tooltip`, {
+    layout.addProperty(`${associationDataLayerQ}`, 'toolbar', {
         widgets: [
             {
                 type: "remove_panel",
@@ -154,6 +156,7 @@ export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, on
             nearest: association.nearest,
         }));
     };
+
     const datasource = new LzDataSource(LZBioIndexSource)
         .withParams(
             bioIndexParams(
