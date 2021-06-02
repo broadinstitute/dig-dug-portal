@@ -303,7 +303,7 @@
                         to start viewing associations and annotations</b-alert
                     >
 
-                    <b-tabs
+                    <b-tabs v-show="$parent.selectedPhenotypes.length"
                         ><b-tab title="Variant associations" key="associations">
                             <criterion-function-group
                                 v-model="$parent.associationsFilter"
