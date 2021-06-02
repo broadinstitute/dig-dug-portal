@@ -212,6 +212,8 @@ export default {
         },
         async getStaticContent(context, page) {
 
+            console.log("page", page);
+
             let json = await fetch(
                 "https://kp4cd.org/rest/views/static_content?field_page=" + page
             ).then(resp => resp.json());
