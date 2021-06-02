@@ -170,7 +170,7 @@ new Vue({
             } else if (credibleSetId === "computed") {
                 // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
                 this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
-                    this.$store.state.phenotype.name
+                    this.$store.state.phenotypeParam.split(",")[0]
                 );
             }
         },
