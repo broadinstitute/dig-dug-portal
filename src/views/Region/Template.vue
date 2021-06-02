@@ -240,7 +240,7 @@
                                           ].description
                                         : phenotype
                             "
-                            placeholder="Select one ore more phenotypes"
+                            placeholder="Select one or more phenotypes"
                         >
                             <div class="label">Add Phenotypes</div>
                         </filter-enumeration-control>
