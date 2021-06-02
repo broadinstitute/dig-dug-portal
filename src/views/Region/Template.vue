@@ -372,10 +372,13 @@
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
                                         :clearOnSelected="true"
-                                        @credibleset="
-                                            $parent.addCredibleVariantsPanel(
-                                                $event
-                                            )
+                                        @credibleset="$event => {
+                                            $parent.selectedPhenotypes.forEach(phenotype => {
+                                                $parent.addCredibleVariantsPanel(
+                                                    { phenotype, ...$event }
+                                                )
+                                            })
+                                        }
                                         "
                                     />
                                 </div>

@@ -116,7 +116,6 @@ new Vue({
             const { start, end } = eventData;
             if (!!start && !!end) {
                 let that = this;
-
                 this.$store.dispatch("credibleSets/clear");
                 this.selectedPhenotypes.forEach(p => {
                     const queryString = `${p.name},${this.$store.state.chr
@@ -158,6 +157,7 @@ new Vue({
         },
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
+            console.log(phenotype, credibleSetId)
             if (credibleSetId !== "computed") {
                 this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(
                     phenotype,
@@ -166,7 +166,7 @@ new Vue({
             } else if (credibleSetId === "computed") {
                 // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
                 this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
-                    this.$store.state.phenotype.name
+                    phenotype.name
                 );
             }
         },
