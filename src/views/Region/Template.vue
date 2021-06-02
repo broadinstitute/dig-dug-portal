@@ -287,7 +287,7 @@
                         </div>
                     </criterion-list-group>
                     <h6 v-if="$parent.selectedPhenotypes.length > 0">
-                        Filter tracks &nbsp;
+                        Filter tracks and table &nbsp;
                         <tooltip-documentation
                             name="region.filter.topassoc.tooltip"
                             :isHover="true"
