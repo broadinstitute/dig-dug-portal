@@ -242,12 +242,12 @@
                             "
                             placeholder="Select one ore more phenotypes"
                         >
-                            <div class="label">Phenotypes:</div>
+                            <div class="label">Add Phenotypes</div>
                         </filter-enumeration-control>
 
                         <div class="col filter-col-md">
                             <div class="label" style="margin-bottom: 5px">
-                                Add credible set
+                                Add credible sets
                             </div>
                             <credible-sets-selectpicker
                                 :credibleSets="$parent.credibleSets"
@@ -260,7 +260,7 @@
 
                         <div class="col filter-col-md">
                             <div class="label" style="margin-bottom: 5px">
-                                Add tissue
+                                Add tissues
                             </div>
                             <tissue-selectpicker
                                 :tissues="$parent.globalEnrichmentTissues"
@@ -273,7 +273,7 @@
 
                         <div class="col filter-col-md">
                             <div class="label" style="margin-bottom: 5px">
-                                Add annotation
+                                Add annotations
                             </div>
                             <annotation-selectpicker
                                 :annotations="
