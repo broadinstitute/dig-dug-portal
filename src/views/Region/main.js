@@ -97,6 +97,9 @@ new Vue({
             associationsFilter: function (id) {
                 return true;
             },
+            annotationsFilter: function (id) {
+                return true;
+            },
             pageAssociationsMap: {},
             pageAssociations: [],
             regionPageSearchCriterion: [],
@@ -115,17 +118,17 @@ new Vue({
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
-                let that = this;
-
-                this.$store.dispatch("credibleSets/clear");
-                this.selectedPhenotypes.forEach(p => {
-                    const queryString = `${p.name},${this.$store.state.chr
-                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
-                    that.$store.dispatch("credibleSets/query", {
-                        q: queryString,
-                        append: true
+                if (this.selectedPhenotypes.length > 0) {
+                    this.$store.dispatch("credibleSets/clear");
+                    this.selectedPhenotypes.forEach(p => {
+                        const queryString = `${p.name},${this.$store.state.chr
+                            }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        this.$store.dispatch("credibleSets/query", {
+                            q: queryString,
+                            append: true
+                        });
                     });
-                });
+                }
             }
         },
 
@@ -166,7 +169,7 @@ new Vue({
             } else if (credibleSetId === "computed") {
                 // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
                 this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
-                    this.$store.state.phenotype.name
+                    this.$store.state.phenotypeParam.split(",")[0]
                 );
             }
         },
@@ -326,7 +329,6 @@ new Vue({
             }
         },
         "$store.state.globalEnrichment.data"(enrichment) {
-
             let groups = {};
             for (let i in enrichment) {
                 let r = enrichment[i];
@@ -345,19 +347,21 @@ new Vue({
             }
 
             this.enrichmentScoring = groups;
-
         },
         selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = _.difference(oldPhenotypes.map(p => p.name), phenotypes.map(p => p.name));
+            const removedPhenotypes = _.difference(
+                oldPhenotypes.map(p => p.name),
+                phenotypes.map(p => p.name)
+            );
             if (removedPhenotypes.length > 0) {
                 removedPhenotypes.forEach(removedPhenotype => {
                     delete this.pageAssociationsMap[removedPhenotype];
                     this.pageAssociations = Object.entries(
                         this.pageAssociationsMap
                     ).flatMap(pam => pam[1]);
-                })
+                });
             }
-            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
+            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
             //console.log("current phenotypes",phenotypes)
 
             // reload the global enrichment for these phenotypes

@@ -228,8 +228,6 @@ new Vue({
 
             })
 
-            console.log(this.dataTableFormat["data convert"]);
-
             let processedData = (!!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], renderingData) : renderingData;
 
             let renderingDataMerged = (this.dataTableFormat["rows merge by"] != undefined) ? this.mergeDataBy(processedData, this.dataTableFormat) : processedData;
