@@ -47,7 +47,8 @@ new Vue({
     data() {
         return {
             devID: null,
-            devPW: null
+            devPW: null,
+            dataFiles: null,
         }
     },
 
@@ -557,10 +558,17 @@ new Vue({
         },
         researchPage(content) {
             //Load data
-            if (content.length != 0 && content[0]["field_data_point"] != false) {
-                let dataPoint = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? content[0]["field_data_point"] : "http://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + content[0]["field_data_point"];
 
-                let domain = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? "external" : "hugeampkpn";
+            if (content.length != 0 && content[0]["field_data_point"] != false) {
+
+                let dataFiles = content[0]["field_data_point"].split(",");
+
+                this.dataFiles = dataFiles;
+                let initialData = dataFiles[0];
+
+                let dataPoint = (initialData.includes("http://") || initialData.includes("https://")) ? initialData : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + initialData;
+
+                let domain = (initialData.includes("http://") || initialData.includes("https://")) ? "external" : "hugeampkpn";
 
                 let fetchParam = { "dataPoint": dataPoint, "domain": domain }
 

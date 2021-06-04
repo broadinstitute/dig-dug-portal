@@ -109,6 +109,7 @@
                                 class="col-md-12"
                                 v-html="$parent.pageDescription"
                             ></div>
+
                             <div
                                 class="col-md-12"
                                 v-if="
@@ -118,6 +119,12 @@
                                 "
                             >
                                 <research-page-filters
+                                    :dataFiles="
+                                        $parent.dataFiles.length > 0
+                                            ? $parent.dataFiles
+                                            : null
+                                    "
+                                    :uid="$parent.uid"
                                     :filters="$parent.dataFilters"
                                     :dataset="$store.state.filteredData"
                                     :unfilteredDataset="$parent.researchData"

@@ -2,6 +2,20 @@
     <div>
         <div class="filtering-ui-wrapper">
             <div class="filtering-ui-content row">
+                <div class="col" v-if="this.dataFiles != null">
+                    <div class="label">Select data</div>
+                    <select
+                        id="dataFiles"
+                        @change="switchData($event)"
+                        class="custom-select"
+                    >
+                        <option
+                            v-for="file in this.dataFiles"
+                            v-html="file"
+                            :key="file"
+                        ></option>
+                    </select>
+                </div>
                 <div
                     class="col"
                     v-for="filter in this.filters"
@@ -108,7 +122,7 @@
 import Vue from "vue";
 
 export default Vue.component("research-page-filters", {
-    props: ["filters", "dataset", "unfilteredDataset"],
+    props: ["dataFiles", "uid", "filters", "dataset", "unfilteredDataset"],
 
     data() {
         return {
@@ -131,14 +145,37 @@ export default Vue.component("research-page-filters", {
     comuted: {},
     watch: {},
     methods: {
+        switchData(event) {
+            console.log(event.target.value);
+            let initialData = event.target.value;
+
+            let dataPoint =
+                initialData.includes("http://") ||
+                initialData.includes("https://")
+                    ? initialData
+                    : "https://hugeampkpncms.org/sites/default/files/users/user" +
+                      this.uid +
+                      "/" +
+                      initialData;
+
+            let domain =
+                initialData.includes("http://") ||
+                initialData.includes("https://")
+                    ? "external"
+                    : "hugeampkpn";
+
+            let fetchParam = { dataPoint: dataPoint, domain: domain };
+
+            this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+        },
         numberOfSearches() {
-            console.log("called 3");
+            // console.log("called 3");
             let numberOfBubbles = 0;
             for (const FIELD in this.filtersIndex) {
                 numberOfBubbles += this.filtersIndex[FIELD].search.length;
             }
 
-            console.log("numberOfBubbles", numberOfBubbles);
+            // console.log("numberOfBubbles", numberOfBubbles);
 
             return numberOfBubbles;
         },
@@ -185,12 +222,12 @@ export default Vue.component("research-page-filters", {
                 }
             }
 
-            console.log("this.filtersIndex", this.filtersIndex);
+            // console.log("this.filtersIndex", this.filtersIndex);
 
             this.applyFilters();
         },
         applyFilters() {
-            console.log(this.filtersIndex);
+            //console.log(this.filtersIndex);
             let filtered = this.unfilteredDataset;
             let tempFiltered = [];
             let i = 0;
