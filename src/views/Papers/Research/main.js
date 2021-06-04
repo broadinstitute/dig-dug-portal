@@ -164,7 +164,7 @@ new Vue({
 
         csv2Json(DATA) {
 
-
+            console.log(DATA);
 
             let rawData2 = JSON.parse(DATA);
 
@@ -410,18 +410,16 @@ new Vue({
             return JSON.parse(contents[0]["field_filters"]);
         },
         researchData() {
+
             let contents = this.$store.state.hugeampkpncms.researchData;
 
             if (contents.length === 0) {
                 return null;
             }
 
-            //console.log(contents);
-            let convertedData = this.csv2Json(contents);
-
-            //console.log(convertedData);
-
+            let convertedData = this.csv2Json(contents[0]);
             return convertedData;
+
         },
         dataTableFormat() {
             let contents = this.researchPage;
@@ -558,9 +556,16 @@ new Vue({
         researchPage(content) {
             //Load data
             if (content.length != 0 && content[0]["field_data_point"] != false) {
-                let dataPoint = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? content[0]["field_data_point"] : "http://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + content[0]["field_data_point"];
 
-                let domain = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? "external" : "hugeampkpn";
+                let initialDataFile = content[0]["field_data_point"].split(",")[0];
+
+                console.log(initialDataFile);
+
+                let dataPoint = (initialDataFile.includes("http://") || initialDataFile.includes("https://")) ? initialDataFile : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + initialDataFile;
+
+                console.log(dataPoint);
+
+                let domain = (initialDataFile.includes("http://") || initialDataFile.includes("https://")) ? "external" : "hugeampkpn";
 
                 let fetchParam = { "dataPoint": dataPoint, "domain": domain }
 
