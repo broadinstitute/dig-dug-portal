@@ -155,7 +155,8 @@
                                 <tissue-selectpicker
                                     :tissues="$parent.plottedTissues"
                                     :clearOnSelected="true"
-                                    @tissue="$parent.addTissue($event)"
+                                    @tissue="$parent.selectTissue($event)"
+                                    v-model="$parent.selectedTissue"
                                 />
                             </div>
                         </b-row>
@@ -163,72 +164,6 @@
 
                     <b-container fluid class="cs-plot-wrapper">
                         <b-row fluid :style="'flex-wrap: nowrap !important'">
-                            <!-- track names-->
-                            <div class="cs-plot-field-names">
-                                <div class="cs-plot-field-name-tissues">
-                                    <div>
-                                        <span class="cs-plot-field-name-title"
-                                            >Tissues</span
-                                        >
-                                    </div>
-                                    <div
-                                        v-for="(
-                                            tissue, tKey, index
-                                        ) in $parent.selectedTissues"
-                                        :key="tKey"
-                                        :style="'color: #333333;'"
-                                        v-html="
-                                            tKey +
-                                            '&nbsp;<span class=\'remove\'>X</span>'
-                                        "
-                                    ></div>
-                                </div>
-                                <div class="cs-plot-field-name-annotations">
-                                    <div>
-                                        <span class="cs-plot-field-name-title"
-                                            >Annotations</span
-                                        >
-                                    </div>
-                                    <div
-                                        v-for="(
-                                            annotation, key, index
-                                        ) in $parent.annotations"
-                                        :key="key"
-                                        :style="
-                                            'color:' +
-                                            $parent.annotationColors[index] +
-                                            ';'
-                                        "
-                                        v-html="
-                                            key +
-                                            '&nbsp;<span class=\'remove\'>X</span>'
-                                        "
-                                    ></div>
-                                </div>
-                                <div class="cs-plot-field-name-variants">
-                                    <div>
-                                        <span class="cs-plot-field-name-title"
-                                            >Credible sets</span
-                                        >
-                                    </div>
-                                    <div
-                                        v-for="(
-                                            cs, index
-                                        ) in $parent.credibleSetsData"
-                                        :key="cs.id"
-                                        :class="'cs-plot-field-name'"
-                                        :style="
-                                            'color:' +
-                                            $parent.colorIndex[index] +
-                                            ';'
-                                        "
-                                        v-html="
-                                            cs.id +
-                                            '&nbsp;<span class=\'remove\'>X</span>'
-                                        "
-                                    ></div>
-                                </div>
-                            </div>
                             <div class="cs-plot-field-value">
                                 <div
                                     id="annotationsSummary"
@@ -357,37 +292,123 @@
 
                                 <!-- Annotations -->
                                 <div
-                                    class="cs-plot-field-value-annotations"
-                                    id="annotationsWrapper"
+                                    :style="
+                                        Object.keys($parent.annotations)
+                                            .length > 0
+                                            ? 'display: block;'
+                                            : 'display:none;'
+                                    "
                                 >
-                                    <div class="viewing-area-indicator"></div>
+                                    <div
+                                        class="cs-plot-field-name-annotations cs-name-wrapper"
+                                    >
+                                        <div>
+                                            <span
+                                                class="cs-plot-field-name-title"
+                                                >Annotations</span
+                                            >
+                                        </div>
+                                        <div
+                                            v-for="(
+                                                annotation, key, index
+                                            ) in $parent.annotations"
+                                            :key="key"
+                                            :style="
+                                                'color:' +
+                                                $parent.annotationColors[
+                                                    index
+                                                ] +
+                                                ';'
+                                            "
+                                            v-html="
+                                                key +
+                                                '&nbsp;<span class=\'remove\'>X</span>'
+                                            "
+                                        ></div>
+                                    </div>
+                                    <div
+                                        class="cs-plot-field-value-annotations cs-value-wrapper"
+                                        id="annotationsWrapper"
+                                    ></div>
                                 </div>
                                 <!-- selected tissues -->
                                 <div
-                                    class="cs-plot-field-value-tissues"
-                                    id="tissuesWrapper"
+                                    :style="
+                                        Object.keys($parent.selectedTissues)
+                                            .length > 0
+                                            ? 'display: block;'
+                                            : 'display:none;'
+                                    "
                                 >
-                                    <div class="viewing-area-indicator"></div>
+                                    <div
+                                        class="cs-plot-field-name-tissues cs-name-wrapper"
+                                    >
+                                        <div>
+                                            <span
+                                                class="cs-plot-field-name-title"
+                                                >Tissues</span
+                                            >
+                                        </div>
+                                        <div
+                                            v-for="(
+                                                tissue, tKey, index
+                                            ) in $parent.selectedTissues"
+                                            :key="tKey"
+                                            :style="'color: #333333;'"
+                                            v-html="
+                                                tKey +
+                                                '&nbsp;<span class=\'remove\'>X</span>'
+                                            "
+                                        ></div>
+                                    </div>
+                                    <div
+                                        class="cs-plot-field-value-tissues cs-value-wrapper"
+                                        id="tissuesWrapper"
+                                    ></div>
                                 </div>
                                 <!-- credible sets variants -->
                                 <div
-                                    class="cs-plot-field-value-variants cs-plot-wrapper"
+                                    :style="
+                                        $parent.credibleSetsData.length > 0
+                                            ? 'display: block;'
+                                            : 'display:none;'
+                                    "
                                 >
-                                    <div class="viewing-area-indicator"></div>
-                                    <canvas
-                                        id="credibleVariants"
-                                        height="0"
-                                        width="0"
-                                    ></canvas>
+                                    <div
+                                        class="cs-plot-field-name-variants cs-name-wrapper"
+                                    >
+                                        <div>
+                                            <span
+                                                class="cs-plot-field-name-title"
+                                                >Credible sets</span
+                                            >
+                                        </div>
+                                        <div
+                                            v-for="(
+                                                cs, index
+                                            ) in $parent.credibleSetsData"
+                                            :key="cs.id"
+                                            :class="'cs-plot-field-name'"
+                                            :style="
+                                                'color:' +
+                                                $parent.colorIndex[index] +
+                                                ';'
+                                            "
+                                            v-html="
+                                                cs.id +
+                                                '&nbsp;<span class=\'remove\'>X</span>'
+                                            "
+                                        ></div>
+                                    </div>
+                                    <div
+                                        class="cs-plot-field-value-variants cs-value-wrapper cs-value-plot-wrapper"
+                                        id="credibleVariantsWrapper"
+                                    ></div>
                                 </div>
                             </div>
                         </b-row>
-                        <b-row>
-                            <div
-                                class="col-md-12"
-                                v-if="$parent.tableData.length > 0"
-                                style="margin-top: 20px"
-                            >
+                        <b-row v-if="$parent.tableData.length > 0">
+                            <div class="col-md-12" style="margin-top: 20px">
                                 <research-data-table
                                     :pageID="'table data'"
                                     :dataset="$store.state.filteredData"
@@ -413,9 +434,9 @@
     position: absolute;
     top: 0;
     z-index: 100;
-    background-color: #aaaaaa30;
+    background-color: #aaaaaa;
     width: 100px;
-    height: 100%;
+    height: 3px;
 }
 
 #scrollPanel {
@@ -575,15 +596,26 @@
     background-color: #ff0000 !important;
 }
 
-.cs-plot-wrapper {
-    scroll-behavior: smooth;
-    margin-top: 30px;
+.cs-value-wrapper {
+    display: inline-block;
+    width: calc(100% - 150px);
 }
-.cs-plot-field-names {
+
+.cs-value-plot-wrapper {
+    scroll-behavior: smooth;
+    background-color: #eee;
+    border: solid 1px #ddd;
+}
+
+.cs-value-plot-wrapper canvas {
+    background-color: #fff;
+}
+.cs-plot-field-names,
+.cs-name-wrapper {
     font-size: 14px;
     width: 150px !important;
-    vertical-align: middle;
-    display: inline-table;
+    vertical-align: top;
+    display: inline-block;
 }
 
 .cs-plot-field-name-pp {
@@ -605,8 +637,7 @@
 }
 
 .cs-plot-field-value {
-    width: calc(100% - 150px);
-    border-left: solid 1px #dddddd;
+    width: 100%;
 }
 
 .cs-plot-field-value-annotations {
@@ -620,29 +651,26 @@
     max-height: 145px;
     overflow-x: hidden;
     width: calc(100% + 8px);
-    border-top: solid 1px #ddd;
-    border-bottom: solid 1px #ddd;
-    margin-top: 10px;
+    border: solid 1px #ddd;
     position: relative;
-    padding-top: 5px;
 }
 
 .cs-plot-field-value-tissue {
     overflow-x: hidden;
     width: 100%;
-    border-top: solid 1px #ddd;
-    border-bottom: solid 1px #ddd;
-    background-color: #eeeeee;
-    margin-top: 10px;
     position: relative;
-    padding-top: 5px;
 }
 
 .cs-plot-field-value-variants {
     position: relative;
-    height: 167px;
-    padding: 0 0 5px 0;
+    height: 157px;
     overflow-x: hidden;
     overflow-y: hidden;
+    border-top: solid 1px #ddd;
+}
+
+.cs-plot-field-value-variants canvas {
+    border-top: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
 }
 </style>

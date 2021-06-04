@@ -65,6 +65,7 @@ new Vue({
         return {
             region: null,
             locus: null,
+            selectedTissue: null,
             credibleSetsData: [],
             credibleSetsDataSorted: {},
             tableData: [],
@@ -76,7 +77,6 @@ new Vue({
             canvasHeight: null,
             colorIndex: ["#048845", "#8490C8", "#BF61A5", "#EE3124", "#FCD700", "#5555FF", "#7aaa1c", "#9F78AC", "#F88084", "#F5A4C7", "#CEE6C1", "#cccc00", "#6FC7B6", "#D5A768", "#D4D4D4"],
             annotationColors: ["#D5A768", "#6FC7B6", "#cccc00", "#CEE6C1", "#F5A4C7", "#F88084", "#9F78AC", "#7aaa1c", "#5555FF", "#FCD700", "#EE3124", "#BF61A5", "#8490C8", "#048845"],
-            tissuesOnSearch: ["pancreas", "uterus"],
             plotsConfig: { hBump: 5.5, vBump: 5.5, itemWidth: 15, itemMargin: 1, itemWrapperMargin: 2, font: "11px Arial" },
         };
     },
@@ -110,6 +110,31 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        clearAll(pram) {
+            switch (pram) {
+                case "all":
+                    this.region = null;
+                    this.locus = null;
+                    this.$store.state.phenotype = null;
+                    this.resetAllWrappers()
+                    break
+            }
+        },
+        resetAllWrappers() {
+            this.credibleSetsData = [];
+            this.credibleSetsDataSorted = {};
+            this.annotations = {};
+            this.canvasHeight = null;
+            this.plottedTissues = [];
+            this.selectedTissues = {};
+            this.$store.dispatch("credibleSets/clear");
+            this.$store.dispatch("globalEnrichment/clear");
+            this.$store.dispatch("credibleVariants/clear");
+            this.$store.dispatch("annotation/clear");
+            document.getElementById("credibleVariantsWrapper").innerHTML = "";
+            document.getElementById("annotationsWrapper").innerHTML = "";
+            document.getElementById("tissuesWrapper").innerHTML = "";
+        },
         async onGeneChange(gene) {
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
@@ -118,53 +143,48 @@ new Vue({
             }
         },
         getOptions() {
-            this.requestCredibleSets();
-            this.requestAnnotations();
-        },
-        requestCredibleSets() {
+
             let that = this;
             let phenotype = this.$store.state.phenotype;
 
             this.$store.dispatch("credibleSets/clear");
-            const queryString = `${phenotype.name},${this.locus.chr
+            const CSQueryString = `${phenotype.name},${this.locus.chr
                 }:${Number.parseInt(this.locus.start)}-${Number.parseInt(this.locus.end)}`;
             that.$store.dispatch("credibleSets/query", {
-                q: queryString,
+                q: CSQueryString,
                 append: true
             });
-        },
-        requestAnnotations() {
-            let that = this;
-            let phenotype = this.$store.state.phenotype;
 
             this.$store.dispatch("globalEnrichment/clear");
-            const queryString = `${phenotype.name}`;
+            const annoQueryString = `${phenotype.name}`;
             that.$store.dispatch("globalEnrichment/query", {
-                q: queryString,
+                q: annoQueryString,
                 append: true
             });
         },
+
         addCredibleSets(event) {
             const { phenotype, credibleSetId } = event;
             if (credibleSetId !== "computed") {
-                this.requestCredibleVariants(event.credibleSetId);
-            } else if (credibleSetId === "computed") {
 
+
+                let that = this;
+                let phenotype = this.$store.state.phenotype;
+
+                this.$store.dispatch("credibleVariants/clear");
+                const queryString = `${phenotype.name},${event.credibleSetId}`;
+                that.$store.dispatch("credibleVariants/query", {
+                    q: queryString,
+                    append: true
+                });
+
+            } else if (credibleSetId === "computed") {
+                // Do something here for computed credible sets
             }
         },
-        requestCredibleVariants(credibleSetId) {
-            let that = this;
-            let phenotype = this.$store.state.phenotype;
 
-            this.$store.dispatch("credibleVariants/clear");
-            const queryString = `${phenotype.name},${credibleSetId}`;
-            that.$store.dispatch("credibleVariants/query", {
-                q: queryString,
-                append: true
-            });
-        },
         addAnnotation(event) {
-            //console.log(event);
+
             let that = this;
             let annotationId = event.annotation;
 
@@ -177,13 +197,8 @@ new Vue({
             });
         },
 
-        addTissue(event) {
-
-            if (this.selectedTissues[event.tissue] == undefined) {
-                this.selectedTissues[event.tissue] = event;
-            }
-
-            this.renderTissuesPlot();
+        selectTissue(event) {
+            this.selectedTissue = event;
         },
 
         getDotInfo(dotId) {
@@ -200,21 +215,12 @@ new Vue({
             return contents;
         },
 
-        clearAll(pram) {
-            switch (pram) {
-                case "all":
-                    this.region = null;
-                    this.locus = null;
-                    this.credibleSetsData = [];
-                    this.credibleSetsDataSorted = {};
-                    this.annotations = {};
-                    this.canvasHeight = null;
-                    this.$store.state.phenotype = null;
-                    break
-            }
-        },
+
         renderCredibleSetsPlot() {
             let data = this.credibleSetsDataSorted;
+
+            document.getElementById("credibleVariantsWrapper").innerHTML = "";
+
             //render variants plot
             let xBump = this.plotsConfig.hBump,
                 yBump = this.plotsConfig.vBump,
@@ -239,8 +245,11 @@ new Vue({
             this.canvasHeight = canvasHeight;
             let canvasWidth = (xBump * 2) + ppWidth + variantsWidth + (variantPpSpace * 2);
 
-            var c = document.getElementById("credibleVariants");
-            var ctx = c.getContext("2d");
+            var canvas = document.createElement('canvas');
+            canvas.id = "credibleVariants";
+
+            //var c = document.getElementById("credibleVariants");
+            var ctx = canvas.getContext("2d");
 
             /* set canvas width and height before rendering */
 
@@ -309,65 +318,20 @@ new Vue({
                 rectTop += perVariantWrapperBottom;
 
             }
-        },
-        setTableData() {
 
-            let tableFormat = { "top rows": ["Locus", "Allele", "P/P", "Credible set ID", "Ancestry", "Beta", "Odds Ratio"] };
-            let credibleData = this.credibleSetsDataSorted;
-            let annotationData = this.annotations;
+            let targetWrapper = document.getElementById("credibleVariantsWrapper");
+            targetWrapper.appendChild(canvas);
 
-            let preData = {};
-            let mergedData = [];
-
-            for (const variantId in credibleData) {
-                credibleData[variantId].map(v => {
-                    let tempObj = {}
-                    tempObj["Locus"] = v.chromosome + ":" + v.position;
-                    tempObj["position"] = v.position;
-                    tempObj["Allele"] = formatters.alleleFormatter(v.reference, v.alt);
-                    tempObj["P/P"] = formatters.floatFormatter(v.posteriorProbability);
-                    tempObj["Credible set ID"] = v.credibleSetId;
-                    tempObj["Ancestry"] = formatters.ancestryFormatter(v.ancestry);
-                    tempObj["Beta"] = formatters.floatFormatter(v.beta);
-                    tempObj["Odds Ratio"] = formatters.floatFormatter(v.oddsRatio);
-
-                    mergedData.push(tempObj);
-                })
-            }
-
-            if (Object.keys(annotationData).length > 0) {
-                for (const annotation in annotationData) {
-                    tableFormat["top rows"].push(annotation);
-                    let eachAnnotation = annotationData[annotation];
-
-                    mergedData.map(v => {
-                        let tissuesList = "";
-                        for (const tissue in eachAnnotation) {
-                            let atLeast1 = null;
-
-                            eachAnnotation[tissue].map(t => {
-                                let position = v.position;
-                                if (position >= t.start && position <= t.end) {
-                                    atLeast1 = true;
-                                }
-                            })
-                            if (atLeast1 == true) { tissuesList += tissue + "<br>" }
-                        }
-
-                        v[annotation] = tissuesList;
-                    })
-
-                }
-            }
-
-            this.tableData = mergedData;
-            this.tableDataFormat = tableFormat;
+            let indicator = document.createElement('div');
+            indicator.className = "viewing-area-indicator";
+            //indicator.style.height = canvasWidth + "px";
+            indicator.style.width = 0 + "px";
+            targetWrapper.appendChild(indicator);
         },
         renderAnnotationsPlot() {
             let data = this.annotations;
 
             document.getElementById("annotationsWrapper").innerHTML = "";
-
 
             let annotationIndex = 0;
             for (const annotation in data) {
@@ -376,7 +340,7 @@ new Vue({
 
                 let wrapper = document.createElement('div');
                 wrapper.id = annotation;
-                wrapper.className = "cs-plot-field-value-annotation cs-plot-wrapper";
+                wrapper.className = "cs-plot-field-value-annotation cs-value-plot-wrapper";
                 let plotsWrapper = document.getElementById("annotationsWrapper");
                 plotsWrapper.appendChild(wrapper);
 
@@ -463,7 +427,7 @@ new Vue({
 
                 let indicator = document.createElement('div');
                 indicator.className = "viewing-area-indicator";
-                indicator.style.height = (Object.keys(annotationData).length * itemHeight) + (yBump * 2) + "px";
+                //indicator.style.height = (Object.keys(annotationData).length * itemHeight) + (yBump * 2) + "px";
                 targetWrapper.appendChild(indicator);
 
                 /* add tissue names */
@@ -476,20 +440,30 @@ new Vue({
         },
         renderTissuesPlot() {
 
-            let data = this.annotations;
+            //let data = this.annotations;
 
             document.getElementById("tissuesWrapper").innerHTML = "";
 
             for (const selectedTissue in this.selectedTissues) {
-                console.log("this.selectedTissue", selectedTissue);
+                //console.log("this.selectedTissue", selectedTissue);
 
                 let wrapper = document.createElement('div');
                 wrapper.id = selectedTissue.replace(/ /g, '');
-                wrapper.className = "cs-plot-field-value-tissue cs-plot-wrapper";
+                wrapper.className = "cs-plot-field-value-tissue cs-value-plot-wrapper";
                 let plotsWrapper = document.getElementById("tissuesWrapper");
                 plotsWrapper.appendChild(wrapper);
+            }
 
+            for (const selectedTissue in this.selectedTissues) {
+                //console.log("this.selectedTissue", selectedTissue);
+                /*
+                                let wrapper = document.createElement('div');
+                                wrapper.id = selectedTissue.replace(/ /g, '');
+                                wrapper.className = "cs-plot-field-value-tissue cs-value-plot-wrapper";
+                                let plotsWrapper = document.getElementById("tissuesWrapper");
+                                plotsWrapper.appendChild(wrapper);
 
+                */
 
                 // Get number of annotations with the selected tissue
                 let antnWSTissue = 0;
@@ -546,12 +520,74 @@ new Vue({
                     annotationIndex++;
                 };
 
-                var targetWrapper = document.getElementById(selectedTissue.replace(/ /g, ''));
-                targetWrapper.appendChild(canvas);
+                var canvasWrapper = document.getElementById(selectedTissue.replace(/ /g, ''));
+                canvasWrapper.appendChild(canvas);
 
             }
+
+            let tissuesWrapper = document.getElementById("tissuesWrapper");
+
+            let indicator = document.createElement('div');
+            indicator.className = "viewing-area-indicator";
+            //indicator.style.height = (Object.keys(annotationData).length * itemHeight) + (yBump * 2) + "px";
+            tissuesWrapper.appendChild(indicator);
+
             if (this.selectedPosition != null) { this.scrollPlotsTo(this.selectedPosition) };
         },
+        setTableData() {
+
+            let tableFormat = { "top rows": ["Locus", "Allele", "P/P", "Credible set ID", "Ancestry", "Beta", "Odds Ratio"] };
+            let credibleData = this.credibleSetsDataSorted;
+            let annotationData = this.annotations;
+
+            let preData = {};
+            let mergedData = [];
+
+            for (const variantId in credibleData) {
+                credibleData[variantId].map(v => {
+                    let tempObj = {}
+                    tempObj["Locus"] = v.chromosome + ":" + v.position;
+                    tempObj["position"] = v.position;
+                    tempObj["Allele"] = formatters.alleleFormatter(v.reference, v.alt);
+                    tempObj["P/P"] = formatters.floatFormatter(v.posteriorProbability);
+                    tempObj["Credible set ID"] = v.credibleSetId;
+                    tempObj["Ancestry"] = formatters.ancestryFormatter(v.ancestry);
+                    tempObj["Beta"] = formatters.floatFormatter(v.beta);
+                    tempObj["Odds Ratio"] = formatters.floatFormatter(v.oddsRatio);
+
+                    mergedData.push(tempObj);
+                })
+            }
+
+            if (Object.keys(annotationData).length > 0) {
+                for (const annotation in annotationData) {
+                    tableFormat["top rows"].push(annotation);
+                    let eachAnnotation = annotationData[annotation];
+
+                    mergedData.map(v => {
+                        let tissuesList = "";
+                        for (const tissue in eachAnnotation) {
+                            let atLeast1 = null;
+
+                            eachAnnotation[tissue].map(t => {
+                                let position = v.position;
+                                if (position >= t.start && position <= t.end) {
+                                    atLeast1 = true;
+                                }
+                            })
+                            if (atLeast1 == true) { tissuesList += tissue + "<br>" }
+                        }
+
+                        v[annotation] = tissuesList;
+                    })
+
+                }
+            }
+
+            this.tableData = mergedData;
+            this.tableDataFormat = tableFormat;
+        },
+
         setTissueNamesLeft(leftPos) {
 
             let elements = document.querySelectorAll('.cs-plot-annotation-tissue-names');
@@ -564,9 +600,6 @@ new Vue({
         setViewingAreaIndicator(index) {
 
             let elements = document.querySelectorAll('.viewing-area-indicator');
-
-            let indicatorPos = index - 5;
-
 
             let xBump = this.plotsConfig.hBump,
                 yBump = this.plotsConfig.vBump,
@@ -605,7 +638,7 @@ new Vue({
         scrollPlotsTo(position) {
 
             this.selectedPosition = position;
-            let elements = document.querySelectorAll('.cs-plot-wrapper');
+            let elements = document.querySelectorAll('.cs-value-plot-wrapper');
             let leftPos = this.getScrollLeft(position);
 
             elements.forEach(function (element) {
@@ -661,6 +694,10 @@ new Vue({
 
 
     computed: {
+        computedTissues() {
+
+            return this.selectedTissues;
+        },
 
         annotation() {
             let content = { annotation: "", folds: [], data: {} };
@@ -883,6 +920,11 @@ new Vue({
             if (Object.keys(this.selectedTissues).length != 0) { this.renderTissuesPlot(); };
             if (Object.keys(this.credibleSetsDataSorted).length != 0) { this.renderCredibleSetsPlot(); };
             this.setTableData();
+        },
+        selectedTissue(data) {
+            //console.log("selectedTissues updated");
+            this.selectedTissues[data.tissue] = data;
+            this.renderTissuesPlot();
         }
         /*'$store.state.phenotype'() {
             console.log(this.$store.state.phenotype.name);
