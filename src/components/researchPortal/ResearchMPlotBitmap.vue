@@ -261,13 +261,29 @@ export default Vue.component("research-m-bitmap-plot", {
 
             // render y ticker
 
-            let yAxisData = [];
+            let yMin = null;
+            let yMax = null;
+
             this.renderData.unsorted.map((d) => {
-                yAxisData.push(d[this.renderConfig.yAxisField]);
+                //yAxisData.push(d[this.renderConfig.yAxisField]);
+
+                let yValue = d[this.renderConfig.yAxisField];
+
+                if (yMin == null) {
+                    yMin = yValue;
+                }
+                if (yMax == null) {
+                    yMax = yValue;
+                }
+
+                if (yValue < yMin) {
+                    yMin = yValue;
+                }
+                if (yValue > yMax) {
+                    yMax = yValue;
+                }
             });
 
-            let yMin = Math.min.apply(Math, yAxisData);
-            let yMax = Math.max.apply(Math, yAxisData);
             let yStep = (yMax - yMin) / 4;
 
             let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
