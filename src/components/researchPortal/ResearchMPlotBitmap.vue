@@ -13,7 +13,6 @@
             id="manhattanPlot"
             @mouseleave="hidePanel"
             @mousemove="checkPosition"
-            @click="filterTable"
             @resize="onResize"
             width=""
             height=""
@@ -154,43 +153,6 @@ export default Vue.component("research-m-bitmap-plot", {
         hidePanel() {},
         onResize(e) {
             this.renderPlot();
-        },
-        filterTable() {
-            let wrapper = document.getElementById("clicked_dot_value");
-
-            if (wrapper.innerText != "") {
-                let items = [];
-                let genesLength = document.getElementsByClassName(
-                    "gene-on-clicked-dot-mplot"
-                );
-
-                genesLength.forEach((gene) => items.push(gene.innerText));
-
-                /*document.getElementById(
-                    "filter_" + this.renderConfig.renderBy.replace(/ /g, "")
-                ).value = items.join(", ");
-                this.$parent.$parent.filterData(
-                    "",
-                    this.renderConfig.renderBy,
-                    "search"
-                );*/
-
-                let searchValue = items.join(", ");
-                let FIELD = this.renderConfig.renderBy;
-                let searchTerms = searchValue.split(",");
-                let newFiltersIndex = this.filtersIndex;
-                searchTerms.map((searchTerm) => {
-                    newFiltersIndex[FIELD]["search"].push(searchTerm.trim());
-
-                    newFiltersIndex[FIELD]["search"] = newFiltersIndex[FIELD][
-                        "search"
-                    ].filter((v, i, arr) => arr.indexOf(v) == i);
-                });
-
-                this.$store.dispatch("filtersIndex", newFiltersIndex);
-
-                console.log(this.filtersIndex);
-            }
         },
         checkPosition(event) {
             let wrapper = document.getElementById("clicked_dot_value");

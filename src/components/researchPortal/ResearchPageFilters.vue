@@ -2,7 +2,7 @@
     <div>
         <div class="filtering-ui-wrapper">
             <div class="filtering-ui-content row">
-                <div class="col" v-if="this.dataFiles != null">
+                <div class="col" :v-if="this.dataFiles != null">
                     <div class="label">Select data</div>
                     <select
                         id="dataFiles"
@@ -11,8 +11,9 @@
                     >
                         <option
                             v-for="file in this.dataFiles"
-                            v-html="file"
-                            :key="file"
+                            :value="file.trim()"
+                            v-html="getFileLabel(file.trim())"
+                            :key="file.trim()"
                         ></option>
                     </select>
                 </div>
@@ -122,7 +123,14 @@
 import Vue from "vue";
 
 export default Vue.component("research-page-filters", {
-    props: ["dataFiles", "uid", "filters", "dataset", "unfilteredDataset"],
+    props: [
+        "dataFiles",
+        "filesListLabels",
+        "uid",
+        "filters",
+        "dataset",
+        "unfilteredDataset",
+    ],
 
     data() {
         return {
@@ -145,6 +153,13 @@ export default Vue.component("research-page-filters", {
     comuted: {},
     watch: {},
     methods: {
+        getFileLabel(file) {
+            if (this.filesListLabels != null) {
+                return this.filesListLabels[file];
+            } else {
+                return file;
+            }
+        },
         switchData(event) {
             console.log(event.target.value);
             let initialData = event.target.value;

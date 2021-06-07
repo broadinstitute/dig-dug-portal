@@ -120,8 +120,13 @@
                             >
                                 <research-page-filters
                                     :dataFiles="
-                                        $parent.dataFiles.length > 0
+                                        $parent.dataFiles.length > 1
                                             ? $parent.dataFiles
+                                            : null
+                                    "
+                                    :filesListLabels="
+                                        $parent.dataFiles.length > 1
+                                            ? $parent.dataFilesLabels
                                             : null
                                     "
                                     :uid="$parent.uid"
@@ -194,11 +199,7 @@
                                 <research-data-table
                                     :pageID="$parent.pageID"
                                     :dataset="$store.state.filteredData"
-                                    :tableFormat="
-                                        $parent.dataTableFormat != false
-                                            ? $parent.dataTableFormat
-                                            : $parent.rawDataTableFormat
-                                    "
+                                    :tableFormat="$parent.dataTableFormat"
                                     :perPageNumber="$parent.tablePerPageNumber"
                                     :tableLegend="$parent.tableLegend"
                                 >

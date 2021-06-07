@@ -49,6 +49,7 @@ new Vue({
             devID: null,
             devPW: null,
             dataFiles: null,
+            dataFilesLabels: null,
         }
     },
 
@@ -183,59 +184,16 @@ new Vue({
 
                     for (let h = 0; h < i.length; h++) {
 
-                        tempObj[jsonHeader[h]] = i[h];
+                        tempObj[jsonHeader[h]] = (this.testNumber(i[h]) == true) ? Number(i[h]) : this.breakLines(i[h]);
                     }
                     jsonData.push(tempObj);
                 }
+            });
 
 
-            })
+            let processedData = (!!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], jsonData) : jsonData;
 
-            let renderingData = []
-
-
-            jsonData.map(d => {
-
-                let tempObj = {};
-                if (this.dataTableFormat == false) {
-                    let topRows = Object.keys(d);
-                    topRows.map(t => {
-                        tempObj[t] = (this.testNumber(d[t]) == true) ? Number(d[t]) : d[t];
-                    })
-
-                } else {
-                    this.dataTableFormat["top rows"].map(t => {
-                        tempObj[t] = (this.testNumber(d[t]) == true) ? Number(d[t]) : d[t];
-                    })
-                }
-
-
-                //console.log("d[t]", tempObj);
-
-                if (this.dataTableFormat["features"] != undefined) {
-                    tempObj["features"] = {};
-                    this.dataTableFormat["features"].map(f => {
-                        tempObj["features"][f] = [];
-
-                        let fTempObj = {};
-                        this.dataTableFormat[f].map(fItem => {
-                            fTempObj[fItem] = (this.testNumber(d[fItem]) == true) ? Number(d[fItem]) : this.breakLines(d[fItem]);
-                        })
-
-                        tempObj["features"][f].push(fTempObj);
-                    })
-                }
-                renderingData.push(tempObj);
-
-            })
-
-            let processedData = (!!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], renderingData) : renderingData;
-
-            let renderingDataMerged = (this.dataTableFormat["rows merge by"] != undefined) ? this.mergeDataBy(processedData, this.dataTableFormat) : processedData;
-
-            //console.log(renderingDataMerged);
-
-            return renderingDataMerged;
+            return processedData;
         },
 
         convertData(CONVERT, DATA) {
@@ -300,43 +258,6 @@ new Vue({
                 let cleanText = STR.replaceAll("\n", "<br>");
                 return cleanText;
             }
-        },
-
-        mergeDataBy(DATA, DATAFORMATTING) {
-
-            let beforeMerged = {}
-            let dFormatMergeBy = DATAFORMATTING["rows merge by"];
-            let dFormatFeatures = DATAFORMATTING["features"];
-
-            DATA.map(d => {
-                if (beforeMerged[d[dFormatMergeBy]] == undefined) {
-                    beforeMerged[d[dFormatMergeBy]] = d;
-                } else {
-                    dFormatFeatures.map(f => {
-                        let newFeature = beforeMerged[d[dFormatMergeBy]]["features"][f].concat(d["features"][f]);
-                        beforeMerged[d[dFormatMergeBy]]["features"][f] = newFeature;
-                    })
-                }
-            })
-
-            let mergedArray = [];
-
-            for (const property in beforeMerged) {
-                mergedArray.push(beforeMerged[property])
-            }
-            return mergedArray;
-        },
-        filterData(EVENT, FIELD, TYPE) {
-            //revisit this method later
-            /*
-                        this.$nextTick(() => {
-                            console.log(this.$refs);
-                            console.log(this.$refs.dataFilters);
-                        });
-
-                        this.$refs["dataFilters"][.methods].filterData(
-                            EVENT, FIELD, TYPE
-                        );*/
         }
     },
 
@@ -417,10 +338,7 @@ new Vue({
                 return null;
             }
 
-            //console.log(contents);
             let convertedData = this.csv2Json(contents);
-
-            //console.log(convertedData);
 
             return convertedData;
         },
@@ -431,21 +349,18 @@ new Vue({
                 return null;
             } else {
                 if (contents[0]["field_data_table_format"] == false) {
-                    return false;
+                    let data = this.researchData;
+
+                    if (data != null) {
+                        let topRows = Object.keys(data[0]);
+                        let dataTableFormat = { "top rows": topRows };
+                        return dataTableFormat;
+                    }
                 } else {
                     return JSON.parse(contents[0]["field_data_table_format"]);
                 }
             }
 
-        },
-        rawDataTableFormat() {
-            let data = this.researchData;
-
-            if (data != null) {
-                let topRows = Object.keys(data[0]);
-                let dataTableFormat = { "top rows": topRows };
-                return dataTableFormat;
-            }
         },
         tablePerPageNumber() {
             let contents = this.researchPage;
@@ -559,11 +474,13 @@ new Vue({
         researchPage(content) {
             //Load data
 
-            if (content.length != 0 && content[0]["field_data_point"] != false) {
+            if (content.length != 0 && content[0]["field_data_points"] != false) {
 
-                let dataFiles = content[0]["field_data_point"].split(",");
+                let dataFiles = content[0]["field_data_points"].split(",");
 
                 this.dataFiles = dataFiles;
+                this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+
                 let initialData = dataFiles[0];
 
                 let dataPoint = (initialData.includes("http://") || initialData.includes("https://")) ? initialData : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + initialData;
