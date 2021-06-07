@@ -191,10 +191,12 @@
                                 ></research-heatmap>
                             </div>
                             <!---->
-
                             <div
                                 class="col-md-12"
-                                v-if="$store.state.filteredData != ''"
+                                v-if="
+                                    $store.state.filteredData != '' &&
+                                    $parent.dataTableFormat != null
+                                "
                             >
                                 <research-data-table
                                     :pageID="$parent.pageID"

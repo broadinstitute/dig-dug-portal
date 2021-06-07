@@ -50,6 +50,7 @@ new Vue({
             devPW: null,
             dataFiles: null,
             dataFilesLabels: null,
+            dataTableFormat: null,
         }
     },
 
@@ -191,7 +192,7 @@ new Vue({
             });
 
 
-            let processedData = (!!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], jsonData) : jsonData;
+            let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], jsonData) : jsonData;
 
             return processedData;
         },
@@ -342,26 +343,6 @@ new Vue({
 
             return convertedData;
         },
-        dataTableFormat() {
-            let contents = this.researchPage;
-
-            if (contents === null) {
-                return null;
-            } else {
-                if (contents[0]["field_data_table_format"] == false) {
-                    let data = this.researchData;
-
-                    if (data != null) {
-                        let topRows = Object.keys(data[0]);
-                        let dataTableFormat = { "top rows": topRows };
-                        return dataTableFormat;
-                    }
-                } else {
-                    return JSON.parse(contents[0]["field_data_table_format"]);
-                }
-            }
-
-        },
         tablePerPageNumber() {
             let contents = this.researchPage;
 
@@ -472,8 +453,12 @@ new Vue({
             }
         },
         researchPage(content) {
-            //Load data
+            //set Table format
 
+            if (content.length != 0 && content[0]["field_data_table_format"] != false) {
+                this.dataTableFormat = JSON.parse(content[0]["field_data_table_format"]);
+            }
+            //Load data
             if (content.length != 0 && content[0]["field_data_points"] != false) {
 
                 let dataFiles = content[0]["field_data_points"].split(",");
@@ -509,6 +494,13 @@ new Vue({
             }
         },
         researchData(content) {
+            if (this.dataTableFormat == null) {
+                let topRows = Object.keys(content[0]);
+                let dataTableFormat = { "top rows": topRows };
+
+                this.dataTableFormat = dataTableFormat;
+            }
+
             this.$store.dispatch("filteredData", content);
         }
     }
