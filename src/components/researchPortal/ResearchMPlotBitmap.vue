@@ -368,10 +368,6 @@ export default Vue.component("research-m-bitmap-plot", {
             let chrNum = 1;
 
             chrs.map((chr) => {
-                if (chr != 1) {
-                    xStart += this.chromosomeLength[exChr];
-                }
-
                 this.renderData.sorted[chr].map((g) => {
                     let xPos =
                         (xStart + g.locus) * chrByPixel + this.leftMargin;
@@ -415,7 +411,10 @@ export default Vue.component("research-m-bitmap-plot", {
                         });
                     }
                 });
-                exChr = chr;
+                //if (chr != 1) {
+                xStart += this.chromosomeLength[chr];
+                //}
+                //exChr = chr;
                 chrNum++;
             });
         },
