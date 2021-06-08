@@ -66,6 +66,7 @@ new Vue({
         LocusZoomPhewasPanel,
         SearchHeaderWrapper,
         ResultsDashboard,
+        NCATSPredicateTable
     },
 
     data() {
@@ -109,6 +110,13 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        console.log(
+            this.biolinkQueryGraph('NCBIGENE:1017', {
+                subject: 'biolink:Gene',
+                predicate: 'biolink:enables',
+                object: 'biolink:MolecularActivity',
+            })
+        )
     },
 
     render(createElement, context) {
@@ -162,21 +170,21 @@ new Vue({
     computed: {
         queries() {
             return [
-                this.biolinkQueryGraph("NCBIGENE:1017", {
-                    subject: "biolink:Gene",
-                    predicate: "biolink:participates_in",
-                    object: "biolink:Pathway",
-                }),
-                this.biolinkQueryGraph('NCBIGENE:1017', {
-                    subject: 'biolink:Gene',
-                    predicate: 'biolink:participates_in',
-                    object: 'biolink:BiologicalProcess',
-                }),
-                this.biolinkQueryGraph('NCBIGENE:1017', {
-                    subject: 'biolink:Gene',
-                    predicate: 'biolink:expressed_in',
-                    object: 'biolink:CellularComponent',
-                }),
+                // this.biolinkQueryGraph("NCBIGENE:1017", {
+                //     subject: "biolink:Gene",
+                //     predicate: "biolink:participates_in",
+                //     object: "biolink:Pathway",
+                // }),
+                // // this.biolinkQueryGraph('NCBIGENE:1017', {
+                // //     subject: 'biolink:Gene',
+                // //     predicate: 'biolink:participates_in',
+                // //     object: 'biolink:BiologicalProcess',
+                // // }),
+                // // this.biolinkQueryGraph('NCBIGENE:1017', {
+                // //     subject: 'biolink:Gene',
+                // //     predicate: 'biolink:expressed_in',
+                // //     object: 'biolink:CellularComponent',
+                // // }),
                 this.biolinkQueryGraph('NCBIGENE:1017', {
                     subject: 'biolink:Gene',
                     predicate: 'biolink:enables',

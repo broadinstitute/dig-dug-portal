@@ -186,13 +186,20 @@
                 </div>
             </div>
             <div class="card mdkp-card">
-                <div class="card-body">
+                <!-- <div class="card-body">
                     <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
                     <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
-                    <!-- <documentation name="gene.translator.dashboard"></documentation> -->
+                    <documentation name="gene.translator.dashboard"></documentation>
                     <translator-results-dashboard
                         :queries="$parent.queries"
                     ></translator-results-dashboard>
+                </div> -->
+                <div class="card-body">
+                    <translator-predicate-table
+                        :title="`Functional associations for ${$store.state.geneName}`"
+                        :geneSymbol="$store.state.geneName"
+                        :field="'go'"
+                    ></translator-predicate-table>
                 </div>
             </div>
             <div class="card mdkp-card">

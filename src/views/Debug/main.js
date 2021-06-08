@@ -103,26 +103,26 @@ new Vue({
                 predicate:"biolink:gene_associated_with_condition",
                 object: "biolink:Disease",
             }),
-            trapi.makeQueryGraph("NCBIGENE:1017", {
-                subject: "biolink:Gene",
-                predicate: "biolink:participates_in",
-                object: "biolink:Pathway",
-            }),
-            trapi.makeQueryGraph('NCBIGENE:1017', {
-                subject: 'biolink:Gene',
-                predicate: 'biolink:participates_in',
-                object: 'biolink:BiologicalProcess',
-            }),
-            trapi.makeQueryGraph('NCBIGENE:1017', {
-                subject: 'biolink:Gene',
-                predicate: 'biolink:expressed_in',
-                object: 'biolink:CellularComponent',
-            }),
-            trapi.makeQueryGraph('NCBIGENE:1017', {
-                subject: 'biolink:Gene',
-                predicate: 'biolink:enables',
-                object: 'biolink:MolecularActivity',
-            })
+            // trapi.makeQueryGraph("NCBIGENE:1017", {
+            //     subject: "biolink:Gene",
+            //     predicate: "biolink:participates_in",
+            //     object: "biolink:Pathway",
+            // }),
+            // trapi.makeQueryGraph('NCBIGENE:1017', {
+            //     subject: 'biolink:Gene',
+            //     predicate: 'biolink:participates_in',
+            //     object: 'biolink:BiologicalProcess',
+            // }),
+            // trapi.makeQueryGraph('NCBIGENE:1017', {
+            //     subject: 'biolink:Gene',
+            //     predicate: 'biolink:expressed_in',
+            //     object: 'biolink:CellularComponent',
+            // }),
+            // trapi.makeQueryGraph('NCBIGENE:1017', {
+            //     subject: 'biolink:Gene',
+            //     predicate: 'biolink:enables',
+            //     object: 'biolink:MolecularActivity',
+            // })
         );
         
     },

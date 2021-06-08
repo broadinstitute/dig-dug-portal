@@ -209,6 +209,7 @@ const groupLogs = (groupName, func, collapse=true) => args => {
 
 // Basic ARS query
 async function messageARS(message, trace=null, callback=id=>id) {
+    console.log('message ars')
     let qs = queryString.stringify({ trace }, { skipNull: true });
     return await fetch(`${ARS_API}messages/${message}?${qs}`)
                 .then(body => body.json())
@@ -218,6 +219,7 @@ async function messageARS(message, trace=null, callback=id=>id) {
 // ARS Query initializer
 // Needs to be executed before the ARS can be messaged for its results
 async function beginARSQuery(message) {
+    console.log('begin query')
     try {
         return await fetch(`${ARS_API}submit`, {
             method: 'POST',
@@ -237,7 +239,7 @@ async function beginARSQuery(message) {
 // Alternate control functions are possible (e.g. ones based on polling, or that exit earlier, or only) but this one will be commonplace for map-reduce workflows
 async function _streamARAs(arsQuery, { onDone=id=>id, onError=id=>id, onUnknown=id=>id, onRunning=id=>id }, actorStatuses=new Map(), delay=600) {
     await new Promise(resolve => setTimeout(resolve, delay));
-
+    console.log('stream step')
     // update the statuses with the latest information
     let _actorStatuses = new Map(actorStatuses);
     arsQuery.children.forEach(el => _actorStatuses.set(el.actor.agent, el.status));
@@ -451,10 +453,16 @@ const curieLabel = async (rawCurie) => {
         const curie = serializeCurie(prefix.toUpperCase(), id);
         let qs = queryString.stringify({ curie });
         if (!curieLabelCache.has(curie)) {
-            const label = await cachedFetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
-                .then(response => response.json())
-                .then(json => json[curie] !== null && !!json[curie].id.label ? json[curie].id.label : curie)
-                .then(result => curieLabelCache.set(curie, result))
+            try {
+                let label = await cachedFetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
+                    .then(response => response.json())
+                    .then(json => json[curie] !== null && !!json[curie].id.label ? json[curie].id.label : curie)
+                    .then(result => curieLabelCache.set(curie, result))
+            } catch(e) {
+                console.log('in error', curie, rawCurie)
+                curieLabelCache.set(curie, rawCurie)
+            }
+
         }
         return curieLabelCache.get(curie);
     } else {
