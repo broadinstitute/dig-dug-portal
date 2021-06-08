@@ -494,6 +494,8 @@ new Vue({
             }
         },
         researchData(content) {
+            uiUtils.hideElement("data-loading-indicator");
+
             if (this.dataTableFormat == null) {
                 let topRows = Object.keys(content[0]);
                 let dataTableFormat = { "top rows": topRows };

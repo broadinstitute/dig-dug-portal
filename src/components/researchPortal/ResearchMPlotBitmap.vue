@@ -3,6 +3,9 @@
         <div id="clicked_dot_value" class="clicked-dot-value hidden">
             <div id="clicked_dot_value_content"></div>
         </div>
+        <div id="dot_value_full_list" class="dot-value-full-list hidden">
+            <div id="dot_value_full_list_content"></div>
+        </div>
         <div
             v-if="!!renderConfig.legend"
             class="mbm-plot-legend"
@@ -14,6 +17,7 @@
             @mouseleave="hidePanel"
             @mousemove="checkPosition"
             @resize="onResize"
+            @click="getFullList"
             width=""
             height=""
         >
@@ -154,16 +158,16 @@ export default Vue.component("research-m-bitmap-plot", {
         onResize(e) {
             this.renderPlot();
         },
-        checkPosition(event) {
-            let wrapper = document.getElementById("clicked_dot_value");
+        getFullList(event) {
+            let wrapper = document.getElementById("dot_value_full_list");
             let canvas = document.getElementById("manhattanPlot");
             wrapper.classList.remove("hidden");
             let e = event;
             var rect = e.target.getBoundingClientRect();
             var x = Math.floor(e.clientX - rect.left);
             var y = Math.floor(e.clientY - rect.top);
-            wrapper.style.top = y + canvas.offsetTop + "px";
-            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+            /*wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";*/
 
             let clickedDotValue = "";
 
@@ -171,7 +175,6 @@ export default Vue.component("research-m-bitmap-plot", {
                 for (let v = -5; v <= 5; v++) {
                     if (this.dotPosData[x + h] != undefined) {
                         if (this.dotPosData[x + h][y + v] != undefined) {
-                            //console.log(this.dotPosData[x + h]);
                             let dotObject = this.dotPosData[x + h][y + v];
                             clickedDotValue +=
                                 '<span class="gene-on-clicked-dot-mplot"><b>' +
@@ -194,6 +197,76 @@ export default Vue.component("research-m-bitmap-plot", {
                         }
                     }
                 }
+            }
+            let contentWrapper = document.getElementById(
+                "dot_value_full_list_content"
+            );
+
+            if (clickedDotValue != "") {
+                contentWrapper.innerHTML = clickedDotValue;
+                document.getElementById("manhattanPlot").classList.add("hover");
+                document
+                    .getElementById("clicked_dot_value")
+                    .classList.add("hidden");
+            } else {
+                wrapper.classList.add("hidden");
+                document
+                    .getElementById("manhattanPlot")
+                    .classList.remove("hover");
+            }
+        },
+        checkPosition(event) {
+            let wrapper = document.getElementById("clicked_dot_value");
+            let canvas = document.getElementById("manhattanPlot");
+            wrapper.classList.remove("hidden");
+            let e = event;
+            var rect = e.target.getBoundingClientRect();
+            var x = Math.floor(e.clientX - rect.left);
+            var y = Math.floor(e.clientY - rect.top);
+            wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+
+            let clickedDotValue = "";
+
+            let numOfValues = 0;
+
+            for (let h = -5; h <= 5; h++) {
+                for (let v = -5; v <= 5; v++) {
+                    if (this.dotPosData[x + h] != undefined) {
+                        if (this.dotPosData[x + h][y + v] != undefined) {
+                            if (numOfValues < 6) {
+                                let dotObject = this.dotPosData[x + h][y + v];
+                                clickedDotValue +=
+                                    '<span class="gene-on-clicked-dot-mplot"><b>' +
+                                    dotObject[this.renderConfig.renderBy] +
+                                    "</b></span>";
+
+                                if (!!this.renderConfig.hoverContent) {
+                                    let hoverContent = this.renderConfig
+                                        .hoverContent;
+
+                                    hoverContent.map((h) => {
+                                        clickedDotValue +=
+                                            '<span class="content-on-clicked-dot">' +
+                                            h +
+                                            ": " +
+                                            dotObject[h] +
+                                            "</span>";
+                                    });
+                                }
+                            }
+
+                            numOfValues += 1;
+                        }
+                    }
+                }
+            }
+
+            if (numOfValues > 5) {
+                clickedDotValue +=
+                    '<span class="gene-on-clicked-dot-mplot"><b>Viewing 5 of ' +
+                    numOfValues +
+                    " items. Click to view full list.<b><span>";
             }
 
             //let wrapper = document.getElementById("clicked_dot_value");
@@ -327,10 +400,22 @@ export default Vue.component("research-m-bitmap-plot", {
                 (key) => this.renderData.sorted[key].length > 0
             );
 
+            // compare length of chromosomes in the data to the defalt
+
+            chrs.map((chr) => {
+                let chrLength = 0;
+                this.renderData.sorted[chr].map((v) => {
+                    chrLength = v.locus > chrLength ? v.locus : chrLength;
+                });
+
+                this.chromosomeLength[chr] =
+                    chrLength > this.chromosomeLength[chr]
+                        ? chrLength
+                        : this.chromosomeLength[chr];
+            });
+
             chrs.map((chr) => {
                 dnaLength += this.chromosomeLength[chr];
-
-                console.log("step 1", chr);
             });
 
             let chrByPixel = plotWidth / dnaLength;
@@ -350,14 +435,14 @@ export default Vue.component("research-m-bitmap-plot", {
                     this.topMargin + plotHeight + yBump + 14
                 );
 
-                console.log("step 2", chr);
+                //console.log("step 2", chr);
             });
 
             //Render x axis label
 
             ctx.fillText(
                 this.renderConfig.xAxisLabel,
-                canvasRenderWidth / 2 + this.leftMargin,
+                plotWidth / 2 + this.leftMargin,
                 this.topMargin + plotHeight + yBump + 44
             );
 
@@ -447,6 +532,27 @@ $(function () {});
 
 .clicked-dot-value-close:hover {
     color: #36c;
+}
+
+.dot-value-full-list {
+    position: fixed;
+    width: 400px;
+    height: 300px;
+    left: calc(50% - 200px);
+    top: calc(50% - 150px);
+    padding: 15px 0px 15px 15px;
+    border-radius: 5px;
+    border: solid 1px #ddd;
+    background-color: #fff;
+    z-index: 100;
+}
+
+#dot_value_full_list_content {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-size: 14px;
 }
 </style>
 

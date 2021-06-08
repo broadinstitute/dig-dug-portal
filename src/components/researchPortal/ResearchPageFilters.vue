@@ -122,6 +122,8 @@
 <script>
 import Vue from "vue";
 
+import uiUtils from "@/utils/uiUtils";
+
 export default Vue.component("research-page-filters", {
     props: [
         "dataFiles",
@@ -153,6 +155,7 @@ export default Vue.component("research-page-filters", {
     comuted: {},
     watch: {},
     methods: {
+        ...uiUtils,
         getFileLabel(file) {
             if (this.filesListLabels != null) {
                 return this.filesListLabels[file];
@@ -161,7 +164,8 @@ export default Vue.component("research-page-filters", {
             }
         },
         switchData(event) {
-            console.log(event.target.value);
+            //console.log(event.target.value);
+            uiUtils.showElement("data-loading-indicator");
             let initialData = event.target.value;
 
             let dataPoint =

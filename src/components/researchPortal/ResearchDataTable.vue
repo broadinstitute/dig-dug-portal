@@ -281,6 +281,7 @@ table.research-data-table {
 
 .research-data-table > thead > tr > th.sortable-th:hover {
     color: #004bcf;
+    cursor: pointer;
 }
 
 .research-data-table td {
