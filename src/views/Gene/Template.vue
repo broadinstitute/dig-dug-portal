@@ -208,10 +208,18 @@
                     ></translator-results-dashboard>
                 </div> -->
                 <div class="card-body">
-                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
-                    <p>
-                        This feature is experimental. Some data may be available at a later time.
-                    </p>
+                    <h4>
+                        {{`Functional associations for ${$store.state.geneName}`}}
+                        <tooltip-documentation
+                            name="gene.translator.tooltip.hover"
+                            :content-fill="$parent.documentationMap"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>    
+                    </h4>
+
+                    <documentation name="gene.translator.dashboard" :content-fill="$parent.documentationMap">
+                    </documentation>
                     <b-tabs>
                         <b-tab :title="'Gene Ontology (GO)'">
                             <translator-predicate-table
