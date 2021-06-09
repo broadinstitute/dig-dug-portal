@@ -4,6 +4,12 @@
             <div id="clicked_dot_value_content"></div>
         </div>
         <div id="dot_value_full_list" class="dot-value-full-list hidden">
+            <div
+                class="clicked-dot-value-close"
+                @click="hidePanel('dot_value_full_list')"
+            >
+                <b-icon icon="x-circle-fill"></b-icon>
+            </div>
             <div id="dot_value_full_list_content"></div>
         </div>
         <div
@@ -154,7 +160,9 @@ export default Vue.component("research-m-bitmap-plot", {
     },
     methods: {
         ...uiUtils,
-        hidePanel() {},
+        hidePanel(element) {
+            uiUtils.hideElement(element);
+        },
         onResize(e) {
             this.renderPlot();
         },
@@ -264,12 +272,11 @@ export default Vue.component("research-m-bitmap-plot", {
 
             if (numOfValues > 5) {
                 clickedDotValue +=
-                    '<span class="gene-on-clicked-dot-mplot"><b>Viewing 5 of ' +
+                    '<span class="gene-on-clicked-dot-mplot" style="color: #36c;"><b>Viewing 5 of ' +
                     numOfValues +
                     " items. Click to view full list.<b><span>";
             }
 
-            //let wrapper = document.getElementById("clicked_dot_value");
             let contentWrapper = document.getElementById(
                 "clicked_dot_value_content"
             );
@@ -524,8 +531,8 @@ $(function () {});
 
 .clicked-dot-value-close {
     position: absolute;
-    top: 2px;
-    right: 2px;
+    top: 0;
+    right: 3px;
     font-size: 14px;
     color: #69f;
 }
@@ -540,7 +547,7 @@ $(function () {});
     height: 300px;
     left: calc(50% - 200px);
     top: calc(50% - 150px);
-    padding: 15px 0px 15px 15px;
+    padding: 20px 0px 3px 15px;
     border-radius: 5px;
     border: solid 1px #ddd;
     background-color: #fff;
