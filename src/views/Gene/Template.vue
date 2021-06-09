@@ -228,7 +228,7 @@
                                 :field="'go'">
                             </translator-predicate-table>
                         </b-tab>
-                        <b-tab :title="'Pathways (Reactome, KEGG)'"> 
+                        <b-tab :title="'Pathways (Reactome, KEGG, BioCarta, WikiPathways)'"> 
                             <translator-predicate-table
                                 :title="'Pathways'"
                                 :geneSymbol="$store.state.geneName"
