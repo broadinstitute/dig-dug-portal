@@ -100,7 +100,39 @@ new Vue({
             }),
         }
     },
-
+    async created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.queries.push(
+            trapi.makeQueryGraph("NCBIGENE:1017", {
+                subject: "biolink:Gene",
+                predicate:"biolink:gene_associated_with_condition",
+                object: "biolink:Disease",
+            }),
+            // trapi.makeQueryGraph("NCBIGENE:1017", {
+            //     subject: "biolink:Gene",
+            //     predicate: "biolink:participates_in",
+            //     object: "biolink:Pathway",
+            // }),
+            // trapi.makeQueryGraph('NCBIGENE:1017', {
+            //     subject: 'biolink:Gene',
+            //     predicate: 'biolink:participates_in',
+            //     object: 'biolink:BiologicalProcess',
+            // }),
+            // trapi.makeQueryGraph('NCBIGENE:1017', {
+            //     subject: 'biolink:Gene',
+            //     predicate: 'biolink:expressed_in',
+            //     object: 'biolink:CellularComponent',
+            // }),
+            // trapi.makeQueryGraph('NCBIGENE:1017', {
+            //     subject: 'biolink:Gene',
+            //     predicate: 'biolink:enables',
+            //     object: 'biolink:MolecularActivity',
+            // })
+        );
+        
+    },
+    async mounted() {
+    },
     methods: {
         tap() {
             console.log(arguments)
@@ -108,7 +140,130 @@ new Vue({
     },
 
     computed: {
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+
+        pageInfo() {
+            let contents = this.$store.state.kp4cd.pageInfo;
+
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents;
+        },
+
+        associationOptions() {
+            return !!this.biolinkModel ? 
+                Object.keys(this.biolinkModel.classes).filter(cls => this.biolinkModel.classes[cls].is_a === 'association')
+            : [];
+        },
+
+        slotsForAssociation() {
+            const maybeCurrentAssociation = this.queryGraphCriterion.filter(criterion => criterion.field === 'association');
+            if (!!maybeCurrentAssociation[0]) {
+                if (!!this.biolinkModel) {
+                    const { slot_usage: { subject, object } } = this.biolinkModel.classes[maybeCurrentAssociation[0].threshold];
+                    console.log(this.biolinkModel.classes[maybeCurrentAssociation[0].threshold])
+                    console.log(subject, object)
+                    return { subject, object };
+                }
+            }
+            return null;
+        },
+
+    },
+    methods: {
+        curieLabel: trapi.normalize.curieLabel,
+        curieForGene: trapi.normalize.curieForGene,
+        async lookupGenes(input) {
+            if (!!input) {
+                let matches = await match("gene", input, { limit: 10 });
+                this.matchingGenes = matches;
+            }
+        },
+        biolinkQueryGraph: trapi.makeQueryGraph,
+        async makeDiseaseToPhenotypeQuery(diseaseCurie) {
+            this.diseaseToPhenotypeQuery = trapi.makeQueryGraph(diseaseCurie, {
+                subject: 'biolink:Disease',
+                object: 'biolink:Phenotype',
+                predicate: 'biolink:disease_to_exposure_event_association'
+            })
+        },
+        async makeGeneToDiseaseQuery(geneSymbol) {
+            const geneCurie = await this.curieForGene(geneSymbol)
+            this.geneToDiseaseQuery = trapi.makeQueryGraph(geneCurie, {
+                subject: "biolink:Gene",
+                object: "biolink:Disease",
+                predicate:"biolink:gene_associated_with_condition"
+            });
+        },
+        async makeGeneToPathwayQuery(geneSymbol) {
+            const geneCurie = await this.curieForGene(geneSymbol)
+            let geneToPathwayQuery = trapi.makeQueryGraph(geneCurie, {
+                subject: "biolink:Gene",
+                object: "biolink:Pathway",
+                predicate:"biolink:participates_in"
+            });
+            return geneToPathwayQuery
+        },
+        predicatePlacement(identifier, query_graph, edge=null) {
+
+            const subjectOrObjectOfEdge = (identifier, edge) => {
+                const { subject, object } = query_graph.edges[edge];
+                if (identifier === subject) return "subject";
+                else if (identifier === object) return "object";
+                return null;
+            }
+
+            if (edge !== null) {
+                return subjectOrObjectOfEdge(identifier, edge);
+            } else {
+                return Object.entries(query_graph.edges)
+                        .reduce((acc, edgeEntry) => {
+                            const _acc = acc;
+                            const [edgeId, edge] = edgeEntry;
+                            _acc[edgeId] = subjectOrObjectOfEdge(edge);
+                            return acc;
+                        }, {});
+            };
+
+        },
+        conceptType(identifier, query_graph) {
+            const concepts = { ...query_graph.nodes, ...query_graph.edges };
+            return concepts[identifier].category || concepts[identifier].predicate;
+        },
     },
     watch: {
+        geneToDiseaseQueryCriterion: {
+            handler: function(newCriterion, oldCriterion) {
+                if (!!newCriterion[0]) {
+                    const geneSymbol = newCriterion[0].threshold;
+                    this.makeGeneToDiseaseQuery(geneSymbol);
+                }
+            },
+            deep: true,
+        },
+        diseaseToPhenotypeQueryCriterion: {
+            handler: function(newCriterion, oldCriterion) {
+                if (!!newCriterion[0]) {
+                    const disease = newCriterion[0].threshold;
+                    this.makeDiseaseToPhenotypeQuery(disease);
+                }
+            },
+            deep: true,
+        },
+        queryGraph(queryGraph) {
+            if (queryGraph !== null) trapi.queries.updateResultsForSources({ "message": queryGraph }, [], this.results);
+        }
     }
 }).$mount("#app");

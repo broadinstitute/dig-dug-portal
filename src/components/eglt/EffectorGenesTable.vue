@@ -289,13 +289,26 @@
                 </b-row>
             </b-container>
             <!-- convertJson2Csv works only for tables with no feature tables -->
-            <b-container
-                fluid
-                v-if="!!config && !!config[dataset]['convert_2_csv']"
-                class="convert-2-csv"
-            >
+            <b-container fluid class="per-page-ui-wrapper">
+                <label
+                    class="items-per-page-label"
+                    v-if="!!config && !!config[dataset].pageUI"
+                    >Rows per page:
+                </label>
+                <select
+                    v-model="perPage"
+                    class="form-control-sm items-per-page"
+                    v-if="!!config && !!config[dataset].pageUI"
+                >
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="100">100</option>
+                    <option value="0">All</option>
+                </select>
                 <b-btn
-                    class="btn-sm"
+                    v-if="!!config && !!config[dataset]['convert_2_csv']"
+                    class="convert-2-csv btn-sm"
                     @click="
                         convertJson2Csv(filteredData, dataset + '_filtered')
                     "
@@ -409,7 +422,7 @@
                 </b-container>
             </div>
             <b-container
-                v-if="!!config && !!config[dataset].pageUI"
+                v-if="!!config && !!config[dataset].pageUI && perPage != 0"
                 class="egl-table-page-ui-wrapper"
             >
                 <b-pagination
@@ -464,7 +477,7 @@ export default Vue.component("effector-genes-table", {
             sortTableSelect: null,
             sortDirection: "asc",
             /*igvBrowser: false,*/
-            perPage: 25,
+            perPage: null,
             currentPage: 1,
             selectedGene: "",
         };
@@ -511,7 +524,8 @@ export default Vue.component("effector-genes-table", {
             if (!!this.config[this.dataset].pageUI) {
                 let filtered = this.$store.state.filteredData;
                 let paged = [];
-                let perPage = this.config[this.dataset].pageUI.perPage;
+                let perPage =
+                    this.perPage != 0 ? this.perPage : filtered.length;
 
                 let startIndex = (this.currentPage - 1) * perPage;
                 let endIndex =
@@ -548,6 +562,11 @@ export default Vue.component("effector-genes-table", {
                     this.filtersIndex[f.field] = tempObj;
                 });
             }
+            if (value[this.dataset].pageUI != undefined) {
+                this.perPage = value[this.dataset].pageUI.perPage;
+            }
+
+            console.log(this.perPage);
         },
         tableData(data) {
             uiUtils.hideElement("data-loading-indicator");

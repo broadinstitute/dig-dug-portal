@@ -9,7 +9,14 @@
         <!-- Body -->
 
         <div class="container-fluid mdkp-body">
-            <a href="/effectorgenes.html" class="btn to-previous-page"
+            <a
+                v-if="
+                    !!$store.state.config &&
+                    !!$store.state.config[$parent.dataset].link2EGLMethods ==
+                        true
+                "
+                href="/effectorgenes.html"
+                class="btn to-previous-page"
                 >&#60;&#60; Predicted effector genes methods</a
             >
 

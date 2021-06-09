@@ -189,6 +189,14 @@ a:hover {
     color: #fff;
 }
 
+.amp-banner-2021 {
+    height: 70px;
+    background-position-x: right;
+    background-position-y: top;
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_bg.jpg);
+    border-bottom: solid 1px #acd;
+}
+
 .amp-header {
     height: 70px;
     background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_middle.png);
@@ -1813,5 +1821,11 @@ span.volcano-score-2 {
 
 .top-associations-section-phenotype-filter div.filter-col-md > div {
     display: inline-block;
+    margin-right: 10px;
+}
+
+.kp-lab-icon {
+    width: 75px;
+    float: left;
     margin-right: 10px;
 }
