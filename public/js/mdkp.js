@@ -23,6 +23,5 @@ var checkPosition = function (event) {
     var rect = e.target.getBoundingClientRect();
     var x = e.clientX - rect.left;
     var y = e.clientY - rect.top;
-    console.log('Left? : ' + x + ' ; Top? : ' + y + '.');
 };
 */

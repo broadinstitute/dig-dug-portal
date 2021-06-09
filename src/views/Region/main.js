@@ -16,13 +16,13 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
-import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker";
+import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
+import TissueSelectPicker from "@/components/TissueSelectPicker";
 import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import keyParams from "@/utils/keyParams";
-import { isEqual, startCase } from "lodash";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -32,19 +32,19 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
-
-
+import ClumpedVariantsTable from "@/components/ClumpedVariantsTable";
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
+import filterHelpers from "@/utils/filterHelpers";
 import uiUtils from "@/utils/uiUtils";
+
 import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
     closeAlert
 } from "@/components/Alert";
-import JsonQuery from "json-query";
 
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
@@ -64,7 +64,8 @@ new Vue({
         AssociationsTable,
         PhenotypeSignalMixed,
         CredibleSetSelectPicker,
-        AnnotationMethodSelectPicker,
+        AnnotationSelectPicker,
+        TissueSelectPicker,
         PhenotypeSelectPicker,
         Autocomplete,
         GeneSelectPicker,
@@ -74,8 +75,8 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
-
-        SearchHeaderWrapper
+        SearchHeaderWrapper,
+        ClumpedVariantsTable
     },
 
     async created() {
@@ -91,7 +92,7 @@ new Vue({
 
     data() {
         return {
-            tissueScoring: null,
+            enrichmentScoring: null,
 
             associationsFilter: function (id) {
                 return true;
@@ -99,7 +100,7 @@ new Vue({
             pageAssociationsMap: {},
             pageAssociations: [],
             regionPageSearchCriterion: [],
-
+            pillList: []
         };
     },
     mounted() {
@@ -107,11 +108,12 @@ new Vue({
     },
     methods: {
         ...uiUtils,
+        ...Formatters,
+        ...filterHelpers,
         postAlert,
         postAlertNotice,
         postAlertError,
         closeAlert,
-
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -121,7 +123,10 @@ new Vue({
                 this.selectedPhenotypes.forEach(p => {
                     const queryString = `${p.name},${this.$store.state.chr
                         }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
-                    that.$store.dispatch("credibleSets/query", { q: queryString, append: true });
+                    that.$store.dispatch("credibleSets/query", {
+                        q: queryString,
+                        append: true
+                    });
                 });
             }
         },
@@ -136,15 +141,18 @@ new Vue({
         exploreExpanded() {
             this.$store.commit("setLocus", {
                 chr: this.$store.state.chr,
-                start: this.$store.state.start - 50000,
-                end: this.$store.state.end + 50000
+                //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
+                start: parseInt(this.$store.state.start) - 50000,
+                end: parseInt(this.$store.state.end) + 50000
             });
             this.$store.dispatch("queryRegion");
         },
 
         updatePageAssociations({ phenotype, data }) {
             this.pageAssociationsMap[phenotype] = data;
-            this.pageAssociations = Object.entries(this.pageAssociationsMap).flatMap(pam => pam[1])
+            this.pageAssociations = Object.entries(
+                this.pageAssociationsMap
+            ).flatMap(pam => pam[1]);
         },
 
         // LocusZoom has "Panels"
@@ -171,27 +179,37 @@ new Vue({
                 );
             }
         },
-        addAnnotationIntervalsPanel(event) {
-            const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(
-                annotation,
-                method,
-                this.tissueScoring
+        addAnnotationIntervalsPanel(r) {
+            this.$children[0].$refs.locuszoom.addIntervalsPanel(
+                "annotated-regions",
+                r.annotation,
+                "tissue",
+                this.enrichmentScoring,
+                Formatters.snakeFormatter(r.annotation)
+            );
+        },
+        addTissueIntervalsPanel(r) {
+            this.$children[0].$refs.locuszoom.addIntervalsPanel(
+                "tissue-regions",
+                r.tissue,
+                "annotation",
+                this.enrichmentScoring,
+                Formatters.snakeFormatter(r.tissue)
             );
         },
         topPhenotype(topAssocData) {
-            return topAssocData[0]
+            return topAssocData[0];
         },
         setCriterionPhenotypes(phenotypeNames) {
             this.regionPageSearchCriterion.splice(0);
-
-            phenotypeNames.forEach(name => {
-                this.regionPageSearchCriterion.push({
-                    field: 'phenotype',
-                    threshold: name,
-                });
-            });
+            phenotypeNames.forEach(this.pushCriterionPhenotype);
         },
+        pushCriterionPhenotype(phenotypeName) {
+            this.regionPageSearchCriterion.push({
+                field: "phenotype",
+                threshold: phenotypeName
+            });
+        }
     },
 
     computed: {
@@ -208,11 +226,11 @@ new Vue({
         },
 
         allphenotypes() {
-            let phenotypes = this.$store.state.bioPortal.phenotypes
-            let permittedValues = []
+            let phenotypes = this.$store.state.bioPortal.phenotypes;
+            let permittedValues = [];
             phenotypes.map(value => {
                 permittedValues.push(value.name);
-            })
+            });
             return permittedValues;
         },
 
@@ -234,14 +252,18 @@ new Vue({
             return [this.$store.state.phenotype];
         },
 
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        },
+
         credibleSets() {
             return this.$store.state.credibleSets.data;
         },
 
         regionString() {
             let chr = this.$store.state.chr;
-            let start = this.$store.state.start;
-            let end = this.$store.state.end;
+            let start = parseInt(this.$store.state.start);
+            let end = parseInt(this.$store.state.end);
             return Formatters.locusFormatter(chr, start, end);
         },
 
@@ -255,9 +277,7 @@ new Vue({
                 const assoc = data[i];
 
                 // skip associations not part of the disease group
-                if (
-                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
-                ) {
+                if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
 
@@ -275,13 +295,19 @@ new Vue({
         },
         globalEnrichmentAnnotations() {
             // an array of annotations
-            return sortUtils.uniqBy(
+            let annotations = sortUtils.uniqBy(
                 this.$store.state.globalEnrichment.data,
-                el =>
-                    JSON.stringify(
-                        [el.annotation, !!el.method ? el.method : ""].join()
-                    )
+                el => el.annotation
             );
+            return annotations;
+        },
+        globalEnrichmentTissues() {
+            let tissues = sortUtils.uniqBy(
+                this.$store.state.globalEnrichment.data,
+                el => el.tissue
+            );
+            //sort the tissues
+            return tissues;
         },
         associationConsequences() {
             return this.pageAssociations.map(v => v.consequence);
@@ -298,49 +324,65 @@ new Vue({
             return this.regionPageSearchCriterion
                 .filter(criterion => criterion.field === "phenotype")
                 .map(criterion => phenotypeMap[criterion.threshold]);
-        },
+        }
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap"(phenotypeMap) {
             let phenotypes = keyParams.phenotype;
 
             if (!!phenotypes) {
-                this.setCriterionPhenotypes(phenotypes.split(','));
+                this.setCriterionPhenotypes(phenotypes.split(","));
             }
         },
-        "$store.state.globalEnrichment.data": {
-            handler(enrichment) {
-                let groups = {};
-                for (let i in enrichment) {
-                    let r = enrichment[i];
-                    let t = r.tissueId || "NA";
-                    let m = r.method || "NA";
+        "$store.state.globalEnrichment.data"(enrichment) {
 
-                    let key = `${t}_${m}_${r.annotation}`;
-                    let group = groups[key];
-                    let fold = r.SNPs / r.expectedSNPs;
+            let groups = {};
+            for (let i in enrichment) {
+                let r = enrichment[i];
 
-                    if (!group) {
-                        groups[key] = {
-                            minP: r.pValue,
-                            maxFold: fold
-                        };
-                    } else {
-                        group.minP = Math.min(group.minP, r.pValue);
-                        group.maxFold = Math.max(group.maxFold, fold);
-                    }
+                let key = `${r.annotation}___${r.tissue}`;
+                let fold = r.SNPs / r.expectedSNPs;
+                if (!(key in groups)) {
+                    groups[key] = {
+                        minP: r.pValue,
+                        maxFold: fold
+                    };
+                } else {
+                    groups[key].minP = Math.min(groups[key].minP, r.pValue);
+                    groups[key].maxFold = Math.max(groups[key].maxFold, fold);
                 }
-                this.tissueScoring = groups;
             }
+
+            this.enrichmentScoring = groups;
+
         },
-        selectedPhenotypes(phenotypes) {
+        selectedPhenotypes(phenotypes, oldPhenotypes) {
+            const removedPhenotypes = _.difference(oldPhenotypes.map(p => p.name), phenotypes.map(p => p.name));
+            if (removedPhenotypes.length > 0) {
+                removedPhenotypes.forEach(removedPhenotype => {
+                    delete this.pageAssociationsMap[removedPhenotype];
+                    this.pageAssociations = Object.entries(
+                        this.pageAssociationsMap
+                    ).flatMap(pam => pam[1]);
+                })
+            }
             keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
+            //console.log("current phenotypes",phenotypes)
+
+            // reload the global enrichment for these phenotypes
+            this.$store.dispatch("globalEnrichment/clear");
+            phenotypes.forEach(p => {
+                this.$store.dispatch("globalEnrichment/query", {
+                    q: p.name,
+                    append: true
+                });
+            });
         },
         "$store.state.clearPhenotypeFlag"(shouldClear) {
             if (shouldClear) {
                 keyParams.set({ phenotype: undefined });
                 this.setCriterionPhenotypes([]);
-                this.$store.commit('phenotypesCleared');
+                this.$store.commit("phenotypesCleared");
             }
         },
         topAssociations(top) {
@@ -360,7 +402,9 @@ new Vue({
                 this.setCriterionPhenotypes(keyPhenotypes.split(","));
             } else {
                 let topAssoc = top[0];
-                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[topAssoc.phenotype];
+                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
+                    topAssoc.phenotype
+                ];
 
                 // update the master list
                 this.setCriterionPhenotypes([topPhenotype.name]);

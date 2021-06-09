@@ -1,7 +1,4 @@
 import Vue from "vue";
-import * as d3 from "d3";
-
-import sortUtils from "@/utils/sortUtils";
 
 import Template from "./Template.vue";
 import store from "./store.js";
@@ -49,10 +46,6 @@ new Vue({
     },
 
     async created() {
-        // get the disease group and set of phenotypes available
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("queryRegion");
     },
 
     render(createElement) {

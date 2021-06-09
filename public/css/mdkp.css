@@ -189,6 +189,14 @@ a:hover {
     color: #fff;
 }
 
+.amp-banner-2021 {
+    height: 70px;
+    background-position-x: right;
+    background-position-y: top;
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_bg.jpg);
+    border-bottom: solid 1px #acd;
+}
+
 .amp-header {
     height: 70px;
     background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_middle.png);
@@ -430,6 +438,11 @@ a:hover {
     margin-top: 10px;
     margin-bottom: 10px;
     min-width: 1024px !important;
+}
+
+.card.gem-wrapper {
+    box-shadow: inset 0 0 5px #00000050;
+    border: solid 1px #9cf;
 }
 
 .portal-front-tabs {
@@ -975,7 +988,7 @@ div.search-example {
 
 .under-datasets-section-wrapper ul li a {
     font-size: 20px;
-    font-family: roboto;
+    font-family: "Roboto", Arial, sans-serif;
     font-weight: 500;
 }
 
@@ -1245,28 +1258,29 @@ div.filtering-ui-content div.col input {
     font-size: 14px;
 }
 
-div.filtering-ui-content div.col input.or-half-gt, div.filtering-ui-content div.col input.or-half-lt {
+div.filtering-ui-content div.col input.or-half-gt,
+div.filtering-ui-content div.col input.or-half-lt {
     width: 70px;
-}
-
-div.filtering-ui-content div.filter-col-sm .form-control,
-div.filtering-ui-content div.col.filter-col-sm select,
-div.filtering-ui-content div.col.filter-col-sm .input {
-    width: 110px;
-    display: inline-block;
 }
 
 div.filtering-ui-content div.col.filter-col-md .form-control,
 div.filtering-ui-content div.col.filter-col-md select,
-div.filtering-ui-content div.col.filter-col-md .input {
+div.filtering-ui-content div.col.filter-col-md input {
     width: 220px;
     display: inline-block;
 }
 
 div.filtering-ui-content div.col.filter-col-lg .form-control,
 div.filtering-ui-content div.col.filter-col-lg select,
-div.filtering-ui-content div.col.filter-col-lg .input {
-    width: 300px;
+div.filtering-ui-content div.col.filter-col-lg input {
+    width: 300px !important;
+    display: inline-block;
+}
+
+div.filtering-ui-content div.filter-col-sm .form-control,
+div.filtering-ui-content div.col.filter-col-sm select,
+div.filtering-ui-content div.col.filter-col-sm input {
+    width: 110px !important;
     display: inline-block;
 }
 
@@ -1629,7 +1643,8 @@ a.to-previous-page:hover {
     display: inline;
     overflow: visible;
 }
-#gait .accordion .alert {
+#gait .accordion .alert,
+#variant-search .alert {
     text-align: center;
 }
 #gait .reference > span {
@@ -1658,7 +1673,8 @@ a.to-previous-page:hover {
 #gait .form-group {
     margin-bottom: auto;
 }
-#gait .alert-info {
+#gait .alert-info,
+#variant-search .alert-info {
     padding: 0.1rem 1.25rem;
 }
 #gait .b-table-details {
@@ -1670,10 +1686,10 @@ a.to-previous-page:hover {
 #gait .variants {
     margin-top: 2rem;
 }
-#gait .btn-mini {
+button.btn.btn-mini {
     padding: 0.1rem 0.25rem;
     font-size: 0.75rem;
-    line-height: 1.25;
+    line-height: 1.25rem;
 }
 #gait .forest-plot-simple {
     position: relative;
@@ -1726,7 +1742,9 @@ a.to-previous-page:hover {
     font-size: 14px;
 }
 
-span.volcano-score-0, span.volcano-score-1, span.volcano-score-2 {
+span.volcano-score-0,
+span.volcano-score-1,
+span.volcano-score-2 {
     width: 12px;
     height: 12px;
     display: inline-block;
@@ -1744,7 +1762,8 @@ span.volcano-score-2 {
     background-color: #ff003780;
 }
 
-#clicked_dot_value, #clicked_cell_value {
+#clicked_dot_value,
+#clicked_cell_value {
     position: absolute;
     background-color: #fff;
     border: solid 1px #aaa;
@@ -1768,5 +1787,45 @@ span.volcano-score-2 {
     display: inline-block;
     margin-right: 10px;
     margin-top: 3px;
+}
 
+.top-associations-section-phenotype-filter {
+    margin-bottom: 25px !important;
+    display: block;
+}
+
+.top-associations-section-phenotype-filter > div {
+    background-color: #ddefff;
+    border: solid 1px #bbdfff;
+    border-radius: 5px;
+    height: 48px;
+}
+
+.top-associations-section-phenotype-filter div.filtering-ui-wrapper {
+    border: none !important;
+    background: none !important;
+    width: 50% !important;
+    display: inline-block;
+    text-align: left;
+    padding-left: 30px;
+}
+
+.top-associations-section-phenotype-filter span.filter-pill-collection {
+    border: none !important;
+    background: none !important;
+    width: 50% !important;
+    display: inline-block;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.top-associations-section-phenotype-filter div.filter-col-md > div {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.kp-lab-icon {
+    width: 75px;
+    float: left;
+    margin-right: 10px;
 }

@@ -61,7 +61,7 @@
                                             <h4>
                                                 Combined Evidence
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.combined.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -105,6 +105,9 @@
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
                                                     :elementid="'combinedVariation'"
+                                                    :score=" $parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation)"
                                                 ></color-bar-plot>
                                             </div>
                                         </div>
@@ -134,7 +137,7 @@
                                             <h4>
                                                 Common Variation
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.commonvariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -213,6 +216,7 @@
                                                     v-if="$parent.bayesFactorCommonVariation"
                                                     :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
                                                     :elementid="'commonVariation'"
+                                                    :score="$parent.bayesFactorCommonVariation"
                                                 ></color-bar-plot>
                                             </div>
                                             <hr style="margin: 40px" />
@@ -249,7 +253,7 @@
                                             <h4>
                                                 Common Variation
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.commonvariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -275,6 +279,7 @@
                                                     v-if="$parent.bayesFactorCommonVariation"
                                                     :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
                                                     :elementid="'commonVariation'"
+                                                    :score="$parent.bayesFactorCommonVariation"
                                                 ></color-bar-plot>
                                             </div>
                                             <hr style="margin: 40px" />
@@ -320,7 +325,7 @@
                                             <h4>
                                                 Rare Variation
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.rarevariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -338,7 +343,7 @@
                                                 </li>
                                                 <li>Total Bayes Factor(Multiply all) = {{$parent.bayesFactorRareVariation}}</li>
                                                 <li>
-                                                    <span>Causal evidence</span>
+                                                    <span>Extreme evidence</span>
                                                 </li>
                                             </ul>
 
@@ -348,6 +353,7 @@
                                                     v-if="$parent.bayesFactorRareVariation"
                                                     :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
                                                     :elementid="'rareVariation'"
+                                                    :score="$parent.bayesFactorRareVariation"
                                                 ></color-bar-plot>
                                             </div>
                                             <div class="EGLT-table fiftytwo masktable">
@@ -374,7 +380,7 @@
                                             <h4>
                                                 Rare Variation
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.rarevariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -424,6 +430,7 @@
                                                     v-if="$parent.bayesFactorRareVariation"
                                                     :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
                                                     :elementid="'rareVariation'"
+                                                    :score="$parent.bayesFactorRareVariation"
                                                 ></color-bar-plot>
                                             </div>
                                             <div class="EGLT-table fiftytwo masktable">
@@ -462,7 +469,7 @@
 }
 
 .color-bar-plot-wrapper .each-bar-section {
-    width: calc(100% / 8);
+    width: calc(100% / 7);
     text-align: center;
 }
 

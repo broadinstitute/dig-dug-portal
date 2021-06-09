@@ -136,6 +136,20 @@ let pages = {
         title: "Epigenetic Datasets",
         chunks: ["chunk-vendors", "chunk-common", "epigeneticdatasets"]
     },
+    epigenomicdatasets: {
+        entry: "src/views/EpigenomicDatasets/main.js",
+        template: "public/index.html",
+        filename: "epigenomicdatasets.html",
+        title: "Epigenomic Datasets",
+        chunks: ["chunk-vendors", "chunk-common", "epigenomicdatasets"]
+    },
+    ampt2dpartnership: {
+        entry: "src/views/AmpT2dPartnership/main.js",
+        template: "public/index.html",
+        filename: "ampt2dpartnership.html",
+        title: "AMP T2D Partnership",
+        chunks: ["chunk-vendors", "chunk-common", "ampt2dpartnership"]
+    },
     effectorgenes: {
         entry: "src/views/EffectorGenes/main.js",
         template: "public/index.html",
@@ -164,12 +178,12 @@ let pages = {
         title: "Gene Finder",
         chunks: ["chunk-vendors", "chunk-common", "genefinder"]
     },
-    variantfinder: {
-        entry: "src/views/VariantFinder/main.js",
+    signalsifter: {
+        entry: "src/views/SignalSifter/main.js",
         template: "public/index.html",
-        filename: "variantfinder.html",
-        title: "Variant Finder",
-        chunks: ["chunk-vendors", "chunk-common", "variantfinder"]
+        filename: "signalsifter.html",
+        title: "Signal Sifter",
+        chunks: ["chunk-vendors", "chunk-common", "signalsifter"]
     },
     complicationsviewer: {
         entry: "src/views/ComplicationsViewer/main.js",
@@ -199,6 +213,20 @@ let pages = {
         filename: "project.html",
         title: "Project",
         chunks: ["chunk-vendors", "chunk-common", "project"]
+    },
+    variantsearch: {
+        entry: "src/views/VariantSearch/main.js",
+        template: "public/index.html",
+        filename: "variantsearch.html",
+        title: "Variant Search",
+        chunks: ["chunk-vendors", "chunk-common", "variantsearch"]
+    },
+    research: {
+        entry: "src/views/Papers/Research/main.js",
+        template: "public/index.html",
+        filename: "research.html",
+        title: "Research",
+        chunks: ["chunk-vendors", "chunk-common", "research"]
     }
 };
 

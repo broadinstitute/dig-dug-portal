@@ -1,8 +1,9 @@
 
 .lunaris-link-wrapper {
-    float: right;
-    margin-top: 5px;
     font-size: 14px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 15px;
 }
 
 .lunaris-link {

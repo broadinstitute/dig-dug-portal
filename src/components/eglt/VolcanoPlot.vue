@@ -1,6 +1,7 @@
 <template>
     <div class="volcano-plot-content">
         <div id="clicked_dot_value" class="hidden"></div>
+
         <div
             v-if="!!renderConfig.legend"
             class="volcano-plot-legend"
@@ -9,11 +10,15 @@
         <canvas
             v-if="!!renderConfig"
             id="volcanoPlot"
-            @click="checkPosition"
+            class=""
+            @mouseleave="hidePanel"
+            @mousemove="checkPosition"
+            @click="filterTable"
             :width="renderConfig.width + 120"
             :height="renderConfig.height + 120"
         >
         </canvas>
+        <!--<div id="clicked_dot_indicator" class=""></div>-->
         <div
             v-if="!!renderConfig.label"
             class="volcano-plot-label"
@@ -142,23 +147,57 @@ export default Vue.component("volcano-plot", {
     },
     methods: {
         ...uiUtils,
+        hidePanel() {
+            uiUtils.hideElement("clicked_dot_value");
+            //this.renderPlot();
+        },
+        filterTable() {
+            let wrapper = document.getElementById("clicked_dot_value");
+
+            if (wrapper.innerText != "") {
+                let items = wrapper.innerText.split("\n");
+                document.getElementById(
+                    "filter_" + this.renderConfig.renderBy.replace(/ /g, "")
+                ).value = items.join(", ");
+                this.$parent.filterData(
+                    "",
+                    this.renderConfig.renderBy,
+                    "search"
+                );
+            }
+        },
         checkPosition(event) {
+            let wrapper = document.getElementById("clicked_dot_value");
+            wrapper.classList.remove("hidden");
+
             let e = event;
-            var rect = e.target.getBoundingClientRect();
+            var rect = document
+                .getElementById("volcanoPlot")
+                .getBoundingClientRect();
             var x = Math.floor(e.clientX - rect.left);
             var y = Math.floor(e.clientY - rect.top);
-            let clickedDotValue = "";
 
-            //console.log("Left? : " + x + " ; Top? : " + y);
-            //console.log(this.volcanoDotPos);
+            let canvas = document.getElementById("volcanoPlot");
+
+            wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+
+            let clickedDotValue = "";
+            let redDotsArr = [];
 
             for (let h = -3; h <= 3; h++) {
                 for (let v = -3; v <= 3; v++) {
                     if (this.volcanoDotPos[x + h] != undefined) {
                         if (this.volcanoDotPos[x + h][y + v] != undefined) {
                             //console.log(this.volcanoDotPos[x + h][y + v]);
+                            let tempObj = {};
+                            tempObj["x"] = x + h;
+                            tempObj["y"] = y + v;
+
+                            redDotsArr.push(tempObj);
+
                             clickedDotValue +=
-                                '<span class="gene-on-clicked-dot">' +
+                                '<span class="gene-on-clicked-dot-volcano">' +
                                 this.volcanoDotPos[x + h][y + v] +
                                 "</span>";
                         }
@@ -166,15 +205,16 @@ export default Vue.component("volcano-plot", {
                 }
             }
 
-            let wrapper = document.getElementById("clicked_dot_value");
-            let canvas = document.getElementById("volcanoPlot");
             if (clickedDotValue != "") {
                 wrapper.innerHTML = clickedDotValue;
-                wrapper.classList.remove("hidden");
-                wrapper.style.top = y + canvas.offsetTop + "px";
-                wrapper.style.left = x + canvas.offsetLeft + "px";
+                document.getElementById("volcanoPlot").classList.add("hover");
+                //this.renderPlot(redDotsArr);
             } else {
+                wrapper.innerHTML = clickedDotValue;
                 wrapper.classList.add("hidden");
+                document
+                    .getElementById("volcanoPlot")
+                    .classList.remove("hover");
             }
         },
         clearPlot() {
@@ -187,7 +227,7 @@ export default Vue.component("volcano-plot", {
                 this.renderConfig.height + 120
             );
         },
-        renderPlot() {
+        renderPlot(REDDOTS) {
             let xAxisData = [];
             let yAxisData = [];
 
@@ -201,6 +241,12 @@ export default Vue.component("volcano-plot", {
 
             var c = document.getElementById("volcanoPlot");
             var ctx = c.getContext("2d");
+            ctx.clearRect(
+                0,
+                0,
+                this.renderConfig.width + 120,
+                this.renderConfig.height + 120
+            );
 
             ctx.beginPath();
             ctx.lineWidth = 1;
@@ -243,13 +289,22 @@ export default Vue.component("volcano-plot", {
                 ctx.font = "12px Arial";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#000000";
-                ctx.fillText(
-                    Formatters.floatFormatter(
-                        xAxisTicks.lo + i * xAxisTicks.step
-                    ),
-                    leftMargin + i * xTickDistance + xBump,
-                    topMargin + canvasHeight + 17 + yBump
-                );
+
+                if (xAxisTicks.lo + i * xAxisTicks.step == 0) {
+                    ctx.fillText(
+                        0,
+                        leftMargin + i * xTickDistance + xBump,
+                        topMargin + canvasHeight + 17 + yBump
+                    );
+                } else {
+                    ctx.fillText(
+                        Formatters.floatFormatter(
+                            xAxisTicks.lo + i * xAxisTicks.step
+                        ),
+                        leftMargin + i * xTickDistance + xBump,
+                        topMargin + canvasHeight + 17 + yBump
+                    );
+                }
             }
             //Render x axis label
             ctx.font = "14px Arial";
@@ -419,6 +474,21 @@ export default Vue.component("volcano-plot", {
                     ctx.fillText(d[this.renderConfig.renderBy], xPos, yPos - 4);
                 }
             });
+
+            // reder hovering dots in red
+            //console.log(!!this.volcanoDotPos);
+
+            if (REDDOTS != undefined) {
+                REDDOTS.map((dot) => {
+                    let redXPos = dot.x;
+                    let redYPos = dot.y;
+                    ctx.fillStyle = "#ff0000";
+                    ctx.lineWidth = 0;
+                    ctx.beginPath();
+                    ctx.arc(redXPos, redYPos, 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+            }
 
             //if selectedGene is not undefined
             if (this.geneOfInterest != undefined) {
@@ -595,6 +665,17 @@ export default Vue.component("volcano-plot", {
 
 $(function () {});
 </script>
+<style>
+#volcanoPlot.hover {
+    cursor: pointer;
+}
+
+.gene-on-clicked-dot-volcano {
+    display: block;
+    float: left;
+    padding: 0 5px;
+}
+</style>
 
 
 

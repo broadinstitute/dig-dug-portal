@@ -2,11 +2,11 @@
     <div>
         <div>
             <span style="color: #00b9f2; font-family: 'Oswald'; font-size: 65px"
-                >{{ processedDatasetsInfo.totalDatasetsNum }} datasets,</span
+                >{{ $store.state.bioPortal.datasets.length }} datasets,</span
             >
-            <span style="color: #80C242; font-family: 'Oswald'; font-size: 65px"
+            <span style="color: #80c242; font-family: 'Oswald'; font-size: 65px"
                 >&nbsp;{{
-                    processedDatasetsInfo.totalPhenotypesNum
+                    $store.state.bioPortal.phenotypes.length
                 }}
                 traits</span
             >
@@ -213,9 +213,6 @@ export default Vue.component("datasets-section", {
                 "#80c34233",
                 "#80c34211",
             ];
-
-            console.log(datasetsData);
-            console.log(phenotypesData);
 
             renderTable(datasetsData, "datasets");
             renderTable(phenotypesData, "phenotypes");

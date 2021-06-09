@@ -17,16 +17,17 @@ import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import Formatters from "@/utils/formatters";
+import VariantSearch from "@/components/VariantSearch";
 
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 
-import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
-import FilterPValue from "@/components/criterion/FilterPValue.vue"
-import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
-import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue"
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue"
@@ -66,7 +67,8 @@ new Vue({
         LocusZoomPhewasPanel,
         SearchHeaderWrapper,
         ResultsDashboard,
-        NCATSPredicateTable
+        NCATSPredicateTable,
+        VariantSearch
     },
 
     data() {
@@ -285,6 +287,10 @@ new Vue({
                     )}-${Formatters.intFormatter(r.end)}`
                 };
             }
+        },
+
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
         }
     },
 

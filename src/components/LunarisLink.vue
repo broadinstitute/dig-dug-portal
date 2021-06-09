@@ -6,13 +6,24 @@
                     <a
                         href="javascript:;"
                         @click="loadDataFromLunaris('lunaris-modal-wrapper')"
-                    >Download data with Lunaris API</a>
+                        >Download data with Lunaris API</a
+                    >
                 </div>
                 <div>
                     <a
-                        :href="'https://lunaris.hugeamp.org/lunaris/lunaris.html?chr='+chr+'&begin='+begin+'&end='+end+'&trait='+trait.name"
+                        :href="
+                            'https://lunaris.hugeamp.org/lunaris/lunaris.html?chr=' +
+                            chr +
+                            '&begin=' +
+                            begin +
+                            '&end=' +
+                            end +
+                            '&trait=' +
+                            trait.name
+                        "
                         target="_blank"
-                    >Open Lunaris for more options &nbsp;</a>
+                        >Open Lunaris for more options &nbsp;</a
+                    >
                     <!--<tooltip-documentation
                         name="test.tooltip.index.regionexample"
                         :group="diseaseGroup.name"
@@ -25,18 +36,30 @@
             <span
                 class="lunaris-modal-close"
                 v-on:click="showHideElement('lunaris-modal-wrapper')"
-            >&#43;</span>
+                >&#43;</span
+            >
             <div class="lunaris-modal-parameters">
-                <p>
-                    {{"Region: "+this.chr + " : " + this.begin + " - " + this.end }}
-                    {{"&nbsp;&nbsp;|&nbsp;&nbsp;Phenotype: "+this.trait.name}}
-                </p>
+                {{
+                    "Region: " +
+                    this.chr +
+                    " : " +
+                    this.begin +
+                    " - " +
+                    this.end
+                }}
+                {{ "&nbsp;&nbsp;|&nbsp;&nbsp;Phenotype: " + this.trait.name }}
             </div>
+
+            <div id="loading_lunaris_data" class="hidden">Loading Data...</div>
             <button
                 v-on:click="this.copyDataContent"
                 class="btn btn-secondary btn-sm copy-data-btn"
-            >Copy data</button>
-            <textarea class="lunaris-modal-textarea" id="dataFromLunaris">{{this.dataContent}}</textarea>
+            >
+                Copy data
+            </button>
+            <textarea class="lunaris-modal-textarea" id="dataFromLunaris">{{
+                this.dataContent
+            }}</textarea>
         </div>
     </div>
 </template>
@@ -57,9 +80,20 @@ export default Vue.component("lunaris-link", {
         };
     },
     mounted: function () {},
+    watch: {
+        "$store.state.lunaris.dataFromLunaris"(data) {
+            console.log("data is there!!");
+            uiUtils.hideElement("loading_lunaris_data");
+            uiUtils.showElement("lunaris-modal-textarea");
+            uiUtils.showElement("copy-data-btn");
+        },
+    },
     methods: {
         loadDataFromLunaris(CLASS) {
             uiUtils.showHideElement(CLASS);
+            uiUtils.showElement("loading_lunaris_data");
+            uiUtils.hideElement("copy-data-btn");
+            uiUtils.hideElement("lunaris-modal-textarea");
             //this.lunarisCaller();
             let arg = {
                 id: "requestFilterTsv",
@@ -85,10 +119,10 @@ export default Vue.component("lunaris-link", {
                 },
             };
 
-            let CHR = this.$store.state.chr;
-            let BEGIN = this.$store.state.start;
-            let END = this.$store.state.end;
-            let TRAIT = this.$store.state.phenotype.name;
+            let CHR = this.chr;
+            let BEGIN = this.begin;
+            let END = this.end;
+            let TRAIT = this.trait.name;
 
             arg.regions[CHR] = [{ begin: BEGIN, end: END }];
             arg.recipe.filter.stringValue = TRAIT;

@@ -118,6 +118,7 @@
                 </b-col>
             </b-row>
         </b-container>
+
         <b-container class="search-fields-wrapper">
             <div
                 v-for="(value, name, index) in this.filtersIndex"
@@ -126,13 +127,22 @@
                 <b-badge
                     pill
                     v-if="value.search.length > 0"
-                    v-for="(v, i) in value.search"
+                    v-for="(v, i) in value.search.filter(
+                        (v, i, arr) => arr.indexOf(v) == i
+                    )"
                     :key="v"
                     :class="'btn search-bubble ' + i"
                     @click="removeFilter(value.field, i)"
                     v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
                 ></b-badge>
             </div>
+            <b-badge
+                v-if="this.numberOfSearches() > 1"
+                class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                @click="removeAllFilters()"
+            >
+                Clear all search
+            </b-badge>
         </b-container>
 
         <b-container
@@ -279,13 +289,26 @@
                 </b-row>
             </b-container>
             <!-- convertJson2Csv works only for tables with no feature tables -->
-            <b-container
-                fluid
-                v-if="!!config && !!config[dataset]['convert_2_csv']"
-                class="convert-2-csv"
-            >
+            <b-container fluid class="per-page-ui-wrapper">
+                <label
+                    class="items-per-page-label"
+                    v-if="!!config && !!config[dataset].pageUI"
+                    >Rows per page:
+                </label>
+                <select
+                    v-model="perPage"
+                    class="form-control-sm items-per-page"
+                    v-if="!!config && !!config[dataset].pageUI"
+                >
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="100">100</option>
+                    <option value="0">All</option>
+                </select>
                 <b-btn
-                    class="btn-sm"
+                    v-if="!!config && !!config[dataset]['convert_2_csv']"
+                    class="convert-2-csv btn-sm"
                     @click="
                         convertJson2Csv(filteredData, dataset + '_filtered')
                     "
@@ -399,7 +422,7 @@
                 </b-container>
             </div>
             <b-container
-                v-if="!!config && !!config[dataset].pageUI"
+                v-if="!!config && !!config[dataset].pageUI && perPage != 0"
                 class="egl-table-page-ui-wrapper"
             >
                 <b-pagination
@@ -454,7 +477,7 @@ export default Vue.component("effector-genes-table", {
             sortTableSelect: null,
             sortDirection: "asc",
             /*igvBrowser: false,*/
-            perPage: 25,
+            perPage: null,
             currentPage: 1,
             selectedGene: "",
         };
@@ -501,7 +524,8 @@ export default Vue.component("effector-genes-table", {
             if (!!this.config[this.dataset].pageUI) {
                 let filtered = this.$store.state.filteredData;
                 let paged = [];
-                let perPage = this.config[this.dataset].pageUI.perPage;
+                let perPage =
+                    this.perPage != 0 ? this.perPage : filtered.length;
 
                 let startIndex = (this.currentPage - 1) * perPage;
                 let endIndex =
@@ -538,12 +562,25 @@ export default Vue.component("effector-genes-table", {
                     this.filtersIndex[f.field] = tempObj;
                 });
             }
+            if (value[this.dataset].pageUI != undefined) {
+                this.perPage = value[this.dataset].pageUI.perPage;
+            }
+
+            console.log(this.perPage);
         },
         tableData(data) {
             uiUtils.hideElement("data-loading-indicator");
         },
     },
     methods: {
+        numberOfSearches() {
+            let numberOfBubbles = 0;
+            for (const FIELD in this.filtersIndex) {
+                numberOfBubbles += this.filtersIndex[FIELD].search.length;
+            }
+
+            return numberOfBubbles;
+        },
         convert2RenderBy(GENE) {
             if (!!this.tableData && this.config) {
                 let filterByArr = this.config[this.dataset].single_gene_view
@@ -656,7 +693,9 @@ export default Vue.component("effector-genes-table", {
             }
         },
         filterData(EVENT, FIELD, TYPE, DATATYPE) {
-            let searchValue = EVENT.target.value;
+            let searchValue = document.getElementById(
+                "filter_" + FIELD.replace(/ /g, "")
+            ).value; //EVENT.target.value;
             let id = "#filter_" + FIELD.replace(/ /g, "");
             let inputField = document.querySelector(id);
 
@@ -686,6 +725,10 @@ export default Vue.component("effector-genes-table", {
                         this.filtersIndex[FIELD]["search"].push(
                             searchTerm.trim()
                         );
+
+                        this.filtersIndex[FIELD]["search"] = this.filtersIndex[
+                            FIELD
+                        ]["search"].filter((v, i, arr) => arr.indexOf(v) == i);
                     });
                 }
             } else if (
@@ -705,8 +748,6 @@ export default Vue.component("effector-genes-table", {
                 }
             }
 
-            //console.log("filtersIndex", this.filtersIndex);
-
             this.applyFilters();
         },
         applyFilters() {
@@ -718,85 +759,87 @@ export default Vue.component("effector-genes-table", {
                 let searchIndex = this.filtersIndex[f];
 
                 if (searchIndex.search.length > 0) {
-                    searchIndex.search.map((s) => {
-                        let targetData = filtered;
-                        let search = s;
+                    searchIndex.search
+                        .filter((v, i, arr) => arr.indexOf(v) == i)
+                        .map((s) => {
+                            let targetData = filtered;
+                            let search = s;
 
-                        if (searchIndex.type == "dropdown") {
-                            targetData.filter((row) => {
-                                if (search === row[searchIndex.field]) {
-                                    tempFiltered.push(row);
-                                }
-                            });
-                        } else if (
-                            searchIndex.type == "search" ||
-                            searchIndex.type == "dropdown_word"
-                        ) {
-                            targetData.filter((row) => {
-                                if (
-                                    row[searchIndex.field]
-                                        .toLowerCase()
-                                        .includes(search.toLowerCase())
-                                ) {
-                                    tempFiltered.push(row);
-                                }
-                            });
-                        } else if (searchIndex.type == "search_gt") {
-                            targetData.filter((row) => {
-                                if (row[searchIndex.field] >= search) {
-                                    tempFiltered.push(row);
-                                }
-                            });
-                        } else if (searchIndex.type == "search_lt") {
-                            targetData.filter((row) => {
-                                if (row[searchIndex.field] <= search) {
-                                    tempFiltered.push(row);
-                                }
-                            });
-                        } else if (searchIndex.type == "search_or") {
-                            let searchVals = search.split(",");
-                            targetData.filter((row) => {
-                                if (
-                                    row[searchIndex.field] <=
-                                        searchVals[0].trim() ||
-                                    row[searchIndex.field] >=
-                                        searchVals[1].trim()
-                                ) {
-                                    tempFiltered.push(row);
-                                }
-                            });
-                        } else if (searchIndex.type == "search_cd") {
-                            let searchDirection = document.getElementById(
-                                "filter_" +
-                                    searchIndex.field.replace(/ /g, "") +
-                                    "_direction"
-                            ).value;
-
-                            targetData.filter((row) => {
-                                if (searchDirection == "lt") {
-                                    if (row[searchIndex.field] <= search) {
+                            if (searchIndex.type == "dropdown") {
+                                targetData.filter((row) => {
+                                    if (search === row[searchIndex.field]) {
                                         tempFiltered.push(row);
                                     }
-                                } else if (searchDirection == "gt") {
+                                });
+                            } else if (
+                                searchIndex.type == "search" ||
+                                searchIndex.type == "dropdown_word"
+                            ) {
+                                targetData.filter((row) => {
+                                    if (
+                                        row[searchIndex.field]
+                                            .toLowerCase()
+                                            .includes(search.toLowerCase())
+                                    ) {
+                                        tempFiltered.push(row);
+                                    }
+                                });
+                            } else if (searchIndex.type == "search_gt") {
+                                targetData.filter((row) => {
                                     if (row[searchIndex.field] >= search) {
                                         tempFiltered.push(row);
                                     }
-                                }
-                            });
-                        } else if (searchIndex.type == "search_and") {
-                            let searchVals = search.split(",");
-                            targetData.filter((row) => {
-                                if (
-                                    row[searchIndex.field] >=
-                                        searchVals[0].trim() &&
-                                    row[searchIndex.field] <=
-                                        searchVals[1].trim()
-                                ) {
-                                    tempFiltered.push(row);
-                                }
-                            });
-                        }
-                    });
+                                });
+                            } else if (searchIndex.type == "search_lt") {
+                                targetData.filter((row) => {
+                                    if (row[searchIndex.field] <= search) {
+                                        tempFiltered.push(row);
+                                    }
+                                });
+                            } else if (searchIndex.type == "search_or") {
+                                let searchVals = search.split(",");
+                                targetData.filter((row) => {
+                                    if (
+                                        row[searchIndex.field] <=
+                                            searchVals[0].trim() ||
+                                        row[searchIndex.field] >=
+                                            searchVals[1].trim()
+                                    ) {
+                                        tempFiltered.push(row);
+                                    }
+                                });
+                            } else if (searchIndex.type == "search_cd") {
+                                let searchDirection = document.getElementById(
+                                    "filter_" +
+                                        searchIndex.field.replace(/ /g, "") +
+                                        "_direction"
+                                ).value;
+
+                                targetData.filter((row) => {
+                                    if (searchDirection == "lt") {
+                                        if (row[searchIndex.field] <= search) {
+                                            tempFiltered.push(row);
+                                        }
+                                    } else if (searchDirection == "gt") {
+                                        if (row[searchIndex.field] >= search) {
+                                            tempFiltered.push(row);
+                                        }
+                                    }
+                                });
+                            } else if (searchIndex.type == "search_and") {
+                                let searchVals = search.split(",");
+                                targetData.filter((row) => {
+                                    if (
+                                        row[searchIndex.field] >=
+                                            searchVals[0].trim() &&
+                                        row[searchIndex.field] <=
+                                            searchVals[1].trim()
+                                    ) {
+                                        tempFiltered.push(row);
+                                    }
+                                });
+                            }
+                        });
 
                     filtered = tempFiltered;
                     tempFiltered = [];
@@ -805,6 +848,12 @@ export default Vue.component("effector-genes-table", {
             }
 
             this.$store.dispatch("filteredData", filtered);
+        },
+        removeAllFilters() {
+            for (const FIELD in this.filtersIndex) {
+                this.filtersIndex[FIELD].search = [];
+            }
+            this.applyFilters();
         },
         removeFilter(FIELD, ITEM) {
             this.filtersIndex[FIELD].search.splice(ITEM, 1);
@@ -1257,3 +1306,9 @@ export default Vue.component("effector-genes-table", {
     },
 });
 </script>
+
+<style>
+.clear-all-filters-bubble {
+    background-color: #ff0000;
+}
+</style>

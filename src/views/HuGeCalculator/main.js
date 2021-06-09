@@ -58,15 +58,16 @@ new Vue({
             phenotypelist: [],
             hugecalSearchCriterion: keyParams.gene
                 ? [
-                      {
-                          field: "gene",
-                          threshold: keyParams.gene
-                      },
-                      {
-                          field: "phenotype",
-                          threshold: keyParams.phenotype
-                      }
-                  ]
+                    {
+
+                        field: "gene",
+                        threshold: keyParams.gene
+                    },
+                    {
+                        field: "phenotype",
+                        threshold: keyParams.phenotype
+                    }
+                ]
                 : [],
             commonVariationStart: null,
             commonVariationEnd: null
@@ -152,9 +153,9 @@ new Vue({
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == this.selectedPhenotype[0]) {
                         if (data[i].pValue <= 5e-8) {
-                            console.log(
-                                "I am GWAS significant" + data[i].pValue
-                            );
+                            // console.log(
+                            //     "I am GWAS significant" + data[i].pValue
+                            // );
                             return true;
                         }
                     }
@@ -287,7 +288,7 @@ new Vue({
                                     !!this.eglData.genetic &&
                                     this.eglData.genetic == "1C"
                                 ) {
-                                    secondBF = 116;
+                                    secondBF = 117;
                                 }
                                 if (
                                     !!this.eglData.genetic &&
@@ -358,9 +359,6 @@ new Vue({
         }
     },
     methods: {
-        findRefs() {
-            console.log(this.$children[0].$refs);
-        },
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, { data });
         },
@@ -375,25 +373,30 @@ new Vue({
             let combinedbf = commonBF * rareBF;
             return Number.parseFloat(combinedbf).toFixed(2);
         },
+        // < 1: No Evidence
+        // >= 1 and < 3: Anecdotal
+        // >= 3 and < 10: Moderate
+        // >= 10 and < 30: Strong
+        // >= 30 and < 100: Very Strong
+        // >= 100 and < 350: Extreme
+        // >= 350: Compelling
         determineCategory(bayesfactor) {
             let category;
             if (bayesfactor <= 1) {
                 category = "No";
             }
             if (bayesfactor > 1 && bayesfactor < 3) {
-                category = "Equivocal";
-            } else if (bayesfactor >= 3 && bayesfactor < 6.6) {
-                category = "Weak";
-            } else if (bayesfactor >= 6.6 && bayesfactor < 15) {
-                category = "Potential";
-            } else if (bayesfactor >= 15 && bayesfactor < 33) {
-                category = "Possible";
-            } else if (bayesfactor >= 33 && bayesfactor < 75) {
+                category = "Anecdotal";
+            } else if (bayesfactor >= 3 && bayesfactor < 10) {
                 category = "Moderate";
-            } else if (bayesfactor >= 75 && bayesfactor < 348) {
+            } else if (bayesfactor >= 10 && bayesfactor < 30) {
                 category = "Strong";
-            } else if (bayesfactor >= 348) {
-                category = "Causal";
+            } else if (bayesfactor >= 30 && bayesfactor < 100) {
+                category = "Very Strong";
+            } else if (bayesfactor >= 100 && bayesfactor < 350) {
+                category = "Extreme";
+            } else if (bayesfactor >= 350) {
+                category = "Compelling";
             }
             return category;
         },
@@ -473,9 +476,6 @@ new Vue({
                 if (newCriterion.phenotype.length > 0) {
                     if (newCriterion.gene !== oldCriterion.gene) {
                         this.$store.dispatch("gene/query", {
-                            q: newCriterion.gene
-                        });
-                        this.$store.dispatch("regions/query", {
                             q: newCriterion.gene
                         });
                         this.updateAssociations(

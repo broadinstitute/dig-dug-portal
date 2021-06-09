@@ -1,10 +1,6 @@
 <template>
     <div class="mbm-plot-content">
         <div id="clicked_dot_value" class="clicked-dot-value hidden">
-            <b-icon-x-circle-fill
-                class="clicked-dot-value-close"
-                @click="hidePanel"
-            ></b-icon-x-circle-fill>
             <div id="clicked_dot_value_content"></div>
         </div>
         <div
@@ -15,7 +11,9 @@
         <canvas
             v-if="!!renderConfig"
             id="manhattanPlot"
-            @click="checkPosition"
+            @mouseleave="hidePanel"
+            @mousemove="checkPosition"
+            @click="filterTable"
             @resize="onResize"
             width=""
             height=""
@@ -144,6 +142,22 @@ export default Vue.component("m-bitmap-plot", {
 
             return massagedData;
         },
+        uniqueChrs() {
+            let chrs = Object.keys(this.chromosomeLength);
+            let uniqueArr = [];
+
+            chrs.map((c) => {
+                if (this.renderData.sorted[c].length > 0) {
+                    uniqueArr.push(c);
+                }
+            });
+
+            uniqueArr.sort(function (a, b) {
+                return a - b;
+            });
+
+            return uniqueArr;
+        },
     },
     watch: {
         renderData() {
@@ -153,16 +167,54 @@ export default Vue.component("m-bitmap-plot", {
     methods: {
         ...uiUtils,
         hidePanel() {
-            uiUtils.hideElement("clicked-dot-value");
+            //uiUtils.hideElement("clicked-dot-value");
         },
         onResize(e) {
             this.renderPlot();
         },
+        filterTable() {
+            let wrapper = document.getElementById("clicked_dot_value");
+
+            if (wrapper.innerText != "") {
+                let items = [];
+                let genesLength = document.getElementsByClassName(
+                    "gene-on-clicked-dot-mplot"
+                );
+
+                genesLength.forEach((gene) => items.push(gene.innerText));
+
+                document.getElementById(
+                    "filter_" + this.renderConfig.renderBy.replace(/ /g, "")
+                ).value = items.join(", ");
+                this.$parent.filterData(
+                    "",
+                    this.renderConfig.renderBy,
+                    "search"
+                );
+            }
+        },
+        correctDecimal(decimalNum) {
+            let dNum = decimalNum;
+
+            for (let i = 0; i < 3; i++) {
+                if (dNum.slice(-1) == 0) {
+                    dNum = dNum.slice(0, -1);
+                }
+            }
+
+            return dNum;
+        },
         checkPosition(event) {
+            let wrapper = document.getElementById("clicked_dot_value");
+            let canvas = document.getElementById("manhattanPlot");
+            wrapper.classList.remove("hidden");
             let e = event;
             var rect = e.target.getBoundingClientRect();
             var x = Math.floor(e.clientX - rect.left);
             var y = Math.floor(e.clientY - rect.top);
+            wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+
             let clickedDotValue = "";
 
             for (let h = -5; h <= 5; h++) {
@@ -172,7 +224,7 @@ export default Vue.component("m-bitmap-plot", {
                             //console.log(this.dotPosData[x + h]);
                             let dotObject = this.dotPosData[x + h][y + v];
                             clickedDotValue +=
-                                '<span class="gene-on-clicked-dot"><b>' +
+                                '<span class="gene-on-clicked-dot-mplot"><b>' +
                                 dotObject[this.renderConfig.renderBy] +
                                 "</b></span>";
 
@@ -194,18 +246,20 @@ export default Vue.component("m-bitmap-plot", {
                 }
             }
 
-            let wrapper = document.getElementById("clicked_dot_value");
+            //let wrapper = document.getElementById("clicked_dot_value");
             let contentWrapper = document.getElementById(
                 "clicked_dot_value_content"
             );
-            let canvas = document.getElementById("manhattanPlot");
+
             if (clickedDotValue != "") {
                 contentWrapper.innerHTML = clickedDotValue;
-                wrapper.classList.remove("hidden");
-                wrapper.style.top = y + canvas.offsetTop + "px";
-                wrapper.style.left = x + canvas.offsetLeft + "px";
+
+                document.getElementById("manhattanPlot").classList.add("hover");
             } else {
                 wrapper.classList.add("hidden");
+                document
+                    .getElementById("manhattanPlot")
+                    .classList.remove("hover");
             }
         },
         renderPlot() {
@@ -280,8 +334,15 @@ export default Vue.component("m-bitmap-plot", {
                 ctx.textAlign = "right";
                 ctx.fillStyle = "#000000";
 
+                let tickerNum =
+                    (yMin + i * yStep) % 1 == 0
+                        ? Formatters.floatFormatter(yMin + i * yStep)
+                        : this.correctDecimal(
+                              Formatters.floatFormatter(yMin + i * yStep)
+                          );
+
                 ctx.fillText(
-                    Formatters.floatFormatter(yMin + i * yStep),
+                    tickerNum,
                     this.leftMargin - 10,
                     this.topMargin + plotHeight + 5 - i * yTickDistance
                 );
@@ -302,9 +363,9 @@ export default Vue.component("m-bitmap-plot", {
 
             let dnaLength = 0;
 
-            for (const chr in this.chromosomeLength) {
+            this.uniqueChrs.map((chr) => {
                 dnaLength += this.chromosomeLength[chr];
-            }
+            });
 
             let chrByPixel = plotWidth / dnaLength;
 
@@ -312,7 +373,8 @@ export default Vue.component("m-bitmap-plot", {
             ctx.textAlign = "center";
             ctx.rotate((Math.PI * 2) / 4);
 
-            for (const chr in this.chromosomeLength) {
+            //for (const chr in this.chromosomeLength) {
+            this.uniqueChrs.map((chr) => {
                 let chrLength = this.chromosomeLength[chr] * chrByPixel;
                 xStart += chrLength;
                 let chrPos = xStart - chrLength / 2;
@@ -322,7 +384,7 @@ export default Vue.component("m-bitmap-plot", {
                     chrPos,
                     this.topMargin + plotHeight + yBump + 14
                 );
-            }
+            });
 
             //Render x axis label
             ctx.fillText(
@@ -340,11 +402,14 @@ export default Vue.component("m-bitmap-plot", {
             //Render Dots
             xStart = 0;
             let exChr = "";
-            let chrNum = 1;
+            let chrNum = this.uniqueChrs.length != 1 ? 1 : this.uniqueChrs[0];
 
-            for (const chr in this.chromosomeLength) {
-                if (chr != 1) {
-                    xStart += this.chromosomeLength[exChr];
+            //for (const chr in this.chromosomeLength) {
+            this.uniqueChrs.map((chr) => {
+                if (this.uniqueChrs.length != 1) {
+                    if (chr != 1) {
+                        xStart += this.chromosomeLength[exChr];
+                    }
                 }
 
                 this.renderData.sorted[chr].map((g) => {
@@ -392,7 +457,7 @@ export default Vue.component("m-bitmap-plot", {
                 });
                 exChr = chr;
                 chrNum++;
-            }
+            });
         },
     },
 });
@@ -401,9 +466,10 @@ $(function () {});
 </script>
 
 <style>
-#manhattanPlot:hover {
+#manhattanPlot.hover {
+    cursor: pointer;
 }
-.gene-on-clicked-dot,
+.gene-on-clicked-dot-mplot,
 .content-on-clicked-dot {
     display: block !important;
 }
