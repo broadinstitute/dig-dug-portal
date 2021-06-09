@@ -82,7 +82,7 @@ export default Vue.component("lz-associations-panel", {
 
 export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError, initialData) {
     
-    const datalayer = data_layer_id => `$..data_layers[?(@.id === ${data_layer_id})]`;
+    const datalayer = data_layer_id => `$..data_layers[?(@.id === "${data_layer_id}")]`;
     const associationDataLayerQ = datalayer('associationspvaluecatalog');
 
     // get a base layout, give it a title and add some fields under the 'assoc' namespace

@@ -5,12 +5,8 @@
 <script>
 import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
-
-import LocusZoom from "locuszoom";
-import { GwasCatalogLZ } from "locuszoom/esm/data/adapters/";
-
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
-import idCounter from "@/utils/idCounter";
+import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
 
 export default Vue.component("lz-catalog-annotations-panel", {
     props: {
@@ -46,7 +42,7 @@ export default Vue.component("lz-catalog-annotations-panel", {
                 ? (result) => this.$emit("input", result)
                 : this.onLoad;
             this.id = this.$parent.addPanelAndDataSource(
-                new LZCatalogAnnotationsPanel(
+                makeCatalogAnnotationsPanel(
                     this.phenotype,
                     this.title,
                     onLoad,
@@ -77,117 +73,85 @@ export default Vue.component("lz-catalog-annotations-panel", {
     },
 });
 
-export class LZCatalogAnnotationsPanel {
-    constructor(phenotype, title, onLoad, onResolve, onError, initialData) {
-        // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
-        // however they are also jointly necessary for LocusZoom –
-        this.panel_layout_type = "annotation_catalog";
+export function makeCatalogAnnotationsPanel(phenotype, title='', onLoad, onResolve, onError, initialData) {
+    // console.log(LocusZoom.Layouts.get("panel", "annotation_catalog").data_layers[0])
 
-        this.datasource_type = "assoc";
-        // this is arbitrary, but we want to base it on the ID
-        this.panel_id = `${phenotype}_assoc`;
-        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+    const datalayer = data_layer_id => `$..data_layers[?(@.tag === "${data_layer_id}")]`;
+    const associationDataLayerQ = datalayer('gwascatalog');
 
-        this.index = "associations";
-        this.queryStringMaker = (chr, start, end) =>
-            `${phenotype},${chr}:${start}-${end}`;
-        this.translator = (associations) => {
-            return associations.map((association) => ({
-                chromosome: association.chromosome,
-                id: association.varId,
-                position: association.position,
-                pValue: association.pValue,
-                log_pvalue: -1 * Math.log10(association.pValue), // .toPrecision(4),
-                variant: association.varId,
-                ref_allele: association.reference,
-                consequence: association.consequence,
-                beta: association.beta,
-                nearest: association.nearest,
-            }));
-        };
-        this.initialData = initialData;
-        this.layouts = [
-            LocusZoom.Layouts.get("panel", "annotation_catalog", {
-                title: {
-                    text: !!title
-                        ? `${title} Variant Catalog`
-                        : "Variant Catalog",
-                    style: { "font-size": "18px" },
-                    x: -0.5,
-                },
-                y_index: 0,
-                id: `${this.panel_id}_catalog`,
-                data_layers: [
-                    Object.assign(
-                        LocusZoom.Layouts.get("panel", "annotation_catalog")
-                            .data_layers[0],
-                        {
-                            namespace: {
-                                catalog: "catalog",
-                                [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
-                            },
-                            id_field: LocusZoom.Layouts.get(
-                                "panel",
-                                "annotation_catalog"
-                            ).data_layers[0].id_field.replace(
-                                this.datasource_type,
-                                this.datasource_namespace_symbol_for_panel
-                            ),
-                            fields: [
-                                ...LocusZoom.Layouts.get(
-                                    "panel",
-                                    "annotation_catalog"
-                                ).data_layers[0].fields.map((field) =>
-                                    field.replace(
-                                        this.datasource_type,
-                                        this.datasource_namespace_symbol_for_panel
-                                    )
-                                ),
-                            ],
-                            filter: [
-                                // Hack to exclude incomplete datapoints
-                                {
-                                    field: "catalog:pos",
-                                    operator: ">",
-                                    value: 0,
-                                },
-                            ],
-                            match: {
-                                send: "catalog:pos",
-                                receive: "catalog:pos",
-                            },
-                            color: [
-                                {
-                                    field: "lz_highlight_match", // Special field name whose presence triggers custom rendering
-                                    scale_function: "if",
-                                    parameters: {
-                                        field_value: true,
-                                        then: "red",
-                                    },
-                                },
-                                "#0000CC",
-                            ],
-                            x_axis: {
-                                field: `${this.datasource_namespace_symbol_for_panel}:position`,
-                            },
-                        }
-                    ),
-                ],
-            }),
-        ];
+    // get a base layout, give it a title and add some fields under the 'assoc' namespace
+    const layout = new LzLayout('annotation_catalog', {
+            title: {
+                text: !!title
+                    ? `${title} Variant Catalog`
+                    : "Variant Catalog",
+                style: { "font-size": "18px" },
+                x: -0.5,
+            },
+            y_index: 0
+        }).addFields(associationDataLayerQ, 'assoc', 
+            ['pValue', 'position', 'consequence', 'nearest', 'beta']
+        );
 
-        this.bioIndexToLZReader = new LZBioIndexSource({
-            index: this.index,
-            queryStringMaker: this.queryStringMaker,
-            translator: this.translator,
-            onLoad,
-            onResolve,
-            onError,
-            initialData: this.initialData,
-        });
+    layout.addProperty(`${associationDataLayerQ}`, 'match', {
+        send: "catalog:pos",
+        receive: "catalog:pos",
+    })
+    .addProperty(`${associationDataLayerQ}`, 'x_axis', {
+        field: `assoc:position`,
+    })
+    .addRule(`${associationDataLayerQ}`, 'filter', {
+        field: "catalog:pos",
+        operator: ">",
+        value: 0
+    })
+    .addRule(`${associationDataLayerQ}.color`, {
+        field: "lz_highlight_match", // Special field name whose presence triggers custom rendering
+        scale_function: "if",
+        parameters: {
+            field_value: true,
+            then: "red",
+        },
+    }, true)
+    .addRule(`${associationDataLayerQ}.color`, "#0000CC", true);
 
-        this.sources = [[this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]]
+    // TODO: eliminate the translator function with field renaming!
+    const translator = (associations) => {
+        function varId2OtherVarId(varId) {
+            const [a, b, c, d] = varId.split(':'); // ['9', '22132076', 'A', 'G']
+            return `${a}:${b}_${c}/${d}`
+        }
+        return associations.map((association) => ({
+            chromosome: association.chromosome,
+            id: varId2OtherVarId(association.varId),
+            position: association.position,
+            pValue: association.pValue,
+            log_pvalue: -1 * Math.log10(association.pValue), // .toPrecision(4),
+            variant: varId2OtherVarId(association.varId),
+            ref_allele: association.reference,
+            consequence: association.consequence,
+            beta: association.beta,
+            nearest: association.nearest,
+        }));
+    };
 
-    }
+    const datasource = new LzDataSource(LZBioIndexSource)
+        .withParams(
+            bioIndexParams(
+                'associations',
+                phenotype, 
+                translator, 
+                undefined,
+                onLoad,
+                onError,
+                onResolve,
+                initialData
+            )
+        );
+
+    const associations_panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
+    return associations_panel.unwrap;
 }
+
+
 </script>
