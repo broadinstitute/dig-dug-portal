@@ -15,7 +15,6 @@ export default Vue.component('translator-region-predicate-table', {
     },
     computed: {
         regionQuery() {
-            console.log('regionQuery change')
             return !!this.region ? `chr${this.region}` :`chr${this.chr}:${this.commaNotation(this.start)}-${this.commaNotation(this.end)}`
         }
     },

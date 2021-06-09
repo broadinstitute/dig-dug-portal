@@ -4,45 +4,69 @@
         <b-row no-gutters>
             <b-card-body :title="title">
             </b-card-body>
-            <b-pagination
-                v-model="currentPage"
-                :total-rows="geneInfo.length"
-                :per-page="perPage"
-                :aria-controls="id"
-            ></b-pagination>
-            <b-table
-                v-if="context"
-                :id="id"
-                :items="geneInfo"
-                :per-page="perPage"
-                :current-page="currentPage"
-                small>
+            <!-- <criterion-function-group>
 
-                <!-- Custom rendering for known special cases -->
-                <template #cell(id)="data">
-                    <div v-if="typeof context[supportedPrefix(data.item.source, context)] !== 'undefined'">
-                        <resolved-curie-link
-                            :id="data.item.id"
-                            :prefix="supportedPrefix(data.item.source, context)"
-                        ></resolved-curie-link>
+                <filter-enumeration-control
+                    v-for="field in fields"
+                    :key="field"
+                    :field="field"
+                    :options="tableItems">
+                    <div class="label">
+                        {{'Subject'}}
                     </div>
-                    <div v-else>
-                        <resolved-curie-link
-                            :curie="data.item.id">
-                        </resolved-curie-link>
-                    </div>
-                </template>
+                </filter-enumeration-control>
 
-                <template #cell(pubmed)="data">
-                    <resolved-curie-link
-                        v-for="pmid in [].concat(data.item.pubmed)"
-                        :key="pmid"
-                        :prefix="'pmid'"
-                        :id="pmid">
-                    </resolved-curie-link>
-                </template>
+                <template #filtered="{filter}"> -->
 
-            </b-table>
+
+                    <b-pagination
+                        v-model="currentPage"
+                        :total-rows="geneInfo.length"
+                        :per-page="perPage"
+                        :aria-controls="id"
+                    ></b-pagination>
+                    <b-table
+                        v-if="context"
+                        :id="id"
+                        :items="geneInfo"
+                        :fields="tableFields"
+                        :per-page="perPage"
+                        :current-page="currentPage"
+                        small>
+
+                        <!-- Custom rendering for known special cases -->
+                        <template #cell(id)="data">
+                            <div :key="data.item.id" v-if="typeof context[
+                                supportedPrefix(data.item.source, context)
+                            ] !== 'undefined'">
+                                <resolved-curie-link
+                                    :id="data.item.id"
+                                    :prefix="supportedPrefix(data.item.source, context)"
+                                ></resolved-curie-link>
+                            </div>
+                            <div v-else :key="data.item.id">
+                                <resolved-curie-link
+                                    :curie="`${data.item.id}`">
+                                </resolved-curie-link>
+                            </div>
+                        </template>
+
+                        <template #cell(pubmed)="data">
+                            <ul style="columns: 5; -webkit-columns: 5; -moz-columns: 5; list-style-type: none; padding: 0; margin: 0; column-gap:10px">
+                                <li v-for="pmid in [].concat(data.item.pubmed)"
+                                    :key="pmid">
+                                    <resolved-curie-link
+                                        :prefix="'pmid'"
+                                        :id="pmid">
+                                    </resolved-curie-link>
+                                </li>
+                            </ul>
+                        </template>
+
+                    </b-table>
+                    
+                <!-- </template>
+            </criterion-function-group> -->
         </b-row>
     </b-card>
 </template>
@@ -52,13 +76,17 @@ import jsonQuery from "json-query";
 import queryString from "query-string";
 import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
 import trapi from "@/components/NCATS/trapi"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 
 const myGeneAPI = 'https://mygene.info/v3';
 
 export default Vue.component("translator-predicate-table", {
     props: ["title", "geneSymbol", "field", "filter"],
     component: {
-        ResolvedCurie
+        ResolvedCurie,
+        CriterionFunctionGroup,
+        FilterEnumeration
     },
     data() {
         return {
@@ -94,6 +122,19 @@ export default Vue.component("translator-predicate-table", {
     computed: {
         geneInfo() {
             return this.geneInfoForField(this.rawGeneInfo, this.field).filter(this.myFilter);
+        },
+        fields() {
+            return Array.from(new Set(this.geneInfo.reduce((acc, item) => acc.concat(...Object.keys(item)), []))).sort((a, b)=> {
+                const sortMap = { id: 0, source: 1 };
+                if (a === 'id') {
+                    return -1;
+                } else if (b === 'id') {
+                    return 1;
+                }
+            }).filter(el => !['evidence', 'gocategory'].includes(el))
+        },
+        tableFields() {
+            return this.fields.map(key => ({ key, sortable: true }))
         }
     },
     methods: {

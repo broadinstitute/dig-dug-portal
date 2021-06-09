@@ -68,7 +68,6 @@ export default Vue.component('field-nav', {
     methods: {
         toggleAll(input, checked) {
             for (let key in input) {
-                console.log(input[key] === "boolean")
                 if (typeof input[key] === "boolean") {
                     input[key] = checked
                 }

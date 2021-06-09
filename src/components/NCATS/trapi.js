@@ -94,9 +94,16 @@ const resolveCurie = function(curie, context) {
 
         // TODO: problem: don't know which case: have to try all of them
         let url=``;
-        if (!!context[prefix]) url = `${context[prefix]}${id}`;
-        if (!!context[prefix.toLowerCase()]) url = `${context[prefix.toLowerCase()]}${id}`;
-        if (!!context[prefix.toUpperCase()]) url = `${context[prefix.toUpperCase()]}${id}`;
+        if (typeof context[prefix] === 'string' || typeof context[prefix.toLowerCase()] === 'string' || typeof context[prefix.toUpperCase()] === 'string') {
+            if (!!context[prefix]) url = `${context[prefix]}${id}`;
+            if (!!context[prefix.toLowerCase()]) url = `${context[prefix.toLowerCase()]}${id}`;
+            if (!!context[prefix.toUpperCase()]) url = `${context[prefix.toUpperCase()]}${id}`;
+        } else if (typeof context[prefix] === 'object' || typeof context[prefix.toLowerCase()] === 'object' || typeof context[prefix.toUpperCase()] === 'object') {
+            if (!!context[prefix] && !!context[prefix]['@id']) url = `${context[prefix]}${id}`;
+            if (!!context[prefix.toLowerCase()] && !!context[prefix.toLowerCase()]['@id']) url = `${context[prefix.toLowerCase()]['@id']}${id}`;
+            if (!!context[prefix.toUpperCase()] && !!context[prefix.toUpperCase()]['@id']) url = `${context[prefix.toUpperCase()]['@id']}${id}`;
+        }
+
 
         return url;
 
@@ -159,7 +166,6 @@ const _looseMatchPredicate = (key, synonyms={}) => maybeMatchedKey => {
 
 
 const supportedPrefix = function(maybeSupportedPrefix, context, synonyms=_prefix_synonyms) {
-
     // For each key in the context,
     // if there exists a loosematch for a maybeSupportedPrefix, return the first matched prefix
 
@@ -167,12 +173,16 @@ const supportedPrefix = function(maybeSupportedPrefix, context, synonyms=_prefix
     // e.g. reactome => REACT, wikipathways => WIKIPATHWAYS, GO => GO
 
     // skip the search if possible
-    if (!!context && !!context[maybeSupportedPrefix]) return maybeSupportedPrefix;
-
-    // even if the context doesn't directly support the prefix, there might be an analogous one (with different capitalization or a synonym)
-    const match = _looseMatchPredicate(maybeSupportedPrefix, synonyms);
-    for (let key in context) {
-        if (match(key)) return key;
+    if (!!maybeSupportedPrefix) {
+        if (!!context[maybeSupportedPrefix]) return maybeSupportedPrefix;
+        if (!!context[maybeSupportedPrefix.toLowerCase()]) return maybeSupportedPrefix.toLowerCase();
+        if (!!context[maybeSupportedPrefix.toUpperCase()]) return maybeSupportedPrefix.toUpperCase();
+    
+        // even if the context doesn't directly support the prefix, there might be an analogous one (with different capitalization or a synonym)
+        const match = _looseMatchPredicate(maybeSupportedPrefix, synonyms);
+        for (let key in context) {
+            if (match(key)) return key;
+        }
     }
 
     return '';
@@ -459,7 +469,6 @@ const curieLabel = async (rawCurie) => {
                     .then(json => json[curie] !== null && !!json[curie].id.label ? json[curie].id.label : curie)
                     .then(result => curieLabelCache.set(curie, result))
             } catch(e) {
-                console.log('in error', curie, rawCurie)
                 curieLabelCache.set(curie, rawCurie)
             }
 

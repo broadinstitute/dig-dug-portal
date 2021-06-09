@@ -110,13 +110,6 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        console.log(
-            this.biolinkQueryGraph('NCBIGENE:1017', {
-                subject: 'biolink:Gene',
-                predicate: 'biolink:enables',
-                object: 'biolink:MolecularActivity',
-            })
-        )
     },
 
     render(createElement, context) {

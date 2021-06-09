@@ -127,11 +127,9 @@ new Vue({
         },
 
         updateLocalRegion(eventData) {
-            console.log(eventData)
             const { start, end } = eventData;
             if (!!start && !!end) {
                 this.localRegion = `${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
-                console.log(this.$store.state.chr,  Number.parseInt(start), Number.parseInt(end))
             }
         },
 

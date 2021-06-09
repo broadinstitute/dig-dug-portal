@@ -17,7 +17,7 @@ import trapi from "./trapi"
 import NormalizedCurieLabel from "./NormalizedCurieLabel"
 
 export default Vue.component('resolved-curie-link', {
-    props: ["curie"],
+    props: ["curie", "id", "prefix"],
     components: {
         NormalizedCurieLabel
     },
@@ -34,8 +34,8 @@ export default Vue.component('resolved-curie-link', {
             if (this.context) return trapi.identifiers.supportedPrefix(this.prefix, this.context, { 'reactome': 'REACT' });
         },
         fullCurie() {
-            const prefix = this.supportedPrefix;
-            const id = trapi.identifiers.deserializeCurie(this.curie)[1];
+            const prefix = this.supportedPrefix || this.prefix;
+            const id = trapi.identifiers.deserializeCurie(this.curie)[1] || this.id;
             if (!!prefix && !!id) {
                 return trapi.identifiers.serializeCurie(prefix, id);
             } else if (!!this.curie) {
