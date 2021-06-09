@@ -4,9 +4,8 @@ import Vuex from "vuex";
 import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
-import lunaris from "@/modules/lunaris";
-import kp4cd from "@/modules/kp4cd";
-import regionUtils from "@/utils/regionUtils";
+import ldServer from "@/modules/ldServer";
+import myGeneInfo from "@/modules/mygene"
 
 Vue.use(Vuex);
 
@@ -17,13 +16,8 @@ export default new Vuex.Store({
         kp4cd,
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
-        topAssociations: bioIndex("top-associations"),
-        variants: bioIndex("variants"),
-        documentation: bioIndex("documentation"),
-        regions: bioIndex("regions"),
-        credibleSets: bioIndex("credible-sets"),
-        globalEnrichment: bioIndex("global-enrichment"),
-        variant: bioIndex("variant")
+        geneAssociations52k: bioIndex("gene-associations-52k"),
+        myGeneInfo
     },
     state: {
         // only used at the start

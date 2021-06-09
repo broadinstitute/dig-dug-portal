@@ -40,7 +40,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("filter-control-template", {
     props: {
-        value: [String, Number],
+        value: Object,
         field: String,
         placeholder: String,
         predicate: Function,

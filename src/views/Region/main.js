@@ -31,6 +31,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+
 import ClumpedVariantsTable from "@/components/ClumpedVariantsTable";
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -70,7 +71,6 @@ new Vue({
         GeneSelectPicker,
         CriterionListGroup,
         CriterionFunctionGroup,
-        CriterionFunctionGroup,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
@@ -106,7 +106,9 @@ new Vue({
             pillList: []
         };
     },
-
+    mounted() {
+        this.localRegion = this.regionString;
+    },
     methods: {
         ...uiUtils,
         ...Formatters,
@@ -129,6 +131,13 @@ new Vue({
                         });
                     });
                 }
+            }
+        },
+
+        updateLocalRegion(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                this.localRegion = `${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
             }
         },
 

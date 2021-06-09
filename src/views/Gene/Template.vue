@@ -199,6 +199,38 @@
                 </div>
             </div>
             <div class="card mdkp-card">
+                <!-- <div class="card-body">
+                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
+                    <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
+                    <documentation name="gene.translator.dashboard"></documentation>
+                    <translator-results-dashboard
+                        :queries="$parent.queries"
+                    ></translator-results-dashboard>
+                </div> -->
+                <div class="card-body">
+                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
+                    <p>
+                        This feature is experimental. Some data may be available at a later time.
+                    </p>
+                    <b-tabs>
+                        <b-tab :title="'Gene Ontology (GO)'">
+                            <translator-predicate-table
+                                :title="'GO Terms'"
+                                :geneSymbol="$store.state.geneName"
+                                :field="'go'">
+                            </translator-predicate-table>
+                        </b-tab>
+                        <b-tab :title="'Pathways (Reactome, KEGG)'"> 
+                            <translator-predicate-table
+                                :title="'Pathways'"
+                                :geneSymbol="$store.state.geneName"
+                                :field="'pathway'">
+                            </translator-predicate-table>
+                        </b-tab>
+                    </b-tabs>
+                </div>
+            </div>
+            <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
