@@ -1,9 +1,7 @@
 <template>
-    <b-card
-        class="mb-2">
+    <b-card class="mb-2">
         <b-row no-gutters>
-            <b-card-body :title="title">
-            </b-card-body>
+            <b-card-body :title="title"></b-card-body>
             <!-- <criterion-function-group>
 
                 <filter-enumeration-control
@@ -16,57 +14,55 @@
                     </div>
                 </filter-enumeration-control>
 
-                <template #filtered="{filter}"> -->
+            <template #filtered="{filter}">-->
 
-
-                    <b-pagination
-                        v-model="currentPage"
-                        :total-rows="geneInfo.length"
-                        :per-page="perPage"
-                        :aria-controls="id"
-                    ></b-pagination>
-                    <b-table
-                        v-if="context"
-                        :id="id"
-                        :items="geneInfo"
-                        :fields="tableFields"
-                        :per-page="perPage"
-                        :current-page="currentPage"
-                        small>
-
-                        <!-- Custom rendering for known special cases -->
-                        <template #cell(id)="data">
-                            <div :key="data.item.id" v-if="typeof context[
+            <b-table
+                v-if="context"
+                :id="id"
+                :items="geneInfo"
+                :fields="tableFields"
+                :per-page="perPage"
+                :current-page="currentPage"
+                small
+            >
+                <!-- Custom rendering for known special cases -->
+                <template #cell(id)="data">
+                    <div
+                        :key="data.item.id"
+                        v-if="typeof context[
                                 supportedPrefix(data.item.source, context)
-                            ] !== 'undefined'">
-                                <resolved-curie-link
-                                    :id="data.item.id"
-                                    :prefix="supportedPrefix(data.item.source, context)"
-                                ></resolved-curie-link>
-                            </div>
-                            <div v-else :key="data.item.id">
-                                <resolved-curie-link
-                                    :curie="`${data.item.id}`">
-                                </resolved-curie-link>
-                            </div>
-                        </template>
+                            ] !== 'undefined'"
+                    >
+                        <resolved-curie-link
+                            :id="data.item.id"
+                            :prefix="supportedPrefix(data.item.source, context)"
+                        ></resolved-curie-link>
+                    </div>
+                    <div v-else :key="data.item.id">
+                        <resolved-curie-link :curie="`${data.item.id}`"></resolved-curie-link>
+                    </div>
+                </template>
 
-                        <template #cell(pubmed)="data">
-                            <ul style="columns: 5; -webkit-columns: 5; -moz-columns: 5; list-style-type: none; padding: 0; margin: 0; column-gap:10px">
-                                <li v-for="pmid in [].concat(data.item.pubmed)"
-                                    :key="pmid">
-                                    <resolved-curie-link
-                                        :prefix="'pmid'"
-                                        :id="pmid">
-                                    </resolved-curie-link>
-                                </li>
-                            </ul>
-                        </template>
+                <template #cell(pubmed)="data">
+                    <ul
+                        style="columns: 5; -webkit-columns: 5; -moz-columns: 5; list-style-type: none; padding: 0; margin: 0; column-gap:10px"
+                    >
+                        <li v-for="pmid in [].concat(data.item.pubmed)" :key="pmid">
+                            <resolved-curie-link :prefix="'pmid'" :id="pmid"></resolved-curie-link>
+                        </li>
+                    </ul>
+                </template>
+            </b-table>
 
-                    </b-table>
-                    
-                <!-- </template>
-            </criterion-function-group> -->
+            <b-pagination
+                v-model="currentPage"
+                :total-rows="geneInfo.length"
+                :per-page="perPage"
+                :aria-controls="id"
+            ></b-pagination>
+
+            <!-- </template>
+            </criterion-function-group>-->
         </b-row>
     </b-card>
 </template>
@@ -74,12 +70,12 @@
 import Vue from "vue";
 import jsonQuery from "json-query";
 import queryString from "query-string";
-import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
-import trapi from "@/components/NCATS/trapi"
-import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
-import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink";
+import trapi from "@/components/NCATS/trapi";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 
-const myGeneAPI = 'https://mygene.info/v3';
+const myGeneAPI = "https://mygene.info/v3";
 
 export default Vue.component("translator-predicate-table", {
     props: ["title", "geneSymbol", "field", "filter"],
@@ -90,51 +86,73 @@ export default Vue.component("translator-predicate-table", {
     },
     data() {
         return {
-            id: this.geneSymbol+this.fields+this.title,
+            id: this.geneSymbol + this.fields + this.title,
             currentPage: 1,
             perPage: 10,
             rawGeneInfo: [],
             myFilter: id => true,
-            context: null,
-        }
+            context: null
+        };
     },
     async created() {
-        this.context = await fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
+        this.context = await fetch(
+            "https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld"
+        )
             .then(response => response.json())
-            .then(json => json['@context'])
+            .then(json => json["@context"]);
 
-        let qs = queryString.stringify({
-            q: this.geneSymbol,
-            fields: this.field,
-        }, { arrayFormat: 'comma' });
-        await fetch(`${myGeneAPI}/query?${qs}`, { contentType: "application/json" })
+        let qs = queryString.stringify(
+            {
+                q: this.geneSymbol,
+                fields: this.field
+            },
+            { arrayFormat: "comma" }
+        );
+        await fetch(`${myGeneAPI}/query?${qs}`, {
+            contentType: "application/json"
+        })
             .then(async resp => {
                 if (resp.status === 200) {
                     const geneSymbolMatches = await resp.json();
                     return geneSymbolMatches.hits;
                 } else {
-                    throw new Error(`MyGene Info returning non-successful code ${resp.status}`);
+                    throw new Error(
+                        `MyGene Info returning non-successful code ${resp.status}`
+                    );
                 }
             })
-            .then(json => { this.rawGeneInfo = json; })
+            .then(json => {
+                this.rawGeneInfo = json;
+            })
             .catch(error => console.error(error));
     },
     computed: {
         geneInfo() {
-            return this.geneInfoForField(this.rawGeneInfo, this.field).filter(this.myFilter);
+            return this.geneInfoForField(this.rawGeneInfo, this.field).filter(
+                this.myFilter
+            );
         },
         fields() {
-            return Array.from(new Set(this.geneInfo.reduce((acc, item) => acc.concat(...Object.keys(item)), []))).sort((a, b)=> {
-                const sortMap = { id: 0, source: 1 };
-                if (a === 'id') {
-                    return -1;
-                } else if (b === 'id') {
-                    return 1;
-                }
-            }).filter(el => !['evidence', 'gocategory'].includes(el))
+            return Array.from(
+                new Set(
+                    this.geneInfo.reduce(
+                        (acc, item) => acc.concat(...Object.keys(item)),
+                        []
+                    )
+                )
+            )
+                .sort((a, b) => {
+                    const sortMap = { id: 0, source: 1 };
+                    if (a === "id") {
+                        return -1;
+                    } else if (b === "id") {
+                        return 1;
+                    }
+                })
+                .filter(el => !["evidence", "gocategory"].includes(el));
         },
         tableFields() {
-            return this.fields.map(key => ({ key, sortable: true }))
+            return this.fields.map(key => ({ key, sortable: true }));
         }
     },
     methods: {
@@ -142,15 +160,19 @@ export default Vue.component("translator-predicate-table", {
         geneInfoForField(geneInfo, field) {
             const helpers = {
                 aggregateNestedLists: function(elements) {
-                    const element = elements
-                        .flatMap(element =>
+                    const element = elements.flatMap(element =>
                         Object.entries(element)
                             .filter(element => element[1].length > 0)
                             .flatMap(thisEntry =>
-                                thisEntry[1].map(entry => { entry['source'] = thisEntry[0]; return entry })))
+                                thisEntry[1].map(entry => {
+                                    entry["source"] = thisEntry[0];
+                                    return entry;
+                                })
+                            )
+                    );
                     return element;
-                },
-            }
+                }
+            };
             return jsonQuery(`geneInfo[${field}]:aggregateNestedLists`, {
                 data: {
                     geneInfo
@@ -158,24 +180,33 @@ export default Vue.component("translator-predicate-table", {
                 allowRegexp: true,
                 locals: helpers
             }).value;
-        },
+        }
     },
     watch: {
         geneSymbol() {
-            let qs = queryString.stringify({
-                q: this.geneSymbol,
-                fields: this.field,
-            }, { arrayFormat: 'comma' });
-            fetch(`${myGeneAPI}/query?${qs}`, { contentType: "application/json" })
+            let qs = queryString.stringify(
+                {
+                    q: this.geneSymbol,
+                    fields: this.field
+                },
+                { arrayFormat: "comma" }
+            );
+            fetch(`${myGeneAPI}/query?${qs}`, {
+                contentType: "application/json"
+            })
                 .then(async resp => {
                     if (resp.status === 200) {
                         const geneSymbolMatches = await resp.json();
                         return geneSymbolMatches.hits;
                     } else {
-                        throw new Error(`MyGene Info returning non-successful code ${resp.status}`);
+                        throw new Error(
+                            `MyGene Info returning non-successful code ${resp.status}`
+                        );
                     }
                 })
-                .then(json => { this.rawGeneInfo = json; })
+                .then(json => {
+                    this.rawGeneInfo = json;
+                })
                 .catch(error => console.error(error));
         }
     }
