@@ -113,17 +113,14 @@
                             <div
                                 class="col-md-12"
                                 v-if="
-                                    $parent.dataFilters != null &&
-                                    $parent.researchData != null &&
-                                    $store.state.filteredData != ''
+                                    ($parent.dataFilters != null &&
+                                        $parent.researchData != null &&
+                                        $store.state.filteredData != '') ||
+                                    $parent.dataFiles.length > 1
                                 "
                             >
                                 <research-page-filters
-                                    :dataFiles="
-                                        $parent.dataFiles.length > 1
-                                            ? $parent.dataFiles
-                                            : null
-                                    "
+                                    :dataFiles="$parent.dataFiles"
                                     :filesListLabels="
                                         $parent.dataFiles.length > 1
                                             ? $parent.dataFilesLabels

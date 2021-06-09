@@ -48,7 +48,7 @@ new Vue({
         return {
             devID: null,
             devPW: null,
-            dataFiles: null,
+            dataFiles: [],
             dataFilesLabels: null,
             dataTableFormat: null,
         }

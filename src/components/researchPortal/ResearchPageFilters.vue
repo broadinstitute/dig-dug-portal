@@ -2,7 +2,10 @@
     <div>
         <div class="filtering-ui-wrapper">
             <div class="filtering-ui-content row">
-                <div class="col" :v-if="this.dataFiles != null">
+                <div
+                    class="col"
+                    v-if="!!this.dataFiles && this.dataFiles.length > 1"
+                >
                     <div class="label">Select data</div>
                     <select
                         id="dataFiles"
@@ -156,6 +159,9 @@ export default Vue.component("research-page-filters", {
     watch: {},
     methods: {
         ...uiUtils,
+        getLength(ARR) {
+            return Number(ARR.length);
+        },
         getFileLabel(file) {
             if (this.filesListLabels != null) {
                 return this.filesListLabels[file];
