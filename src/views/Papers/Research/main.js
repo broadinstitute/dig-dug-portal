@@ -343,6 +343,14 @@ new Vue({
 
             return convertedData;
         },
+        dataPoints() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_points"] == false) {
+                return false;
+            }
+            return contents[0]["field_data_points"];
+        },
         tablePerPageNumber() {
             let contents = this.researchPage;
 
