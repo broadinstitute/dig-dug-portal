@@ -1,6 +1,6 @@
 import LocusZoom from "locuszoom"
 import idCounter from "@/utils/idCounter"
-
+import { applyNamespaces, mutate_attrs, query_attrs }  from "locuszoom/esm/helpers/layouts"
 // Layout wrapper
 // new LzLayout(locuszoom_layout_object)
 // new LzLayout(locuszoom_layout_object, optionals)
@@ -16,12 +16,12 @@ import idCounter from "@/utils/idCounter"
 
 export class LzLayout {
     layout = null;
-    constructor(firstParam, secondParam) {
-        if (firstParam === Object(firstParam) && typeof secondParam !== 'undefined') {
+    constructor(firstParam, secondParam, shared_name=undefined) {
+        if (firstParam === Object(firstParam) && typeof secondParam === 'object' && !Array.isArray(secondParam)) {
             this.layout = LocusZoom.Layouts.merge(firstParam, secondParam);
         } else if (firstParam === Object(firstParam)) {
             this.layout = firstParam;
-        } else if (typeof firstParam === 'string' && typeof secondParam !== 'undefined') {
+        } else if (typeof firstParam === 'string' && typeof secondParam === 'object' && !Array.isArray(secondParam)) {
             this.layout = LocusZoom.Layouts.get('panel', firstParam, secondParam);
         } else if (typeof firstParam === 'string') {
             this.layout = LocusZoom.Layouts.get('panel', firstParam)
@@ -30,11 +30,21 @@ export class LzLayout {
     }
     
     withNamespace(original_namespace, target_namespace) {
-        this.layout = LocusZoom.Layouts.renameField(
-            this.layout, 
-            original_namespace, 
-            target_namespace, 
-        )
+        // console.log(this.layout)
+        // // TODO: This abstraction broke down, see https://github.com/statgen/locuszoom/issues/249
+        // this.layout = LocusZoom.Layout.renameFields(
+        //     this.layout, 
+        //     original_namespace, 
+        //     target_namespace, 
+        // )
+        // this.layout.namespace[original_namespace] = target_namespace;
+        console.log(this.layout, LocusZoom.Layouts.query_attrs(this.layout, '$..fields'))
+        LocusZoom.Layouts.mutate_attrs(this.layout, '$..namespace', object => ({
+            ...object,
+            [original_namespace]: target_namespace
+        }))
+        LocusZoom.Layouts.mutate_attrs(this.layout, '$..fields', fields => fields.map(field => field.replace(`${original_namespace}:`, `${target_namespace}:`)))
+        this.layout = query_attrs(this.layout, '$..fields')
         return this;
     }
 
@@ -103,9 +113,7 @@ export class LzLayout {
 
     get full() {
         try {
-            console.log('trying layout')
             if (this.layout !== null) {
-                console.log('returning layout', this.layout)
                 return this.layout;
             }
             throw Error(`Layout hasn't been properly initialized. layout: ${this.layout}`);

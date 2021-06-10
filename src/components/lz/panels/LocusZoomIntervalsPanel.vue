@@ -51,7 +51,7 @@ export default Vue.component("lz-intervals-panel", {
                 ? (result) => this.$emit("input", result)
                 : this.onLoad;
             this.panelId = this.$parent.addPanelAndDataSource(
-                LZIntervalsPanel(
+                new LZIntervalsPanel(
                     this.index,
                     this.primaryKey,
                     this.secondaryKey,
@@ -77,8 +77,8 @@ export default Vue.component("lz-intervals-panel", {
             }
         },
         annotation() {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
             }
             this.updatePanel();
         },
@@ -168,8 +168,8 @@ export class LZIntervalsPanel {
                                 .datasource_namespace_symbol_for_panel,
                         },
                         fields: [
-                            `{{namespace[${this.datasource_type}]}}pValue`,
-                            `{{namespace[${this.datasource_type}]}}fold`,
+                            `{{namespace[intervals]}}pValue`,
+                            `{{namespace[intervals]}}fold`,
                             ...LocusZoom.Layouts.get(
                                 "data_layer",
                                 "intervals",
@@ -213,14 +213,10 @@ export function makeIntervalsPanel(
     const dataLayerQ = '$..data_layers[?(@.id === "intervals")]';
 
     // get a base layout, give it a title and add some fields under the 'intervals' namespace
-    const layout = new LzLayout('intervals', {
-            y_index: 2,
-            title: {
-                text: `${title} Regions`,
-            }     
-        }).addFields(dataLayerQ, 'intervals', 
-            ['pValue', 'fold']
-        );
+    const layout = new LzLayout('intervals')
+        // .addFields(dataLayerQ, 'intervals', 
+        //     ['pValue', 'fold']
+        // );
 
     // TODO: eliminate the translator function with field renaming!
     const translator = function (intervals) {
@@ -261,7 +257,7 @@ export function makeIntervalsPanel(
                 : [];
 
             return tissueIntervals;
-        };
+    };
 
     const datasource = new LzDataSource(LZBioIndexSource)
         .withParams(

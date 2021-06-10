@@ -18,8 +18,8 @@ import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
 import { LZIntervalsPanel, makeIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
-import { LZCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
-import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
+import { makeCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
+import { makeCredibleSetsPanel, LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { makePhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
 
@@ -129,6 +129,7 @@ export default Vue.component("locuszoom", {
             return [this.plot.state.start, this.plot.state.end];
         },
         addPanelAndDataSource: function (panelClass) {
+            console.log(panelClass)
             // DataSources and Panels/Layouts are linked together via namespaces.
             // A DataSource name is given to the panel, for a particular data type
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
@@ -220,7 +221,7 @@ export default Vue.component("locuszoom", {
             onError
         ) {
             const panelId = this.addPanelAndDataSource(
-                new LZCatalogAnnotationsPanel(
+                makeCatalogAnnotationsPanel(
                     phenotype,
                     title,
                     onLoad,
@@ -243,7 +244,7 @@ export default Vue.component("locuszoom", {
             onError
         ) {
             const panelId = this.addPanelAndDataSource(
-                new LZIntervalsPanel(
+                makeIntervalsPanel(
                     index,
                     primaryKey,
                     secondaryKey,
