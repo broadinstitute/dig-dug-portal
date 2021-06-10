@@ -189,6 +189,14 @@ a:hover {
     color: #fff;
 }
 
+.amp-banner-2021 {
+    height: 70px;
+    background-position-x: right;
+    background-position-y: top;
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_bg.jpg);
+    border-bottom: solid 1px #acd;
+}
+
 .amp-header {
     height: 70px;
     background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_middle.png);

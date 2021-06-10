@@ -136,6 +136,20 @@ let pages = {
         title: "Epigenetic Datasets",
         chunks: ["chunk-vendors", "chunk-common", "epigeneticdatasets"]
     },
+    epigenomicdatasets: {
+        entry: "src/views/EpigenomicDatasets/main.js",
+        template: "public/index.html",
+        filename: "epigenomicdatasets.html",
+        title: "Epigenomic Datasets",
+        chunks: ["chunk-vendors", "chunk-common", "epigenomicdatasets"]
+    },
+    ampt2dpartnership: {
+        entry: "src/views/AmpT2dPartnership/main.js",
+        template: "public/index.html",
+        filename: "ampt2dpartnership.html",
+        title: "AMP T2D Partnership",
+        chunks: ["chunk-vendors", "chunk-common", "ampt2dpartnership"]
+    },
     effectorgenes: {
         entry: "src/views/EffectorGenes/main.js",
         template: "public/index.html",

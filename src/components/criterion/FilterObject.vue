@@ -4,8 +4,13 @@
         :field="field"
         :placeholder="placeholder"
         :type="'string'"
-        :predicate="predicate"
-        :pillFormatter="pillFormatter"
+        :predicate="(string, selection) => string === selection"
+        :pillFormatter="
+            (filterDefinition) =>
+                `${filterDefinition.field} = ${labelFormatter(
+                    filterDefinition.threshold
+                )}`
+        "
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
         @input-change="$emit('input-change', $event)"
@@ -13,7 +18,6 @@
         :multiple="!!multiple"
         :inclusive="!!inclusive || !!multiple"
         :disabled="disabled"
-        :computedField="computedField"
     >
         <slot> </slot>
     </filter-control-template>
@@ -23,7 +27,7 @@ import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
 import Formatter from "@/utils/formatters";
 
-export default Vue.component("filter-enumeration-control", {
+export default Vue.component("filter-object-control", {
     props: {
         field: String,
         placeholder: String,
@@ -37,22 +41,9 @@ export default Vue.component("filter-enumeration-control", {
             type: Boolean,
             default: false,
         },
-        predicate: {
-            type: Function,
-            default: (string, selection) => string === selection
-        },
         labelFormatter: {
             type: Function,
             default: Formatter.capitalizedFormatter,
-        },
-        pillFormatter: {
-            type: Function,
-            default: (filterDefinition) =>
-                `${filterDefinition.field} = ${!!filterDefinition.labelFormatter ?
-                    filterDefinition.labelFormatter(
-                        filterDefinition.threshold
-                    )
-                : filterDefinition.threshold}`
         },
         disableSort: {
             type: Boolean,
@@ -62,7 +53,9 @@ export default Vue.component("filter-enumeration-control", {
             type: Boolean,
             default: false,
         },
-        computedField: Function,
+        metadata: {
+            type: Object
+        }
     },
     components: {
         FilterControlTemplate,
@@ -71,17 +64,13 @@ export default Vue.component("filter-enumeration-control", {
         // Make options unique and sorted by default, and always
         // NOTE: Assumes that they are just strings! change?
         selectionOptions() {
-            if (this.options !== null) {
-                let options = this.options
-                    .filter((v, i, arr) => arr.indexOf(v) == i)
-                    .filter((v) => v != undefined);
-                if (!this.disableSort) {
-                    options = options.sort();
-                }
-                return options;
-            } else {
-                return [];
+            let options = this.options
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v) => v != undefined);
+            if (!this.disableSort) {
+                options = options.sort();
             }
+            return options;
         },
     },
 });

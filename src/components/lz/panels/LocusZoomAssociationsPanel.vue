@@ -88,7 +88,7 @@ export class LZAssociationsPanel {
         this.datasource_type = "assoc";
         // this is arbitrary, but we want to base it on the ID
         this.panel_id = `${phenotype}_assoc`;
-        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src_${Math.ceil(Math.random()*100)}`;
 
         this.index = "associations";
         this.queryStringMaker = (chr, start, end) =>

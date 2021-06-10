@@ -79,7 +79,7 @@ export default {
         },
         async getResearchData(context, param) {
 
-            //console.log(param.dataPoint);
+            //console.log(param);
             //console.log(param.domain);
             let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
             let csv = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));

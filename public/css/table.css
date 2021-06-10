@@ -80,3 +80,42 @@ td.border-color > div {
     height: 100%;
     padding: 0.3rem;
 }
+#variant-search thead tr:hover,
+#variant-search tr.b-table-details:hover {
+    background-color: inherit;
+}
+.row-pick {
+    background-color: lightcyan;
+}
+.table thead th {
+    vertical-align: top;
+}
+.external_source {
+    white-space: nowrap;
+}
+.external_source .badge {
+    vertical-align: middle;
+    font-size: 0.5rem;
+    cursor: help;
+}
+.border-color.MODIFIER {
+    border-color: rgb(161, 166, 171);
+}
+.border-color.LOW {
+    border-color: rgb(135, 196, 137);
+}
+.border-color.MODERATE {
+    border-color: rgb(247, 217, 102);
+}
+.border-color.HIGH {
+    border-color: rgb(217, 130, 135);
+}
+.legends .btn-mini {
+    border-left-width: thick;
+}
+.nowrap {
+    white-space: nowrap;
+}
+.table.b-table > thead > tr > [aria-sort="none"] {
+    background-image: none;
+}

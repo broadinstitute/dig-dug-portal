@@ -101,7 +101,7 @@ With the `@input-change` event, used on `filter-enumeration-control`, `filter-mu
             @input-change="
                 $parent.lookupGenes($event)
             ">
-        </filtered-enumeration-control>
+        </filter-enumeration-control>
         <!-- other filters would go here -->
     </criterion-list-control>
 

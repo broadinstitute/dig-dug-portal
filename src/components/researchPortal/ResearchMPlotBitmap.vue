@@ -3,6 +3,15 @@
         <div id="clicked_dot_value" class="clicked-dot-value hidden">
             <div id="clicked_dot_value_content"></div>
         </div>
+        <div id="dot_value_full_list" class="dot-value-full-list hidden">
+            <div
+                class="clicked-dot-value-close"
+                @click="hidePanel('dot_value_full_list')"
+            >
+                <b-icon icon="x-circle-fill"></b-icon>
+            </div>
+            <div id="dot_value_full_list_content"></div>
+        </div>
         <div
             v-if="!!renderConfig.legend"
             class="mbm-plot-legend"
@@ -13,8 +22,8 @@
             id="manhattanPlot"
             @mouseleave="hidePanel"
             @mousemove="checkPosition"
-            @click="filterTable"
             @resize="onResize"
+            @click="getFullList"
             width=""
             height=""
         >
@@ -151,57 +160,22 @@ export default Vue.component("research-m-bitmap-plot", {
     },
     methods: {
         ...uiUtils,
-        hidePanel() {},
+        hidePanel(element) {
+            uiUtils.hideElement(element);
+        },
         onResize(e) {
             this.renderPlot();
         },
-        filterTable() {
-            let wrapper = document.getElementById("clicked_dot_value");
-
-            if (wrapper.innerText != "") {
-                let items = [];
-                let genesLength = document.getElementsByClassName(
-                    "gene-on-clicked-dot-mplot"
-                );
-
-                genesLength.forEach((gene) => items.push(gene.innerText));
-
-                /*document.getElementById(
-                    "filter_" + this.renderConfig.renderBy.replace(/ /g, "")
-                ).value = items.join(", ");
-                this.$parent.$parent.filterData(
-                    "",
-                    this.renderConfig.renderBy,
-                    "search"
-                );*/
-
-                let searchValue = items.join(", ");
-                let FIELD = this.renderConfig.renderBy;
-                let searchTerms = searchValue.split(",");
-                let newFiltersIndex = this.filtersIndex;
-                searchTerms.map((searchTerm) => {
-                    newFiltersIndex[FIELD]["search"].push(searchTerm.trim());
-
-                    newFiltersIndex[FIELD]["search"] = newFiltersIndex[FIELD][
-                        "search"
-                    ].filter((v, i, arr) => arr.indexOf(v) == i);
-                });
-
-                this.$store.dispatch("filtersIndex", newFiltersIndex);
-
-                console.log(this.filtersIndex);
-            }
-        },
-        checkPosition(event) {
-            let wrapper = document.getElementById("clicked_dot_value");
+        getFullList(event) {
+            let wrapper = document.getElementById("dot_value_full_list");
             let canvas = document.getElementById("manhattanPlot");
             wrapper.classList.remove("hidden");
             let e = event;
             var rect = e.target.getBoundingClientRect();
             var x = Math.floor(e.clientX - rect.left);
             var y = Math.floor(e.clientY - rect.top);
-            wrapper.style.top = y + canvas.offsetTop + "px";
-            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+            /*wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";*/
 
             let clickedDotValue = "";
 
@@ -209,7 +183,6 @@ export default Vue.component("research-m-bitmap-plot", {
                 for (let v = -5; v <= 5; v++) {
                     if (this.dotPosData[x + h] != undefined) {
                         if (this.dotPosData[x + h][y + v] != undefined) {
-                            //console.log(this.dotPosData[x + h]);
                             let dotObject = this.dotPosData[x + h][y + v];
                             clickedDotValue +=
                                 '<span class="gene-on-clicked-dot-mplot"><b>' +
@@ -233,8 +206,77 @@ export default Vue.component("research-m-bitmap-plot", {
                     }
                 }
             }
+            let contentWrapper = document.getElementById(
+                "dot_value_full_list_content"
+            );
 
-            //let wrapper = document.getElementById("clicked_dot_value");
+            if (clickedDotValue != "") {
+                contentWrapper.innerHTML = clickedDotValue;
+                document.getElementById("manhattanPlot").classList.add("hover");
+                document
+                    .getElementById("clicked_dot_value")
+                    .classList.add("hidden");
+            } else {
+                wrapper.classList.add("hidden");
+                document
+                    .getElementById("manhattanPlot")
+                    .classList.remove("hover");
+            }
+        },
+        checkPosition(event) {
+            let wrapper = document.getElementById("clicked_dot_value");
+            let canvas = document.getElementById("manhattanPlot");
+            wrapper.classList.remove("hidden");
+            let e = event;
+            var rect = e.target.getBoundingClientRect();
+            var x = Math.floor(e.clientX - rect.left);
+            var y = Math.floor(e.clientY - rect.top);
+            wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+
+            let clickedDotValue = "";
+
+            let numOfValues = 0;
+
+            for (let h = -5; h <= 5; h++) {
+                for (let v = -5; v <= 5; v++) {
+                    if (this.dotPosData[x + h] != undefined) {
+                        if (this.dotPosData[x + h][y + v] != undefined) {
+                            if (numOfValues < 6) {
+                                let dotObject = this.dotPosData[x + h][y + v];
+                                clickedDotValue +=
+                                    '<span class="gene-on-clicked-dot-mplot"><b>' +
+                                    dotObject[this.renderConfig.renderBy] +
+                                    "</b></span>";
+
+                                if (!!this.renderConfig.hoverContent) {
+                                    let hoverContent = this.renderConfig
+                                        .hoverContent;
+
+                                    hoverContent.map((h) => {
+                                        clickedDotValue +=
+                                            '<span class="content-on-clicked-dot">' +
+                                            h +
+                                            ": " +
+                                            dotObject[h] +
+                                            "</span>";
+                                    });
+                                }
+                            }
+
+                            numOfValues += 1;
+                        }
+                    }
+                }
+            }
+
+            if (numOfValues > 5) {
+                clickedDotValue +=
+                    '<span class="gene-on-clicked-dot-mplot" style="color: #36c;"><b>Viewing 5 of ' +
+                    numOfValues +
+                    " items. Click to view full list.<b><span>";
+            }
+
             let contentWrapper = document.getElementById(
                 "clicked_dot_value_content"
             );
@@ -299,16 +341,32 @@ export default Vue.component("research-m-bitmap-plot", {
 
             // render y ticker
 
-            let yAxisData = [];
+            let yMin = null;
+            let yMax = null;
+
             this.renderData.unsorted.map((d) => {
-                yAxisData.push(d[this.renderConfig.yAxisField]);
+                //yAxisData.push(d[this.renderConfig.yAxisField]);
+
+                let yValue = d[this.renderConfig.yAxisField];
+
+                if (yMin == null) {
+                    yMin = yValue;
+                }
+                if (yMax == null) {
+                    yMax = yValue;
+                }
+
+                if (yValue < yMin) {
+                    yMin = yValue;
+                }
+                if (yValue > yMax) {
+                    yMax = yValue;
+                }
             });
 
-            let yMin = Math.min.apply(Math, yAxisData);
-            let yMax = Math.max.apply(Math, yAxisData);
             let yStep = (yMax - yMin) / 4;
 
-            let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
+            //let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
 
             let yTickDistance = plotHeight / 4;
             for (let i = 0; i < 5; i++) {
@@ -344,9 +402,28 @@ export default Vue.component("research-m-bitmap-plot", {
 
             let dnaLength = 0;
 
-            for (const chr in this.chromosomeLength) {
+            //get list of chrs with variants
+            let chrs = Object.keys(this.renderData.sorted).filter(
+                (key) => this.renderData.sorted[key].length > 0
+            );
+
+            // compare length of chromosomes in the data to the defalt
+
+            chrs.map((chr) => {
+                let chrLength = 0;
+                this.renderData.sorted[chr].map((v) => {
+                    chrLength = v.locus > chrLength ? v.locus : chrLength;
+                });
+
+                this.chromosomeLength[chr] =
+                    chrLength > this.chromosomeLength[chr]
+                        ? chrLength
+                        : this.chromosomeLength[chr];
+            });
+
+            chrs.map((chr) => {
                 dnaLength += this.chromosomeLength[chr];
-            }
+            });
 
             let chrByPixel = plotWidth / dnaLength;
 
@@ -354,7 +431,7 @@ export default Vue.component("research-m-bitmap-plot", {
             ctx.textAlign = "center";
             ctx.rotate((Math.PI * 2) / 4);
 
-            for (const chr in this.chromosomeLength) {
+            chrs.map((chr) => {
                 let chrLength = this.chromosomeLength[chr] * chrByPixel;
                 xStart += chrLength;
                 let chrPos = xStart - chrLength / 2;
@@ -364,31 +441,25 @@ export default Vue.component("research-m-bitmap-plot", {
                     chrPos,
                     this.topMargin + plotHeight + yBump + 14
                 );
-            }
+
+                //console.log("step 2", chr);
+            });
 
             //Render x axis label
-            ctx.fillText(
-                this.renderConfig.xAxisLabel,
-                this.canvasRenderWidth / 2 + this.leftMargin,
-                this.topMargin + plotHeight + yBump + 44
-            );
 
             ctx.fillText(
                 this.renderConfig.xAxisLabel,
-                canvasRenderWidth / 2 + this.leftMargin,
+                plotWidth / 2 + this.leftMargin,
                 this.topMargin + plotHeight + yBump + 44
             );
 
             //Render Dots
+
             xStart = 0;
             let exChr = "";
             let chrNum = 1;
 
-            for (const chr in this.chromosomeLength) {
-                if (chr != 1) {
-                    xStart += this.chromosomeLength[exChr];
-                }
-
+            chrs.map((chr) => {
                 this.renderData.sorted[chr].map((g) => {
                     let xPos =
                         (xStart + g.locus) * chrByPixel + this.leftMargin;
@@ -432,9 +503,12 @@ export default Vue.component("research-m-bitmap-plot", {
                         });
                     }
                 });
-                exChr = chr;
+                //if (chr != 1) {
+                xStart += this.chromosomeLength[chr];
+                //}
+                //exChr = chr;
                 chrNum++;
-            }
+            });
         },
     },
 });
@@ -457,14 +531,35 @@ $(function () {});
 
 .clicked-dot-value-close {
     position: absolute;
-    top: 2px;
-    right: 2px;
+    top: 0;
+    right: 3px;
     font-size: 14px;
     color: #69f;
 }
 
 .clicked-dot-value-close:hover {
     color: #36c;
+}
+
+.dot-value-full-list {
+    position: fixed;
+    width: 400px;
+    height: 300px;
+    left: calc(50% - 200px);
+    top: calc(50% - 150px);
+    padding: 20px 0px 3px 15px;
+    border-radius: 5px;
+    border: solid 1px #ddd;
+    background-color: #fff;
+    z-index: 100;
+}
+
+#dot_value_full_list_content {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-size: 14px;
 }
 </style>
 
