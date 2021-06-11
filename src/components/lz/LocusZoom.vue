@@ -17,8 +17,8 @@ import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
-import { LZIntervalsPanel, makeIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
-import { LZCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
+import { makeIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
+import { makeCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { makePhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
@@ -220,7 +220,7 @@ export default Vue.component("locuszoom", {
             onError
         ) {
             const panelId = this.addPanelAndDataSource(
-                new LZCatalogAnnotationsPanel(
+                makeCatalogAnnotationsPanel(
                     phenotype,
                     title,
                     onLoad,
@@ -243,7 +243,7 @@ export default Vue.component("locuszoom", {
             onError
         ) {
             const panelId = this.addPanelAndDataSource(
-                new LZIntervalsPanel(
+                makeIntervalsPanel(
                     index,
                     primaryKey,
                     secondaryKey,

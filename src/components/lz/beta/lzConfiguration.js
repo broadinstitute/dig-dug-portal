@@ -30,11 +30,34 @@ export class LzLayout {
     }
     
     withNamespace(original_namespace, target_namespace) {
+        // TODO: ACHTUNG: The original solution that just used `renameFields`, was a leaky abstraction: https://github.com/statgen/locuszoom/issues/249
+
+        // as a dumb workaround I'm introducing a way of correcting errors from broad-based field edits
+        // something better would let me edit all of the namespaces in a layout at once, without having to use `LocusZoom.Layout.get`, so namespaces could be given later/at any time.
+        // TODO: does `applyNamespaces` helper work here? ask Andy.
+
+        // known interfering fields:
+        const fragile_fields = ['type', 'tag', 'id'];
+
+        // test for the false positive edits before they're made
+        const false_positive = (field, namespace) => `$..data_layers[?(@.${field} === "${namespace}")]`
+        const has_false_positives = fragile_fields.reduce((acc, item) => acc.concat(...false_positive(item, original_namespace)), []).length > 0;
+
+        // this function rewrites all of the namespace-relevant fields
         this.layout = LocusZoom.Layouts.renameField(
             this.layout, 
             original_namespace, 
             target_namespace, 
         )
+
+        // correct the false positive edits
+        if (has_false_positives) {
+            const correction_target = (field, namespace) => `$..data_layers[?(@.${field} === "${target_namespace}")].${field}`
+            fragile_fields.forEach(field => {
+                LocusZoom.Layouts.mutate_attrs(this.layout, correction_target(field, target_namespace), original_namespace); // since `original_namespace` was the correct value, no need to redeclare
+            })   
+        }
+
         return this;
     }
 
@@ -101,11 +124,13 @@ export class LzLayout {
         return this;
     }
 
+    normalizeField(field) {
+
+    }
+
     get full() {
         try {
-            console.log('trying layout')
             if (this.layout !== null) {
-                console.log('returning layout', this.layout)
                 return this.layout;
             }
             throw Error(`Layout hasn't been properly initialized. layout: ${this.layout}`);

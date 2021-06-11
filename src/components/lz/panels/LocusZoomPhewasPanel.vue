@@ -5,9 +5,6 @@
 <script>
 import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
-
-import LocusZoom from "locuszoom";
-import idCounter from "@/utils/idCounter";
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
 import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
 

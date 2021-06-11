@@ -176,4 +176,106 @@ export class LZCredibleVariantsPanel {
     }
 }
 
+export function makeCredibleVariantsPanel(phenotype, credibleSetId, onLoad, onResolve, onError, initialData) {
+
+    // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
+    // however they are also jointly necessary for LocusZoom –
+    this.panel_layout_type = 'association';
+    this.datasource_type = 'cred_vars';
+
+    // this is arbitrary, but we want to base it on the ID
+    this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
+    this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+
+
+    // get a base layout, give it a title and add some fields under the 'assoc' namespace
+    const layout = new LzLayout('association', {
+            ...BASE_PANEL_OPTIONS,
+            y_index: 2,
+            title: {
+                text: `${credibleSetId}`
+            },
+            axes: {
+                y1: {
+                    label: 'Posterior Probability'
+                }
+            },
+            // Data Layers are what actually populate the layout with stuff
+            // They tell you how your data is interpreted and where it's going
+            // First: establish the namespace
+            // Second: declare the fields with respect to the namespace
+            // Third: create axes and register the fields inside of them
+            // Fourth: write down the type of visualization using the data
+            // Fifth: add stylings, and the data layer ID
+            data_layers: [
+                {
+                    "namespace": this.datasource_namespace_symbol_for_panel,
+                    "id": this.panel_id,
+                    "type": "scatter",
+
+                    // id_field is necessary for the scatter visualization to work (used by the d3 code generating the viz)
+                    "id_field": `${this.datasource_namespace_symbol_for_panel}:id`,
+                    // "fields": [
+                    //     `${this.datasource_namespace_symbol_for_panel}:id`,
+                    //     `${this.datasource_namespace_symbol_for_panel}:position`,
+                    //     `${this.datasource_namespace_symbol_for_panel}:posterior_prob`,
+                    //     `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                    // ],
+                    "x_axis": {
+                        "field": `${this.datasource_namespace_symbol_for_panel}:position`
+                    },
+                    // this overrides the log-pvalue and recombinant scales of the default associations plot
+                    // since y-axes are partitioned into either axis: 1 -> y1 and axis: 2 -> y2, by overriding y_axis
+                    // we've removed axis y2 from the associations plot (as we're only defining y1)
+                    "y_axis": {
+                        "axis": 1,
+                        "field": `${this.datasource_namespace_symbol_for_panel}:posterior_prob`,
+                        // normalizing the scale to probability space
+                        "floor": 0,
+                        "ceiling": 1
+                    }
+                },
+            ],
+        })
+    layout.addRule()
+        
+    layout.addFields('$..data_layers', 'assoc', 
+        ['pValue', 'position', 'id', 'posterior_prob']
+    );
+
+
+    // TODO: eliminate the translator function with field renaming!
+    const translator = (associations) => {
+        return associations.map(association => ({
+            id: association.varId,
+            position: association.position,
+            pValue: association.pValue,
+            // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
+            posterior_prob: association.posteriorProbability,
+            contrib_fraction: 0.5,
+            is_member: true,
+            log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
+            variant: association.varId,
+            ref_allele: association.varId,
+        }));
+    };
+
+    const datasource = new LzDataSource(LZBioIndexSource)
+        .withParams(
+            bioIndexParams(
+                'credible-variants',
+                phenotype, 
+                translator, 
+                credibleSetId,
+                onLoad,
+                onError,
+                onResolve,
+                initialData
+            )
+        );
+
+    const associations_panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
+    return associations_panel.unwrap;
+}
+
 </script>

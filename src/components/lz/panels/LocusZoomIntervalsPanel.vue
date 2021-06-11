@@ -51,7 +51,7 @@ export default Vue.component("lz-intervals-panel", {
                 ? (result) => this.$emit("input", result)
                 : this.onLoad;
             this.panelId = this.$parent.addPanelAndDataSource(
-                LZIntervalsPanel(
+                makeIntervalsPanel(
                     this.index,
                     this.primaryKey,
                     this.secondaryKey,
@@ -84,119 +84,6 @@ export default Vue.component("lz-intervals-panel", {
         },
     },
 });
-
-export class LZIntervalsPanel {
-    constructor(
-        index,
-        primaryKey,
-        secondaryKey,
-        scoring,
-        title,
-        onLoad,
-        onResolve,
-        onError,
-        initialData
-    ) {
-        // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
-        // however they are also jointly necessary for LocusZoom –
-        this.panel_layout_type = "intervals";
-        this.datasource_type = "intervals";
-
-        // this is arbitrary, but we want to base it on the ID
-        this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
-        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
-
-        this.index = index;
-        this.queryStringMaker = (chr, start, end) =>
-            `${primaryKey},${chr}:${start}-${end}`;
-        this.translator = function (intervals) {
-            const tissueIntervals = !!intervals
-                ? intervals
-                      .map((interval) => {
-                            const { r, g, b } = rgb(
-                                color(
-                                    LZColorScheme.getColor(interval[secondaryKey])
-                                )
-                            );
-
-                            if (!interval[secondaryKey]) return null;
-
-                            // workaround for when no global enrichment exists for a defined
-                            // possibly an issue with bioindex ingest?
-                            const score = scoring[`${interval.annotation}___${interval.tissue}`] || { minP: undefined, maxFold: undefined }; 
-
-                            return {
-                                name: primaryKey,
-                            
-                                pValue: score.minP,
-                                fold: score.maxFold,
-
-                                // some data (not displayed by default)
-                                // region information
-                                chr: interval.chromosome,
-                                start: interval.start,
-                                end: interval.end,
-                                state_id: `${interval[secondaryKey]}`,
-                                // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
-                                state_name: `${interval[secondaryKey]}`,
-                                // a string-encoded list of RGB coords, e.g. '255,0,128'
-                                itemRgb: [r, g, b].join(),
-                            };
-                      })
-                      .filter((el) => !!el)
-                : [];
-
-            return tissueIntervals;
-        };
-        this.initialData = initialData;
-        // LocusZoom Layout configuration options
-        // See the LocusZoom docs for how this works
-        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
-        // If there's not a lot in here it's because we're overriding defaults.
-        this.locusZoomPanelOptions = {
-            y_index: 2,
-            title: {
-                text: `${title} Regions`,
-            },
-            data_layers: [
-                LocusZoom.Layouts.merge(
-                    {
-                        namespace: {
-                            ...LocusZoom.Layouts.get("data_layer", "intervals")
-                                .namespace,
-                            [this.datasource_type]: this
-                                .datasource_namespace_symbol_for_panel,
-                        },
-                        fields: [
-                            `{{namespace[${this.datasource_type}]}}pValue`,
-                            `{{namespace[${this.datasource_type}]}}fold`,
-                            ...LocusZoom.Layouts.get(
-                                "data_layer",
-                                "intervals",
-                                { unnamespaced: true }
-                            ).fields,
-                        ],
-                    },
-                    LocusZoom.Layouts.get("data_layer", "intervals", {
-                        unnamespaced: true,
-                    })
-                ),
-            ],
-        };
-        this.bioIndexToLZReader = new LZBioIndexSource({
-            index: this.index,
-            queryStringMaker: this.queryStringMaker,
-            translator: this.translator,
-            onLoad,
-            onResolve,
-            onError,
-            initialData: this.initialData,
-        });
-
-        this.sources = [[this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]]
-
-    }
-}
 
 export function makeIntervalsPanel(
         index,
