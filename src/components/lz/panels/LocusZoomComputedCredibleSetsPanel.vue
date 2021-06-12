@@ -5,6 +5,7 @@
 import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
 import idCounter from "@/utils/idCounter";
+import LocusZoom from "locuszoom";
 
 import { BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
 
@@ -163,6 +164,11 @@ export class LZComputedCredibleVariantsPanel {
                 },
             ],
         },
+
+        this.layouts = [
+            LocusZoom.Layouts.get("panel", this.panel_layout_type, this.locusZoomPanelOptions)
+        ]
+
         this.bioIndexToLZReader = new _LZComputedCredibleSetSource({
             phenotype: this.phenotype,
             translator: this.translator,

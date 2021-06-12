@@ -13,12 +13,6 @@ export default Vue.component('lz-associations-panel', {
         phenotype: String,
         title: String,
     },
-    data() {
-        return {
-            panelId: null,
-            panelClass: null,
-        }
-    },
     created() {
         this.panelClass = makeAssociationsPanel(
             this.phenotype, 

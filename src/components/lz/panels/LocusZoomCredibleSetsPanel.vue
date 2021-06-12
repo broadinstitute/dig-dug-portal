@@ -4,6 +4,7 @@ import Vue from "vue";
 import LzPanel from "./LzPanel"
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
 import idCounter from "@/utils/idCounter";
+import LocusZoom from "locuszoom";
 
 export default Vue.component('lz-credset-panel', {
     components: {
@@ -113,7 +114,7 @@ export class LZCredibleVariantsPanel {
                         `${this.datasource_namespace_symbol_for_panel}:id`,
                         `${this.datasource_namespace_symbol_for_panel}:position`,
                         `${this.datasource_namespace_symbol_for_panel}:posterior_prob`,
-                        `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                        `${this.datasource_namespace_symbol_for_panel}:pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
                     ],
                     "x_axis": {
                         "field": `${this.datasource_namespace_symbol_for_panel}:position`
@@ -131,7 +132,7 @@ export class LZCredibleVariantsPanel {
                 },
             ],
         }
-
+        
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
@@ -142,7 +143,13 @@ export class LZCredibleVariantsPanel {
             initialData: this.initalData,
         });
 
-        this.sources = [[this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]]
+        this.layouts = [
+            LocusZoom.Layouts.get("panel", this.panel_layout_type, this.locusZoomPanelOptions)
+        ]
+
+        this.sources = [
+            [this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]
+        ]
 
     }
 }
