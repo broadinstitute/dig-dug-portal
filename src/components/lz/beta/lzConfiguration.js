@@ -124,8 +124,10 @@ export class LzLayout {
         return this;
     }
 
-    normalizeField(field) {
-
+    // use to rename fields like posteriorProbability => posterior_prob, p_value => pValue, etc;
+    renameField(field_before, field_after) {
+        LocusZoom.Layouts.renameFields(this.layout, field_before, field_after);
+        return this;
     }
 
     get full() {

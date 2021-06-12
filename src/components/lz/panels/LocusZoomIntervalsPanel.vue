@@ -1,22 +1,15 @@
-<template>
-    <div></div>
-</template>
-
 <script>
+
 import Vue from "vue";
+import LzPanel from "./LzPanel"
+import{  rgb, color } from "d3";
+import { LZBioIndexSource, LZColorScheme } from "@/utils/lzUtils"
+import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
 
-import { isEqual, isEmpty } from "lodash";
-import { rgb, color } from "d3";
-import {
-    LZBioIndexSource,
-    LZColorScheme,
-} from "@/utils/lzUtils";
-import bioIndexGroups from "@/utils/bioIndexGroups"
-import idCounter from "@/utils/idCounter";
-import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
-import LocusZoom from "locuszoom";
-
-export default Vue.component("lz-intervals-panel", {
+export default Vue.component('lz-intervals-panel', {
+    components: {
+        LzPanel
+    },
     props: {
         index: {
             type: String,
@@ -32,57 +25,37 @@ export default Vue.component("lz-intervals-panel", {
         },
         scoring: Object,
         title: String,
-        onLoad: Function,
-        onResolve: Function,
-        onError: Function,
     },
     data() {
         return {
             panelId: null,
-        };
+            panelClass: null,
+        }
     },
-    mounted() {
-        this.updatePanel();
-    },
-    methods: {
-        updatePanel() {
-            // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const onLoad = !!!this.onLoad
-                ? (result) => this.$emit("input", result)
-                : this.onLoad;
-            this.panelId = this.$parent.addPanelAndDataSource(
-                makeIntervalsPanel(
-                    this.index,
-                    this.primaryKey,
-                    this.secondaryKey,
-                    this.scoring,
-                    this.title,
-                    onLoad,
-                    this.onResolve,
-                    this.onError,
-                    this.initialData
-                )
-            );
-        },
+    created() {
+        this.panelClass = makeIntervalsPanel(
+            this.index,
+            this.primaryKey,
+            this.secondaryKey,
+            this.scoring,
+            this.title,
+            event => this.$emit('input', event),
+            event => this.$emit('resolve', event),
+            event => this.$emit('error', event)
+        )
+        // hack - needs to be replaced
+        this.addPanels = this.$parent.addPanels;
+        this.plot = this.$parent.plot;
     },
     watch: {
-        value(newVal, oldVal) {
-            // the first clause prevents infinite loops
-            // the second clause here prevents us from updating the panel twice when locuszoom pushes data to the page
-            if (!isEqual(newVal, oldVal) && !isEmpty(oldVal)) {
-                if (!!this.panelId) {
-                    this.$parent.plot.removePanel(this.panelId);
-                }
-                this.updatePanel();
-            }
-        },
         annotation() {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
             }
-            this.updatePanel();
+            this.$refs.panel.updatePanel();
         },
     },
+    
 });
 
 export function makeIntervalsPanel(
@@ -169,3 +142,11 @@ export function makeIntervalsPanel(
 }
 
 </script>
+
+<template>
+    <lz-panel
+        ref="panel"
+        :panelClass="panelClass" 
+        @updated="$event => this.panelId = $event.panelId">
+    </lz-panel>
+</template>

@@ -3,9 +3,15 @@
 import Vue from "vue";
 import LzPanel from "./LzPanel"
 import { LZBioIndexSource } from "@/utils/lzUtils"
-import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams, queryForDataLayerById } from "./lzConfiguration";
+import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "./lzConfiguration";
 
-export default Vue.component('lz-associations', {
+
+
+
+
+
+
+export default Vue.component('lz-associations-panel', {
     components: {
         LzPanel
     },
@@ -23,10 +29,19 @@ export default Vue.component('lz-associations', {
         // hack - needs to be replaced
         this.addPanels = this.$parent.addPanels;
     }
-})
+});
 
-function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) {
-    const associationDataLayerQ = '$..data_layers[?(@.tag === "association")]';
+
+
+
+
+
+
+
+export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError, initialData) {
+    
+    const datalayer = data_layer_id => `$..data_layers[?(@.id === "${data_layer_id}")]`;
+    const associationDataLayerQ = datalayer('associationspvaluecatalog');
 
     // get a base layout, give it a title and add some fields under the 'assoc' namespace
     const layout = new LzLayout('association_catalog', {
@@ -36,7 +51,8 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
                     : "Variant Associations",
                 style: { "font-size": "18px" },
                 x: -0.5,
-            }
+            },
+            y_index: 0
         }).addFields(associationDataLayerQ, 'assoc', 
             ['pValue', 'position', 'consequence', 'nearest', 'beta']
         );
@@ -60,21 +76,24 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
                 position: "right",
             },
         ],
-    }).addProperty(`${associationDataLayerQ}`, 'match', {
+    })
+    .addProperty(`${associationDataLayerQ}`, 'match', {
         send: `assoc:position`,
         receive: `assoc:position`,
-    }).addProperty(`${associationDataLayerQ}`, 'y_axis', {
+    })
+    .addProperty(`${associationDataLayerQ}`, 'y_axis', {
         axis: 1,
         field: `assoc:log_pvalue`,
         upper_buffer: 0.1,
-    }).addRule(`${associationDataLayerQ}.color`, {
+    })
+    .addRule(`${associationDataLayerQ}.color`, {
         field: "lz_highlight_match", // Special field name whose presence triggers custom rendering
         scale_function: "if",
         parameters: {
             field_value: true,
             then: "#FF00FF",
         },
-    }, true); //prepend rule
+    }, true);
 
     // TODO: eliminate the translator function with field renaming!
     const translator = (associations) => {
@@ -106,11 +125,12 @@ function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError) 
                 onLoad,
                 onError,
                 onResolve,
+                initialData
             )
         );
 
-    const panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
-    return panel.unwrap;
+    const associations_panel = new LzPanelClass(layout, datasource).initialize('assoc'); // 'assoc' binds both the datasource presented and the layout given uniquely
+    return associations_panel.unwrap;
 }
 </script>
 

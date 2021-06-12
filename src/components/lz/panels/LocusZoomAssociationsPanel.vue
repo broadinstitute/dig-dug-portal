@@ -1,89 +1,50 @@
-<template>
-    <div></div>
-</template>
-
 <script>
+
 import Vue from "vue";
-import { isEqual, isEmpty } from "lodash";
-import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
+import LzPanel from "./LzPanel"
+import { LZBioIndexSource } from "@/utils/lzUtils"
+import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
 
-import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
-
-export default Vue.component("lz-associations-panel", {
+export default Vue.component('lz-associations-panel', {
+    components: {
+        LzPanel
+    },
     props: {
-        phenotype: {
-            type: String,
-            // required: true
-        },
-        title: {
-            type: String,
-        },
-        // for use with v-model
-        value: {
-            required: false,
-        },
-        onLoad: Function,
-        onResolve: Function,
-        onError: Function,
+        phenotype: String,
+        title: String,
     },
     data() {
         return {
-            id: null,
-        };
+            panelId: null,
+            panelClass: null,
+        }
     },
-    mounted() {
-        this.updatePanel();
-        this.$parent.plot.on("panel_removed", (panel) => {
-            // if (panel.data === this.id) {
-            //     this.$destroy();
-            // }
-        });
-    },
-    beforeDestroy() {
-        this.$parent.plot.removePanel(this.id);
-    },
-    methods: {
-        updatePanel() {
-            const onLoad = !!!this.onLoad
-                ? (result) => this.$emit("input", result)
-                : this.onLoad;
-
-            this.id = this.$parent.addPanelAndDataSource(
-                makeAssociationsPanel(
-                    this.phenotype,
-                    this.title,
-                    onLoad,
-                    this.onResolve,
-                    this.onError,
-                    this.value
-                )
-            );
-        },
+    created() {
+        this.panelClass = makeAssociationsPanel(
+            this.phenotype, 
+            this.title, 
+            event => this.$emit('input', event),
+            event => this.$emit('resolve', event),
+            event => this.$emit('error', event)
+        )
+        // hack - needs to be replaced
+        this.addPanels = this.$parent.addPanels;
+        this.plot = this.$parent.plot;
     },
     watch: {
-        value(newVal, oldVal) {
-            // the first clause prevents infinite loops
-            // the second clause here prevents us from updating the panel twice when locuszoom pushes data to the page
-            if (!isEqual(newVal, oldVal) && !isEmpty(oldVal)) {
-                if (!!this.id) {
-                    this.$parent.plot.removePanel(this.id);
-                }
-                this.updatePanel();
-            }
-        },
         phenotype(newPhenotype, oldPhenotype) {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
             }
-            this.updatePanel();
+            this.$refs.panel.updatePanel();
         },
-    },
+    }
 });
 
 export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError, initialData) {
     
     const datalayer = data_layer_id => `$..data_layers[?(@.id === "${data_layer_id}")]`;
-    const associationDataLayerQ = datalayer('associationspvaluecatalog');
+    const associationDataLayerQ = datalayer('associationpvaluescatalog');
 
     // get a base layout, give it a title and add some fields under the 'assoc' namespace
     const layout = new LzLayout('association_catalog', {
@@ -176,3 +137,11 @@ export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, on
 }
 
 </script>
+
+<template>
+    <lz-panel
+        ref="panel"
+        :panelClass="panelClass" 
+        @updated="$event => this.panelId = $event.panelId">
+    </lz-panel>
+</template>
