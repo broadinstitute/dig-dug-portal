@@ -1,76 +1,44 @@
-<template>
-    <div></div>
-</template>
-
 <script>
-import Vue from "vue";
-import { isEqual, isEmpty } from "lodash";
-import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
-import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
 
-export default Vue.component("lz-catalog-annotations-panel", {
+import Vue from "vue";
+import LzPanel from "./LzPanel"
+import { LZBioIndexSource } from "@/utils/lzUtils"
+import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
+
+export default Vue.component('lz-catalog-annotations-panel', {
+    components: {
+        LzPanel
+    },
     props: {
-        // for use with v-model
-        value: {
-            required: false,
-        },
         phenotype: String,
         title: String,
-        onLoad: Function,
-        onResolve: Function,
-        onError: Function,
     },
     data() {
         return {
-            id: null,
-        };
+            panelId: null,
+            panelClass: null,
+        }
     },
-    mounted() {
-        this.updatePanel();
-        this.$parent.plot.on("panel_removed", (panel) => {
-            // if (panel.data === this.id) {
-            //     this.$destroy();
-            // }
-        });
-    },
-    beforeDestroy() {
-        this.$parent.plot.removePanel(this.id);
-    },
-    methods: {
-        updatePanel() {
-            const onLoad = !!!this.onLoad
-                ? (result) => this.$emit("input", result)
-                : this.onLoad;
-            this.id = this.$parent.addPanelAndDataSource(
-                makeCatalogAnnotationsPanel(
-                    this.phenotype,
-                    this.title,
-                    onLoad,
-                    this.onResolve,
-                    this.onError,
-                    this.value
-                )
-            );
-        },
+    created() {
+        this.panelClass = makeCatalogAnnotationsPanel(
+            this.phenotype, 
+            this.title, 
+            event => this.$emit('input', event),
+            event => this.$emit('resolve', event),
+            event => this.$emit('error', event)
+        )
+        // hack - needs to be replaced
+        this.addPanels = this.$parent.addPanels;
+        this.plot = this.$parent.plot;
     },
     watch: {
-        value(newVal, oldVal) {
-            // the first clause prevents infinite loops
-            // the second clause here prevents us from updating the panel twice when locuszoom pushes data to the page
-            if (!isEqual(newVal, oldVal) && !isEmpty(oldVal)) {
-                if (!!this.id) {
-                    this.$parent.plot.removePanel(this.id);
-                }
-                this.updatePanel();
-            }
-        },
         phenotype(newPhenotype, oldPhenotype) {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
             }
             this.updatePanel();
         },
-    },
+    }
 });
 
 export function makeCatalogAnnotationsPanel(phenotype, title='', onLoad, onResolve, onError, initialData) {
@@ -155,3 +123,11 @@ export function makeCatalogAnnotationsPanel(phenotype, title='', onLoad, onResol
 
 
 </script>
+
+<template>
+    <lz-panel
+        ref="panel"
+        :panelClass="panelClass" 
+        @updated="$event => this.panelId = $event.panelId">
+    </lz-panel>
+</template>

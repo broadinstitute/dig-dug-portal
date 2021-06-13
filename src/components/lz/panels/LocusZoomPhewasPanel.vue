@@ -1,17 +1,14 @@
-<template>
-    <div></div>
-</template>
-
 <script>
+
 import Vue from "vue";
-import { isEqual, isEmpty } from "lodash";
+import LzPanel from "./LzPanel"
+import { LZBioIndexSource } from "@/utils/lzUtils"
+import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
 
-import LocusZoom from "locuszoom";
-import idCounter from "@/utils/idCounter";
-import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
-import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
-
-export default Vue.component("lz-phewas-panel", {
+export default Vue.component('lz-phewas-panel', {
+    components: {
+        LzPanel
+    },
     props: {
         id: {
             type: String,
@@ -25,65 +22,37 @@ export default Vue.component("lz-phewas-panel", {
             type: Object,
             required: true,
         },
-        // for use with v-model
-        value: {
-            required: false
-        },
-        onLoad: Function,
-        onResolve: Function,
-        onError: Function,
     },
-    data() {
-        return {
-            panelId: null,
-        };
-    },
-    mounted() {
-        this.updatePanel();
-    },
-    methods: {
-        updatePanel() {
-            // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const onLoad = !!!this.onLoad ? result => this.$emit('input', result) : this.onLoad;
-            this.panelId = this.$parent.addPanelAndDataSource(
-                makePhewasPanel(
-                    this.id,
-                    this.type,
-                    this.phenotypeMap,
-                    onLoad,
-                    this.onResolve,
-                    this.onError,
-                    this.value
-                )
-            );
-        },
+    created() {
+        this.panelClass = makePhewasPanel(
+            this.id, 
+            this.type,
+            this.phenotypeMap, 
+            event => this.$emit('input', event),
+            event => this.$emit('resolve', event),
+            event => this.$emit('error', event)
+        )
+        // hack - needs to be replaced
+        this.addPanels = this.$parent.addPanels;
+        this.plot = this.$parent.plot;
     },
     watch: {
-        value(newVal, oldVal) {
-            // the first clause prevents infinite loops
-            // the second clause here prevents us from updating the panel twice when locuszoom pushes data to the page
-            if (!isEqual(newVal, oldVal) && !isEmpty(oldVal)) {
-                if (!!this.panelId) {
-                    this.$parent.plot.removePanel(this.panelId);
-                }
-                this.updatePanel();
-            }
-        },
         id(newVarOrGeneId) {
             // this is good enough
             if (!!this.panelId) {
                 this.$parent.plot.removePanel(this.panelId);
             }
-            this.updatePanel();
+            this.$refs.panel.updatePanel();
         },
         type() {
             // this is good enough
             if (!!this.panelId) {
                 this.$parent.plot.removePanel(this.panelId);
             }
-            this.updatePanel();
+            this.$refs.panel.updatePanel();
         },
     },
+    
 });
 
 export function makePhewasPanel(varOrGeneId, idType, phenotypeMap, onLoad, onResolve, onError, initialData) {
@@ -152,5 +121,12 @@ export function makePhewasPanel(varOrGeneId, idType, phenotypeMap, onLoad, onRes
     const panel = new LzPanelClass(layout, datasource).initialize('phewas'); // 'assoc' binds both the datasource presented and the layout given uniquely
     return panel.unwrap;
 }
-
 </script>
+
+<template>
+    <lz-panel
+        ref="panel"
+        :panelClass="panelClass" 
+        @updated="$event => this.panelId = $event.panelId">
+    </lz-panel>
+</template>

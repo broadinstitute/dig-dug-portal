@@ -30,21 +30,43 @@ export class LzLayout {
     }
     
     withNamespace(original_namespace, target_namespace) {
-        // console.log(this.layout)
-        // // TODO: This abstraction broke down, see https://github.com/statgen/locuszoom/issues/249
-        // this.layout = LocusZoom.Layout.renameFields(
-        //     this.layout, 
-        //     original_namespace, 
-        //     target_namespace, 
-        // )
-        // this.layout.namespace[original_namespace] = target_namespace;
-        console.log(this.layout, LocusZoom.Layouts.query_attrs(this.layout, '$..fields'))
-        LocusZoom.Layouts.mutate_attrs(this.layout, '$..namespace', object => ({
-            ...object,
-            [original_namespace]: target_namespace
-        }))
-        LocusZoom.Layouts.mutate_attrs(this.layout, '$..fields', fields => fields.map(field => field.replace(`${original_namespace}:`, `${target_namespace}:`)))
-        this.layout = query_attrs(this.layout, '$..fields')
+        // TODO: ACHTUNG: The original solution that just used `renameFields`, was a leaky abstraction: https://github.com/statgen/locuszoom/issues/249
+        // as a dumb workaround I'm introducing a way of correcting errors from broad-based field edits
+        // something better would let me edit all of the namespaces in a layout at once, without having to use `LocusZoom.Layout.get`, so namespaces could be given later/at any time.
+        
+        // TODO: does `applyNamespaces` helper work here? ask Andy.
+
+        // known interfering fields:
+        const fragile_fields = ['type', 'tag', 'id'];
+
+        // test for the false positive edits before they're made
+        const false_positive = (field, namespace) => `$..data_layers[?(@.${field} === "${namespace}")]`
+        const false_positive2 = (field, namespace) => `$..toolbar.*[?(@.${'data_layer_id'} === "${namespace}")]`
+
+        const has_false_positives = fragile_fields.reduce(
+            (acc, item) => acc.concat(
+                ...false_positive(item, original_namespace),
+                ...false_positive2(item, original_namespace)
+            ), []
+        ).length > 0;
+
+        // this function rewrites all of the namespace-relevant fields
+        this.layout = LocusZoom.Layouts.renameField(
+            this.layout, 
+            original_namespace, 
+            target_namespace, 
+        )
+        
+        // correct the false positive edits
+        if (has_false_positives) {
+            const correction_target = (field, namespace) => `${false_positive(field, namespace)}.${field}`
+            const correction_target2 = (field, namespace) => `${false_positive2(field, namespace)}.${field}`
+            fragile_fields.forEach(field => {
+                LocusZoom.Layouts.mutate_attrs(this.layout, correction_target(field, target_namespace), original_namespace); // since `original_namespace` was the correct value, no need to redeclare
+                LocusZoom.Layouts.mutate_attrs(this.layout, correction_target2(field, target_namespace), original_namespace); // since `original_namespace` was the correct value, no need to redeclare
+            })   
+        }
+
         return this;
     }
 
@@ -108,6 +130,12 @@ export class LzLayout {
         fieldnames.forEach(fieldname => {
             this.addRule(`${data_layer}.fields`, `${binder}:${fieldname}`);
         });
+        return this;
+    }
+
+    // use to rename fields like posteriorProbability => posterior_prob, p_value => pValue, etc;
+    renameField(field_before, field_after) {
+        LocusZoom.Layouts.renameFields(this.layout, field_before, field_after);
         return this;
     }
 

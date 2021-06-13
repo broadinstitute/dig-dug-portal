@@ -1,15 +1,15 @@
-<template>
-    <div></div>
-</template>
 <script>
-import Vue from "vue";
-import { isEqual, isEmpty } from "lodash";
 
+import Vue from "vue";
+import LzPanel from "./LzPanel"
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
 import idCounter from "@/utils/idCounter";
-import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "../beta/lzConfiguration";
+import LocusZoom from "locuszoom";
 
-export default Vue.component("lz-credset-panel", {
+export default Vue.component('lz-credset-panel', {
+    components: {
+        LzPanel
+    },
     props: {
         phenotype: {
             type: String,
@@ -19,62 +19,34 @@ export default Vue.component("lz-credset-panel", {
             type: String,
             required: true,
         },
-        // for use with v-model
-        value: {
-            required: false
-        },
-        onLoad: Function,
-        onResolve: Function,
-        onError: Function,
     },
-    data() {
-        return {
-            panelId: null,
-        };
-    },
-    mounted() {
-        this.updatePanel();
-    },
-    methods: {
-        updatePanel() {
-            // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const onLoad = !!!this.onLoad ? result => this.$emit('input', result) : this.onLoad;
-            this.panelId = this.$parent.addPanelAndDataSource(
-                makeCredibleSetsPanel(
-                    this.phenotype,
-                    this.credibleSetId,
-                    onLoad,
-                    this.onResolve,
-                    this.onError,
-                    this.value
-                )
-            );
-        },
+    created() {
+        this.panelClass = new LZCredibleVariantsPanel(
+            this.phenotype, 
+            this.credibleSetId,
+            event => this.$emit('input', event),
+            event => this.$emit('resolve', event),
+            event => this.$emit('error', event)
+        )
+        // hack - needs to be replaced
+        this.addPanels = this.$parent.addPanels;
+        this.plot = this.$parent.plot;
     },
     watch: {
-        value(newVal, oldVal) {
-            // the first clause prevents infinite loops
-            // the second clause here prevents us from updating the panel twice when locuszoom pushes data to the page
-            if (!isEqual(newVal, oldVal) && !isEmpty(oldVal)) {
-                if (!!this.panelId) {
-                    this.$parent.plot.removePanel(this.panelId);
-                }
-                this.updatePanel();
-            }
-        },
         phenotype(newPhenotype) {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
             }
             this.updatePanel();
         },
         credibleSetId(newPhenotype) {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
             }
             this.updatePanel();
         }
     },
+    
 });
 
 export class LZCredibleVariantsPanel {
@@ -142,7 +114,7 @@ export class LZCredibleVariantsPanel {
                         `${this.datasource_namespace_symbol_for_panel}:id`,
                         `${this.datasource_namespace_symbol_for_panel}:position`,
                         `${this.datasource_namespace_symbol_for_panel}:posterior_prob`,
-                        `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                        `${this.datasource_namespace_symbol_for_panel}:pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
                     ],
                     "x_axis": {
                         "field": `${this.datasource_namespace_symbol_for_panel}:position`
@@ -160,7 +132,7 @@ export class LZCredibleVariantsPanel {
                 },
             ],
         }
-
+        
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
@@ -171,7 +143,13 @@ export class LZCredibleVariantsPanel {
             initialData: this.initalData,
         });
 
-        this.sources = [[this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]]
+        this.layouts = [
+            LocusZoom.Layouts.get("panel", this.panel_layout_type, this.locusZoomPanelOptions)
+        ]
+
+        this.sources = [
+            [this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]
+        ]
 
     }
 }
@@ -274,3 +252,11 @@ export function makeCredibleSetsPanel(phenotype, credibleSetId, onLoad, onResolv
 }
 
 </script>
+
+<template>
+    <lz-panel
+        ref="panel"
+        :panelClass="panelClass" 
+        @updated="$event => this.panelId = $event.panelId">
+    </lz-panel>
+</template>
