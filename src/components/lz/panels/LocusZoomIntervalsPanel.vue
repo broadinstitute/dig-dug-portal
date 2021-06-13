@@ -73,10 +73,15 @@ export function makeIntervalsPanel(
     const dataLayerQ = '$..data_layers[?(@.id === "intervals")]';
 
     // get a base layout, give it a title and add some fields under the 'intervals' namespace
-    const layout = new LzLayout('intervals')
-        // .addFields(dataLayerQ, 'intervals', 
-        //     ['pValue', 'fold']
-        // );
+    const layout = new LzLayout('intervals', {
+            y_index: 2,
+            title: {
+                text: `${title} Regions`,
+            }
+        })
+        .addFields(dataLayerQ, 'intervals', 
+            ['pValue', 'fold']
+        );
 
     // TODO: eliminate the translator function with field renaming!
     const translator = function (intervals) {
