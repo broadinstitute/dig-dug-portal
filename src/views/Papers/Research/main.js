@@ -167,8 +167,6 @@ new Vue({
 
         csv2Json(DATA) {
 
-
-
             let rawData2 = JSON.parse(DATA);
 
             let csvArr = this.CSVToArray(rawData2, ",");
