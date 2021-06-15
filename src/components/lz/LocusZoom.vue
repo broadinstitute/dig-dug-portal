@@ -21,6 +21,7 @@ import { makeCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCat
 import { LZCredibleVariantsPanel, makeCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
 import { LZComputedCredibleVariantsPanel, makeComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { makePhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
+import { makeCoaccessibilityPanel } from "@/components/lz/panels/LocusZoomCoaccessibilityPanel";
 
 import { ToggleLogLog, ldlz2_pop_selector_menu, download_png } from "./widgets";
 
@@ -348,6 +349,24 @@ export default Vue.component("locuszoom", {
                     onResolve,
                     onError,
                     initialData
+                )
+            );
+            return panelId;
+        },
+        addCoaccessibilityPanel: function (
+            tissue,
+            title,
+            onLoad,
+            onResolve,
+            onError
+        ) {
+            const panelId = this.addPanels(
+                makeCoaccessibilityPanel(
+                    tissue,
+                    title,
+                    onLoad,
+                    onResolve,
+                    onError
                 )
             );
             return panelId;

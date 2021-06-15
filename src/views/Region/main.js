@@ -204,6 +204,12 @@ new Vue({
                 Formatters.snakeFormatter(r.tissue)
             );
         },
+        addTissueCoaccessibilityPanel(r) {
+            this.$children[0].$refs.locuszoom.addCoaccessibilityPanel(
+                r.tissue,
+                Formatters.snakeFormatter(r.tissue)
+            );
+        },
         topPhenotype(topAssocData) {
             return topAssocData[0];
         },

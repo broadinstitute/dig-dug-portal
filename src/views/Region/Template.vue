@@ -285,6 +285,22 @@
                                 "
                             />
                         </div>
+
+                        <b-col class="divider"></b-col>
+
+                        <div class="col filter-col-md">
+                            <div class="label" style="margin-bottom: 5px">
+                                Add tissue loop track
+                            </div>
+                            <tissue-selectpicker
+                                :tissues="$parent.globalEnrichmentTissues"
+                                :clearOnSelected="true"
+                                @tissue="
+                                    $parent.addTissueCoaccessibilityPanel($event)
+                                "
+                            />
+                        </div>
+
                     </criterion-list-group>
                     <h6 v-if="$parent.selectedPhenotypes.length > 0">
                         Filter tracks and table &nbsp;
