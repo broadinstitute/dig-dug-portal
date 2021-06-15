@@ -14,9 +14,12 @@
                         :key="index"
                         v-html="value"
                         @click="applySorting(value)"
-                        class="sortable-th"
+                        :class="'sortable-th ' + value"
                     ></th>
-                    <th class="" v-if="tableFormat['features'] != undefined">
+                    <th
+                        class="th-evidence"
+                        v-if="tableFormat['features'] != undefined"
+                    >
                         Evidence
                     </th>
                 </tr>
