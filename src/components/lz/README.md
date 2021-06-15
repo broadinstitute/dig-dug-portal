@@ -120,7 +120,55 @@ _This case is not currently supported by our components._ I leave it here to ill
 </template>
 ```
 
+## The lifecycle of lz-associations-panel
+
+During debugging and development, it is useful to know how and when certain events are meant to occur.
+
+Say we had this LocusZoom configuration on the Region Page:
+
+```vue
+<template>
+    <!-- Other region page components here -->
+    
+    <locuszoom
+        :chr="chr"
+        :start="start"
+        :end="end">
+
+        <span v-for="phenotype in phenotypes" :key="phenotype">
+            <lz-associations-panel
+                :phenotype="phenotype"
+                @input="onAssociationsChange(phenotype)">
+            </lz-associations-panel>
+        </span>
+
+    </locuszoom>
+
+    <!-- Other region page components here -->
+</template>
+```
+
+What is the full behavior between `<locuszoom>` and `<lz-associations-panel>` when the page renders, in terms of their component lifecycles?
+
+1) `<locuszoom>` is mounted.
+2) Using the LocusZoom library, a LocusZoom plot is instantiated for `<locuszoom>` in `data` as `this.plot`.
+3) When the plot is finished initializing, a flag is set marking that the plot has been created.
+4) Once the flag is set, `<locuszoom>`'s slot is mounted (since it was controlled by the flag with `v-if`).
+5) Once the slot is mounted, all of its children are created and mounted.
+6) Since `<lz-associations-panel>` is a child of `<locuszoom>`, it's created and mounted.
+7) When `<lz-associations-panel>` is created, it initializes a panelClass for `LZAssociationsPanel` (typically inside of the Vue file) using information from its props, such as `:phenotype`, along with event handlers which emit the panel's data on `@input` (or `@load`, `@error`).
+8) When `<lz-associations-panel>` is mounted, `updatePanel` is called, and the panelClass is directly passed to `<locuszoom>` using `this.$parent.addPanelAndDatasource`.
+9) `<locuszoom>` takes `panelClass` apart into `layouts` and `datasources`, adding the `datasources` to the plot (if they aren't already there), then adding the `layouts`. 
+10) The plot refreshes, and the panel calls for its data from `datsources`, pulling it from BioIndex (in this case, from the `associations` index).
+11) `@input` is called when the data arrive, carrying the associations with it. Here, `onAssociationsChange(phenotype)` is a higher-order function that takes these associations and does something with them. On the region page, they (a) get stored into a map, and (b) are used to synchronize LocusZoom with the Associations Table component. In other words, LocusZoom pulls the data, and we push it into other components; rather than using a Vuex module to do the same.
+
+If the LocusZoom plot's region changes - say if the user dragged the plot around, or the page changes its region because its gene changed - then the panels ask for new data in that region. This refreshes the state of the application, causing datasources to be queried, going through all of the events from |10| onwards.
+
+If phenotype changes, then `v-for` kicks in and destroys the component. LocusZoom then removes its corresponding panel. If more phenotypes are added to the list, `v-for` creates a new `<lz-associations-panel>` and the page undergoes all the events from |6| onwards.
+
 ## Writing LocusZoom panels
+
+> TODO: This section needs to be updated to walk through some simpler styles of configuring LocusZoom panels, as well as the `lz-panel` component. For now look at `LocusZoomCoaccessibilityPanel.vue` for a simple example of configuring a new LocusZoom panel, `LocusZoomAssociationPanel.vue` for an example using wrapper classes, and `LocusZoomComputeCredibleVariants.vue` for an example using a dataclass representing configuration, as well as a custom datasource.
 
 Through trial-and-error a boilerplate-y means of writing new panels was converged upon. It takes place in three steps:
 
@@ -456,49 +504,3 @@ The important things to note are:
 * `initialData` is the first data that gets returned regardless of the initial query to BioIndex. (this is generally not used.)
 
 The `LZBioIndexSource` uses all this information to query `index` whenever LocusZoom refreshes (like when its region changes). The data is collected, translated with `translator`, then emitted into whatever optional function was bound to `onLoad`.
-
-## The lifecycle of lz-associations-panel
-
-During debugging and development, it is useful to know how and when certain events are meant to occur.
-
-Say we had this LocusZoom configuration on the Region Page:
-
-```vue
-<template>
-    <!-- Other region page components here -->
-    
-    <locuszoom
-        :chr="chr"
-        :start="start"
-        :end="end">
-
-        <span v-for="phenotype in phenotypes" :key="phenotype">
-            <lz-associations-panel
-                :phenotype="phenotype"
-                @input="onAssociationsChange(phenotype)">
-            </lz-associations-panel>
-        </span>
-
-    </locuszoom>
-
-    <!-- Other region page components here -->
-</template>
-```
-
-What is the full behavior between `<locuszoom>` and `<lz-associations-panel>` when the page renders, in terms of their component lifecycles?
-
-1) `<locuszoom>` is mounted.
-2) Using the LocusZoom library, a LocusZoom plot is instantiated for `<locuszoom>` in `data` as `this.plot`.
-3) When the plot is finished initializing, a flag is set marking that the plot has been created.
-4) Once the flag is set, `<locuszoom>`'s slot is mounted (since it was controlled by the flag with `v-if`).
-5) Once the slot is mounted, all of its children are created and mounted.
-6) Since `<lz-associations-panel>` is a child of `<locuszoom>`, it's created and mounted.
-7) When `<lz-associations-panel>` is created, it initializes a panelClass for `LZAssociationsPanel` (typically inside of the Vue file) using information from its props, such as `:phenotype`, along with event handlers which emit the panel's data on `@input` (or `@load`, `@error`).
-8) When `<lz-associations-panel>` is mounted, `updatePanel` is called, and the panelClass is directly passed to `<locuszoom>` using `this.$parent.addPanelAndDatasource`.
-9) `<locuszoom>` takes `panelClass` apart into `layouts` and `datasources`, adding the `datasources` to the plot (if they aren't already there), then adding the `layouts`. 
-10) The plot refreshes, and the panel calls for its data from `datsources`, pulling it from BioIndex (in this case, from the `associations` index).
-11) `@input` is called when the data arrive, carrying the associations with it. Here, `onAssociationsChange(phenotype)` is a higher-order function that takes these associations and does something with them. On the region page, they (a) get stored into a map, and (b) are used to synchronize LocusZoom with the Associations Table component. In other words, LocusZoom pulls the data, and we push it into other components; rather than using a Vuex module to do the same.
-
-If the LocusZoom plot's region changes - say if the user dragged the plot around, or the page changes its region because its gene changed - then the panels ask for new data in that region. This refreshes the state of the application, causing datasources to be queried, going through all of the events from |10| onwards.
-
-If phenotype changes, then `v-for` kicks in and destroys the component. LocusZoom then removes its corresponding panel. If more phenotypes are added to the list, `v-for` creates a new `<lz-associations-panel>` and the page undergoes all the events from |6| onwards.
