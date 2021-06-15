@@ -12,9 +12,12 @@ import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
+
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
+import LocusZoomCoaccessibilityPanel from "@/components/lz/panels/LocusZoomCoaccessibilityPanel"
+
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
 import TissueSelectPicker from "@/components/TissueSelectPicker";
@@ -61,6 +64,7 @@ new Vue({
         LocusZoom,
         LocusZoomAssociationsPanel,
         LocusZoomCatalogAnnotationsPanel,
+        LocusZoomCoaccessibilityPanel,
         AssociationsTable,
         PhenotypeSignalMixed,
         CredibleSetSelectPicker,

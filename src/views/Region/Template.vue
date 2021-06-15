@@ -381,6 +381,7 @@
                         :ldpop="true"
                         :refSeq="true"
                     >
+
                         <p
                             v-for="phenotype in $parent.selectedPhenotypes"
                             :key="phenotype.name"

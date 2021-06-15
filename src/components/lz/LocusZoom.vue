@@ -10,9 +10,8 @@
 
 <script>
 import Vue from "vue";
-
 import LocusZoom from "locuszoom";
-import "locuszoom/dist/locuszoom.css";
+import tabix_source from "locuszoom/esm/ext/lz-tabix-source"
 import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
@@ -30,9 +29,12 @@ import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
 import { decodeNamespace } from "@/utils/filterHelpers";
 
+import "locuszoom/dist/locuszoom.css";
+
 LocusZoom.use(intervalTracks);
 LocusZoom.use(credibleSets);
 LocusZoom.use(toolbar_addons);
+LocusZoom.use(tabix_source);
 
 LocusZoom.Widgets.add("toggleloglog", ToggleLogLog);
 
