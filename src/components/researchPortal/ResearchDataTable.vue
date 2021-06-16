@@ -92,6 +92,50 @@ export default Vue.component("research-data-table", {
     mounted() {},
     updated() {},
     computed: {
+        dataScores() {
+            if (
+                !!this.dataset &&
+                !!this.tableFormat &&
+                this.tableFormat["column formatting"] != undefined
+            ) {
+                let scores = {};
+                let columnFormatting = this.tableFormat["column formatting"];
+
+                for (const column in columnFormatting) {
+                    if (
+                        columnFormatting[column].type.includes(
+                            "render background percent"
+                        )
+                    ) {
+                        scores[column] = { high: null, low: null };
+                    }
+                }
+
+                this.dataset.map((row) => {
+                    for (const field in scores) {
+                        let fieldValue =
+                            typeof row[field] != "number"
+                                ? columnFormatting[field]["percent if empty"]
+                                : row[field];
+                        scores[field].high =
+                            scores[field].high == null
+                                ? fieldValue
+                                : scores[field].high < fieldValue
+                                ? fieldValue
+                                : scores[field].high;
+
+                        scores[field].low =
+                            scores[field].low == null
+                                ? fieldValue
+                                : scores[field].low > fieldValue
+                                ? fieldValue
+                                : scores[field].low;
+                    }
+                });
+                //console.log("scores", scores);
+                return scores;
+            }
+        },
         rows() {
             if (!!this.dataset) {
                 return this.dataset.length;
@@ -166,23 +210,63 @@ export default Vue.component("research-data-table", {
                 this.tableFormat["column formatting"] != undefined &&
                 this.tableFormat["column formatting"][tdKey] != undefined
             ) {
-                switch (this.tableFormat["column formatting"][tdKey]["type"]) {
-                    case "scientific notation":
-                        return Formatters.pValueFormatter(tdValue);
-                        break;
-                    case "link":
+                let formatTypes = this.tableFormat["column formatting"][tdKey][
+                    "type"
+                ];
+
+                //console.log(formatTypes);
+
+                let cellValue = tdValue;
+
+                formatTypes.map((type) => {
+                    if (type == "scientific notation") {
+                        cellValue = Formatters.pValueFormatter(tdValue);
+                    }
+
+                    if (type == "link") {
                         let linkString =
                             "<a href='" +
                             this.tableFormat["column formatting"][tdKey][
                                 "link to"
                             ] +
-                            tdValue +
+                            cellValue +
                             "'>" +
-                            tdValue +
+                            cellValue +
                             "</a>";
-                        return linkString;
-                        break;
-                }
+
+                        cellValue = linkString;
+                    }
+
+                    if (type == "render background percent") {
+                        let fieldValue =
+                            typeof tdValue != "number"
+                                ? this.tableFormat["column formatting"][tdKey][
+                                      "percent if empty"
+                                  ]
+                                : tdValue;
+
+                        let weight = Math.floor(
+                            ((Number(fieldValue) - this.dataScores[tdKey].low) /
+                                (this.dataScores[tdKey].high -
+                                    this.dataScores[tdKey].low)) *
+                                100
+                        );
+
+                        let weightClasses = "cell-weight-" + weight + " ";
+
+                        weightClasses +=
+                            tdValue < 0 ? "weight-negative" : "weight-positive";
+
+                        cellValue =
+                            "<span class='" +
+                            weightClasses +
+                            "'>" +
+                            cellValue +
+                            "</span>";
+                    }
+                });
+
+                return cellValue;
             } else {
                 return tdValue;
             }
