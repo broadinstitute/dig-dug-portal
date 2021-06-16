@@ -10,22 +10,19 @@
 
 <script>
 import Vue from "vue";
-
 import LocusZoom from "locuszoom";
-import "locuszoom/dist/locuszoom.css";
+import tabix_source from "locuszoom/esm/ext/lz-tabix-source"
 import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
-import { LZAssociationsPanel } from "@/components/lz/panels/LocusZoomAssociationsPanel";
-import { LZIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
-import { LZCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
-import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnnotationsPanel";
-import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
-import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
-import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
+import { makeIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
+import { makeCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
+import { LZCredibleVariantsPanel, makeCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
+import { LZComputedCredibleVariantsPanel, makeComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
+import { makePhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
+import { makeCoaccessibilityPanel } from "@/components/lz/panels/LocusZoomCoaccessibilityPanel";
 
-import { makeSource, makeLayout } from "@/utils/lzUtils";
 import { ToggleLogLog, ldlz2_pop_selector_menu, download_png } from "./widgets";
 
 import jsonQuery from "json-query";
@@ -33,9 +30,12 @@ import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
 import { decodeNamespace } from "@/utils/filterHelpers";
 
+import "locuszoom/dist/locuszoom.css";
+
 LocusZoom.use(intervalTracks);
 LocusZoom.use(credibleSets);
 LocusZoom.use(toolbar_addons);
+LocusZoom.use(tabix_source);
 
 LocusZoom.Widgets.add("toggleloglog", ToggleLogLog);
 
@@ -131,19 +131,20 @@ export default Vue.component("locuszoom", {
             });
             return [this.plot.state.start, this.plot.state.end];
         },
-        addPanelAndDataSource: function (panelClass) {
+        addPanels: function ({ layouts, sources }) {
+            const panelClass = { layouts, sources };
             // DataSources and Panels/Layouts are linked together via namespaces.
             // A DataSource name is given to the panel, for a particular data type
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
             // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
             if (
                 !!!this.dataSources._items.has(
-                    panelClass.datasource_namespace_symbol_for_panel
+                    panelClass.sources[0][0]
                 )
             ) {
                 this.dataSources.add(
-                    panelClass.datasource_namespace_symbol_for_panel,
-                    panelClass.bioIndexToLZReader
+                    panelClass.sources[0][0],
+                    panelClass.sources[0][1]
                 );
             }
 
@@ -178,135 +179,19 @@ export default Vue.component("locuszoom", {
             // applyState runs on the end so we don't refresh this multiple times on accident.
             if (!!this.filter) this.applyFilter(this.filter);
             if (
-                !!this.filterAssociations &&
-                panelClass.panel_layout_type.includes("association")
+                !!this.filterAssociations
+                // && panelClass.panel_layout_type.includes("association")
             )
                 this.applyFilter(this.filterAssociations, "association");
             if (
-                !!this.filterAnnotations &&
-                panelClass.panel_layout_type.includes("intervals")
+                !!this.filterAnnotations 
+                // && panelClass.panel_layout_type.includes("intervals")
             )
                 this.applyFilter(this.filterAnnotations, "intervals");
             this.plot.applyState();
 
             // so we can figure out how to remove it later
             return panel.id;
-        },
-        // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
-        // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
-        addAssociationsPanel: function (
-            phenotype,
-            title,
-            initialData,
-            onLoad,
-            onResolve,
-            onError
-        ) {
-            const panelId = this.addPanelAndDataSource(
-                new LZAssociationsPanel(
-                    phenotype,
-                    title,
-                    onLoad,
-                    onResolve,
-                    onError,
-                    initialData
-                )
-            );
-            return panelId;
-        },
-        addCatalogAnnotationsPanel: function (
-            phenotype,
-            title,
-            initialData,
-            onLoad,
-            onResolve,
-            onError
-        ) {
-            const panelId = this.addPanelAndDataSource(
-                new LZCatalogAnnotationsPanel(
-                    phenotype,
-                    title,
-                    onLoad,
-                    onResolve,
-                    onError,
-                    initialData
-                )
-            );
-            return panelId;
-        },
-        addIntervalsPanel: function (
-            index,
-            primaryKey,
-            secondaryKey,
-            scoring,
-            title,
-            initialData,
-            onLoad,
-            onResolve,
-            onError
-        ) {
-            const panelId = this.addPanelAndDataSource(
-                new LZIntervalsPanel(
-                    index,
-                    primaryKey,
-                    secondaryKey,
-                    scoring,
-                    title,
-                    onLoad,
-                    onResolve,
-                    onError,
-                    initialData
-                )
-            );
-            return panelId;
-        },
-        addCredibleVariantsPanel: function (
-            phenotype,
-            credibleSetId,
-            initialData,
-            onLoad,
-            onResolve,
-            onError
-        ) {
-            const panelId = this.addPanelAndDataSource(
-                new LZCredibleVariantsPanel(
-                    phenotype,
-                    credibleSetId,
-                    onLoad,
-                    onResolve,
-                    onError,
-                    initialData
-                )
-            );
-            return panelId;
-        },
-        addComputedCredibleVariantsPanel: function (phenotype) {
-            const panelId = this.addPanelAndDataSource(
-                new LZComputedCredibleVariantsPanel(phenotype)
-            );
-            return panelId;
-        },
-        addPhewasPanel: function (
-            varOrGeneId,
-            index,
-            phenotypeMap,
-            initialData,
-            onLoad,
-            onResolve,
-            onError
-        ) {
-            const panelId = this.addPanelAndDataSource(
-                new LZPhewasPanel(
-                    varOrGeneId,
-                    index,
-                    phenotypeMap,
-                    onLoad,
-                    onResolve,
-                    onError,
-                    initialData
-                )
-            );
-            return panelId;
         },
         getDataLayers() {
             // Auxiliary method within our json query for data layers in the LocusZoom plot
@@ -329,7 +214,6 @@ export default Vue.component("locuszoom", {
         },
         applyFilter(filter, panelType = "") {
             let data_layers = this.getDataLayers();
-
             // TODO needs a rework
             if (panelType !== "") {
                 data_layers = data_layers
@@ -352,6 +236,140 @@ export default Vue.component("locuszoom", {
                     });
                 }
             });
+        },
+        // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
+        // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
+        addAssociationsPanel: function (
+            phenotype,
+            title,
+            initialData,
+            onLoad,
+            onResolve,
+            onError
+        ) {
+            const panelId = this.addPanels(
+                new LZAssociationsPanel(
+                    phenotype,
+                    title,
+                    onLoad,
+                    onResolve,
+                    onError,
+                    initialData
+                )
+            );
+            return panelId;
+        },
+        addCatalogAnnotationsPanel: function (
+            phenotype,
+            title,
+            initialData,
+            onLoad,
+            onResolve,
+            onError
+        ) {
+            const panelId = this.addPanels(
+                makeCatalogAnnotationsPanel(
+                    phenotype,
+                    title,
+                    onLoad,
+                    onResolve,
+                    onError,
+                    initialData
+                )
+            );
+            return panelId;
+        },
+        addIntervalsPanel: function (
+            index,
+            primaryKey,
+            secondaryKey,
+            scoring,
+            title,
+            initialData,
+            onLoad,
+            onResolve,
+            onError
+        ) {
+            const panelId = this.addPanels(
+                makeIntervalsPanel(
+                    index,
+                    primaryKey,
+                    secondaryKey,
+                    scoring,
+                    title,
+                    onLoad,
+                    onResolve,
+                    onError,
+                    initialData
+                )
+            );
+            return panelId;
+        },
+        addCredibleVariantsPanel: function (
+            phenotype,
+            credibleSetId,
+            initialData,
+            onLoad,
+            onResolve,
+            onError
+        ) {
+            const panelId = this.addPanels(
+                new LZCredibleVariantsPanel(
+                    phenotype,
+                    credibleSetId,
+                    onLoad,
+                    onResolve,
+                    onError,
+                    initialData
+                )
+            );
+            return panelId;
+        },
+        addComputedCredibleVariantsPanel: function (phenotype) {
+            const panelId = this.addPanels(
+                new LZComputedCredibleVariantsPanel(phenotype)
+            );
+            return panelId;
+        },
+        addPhewasPanel: function (
+            varOrGeneId,
+            index,
+            phenotypeMap,
+            initialData,
+            onLoad,
+            onResolve,
+            onError
+        ) {
+            const panelId = this.addPanels(
+                makePhewasPanel(
+                    varOrGeneId,
+                    index,
+                    phenotypeMap,
+                    onLoad,
+                    onResolve,
+                    onError,
+                    initialData
+                )
+            );
+            return panelId;
+        },
+        addCoaccessibilityPanel: function (
+            tissue,
+            title,
+            onLoad,
+            onResolve,
+            onError
+        ) {
+            const panelId = this.addPanels(
+                makeCoaccessibilityPanel(
+                    tissue,
+                    title,
+                    onLoad,
+                    onResolve,
+                    onError
+                )
+            );
+            return panelId;
         },
     },
     computed: {
@@ -393,7 +411,7 @@ export default Vue.component("locuszoom", {
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 const LZDataSources = {
-    // "assoc": ["AssociationLZ", { url: "https://portaldev.sph.umich.edu/api/v1/annotation/statistic/single/", params: { source: 45, id_field: "variant" } }],
+    // "assoc": ["AssociationLZ", { url: "https://portaldev.sph.umich.edu/api/v1/statistic/single/", params: { source: 45, id_field: "variant" } }],
     catalog: [
         "GwasCatalogLZ",
         {
