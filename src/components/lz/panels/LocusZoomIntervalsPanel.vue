@@ -1,22 +1,15 @@
-<template>
-    <div></div>
-</template>
-
 <script>
+
 import Vue from "vue";
+import LzPanel from "./LzPanel"
+import{  rgb, color } from "d3";
+import { LZBioIndexSource, LZColorScheme } from "@/utils/lzUtils"
+import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
 
-import { isEqual, isEmpty } from "lodash";
-import { rgb, color } from "d3";
-import {
-    LZBioIndexSource,
-    LZColorScheme,
-} from "@/utils/lzUtils";
-import bioIndexGroups from "@/utils/bioIndexGroups"
-import idCounter from "@/utils/idCounter";
-
-import LocusZoom from "locuszoom";
-
-export default Vue.component("lz-intervals-panel", {
+export default Vue.component('lz-intervals-panel', {
+    components: {
+        LzPanel
+    },
     props: {
         index: {
             type: String,
@@ -32,59 +25,40 @@ export default Vue.component("lz-intervals-panel", {
         },
         scoring: Object,
         title: String,
-        onLoad: Function,
-        onResolve: Function,
-        onError: Function,
     },
     data() {
         return {
             panelId: null,
-        };
+            panelClass: null,
+        }
     },
-    mounted() {
-        this.updatePanel();
-    },
-    methods: {
-        updatePanel() {
-            // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const onLoad = !!!this.onLoad
-                ? (result) => this.$emit("input", result)
-                : this.onLoad;
-            this.panelId = this.$parent.addIntervalsPanel(
-                this.index,
-                this.primaryKey,
-                this.secondaryKey,
-                this.scoring,
-                this.title,
-                this.initialData,
-                onLoad,
-                this.onResolve,
-                this.onError
-            );
-        },
+    created() {
+        this.panelClass = makeIntervalsPanel(
+            this.index,
+            this.primaryKey,
+            this.secondaryKey,
+            this.scoring,
+            this.title,
+            event => this.$emit('input', event),
+            event => this.$emit('resolve', event),
+            event => this.$emit('error', event)
+        )
+        // hack - needs to be replaced
+        this.addPanels = this.$parent.addPanels;
+        this.plot = this.$parent.plot;
     },
     watch: {
-        value(newVal, oldVal) {
-            // the first clause prevents infinite loops
-            // the second clause here prevents us from updating the panel twice when locuszoom pushes data to the page
-            if (!isEqual(newVal, oldVal) && !isEmpty(oldVal)) {
-                if (!!this.panelId) {
-                    this.$parent.plot.removePanel(this.panelId);
-                }
-                this.updatePanel();
-            }
-        },
         annotation() {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
             }
-            this.updatePanel();
+            this.$refs.panel.updatePanel();
         },
     },
+    
 });
 
-export class LZIntervalsPanel {
-    constructor(
+export function makeIntervalsPanel(
         index,
         primaryKey,
         secondaryKey,
@@ -95,19 +69,22 @@ export class LZIntervalsPanel {
         onError,
         initialData
     ) {
-        // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
-        // however they are also jointly necessary for LocusZoom –
-        this.panel_layout_type = "intervals";
-        this.datasource_type = "intervals";
 
-        // this is arbitrary, but we want to base it on the ID
-        this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
-        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+    const dataLayerQ = '$..data_layers[?(@.id === "intervals")]';
 
-        this.index = index;
-        this.queryStringMaker = (chr, start, end) =>
-            `${primaryKey},${chr}:${start}-${end}`;
-        this.translator = function (intervals) {
+    // get a base layout, give it a title and add some fields under the 'intervals' namespace
+    const layout = new LzLayout('intervals', {
+            y_index: 2,
+            title: {
+                text: `${title} Regions`,
+            }
+        })
+        .addFields(dataLayerQ, 'intervals', 
+            ['pValue', 'fold']
+        );
+
+    // TODO: eliminate the translator function with field renaming!
+    const translator = function (intervals) {
             const tissueIntervals = !!intervals
                 ? intervals
                       .map((interval) => {
@@ -145,51 +122,32 @@ export class LZIntervalsPanel {
                 : [];
 
             return tissueIntervals;
-        };
-        this.initialData = initialData;
-        // LocusZoom Layout configuration options
-        // See the LocusZoom docs for how this works
-        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
-        // If there's not a lot in here it's because we're overriding defaults.
-        this.locusZoomPanelOptions = {
-            y_index: 2,
-            title: {
-                text: `${title} Regions`,
-            },
-            data_layers: [
-                LocusZoom.Layouts.merge(
-                    {
-                        namespace: {
-                            ...LocusZoom.Layouts.get("data_layer", "intervals")
-                                .namespace,
-                            [this.datasource_type]: this
-                                .datasource_namespace_symbol_for_panel,
-                        },
-                        fields: [
-                            `{{namespace[${this.datasource_type}]}}pValue`,
-                            `{{namespace[${this.datasource_type}]}}fold`,
-                            ...LocusZoom.Layouts.get(
-                                "data_layer",
-                                "intervals",
-                                { unnamespaced: true }
-                            ).fields,
-                        ],
-                    },
-                    LocusZoom.Layouts.get("data_layer", "intervals", {
-                        unnamespaced: true,
-                    })
-                ),
-            ],
-        };
-        this.bioIndexToLZReader = new LZBioIndexSource({
-            index: this.index,
-            queryStringMaker: this.queryStringMaker,
-            translator: this.translator,
-            onLoad,
-            onResolve,
-            onError,
-            initialData: this.initialData,
-        });
-    }
+    };
+
+    const datasource = new LzDataSource(LZBioIndexSource)
+        .withParams(
+            bioIndexParams(
+                index,
+                primaryKey, 
+                translator, 
+                undefined,
+                onLoad,
+                onError,
+                onResolve,
+                initialData
+            )
+        );
+
+    const panel = new LzPanelClass(layout, datasource).initialize('intervals'); // 'assoc' binds both the datasource presented and the layout given uniquely
+    return panel.unwrap;
 }
+
 </script>
+
+<template>
+    <lz-panel
+        ref="panel"
+        :panelClass="panelClass" 
+        @updated="$event => this.panelId = $event.panelId">
+    </lz-panel>
+</template>

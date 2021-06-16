@@ -1,15 +1,15 @@
-<template>
-    <div></div>
-</template>
 <script>
-import Vue from "vue";
-import { isEqual, isEmpty } from "lodash";
 
-import LocusZoom from "locuszoom";
+import Vue from "vue";
+import LzPanel from "./LzPanel"
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
 import idCounter from "@/utils/idCounter";
+import LocusZoom from "locuszoom";
 
-export default Vue.component("lz-credset-panel", {
+export default Vue.component('lz-credset-panel', {
+    components: {
+        LzPanel
+    },
     props: {
         phenotype: {
             type: String,
@@ -19,60 +19,34 @@ export default Vue.component("lz-credset-panel", {
             type: String,
             required: true,
         },
-        // for use with v-model
-        value: {
-            required: false
-        },
-        onLoad: Function,
-        onResolve: Function,
-        onError: Function,
     },
-    data() {
-        return {
-            panelId: null,
-        };
-    },
-    mounted() {
-        this.updatePanel();
-    },
-    methods: {
-        updatePanel() {
-            // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const onLoad = !!!this.onLoad ? result => this.$emit('input', result) : this.onLoad;
-            this.panelId = this.$parent.addCredibleVariantsPanel(
-                this.phenotype,
-                this.credibleSetId,
-                this.initialData,
-                onLoad,
-                this.onResolve,
-                this.onError
-            );
-        },
+    created() {
+        this.panelClass = new LZCredibleVariantsPanel(
+            this.phenotype, 
+            this.credibleSetId,
+            event => this.$emit('input', event),
+            event => this.$emit('resolve', event),
+            event => this.$emit('error', event)
+        )
+        // hack - needs to be replaced
+        this.addPanels = this.$parent.addPanels;
+        this.plot = this.$parent.plot;
     },
     watch: {
-        value(newVal, oldVal) {
-            // the first clause prevents infinite loops
-            // the second clause here prevents us from updating the panel twice when locuszoom pushes data to the page
-            if (!isEqual(newVal, oldVal) && !isEmpty(oldVal)) {
-                if (!!this.panelId) {
-                    this.$parent.plot.removePanel(this.panelId);
-                }
-                this.updatePanel();
-            }
-        },
         phenotype(newPhenotype) {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
             }
             this.updatePanel();
         },
         credibleSetId(newPhenotype) {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
             }
             this.updatePanel();
         }
     },
+    
 });
 
 export class LZCredibleVariantsPanel {
@@ -140,7 +114,7 @@ export class LZCredibleVariantsPanel {
                         `${this.datasource_namespace_symbol_for_panel}:id`,
                         `${this.datasource_namespace_symbol_for_panel}:position`,
                         `${this.datasource_namespace_symbol_for_panel}:posterior_prob`,
-                        `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                        `${this.datasource_namespace_symbol_for_panel}:pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
                     ],
                     "x_axis": {
                         "field": `${this.datasource_namespace_symbol_for_panel}:position`
@@ -158,7 +132,7 @@ export class LZCredibleVariantsPanel {
                 },
             ],
         }
-
+        
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
@@ -168,7 +142,121 @@ export class LZCredibleVariantsPanel {
             onError,
             initialData: this.initalData,
         });
+
+        this.layouts = [
+            LocusZoom.Layouts.get("panel", this.panel_layout_type, this.locusZoomPanelOptions)
+        ]
+
+        this.sources = [
+            [this.datasource_namespace_symbol_for_panel, this.bioIndexToLZReader]
+        ]
+
     }
 }
 
+export function makeCredibleSetsPanel(phenotype, credibleSetId, onLoad, onResolve, onError, initialData) {
+    
+    // const datalayer = data_layer_id => `$..data_layers[?(@.id === "${data_layer_id}")]`;
+    // const associationDataLayerQ = datalayer('associationspvaluecatalog');
+
+
+    // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
+    // however they are also jointly necessary for LocusZoom –
+    const panel_layout_type = 'association';
+    const datasource_type = 'cred_vars';
+
+    // this is arbitrary, but we want to base it on the ID
+    const panel_id = idCounter.getUniqueId(panel_layout_type);
+    const datasource_namespace_symbol_for_panel = `${panel_id}_src`;
+
+    // get a base layout, give it a title and add some fields under the 'assoc' namespace
+    const layout = new LzLayout('association', {
+            ...BASE_PANEL_OPTIONS,
+            y_index: 2,
+            title: {
+                text: `${credibleSetId}`
+            },
+            axes: {
+                y1: {
+                    label: 'Posterior Probability'
+                }
+            },
+            // we're overriding all data layers and replacing it with these ones
+            data_layers: [
+                {
+                    "namespace": datasource_namespace_symbol_for_panel,
+                    "id": panel_id,
+                    "type": "scatter",
+
+                    // id_field is necessary for the scatter visualization to work (used by the d3 code generating the viz)
+                    "id_field": `${datasource_namespace_symbol_for_panel}:id`,
+                    "fields": [
+                        `${datasource_namespace_symbol_for_panel}:id`,
+                        `${datasource_namespace_symbol_for_panel}:position`,
+                        `${datasource_namespace_symbol_for_panel}:posterior_prob`,
+                        `{{namespace[${datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                    ],
+                    "x_axis": {
+                        "field": `${datasource_namespace_symbol_for_panel}:position`
+                    },
+                    // this overrides the log-pvalue and recombinant scales of the default associations plot
+                    // since y-axes are partitioned into either axis: 1 -> y1 and axis: 2 -> y2, by overriding y_axis
+                    // we've removed axis y2 from the associations plot (as we're only defining y1)
+                    "y_axis": {
+                        "axis": 1,
+                        "field": `${datasource_namespace_symbol_for_panel}:posterior_prob`,
+                        // normalizing the scale to probability space
+                        "floor": 0,
+                        "ceiling": 1
+                    }
+                }
+            ]
+        })
+
+    // TODO: eliminate the translator function with field renaming!
+    const translator = (associations) => {
+        function varId2OtherVarId(varId) {
+            const [a, b, c, d] = varId.split(':'); // ['9', '22132076', 'A', 'G']
+            return `${a}:${b}_${c}/${d}`
+        }
+        return associations.map((association) => ({
+            chromosome: association.chromosome,
+            id: varId2OtherVarId(association.varId),
+            position: association.position,
+            pValue: association.pValue,
+            log_pvalue: -1 * Math.log10(association.pValue), // .toPrecision(4),
+            variant: varId2OtherVarId(association.varId),
+            ref_allele: association.reference,
+            consequence: association.consequence,
+            beta: association.beta,
+            nearest: association.nearest,
+        }));
+    };
+
+    const datasource = new LzDataSource(LZBioIndexSource)
+        .withParams(
+            bioIndexParams(
+                'credible-variants',
+                phenotype, 
+                translator, 
+                undefined,
+                onLoad,
+                onError,
+                onResolve,
+                initialData
+            )
+        );
+
+    const associations_panel = new LzPanelClass(layout, datasource).initialize(datasource_namespace_symbol_for_panel); // 'assoc' binds both the datasource presented and the layout given uniquely
+    return associations_panel.unwrap;
+}
+
 </script>
+
+<template>
+    <lz-panel
+        ref="panel"
+        :panelClass="panelClass" 
+        @updated="$event => this.panelId = $event.panelId">
+    </lz-panel>
+</template>
