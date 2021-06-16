@@ -431,6 +431,16 @@
     background-size: 100% 100% !important;
 }
 
+[class*="weight-positive"] {
+    background-image: url(../images/blue_block.png) !important;
+    background-position: left;
+}
+
+[class*="weight-negative"] {
+    background-image: url(../images/red_block.png) !important;
+    background-position: left;
+}
+
 .search-fields-wrapper {
     text-align: center;
 }

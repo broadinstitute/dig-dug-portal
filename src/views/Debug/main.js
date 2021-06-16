@@ -2,47 +2,19 @@ import Vue from "vue";
 
 import Template from "./Template.vue";
 import store from "./store.js";
+import LzPlot from "@/components/lz/beta/LzPlot"
+import LzAssociations from "@/components/lz/beta/LzAssociationsPanel"
 
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css"
-import BootstrapVue, { componentsPlugin } from "bootstrap-vue"
-
-import ResultsDashboard from "@/components/NCATS/ResultsDashboard"
-import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
-import KnowledgeGraph from "@/components/NCATS/KnowledgeGraph"
-
-import jsonQuery from "json-query"
-import { match } from "@/utils/bioIndexUtils";
-
-import CriterionListGroup from "@/components/criterion/group/CriterionListGroup"
-import FilterEnumeration from "@/components/criterion/FilterEnumeration"
-
-import queryString from "query-string"
-import _, { merge } from "lodash"
-
-import trapi from "@/components/NCATS/trapi"
-
-import AsyncComputed from 'vue-async-computed'
-import StaticPageInfo from "@/components/StaticPageInfo.vue";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
+import lzConfiguration from "@/components/lz/beta/lzConfiguration"
 
 Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(AsyncComputed);
-import Counter from "@/utils/idCounter";
+const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 
 new Vue({
     store,
     components: {
-        CriterionListGroup,
-        FilterEnumeration,
-        ResolvedCurie,
-        StaticPageInfo,
-        PageHeader,
-        PageFooter,
-        ResultsDashboard,
-        KnowledgeGraph,
+        LzPlot,
+        LzAssociations
     },
 
     async created() {
@@ -54,38 +26,78 @@ new Vue({
 
     data() {
         return {
-            geneInfo: [],
-            results: [],
-            fields: [],
-            gene: 'PCSK9',
-            currentPage: 1,
-            translatorResults: null,
-            queryGraphCriterion: [],
-            subjects: ['biolink:Gene'],
-            objects: ['biolink:Disease'],
-            predicates: ['biolink:gene_associated_with_condition'],
-            links: [],
-            biolinkModel: null,
-            matchingGenes: [],
-            messages1: null,
-            message2: null,
-            globalKnowledgeGraph: null,
-
-            geneToDiseaseQueryCriterion: [],
-            diseaseToPhenotypeQueryCriterion: [],
-
-            geneToDiseaseQuery: null,
-            diseaseToPhenotypeQuery: null,
-
-            selectedResults: [],
-            selectedGeneCriterion: [],
-
-            geneToDiseasePredicates: [],
-            diseaseToPathwayPredicates: [],
-
-            queries: [],
-
-            mock: false,
+            geneLayout: {
+                responsive_resize: "width",
+                max_region_scale: 500000, // without this, zooming out will fail (circa LocusZoom v0.13.1)
+                // state: {
+                //     chr: this.chr,
+                //     start: this.start,
+                //     end: this.end,
+                // },
+                // toolbar: {
+                //     // top-to-bottom in the array => right-to-left on the layout
+                //     widgets,
+                // },
+            },
+            // LocusZoom.Layouts.get("panel", "genes", {
+            //     height: 200,
+            //     min_height: 200,
+            //     // bottom section
+            //     y_index: 3,
+            // }),
+            dataSources: Object.entries({
+                // "assoc": ["AssociationLZ", { url: "https://portaldev.sph.umich.edu/api/v1/statistic/single/", params: { source: 45, id_field: "variant" } }],
+                catalog: [
+                    "GwasCatalogLZ",
+                    {
+                        _enableCache: false,
+                        url:
+                            "https://portaldev.sph.umich.edu/api/v1/annotation/gwascatalog/results/?decompose=1&variant_format=colons",
+                        params: {
+                            build: HUMAN_GENOME_BUILD_VERSION,
+                        },
+                    },
+                ],
+                gene: [
+                    "GeneLZ",
+                    {
+                        url: "https://portaldev.sph.umich.edu/api/v1/genes/",
+                        params: {
+                            build: HUMAN_GENOME_BUILD_VERSION,
+                        },
+                    },
+                ],
+                ld: [
+                    "LDLZ2",
+                    {
+                        url: "https://portaldev.sph.umich.edu/ld/",
+                        params: {
+                            source: "1000G",
+                            build: HUMAN_GENOME_BUILD_VERSION,
+                            population: "ALL",
+                        },
+                    },
+                ],
+                recomb: [
+                    "RecombLZ",
+                    {
+                        url:
+                            "https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/",
+                        params: {
+                            build: HUMAN_GENOME_BUILD_VERSION,
+                        },
+                    },
+                ],
+                constraint: [
+                    "GeneConstraintLZ",
+                    {
+                        url: "https://gnomad.broadinstitute.org/api",
+                        params: {
+                            build: HUMAN_GENOME_BUILD_VERSION,
+                        },
+                    },
+                ],
+            }),
         }
     },
     async created() {
@@ -120,47 +132,10 @@ new Vue({
         
     },
     async mounted() {
-
-        const biolinkModel = await trapi.model.biolinkModel;
-
-        this.geneToDiseasePredicates = trapi.model.findSlotsForDomainRange({
-            domain: 'gene',
-            range: 'disease or phenotypic feature'
-        }, biolinkModel);
-
-        this.diseaseToPathwayPredicates = trapi.model.findSlotsForDomainRange({
-            domain: 'disease or phenotypic feature',
-            range: 'pathway'
-        }, biolinkModel);
-
     },
-    asyncComputed: {
-        async diseaseMap() {
-            const curieOptions = this.selectedResults.filter(el => el.selected).map(el => el.object);
-            if (curieOptions.length > 0) {
-                return await Promise.all(
-                    curieOptions.map(curie => new Promise((resolve => {
-                        resolve(trapi.normalize.curieLabel(curie).then(label => ({ [curie]: label })))
-                    })))
-                ).then(list => list.reduce((acc, item) => merge(acc, item), {}));
-            }
-            return {};
-        },
-        async diseaseLabels() {
-            return Object.values(this.diseaseMap)
-        },
-        async diseaseOptions() {
-            return Object.keys(this.diseaseMap)
-        },
-        async geneQueries() {
-            if (this.selectedGeneCriterion.length > 0) {
-                return await Promise.all(this.selectedGeneCriterion
-                                    .map(el => el.threshold)
-                                    .map(gene => this.makeGeneToPathwayQuery(gene)));
-            } else {
-                return [];
-            }
-
+    methods: {
+        tap() {
+            console.log(arguments)
         }
     },
 
