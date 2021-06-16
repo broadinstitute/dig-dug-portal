@@ -77,6 +77,17 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        addcss(css) {
+            var head = document.getElementsByTagName('head')[0];
+            var s = document.createElement('style');
+            s.setAttribute('type', 'text/css');
+            if (s.styleSheet) {   // IE
+                s.styleSheet.cssText = css;
+            } else {                // the world
+                s.appendChild(document.createTextNode(css));
+            }
+            head.appendChild(s);
+        },
         fetchDevPage() {
             let devID = this.devID;
             let devPW = this.devPW;
@@ -166,8 +177,6 @@ new Vue({
         },
 
         csv2Json(DATA) {
-
-
 
             let rawData2 = JSON.parse(DATA);
 
@@ -343,6 +352,14 @@ new Vue({
 
             return convertedData;
         },
+        dataPoints() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_points"] == false) {
+                return false;
+            }
+            return contents[0]["field_data_points"];
+        },
         tablePerPageNumber() {
             let contents = this.researchPage;
 
@@ -453,45 +470,51 @@ new Vue({
             }
         },
         researchPage(content) {
-            //set Table format
+            if (content.length != 0) {
+                if (content[0]["field_page_style"] != false) {
+                    let css = content[0]["field_page_style"];
+                    this.addcss(css);
+                }
+                //set Table format
+                if (content[0]["field_data_table_format"] != false) {
+                    this.dataTableFormat = JSON.parse(content[0]["field_data_table_format"]);
+                }
+                //Load data
+                if (content[0]["field_data_points"] != false) {
 
-            if (content.length != 0 && content[0]["field_data_table_format"] != false) {
-                this.dataTableFormat = JSON.parse(content[0]["field_data_table_format"]);
+                    let dataFiles = content[0]["field_data_points"].split(",");
+
+                    this.dataFiles = dataFiles;
+                    this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+
+                    let initialData = dataFiles[0];
+
+                    let dataPoint = (initialData.includes("http://") || initialData.includes("https://")) ? initialData : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + initialData;
+
+                    let domain = (initialData.includes("http://") || initialData.includes("https://")) ? "external" : "hugeampkpn";
+
+                    let fetchParam = { "dataPoint": dataPoint, "domain": domain }
+
+                    this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                }
+
+
+                //Load research method
+                if (content[0]["field_research_method"] != false) {
+                    let methodID = content[0]["field_research_method"];
+                    let methodParam = { "methodID": methodID };
+
+                    this.$store.dispatch("hugeampkpncms/getResearchMethod", methodParam);
+                }
+
+                //Load research menu
+                if (content[0]["field_page_header_menu_node_id"] != false) {
+                    let menuID = content[0]["field_page_header_menu_node_id"];
+                    let menuParam = { "menuID": menuID };
+                    this.$store.dispatch("hugeampkpncms/getResearchMenu", menuParam);
+                }
             }
-            //Load data
-            if (content.length != 0 && content[0]["field_data_points"] != false) {
 
-                let dataFiles = content[0]["field_data_points"].split(",");
-
-                this.dataFiles = dataFiles;
-                this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
-
-                let initialData = dataFiles[0];
-
-                let dataPoint = (initialData.includes("http://") || initialData.includes("https://")) ? initialData : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + initialData;
-
-                let domain = (initialData.includes("http://") || initialData.includes("https://")) ? "external" : "hugeampkpn";
-
-                let fetchParam = { "dataPoint": dataPoint, "domain": domain }
-
-                this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
-            }
-
-
-            //Load research method
-            if (content.length != 0 && content[0]["field_research_method"] != false) {
-                let methodID = content[0]["field_research_method"];
-                let methodParam = { "methodID": methodID };
-
-                this.$store.dispatch("hugeampkpncms/getResearchMethod", methodParam);
-            }
-
-            //Load research menu
-            if (content.length != 0 && content[0]["field_page_header_menu_node_id"] != false) {
-                let menuID = content[0]["field_page_header_menu_node_id"];
-                let menuParam = { "menuID": menuID };
-                this.$store.dispatch("hugeampkpncms/getResearchMenu", menuParam);
-            }
         },
         researchData(content) {
             uiUtils.hideElement("data-loading-indicator");
