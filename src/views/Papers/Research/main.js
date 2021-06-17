@@ -341,6 +341,14 @@ new Vue({
             }
             return JSON.parse(contents[0]["field_filters"]);
         },
+        dataType() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_type"] == false || contents[0]["field_data_type"] == "csv") {
+                return null;
+            }
+            return contents[0]["field_data_type"];
+        },
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
@@ -348,9 +356,12 @@ new Vue({
                 return null;
             }
 
-            let convertedData = this.csv2Json(contents);
 
-            return convertedData;
+            let convertedData = (this.dataType == 'json') ? JSON.parse(contents) : this.csv2Json(contents);
+
+            let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
+
+            return returnData;
         },
         dataPoints() {
             let contents = this.researchPage;
@@ -518,7 +529,7 @@ new Vue({
         },
         researchData(content) {
             uiUtils.hideElement("data-loading-indicator");
-
+            console.log(content);
             if (this.dataTableFormat == null) {
                 let topRows = Object.keys(content[0]);
                 let dataTableFormat = { "top rows": topRows };
