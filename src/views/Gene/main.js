@@ -216,9 +216,26 @@ new Vue({
                 g => g.source === "alias"
             );
         },
+        // alternativeNames() {
+        //     let geneData = this.$store.state.gene.data
+        //     let data = this.$store.state.genes.data
+        //     let aliases = []
+        //     for (let i in data) {
+        //         if (data[i].chromosome == geneData[0].chromosome && data[i].start == geneData[0].start && data[i].end == geneData[0].end) {
+        //             if (data[i].source === "alias") {
+        //                 aliases.push(data[i].name);
+        //             }
+        //         }
+
+        //     }
+        //     return aliases;
+        // },
 
         alternateNames() {
+            let geneData = this.$store.state.gene.data
             return this.$store.state.genes.data
+                .filter(g => g.start == geneData[0].start)
+                .filter(g => g.end == geneData[0].end)
                 .filter(g => g.source !== "symbol")
                 .sort((a, b) => {
                     if (a.source < b.source) return -1;
