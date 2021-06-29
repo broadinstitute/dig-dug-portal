@@ -104,19 +104,83 @@
                     >
                     </documentation>
                     <b-tabs>
-                        <b-tab :title="'Gene Ontology (GO)'">
+                        <b-tab title="Function">
+                            <div class="card-body row">
+                                <div class="col-md-8">
+                                    <div v-if="$parent.geneFunction">
+                                        <h4>
+                                            Function
+                                            <tooltip-documentation
+                                                name="gene.function.tooltip.hover"
+                                                :content-fill="
+                                                    $parent.documentationMap
+                                                "
+                                                :isHover="true"
+                                                :noIcon="false"
+                                            ></tooltip-documentation>
+                                        </h4>
+
+                                        <div>
+                                            {{ $parent.geneFunction }}
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        <h5>Gene function not found</h5>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h4>Info</h4>
+                                    <div
+                                        v-if="$parent.geneNames"
+                                        class="alternative-names"
+                                    >
+                                        <strong
+                                            >Alternative names:&nbsp;</strong
+                                        >
+                                        <span
+                                            v-for="gene in $parent.alternateNames"
+                                            v-if="gene.source == 'alias'"
+                                            :key="gene.name"
+                                            >{{ gene.name }}</span
+                                        >&nbsp;
+                                    </div>
+                                    <div v-if="$parent.regionText">
+                                        <strong>Coding sequence:</strong>
+                                        {{ $parent.regionText }}
+                                    </div>
+                                    <div v-if="$parent.region">
+                                        <strong>Length:</strong>
+                                        {{
+                                            " " +
+                                            (
+                                                $parent.region.end -
+                                                $parent.region.start
+                                            ).toLocaleString()
+                                        }}
+                                        bp
+                                    </div>
+                                    <div><strong>Assembly:</strong> GRCh37</div>
+                                    <div>
+                                        <strong>Gene sources:</strong>
+                                        <span
+                                            >&nbsp;Ensembl, HGNC, UCSC, RGD,
+                                            MGD</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </b-tab>
+                        <b-tab title="Gene Ontology">
                             <translator-predicate-table
-                                :title="'GO Terms'"
+                                title="Gene Ontology (GO) Terms"
                                 :geneSymbol="$store.state.geneName"
                                 :field="'go'"
                             >
                             </translator-predicate-table>
                         </b-tab>
-                        <b-tab
-                            :title="'Pathways (Reactome, KEGG, BioCarta, WikiPathways)'"
-                        >
+                        <b-tab title="Pathways">
                             <translator-predicate-table
-                                :title="'Pathways'"
+                                title="Pathways (Reactome, KEGG, BioCarta, WikiPathways)"
                                 :geneSymbol="$store.state.geneName"
                                 :field="'pathway'"
                             >
@@ -126,59 +190,6 @@
                 </div>
             </div>
 
-            <div class="card mdkp-card">
-                <div class="card-body row">
-                    <div class="col-md-8">
-                        <div v-if="$parent.geneFunction">
-                            <h4>
-                                Function
-                                <tooltip-documentation
-                                    name="gene.function.tooltip.hover"
-                                    :content-fill="$parent.documentationMap"
-                                    :isHover="true"
-                                    :noIcon="false"
-                                ></tooltip-documentation>
-                            </h4>
-
-                            <div>{{ $parent.geneFunction }}</div>
-                        </div>
-                        <div v-else>
-                            <h5>Gene function not found</h5>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <h4>Info</h4>
-                        <div v-if="$parent.geneNames" class="alternative-names">
-                            <strong>Alternative names:&nbsp;</strong>
-                            <span
-                                v-for="gene in $parent.alternateNames"
-                                v-if="gene.source == 'alias'"
-                                :key="gene.name"
-                                >{{ gene.name }}</span
-                            >&nbsp;
-                        </div>
-                        <div v-if="$parent.regionText">
-                            <strong>Coding sequence:</strong>
-                            {{ $parent.regionText }}
-                        </div>
-                        <div v-if="$parent.region">
-                            <strong>Length:</strong>
-                            {{
-                                " " +
-                                (
-                                    $parent.region.end - $parent.region.start
-                                ).toLocaleString()
-                            }}
-                            bp
-                        </div>
-                        <div><strong>Assembly:</strong> GRCh37</div>
-                        <div>
-                            <strong>Gene sources:</strong>
-                            <span>&nbsp;Ensembl, HGNC, UCSC, RGD, MGD</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
