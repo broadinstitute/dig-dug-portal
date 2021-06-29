@@ -4,13 +4,9 @@
             <!-- <label for="search">Search</label>
                 <input id="search" v-model="filterString"/> -->
 
-            <criterion-list-group
-                class="top-associations-section-phenotype-filter"
-            >
+            <criterion-list-group>
                 <div style="margin-top: 5px; margin-bottom: 5px">
-                    <div class="label" style="display: inline">
-                        Search:&nbsp;
-                    </div>
+                    <div class="label">Search</div>
                     <input
                         class="filter-col-lg"
                         style="display: inline; height: 30px"
@@ -18,7 +14,9 @@
                     />
                 </div>
             </criterion-list-group>
-
+            <div class="text-right mt-2 mb-2">
+                <csv-download :data="geneInfo" :filename="title"></csv-download>
+            </div>
             <b-table
                 v-if="context"
                 :id="id"
@@ -91,7 +89,7 @@ import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink";
 import trapi from "@/components/NCATS/trapi";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
-import { FormTagsPlugin } from "bootstrap-vue";
+import CsvDownload from "@/components/CsvDownload";
 
 const myGeneAPI = "https://mygene.info/v3";
 
@@ -101,6 +99,7 @@ export default Vue.component("translator-predicate-table", {
         ResolvedCurie,
         CriterionFunctionGroup,
         FilterEnumeration,
+        CsvDownload,
     },
     data() {
         return {
