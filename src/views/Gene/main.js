@@ -204,8 +204,11 @@ new Vue({
             return this.$store.getters.region;
         },
 
-        cannonicalSymbolName() {
+        symbolName() {
             return this.$store.getters.canonicalSymbol;
+        },
+        geneSymbol() {
+            return this.$store.getters.geneSymbol;
         },
 
         aliasNames() {
@@ -237,7 +240,8 @@ new Vue({
         },
 
         geneNames() {
-            return this.$store.getters["uniprot/geneNames"];
+            let x = this.$store.getters["uniprot/geneNames"];
+            return x;
         },
 
         gene() {
@@ -277,7 +281,7 @@ new Vue({
         },
 
         documentationMap() {
-            let symbol = this.symbolName;
+            let symbol = this.geneSymbol;
             let r = this.region;
 
             if (!!symbol && !!r) {
