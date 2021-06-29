@@ -19,12 +19,12 @@
                     <div class="col-md-4 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-8 gene-page-header-body">
-                        <div v-if="$parent.cannonicalSymbolName">
+                        <div v-if="$parent.geneSymbol">
                             <span>
-                                {{ $parent.cannonicalSymbolName }}
+                                {{ $parent.geneSymbol }}
                                 <span
                                     v-if="
-                                        $parent.cannonicalSymbolName.toLowerCase() !==
+                                        $parent.geneSymbol.toLowerCase() !==
                                         $store.state.geneName.toLowerCase()
                                     "
                                 >({{ $store.state.geneName }})</span>
@@ -32,7 +32,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
-                        <div v-if="$parent.cannonicalSymbolName" class="input-group">
+                        <div v-if="$parent.symbolName" class="input-group">
                             <button
                                 class="btn btn-primary input-group-prepend explore-region-btn"
                                 style="margin-right: 20px"

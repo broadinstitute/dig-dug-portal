@@ -108,6 +108,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
         //this.$store.dispatch("queryAssociations");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
@@ -157,7 +158,7 @@ new Vue({
             if (!!r) {
                 window.location.href = `./region.html?chr=${
                     r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         }
     },
@@ -203,7 +204,7 @@ new Vue({
             return this.$store.getters.region;
         },
 
-        symbolName() {
+        cannonicalSymbolName() {
             return this.$store.getters.canonicalSymbol;
         },
 
