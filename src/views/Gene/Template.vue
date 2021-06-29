@@ -40,7 +40,11 @@
                     <div class="col-md-4 gene-page-header-body">
                         <div v-if="$parent.symbolName" class="input-group">
                             <button
-                                class="btn btn-primary input-group-prepend explore-region-btn"
+                                class="
+                                    btn btn-primary
+                                    input-group-prepend
+                                    explore-region-btn
+                                "
                                 style="margin-right: 20px"
                                 :title="$parent.regionText"
                                 @click="$parent.exploreRegion()"
@@ -48,7 +52,11 @@
                                 Explore Region
                             </button>
                             <button
-                                class="btn btn-primary input-group-append explore-region-btn"
+                                class="
+                                    btn btn-primary
+                                    input-group-append
+                                    explore-region-btn
+                                "
                                 :title="$parent.regionTextExpanded"
                                 @click="$parent.exploreRegion(50000)"
                             >
@@ -65,6 +73,56 @@
                         name="gene.explore.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <!-- <div class="card-body">
+                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
+                    <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
+                    <documentation name="gene.translator.dashboard"></documentation>
+                    <translator-results-dashboard
+                        :queries="$parent.queries"
+                    ></translator-results-dashboard>
+                </div> -->
+                <div class="card-body">
+                    <h4>
+                        {{
+                            `Functional associations for ${$store.state.geneName}`
+                        }}
+                        <tooltip-documentation
+                            name="gene.translator.tooltip.hover"
+                            :content-fill="$parent.documentationMap"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
+                    </h4>
+
+                    <documentation
+                        name="gene.translator.dashboard"
+                        :content-fill="$parent.documentationMap"
+                    >
+                    </documentation>
+                    <b-tabs>
+                        <b-tab :title="'Gene Ontology (GO)'">
+                            <translator-predicate-table
+                                :title="'GO Terms'"
+                                :geneSymbol="$store.state.geneName"
+                                :field="'go'"
+                            >
+                            </translator-predicate-table>
+                        </b-tab>
+                        <b-tab
+                            :title="'Pathways (Reactome, KEGG, BioCarta, WikiPathways)'"
+                        >
+                            <translator-predicate-table
+                                :title="'Pathways'"
+                                :geneSymbol="$store.state.geneName"
+                                :field="'pathway'"
+                            >
+                            </translator-predicate-table>
+                        </b-tab>
+                    </b-tabs>
                 </div>
             </div>
 
@@ -198,46 +256,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card mdkp-card">
-                <!-- <div class="card-body">
-                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
-                    <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
-                    <documentation name="gene.translator.dashboard"></documentation>
-                    <translator-results-dashboard
-                        :queries="$parent.queries"
-                    ></translator-results-dashboard>
-                </div> -->
-                <div class="card-body">
-                    <h4>
-                        {{`Functional associations for ${$store.state.geneName}`}}
-                        <tooltip-documentation
-                            name="gene.translator.tooltip.hover"
-                            :content-fill="$parent.documentationMap"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation>    
-                    </h4>
 
-                    <documentation name="gene.translator.dashboard" :content-fill="$parent.documentationMap">
-                    </documentation>
-                    <b-tabs>
-                        <b-tab :title="'Gene Ontology (GO)'">
-                            <translator-predicate-table
-                                :title="'GO Terms'"
-                                :geneSymbol="$store.state.geneName"
-                                :field="'go'">
-                            </translator-predicate-table>
-                        </b-tab>
-                        <b-tab :title="'Pathways (Reactome, KEGG, BioCarta, WikiPathways)'"> 
-                            <translator-predicate-table
-                                :title="'Pathways'"
-                                :geneSymbol="$store.state.geneName"
-                                :field="'pathway'">
-                            </translator-predicate-table>
-                        </b-tab>
-                    </b-tabs>
-                </div>
-            </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
