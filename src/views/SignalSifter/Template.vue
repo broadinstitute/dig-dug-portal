@@ -1,30 +1,22 @@
 <template>
     <div id="variant-finder">
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
-                    <documentation
-                        name="signalsifter.header.info"
-                    ></documentation>
+                    <documentation name="signalsifter.header.info"></documentation>
                 </div>
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h1 class="card-title">Signal Sifter</h1>
 
-                    <documentation
-                        style="margin-bottom: 30px"
-                        name="tools.variantfinder.subheader"
-                    ></documentation>
+                    <documentation style="margin-bottom: 30px" name="tools.variantfinder.subheader"></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
                     <b-container fluid class="filtering-ui-wrapper">
-                        <b-row class="filtering-ui-content"
-                            ><b-col class="col-md-5 mx-auto">
+                        <b-row class="filtering-ui-content">
+                            <b-col class="col-md-5 mx-auto">
                                 <div class="label">Select Phenotypes</div>
                                 <phenotype-selectpicker
                                     class="mt-2"
@@ -36,8 +28,7 @@
                                             : 'Select additional phenotype'
                                     "
                                     :clearOnSelected="true"
-                                >
-                                </phenotype-selectpicker>
+                                ></phenotype-selectpicker>
                             </b-col>
                         </b-row>
                     </b-container>
@@ -51,18 +42,18 @@
                                 :key="index"
                             >
                                 <div class="lead">
-                                    <small
-                                        ><span
+                                    <small>
+                                        <span
                                             v-if="index === 0"
                                             class="lead-icon"
                                             title="Lead Phenotype"
                                             v-b-tooltip.hover="{
                                                 variant: 'light',
                                             }"
-                                            ><b-icon-check2-circle
-                                                variant="light"
-                                            ></b-icon-check2-circle></span
-                                    ></small>
+                                        >
+                                            <b-icon-check2-circle variant="light"></b-icon-check2-circle>
+                                        </span>
+                                    </small>
 
                                     <span
                                         v-b-tooltip.hover="{ variant: 'light' }"
@@ -71,14 +62,9 @@
                                         :style="`color: ${$parent.phenotypeColor(
                                             index
                                         )}`"
-                                        >{{ p.phenotype.description }}</span
-                                    >
+                                    >{{ p.phenotype.description }}</span>
                                 </div>
-                                <div
-                                    class="filter-options"
-                                    :key="index"
-                                    v-show="true"
-                                >
+                                <div class="filter-options" :key="index" v-show="true">
                                     <criterion-function-group
                                         v-model="p.filter"
                                         :noPills="true"
@@ -94,7 +80,8 @@
                                             :pillFormatter="
                                                 (filter) => filter.threshold
                                             "
-                                            ><span></span>
+                                        >
+                                            <span></span>
                                         </filter-pvalue-control>
 
                                         <filter-effect-direction-control
@@ -104,7 +91,8 @@
                                                 (filter) => filter.threshold
                                             "
                                             :computedField="$parent.alignedBeta"
-                                            ><span></span>
+                                        >
+                                            <span></span>
                                         </filter-effect-direction-control>
                                     </criterion-function-group>
                                 </div>
@@ -162,9 +150,9 @@
                                     "
                                     v-on:click="$parent.removePhenotype(index)"
                                 >
-                                    <span style="color: #ffffff"
-                                        ><b-icon-x-circle-fill></b-icon-x-circle-fill
-                                    ></span>
+                                    <span style="color: #ffffff">
+                                        <b-icon-x-circle-fill></b-icon-x-circle-fill>
+                                    </span>
                                 </button>
                             </div>
                         </div>
@@ -200,21 +188,16 @@
 
                     <b-overlay :show="!$store.state.phenotypes.length">
                         <template #overlay>
-                            <b-alert show
-                                ><b-icon icon="info-circle"></b-icon> Please
-                                select a phenotype to start.</b-alert
-                            >
+                            <b-alert show>
+                                <b-icon icon="info-circle"></b-icon>Please
+                                select a phenotype to start.
+                            </b-alert>
                         </template>
-                        <b-skeleton-wrapper
-                            :loading="!$store.state.phenotypes.length"
-                        >
+                        <b-skeleton-wrapper :loading="!$store.state.phenotypes.length">
                             <template #loading>
                                 <b-card>
                                     <div class="col-md-8 mx-auto">
-                                        <b-skeleton
-                                            width="100%"
-                                            height="2rem"
-                                        ></b-skeleton>
+                                        <b-skeleton width="100%" height="2rem"></b-skeleton>
                                         <b-skeleton
                                             style="margin-left: 10%"
                                             width="90%"
@@ -226,13 +209,11 @@
                                             height="2rem"
                                         ></b-skeleton>
                                     </div>
-                                    <b-skeleton-table
-                                        :rows="5"
-                                        :columns="4"
-                                    ></b-skeleton-table
-                                ></b-card>
-                            </template> </b-skeleton-wrapper
-                    ></b-overlay>
+                                    <b-skeleton-table :rows="5" :columns="4"></b-skeleton-table>
+                                </b-card>
+                            </template>
+                        </b-skeleton-wrapper>
+                    </b-overlay>
                 </div>
             </div>
         </div>
