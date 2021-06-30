@@ -5,10 +5,12 @@
         <div class="col-md-10 mx-auto">
             <div v-for="suggestion in suggestions">
                 <span class="lead">
-                    <div class="text color-1-bg">
+                    <div
+                        style="font-size: 15px; border-radius: 10px; background-color: #cfefee; padding:5px 5px 5px 5px"
+                    >
                         <a
                             v-if="phenotypes.length == 1"
-                            style="cursor: pointer;"
+                            style="cursor: pointer; "
                             v-on:click="ActOnSuggestions"
                         >{{suggestion}}</a>
                         <a
@@ -23,7 +25,7 @@
                             aria-label="Filter"
                             v-b-tooltip.hover.html="{variant: 'light',}"
                             :title="'Click to remove the suggestions'"
-                            v-on:click="$parent.removePhenotype(index)"
+                            v-on:click="$parent.removeSuggestions()"
                         >
                             <span style="color: green">
                                 <b-icon-x-circle-fill></b-icon-x-circle-fill>
@@ -48,8 +50,8 @@ import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("suggestions", {
-    //   props: ["phenotypes", "variants", "tissues", "annotations", "genes"],
-    props: ["phenotypes"],
+    props: ["phenotypes", "variants", "tissues", "annotations", "genes"],
+    // props: ["phenotypes"],
     modules: {
         keyParams,
         uiUtils

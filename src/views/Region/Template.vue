@@ -283,6 +283,7 @@
                     </criterion-list-group>
                     <!-- Put Suggestions here for GEM -->
                     <suggestions :phenotypes="$parent.selectedPhenotypes"></suggestions>
+                    <span style="margin:0 10px"></span>
                     <h6 v-if="$parent.selectedPhenotypes.length > 0">
                         Filter tracks and table &nbsp;
                         <tooltip-documentation
