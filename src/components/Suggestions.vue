@@ -6,7 +6,17 @@
             <div v-for="suggestion in suggestions">
                 <span class="lead">
                     <div class="text color-1-bg">
-                        <a style="cursor: pointer;" v-on:click="doSomething">{{suggestion}}</a>
+                        <a
+                            v-if="phenotypes.length == 1"
+                            style="cursor: pointer;"
+                            v-on:click="ActOnSuggestions"
+                        >{{suggestion}}</a>
+                        <a
+                            v-if="phenotypes.length > 1"
+                            style="cursor: pointer;"
+                            v-on:click="GoToSignalSifter"
+                        >{{suggestion}}</a>
+
                         <button
                             type="button"
                             class="mr-2 close remove"
@@ -60,7 +70,7 @@ export default Vue.component("suggestions", {
             }
             if (this.phenotypes.length > 1) {
                 suggs.push(
-                    "Use the <a>signal sifter</a> to find variants impacting all selected phenotypes."
+                    "Use the signal sifter to find variants impacting all selected phenotypes."
                 );
             }
             // if (this.variants.length > 0 && this.genes.length == 1) {
@@ -72,7 +82,7 @@ export default Vue.component("suggestions", {
         }
     },
     methods: {
-        doSomething(event) {
+        ActOnSuggestions(event) {
             let suggestions = this.phenotypes;
             console.log("i was clicked");
             let newUrl =
@@ -85,11 +95,27 @@ export default Vue.component("suggestions", {
                 "&end=" +
                 keyParams.end +
                 "&phenotype=" +
-                suggestions[0] +
+                suggestions[0].name +
+                "%2C" +
+                "T2D" +
                 "&start=" +
                 keyParams.start;
+            console.log("new url", newUrl);
+            //to update the same page
+            // window.history.replaceState({}, null, newUrl);
+            // window.history.pushstate();
+            window.open(newUrl);
+        },
 
-            window.history.replaceState({}, null, newUrl);
+        GoToSignalSifter(event) {
+            let newUrl =
+                window.location.protocol +
+                "//" +
+                window.location.host +
+                "/" +
+                "signalsifter.html";
+
+            window.open(newUrl);
         }
     }
 });
