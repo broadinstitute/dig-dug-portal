@@ -1,10 +1,7 @@
 <template>
     <!-- Header -->
     <div>
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
@@ -58,9 +55,7 @@
                             class="btn btn-light btn-sm go"
                             type="button"
                             @click="$store.dispatch('queryRegion')"
-                        >
-                            GO
-                        </button>
+                        >GO</button>
                     </div>
                     <div class="col divider"></div>
                     <!-- <div class="region-search col filter-col-md">
@@ -76,9 +71,9 @@
 
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-12 gene-page-header-title">
-                        Chromosome: Start position - End position
-                    </div>
+                    <div
+                        class="col-md-12 gene-page-header-title"
+                    >Chromosome: Start position - End position</div>
                     <!-- <div class="col-md-4 gene-page-header-title">Phenotype</div> -->
                     <div class="col-md-6 gene-page-header-body regionInfo">
                         {{ $parent.regionString }}
@@ -86,9 +81,7 @@
                             class="btn btn-primary text-nowrap text-right explore-region-btn"
                             style="margin-left: 20px"
                             @click="$parent.exploreExpanded()"
-                        >
-                            Expand &plusmn; 50 kb
-                        </button>
+                        >Expand &plusmn; 50 kb</button>
                         <lunaris-link
                             :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"
@@ -130,9 +123,7 @@
                         :class="'gene-with-signal ' + row.type"
                         :key="row.name"
                     >
-                        <a :href="`/gene.html?gene=${row.name}`">
-                            {{ row.name }}
-                        </a>
+                        <a :href="`/gene.html?gene=${row.name}`">{{ row.name }}</a>
                     </div>
                 </div>
             </div>
@@ -147,9 +138,7 @@
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h4>
-                    <documentation
-                        name="region.phenos_w_signal.subheader"
-                    ></documentation>
+                    <documentation name="region.phenos_w_signal.subheader"></documentation>
                     <template v-if="$parent.topAssociations.length > 0">
                         <div>
                             <div
@@ -168,9 +157,7 @@
                                         )
                                     "
                                     class="switch-view btn btn-secondary btn-sm"
-                                >
-                                    View associations by phenotype group
-                                </div>
+                                >View associations by phenotype group</div>
                             </div>
                             <phenotype-signal-mixed
                                 :phenotypes="$parent.topAssociations"
@@ -206,7 +193,8 @@
                     ></documentation>
 
                     <h6>
-                        Add tracks &nbsp;<tooltip-documentation
+                        Add tracks &nbsp;
+                        <tooltip-documentation
                             name="region.add.phenotypes.tooltip"
                             :isHover="true"
                             :noIcon="false"
@@ -246,9 +234,7 @@
                         </filter-enumeration-control>
 
                         <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add credible sets
-                            </div>
+                            <div class="label" style="margin-bottom: 5px">Add credible sets</div>
                             <credible-sets-selectpicker
                                 :credibleSets="$parent.credibleSets"
                                 :clearOnSelected="true"
@@ -259,9 +245,7 @@
                         </div>
 
                         <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add tissues
-                            </div>
+                            <div class="label" style="margin-bottom: 5px">Add tissues</div>
                             <tissue-selectpicker
                                 :tissues="$parent.globalEnrichmentTissues"
                                 :clearOnSelected="true"
@@ -272,9 +256,7 @@
                         </div>
 
                         <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add annotations
-                            </div>
+                            <div class="label" style="margin-bottom: 5px">Add annotations</div>
                             <annotation-selectpicker
                                 :annotations="
                                     $parent.globalEnrichmentAnnotations
@@ -289,9 +271,7 @@
                         <b-col class="divider"></b-col>
 
                         <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add tissue loop track
-                            </div>
+                            <div class="label" style="margin-bottom: 5px">Add tissue loop track</div>
                             <tissue-selectpicker
                                 :tissues="$parent.globalEnrichmentTissues"
                                 :clearOnSelected="true"
@@ -300,8 +280,9 @@
                                 "
                             />
                         </div>
-
                     </criterion-list-group>
+                    <!-- Put Suggestions here for GEM -->
+                    <suggestions :phenotypes="$parent.selectedPhenotypes"></suggestions>
                     <h6 v-if="$parent.selectedPhenotypes.length > 0">
                         Filter tracks and table &nbsp;
                         <tooltip-documentation
@@ -315,12 +296,13 @@
                         class="text-center my-3"
                         variant="info"
                         :show="!$parent.selectedPhenotypes.length"
-                        ><b-icon icon="info-circle"></b-icon> Select a phenotype
-                        to start viewing associations and annotations</b-alert
                     >
+                        <b-icon icon="info-circle"></b-icon>Select a phenotype
+                        to start viewing associations and annotations
+                    </b-alert>
 
-                    <b-tabs v-show="$parent.selectedPhenotypes.length"
-                        ><b-tab title="Variant associations" key="associations">
+                    <b-tabs v-show="$parent.selectedPhenotypes.length">
+                        <b-tab title="Variant associations" key="associations">
                             <criterion-function-group
                                 v-model="$parent.associationsFilter"
                                 v-if="$parent.selectedPhenotypes.length > 0"
@@ -346,9 +328,7 @@
                                     <div class="label">P-Value (&le;)</div>
                                 </filter-pvalue-control>
 
-                                <filter-effect-direction-control
-                                    :field="'beta'"
-                                >
+                                <filter-effect-direction-control :field="'beta'">
                                     <div class="label">Effect (+/-)</div>
                                 </filter-effect-direction-control>
                                 <!--
@@ -356,14 +336,12 @@
                                     slot="filtered"
                                     slot-scope="{ filter }"
                                 >
-                                </template> -->
+                                </template>-->
                             </criterion-function-group>
                         </b-tab>
                         <b-tab title="Annotations by global enrichment">
                             <div v-if="$parent.selectedPhenotypes.length > 0">
-                                <criterion-function-group
-                                    v-model="$parent.annotationsFilter"
-                                >
+                                <criterion-function-group v-model="$parent.annotationsFilter">
                                     <filter-pvalue-control :field="'pValue'">
                                         <div class="label">P-Value (&le;)</div>
                                     </filter-pvalue-control>
@@ -375,7 +353,7 @@
                                         slot="filtered"
                                         slot-scope="{ filter }"
                                     >
-                                    </template> -->
+                                    </template>-->
                                 </criterion-function-group>
                             </div>
                         </b-tab>
@@ -397,11 +375,7 @@
                         :ldpop="true"
                         :refSeq="true"
                     >
-
-                        <p
-                            v-for="phenotype in $parent.selectedPhenotypes"
-                            :key="phenotype.name"
-                        >
+                        <p v-for="phenotype in $parent.selectedPhenotypes" :key="phenotype.name">
                             <lz-associations-panel
                                 :phenotype="phenotype.name"
                                 :title="phenotype.description"
@@ -431,7 +405,7 @@
                             v-for="p in $parent.selectedPhenotypes"
                             class="item"
                             >{{ p.description }}</span
-                        >-->
+                            >-->
                             &nbsp;
                             <tooltip-documentation
                                 name="region.topassoc.tooltip"
@@ -439,17 +413,15 @@
                                 :noIcon="false"
                             ></tooltip-documentation>
                         </h4>
-                        <documentation
-                            name="region.variantassociation.subheader"
-                        ></documentation>
+                        <documentation name="region.variantassociation.subheader"></documentation>
                         <associations-table
                             id="associations-table"
                             :phenotypes="$parent.selectedPhenotypes"
                             :associations="$parent.pageAssociations"
                             :filter="$parent.associationsFilter"
                             :exclusive="false"
-                        ></associations-table
-                    ></template>
+                        ></associations-table>
+                    </template>
                 </div>
             </div>
         </div>
