@@ -32,7 +32,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
-
+import Suggestions from "@/components/Suggestions.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
 import ClumpedVariantsTable from "@/components/ClumpedVariantsTable";
@@ -80,7 +80,8 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
         SearchHeaderWrapper,
-        ClumpedVariantsTable
+        ClumpedVariantsTable,
+        Suggestions,
     },
 
     async created() {
