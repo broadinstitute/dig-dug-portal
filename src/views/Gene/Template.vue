@@ -19,16 +19,8 @@
                     <div class="col-md-4 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-8 gene-page-header-body">
-                        <div v-if="$parent.geneSymbol">
-                            <span>
-                                {{ $parent.geneSymbol }}
-                                <span
-                                    v-if="
-                                        $parent.geneSymbol.toLowerCase() !==
-                                        $store.state.geneName.toLowerCase()
-                                    "
-                                >({{ $store.state.geneName }})</span>
-                            </span>
+                        <div>
+                            <span>{{ $store.state.geneName }}</span>
                         </div>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
