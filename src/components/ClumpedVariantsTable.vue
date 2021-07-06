@@ -2,26 +2,14 @@
     <div id="clump-data">
         <b-row>
             <b-col v-if="legends" cols="9">
-                <div
-                    v-for="group in groups"
-                    :key="group"
-                    class="pws-group-legend"
-                >
-                    <div
-                        class="pws-group-legend-box phenotype-group"
-                        :class="group"
-                    >
-                        &nbsp;
-                    </div>
+                <div v-for="group in groups" :key="group" class="pws-group-legend">
+                    <div class="pws-group-legend-box phenotype-group" :class="group">&nbsp;</div>
                     {{ group }}
                 </div>
             </b-col>
             <b-col class="text-right">
-                <csv-download
-                    :data="variants"
-                    filename="clumped-variants"
-                ></csv-download
-            ></b-col>
+                <csv-download :data="variants" filename="clumped-variants"></csv-download>
+            </b-col>
         </b-row>
         <div class="text-right mb-2"></div>
         <div v-if="rows > 0">
@@ -33,47 +21,42 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-                ><template #cell(varId)="data">
-                    <a :href="`/variant.html?variant=${data.item.varId}`">{{
+            >
+                <template #cell(varId)="data">
+                    <a :href="`/variant.html?variant=${data.item.varId}`">
+                        {{
                         data.item.varId
-                    }}</a>
+                        }}
+                    </a>
                 </template>
                 <template #cell(dbSNP)="data">
-                    <a :href="`/variant.html?variant=${data.item.dbSNP}`">{{
+                    <a :href="`/variant.html?variant=${data.item.dbSNP}`">
+                        {{
                         data.item.dbSNP
-                    }}</a>
+                        }}
+                    </a>
                 </template>
                 <template #cell(description)="data">
-                    <a :id="data.item.phenotype" style="cursor: help">{{
+                    <a :id="data.item.phenotype" style="cursor: help">
+                        {{
                         data.item.description
-                    }}</a>
-                    <b-popover
-                        :target="data.item.phenotype"
-                        triggers="hover"
-                        placement="top"
-                    >
+                        }}
+                    </a>
+                    <b-popover :target="data.item.phenotype" triggers="hover" placement="top">
                         <b-list-group flush>
                             <b-list-group-item
                                 href="#"
                                 @click="addPhenotype(data.item.phenotype)"
-                                >Add this phenotype below</b-list-group-item
-                            >
-                            <b-list-group-item
-                                href="#"
-                                @click="setPhenotype(data.item.phenotype)"
-                                >Set below to this phenotype</b-list-group-item
-                            >
+                            >Add this phenotype below</b-list-group-item>
+
                             <b-list-group-item
                                 :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
-                                >Go to phenotype page</b-list-group-item
-                            >
+                            >Go to phenotype page</b-list-group-item>
                         </b-list-group>
                     </b-popover>
                 </template>
                 <template #cell(group)="data">
-                    <div class="border-color" :class="data.item.group">
-                        {{ data.item.group }}
-                    </div>
+                    <div class="border-color" :class="data.item.group">{{ data.item.group }}</div>
                 </template>
                 <template #cell(pValue)="data">
                     <div
@@ -81,9 +64,7 @@
                         :style="`background-size: ${pValueCss(
                             data.item.pValue
                         )}% 100%`"
-                    >
-                        {{ data.item.pValue }}
-                    </div>
+                    >{{ data.item.pValue }}</div>
                 </template>
                 <template #cell(view)="data">
                     <b-button
@@ -94,49 +75,53 @@
                             showClumpData(data.item.phenotype, data.item.clump);
                             data.toggleDetails();
                         "
-                        ><span v-if="!!loadingData[data.item.phenotype]"
-                            ><b-spinner small></b-spinner>
-                            <span class="sr-only">Loading...</span></span
-                        ><span v-else>
+                    >
+                        <span v-if="!!loadingData[data.item.phenotype]">
+                            <b-spinner small></b-spinner>
+                            <span class="sr-only">Loading...</span>
+                        </span>
+                        <span v-else>
                             {{ data.detailsShowing ? "Hide" : "Show" }}
-                            Variants</span
-                        >
+                            Variants
+                        </span>
                     </b-button>
                 </template>
                 <template #cell(effect_beta)="data">
-                    <template
-                        v-if="!phenotypeMap[data.item.phenotype].dichotomous"
-                    >
+                    <template v-if="!phenotypeMap[data.item.phenotype].dichotomous">
                         <span
                             :class="`effect ${
                                 data.item.beta < 0 ? 'negative' : 'positive'
                             }`"
-                            >{{
-                                effectFormatter(data.item.beta) < 0
-                                    ? "&#9660;"
-                                    : "&#9650;"
-                            }}</span
-                        ><span>{{ effectFormatter(data.item.beta) }}</span>
+                        >
+                            {{
+                            effectFormatter(data.item.beta) < 0
+                            ? "&#9660;"
+                            : "&#9650;"
+                            }}
+                        </span>
+                        <span>{{ effectFormatter(data.item.beta) }}</span>
                     </template>
                 </template>
                 <template #cell(effect_or)="data">
-                    <template
-                        v-if="!!phenotypeMap[data.item.phenotype].dichotomous"
-                    >
+                    <template v-if="!!phenotypeMap[data.item.phenotype].dichotomous">
                         <span
                             :class="`effect ${
                                 Math.exp(data.item.beta) < 1
                                     ? 'negative'
                                     : 'positive'
                             }`"
-                            >{{
-                                effectFormatter(Math.exp(data.item.beta)) < 1
-                                    ? "&#9660;"
-                                    : "&#9650;"
-                            }}</span
-                        ><span>{{
+                        >
+                            {{
+                            effectFormatter(Math.exp(data.item.beta)) < 1
+                            ? "&#9660;"
+                            : "&#9650;"
+                            }}
+                        </span>
+                        <span>
+                            {{
                             effectFormatter(Math.exp(data.item.beta))
-                        }}</span>
+                            }}
+                        </span>
                     </template>
                 </template>
                 <template #row-details="row">
@@ -147,17 +132,16 @@
                             :per-page="perPage"
                             :fields="effectFields(row.item.phenotype)"
                             :current-page="subCurrentPage[row.item.phenotype]"
-                            ><template #cell(varId)="data">
+                        >
+                            <template #cell(varId)="data">
                                 <a
                                     :href="`/variant.html?variant=${data.item.varId}`"
-                                    >{{ data.item.varId }}</a
-                                >
+                                >{{ data.item.varId }}</a>
                             </template>
                             <template #cell(dbSNP)="data">
                                 <a
                                     :href="`/variant.html?variant=${data.item.dbSNP}`"
-                                    >{{ data.item.dbSNP }}</a
-                                >
+                                >{{ data.item.dbSNP }}</a>
                             </template>
                             <template #cell(effect)="data">
                                 <span
@@ -166,21 +150,24 @@
                                             ? 'negative'
                                             : 'positive'
                                     }`"
-                                    >{{
-                                        data.item.beta < 0
-                                            ? "&#9660;"
-                                            : "&#9650;"
-                                    }}</span
-                                ><span
+                                >
+                                    {{
+                                    data.item.beta < 0
+                                    ? "&#9660;"
+                                    : "&#9650;"
+                                    }}
+                                </span>
+                                <span
                                     v-if="
                                         !phenotypeMap[data.item.phenotype]
                                             .dichotomous
                                     "
-                                    >{{ effectFormatter(data.item.beta) }}</span
-                                >
-                                <span v-else>{{
+                                >{{ effectFormatter(data.item.beta) }}</span>
+                                <span v-else>
+                                    {{
                                     effectFormatter(Math.exp(data.item.beta))
-                                }}</span>
+                                    }}
+                                </span>
                             </template>
                         </b-table>
                         <b-pagination
@@ -221,54 +208,54 @@ export default Vue.component("clumped-variants-table", {
             fields: [
                 {
                     key: "varId",
-                    label: "Lead Variant",
+                    label: "Lead Variant"
                 },
                 {
                     key: "dbSNP",
-                    label: "dbSNP",
+                    label: "dbSNP"
                 },
                 {
                     key: "description",
-                    label: "Phenotype",
+                    label: "Phenotype"
                 },
                 {
                     key: "group",
                     label: "Group",
-                    tdClass: "border-color",
+                    tdClass: "border-color"
                 },
                 {
                     key: "pValue",
                     label: "P-Value",
-                    class: "pValue",
+                    class: "pValue"
                 },
                 {
                     key: "effect_beta",
-                    label: "Beta",
+                    label: "Beta"
                 },
                 {
                     key: "effect_or",
-                    label: "Odds Ratio",
+                    label: "Odds Ratio"
                 },
-                { key: "view", label: "View LD Proxies" },
+                { key: "view", label: "View LD Proxies" }
             ],
             subFields: [
                 {
                     key: "varId",
-                    label: "Variant",
+                    label: "Variant"
                 },
                 {
                     key: "dbSNP",
-                    label: "dbSNP",
+                    label: "dbSNP"
                 },
                 {
                     key: "pValue",
                     label: "P-Value",
-                    tdClass: "pValue",
-                },
+                    tdClass: "pValue"
+                }
             ],
 
             clumpData: {},
-            loadingData: {},
+            loadingData: {}
         };
     },
 
@@ -280,8 +267,8 @@ export default Vue.component("clumped-variants-table", {
             return this.variants[0].pValue;
         },
         groups() {
-            return [...new Set(this.variants.map((v) => v.group))];
-        },
+            return [...new Set(this.variants.map(v => v.group))];
+        }
     },
 
     methods: {
@@ -300,11 +287,11 @@ export default Vue.component("clumped-variants-table", {
         effectFields(phenotype) {
             if (this.phenotypeMap[phenotype].dichotomous)
                 return this.subFields.concat([
-                    { key: "effect", label: "Odds Ratio" },
+                    { key: "effect", label: "Odds Ratio" }
                 ]);
             else {
                 return this.subFields.concat([
-                    { key: "effect", label: "Beta" },
+                    { key: "effect", label: "Beta" }
                 ]);
             }
         },
@@ -321,8 +308,8 @@ export default Vue.component("clumped-variants-table", {
         setPhenotype(phenotype) {
             this.$parent.$parent.setCriterionPhenotypes([phenotype]);
             window.location.href = "#associations-table";
-        },
-    },
+        }
+    }
 });
 </script>
 <style>
