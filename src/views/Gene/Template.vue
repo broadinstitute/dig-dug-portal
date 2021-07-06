@@ -172,7 +172,7 @@
                         </b-tab>
                         <b-tab title="Gene Ontology">
                             <translator-predicate-table
-                                title="Gene Ontology (GO) Terms"
+                                title="Gene Ontology (GO) Annotations"
                                 :geneSymbol="$store.state.geneName"
                                 :field="'go'"
                             >
@@ -180,7 +180,7 @@
                         </b-tab>
                         <b-tab title="Pathways">
                             <translator-predicate-table
-                                title="Pathways (Reactome, KEGG, BioCarta, WikiPathways)"
+                                title="Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)"
                                 :geneSymbol="$store.state.geneName"
                                 :field="'pathway'"
                             >
