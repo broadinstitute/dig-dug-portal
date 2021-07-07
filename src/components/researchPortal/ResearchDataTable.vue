@@ -142,6 +142,7 @@ export default Vue.component("research-data-table", {
             }
         },
         pagedData() {
+            //console.log(this.dataset);
             if (!!this.perPageNumber && this.perPageNumber != null) {
                 let rawData = this.dataset;
                 let formattedData = [];

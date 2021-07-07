@@ -1,6 +1,51 @@
 <template>
     <div>
-        <div class="filtering-ui-wrapper">
+        <h4 class="card-title" v-if="this.apiParameters != null">
+            Build search criteria
+        </h4>
+        <div class="filtering-ui-wrapper" v-if="this.apiParameters != null">
+            <div class="filtering-ui-content row">
+                <div
+                    class="col"
+                    v-for="parameter in this.apiParameters.parameters"
+                    :key="parameter.parameter"
+                >
+                    <div class="label" v-html="parameter.label"></div>
+                    <select
+                        :id="'search_param_' + parameter.parameter"
+                        class="custom-select"
+                        v-if="parameter.type == 'list'"
+                    >
+                        <option
+                            v-for="param in parameter.values"
+                            :value="param.trim()"
+                            v-html="getFileLabel(param.trim())"
+                            :key="param.trim()"
+                        ></option>
+                    </select>
+                    <input
+                        v-if="parameter.type == 'input'"
+                        type="text"
+                        class="form-control"
+                        :id="'search_param_' + parameter.parameter"
+                    />
+                </div>
+                <div class="col">
+                    <div @click="queryAPI()" class="btn btn-sm btn-primary">
+                        Search
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div
+            class="filtering-ui-wrapper"
+            v-if="
+                !!this.filters &&
+                this.filters.length > 1 &&
+                !!this.dataFiles &&
+                this.dataFiles.length > 1
+            "
+        >
             <div class="filtering-ui-content row">
                 <div
                     class="col"
@@ -129,7 +174,9 @@ import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("research-page-filters", {
     props: [
+        "apiParameters",
         "dataFiles",
+        "dataType",
         "filesListLabels",
         "uid",
         "filters",
@@ -168,6 +215,35 @@ export default Vue.component("research-page-filters", {
             } else {
                 return file;
             }
+        },
+        queryAPI() {
+            uiUtils.showElement("data-loading-indicator");
+
+            let queryParams = "";
+            if (this.apiParameters.query.type == "array") {
+                let parametersArr = this.apiParameters.query.format;
+
+                parametersArr.map((param, index) => {
+                    console.log(param, index);
+                    queryParams += document.getElementById(
+                        "search_param_" + param
+                    ).value;
+                    if (index + 1 < parametersArr.length) {
+                        queryParams += ",";
+                    }
+                });
+            }
+
+            let APIPoint = this.dataFiles[0];
+            if (this.dataType == "bioindex") {
+                APIPoint +=
+                    this.apiParameters.query.index + "?q=" + queryParams;
+            }
+
+            console.log(APIPoint);
+            let fetchParam = { dataPoint: APIPoint, domain: "external" };
+
+            this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
         },
         switchData(event) {
             //console.log(event.target.value);

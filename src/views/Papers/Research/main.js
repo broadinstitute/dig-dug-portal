@@ -43,6 +43,7 @@ new Vue({
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,
+        Documentation
     },
     data() {
         return {
@@ -65,7 +66,9 @@ new Vue({
     },
 
     mounted() {
+        this.$nextTick(function () {
 
+        })
     },
     beforeDestroy() {
 
@@ -203,7 +206,7 @@ new Vue({
 
             let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], jsonData) : jsonData;
 
-            return processedData;
+            return jsonData;//processedData;
         },
 
         convertData(CONVERT, DATA) {
@@ -272,66 +275,21 @@ new Vue({
     },
 
     computed: {
-        pageID() {
-            return keyParams.pageid.trim();
-        },
-        researchMode() {
-            let contents = this.$store.state.hugeampkpncms.researchMode;
-
-            if (contents.length === 0) {
-                return null;
-            }
-            return contents[0].field_page_mode;
-        },
-        displayOnKP() {
-            let contents = this.$store.state.hugeampkpncms.researchMode;
-
-            if (contents.length === 0 || contents[0].field_display_on_kp == false) {
+        apiParameters() {
+            let contents = this.researchPage;
+            if (contents === null || contents[0]["field_api_parameters"] == false) {
                 return null;
             } else {
-                return true;
+                return JSON.parse(contents[0]["field_api_parameters"]);
             }
-
         },
-        researchPage() {
-            let contents = this.$store.state.hugeampkpncms.researchPage;
-
-            if (contents.length === 0) {
-                return null;
-            }
-            return contents;
-        },
-        isLandingPage() {
+        dataPoints() {
             let contents = this.researchPage;
 
-            if (contents === null || contents[0]["field_landing_page"] == "0") {
-                return null;
+            if (contents === null || contents[0]["field_data_points"] == false) {
+                return false;
             }
-            return true;
-        },
-        pageTitle() {
-            let contents = this.researchPage;
-
-            if (contents === null || contents[0]["title"] == false) {
-                return null;
-            }
-            return contents[0]["title"];
-        },
-        uid() {
-            let contents = this.researchPage;
-
-            if (contents === null || contents[0]["uid"] == false) {
-                return null;
-            }
-            return contents[0]["uid"];
-        },
-        pageDescription() {
-            let contents = this.researchPage;
-
-            if (contents === null || contents[0]["body"] == false) {
-                return null;
-            }
-            return contents[0]["body"];
+            return contents[0]["field_data_points"];
         },
         dataFilters() {
             let contents = this.researchPage;
@@ -349,43 +307,67 @@ new Vue({
             }
             return contents[0]["field_data_type"];
         },
-        researchData() {
-            let contents = this.$store.state.hugeampkpncms.researchData;
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        displayOnKP() {
+            let contents = this.$store.state.hugeampkpncms.researchMode;
+
+            if (contents.length === 0 || contents[0].field_display_on_kp == false) {
+                return null;
+            } else {
+                return true;
+            }
+
+        },
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
 
             if (contents.length === 0) {
-                return null;
+                return {};
             }
-
-
-            let convertedData = (this.dataType == 'json') ? JSON.parse(contents) : this.csv2Json(contents);
-
-            let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
-
-            return returnData;
+            return contents[0];
         },
-        dataPoints() {
+        isAPI() {
             let contents = this.researchPage;
 
-            if (contents === null || contents[0]["field_data_points"] == false) {
+            if (contents === null) {
+                return null;
+            } else if (contents[0]["field_is_api"] == "1") {
+                return true;
+            } else if (contents[0]["field_is_api"] == "0") {
                 return false;
             }
-            return contents[0]["field_data_points"];
         },
-        tablePerPageNumber() {
+        isLandingPage() {
             let contents = this.researchPage;
 
-            if (contents === null || contents[0]["field_number_of_rows"] == false) {
+            if (contents === null || contents[0]["field_landing_page"] == "0") {
                 return null;
             }
-            return contents[0]["field_number_of_rows"];
+            return true;
         },
-        tableLegend() {
+        pageDescription() {
             let contents = this.researchPage;
 
-            if (contents === null || contents[0]["field_data_table_legend"] == false) {
+            if (contents === null || contents[0]["body"] == false) {
                 return null;
             }
-            return contents[0]["field_data_table_legend"];
+            return contents[0]["body"];
+        },
+        pageID() {
+            return keyParams.pageid.trim();
+        },
+        pageTitle() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["title"] == false) {
+                return null;
+            }
+            return contents[0]["title"];
+        },
+        phenotypes() {
+            return this.$store.bioportal;
         },
         plotType() {
             let contents = this.researchPage;
@@ -455,20 +437,61 @@ new Vue({
             }
             return JSON.parse(contents[0].field_menu);
         },
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
-        phenotypes() {
-            return this.$store.bioportal;
-        },
-
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
+        researchData() {
+            let contents = this.$store.state.hugeampkpncms.researchData;
 
             if (contents.length === 0) {
-                return {};
+                return null;
             }
-            return contents[0];
+
+            let convertedData = (this.dataType == 'json' || this.dataType == 'bioindex') ? JSON.parse(contents) : this.csv2Json(contents);
+
+            let returnData = (this.dataType == 'json' || this.dataType == 'bioindex') ? convertedData.data : convertedData;
+
+            let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : returnData;
+
+            //console.log("returnData", returnData);
+            return processedData;
+        },
+        researchMode() {
+            let contents = this.$store.state.hugeampkpncms.researchMode;
+
+            if (contents.length === 0) {
+                return null;
+            }
+            return contents[0].field_page_mode;
+        },
+        researchPage() {
+            let contents = this.$store.state.hugeampkpncms.researchPage;
+
+            if (contents.length === 0) {
+                return null;
+            }
+            return contents;
+        },
+        uid() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["uid"] == false) {
+                return null;
+            }
+            return contents[0]["uid"];
+        },
+        tablePerPageNumber() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_number_of_rows"] == false) {
+                return null;
+            }
+            return contents[0]["field_number_of_rows"];
+        },
+        tableLegend() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_table_legend"] == false) {
+                return null;
+            }
+            return contents[0]["field_data_table_legend"];
         },
     },
 
@@ -506,9 +529,13 @@ new Vue({
 
                     let fetchParam = { "dataPoint": dataPoint, "domain": domain }
 
-                    this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                    if (this.isAPI != null && this.isAPI == false) {
+                        //console.log("fetching data");
+                        this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                    } else if (this.isAPI == true) {
+                        //console.log("dynamic data");
+                    }
                 }
-
 
                 //Load research method
                 if (content[0]["field_research_method"] != false) {
@@ -529,11 +556,10 @@ new Vue({
         },
         researchData(content) {
             uiUtils.hideElement("data-loading-indicator");
-            console.log(content);
+            //console.log(content);
             if (this.dataTableFormat == null) {
                 let topRows = Object.keys(content[0]);
                 let dataTableFormat = { "top rows": topRows };
-
                 this.dataTableFormat = dataTableFormat;
             }
 
