@@ -21,6 +21,7 @@ export default new Vuex.Store({
     },
     state: {
         geneName: keyParams.gene,
+        aliasName: null,
     },
 
     mutations: {
@@ -31,6 +32,9 @@ export default new Vuex.Store({
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
             state.geneRegion = `${chromosome}:${start}-${end}`;
+        },
+        setAliasName(state, aliasName) {
+            state.aliasName = aliasName || state.aliasName;
         }
     },
 
@@ -51,16 +55,33 @@ export default new Vuex.Store({
 
         canonicalSymbol(state) {
             let data = state.genes.data;
+            let geneData = state.gene.data;
 
             for (let i in data) {
                 if (data[i].source === "symbol") {
                     return data[i].name;
                 }
             }
-        }
+        },
+
+        geneSymbol(state) {
+            let data = state.genes.data;
+            let geneData = state.gene.data;
+
+            for (let i in data) {
+                if (data[i].chromosome == geneData[0].chromosome && data[i].start == geneData[0].start && data[i].end == geneData[0].end) {
+                    if (data[i].source === "symbol") {
+                        return data[i].name;
+                    }
+                }
+
+            }
+        },
+
     },
 
     actions: {
+
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
             context.commit("setGeneName", name);
