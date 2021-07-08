@@ -105,53 +105,7 @@ export default Vue.component("research-region-plot", {
     },
     computed: {
         renderData() {
-            /*
-            let rawData = this.plotData;
-            let massagedData = { sorted: {}, unsorted: [] };
-
-            for (const chr in this.chromosomeLength) {
-                massagedData.sorted[chr] = [];
-            }
-
-            rawData.map((r) => {
-                let region = r[this.renderConfig.xAxisField];
-                if (region != undefined && region != "" && region != null) {
-                    let tempObj = {};
-                    tempObj[this.renderConfig.renderBy] =
-                        r[this.renderConfig.renderBy];
-
-                    if (!!this.renderConfig.hoverContent) {
-                        let hoverContent = this.renderConfig.hoverContent;
-
-                        hoverContent.map((h) => {
-                            tempObj[h] = r[h];
-                        });
-                    }
-
-                    let locationArr = r[this.renderConfig.xAxisField].split(
-                        ":"
-                    );
-
-                    let chr = locationArr[0].trim();
-
-                    let regionArr = locationArr[1].split("-");
-
-                    tempObj["locus"] =
-                        regionArr.length > 1
-                            ? (Number(regionArr[0].trim()) +
-                                  Number(regionArr[1].trim())) /
-                              2
-                            : Number(regionArr[0].trim());
-
-                    tempObj[this.renderConfig.yAxisField] =
-                        r[this.renderConfig.yAxisField];
-
-                    massagedData.sorted[chr].push(tempObj);
-                    massagedData.unsorted.push(tempObj);
-                }
-            });
-
-            return massagedData;*/
+            return this.plotData;
         },
     },
     watch: {
@@ -494,65 +448,6 @@ export default Vue.component("research-region-plot", {
                 plotWidth / 2 + this.leftMargin,
                 this.topMargin + plotHeight + yBump + 44
             );
-
-            //Render Dots
-            /*
-            let xStart = this.leftMargin;
-            let exChr = "";
-            let chrNum = 1;
-
-            chrs.map((chr) => {
-
-                this.renderData.sorted[chr].map((g) => {
-                    let xPos =
-                        (xStart + g.locus) * chrByPixel + this.leftMargin;
-
-                    let yPosByPixel = plotHeight / (yMax - yMin);
-
-                    let yPos =
-                        this.topMargin +
-                        plotHeight -
-                        (g[this.renderConfig.yAxisField] - yMin) * yPosByPixel;
-
-                    let dotColor = this.chromosomeColors[
-                        chrNum % this.chromosomeColors.length
-                    ];
-
-                    ctx.fillStyle = dotColor + "75";
-
-                    ctx.lineWidth = 0;
-                    ctx.beginPath();
-                    ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
-                    ctx.fill();
-
-                    let xLoc = xPos.toString().split(".")[0];
-                    let yLoc = yPos.toString().split(".")[0];
-
-                    let hoverContent;
-
-                    if (!!this.renderConfig.hoverContent) {
-                        hoverContent = this.renderConfig.hoverContent;
-                    }
-
-                    if (!this.dotPosData[xLoc]) {
-                        this.dotPosData[xLoc] = {};
-                    }
-                    this.dotPosData[xLoc][yLoc] = {};
-                    this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
-                        g[this.renderConfig.renderBy];
-                    if (!!this.renderConfig.hoverContent) {
-                        hoverContent.map((h) => {
-                            this.dotPosData[xLoc][yLoc][h] = g[h];
-                        });
-                    }
-                });
-                //if (chr != 1) {
-                xStart += this.chromosomeLength[chr];
-                //}
-                //exChr = chr;
-                chrNum++;
-            });
-            */
         },
     },
 });
