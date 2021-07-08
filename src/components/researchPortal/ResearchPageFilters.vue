@@ -40,10 +40,8 @@
         <div
             class="filtering-ui-wrapper"
             v-if="
-                !!this.filters &&
-                this.filters.length > 1 &&
-                !!this.dataFiles &&
-                this.dataFiles.length > 1
+                (!!this.dataset && !!this.filters && this.filters.length > 1) ||
+                (!!this.dataFiles && this.dataFiles.length > 1)
             "
         >
             <div class="filtering-ui-content row">

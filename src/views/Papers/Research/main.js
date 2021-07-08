@@ -18,6 +18,7 @@ import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.v
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
+import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
@@ -40,6 +41,7 @@ new Vue({
         ResearchPageFilters,
         ResearchDataTable,
         ResearchMPlotBitmap,
+        ResearchRegionPlot,
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,

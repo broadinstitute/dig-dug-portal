@@ -171,6 +171,15 @@
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
                                 ></research-m-bitmap-plot>
+                                <research-region-plot
+                                    v-if="
+                                        $store.state.filteredData != '' &&
+                                        $parent.plotType == 'region_plot'
+                                    "
+                                    :plotData="$store.state.filteredData"
+                                    :renderConfig="$parent.plotConfig"
+                                    :filtersIndex="$store.state.filtersIndex"
+                                ></research-region-plot>
 
                                 <research-volcano-plot
                                     v-if="
