@@ -176,6 +176,7 @@
                                         $store.state.filteredData != '' &&
                                         $parent.plotType == 'region_plot'
                                     "
+                                    :genesInRegion="$store.state.genesInRegion"
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"

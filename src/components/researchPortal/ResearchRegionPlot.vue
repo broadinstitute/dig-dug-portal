@@ -46,44 +46,10 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-region-plot", {
-    props: ["plotData", "renderConfig", "filtersIndex"],
+    props: ["genesInRegion", "plotData", "renderConfig", "filtersIndex"],
     data() {
         return {
             plotRendered: 0,
-            chromosomeLength: {
-                1: 248956422,
-                2: 242193529,
-                3: 198295559,
-                4: 190214555,
-                5: 181538259,
-                6: 170805979,
-                7: 159345973,
-                8: 145138636,
-                9: 138394717,
-                10: 133797422,
-                11: 135086622,
-                12: 133275309,
-                13: 114364328,
-                14: 107043718,
-                15: 101991189,
-                16: 90338345,
-                17: 83257441,
-                18: 80373285,
-                19: 58617616,
-                20: 64444167,
-                21: 46709983,
-                22: 50818468,
-                X: 156040895,
-                Y: 57227415,
-            },
-            chromosomeColors: [
-                "#08306b",
-                "#41ab5d",
-                "#000000",
-                "#f16913",
-                "#3f007d",
-                "#cb181d",
-            ],
             leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
             rightMargin: 0.5,
             topMargin: 10.5, // -0.5 to draw crisp line
@@ -107,19 +73,44 @@ export default Vue.component("research-region-plot", {
         renderData() {
             return this.plotData;
         },
+        genesInRegionData() {
+            let contents = this.$store.state.hugeampkpncms.genesInRegion;
+            return contents;
+        },
     },
     watch: {
         renderData() {
             this.renderPlot();
         },
+
+        genesInRegionData() {
+            this.renderGenesInRegion();
+        },
     },
     methods: {
         ...uiUtils,
+        renderGenesInRegion() {
+            console.log(this.genesInRegionData);
+        },
         hidePanel(element) {
             uiUtils.hideElement(element);
         },
         onResize(e) {
             this.renderPlot();
+        },
+        getGenesInRegion(chr, start, end) {
+            //console.log("called");
+            let dataPoint =
+                "https://bioindex.hugeamp.org/api/bio/query/genes?q=" +
+                chr +
+                ":" +
+                start +
+                "-" +
+                end;
+
+            let fetchParam = { dataPoint: dataPoint, domain: "external" };
+
+            this.$store.dispatch("hugeampkpncms/getGenesInRegion", fetchParam);
         },
         getFullList(event) {
             let wrapper = document.getElementById("dot_value_full_list");
@@ -259,6 +250,8 @@ export default Vue.component("research-region-plot", {
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
                 : 400;
 
+            canvasRenderHeight += !!this.renderConfig.geneTrack ? 50 : 0;
+
             let xBump = canvasRenderWidth * 0.03;
             let yBump = canvasRenderHeight * 0.02;
 
@@ -268,6 +261,8 @@ export default Vue.component("research-region-plot", {
             let plotHeight =
                 canvasRenderHeight -
                 (this.topMargin + yBump + this.bottomMargin);
+
+            plotHeight -= !!this.renderConfig.geneTrack ? 50 : 0;
 
             let c = document.getElementById("manhattanPlot");
             c.setAttribute("width", canvasRenderWidth);
@@ -300,6 +295,8 @@ export default Vue.component("research-region-plot", {
                 yMax = null,
                 xMin = null,
                 xMax = null;
+
+            let chr = this.plotData[0][this.renderConfig.geneTrack.chr];
 
             this.plotData.map((d) => {
                 let yValue = d[this.renderConfig.yAxisField];
@@ -448,6 +445,8 @@ export default Vue.component("research-region-plot", {
                 plotWidth / 2 + this.leftMargin,
                 this.topMargin + plotHeight + yBump + 44
             );
+
+            this.getGenesInRegion(chr, xMin, xMax);
         },
     },
 });
