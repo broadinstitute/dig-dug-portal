@@ -86,28 +86,8 @@ export default Vue.component("suggestions", {
     methods: {
         ActOnSuggestions(event) {
             let suggestions = this.phenotypes;
-            this.$emit("updatePhenotypeSelected",event);
-            console.log("i was clicked");
-            let newUrl =
-                window.location.protocol +
-                "//" +
-                window.location.host +
-                window.location.pathname +
-                "?chr=" +
-                keyParams.chr +
-                "&end=" +
-                keyParams.end +
-                "&phenotype=" +
-                suggestions[0].name +
-                "%2C" +
-                "T2D" +
-                "&start=" +
-                keyParams.start;
-            console.log("new url", newUrl);
-            //to update the same page
-            // window.history.replaceState({}, null, newUrl);
-            // window.location.reload();
-            // window.open(newUrl);
+            //this is going to add T2D by default for now
+            this.$emit("updatePhenotypeSelected", event);
         },
 
         GoToSignalSifter(event) {
