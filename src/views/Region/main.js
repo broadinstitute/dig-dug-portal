@@ -187,6 +187,13 @@ new Vue({
                 );
             }
         },
+        updatePhenotypeSelection(event) {
+            console.log("I am the phenotype event", event);
+            this.regionPageSearchCriterion.push({
+                field: "phenotype",
+                threshold: "T2D"
+            });
+        },
         addAnnotationIntervalsPanel(r) {
             this.$children[0].$refs.locuszoom.addIntervalsPanel(
                 "annotated-regions",
@@ -334,7 +341,6 @@ new Vue({
             if (Object.keys(phenotypeMap).length === 0) {
                 return [];
             }
-
             return this.regionPageSearchCriterion
                 .filter(criterion => criterion.field === "phenotype")
                 .map(criterion => phenotypeMap[criterion.threshold]);

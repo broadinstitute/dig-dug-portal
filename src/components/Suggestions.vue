@@ -86,6 +86,7 @@ export default Vue.component("suggestions", {
     methods: {
         ActOnSuggestions(event) {
             let suggestions = this.phenotypes;
+            this.$emit("updatePhenotypeSelected",event);
             console.log("i was clicked");
             let newUrl =
                 window.location.protocol +
@@ -105,8 +106,8 @@ export default Vue.component("suggestions", {
             console.log("new url", newUrl);
             //to update the same page
             // window.history.replaceState({}, null, newUrl);
-            // window.history.pushstate();
-            window.open(newUrl);
+            // window.location.reload();
+            // window.open(newUrl);
         },
 
         GoToSignalSifter(event) {
@@ -118,7 +119,9 @@ export default Vue.component("suggestions", {
                 "signalsifter.html";
 
             window.open(newUrl);
-        }
+        },
+
+        removeSuggestions(event) {}
     }
 });
 </script>
