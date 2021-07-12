@@ -55,6 +55,9 @@ export default Vue.component("research-region-plot", {
             topMargin: 10.5, // -0.5 to draw crisp line
             bottomMargin: 50.5,
             dotPosData: {},
+            chr: null,
+            start: null,
+            end: null,
         };
     },
     modules: {
@@ -63,7 +66,34 @@ export default Vue.component("research-region-plot", {
     },
     components: {},
     mounted: function () {
-        this.renderPlot();
+        //this.renderPlot();
+        let xMin = null,
+            xMax = null;
+
+        this.chr = this.plotData[0][this.renderConfig.geneTrack.chr];
+
+        this.plotData.map((d) => {
+            let xValue = Number(d[this.renderConfig.xAxisField]);
+
+            if (xMin == null) {
+                xMin = xValue;
+            }
+            if (xMax == null) {
+                xMax = xValue;
+            }
+
+            if (xValue < xMin) {
+                xMin = xValue;
+            }
+            if (xValue > xMax) {
+                xMax = xValue;
+            }
+        });
+
+        this.start = xMin;
+        this.end = xMax;
+
+        this.getGenesInRegion();
         window.addEventListener("resize", this.onResize);
     },
     beforeDestroy() {
@@ -75,22 +105,92 @@ export default Vue.component("research-region-plot", {
         },
         genesInRegionData() {
             let contents = this.$store.state.hugeampkpncms.genesInRegion;
-            return contents;
+
+            if (contents == "") {
+                return null;
+            } else {
+                return contents;
+            }
         },
     },
     watch: {
-        renderData() {
-            this.renderPlot();
+        renderData(data) {
+            //this.renderPlot();
+            let xMin = null,
+                xMax = null;
+
+            this.chr = this.plotData[0][this.renderConfig.geneTrack.chr];
+
+            this.plotData.map((d) => {
+                let xValue = Number(d[this.renderConfig.xAxisField]);
+
+                if (xMin == null) {
+                    xMin = xValue;
+                }
+                if (xMax == null) {
+                    xMax = xValue;
+                }
+
+                if (xValue < xMin) {
+                    xMin = xValue;
+                }
+                if (xValue > xMax) {
+                    xMax = xValue;
+                }
+            });
+
+            this.start = xMin;
+            this.end = xMax;
+
+            this.getGenesInRegion();
         },
 
-        genesInRegionData() {
-            this.renderGenesInRegion();
+        genesInRegionData(data) {
+            if (!!data && data != null) {
+                //console.log("step 1", JSON.parse(data));
+                this.renderPlot();
+            }
+
+            //this.renderGenesInRegion();
         },
     },
     methods: {
         ...uiUtils,
         renderGenesInRegion() {
-            console.log(this.genesInRegionData);
+            let canvasRenderWidth = !!this.renderConfig.width
+                ? this.renderConfig.width + this.leftMargin + this.rightMargin
+                : window.innerWidth - 115;
+
+            let canvasRenderHeight = !!this.renderConfig.height
+                ? this.renderConfig.height + this.topMargin + this.bottomMargin
+                : 400;
+
+            canvasRenderHeight += !!this.renderConfig.geneTrack ? 50 : 0;
+
+            let xBump = canvasRenderWidth * 0.03;
+            let yBump = canvasRenderHeight * 0.02;
+
+            let plotWidth =
+                canvasRenderWidth -
+                (this.leftMargin + this.rightMargin + xBump);
+            let plotHeight =
+                canvasRenderHeight -
+                (this.topMargin + yBump + this.bottomMargin);
+
+            plotHeight -= !!this.renderConfig.geneTrack ? 50 : 0;
+
+            let c = document.getElementById("manhattanPlot");
+            c.setAttribute("width", canvasRenderWidth);
+            c.setAttribute("height", canvasRenderHeight);
+            let ctx = c.getContext("2d");
+
+            console.log(JSON.parse(this.genesInRegionData));
+            let genes = JSON.parse(this.genesInRegionData)["data"];
+            genes.map((g) => {
+                if (g.source == "symbol") {
+                    console.log(g.start, g.end, g.chromosome);
+                }
+            });
         },
         hidePanel(element) {
             uiUtils.hideElement(element);
@@ -98,15 +198,15 @@ export default Vue.component("research-region-plot", {
         onResize(e) {
             this.renderPlot();
         },
-        getGenesInRegion(chr, start, end) {
+        getGenesInRegion() {
             //console.log("called");
             let dataPoint =
                 "https://bioindex.hugeamp.org/api/bio/query/genes?q=" +
-                chr +
+                this.chr +
                 ":" +
-                start +
+                this.start +
                 "-" +
-                end;
+                this.end;
 
             let fetchParam = { dataPoint: dataPoint, domain: "external" };
 
@@ -242,6 +342,10 @@ export default Vue.component("research-region-plot", {
             let wrapper = document.getElementById("clicked_dot_value");
             wrapper.classList.add("hidden");
 
+            let genesInRegion = JSON.parse(this.genesInRegionData)[
+                "data"
+            ].filter((g) => g.source == "symbol");
+
             let canvasRenderWidth = !!this.renderConfig.width
                 ? this.renderConfig.width + this.leftMargin + this.rightMargin
                 : window.innerWidth - 115;
@@ -250,7 +354,9 @@ export default Vue.component("research-region-plot", {
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
                 : 400;
 
-            canvasRenderHeight += !!this.renderConfig.geneTrack ? 50 : 0;
+            canvasRenderHeight += !!this.renderConfig.geneTrack
+                ? 25 * genesInRegion.length
+                : 0;
 
             let xBump = canvasRenderWidth * 0.03;
             let yBump = canvasRenderHeight * 0.02;
@@ -330,8 +436,6 @@ export default Vue.component("research-region-plot", {
                     xMax = xValue;
                 }
             });
-
-            //console.log(yMin, yMax, xMin, xMax);
 
             let yStep = (yMax - yMin) / 4;
             let xStep = Math.ceil((xMax - xMin) / 4);
@@ -443,10 +547,42 @@ export default Vue.component("research-region-plot", {
             ctx.fillText(
                 this.renderConfig.xAxisLabel,
                 plotWidth / 2 + this.leftMargin,
-                this.topMargin + plotHeight + yBump + 44
+                canvasRenderHeight - 5
             );
 
-            this.getGenesInRegion(chr, xMin, xMax);
+            let gIndex = 0,
+                aboveGenesTrack =
+                    this.topMargin + plotHeight + yBump + 15 + 5 + 12;
+
+            ctx.font = "italic 12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#0000FF";
+            genesInRegion.map((g) => {
+                let gStart = g.start <= xMin ? xMin : g.start;
+                let gEnd = g.end >= xMax ? xMax : g.end;
+
+                let txtXPos =
+                    xStart +
+                    xPosByPixel *
+                        (gStart + Math.ceil((gEnd - gStart) / 2) - xMin);
+
+                let txtYPos = aboveGenesTrack + 20 * gIndex;
+
+                let startPos = xStart + xPosByPixel * (gStart - xMin);
+                let endPos = xStart + xPosByPixel * (gEnd - xMin);
+
+                //let xPos = xStart + xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
+                ctx.fillText(g.name, txtXPos, txtYPos);
+
+                //ctx.beginPath();
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = "#0000FF";
+                ctx.moveTo(startPos, txtYPos + 5);
+                ctx.lineTo(endPos, txtYPos + 5);
+                ctx.stroke();
+
+                gIndex++;
+            });
         },
     },
 });
