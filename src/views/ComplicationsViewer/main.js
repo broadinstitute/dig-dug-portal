@@ -21,7 +21,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterBasic from "@/components/criterion/FilterBasic";
 import RawImage from "@/components/RawImage.vue";
-
+import ManhattanPlot from "@/components/ManhattanPlot.vue";
 
 import Alert, {
     postAlert,
@@ -54,6 +54,7 @@ new Vue({
         CriterionListGroup,
         FilterBasic,
         RawImage,
+        ManhattanPlot,
     },
 
     data() {
@@ -94,7 +95,7 @@ new Vue({
         postAlertError,
         closeAlert,
     },
-   
+
 
     computed: {
         frontContents() {
@@ -127,8 +128,9 @@ new Vue({
 
 
         complicationPhenotypeOptions() {
-            return this.$store.state.bioPortal.complications
-                .filter(x => x.name != this.$store.state.phenotype);
+            let x = this.$store.state.bioPortal.complications
+                .filter(x => x.name == this.$store.state.phenotype);
+            return x;
         },
 
         //find the selected comlication based on selected criterion
