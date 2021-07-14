@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
+import keyParams from "@/utils/keyParams";
 
 import Alert, {
     postAlertNotice,
@@ -20,12 +21,15 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         globalAssociations: bioIndex("global-associations"),
-        clumpedMatrix: bioIndex("clumped-matrix")
+        clumpedMatrix: bioIndex("clumped-matrix"),
+        keyParams,
     },
     state: {
         associations: [],
         leadPositions: {},
-        phenotypes: []
+        phenotypes: [],
+        leadPhenotype: keyParams.lead,
+        additionalPhenotype: keyParams.add,
     },
     mutations: {
         setLeadPhenotype(state, phenotype) {
