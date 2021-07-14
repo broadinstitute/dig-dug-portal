@@ -90,9 +90,9 @@ new Vue({
             return Colors[index];
         },
         setPhenotypeParams(phenotypes) {
-            // keyParams.set({
-            //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
-            // });
+            keyParams.set({
+                phenotypes: phenotypes.length ? phenotypes.join(",") : []
+            });
             //console.log(Object.entries(this.displayedFilterList));
             //console.log("set", phenotypes);
         },
@@ -129,7 +129,9 @@ new Vue({
         },
         // don't allow selection of the lead phenotype in dropdowns
         phenotypes() {
-            return this.$store.state.phenotypes.map(p => p.phenotype.name);
+
+            let x = this.$store.state.phenotypes.map(p => p.phenotype.name);
+            return x;
         },
 
         //return only the phenotypes that haven't been selected yet, guard against duplicate selections

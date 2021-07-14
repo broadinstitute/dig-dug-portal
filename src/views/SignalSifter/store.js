@@ -28,8 +28,7 @@ export default new Vuex.Store({
         associations: [],
         leadPositions: {},
         phenotypes: [],
-        leadPhenotype: keyParams.lead,
-        additionalPhenotype: keyParams.add,
+
     },
     mutations: {
         setLeadPhenotype(state, phenotype) {
@@ -41,6 +40,7 @@ export default new Vuex.Store({
                     filterVisible: true
                 }
             ];
+
         },
         setLeadPositions(state) {
             state.leadPositions = {};
@@ -72,6 +72,9 @@ export default new Vuex.Store({
                 filter: x => true,
                 filterVisible: false
             });
+            keyParams.set({
+                phenotypes: phenotypes.length ? phenotypes.join(",") : []
+            });
         },
         removePhenotype(state, index) {
             if (index == 0) {
@@ -87,6 +90,10 @@ export default new Vuex.Store({
         leadPhenotype(state) {
             if (state.phenotypes.length > 0) {
                 return state.phenotypes[0].phenotype;
+            }
+            else {
+                console.log("I am here" + keyParams.phenotypes)
+                return keyParams.phenotypes;
             }
         },
         leadAssociations(state) {
