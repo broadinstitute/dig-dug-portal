@@ -48,23 +48,23 @@ export default Vue.component("credible-sets-selectpicker", {
     },
     data() {
         return {
+            rootCredibleSets: [{
+                credibleSetId: 'computed',
+            }],
             userText: this.defaultSet || null
         };
     },
     computed: {
         credibleSetsOptions() {
             if (!this.credibleSets) {
-                return [];
+                return this.rootCredibleSets;
             }
             this.credibleSets.sort((a, b) => {
                 if (a.credibleSetId < b.credibleSetId) return -1;
                 if (b.credibleSetId < a.credibleSetId) return 1;
                 return 0;
             });
-            this.credibleSets.unshift({
-                credibleSetId: 'computed',
-            })
-            return this.credibleSets;
+            return this.rootCredibleSets.concat(this.credibleSets);
         }
     },
     methods: {

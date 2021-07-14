@@ -124,17 +124,18 @@ new Vue({
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
-                if (this.selectedPhenotypes.length > 0) {
-                    this.$store.dispatch("credibleSets/clear");
+                let that = this;
+                this.$store.dispatch("credibleSets/clear");
+                // if (this.selectedPhenotypes.length > 0) {
                     this.selectedPhenotypes.forEach(p => {
                         const queryString = `${p.name},${this.$store.state.chr
                             }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
-                        this.$store.dispatch("credibleSets/query", {
+                        that.$store.dispatch("credibleSets/query", {
                             q: queryString,
                             append: true
                         });
                     });
-                }
+                // }
             }
         },
 

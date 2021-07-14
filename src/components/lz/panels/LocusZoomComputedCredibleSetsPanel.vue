@@ -84,14 +84,14 @@ export default Vue.component("lz-computed-credset-panel", {
 
 export class LZComputedCredibleVariantsPanel {
     constructor(phenotype, initialData) {
-
+        
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom
         this.panel_layout_type = 'annotation_credible_set';
         this.datasource_type = 'credset';
 
         // this is arbitrary, but we want to base it on the ID
-        this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
+        this.panel_id = `${this.panel_layout_type}_${phenotype}`;
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
         this.translator = associations => associations.map(association => ({
@@ -120,6 +120,7 @@ export class LZComputedCredibleVariantsPanel {
         this.locusZoomPanelOptions = {
             ...BASE_PANEL_OPTIONS,
             title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' }, x: -0.5 },
+            id: this.panel_id,
             y_index: 2,
             margin: { bottom: 28  },
             axes: {

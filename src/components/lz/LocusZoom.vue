@@ -132,11 +132,14 @@ export default Vue.component("locuszoom", {
             return [this.plot.state.start, this.plot.state.end];
         },
         addPanels: function ({ layouts, sources }) {
+
             const panelClass = { layouts, sources };
             // DataSources and Panels/Layouts are linked together via namespaces.
             // A DataSource name is given to the panel, for a particular data type
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
             // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
+            
+            // Add datasources if we don't already have one linked to the panel
             if (
                 !!!this.dataSources._items.has(
                     panelClass.sources[0][0]
@@ -148,11 +151,29 @@ export default Vue.component("locuszoom", {
                 );
             }
 
+            // Add the panel to the plot
             let panel;
+            // Go through stack of layouts to be added
             if (!!panelClass.layouts) {
+
                 let layouts = panelClass.layouts[0];
-                panel = this.plot.addPanel(layouts).addBasicLoader();
+                try {
+                    
+                    // HACK: LocusZoom is extremely harsh when certain events occur, like adding a panel with the same ID twice over.
+                    // Rather than throwing a warning, it throws an error, which prevents further execution of any function which is calling this one.
+                    // We need weaker semantics for errors, and so we wrap the function in a try block with no additional handles to evade bubbling up the failure.
+                    
+                    // One example where this is relevant is with ComputedCredibleSets: they are identified with their phenotype, with no extra randomness.
+                    // Adding ComputedCredibleSets to the plot should be idempotent for all existing sets, but additive for phenotypes not yet included in the plot.
+                    // If we were to duplicate an attempt to add the ComputedCredibleSets it would fail entirely. With the empty catch block, we can evade this problem.
+
+                    panel = this.plot.addPanel(layouts).addBasicLoader();
+                } catch(e) {}
+            
+            // LEGACY Panel Addition
+            // (Only Credible Sets panels use this - can go away once they are refactored)
             } else {
+
                 let panelOptions = {
                     id: idCounter.getUniqueId(),
                     namespace: {
@@ -162,18 +183,41 @@ export default Vue.component("locuszoom", {
                     // id: layout.id,
                     ...panelClass.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
                 };
-                panel = this.plot
-                    .addPanel(
-                        LocusZoom.Layouts.get(
-                            "panel",
-                            panelClass.panel_layout_type,
-                            panelOptions
+                
+                try {
+
+                    // HACK: LocusZoom is extremely harsh when certain events occur, like adding a panel with the same ID twice over.
+                    // Rather than throwing a warning, it throws an error, which prevents further execution of any function which is calling this one.
+                    // We need weaker semantics for errors, and so we wrap the function in a try block with no additional handles to evade bubbling up the failure.
+                    
+                    // One example where this is relevant is with ComputedCredibleSets: they are identified with their phenotype, with no extra randomness.
+                    // Adding ComputedCredibleSets to the plot should be idempotent for all existing sets, but additive for phenotypes not yet included in the plot.
+                    // If we were to duplicate an attempt to add the ComputedCredibleSets it would fail entirely. With the empty catch block, we can evade this problem.
+
+                    panel = this.plot
+                        .addPanel(
+                            LocusZoom.Layouts.get(
+                                "panel",
+                                panelClass.panel_layout_type,
+                                panelOptions
+                            )
                         )
-                    )
-                    .addBasicLoader();
+                        .addBasicLoader();
+
+                } catch(e) {}
             }
 
-            // TODO: make this more abstract
+            this.refreshFilters();
+
+            // Due to the error semantics discussed above, panel could be undefined?
+            if (!!panel) {
+                // so we can figure out how to remove it later
+                return panel.id;
+            }
+
+        },
+        refreshFilters() {
+                        // TODO: make this more abstract
             // CAN USE NAMED V-MODEL/BINDINGS in Vue3?
             // This is optimized to only run filters that are actually associated with the layout being added
             // applyState runs on the end so we don't refresh this multiple times on accident.
@@ -190,8 +234,6 @@ export default Vue.component("locuszoom", {
                 this.applyFilter(this.filterAnnotations, "intervals");
             this.plot.applyState();
 
-            // so we can figure out how to remove it later
-            return panel.id;
         },
         getDataLayers() {
             // Auxiliary method within our json query for data layers in the LocusZoom plot
