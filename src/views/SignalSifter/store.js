@@ -41,6 +41,7 @@ export default new Vuex.Store({
                 }
             ];
 
+
         },
         setLeadPositions(state) {
             state.leadPositions = {};
@@ -72,9 +73,7 @@ export default new Vuex.Store({
                 filter: x => true,
                 filterVisible: false
             });
-            keyParams.set({
-                phenotypes: phenotypes.length ? phenotypes.join(",") : []
-            });
+
         },
         removePhenotype(state, index) {
             if (index == 0) {
