@@ -19,7 +19,7 @@ export default new Vuex.Store({
     state: {
         associations: [],
         condition: keyParams.condition,
-
+        phenotype: "T2D"
     },
     mutations: {
 
@@ -39,6 +39,9 @@ export default new Vuex.Store({
         setSecondaryPhenotype(state, secondaryPhenotype) {
             state.secondaryPhenotype = secondaryPhenotype
             keyParams.set({ secondaryPhenotype: secondaryPhenotype });
+        },
+        setSelectedSecondaryPhenotype(state, selectedSecondaryPhenotype) {
+            state.selectedSecondaryPhenotype = selectedSecondaryPhenotype
         }
     },
     actions: {
