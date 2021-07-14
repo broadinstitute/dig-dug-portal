@@ -14,9 +14,12 @@
                         :key="index"
                         v-html="value"
                         @click="applySorting(value)"
-                        class="sortable-th"
+                        :class="'sortable-th ' + value"
                     ></th>
-                    <th class="" v-if="tableFormat['features'] != undefined">
+                    <th
+                        class="th-evidence"
+                        v-if="tableFormat['features'] != undefined"
+                    >
                         Evidence
                     </th>
                 </tr>
@@ -28,7 +31,7 @@
                         v-if="topRows.includes(tdKey)"
                         v-for="(tdValue, tdKey) in value"
                         :key="tdKey"
-                        v-html="tdValue"
+                        v-html="formatValue(tdValue, tdKey)"
                     ></td>
                     <td v-if="tableFormat['features'] != undefined">
                         <span
@@ -71,6 +74,8 @@
 import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 
+import Formatters from "@/utils/formatters";
+
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
@@ -87,6 +92,50 @@ export default Vue.component("research-data-table", {
     mounted() {},
     updated() {},
     computed: {
+        dataScores() {
+            if (
+                !!this.dataset &&
+                !!this.tableFormat &&
+                this.tableFormat["column formatting"] != undefined
+            ) {
+                let scores = {};
+                let columnFormatting = this.tableFormat["column formatting"];
+
+                for (const column in columnFormatting) {
+                    if (
+                        columnFormatting[column].type.includes(
+                            "render background percent"
+                        )
+                    ) {
+                        scores[column] = { high: null, low: null };
+                    }
+                }
+
+                this.dataset.map((row) => {
+                    for (const field in scores) {
+                        let fieldValue =
+                            typeof row[field] != "number"
+                                ? columnFormatting[field]["percent if empty"]
+                                : row[field];
+                        scores[field].high =
+                            scores[field].high == null
+                                ? fieldValue
+                                : scores[field].high < fieldValue
+                                ? fieldValue
+                                : scores[field].high;
+
+                        scores[field].low =
+                            scores[field].low == null
+                                ? fieldValue
+                                : scores[field].low > fieldValue
+                                ? fieldValue
+                                : scores[field].low;
+                    }
+                });
+                //console.log("scores", scores);
+                return scores;
+            }
+        },
         rows() {
             if (!!this.dataset) {
                 return this.dataset.length;
@@ -94,7 +143,33 @@ export default Vue.component("research-data-table", {
         },
         pagedData() {
             if (!!this.perPageNumber && this.perPageNumber != null) {
-                let filtered = this.dataset;
+                let rawData = this.dataset;
+                let formattedData = [];
+
+                rawData.map((d) => {
+                    let tempObj = {};
+
+                    this.tableFormat["top rows"].map((t) => {
+                        tempObj[t] = d[t];
+                    });
+
+                    if (this.tableFormat["features"] != undefined) {
+                        tempObj["features"] = {};
+                        this.tableFormat["features"].map((f) => {
+                            tempObj["features"][f] = [];
+
+                            let fTempObj = {};
+                            this.tableFormat[f].map((fItem) => {
+                                fTempObj[fItem] = d[fItem];
+                            });
+
+                            tempObj["features"][f].push(fTempObj);
+                        });
+                    }
+                    formattedData.push(tempObj);
+                });
+
+                //let filtered = this.dataset;
                 let paged = [];
                 let perPage = Number(this.perPageNumber);
 
@@ -105,7 +180,7 @@ export default Vue.component("research-data-table", {
                         : this.rows;
 
                 for (let i = startIndex; i < endIndex; i++) {
-                    paged.push(filtered[i]);
+                    paged.push(formattedData[i]);
                 }
 
                 return paged;
@@ -114,17 +189,7 @@ export default Vue.component("research-data-table", {
             }
         },
         topRows() {
-            if (this.tableFormat["data convert"] != undefined) {
-                let topRowsArr = [];
-
-                this.tableFormat["data convert"].map((d) => {
-                    topRowsArr.push(d["field name"]);
-                });
-
-                return topRowsArr;
-            } else {
-                return this.tableFormat["top rows"];
-            }
+            return this.tableFormat["top rows"];
         },
         topRowNumber() {
             let topRows =
@@ -136,11 +201,78 @@ export default Vue.component("research-data-table", {
     },
     watch: {},
     methods: {
+        ...Formatters,
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
         },
+        formatValue(tdValue, tdKey) {
+            if (
+                this.tableFormat["column formatting"] != undefined &&
+                this.tableFormat["column formatting"][tdKey] != undefined
+            ) {
+                let formatTypes = this.tableFormat["column formatting"][tdKey][
+                    "type"
+                ];
+
+                //console.log(formatTypes);
+
+                let cellValue = tdValue;
+
+                formatTypes.map((type) => {
+                    if (type == "scientific notation") {
+                        cellValue = Formatters.pValueFormatter(tdValue);
+                    }
+
+                    if (type == "link") {
+                        let linkString =
+                            "<a href='" +
+                            this.tableFormat["column formatting"][tdKey][
+                                "link to"
+                            ] +
+                            cellValue +
+                            "'>" +
+                            cellValue +
+                            "</a>";
+
+                        cellValue = linkString;
+                    }
+
+                    if (type == "render background percent") {
+                        let fieldValue =
+                            typeof tdValue != "number"
+                                ? this.tableFormat["column formatting"][tdKey][
+                                      "percent if empty"
+                                  ]
+                                : tdValue;
+
+                        let weight = Math.floor(
+                            ((Number(fieldValue) - this.dataScores[tdKey].low) /
+                                (this.dataScores[tdKey].high -
+                                    this.dataScores[tdKey].low)) *
+                                100
+                        );
+
+                        let weightClasses = "cell-weight-" + weight + " ";
+
+                        weightClasses +=
+                            tdValue < 0 ? "weight-negative" : "weight-positive";
+
+                        cellValue =
+                            "<span class='" +
+                            weightClasses +
+                            "'>" +
+                            cellValue +
+                            "</span>";
+                    }
+                });
+
+                return cellValue;
+            } else {
+                return tdValue;
+            }
+        },
         applySorting(key) {
-            console.log(key);
+            //console.log(key);
 
             if (key != this.tableFormat["locus field"]) {
                 let filtered = this.dataset;
@@ -236,6 +368,7 @@ table.research-data-table {
 
 .research-data-table > thead > tr > th.sortable-th:hover {
     color: #004bcf;
+    cursor: pointer;
 }
 
 .research-data-table td {

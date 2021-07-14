@@ -1,6 +1,6 @@
 
 <template>
-    <div :class="this.wrapperClass + ' '+contentID">
+    <div :class="this.wrapperClass + ' ' + contentID">
         <span
             v-if="this.isHover == false"
             :class="'help-content-caller no-icon-' + this.noIcon"
@@ -15,17 +15,31 @@
         >
             <b-icon-info-circle-fill></b-icon-info-circle-fill>
         </span>
-        <div v-if="this.isHover == false" class="help-content-modal hidden" :id="contentID">
-            <span class="help-content-close" v-on:click="showHideHelpContent(contentID)">&#43;</span>
-            <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
+        <div
+            v-if="this.isHover == false"
+            class="help-content-modal hidden"
+            :id="contentID"
+        >
+            <span
+                class="help-content-close"
+                v-on:click="showHideHelpContent(contentID)"
+                >&#43;</span
+            >
+            <div
+                v-html="tooltipDocumentationContent"
+                class="help-content-wrapper"
+            ></div>
         </div>
 
         <div
             v-if="this.isHover == true"
-            :class="'help-hover-content-modal no-icon-'+this.noIcon"
+            :class="'help-hover-content-modal no-icon-' + this.noIcon"
             :id="contentID"
         >
-            <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
+            <div
+                v-html="tooltipDocumentationContent"
+                class="help-content-wrapper"
+            ></div>
         </div>
     </div>
 </template>
@@ -50,13 +64,13 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("tooltip-documentation", {
     props: ["name", "group", "contentFill", "isHover", "noIcon"],
     components: {
-        Documentation
+        Documentation,
     },
-    data: context => {
+    data: (context) => {
         return {
             content: null,
             converter: null,
-            show: false
+            show: false,
         };
     },
 
@@ -65,10 +79,10 @@ export default Vue.component("tooltip-documentation", {
             let docGroup = this.group || "md";
             let qs = queryString.stringify({
                 q: this.name,
-                group: docGroup //get this from state
+                group: docGroup, //get this from state
             });
             let json = fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
-                .then(resp => {
+                .then((resp) => {
                     if (resp.status === 422) {
                         throw Error("missing parameters");
                         // throw Error("In Documentation"+' '+resp.json().detail[0].type+' '+resp.json().detail[0].msg+' '+resp.json().detail[0].loc);
@@ -77,8 +91,8 @@ export default Vue.component("tooltip-documentation", {
                         return resp;
                     }
                 })
-                .then(resp => resp.json())
-                .then(json => {
+                .then((resp) => resp.json())
+                .then((json) => {
                     if (json.data.length > 0) {
                         this.converter = documentationParser.makeConverter(
                             json.data[0].content,
@@ -95,6 +109,9 @@ export default Vue.component("tooltip-documentation", {
                                 docGroup
                         );
                     }
+                })
+                .catch((e) => {
+                    console.log(e);
                 });
         }
     },
@@ -116,17 +133,17 @@ export default Vue.component("tooltip-documentation", {
                 this.isHover == true ? "help-content hover " : "help-content ";
             content += this.noIcon == true ? "no-icon-true" : "no-icon-false";
             return content;
-        }
+        },
     },
     watch: {
-        contentFill: function(newContentFill) {
+        contentFill: function (newContentFill) {
             //create a new convertor that overides the one we are storing in data
             this.converter = documentationParser.makeConverter(
                 this.content,
                 newContentFill,
                 this.name
             );
-        }
+        },
     },
 
     methods: {
@@ -136,7 +153,7 @@ export default Vue.component("tooltip-documentation", {
         },
         getToolTipPosition(ELEMENT) {
             uiUtils.getToolTipPosition(ELEMENT);
-        }
-    }
+        },
+    },
 });
 </script>

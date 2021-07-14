@@ -109,15 +109,24 @@
                                 class="col-md-12"
                                 v-html="$parent.pageDescription"
                             ></div>
+
                             <div
                                 class="col-md-12"
                                 v-if="
-                                    $parent.dataFilters != null &&
-                                    $parent.researchData != null &&
-                                    $store.state.filteredData != ''
+                                    ($parent.dataFilters != null &&
+                                        $parent.researchData != null &&
+                                        $store.state.filteredData != '') ||
+                                    $parent.dataFiles.length > 1
                                 "
                             >
                                 <research-page-filters
+                                    :dataFiles="$parent.dataFiles"
+                                    :filesListLabels="
+                                        $parent.dataFiles.length > 1
+                                            ? $parent.dataFilesLabels
+                                            : null
+                                    "
+                                    :uid="$parent.uid"
                                     :filters="$parent.dataFilters"
                                     :dataset="$store.state.filteredData"
                                     :unfilteredDataset="$parent.researchData"
@@ -179,19 +188,17 @@
                                 ></research-heatmap>
                             </div>
                             <!---->
-
                             <div
                                 class="col-md-12"
-                                v-if="$store.state.filteredData != ''"
+                                v-if="
+                                    $store.state.filteredData != '' &&
+                                    $parent.dataTableFormat != null
+                                "
                             >
                                 <research-data-table
                                     :pageID="$parent.pageID"
                                     :dataset="$store.state.filteredData"
-                                    :tableFormat="
-                                        $parent.dataTableFormat != false
-                                            ? $parent.dataTableFormat
-                                            : $parent.rawDataTableFormat
-                                    "
+                                    :tableFormat="$parent.dataTableFormat"
                                     :perPageNumber="$parent.tablePerPageNumber"
                                     :tableLegend="$parent.tableLegend"
                                 >
@@ -206,6 +213,12 @@
                         </b-tab>
                     </b-tabs>
                 </div>
+            </div>
+            <div
+                class="data-loading-indicator"
+                v-if="$parent.dataPoints != false"
+            >
+                Loading data...
             </div>
         </div>
 

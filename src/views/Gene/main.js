@@ -29,6 +29,11 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
+import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue"
+import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue"
+
+import Counter from "@/utils/idCounter";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -61,6 +66,8 @@ new Vue({
         LocusZoom,
         LocusZoomPhewasPanel,
         SearchHeaderWrapper,
+        ResultsDashboard,
+        NCATSPredicateTable,
         VariantSearch
     },
 
@@ -101,6 +108,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
         //this.$store.dispatch("queryAssociations");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
@@ -117,7 +125,32 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
+        biolinkQueryGraph(subjectCurie, { subject, predicate, object }) {
+            const uuid = Counter.getUniqueId;
+            const sid = uuid('s');
+            const oid = uuid('o');
+            const eid = uuid('e')
+            return {
+                query_graph: {
+                    nodes: {
+                        [sid]: {
+                            id: subjectCurie,
+                            category: subject
+                        },
+                        [oid]: {
+                            category: object
+                        }
+                    },
+                    edges: {
+                        [eid]: {
+                            subject: sid,
+                            object: oid,
+                            predicate: predicate,
+                        }
+                    }
+                }
+            }
+        },
         // go to region page
         exploreRegion(expanded = 0) {
             let r = this.region;
@@ -125,12 +158,36 @@ new Vue({
             if (!!r) {
                 window.location.href = `./region.html?chr=${
                     r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         }
     },
 
     computed: {
+        queries() {
+            return [
+                // this.biolinkQueryGraph("NCBIGENE:1017", {
+                //     subject: "biolink:Gene",
+                //     predicate: "biolink:participates_in",
+                //     object: "biolink:Pathway",
+                // }),
+                // // this.biolinkQueryGraph('NCBIGENE:1017', {
+                // //     subject: 'biolink:Gene',
+                // //     predicate: 'biolink:participates_in',
+                // //     object: 'biolink:BiologicalProcess',
+                // // }),
+                // // this.biolinkQueryGraph('NCBIGENE:1017', {
+                // //     subject: 'biolink:Gene',
+                // //     predicate: 'biolink:expressed_in',
+                // //     object: 'biolink:CellularComponent',
+                // // }),
+                this.biolinkQueryGraph('NCBIGENE:1017', {
+                    subject: 'biolink:Gene',
+                    predicate: 'biolink:enables',
+                    object: 'biolink:MolecularActivity',
+                })
+            ]
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {
@@ -150,15 +207,35 @@ new Vue({
         symbolName() {
             return this.$store.getters.canonicalSymbol;
         },
+        geneSymbol() {
+            return this.$store.getters.geneSymbol;
+        },
 
         aliasNames() {
             return this.$store.state.genes.data.filter(
                 g => g.source === "alias"
             );
         },
+        // alternativeNames() {
+        //     let geneData = this.$store.state.gene.data
+        //     let data = this.$store.state.genes.data
+        //     let aliases = []
+        //     for (let i in data) {
+        //         if (data[i].chromosome == geneData[0].chromosome && data[i].start == geneData[0].start && data[i].end == geneData[0].end) {
+        //             if (data[i].source === "alias") {
+        //                 aliases.push(data[i].name);
+        //             }
+        //         }
+
+        //     }
+        //     return aliases;
+        // },
 
         alternateNames() {
+            let geneData = this.$store.state.gene.data
             return this.$store.state.genes.data
+                .filter(g => g.start == geneData[0].start)
+                .filter(g => g.end == geneData[0].end)
                 .filter(g => g.source !== "symbol")
                 .sort((a, b) => {
                     if (a.source < b.source) return -1;
@@ -180,7 +257,8 @@ new Vue({
         },
 
         geneNames() {
-            return this.$store.getters["uniprot/geneNames"];
+            let x = this.$store.getters["uniprot/geneNames"];
+            return x;
         },
 
         gene() {
@@ -220,7 +298,7 @@ new Vue({
         },
 
         documentationMap() {
-            let symbol = this.symbolName;
+            let symbol = this.geneSymbol;
             let r = this.region;
 
             if (!!symbol && !!r) {

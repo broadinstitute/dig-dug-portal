@@ -71,13 +71,17 @@ export default Vue.component("filter-enumeration-control", {
         // Make options unique and sorted by default, and always
         // NOTE: Assumes that they are just strings! change?
         selectionOptions() {
-            let options = this.options
-                .filter((v, i, arr) => arr.indexOf(v) == i)
-                .filter((v) => v != undefined);
-            if (!this.disableSort) {
-                options = options.sort();
+            if (this.options !== null) {
+                let options = this.options
+                    .filter((v, i, arr) => arr.indexOf(v) == i)
+                    .filter((v) => v != undefined);
+                if (!this.disableSort) {
+                    options = options.sort();
+                }
+                return options;
+            } else {
+                return [];
             }
-            return options;
         },
     },
 });

@@ -47,7 +47,10 @@ new Vue({
     data() {
         return {
             devID: null,
-            devPW: null
+            devPW: null,
+            dataFiles: [],
+            dataFilesLabels: null,
+            dataTableFormat: null,
         }
     },
 
@@ -74,6 +77,17 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        addcss(css) {
+            var head = document.getElementsByTagName('head')[0];
+            var s = document.createElement('style');
+            s.setAttribute('type', 'text/css');
+            if (s.styleSheet) {   // IE
+                s.styleSheet.cssText = css;
+            } else {                // the world
+                s.appendChild(document.createTextNode(css));
+            }
+            head.appendChild(s);
+        },
         fetchDevPage() {
             let devID = this.devID;
             let devPW = this.devPW;
@@ -164,8 +178,6 @@ new Vue({
 
         csv2Json(DATA) {
 
-
-
             let rawData2 = JSON.parse(DATA);
 
             let csvArr = this.CSVToArray(rawData2, ",");
@@ -182,61 +194,16 @@ new Vue({
 
                     for (let h = 0; h < i.length; h++) {
 
-                        tempObj[jsonHeader[h]] = i[h];
+                        tempObj[jsonHeader[h]] = (this.testNumber(i[h]) == true) ? Number(i[h]) : this.breakLines(i[h]);
                     }
                     jsonData.push(tempObj);
                 }
+            });
 
 
-            })
+            let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], jsonData) : jsonData;
 
-            let renderingData = []
-
-
-            jsonData.map(d => {
-
-                let tempObj = {};
-                if (this.dataTableFormat == false) {
-                    let topRows = Object.keys(d);
-                    topRows.map(t => {
-                        tempObj[t] = (this.testNumber(d[t]) == true) ? Number(d[t]) : d[t];
-                    })
-
-                } else {
-                    this.dataTableFormat["top rows"].map(t => {
-                        tempObj[t] = (this.testNumber(d[t]) == true) ? Number(d[t]) : d[t];
-                    })
-                }
-
-
-                //console.log("d[t]", tempObj);
-
-                if (this.dataTableFormat["features"] != undefined) {
-                    tempObj["features"] = {};
-                    this.dataTableFormat["features"].map(f => {
-                        tempObj["features"][f] = [];
-
-                        let fTempObj = {};
-                        this.dataTableFormat[f].map(fItem => {
-                            fTempObj[fItem] = (this.testNumber(d[fItem]) == true) ? Number(d[fItem]) : this.breakLines(d[fItem]);
-                        })
-
-                        tempObj["features"][f].push(fTempObj);
-                    })
-                }
-                renderingData.push(tempObj);
-
-            })
-
-            console.log(this.dataTableFormat["data convert"]);
-
-            let processedData = (!!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], renderingData) : renderingData;
-
-            let renderingDataMerged = (this.dataTableFormat["rows merge by"] != undefined) ? this.mergeDataBy(processedData, this.dataTableFormat) : processedData;
-
-            //console.log(renderingDataMerged);
-
-            return renderingDataMerged;
+            return processedData;
         },
 
         convertData(CONVERT, DATA) {
@@ -301,43 +268,6 @@ new Vue({
                 let cleanText = STR.replaceAll("\n", "<br>");
                 return cleanText;
             }
-        },
-
-        mergeDataBy(DATA, DATAFORMATTING) {
-
-            let beforeMerged = {}
-            let dFormatMergeBy = DATAFORMATTING["rows merge by"];
-            let dFormatFeatures = DATAFORMATTING["features"];
-
-            DATA.map(d => {
-                if (beforeMerged[d[dFormatMergeBy]] == undefined) {
-                    beforeMerged[d[dFormatMergeBy]] = d;
-                } else {
-                    dFormatFeatures.map(f => {
-                        let newFeature = beforeMerged[d[dFormatMergeBy]]["features"][f].concat(d["features"][f]);
-                        beforeMerged[d[dFormatMergeBy]]["features"][f] = newFeature;
-                    })
-                }
-            })
-
-            let mergedArray = [];
-
-            for (const property in beforeMerged) {
-                mergedArray.push(beforeMerged[property])
-            }
-            return mergedArray;
-        },
-        filterData(EVENT, FIELD, TYPE) {
-            //revisit this method later
-            /*
-                        this.$nextTick(() => {
-                            console.log(this.$refs);
-                            console.log(this.$refs.dataFilters);
-                        });
-
-                        this.$refs["dataFilters"][.methods].filterData(
-                            EVENT, FIELD, TYPE
-                        );*/
         }
     },
 
@@ -418,35 +348,17 @@ new Vue({
                 return null;
             }
 
-            //console.log(contents);
             let convertedData = this.csv2Json(contents);
-
-            //console.log(convertedData);
 
             return convertedData;
         },
-        dataTableFormat() {
+        dataPoints() {
             let contents = this.researchPage;
 
-            if (contents === null) {
-                return null;
-            } else {
-                if (contents[0]["field_data_table_format"] == false) {
-                    return false;
-                } else {
-                    return JSON.parse(contents[0]["field_data_table_format"]);
-                }
+            if (contents === null || contents[0]["field_data_points"] == false) {
+                return false;
             }
-
-        },
-        rawDataTableFormat() {
-            let data = this.researchData;
-
-            if (data != null) {
-                let topRows = Object.keys(data[0]);
-                let dataTableFormat = { "top rows": topRows };
-                return dataTableFormat;
-            }
+            return contents[0]["field_data_points"];
         },
         tablePerPageNumber() {
             let contents = this.researchPage;
@@ -558,34 +470,62 @@ new Vue({
             }
         },
         researchPage(content) {
-            //Load data
-            if (content.length != 0 && content[0]["field_data_point"] != false) {
-                let dataPoint = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? content[0]["field_data_point"] : "http://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + content[0]["field_data_point"];
+            if (content.length != 0) {
+                if (content[0]["field_page_style"] != false) {
+                    let css = content[0]["field_page_style"];
+                    this.addcss(css);
+                }
+                //set Table format
+                if (content[0]["field_data_table_format"] != false) {
+                    this.dataTableFormat = JSON.parse(content[0]["field_data_table_format"]);
+                }
+                //Load data
+                if (content[0]["field_data_points"] != false) {
 
-                let domain = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? "external" : "hugeampkpn";
+                    let dataFiles = content[0]["field_data_points"].split(",");
 
-                let fetchParam = { "dataPoint": dataPoint, "domain": domain }
+                    this.dataFiles = dataFiles;
+                    this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
 
-                this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                    let initialData = dataFiles[0];
+
+                    let dataPoint = (initialData.includes("http://") || initialData.includes("https://")) ? initialData : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + initialData;
+
+                    let domain = (initialData.includes("http://") || initialData.includes("https://")) ? "external" : "hugeampkpn";
+
+                    let fetchParam = { "dataPoint": dataPoint, "domain": domain }
+
+                    this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                }
+
+
+                //Load research method
+                if (content[0]["field_research_method"] != false) {
+                    let methodID = content[0]["field_research_method"];
+                    let methodParam = { "methodID": methodID };
+
+                    this.$store.dispatch("hugeampkpncms/getResearchMethod", methodParam);
+                }
+
+                //Load research menu
+                if (content[0]["field_page_header_menu_node_id"] != false) {
+                    let menuID = content[0]["field_page_header_menu_node_id"];
+                    let menuParam = { "menuID": menuID };
+                    this.$store.dispatch("hugeampkpncms/getResearchMenu", menuParam);
+                }
             }
 
-
-            //Load research method
-            if (content.length != 0 && content[0]["field_research_method"] != false) {
-                let methodID = content[0]["field_research_method"];
-                let methodParam = { "methodID": methodID };
-
-                this.$store.dispatch("hugeampkpncms/getResearchMethod", methodParam);
-            }
-
-            //Load research menu
-            if (content.length != 0 && content[0]["field_page_header_menu_node_id"] != false) {
-                let menuID = content[0]["field_page_header_menu_node_id"];
-                let menuParam = { "menuID": menuID };
-                this.$store.dispatch("hugeampkpncms/getResearchMenu", menuParam);
-            }
         },
         researchData(content) {
+            uiUtils.hideElement("data-loading-indicator");
+
+            if (this.dataTableFormat == null) {
+                let topRows = Object.keys(content[0]);
+                let dataTableFormat = { "top rows": topRows };
+
+                this.dataTableFormat = dataTableFormat;
+            }
+
             this.$store.dispatch("filteredData", content);
         }
     }

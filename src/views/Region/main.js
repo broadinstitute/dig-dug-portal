@@ -12,9 +12,12 @@ import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
+
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
+import LocusZoomCoaccessibilityPanel from "@/components/lz/panels/LocusZoomCoaccessibilityPanel"
+
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
 import TissueSelectPicker from "@/components/TissueSelectPicker";
@@ -31,6 +34,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+
 import ClumpedVariantsTable from "@/components/ClumpedVariantsTable";
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -60,6 +64,7 @@ new Vue({
         LocusZoom,
         LocusZoomAssociationsPanel,
         LocusZoomCatalogAnnotationsPanel,
+        LocusZoomCoaccessibilityPanel,
         AssociationsTable,
         PhenotypeSignalMixed,
         CredibleSetSelectPicker,
@@ -69,7 +74,6 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
         CriterionListGroup,
-        CriterionFunctionGroup,
         CriterionFunctionGroup,
         FilterPValue,
         FilterEffectDirection,
@@ -97,13 +101,18 @@ new Vue({
             associationsFilter: function (id) {
                 return true;
             },
+            annotationsFilter: function (id) {
+                return true;
+            },
             pageAssociationsMap: {},
             pageAssociations: [],
             regionPageSearchCriterion: [],
             pillList: []
         };
     },
-
+    mounted() {
+        this.localRegion = this.regionString;
+    },
     methods: {
         ...uiUtils,
         ...Formatters,
@@ -115,16 +124,24 @@ new Vue({
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
-                let that = this;
-                this.$store.dispatch("credibleSets/clear");
-                this.selectedPhenotypes.forEach(p => {
-                    const queryString = `${p.name},${this.$store.state.chr
-                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
-                    that.$store.dispatch("credibleSets/query", {
-                        q: queryString,
-                        append: true
+                if (this.selectedPhenotypes.length > 0) {
+                    this.$store.dispatch("credibleSets/clear");
+                    this.selectedPhenotypes.forEach(p => {
+                        const queryString = `${p.name},${this.$store.state.chr
+                            }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        this.$store.dispatch("credibleSets/query", {
+                            q: queryString,
+                            append: true
+                        });
                     });
-                });
+                }
+            }
+        },
+
+        updateLocalRegion(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                this.localRegion = `${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
             }
         },
 
@@ -185,6 +202,12 @@ new Vue({
                 r.tissue,
                 "annotation",
                 this.enrichmentScoring,
+                Formatters.snakeFormatter(r.tissue)
+            );
+        },
+        addTissueCoaccessibilityPanel(r) {
+            this.$children[0].$refs.locuszoom.addCoaccessibilityPanel(
+                r.tissue,
                 Formatters.snakeFormatter(r.tissue)
             );
         },
@@ -326,7 +349,6 @@ new Vue({
             }
         },
         "$store.state.globalEnrichment.data"(enrichment) {
-
             let groups = {};
             for (let i in enrichment) {
                 let r = enrichment[i];
@@ -345,19 +367,21 @@ new Vue({
             }
 
             this.enrichmentScoring = groups;
-
         },
         selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = _.difference(oldPhenotypes.map(p => p.name), phenotypes.map(p => p.name));
+            const removedPhenotypes = _.difference(
+                oldPhenotypes.map(p => p.name),
+                phenotypes.map(p => p.name)
+            );
             if (removedPhenotypes.length > 0) {
                 removedPhenotypes.forEach(removedPhenotype => {
                     delete this.pageAssociationsMap[removedPhenotype];
                     this.pageAssociations = Object.entries(
                         this.pageAssociationsMap
                     ).flatMap(pam => pam[1]);
-                })
+                });
             }
-            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
+            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
             //console.log("current phenotypes",phenotypes)
 
             // reload the global enrichment for these phenotypes

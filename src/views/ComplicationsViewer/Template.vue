@@ -31,12 +31,8 @@
                             :multiple="false"
                             :labelFormatter="
                                 (phenotype) =>
-                                    !!$store.state.bioPortal.complicationsMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
+                                    !!$store.state.bioPortal.complicationsMap[phenotype]
+                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description
                                         : phenotype
                             "
                         >
@@ -48,20 +44,14 @@
                             v-if="$parent.complicationSecondaryPhenotypeOptions"
                             class="filter-col-lg"
                             :field="'secondaryPhenotype'"
-                            :options="
-                                $parent.complicationSecondaryPhenotypeOptions
-                            "
+                            :options="$parent.complicationSecondaryPhenotypeOptions"
                             :multiple="false"
                             :labelFormatter="
                                 (phenotype) =>
                                     !!$store.state.bioPortal.complicationsMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal
-                                              .complicationsMap[phenotype].name
-                                        : $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
+                                        phenotype]
+                                        ? $store.state.bioPortal.complicationsMap[phenotype].name
+                                        : $store.state.bioPortal.phenotypeMap[phenotype].description
                             "
                         >
                             <div>
