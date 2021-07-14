@@ -1410,13 +1410,22 @@ div.filtering-ui-content div.col.filter-col-sm input {
     border: solid 1px #ccc;
     float: right;
 }
-
-.explore-region-btn {
-    background-color: #66bbff !important;
-    border: solid 1px #3399ff !important;
+.viewing-region {
+    float: left;
+    margin-right: 20px;
 }
 
-.explore-region-btn:hover {
+.expand-region-select {
+    background-color: #66bbff !important;
+    border: solid 1px #3399ff !important;
+    color: #fff;
+    font-size: 20px;
+    border-radius: 5px;
+    padding: 5px;
+    float: left;
+}
+
+.expand-region-select:hover {
     background-color: #66bbff75 !important;
 }
 
