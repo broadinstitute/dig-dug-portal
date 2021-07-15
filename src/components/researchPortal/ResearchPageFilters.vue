@@ -217,6 +217,10 @@ export default Vue.component("research-page-filters", {
         queryAPI() {
             uiUtils.showElement("data-loading-indicator");
 
+            this.$store.state.bioIndexContinue = [];
+
+            console.log(this.$store.state.bioIndexContinue);
+
             let queryParams = "";
             if (this.apiParameters.query.type == "array") {
                 let parametersArr = this.apiParameters.query.format;
@@ -235,16 +239,17 @@ export default Vue.component("research-page-filters", {
             let APIPoint = this.dataFiles[0];
             if (this.dataType == "bioindex") {
                 APIPoint +=
-                    this.apiParameters.query.index + "?q=" + queryParams;
+                    "query/" +
+                    this.apiParameters.query.index +
+                    "?q=" +
+                    queryParams;
             }
 
-            console.log(APIPoint);
             let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
             this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
         },
         switchData(event) {
-            //console.log(event.target.value);
             uiUtils.showElement("data-loading-indicator");
             let initialData = event.target.value;
 

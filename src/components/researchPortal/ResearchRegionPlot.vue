@@ -67,33 +67,36 @@ export default Vue.component("research-region-plot", {
     components: {},
     mounted: function () {
         //this.renderPlot();
-        let xMin = null,
-            xMax = null;
+        if (this.plotData != null) {
+            let xMin = null,
+                xMax = null;
 
-        this.chr = this.plotData[0][this.renderConfig.geneTrack.chr];
+            this.chr = this.plotData[0][this.renderConfig.geneTrack.chr];
 
-        this.plotData.map((d) => {
-            let xValue = Number(d[this.renderConfig.xAxisField]);
+            this.plotData.map((d) => {
+                let xValue = Number(d[this.renderConfig.xAxisField]);
 
-            if (xMin == null) {
-                xMin = xValue;
-            }
-            if (xMax == null) {
-                xMax = xValue;
-            }
+                if (xMin == null) {
+                    xMin = xValue;
+                }
+                if (xMax == null) {
+                    xMax = xValue;
+                }
 
-            if (xValue < xMin) {
-                xMin = xValue;
-            }
-            if (xValue > xMax) {
-                xMax = xValue;
-            }
-        });
+                if (xValue < xMin) {
+                    xMin = xValue;
+                }
+                if (xValue > xMax) {
+                    xMax = xValue;
+                }
+            });
 
-        this.start = xMin;
-        this.end = xMax;
+            this.start = xMin;
+            this.end = xMax;
 
-        this.getGenesInRegion();
+            this.getGenesInRegion();
+        }
+
         window.addEventListener("resize", this.onResize);
     },
     beforeDestroy() {
@@ -500,7 +503,7 @@ export default Vue.component("research-region-plot", {
                     plotHeight -
                     yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
 
-                let dotColor = "#00000050";
+                let dotColor = "#00000020";
 
                 ctx.fillStyle = dotColor;
 
