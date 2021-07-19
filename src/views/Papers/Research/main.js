@@ -273,7 +273,54 @@ new Vue({
                 let cleanText = STR.replaceAll("\n", "<br>");
                 return cleanText;
             }
-        }
+        },
+        queryAPI() {
+            uiUtils.showElement("data-loading-indicator");
+
+
+
+            console.log("bioIndexContinue", this.$store.state.bioIndexContinue);
+
+
+
+            if (this.apiParameters.query.type == "array") {
+                let parametersArr = this.apiParameters.query.format;
+                let parametersArrLength = parametersArr.length
+
+                let paramTrueCount = 0;
+                parametersArr.map((param, index) => {
+                    console.log(keyParams[param], index);
+                    if (!!keyParams[param]) {
+                        paramTrueCount++;
+                    }
+                });
+
+                if (paramTrueCount == parametersArrLength) {
+                    this.$store.state.bioIndexContinue = [];
+                    let queryParams = "";
+                    parametersArr.map((param, index) => {
+                        console.log(param, index);
+                        queryParams += keyParams[param].trim();
+                        if (index + 1 < parametersArr.length) {
+                            queryParams += ",";
+                        }
+                    });
+
+                    let APIPoint = this.dataFiles[0];
+                    if (this.dataType == "bioindex") {
+                        APIPoint +=
+                            "query/" +
+                            this.apiParameters.query.index +
+                            "?q=" +
+                            queryParams;
+                    }
+
+                    let fetchParam = { dataPoint: APIPoint, domain: "external" };
+
+                    this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                }
+            }
+        },
     },
 
     computed: {
@@ -584,6 +631,8 @@ new Vue({
 
                         this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
                     } else if (this.isAPI == true) {
+
+                        this.queryAPI();
 
                     }
                 }

@@ -169,6 +169,7 @@
 import Vue from "vue";
 
 import uiUtils from "@/utils/uiUtils";
+import keyParams from "@/utils/keyParams";
 
 export default Vue.component("research-page-filters", {
     props: [
@@ -197,6 +198,17 @@ export default Vue.component("research-page-filters", {
                 tempObj["field"] = f.field;
                 tempObj["search"] = [];
                 this.filtersIndex[f.field] = tempObj;
+            });
+        }
+    },
+    mounted() {
+        if (this.apiParameters.query.type == "array") {
+            let parametersArr = this.apiParameters.query.format;
+
+            parametersArr.map((param, index) => {
+                //console.log(param, index);
+                document.getElementById("search_param_" + param).value =
+                    keyParams[param];
             });
         }
     },

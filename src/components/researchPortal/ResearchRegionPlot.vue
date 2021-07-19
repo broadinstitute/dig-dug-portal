@@ -493,6 +493,25 @@ export default Vue.component("research-region-plot", {
 
             let yPosByPixel = plotHeight / (yMax - yMin);
 
+            //Render y axis label
+            ctx.font = "14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#000000";
+            ctx.rotate(-(Math.PI * 2) / 4);
+            ctx.fillText(
+                this.renderConfig.yAxisLabel,
+                -(this.topMargin + plotHeight / 2),
+                this.leftMargin - this.leftMargin / 2 - 14
+            );
+
+            //Render x axis label
+            ctx.rotate((-(Math.PI * 2) / 4) * 3);
+            ctx.fillText(
+                this.renderConfig.xAxisLabel,
+                plotWidth / 2 + this.leftMargin,
+                canvasRenderHeight - 5
+            );
+
             this.plotData.map((g) => {
                 let xPos =
                     xStart +
@@ -515,6 +534,8 @@ export default Vue.component("research-region-plot", {
                 let xLoc = xPos.toString().split(".")[0];
                 let yLoc = yPos.toString().split(".")[0];
 
+                //console.log(g[this.renderConfig.renderBy]);
+
                 let hoverContent;
 
                 if (!!this.renderConfig.hoverContent) {
@@ -534,35 +555,16 @@ export default Vue.component("research-region-plot", {
                 }
             });
 
-            //Render y axis label
-            ctx.font = "14px Arial";
-            ctx.textAlign = "center";
-            ctx.fillStyle = "#000000";
-            ctx.rotate(-(Math.PI * 2) / 4);
-            ctx.fillText(
-                this.renderConfig.yAxisLabel,
-                -(this.topMargin + plotHeight / 2),
-                this.leftMargin - this.leftMargin / 2 - 14
-            );
-
-            //Render x axis label
-            ctx.rotate((-(Math.PI * 2) / 4) * 3);
-            ctx.fillText(
-                this.renderConfig.xAxisLabel,
-                plotWidth / 2 + this.leftMargin,
-                canvasRenderHeight - 5
-            );
+            let geneCtx = c.getContext("2d");
+            geneCtx.beginPath();
 
             let gIndex = 0,
                 aboveGenesTrack =
                     this.topMargin + plotHeight + yBump + 15 + 5 + 12;
 
-            ctx.font = "italic 12px Arial";
-            ctx.textAlign = "center";
-            ctx.fillStyle = "#0000FF";
-            genesInRegion.map((g) => {
-                let gStart = g.start <= xMin ? xMin : g.start;
-                let gEnd = g.end >= xMax ? xMax : g.end;
+            genesInRegion.map((gene) => {
+                let gStart = gene.start <= xMin ? xMin : gene.start;
+                let gEnd = gene.end >= xMax ? xMax : gene.end;
 
                 let txtXPos =
                     xStart +
@@ -574,15 +576,17 @@ export default Vue.component("research-region-plot", {
                 let startPos = xStart + xPosByPixel * (gStart - xMin);
                 let endPos = xStart + xPosByPixel * (gEnd - xMin);
 
-                //let xPos = xStart + xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
-                ctx.fillText(g.name, txtXPos, txtYPos);
+                geneCtx.font = "italic 12px Arial";
+                geneCtx.textAlign = "center";
+                geneCtx.fillStyle = "#0000FF";
+                geneCtx.fillText(gene.name, txtXPos, txtYPos);
 
                 //ctx.beginPath();
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = "#0000FF";
-                ctx.moveTo(startPos, txtYPos + 5);
-                ctx.lineTo(endPos, txtYPos + 5);
-                ctx.stroke();
+                geneCtx.lineWidth = 1;
+                geneCtx.strokeStyle = "#0000FF";
+                geneCtx.moveTo(startPos, txtYPos + 5);
+                geneCtx.lineTo(endPos, txtYPos + 5);
+                geneCtx.stroke();
 
                 gIndex++;
             });
