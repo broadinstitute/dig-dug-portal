@@ -109,7 +109,6 @@
                                 class="col-md-12"
                                 v-html="$parent.pageDescription"
                             ></div>
-
                             <div
                                 class="col-md-12"
                                 v-if="
@@ -131,6 +130,7 @@
                                     :dataType="$parent.dataType"
                                     :uid="$parent.uid"
                                     :filters="$parent.dataFilters"
+                                    :filterWidth="$parent.filterWidth"
                                     :dataset="$store.state.filteredData"
                                     :unfilteredDataset="$parent.researchData"
                                 ></research-page-filters>

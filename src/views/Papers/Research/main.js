@@ -402,7 +402,18 @@ new Vue({
             if (contents === null || contents[0]["field_filters"] == false) {
                 return null;
             }
+
+
             return JSON.parse(contents[0]["field_filters"]);
+        },
+        filterWidth() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_filter_width"] == false || contents[0]["field_filter_width"] == "none") {
+                return null;
+            }
+
+            return contents[0]["field_filter_width"];
         },
         dataType() {
             let contents = this.researchPage;

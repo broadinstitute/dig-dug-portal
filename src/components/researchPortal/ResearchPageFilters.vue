@@ -46,7 +46,7 @@
         >
             <div class="filtering-ui-content row">
                 <div
-                    class="col"
+                    :class="this.filterWidthClasses"
                     v-if="!!this.dataFiles && this.dataFiles.length > 1"
                 >
                     <div class="label">Select data</div>
@@ -64,7 +64,7 @@
                     </select>
                 </div>
                 <div
-                    class="col"
+                    :class="getFilterWidthClasses()"
                     v-for="filter in this.filters"
                     :key="filter.field"
                 >
@@ -179,6 +179,7 @@ export default Vue.component("research-page-filters", {
         "filesListLabels",
         "uid",
         "filters",
+        "filterWidth",
         "dataset",
         "unfilteredDataset",
     ],
@@ -202,7 +203,10 @@ export default Vue.component("research-page-filters", {
         }
     },
     mounted() {
-        if (this.apiParameters.query.type == "array") {
+        if (
+            this.apiParameters != null &&
+            this.apiParameters.query.type == "array"
+        ) {
             let parametersArr = this.apiParameters.query.format;
 
             parametersArr.map((param, index) => {
@@ -218,6 +222,13 @@ export default Vue.component("research-page-filters", {
         ...uiUtils,
         getLength(ARR) {
             return Number(ARR.length);
+        },
+        getFilterWidthClasses() {
+            let classes =
+                !!this.filterWidth && this.filterWidth != null
+                    ? "col filter-col-" + this.filterWidth
+                    : "col";
+            return classes;
         },
         getFileLabel(file) {
             if (this.filesListLabels != null) {
