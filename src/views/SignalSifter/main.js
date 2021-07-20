@@ -129,7 +129,6 @@ new Vue({
         },
         // don't allow selection of the lead phenotype in dropdowns
         phenotypes() {
-            
             let x = this.$store.state.phenotypes.map(p => p.phenotype.name);
             return x;
         },

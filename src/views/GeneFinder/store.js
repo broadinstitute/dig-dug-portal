@@ -29,6 +29,7 @@ export default new Vuex.Store({
             let phenotype = d.phenotype
             state.geneFinderAssociations[phenotype] = data;
             state.phenotypelist = [phenotype];
+
         },
         setSecondaryPhenotypeData(state, d = {}) {
             let data = d.genefinderData
@@ -44,14 +45,15 @@ export default new Vuex.Store({
         },
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
+            keyParams.set({ phenotype: phenotype })
         },
         setFilterBadges(state, filterbadges) {
             state.filterbadges = filterbadges;
         },
 
         setSecondaryPhenotype(state, secondaryPhenotype) {
-            //let secondaryPhenotypeList = []
             state.secondaryPhenotype = secondaryPhenotype
+            keyParams.set({ phenotype: secondaryPhenotype })
         },
         setPhenotypelist(state, phenotypelist) {
             state.phenotypelist = phenotypelist

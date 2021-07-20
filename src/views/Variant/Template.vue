@@ -1,10 +1,7 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -32,9 +29,7 @@
                                 $store.state.newVariantId
                             )
                         "
-                    >
-                        GO
-                    </button>
+                    >GO</button>
                 </div>
                 <div class="col divider"></div>
                 <div class="col filter-col-md search-example">
@@ -50,10 +45,7 @@
                 <div class="row card-body">
                     <div class="col-md-9 gene-page-header-title">
                         Variant
-                        <tooltip-documentation
-                            name="variant.alleles.tooltip.hover"
-                            :isHover="true"
-                        ></tooltip-documentation>
+                        <tooltip-documentation name="variant.alleles.tooltip.hover" :isHover="true"></tooltip-documentation>
                     </div>
                     <div class="col-md-3 gene-page-header-title">Navigate</div>
 
@@ -70,9 +62,7 @@
                         <button
                             class="btn btn-primary explore-region-btn"
                             @click="$parent.exploreRegion()"
-                        >
-                            Explore region
-                        </button>
+                        >Explore region</button>
                     </div>
                 </div>
             </div>
@@ -136,19 +126,15 @@
                         ></transcript-consequence-table>
                     </div>
                     <div v-else-if="$store.state.variant">
-                        <h4 class="card-title">
-                            Most severe variant consequence
-                        </h4>
+                        <h4 class="card-title">Most severe variant consequence</h4>
                         {{
-                            $parent.consequenceFormatter(
-                                $store.state.variant.consequence
-                            )
+                        $parent.consequenceFormatter(
+                        $store.state.variant.consequence
+                        )
                         }}
                         &mdash;
                         {{
-                            $parent.consequenceMeaning(
-                                $store.state.variant.consequence
-                            )
+                        $parent.consequenceMeaning($store.state.variant.consequence)
                         }}
                     </div>
                 </div>
@@ -175,9 +161,7 @@
                         name="variant.phewas.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
-                    <unauthorized-message
-                        :restricted="$store.state.phewas.restricted"
-                    ></unauthorized-message>
+                    <unauthorized-message :restricted="$store.state.phewas.restricted"></unauthorized-message>
 
                     <criterion-function-group>
                         <filter-enumeration-control
@@ -202,17 +186,11 @@
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
 
-                        <filter-pvalue-control
-                            :field="'pValue'"
-                            :inclusive="true"
-                        >
+                        <filter-pvalue-control :field="'pValue'" :inclusive="true">
                             <div class="label">P-Value (&le;)</div>
                         </filter-pvalue-control>
 
-                        <filter-effect-direction-control
-                            :field="'beta'"
-                            :inclusive="true"
-                        >
+                        <filter-effect-direction-control :field="'beta'" :inclusive="true">
                             <div class="label">Effect (+/-)</div>
                         </filter-effect-direction-control>
 
@@ -281,6 +259,8 @@
                             ></phewas-datasets>
                         </template>
                     </criterion-function-group>
+                    <!-- Put Suggestions here for GEM -->
+                    <suggestions :variants="$parent.selectedDbSNPs" :genes="[]"></suggestions>
                 </div>
             </div>
 
@@ -333,9 +313,7 @@
                         name="variant.annotated.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
-                    <unauthorized-message
-                        :restricted="$store.state.regions.restricted"
-                    ></unauthorized-message>
+                    <unauthorized-message :restricted="$store.state.regions.restricted"></unauthorized-message>
 
                     <criterion-function-group>
                         <filter-enumeration-control
@@ -367,10 +345,7 @@
                             <div class="label">Tissues</div>
                         </filter-enumeration-control>
                         <template slot="filtered" slot-scope="{ filter }">
-                            <regions-table
-                                :regions="$parent.regions"
-                                :filter="filter"
-                            ></regions-table>
+                            <regions-table :regions="$parent.regions" :filter="filter"></regions-table>
                         </template>
                     </criterion-function-group>
                 </div>

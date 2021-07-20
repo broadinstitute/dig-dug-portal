@@ -19,6 +19,9 @@ import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
+import keyParams from "@/utils/keyParams";
+import ManhattanPlot from "@/components/ManhattanPlot.vue";
+
 
 import Alert, {
     postAlert,
@@ -49,6 +52,7 @@ new Vue({
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,
+        ManhattanPlot,
     },
 
     data() {
@@ -94,6 +98,16 @@ new Vue({
 
             // may await on this in the future if needed...
             Promise.all(promises);
+        },
+        setCriterionPhenotypes(phenotypeNames) {
+            this.geneFinderSearchCriterion.splice(0);
+            phenotypeNames.forEach(this.geneFinderSearchCriterion);
+        },
+        pushCriterionPhenotype(phenotypeName) {
+            this.geneFinderSearchCriterion.push({
+                field: "phenotype",
+                threshold: phenotypeName
+            });
         }
 
     },
@@ -157,7 +171,13 @@ new Vue({
             } else {
                 // if the phenotypes update, we only need to get new data based on latest phenotype
                 // NOTE: this will maintain some data in the the geneFinderAssociationsMap
+                let keyParamPhenotypes = keyParams.phenotype.split(",");
+
                 const updatingPhenotypes = difference(newCriterion.phenotypes, oldCriterion.phenotypes);
+                if (updatingPhenotypes.length == 0) {
+                    this.setCriterionPhenotypes(keyParamPhenotypes)
+                    this.updateAssociations(keyParamPhenotypes, this.geneFinderPValue);
+                }
                 if (updatingPhenotypes.length > 0) {
                     this.updateAssociations(updatingPhenotypes, this.geneFinderPValue);
                 }

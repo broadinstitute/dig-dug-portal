@@ -6,15 +6,22 @@
             <div v-for="suggestion in suggestions">
                 <span class="lead">
                     <div
+                        id="suggestionBox"
                         style="font-size: 15px; border-radius: 10px; background-color: #cfefee; padding:5px 5px 5px 5px"
                     >
                         <a
-                            v-if="phenotypes.length == 1"
+                            v-if="!!phenotypes && phenotypes.length == 1"
                             style="cursor: pointer; "
                             v-on:click="ActOnSuggestions"
                         >{{suggestion}}</a>
                         <a
-                            v-if="phenotypes.length > 1"
+                            v-if="!!phenotypes && phenotypes.length > 1"
+                            style="cursor: pointer;"
+                            v-on:click="GoToSignalSifter"
+                        >{{suggestion}}</a>
+
+                        <a
+                            v-if="!!variants && variants.length >= 1 "
                             style="cursor: pointer;"
                             v-on:click="GoToSignalSifter"
                         >{{suggestion}}</a>
@@ -25,7 +32,7 @@
                             aria-label="Filter"
                             v-b-tooltip.hover.html="{variant: 'light',}"
                             :title="'Click to remove the suggestions'"
-                            v-on:click="$parent.removeSuggestions()"
+                            v-on:click="removeSuggestions"
                         >
                             <span style="color: green">
                                 <b-icon-x-circle-fill></b-icon-x-circle-fill>
@@ -59,27 +66,31 @@ export default Vue.component("suggestions", {
     computed: {
         suggestions() {
             let suggs = [];
-            if (!this.phenotypes) {
+            if (!this.phenotypes && !this.variants) {
                 return [];
             }
-            if (this.phenotypes.length == 0) {
+            if (!!this.phenotypes && this.phenotypes.length == 0) {
                 suggs.push("Select a phenotype!");
             }
-            if (this.phenotypes.length == 1) {
+            if (!!this.phenotypes && this.phenotypes.length == 1) {
                 suggs.push(
                     "Select more than 1 phenotype of same phenotype group to compare."
                 );
             }
-            if (this.phenotypes.length > 1) {
+            if (!!this.phenotypes && this.phenotypes.length > 1) {
                 suggs.push(
                     "Use the signal sifter to find variants impacting all selected phenotypes."
                 );
             }
-            // if (this.variants.length > 0 && this.genes.length == 1) {
-            //     suggs.push(
-            //         "Use the <a>signal sifter</a> to find variants impacting all selected phenotypes.part2"
-            //     );
-            // }
+            if (
+                !!this.variants &&
+                this.variants.length > 0 &&
+                this.genes.length == 0
+            ) {
+                suggs.push(
+                    "Use the signal sifter to find variants impacting all selected phenotypes.part2"
+                );
+            }
             return suggs;
         }
     },
@@ -96,12 +107,21 @@ export default Vue.component("suggestions", {
                 "//" +
                 window.location.host +
                 "/" +
-                "signalsifter.html";
+                "signalsifter.html" +
+                "?phenotypes=" +
+                "T2D";
 
             window.open(newUrl);
         },
 
-        removeSuggestions(event) {}
+        removeSuggestions(event) {
+            var x = document.getElementById("suggestionBox");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
     }
 });
 </script>

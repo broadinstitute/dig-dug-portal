@@ -23,6 +23,7 @@ import PheWASDatasets from "@/components/PheWASDatasets";
 import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import Suggestions from "@/components/Suggestions.vue";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -62,7 +63,7 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
-
+        Suggestions,
         SearchHeaderWrapper,
 
     },
@@ -109,6 +110,9 @@ new Vue({
 
         dbSNP() {
             return this.$store.state.variant && this.$store.state.variant.dbSNP;
+        },
+        selectedDbSNPs() {
+            return ["rs7523141"];
         },
 
         variantName() {
