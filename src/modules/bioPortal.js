@@ -93,6 +93,11 @@ export default {
 
             // find the default
             return getters.defaultGroup;
+        },
+
+        //this is the root portal, display all data for group
+        isRootPortal(state, getters) {
+            return state.host.subDomain === getters.diseaseGroup.portalGroup;
         }
     },
 

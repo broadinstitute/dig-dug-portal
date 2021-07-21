@@ -20,7 +20,7 @@
             </div>
             <div
                 class="row amp-banner-2021"
-                v-if="!diseaseGroup.default && diseaseGroup.memberCMD"
+                v-if="!!diseaseGroup.portalGroup && (diseaseGroup.portalGroup != diseaseGroup.name)"
                 style="height: 50px; display: block"
             >
                 <a :href="url2Md">
@@ -118,7 +118,11 @@ export default Vue.component("page-header", {
             return window.location.pathname;
         },
         url2Md() {
-            return host.urlWithSubdomain().href;
+        	if (!!this.diseaseGroup && !!this.diseaseGroup.portalGroup) {
+            	return host.urlWithSubdomain(this.diseaseGroup.portalGroup).href;
+         	} else {
+         		return host.urlWithSubdomain().href;
+         	}
         },
     },
     watch: {
