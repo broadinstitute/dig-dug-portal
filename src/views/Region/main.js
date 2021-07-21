@@ -24,6 +24,7 @@ import TissueSelectPicker from "@/components/TissueSelectPicker";
 import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+import ExpandRegion from "@/components/ExpandRegion.vue";
 
 import keyParams from "@/utils/keyParams";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
@@ -145,16 +146,17 @@ new Vue({
                 this.localRegion = `${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
             }
         },
-
-        exploreExpanded() {
-            this.$store.commit("setLocus", {
-                chr: this.$store.state.chr,
-                //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
-                start: parseInt(this.$store.state.start) - 50000,
-                end: parseInt(this.$store.state.end) + 50000
-            });
-            this.$store.dispatch("queryRegion");
-        },
+        /*
+                exploreExpanded() {
+                    this.$store.commit("setLocus", {
+                        chr: this.$store.state.chr,
+                        //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
+                        start: parseInt(this.$store.state.start) - 50000,
+                        end: parseInt(this.$store.state.end) + 50000
+                    });
+                    this.$store.dispatch("queryRegion");
+                },
+                */
 
         updatePageAssociations({ phenotype, data }) {
             this.pageAssociationsMap[phenotype] = data;

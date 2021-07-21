@@ -76,12 +76,15 @@
                     >Chromosome: Start position - End position</div>
                     <!-- <div class="col-md-4 gene-page-header-title">Phenotype</div> -->
                     <div class="col-md-6 gene-page-header-body regionInfo">
-                        {{ $parent.regionString }}
-                        <button
+                        <div class="viewing-region">{{ $parent.regionString }}</div>
+                        <!--<button
                             class="btn btn-primary text-nowrap text-right explore-region-btn"
                             style="margin-left: 20px"
                             @click="$parent.exploreExpanded()"
-                        >Expand &plusmn; 50 kb</button>
+                        >
+                            Expand &plusmn; 50 kb
+                        </button>-->
+                        <expand-region></expand-region>
                         <lunaris-link
                             :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"
@@ -276,7 +279,9 @@
                                 :tissues="$parent.globalEnrichmentTissues"
                                 :clearOnSelected="true"
                                 @tissue="
-                                    $parent.addTissueCoaccessibilityPanel($event)
+                                    $parent.addTissueCoaccessibilityPanel(
+                                        $event
+                                    )
                                 "
                             />
                         </div>
@@ -379,7 +384,13 @@
                         :ldpop="true"
                         :refSeq="true"
                     >
+                        <<<<<<< HEAD
+                        <p
+                            v-for="phenotype in $parent.selectedPhenotypes"
+                            :key="phenotype.name"
+                        >=======</p>
                         <p v-for="phenotype in $parent.selectedPhenotypes" :key="phenotype.name">
+                            >>>>>>> master
                             <lz-associations-panel
                                 :phenotype="phenotype.name"
                                 :title="phenotype.description"

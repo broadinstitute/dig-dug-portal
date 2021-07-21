@@ -1,11 +1,16 @@
 <template>
     <div class="disease-group-select">
-        <b-form-select v-model="diseaseGroup" @change="changeDiseaseGroup(diseaseGroup);">
+        <b-form-select
+            v-model="diseaseGroup"
+            @change="changeDiseaseGroup(diseaseGroup)"
+        >
             <option
                 v-for="group in visibleDiseaseGroups"
                 :value="group.name"
                 :key="group.name"
-            >{{ group.description }}</option>
+            >
+                {{ group.description }}
+            </option>
         </b-form-select>
     </div>
 </template>
@@ -27,22 +32,28 @@ export default Vue.component("disease-group-select", {
 
     data() {
         return {
-            diseaseGroup: null
+            diseaseGroup:
+                this.$store.getters["bioPortal/diseaseGroup"].portalGroup ||
+                null,
         };
     },
 
     computed: {
         visibleDiseaseGroups() {
             return this.diseaseGroups
-                .filter(g => !g.default && g.memberCMD)
+                .filter(
+                    (g) =>
+                        g.name !== g.portalGroup &&
+                        g.portalGroup === this.diseaseGroup
+                )
                 .sort((a, b) => (a.description > b.description ? 1 : -1));
-        }
+        },
     },
 
     methods: {
         changeDiseaseGroup(newGroup) {
             window.location.href = host.urlWithSubdomain(newGroup).href;
-        }
-    }
+        },
+    },
 });
 </script>
