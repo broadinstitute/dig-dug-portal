@@ -81,14 +81,17 @@
                     </div>
                     <!-- <div class="col-md-4 gene-page-header-title">Phenotype</div> -->
                     <div class="col-md-6 gene-page-header-body regionInfo">
-                        {{ $parent.regionString }}
-                        <button
+                        <div class="viewing-region">
+                            {{ $parent.regionString }}
+                        </div>
+                        <!--<button
                             class="btn btn-primary text-nowrap text-right explore-region-btn"
                             style="margin-left: 20px"
                             @click="$parent.exploreExpanded()"
                         >
                             Expand &plusmn; 50 kb
-                        </button>
+                        </button>-->
+                        <expand-region> </expand-region>
                         <lunaris-link
                             :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"
@@ -296,11 +299,12 @@
                                 :tissues="$parent.globalEnrichmentTissues"
                                 :clearOnSelected="true"
                                 @tissue="
-                                    $parent.addTissueCoaccessibilityPanel($event)
+                                    $parent.addTissueCoaccessibilityPanel(
+                                        $event
+                                    )
                                 "
                             />
                         </div>
-
                     </criterion-list-group>
                     <h6 v-if="$parent.selectedPhenotypes.length > 0">
                         Filter tracks and table &nbsp;
@@ -397,7 +401,6 @@
                         :ldpop="true"
                         :refSeq="true"
                     >
-
                         <p
                             v-for="phenotype in $parent.selectedPhenotypes"
                             :key="phenotype.name"
