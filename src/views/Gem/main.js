@@ -417,14 +417,6 @@ new Vue({
             let keyPhenotypes = keyParams.phenotype;
             if (!!keyPhenotypes) {
                 this.setCriterionPhenotypes(keyPhenotypes.split(","));
-            } else {
-                let topAssoc = top[0];
-                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
-                    topAssoc.phenotype
-                ];
-
-                // update the master list
-                this.setCriterionPhenotypes([topPhenotype.name]);
             }
         },
         diseaseGroup(group) {
