@@ -46,7 +46,7 @@
         >
             <div class="filtering-ui-content row">
                 <div
-                    :class="this.filterWidthClasses"
+                    :class="getFilterWidthClasses()"
                     v-if="!!this.dataFiles && this.dataFiles.length > 1"
                 >
                     <div class="label">Select data</div>

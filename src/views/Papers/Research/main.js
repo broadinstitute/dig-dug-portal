@@ -19,6 +19,7 @@ import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
+import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
@@ -42,6 +43,7 @@ new Vue({
         ResearchDataTable,
         ResearchMPlotBitmap,
         ResearchRegionPlot,
+        ResearchScorePlot,
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,
@@ -248,9 +250,7 @@ new Vue({
             let scoreColumns = function (FIELDS, scoreBy, fData) {
 
                 let fieldValue = 0;
-
-                //console.log("fields", FIELDS);
-                //console.log("scoreBy", scoreBy);
+                let fieldsLength = FIELDS.length;
 
                 FIELDS.map(fName => {
                     let scoreType = scoreBy[fName].type;
@@ -262,7 +262,7 @@ new Vue({
                     }
                 });
 
-                return fieldValue;
+                return fieldValue / fieldsLength;
 
             }
 

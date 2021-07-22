@@ -182,6 +182,16 @@
                                     :filtersIndex="$store.state.filtersIndex"
                                 ></research-region-plot>
 
+                                <research-score-plot
+                                    v-if="
+                                        $store.state.filteredData != '' &&
+                                        $parent.plotType == 'score_plot'
+                                    "
+                                    :plotData="$store.state.filteredData"
+                                    :renderConfig="$parent.plotConfig"
+                                    :filtersIndex="$store.state.filtersIndex"
+                                ></research-score-plot>
+
                                 <research-volcano-plot
                                     v-if="
                                         $store.state.filteredData != '' &&

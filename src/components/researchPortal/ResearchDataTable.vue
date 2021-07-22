@@ -222,6 +222,8 @@ export default Vue.component("research-data-table", {
                 formatTypes.map((type) => {
                     if (type == "scientific notation") {
                         cellValue = Formatters.pValueFormatter(tdValue);
+
+                        cellValue = cellValue == "-" ? 0 : cellValue;
                     }
 
                     if (type == "link") {
