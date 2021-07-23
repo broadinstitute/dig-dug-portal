@@ -153,48 +153,11 @@ export default Vue.component("research-region-plot", {
                 //console.log("step 1", JSON.parse(data));
                 this.renderPlot();
             }
-
-            //this.renderGenesInRegion();
         },
     },
     methods: {
         ...uiUtils,
-        renderGenesInRegion() {
-            let canvasRenderWidth = !!this.renderConfig.width
-                ? this.renderConfig.width + this.leftMargin + this.rightMargin
-                : window.innerWidth - 115;
 
-            let canvasRenderHeight = !!this.renderConfig.height
-                ? this.renderConfig.height + this.topMargin + this.bottomMargin
-                : 400;
-
-            canvasRenderHeight += !!this.renderConfig.geneTrack ? 50 : 0;
-
-            let xBump = canvasRenderWidth * 0.03;
-            let yBump = canvasRenderHeight * 0.02;
-
-            let plotWidth =
-                canvasRenderWidth -
-                (this.leftMargin + this.rightMargin + xBump);
-            let plotHeight =
-                canvasRenderHeight -
-                (this.topMargin + yBump + this.bottomMargin);
-
-            plotHeight -= !!this.renderConfig.geneTrack ? 50 : 0;
-
-            let c = document.getElementById("manhattanPlot");
-            c.setAttribute("width", canvasRenderWidth);
-            c.setAttribute("height", canvasRenderHeight);
-            let ctx = c.getContext("2d");
-
-            console.log(JSON.parse(this.genesInRegionData));
-            let genes = JSON.parse(this.genesInRegionData)["data"];
-            genes.map((g) => {
-                if (g.source == "symbol") {
-                    console.log(g.start, g.end, g.chromosome);
-                }
-            });
-        },
         hidePanel(element) {
             uiUtils.hideElement(element);
         },
@@ -345,6 +308,7 @@ export default Vue.component("research-region-plot", {
             let wrapper = document.getElementById("clicked_dot_value");
             wrapper.classList.add("hidden");
 
+            //console.log("genes", this.genesInRegionData);
             let genesInRegion = JSON.parse(this.genesInRegionData)[
                 "data"
             ].filter((g) => g.source == "symbol");
@@ -357,9 +321,12 @@ export default Vue.component("research-region-plot", {
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
                 : 400;
 
+            //console.log("no geneTrack", canvasRenderHeight);
             canvasRenderHeight += !!this.renderConfig.geneTrack
-                ? 25 * genesInRegion.length
+                ? 35 * genesInRegion.length
                 : 0;
+
+            //console.log("with geneTrack", canvasRenderHeight);
 
             let xBump = canvasRenderWidth * 0.03;
             let yBump = canvasRenderHeight * 0.02;
@@ -506,11 +473,12 @@ export default Vue.component("research-region-plot", {
 
             //Render x axis label
             ctx.rotate((-(Math.PI * 2) / 4) * 3);
-            ctx.fillText(
+            /*ctx.fillText(
                 this.renderConfig.xAxisLabel,
                 plotWidth / 2 + this.leftMargin,
                 canvasRenderHeight - 5
             );
+            */
 
             this.plotData.map((g) => {
                 let xPos =
@@ -571,12 +539,12 @@ export default Vue.component("research-region-plot", {
                     xPosByPixel *
                         (gStart + Math.ceil((gEnd - gStart) / 2) - xMin);
 
-                let txtYPos = aboveGenesTrack + 20 * gIndex;
+                let txtYPos = aboveGenesTrack + 15 * gIndex;
 
                 let startPos = xStart + xPosByPixel * (gStart - xMin);
                 let endPos = xStart + xPosByPixel * (gEnd - xMin);
 
-                geneCtx.font = "italic 12px Arial";
+                geneCtx.font = "italic 11px Arial";
                 geneCtx.textAlign = "center";
                 geneCtx.fillStyle = "#0000FF";
                 geneCtx.fillText(gene.name, txtXPos, txtYPos);

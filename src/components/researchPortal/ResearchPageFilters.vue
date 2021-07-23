@@ -211,8 +211,10 @@ export default Vue.component("research-page-filters", {
 
             parametersArr.map((param, index) => {
                 //console.log(param, index);
-                document.getElementById("search_param_" + param).value =
-                    keyParams[param];
+                if (keyParams[param] != undefined) {
+                    document.getElementById("search_param_" + param).value =
+                        keyParams[param];
+                }
             });
         }
     },
@@ -236,6 +238,11 @@ export default Vue.component("research-page-filters", {
             } else {
                 return file;
             }
+        },
+
+        showDataLoad(callback) {
+            console.log("called");
+            callback();
         },
         queryAPI() {
             uiUtils.showElement("data-loading-indicator");
