@@ -45,52 +45,19 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-m-bitmap-plot", {
-    props: ["plotData", "renderConfig", "filtersIndex"],
+export default Vue.component("research-region-plot", {
+    props: ["genesInRegion", "plotData", "renderConfig", "filtersIndex"],
     data() {
         return {
             plotRendered: 0,
-            chromosomeLength: {
-                1: 248956422,
-                2: 242193529,
-                3: 198295559,
-                4: 190214555,
-                5: 181538259,
-                6: 170805979,
-                7: 159345973,
-                8: 145138636,
-                9: 138394717,
-                10: 133797422,
-                11: 135086622,
-                12: 133275309,
-                13: 114364328,
-                14: 107043718,
-                15: 101991189,
-                16: 90338345,
-                17: 83257441,
-                18: 80373285,
-                19: 58617616,
-                20: 64444167,
-                21: 46709983,
-                22: 50818468,
-                23: 156040895,
-                24: 57227415,
-                X: 156040895,
-                Y: 57227415,
-            },
-            chromosomeColors: [
-                "#08306b",
-                "#41ab5d",
-                "#000000",
-                "#f16913",
-                "#3f007d",
-                "#cb181d",
-            ],
             leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
             rightMargin: 0.5,
             topMargin: 10.5, // -0.5 to draw crisp line
             bottomMargin: 50.5,
             dotPosData: {},
+            chr: null,
+            start: null,
+            end: null,
         };
     },
     modules: {
@@ -99,7 +66,37 @@ export default Vue.component("research-m-bitmap-plot", {
     },
     components: {},
     mounted: function () {
-        this.renderPlot();
+        //this.renderPlot();
+        if (this.plotData != null) {
+            let xMin = null,
+                xMax = null;
+
+            this.chr = this.plotData[0][this.renderConfig.geneTrack.chr];
+
+            this.plotData.map((d) => {
+                let xValue = Number(d[this.renderConfig.xAxisField]);
+
+                if (xMin == null) {
+                    xMin = xValue;
+                }
+                if (xMax == null) {
+                    xMax = xValue;
+                }
+
+                if (xValue < xMin) {
+                    xMin = xValue;
+                }
+                if (xValue > xMax) {
+                    xMax = xValue;
+                }
+            });
+
+            this.start = xMin;
+            this.end = xMax;
+
+            this.getGenesInRegion();
+        }
+
         window.addEventListener("resize", this.onResize);
     },
     beforeDestroy() {
@@ -107,67 +104,79 @@ export default Vue.component("research-m-bitmap-plot", {
     },
     computed: {
         renderData() {
-            let rawData = this.plotData;
-            let massagedData = { sorted: {}, unsorted: [] };
+            return this.plotData;
+        },
+        genesInRegionData() {
+            let contents = this.$store.state.hugeampkpncms.genesInRegion;
 
-            for (const chr in this.chromosomeLength) {
-                massagedData.sorted[chr] = [];
+            if (contents == "") {
+                return null;
+            } else {
+                return contents;
             }
-
-            rawData.map((r) => {
-                let region = r[this.renderConfig.xAxisField];
-                //console.log(region);
-                if (region != undefined && region != "" && region != null) {
-                    let tempObj = {};
-                    tempObj[this.renderConfig.renderBy] =
-                        r[this.renderConfig.renderBy];
-
-                    if (!!this.renderConfig.hoverContent) {
-                        let hoverContent = this.renderConfig.hoverContent;
-
-                        hoverContent.map((h) => {
-                            tempObj[h] = r[h];
-                        });
-                    }
-
-                    let locationArr = r[this.renderConfig.xAxisField].split(
-                        ":"
-                    );
-
-                    let chr = locationArr[0].trim();
-
-                    let regionArr = locationArr[1].split("-");
-
-                    tempObj["locus"] =
-                        regionArr.length > 1
-                            ? (Number(regionArr[0].trim()) +
-                                  Number(regionArr[1].trim())) /
-                              2
-                            : Number(regionArr[0].trim());
-
-                    tempObj[this.renderConfig.yAxisField] =
-                        r[this.renderConfig.yAxisField];
-
-                    massagedData.sorted[chr].push(tempObj);
-                    massagedData.unsorted.push(tempObj);
-                }
-            });
-
-            return massagedData;
         },
     },
     watch: {
-        renderData() {
-            this.renderPlot();
+        renderData(data) {
+            //this.renderPlot();
+            let xMin = null,
+                xMax = null;
+
+            this.chr = this.plotData[0][this.renderConfig.geneTrack.chr];
+
+            this.plotData.map((d) => {
+                let xValue = Number(d[this.renderConfig.xAxisField]);
+
+                if (xMin == null) {
+                    xMin = xValue;
+                }
+                if (xMax == null) {
+                    xMax = xValue;
+                }
+
+                if (xValue < xMin) {
+                    xMin = xValue;
+                }
+                if (xValue > xMax) {
+                    xMax = xValue;
+                }
+            });
+
+            this.start = xMin;
+            this.end = xMax;
+
+            this.getGenesInRegion();
+        },
+
+        genesInRegionData(data) {
+            if (!!data && data != null) {
+                //console.log("step 1", JSON.parse(data));
+                this.renderPlot();
+            }
         },
     },
     methods: {
         ...uiUtils,
+
         hidePanel(element) {
             uiUtils.hideElement(element);
         },
         onResize(e) {
             this.renderPlot();
+        },
+        getGenesInRegion() {
+            //console.log("called");
+            let dataPoint =
+                "https://bioindex.hugeamp.org/api/bio/query/genes?q=" +
+                this.chr +
+                ":" +
+                this.start +
+                "-" +
+                this.end;
+
+            let fetchParam = { dataPoint: dataPoint, domain: "external" };
+
+            this.$store.dispatch("hugeampkpncms/getGenesInRegion", fetchParam);
         },
         getFullList(event) {
             let wrapper = document.getElementById("dot_value_full_list");
@@ -177,8 +186,6 @@ export default Vue.component("research-m-bitmap-plot", {
             var rect = e.target.getBoundingClientRect();
             var x = Math.floor(e.clientX - rect.left);
             var y = Math.floor(e.clientY - rect.top);
-            /*wrapper.style.top = y + canvas.offsetTop + "px";
-            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";*/
 
             let clickedDotValue = "";
 
@@ -301,6 +308,11 @@ export default Vue.component("research-m-bitmap-plot", {
             let wrapper = document.getElementById("clicked_dot_value");
             wrapper.classList.add("hidden");
 
+            //console.log("genes", this.genesInRegionData);
+            let genesInRegion = JSON.parse(this.genesInRegionData)[
+                "data"
+            ].filter((g) => g.source == "symbol");
+
             let canvasRenderWidth = !!this.renderConfig.width
                 ? this.renderConfig.width + this.leftMargin + this.rightMargin
                 : window.innerWidth - 115;
@@ -309,7 +321,14 @@ export default Vue.component("research-m-bitmap-plot", {
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
                 : 400;
 
-            let xBump = canvasRenderWidth * 0.02;
+            //console.log("no geneTrack", canvasRenderHeight);
+            canvasRenderHeight += !!this.renderConfig.geneTrack
+                ? 35 * genesInRegion.length
+                : 0;
+
+            //console.log("with geneTrack", canvasRenderHeight);
+
+            let xBump = canvasRenderWidth * 0.03;
             let yBump = canvasRenderHeight * 0.02;
 
             let plotWidth =
@@ -318,6 +337,8 @@ export default Vue.component("research-m-bitmap-plot", {
             let plotHeight =
                 canvasRenderHeight -
                 (this.topMargin + yBump + this.bottomMargin);
+
+            plotHeight -= !!this.renderConfig.geneTrack ? 50 : 0;
 
             let c = document.getElementById("manhattanPlot");
             c.setAttribute("width", canvasRenderWidth);
@@ -334,6 +355,7 @@ export default Vue.component("research-m-bitmap-plot", {
             // render y axis
             ctx.moveTo(this.leftMargin, this.topMargin);
             ctx.lineTo(this.leftMargin, plotHeight + this.topMargin + yBump);
+            ctx.stroke();
 
             //render x axis
             ctx.moveTo(this.leftMargin, plotHeight + this.topMargin + yBump);
@@ -341,16 +363,20 @@ export default Vue.component("research-m-bitmap-plot", {
                 plotWidth + this.leftMargin,
                 plotHeight + this.topMargin + yBump
             );
+            ctx.stroke();
 
-            // render y ticker
+            // render x & y ticker values
 
-            let yMin = null;
-            let yMax = null;
+            let yMin = null,
+                yMax = null,
+                xMin = null,
+                xMax = null;
 
-            this.renderData.unsorted.map((d) => {
-                //yAxisData.push(d[this.renderConfig.yAxisField]);
+            let chr = this.plotData[0][this.renderConfig.geneTrack.chr];
 
+            this.plotData.map((d) => {
                 let yValue = d[this.renderConfig.yAxisField];
+                let xValue = Number(d[this.renderConfig.xAxisField]);
 
                 if (yMin == null) {
                     yMin = yValue;
@@ -365,12 +391,26 @@ export default Vue.component("research-m-bitmap-plot", {
                 if (yValue > yMax) {
                     yMax = yValue;
                 }
+
+                if (xMin == null) {
+                    xMin = xValue;
+                }
+                if (xMax == null) {
+                    xMax = xValue;
+                }
+
+                if (xValue < xMin) {
+                    xMin = xValue;
+                }
+                if (xValue > xMax) {
+                    xMax = xValue;
+                }
             });
 
             let yStep = (yMax - yMin) / 4;
+            let xStep = Math.ceil((xMax - xMin) / 4);
 
-            //let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
-
+            // Y ticks
             let yTickDistance = plotHeight / 4;
             for (let i = 0; i < 5; i++) {
                 let tickYPos = this.topMargin + i * yTickDistance;
@@ -383,18 +423,42 @@ export default Vue.component("research-m-bitmap-plot", {
                 ctx.textAlign = "right";
                 ctx.fillStyle = "#000000";
 
-                let yTickText = Formatters.floatFormatter(yMin + i * yStep);
-
-                yTickText = yTickText == "-" ? 0 : yTickText;
-
                 ctx.fillText(
-                    yTickText,
+                    Formatters.floatFormatter(yMin + i * yStep),
                     this.leftMargin - 10,
                     this.topMargin + plotHeight + 5 - i * yTickDistance
                 );
             }
 
-            ctx.stroke();
+            // X ticks
+            let xTickDistance = (plotWidth - 5) / 4;
+
+            for (let i = 0; i < 5; i++) {
+                let tickXPos = this.leftMargin + i * xTickDistance + 5;
+                let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+                ctx.moveTo(adjTickXPos, this.topMargin + plotHeight + yBump);
+                ctx.lineTo(
+                    adjTickXPos,
+                    this.topMargin + plotHeight + yBump + 5
+                );
+                ctx.stroke();
+
+                ctx.font = "12px Arial";
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#000000";
+
+                ctx.fillText(
+                    xMin + i * xStep,
+                    adjTickXPos,
+                    this.topMargin + plotHeight + yBump + 15
+                );
+            }
+
+            let xStart = this.leftMargin + 5;
+            let yStart = this.topMargin;
+            let xPosByPixel = (plotWidth - 5) / (xMax - xMin);
+
+            let yPosByPixel = plotHeight / (yMax - yMin);
 
             //Render y axis label
             ctx.font = "14px Arial";
@@ -407,114 +471,92 @@ export default Vue.component("research-m-bitmap-plot", {
                 this.leftMargin - this.leftMargin / 2 - 14
             );
 
-            let dnaLength = 0;
-
-            //get list of chrs with variants
-            let chrs = Object.keys(this.renderData.sorted).filter(
-                (key) => this.renderData.sorted[key].length > 0
-            );
-
-            // compare length of chromosomes in the data to the defalt
-
-            chrs.map((chr) => {
-                let chrLength = 0;
-                this.renderData.sorted[chr].map((v) => {
-                    chrLength = v.locus > chrLength ? v.locus : chrLength;
-                });
-
-                this.chromosomeLength[chr] =
-                    chrLength > this.chromosomeLength[chr]
-                        ? chrLength
-                        : this.chromosomeLength[chr];
-            });
-
-            chrs.map((chr) => {
-                dnaLength += this.chromosomeLength[chr];
-            });
-
-            let chrByPixel = plotWidth / dnaLength;
-
-            let xStart = this.leftMargin;
-            ctx.textAlign = "center";
-            ctx.rotate((Math.PI * 2) / 4);
-
-            chrs.map((chr) => {
-                let chrLength = this.chromosomeLength[chr] * chrByPixel;
-                xStart += chrLength;
-                let chrPos = xStart - chrLength / 2;
-
-                ctx.fillText(
-                    chr,
-                    chrPos,
-                    this.topMargin + plotHeight + yBump + 14
-                );
-
-                //console.log("step 2", chr);
-            });
-
             //Render x axis label
-
-            ctx.fillText(
+            ctx.rotate((-(Math.PI * 2) / 4) * 3);
+            /*ctx.fillText(
                 this.renderConfig.xAxisLabel,
                 plotWidth / 2 + this.leftMargin,
-                this.topMargin + plotHeight + yBump + 44
+                canvasRenderHeight - 5
             );
+            */
 
-            //Render Dots
+            this.plotData.map((g) => {
+                let xPos =
+                    xStart +
+                    xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
 
-            xStart = 0;
-            let exChr = "";
-            let chrNum = 1;
+                let yPos =
+                    yStart +
+                    plotHeight -
+                    yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
 
-            chrs.map((chr) => {
-                this.renderData.sorted[chr].map((g) => {
-                    let xPos =
-                        (xStart + g.locus) * chrByPixel + this.leftMargin;
+                let dotColor = "#00000020";
 
-                    let yPosByPixel = plotHeight / (yMax - yMin);
+                ctx.fillStyle = dotColor;
 
-                    let yPos =
-                        this.topMargin +
-                        plotHeight -
-                        (g[this.renderConfig.yAxisField] - yMin) * yPosByPixel;
+                ctx.lineWidth = 0;
+                ctx.beginPath();
+                ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                ctx.fill();
 
-                    let dotColor = this.chromosomeColors[
-                        chrNum % this.chromosomeColors.length
-                    ];
+                let xLoc = xPos.toString().split(".")[0];
+                let yLoc = yPos.toString().split(".")[0];
 
-                    ctx.fillStyle = dotColor + "75";
+                //console.log(g[this.renderConfig.renderBy]);
 
-                    ctx.lineWidth = 0;
-                    ctx.beginPath();
-                    ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
-                    ctx.fill();
+                let hoverContent;
 
-                    let xLoc = xPos.toString().split(".")[0];
-                    let yLoc = yPos.toString().split(".")[0];
+                if (!!this.renderConfig.hoverContent) {
+                    hoverContent = this.renderConfig.hoverContent;
+                }
 
-                    let hoverContent;
+                if (!this.dotPosData[xLoc]) {
+                    this.dotPosData[xLoc] = {};
+                }
+                this.dotPosData[xLoc][yLoc] = {};
+                this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
+                    g[this.renderConfig.renderBy];
+                if (!!this.renderConfig.hoverContent) {
+                    hoverContent.map((h) => {
+                        this.dotPosData[xLoc][yLoc][h] = g[h];
+                    });
+                }
+            });
 
-                    if (!!this.renderConfig.hoverContent) {
-                        hoverContent = this.renderConfig.hoverContent;
-                    }
+            let geneCtx = c.getContext("2d");
+            geneCtx.beginPath();
 
-                    if (!this.dotPosData[xLoc]) {
-                        this.dotPosData[xLoc] = {};
-                    }
-                    this.dotPosData[xLoc][yLoc] = {};
-                    this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
-                        g[this.renderConfig.renderBy];
-                    if (!!this.renderConfig.hoverContent) {
-                        hoverContent.map((h) => {
-                            this.dotPosData[xLoc][yLoc][h] = g[h];
-                        });
-                    }
-                });
-                //if (chr != 1) {
-                xStart += this.chromosomeLength[chr];
-                //}
-                //exChr = chr;
-                chrNum++;
+            let gIndex = 0,
+                aboveGenesTrack =
+                    this.topMargin + plotHeight + yBump + 15 + 5 + 12;
+
+            genesInRegion.map((gene) => {
+                let gStart = gene.start <= xMin ? xMin : gene.start;
+                let gEnd = gene.end >= xMax ? xMax : gene.end;
+
+                let txtXPos =
+                    xStart +
+                    xPosByPixel *
+                        (gStart + Math.ceil((gEnd - gStart) / 2) - xMin);
+
+                let txtYPos = aboveGenesTrack + 15 * gIndex;
+
+                let startPos = xStart + xPosByPixel * (gStart - xMin);
+                let endPos = xStart + xPosByPixel * (gEnd - xMin);
+
+                geneCtx.font = "italic 11px Arial";
+                geneCtx.textAlign = "center";
+                geneCtx.fillStyle = "#0000FF";
+                geneCtx.fillText(gene.name, txtXPos, txtYPos);
+
+                //ctx.beginPath();
+                geneCtx.lineWidth = 1;
+                geneCtx.strokeStyle = "#0000FF";
+                geneCtx.moveTo(startPos, txtYPos + 5);
+                geneCtx.lineTo(endPos, txtYPos + 5);
+                geneCtx.stroke();
+
+                gIndex++;
             });
         },
     },

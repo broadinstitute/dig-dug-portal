@@ -14,6 +14,7 @@ export default {
             researchMethod: [],
             researchMenu: [],
             researchData: [],
+            genesInRegion: [],
         };
     },
 
@@ -33,6 +34,9 @@ export default {
         },
         setResearchData(state, data) {
             state.researchData = data;
+        },
+        setGenesInRegion(state, data) {
+            state.genesInRegion = data;
         },
     },
 
@@ -87,6 +91,13 @@ export default {
             //console.log(csv);
 
             context.commit("setResearchData", csv);
+        },
+        async getGenesInRegion(context, param) {
+
+            let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
+            let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+
+            context.commit("setGenesInRegion", genes);
         },
     }
 };

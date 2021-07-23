@@ -23,18 +23,32 @@ export default new Vuex.Store({
     },
     state: {
         filteredData: "",
+        genesInRegion: "",
+        bioIndexContinue: [],
     },
     mutations: {
         setFilteredData(state, data) {
             //console.log("called 2");
             state.filteredData = data;
         },
+        setGenesInRegion(state, data) {
+            //console.log("called 2");
+            state.genesInRegion = data;
+        },
+        setBioIndexContinue(state, data) {
+            state.bioIndexContinue.push(data);
+        },
     },
     getters: {},
     actions: {
         filteredData(context, filtered) {
-            //console.log("called 1");
             context.commit("setFilteredData", filtered);
         },
+        genesInRegion(context, genes) {
+            context.commit("setGenesInRegion", genes);
+        },
+        bioIndexContinue(context, moreData) {
+            context.commit("setBioIndexContinue", moreData);
+        }
     }
 });

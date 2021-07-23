@@ -142,6 +142,7 @@ export default Vue.component("research-data-table", {
             }
         },
         pagedData() {
+            //console.log(this.dataset);
             if (!!this.perPageNumber && this.perPageNumber != null) {
                 let rawData = this.dataset;
                 let formattedData = [];
@@ -221,6 +222,8 @@ export default Vue.component("research-data-table", {
                 formatTypes.map((type) => {
                     if (type == "scientific notation") {
                         cellValue = Formatters.pValueFormatter(tdValue);
+
+                        cellValue = cellValue == "-" ? 0 : cellValue;
                     }
 
                     if (type == "link") {

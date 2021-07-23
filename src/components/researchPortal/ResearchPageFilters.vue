@@ -1,9 +1,52 @@
 <template>
     <div>
-        <div class="filtering-ui-wrapper">
+        <h4 class="card-title" v-if="this.apiParameters != null">
+            Build search criteria
+        </h4>
+        <div class="filtering-ui-wrapper" v-if="this.apiParameters != null">
             <div class="filtering-ui-content row">
                 <div
                     class="col"
+                    v-for="parameter in this.apiParameters.parameters"
+                    :key="parameter.parameter"
+                >
+                    <div class="label" v-html="parameter.label"></div>
+                    <select
+                        :id="'search_param_' + parameter.parameter"
+                        class="custom-select"
+                        v-if="parameter.type == 'list'"
+                    >
+                        <option
+                            v-for="param in parameter.values"
+                            :value="param.trim()"
+                            v-html="getFileLabel(param.trim())"
+                            :key="param.trim()"
+                        ></option>
+                    </select>
+                    <input
+                        v-if="parameter.type == 'input'"
+                        type="text"
+                        class="form-control"
+                        :id="'search_param_' + parameter.parameter"
+                    />
+                </div>
+                <div class="col">
+                    <div @click="queryAPI()" class="btn btn-sm btn-primary">
+                        Search
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div
+            class="filtering-ui-wrapper"
+            v-if="
+                (!!this.dataset && !!this.filters && this.filters.length > 1) ||
+                (!!this.dataFiles && this.dataFiles.length > 1)
+            "
+        >
+            <div class="filtering-ui-content row">
+                <div
+                    :class="getFilterWidthClasses()"
                     v-if="!!this.dataFiles && this.dataFiles.length > 1"
                 >
                     <div class="label">Select data</div>
@@ -21,7 +64,7 @@
                     </select>
                 </div>
                 <div
-                    class="col"
+                    :class="getFilterWidthClasses()"
                     v-for="filter in this.filters"
                     :key="filter.field"
                 >
@@ -126,13 +169,17 @@
 import Vue from "vue";
 
 import uiUtils from "@/utils/uiUtils";
+import keyParams from "@/utils/keyParams";
 
 export default Vue.component("research-page-filters", {
     props: [
+        "apiParameters",
         "dataFiles",
+        "dataType",
         "filesListLabels",
         "uid",
         "filters",
+        "filterWidth",
         "dataset",
         "unfilteredDataset",
     ],
@@ -155,12 +202,35 @@ export default Vue.component("research-page-filters", {
             });
         }
     },
+    mounted() {
+        if (
+            this.apiParameters != null &&
+            this.apiParameters.query.type == "array"
+        ) {
+            let parametersArr = this.apiParameters.query.format;
+
+            parametersArr.map((param, index) => {
+                //console.log(param, index);
+                if (keyParams[param] != undefined) {
+                    document.getElementById("search_param_" + param).value =
+                        keyParams[param];
+                }
+            });
+        }
+    },
     comuted: {},
     watch: {},
     methods: {
         ...uiUtils,
         getLength(ARR) {
             return Number(ARR.length);
+        },
+        getFilterWidthClasses() {
+            let classes =
+                !!this.filterWidth && this.filterWidth != null
+                    ? "col filter-col-" + this.filterWidth
+                    : "col";
+            return classes;
         },
         getFileLabel(file) {
             if (this.filesListLabels != null) {
@@ -169,8 +239,47 @@ export default Vue.component("research-page-filters", {
                 return file;
             }
         },
+
+        showDataLoad(callback) {
+            console.log("called");
+            callback();
+        },
+        queryAPI() {
+            uiUtils.showElement("data-loading-indicator");
+
+            this.$store.state.bioIndexContinue = [];
+
+            console.log(this.$store.state.bioIndexContinue);
+
+            let queryParams = "";
+            if (this.apiParameters.query.type == "array") {
+                let parametersArr = this.apiParameters.query.format;
+
+                parametersArr.map((param, index) => {
+                    console.log(param, index);
+                    queryParams += document.getElementById(
+                        "search_param_" + param
+                    ).value;
+                    if (index + 1 < parametersArr.length) {
+                        queryParams += ",";
+                    }
+                });
+            }
+
+            let APIPoint = this.dataFiles[0];
+            if (this.dataType == "bioindex") {
+                APIPoint +=
+                    "query/" +
+                    this.apiParameters.query.index +
+                    "?q=" +
+                    queryParams;
+            }
+
+            let fetchParam = { dataPoint: APIPoint, domain: "external" };
+
+            this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+        },
         switchData(event) {
-            //console.log(event.target.value);
             uiUtils.showElement("data-loading-indicator");
             let initialData = event.target.value;
 

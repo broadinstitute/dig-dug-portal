@@ -19,7 +19,7 @@
         ></div>
         <canvas
             v-if="!!renderConfig"
-            id="manhattanPlot"
+            id="scorePlot"
             @mouseleave="hidePanel"
             @mousemove="checkPosition"
             @resize="onResize"
@@ -45,7 +45,7 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-m-bitmap-plot", {
+export default Vue.component("research-score-plot", {
     props: ["plotData", "renderConfig", "filtersIndex"],
     data() {
         return {
@@ -171,7 +171,7 @@ export default Vue.component("research-m-bitmap-plot", {
         },
         getFullList(event) {
             let wrapper = document.getElementById("dot_value_full_list");
-            let canvas = document.getElementById("manhattanPlot");
+            let canvas = document.getElementById("scorePlot");
             wrapper.classList.remove("hidden");
             let e = event;
             var rect = e.target.getBoundingClientRect();
@@ -215,20 +215,18 @@ export default Vue.component("research-m-bitmap-plot", {
 
             if (clickedDotValue != "") {
                 contentWrapper.innerHTML = clickedDotValue;
-                document.getElementById("manhattanPlot").classList.add("hover");
+                document.getElementById("scorePlot").classList.add("hover");
                 document
                     .getElementById("clicked_dot_value")
                     .classList.add("hidden");
             } else {
                 wrapper.classList.add("hidden");
-                document
-                    .getElementById("manhattanPlot")
-                    .classList.remove("hover");
+                document.getElementById("scorePlot").classList.remove("hover");
             }
         },
         checkPosition(event) {
             let wrapper = document.getElementById("clicked_dot_value");
-            let canvas = document.getElementById("manhattanPlot");
+            let canvas = document.getElementById("scorePlot");
             wrapper.classList.remove("hidden");
             let e = event;
             var rect = e.target.getBoundingClientRect();
@@ -287,12 +285,10 @@ export default Vue.component("research-m-bitmap-plot", {
             if (clickedDotValue != "") {
                 contentWrapper.innerHTML = clickedDotValue;
 
-                document.getElementById("manhattanPlot").classList.add("hover");
+                document.getElementById("scorePlot").classList.add("hover");
             } else {
                 wrapper.classList.add("hidden");
-                document
-                    .getElementById("manhattanPlot")
-                    .classList.remove("hover");
+                document.getElementById("scorePlot").classList.remove("hover");
             }
         },
         renderPlot() {
@@ -319,7 +315,7 @@ export default Vue.component("research-m-bitmap-plot", {
                 canvasRenderHeight -
                 (this.topMargin + yBump + this.bottomMargin);
 
-            let c = document.getElementById("manhattanPlot");
+            let c = document.getElementById("scorePlot");
             c.setAttribute("width", canvasRenderWidth);
             c.setAttribute("height", canvasRenderHeight);
             let ctx = c.getContext("2d");

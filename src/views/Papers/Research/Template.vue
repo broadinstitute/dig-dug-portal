@@ -109,14 +109,14 @@
                                 class="col-md-12"
                                 v-html="$parent.pageDescription"
                             ></div>
-
                             <div
                                 class="col-md-12"
                                 v-if="
                                     ($parent.dataFilters != null &&
                                         $parent.researchData != null &&
                                         $store.state.filteredData != '') ||
-                                    $parent.dataFiles.length > 1
+                                    $parent.dataFiles.length > 1 ||
+                                    $parent.apiParameters != null
                                 "
                             >
                                 <research-page-filters
@@ -126,8 +126,11 @@
                                             ? $parent.dataFilesLabels
                                             : null
                                     "
+                                    :apiParameters="$parent.apiParameters"
+                                    :dataType="$parent.dataType"
                                     :uid="$parent.uid"
                                     :filters="$parent.dataFilters"
+                                    :filterWidth="$parent.filterWidth"
                                     :dataset="$store.state.filteredData"
                                     :unfilteredDataset="$parent.researchData"
                                 ></research-page-filters>
@@ -168,6 +171,26 @@
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
                                 ></research-m-bitmap-plot>
+                                <research-region-plot
+                                    v-if="
+                                        $store.state.filteredData != '' &&
+                                        $parent.plotType == 'region_plot'
+                                    "
+                                    :genesInRegion="$store.state.genesInRegion"
+                                    :plotData="$store.state.filteredData"
+                                    :renderConfig="$parent.plotConfig"
+                                    :filtersIndex="$store.state.filtersIndex"
+                                ></research-region-plot>
+
+                                <research-score-plot
+                                    v-if="
+                                        $store.state.filteredData != '' &&
+                                        $parent.plotType == 'score_plot'
+                                    "
+                                    :plotData="$store.state.filteredData"
+                                    :renderConfig="$parent.plotConfig"
+                                    :filtersIndex="$store.state.filtersIndex"
+                                ></research-score-plot>
 
                                 <research-volcano-plot
                                     v-if="
@@ -216,7 +239,7 @@
             </div>
             <div
                 class="data-loading-indicator"
-                v-if="$parent.dataPoints != false"
+                v-if="$parent.dataPoints != false && $parent.isAPI == false"
             >
                 Loading data...
             </div>
