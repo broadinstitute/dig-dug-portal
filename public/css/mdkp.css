@@ -76,6 +76,24 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
+.front-top-banner-alskp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/alskp_front_bg.png),
+        linear-gradient(#5EB9E9, #4967B0);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-nephkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/nephkp_front_bg.png),
+        linear-gradient(#39BBED, #59BE86);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-nagekp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/nagekp_front_bg.png),
+        linear-gradient(#39BBED, #59BE86);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
@@ -123,6 +141,18 @@ a:hover {
 
 .front-top-banner-mskkp .front-logo-img {
     width: 470px;
+}
+
+.front-top-banner-alskp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-nephkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-nagekp .front-logo-img {
+    width: 430px;
 }
 
 .front-banner-btn {
@@ -175,6 +205,18 @@ a:hover {
 
 .front-logo-tagline-lungkp {
     transform: translate(0%, 85%);
+}
+
+.front-logo-tagline-alskp {
+    transform: translate(0%, 20%);
+}
+
+.front-logo-tagline-nephkp {
+    transform: translate(0%, 20%);
+}
+
+.front-logo-tagline-nagekp {
+    transform: translate(0%, 20%);
 }
 
 .front-banner-ui-tabs {
@@ -261,6 +303,18 @@ a:hover {
     height: 50px;
 }
 
+.alskp-logo {
+    height: 50px;
+}
+
+.nephkp-logo {
+    height: 50px;
+}
+
+.nagekp-logo {
+    height: 50px;
+}
+
 .mdkp-header,
 .mdkp-footer {
     background-color: #0097d6;
@@ -312,6 +366,24 @@ a:hover {
 .lungkp-header,
 .lungkp-footer {
     background-color: #7accc8;
+    height: 50px;
+}
+
+.alskp-header,
+.alskp-footer {
+    background-color: #5EB9E9;
+    height: 50px;
+}
+
+.nephkp-header,
+.nephkp-footer {
+    background-color: #39BBED;
+    height: 50px;
+}
+
+.nagekp-header,
+.nagekp-footer {
+    background-color: #39BBED;
     height: 50px;
 }
 
@@ -404,7 +476,10 @@ a:hover {
 .v2fkp-footer,
 .t1dkp-footer,
 .mskkp-footer,
-.lungkp-footer {
+.lungkp-footer,
+.alskp-footer,
+.nephkp-footer,
+.nagekp-footer  {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -420,7 +495,10 @@ a:hover {
 .v2fkp-body,
 .t1dkp-body,
 .mskkp-body,
-.lungkp-body {
+.lungkp-body,
+.alskp-body,
+.nephkp-body,
+.nagekp-body {
     background-color: #eee;
     min-height: 400px;
     padding-top: 10px;
@@ -434,7 +512,10 @@ a:hover {
 .v2fkp-card,
 .t1dkp-card,
 .mskkp-card,
-.lungkp-card {
+.lungkp-card,
+.alskp-card,
+.nephkp-card,
+.nagekp-card {
     margin-top: 10px;
     margin-bottom: 10px;
     min-width: 1024px !important;
