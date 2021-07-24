@@ -78,9 +78,11 @@
 
                                     <div style="padding:10px 250px 10px 250px">
                                         <br />
-                                        HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                                        $parent.bayesFactorCommonVariation,
-                                        $parent.bayesFactorRareVariation))}} evidence scale
+                                        <span style="padding:10px 310px 10px 310px">
+                                            HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
+                                            $parent.bayesFactorCommonVariation,
+                                            $parent.bayesFactorRareVariation))}} evidence scale
+                                        </span>
                                         <color-bar-plot
                                             v-if="$parent.bayesFactorRareVariation"
                                             :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
