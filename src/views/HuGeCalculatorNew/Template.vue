@@ -78,7 +78,9 @@
 
                                     <div style="padding:10px 250px 10px 250px">
                                         <br />
-                                        <span style="padding:10px 310px 10px 310px">
+                                        <span
+                                            style="padding:10px 310px 10px 310px; font-weight:bold"
+                                        >
                                             HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
                                             $parent.bayesFactorCommonVariation,
                                             $parent.bayesFactorRareVariation))}} evidence scale
@@ -94,7 +96,10 @@
                                                                 $parent.bayesFactorRareVariation)"
                                         ></color-bar-plot>
                                     </div>
-                                    <div style="margin-block-end: 30px"></div>
+                                    <div style="margin-block-end: 50px"></div>
+                                    <div class="divider">Posterior probability
+                                        <!-- <div class="arrow-side"></div> -->
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-8">
                                             <hugecal-table></hugecal-table>
@@ -599,7 +604,17 @@
     /*height: 40px;*/
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-bottom: 10px solid black;
+    border-bottom: 10px solid rgb(195, 21, 21);
+    animation: moveright 1s alternate 1s;
+    margin-left: auto;
+    margin-right: auto;
+}
+.arrow-side {
+    width: 0;
+    /*height: 40px;*/
+    border-left: 10px solid transparent;
+    border-bottom: 0px solid transparent;
+    border-top: 10px solid black;
     animation: moveright 1s alternate 1s;
     margin-left: auto;
     margin-right: auto;
@@ -655,32 +670,6 @@
 #rareVariation .variationNoEvidence {
     background-color: #ebe8de;
 }
-/*
-#combinedVariation .variationCausal {
-    background-color: rgb(20, 110, 103);
-}
-#combinedVariation .variationStrong {
-    background-color: rgb(39, 148, 139);
-}
-#combinedVariation .variationModerate {
-    background-color: rgb(48, 175, 164);
-}
-#combinedVariation .variationPossible {
-    background-color: rgb(69, 192, 182);
-}
-#combinedVariation .variationPotential {
-    background-color: rgb(78, 209, 198);
-}
-#combinedVariation .variationWeak {
-    background-color: rgb(120, 228, 219);
-}
-#combinedVariation .variationEquivocal {
-    background-color: rgb(144, 235, 227);
-}
-#combinedVariation .variationNoEvidence {
-    background-color: rgb(200, 243, 239);
-}
-*/
 
 #combinedVariation .variationCausal {
     background-color: rgba(48, 175, 164, 1);
@@ -708,72 +697,9 @@
     background-color: rgba(48, 175, 164, 0.1);
 }
 
-/* arrow distance */
-/*
-.causalclass {
-    position: absolute;
-    left: 70px;
+.divider {
+    border-bottom: 1px solid black;
+    margin-block-end: 30px;
+    font-weight: bold;
 }
-.strongclass {
-    position: absolute;
-    left: 160px;
-}
-.moderateclass {
-    position: absolute;
-    left: 280px;
-}
-.possibleclass {
-    position: absolute;
-    left: 360px;
-}
-
-.potentialclass {
-    position: absolute;
-    left: 480px;
-}
-.weakclass {
-    position: absolute;
-    left: 580px;
-}
-.equivocalclass {
-    position: absolute;
-    left: 680px;
-}
-.noEvidenceclass {
-    position: absolute;
-    left: 780px;
-}
-}*/
-
-/* rare arrow distance */
-/*
-.rarecausalclass {
-    position: absolute;
-    left: 1020px;
-}
-.rarestrongclass {
-    position: absolute;
-    left: 1120;
-}
-.raremoderateclass {
-    position: absolute;
-    left: 1220px;
-}
-.rarepossibleclass {
-    position: absolute;
-    left: 1320px;
-}
-
-.rarepotentialclass {
-    position: absolute;
-    left: 1420px;
-}
-.rareweakclass {
-    position: relative;
-    left: 1020px;
-}
-.rarenoEvidenceclass {
-    position: absolute;
-    left: 1620px;
-}*/
 </style>
