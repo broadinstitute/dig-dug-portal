@@ -51,14 +51,15 @@
                         <div>
                             <div class="card mdkp-card">
                                 <div class="card-body">
-                                    <span class="lead">
+                                    <span class="lead" style="font-size: 12px;">
+                                        *BF=Bayes Factor
                                         <div
                                             class="row"
                                             id="suggestionBox"
                                             style="color: #8fb512; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #dae8ac; padding:5px 5px 5px 5px"
                                         >
                                             <div class="col-md-8">
-                                                Combined Evidence
+                                                HuGe Score(Combined Evidence)
                                                 <tooltip-documentation
                                                     name="hugecal.combined.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
