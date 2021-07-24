@@ -72,8 +72,39 @@
                                                 $parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)
                                                 }}
                                             </div>
-                                        </div>
+                                        </div>*HuGe Score(combined evidence) = BF of common variation * BF of rare variation
                                     </span>
+                                    <div style="margin-block-end: 60px"></div>
+                                    <div>
+                                        <br />
+                                        <color-bar-plot
+                                            v-if="$parent.bayesFactorRareVariation"
+                                            :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation))"
+                                            :elementid="'combinedVariation'"
+                                            :score=" $parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation)"
+                                        ></color-bar-plot>
+                                    </div>
+                                    <div style="margin-block-end: 30px"></div>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <hugecal-table></hugecal-table>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <posterior-probability-plot
+                                                v-if="$parent.geneAssociations52k"
+                                                :geneAssociationsData=" $parent.geneAssociations52k"
+                                                :priorVariance="this.$store.state.prior"
+                                                :bayes_factor="$parent.bayesFactorCombinedEvidence(
+                                                        $parent.bayesFactorCommonVariation,
+                                                        $parent.bayesFactorRareVariation)"
+                                                :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
+                                            ></posterior-probability-plot>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <!-- <div class="card mdkp-card">
