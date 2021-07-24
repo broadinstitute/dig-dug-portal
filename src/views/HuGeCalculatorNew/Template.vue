@@ -75,8 +75,12 @@
                                         </div>*HuGe Score(combined evidence) = BF of common variation * BF of rare variation
                                     </span>
                                     <div style="margin-block-end: 60px"></div>
-                                    <div>
+
+                                    <div style="padding:10px 250px 10px 250px">
                                         <br />
+                                        HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
+                                        $parent.bayesFactorCommonVariation,
+                                        $parent.bayesFactorRareVariation))}} evidence scale
                                         <color-bar-plot
                                             v-if="$parent.bayesFactorRareVariation"
                                             :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
