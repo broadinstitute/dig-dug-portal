@@ -20,6 +20,7 @@ import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
 import { query } from "@/utils/bioIndexUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
+import HugeCalTable from "@/components/HugeCalTable.vue";
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
@@ -47,7 +48,8 @@ new Vue({
         RareColorBarPlot,
         PosteriorProbabilityPlot,
         LocusZoom,
-        MaskTable
+        MaskTable,
+        HugeCalTable
     },
     render(createElement, context) {
         return createElement(Template);
