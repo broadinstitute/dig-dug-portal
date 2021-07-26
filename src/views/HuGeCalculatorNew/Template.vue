@@ -104,9 +104,10 @@
                                     <div class="row">
                                         <div class="col-md-8">
                                             <hugecal-table
-                                                :hugeScore="$parent.bayesFactorCombinedEvidence(
+                                                style="padding:30px 250px 30px 250px"
+                                                :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation)"
+                                                                $parent.bayesFactorRareVariation))"
                                             ></hugecal-table>
                                         </div>
                                         <div class="col-md-4">

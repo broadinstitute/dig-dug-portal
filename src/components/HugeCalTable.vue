@@ -7,9 +7,7 @@
             </template>
 
             <!-- A virtual composite column -->
-            <template
-                #cell(suggestedPrior)="data"
-            >{{ data.item.suggestedPrior }} is {{ data.item.huGeScore}} years old</template>
+            <template #cell(suggestedPrior)="data">{{ data.item.suggestedPrior }}</template>
 
             <!-- Optional default data cell scoped slot -->
             <template #cell(posteriorProbability)="data">
@@ -28,6 +26,7 @@ import Autocomplete from "@/components/Autocomplete.vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
+import Formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -55,18 +54,22 @@ export default Vue.component("hugecal-table", {
                 // A regular column
                 { key: "huGeScore", label: "HuGe Score" },
                 // A virtual column made up from two fields
-                { key: "posteriorProbability", label: "Posterior probability" }
+                {
+                    key: "posteriorProbability",
+                    label: "Posterior probability",
+                    formatter: this.pValueFormatter
+                }
             ],
             items: [
                 {
                     suggestedPrior: 0.2,
                     huGeScore: this.hugeScore,
-                    posteriorProbability: 42
+                    posteriorProbability: this.posteriorProbability(0.2)
                 },
                 {
                     suggestedPrior: 0.05,
                     huGeScore: this.hugeScore,
-                    posteriorProbability: 36
+                    posteriorProbability: this.posteriorProbability(0.05)
                 },
 
                 {
@@ -78,6 +81,17 @@ export default Vue.component("hugecal-table", {
         };
     },
     computed: {},
-    methods: {}
+    methods: {
+        pValueFormatter(pValue) {
+            return Formatters.pValueFormatter(pValue);
+        },
+        posteriorProbability(p) {
+            let bayes_factor = this.hugeScore; //combined bayes factor
+            let f5 = p / (1 - p);
+            let p0 = bayes_factor * f5;
+            let ppa = p0 / (1 + p0);
+            return ppa;
+        }
+    }
 });
 </script>
