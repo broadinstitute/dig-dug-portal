@@ -1,20 +1,19 @@
 <template>
     <div>
         <b-table small :fields="fields" :items="items" responsive="sm">
-            <!-- A custom formatted column -->
-            <template #cell(name)="data">
-                <b class="text-info">{{ data.value.last.toUpperCase() }}</b>,
-                <b>{{ data.value.first }}</b>
+            A custom formatted column
+            <template #cell(huGeScore)="data">
+                <b class="text-info">{{ data.item.huGeScore }}</b>
             </template>
 
             <!-- A virtual composite column -->
             <template
-                #cell(nameage)="data"
-            >{{ data.item.name.first }} is {{ data.item.age }} years old</template>
+                #cell(suggestedPrior)="data"
+            >{{ data.item.suggestedPrior }} is {{ data.item.huGeScore}} years old</template>
 
             <!-- Optional default data cell scoped slot -->
-            <template #cell()="data">
-                <i>{{ data.value }}</i>
+            <template #cell(posteriorProbability)="data">
+                <i>{{ data.item.posteriorProbability }}</i>
             </template>
         </b-table>
     </div>
@@ -37,7 +36,13 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 Vue.component("autocomplete", Autocomplete);
 
 export default Vue.component("hugecal-table", {
-    props: [],
+    props: {
+        hugeScore: {
+            type: Number,
+            required: true,
+            default: 0.6
+        }
+    },
 
     data() {
         return {
@@ -53,21 +58,21 @@ export default Vue.component("hugecal-table", {
                 { key: "posteriorProbability", label: "Posterior probability" }
             ],
             items: [
-                { name: { first: "John", last: "Doe" }, sex: "Male", age: 42 },
                 {
-                    name: { first: "Jane", last: "Doe" },
-                    sex: "Female",
-                    age: 36
+                    suggestedPrior: 0.2,
+                    huGeScore: this.hugeScore,
+                    posteriorProbability: 42
                 },
                 {
-                    name: { first: "Rubin", last: "Kincade" },
-                    sex: "Male",
-                    age: 73
+                    suggestedPrior: 0.05,
+                    huGeScore: this.hugeScore,
+                    posteriorProbability: 36
                 },
+
                 {
-                    name: { first: "Shirley", last: "Partridge" },
-                    sex: "Female",
-                    age: 62
+                    suggestedPrior: 0.04,
+                    huGeScore: this.hugeScore,
+                    posteriorProbability: 62
                 }
             ]
         };

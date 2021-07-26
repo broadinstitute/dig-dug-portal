@@ -103,7 +103,11 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-md-8">
-                                            <hugecal-table></hugecal-table>
+                                            <hugecal-table
+                                                :hugeScore="$parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation)"
+                                            ></hugecal-table>
                                         </div>
                                         <div class="col-md-4">
                                             <posterior-probability-plot
