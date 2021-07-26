@@ -1,18 +1,14 @@
 <template>
     <div>
         <b-table small :fields="fields" :items="items" responsive="sm">
-            A custom formatted column
-            <template #cell(huGeScore)="data">
-                <b class="text-info">{{ data.item.huGeScore }}</b>
+            <template slot="bottom-row" slot-scope="data">
+                <td>
+                    <input type="number" placeholder="Prior Variance" id="prior_input" />
+                </td>
             </template>
-
-            <!-- A virtual composite column -->
-            <template #cell(suggestedPrior)="data">{{ data.item.suggestedPrior }}</template>
-
-            <!-- Optional default data cell scoped slot -->
-            <template #cell(posteriorProbability)="data">
-                <i>{{ data.item.posteriorProbability }}</i>
-            </template>
+        </b-table>
+    </div>
+</template>
         </b-table>
     </div>
 </template>
@@ -71,11 +67,10 @@ export default Vue.component("hugecal-table", {
                     huGeScore: this.hugeScore,
                     posteriorProbability: this.posteriorProbability(0.05)
                 },
-
                 {
-                    suggestedPrior: 0.04,
+                    suggestedPrior: 0.3696,
                     huGeScore: this.hugeScore,
-                    posteriorProbability: 62
+                    posteriorProbability: this.posteriorProbability(0.3696)
                 }
             ]
         };
