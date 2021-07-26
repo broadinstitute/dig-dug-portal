@@ -25,6 +25,7 @@ import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
 import MaskTable from "@/components/MaskTable";
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 
 import jsonQuery from "json-query";
 
@@ -49,7 +50,8 @@ new Vue({
         PosteriorProbabilityPlot,
         LocusZoom,
         MaskTable,
-        HugeCalTable
+        HugeCalTable,
+        LocusZoomAssociationsPanel
     },
     render(createElement, context) {
         return createElement(Template);

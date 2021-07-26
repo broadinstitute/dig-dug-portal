@@ -1,9 +1,6 @@
 <template>
     <div>
         <b-table small :fields="fields" :items="items" responsive="sm">
-            <!-- A virtual column -->
-            <template #cell(index)="data">{{ data.index + 1 }}</template>
-
             <!-- A custom formatted column -->
             <template #cell(name)="data">
                 <b class="text-info">{{ data.value.last.toUpperCase() }}</b>,
@@ -46,15 +43,14 @@ export default Vue.component("hugecal-table", {
         return {
             fields: [
                 // A virtual column that doesn't exist in items
-                "index",
+
                 // A column that needs custom formatting
-                { key: "name", label: "Full Name" },
+                { key: "suggestedPrior", label: "Suggested prior" },
+
                 // A regular column
-                "age",
-                // A regular column
-                "sex",
+                { key: "huGeScore", label: "HuGe Score" },
                 // A virtual column made up from two fields
-                { key: "nameage", label: "First name and age" }
+                { key: "posteriorProbability", label: "Posterior probability" }
             ],
             items: [
                 { name: { first: "John", last: "Doe" }, sex: "Male", age: 42 },

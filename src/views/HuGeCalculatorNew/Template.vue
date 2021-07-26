@@ -58,7 +58,7 @@
                                             id="suggestionBox"
                                             style="color: #8fb512; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #dae8ac; padding:5px 5px 5px 5px"
                                         >
-                                            <div class="col-md-8">
+                                            <div class="col-md-6">
                                                 HuGe Score(Combined Evidence)
                                                 <tooltip-documentation
                                                     name="hugecal.combined.tooltip.hover"
@@ -67,7 +67,7 @@
                                                     :noIcon="false"
                                                 ></tooltip-documentation>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 {{$parent.bayesFactorCommonVariation}}(Common variation BF) * {{$parent.bayesFactorRareVariation}}(Rare variation BF) = {{
                                                 $parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)
                                                 }}
@@ -79,7 +79,7 @@
                                     <div style="padding:10px 250px 10px 250px">
                                         <br />
                                         <span
-                                            style="padding:10px 310px 10px 310px; font-weight:bold"
+                                            style="padding:10px 290px 10px 310px; font-weight:bold"
                                         >
                                             HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
                                             $parent.bayesFactorCommonVariation,
@@ -97,7 +97,8 @@
                                         ></color-bar-plot>
                                     </div>
                                     <div style="margin-block-end: 50px"></div>
-                                    <div class="divider">Posterior probability
+                                    <div class="divider">
+                                        Posterior probability
                                         <!-- <div class="arrow-side"></div> -->
                                     </div>
                                     <div class="row">

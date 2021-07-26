@@ -57,10 +57,6 @@ export default Vue.component("color-bar-plot", {
             type: String,
             required: true,
             default: "NO"
-        },
-        score: {
-            type: Number,
-            reuired: false
         }
     },
 
