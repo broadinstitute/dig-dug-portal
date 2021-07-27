@@ -3,16 +3,19 @@
         <b-table small :fields="fields" :items="items" responsive="sm">
             <template slot="bottom-row" slot-scope="data">
                 <td>
-                    <input type="number" placeholder="Prior Variance" id="prior_input" />
+                    <input
+                        v-model.number="$store.state.prior"
+                        type="number"
+                        placeholder="Prior Variance"
+                        id="prior_input"
+                        @input-change="$emit('input-change', $event)"
+                    />
                 </td>
             </template>
         </b-table>
     </div>
 </template>
-        </b-table>
-    </div>
-</template>
-
+        
 <script>
 import Vue from "vue";
 
