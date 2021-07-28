@@ -215,6 +215,12 @@ export default Vue.component("research-data-table", {
                     "type"
                 ];
 
+                let linkToNewTab = !!this.tableFormat["column formatting"][
+                    tdKey
+                ]["new tab"]
+                    ? this.tableFormat["column formatting"][tdKey]["new tab"]
+                    : null;
+
                 //console.log(formatTypes);
 
                 let cellValue = tdValue;
@@ -232,10 +238,12 @@ export default Vue.component("research-data-table", {
                             this.tableFormat["column formatting"][tdKey][
                                 "link to"
                             ] +
-                            cellValue +
-                            "'>" +
-                            cellValue +
-                            "</a>";
+                            cellValue;
+
+                        linkString +=
+                            linkToNewTab == "true"
+                                ? "' target='_blank'>" + cellValue + "</a>"
+                                : "'>" + cellValue + "</a>";
 
                         cellValue = linkString;
                     }
