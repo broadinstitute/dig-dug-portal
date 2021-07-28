@@ -10,6 +10,7 @@
                 id="openCloseSearch"
                 @click="showHideSearch()"
             >
+                Close search
             </div>
             <h4 class="card-title">Build search criteria</h4>
             <div class="filtering-ui-content row">
