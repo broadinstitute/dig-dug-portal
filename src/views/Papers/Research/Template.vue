@@ -93,6 +93,8 @@
                     </div>
                 </div>
             </div>
+
+            data comparison{{ $parent.dataComparison }}
             <div class="card mdkp-card" v-if="$parent.isLandingPage == true">
                 <div class="row card-body">
                     <div
@@ -127,6 +129,7 @@
                                             : null
                                     "
                                     :apiParameters="$parent.apiParameters"
+                                    :dataComparison="$parent.dataComparison"
                                     :dataType="$parent.dataType"
                                     :uid="$parent.uid"
                                     :filters="$parent.dataFilters"

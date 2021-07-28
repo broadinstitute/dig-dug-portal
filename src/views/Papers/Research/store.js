@@ -23,6 +23,7 @@ export default new Vuex.Store({
     },
     state: {
         filteredData: "",
+        multiGroupsData: "",
         genesInRegion: "",
         bioIndexContinue: [],
     },
@@ -30,6 +31,10 @@ export default new Vuex.Store({
         setFilteredData(state, data) {
             //console.log("called 2");
             state.filteredData = data;
+        },
+        setMultiGroupsData(state, data) {
+            //console.log("called 2");
+            state.multiGroupsData = data;
         },
         setGenesInRegion(state, data) {
             //console.log("called 2");
@@ -43,6 +48,9 @@ export default new Vuex.Store({
     actions: {
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);
+        },
+        multiGroupsData(context, data) {
+            context.commit("setMultiGroupsData", data);
         },
         genesInRegion(context, genes) {
             context.commit("setGenesInRegion", genes);

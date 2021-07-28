@@ -1,9 +1,17 @@
 <template>
     <div>
-        <h4 class="card-title" v-if="this.apiParameters != null">
-            Build search criteria
-        </h4>
-        <div class="filtering-ui-wrapper" v-if="this.apiParameters != null">
+        <div
+            class="filtering-ui-wrapper search-criteria"
+            id="searchCriteria"
+            v-if="this.apiParameters != null"
+        >
+            <div
+                class="open-close-search-criteria"
+                id="openCloseSearch"
+                @click="showHideSearch()"
+            >
+            </div>
+            <h4 class="card-title">Build search criteria</h4>
             <div class="filtering-ui-content row">
                 <div
                     class="col"
@@ -31,25 +39,62 @@
                     />
                 </div>
                 <div class="col">
+                    <select id="ifMergeData" class="custom-select">
+                        <option value="noSet" selected>No set</option>
+                        <option value="overlapping">
+                            Display only overlapping
+                        </option>
+                        <option value="all">Display all</option>
+                    </select>
+                </div>
+                <div class="col">
                     <div @click="queryAPI()" class="btn btn-sm btn-primary">
                         Search
                     </div>
                 </div>
+                <div class="col">
+                    <div
+                        v-for="(value, name, index) in this.searchParamsIndex"
+                        :class="'search-field f-' + index"
+                        :key="name"
+                    >
+                        <b-badge
+                            pill
+                            v-if="value.search.length > 0"
+                            v-for="(v, i) in value.search.filter(
+                                (v, i, arr) => arr.indexOf(v) == i
+                            )"
+                            :key="v"
+                            :class="'btn search-bubble ' + i"
+                            @click="removeSearch(value.field, i)"
+                            v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
+                        ></b-badge>
+                    </div>
+                    <b-badge
+                        v-if="this.numberOfSearchParams() > 1"
+                        class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                        @click="removeAllSearchParams()"
+                    >
+                        Clear all search
+                    </b-badge>
+                </div>
             </div>
         </div>
         <div
-            class="filtering-ui-wrapper"
-            v-if="
-                (!!this.dataset && !!this.filters && this.filters.length > 1) ||
-                (!!this.dataFiles && this.dataFiles.length > 1)
-            "
+            class="filtering-ui-wrapper search-criteria"
+            id="searchCriteria"
+            v-if="!!this.dataFiles && this.dataFiles.length > 1"
         >
+            <div
+                class="open-close-search-criteria"
+                id="openCloseSearch"
+                @click="showHideSearch()"
+            >
+                Close search
+            </div>
+            <h4 class="card-title">Select data</h4>
             <div class="filtering-ui-content row">
-                <div
-                    :class="getFilterWidthClasses()"
-                    v-if="!!this.dataFiles && this.dataFiles.length > 1"
-                >
-                    <div class="label">Select data</div>
+                <div class="col">
                     <select
                         id="dataFiles"
                         @change="switchData($event)"
@@ -63,6 +108,16 @@
                         ></option>
                     </select>
                 </div>
+            </div>
+        </div>
+        <div
+            class="filtering-ui-wrapper"
+            v-if="
+                (!!this.dataset && !!this.filters && this.filters.length > 1) ||
+                (!!this.dataFiles && this.dataFiles.length > 1)
+            "
+        >
+            <div class="filtering-ui-content row">
                 <div
                     :class="getFilterWidthClasses()"
                     v-for="filter in this.filters"
@@ -174,6 +229,7 @@ import keyParams from "@/utils/keyParams";
 export default Vue.component("research-page-filters", {
     props: [
         "apiParameters",
+        "dataComparison",
         "dataFiles",
         "dataType",
         "filesListLabels",
@@ -187,6 +243,7 @@ export default Vue.component("research-page-filters", {
     data() {
         return {
             filtersIndex: {},
+            searchParamsIndex: {},
         };
     },
     created() {
@@ -201,6 +258,26 @@ export default Vue.component("research-page-filters", {
                 this.filtersIndex[f.field] = tempObj;
             });
         }
+
+        let configSearchParams = this.apiParameters;
+
+        if (configSearchParams != null) {
+            configSearchParams.parameters.map((p) => {
+                let tempObj = {};
+                tempObj["type"] = p.type;
+                tempObj["field"] = p.parameter;
+                tempObj["search"] = [];
+                this.searchParamsIndex[p.parameter] = tempObj;
+            });
+        }
+
+        if (!!this.dataFiles && this.dataFiles.length > 1) {
+            let tempObj = {};
+            tempObj["type"] = "list";
+            tempObj["field"] = "dataFiles";
+            tempObj["search"] = [];
+            this.searchParamsIndex["dataFiles"] = tempObj;
+        }
     },
     mounted() {
         if (
@@ -214,14 +291,29 @@ export default Vue.component("research-page-filters", {
                 if (keyParams[param] != undefined) {
                     document.getElementById("search_param_" + param).value =
                         keyParams[param];
+
+                    this.searchParamsIndex[param].search.push(keyParams[param]);
                 }
             });
+
+            //console.log("this.searchParamsIndex", this.searchParamsIndex);
         }
     },
     comuted: {},
     watch: {},
     methods: {
         ...uiUtils,
+        showHideSearch() {
+            let searchUIWrapper = document.getElementById("searchCriteria");
+            let searchUIHandle = document.getElementById("openCloseSearch");
+            if (searchUIWrapper.classList.contains("closed")) {
+                searchUIWrapper.classList.remove("closed");
+                searchUIHandle.innerText = "Close search";
+            } else {
+                searchUIWrapper.classList.add("closed");
+                searchUIHandle.innerText = "Open search";
+            }
+        },
         getLength(ARR) {
             return Number(ARR.length);
         },
@@ -239,17 +331,23 @@ export default Vue.component("research-page-filters", {
                 return file;
             }
         },
-
-        showDataLoad(callback) {
-            console.log("called");
-            callback();
-        },
         queryAPI() {
             uiUtils.showElement("data-loading-indicator");
 
             this.$store.state.bioIndexContinue = [];
 
-            console.log(this.$store.state.bioIndexContinue);
+            console.log(
+                "if merge data",
+                document.getElementById("ifMergeData").value
+            );
+
+            console.log("this.dataset", typeof this.dataset);
+            console.log("this.dataset", this.dataset);
+
+            let ifCompareData = document.getElementById("ifMergeData").value;
+
+            if (ifCompareData != "noSet" && this.dataset != "") {
+            }
 
             let queryParams = "";
             if (this.apiParameters.query.type == "array") {
@@ -313,6 +411,7 @@ export default Vue.component("research-page-filters", {
 
             return numberOfBubbles;
         },
+        numberOfSearchParams() {},
         buildOptions(field) {
             let options = this.dataset
                 .map((v) => v[field])
@@ -466,10 +565,15 @@ export default Vue.component("research-page-filters", {
             }
             this.applyFilters();
         },
+        removeAllSearchParams() {},
         removeFilter(FIELD, ITEM) {
             this.filtersIndex[FIELD].search.splice(ITEM, 1);
 
             this.applyFilters();
+        },
+        removeSearch(FIELD, ITEM) {
+            //this.filtersIndex[FIELD].search.splice(ITEM, 1);
+            //this.applyFilters();
         },
     },
 });
@@ -478,5 +582,53 @@ export default Vue.component("research-page-filters", {
 <style>
 .clear-all-filters-bubble {
     background-color: #ff0000;
+}
+
+.filtering-ui-wrapper.search-criteria {
+    position: absolute;
+    z-index: 200;
+    width: 210px;
+    left: -40px;
+    top: 10px;
+    text-align: left;
+    padding: 15px;
+    padding-left: 25px;
+    transition: all 0.5s;
+}
+
+.filtering-ui-wrapper.search-criteria.closed {
+    left: -240px;
+    transition: all 0.5s;
+}
+
+.filtering-ui-wrapper.search-criteria .open-close-search-criteria {
+    position: absolute;
+    transform: rotate(90deg);
+    background-color: #666;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    right: 0px;
+    top: 80px;
+    padding: 0px 7px;
+    transform-origin: bottom right;
+    transition: all 0.5s;
+}
+
+.filtering-ui-wrapper.search-criteria.closed .open-close-search-criteria {
+    transform: rotate(0deg);
+    right: -78px;
+    transition: all 0.5s;
+}
+
+.filtering-ui-wrapper.search-criteria .open-close-search-criteria:hover {
+    cursor: pointer;
+}
+
+.filtering-ui-wrapper.search-criteria > h4.card-title {
+    margin-left: -7px;
+}
+
+.filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {
 }
 </style>
