@@ -76,7 +76,7 @@
                                     </span>
                                     <div style="margin-block-end: 60px"></div>
                                     <hugescore-table
-                                        style="padding:10px 800px 10px 800px"
+                                        style="padding:10px 700px 10px 700px"
                                         :commonBF="parseInt($parent.bayesFactorCommonVariation)"
                                         :rareBF="parseInt($parent.bayesFactorRareVariation)"
                                         :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(

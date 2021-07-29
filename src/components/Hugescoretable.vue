@@ -1,7 +1,13 @@
 <template>
     <div>
         <div>
-            <b-table small thead-class="hidden_header" :items="items"></b-table>
+            <b-table small thead-class="hidden_header" :items="items">
+                <template v-slot:custom-foot="data">
+                    <b-tr>
+                        <b-td>{{hugescore}}</b-td>
+                    </b-tr>
+                </template>
+            </b-table>
         </div>
     </div>
 </template>
@@ -44,21 +50,27 @@ export default Vue.component("hugescore-table", {
 
     data() {
         return {
+            fields: ["bf"],
             items: [
                 {
-                    age: 89,
+                    bf: this.commonBF,
 
                     _rowVariant: "danger"
                 },
                 {
-                    age: 40,
+                    bf: this.rareBF,
 
-                    _cellVariants: { age: "info" }
+                    _cellVariants: { bf: "info" }
                 }
-            ]
+            ],
+            visibleRows: []
         };
     },
-    computed: {},
+    computed: {
+        hugescore() {
+            return this.hugeScore;
+        }
+    },
     methods: {
         pValueFormatter(pValue) {
             return Formatters.pValueFormatter(pValue);
