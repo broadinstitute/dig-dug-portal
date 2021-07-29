@@ -75,7 +75,14 @@
                                         </div>*HuGe Score(combined evidence) = BF of common variation * BF of rare variation
                                     </span>
                                     <div style="margin-block-end: 60px"></div>
-
+                                    <hugescore-table
+                                        style="padding:10px 800px 10px 800px"
+                                        :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                        :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                        :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation))"
+                                    ></hugescore-table>
                                     <div style="padding:10px 250px 10px 250px">
                                         <br />
                                         <span

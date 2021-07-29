@@ -21,6 +21,7 @@ import { isEqual, startCase } from "lodash";
 import { query } from "@/utils/bioIndexUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import HugeCalTable from "@/components/HugeCalTable.vue";
+import Hugescoretable from "@/components/Hugescoretable.vue";
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
@@ -51,7 +52,8 @@ new Vue({
         LocusZoom,
         MaskTable,
         HugeCalTable,
-        LocusZoomAssociationsPanel
+        LocusZoomAssociationsPanel,
+        Hugescoretable,
     },
     render(createElement, context) {
         return createElement(Template);
