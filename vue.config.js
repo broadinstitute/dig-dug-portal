@@ -227,6 +227,13 @@ let pages = {
         filename: "research.html",
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"]
+    },
+    gem: {
+        entry: "src/views/GEM/main.js",
+        template: "public/index.html",
+        filename: "gem.html",
+        title: "Genomic Region Miner",
+        chunks: ["chunk-vendors", "chunk-common", "gem"]
     }
 };
 
