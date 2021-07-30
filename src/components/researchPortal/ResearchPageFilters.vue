@@ -151,7 +151,14 @@
                     :key="v"
                     :class="'btn search-bubble ' + i"
                     @click="removeFilter(value.field, i)"
-                    v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
+                    v-html="
+                        value.labelInBubble == true
+                            ? value.field +
+                              ': ' +
+                              v +
+                              '&nbsp;<span class=\'remove\'>X</span>'
+                            : v + '&nbsp;<span class=\'remove\'>X</span>'
+                    "
                 ></b-badge>
             </div>
             <b-badge
@@ -198,9 +205,15 @@ export default Vue.component("research-page-filters", {
                 tempObj["type"] = f.type;
                 tempObj["field"] = f.field;
                 tempObj["search"] = [];
+                tempObj["labelInBubble"] =
+                    !!f.labelInBubble && f.labelInBubble == "true"
+                        ? true
+                        : false;
                 this.filtersIndex[f.field] = tempObj;
             });
         }
+
+        console.log(this.filtersIndex);
     },
     mounted() {
         if (

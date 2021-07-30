@@ -1,6 +1,27 @@
 <template>
     <div class="research-data-table-wrapper">
         <div v-html="tableLegend" class="data-table-legend"></div>
+        <div class="table-ui-wrapper">
+            <label
+                >Rows per page:
+                <select v-model="perPageNumber" class="number-per-page">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="100">100</option>
+                    <option value="0">
+                        <span style="color: #f00">All</span>
+                    </option>
+                </select>
+            </label>
+            <div
+                class="convert-2-csv btn-sm"
+                @click="convertJson2Csv(filteredData, pageID + '_filtered')"
+            >
+                Save as CSV
+            </div>
+        </div>
+
         <table
             :class="'table table-sm research-data-table ' + pageID"
             cellpadding="0"
@@ -57,7 +78,9 @@
             </tbody>
         </table>
         <b-container
-            v-if="!!perPageNumber && perPageNumber != null"
+            v-if="
+                !!perPageNumber && perPageNumber != null && perPageNumber != 0
+            "
             class="egl-table-page-ui-wrapper"
         >
             <b-pagination
@@ -80,18 +103,29 @@ import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
 export default Vue.component("research-data-table", {
-    props: ["pageID", "dataset", "tableFormat", "perPageNumber", "tableLegend"],
+    props: [
+        "pageID",
+        "dataset",
+        "tableFormat",
+        "initPerPageNumber",
+        "tableLegend",
+    ],
     data() {
-        return { currentPage: 1, perPage: null };
+        return { currentPage: 1, perPageNumber: null };
     },
     modules: {},
     components: { ResearchDataTableFeatures },
     created() {},
     beforeMount() {},
 
-    mounted() {},
+    mounted() {
+        this.perPageNumber = this.initPerPageNumber;
+    },
     updated() {},
     computed: {
+        filteredData() {
+            return this.$store.state.filteredData;
+        },
         dataScores() {
             if (
                 !!this.dataset &&
@@ -172,7 +206,10 @@ export default Vue.component("research-data-table", {
 
                 //let filtered = this.dataset;
                 let paged = [];
-                let perPage = Number(this.perPageNumber);
+                let perPage =
+                    Number(this.perPageNumber) != 0
+                        ? Number(this.perPageNumber)
+                        : formattedData.length;
 
                 let startIndex = (this.currentPage - 1) * perPage;
                 let endIndex =
@@ -205,6 +242,9 @@ export default Vue.component("research-data-table", {
         ...Formatters,
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
+        },
+        convertJson2Csv(DATA, FILENAME) {
+            uiUtils.convertJson2Csv(DATA, FILENAME);
         },
         formatValue(tdValue, tdKey) {
             if (
@@ -407,5 +447,39 @@ table.research-data-table {
     background-color: #55aaee50 !important;
     color: #3388cc;
     cursor: pointer;
+}
+
+.table-ui-wrapper {
+    text-align: right;
+    font-size: 12px;
+}
+
+.convert-2-csv {
+    border: solid 1px #aaa;
+    background-color: #fff;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.convert-2-csv:hover {
+    cursor: pointer;
+    background-color: #eee;
+}
+
+.number-per-page {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 15px;
+    border: solid 1px #aaa;
+    background-color: #fff;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.number-per-page:hover {
+    cursor: pointer;
+    background-color: #eee;
 }
 </style>
