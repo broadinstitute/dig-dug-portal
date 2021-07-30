@@ -212,8 +212,6 @@ export default Vue.component("research-page-filters", {
                 this.filtersIndex[f.field] = tempObj;
             });
         }
-
-        console.log(this.filtersIndex);
     },
     mounted() {
         if (
@@ -260,6 +258,10 @@ export default Vue.component("research-page-filters", {
         queryAPI() {
             uiUtils.showElement("data-loading-indicator");
 
+            for (const FIELD in this.filtersIndex) {
+                this.filtersIndex[FIELD].search = [];
+            }
+
             this.$store.state.bioIndexContinue = [];
 
             console.log(this.$store.state.bioIndexContinue);
@@ -294,6 +296,11 @@ export default Vue.component("research-page-filters", {
         },
         switchData(event) {
             uiUtils.showElement("data-loading-indicator");
+
+            for (const FIELD in this.filtersIndex) {
+                this.filtersIndex[FIELD].search = [];
+            }
+
             let initialData = event.target.value;
 
             let dataPoint =
