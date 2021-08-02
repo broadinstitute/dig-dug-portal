@@ -147,8 +147,6 @@
                         />
                     </div>
 
-                    <b-col class="divider"></b-col>
-
                     <div class="col filter-col-md">
                         <div class="label" style="margin-bottom: 5px">
                             Add tissue loop track

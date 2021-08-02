@@ -14,6 +14,7 @@ import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCa
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomCoaccessibilityPanel from "@/components/lz/panels/LocusZoomCoaccessibilityPanel";
 
+import keyParams from "@/utils/keyParams";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -58,7 +59,7 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan
     },
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
     data() {
@@ -300,5 +301,93 @@ new Vue({
             });
         }
     },
-    watch: {}
+    watch: {
+        "$store.state.bioPortal.phenotypeMap"(phenotypeMap) {
+            let phenotypes = keyParams.phenotype;
+
+            if (!!phenotypes) {
+                this.setCriterionPhenotypes(phenotypes.split(","));
+            }
+        },
+        "$store.state.globalEnrichment.data"(enrichment) {
+            let groups = {};
+            for (let i in enrichment) {
+                let r = enrichment[i];
+
+                let key = `${r.annotation}___${r.tissue}`;
+                let fold = r.SNPs / r.expectedSNPs;
+                if (!(key in groups)) {
+                    groups[key] = {
+                        minP: r.pValue,
+                        maxFold: fold
+                    };
+                } else {
+                    groups[key].minP = Math.min(groups[key].minP, r.pValue);
+                    groups[key].maxFold = Math.max(groups[key].maxFold, fold);
+                }
+            }
+
+            this.enrichmentScoring = groups;
+        },
+        selectedPhenotypes(phenotypes, oldPhenotypes) {
+            const removedPhenotypes = _.difference(
+                oldPhenotypes.map(p => p.name),
+                phenotypes.map(p => p.name)
+            );
+            if (removedPhenotypes.length > 0) {
+                removedPhenotypes.forEach(removedPhenotype => {
+                    delete this.pageAssociationsMap[removedPhenotype];
+                    this.pageAssociations = Object.entries(
+                        this.pageAssociationsMap
+                    ).flatMap(pam => pam[1]);
+                });
+            }
+            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
+            //console.log("current phenotypes",phenotypes)
+
+            // reload the global enrichment for these phenotypes
+            this.$store.dispatch("globalEnrichment/clear");
+            phenotypes.forEach(p => {
+                this.$store.dispatch("globalEnrichment/query", {
+                    q: p.name,
+                    append: true
+                });
+            });
+        },
+        "$store.state.clearPhenotypeFlag"(shouldClear) {
+            if (shouldClear) {
+                keyParams.set({ phenotype: undefined });
+                this.setCriterionPhenotypes([]);
+                this.$store.commit("phenotypesCleared");
+            }
+        },
+        topAssociations(top) {
+            // stop if no phenotype map
+            if (!this.$store.state.bioPortal.phenotypeMap) {
+                return;
+            }
+
+            // stop already phenotypes selected or no top associations
+            if (top.length == 0) {
+                return;
+            }
+
+            // prefer url over the top associations
+            let keyPhenotypes = keyParams.phenotype;
+            if (!!keyPhenotypes) {
+                this.setCriterionPhenotypes(keyPhenotypes.split(","));
+            } else {
+                let topAssoc = top[0];
+                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
+                    topAssoc.phenotype
+                ];
+
+                // update the master list
+                this.setCriterionPhenotypes([topPhenotype.name]);
+            }
+        },
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        }
+    }
 }).$mount("#app");
