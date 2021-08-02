@@ -5,6 +5,33 @@ import store from "./store.js";
 import Documentation from "@/components/Documentation.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AssociationsTable from "@/components/AssociationsTable";
+import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
+import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
+import TissueSelectPicker from "@/components/TissueSelectPicker";
+
+import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
+import LocusZoomCoaccessibilityPanel from "@/components/lz/panels/LocusZoomCoaccessibilityPanel";
+
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+
+import sortUtils from "@/utils/sortUtils";
+import uiUtils from "@/utils/uiUtils";
+import Formatters from "@/utils/formatters";
+import filterHelpers from "@/utils/filterHelpers";
+
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 import { pageMixin } from "@/mixins/pageMixin";
 
@@ -16,13 +43,39 @@ new Vue({
     components: {
         Documentation,
         GeneSelectPicker,
-        AssociationsTable
+        AssociationsTable,
+        LocusZoom,
+        LocusZoomAssociationsPanel,
+        LocusZoomCatalogAnnotationsPanel,
+        LocusZoomCoaccessibilityPanel,
+        CredibleSetSelectPicker,
+        AnnotationSelectPicker,
+        TissueSelectPicker,
+        CriterionListGroup,
+        CriterionFunctionGroup,
+        FilterPValue,
+        FilterEffectDirection,
+        FilterEnumeration,
+        FilterGreaterThan
     },
     render(createElement, context) {
         return createElement(Template);
     },
     data() {
-        return { regionPageSearchCriterion: [] };
+        return {
+            enrichmentScoring: null,
+
+            associationsFilter: function(id) {
+                return true;
+            },
+            annotationsFilter: function(id) {
+                return true;
+            },
+            regionPageSearchCriterion: [],
+            pageAssociationsMap: {},
+            pageAssociations: [],
+            pillList: []
+        };
     },
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
@@ -132,6 +185,120 @@ new Vue({
                 .map(criterion => phenotypeMap[criterion.threshold]);
         }
     },
-    methods: {},
+    methods: {
+        ...uiUtils,
+        ...Formatters,
+        ...filterHelpers,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
+        requestCredibleSets(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                if (this.selectedPhenotypes.length > 0) {
+                    this.$store.dispatch("credibleSets/clear");
+                    this.selectedPhenotypes.forEach(p => {
+                        const queryString = `${p.name},${
+                            this.$store.state.chr
+                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        this.$store.dispatch("credibleSets/query", {
+                            q: queryString,
+                            append: true
+                        });
+                    });
+                }
+            }
+        },
+
+        updateLocalRegion(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                this.localRegion = `${this.$store.state.chr}:${Number.parseInt(
+                    start
+                )}-${Number.parseInt(end)}`;
+            }
+        },
+        /*
+                exploreExpanded() {
+                    this.$store.commit("setLocus", {
+                        chr: this.$store.state.chr,
+                        //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
+                        start: parseInt(this.$store.state.start) - 50000,
+                        end: parseInt(this.$store.state.end) + 50000
+                    });
+                    this.$store.dispatch("queryRegion");
+                },
+                */
+
+        updatePageAssociations({ phenotype, data }) {
+            this.pageAssociationsMap[phenotype] = data;
+            this.pageAssociations = Object.entries(
+                this.pageAssociationsMap
+            ).flatMap(pam => pam[1]);
+        },
+
+        // LocusZoom has "Panels"
+        addAssociationsPanel(event) {
+            const { phenotype } = event;
+            let onLoad = this.updateAssociationsTable;
+            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
+                phenotype,
+                onLoad
+            );
+            return newAssociationsPanelId;
+        },
+        addCredibleVariantsPanel(event) {
+            const { phenotype, credibleSetId } = event;
+            if (credibleSetId !== "computed") {
+                this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(
+                    phenotype,
+                    credibleSetId
+                );
+            } else if (credibleSetId === "computed") {
+                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
+                this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
+                    this.$store.state.phenotypeParam.split(",")[0]
+                );
+            }
+        },
+        addAnnotationIntervalsPanel(r) {
+            this.$children[0].$refs.locuszoom.addIntervalsPanel(
+                "annotated-regions",
+                r.annotation,
+                "tissue",
+                this.enrichmentScoring,
+                Formatters.snakeFormatter(r.annotation)
+            );
+        },
+        addTissueIntervalsPanel(r) {
+            this.$children[0].$refs.locuszoom.addIntervalsPanel(
+                "tissue-regions",
+                r.tissue,
+                "annotation",
+                this.enrichmentScoring,
+                Formatters.snakeFormatter(r.tissue)
+            );
+        },
+        addTissueCoaccessibilityPanel(r) {
+            this.$children[0].$refs.locuszoom.addCoaccessibilityPanel(
+                r.tissue,
+                Formatters.snakeFormatter(r.tissue)
+            );
+        },
+        topPhenotype(topAssocData) {
+            return topAssocData[0];
+        },
+        setCriterionPhenotypes(phenotypeNames) {
+            this.regionPageSearchCriterion.splice(0);
+            phenotypeNames.forEach(this.pushCriterionPhenotype);
+        },
+        pushCriterionPhenotype(phenotypeName) {
+            this.regionPageSearchCriterion.push({
+                field: "phenotype",
+                threshold: phenotypeName
+            });
+        }
+    },
     watch: {}
 }).$mount("#app");

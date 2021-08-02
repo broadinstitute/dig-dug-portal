@@ -20,19 +20,15 @@
                     </div>
                     <b-tabs content-class="mt-3">
                         <b-tab title="Score View" active>
-                            <b-table
-                                hover
-                                small
-                                responsive="sm"
-                                :items="groupedAssociations"
-                                :fields="fields"
-                                :per-page="perPage"
-                                :current-page="currentPage"
-                                :sort-null-last="true"
-                                :sortable="true"
-                            ></b-table>
+                            <associations-table
+                                id="associations-table"
+                                :phenotypes="$parent.selectedPhenotypes"
+                                :associations="$parent.pageAssociations"
+                                :filter="$parent.associationsFilter"
+                                :exclusive="false"
+                            ></associations-table>
                         </b-tab>
-                        <b-tab title="Evidence View">
+                        <b-tab title="Evidence View" lazy>
                             <locuszoom
                                 v-if="$parent.selectedPhenotypes.length > 0"
                                 ref="locuszoom"
@@ -80,14 +76,92 @@
         <b-button v-b-toggle.sidebar-1>Show Criteria</b-button>
         <b-sidebar id="sidebar-1" title="Criteria" shadow>
             <div class="px-3 py-2">
-                <p class="border-left">
-                    Cras mattis consectetur purus sit amet fermentum. Cras justo
-                    odio, dapibus ac facilisis in, egestas eget quam. Morbi leo
-                    risus, porta ac consectetur ac, vestibulum at eros.
-                </p>
                 <gene-selectpicker
                     @onGeneChange="$store.dispatch('onGeneChange', $event)"
                 ></gene-selectpicker>
+
+                <criterion-list-group
+                    class="first"
+                    v-model="$parent.regionPageSearchCriterion"
+                    :header="''"
+                >
+                    <!-- Phenotype Selector -->
+                    <filter-enumeration-control
+                        class="filter-col-lg"
+                        :field="'phenotype'"
+                        :options="$parent.allphenotypes"
+                        :multiple="true"
+                        :pillFormatter="
+                            (filter) =>
+                                $store.state.bioPortal.phenotypeMap[
+                                    filter.threshold
+                                ].description
+                        "
+                        :labelFormatter="
+                            (phenotype) =>
+                                !!$store.state.bioPortal.phenotypeMap[phenotype]
+                                    ? $store.state.bioPortal.phenotypeMap[
+                                          phenotype
+                                      ].description
+                                    : phenotype
+                        "
+                        placeholder="Select one or more phenotypes"
+                    >
+                        <div class="label">Add Phenotypes</div>
+                    </filter-enumeration-control>
+
+                    <div class="col filter-col-md">
+                        <div class="label" style="margin-bottom: 5px">
+                            Add credible sets
+                        </div>
+                        <credible-sets-selectpicker
+                            :credibleSets="$parent.credibleSets"
+                            :clearOnSelected="true"
+                            @credibleset="
+                                $parent.addCredibleVariantsPanel($event)
+                            "
+                        />
+                    </div>
+
+                    <div class="col filter-col-md">
+                        <div class="label" style="margin-bottom: 5px">
+                            Add tissues
+                        </div>
+                        <tissue-selectpicker
+                            :tissues="$parent.globalEnrichmentTissues"
+                            :clearOnSelected="true"
+                            @tissue="$parent.addTissueIntervalsPanel($event)"
+                        />
+                    </div>
+
+                    <div class="col filter-col-md">
+                        <div class="label" style="margin-bottom: 5px">
+                            Add annotations
+                        </div>
+                        <annotation-selectpicker
+                            :annotations="$parent.globalEnrichmentAnnotations"
+                            :clearOnSelected="true"
+                            @annotation="
+                                $parent.addAnnotationIntervalsPanel($event)
+                            "
+                        />
+                    </div>
+
+                    <b-col class="divider"></b-col>
+
+                    <div class="col filter-col-md">
+                        <div class="label" style="margin-bottom: 5px">
+                            Add tissue loop track
+                        </div>
+                        <tissue-selectpicker
+                            :tissues="$parent.globalEnrichmentTissues"
+                            :clearOnSelected="true"
+                            @tissue="
+                                $parent.addTissueCoaccessibilityPanel($event)
+                            "
+                        />
+                    </div>
+                </criterion-list-group>
             </div>
         </b-sidebar>
     </div>
