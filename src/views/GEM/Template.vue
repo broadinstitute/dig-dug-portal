@@ -15,9 +15,41 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <div class="filtering-ui-wrapper container-fluid">
-                        <div class="row filtering-ui-content">filters</div>
-                    </div>
+                    <criterion-function-group
+                        v-model="$parent.associationsFilter"
+                        v-if="$parent.selectedPhenotypes.length > 0"
+                    >
+                        <filter-enumeration-control
+                            :field="'consequence'"
+                            :options="$parent.associationConsequences"
+                            :inclusive="false"
+                        >
+                            <div class="label">Consequence</div>
+                        </filter-enumeration-control>
+
+                        <filter-enumeration-control
+                            class="filter-col-sm"
+                            :field="'nearest'"
+                            :options="$parent.associationNearestGenes"
+                            :inclusive="false"
+                        >
+                            <div class="label">Closest Genes</div>
+                        </filter-enumeration-control>
+
+                        <filter-pvalue-control :field="'pValue'">
+                            <div class="label">P-Value (&le;)</div>
+                        </filter-pvalue-control>
+
+                        <filter-effect-direction-control :field="'beta'">
+                            <div class="label">Effect (+/-)</div>
+                        </filter-effect-direction-control>
+                        <!--
+                                <template
+                                    slot="filtered"
+                                    slot-scope="{ filter }"
+                                >
+                                </template> -->
+                    </criterion-function-group>
                     <b-tabs content-class="mt-3">
                         <b-tab title="Score View" active>
                             <associations-table
@@ -106,14 +138,10 @@
                                     : phenotype
                         "
                         placeholder="Select one or more phenotypes"
-                    >
-                        <div class="label">Add Phenotypes</div>
+                        ><div class="label"></div>
                     </filter-enumeration-control>
 
                     <div class="col filter-col-md">
-                        <div class="label" style="margin-bottom: 5px">
-                            Add credible sets
-                        </div>
                         <credible-sets-selectpicker
                             :credibleSets="$parent.credibleSets"
                             :clearOnSelected="true"
@@ -124,9 +152,6 @@
                     </div>
 
                     <div class="col filter-col-md">
-                        <div class="label" style="margin-bottom: 5px">
-                            Add tissues
-                        </div>
                         <tissue-selectpicker
                             :tissues="$parent.globalEnrichmentTissues"
                             :clearOnSelected="true"
@@ -135,9 +160,6 @@
                     </div>
 
                     <div class="col filter-col-md">
-                        <div class="label" style="margin-bottom: 5px">
-                            Add annotations
-                        </div>
                         <annotation-selectpicker
                             :annotations="$parent.globalEnrichmentAnnotations"
                             :clearOnSelected="true"
@@ -148,9 +170,6 @@
                     </div>
 
                     <div class="col filter-col-md">
-                        <div class="label" style="margin-bottom: 5px">
-                            Add tissue loop track
-                        </div>
                         <tissue-selectpicker
                             :tissues="$parent.globalEnrichmentTissues"
                             :clearOnSelected="true"
