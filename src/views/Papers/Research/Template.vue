@@ -239,7 +239,9 @@
                                     :pageID="$parent.pageID"
                                     :dataset="$store.state.filteredData"
                                     :tableFormat="$parent.dataTableFormat"
-                                    :perPageNumber="$parent.tablePerPageNumber"
+                                    :initPerPageNumber="
+                                        $parent.tablePerPageNumber
+                                    "
                                     :tableLegend="$parent.tableLegend"
                                 >
                                 </research-data-table>

@@ -207,7 +207,14 @@
                     :key="v"
                     :class="'btn search-bubble ' + i"
                     @click="removeFilter(value.field, i)"
-                    v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
+                    v-html="
+                        value.labelInBubble == true
+                            ? value.field +
+                              ': ' +
+                              v +
+                              '&nbsp;<span class=\'remove\'>X</span>'
+                            : v + '&nbsp;<span class=\'remove\'>X</span>'
+                    "
                 ></b-badge>
             </div>
             <b-badge
@@ -256,6 +263,10 @@ export default Vue.component("research-page-filters", {
                 tempObj["type"] = f.type;
                 tempObj["field"] = f.field;
                 tempObj["search"] = [];
+                tempObj["labelInBubble"] =
+                    !!f.labelInBubble && f.labelInBubble == "true"
+                        ? true
+                        : false;
                 this.filtersIndex[f.field] = tempObj;
             });
         }
@@ -335,6 +346,10 @@ export default Vue.component("research-page-filters", {
         queryAPI() {
             uiUtils.showElement("data-loading-indicator");
 
+            for (const FIELD in this.filtersIndex) {
+                this.filtersIndex[FIELD].search = [];
+            }
+
             this.$store.state.bioIndexContinue = [];
 
             console.log(
@@ -380,6 +395,11 @@ export default Vue.component("research-page-filters", {
         },
         switchData(event) {
             uiUtils.showElement("data-loading-indicator");
+
+            for (const FIELD in this.filtersIndex) {
+                this.filtersIndex[FIELD].search = [];
+            }
+
             let initialData = event.target.value;
 
             let dataPoint =
