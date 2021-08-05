@@ -90,7 +90,7 @@ a:hover {
 
 .front-top-banner-nagekp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/nagekp_front_bg.png),
-        linear-gradient(#39BBED, #59BE86);
+        linear-gradient(#5698D2, #70A4D8);
     background-position: 120% 100px, top left;
 }
 
@@ -152,7 +152,7 @@ a:hover {
 }
 
 .front-top-banner-nagekp .front-logo-img {
-    width: 430px;
+    width: 470px;
 }
 
 .front-banner-btn {
@@ -216,7 +216,7 @@ a:hover {
 }
 
 .front-logo-tagline-nagekp {
-    transform: translate(0%, 20%);
+    transform: translate(0%, 25%);
 }
 
 .front-banner-ui-tabs {
@@ -383,7 +383,7 @@ a:hover {
 
 .nagekp-header,
 .nagekp-footer {
-    background-color: #39BBED;
+    background-color: #5698D2;
     height: 50px;
 }
 
