@@ -115,7 +115,6 @@
                                                 :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
-                                                @input-change="$parent.updateprior($event)"
                                             ></hugecal-table>
                                         </div>
                                         <div class="col-md-4">

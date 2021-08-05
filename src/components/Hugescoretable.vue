@@ -12,7 +12,7 @@
                 <template v-slot:custom-foot="data">
                     <b-tr>
                         <b-td style="text-align: right;">HuGe Score:</b-td>
-                        <b-td style="background: #d2d2d2;">{{hugescore}}</b-td>
+                        <b-td style=" text-align: right; background: #d2d2d2;">{{hugescore}}</b-td>
                         <b-td></b-td>
                     </b-tr>
                 </template>

@@ -8,7 +8,7 @@
                         type="number"
                         placeholder="Prior Variance"
                         id="prior_input"
-                        @input-change="$emit('input-change', $event)"
+                        @keyup.enter="addToItems"
                     />
                 </td>
             </template>
@@ -80,6 +80,17 @@ export default Vue.component("hugecal-table", {
     },
     computed: {},
     methods: {
+        addToItems() {
+            var my_object = {
+                suggestedPrior: this.$store.state.prior,
+                huGeScore: this.hugeScore,
+                posteriorProbability: this.posteriorProbability(
+                    this.$store.state.prior
+                )
+            };
+            this.items.push(my_object);
+        },
+
         pValueFormatter(pValue) {
             return Formatters.pValueFormatter(pValue);
         },
