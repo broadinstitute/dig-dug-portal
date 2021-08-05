@@ -1,10 +1,19 @@
 <template>
     <div>
         <div>
-            <b-table small thead-class="hidden_header" :items="items">
+            <b-table
+                style="border-spacing: 5px 1rem;"
+                borderless
+                small
+                thead-class="hidden_header"
+                :items="items"
+                :fields="fields"
+            >
                 <template v-slot:custom-foot="data">
                     <b-tr>
-                        <b-td>{{hugescore}}</b-td>
+                        <b-td style="text-align: right;">HuGe Score:</b-td>
+                        <b-td style="background: #d2d2d2;">{{hugescore}}</b-td>
+                        <b-td></b-td>
                     </b-tr>
                 </template>
             </b-table>
@@ -50,17 +59,24 @@ export default Vue.component("hugescore-table", {
 
     data() {
         return {
-            fields: ["bf"],
+            fields: [
+                { key: "pretag", tdClass: "text-right" },
+                { key: "bf", tdClass: "text-right" },
+                { key: "tag", tdClass: "text-left" }
+            ],
             items: [
                 {
-                    bf: this.commonBF,
+                    pretag: "",
 
-                    _rowVariant: "danger"
+                    _cellVariants: { bf: "info" },
+                    bf: this.commonBF,
+                    tag: "<--Common Variation BF"
                 },
                 {
+                    pretag: "X",
                     bf: this.rareBF,
-
-                    _cellVariants: { bf: "info" }
+                    _cellVariants: { bf: "warning" },
+                    tag: "<--Rare Variation BF"
                 }
             ],
             visibleRows: []
