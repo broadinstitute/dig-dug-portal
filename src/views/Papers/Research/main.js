@@ -25,8 +25,6 @@ import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
-import LocusZoom from "@/components/lz/LocusZoom";
-import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -49,9 +47,7 @@ new Vue({
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,
-        Documentation,
-        LocusZoom,
-        LocusZoomAssociationsPanel
+        Documentation
     },
     data() {
         return {

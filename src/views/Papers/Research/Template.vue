@@ -212,6 +212,7 @@
                                     :heatmapData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                 ></research-heatmap>
+                                <!--
                                 <h3>Locus zoom</h3>
                                 <locuszoom
                                     ref="locuszoom"
@@ -225,7 +226,7 @@
                                         :phenotype="'HEIGHT_GIANT'"
                                         @input="$store.state.filteredData"
                                     ></lz-associations-panel>
-                                </locuszoom>
+                                </locuszoom>-->
                             </div>
                             <!---->
                             <div
