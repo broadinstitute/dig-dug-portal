@@ -49,104 +49,199 @@
                         v-if="this.$store.state.associations.data.length >0 && $parent.selectedPhenotype.length != 0"
                     >
                         <div>
-                            <div class="card mdkp-card">
-                                <div class="card-body">
-                                    <span class="lead" style="font-size: 12px;">
-                                        *BF=Bayes Factor
-                                        <div
-                                            class="row"
-                                            id="suggestionBox"
-                                            style="color: #3fb54a; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #e4f4e4; padding:5px 5px 5px 5px"
-                                        >
-                                            <div class="col-md-6">
-                                                HuGe Score(Combined Evidence)
-                                                <tooltip-documentation
-                                                    name="hugecal.combined.tooltip.hover"
-                                                    :content-fill="$parent.documentationMap"
-                                                    :isHover="true"
-                                                    :noIcon="false"
-                                                ></tooltip-documentation>
-                                            </div>
-                                            <div class="col-md-6" style="text-align: right;">
-                                                {{$parent.bayesFactorCommonVariation}}(Common variation BF) * {{$parent.bayesFactorRareVariation}}(Rare variation BF) = {{
-                                                $parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)
-                                                }}
-                                            </div>
-                                        </div>*HuGe Score(combined evidence) = BF of common variation * BF of rare variation
+                            <div class="card-body">
+                                <span class="lead" style="font-size: 12px;">
+                                    *BF=Bayes Factor
+                                    <div
+                                        class="row"
+                                        id="suggestionBox"
+                                        style="color: #3fb54a; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #e4f4e4; padding:5px 5px 5px 5px"
+                                    >
+                                        <div class="col-md-6">
+                                            HuGe Score(Combined Evidence)
+                                            <tooltip-documentation
+                                                name="hugecal.combined.tooltip.hover"
+                                                :content-fill="$parent.documentationMap"
+                                                :isHover="true"
+                                                :noIcon="false"
+                                            ></tooltip-documentation>
+                                        </div>
+                                        <div class="col-md-6" style="text-align: right;">
+                                            {{$parent.bayesFactorCommonVariation}}(Common variation BF) * {{$parent.bayesFactorRareVariation}}(Rare variation BF) = {{
+                                            $parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)
+                                            }}
+                                        </div>
+                                    </div>*HuGe Score(combined evidence) = BF of common variation * BF of rare variation
+                                </span>
+                                <div style="margin-block-end: 60px"></div>
+                                <hugescore-table
+                                    style="padding:10px 450px 10px 450px"
+                                    :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                    :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                    :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation))"
+                                ></hugescore-table>
+                                <div style="padding:10px 250px 10px 250px">
+                                    <br />
+                                    <span style="padding:10px 290px 10px 310px; font-weight:bold">
+                                        HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
+                                        $parent.bayesFactorCommonVariation,
+                                        $parent.bayesFactorRareVariation))}} evidence scale
                                     </span>
-                                    <div style="margin-block-end: 60px"></div>
-                                    <hugescore-table
-                                        style="padding:10px 450px 10px 450px"
-                                        :commonBF="parseInt($parent.bayesFactorCommonVariation)"
-                                        :rareBF="parseInt($parent.bayesFactorRareVariation)"
-                                        :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
+                                    <color-bar-plot
+                                        v-if="$parent.bayesFactorRareVariation"
+                                        :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
-                                    ></hugescore-table>
-                                    <div style="padding:10px 250px 10px 250px">
-                                        <br />
-                                        <span
-                                            style="padding:10px 290px 10px 310px; font-weight:bold"
-                                        >
-                                            HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                                            $parent.bayesFactorCommonVariation,
-                                            $parent.bayesFactorRareVariation))}} evidence scale
-                                        </span>
-                                        <color-bar-plot
-                                            v-if="$parent.bayesFactorRareVariation"
-                                            :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation))"
-                                            :elementid="'combinedVariation'"
-                                            :score=" $parent.bayesFactorCombinedEvidence(
+                                        :elementid="'combinedVariation'"
+                                        :score=" $parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation)"
-                                        ></color-bar-plot>
-                                    </div>
-                                    <div style="margin-block-end: 50px"></div>
-                                    <div class="divider">
-                                        Posterior probability
-                                        <!-- <div class="arrow-side"></div> -->
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-8">
-                                            <hugecal-table
-                                                style="padding:30px 250px 30px 250px"
-                                                :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
+                                    ></color-bar-plot>
+                                </div>
+                                <div style="margin-block-end: 50px"></div>
+                                <div class="divider">
+                                    Posterior probability
+                                    <!-- <div class="arrow-side"></div> -->
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <hugecal-table
+                                            style="padding:30px 250px 30px 250px"
+                                            :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
-                                            ></hugecal-table>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <posterior-probability-plot
-                                                v-if="$parent.geneAssociations52k"
-                                                :geneAssociationsData=" $parent.geneAssociations52k"
-                                                :priorVariance="this.$store.state.prior"
-                                                :bayes_factor="$parent.bayesFactorCombinedEvidence(
+                                        ></hugecal-table>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <posterior-probability-plot
+                                            v-if="$parent.geneAssociations52k"
+                                            :geneAssociationsData=" $parent.geneAssociations52k"
+                                            :priorVariance="this.$store.state.prior"
+                                            :bayes_factor="$parent.bayesFactorCombinedEvidence(
                                                         $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation)"
-                                                :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
-                                            ></posterior-probability-plot>
-                                        </div>
+                                            :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
+                                        ></posterior-probability-plot>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- NEW COMMON VARIATION -->
 
-                            <div class="card mdkp-card">
-                                <div class="card-body" style="margin-block-end:20px">
-                                    <span v-on:click="$parent.toggleCommonVariation()">
+                            <div class="card-body" style="margin-block-end:20px">
+                                <span v-on:click="$parent.toggleCommonVariation()">
+                                    <div
+                                        v-if="this.$store.state.associations.data"
+                                        class="row"
+                                        id="suggestionBox"
+                                        style="color: #254CA6; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #E7EDF7; padding:5px 5px 5px 5px"
+                                    >
+                                        <div class="col-md-6">
+                                            Common Variation
+                                            <tooltip-documentation
+                                                name="hugecal.commonvariation.tooltip.hover"
+                                                :content-fill="$parent.documentationMap"
+                                                :isHover="true"
+                                                :noIcon="false"
+                                            ></tooltip-documentation>
+                                        </div>
+                                        <div
+                                            class="col-md-6"
+                                            style="text-align: right;"
+                                        >BF:{{$parent.bayesFactorCommonVariation}}</div>
+                                    </div>
+                                </span>
+                                <div v-show="$parent.showCommonVariationSection">
+                                    <div
+                                        v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
+                                    >
+                                        <span class="lead" style="font-size:12px ">
+                                            *Common variation BF = 1 if a gene is not genome wide significant
+                                            <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
+                                        </span>
+                                        <br />
+                                        <span
+                                            style="font-weight:bold; padding: 650px"
+                                        >Is genome-wide significant?</span>
+                                        <div style="padding:5px 0px 5px 0px"></div>
+                                        <commonvariation-genomesig-table
+                                            style="padding:0px 300px 0px 300px"
+                                            v-if="$parent.eglData"
+                                            :isGenomeWideSignificant="true"
+                                            :gwasEvidence="'3(P-value <= 5e-8)'"
+                                            :codingEvidence="$parent.commonVariationMap['codingEvidence']"
+                                            :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
+                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                        ></commonvariation-genomesig-table>
+                                    </div>
+                                    <div v-else>
+                                        <span
+                                            style="font-weight:bold; padding:0px 150px 0px 650px"
+                                        >Is genome-wide significant?</span>
+                                        <div style="padding:5px 0px 5px 0px"></div>
+                                        <commonvariation-genomesig-table
+                                            style="padding:0px 300px 0px 300px"
+                                            v-if="$parent.eglData"
+                                            :isGenomeWideSignificant="false"
+                                            :gwasEvidence="'1(P-value > 5e-8)'"
+                                            :codingEvidence="$parent.commonVariationMap['codingEvidence']"
+                                            :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
+                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                        ></commonvariation-genomesig-table>
+                                    </div>
+                                    <div style="padding:10px 250px 10px 250px">
+                                        <br />
+                                        <span
+                                            style="padding:10px 290px 10px 310px; font-weight:bold"
+                                        >HuGe score {{$parent.bayesFactorCommonVariation}} falls in {{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence scale</span>
+                                        <color-bar-plot
+                                            v-if="$parent.bayesFactorCommonVariation"
+                                            :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
+                                            :elementid="'commonVariation'"
+                                            :score="$parent.bayesFactorCommonVariation"
+                                        ></color-bar-plot>
+                                    </div>
+
+                                    <div v-on:click="$parent.toggleLocuszoom()">
+                                        <span
+                                            class="toggleIcon"
+                                            id="toggleIcon"
+                                        >{{$parent.toggleIcon}}</span>
+                                        View {{$parent.selectedGene[0]}} on Locuszoom
+                                    </div>
+                                    <div v-show="$parent.showLZSection">
+                                        <locuszoom
+                                            v-if="$parent.region"
+                                            ref="locuszoom"
+                                            :chr="$parent.region.chromosome"
+                                            :start="$parent.region.start -50000"
+                                            :end="$parent.region.end +50000"
+                                            :refSeq="true"
+                                            :ldpop="true"
+                                        >
+                                            <lz-associations-panel
+                                                :phenotype="$parent.selectedPhenotype[0]"
+                                                @input="$parent.updateAssociationsTable"
+                                            ></lz-associations-panel>
+                                        </locuszoom>
+                                    </div>
+                                </div>
+                                <br />
+                                <!-- NEW RARE VARIATION -->
+                                <div>
+                                    <span v-on:click="$parent.toggleRareVariation()">
                                         <div
                                             v-if="this.$store.state.associations.data"
                                             class="row"
                                             id="suggestionBox"
-                                            style="color: #254CA6; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #E7EDF7; padding:5px 5px 5px 5px"
+                                            style="color: #af5934; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #fef8dc; padding:5px 5px 5px 5px"
                                         >
                                             <div class="col-md-6">
-                                                Common Variation
+                                                Rare Variation
                                                 <tooltip-documentation
-                                                    name="hugecal.commonvariation.tooltip.hover"
+                                                    name="hugecal.rarevariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -155,200 +250,95 @@
                                             <div
                                                 class="col-md-6"
                                                 style="text-align: right;"
-                                            >BF:{{$parent.bayesFactorCommonVariation}}</div>
+                                            >BF:{{$parent.bayesFactorRareVariation}}</div>
                                         </div>
                                     </span>
-                                    <div v-show="$parent.showCommonVariationSection">
-                                        <div
-                                            v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
-                                        >
-                                            <span class="lead" style="font-size:12px ">
-                                                *Common variation BF = 1 if a gene is not genome wide significant
-                                                <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
-                                            </span>
-                                            <br />
-                                            <span
-                                                style="font-weight:bold; padding: 650px"
-                                            >Is genome-wide significant?</span>
-                                            <div style="padding:5px 0px 5px 0px"></div>
-                                            <commonvariation-genomesig-table
-                                                style="padding:0px 300px 0px 300px"
-                                                v-if="$parent.eglData"
-                                                :isGenomeWideSignificant="true"
-                                                :gwasEvidence="'3(P-value <= 5e-8)'"
-                                                :codingEvidence="$parent.commonVariationMap['codingEvidence']"
-                                                :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
-                                                :commonBF="parseInt($parent.bayesFactorCommonVariation)"
-                                            ></commonvariation-genomesig-table>
-                                        </div>
-                                        <div v-else>
-                                            <span
-                                                style="font-weight:bold; padding:0px 150px 0px 650px"
-                                            >Is genome-wide significant?</span>
-                                            <div style="padding:5px 0px 5px 0px"></div>
-                                            <commonvariation-genomesig-table
-                                                style="padding:0px 300px 0px 300px"
-                                                v-if="$parent.eglData"
-                                                :isGenomeWideSignificant="false"
-                                                :gwasEvidence="'1(P-value > 5e-8)'"
-                                                :codingEvidence="$parent.commonVariationMap['codingEvidence']"
-                                                :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
-                                                :commonBF="parseInt($parent.bayesFactorCommonVariation)"
-                                            ></commonvariation-genomesig-table>
-                                        </div>
+                                    <div
+                                        v-show="$parent.showRareVariationSection"
+                                        v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
+                                    >
+                                        <span
+                                            style="font-weight:bold; padding: 650px"
+                                        >Is exome-wide significant?</span>
+                                        <rarevariation-exomesig-table
+                                            :isExomeWideSignificant="true"
+                                            :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
+                                            :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                        ></rarevariation-exomesig-table>
                                         <div style="padding:10px 250px 10px 250px">
                                             <br />
                                             <span
                                                 style="padding:10px 290px 10px 310px; font-weight:bold"
-                                            >HuGe score {{$parent.bayesFactorCommonVariation}} falls in {{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence scale</span>
+                                            >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
                                             <color-bar-plot
-                                                v-if="$parent.bayesFactorCommonVariation"
-                                                :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
-                                                :elementid="'commonVariation'"
-                                                :score="$parent.bayesFactorCommonVariation"
+                                                v-if="$parent.bayesFactorRareVariation"
+                                                :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                :elementid="'rareVariation'"
+                                                :score="parseInt($parent.bayesFactorRareVariation)"
                                             ></color-bar-plot>
                                         </div>
-
-                                        <div v-on:click="$parent.toggleLocuszoom()">
+                                        <div v-on:click="$parent.toggleRareVariationMaskTable()">
                                             <span
                                                 class="toggleIcon"
                                                 id="toggleIcon"
                                             >{{$parent.toggleIcon}}</span>
-                                            View {{$parent.selectedGene[0]}} on Locuszoom
+                                            View Burden Association Summary statistics
                                         </div>
-                                        <div v-show="$parent.showLZSection">
-                                            <locuszoom
-                                                v-if="$parent.region"
-                                                ref="locuszoom"
-                                                :chr="$parent.region.chromosome"
-                                                :start="$parent.region.start -50000"
-                                                :end="$parent.region.end +50000"
-                                                :refSeq="true"
-                                                :ldpop="true"
-                                            >
-                                                <lz-associations-panel
-                                                    :phenotype="$parent.selectedPhenotype[0]"
-                                                    @input="$parent.updateAssociationsTable"
-                                                ></lz-associations-panel>
-                                            </locuszoom>
+                                        <div
+                                            v-show="$parent.showMaskTableSection"
+                                            class="EGLT-table fiftytwo masktable"
+                                        >
+                                            <mask-table
+                                                v-if="$parent.masks.length"
+                                                :maskData="$parent.masks"
+                                                :index="`${$parent.selectedGene}_0`"
+                                                :dichotomous="true"
+                                            ></mask-table>
+                                        </div>
+                                        <div v-if="$parent.masks.length == 0">
+                                            <ul>
+                                                <li>No mask data available</li>
+                                            </ul>
                                         </div>
                                     </div>
-                                    <br />
-                                    <!-- NEW RARE VARIATION -->
-                                    <div>
-                                        <span v-on:click="$parent.toggleRareVariation()">
-                                            <div
-                                                v-if="this.$store.state.associations.data"
-                                                class="row"
-                                                id="suggestionBox"
-                                                style="color: #af5934; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #fef8dc; padding:5px 5px 5px 5px"
-                                            >
-                                                <div class="col-md-6">
-                                                    Rare Variation
-                                                    <tooltip-documentation
-                                                        name="hugecal.rarevariation.tooltip.hover"
-                                                        :content-fill="$parent.documentationMap"
-                                                        :isHover="true"
-                                                        :noIcon="false"
-                                                    ></tooltip-documentation>
-                                                </div>
-                                                <div
-                                                    class="col-md-6"
-                                                    style="text-align: right;"
-                                                >BF:{{$parent.bayesFactorRareVariation}}</div>
-                                            </div>
-                                        </span>
-                                        <div
-                                            v-show="$parent.showRareVariationSection"
-                                            v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
-                                        >
+                                    <div v-show="$parent.showRareVariationSection" v-else>
+                                        <span
+                                            style="font-weight:bold; padding: 650px"
+                                        >Is exome-wide significant?</span>
+                                        <rarevariation-exomesig-table
+                                            :isExomeWideSignificant="false"
+                                            :priorVariance="$store.state.prior"
+                                            :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                        ></rarevariation-exomesig-table>
+                                        <div style="padding:10px 250px 10px 250px">
+                                            <br />
                                             <span
-                                                style="font-weight:bold; padding: 650px"
-                                            >Is exome-wide significant?</span>
-                                            <rarevariation-exomesig-table
-                                                :isExomeWideSignificant="true"
-                                                :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
-                                                :rareBF="parseInt($parent.bayesFactorRareVariation)"
-                                            ></rarevariation-exomesig-table>
-                                            <div style="padding:10px 250px 10px 250px">
-                                                <br />
-                                                <span
-                                                    style="padding:10px 290px 10px 310px; font-weight:bold"
-                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
-                                                <color-bar-plot
-                                                    v-if="$parent.bayesFactorRareVariation"
-                                                    :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                    :elementid="'rareVariation'"
-                                                    :score="parseInt($parent.bayesFactorRareVariation)"
-                                                ></color-bar-plot>
-                                            </div>
-                                            <div
-                                                v-on:click="$parent.toggleRareVariationMaskTable()"
-                                            >
-                                                <span
-                                                    class="toggleIcon"
-                                                    id="toggleIcon"
-                                                >{{$parent.toggleIcon}}</span>
-                                                View Burden Association Summary statistics
-                                            </div>
-                                            <div
-                                                v-show="$parent.showMaskTableSection"
-                                                class="EGLT-table fiftytwo masktable"
-                                            >
-                                                <mask-table
-                                                    v-if="$parent.masks.length"
-                                                    :maskData="$parent.masks"
-                                                    :index="`${$parent.selectedGene}_0`"
-                                                    :dichotomous="true"
-                                                ></mask-table>
-                                            </div>
-                                            <div v-if="$parent.masks.length == 0">
-                                                <ul>
-                                                    <li>No mask data available</li>
-                                                </ul>
-                                            </div>
+                                                style="padding:10px 290px 10px 310px; font-weight:bold"
+                                            >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
+                                            <color-bar-plot
+                                                v-if="$parent.bayesFactorRareVariation"
+                                                :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                :elementid="'rareVariation'"
+                                                :score="parseInt($parent.bayesFactorRareVariation)"
+                                            ></color-bar-plot>
                                         </div>
-                                        <div v-show="$parent.showRareVariationSection" v-else>
+                                        <div v-on:click="$parent.toggleRareVariationMaskTable()">
                                             <span
-                                                style="font-weight:bold; padding: 650px"
-                                            >Is exome-wide significant?</span>
-                                            <rarevariation-exomesig-table
-                                                :isExomeWideSignificant="false"
-                                                :priorVariance="$store.state.prior"
-                                                :rareBF="parseInt($parent.bayesFactorRareVariation)"
-                                            ></rarevariation-exomesig-table>
-                                            <div style="padding:10px 250px 10px 250px">
-                                                <br />
-                                                <span
-                                                    style="padding:10px 290px 10px 310px; font-weight:bold"
-                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
-                                                <color-bar-plot
-                                                    v-if="$parent.bayesFactorRareVariation"
-                                                    :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                    :elementid="'rareVariation'"
-                                                    :score="parseInt($parent.bayesFactorRareVariation)"
-                                                ></color-bar-plot>
-                                            </div>
-                                            <div
-                                                v-on:click="$parent.toggleRareVariationMaskTable()"
-                                            >
-                                                <span
-                                                    class="toggleIcon"
-                                                    id="toggleIcon"
-                                                >{{$parent.toggleIcon}}</span>
-                                                View Burden Association Summary statistics
-                                            </div>
-                                            <div
-                                                v-show="$parent.showMaskTableSection"
-                                                class="EGLT-table fiftytwo masktable"
-                                            >
-                                                <mask-table
-                                                    v-if="$parent.masks.length"
-                                                    :maskData="$parent.masks"
-                                                    :index="`${$parent.selectedGene}_1`"
-                                                    :dichotomous="true"
-                                                ></mask-table>
-                                            </div>
+                                                class="toggleIcon"
+                                                id="toggleIcon"
+                                            >{{$parent.toggleIcon}}</span>
+                                            View Burden Association Summary statistics
+                                        </div>
+                                        <div
+                                            v-show="$parent.showMaskTableSection"
+                                            class="EGLT-table fiftytwo masktable"
+                                        >
+                                            <mask-table
+                                                v-if="$parent.masks.length"
+                                                :maskData="$parent.masks"
+                                                :index="`${$parent.selectedGene}_1`"
+                                                :dichotomous="true"
+                                            ></mask-table>
                                         </div>
                                     </div>
                                 </div>
