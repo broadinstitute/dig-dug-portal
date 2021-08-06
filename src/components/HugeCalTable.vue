@@ -1,6 +1,9 @@
 <template>
     <div>
         <b-table small :fields="fields" :items="items" responsive="sm">
+            <template #head(huGeScore)="data">
+                <span style="color:#3fb54a ">{{ data.label }}</span>
+            </template>
             <template #cell(huGeScore)="data">
                 <div style="color:#3fb54a ">{{ data.item.huGeScore }}</div>
             </template>
@@ -79,8 +82,7 @@ export default Vue.component("hugecal-table", {
                 // A regular column
                 {
                     key: "huGeScore",
-                    label: "HuGe Score",
-                    thClass: "#3fb54a"
+                    label: "HuGe Score"
                 },
                 // A virtual column made up from two fields
                 {
