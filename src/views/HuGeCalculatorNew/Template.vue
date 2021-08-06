@@ -171,10 +171,25 @@
                                         >Is genome-wide significant?</span>
                                         <div style="padding:5px 0px 5px 0px"></div>
                                         <commonvariation-genomesig-table
-                                            style="padding:5px 400px 5px 400px"
+                                            style="padding:0px 300px 0px 300px"
                                             v-if="$parent.eglData"
                                             :isGenomeWideSignificant="true"
                                             :gwasEvidence="'3(P-value <= 5e-8)'"
+                                            :codingEvidence="$parent.commonVariationMap['codingEvidence']"
+                                            :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
+                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                        ></commonvariation-genomesig-table>
+                                    </div>
+                                    <div v-else>
+                                        <span
+                                            style="font-weight:bold; padding:0px 150px 0px 650px"
+                                        >Is genome-wide significant?</span>
+                                        <div style="padding:5px 0px 5px 0px"></div>
+                                        <commonvariation-genomesig-table
+                                            style="padding:0px 300px 0px 300px"
+                                            v-if="$parent.eglData"
+                                            :isGenomeWideSignificant="false"
+                                            :gwasEvidence="'1(P-value > 5e-8)'"
                                             :codingEvidence="$parent.commonVariationMap['codingEvidence']"
                                             :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
                                             :commonBF="parseInt($parent.bayesFactorCommonVariation)"

@@ -3,12 +3,16 @@
         <div>
             <b-table
                 fixed
+                borderless
                 small
                 thead-class="hidden_header"
                 :items="items"
                 :fields="fields"
-                borderless
             >
+                <template
+                    slot="isGenomeWideSignificant"
+                    scope="item"
+                >{{item.value?'Yes :)':'No :('}}</template>
                 <template #cell(tag)="data">
                     <div style="color:gray">{{ data.item.tag }}</div>
                 </template>
