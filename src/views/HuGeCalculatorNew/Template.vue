@@ -56,7 +56,7 @@
                                         <div
                                             class="row"
                                             id="suggestionBox"
-                                            style="color: #8fb512; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #dae8ac; padding:5px 5px 5px 5px"
+                                            style="color: #3fb54a; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #e4f4e4; padding:5px 5px 5px 5px"
                                         >
                                             <div class="col-md-6">
                                                 HuGe Score(Combined Evidence)
@@ -67,7 +67,7 @@
                                                     :noIcon="false"
                                                 ></tooltip-documentation>
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-6" style="text-align: right;">
                                                 {{$parent.bayesFactorCommonVariation}}(Common variation BF) * {{$parent.bayesFactorRareVariation}}(Rare variation BF) = {{
                                                 $parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)
                                                 }}
@@ -131,82 +131,35 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- <div class="card mdkp-card">
-                                <div class="card-body" style="margin-block-end: 20px">
-                                    <div class="row">
+
+                            <!-- NEW COMMON VARIATION -->
+
+                            <div class="card mdkp-card">
+                                <div class="card-body" style="margin-block-end:20px">
+                                    <span class="lead" style="font-size: 12px;">
                                         <div
-                                            class="col-md-6"
-                                            v-if="$parent.bayesFactorCombinedEvidence(
-                                                    $parent.bayesFactorCommonVariation,
-                                                    $parent.bayesFactorRareVariation) "
+                                            class="row"
+                                            id="suggestionBox"
+                                            style="color: #8fb512; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #dae8ac; padding:5px 5px 5px 5px"
                                         >
-                                            <h4>
-                                                Combined Evidence
+                                            <div class="col-md-6">
+                                                Common Variation
                                                 <tooltip-documentation
-                                                    name="hugecal.combined.tooltip.hover"
+                                                    name="hugecal.common.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
                                                 ></tooltip-documentation>
-                                            </h4>
-                                            <ul>
-                                                <li>
-                                                    Combined HuGE Score = Bayes Factor of Common Variation * Bayes Factor of Rare Variation
-                                                    <ul>
-                                                        <li>
-                                                            <span>
-                                                                {{$parent.bayesFactorCommonVariation}} * {{$parent.bayesFactorRareVariation}} = {{
-                                                                $parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation
-                                                                )
-                                                                }}
-                                                            </span>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <span>
-                                                        {{
-                                                        $parent.determineCategory(
-                                                        $parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
-                                                        $parent.bayesFactorRareVariation
-                                                        )
-                                                        )
-                                                        }}
-                                                        Evidence
-                                                    </span>
-                                                </li>
-                                            </ul>
-                                            <div>
-                                                <br />
-                                                <color-bar-plot
-                                                    v-if="$parent.bayesFactorRareVariation"
-                                                    :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation))"
-                                                    :elementid="'combinedVariation'"
-                                                    :score=" $parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation)"
-                                                ></color-bar-plot>
                                             </div>
-                                        </div>
-                                        <div class="col-md-6" style="border-left: 1px dashed #444">
-                                            <posterior-probability-plot
-                                                v-if="$parent.geneAssociations52k"
-                                                :geneAssociationsData=" $parent.geneAssociations52k"
-                                                :priorVariance="this.$store.state.prior"
-                                                :bayes_factor="$parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
-                                                        $parent.bayesFactorRareVariation)"
-                                                :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
-                                            ></posterior-probability-plot>
-                                        </div>
-                                    </div>
+                                            <div
+                                                class="col-md-6"
+                                                style="text-align: right;"
+                                            >BF:{{$parent.bayesFactorCommonVariation}}</div>
+                                        </div>*Common variation BF = 1 if a gene is not genome wide significant
+                                        If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
+                                    </span>
                                 </div>
-                            </div>-->
+                            </div>
 
                             <!-- COMMON VARIATION -->
                             <div class="card mdkp-card">

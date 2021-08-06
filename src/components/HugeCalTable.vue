@@ -65,6 +65,7 @@ export default Vue.component("hugecal-table", {
 
     data() {
         return {
+            // resetflag: { default: false },
             fields: [
                 // A virtual column that doesn't exist in items
 
@@ -116,8 +117,9 @@ export default Vue.component("hugecal-table", {
             this.items.push(my_object);
         },
         removeItems(item) {
-            console.log(item);
             this.items.pop(item);
+            //resetflag = true;
+            //console.log("resetflag", resetflag);
         },
         resetPrior() {
             var suggestedPriors = [0.05, 0.2, 0.3696];
@@ -148,3 +150,12 @@ export default Vue.component("hugecal-table", {
     }
 });
 </script>
+
+<style scoped>
+.enable {
+    background-color: rgb(204, 241, 241);
+}
+.disable {
+    background-color: rgb(114, 129, 129);
+}
+</style>
