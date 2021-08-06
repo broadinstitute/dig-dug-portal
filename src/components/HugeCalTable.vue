@@ -11,6 +11,12 @@
                         @keyup.enter="addToItems"
                     />
                 </td>
+                <td>
+                    <b-button
+                        style="background: gray; cursor: pointer;"
+                        v-on:click="resetPrior(data.item)"
+                    >Reset prior</b-button>
+                </td>
             </template>
             <!-- <template slot="removeItem" slot-scope="data">
                 <div
@@ -19,7 +25,7 @@
             </template>-->
             <template #cell(removeItem)="data">
                 <b-button
-                    style="padding: 0;border: none;background: none;"
+                    style="padding: 0;border: none;background: none; cursor: pointer;"
                     v-on:click="removeItems(data.item)"
                 >
                     <span style="color: green; background:white">
@@ -105,14 +111,28 @@ export default Vue.component("hugecal-table", {
                 huGeScore: this.hugeScore,
                 posteriorProbability: this.posteriorProbability(
                     this.$store.state.prior
-                ),
-                removeItem: "-"
+                )
             };
             this.items.push(my_object);
         },
         removeItems(item) {
             console.log(item);
             this.items.pop(item);
+        },
+        resetPrior() {
+            var suggestedPriors = [0.05, 0.2, 0.3696];
+            if (this.items.length <= 0) {
+                suggestedPriors.forEach(element => {
+                    var my_object = {
+                        suggestedPrior: element,
+                        huGeScore: this.hugeScore,
+                        posteriorProbability: this.posteriorProbability(element)
+                    };
+                    this.items.push(my_object);
+                });
+            }
+
+            this.$store.state.prior = 0.3696;
         },
 
         pValueFormatter(pValue) {
