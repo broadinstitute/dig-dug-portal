@@ -12,6 +12,21 @@
                     />
                 </td>
             </template>
+            <!-- <template slot="removeItem" slot-scope="data">
+                <div
+                    :class="value > 0.3696 ? 'text-success' : 'text-danger'"
+                >{{ value.toFixed(2) }} EUR</div>
+            </template>-->
+            <template #cell(removeItem)="data">
+                <b-button
+                    style="padding: 0;border: none;background: none;"
+                    v-on:click="removeItems(data.item)"
+                >
+                    <span style="color: green; background:white">
+                        <b-icon-x-circle-fill></b-icon-x-circle-fill>
+                    </span>
+                </b-button>
+            </template>
         </b-table>
     </div>
 </template>
@@ -57,6 +72,10 @@ export default Vue.component("hugecal-table", {
                     key: "posteriorProbability",
                     label: "Posterior probability",
                     formatter: this.pValueFormatter
+                },
+                {
+                    key: "removeItem",
+                    label: ""
                 }
             ],
             items: [
@@ -86,9 +105,14 @@ export default Vue.component("hugecal-table", {
                 huGeScore: this.hugeScore,
                 posteriorProbability: this.posteriorProbability(
                     this.$store.state.prior
-                )
+                ),
+                removeItem: "-"
             };
             this.items.push(my_object);
+        },
+        removeItems(item) {
+            console.log(item);
+            this.items.pop(item);
         },
 
         pValueFormatter(pValue) {
