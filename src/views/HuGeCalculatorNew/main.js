@@ -62,6 +62,8 @@ new Vue({
     },
     data() {
         return {
+            showSection: false,
+            toggleIcon: '+',
             matchingGenes: [],
             phenotypelist: [],
             hugecalSearchCriterion: keyParams.gene
@@ -413,6 +415,9 @@ new Vue({
         }
     },
     methods: {
+        toggle() {
+            this.showSection = !this.showSection
+        },
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, { data });
         },

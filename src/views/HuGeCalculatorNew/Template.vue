@@ -195,6 +195,45 @@
                                             :commonBF="parseInt($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-genomesig-table>
                                     </div>
+                                    <div style="padding:10px 250px 10px 250px">
+                                        <br />
+                                        <span
+                                            style="padding:10px 290px 10px 310px; font-weight:bold"
+                                        >HuGe score {{$parent.bayesFactorCommonVariation}} falls in {{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence scale</span>
+                                        <color-bar-plot
+                                            v-if="$parent.bayesFactorCommonVariation"
+                                            :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
+                                            :elementid="'commonVariation'"
+                                            :score="$parent.bayesFactorCommonVariation"
+                                        ></color-bar-plot>
+                                    </div>
+
+                                    <div class="title" v-on:click="$parent.toggle()">
+                                        <span
+                                            class="toggleIcon"
+                                            id="toggleIcon"
+                                        >{{$parent.toggleIcon}}</span>
+                                        View {{$parent.selectedGene[0]}} on Locuszoom
+                                        <div class="row" v-show="$parent.showSection">
+                                            <div class="col-md-8">
+                                                <locuszoom
+                                                    v-if="$parent.region"
+                                                    ref="locuszoom"
+                                                    :chr="$parent.region.chromosome"
+                                                    :start="$parent.region.start -50000"
+                                                    :end="$parent.region.end +50000"
+                                                    :refSeq="true"
+                                                    :ldpop="true"
+                                                >
+                                                    <lz-associations-panel
+                                                        :phenotype="$parent.selectedPhenotype[0]"
+                                                        @input="$parent.updateAssociationsTable"
+                                                    ></lz-associations-panel>
+                                                </locuszoom>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="arrow-side"></div> -->
+                                    </div>
                                 </div>
                             </div>
 
@@ -704,5 +743,8 @@
     border-bottom: 1px solid black;
     margin-block-end: 30px;
     font-weight: bold;
+}
+#toggle {
+    display: block;
 }
 </style>

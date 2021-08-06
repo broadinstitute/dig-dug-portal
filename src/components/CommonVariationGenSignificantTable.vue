@@ -12,7 +12,7 @@
                 <template
                     slot="isGenomeWideSignificant"
                     scope="item"
-                >{{item.value?'Yes :)':'No :('}}</template>
+                >{{data.item.isGenomeWideSignificant?'Yes :)':'No :('}}</template>
                 <template #cell(tag)="data">
                     <div style="color:gray">{{ data.item.tag }}</div>
                 </template>
