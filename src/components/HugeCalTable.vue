@@ -1,6 +1,9 @@
 <template>
     <div>
         <b-table small :fields="fields" :items="items" responsive="sm">
+            <template #cell(huGeScore)="data">
+                <div style="color:#3fb54a ">{{ data.item.huGeScore }}</div>
+            </template>
             <template slot="bottom-row" slot-scope="data">
                 <td>
                     <input
@@ -11,6 +14,7 @@
                         @keyup.enter="addToItems"
                     />
                 </td>
+
                 <td>
                     <b-button
                         style="background: gray; cursor: pointer;"
@@ -73,7 +77,11 @@ export default Vue.component("hugecal-table", {
                 { key: "suggestedPrior", label: "Suggested prior" },
 
                 // A regular column
-                { key: "huGeScore", label: "HuGe Score" },
+                {
+                    key: "huGeScore",
+                    label: "HuGe Score",
+                    thClass: "#3fb54a"
+                },
                 // A virtual column made up from two fields
                 {
                     key: "posteriorProbability",

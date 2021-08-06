@@ -140,12 +140,12 @@
                                         <div
                                             class="row"
                                             id="suggestionBox"
-                                            style="color: #8fb512; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #dae8ac; padding:5px 5px 5px 5px"
+                                            style="color: #254CA6; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #E7EDF7; padding:5px 5px 5px 5px"
                                         >
                                             <div class="col-md-6">
                                                 Common Variation
                                                 <tooltip-documentation
-                                                    name="hugecal.common.tooltip.hover"
+                                                    name="hugecal.commonvariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -155,8 +155,11 @@
                                                 class="col-md-6"
                                                 style="text-align: right;"
                                             >BF:{{$parent.bayesFactorCommonVariation}}</div>
-                                        </div>*Common variation BF = 1 if a gene is not genome wide significant `\n`
-                                        If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
+                                        </div>
+                                        <span>
+                                            *Common variation BF = 1 if a gene is not genome wide significant
+                                            <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
+                                        </span>
                                     </span>
                                 </div>
                             </div>
