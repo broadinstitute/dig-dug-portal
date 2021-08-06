@@ -475,54 +475,70 @@
 }
 
 #commonVariation .variationCausal {
-    background-color: #884ea0;
+    background-color: #375fbd;
+    font-weight: bold;
 }
 #commonVariation .variationStrong {
-    background-color: #9b59b6;
+    background-color: #496fc9;
+    font-weight: bold;
 }
 #commonVariation .variationModerate {
-    background-color: #af7ac5;
+    background-color: #587dd6;
+    font-weight: bold;
 }
 #commonVariation .variationPossible {
-    background-color: #c39bd3;
+    background-color: #6488de;
+    font-weight: bold;
 }
 #commonVariation .variationPotential {
-    background-color: #deb3f1;
+    background-color: #7193e3;
+    font-weight: bold;
 }
 #commonVariation .variationWeak {
-    background-color: #e6c7f3;
+    background-color: #85a4ed;
+    font-weight: bold;
 }
 
 #commonVariation .variationEquivocal {
-    background-color: #edd7f6;
+    background-color: #92aef0;
+    font-weight: bold;
 }
 
 #commonVariation .variationNoEvidence {
-    background-color: #efe6f1;
+    background-color: #a3bcf7;
+    font-weight: bold;
 }
 #rareVariation .variationCausal {
     background-color: #f1c206;
+    font-weight: bold;
 }
 #rareVariation .variationStrong {
     background-color: #f3d14a;
+    font-weight: bold;
 }
 #rareVariation .variationModerate {
     background-color: #f5db74;
+    font-weight: bold;
 }
 #rareVariation .variationPossible {
     background-color: #f6e5a0;
+    font-weight: bold;
 }
 #rareVariation .variationPotential {
     background-color: #f3e3a4;
+    font-weight: bold;
 }
 #rareVariation .variationWeak {
     background-color: #f3e9c5;
+    font-weight: bold;
 }
 #rareVariation .variationEquivocal {
     background-color: #eee8d4;
+    font-weight: bold;
 }
 #rareVariation .variationNoEvidence {
     background-color: #ebe8de;
+    font-weight: bold;
 }
 
 #combinedVariation .variationCausal {
