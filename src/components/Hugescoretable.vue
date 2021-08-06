@@ -9,10 +9,13 @@
                 :items="items"
                 :fields="fields"
             >
+                <template #cell(tag)="data">
+                    <div style="color:gray">{{ data.item.tag }}</div>
+                </template>
                 <template v-slot:custom-foot="data">
                     <b-tr>
-                        <b-td style="text-align: right;">HuGe Score:</b-td>
-                        <b-td style=" text-align: right; background: #d2d2d2;">{{hugescore}}</b-td>
+                        <b-td style="text-align: right; font-weight:bold">HuGe Score:</b-td>
+                        <b-td style=" text-align: right; background: #e4f4e4;">{{hugescore}}</b-td>
                         <b-td></b-td>
                     </b-tr>
                 </template>
@@ -67,7 +70,6 @@ export default Vue.component("hugescore-table", {
             items: [
                 {
                     pretag: "",
-
                     _cellVariants: { bf: "info" },
                     bf: this.commonBF,
                     tag: "<--Common Variation BF"
@@ -87,18 +89,7 @@ export default Vue.component("hugescore-table", {
             return this.hugeScore;
         }
     },
-    methods: {
-        pValueFormatter(pValue) {
-            return Formatters.pValueFormatter(pValue);
-        },
-        posteriorProbability(p) {
-            let bayes_factor = this.hugeScore; //combined bayes factor
-            let f5 = p / (1 - p);
-            let p0 = bayes_factor * f5;
-            let ppa = p0 / (1 + p0);
-            return ppa;
-        }
-    }
+    methods: {}
 });
 </script>
 

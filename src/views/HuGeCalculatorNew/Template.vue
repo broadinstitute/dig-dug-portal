@@ -155,7 +155,7 @@
                                                 class="col-md-6"
                                                 style="text-align: right;"
                                             >BF:{{$parent.bayesFactorCommonVariation}}</div>
-                                        </div>*Common variation BF = 1 if a gene is not genome wide significant
+                                        </div>*Common variation BF = 1 if a gene is not genome wide significant `\n`
                                         If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
                                     </span>
                                 </div>
@@ -570,7 +570,7 @@
     /*height: 40px;*/
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-bottom: 10px solid rgb(195, 21, 21);
+    border-bottom: 10px solid #de202c;
     animation: moveright 1s alternate 1s;
     margin-left: auto;
     margin-right: auto;
