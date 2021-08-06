@@ -47,7 +47,7 @@ export default Vue.component("posterior-probability-plot", {
             return l;
         },
 
-        referenceLine5Percent() {
+        referenceLineNew(xref) {
             let n = prior.length;
             let x = new Array(n + 1);
             let y = new Array(n + 1);
@@ -58,7 +58,7 @@ export default Vue.component("posterior-probability-plot", {
 
             prior.forEach((r, i) => {
                 let m = {};
-                x[i] = 0.05;
+                x[i] = xref;
                 y[i] = r;
                 m["prior"] = x[i];
                 m["ppa"] = y[i];
@@ -66,25 +66,7 @@ export default Vue.component("posterior-probability-plot", {
             });
             return l;
         },
-        referenceLine20Percent() {
-            let n = prior.length;
-            let x = new Array(n + 1);
-            let y = new Array(n + 1);
-
-            x[0] = "x";
-            y[0] = "ppa";
-            let l = [];
-
-            prior.forEach((r, i) => {
-                let m = {};
-                x[i] = 0.2;
-                y[i] = r;
-                m["prior"] = x[i];
-                m["ppa"] = y[i];
-                l.push(m);
-            });
-            return l;
-        },
+       
 
         generateChart() {
             document.getElementById("posteriorpriorplot").innerHTML = "";
@@ -100,8 +82,8 @@ export default Vue.component("posterior-probability-plot", {
 
             var data = this.columns;
             var data2 = this.referenceLine();
-            var data3 = this.referenceLine5Percent();
-            var data4 = this.referenceLine20Percent();
+            var data3 = this.referenceLineNew(0.05);
+            var data4 = this.referenceLineNew(0.2);
 
             var xScale = d3
                 .scaleLinear()
