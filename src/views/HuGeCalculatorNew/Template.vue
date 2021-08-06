@@ -526,29 +526,37 @@
 }
 
 #combinedVariation .variationCausal {
-    background-color: rgba(48, 175, 164, 1);
+    background-color: #3fb54a;
+    font-weight: bold;
 }
 #combinedVariation .variationStrong {
-    background-color: rgba(48, 175, 164, 0.85);
+    background-color: #4ebf59;
+    font-weight: bold;
 }
 #combinedVariation .variationModerate {
-    background-color: rgba(48, 175, 164, 0.7);
+    background-color: #5ecc69;
+    font-weight: bold;
 }
 #combinedVariation .variationPossible {
-    background-color: rgba(48, 175, 164, 0.55);
+    background-color: #71d97b;
+    font-weight: bold;
 }
 #combinedVariation .variationPotential {
-    background-color: rgba(48, 175, 164, 0.4);
+    background-color: #7ee087;
+    font-weight: bold;
 }
 #combinedVariation .variationWeak {
-    background-color: rgba(48, 175, 164, 0.25);
+    background-color: #91eb9a;
+    font-weight: bold;
 }
 #combinedVariation .variationEquivocal {
-    background-color: rgba(48, 175, 164, 0.15);
+    background-color: #a1f0a9;
+    font-weight: bold;
 }
 
 #combinedVariation .variationNoEvidence {
-    background-color: rgba(48, 175, 164, 0.1);
+    background-color: #b8f5be;
+    font-weight: bold;
 }
 
 .divider {
