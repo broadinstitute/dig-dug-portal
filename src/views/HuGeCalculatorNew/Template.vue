@@ -76,7 +76,7 @@
                                     </span>
                                     <div style="margin-block-end: 60px"></div>
                                     <hugescore-table
-                                        style="padding:10px 550px 10px 550px"
+                                        style="padding:10px 450px 10px 450px"
                                         :commonBF="parseInt($parent.bayesFactorCommonVariation)"
                                         :rareBF="parseInt($parent.bayesFactorRareVariation)"
                                         :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
@@ -138,6 +138,7 @@
                                 <div class="card-body" style="margin-block-end:20px">
                                     <span class="lead" style="font-size: 12px;">
                                         <div
+                                            v-if="this.$store.state.associations.data"
                                             class="row"
                                             id="suggestionBox"
                                             style="color: #254CA6; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #E7EDF7; padding:5px 5px 5px 5px"
@@ -161,6 +162,24 @@
                                             <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
                                         </span>
                                     </span>
+
+                                    <div
+                                        v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
+                                    >
+                                        <span
+                                            style="font-weight:bold; padding:0px 150px 0px 650px"
+                                        >Is genome-wide significant?</span>
+                                        <div style="padding:5px 0px 5px 0px"></div>
+                                        <commonvariation-genomesig-table
+                                            style="padding:5px 400px 5px 400px"
+                                            v-if="$parent.eglData"
+                                            :isGenomeWideSignificant="true"
+                                            :gwasEvidence="'3(P-value <= 5e-8)'"
+                                            :codingEvidence="$parent.commonVariationMap['codingEvidence']"
+                                            :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
+                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                        ></commonvariation-genomesig-table>
+                                    </div>
                                 </div>
                             </div>
 

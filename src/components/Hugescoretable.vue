@@ -1,7 +1,14 @@
 <template>
     <div>
         <div>
-            <b-table borderless small thead-class="hidden_header" :items="items" :fields="fields">
+            <b-table
+                fixed
+                borderless
+                small
+                thead-class="hidden_header"
+                :items="items"
+                :fields="fields"
+            >
                 <template #cell(tag)="data">
                     <div style="color:gray">{{ data.item.tag }}</div>
                 </template>

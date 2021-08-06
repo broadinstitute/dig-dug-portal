@@ -22,6 +22,7 @@ import { query } from "@/utils/bioIndexUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import HugeCalTable from "@/components/HugeCalTable.vue";
 import Hugescoretable from "@/components/Hugescoretable.vue";
+import CommonVariationGenSignificantTable from "@/components/CommonVariationGenSignificantTable.vue";
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
@@ -54,6 +55,7 @@ new Vue({
         HugeCalTable,
         LocusZoomAssociationsPanel,
         Hugescoretable,
+        CommonVariationGenSignificantTable
     },
     render(createElement, context) {
         return createElement(Template);
@@ -322,6 +324,52 @@ new Vue({
 
             commonBF = firstBF * secondBF * thirdBF;
             return Number.parseFloat(commonBF).toFixed(2);
+        },
+
+
+        commonVariationMap() {
+            let scoreAndEvidenceMap = {}
+            let data = this.$store.state.associations.data;
+            if (!!data.length > 0) {
+                for (let i = 0; i < data.length; i++) {
+                    //if GWAS evidence
+                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                        if (data[i].pValue <= 5e-8) {
+
+                            if (!!this.eglData) {
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "1C"
+                                ) {
+                                    scoreAndEvidenceMap["codingEvidence"] = "117(1C)"
+
+                                }
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "2C"
+                                ) {
+                                    scoreAndEvidenceMap["codingEvidence"] = "5(2C)"
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "2R"
+                                ) {
+                                    scoreAndEvidenceMap["regulatoryEvidence"] = "5(2R)"
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "3R"
+                                ) {
+                                    scoreAndEvidenceMap["regulatoryEvidence"] = "2.2(3R)"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            console.log(scoreAndEvidenceMap)
+
+            return scoreAndEvidenceMap;
         },
 
         geneAssociations52k() {
