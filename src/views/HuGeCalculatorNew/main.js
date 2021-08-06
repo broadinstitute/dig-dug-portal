@@ -23,6 +23,8 @@ import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import HugeCalTable from "@/components/HugeCalTable.vue";
 import Hugescoretable from "@/components/Hugescoretable.vue";
 import CommonVariationGenSignificantTable from "@/components/CommonVariationGenSignificantTable.vue";
+import RareVariationExSignificantTable from "@/components/RareVariationExSignificantTable.vue";
+
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
@@ -55,7 +57,8 @@ new Vue({
         HugeCalTable,
         LocusZoomAssociationsPanel,
         Hugescoretable,
-        CommonVariationGenSignificantTable
+        CommonVariationGenSignificantTable,
+        RareVariationExSignificantTable
     },
     render(createElement, context) {
         return createElement(Template);
@@ -63,14 +66,16 @@ new Vue({
     data() {
         return {
             showSection: false,
-            showCommonVariationSection:false,
+            showCommonVariationSection: false,
+            showRareVariationSection: false,
+            showMaskTableSection: false,
+            showLZSection: false,
             toggleIcon: '+',
             matchingGenes: [],
             phenotypelist: [],
             hugecalSearchCriterion: keyParams.gene
                 ? [
                     {
-
                         field: "gene",
                         threshold: keyParams.gene
                     },
@@ -101,7 +106,6 @@ new Vue({
             this.$store.dispatch("get52KAssociationData", gene);
             this.$store.dispatch("getEGLData", phenotype);
         }
-
         // this.$store.dispatch("getAssociationsData", { "phenotype": keyParams.phenotype, "gene": keyParams.searchGene });
     },
 
@@ -375,6 +379,20 @@ new Vue({
             return scoreAndEvidenceMap;
         },
 
+        rareVariationScoreEvidenceMap() {
+            let rareVariationScoreEvidenceMap = {}
+
+            if (
+                this.isExomeWideSignificant(
+                    this.$store.state.geneAssociations52k.data,
+                    this.selectedPhenotype[0]
+                )
+            ) {
+                rareVariationScoreEvidenceMap["exomeEvidence"] = "348(P-Value <=2.5e-6)"
+            }
+            return rareVariationScoreEvidenceMap;
+        },
+
         geneAssociations52k() {
             if (!!this.$store.state.geneAssociations52k) {
                 if (!!this.$store.state.geneAssociations52k.data.length) {
@@ -416,11 +434,17 @@ new Vue({
         }
     },
     methods: {
-        toggle() {
-            this.showSection = !this.showSection
+        toggleLocuszoom() {
+            this.showLZSection = !this.showLZSection
         },
         toggleCommonVariation() {
             this.showCommonVariationSection = !this.showCommonVariationSection
+        },
+        toggleRareVariation() {
+            this.showRareVariationSection = !this.showRareVariationSection
+        },
+        toggleRareVariationMaskTable() {
+            this.showMaskTableSection = !this.showMaskTableSection
         },
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, { data });

@@ -209,14 +209,14 @@
                                             ></color-bar-plot>
                                         </div>
 
-                                        <div v-on:click="$parent.toggle()">
+                                        <div v-on:click="$parent.toggleLocuszoom()">
                                             <span
                                                 class="toggleIcon"
                                                 id="toggleIcon"
                                             >{{$parent.toggleIcon}}</span>
                                             View {{$parent.selectedGene[0]}} on Locuszoom
                                         </div>
-                                        <div v-show="$parent.showSection">
+                                        <div v-show="$parent.showLZSection">
                                             <locuszoom
                                                 v-if="$parent.region"
                                                 ref="locuszoom"
@@ -233,53 +233,68 @@
                                             </locuszoom>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div class="card mdkp-card">
-                                <div class="card-body" style="margin-block-end: 20px">
-                                    <div class="row" v-if="this.$store.state.associations.data">
-                                        <!-- Rare Variation - If EXOME WIDE SIGNIFICANT-->
+                                    <br />
+                                    <!-- NEW RARE VARIATION -->
+                                    <div>
+                                        <span v-on:click="$parent.toggleRareVariation()">
+                                            <div
+                                                v-if="this.$store.state.associations.data"
+                                                class="row"
+                                                id="suggestionBox"
+                                                style="color: #af5934; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #fef8dc; padding:5px 5px 5px 5px"
+                                            >
+                                                <div class="col-md-6">
+                                                    Rare Variation
+                                                    <tooltip-documentation
+                                                        name="hugecal.rarevariation.tooltip.hover"
+                                                        :content-fill="$parent.documentationMap"
+                                                        :isHover="true"
+                                                        :noIcon="false"
+                                                    ></tooltip-documentation>
+                                                </div>
+                                                <div
+                                                    class="col-md-6"
+                                                    style="text-align: right;"
+                                                >BF:{{$parent.bayesFactorRareVariation}}</div>
+                                            </div>
+                                        </span>
                                         <div
+                                            v-show="$parent.showRareVariationSection"
                                             v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
-                                            class="col-md-6"
-                                            style="border-left: 1px dashed #444 "
                                         >
-                                            <h4>
-                                                Rare Variation
-                                                <tooltip-documentation
-                                                    name="hugecal.rarevariation.tooltip.hover"
-                                                    :content-fill="$parent.documentationMap"
-                                                    :isHover="true"
-                                                    :noIcon="false"
-                                                ></tooltip-documentation>
-                                            </h4>
-                                            <ul style="margin-block-end: 40px ">
-                                                <li>
-                                                    <span>Exome-Wide significant - p-value less than 2.5e-6</span>
-                                                    <ul>
-                                                        <li>
-                                                            Bayes Factor =
-                                                            <span>{{$parent.bayesFactorRareVariation}}</span>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                                <li>Total Bayes Factor(Multiply all) = {{$parent.bayesFactorRareVariation}}</li>
-                                                <li>
-                                                    <span>Extreme evidence</span>
-                                                </li>
-                                            </ul>
-
-                                            <div style="margin-block-end: 60px">
+                                            <span
+                                                style="font-weight:bold; padding: 650px"
+                                            >Is exome-wide significant?</span>
+                                            <rarevariation-exomesig-table
+                                                :isExomeWideSignificant="true"
+                                                :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
+                                                :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                            ></rarevariation-exomesig-table>
+                                            <div style="padding:10px 250px 10px 250px">
                                                 <br />
+                                                <span
+                                                    style="padding:10px 290px 10px 310px; font-weight:bold"
+                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
                                                 <color-bar-plot
                                                     v-if="$parent.bayesFactorRareVariation"
-                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                    :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
                                                     :elementid="'rareVariation'"
-                                                    :score="$parent.bayesFactorRareVariation"
+                                                    :score="parseInt($parent.bayesFactorRareVariation)"
                                                 ></color-bar-plot>
                                             </div>
-                                            <div class="EGLT-table fiftytwo masktable">
+                                            <div
+                                                v-on:click="$parent.toggleRareVariationMaskTable()"
+                                            >
+                                                <span
+                                                    class="toggleIcon"
+                                                    id="toggleIcon"
+                                                >{{$parent.toggleIcon}}</span>
+                                                View Burden Association Summary statistics
+                                            </div>
+                                            <div
+                                                v-show="$parent.showMaskTableSection"
+                                                class="EGLT-table fiftytwo masktable"
+                                            >
                                                 <mask-table
                                                     v-if="$parent.masks.length"
                                                     :maskData="$parent.masks"
@@ -293,70 +308,40 @@
                                                 </ul>
                                             </div>
                                         </div>
-
-                                        <!-- Rare Variation - If not Exome wide significant -->
-                                        <div
-                                            v-else
-                                            class="col-md-6"
-                                            style="border-left: 1px dashed #444 "
-                                        >
-                                            <h4>
-                                                Rare Variation
-                                                <tooltip-documentation
-                                                    name="hugecal.rarevariation.tooltip.hover"
-                                                    :content-fill="$parent.documentationMap"
-                                                    :isHover="true"
-                                                    :noIcon="false"
-                                                ></tooltip-documentation>
-                                            </h4>
-                                            <ul>
-                                                <li>
-                                                    <span>
-                                                        Not Exome-Wide
-                                                        significant - p-value
-                                                        greater than 2.5e-6
-                                                    </span>
-                                                </li>
-
-                                                <li>
-                                                    Prior Variance
-                                                    <tooltip-documentation
-                                                        name="hugecal.rarevariation.changePrior"
-                                                        :content-fill="$parent.documentationMap"
-                                                        :isHover="true"
-                                                        :noIcon="false"
-                                                    ></tooltip-documentation>
-                                                    <input
-                                                        v-model.number="$store.state.prior"
-                                                        type="number"
-                                                        placeholder="Prior Variance"
-                                                        id="prior_variance_input"
-                                                    />
-                                                    <ul>
-                                                        <li>
-                                                            Total Bayes Factor =
-                                                            <span>
-                                                                {{
-                                                                $parent.bayesFactorRareVariation
-                                                                }}
-                                                            </span>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <span>{{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence</span>
-                                                </li>
-                                            </ul>
-                                            <div style="margin-block-end: 40px">
+                                        <div v-show="$parent.showRareVariationSection" v-else>
+                                            <span
+                                                style="font-weight:bold; padding: 650px"
+                                            >Is exome-wide significant?</span>
+                                            <rarevariation-exomesig-table
+                                                :isExomeWideSignificant="false"
+                                                :priorVariance="$store.state.prior"
+                                                :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                            ></rarevariation-exomesig-table>
+                                            <div style="padding:10px 250px 10px 250px">
                                                 <br />
+                                                <span
+                                                    style="padding:10px 290px 10px 310px; font-weight:bold"
+                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
                                                 <color-bar-plot
                                                     v-if="$parent.bayesFactorRareVariation"
-                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                    :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
                                                     :elementid="'rareVariation'"
-                                                    :score="$parent.bayesFactorRareVariation"
+                                                    :score="parseInt($parent.bayesFactorRareVariation)"
                                                 ></color-bar-plot>
                                             </div>
-                                            <div class="EGLT-table fiftytwo masktable">
+                                            <div
+                                                v-on:click="$parent.toggleRareVariationMaskTable()"
+                                            >
+                                                <span
+                                                    class="toggleIcon"
+                                                    id="toggleIcon"
+                                                >{{$parent.toggleIcon}}</span>
+                                                View Burden Association Summary statistics
+                                            </div>
+                                            <div
+                                                v-show="$parent.showMaskTableSection"
+                                                class="EGLT-table fiftytwo masktable"
+                                            >
                                                 <mask-table
                                                     v-if="$parent.masks.length"
                                                     :maskData="$parent.masks"
