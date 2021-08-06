@@ -136,7 +136,7 @@
 
                             <div class="card mdkp-card">
                                 <div class="card-body" style="margin-block-end:20px">
-                                    <span class="lead" style="font-size: 12px;">
+                                    <span v-on:click="$parent.toggleCommonVariation()">
                                         <div
                                             v-if="this.$store.state.associations.data"
                                             class="row"
@@ -157,192 +157,66 @@
                                                 style="text-align: right;"
                                             >BF:{{$parent.bayesFactorCommonVariation}}</div>
                                         </div>
-                                        <span>
-                                            *Common variation BF = 1 if a gene is not genome wide significant
-                                            <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
-                                        </span>
                                     </span>
-
-                                    <div
-                                        v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
-                                    >
-                                        <span
-                                            style="font-weight:bold; padding:0px 150px 0px 650px"
-                                        >Is genome-wide significant?</span>
-                                        <div style="padding:5px 0px 5px 0px"></div>
-                                        <commonvariation-genomesig-table
-                                            style="padding:0px 300px 0px 300px"
-                                            v-if="$parent.eglData"
-                                            :isGenomeWideSignificant="true"
-                                            :gwasEvidence="'3(P-value <= 5e-8)'"
-                                            :codingEvidence="$parent.commonVariationMap['codingEvidence']"
-                                            :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
-                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
-                                        ></commonvariation-genomesig-table>
-                                    </div>
-                                    <div v-else>
-                                        <span
-                                            style="font-weight:bold; padding:0px 150px 0px 650px"
-                                        >Is genome-wide significant?</span>
-                                        <div style="padding:5px 0px 5px 0px"></div>
-                                        <commonvariation-genomesig-table
-                                            style="padding:0px 300px 0px 300px"
-                                            v-if="$parent.eglData"
-                                            :isGenomeWideSignificant="false"
-                                            :gwasEvidence="'1(P-value > 5e-8)'"
-                                            :codingEvidence="$parent.commonVariationMap['codingEvidence']"
-                                            :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
-                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
-                                        ></commonvariation-genomesig-table>
-                                    </div>
-                                    <div style="padding:10px 250px 10px 250px">
-                                        <br />
-                                        <span
-                                            style="padding:10px 290px 10px 310px; font-weight:bold"
-                                        >HuGe score {{$parent.bayesFactorCommonVariation}} falls in {{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence scale</span>
-                                        <color-bar-plot
-                                            v-if="$parent.bayesFactorCommonVariation"
-                                            :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
-                                            :elementid="'commonVariation'"
-                                            :score="$parent.bayesFactorCommonVariation"
-                                        ></color-bar-plot>
-                                    </div>
-
-                                    <div class="title" v-on:click="$parent.toggle()">
-                                        <span
-                                            class="toggleIcon"
-                                            id="toggleIcon"
-                                        >{{$parent.toggleIcon}}</span>
-                                        View {{$parent.selectedGene[0]}} on Locuszoom
-                                        <div class="row" v-show="$parent.showSection">
-                                            <div class="col-md-8">
-                                                <locuszoom
-                                                    v-if="$parent.region"
-                                                    ref="locuszoom"
-                                                    :chr="$parent.region.chromosome"
-                                                    :start="$parent.region.start -50000"
-                                                    :end="$parent.region.end +50000"
-                                                    :refSeq="true"
-                                                    :ldpop="true"
-                                                >
-                                                    <lz-associations-panel
-                                                        :phenotype="$parent.selectedPhenotype[0]"
-                                                        @input="$parent.updateAssociationsTable"
-                                                    ></lz-associations-panel>
-                                                </locuszoom>
-                                            </div>
-                                        </div>
-                                        <!-- <div class="arrow-side"></div> -->
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- COMMON VARIATION -->
-                            <div class="card mdkp-card">
-                                <div class="card-body" style="margin-block-end: 20px">
-                                    <div class="row" v-if="this.$store.state.associations.data">
+                                    <div v-show="$parent.showCommonVariationSection">
                                         <div
-                                            class="col-md-6"
                                             v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
                                         >
-                                            <h4>
-                                                Common Variation
-                                                <tooltip-documentation
-                                                    name="hugecal.commonvariation.tooltip.hover"
-                                                    :content-fill="$parent.documentationMap"
-                                                    :isHover="true"
-                                                    :noIcon="false"
-                                                ></tooltip-documentation>
-                                            </h4>
-                                            <ul v-if="$parent.eglData">
-                                                <li>
-                                                    <span>
-                                                        Genome-wide significant
-                                                        - pvalue less than 5e-8
-                                                    </span>
-                                                    <ul>
-                                                        <li>Bayes Factor = 3</li>
-                                                    </ul>
-                                                </li>
-                                                <li v-if="$parent.eglData.genetic == '1C'">
-                                                    Coding evidence: Confirmed causal coding variant
-                                                    <span
-                                                        class="codingEvidence1C"
-                                                    >{{$parent.eglData.genetic}}</span>
-                                                    <ul>
-                                                        <li>Bayes Factor = 116</li>
-                                                    </ul>
-                                                </li>
-                                                <li v-else-if="$parent.eglData.genetic == '2C' ">
-                                                    Coding evidence: Likely causal coding variant
-                                                    <span
-                                                        class="codingEvidence2C"
-                                                    >{{$parent.eglData.genetic}}</span>
-                                                    <ul>
-                                                        <li>Bayes Factor = 5</li>
-                                                    </ul>
-                                                </li>
-                                                <li v-if="$parent.eglData.genomic == '2R' ">
-                                                    Regulatory evidence: >1 line of regulatory evidence
-                                                    <span
-                                                        class="regulatoryEvidence2R"
-                                                    >{{ $parent.eglData.genomic }}</span>
-                                                    <ul>
-                                                        <li>Bayes Factor = 5</li>
-                                                    </ul>
-                                                </li>
-                                                <li v-if=" $parent.eglData.genomic == '3R'">
-                                                    Regulatory evidence: 1 line of regulatory evidence
-                                                    <span
-                                                        class="regulatoryEvidence3R"
-                                                    >{{ $parent.eglData.genomic}}</span>
-                                                    <ul>
-                                                        <li>Bayes Factor = 2.2</li>
-                                                    </ul>
-                                                </li>
-                                                <li v-if=" $parent.eglData.category == 'in GWAS' ">
-                                                    <span>Genome-wide significant but no coding or regulatory evidence</span>
-                                                </li>
-                                                <li v-else>
-                                                    <span>Genome-wide significant but no coding or regulatory evidence</span>
-                                                </li>
-                                                <!-- //please check this clause -->
-                                                <!-- <li v-if="$parent.eglData.category =='No Evidence'">
-                                                    <span>
-                                                        Genome-wide significant but no coding or regulatory evidence
-                                                        associated with Type 2 diabetes
-                                                    </span>
-                                                </li>-->
-                                                <li>
-                                                    Total Bayes Factor(Multiply all):
-                                                    <span>{{$parent.bayesFactorCommonVariation}}</span>
-                                                </li>
+                                            <span class="lead" style="font-size:12px ">
+                                                *Common variation BF = 1 if a gene is not genome wide significant
+                                                <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
+                                            </span>
+                                            <br />
+                                            <span
+                                                style="font-weight:bold; padding: 650px"
+                                            >Is genome-wide significant?</span>
+                                            <div style="padding:5px 0px 5px 0px"></div>
+                                            <commonvariation-genomesig-table
+                                                style="padding:0px 300px 0px 300px"
+                                                v-if="$parent.eglData"
+                                                :isGenomeWideSignificant="true"
+                                                :gwasEvidence="'3(P-value <= 5e-8)'"
+                                                :codingEvidence="$parent.commonVariationMap['codingEvidence']"
+                                                :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
+                                                :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                            ></commonvariation-genomesig-table>
+                                        </div>
+                                        <div v-else>
+                                            <span
+                                                style="font-weight:bold; padding:0px 150px 0px 650px"
+                                            >Is genome-wide significant?</span>
+                                            <div style="padding:5px 0px 5px 0px"></div>
+                                            <commonvariation-genomesig-table
+                                                style="padding:0px 300px 0px 300px"
+                                                v-if="$parent.eglData"
+                                                :isGenomeWideSignificant="false"
+                                                :gwasEvidence="'1(P-value > 5e-8)'"
+                                                :codingEvidence="$parent.commonVariationMap['codingEvidence']"
+                                                :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
+                                                :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                            ></commonvariation-genomesig-table>
+                                        </div>
+                                        <div style="padding:10px 250px 10px 250px">
+                                            <br />
+                                            <span
+                                                style="padding:10px 290px 10px 310px; font-weight:bold"
+                                            >HuGe score {{$parent.bayesFactorCommonVariation}} falls in {{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence scale</span>
+                                            <color-bar-plot
+                                                v-if="$parent.bayesFactorCommonVariation"
+                                                :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
+                                                :elementid="'commonVariation'"
+                                                :score="$parent.bayesFactorCommonVariation"
+                                            ></color-bar-plot>
+                                        </div>
 
-                                                <li>{{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence</li>
-                                            </ul>
-                                            <!-- Common variation color bar plot -->
-                                            <div style v-if="$parent.eglData">
-                                                <br />
-                                                <color-bar-plot
-                                                    v-if="$parent.bayesFactorCommonVariation"
-                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
-                                                    :elementid="'commonVariation'"
-                                                    :score="$parent.bayesFactorCommonVariation"
-                                                ></color-bar-plot>
-                                            </div>
-                                            <hr style="margin: 40px" />
-                                            <!-- LZ plot if GWAS significant (Common variation) -->
-
-                                            <h5>{{$parent.selectedGene[0]}} is GWAS Significant for {{$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].description}}</h5>
-                                            <div class="col-md-8 gene-page-header-body regionInfo">
-                                                {{ $parent.regionString }}
-                                                <button
-                                                    class="btn btn-primary text-nowrap text-right explore-region-btn"
-                                                    style="margin-left: 20px"
-                                                    @click="$parent.exploreExpanded()"
-                                                    @click.prevent
-                                                >Expand &plusmn; 50 kb</button>
-                                            </div>
+                                        <div v-on:click="$parent.toggle()">
+                                            <span
+                                                class="toggleIcon"
+                                                id="toggleIcon"
+                                            >{{$parent.toggleIcon}}</span>
+                                            View {{$parent.selectedGene[0]}} on Locuszoom
+                                        </div>
+                                        <div v-show="$parent.showSection">
                                             <locuszoom
                                                 v-if="$parent.region"
                                                 ref="locuszoom"
@@ -358,75 +232,13 @@
                                                 ></lz-associations-panel>
                                             </locuszoom>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                                        <!-- If NOT GWAS significant -->
-                                        <div v-else class="col-md-6">
-                                            <h4>
-                                                Common Variation
-                                                <tooltip-documentation
-                                                    name="hugecal.commonvariation.tooltip.hover"
-                                                    :content-fill="$parent.documentationMap"
-                                                    :isHover="true"
-                                                    :noIcon="false"
-                                                ></tooltip-documentation>
-                                            </h4>
-                                            <ul>
-                                                <li>{{$parent.selectedGene[0]}} is not GWAS Significant for {{$parent.selectedPhenotype[0]}}- p-value greater than 5e-8</li>
-                                                <ul>
-                                                    <li>
-                                                        Bayes Factor =
-                                                        <span>{{$parent.bayesFactorCommonVariation}}</span>
-                                                    </li>
-                                                </ul>
-                                                <li>{{$parent.selectedGene[0]}} does not have any Genetic or Regulatory evidence for {{$parent.selectedPhenotype[0]}}</li>
-                                                <li>Total Bayes Factor = {{$parent.bayesFactorCommonVariation}}</li>
-
-                                                <li>{{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence</li>
-                                            </ul>
-
-                                            <div>
-                                                <br />
-                                                <color-bar-plot
-                                                    v-if="$parent.bayesFactorCommonVariation"
-                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
-                                                    :elementid="'commonVariation'"
-                                                    :score="$parent.bayesFactorCommonVariation"
-                                                ></color-bar-plot>
-                                            </div>
-                                            <hr style="margin: 40px" />
-                                            <div>
-                                                <h5>
-                                                    {{ $parent.selectedGene[0]}}
-                                                    is not GWAS significant for {{$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].description}}
-                                                </h5>
-
-                                                <div
-                                                    class="col-md-8 gene-page-header-body regionInfo"
-                                                >
-                                                    {{ $parent.regionString }}
-                                                    <button
-                                                        class="btn btn-primary text-nowrap text-right explore-region-btn"
-                                                        style="margin-left: 20px"
-                                                        @click="$parent.exploreExpanded()"
-                                                    >Expand &plusmn; 50 kb</button>
-                                                </div>
-                                                <locuszoom
-                                                    v-if="$parent.region"
-                                                    ref="locuszoom"
-                                                    :chr="$parent.region.chromosome"
-                                                    :start="$parent.region.start - 50000"
-                                                    :end="$parent.region.end + 50000"
-                                                    :ldpop="true"
-                                                    :refSeq="true"
-                                                >
-                                                    <lz-associations-panel
-                                                        :phenotype="$parent.selectedPhenotype[0]"
-                                                        @input="$parent.updateAssociationsTable"
-                                                    ></lz-associations-panel>
-                                                </locuszoom>
-                                            </div>
-                                        </div>
-
+                            <div class="card mdkp-card">
+                                <div class="card-body" style="margin-block-end: 20px">
+                                    <div class="row" v-if="this.$store.state.associations.data">
                                         <!-- Rare Variation - If EXOME WIDE SIGNIFICANT-->
                                         <div
                                             v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"

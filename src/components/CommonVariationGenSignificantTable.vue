@@ -8,17 +8,15 @@
                 thead-class="hidden_header"
                 :items="items"
                 :fields="fields"
+                responsive="sm"
             >
-                <template
-                    slot="isGenomeWideSignificant"
-                    scope="item"
-                >{{data.item.isGenomeWideSignificant?'Yes :)':'No :('}}</template>
+                <template #cell(evidence)="data">
+                    <div style="background: #E7EDF7">{{ data.item.evidence }}</div>
+                </template>
                 <template #cell(tag)="data">
                     <div style="color:gray">{{ data.item.tag }}</div>
                 </template>
-                <template #cell(isGenomeWideSignificant)="data">
-                    <div style="background: #E7EDF7">{{ data.item.isGenomeWideSignificant }}</div>
-                </template>
+
                 <template #cell(bf)="data">
                     <div style="background: #DFDBDA">{{ data.item.bf }}</div>
                 </template>
@@ -81,32 +79,32 @@ export default Vue.component("commonvariation-genomesig-table", {
         return {
             fields: [
                 { key: "pretag", tdClass: "text-right" },
-                { key: "isGenomeWideSignificant", tdClass: "text-center" },
+                { key: "evidence", tdClass: "text-center" },
                 { key: "bf", tdClass: "text-center" },
                 { key: "tag", tdClass: "text-left" }
             ],
             items: [
                 {
                     pretag: "",
-                    isGenomeWideSignificant: "Yes",
+                    evidence: "Yes",
                     bf: "No",
                     tag: ""
                 },
                 {
                     pretag: "",
-                    isGenomeWideSignificant: this.gwasEvidence,
+                    evidence: this.gwasEvidence,
                     bf: "N/A",
                     tag: "<--GWAS Evidence"
                 },
                 {
                     pretag: "",
-                    isGenomeWideSignificant: this.codingEvidence,
+                    evidence: this.codingEvidence,
                     bf: "N/A",
                     tag: "<--Coding Evidence"
                 },
                 {
                     pretag: "X",
-                    isGenomeWideSignificant: this.regulatoryEvidence,
+                    evidence: this.regulatoryEvidence,
                     bf: "N/A",
                     tag: "<--Regulatory Evidence"
                 }

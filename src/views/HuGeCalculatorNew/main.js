@@ -63,6 +63,7 @@ new Vue({
     data() {
         return {
             showSection: false,
+            showCommonVariationSection:false,
             toggleIcon: '+',
             matchingGenes: [],
             phenotypelist: [],
@@ -417,6 +418,9 @@ new Vue({
     methods: {
         toggle() {
             this.showSection = !this.showSection
+        },
+        toggleCommonVariation() {
+            this.showCommonVariationSection = !this.showCommonVariationSection
         },
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, { data });
