@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import hugeampkpncms from "@/modules/hugeampkpncms";
+import umLdServer from "@/modules/umLdServer.js";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
@@ -20,11 +21,13 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         hugeampkpncms,
+        umLdServer,
     },
     state: {
         filteredData: "",
         multiGroupsData: "",
         genesInRegion: "",
+        variantCorrelations: "",
         bioIndexContinue: [],
     },
     mutations: {
@@ -40,6 +43,10 @@ export default new Vuex.Store({
             //console.log("called 2");
             state.genesInRegion = data;
         },
+        setVariantCorrelations(state, data) {
+            //console.log("called 2");
+            state.variantCorrelations = data;
+        },
         setBioIndexContinue(state, data) {
             state.bioIndexContinue.push(data);
         },
@@ -54,6 +61,9 @@ export default new Vuex.Store({
         },
         genesInRegion(context, genes) {
             context.commit("setGenesInRegion", genes);
+        },
+        variantCorrelations(context, ldData) {
+            context.commit("setVariantCorrelations", ldData);
         },
         bioIndexContinue(context, moreData) {
             context.commit("setBioIndexContinue", moreData);

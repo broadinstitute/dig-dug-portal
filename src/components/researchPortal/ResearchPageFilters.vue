@@ -344,6 +344,7 @@ export default Vue.component("research-page-filters", {
             }
         },
         queryAPI() {
+            this.showHideSearch();
             uiUtils.showElement("data-loading-indicator");
 
             for (const FIELD in this.filtersIndex) {
@@ -352,13 +353,14 @@ export default Vue.component("research-page-filters", {
 
             this.$store.state.bioIndexContinue = [];
 
-            console.log(
+            /*console.log(
                 "if merge data",
                 document.getElementById("ifMergeData").value
             );
 
             console.log("this.dataset", typeof this.dataset);
             console.log("this.dataset", this.dataset);
+            */
 
             let ifCompareData = document.getElementById("ifMergeData").value;
 

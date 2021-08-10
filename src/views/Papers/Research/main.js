@@ -335,7 +335,7 @@ new Vue({
 
 
 
-            console.log("bioIndexContinue", this.$store.state.bioIndexContinue);
+            //console.log("bioIndexContinue", this.$store.state.bioIndexContinue);
 
 
 
@@ -345,7 +345,7 @@ new Vue({
 
                 let paramTrueCount = 0;
                 parametersArr.map((param, index) => {
-                    console.log(keyParams[param], index);
+                    //console.log(keyParams[param], index);
                     if (!!keyParams[param]) {
                         paramTrueCount++;
                     }
@@ -355,7 +355,7 @@ new Vue({
                     this.$store.state.bioIndexContinue = [];
                     let queryParams = "";
                     parametersArr.map((param, index) => {
-                        console.log(param, index);
+                        //console.log(param, index);
                         queryParams += keyParams[param].trim();
                         if (index + 1 < parametersArr.length) {
                             queryParams += ",";
@@ -395,7 +395,7 @@ new Vue({
                 return null;
             }
 
-            console.log("compare", JSON.parse(contents[0]["field_data_comparison"]))
+            //console.log("compare", JSON.parse(contents[0]["field_data_comparison"]))
 
             return JSON.parse(contents[0]["field_data_comparison"]);
         },
@@ -743,7 +743,7 @@ new Vue({
                 this.dataTableFormat = dataTableFormat;
             }
 
-            console.log("filteredData", content);
+            //console.log("filteredData", content);
 
             this.$store.dispatch("filteredData", content);
         }
