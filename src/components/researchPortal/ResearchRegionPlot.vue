@@ -1,5 +1,43 @@
 <template>
     <div class="mbm-plot-content row">
+        <div class="col-md-12 region-plot-default-legend">
+            <span
+                class="plot-legend-dot"
+                style="background-color: #82409970"
+            ></span>
+            <span>Reference variant</span>
+            <span
+                class="plot-legend-dot"
+                style="background-color: #d0363360"
+            ></span
+            ><span>1 > r2 >= 0.8</span>
+            <span
+                class="plot-legend-dot"
+                style="background-color: #ee982d50"
+            ></span
+            ><span>0.8 > r2 >= 0.6</span>
+            <span
+                class="plot-legend-dot"
+                style="background-color: #4db05240"
+            ></span
+            ><span>0.6 > r2 >= 0.4</span>
+            <span
+                class="plot-legend-dot"
+                style="background-color: #32afd530"
+            ></span
+            ><span>0.4 > r2 >= 0.2</span>
+            <span
+                class="plot-legend-dot"
+                style="background-color: #2074b620"
+            ></span
+            ><span>0.2 > r2 > 0</span>
+
+            <span
+                class="plot-legend-dot"
+                style="background-color: #33333320"
+            ></span>
+            <span>No data</span>
+        </div>
         <div id="regionPlotWrapper" class="col-md-9">
             <div id="clicked_dot_value" class="clicked-dot-value hidden">
                 <div id="clicked_dot_value_content"></div>
@@ -381,12 +419,12 @@ export default Vue.component("research-region-plot", {
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
                 : 300 + this.topMargin + this.bottomMargin;
 
-            console.log("no geneTrack", canvasRenderHeight);
+            //console.log("no geneTrack", canvasRenderHeight);
             canvasRenderHeight += !!this.renderConfig.geneTrack
                 ? 15 * genesInRegion.length
                 : 0;
 
-            console.log("with geneTrack", canvasRenderHeight);
+            //console.log("with geneTrack", canvasRenderHeight);
 
             let xBump = canvasRenderWidth * 0.03;
             let yBump = canvasRenderHeight * 0.02;
@@ -399,8 +437,8 @@ export default Vue.component("research-region-plot", {
                 ? this.renderConfig.height
                 : 300;
 
-            console.log("plotHeight", plotHeight);
-            console.log("canvasRenderHeight", canvasRenderHeight);
+            //console.log("plotHeight", plotHeight);
+            //console.log("canvasRenderHeight", canvasRenderHeight);
 
             let ldDataLength = this.ldVariantCorrelationsData.data.correlation
                 .length;
@@ -571,37 +609,45 @@ export default Vue.component("research-region-plot", {
                     yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
 
                 let ldConfig = this.renderConfig.ldServer;
-                let dotColor = "#33333320";
+                //let dotColor = "";
 
-                if (ldDataLength > 0) {
-                    let dotID =
-                        this.chr +
-                        ":" +
-                        g[ldConfig.pos] +
-                        "_" +
-                        g[ldConfig.ref] +
-                        "/" +
-                        g[ldConfig.alt];
+                //console.log("ldDataLength", this.refVariant, ldDataLength);
 
-                    if (!!ldData[dotID]) {
-                        let ldScore = ldData[dotID];
+                //if (ldDataLength > 0) {
+                let dotID =
+                    this.chr +
+                    ":" +
+                    g[ldConfig.pos] +
+                    "_" +
+                    g[ldConfig.ref] +
+                    "/" +
+                    g[ldConfig.alt];
 
-                        //console.log(dotID, ldScore);
-                        dotColor =
-                            ldScore == 1
-                                ? "#82409970"
-                                : ldScore < 1 && ldScore >= 0.8
-                                ? "#D0363360"
-                                : ldScore < 0.8 && ldScore >= 0.6
-                                ? "#EE982D50"
-                                : ldScore < 0.6 && ldScore >= 0.4
-                                ? "#4DB05240"
-                                : ldScore < 0.4 && ldScore >= 0.2
-                                ? "#32AFD530"
-                                : "#2074B620";
+                //if (ldData[dotID != undefined]) {
+                let ldScore = !!ldData[dotID]
+                    ? ldData[dotID]
+                    : dotID == this.refVariant
+                    ? 1
+                    : 0;
 
-                        //console.log(dotID, ldScore, dotColor);
-                        /*
+                //console.log(dotID, ldScore);
+                let dotColor =
+                    ldScore == 1
+                        ? "#82409970"
+                        : ldScore < 1 && ldScore >= 0.8
+                        ? "#D0363360"
+                        : ldScore < 0.8 && ldScore >= 0.6
+                        ? "#EE982D50"
+                        : ldScore < 0.6 && ldScore >= 0.4
+                        ? "#4DB05240"
+                        : ldScore < 0.4 && ldScore >= 0.2
+                        ? "#32AFD530"
+                        : ldScore < 0.2 && ldScore > 0
+                        ? "#2074B620"
+                        : "#33333320";
+
+                //console.log(dotID, ldScore, dotColor);
+                /*
                     1: #82409920
                     1> r2 >= 0.8: #D0363320
                     0.8> r2 >= 0.6: #EE982D20
@@ -609,8 +655,9 @@ export default Vue.component("research-region-plot", {
                     0.4> r2 >= 0.2: #32AFD520
                     0.2> r2 >= 0: #2074B620
                     */
-                    }
-                }
+                //}
+                //console.log(dotID, ldScore, dotColor);
+                //}
 
                 ctx.fillStyle = dotColor;
 
@@ -830,25 +877,30 @@ export default Vue.component("research-region-plot", {
                     "/" +
                     g[ldConfig.alt];
 
-                let ldScore = !!LDData[dotID] ? LDData[dotID] : 0;
+                let ldScore = !!LDData[dotID]
+                    ? LDData[dotID]
+                    : dotID == this.refVariant
+                    ? 1
+                    : 0;
 
-                //console.log(dotID, ldScore);
-                if (!!LDData[dotID]) {
-                    dotColor =
-                        ldScore == 1
-                            ? "#82409970"
-                            : ldScore < 1 && ldScore >= 0.8
-                            ? "#D0363360"
-                            : ldScore < 0.8 && ldScore >= 0.6
-                            ? "#EE982D50"
-                            : ldScore < 0.6 && ldScore >= 0.4
-                            ? "#4DB05240"
-                            : ldScore < 0.4 && ldScore >= 0.2
-                            ? "#32AFD530"
-                            : "#2074B620";
+                //if (ldScore != 0) {
+                dotColor =
+                    ldScore == 1
+                        ? "#82409970"
+                        : ldScore < 1 && ldScore >= 0.8
+                        ? "#D0363360"
+                        : ldScore < 0.8 && ldScore >= 0.6
+                        ? "#EE982D50"
+                        : ldScore < 0.6 && ldScore >= 0.4
+                        ? "#4DB05240"
+                        : ldScore < 0.4 && ldScore >= 0.2
+                        ? "#32AFD530"
+                        : ldScore < 0.2 && ldScore > 0
+                        ? "#2074B620"
+                        : "#33333320";
 
-                    //console.log(dotID, ldScore, dotColor);
-                    /*
+                //console.log(dotID, ldScore, dotColor);
+                /*
                     1: #82409920
                     1> r2 >= 0.8: #D0363320
                     0.8> r2 >= 0.6: #EE982D20
@@ -856,7 +908,7 @@ export default Vue.component("research-region-plot", {
                     0.4> r2 >= 0.2: #32AFD520
                     0.2> r2 >= 0: #2074B620
                     */
-                }
+                //}
 
                 let xPos = xStart + xPosByPixel * ldScore;
 
@@ -903,6 +955,16 @@ $(function () {});
 </script>
 
 <style>
+.region-plot-default-legend span {
+    font-size: 12px;
+    display: inline-block;
+    margin-right: 5px;
+}
+.plot-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 12px;
+}
 #manhattanPlot.hover,
 #ldPlot.hover {
     cursor: pointer;
