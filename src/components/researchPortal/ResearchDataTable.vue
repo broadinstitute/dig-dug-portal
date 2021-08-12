@@ -1,6 +1,11 @@
 <template>
     <div class="research-data-table-wrapper">
         <div v-html="tableLegend" class="data-table-legend"></div>
+        <div
+            v-if="!!dataset"
+            v-html="'Total rows: ' + filteredData.length"
+            class="table-total-rows"
+        ></div>
         <div class="table-ui-wrapper">
             <label
                 >Rows per page:
@@ -389,6 +394,11 @@ export default Vue.component("research-data-table", {
 </script>
 
 <style>
+.table-total-rows {
+    float: left;
+    font-size: 12px;
+    padding-top: 10px;
+}
 .data-table-legend {
     margin-bottom: -15px;
 }
@@ -452,6 +462,7 @@ table.research-data-table {
 .table-ui-wrapper {
     text-align: right;
     font-size: 12px;
+    float: right;
 }
 
 .convert-2-csv {

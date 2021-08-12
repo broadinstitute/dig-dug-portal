@@ -222,6 +222,22 @@ new Vue({
 
                 for (let i = 0; i < fieldsLength; i++) {
                     if (i < fieldsLength - 1) {
+                        fieldValue += fData[FIELDS[i]] + jBy;
+                    } else {
+                        fieldValue += fData[FIELDS[i]];
+                    }
+
+                }
+                return fieldValue;
+            }
+
+            let joinMultiValues = function (FIELDS, jBy, fData) {
+
+                let fieldValue = "";
+                let fieldsLength = FIELDS.length;
+
+                for (let i = 0; i < fieldsLength; i++) {
+                    if (i < fieldsLength - 1) {
                         fieldValue += fData[FIELDS[i]] + jBy[i];
                     } else {
                         fieldValue += fData[FIELDS[i]];
@@ -230,23 +246,7 @@ new Vue({
                 }
                 return fieldValue;
             }
-            /*
-                        let joinMultiValues = function (FIELDS, jBy, fData) {
 
-                            let fieldValue = "";
-                            let fieldsLength = FIELDS.length;
-
-                            for (let i = 0; i < fieldsLength; i++) {
-                                if (i < fieldsLength - 1) {
-                                    fieldValue += fData[FIELDS[i]] + jBy[i];
-                                } else {
-                                    fieldValue += fData[FIELDS[i]];
-                                }
-
-                            }
-                            return fieldValue;
-                        }
-            */
             let scoreColumns = function (FIELDS, scoreBy, fData) {
 
                 let fieldValue = 0;
@@ -263,7 +263,6 @@ new Vue({
                 });
 
                 return fieldValue / fieldsLength;
-
             }
 
             let formatLocus = function (CHR, START, END, fData) {
@@ -283,11 +282,11 @@ new Vue({
                         case "join":
                             tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
                             break;
-                        /*
-                                                case "join multi":
-                                                    tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
-                                                    break;
-                        */
+
+                        case "join multi":
+                            tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
+                            break;
+
                         case "get locus":
                             tempObj[c["field name"]] = formatLocus(c["chromosome"], c["start"], c["end"], d);
                             break;
