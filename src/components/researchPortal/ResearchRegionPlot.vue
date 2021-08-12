@@ -40,7 +40,38 @@
         </div>
         <div id="regionPlotWrapper" class="col-md-9">
             <div id="clicked_dot_value" class="clicked-dot-value hidden">
-                <div id="clicked_dot_value_content"></div>
+                <div id="clicked_dot_value_content">
+                    <span
+                        v-if="hoverDotPosFullList.length > 5"
+                        class="gene-on-clicked-dot-mplot"
+                        style="color: #36c; font-weight: bold"
+                        v-html="
+                            'Viewing 5 of ' +
+                            hoverDotPosFullList.length +
+                            ' variants. Click dot to view full list.'
+                        "
+                    ></span>
+                    <span
+                        class="gene-on-clicked-dot-mplot"
+                        style="color: #36c; font-weight: bold"
+                        v-html="'Click dot for more options.'"
+                    ></span>
+                    <template
+                        v-for="(variant, vIndex) in hoverDotPosFullList"
+                        v-if="vIndex < 5"
+                    >
+                        <span class="gene-on-clicked-dot-mplot" :key="vIndex">
+                            <b v-html="variant[renderConfig.renderBy]"></b
+                        ></span>
+                        <span
+                            class="content-on-clicked-dot"
+                            v-for="(info, infoKey) in variant"
+                            :key="info"
+                            v-html="infoKey + ': ' + info"
+                        >
+                        </span>
+                    </template>
+                </div>
             </div>
             <div id="dot_value_full_list" class="dot-value-full-list hidden">
                 <div
@@ -50,7 +81,9 @@
                     <b-icon icon="x-circle-fill"></b-icon>
                 </div>
                 <div id="dot_value_full_list_content">
-                    <template v-for="(variant, vIndex) in dotPosFullList">
+                    <template
+                        v-for="(variant, vIndex) in clickedDotPosFullList"
+                    >
                         <span class="gene-on-clicked-dot-mplot" :key="vIndex">
                             <b v-html="variant[renderConfig.renderBy]"></b
                         ></span>
@@ -98,7 +131,41 @@
         </div>
         <div id="ldPlotWrapper" class="col-md-3">
             <div id="ld_clicked_dot_value" class="ld-clicked-dot-value hidden">
-                <div id="ld_clicked_dot_value_content"></div>
+                <div id="ld_clicked_dot_value_content">
+                    <span
+                        v-if="hoverLdDotPosFullList.length > 5"
+                        class="gene-on-clicked-dot-mplot"
+                        style="color: #36c; font-weight: bold"
+                        v-html="
+                            'Viewing 5 of ' +
+                            hoverLdDotPosFullList.length +
+                            ' variants. Click dot to view full list.'
+                        "
+                    ></span>
+                    <span
+                        class="gene-on-clicked-dot-mplot"
+                        style="color: #36c; font-weight: bold"
+                        v-html="'Click dot for more options.'"
+                    ></span>
+                    <template
+                        v-for="(hLdVariant, hLdVIndex) in hoverLdDotPosFullList"
+                        v-if="hLdVIndex < 5"
+                    >
+                        <span
+                            class="gene-on-clicked-dot-mplot"
+                            :key="hLdVIndex"
+                        >
+                            <b v-html="hLdVariant[renderConfig.renderBy]"></b
+                        ></span>
+                        <span
+                            class="content-on-clicked-dot"
+                            v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
+                            :key="hLdVInfo"
+                            v-html="hLdVInfoKey + ': ' + hLdVInfo"
+                        >
+                        </span>
+                    </template>
+                </div>
             </div>
             <div
                 id="ld_dot_value_full_list"
@@ -111,7 +178,9 @@
                     <b-icon icon="x-circle-fill"></b-icon>
                 </div>
                 <div id="ld_dot_value_full_list_content">
-                    <template v-for="(ldVariant, ldIndex) in ldDotPosFullList">
+                    <template
+                        v-for="(ldVariant, ldIndex) in clickedLdDotPosFullList"
+                    >
                         <span class="gene-on-clicked-dot-mplot" :key="ldIndex">
                             <b v-html="ldVariant[renderConfig.renderBy]"></b
                         ></span>
@@ -169,8 +238,10 @@ export default Vue.component("research-region-plot", {
             bottomMargin: 50.5,
             dotPosData: {},
             ldDotPosData: {},
-            dotPosFullList: [],
-            ldDotPosFullList: [],
+            hoverDotPosFullList: [],
+            hoverLdDotPosFullList: [],
+            clickedDotPosFullList: [],
+            clickedLdDotPosFullList: [],
             chr: null,
             start: null,
             end: null,
@@ -343,7 +414,7 @@ export default Vue.component("research-region-plot", {
             this.$store.dispatch("hugeampkpncms/getGenesInRegion", fetchParam);
         },
         getFullList(event) {
-            this.dotPosFullList = [];
+            this.clickedDotPosFullList = [];
             let wrapper = document.getElementById("dot_value_full_list");
             wrapper.classList.remove("hidden");
             let e = event;
@@ -356,13 +427,13 @@ export default Vue.component("research-region-plot", {
                     if (this.dotPosData[x + h] != undefined) {
                         if (this.dotPosData[x + h][y + v] != undefined) {
                             let dotObject = this.dotPosData[x + h][y + v];
-                            this.dotPosFullList.push(dotObject);
+                            this.clickedDotPosFullList.push(dotObject);
                         }
                     }
                 }
             }
 
-            if (this.dotPosFullList.length > 0) {
+            if (this.clickedDotPosFullList.length > 0) {
                 document.getElementById("manhattanPlot").classList.add("hover");
                 document
                     .getElementById("clicked_dot_value")
@@ -375,7 +446,7 @@ export default Vue.component("research-region-plot", {
             }
         },
         getLDFullList(event) {
-            this.ldDotPosFullList = [];
+            this.clickedLdDotPosFullList = [];
             let wrapper = document.getElementById("ld_dot_value_full_list");
             //let canvas = document.getElementById("ldPlot");
             wrapper.classList.remove("hidden");
@@ -389,13 +460,13 @@ export default Vue.component("research-region-plot", {
                     if (this.ldDotPosData[x + h] != undefined) {
                         if (this.ldDotPosData[x + h][y + v] != undefined) {
                             let dotObject = this.ldDotPosData[x + h][y + v];
-                            this.ldDotPosFullList.push(dotObject);
+                            this.clickedLdDotPosFullList.push(dotObject);
                         }
                     }
                 }
             }
 
-            if (this.ldDotPosFullList.length > 0) {
+            if (this.clickedLdDotPosFullList.length > 0) {
                 document.getElementById("ldPlot").classList.add("hover");
                 document
                     .getElementById("ld_clicked_dot_value")
@@ -406,6 +477,7 @@ export default Vue.component("research-region-plot", {
             }
         },
         checkPosition(event) {
+            this.hoverDotPosFullList = [];
             let wrapper = document.getElementById("clicked_dot_value");
             let canvas = document.getElementById("manhattanPlot");
             wrapper.classList.remove("hidden");
@@ -416,56 +488,18 @@ export default Vue.component("research-region-plot", {
             wrapper.style.top = y + canvas.offsetTop + "px";
             wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
 
-            let clickedDotValue = "";
-
-            let numOfValues = 0;
-
             for (let h = -5; h <= 5; h++) {
                 for (let v = -5; v <= 5; v++) {
                     if (this.dotPosData[x + h] != undefined) {
                         if (this.dotPosData[x + h][y + v] != undefined) {
-                            if (numOfValues < 6) {
-                                let dotObject = this.dotPosData[x + h][y + v];
-                                clickedDotValue +=
-                                    '<span class="gene-on-clicked-dot-mplot"><b>' +
-                                    dotObject[this.renderConfig.renderBy] +
-                                    "</b></span>";
-
-                                if (!!this.renderConfig.hoverContent) {
-                                    let hoverContent = this.renderConfig
-                                        .hoverContent;
-
-                                    hoverContent.map((h) => {
-                                        clickedDotValue +=
-                                            '<span class="content-on-clicked-dot">' +
-                                            h +
-                                            ": " +
-                                            dotObject[h] +
-                                            "</span>";
-                                    });
-                                }
-                            }
-
-                            numOfValues += 1;
+                            let dotObject = this.dotPosData[x + h][y + v];
+                            this.hoverDotPosFullList.push(dotObject);
                         }
                     }
                 }
             }
 
-            if (numOfValues > 5) {
-                clickedDotValue +=
-                    '<span class="gene-on-clicked-dot-mplot" style="color: #36c;"><b>Viewing 5 of ' +
-                    numOfValues +
-                    " items. Click to view full list.<b><span>";
-            }
-
-            let contentWrapper = document.getElementById(
-                "clicked_dot_value_content"
-            );
-
-            if (clickedDotValue != "") {
-                contentWrapper.innerHTML = clickedDotValue;
-
+            if (this.hoverDotPosFullList.length > 0) {
                 document.getElementById("manhattanPlot").classList.add("hover");
             } else {
                 wrapper.classList.add("hidden");
@@ -475,6 +509,7 @@ export default Vue.component("research-region-plot", {
             }
         },
         checkLDPosition(event) {
+            this.hoverLdDotPosFullList = [];
             let wrapper = document.getElementById("ld_clicked_dot_value");
             let canvas = document.getElementById("ldPlot");
             wrapper.classList.remove("hidden");
@@ -485,56 +520,20 @@ export default Vue.component("research-region-plot", {
             wrapper.style.top = y + canvas.offsetTop + "px";
             wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
 
-            let clickedDotValue = "";
-
             let numOfValues = 0;
 
             for (let h = -5; h <= 5; h++) {
                 for (let v = -5; v <= 5; v++) {
                     if (this.ldDotPosData[x + h] != undefined) {
                         if (this.ldDotPosData[x + h][y + v] != undefined) {
-                            if (numOfValues < 6) {
-                                let dotObject = this.ldDotPosData[x + h][y + v];
-                                clickedDotValue +=
-                                    '<span class="gene-on-clicked-dot-mplot"><b>' +
-                                    dotObject[this.renderConfig.renderBy] +
-                                    "</b></span>";
-
-                                if (!!this.renderConfig.hoverContent) {
-                                    let hoverContent = this.renderConfig
-                                        .hoverContent;
-
-                                    hoverContent.map((h) => {
-                                        clickedDotValue +=
-                                            '<span class="content-on-clicked-dot">' +
-                                            h +
-                                            ": " +
-                                            dotObject[h] +
-                                            "</span>";
-                                    });
-                                }
-                            }
-
-                            numOfValues += 1;
+                            let dotObject = this.ldDotPosData[x + h][y + v];
+                            this.hoverLdDotPosFullList.push(dotObject);
                         }
                     }
                 }
             }
 
-            if (numOfValues > 5) {
-                clickedDotValue +=
-                    '<span class="gene-on-clicked-dot-mplot" style="color: #36c;"><b>Viewing 5 of ' +
-                    numOfValues +
-                    " items. Click to view full list.<b><span>";
-            }
-
-            let contentWrapper = document.getElementById(
-                "ld_clicked_dot_value_content"
-            );
-
-            if (clickedDotValue != "") {
-                contentWrapper.innerHTML = clickedDotValue;
-
+            if (this.hoverLdDotPosFullList.length > 0) {
                 document.getElementById("ldPlot").classList.add("hover");
             } else {
                 wrapper.classList.add("hidden");
@@ -969,7 +968,7 @@ export default Vue.component("research-region-plot", {
             //Render x axis label
             ctx.rotate((-(Math.PI * 2) / 4) * 3);
             ctx.fillText(
-                "LD score",
+                "LD",
                 plotWidth / 2 + this.leftMargin,
                 this.topMargin + plotHeight + yBump + 35
             );
