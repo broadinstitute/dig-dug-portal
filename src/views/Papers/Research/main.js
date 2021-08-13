@@ -263,7 +263,6 @@ new Vue({
                 });
 
                 return fieldValue / fieldsLength;
-
             }
 
             let formatLocus = function (CHR, START, END, fData) {
@@ -335,7 +334,7 @@ new Vue({
 
 
 
-            console.log("bioIndexContinue", this.$store.state.bioIndexContinue);
+            //console.log("bioIndexContinue", this.$store.state.bioIndexContinue);
 
 
 
@@ -345,7 +344,7 @@ new Vue({
 
                 let paramTrueCount = 0;
                 parametersArr.map((param, index) => {
-                    console.log(keyParams[param], index);
+                    //console.log(keyParams[param], index);
                     if (!!keyParams[param]) {
                         paramTrueCount++;
                     }
@@ -355,7 +354,7 @@ new Vue({
                     this.$store.state.bioIndexContinue = [];
                     let queryParams = "";
                     parametersArr.map((param, index) => {
-                        console.log(param, index);
+                        //console.log(param, index);
                         queryParams += keyParams[param].trim();
                         if (index + 1 < parametersArr.length) {
                             queryParams += ",";
@@ -388,6 +387,17 @@ new Vue({
                 return JSON.parse(contents[0]["field_api_parameters"]);
             }
         },
+        dataComparison() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_comparison"] == false) {
+                return null;
+            }
+
+            //console.log("compare", JSON.parse(contents[0]["field_data_comparison"]))
+
+            return JSON.parse(contents[0]["field_data_comparison"]);
+        },
         dataPoints() {
             let contents = this.researchPage;
 
@@ -405,15 +415,6 @@ new Vue({
 
 
             return JSON.parse(contents[0]["field_filters"]);
-        },
-        filterWidth() {
-            let contents = this.researchPage;
-
-            if (contents === null || contents[0]["field_filter_width"] == false || contents[0]["field_filter_width"] == "none") {
-                return null;
-            }
-
-            return contents[0]["field_filter_width"];
         },
         dataType() {
             let contents = this.researchPage;
@@ -435,6 +436,16 @@ new Vue({
                 return true;
             }
 
+        },
+
+        filterWidth() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_filter_width"] == false || contents[0]["field_filter_width"] == "none") {
+                return null;
+            }
+
+            return contents[0]["field_filter_width"];
         },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -730,6 +741,8 @@ new Vue({
                 let dataTableFormat = { "top rows": topRows };
                 this.dataTableFormat = dataTableFormat;
             }
+
+            //console.log("filteredData", content);
 
             this.$store.dispatch("filteredData", content);
         }

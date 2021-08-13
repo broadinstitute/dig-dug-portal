@@ -17,6 +17,25 @@
             class="mbm-plot-legend"
             v-html="renderConfig.legend"
         ></div>
+        <div class="plot-score-options-ui">
+            <div
+                v-for="(option, opIndex) in renderConfig.scoreBy"
+                :key="opIndex"
+                class="plot-score-option"
+            >
+                <input
+                    type="checkbox"
+                    :id="'score_chkbox_' + opIndex"
+                    :name="'score_chkbox_' + opIndex"
+                    checked
+                    @click="calculateScore"
+                />
+                <label
+                    :for="'score_chkbox_' + opIndex"
+                    v-html="option.field"
+                ></label>
+            </div>
+        </div>
         <canvas
             v-if="!!renderConfig"
             id="scorePlot"
@@ -163,6 +182,43 @@ export default Vue.component("research-score-plot", {
     },
     methods: {
         ...uiUtils,
+        calculateScore() {
+            let scoreColumns = function (row, scoreBy) {
+                let fieldValue = 0;
+                let fieldsLength = scoreBy.length;
+
+                scoreBy.map((f) => {
+                    let scoreType = f.type;
+                    let fName = f.field;
+                    switch (scoreType) {
+                        case "boolean":
+                            let value2Score = f.valueToScore[row[fName]];
+                            fieldValue += value2Score;
+                            break;
+                    }
+                });
+
+                return fieldValue / fieldsLength;
+            };
+
+            let countingFields = [];
+
+            this.renderConfig.scoreBy.map((f, fIndex) => {
+                if (document.getElementById("score_chkbox_" + fIndex).checked) {
+                    countingFields.push(f);
+                }
+            });
+
+            let dataWithNewScore = this.plotData;
+            this.plotData.map((d, dIndex) => {
+                let score = scoreColumns(d, countingFields);
+                dataWithNewScore[dIndex][
+                    this.renderConfig.scoreColumnTableHeader
+                ] = score;
+            });
+
+            this.$store.dispatch("filteredData", dataWithNewScore);
+        },
         hidePanel(element) {
             uiUtils.hideElement(element);
         },
@@ -177,8 +233,6 @@ export default Vue.component("research-score-plot", {
             var rect = e.target.getBoundingClientRect();
             var x = Math.floor(e.clientX - rect.left);
             var y = Math.floor(e.clientY - rect.top);
-            /*wrapper.style.top = y + canvas.offsetTop + "px";
-            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";*/
 
             let clickedDotValue = "";
 
@@ -520,6 +574,25 @@ $(function () {});
 </script>
 
 <style>
+.plot-score-options-ui {
+    font-size: 12px;
+    text-align: right;
+    padding-right: 20px;
+}
+
+.plot-score-option {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.plot-score-option input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.plot-score-option label {
+    vertical-align: middle;
+}
+
 #manhattanPlot.hover {
     cursor: pointer;
 }

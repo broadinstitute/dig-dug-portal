@@ -1853,6 +1853,7 @@ span.volcano-score-2 {
 }
 
 #clicked_dot_value,
+#ld_clicked_dot_value,
 #clicked_cell_value {
     position: absolute;
     background-color: #fff;

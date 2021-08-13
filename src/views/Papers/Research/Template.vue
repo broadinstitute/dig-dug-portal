@@ -127,6 +127,7 @@
                                             : null
                                     "
                                     :apiParameters="$parent.apiParameters"
+                                    :dataComparison="$parent.dataComparison"
                                     :dataType="$parent.dataType"
                                     :uid="$parent.uid"
                                     :filters="$parent.dataFilters"
@@ -210,7 +211,7 @@
                                     :renderConfig="$parent.plotConfig"
                                 ></research-heatmap>
                             </div>
-                            <!---->
+
                             <div
                                 class="col-md-12"
                                 v-if="
