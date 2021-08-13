@@ -75,7 +75,8 @@ new Vue({
             regionPageSearchCriterion: [],
             pageAssociationsMap: {},
             pageAssociations: [],
-            pillList: []
+            pillList: [],
+            selectedGene: null
         };
     },
     created() {
@@ -299,6 +300,10 @@ new Vue({
                 field: "phenotype",
                 threshold: phenotypeName
             });
+        },
+        onGeneChange(gene) {
+            this.selectedGene = gene;
+            this.$store.dispatch("onGeneChange", gene);
         }
     },
     watch: {

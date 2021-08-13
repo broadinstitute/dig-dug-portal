@@ -10,8 +10,11 @@
             <b-sidebar id="sidebar-1" title="GEM Criteria" shadow width="260px">
                 <div class="px-3 py-2">
                     <gene-selectpicker
-                        @onGeneChange="$store.dispatch('onGeneChange', $event)"
+                        @onGeneChange="$parent.onGeneChange($event)"
                     ></gene-selectpicker>
+                    <b-badge pill variant="info" class="btn">
+                        {{ $parent.selectedGene }}
+                    </b-badge>
 
                     <criterion-list-group
                         class="first"
@@ -143,7 +146,7 @@
                                 :exclusive="false"
                             ></associations-table>
                         </b-tab>
-                        <b-tab title="Evidence View" lazy>
+                        <b-tab title="Evidence View">
                             <locuszoom
                                 v-if="$parent.selectedPhenotypes.length > 0"
                                 ref="locuszoom"
