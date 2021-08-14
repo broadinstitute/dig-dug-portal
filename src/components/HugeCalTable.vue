@@ -10,7 +10,7 @@
             <template slot="bottom-row" slot-scope="data">
                 <td>
                     <input
-                        v-model.number="$store.state.prior"
+                        v-model.number="suggestedPriorinput"
                         type="number"
                         placeholder="Prior Variance"
                         id="prior_input"
@@ -18,12 +18,12 @@
                     />
                 </td>
 
-                <td>
+                <!-- <td>
                     <b-button
                         style="background: gray; cursor: pointer;"
                         v-on:click="resetPrior(data.item)"
                     >Reset prior</b-button>
-                </td>
+                </td>-->
             </template>
             <!-- <template slot="removeItem" slot-scope="data">
                 <div
@@ -72,6 +72,7 @@ export default Vue.component("hugecal-table", {
 
     data() {
         return {
+            suggestedPriorinput: "Prior",
             // resetflag: { default: false },
             fields: [
                 // A virtual column that doesn't exist in items
@@ -118,10 +119,10 @@ export default Vue.component("hugecal-table", {
     methods: {
         addToItems() {
             var my_object = {
-                suggestedPrior: this.$store.state.prior,
+                suggestedPrior: this.suggestedPriorinput,
                 huGeScore: this.hugeScore,
                 posteriorProbability: this.posteriorProbability(
-                    this.$store.state.prior
+                    this.suggestedPriorinput
                 )
             };
             this.items.push(my_object);
@@ -131,21 +132,21 @@ export default Vue.component("hugecal-table", {
             //resetflag = true;
             //console.log("resetflag", resetflag);
         },
-        resetPrior() {
-            var suggestedPriors = [0.05, 0.2, 0.3696];
-            if (this.items.length <= 0) {
-                suggestedPriors.forEach(element => {
-                    var my_object = {
-                        suggestedPrior: element,
-                        huGeScore: this.hugeScore,
-                        posteriorProbability: this.posteriorProbability(element)
-                    };
-                    this.items.push(my_object);
-                });
-            }
+        // resetPrior() {
+        //     var suggestedPriors = [0.05, 0.2, 0.3696];
+        //     if (this.items.length <= 0) {
+        //         suggestedPriors.forEach(element => {
+        //             var my_object = {
+        //                 suggestedPrior: element,
+        //                 huGeScore: this.hugeScore,
+        //                 posteriorProbability: this.posteriorProbability(element)
+        //             };
+        //             this.items.push(my_object);
+        //         });
+        //     }
 
-            this.$store.state.prior = 0.3696;
-        },
+        //     this.$store.state.prior = 0.3696;
+        // },
 
         pValueFormatter(pValue) {
             return Formatters.pValueFormatter(pValue);
