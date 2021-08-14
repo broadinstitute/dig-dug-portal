@@ -11,7 +11,7 @@
                 responsive="sm"
             >
                 <template #cell(evidence)="data">
-                    <div style="background: #E7EDF7">{{ data.item.evidence }}</div>
+                    <div style="background: #fef8dc">{{ data.item.evidence }}</div>
                 </template>
                 <template #cell(tag)="data">
                     <div style="color:gray">{{ data.item.tag }}</div>
@@ -23,8 +23,8 @@
                 <template v-slot:custom-foot="data">
                     <b-tr>
                         <b-td style="text-align: right; font-weight:bold">Bayes Factor:</b-td>
-                        <b-td style=" text-align: right; background: #E7EDF7;">{{rareBF}}</b-td>
-                        <b-td style="background:#E7EDF7"></b-td>
+                        <b-td style=" text-align: right; background: #fef8dc;">{{rareBF}}</b-td>
+                        <b-td style="background:#fef8dc"></b-td>
                         <b-td></b-td>
                     </b-tr>
                 </template>
