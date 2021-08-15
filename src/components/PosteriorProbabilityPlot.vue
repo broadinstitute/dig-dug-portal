@@ -192,11 +192,12 @@ export default Vue.component("posterior-probability-plot", {
                 { prior: 0.2, color: "#b6d980" },
                 { prior: 0.678, color: "#b3de71" }
             ];
+            var newMap = {prior:this.suggestedPriorNew,color:"#d959b2"}
 
             // var suggestedPrior = [0.05, 0.2];
 
             if(!!this.suggestedPriorNew){
-                suggestedPrior.push(this.suggestedPriorNew)
+                suggestedPrior.push(newMap)
             }
             suggestedPrior.forEach((x, i) => {
                 console.log(x.prior + " selected prior ");
