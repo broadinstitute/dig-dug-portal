@@ -110,6 +110,9 @@ new Vue({
     },
 
     computed: {
+        suggestedPriorNewOne() {
+            return this.$store.state.suggestedPriorNew
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {
@@ -374,7 +377,7 @@ new Vue({
                     }
                 }
             }
-            console.log(scoreAndEvidenceMap)
+
 
             return scoreAndEvidenceMap;
         },
@@ -573,6 +576,12 @@ new Vue({
                     }
                 }
             }
+        },
+        suggestedPriorNewOne(priorNew) {
+            this.$store.state.suggestedPriorNew = priorNew
+         
+
         }
+
     }
 }).$mount("#app");
