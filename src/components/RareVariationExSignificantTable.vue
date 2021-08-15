@@ -101,7 +101,7 @@ export default Vue.component("rarevariation-exomesig-table", {
                     pretag: "",
                     evidence: this.burdenAssocEvidence,
                     bf: "N/A",
-                    tag: "<--Burden Association Summary Statistics"
+                    tag: "<--Burden Stats"
                 },
                 {
                     pretag: "X",

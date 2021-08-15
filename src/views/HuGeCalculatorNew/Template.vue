@@ -106,7 +106,10 @@
                                 <div style="margin-block-end: 50px"></div>
 
                                 <!-- <div class="arrow-side"></div> -->
-                                <div v-on:click="$parent.togglePosteriorProbability()">
+                                <div
+                                    style="cursor:pointer"
+                                    v-on:click="$parent.togglePosteriorProbability()"
+                                >
                                     <h6>Posterior probability</h6>
                                     <hr />
                                 </div>
@@ -137,7 +140,10 @@
                             <!-- NEW COMMON VARIATION -->
 
                             <div class="card-body" style="margin-block-end:20px cursor">
-                                <span v-on:click="$parent.toggleCommonVariation()">
+                                <span
+                                    style="cursor:pointer"
+                                    v-on:click="$parent.toggleCommonVariation()"
+                                >
                                     <div
                                         v-if="this.$store.state.associations.data"
                                         class="row"
@@ -210,7 +216,10 @@
                                         ></color-bar-plot>
                                     </div>
 
-                                    <div v-on:click="$parent.toggleLocuszoom()">
+                                    <div
+                                        style="cursor:pointer"
+                                        v-on:click="$parent.toggleLocuszoom()"
+                                    >
                                         <span
                                             class="toggleIcon"
                                             id="toggleIcon"
@@ -237,7 +246,10 @@
                                 <br />
                                 <!-- NEW RARE VARIATION -->
                                 <div>
-                                    <span v-on:click="$parent.toggleRareVariation()">
+                                    <span
+                                        style="cursor:pointer"
+                                        v-on:click="$parent.toggleRareVariation()"
+                                    >
                                         <div
                                             v-if="this.$store.state.associations.data"
                                             class="row"
@@ -266,7 +278,9 @@
                                         <span
                                             style="font-weight:bold; padding: 650px"
                                         >Is exome-wide significant?</span>
+                                        <div style="padding:5px 0px 5px 0px"></div>
                                         <rarevariation-exomesig-table
+                                            style="padding:0px 300px 0px 300px"
                                             :isExomeWideSignificant="true"
                                             :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
                                             :rareBF="parseInt($parent.bayesFactorRareVariation)"
@@ -283,7 +297,10 @@
                                                 :score="parseInt($parent.bayesFactorRareVariation)"
                                             ></color-bar-plot>
                                         </div>
-                                        <div v-on:click="$parent.toggleRareVariationMaskTable()">
+                                        <div
+                                            style="cursor:pointer"
+                                            v-on:click="$parent.toggleRareVariationMaskTable()"
+                                        >
                                             <span
                                                 class="toggleIcon"
                                                 id="toggleIcon"
@@ -307,19 +324,26 @@
                                             </ul>
                                         </div>
                                     </div>
-                                    <div v-show="$parent.showRareVariationSection" v-else>
+                                    <div
+                                        style="cursor:pointer"
+                                        v-show="$parent.showRareVariationSection"
+                                        v-else
+                                    >
                                         <span
                                             style="font-weight:bold; padding: 650px"
                                         >Is exome-wide significant?</span>
+                                        <div style="padding:5px 0px 5px 0px"></div>
                                         <rarevariation-exomesig-table
+                                            style="padding:0px 300px 0px 300px"
                                             :isExomeWideSignificant="false"
                                             :priorVariance="$store.state.prior"
                                             :rareBF="parseInt($parent.bayesFactorRareVariation)"
                                         ></rarevariation-exomesig-table>
-                                        <div style="padding:10px 250px 10px 250px">
+
+                                        <div style="padding:0px 300px 0px 300px">
                                             <br />
                                             <span
-                                                style="padding:10px 290px 10px 310px; font-weight:bold"
+                                                style="padding:0px 300px 0px 300px; font-weight:bold"
                                             >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
                                             <color-bar-plot
                                                 v-if="$parent.bayesFactorRareVariation"
@@ -328,7 +352,10 @@
                                                 :score="parseInt($parent.bayesFactorRareVariation)"
                                             ></color-bar-plot>
                                         </div>
-                                        <div v-on:click="$parent.toggleRareVariationMaskTable()">
+                                        <div
+                                            style="cursor:pointer"
+                                            v-on:click="$parent.toggleRareVariationMaskTable()"
+                                        >
                                             <span
                                                 class="toggleIcon"
                                                 id="toggleIcon"
