@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div id="huge">
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
@@ -21,10 +21,10 @@
                     >
                         <!-- select gene -->
                         <filter-enumeration-control
-                            ref="gene"
                             :field="'gene'"
                             placeholder="Select a gene ..."
                             :options="$parent.matchingGenes"
+                            :pillFormatter="(filter) => filter.threshold"
                             @input-change="$parent.lookupGenes($event)"
                         >
                             <div class="label">Gene</div>
@@ -34,6 +34,9 @@
                             ref="phenotype"
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
+                            :pillFormatter="
+                                (filter) =>
+                                    !!$store.state.bioPortal.phenotypeMap[filter] ? $store.state.bioPortal.phenotypeMap[filter.threshold].description : $store.state.bioPortal.phenotypeMap[filter.threshold].description "
                             :options="$store.state.geneAssociations52k.data.map((association) => association.phenotype)"
                             :multiple="false"
                             :labelFormatter="(phenotype) =>
@@ -119,10 +122,11 @@
                                             v-if="$parent.geneAssociations52k"
                                             :geneAssociationsData=" $parent.geneAssociations52k"
                                             :priorVariance="this.$store.state.prior"
-                                            :bayes_factor="$parent.bayesFactorCombinedEvidence(
+                                            :bayes_factor="parseInt($parent.bayesFactorCombinedEvidence(
                                                         $parent.bayesFactorCommonVariation,
-                                                        $parent.bayesFactorRareVariation)"
+                                                        $parent.bayesFactorRareVariation))"
                                             :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
+                                            :suggestedPriorNew="$parent.suggestedPriorNewOne"
                                         ></posterior-probability-plot>
                                     </div>
                                 </div>
