@@ -14,7 +14,7 @@
                         type="number"
                         placeholder="Prior Variance"
                         id="prior_input"
-                        @keyup.enter="addToItems"
+                        @keyup.enter="addToItems($event)"
                     />
                 </td>
 
@@ -75,17 +75,13 @@ export default Vue.component("hugecal-table", {
             suggestedPriorinput: "Prior",
             // resetflag: { default: false },
             fields: [
-                // A virtual column that doesn't exist in items
-
-                // A column that needs custom formatting
                 { key: "suggestedPrior", label: "Suggested prior" },
 
-                // A regular column
                 {
                     key: "huGeScore",
                     label: "HuGe Score"
                 },
-                // A virtual column made up from two fields
+
                 {
                     key: "posteriorProbability",
                     label: "Posterior probability",
@@ -117,7 +113,7 @@ export default Vue.component("hugecal-table", {
     },
     computed: {},
     methods: {
-        addToItems() {
+        addToItems(event) {
             var my_object = {
                 suggestedPrior: this.suggestedPriorinput,
                 huGeScore: this.hugeScore,
@@ -126,27 +122,14 @@ export default Vue.component("hugecal-table", {
                 )
             };
             this.items.push(my_object);
+            this.$store.dispatch("addSuggestedPriorLines", {
+                suggestedPrior: this.suggestedPriorinput,
+                color: "green"
+            });
         },
         removeItems(item) {
             this.items.pop(item);
-            //resetflag = true;
-            //console.log("resetflag", resetflag);
         },
-        // resetPrior() {
-        //     var suggestedPriors = [0.05, 0.2, 0.3696];
-        //     if (this.items.length <= 0) {
-        //         suggestedPriors.forEach(element => {
-        //             var my_object = {
-        //                 suggestedPrior: element,
-        //                 huGeScore: this.hugeScore,
-        //                 posteriorProbability: this.posteriorProbability(element)
-        //             };
-        //             this.items.push(my_object);
-        //         });
-        //     }
-
-        //     this.$store.state.prior = 0.3696;
-        // },
 
         pValueFormatter(pValue) {
             return Formatters.pValueFormatter(pValue);
