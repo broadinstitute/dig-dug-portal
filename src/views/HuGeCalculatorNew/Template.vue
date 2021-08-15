@@ -104,11 +104,13 @@
                                     ></color-bar-plot>
                                 </div>
                                 <div style="margin-block-end: 50px"></div>
-                                <div class="divider">
-                                    Posterior probability
-                                    <!-- <div class="arrow-side"></div> -->
+
+                                <!-- <div class="arrow-side"></div> -->
+                                <div v-on:click="$parent.togglePosteriorProbability()">
+                                    <h6>Posterior probability</h6>
+                                    <hr />
                                 </div>
-                                <div class="row">
+                                <div v-show="$parent.showPosteriorProbability" class="row">
                                     <div class="col-md-8">
                                         <hugecal-table
                                             style="padding:30px 250px 30px 250px"
@@ -134,7 +136,7 @@
 
                             <!-- NEW COMMON VARIATION -->
 
-                            <div class="card-body" style="margin-block-end:20px">
+                            <div class="card-body" style="margin-block-end:20px cursor">
                                 <span v-on:click="$parent.toggleCommonVariation()">
                                     <div
                                         v-if="this.$store.state.associations.data"
@@ -555,9 +557,20 @@
 }
 
 .divider {
-    border-bottom: 1px solid black;
-    margin-block-end: 30px;
-    font-weight: bold;
+    border: 0;
+    height: 3px;
+    background: #095484;
+    background-image: linear-gradient(to right, #ccc, #095484, #ccc);
+}
+
+.hr {
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+    height: 3px;
+    border: 6 6 6 6;
+    background: #042e47;
+    padding: 10px;
 }
 #toggle {
     display: block;

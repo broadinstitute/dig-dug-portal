@@ -86,7 +86,8 @@ new Vue({
                 ]
                 : [],
             commonVariationStart: null,
-            commonVariationEnd: null
+            commonVariationEnd: null,
+            showPosteriorProbability: false
         };
     },
     created() {
@@ -437,6 +438,9 @@ new Vue({
         }
     },
     methods: {
+        togglePosteriorProbability() {
+            this.showPosteriorProbability = !this.showPosteriorProbability
+        },
         toggleLocuszoom() {
             this.showLZSection = !this.showLZSection
         },
@@ -579,7 +583,7 @@ new Vue({
         },
         suggestedPriorNewOne(priorNew) {
             this.$store.state.suggestedPriorNew = priorNew
-         
+
 
         }
 
