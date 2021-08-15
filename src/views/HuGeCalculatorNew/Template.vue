@@ -36,7 +36,7 @@
                             placeholder="Select a phenotype ..."
                             :pillFormatter="
                                 (filter) =>
-                                    !!$store.state.bioPortal.phenotypeMap[filter] ? $store.state.bioPortal.phenotypeMap[filter.threshold].description : $store.state.bioPortal.phenotypeMap[filter.threshold].description "
+                                    !!$store.state.bioPortal.phenotypeMap[filter.threshold] ? $store.state.bioPortal.phenotypeMap[filter.threshold].description : filter.threshold "
                             :options="$store.state.geneAssociations52k.data.map((association) => association.phenotype)"
                             :multiple="false"
                             :labelFormatter="(phenotype) =>
