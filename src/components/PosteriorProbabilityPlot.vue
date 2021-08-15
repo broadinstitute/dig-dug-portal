@@ -190,7 +190,7 @@ export default Vue.component("posterior-probability-plot", {
             var suggestedPrior = [
                 { prior: 0.05, color: "#abd171" },
                 { prior: 0.2, color: "#b6d980" },
-                { prior: 0.678, color: "#b3de71" }
+                { prior: 0.3696, color: "#b3de71" }
             ];
             var newMap = {prior:this.suggestedPriorNew,color:"#d959b2"}
 
