@@ -87,22 +87,11 @@ export default Vue.component("rarevariation-exomesig-table", {
             items: [
                 {
                     pretag: "",
-                    evidence: "Yes",
-                    bf: "No",
-                    tag: ""
-                },
-                {
-                    pretag: "",
                     evidence: this.exomeEvidence,
                     bf: "N/A",
                     tag: "<--Exome wide Significance"
                 },
-                {
-                    pretag: "",
-                    evidence: this.burdenAssocEvidence,
-                    bf: "N/A",
-                    tag: "<--Burden Stats"
-                },
+
                 {
                     pretag: "X",
                     evidence: this.priorVariance,

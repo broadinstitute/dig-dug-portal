@@ -84,12 +84,12 @@ export default Vue.component("commonvariation-genomesig-table", {
                 { key: "tag", tdClass: "text-left" }
             ],
             items: [
-                {
-                    pretag: "",
-                    evidence: "Yes",
-                    bf: "No",
-                    tag: ""
-                },
+                // {
+                //     pretag: "",
+                //     evidence: "Yes",
+                //     bf: "No",
+                //     tag: ""
+                // },
                 {
                     pretag: "",
                     evidence: this.gwasEvidence,

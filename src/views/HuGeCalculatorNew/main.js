@@ -91,6 +91,7 @@ new Vue({
         };
     },
     created() {
+        this.closeRareSection();
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -439,10 +440,23 @@ new Vue({
 
     },
     methods: {
+        showMyDiv() {
+            console.log(this.$refs.myDiv);
+        },
         resetPriorAllelicVariance() {
             this.showRareVariationSection = true;
-            
+
+            const el = this.$refs.rareVariationExomeSig
+
+            if (el) {
+                // Use el.scrollIntoView() to instantly scroll to the element
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+
+
         },
+        closeRareSection() { this.showRareVariationSection = false },
+
         togglePosteriorProbability() {
             this.showPosteriorProbability = !this.showPosteriorProbability
         },
