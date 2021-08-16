@@ -88,7 +88,11 @@
                                                                 $parent.bayesFactorRareVariation))"
                                         ></hugescore-table>
                                     </div>
-                                    <div class="col-md-4" style="padding:40px 0px 40px 0px">
+                                    <div
+                                        v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0]) == false"
+                                        class="col-md-4"
+                                        style="padding:40px 0px 40px 0px"
+                                    >
                                         <a
                                             href="#"
                                             @click.prevent="$parent.resetPriorAllelicVariance()"
@@ -377,17 +381,17 @@
                                                 id="2"
                                             >No</div>
                                         </div>
-                                        <rarevariation-exomesig-table
+                                        <rarevariation-not-exomesig-table
                                             style="padding:0px 300px 0px 300px"
                                             :isExomeWideSignificant="false"
                                             :priorVariance="$store.state.prior"
                                             :rareBF="parseInt($parent.bayesFactorRareVariation)"
-                                        ></rarevariation-exomesig-table>
+                                        ></rarevariation-not-exomesig-table>
 
-                                        <div style="padding:0px 300px 0px 300px">
+                                        <div style="padding:10px 250px 10px 250px">
                                             <br />
                                             <span
-                                                style="padding:0px 300px 0px 300px; font-weight:bold"
+                                                style="padding:10px 290px 10px 310px; font-weight:bold"
                                             >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
                                             <color-bar-plot
                                                 v-if="$parent.bayesFactorRareVariation"

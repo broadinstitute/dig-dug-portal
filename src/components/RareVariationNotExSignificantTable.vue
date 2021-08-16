@@ -20,9 +20,6 @@
                 <template #cell(bf)="data">
                     <div style="background: #DFDBDA">{{ data.item.bf }}</div>
                 </template>
-                <template #cell(bf)="data">
-                    <div style="background: #DFDBDA">{{ data.item.bf }}</div>
-                </template>
 
                 <template v-slot:custom-foot="data">
                     <b-tr>
@@ -54,7 +51,7 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("rarevariation-exomesig-table", {
+export default Vue.component("rarevariation-not-exomesig-table", {
     props: {
         isExomeWideSignificant: {
             type: Boolean,
@@ -97,6 +94,13 @@ export default Vue.component("rarevariation-exomesig-table", {
                 },
 
                 {
+                    pretag: "",
+                    evidence: this.burdenAssocEvidence,
+                    bf: "N/A",
+                    tag: "<--Burden stats"
+                },
+
+                {
                     pretag: "X",
                     evidence: this.priorVariance,
                     bf: "N/A",
@@ -110,7 +114,8 @@ export default Vue.component("rarevariation-exomesig-table", {
         hugescore() {
             return this.hugeScore;
         }
-    }
+    },
+    methods: {}
 });
 </script>
 
