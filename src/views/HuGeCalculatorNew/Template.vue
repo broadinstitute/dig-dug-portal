@@ -77,14 +77,25 @@
                                     </div>*HuGe Score(combined evidence) = BF of common variation * BF of rare variation
                                 </span>
                                 <div style="margin-block-end: 60px"></div>
-                                <hugescore-table
-                                    style="padding:10px 450px 10px 450px"
-                                    :commonBF="parseInt($parent.bayesFactorCommonVariation)"
-                                    :rareBF="parseInt($parent.bayesFactorRareVariation)"
-                                    :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
+                                <div class="row">
+                                    <div class="col-md-2"></div>
+                                    <div class="col-md-6">
+                                        <hugescore-table
+                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                            :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                            :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
-                                ></hugescore-table>
+                                        ></hugescore-table>
+                                    </div>
+                                    <div class="col-md-4" style="padding:40px 0px 40px 0px">
+                                        <a
+                                            href="#"
+                                            @click.prevent="$parent.resetPriorAllelicVariance()"
+                                        >Reset Prior Allelic variance</a>
+                                    </div>
+                                </div>
+
                                 <div style="padding:10px 250px 10px 250px">
                                     <br />
                                     <span style="padding:10px 290px 10px 310px; font-weight:bold">

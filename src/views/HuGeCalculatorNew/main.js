@@ -435,9 +435,14 @@ new Vue({
                 phenotype: phenotype,
                 priorVariance: priorVariance
             };
-        }
+        },
+
     },
     methods: {
+        resetPriorAllelicVariance() {
+            this.showRareVariationSection = true;
+            
+        },
         togglePosteriorProbability() {
             this.showPosteriorProbability = !this.showPosteriorProbability
         },
