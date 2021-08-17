@@ -77,18 +77,17 @@
                                     </div>*HuGe Score(combined evidence) = BF of common variation * BF of rare variation
                                 </span>
                                 <div style="margin-block-end: 60px"></div>
-                                <div class="row">
-                                    <div class="col-md-2"></div>
-                                    <div class="col-md-6">
-                                        <hugescore-table
-                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
-                                            :rareBF="parseInt($parent.bayesFactorRareVariation)"
-                                            :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
+
+                                <hugescore-table
+                                    style="padding:0px 250px 0px 250px"
+                                    :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                    :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                    :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
-                                        ></hugescore-table>
-                                    </div>
-                                    <div
+                                ></hugescore-table>
+
+                                <!-- <div
                                         v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0]) == false"
                                         class="col-md-4"
                                         style="padding:40px 0px 40px 0px"
@@ -97,8 +96,7 @@
                                             href="#"
                                             @click.prevent="$parent.resetPriorAllelicVariance()"
                                         >Reset Prior Allelic variance</a>
-                                    </div>
-                                </div>
+                                </div>-->
 
                                 <div style="padding:10px 250px 10px 250px">
                                     <br />
@@ -604,7 +602,7 @@
 }
 
 #combinedVariation .variationNoEvidence {
-    background-color: #b8f5be;
+    background-color: #c4edc8;
     font-weight: bold;
 }
 

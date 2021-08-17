@@ -1,26 +1,35 @@
 <template>
     <div>
-        <div>
-            <b-table
-                fixed
-                borderless
-                small
-                thead-class="hidden_header"
-                :items="items"
-                :fields="fields"
-            >
-                <template #cell(tag)="data">
-                    <div style="color:gray">{{ data.item.tag }}</div>
-                </template>
-                <template v-slot:custom-foot="data">
-                    <b-tr>
-                        <b-td style="text-align: right; font-weight:bold">HuGe Score:</b-td>
-                        <b-td style=" text-align: right; background: #e4f4e4;">{{hugescore}}</b-td>
-                        <b-td></b-td>
-                    </b-tr>
-                </template>
-            </b-table>
-        </div>
+        <b-table-simple borderless fixed small responsive>
+            <b-tbody>
+                <b-tr>
+                    <b-th style="width:70px"></b-th>
+                    <b-td
+                        style="width:75px;background-color:#D3DBED"
+                        class="text-center"
+                    >{{commonBF}}</b-td>
+                    <b-td style="width:200px;color:gray;" class="text-left"><--Common Variation BF</b-td>
+                </b-tr>
+                <b-tr>
+                    <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
+                    <b-td style="width:75px;background-color:#fef8dc" class="text-center">{{rareBF}}</b-td>
+                    <b-td style="width:200px;color:gray;" class="text-left"><--Rare Variation BF</b-td>
+                </b-tr>
+            </b-tbody>
+            <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
+            <b-tfoot>
+                <b-tr>
+                    <b-th style="width:80px" rowspan="1" class="text-right">HuGE Score:</b-th>
+                    <b-td
+                        style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin;background-color:#c4edc8"
+                        colspan="1"
+                        class="text-center"
+                    >
+                        <b>{{hugeScore}}</b>
+                    </b-td>
+                </b-tr>
+            </b-tfoot>
+        </b-table-simple>
     </div>
 </template>
         

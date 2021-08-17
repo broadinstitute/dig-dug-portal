@@ -4,7 +4,7 @@
             <b-tbody>
                 <b-tr>
                     <b-th style="width:70px"></b-th>
-                    
+
                     <b-td style="width:150px;" class="text-center">
                         <span
                             style="padding-left: 8px; padding-right: 8px;border-radius:20px; background: #254CA6; color:white;"
@@ -46,7 +46,7 @@
                 <b-tr>
                     <b-th style="width:80px" rowspan="1" class="text-right">Bayes Factor:</b-th>
                     <b-td
-                        style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin;background-color:#fef8dc"
+                        style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin;background-color:#E7EDF7"
                         colspan="2"
                         class="text-center"
                     >
