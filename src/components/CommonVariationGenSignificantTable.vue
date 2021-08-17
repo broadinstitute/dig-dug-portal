@@ -1,35 +1,60 @@
 <template>
     <div>
-        <div>
-            <b-table
-                fixed
-                borderless
-                small
-                thead-class="hidden_header"
-                :items="items"
-                :fields="fields"
-                responsive="sm"
-            >
-                <template #cell(evidence)="data">
-                    <div style="background: #E7EDF7">{{ data.item.evidence }}</div>
-                </template>
-                <template #cell(tag)="data">
-                    <div style="color:gray">{{ data.item.tag }}</div>
-                </template>
-
-                <template #cell(bf)="data">
-                    <div style="background: #DFDBDA">{{ data.item.bf }}</div>
-                </template>
-                <template v-slot:custom-foot="data">
-                    <b-tr>
-                        <b-td style="text-align: right; font-weight:bold">Bayes Factor:</b-td>
-                        <b-td style=" text-align: right; background: #E7EDF7;">{{commonBF}}</b-td>
-                        <b-td style="background:#E7EDF7"></b-td>
-                        <b-td></b-td>
-                    </b-tr>
-                </template>
-            </b-table>
-        </div>
+        <b-table-simple borderless fixed small responsive>
+            <b-tbody>
+                <b-tr>
+                    <b-th style="width:70px"></b-th>
+                    
+                    <b-td style="width:150px;" class="text-center">
+                        <span
+                            style="padding-left: 8px; padding-right: 8px;border-radius:20px; background: #254CA6; color:white;"
+                        >Yes</span>
+                    </b-td>
+                    <b-td style="width:150px;color:gray" class="text-center">No</b-td>
+                    <b-td style="width:200px;" class="text-left"></b-td>
+                </b-tr>
+                <b-tr>
+                    <b-th style="width:70px"></b-th>
+                    <b-td
+                        style="width:150px;background-color:#E7EDF7"
+                        class="text-center"
+                    >{{gwasEvidence}}</b-td>
+                    <b-td style="width:150px;color:gray;background-color:#F5F5F5">N/A</b-td>
+                    <b-td style="width:200px;color:gray;" class="text-left"><--GWAS Evidence</b-td>
+                </b-tr>
+                <b-tr>
+                    <b-th style="width:70px"></b-th>
+                    <b-td
+                        style="width:150px;background-color:#E7EDF7"
+                        class="text-center"
+                    >{{codingEvidence}}</b-td>
+                    <b-td style="width:150px;" class="text-center"></b-td>
+                    <b-td style="width:200px;color:gray;" class="text-left"><--Coding Evidence</b-td>
+                </b-tr>
+                <b-tr>
+                    <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
+                    <b-td
+                        style="width:150px;color:gray;background-color:#F5F5F5"
+                        class="text-center"
+                    >N/A</b-td>
+                    <b-td style="width:150px;" class="text-center">{{regulatoryEvidence}}</b-td>
+                    <b-td style="width:200px;color:gray;" class="text-left"><--Regulatory Evidence</b-td>
+                </b-tr>
+            </b-tbody>
+            <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
+            <b-tfoot>
+                <b-tr>
+                    <b-th style="width:80px" rowspan="1" class="text-right">Bayes Factor:</b-th>
+                    <b-td
+                        style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin;background-color:#fef8dc"
+                        colspan="2"
+                        class="text-center"
+                    >
+                        <b>{{commonBF}}</b>
+                    </b-td>
+                </b-tr>
+            </b-tfoot>
+        </b-table-simple>
     </div>
 </template>
         

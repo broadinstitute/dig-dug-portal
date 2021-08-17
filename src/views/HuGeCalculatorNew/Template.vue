@@ -193,13 +193,7 @@
                                             style="font-weight:bold; padding: 650px"
                                         >Is genome-wide significant?</span>
                                         <div style="padding:5px 0px 5px 0px"></div>
-                                        <div id="wrapper" style="padding:0px 650px 0px 650px">
-                                            <div
-                                                style="padding-left: 5px;float:left; border-radius:20px; background: #3a5dae;width:35px;height: 20px; color:white;"
-                                                id="1"
-                                            >Yes</div>
-                                            <div style="float:right;color:gray" id="2">No</div>
-                                        </div>
+
                                         <commonvariation-genomesig-table
                                             style="padding:0px 300px 0px 300px"
                                             v-if="$parent.eglData"
