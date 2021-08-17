@@ -389,7 +389,7 @@
                                         ></rarevariation-not-exomesig-table>-->
 
                                         <rarevariation-not-exomesig-table-new
-                                            style="padding:0px 500px 0px 500px"
+                                            style="padding:0px 300px 0px 300px"
                                             :isExomeWideSignificant="false"
                                             :priorVariance="$store.state.prior"
                                             :rareBF="parseInt($parent.bayesFactorRareVariation)"
