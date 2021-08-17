@@ -237,6 +237,12 @@ new Vue({
             return maskdata;
         },
 
+        beta() {
+
+
+            return 3;
+        },
+
         bayesFactorRareVariation() {
             let masks = [];
             let rarebayesfactor = 1;

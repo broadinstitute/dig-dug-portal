@@ -27,7 +27,10 @@
                 <b-tr>
                     <b-th style="width:70px"></b-th>
                     <b-td style="width:150px;color:gray" class="text-center">N/A</b-td>
-                    <b-td style="width:150px;background-color:#fef8dc" class="text-center">3.36</b-td>
+                    <b-td
+                        style="width:150px;background-color:#fef8dc"
+                        class="text-center"
+                    >{{burdenAssocEvidence}}</b-td>
 
                     <b-td
                         style="width:200px;color:gray;"
@@ -54,11 +57,13 @@
             </b-tbody>
             <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
             <b-tfoot>
-                <b-tr
-                    style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin"
-                >
+                <b-tr>
                     <b-th style="width:80px" rowspan="1" class="text-right">Bayes Factor:</b-th>
-                    <b-td colspan="2" style="background-color:#fef8dc" class="text-center">
+                    <b-td
+                        style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin;background-color:#fef8dc"
+                        colspan="2"
+                        class="text-center"
+                    >
                         <b>{{rareBF}}</b>
                     </b-td>
                 </b-tr>
@@ -112,32 +117,8 @@ export default Vue.component("rarevariation-not-exomesig-table-new", {
 
     data() {
         return {
-            fields: [
-                { key: "pretag", tdClass: "text-right" },
-                { key: "evidence", tdClass: "text-center" },
-                { key: "bf", tdClass: "text-center" },
-                { key: "tag", tdClass: "text-left" }
-            ],
-            items: [
-                {
-                    pretag: "",
-                    evidence: this.exomeEvidence,
-                    bf: "N/A",
-                    tag: "<--Exome wide Significance"
-                },
-                {
-                    pretag: "",
-                    evidence: this.burdenAssocEvidence,
-                    bf: "N/A",
-                    tag: "<--Burden stats"
-                },
-                {
-                    pretag: "X",
-                    evidence: this.priorVariance,
-                    bf: "N/A",
-                    tag: "<--Prior Allelic Variance"
-                }
-            ],
+            fields: [],
+            items: [],
             visibleRows: []
         };
     },
