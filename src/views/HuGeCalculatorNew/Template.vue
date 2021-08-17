@@ -311,13 +311,7 @@
                                             style="font-weight:bold; padding: 650px"
                                         >Is exome-wide significant?</span>
                                         <div style="padding:5px 0px 5px 0px"></div>
-                                        <div id="wrapper" style="padding:0px 650px 0px 650px">
-                                            <div
-                                                style="padding-left: 5px;float:left; border-radius:20px; background: #af5934;width:35px;height: 20px; color:white;"
-                                                id="1"
-                                            >Yes</div>
-                                            <div style="float:right;color:gray" id="2">No</div>
-                                        </div>
+
                                         <rarevariation-exomesig-table
                                             style="padding:0px 300px 0px 300px"
                                             :isExomeWideSignificant="true"
@@ -374,27 +368,14 @@
                                             style="font-weight:bold; padding: 650px"
                                         >Is exome-wide significant?</span>
                                         <div style="padding:5px 0px 5px 0px"></div>
-                                        <!-- <div id="wrapper" style="padding:0px 650px 0px 650px">
-                                            <div style="float:right;color:gray" id="1">Yes</div>
-                                            <div
-                                                style="padding-left: 5px;float:left; border-radius:20px; background: #af5934;width:35px;height: 20px; color:white;"
-                                                id="2"
-                                            >No</div>
-                                        </div>-->
-                                        <!-- <rarevariation-not-exomesig-table
-                                            style="padding:0px 300px 0px 300px"
-                                            :isExomeWideSignificant="false"
-                                            :priorVariance="$store.state.prior"
-                                            :rareBF="parseInt($parent.bayesFactorRareVariation)"
-                                        ></rarevariation-not-exomesig-table>-->
 
-                                        <rarevariation-not-exomesig-table-new
+                                        <rarevariation-not-exomesig-table
                                             style="padding:0px 300px 0px 300px"
                                             :isExomeWideSignificant="false"
                                             :priorVariance="$store.state.prior"
                                             :rareBF="parseInt($parent.bayesFactorRareVariation)"
                                             :burdenAssocEvidence="parseInt($parent.beta)"
-                                        ></rarevariation-not-exomesig-table-new>
+                                        ></rarevariation-not-exomesig-table>
 
                                         <div style="padding:10px 250px 10px 250px">
                                             <br />

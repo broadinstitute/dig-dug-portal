@@ -25,7 +25,7 @@ import Hugescoretable from "@/components/Hugescoretable.vue";
 import CommonVariationGenSignificantTable from "@/components/CommonVariationGenSignificantTable.vue";
 import RareVariationExSignificantTable from "@/components/RareVariationExSignificantTable.vue";
 import RareVariationNotExSignificantTable from "@/components/RareVariationNotExSignificantTable.vue";
-import SimpleTableComponent from "@/components/SimpleTableComponent.vue";
+
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
@@ -61,7 +61,7 @@ new Vue({
         CommonVariationGenSignificantTable,
         RareVariationExSignificantTable,
         RareVariationNotExSignificantTable,
-        SimpleTableComponent
+
     },
     render(createElement, context) {
         return createElement(Template);

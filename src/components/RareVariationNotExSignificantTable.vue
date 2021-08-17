@@ -1,42 +1,74 @@
 <template>
     <div>
-        <div>
-            <b-table
-                fixed
-                borderless
-                small
-                thead-class="hidden_header"
-                :items="items"
-                :fields="fields"
-                responsive="sm"
-            >
-                <!-- <template #cell(evidence)="data">
-                    <div style="background: #fef8dc">{{ data.item.evidence }}</div>
-                </template>-->
-                <template #cell(tag)="data">
-                    <div style="color:gray">{{ data.item.tag }}</div>
-                </template>
-           
-                <template #cell(evidence)="data">
-                    <b-tr>
-                        <b-th class="text-right">Utrecht</b-th>
-                    </b-tr>
-                </template>
+        <b-table-simple borderless fixed small responsive>
+            <b-tbody>
+                <b-tr>
+                    <b-th style="width:70px"></b-th>
+                    <b-td style="width:150px;color:gray" class="text-center">Yes</b-td>
+                    <b-td style="width:150px;" class="text-center">
+                        <span
+                            style="padding-left: 8px; padding-right: 8px;border-radius:20px; background: #af5934; color:white;"
+                        >No</span>
+                    </b-td>
+                    <b-td style="width:200px;" class="text-left"></b-td>
+                </b-tr>
+                <b-tr>
+                    <b-th style="width:70px"></b-th>
+                    <b-td
+                        style="width:150px;color:gray;background-color:#F5F5F5"
+                        class="text-center"
+                    >N/A</b-td>
+                    <b-td style="width:150px;"></b-td>
+                    <b-td
+                        style="width:200px;color:gray;"
+                        class="text-left"
+                    ><--Exome wide Significance</b-td>
+                </b-tr>
+                <b-tr>
+                    <b-th style="width:70px"></b-th>
+                    <b-td style="width:150px;color:gray" class="text-center"></b-td>
+                    <b-td
+                        style="width:150px;background-color:#fef8dc"
+                        class="text-center"
+                    >{{burdenAssocEvidence}}</b-td>
 
-                <template #cell(bf)="data">
-                    <div style="background: #DFDBDA">{{ data.item.bf }}</div>
-                </template>
-
-                <template v-slot:custom-foot="data">
-                    <b-tr>
-                        <b-td style="text-align: right; font-weight:bold">Bayes Factor:</b-td>
-                        <b-td style=" text-align: right; background: #fef8dc;">{{rareBF}}</b-td>
-                        <b-td style="background:#fef8dc"></b-td>
-                        <b-td></b-td>
-                    </b-tr>
-                </template>
-            </b-table>
-        </div>
+                    <b-td
+                        style="width:200px;color:gray;"
+                        class="text-left"
+                    ><--Burden statistic Association</b-td>
+                </b-tr>
+                <b-tr>
+                    <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
+                    <b-td style="width:150px;" class="text-center"></b-td>
+                    <b-td style="width:150px;" class="text-center">
+                        <input
+                            style="background-color:#fef8dc;width:100%"
+                            v-model.number="$store.state.prior"
+                            type="number"
+                            placeholder="Prior Variance"
+                            id="prior_variance_input"
+                        />
+                    </b-td>
+                    <b-td
+                        style="width:200px;color:gray;"
+                        class="text-left"
+                    ><--Prior Allelic variance</b-td>
+                </b-tr>
+            </b-tbody>
+            <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
+            <b-tfoot>
+                <b-tr>
+                    <b-th style="width:80px" rowspan="1" class="text-right">Bayes Factor:</b-th>
+                    <b-td
+                        style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin;background-color:#fef8dc"
+                        colspan="2"
+                        class="text-center"
+                    >
+                        <b>{{rareBF}}</b>
+                    </b-td>
+                </b-tr>
+            </b-tfoot>
+        </b-table-simple>
     </div>
 </template>
         
@@ -85,32 +117,8 @@ export default Vue.component("rarevariation-not-exomesig-table", {
 
     data() {
         return {
-            fields: [
-                { key: "pretag", tdClass: "text-right" },
-                { key: "evidence", tdClass: "text-center" },
-                { key: "bf", tdClass: "text-center" },
-                { key: "tag", tdClass: "text-left" }
-            ],
-            items: [
-                {
-                    pretag: "",
-                    evidence: this.exomeEvidence,
-                    bf: "N/A",
-                    tag: "<--Exome wide Significance"
-                },
-                {
-                    pretag: "",
-                    evidence: this.burdenAssocEvidence,
-                    bf: "N/A",
-                    tag: "<--Burden stats"
-                },
-                {
-                    pretag: "X",
-                    evidence: this.priorVariance,
-                    bf: "N/A",
-                    tag: "<--Prior Allelic Variance"
-                }
-            ],
+            fields: [],
+            items: [],
             visibleRows: []
         };
     },
