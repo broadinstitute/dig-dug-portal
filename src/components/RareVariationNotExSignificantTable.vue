@@ -10,11 +10,17 @@
                 :fields="fields"
                 responsive="sm"
             >
-                <template #cell(evidence)="data">
+                <!-- <template #cell(evidence)="data">
                     <div style="background: #fef8dc">{{ data.item.evidence }}</div>
-                </template>
+                </template>-->
                 <template #cell(tag)="data">
                     <div style="color:gray">{{ data.item.tag }}</div>
+                </template>
+           
+                <template #cell(evidence)="data">
+                    <b-tr>
+                        <b-th class="text-right">Utrecht</b-th>
+                    </b-tr>
                 </template>
 
                 <template #cell(bf)="data">
@@ -92,14 +98,12 @@ export default Vue.component("rarevariation-not-exomesig-table", {
                     bf: "N/A",
                     tag: "<--Exome wide Significance"
                 },
-
                 {
                     pretag: "",
                     evidence: this.burdenAssocEvidence,
                     bf: "N/A",
                     tag: "<--Burden stats"
                 },
-
                 {
                     pretag: "X",
                     evidence: this.priorVariance,
