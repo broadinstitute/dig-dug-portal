@@ -114,6 +114,7 @@ export default Vue.component("research-data-table", {
         "tableFormat",
         "initPerPageNumber",
         "tableLegend",
+        "dataComparisonConfig",
     ],
     data() {
         return { currentPage: 1, perPageNumber: null };
@@ -177,7 +178,11 @@ export default Vue.component("research-data-table", {
         },
         rows() {
             if (!!this.dataset) {
-                return this.dataset.length;
+                if (this.dataComparisonConfig == null) {
+                    return this.dataset.length;
+                } else {
+                    return Object.keys(this.dataset).length;
+                }
             }
         },
         pagedData() {
@@ -186,28 +191,53 @@ export default Vue.component("research-data-table", {
                 let rawData = this.dataset;
                 let formattedData = [];
 
-                rawData.map((d) => {
-                    let tempObj = {};
+                if (this.dataComparisonConfig == null) {
+                    rawData.map((d) => {
+                        let tempObj = {};
 
-                    this.tableFormat["top rows"].map((t) => {
-                        tempObj[t] = d[t];
-                    });
-
-                    if (this.tableFormat["features"] != undefined) {
-                        tempObj["features"] = {};
-                        this.tableFormat["features"].map((f) => {
-                            tempObj["features"][f] = [];
-
-                            let fTempObj = {};
-                            this.tableFormat[f].map((fItem) => {
-                                fTempObj[fItem] = d[fItem];
-                            });
-
-                            tempObj["features"][f].push(fTempObj);
+                        this.tableFormat["top rows"].map((t) => {
+                            tempObj[t] = d[t];
                         });
+
+                        if (this.tableFormat["features"] != undefined) {
+                            tempObj["features"] = {};
+                            this.tableFormat["features"].map((f) => {
+                                tempObj["features"][f] = [];
+
+                                let fTempObj = {};
+                                this.tableFormat[f].map((fItem) => {
+                                    fTempObj[fItem] = d[fItem];
+                                });
+
+                                tempObj["features"][f].push(fTempObj);
+                            });
+                        }
+                        formattedData.push(tempObj);
+                    });
+                } else {
+                    for (const [key, value] of Object.entries(rawData)) {
+                        let tempObj = {};
+
+                        this.tableFormat["top rows"].map((t) => {
+                            tempObj[t] = value[t];
+                        });
+
+                        if (this.tableFormat["features"] != undefined) {
+                            tempObj["features"] = {};
+                            this.tableFormat["features"].map((f) => {
+                                tempObj["features"][f] = [];
+
+                                let fTempObj = {};
+                                this.tableFormat[f].map((fItem) => {
+                                    fTempObj[fItem] = value[fItem];
+                                });
+
+                                tempObj["features"][f].push(fTempObj);
+                            });
+                        }
+                        formattedData.push(tempObj);
                     }
-                    formattedData.push(tempObj);
-                });
+                }
 
                 //let filtered = this.dataset;
                 let paged = [];
@@ -222,10 +252,19 @@ export default Vue.component("research-data-table", {
                         ? this.currentPage * perPage
                         : this.rows;
 
+                console.log(
+                    "startIndex",
+                    startIndex,
+                    "/endIndex",
+                    endIndex,
+                    "/rows",
+                    this.rows
+                );
+
                 for (let i = startIndex; i < endIndex; i++) {
                     paged.push(formattedData[i]);
                 }
-
+                console.log("paged", paged);
                 return paged;
             } else {
                 return this.dataset;

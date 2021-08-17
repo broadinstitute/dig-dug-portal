@@ -39,13 +39,15 @@
                         :id="'search_param_' + parameter.parameter"
                     />
                 </div>
-                <div class="col">
+                <div
+                    class="col"
+                    v-if="!!this.dataset && dataComparisonConfig != null"
+                >
+                    <div class="label" v-html="'Compare data'"></div>
                     <select id="ifMergeData" class="custom-select">
-                        <option value="noSet" selected>No set</option>
-                        <option value="overlapping">
-                            Display only overlapping
-                        </option>
-                        <option value="all">Display all</option>
+                        <option value="newSearch" selected>New search</option>
+                        <option value="overlapping">Only overlapping</option>
+                        <option value="all">All</option>
                     </select>
                 </div>
                 <div class="col">
@@ -225,6 +227,7 @@
                 Clear all search
             </b-badge>
         </b-container>
+        {{ dataComparisonConfig }}
     </div>
 </template>
 
@@ -237,7 +240,7 @@ import keyParams from "@/utils/keyParams";
 export default Vue.component("research-page-filters", {
     props: [
         "apiParameters",
-        "dataComparison",
+        "dataComparisonConfig",
         "dataFiles",
         "dataType",
         "filesListLabels",
@@ -299,7 +302,6 @@ export default Vue.component("research-page-filters", {
             let parametersArr = this.apiParameters.query.format;
 
             parametersArr.map((param, index) => {
-                //console.log(param, index);
                 if (keyParams[param] != undefined) {
                     document.getElementById("search_param_" + param).value =
                         keyParams[param];
@@ -307,8 +309,6 @@ export default Vue.component("research-page-filters", {
                     this.searchParamsIndex[param].search.push(keyParams[param]);
                 }
             });
-
-            //console.log("this.searchParamsIndex", this.searchParamsIndex);
         }
     },
     comuted: {},
@@ -343,6 +343,13 @@ export default Vue.component("research-page-filters", {
                 return file;
             }
         },
+        setDataComparison() {
+            let ifCompareData = !!document.getElementById("ifMergeData")
+                ? document.getElementById("ifMergeData").value
+                : "newSearch";
+
+            this.$store.dispatch("dataComparison", ifCompareData);
+        },
         queryAPI() {
             this.showHideSearch();
             uiUtils.showElement("data-loading-indicator");
@@ -353,31 +360,32 @@ export default Vue.component("research-page-filters", {
 
             this.$store.state.bioIndexContinue = [];
 
-            /*console.log(
-                "if merge data",
-                document.getElementById("ifMergeData").value
-            );
-
-            console.log("this.dataset", typeof this.dataset);
-            console.log("this.dataset", this.dataset);
-            */
-
-            let ifCompareData = document.getElementById("ifMergeData").value;
-
-            if (ifCompareData != "noSet" && this.dataset != "") {
-            }
+            this.setDataComparison();
 
             let queryParams = "";
             if (this.apiParameters.query.type == "array") {
                 let parametersArr = this.apiParameters.query.format;
 
                 parametersArr.map((param, index) => {
-                    console.log(param, index);
                     queryParams += document.getElementById(
                         "search_param_" + param
                     ).value;
                     if (index + 1 < parametersArr.length) {
                         queryParams += ",";
+                    }
+
+                    // add to search parameters index
+                    if (this.$store.state.dataComparison == "newSearch") {
+                        this.searchParamsIndex[param].search = [];
+                        this.searchParamsIndex[param].search.push(
+                            document.getElementById("search_param_" + param)
+                                .value
+                        );
+                    } else {
+                        this.searchParamsIndex[param].search.push(
+                            document.getElementById("search_param_" + param)
+                                .value
+                        );
                     }
                 });
             }
@@ -424,23 +432,46 @@ export default Vue.component("research-page-filters", {
             this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
         },
         numberOfSearches() {
-            // console.log("called 3");
             let numberOfBubbles = 0;
             for (const FIELD in this.filtersIndex) {
                 numberOfBubbles += this.filtersIndex[FIELD].search.length;
             }
 
-            // console.log("numberOfBubbles", numberOfBubbles);
-
             return numberOfBubbles;
         },
         numberOfSearchParams() {},
         buildOptions(field) {
-            let options = this.dataset
-                .map((v) => v[field])
-                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
-                .filter((v, i, arr) => v != ""); //remove blank
-            return options.sort();
+            if (this.dataComparisonConfig == null) {
+                let options = this.dataset
+                    .map((v) => v[field])
+                    .filter((v, i, arr) => arr.indexOf(v) == i) //unique
+                    .filter((v, i, arr) => v != ""); //remove blank
+                return options.sort();
+            } else {
+                let options = [];
+
+                for (const [key, value] of Object.entries(this.dataset)) {
+                    if (
+                        typeof value[field] === "object" &&
+                        value[field] !== null &&
+                        !Array.isArray(value[field])
+                    ) {
+                        for (const [iKey, iValue] of Object.entries(
+                            value[field]
+                        )) {
+                            options.push(iValue);
+                        }
+                    } else {
+                        options.push(value[field]);
+                    }
+                }
+
+                let unqOptions = options
+                    .filter((v, i, arr) => arr.indexOf(v) == i) //unique
+                    .filter((v, i, arr) => v != ""); //remove blank
+
+                return unqOptions.sort();
+            }
         },
         filterData(EVENT, FIELD, TYPE, DATATYPE) {
             let searchValue = document.getElementById(
@@ -478,12 +509,9 @@ export default Vue.component("research-page-filters", {
                 }
             }
 
-            // console.log("this.filtersIndex", this.filtersIndex);
-
             this.applyFilters();
         },
         applyFilters() {
-            //console.log(this.filtersIndex);
             let filtered = this.unfilteredDataset;
             let tempFiltered = [];
             let i = 0;

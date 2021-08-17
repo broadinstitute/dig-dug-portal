@@ -29,26 +29,34 @@ export default new Vuex.Store({
         genesInRegion: "",
         variantCorrelations: "",
         bioIndexContinue: [],
+        searchParameters: {},
+        dataComparison: "newSearch",
     },
     mutations: {
         setFilteredData(state, data) {
-            //console.log("called 2");
+
             state.filteredData = data;
         },
         setMultiGroupsData(state, data) {
-            //console.log("called 2");
+
             state.multiGroupsData = data;
         },
         setGenesInRegion(state, data) {
-            //console.log("called 2");
+
             state.genesInRegion = data;
         },
         setVariantCorrelations(state, data) {
-            //console.log("called 2");
+
             state.variantCorrelations = data;
         },
         setBioIndexContinue(state, data) {
             state.bioIndexContinue.push(data);
+        },
+        setSearchParameters(state, data) {
+            state.searchParameters = data;
+        },
+        setDataComparison(state, data) {
+            state.dataComparison = data;
         },
     },
     getters: {},
@@ -67,6 +75,13 @@ export default new Vuex.Store({
         },
         bioIndexContinue(context, moreData) {
             context.commit("setBioIndexContinue", moreData);
-        }
+        },
+        searchParameters(context, searchParameters) {
+            context.commit("setSearchParameters", searchParameters);
+        },
+
+        dataComparison(context, dataComparison) {
+            context.commit("setDataComparison", dataComparison);
+        },
     }
 });

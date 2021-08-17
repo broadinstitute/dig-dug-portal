@@ -56,6 +56,7 @@ new Vue({
             dataFiles: [],
             dataFilesLabels: null,
             dataTableFormat: null,
+
         }
     },
 
@@ -208,9 +209,7 @@ new Vue({
             });
 
 
-            let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], jsonData) : jsonData;
-
-            return jsonData;//processedData;
+            return jsonData;
         },
 
         convertData(CONVERT, DATA) {
@@ -271,49 +270,53 @@ new Vue({
                 return locus;
             }
 
-            DATA.map(d => {
-                let tempObj = {};
-                CONVERT.map(c => {
+            if (CONVERT != "no convert") {
+                DATA.map(d => {
+                    let tempObj = {};
+                    CONVERT.map(c => {
 
-                    let cType = c.type;
+                        let cType = c.type;
 
 
-                    switch (cType) {
-                        case "join":
-                            tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
-                            break;
+                        switch (cType) {
+                            case "join":
+                                tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
+                                break;
 
-                        case "join multi":
-                            tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
-                            break;
+                            case "join multi":
+                                tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
+                                break;
 
-                        case "get locus":
-                            tempObj[c["field name"]] = formatLocus(c["chromosome"], c["start"], c["end"], d);
-                            break;
+                            case "get locus":
+                                tempObj[c["field name"]] = formatLocus(c["chromosome"], c["start"], c["end"], d);
+                                break;
 
-                        case "calculate":
+                            case "calculate":
 
-                            let calType = c["calculation type"];
+                                let calType = c["calculation type"];
 
-                            switch (calType) {
-                                case "-log10":
-                                    tempObj[c["field name"]] = -Math.log10(d[c["raw field"]]);
-                                    break;
-                            }
-                            break;
+                                switch (calType) {
+                                    case "-log10":
+                                        tempObj[c["field name"]] = -Math.log10(d[c["raw field"]]);
+                                        break;
+                                }
+                                break;
 
-                        case "raw":
-                            tempObj[c["field name"]] = d[c["raw field"]];
-                            break;
+                            case "raw":
+                                tempObj[c["field name"]] = d[c["raw field"]];
+                                break;
 
-                        case "score columns":
-                            tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], d);
-                            break;
-                    }
-                })
+                            case "score columns":
+                                tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], d);
+                                break;
+                        }
+                    })
 
-                convertedData.push(tempObj);
-            });
+                    convertedData.push(tempObj);
+                });
+            } else {
+                convertedData = DATA;
+            }
 
             return convertedData;
         },
@@ -376,6 +379,63 @@ new Vue({
                 }
             }
         },
+        checkDataComparison(newResearchData, point) {
+
+            // console.log("new data", newResearchData);
+            let dataComparison = this.$store.state.dataComparison;
+
+
+            if (this.dataComparisonConfig != null && newResearchData.length > 0) {
+
+                let comparingFields = this.dataComparisonConfig.fieldsToCompare;
+
+                switch (dataComparison) {
+                    case "newSearch":
+                        console.log("newSearch");
+
+                        let compareReadyData = {};
+
+                        newResearchData.map(d => {
+                            let keyField = d[this.dataComparisonConfig.keyField];
+                            let tempObj = {};
+                            for (const [key, value] of Object.entries(d)) {
+                                if (comparingFields.includes(key) == true) {
+
+                                    let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+
+                                    tempObj[key] = {};
+                                    tempObj[key][fieldGroupKey] = value;
+                                } else {
+                                    tempObj[key] = value;
+                                }
+
+                            }
+                            compareReadyData[keyField] = tempObj;
+                        })
+
+                        console.log(compareReadyData);
+
+                        return compareReadyData;
+
+                        break;
+
+                    case "overlapping":
+                        console.log("overlapping");
+                        return newResearchData;
+
+                        break;
+                    case "all":
+                        console.log("all");
+                        return newResearchData;
+
+                        break;
+
+                }
+            } else {
+                return newResearchData;
+            }
+
+        }
     },
 
     computed: {
@@ -387,14 +447,12 @@ new Vue({
                 return JSON.parse(contents[0]["field_api_parameters"]);
             }
         },
-        dataComparison() {
+        dataComparisonConfig() {
             let contents = this.researchPage;
 
             if (contents === null || contents[0]["field_data_comparison"] == false) {
                 return null;
             }
-
-            //console.log("compare", JSON.parse(contents[0]["field_data_comparison"]))
 
             return JSON.parse(contents[0]["field_data_comparison"]);
         },
@@ -564,10 +622,6 @@ new Vue({
             }
             return JSON.parse(contents[0].field_menu);
         },
-        /*testResearchData() {
-             let contents = this.$store.state.hugeampkpncms.researchData;
-             return contents;
-         },*/
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
@@ -596,9 +650,10 @@ new Vue({
                 } else if (convertedData.continuation == null && convertedData.page == 1) {
                     let returnData = convertedData.data;
 
-                    let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : returnData;
+                    let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
-                    return processedData;
+
+                    return this.checkDataComparison(processedData, "call 1");
                 } else if (convertedData.continuation == null && convertedData.page != 1) {
                     //merge all data from continue
 
@@ -613,22 +668,21 @@ new Vue({
                         })
                     });
 
+                    let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], mergedData) : this.convertData("no convert", mergedData);
 
-
-                    let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], mergedData) : mergedData;
-
-                    return processedData;
+                    return this.checkDataComparison(processedData, "call 2");
 
                 }
             } else {
                 let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
 
-                let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : returnData;
+                let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
-                return processedData;
+                return this.checkDataComparison(processedData, "call 3");
             }
 
         },
+
         researchMode() {
             let contents = this.$store.state.hugeampkpncms.researchMode;
 

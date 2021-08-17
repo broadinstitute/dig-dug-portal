@@ -127,7 +127,9 @@
                                             : null
                                     "
                                     :apiParameters="$parent.apiParameters"
-                                    :dataComparison="$parent.dataComparison"
+                                    :dataComparisonConfig="
+                                        $parent.dataComparisonConfig
+                                    "
                                     :dataType="$parent.dataType"
                                     :uid="$parent.uid"
                                     :filters="$parent.dataFilters"
@@ -136,6 +138,7 @@
                                     :unfilteredDataset="$parent.researchData"
                                 ></research-page-filters>
                             </div>
+                            Data comparison: {{ $store.state.dataComparison }}
                             <!-- plots -->
                             <div :class="'col-md-12 ' + $parent.plotClass">
                                 <div
@@ -181,6 +184,9 @@
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
+                                    :selectedRegion="
+                                        $store.state.selectedRegion
+                                    "
                                 ></research-region-plot>
 
                                 <research-score-plot
@@ -227,6 +233,9 @@
                                         $parent.tablePerPageNumber
                                     "
                                     :tableLegend="$parent.tableLegend"
+                                    :dataComparisonConfig="
+                                        $parent.dataComparisonConfig
+                                    "
                                 >
                                 </research-data-table>
                             </div>
