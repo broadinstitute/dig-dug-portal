@@ -3,39 +3,39 @@
         <b-table-simple borderless fixed small responsive>
             <b-tbody>
                 <b-tr>
-                    <b-th style="width:80px"></b-th>
+                    <b-th style="width:70px"></b-th>
                     <b-td style="width:150px;color:gray" class="text-center">Yes</b-td>
                     <b-td style="width:150px;" class="text-center">
                         <span
                             style="padding-left: 8px; padding-right: 8px;border-radius:20px; background: #af5934; color:white;"
                         >No</span>
                     </b-td>
-                    <b-td style="width:250px;" class="text-left"></b-td>
+                    <b-td style="width:200px;" class="text-left"></b-td>
                 </b-tr>
                 <b-tr>
-                    <b-th style="width:80px"></b-th>
+                    <b-th style="width:70px"></b-th>
                     <b-td
                         style="width:150px;color:gray;background-color:#F5F5F5"
                         class="text-center"
                     >N/A</b-td>
                     <b-td style="width:150px;"></b-td>
                     <b-td
-                        style="width:250px;color:gray;"
+                        style="width:200px;color:gray;"
                         class="text-left"
                     ><--Exome wide Significance</b-td>
                 </b-tr>
                 <b-tr>
-                    <b-th style="width:80px"></b-th>
+                    <b-th style="width:70px"></b-th>
                     <b-td style="width:150px;color:gray" class="text-center">N/A</b-td>
                     <b-td style="width:150px;background-color:#fef8dc" class="text-center">3.36</b-td>
 
                     <b-td
-                        style="width:250px;color:gray;"
+                        style="width:200px;color:gray;"
                         class="text-left"
                     ><--Burden statistic Association</b-td>
                 </b-tr>
                 <b-tr>
-                    <b-th style="width:80px" rowspan="1" class="text-right">X</b-th>
+                    <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
                     <b-td style="width:150px;" class="text-center"></b-td>
                     <b-td style="width:150px;" class="text-center">
                         <input
@@ -47,7 +47,7 @@
                         />
                     </b-td>
                     <b-td
-                        style="width:250px;color:gray;"
+                        style="width:200px;color:gray;"
                         class="text-left"
                     ><--Prior Allelic variance</b-td>
                 </b-tr>
@@ -55,7 +55,7 @@
             <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
             <b-tfoot>
                 <b-tr
-                    style="width:100px;border-top: 0.25px solid;border-color:gray;border-width:thin"
+                    style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin"
                 >
                     <b-th style="width:80px" rowspan="1" class="text-right">Bayes Factor:</b-th>
                     <b-td colspan="2" style="background-color:#fef8dc" class="text-center">
