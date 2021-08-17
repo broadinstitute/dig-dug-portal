@@ -20,9 +20,6 @@
                 <template #cell(bf)="data">
                     <div style="background: #DFDBDA">{{ data.item.bf }}</div>
                 </template>
-                <template #cell(bf)="data">
-                    <div style="background: #DFDBDA">{{ data.item.bf }}</div>
-                </template>
 
                 <template v-slot:custom-foot="data">
                     <b-tr>
@@ -99,6 +96,7 @@ export default Vue.component("rarevariation-exomesig-table", {
                 {
                     pretag: "X",
                     evidence: this.priorVariance,
+                    
                     bf: "N/A",
                     tag: "<--Prior Allelic Variance"
                 }
