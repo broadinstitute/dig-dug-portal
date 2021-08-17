@@ -209,22 +209,16 @@
                                             style="font-weight:bold; padding:0px 150px 0px 650px"
                                         >Is genome-wide significant?</span>
                                         <div style="padding:5px 0px 5px 0px"></div>
-                                        <div id="wrapper" style="padding:0px 650px 0px 650px">
-                                            <div style="float:left;color:gray" id="1">Yes</div>
-                                            <div
-                                                style="padding-left: 5px;float:right; border-radius:20px; background: #3a5dae;width:35px;height: 20px; color:white;"
-                                                id="2"
-                                            >No</div>
-                                        </div>
-                                        <commonvariation-genomesig-table
+
+                                        <commonvariation-not-genomesig-table
                                             style="padding:0px 300px 0px 300px"
                                             v-if="$parent.eglData"
                                             :isGenomeWideSignificant="false"
-                                            :gwasEvidence="'1(P-value > 5e-8)'"
+                                            :gwasEvidence="'1(No Evidence)'"
                                             :codingEvidence="$parent.commonVariationMap['codingEvidence']"
                                             :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
                                             :commonBF="parseInt($parent.bayesFactorCommonVariation)"
-                                        ></commonvariation-genomesig-table>
+                                        ></commonvariation-not-genomesig-table>
                                     </div>
                                     <div style="padding:10px 250px 10px 250px">
                                         <br />
@@ -367,8 +361,8 @@
                                             style="padding:0px 300px 0px 300px"
                                             :isExomeWideSignificant="false"
                                             :priorVariance="$store.state.prior"
-                                            :rareBF="parseInt($parent.bayesFactorRareVariation)"
-                                            :burdenAssocEvidence="parseInt($parent.beta)"
+                                            :rareBF="$parent.bayesFactorRareVariation"
+                                            :burdenAssocEvidence="$parent.beta"
                                         ></rarevariation-not-exomesig-table>
 
                                         <div style="padding:10px 250px 10px 250px">

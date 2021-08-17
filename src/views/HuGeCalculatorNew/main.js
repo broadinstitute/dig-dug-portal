@@ -23,6 +23,7 @@ import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import HugeCalTable from "@/components/HugeCalTable.vue";
 import Hugescoretable from "@/components/Hugescoretable.vue";
 import CommonVariationGenSignificantTable from "@/components/CommonVariationGenSignificantTable.vue";
+import CommonVariationNotGenSignificantTable from "@/components/CommonVariationNotGenSignificantTable.vue";
 import RareVariationExSignificantTable from "@/components/RareVariationExSignificantTable.vue";
 import RareVariationNotExSignificantTable from "@/components/RareVariationNotExSignificantTable.vue";
 
@@ -61,6 +62,7 @@ new Vue({
         CommonVariationGenSignificantTable,
         RareVariationExSignificantTable,
         RareVariationNotExSignificantTable,
+        CommonVariationNotGenSignificantTable
 
     },
     render(createElement, context) {
