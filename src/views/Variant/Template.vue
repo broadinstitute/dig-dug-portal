@@ -183,8 +183,8 @@
                         <filter-enumeration-control
                             :field="'phenotype'"
                             :options="
-                                $store.state.phewas.data.map(
-                                    (phewas) => phewas.phenotype
+                                $store.state.bioPortal.phenotypes.map(
+                                    (p) => p.name
                                 )
                             "
                             :labelFormatter="
