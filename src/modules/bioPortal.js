@@ -97,7 +97,14 @@ export default {
 
         //this is the root portal, display all data for group
         isRootPortal(state, getters) {
-            return state.host.subDomain === getters.diseaseGroup.portalGroup;
+            if (!state.host.subDomain)
+                //no subdomain found, assume main portal
+                return true;
+            else {
+                return (
+                    state.host.subDomain === getters.diseaseGroup.portalGroup
+                );
+            }
         }
     },
 
