@@ -52,7 +52,7 @@
                         colspan="1"
                         class="text-center"
                     >
-                        <b>1.26</b>
+                        <b>{{rareBF}}</b>
                     </b-td>
                 </b-tr>
             </b-tfoot>
