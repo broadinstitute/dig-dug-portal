@@ -17,19 +17,7 @@
                         @keyup.enter="addToItems($event)"
                     />
                 </td>
-
-                <!-- <td>
-                    <b-button
-                        style="background: gray; cursor: pointer;"
-                        v-on:click="resetPrior(data.item)"
-                    >Reset prior</b-button>
-                </td>-->
             </template>
-            <!-- <template slot="removeItem" slot-scope="data">
-                <div
-                    :class="value > 0.3696 ? 'text-success' : 'text-danger'"
-                >{{ value.toFixed(2) }} EUR</div>
-            </template>-->
             <template #cell(removeItem)="data">
                 <b-button
                     style="padding: 0;border: none;background: none; cursor: pointer;"
@@ -129,6 +117,9 @@ export default Vue.component("hugecal-table", {
         },
         removeItems(item) {
             this.items.pop(item);
+            // this.$store.dispatch("removeSuggestedPriorLines", {
+            //     removedItem: item
+            // });
         },
 
         pValueFormatter(pValue) {
