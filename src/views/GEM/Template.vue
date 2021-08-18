@@ -138,13 +138,13 @@
                     </criterion-function-group>
                     <b-tabs content-class="mt-3">
                         <b-tab title="Score View" active>
-                            <associations-table
-                                id="associations-table"
+                            <associations-table-gem
+                                id="associations-table-gem"
                                 :phenotypes="$parent.selectedPhenotypes"
                                 :associations="$parent.pageAssociations"
                                 :filter="$parent.associationsFilter"
                                 :exclusive="false"
-                            ></associations-table>
+                            ></associations-table-gem>
                         </b-tab>
                         <b-tab title="Evidence View">
                             <locuszoom

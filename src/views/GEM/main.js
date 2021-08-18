@@ -4,7 +4,7 @@ import store from "./store.js";
 
 import Documentation from "@/components/Documentation.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
-import AssociationsTable from "@/components/AssociationsTable";
+import AssociationsTableGEM from "@/components/AssociationsTableGEM";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
 import TissueSelectPicker from "@/components/TissueSelectPicker";
@@ -44,7 +44,7 @@ new Vue({
     components: {
         Documentation,
         GeneSelectPicker,
-        AssociationsTable,
+        AssociationsTableGEM,
         LocusZoom,
         LocusZoomAssociationsPanel,
         LocusZoomCatalogAnnotationsPanel,
