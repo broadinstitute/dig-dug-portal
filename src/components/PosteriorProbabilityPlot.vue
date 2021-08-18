@@ -34,10 +34,10 @@ export default Vue.component("posterior-probability-plot", {
             default: 0.3696
         },
 
-        suggestedPriorNew: {
-            type: Number,
+        universalPriorList: {
+            type: Array,
             required: false,
-            default: 0.05
+            default: [0.05,0.2]
         }
     },
 
@@ -187,26 +187,26 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("y", "-10em")
                 .text("I am label");
 
-            var suggestedPrior = [
-                { prior: 0.05, color: "#abd171" },
-                { prior: 0.2, color: "#b6d980" },
-                { prior: 0.3696, color: "#b3de71" }
-            ];
-            var newMap = {prior:this.suggestedPriorNew,color:"#d959b2"}
+            // var suggestedPrior = [
+            //     { prior: 0.05, color: "#abd171" },
+            //     { prior: 0.2, color: "#b6d980" },
+            //     { prior: 0.3696, color: "#b3de71" }
+            // ];
+            // var newMap = {prior:this.suggestedPriorNew,color:"#d959b2"}
 
             // var suggestedPrior = [0.05, 0.2];
 
-            if(!!this.suggestedPriorNew){
-                suggestedPrior.push(newMap)
-            }
-            suggestedPrior.forEach((x, i) => {
-                console.log(x.prior + " selected prior ");
-                var data3 = this.referenceLineNew(x.prior);
+            // if(!!this.suggestedPriorNew){
+            //     suggestedPrior.push(newMap)
+            // }
+            this.universalPriorList.forEach((x, i) => {
+                console.log(x + " selected prior ");
+                var data3 = this.referenceLineNew(x);
                 // var data4 = this.referenceLineNew(0.2);
                 var path3 = svg
                     .append("path")
                     .attr("d", lineGen(data3))
-                    .attr("stroke", x.color)
+                    .attr("stroke", "blue")
                     .attr("stroke-width", 1)
                     .style("stroke-dasharray", "3, 3")
                     .attr("fill", "none");
@@ -339,7 +339,7 @@ export default Vue.component("posterior-probability-plot", {
             this.priorVariance = newPrior;
             this.generateChart();
         },
-        suggestedPriorNew(newSuggestedPrior) {
+        universalPriorList() {
           
             this.generateChart();
         }

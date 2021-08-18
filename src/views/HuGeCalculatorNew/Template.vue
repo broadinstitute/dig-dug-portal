@@ -134,7 +134,7 @@
                                                         $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation))"
                                             :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
-                                            :suggestedPriorNew="$parent.suggestedPriorNewOne"
+                                            :universalPriorList="this.$store.state.universalPriorList"
                                         ></posterior-probability-plot>
                                     </div>
                                 </div>

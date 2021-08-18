@@ -37,10 +37,14 @@ export default new Vuex.Store({
         phenotypeParam: keyParams.phenotype,
         phenotype: null,
         searchGene: keyParams.gene,
-        suggestedPriorNew: 0
+        suggestedPriorNew: 0,
+        universalPriorList: []
 
     },
     mutations: {
+        setUniversalPriorList(state, universalPriorList) {
+            state.universalPriorList = universalPriorList
+        },
         setSuggestedPriorNew(state, suggestedPriorNew) {
             state.suggestedPriorNew = suggestedPriorNew
             console.log("updated suggested prior state to " + suggestedPriorNew)
@@ -105,9 +109,8 @@ export default new Vuex.Store({
             const phenoRegionQuery = `${phenotype},${newRegion.chromosome}:${newRegion.start}-${newRegion.end}`;
             context.dispatch('associations/query', { q: phenoRegionQuery });
         },
-        addSuggestedPriorLines(context, inputPriorObject) {
-
-            context.commit('setSuggestedPriorNew', inputPriorObject.suggestedPrior);
+        updatedUniversalSuggestedPriorList(context, universalPriorList) {
+            context.commit('setUniversalPriorList', universalPriorList);
 
         },
 

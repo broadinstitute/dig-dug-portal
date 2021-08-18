@@ -90,18 +90,19 @@ export default Vue.component("hugecal-table", {
                     suggestedPrior: 0.05,
                     huGeScore: this.hugeScore,
                     posteriorProbability: this.posteriorProbability(0.05)
-                },
-                {
-                    suggestedPrior: 0.3696,
-                    huGeScore: this.hugeScore,
-                    posteriorProbability: this.posteriorProbability(0.3696)
                 }
-            ]
+            ],
+            universalSuggestedPriorList: [0.2, 0.05]
         };
     },
     computed: {},
     methods: {
         addToItems(event) {
+            this.universalSuggestedPriorList.push(this.suggestedPriorinput);
+            console.log(
+                "updated suggested list after adding",
+                this.universalSuggestedPriorList
+            );
             var my_object = {
                 suggestedPrior: this.suggestedPriorinput,
                 huGeScore: this.hugeScore,
@@ -110,16 +111,22 @@ export default Vue.component("hugecal-table", {
                 )
             };
             this.items.push(my_object);
-            this.$store.dispatch("addSuggestedPriorLines", {
-                suggestedPrior: this.suggestedPriorinput,
-                color: "green"
-            });
+            this.$store.dispatch(
+                "updatedUniversalSuggestedPriorList",
+                this.universalSuggestedPriorList
+            );
         },
         removeItems(item) {
             this.items.pop(item);
-            // this.$store.dispatch("removeSuggestedPriorLines", {
-            //     removedItem: item
-            // });
+            this.universalSuggestedPriorList.pop(item);
+            console.log(
+                "updated suggestedPrior after removing",
+                this.universalSuggestedPriorList
+            );
+            this.$store.dispatch(
+                "updatedUniversalSuggestedPriorList",
+                this.universalSuggestedPriorList
+            );
         },
 
         pValueFormatter(pValue) {
