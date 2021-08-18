@@ -85,6 +85,7 @@
                                     :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
+                                    :exomeSignificant="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
                                 ></hugescore-table>
 
                                 <div style="padding:10px 250px 10px 250px">
@@ -247,8 +248,6 @@
                                         </locuszoom>
                                     </div>
                                 </div>
-
-                               
 
                                 <br />
                                 <!-- NEW RARE VARIATION -->

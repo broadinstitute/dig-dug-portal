@@ -14,20 +14,16 @@
                     <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
                     <b-td style="width:75px;background-color:#fef8dc" class="text-center">{{rareBF}}</b-td>
                     <b-td style="width:200px;color:gray;" class="text-left">
-                        <span>
+                        <span v-if="this.exomeSignificant == false">
                             <--Rare Variation BF(
                             <a
                                 href="#"
-                                @click.prevent="$bvModal.show('bv-modal-example')"
+                                @click.prevent="$bvModal.show('exampleModal')"
                             >Reset Prior Allelic variance</a>
                             )
                         </span>
-                        <b-modal id="bv-modal-example" hide-footer>
-                            <template class="text-center" #modal-title>Rare Variation</template>
-                            <div class="d-block text-center">
-                                <h3>Hello From This Modal!</h3>
-                            </div>
-                        </b-modal>
+                        <span v-else><--Rare Variation BF</span>
+                        <reset-prior-widget :beta="3" :rareBF="this.rareBF"></reset-prior-widget>
                     </b-td>
                 </b-tr>
             </b-tbody>
@@ -58,6 +54,7 @@ import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";
+import ResetPriorWidget from "@/components/ResetPriorWidget.vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
@@ -85,11 +82,18 @@ export default Vue.component("hugescore-table", {
             type: Number,
             required: true,
             default: 1
+        },
+        exomeSignificant: {
+            type: Boolean,
+            required: true,
+            default: false
         }
     },
 
     data() {
-        return {};
+        return {
+            modalShow: false
+        };
     },
     computed: {
         hugescore() {
@@ -97,6 +101,24 @@ export default Vue.component("hugescore-table", {
         }
     },
     methods: {
+        handleOk(bvModalEvt) {
+            // Prevent modal from closing
+            bvModalEvt.preventDefault();
+            // Trigger submit handler
+            this.handleSubmit();
+        },
+        handleSubmit() {
+            // Exit when the form isn't valid
+            if (!this.checkFormValidity()) {
+                return;
+            }
+            // Push the name to submitted names
+            this.submittedNames.push(this.name);
+            // Hide the modal manually
+            this.$nextTick(() => {
+                this.$bvModal.hide("modal-prevent-closing");
+            });
+        }
         // showModal() {
         //     let element = this.$refs.modal.$el;
         //     $(element).modal("show");
