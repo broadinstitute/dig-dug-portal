@@ -3,7 +3,7 @@
         <div v-html="tableLegend" class="data-table-legend"></div>
         <div
             v-if="!!dataset"
-            v-html="'Total rows: ' + filteredData.length"
+            v-html="'Total rows: ' + this.rows"
             class="table-total-rows"
         ></div>
         <div class="table-ui-wrapper">
@@ -53,12 +53,44 @@
 
             <tbody v-for="(value, index) in pagedData" :key="index" class="">
                 <tr>
-                    <td
-                        v-if="topRows.includes(tdKey)"
+                    <template
                         v-for="(tdValue, tdKey) in value"
-                        :key="tdKey"
-                        v-html="formatValue(tdValue, tdKey)"
-                    ></td>
+                        v-if="topRows.includes(tdKey)"
+                    >
+                        <td
+                            v-if="ifDataObject(tdValue) == false"
+                            :key="tdKey"
+                            v-html="formatValue(tdValue, tdKey)"
+                        ></td>
+                        <td
+                            v-if="
+                                ifDataObject(tdValue) == true &&
+                                Object.keys(tdValue).length == 1
+                            "
+                            :key="tdKey"
+                            v-html="
+                                formatValue(
+                                    tdValue[Object.keys(tdValue)[0]],
+                                    tdKey
+                                )
+                            "
+                        ></td>
+                        <td
+                            v-if="
+                                ifDataObject(tdValue) == true &&
+                                Object.keys(tdValue).length > 1
+                            "
+                            :key="tdKey"
+                            class="multi-value-td"
+                        >
+                            <span
+                                v-for="(sValue, sKey, sIndex) in tdValue"
+                                :class="'reference bg-color-' + sIndex"
+                                v-html="formatValue(sValue, tdKey)"
+                                :key="sKey"
+                            ></span>
+                        </td>
+                    </template>
                     <td v-if="tableFormat['features'] != undefined">
                         <span
                             href="javascript:;"
@@ -284,6 +316,17 @@ export default Vue.component("research-data-table", {
     watch: {},
     methods: {
         ...Formatters,
+        ifDataObject(VALUE) {
+            if (
+                typeof VALUE === "object" &&
+                VALUE !== null &&
+                !Array.isArray(VALUE)
+            ) {
+                return true;
+            } else {
+                return false;
+            }
+        },
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
         },
@@ -366,15 +409,35 @@ export default Vue.component("research-data-table", {
                 return tdValue;
             }
         },
+        object2Array(DATASET) {
+            let arrayedObject = [];
+            for (const [iKey, iValue] of Object.entries(DATASET)) {
+                arrayedObject.push(iValue);
+            }
+            //console.log(arrayedObject);
+            return arrayedObject;
+        },
+        array2Object(DATASET) {
+            let objectedArray = {};
+            DATASET.map((d) => {
+                objectedArray[d[this.dataComparisonConfig.keyField]] = d;
+            });
+
+            //console.log(objectedArray);
+            return objectedArray;
+        },
         applySorting(key) {
             //console.log(key);
-
+            let sortDirection = this.sortDirection == "asc" ? false : true;
+            this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
             if (key != this.tableFormat["locus field"]) {
-                let filtered = this.dataset;
-                let sortDirection = this.sortDirection == "asc" ? false : true;
-                this.sortDirection =
-                    this.sortDirection == "asc" ? "desc" : "asc";
+                let filtered =
+                    this.dataComparisonConfig == null
+                        ? this.dataset
+                        : this.object2Array(this.dataset);
+
                 let keyData = filtered[0][key];
+                //: filtered[Object.keys(filtered)[0]];
                 let isNumeric = typeof keyData != "number" ? false : true;
 
                 sortUtils.sortEGLTableData(
@@ -383,13 +446,14 @@ export default Vue.component("research-data-table", {
                     isNumeric,
                     sortDirection
                 );
-                this.$store.dispatch("filteredData", filtered);
+                let returnData =
+                    this.dataComparisonConfig == null
+                        ? filtered
+                        : this.array2Object(filtered);
+                this.$store.dispatch("filteredData", returnData);
             } else if (key == this.tableFormat["locus field"]) {
                 let sortKey = this.tableFormat["locus field"];
                 let filtered = this.dataset;
-                let sortDirection = this.sortDirection == "asc" ? false : true;
-                this.sortDirection =
-                    this.sortDirection == "asc" ? "desc" : "asc";
 
                 filtered.map(function (g) {
                     let locusArr = g[sortKey].split(":");
@@ -476,6 +540,16 @@ table.research-data-table {
     border-left: solid 1px #eee !important;
     border-bottom: solid 1px #ddd !important;
     height: 27px;
+    vertical-align: middle;
+}
+
+.research-data-table td.multi-value-td {
+    padding: 0 !important;
+}
+
+.research-data-table td.multi-value-td span {
+    display: block;
+    padding: 0.3rem;
 }
 
 .research-data-table .features-td {

@@ -379,9 +379,8 @@ new Vue({
                 }
             }
         },
-        checkDataComparison(newResearchData, point) {
+        checkDataComparison(newResearchData, previousData) {
 
-            // console.log("new data", newResearchData);
             let dataComparison = this.$store.state.dataComparison;
 
 
@@ -421,7 +420,25 @@ new Vue({
 
                     case "overlapping":
                         console.log("overlapping");
-                        return newResearchData;
+                        let overlappingData = {};
+                        let filtered = previousData;
+
+                        newResearchData.map(d => {
+                            let keyField = d[this.dataComparisonConfig.keyField];
+                            let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+                            if (!!filtered[keyField]) {
+                                let tempObj = filtered[keyField];
+                                comparingFields.map(cf => {
+                                    tempObj[cf][fieldGroupKey] = d[cf];
+                                });
+
+                                overlappingData[keyField] = tempObj;
+                            }
+                        });
+
+                        console.log(overlappingData);
+
+                        return overlappingData;
 
                         break;
                     case "all":
@@ -653,7 +670,7 @@ new Vue({
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
 
-                    return this.checkDataComparison(processedData, "call 1");
+                    return processedData;
                 } else if (convertedData.continuation == null && convertedData.page != 1) {
                     //merge all data from continue
 
@@ -670,7 +687,7 @@ new Vue({
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], mergedData) : this.convertData("no convert", mergedData);
 
-                    return this.checkDataComparison(processedData, "call 2");
+                    return processedData;
 
                 }
             } else {
@@ -678,7 +695,7 @@ new Vue({
 
                 let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
-                return this.checkDataComparison(processedData, "call 3");
+                return processedData;
             }
 
         },
@@ -789,16 +806,14 @@ new Vue({
         },
         researchData(content) {
             uiUtils.hideElement("data-loading-indicator");
-
+            let updatedData = this.checkDataComparison(content, this.$store.state.filteredData);
             if (this.dataTableFormat == null) {
                 let topRows = Object.keys(content[0]);
                 let dataTableFormat = { "top rows": topRows };
                 this.dataTableFormat = dataTableFormat;
             }
 
-            //console.log("filteredData", content);
-
-            this.$store.dispatch("filteredData", content);
+            this.$store.dispatch("filteredData", updatedData);
         }
     }
 }).$mount("#app");
