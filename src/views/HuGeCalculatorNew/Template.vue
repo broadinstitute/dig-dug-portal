@@ -1,5 +1,5 @@
 <template>
-    <div id="huge">
+    <div ref="huge" id="huge">
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
@@ -145,7 +145,7 @@
                             <div class="card-body" style="margin-block-end:20px cursor">
                                 <span
                                     style="cursor:pointer"
-                                    v-on:click="$parent.toggleCommonVariation()"
+                                    v-on:click="$parent.toggleCollapse('sidebar')"
                                 >
                                     <div
                                         v-if="this.$store.state.associations.data"
@@ -168,7 +168,13 @@
                                         >BF:{{$parent.bayesFactorCommonVariation}}</div>
                                     </div>
                                 </span>
-                                <div v-show="$parent.showCommonVariationSection">
+                                <div
+                                    style="cursor:pointer"
+                                    :class="$parent.classArrs['sidebar']"
+                                    :style="$parent.styleObjs['sidebar']"
+                                    id="sidebar-products"
+                                    ref="sidebar"
+                                >
                                     <div
                                         v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
                                     >

@@ -71,6 +71,16 @@ new Vue({
     },
     data() {
         return {
+            classArrs: {
+                sidebar: ['collapse'],
+                rareExomeSig: ['collapse'],
+                other: ['collapse']
+            },
+            styleObjs: {
+                sidebar: {},
+                rareExomeSig: {},
+                other: {}
+            },
             showSection: false,
             showCommonVariationSection: false,
             showRareVariationSection: false,
@@ -452,6 +462,22 @@ new Vue({
 
     },
     methods: {
+        toggleCollapse(ref) {
+            let show = this.classArrs[ref].indexOf('show') > -1 ? false : 'show'
+            this.classArrs[ref] = ['collapsing']
+            setTimeout(() => {
+                if (show) {
+                    let height = 400 + 'px';
+                    this.styleObjs[ref] = { height }
+                }
+                else {
+                    this.styleObjs[ref] = {}
+                }
+            }, 10)
+            setTimeout(() => {
+                this.classArrs[ref] = ['collapse', show]
+            }, 340)
+        },
         showMyDiv() {
             console.log(this.$refs.myDiv);
         },
