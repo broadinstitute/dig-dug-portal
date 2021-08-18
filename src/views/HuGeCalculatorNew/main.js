@@ -26,7 +26,7 @@ import CommonVariationGenSignificantTable from "@/components/CommonVariationGenS
 import CommonVariationNotGenSignificantTable from "@/components/CommonVariationNotGenSignificantTable.vue";
 import RareVariationExSignificantTable from "@/components/RareVariationExSignificantTable.vue";
 import RareVariationNotExSignificantTable from "@/components/RareVariationNotExSignificantTable.vue";
-
+import ResetPriorWidget from "@/components/ResetPriorWidget.vue";
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
@@ -62,7 +62,8 @@ new Vue({
         CommonVariationGenSignificantTable,
         RareVariationExSignificantTable,
         RareVariationNotExSignificantTable,
-        CommonVariationNotGenSignificantTable
+        CommonVariationNotGenSignificantTable,
+        ResetPriorWidget
 
     },
     render(createElement, context) {

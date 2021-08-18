@@ -13,7 +13,22 @@
                 <b-tr>
                     <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
                     <b-td style="width:75px;background-color:#fef8dc" class="text-center">{{rareBF}}</b-td>
-                    <b-td style="width:200px;color:gray;" class="text-left"><--Rare Variation BF</b-td>
+                    <b-td style="width:200px;color:gray;" class="text-left">
+                        <span>
+                            <--Rare Variation BF(
+                            <a
+                                href="#"
+                                @click.prevent="$bvModal.show('bv-modal-example')"
+                            >Reset Prior Allelic variance</a>
+                            )
+                        </span>
+                        <b-modal id="bv-modal-example" hide-footer>
+                            <template class="text-center" #modal-title>Rare Variation</template>
+                            <div class="d-block text-center">
+                                <h3>Hello From This Modal!</h3>
+                            </div>
+                        </b-modal>
+                    </b-td>
                 </b-tr>
             </b-tbody>
             <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
@@ -32,7 +47,11 @@
         </b-table-simple>
     </div>
 </template>
-        
+
+
+
+
+
 <script>
 import Vue from "vue";
 
@@ -43,7 +62,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
-
+import $ from "jquery";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
@@ -70,40 +89,29 @@ export default Vue.component("hugescore-table", {
     },
 
     data() {
-        return {
-            fields: [
-                { key: "pretag", tdClass: "text-right" },
-                { key: "bf", tdClass: "text-right" },
-                { key: "tag", tdClass: "text-left" }
-            ],
-            items: [
-                {
-                    pretag: "",
-                    _cellVariants: { bf: "info" },
-                    bf: this.commonBF,
-                    tag: "<--Common Variation BF"
-                },
-                {
-                    pretag: "X",
-                    bf: this.rareBF,
-                    _cellVariants: { bf: "warning" },
-                    tag: "<--Rare Variation BF"
-                }
-            ],
-            visibleRows: []
-        };
+        return {};
     },
     computed: {
         hugescore() {
             return this.hugeScore;
         }
     },
-    methods: {}
+    methods: {
+        // showModal() {
+        //     let element = this.$refs.modal.$el;
+        //     $(element).modal("show");
+        // }
+    }
 });
 </script>
 
 <style>
 .hidden_header {
     display: none;
+}
+#modal-title {
+    color: #af5934;
+    font-size: 15px;
+    font-weight: bold;
 }
 </style>
