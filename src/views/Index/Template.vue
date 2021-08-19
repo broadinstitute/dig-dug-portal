@@ -105,7 +105,9 @@
 
                                     <b-tab title="Phenotypes">
                                         <div
-                                            class="front-phenotype-search-wrapper"
+                                            class="
+                                                front-phenotype-search-wrapper
+                                            "
                                         >
                                             <phenotype-selectpicker
                                                 v-bind:phenotypes="
@@ -117,7 +119,11 @@
 
                                     <b-tab
                                         title="Disease-specific portals"
-                                        v-if="$parent.diseaseGroup.default"
+                                        v-if="
+                                            $store.getters[
+                                                'bioPortal/isRootPortal'
+                                            ]
+                                        "
                                     >
                                         <disease-group-select
                                             :disease-groups="
