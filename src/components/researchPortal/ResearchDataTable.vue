@@ -88,7 +88,9 @@
                             <span
                                 v-for="(sValue, sKey, sIndex) in tdValue"
                                 :class="
-                                    'reference bg-color-' + getColorIndex(sKey)
+                                    sKey +
+                                    ' reference bg-color-' +
+                                    getColorIndex(sKey)
                                 "
                                 v-html="formatValue(sValue, tdKey)"
                                 :key="sKey"
@@ -432,12 +434,11 @@ export default Vue.component("research-data-table", {
             let arrayedObject = [];
 
             let firstItem = DATASET[Object.keys(DATASET)[0]];
-            let isObjct =
-                typeof firstItem[KEY] === "object" &&
-                firstItem[KEY] !== null &&
-                !Array.isArray(firstItem[KEY])
-                    ? true
-                    : false;
+            let isObjct = !!this.dataComparisonConfig.fieldsToCompare.includes(
+                KEY
+            )
+                ? true
+                : false;
 
             for (const [dKey, dValue] of Object.entries(DATASET)) {
                 if (isObjct == true) {
