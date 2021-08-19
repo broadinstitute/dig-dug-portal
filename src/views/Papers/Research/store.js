@@ -25,7 +25,6 @@ export default new Vuex.Store({
     },
     state: {
         filteredData: "",
-        multiGroupsData: "",
         genesInRegion: "",
         variantCorrelations: "",
         bioIndexContinue: [],
@@ -36,10 +35,6 @@ export default new Vuex.Store({
         setFilteredData(state, data) {
 
             state.filteredData = data;
-        },
-        setMultiGroupsData(state, data) {
-
-            state.multiGroupsData = data;
         },
         setGenesInRegion(state, data) {
 
@@ -63,9 +58,6 @@ export default new Vuex.Store({
     actions: {
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);
-        },
-        multiGroupsData(context, data) {
-            context.commit("setMultiGroupsData", data);
         },
         genesInRegion(context, genes) {
             context.commit("setGenesInRegion", genes);

@@ -138,7 +138,6 @@
                                     :unfilteredDataset="$parent.researchData"
                                 ></research-page-filters>
                             </div>
-                            Data comparison: {{ $store.state.dataComparison }}
                             <!-- plots -->
                             <div :class="'col-md-12 ' + $parent.plotClass">
                                 <div
@@ -217,7 +216,6 @@
                                     :renderConfig="$parent.plotConfig"
                                 ></research-heatmap>
                             </div>
-
                             <div
                                 class="col-md-12"
                                 v-if="
@@ -235,6 +233,9 @@
                                     :tableLegend="$parent.tableLegend"
                                     :dataComparisonConfig="
                                         $parent.dataComparisonConfig
+                                    "
+                                    :searchParameters="
+                                        $store.state.searchParameters
                                     "
                                 >
                                 </research-data-table>

@@ -293,6 +293,7 @@ export default Vue.component("research-page-filters", {
             tempObj["search"] = [];
             this.searchParamsIndex["dataFiles"] = tempObj;
         }
+        this.$store.dispatch("searchParameters", this.searchParamsIndex);
     },
     mounted() {
         if (
@@ -307,6 +308,10 @@ export default Vue.component("research-page-filters", {
                         keyParams[param];
 
                     this.searchParamsIndex[param].search.push(keyParams[param]);
+                    this.$store.dispatch(
+                        "searchParameters",
+                        this.searchParamsIndex
+                    );
                 }
             });
         }
@@ -387,6 +392,11 @@ export default Vue.component("research-page-filters", {
                                 .value
                         );
                     }
+
+                    this.$store.dispatch(
+                        "searchParameters",
+                        this.searchParamsIndex
+                    );
                 });
             }
 

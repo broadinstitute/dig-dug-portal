@@ -17,54 +17,21 @@ let sort = function (data, key, isNumeric, isAscending) {
 }
 
 let sortEGLTableData = function (data, key, isNumeric, isAscending) {
-    let hasObjectField = false;
-    for (const [key, value] of Object.entries(
-        data[0]
-    )) {
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            hasObjectField = true;
+    return data.sort(function (a, b) {
+        let A = (isNumeric) ? a[key] : a[key].toLowerCase();
+        let B = (isNumeric) ? b[key] : b[key].toLowerCase();
+
+        let comparison = 0;
+        if (A > B) {
+            comparison = 1;
+        } else if (A < B) {
+            comparison = -1;
         }
-    }
 
-    let sortingData;
+        return (isAscending) ? (isNumeric) ? (comparison * -1) : comparison : (isNumeric) ? comparison : (comparison * -1);
 
-    if (hasObjectField == true) {
-
-        sortingData = data;
-        return sortingData.sort(function (a, b) {
-            let A = (isNumeric) ? a[key] : a[key].toLowerCase();
-            let B = (isNumeric) ? b[key] : b[key].toLowerCase();
-
-            let comparison = 0;
-            if (A > B) {
-                comparison = 1;
-            } else if (A < B) {
-                comparison = -1;
-            }
-
-            return (isAscending) ? (isNumeric) ? (comparison * -1) : comparison : (isNumeric) ? comparison : (comparison * -1);
-
-        });
-
-    } else {
-        sortingData = data;
-        return sortingData.sort(function (a, b) {
-            let A = (isNumeric) ? a[key] : a[key].toLowerCase();
-            let B = (isNumeric) ? b[key] : b[key].toLowerCase();
-
-            let comparison = 0;
-            if (A > B) {
-                comparison = 1;
-            } else if (A < B) {
-                comparison = -1;
-            }
-
-            return (isAscending) ? (isNumeric) ? (comparison * -1) : comparison : (isNumeric) ? comparison : (comparison * -1);
-
-        });
-    }
+    });
 }
-
 
 const uniqBy = (arr, predicate) => {
     const cb = typeof predicate === 'function' ? predicate : (o) => o[predicate];

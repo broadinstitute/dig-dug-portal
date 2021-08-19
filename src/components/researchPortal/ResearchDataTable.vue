@@ -6,6 +6,24 @@
             v-html="'Total rows: ' + this.rows"
             class="table-total-rows"
         ></div>
+        <div
+            v-if="
+                !!searchParameters &&
+                dataComparisonConfig != null &&
+                searchParameters[dataComparisonConfig.fieldsGroupDataKey].search
+                    .length > 1
+            "
+            class="table-total-rows"
+        >
+            <span
+                v-for="(item, itemIndex) in searchParameters[
+                    dataComparisonConfig.fieldsGroupDataKey
+                ].search"
+                v-html="item"
+                :key="item"
+                :class="'group-item-bubble reference bg-color-' + itemIndex"
+            ></span>
+        </div>
         <div class="table-ui-wrapper">
             <label
                 >Rows per page:
@@ -63,29 +81,15 @@
                             v-html="formatValue(tdValue, tdKey)"
                         ></td>
                         <td
-                            v-if="
-                                ifDataObject(tdValue) == true &&
-                                Object.keys(tdValue).length == 1
-                            "
-                            :key="tdKey"
-                            v-html="
-                                formatValue(
-                                    tdValue[Object.keys(tdValue)[0]],
-                                    tdKey
-                                )
-                            "
-                        ></td>
-                        <td
-                            v-if="
-                                ifDataObject(tdValue) == true &&
-                                Object.keys(tdValue).length > 1
-                            "
+                            v-if="ifDataObject(tdValue) == true"
                             :key="tdKey"
                             class="multi-value-td"
                         >
                             <span
                                 v-for="(sValue, sKey, sIndex) in tdValue"
-                                :class="'reference bg-color-' + sIndex"
+                                :class="
+                                    'reference bg-color-' + getColorIndex(sKey)
+                                "
                                 v-html="formatValue(sValue, tdKey)"
                                 :key="sKey"
                             ></span>
@@ -147,6 +151,7 @@ export default Vue.component("research-data-table", {
         "initPerPageNumber",
         "tableLegend",
         "dataComparisonConfig",
+        "searchParameters",
     ],
     data() {
         return { currentPage: 1, perPageNumber: null };
@@ -316,6 +321,20 @@ export default Vue.component("research-data-table", {
     watch: {},
     methods: {
         ...Formatters,
+        getColorIndex(SKEY) {
+            let keyField = this.dataComparisonConfig.fieldsGroupDataKey;
+            let keyParameterSeach = this.searchParameters[keyField].search;
+            let colorIndex = "";
+            if (keyParameterSeach.length > 1) {
+                keyParameterSeach.map((sValue, sIndex) => {
+                    if (SKEY == sValue) {
+                        colorIndex = sIndex;
+                    }
+                });
+            }
+
+            return colorIndex;
+        },
         ifDataObject(VALUE) {
             if (
                 typeof VALUE === "object" &&
@@ -409,35 +428,59 @@ export default Vue.component("research-data-table", {
                 return tdValue;
             }
         },
-        object2Array(DATASET) {
+        object2Array(DATASET, KEY, SORT_DIRECTION) {
             let arrayedObject = [];
-            for (const [iKey, iValue] of Object.entries(DATASET)) {
-                arrayedObject.push(iValue);
+
+            let firstItem = DATASET[Object.keys(DATASET)[0]];
+            let isObjct =
+                typeof firstItem[KEY] === "object" &&
+                firstItem[KEY] !== null &&
+                !Array.isArray(firstItem[KEY])
+                    ? true
+                    : false;
+
+            for (const [dKey, dValue] of Object.entries(DATASET)) {
+                if (isObjct == true) {
+                    let tempObj = {};
+                    for (const [iKey, iValue] of Object.entries(dValue)) {
+                        if (iKey == KEY) {
+                            let arr = Object.values(iValue);
+                            if (SORT_DIRECTION == false) {
+                                tempObj[iKey] = Math.min(...arr);
+                            } else {
+                                tempObj[iKey] = Math.max(...arr);
+                            }
+                        } else {
+                            tempObj[iKey] = iValue;
+                        }
+                        arrayedObject.push(tempObj);
+                    }
+                } else {
+                    arrayedObject.push(dValue);
+                }
             }
-            //console.log(arrayedObject);
             return arrayedObject;
         },
-        array2Object(DATASET) {
+        array2Object(DATASET, RAW_DATASET, KEY) {
             let objectedArray = {};
             DATASET.map((d) => {
-                objectedArray[d[this.dataComparisonConfig.keyField]] = d;
+                let keyField = d[this.dataComparisonConfig.keyField];
+                objectedArray[keyField] = RAW_DATASET[keyField];
             });
 
             //console.log(objectedArray);
             return objectedArray;
         },
         applySorting(key) {
-            //console.log(key);
             let sortDirection = this.sortDirection == "asc" ? false : true;
             this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
             if (key != this.tableFormat["locus field"]) {
                 let filtered =
                     this.dataComparisonConfig == null
                         ? this.dataset
-                        : this.object2Array(this.dataset);
+                        : this.object2Array(this.dataset, key, sortDirection);
 
                 let keyData = filtered[0][key];
-                //: filtered[Object.keys(filtered)[0]];
                 let isNumeric = typeof keyData != "number" ? false : true;
 
                 sortUtils.sortEGLTableData(
@@ -449,7 +492,7 @@ export default Vue.component("research-data-table", {
                 let returnData =
                     this.dataComparisonConfig == null
                         ? filtered
-                        : this.array2Object(filtered);
+                        : this.array2Object(filtered, this.dataset, key);
                 this.$store.dispatch("filteredData", returnData);
             } else if (key == this.tableFormat["locus field"]) {
                 let sortKey = this.tableFormat["locus field"];
@@ -497,6 +540,12 @@ export default Vue.component("research-data-table", {
 </script>
 
 <style>
+.group-item-bubble {
+    margin-left: 3px;
+    margin-right: 3px;
+    padding: 2px 8px;
+    border-radius: 8px;
+}
 .table-total-rows {
     float: left;
     font-size: 12px;
@@ -550,6 +599,7 @@ table.research-data-table {
 .research-data-table td.multi-value-td span {
     display: block;
     padding: 0.3rem;
+    border-bottom: solid 1px #fff;
 }
 
 .research-data-table .features-td {

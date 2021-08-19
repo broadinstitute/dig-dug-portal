@@ -407,7 +407,6 @@ new Vue({
                                 } else {
                                     tempObj[key] = value;
                                 }
-
                             }
                             compareReadyData[keyField] = tempObj;
                         })
@@ -421,13 +420,12 @@ new Vue({
                     case "overlapping":
                         console.log("overlapping");
                         let overlappingData = {};
-                        let filtered = previousData;
 
                         newResearchData.map(d => {
                             let keyField = d[this.dataComparisonConfig.keyField];
                             let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
-                            if (!!filtered[keyField]) {
-                                let tempObj = filtered[keyField];
+                            if (!!previousData[keyField]) {
+                                let tempObj = previousData[keyField];
                                 comparingFields.map(cf => {
                                     tempObj[cf][fieldGroupKey] = d[cf];
                                 });
@@ -443,7 +441,42 @@ new Vue({
                         break;
                     case "all":
                         console.log("all");
-                        return newResearchData;
+                        let allData = {}
+
+                        newResearchData.map(d => {
+                            let keyField = d[this.dataComparisonConfig.keyField];
+                            let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+                            if (!!previousData[keyField]) {
+                                let tempObj = previousData[keyField];
+                                comparingFields.map(cf => {
+                                    tempObj[cf][fieldGroupKey] = d[cf];
+                                });
+                                allData[keyField] = tempObj;
+
+                            } else {
+
+                                let tempObj = {};
+                                for (const [key, value] of Object.entries(d)) {
+                                    if (comparingFields.includes(key) == true) {
+
+                                        let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+
+                                        tempObj[key] = {};
+                                        tempObj[key][fieldGroupKey] = value;
+                                    } else {
+                                        tempObj[key] = value;
+                                    }
+                                }
+
+                                allData[keyField] = tempObj;
+                            }
+
+                        });
+
+                        console.log("allData length", Object.keys(allData).length);
+                        console.log(allData);
+
+                        return allData;
 
                         break;
 
@@ -739,7 +772,7 @@ new Vue({
                 return null;
             }
             return contents[0]["field_data_table_legend"];
-        },
+        }
     },
 
     watch: {
@@ -807,6 +840,8 @@ new Vue({
         researchData(content) {
             uiUtils.hideElement("data-loading-indicator");
             let updatedData = this.checkDataComparison(content, this.$store.state.filteredData);
+
+
             if (this.dataTableFormat == null) {
                 let topRows = Object.keys(content[0]);
                 let dataTableFormat = { "top rows": topRows };
