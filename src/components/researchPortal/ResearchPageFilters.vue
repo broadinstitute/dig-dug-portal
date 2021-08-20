@@ -78,7 +78,7 @@
                         class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
                         @click="removeAllSearchParams()"
                     >
-                        Clear all search
+                        Clear all filters
                     </b-badge>
                 </div>
             </div>
@@ -667,7 +667,91 @@ export default Vue.component("research-page-filters", {
                                     searchIndex.type == "search" ||
                                     searchIndex.type == "dropdown_word"
                                 ) {
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ]
+                                                        .toLowerCase()
+                                                        .includes(
+                                                            search.toLowerCase()
+                                                        )
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field]
+                                                    .toLowerCase()
+                                                    .includes(
+                                                        search.toLowerCase()
+                                                    )
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
+                                    }
                                 } else if (searchIndex.type == "search_gt") {
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] >= search
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field] >= search
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
+                                    }
                                 } else if (searchIndex.type == "search_lt") {
                                     for (var rowNum in targetData) {
                                         let row = targetData[rowNum];
@@ -697,9 +781,7 @@ export default Vue.component("research-page-filters", {
                                             }
                                         } else {
                                             if (
-                                                row[searchIndex.field][
-                                                    cellNum
-                                                ] <= search
+                                                row[searchIndex.field] <= search
                                             ) {
                                                 tempFiltered[
                                                     row[
@@ -710,8 +792,188 @@ export default Vue.component("research-page-filters", {
                                         }
                                     }
                                 } else if (searchIndex.type == "search_or") {
+                                    let searchVals = search.split(",");
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] <= searchVals[0].trim() ||
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] >= searchVals[1].trim()
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field] <=
+                                                    searchVals[0].trim() ||
+                                                row[searchIndex.field] >=
+                                                    searchVals[1].trim()
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
+                                    }
                                 } else if (searchIndex.type == "search_cd") {
+                                    let searchDirection = document.getElementById(
+                                        "filter_" +
+                                            searchIndex.field.replace(
+                                                / /g,
+                                                ""
+                                            ) +
+                                            "_direction"
+                                    ).value;
+
+                                    if (searchDirection == "lt") {
+                                        for (var rowNum in targetData) {
+                                            let row = targetData[rowNum];
+                                            if (
+                                                comparingFields.includes(
+                                                    searchIndex.field
+                                                ) == true
+                                            ) {
+                                                let meetSearch = false;
+                                                for (var cellNum in row[
+                                                    searchIndex.field
+                                                ]) {
+                                                    if (
+                                                        row[searchIndex.field][
+                                                            cellNum
+                                                        ] <= search
+                                                    ) {
+                                                        meetSearch = true;
+                                                    }
+                                                }
+                                                if (meetSearch == true) {
+                                                    tempFiltered[
+                                                        row[
+                                                            this.dataComparisonConfig.keyField
+                                                        ]
+                                                    ] = row;
+                                                }
+                                            } else {
+                                                if (
+                                                    row[searchIndex.field] <=
+                                                    search
+                                                ) {
+                                                    tempFiltered[
+                                                        row[
+                                                            this.dataComparisonConfig.keyField
+                                                        ]
+                                                    ] = row;
+                                                }
+                                            }
+                                        }
+                                    } else if (searchDirection == "gt") {
+                                        for (var rowNum in targetData) {
+                                            let row = targetData[rowNum];
+                                            if (
+                                                comparingFields.includes(
+                                                    searchIndex.field
+                                                ) == true
+                                            ) {
+                                                let meetSearch = false;
+                                                for (var cellNum in row[
+                                                    searchIndex.field
+                                                ]) {
+                                                    if (
+                                                        row[searchIndex.field][
+                                                            cellNum
+                                                        ] >= search
+                                                    ) {
+                                                        meetSearch = true;
+                                                    }
+                                                }
+                                                if (meetSearch == true) {
+                                                    tempFiltered[
+                                                        row[
+                                                            this.dataComparisonConfig.keyField
+                                                        ]
+                                                    ] = row;
+                                                }
+                                            } else {
+                                                if (
+                                                    row[searchIndex.field] >=
+                                                    search
+                                                ) {
+                                                    tempFiltered[
+                                                        row[
+                                                            this.dataComparisonConfig.keyField
+                                                        ]
+                                                    ] = row;
+                                                }
+                                            }
+                                        }
+                                    }
                                 } else if (searchIndex.type == "search_and") {
+                                    let searchVals = search.split(",");
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] >= searchVals[0].trim() &&
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] <= searchVals[1].trim()
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field] <=
+                                                    searchVals[0].trim() ||
+                                                row[searchIndex.field] >=
+                                                    searchVals[1].trim()
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         });
