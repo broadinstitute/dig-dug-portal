@@ -71,15 +71,16 @@ new Vue({
     },
     data() {
         return {
+
             classArrs: {
-                sidebar: ['collapse'],
-                rareExomeSig: ['collapse'],
-                other: ['collapse']
+                ppasection: ['collapse'],
+                cvsection: ['collapse'],
+                rvsection: ['collapse']
             },
             styleObjs: {
-                sidebar: {},
-                rareExomeSig: {},
-                other: {}
+                ppasection: {},
+                cvsection: {},
+                rvsection: {}
             },
             showSection: false,
             showCommonVariationSection: false,
@@ -462,12 +463,29 @@ new Vue({
 
     },
     methods: {
+        // toggleCollapse(ref) {
+        //     let show = this.classArrs[ref].indexOf('show') > -1 ? false : 'show'
+        //     this.classArrs[ref] = ['collapsing']
+        //     setTimeout(() => {
+        //         if (show) {
+        //             let height = 400 + 'px';
+        //             this.styleObjs[ref] = { height }
+        //         }
+        //         else {
+        //             this.styleObjs[ref] = {}
+        //         }
+        //     }, 10)
+        //     setTimeout(() => {
+        //         this.classArrs[ref] = ['collapse', show]
+        //     }, 340)
+        // },
+
         toggleCollapse(ref) {
             let show = this.classArrs[ref].indexOf('show') > -1 ? false : 'show'
             this.classArrs[ref] = ['collapsing']
             setTimeout(() => {
                 if (show) {
-                    let height = 400 + 'px';
+                    let height = 450 + 'px';
                     this.styleObjs[ref] = { height }
                 }
                 else {
@@ -478,21 +496,8 @@ new Vue({
                 this.classArrs[ref] = ['collapse', show]
             }, 340)
         },
-        showMyDiv() {
-            console.log(this.$refs.myDiv);
-        },
-        resetPriorAllelicVariance() {
-            this.showRareVariationSection = true;
-
-            const el = this.$refs.rareVariationExomeSig
-
-            if (el) {
-                // Use el.scrollIntoView() to instantly scroll to the element
-                el.scrollIntoView({ behavior: 'smooth' });
-            }
 
 
-        },
         closeRareSection() { this.showRareVariationSection = false },
 
         togglePosteriorProbability() {

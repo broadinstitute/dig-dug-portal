@@ -108,15 +108,25 @@
                                 </div>
                                 <div style="margin-block-end: 50px"></div>
 
-                                <!-- <div class="arrow-side"></div> -->
-                                <div
-                                    style="cursor:pointer"
-                                    v-on:click="$parent.togglePosteriorProbability()"
-                                >
-                                    <h6>Posterior probability</h6>
-                                    <hr />
+                                <!-- First Collapsible section - Posterior probability - Start -->
+                                <div>
+                                    <h6
+                                        v-on:click="$parent.toggleCollapse('ppasection')"
+                                        style=" cursor:pointer; width: 100%;text-align: left;border-bottom: 1px solid #000;line-height: 0.05em;margin: 10px 0 20px;"
+                                    >
+                                        <span style=" background: #fff;padding: 0 10px;">
+                                            Posterior probability
+                                            <i class="arrow right"></i>
+                                        </span>
+                                    </h6>
                                 </div>
-                                <div v-show="$parent.showPosteriorProbability" class="row">
+                                <div
+                                    :class="$parent.classArrs['ppasection']"
+                                    :style="$parent.styleObjs['ppasection']"
+                                    id="sidebar-products"
+                                    ref="ppasection"
+                                    class="row"
+                                >
                                     <div class="col-md-8">
                                         <hugecal-table
                                             style="padding:30px 250px 30px 250px"
@@ -138,6 +148,7 @@
                                         ></posterior-probability-plot>
                                     </div>
                                 </div>
+                                <!-- End of Posterior probability Collapsible section -->
                             </div>
 
                             <!-- NEW COMMON VARIATION -->
@@ -145,7 +156,7 @@
                             <div class="card-body" style="margin-block-end:20px cursor">
                                 <span
                                     style="cursor:pointer"
-                                    v-on:click="$parent.toggleCollapse('sidebar')"
+                                    v-on:click="$parent.toggleCollapse('cvsection')"
                                 >
                                     <div
                                         v-if="this.$store.state.associations.data"
@@ -170,10 +181,10 @@
                                 </span>
                                 <div
                                     style="cursor:pointer"
-                                    :class="$parent.classArrs['sidebar']"
-                                    :style="$parent.styleObjs['sidebar']"
+                                    :class="$parent.classArrs['cvsection']"
+                                    :style="$parent.styleObjs['cvsection']"
                                     id="sidebar-products"
-                                    ref="sidebar"
+                                    ref="cvsection"
                                 >
                                     <div
                                         v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
@@ -260,7 +271,7 @@
                                 <div>
                                     <span
                                         style="cursor:pointer"
-                                        v-on:click="$parent.toggleRareVariation()"
+                                        v-on:click="$parent.toggleCollapse('rvsection')"
                                     >
                                         <div
                                             v-if="this.$store.state.associations.data"
@@ -284,9 +295,11 @@
                                         </div>
                                     </span>
                                     <div
-                                        ref="rareVariationExomeSig"
-                                        id="rareVariationExomeSig"
-                                        v-show="$parent.showRareVariationSection"
+                                        style="cursor:pointer"
+                                        :class="$parent.classArrs['rvsection']"
+                                        :style="$parent.styleObjs['rvsection']"
+                                        id="sidebar-products"
+                                        ref="rvsection"
                                         v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
                                     >
                                         <span
@@ -340,10 +353,11 @@
                                         </div>
                                     </div>
                                     <div
-                                        ref="rareVariationExomeSig"
-                                        id="rareVariationNonExomeSig"
                                         style="cursor:pointer"
-                                        v-show="$parent.showRareVariationSection"
+                                        :class="$parent.classArrs['rvsection']"
+                                        :style="$parent.styleObjs['rvsection']"
+                                        id="sidebar-products"
+                                        ref="rvsection"
                                         v-else
                                     >
                                         <span
@@ -499,6 +513,18 @@
     animation: moveright 1s alternate 1s;
     margin-left: auto;
     margin-right: auto;
+}
+
+.arrow {
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+}
+
+.right {
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
 }
 
 #commonVariation .variationCausal {
