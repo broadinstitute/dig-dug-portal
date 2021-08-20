@@ -38,7 +38,7 @@ export default new Vuex.Store({
         phenotype: null,
         searchGene: keyParams.gene,
         suggestedPriorNew: 0,
-        universalPriorList: []
+        universalPriorList: [0.05, 0.2]
 
     },
     mutations: {

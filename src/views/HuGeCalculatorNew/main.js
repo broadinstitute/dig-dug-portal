@@ -634,6 +634,7 @@ new Vue({
                             newCriterion.phenotype,
                             this.region
                         );
+                        this.$store.state.universalPriorList = [0.05, 0.2]
                     }
                 }
             }
