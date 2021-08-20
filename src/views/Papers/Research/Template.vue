@@ -135,7 +135,9 @@
                                     :filters="$parent.dataFilters"
                                     :filterWidth="$parent.filterWidth"
                                     :dataset="$store.state.filteredData"
-                                    :unfilteredDataset="$parent.researchData"
+                                    :unfilteredDataset="
+                                        $store.state.unfilteredData
+                                    "
                                 ></research-page-filters>
                             </div>
                             <!-- plots -->

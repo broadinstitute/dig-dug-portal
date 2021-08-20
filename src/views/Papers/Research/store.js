@@ -25,6 +25,7 @@ export default new Vuex.Store({
     },
     state: {
         filteredData: "",
+        unfilteredData: "",
         genesInRegion: "",
         variantCorrelations: "",
         bioIndexContinue: [],
@@ -35,6 +36,10 @@ export default new Vuex.Store({
         setFilteredData(state, data) {
 
             state.filteredData = data;
+        },
+        setUnfilteredData(state, data) {
+
+            state.unfilteredData = data;
         },
         setGenesInRegion(state, data) {
 
@@ -58,6 +63,9 @@ export default new Vuex.Store({
     actions: {
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);
+        },
+        unfilteredData(context, unfiltered) {
+            context.commit("setUnfilteredData", unfiltered);
         },
         genesInRegion(context, genes) {
             context.commit("setGenesInRegion", genes);

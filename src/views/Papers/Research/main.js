@@ -473,9 +473,6 @@ new Vue({
 
                         });
 
-                        console.log("allData length", Object.keys(allData).length);
-                        console.log(allData);
-
                         return allData;
 
                         break;
@@ -848,6 +845,7 @@ new Vue({
                 this.dataTableFormat = dataTableFormat;
             }
 
+            this.$store.dispatch("unfilteredData", updatedData);
             this.$store.dispatch("filteredData", updatedData);
         }
     }

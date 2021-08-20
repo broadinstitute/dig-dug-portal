@@ -70,7 +70,7 @@
                             :key="v"
                             :class="'btn search-bubble ' + i"
                             @click="removeSearch(value.field, i)"
-                            v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
+                            v-html="v"
                         ></b-badge>
                     </div>
                     <b-badge
@@ -522,8 +522,12 @@ export default Vue.component("research-page-filters", {
             this.applyFilters();
         },
         applyFilters() {
+            let comparingFields =
+                this.dataComparisonConfig != null
+                    ? this.dataComparisonConfig.fieldsToCompare
+                    : null;
             let filtered = this.unfilteredDataset;
-            let tempFiltered = [];
+            let tempFiltered = comparingFields == null ? [] : {};
             let i = 0;
 
             for (var f in this.filtersIndex) {
@@ -535,85 +539,185 @@ export default Vue.component("research-page-filters", {
                         .map((s) => {
                             let targetData = filtered;
                             let search = s;
-
-                            if (searchIndex.type == "dropdown") {
-                                targetData.filter((row) => {
-                                    if (search === row[searchIndex.field]) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (
-                                searchIndex.type == "search" ||
-                                searchIndex.type == "dropdown_word"
-                            ) {
-                                targetData.filter((row) => {
-                                    if (
-                                        row[searchIndex.field]
-                                            .toLowerCase()
-                                            .includes(search.toLowerCase())
-                                    ) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (searchIndex.type == "search_gt") {
-                                targetData.filter((row) => {
-                                    if (row[searchIndex.field] >= search) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (searchIndex.type == "search_lt") {
-                                targetData.filter((row) => {
-                                    if (row[searchIndex.field] <= search) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (searchIndex.type == "search_or") {
-                                let searchVals = search.split(",");
-                                targetData.filter((row) => {
-                                    if (
-                                        row[searchIndex.field] <=
-                                            searchVals[0].trim() ||
-                                        row[searchIndex.field] >=
-                                            searchVals[1].trim()
-                                    ) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (searchIndex.type == "search_cd") {
-                                let searchDirection = document.getElementById(
-                                    "filter_" +
-                                        searchIndex.field.replace(/ /g, "") +
-                                        "_direction"
-                                ).value;
-
-                                targetData.filter((row) => {
-                                    if (searchDirection == "lt") {
-                                        if (row[searchIndex.field] <= search) {
+                            if (comparingFields == null) {
+                                if (searchIndex.type == "dropdown") {
+                                    targetData.filter((row) => {
+                                        if (search === row[searchIndex.field]) {
                                             tempFiltered.push(row);
                                         }
-                                    } else if (searchDirection == "gt") {
+                                    });
+                                } else if (
+                                    searchIndex.type == "search" ||
+                                    searchIndex.type == "dropdown_word"
+                                ) {
+                                    targetData.filter((row) => {
+                                        if (
+                                            row[searchIndex.field]
+                                                .toLowerCase()
+                                                .includes(search.toLowerCase())
+                                        ) {
+                                            tempFiltered.push(row);
+                                        }
+                                    });
+                                } else if (searchIndex.type == "search_gt") {
+                                    targetData.filter((row) => {
                                         if (row[searchIndex.field] >= search) {
                                             tempFiltered.push(row);
                                         }
+                                    });
+                                } else if (searchIndex.type == "search_lt") {
+                                    targetData.filter((row) => {
+                                        if (row[searchIndex.field] <= search) {
+                                            tempFiltered.push(row);
+                                        }
+                                    });
+                                } else if (searchIndex.type == "search_or") {
+                                    let searchVals = search.split(",");
+                                    targetData.filter((row) => {
+                                        if (
+                                            row[searchIndex.field] <=
+                                                searchVals[0].trim() ||
+                                            row[searchIndex.field] >=
+                                                searchVals[1].trim()
+                                        ) {
+                                            tempFiltered.push(row);
+                                        }
+                                    });
+                                } else if (searchIndex.type == "search_cd") {
+                                    let searchDirection = document.getElementById(
+                                        "filter_" +
+                                            searchIndex.field.replace(
+                                                / /g,
+                                                ""
+                                            ) +
+                                            "_direction"
+                                    ).value;
+
+                                    targetData.filter((row) => {
+                                        if (searchDirection == "lt") {
+                                            if (
+                                                row[searchIndex.field] <= search
+                                            ) {
+                                                tempFiltered.push(row);
+                                            }
+                                        } else if (searchDirection == "gt") {
+                                            if (
+                                                row[searchIndex.field] >= search
+                                            ) {
+                                                tempFiltered.push(row);
+                                            }
+                                        }
+                                    });
+                                } else if (searchIndex.type == "search_and") {
+                                    let searchVals = search.split(",");
+                                    targetData.filter((row) => {
+                                        if (
+                                            row[searchIndex.field] >=
+                                                searchVals[0].trim() &&
+                                            row[searchIndex.field] <=
+                                                searchVals[1].trim()
+                                        ) {
+                                            tempFiltered.push(row);
+                                        }
+                                    });
+                                }
+                            } else {
+                                if (searchIndex.type == "dropdown") {
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    search ===
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ]
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                search ===
+                                                row[searchIndex.field]
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
                                     }
-                                });
-                            } else if (searchIndex.type == "search_and") {
-                                let searchVals = search.split(",");
-                                targetData.filter((row) => {
-                                    if (
-                                        row[searchIndex.field] >=
-                                            searchVals[0].trim() &&
-                                        row[searchIndex.field] <=
-                                            searchVals[1].trim()
-                                    ) {
-                                        tempFiltered.push(row);
+                                } else if (
+                                    searchIndex.type == "search" ||
+                                    searchIndex.type == "dropdown_word"
+                                ) {
+                                } else if (searchIndex.type == "search_gt") {
+                                } else if (searchIndex.type == "search_lt") {
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] <= search
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field][
+                                                    cellNum
+                                                ] <= search
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
                                     }
-                                });
+                                } else if (searchIndex.type == "search_or") {
+                                } else if (searchIndex.type == "search_cd") {
+                                } else if (searchIndex.type == "search_and") {
+                                }
                             }
                         });
 
                     filtered = tempFiltered;
-                    tempFiltered = [];
+                    tempFiltered = comparingFields == null ? [] : {};
                     i++;
                 }
             }
