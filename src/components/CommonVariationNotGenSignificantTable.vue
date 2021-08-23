@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-table-simple borderless fixed small responsive>
+        <b-table-simple borderless fixed small >
             <b-tbody>
                 <b-tr>
                     <b-th style="width:70px"></b-th>
@@ -13,7 +13,7 @@
 
                     <b-td style="width:200px;" class="text-left"></b-td>
                 </b-tr>
-                <b-tr>
+                <b-tr style="border: 3px solid white !important;">
                     <b-th style="width:70px"></b-th>
                     <b-td
                         style="width:150px;color:gray;background-color:#F5F5F5;"
@@ -25,7 +25,7 @@
                     >{{gwasEvidence}}</b-td>
                     <b-td style="width:200px;color:gray;" class="text-left"><--GWAS Evidence</b-td>
                 </b-tr>
-                <b-tr>
+                <b-tr style="border: 3px solid white !important;">
                     <b-th style="width:70px"></b-th>
                     <b-td
                         style="width:150px;background-color:#F5F5F5;color:gray"
@@ -34,7 +34,7 @@
                     <b-td style="width:150px;" class="text-center"></b-td>
                     <b-td style="width:200px;color:gray;" class="text-left"><--Coding Evidence</b-td>
                 </b-tr>
-                <b-tr>
+                <b-tr style="border: 3px solid white !important;">
                     <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
                     <b-td
                         style="width:150px;color:gray;background-color:#F5F5F5"

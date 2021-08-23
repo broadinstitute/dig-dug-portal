@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-table-simple borderless fixed small responsive>
+        <b-table-simple borderless fixed small>
             <b-tbody>
                 <b-tr>
                     <b-th style="width:70px"></b-th>
@@ -14,7 +14,7 @@
                     </b-td>
                     <b-td style="width:200px;" class="text-left"></b-td>
                 </b-tr>
-                <b-tr>
+                <b-tr style="border: 3px solid white !important;">
                     <b-th style="width:70px"></b-th>
                     <b-td
                         style="width:150px;background-color:#fef8dc"
@@ -26,7 +26,7 @@
                         class="text-left"
                     ><--Exome wide Significance</b-td>
                 </b-tr>
-                <b-tr>
+                <b-tr style="border: 3px solid white !important;">
                     <b-th style="width:70px"></b-th>
                     <b-td style="width:150px;color:gray" class="text-center"></b-td>
                     <b-td
@@ -39,7 +39,7 @@
                         class="text-left"
                     ><--Burden statistic Association</b-td>
                 </b-tr>
-                <b-tr>
+                <b-tr style="border: 3px solid white !important;">
                     <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
                     <b-td style="width:150px;" class="text-center"></b-td>
                     <b-td

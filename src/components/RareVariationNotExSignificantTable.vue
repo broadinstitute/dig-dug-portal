@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-table-simple borderless fixed small responsive>
+        <b-table-simple borderless fixed small>
             <b-tbody>
                 <b-tr>
                     <b-th style="width:70px"></b-th>
