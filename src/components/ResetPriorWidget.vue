@@ -60,7 +60,7 @@
 
         <template #modal-footer>
             <div class="w-100">
-                <b-button variant="primary" size="sm" class="float-right" @click="show=false">Close</b-button>
+                <b-button variant="primary" size="sm" class="float-right" @click="show=false">Submit</b-button>
             </div>
         </template>
     </b-modal>
