@@ -4,10 +4,9 @@
             <template #head(huGeScore)="data">
                 <span style="color:#3fb54a ">{{ data.label }}</span>
             </template>
-            <template #cell(huGeScore)="data">
-                <div style="color:#3fb54a ">{{ data.item.huGeScore }}</div>
-            </template>
+
             <template slot="bottom-row" slot-scope="data">
+                <td>Set Prior</td>
                 <td>
                     <input
                         v-model.number="suggestedPriorinput"

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-table-simple borderless fixed small responsive>
+        <b-table-simple borderless fixed small>
             <b-tbody>
                 <b-tr>
                     <b-th style="width:70px"></b-th>
@@ -10,7 +10,7 @@
                     >{{commonBF}}</b-td>
                     <b-td style="width:200px;color:gray;" class="text-left"><--Common Variation BF</b-td>
                 </b-tr>
-                <b-tr>
+                <b-tr style="border: 3px solid white !important;">
                     <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
                     <b-td style="width:75px;background-color:#fef8dc" class="text-center">{{rareBF}}</b-td>
                     <b-td style="width:200px;color:gray;" class="text-left">
