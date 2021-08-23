@@ -66,11 +66,6 @@ export default Vue.component("hugecal-table", {
                 { key: "suggestedPrior", label: "Suggested prior" },
 
                 {
-                    key: "huGeScore",
-                    label: "HuGe Score"
-                },
-
-                {
                     key: "posteriorProbability",
                     label: "Posterior probability",
                     formatter: this.pValueFormatter
@@ -83,12 +78,12 @@ export default Vue.component("hugecal-table", {
             items: [
                 {
                     suggestedPrior: 0.2,
-                    huGeScore: this.hugeScore,
+
                     posteriorProbability: this.posteriorProbability(0.2)
                 },
                 {
                     suggestedPrior: 0.05,
-                    huGeScore: this.hugeScore,
+
                     posteriorProbability: this.posteriorProbability(0.05)
                 }
             ],
@@ -105,7 +100,7 @@ export default Vue.component("hugecal-table", {
             );
             var my_object = {
                 suggestedPrior: this.suggestedPriorinput,
-                huGeScore: this.hugeScore,
+
                 posteriorProbability: this.posteriorProbability(
                     this.suggestedPriorinput
                 )
