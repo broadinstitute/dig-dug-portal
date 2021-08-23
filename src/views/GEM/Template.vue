@@ -147,44 +147,50 @@
                             ></associations-table-gem>
                         </b-tab>
                         <b-tab title="Evidence View">
-                            <locuszoom
-                                v-if="$parent.selectedPhenotypes.length > 0"
-                                ref="locuszoom"
-                                :chr="$store.state.chr"
-                                :start="$store.state.start"
-                                :end="$store.state.end"
-                                :filterAssociations="$parent.associationsFilter"
-                                :filterAnnotations="$parent.annotationsFilter"
-                                @regionchanged="
-                                    ($event) => {
-                                        $parent.requestCredibleSets(
-                                            $event.data
-                                        );
-                                    }
-                                "
-                                :ldpop="true"
-                                :refSeq="true"
-                            >
-                                <p
-                                    v-for="phenotype in $parent.selectedPhenotypes"
-                                    :key="phenotype.name"
+                            <div style="visibility: hidden; height: 1px">
+                                <locuszoom
+                                    v-if="$parent.selectedPhenotypes.length > 0"
+                                    ref="locuszoom"
+                                    :chr="$store.state.chr"
+                                    :start="$store.state.start"
+                                    :end="$store.state.end"
+                                    :filterAssociations="
+                                        $parent.associationsFilter
+                                    "
+                                    :filterAnnotations="
+                                        $parent.annotationsFilter
+                                    "
+                                    @regionchanged="
+                                        ($event) => {
+                                            $parent.requestCredibleSets(
+                                                $event.data
+                                            );
+                                        }
+                                    "
+                                    :ldpop="true"
+                                    :refSeq="true"
                                 >
-                                    <lz-associations-panel
-                                        :phenotype="phenotype.name"
-                                        :title="phenotype.description"
-                                        @input="
-                                            $parent.updatePageAssociations({
-                                                phenotype: phenotype.name,
-                                                data: $event,
-                                            })
-                                        "
-                                    ></lz-associations-panel>
-                                    <lz-catalog-annotations-panel
-                                        :phenotype="phenotype.name"
-                                        :title="phenotype.description"
-                                    ></lz-catalog-annotations-panel>
-                                </p>
-                            </locuszoom>
+                                    <p
+                                        v-for="phenotype in $parent.selectedPhenotypes"
+                                        :key="phenotype.name"
+                                    >
+                                        <lz-associations-panel
+                                            :phenotype="phenotype.name"
+                                            :title="phenotype.description"
+                                            @input="
+                                                $parent.updatePageAssociations({
+                                                    phenotype: phenotype.name,
+                                                    data: $event,
+                                                })
+                                            "
+                                        ></lz-associations-panel>
+                                        <lz-catalog-annotations-panel
+                                            :phenotype="phenotype.name"
+                                            :title="phenotype.description"
+                                        ></lz-catalog-annotations-panel>
+                                    </p>
+                                </locuszoom>
+                            </div>
                         </b-tab>
                     </b-tabs>
                 </div>
@@ -216,5 +222,11 @@
     position: relative;
     height: 100% !important;
 }
+.tab-content > .tab-pane.active > div {
+    all: unset;
+}
+.lz-load {
+}
 </style>
+
 
