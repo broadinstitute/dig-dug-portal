@@ -291,19 +291,19 @@ export default Vue.component("research-data-table", {
                         ? this.currentPage * perPage
                         : this.rows;
 
-                console.log(
+                /*console.log(
                     "startIndex",
                     startIndex,
                     "/endIndex",
                     endIndex,
                     "/rows",
                     this.rows
-                );
+                );*/
 
                 for (let i = startIndex; i < endIndex; i++) {
                     paged.push(formattedData[i]);
                 }
-                console.log("paged", paged);
+                //console.log("paged", paged);
                 return paged;
             } else {
                 return this.dataset;

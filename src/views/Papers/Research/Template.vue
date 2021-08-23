@@ -185,8 +185,11 @@
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
-                                    :selectedRegion="
-                                        $store.state.selectedRegion
+                                    :searchParameters="
+                                        $store.state.searchParameters
+                                    "
+                                    :dataComparisonConfig="
+                                        $parent.dataComparisonConfig
                                     "
                                 ></research-region-plot>
 

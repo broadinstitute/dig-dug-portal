@@ -235,6 +235,8 @@ export default Vue.component("research-region-plot", {
         "renderConfig",
         "filtersIndex",
         "selectedRegion",
+        "searchParameters",
+        "dataComparisonConfig",
     ],
     data() {
         return {

@@ -390,7 +390,7 @@ new Vue({
 
                 switch (dataComparison) {
                     case "newSearch":
-                        console.log("newSearch");
+                        //console.log("newSearch");
 
                         let compareReadyData = {};
 
@@ -411,14 +411,14 @@ new Vue({
                             compareReadyData[keyField] = tempObj;
                         })
 
-                        console.log(compareReadyData);
+                        //console.log(compareReadyData);
 
                         return compareReadyData;
 
                         break;
 
                     case "overlapping":
-                        console.log("overlapping");
+                        //console.log("overlapping");
                         let overlappingData = {};
 
                         newResearchData.map(d => {
@@ -434,13 +434,13 @@ new Vue({
                             }
                         });
 
-                        console.log(overlappingData);
+                        //console.log(overlappingData);
 
                         return overlappingData;
 
                         break;
                     case "all":
-                        console.log("all");
+                        //console.log("all");
                         let allData = {}
 
                         newResearchData.map(d => {
