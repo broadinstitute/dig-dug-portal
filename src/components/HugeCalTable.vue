@@ -11,7 +11,6 @@
                     <input
                         v-model.number="suggestedPriorinput"
                         type="number"
-                        placeholder="Prior Variance"
                         id="prior_input"
                         @keyup.enter="addToItems($event)"
                     />

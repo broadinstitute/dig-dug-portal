@@ -19,7 +19,10 @@
                         style="width:150px;background-color:#E7EDF7"
                         class="text-center"
                     >{{gwasEvidence}}</b-td>
-                    <b-td style="width:150px;color:gray;background-color:#F5F5F5">N/A</b-td>
+                    <b-td
+                        class="text-center"
+                        style="width:150px;color:gray;background-color:#F5F5F5"
+                    >N/A</b-td>
                     <b-td style="width:200px;color:gray;" class="text-left"><--GWAS Evidence</b-td>
                 </b-tr>
                 <b-tr style="border: 3px solid white !important;">

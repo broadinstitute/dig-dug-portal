@@ -246,7 +246,7 @@
                                             class="toggleIcon"
                                             id="toggleIcon"
                                         >{{$parent.toggleIcon}}</span>
-                                        View {{$parent.selectedGene[0]}} on Locuszoom
+                                        View {{$parent.selectedGene[0]}} on LocusZoom
                                     </div>
                                     <div v-show="$parent.showLZSection">
                                         <locuszoom
