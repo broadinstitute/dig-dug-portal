@@ -674,58 +674,59 @@ new Vue({
 
             if (contents.length === 0) {
                 return null;
-            }
+            } else {
 
-            let convertedData = (this.dataType == 'json' || this.dataType == 'bioindex') ? JSON.parse(contents) : this.csv2Json(contents);
+                let convertedData = (this.dataType == 'json' || this.dataType == 'bioindex') ? JSON.parse(contents) : this.csv2Json(contents);
 
-            if (this.dataType == 'bioindex') {
-                if (convertedData.continuation != null) {
-                    this.$store.dispatch("bioIndexContinue", convertedData.data);
+                if (this.dataType == 'bioindex') {
+                    if (convertedData.continuation != null) {
+                        this.$store.dispatch("bioIndexContinue", convertedData.data);
 
 
-                    let APIPoint = this.dataFiles[0];
-                    if (this.dataType == "bioindex") {
-                        APIPoint +=
-                            "cont?token=" +
-                            convertedData.continuation;
+                        let APIPoint = this.dataFiles[0];
+                        if (this.dataType == "bioindex") {
+                            APIPoint +=
+                                "cont?token=" +
+                                convertedData.continuation;
+                        }
+
+                        let fetchParam = { dataPoint: APIPoint, domain: "external" };
+
+                        this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+
+                    } else if (convertedData.continuation == null && convertedData.page == 1) {
+                        let returnData = convertedData.data;
+
+                        let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
+
+
+                        return processedData;
+                    } else if (convertedData.continuation == null && convertedData.page != 1) {
+                        //merge all data from continue
+
+
+                        let continuedData = this.$store.state.bioIndexContinue;
+
+                        let mergedData = [];
+
+                        continuedData.map(cont => {
+                            cont.map(i => {
+                                mergedData.push(i);
+                            })
+                        });
+
+                        let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], mergedData) : this.convertData("no convert", mergedData);
+
+                        return processedData;
+
                     }
-
-                    let fetchParam = { dataPoint: APIPoint, domain: "external" };
-
-                    this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
-
-                } else if (convertedData.continuation == null && convertedData.page == 1) {
-                    let returnData = convertedData.data;
+                } else {
+                    let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
-
                     return processedData;
-                } else if (convertedData.continuation == null && convertedData.page != 1) {
-                    //merge all data from continue
-
-
-                    let continuedData = this.$store.state.bioIndexContinue;
-
-                    let mergedData = [];
-
-                    continuedData.map(cont => {
-                        cont.map(i => {
-                            mergedData.push(i);
-                        })
-                    });
-
-                    let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], mergedData) : this.convertData("no convert", mergedData);
-
-                    return processedData;
-
                 }
-            } else {
-                let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
-
-                let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
-
-                return processedData;
             }
 
         },
@@ -835,18 +836,21 @@ new Vue({
 
         },
         researchData(content) {
-            uiUtils.hideElement("data-loading-indicator");
-            let updatedData = this.checkDataComparison(content, this.$store.state.filteredData);
+
+            if (content != null && content.length > 0) {
+                uiUtils.hideElement("data-loading-indicator");
+                let updatedData = this.checkDataComparison(content, this.$store.state.filteredData);
 
 
-            if (this.dataTableFormat == null) {
-                let topRows = Object.keys(content[0]);
-                let dataTableFormat = { "top rows": topRows };
-                this.dataTableFormat = dataTableFormat;
+                if (this.dataTableFormat == null) {
+                    let topRows = Object.keys(content[0]);
+                    let dataTableFormat = { "top rows": topRows };
+                    this.dataTableFormat = dataTableFormat;
+                }
+
+                this.$store.dispatch("unfilteredData", updatedData);
+                this.$store.dispatch("filteredData", updatedData);
             }
-
-            this.$store.dispatch("unfilteredData", updatedData);
-            this.$store.dispatch("filteredData", updatedData);
         }
     }
 }).$mount("#app");

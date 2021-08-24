@@ -201,6 +201,12 @@
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
+                                    :dataComparisonConfig="
+                                        $parent.dataComparisonConfig
+                                    "
+                                    :searchParameters="
+                                        $store.state.searchParameters
+                                    "
                                 ></research-score-plot>
 
                                 <research-volcano-plot
