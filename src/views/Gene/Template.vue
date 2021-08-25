@@ -154,6 +154,29 @@
                     </b-tabs>
                 </div>
             </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">HuGE Score</h4>
+                    <div style="padding:10px 250px 10px 250px">
+                        <br />
+                        <span style="padding:10px 290px 10px 310px; font-weight:bold">
+                            HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
+                            $parent.bayesFactorCommonVariation,
+                            $parent.bayesFactorRareVariation))}} evidence scale
+                        </span>
+                        <color-bar-plot
+                            v-if="$parent.bayesFactorRareVariation"
+                            :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation))"
+                            :elementid="'combinedVariation'"
+                            :score=" $parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation)"
+                        ></color-bar-plot>
+                    </div>
+                </div>
+            </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">

@@ -26,7 +26,7 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
-
+import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue"
@@ -68,7 +68,8 @@ new Vue({
         SearchHeaderWrapper,
         ResultsDashboard,
         NCATSPredicateTable,
-        VariantSearch
+        VariantSearch,
+        ColorBarPlot
     },
 
     data() {
