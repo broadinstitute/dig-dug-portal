@@ -129,12 +129,9 @@
                         <filter-effect-direction-control :field="'beta'">
                             <div class="label">Effect (+/-)</div>
                         </filter-effect-direction-control>
-                        <!--
-                                <template
-                                    slot="filtered"
-                                    slot-scope="{ filter }"
-                                >
-                                </template> -->
+
+                        <template slot="filtered" slot-scope="{ filter }">
+                        </template>
                     </criterion-function-group>
                     <b-tabs content-class="mt-3">
                         <b-tab title="Score View" active>
@@ -147,50 +144,44 @@
                             ></associations-table-gem>
                         </b-tab>
                         <b-tab title="Evidence View">
-                            <div style="visibility: hidden; height: 1px">
-                                <locuszoom
-                                    v-if="$parent.selectedPhenotypes.length > 0"
-                                    ref="locuszoom"
-                                    :chr="$store.state.chr"
-                                    :start="$store.state.start"
-                                    :end="$store.state.end"
-                                    :filterAssociations="
-                                        $parent.associationsFilter
-                                    "
-                                    :filterAnnotations="
-                                        $parent.annotationsFilter
-                                    "
-                                    @regionchanged="
-                                        ($event) => {
-                                            $parent.requestCredibleSets(
-                                                $event.data
-                                            );
-                                        }
-                                    "
-                                    :ldpop="true"
-                                    :refSeq="true"
+                            <locuszoom
+                                v-if="$parent.selectedPhenotypes.length > 0"
+                                ref="locuszoom"
+                                :chr="$store.state.chr"
+                                :start="$store.state.start"
+                                :end="$store.state.end"
+                                :filterAssociations="$parent.associationsFilter"
+                                :filterAnnotations="$parent.annotationsFilter"
+                                @regionchanged="
+                                    ($event) => {
+                                        $parent.requestCredibleSets(
+                                            $event.data
+                                        );
+                                    }
+                                "
+                                :ldpop="true"
+                                :refSeq="true"
+                            >
+                                <p
+                                    v-for="phenotype in $parent.selectedPhenotypes"
+                                    :key="phenotype.name"
                                 >
-                                    <p
-                                        v-for="phenotype in $parent.selectedPhenotypes"
-                                        :key="phenotype.name"
-                                    >
-                                        <lz-associations-panel
-                                            :phenotype="phenotype.name"
-                                            :title="phenotype.description"
-                                            @input="
-                                                $parent.updatePageAssociations({
-                                                    phenotype: phenotype.name,
-                                                    data: $event,
-                                                })
-                                            "
-                                        ></lz-associations-panel>
-                                        <lz-catalog-annotations-panel
-                                            :phenotype="phenotype.name"
-                                            :title="phenotype.description"
-                                        ></lz-catalog-annotations-panel>
-                                    </p>
-                                </locuszoom>
-                            </div>
+                                    <lz-associations-panel
+                                        :phenotype="phenotype.name"
+                                        :title="phenotype.description"
+                                        @input="
+                                            $parent.updatePageAssociations({
+                                                phenotype: phenotype.name,
+                                                data: $event,
+                                            })
+                                        "
+                                    ></lz-associations-panel>
+                                    <lz-catalog-annotations-panel
+                                        :phenotype="phenotype.name"
+                                        :title="phenotype.description"
+                                    ></lz-catalog-annotations-panel>
+                                </p>
+                            </locuszoom>
                         </b-tab>
                     </b-tabs>
                 </div>
