@@ -18,23 +18,39 @@
             v-html="renderConfig.legend"
         ></div>
         <div class="plot-score-options-ui">
-            <div
-                v-for="(option, opIndex) in renderConfig.scoreBy"
-                :key="opIndex"
-                class="plot-score-option"
-            >
-                <input
-                    type="checkbox"
-                    :id="'score_chkbox_' + opIndex"
-                    :name="'score_chkbox_' + opIndex"
-                    checked
-                    @click="calculateScore"
-                />
-                <label
-                    :for="'score_chkbox_' + opIndex"
-                    v-html="option.field"
-                ></label>
-            </div>
+            <label
+                >Render plot by:
+                <select
+                    v-model="plotRenderBy"
+                    class="score-plot-render-by"
+                    @change="renderPlot()"
+                >
+                    <option value="avarage">Avarage Score</option>
+                    <option value="high">Highest Score</option>
+                    <option value="low">Lowest Score</option>
+                    <option value="all">All</option>
+                </select>
+            </label>
+            <label
+                >Score by:
+                <div
+                    v-for="(option, opIndex) in renderConfig.scoreBy"
+                    :key="opIndex"
+                    class="plot-score-option"
+                >
+                    <input
+                        type="checkbox"
+                        :id="'score_chkbox_' + opIndex"
+                        :name="'score_chkbox_' + opIndex"
+                        checked
+                        @click="calculateScore"
+                    />
+                    <label
+                        :for="'score_chkbox_' + opIndex"
+                        v-html="option.field"
+                    ></label>
+                </div>
+            </label>
         </div>
         <canvas
             v-if="!!renderConfig"
@@ -75,6 +91,7 @@ export default Vue.component("research-score-plot", {
     ],
     data() {
         return {
+            plotRenderBy: "avarage",
             plotRendered: 0,
             chromosomeLength: {
                 1: 248956422,
@@ -284,8 +301,8 @@ export default Vue.component("research-score-plot", {
                                 "</b></span>";
 
                             if (!!this.renderConfig.hoverContent) {
-                                let hoverContent = this.renderConfig
-                                    .hoverContent;
+                                let hoverContent =
+                                    this.renderConfig.hoverContent;
 
                                 hoverContent.map((h) => {
                                     clickedDotValue +=
@@ -342,8 +359,8 @@ export default Vue.component("research-score-plot", {
                                     "</b></span>";
 
                                 if (!!this.renderConfig.hoverContent) {
-                                    let hoverContent = this.renderConfig
-                                        .hoverContent;
+                                    let hoverContent =
+                                        this.renderConfig.hoverContent;
 
                                     hoverContent.map((h) => {
                                         clickedDotValue +=
@@ -397,7 +414,7 @@ export default Vue.component("research-score-plot", {
             return colorIndex;
         },
         renderPlot() {
-            //console.log(this.searchParameters);
+            console.log(this.plotRenderBy);
             this.dotPosData = {};
 
             let wrapper = document.getElementById("clicked_dot_value");
@@ -417,6 +434,7 @@ export default Vue.component("research-score-plot", {
             let plotWidth =
                 canvasRenderWidth -
                 (this.leftMargin + this.rightMargin + xBump);
+            let plotRenderWidth = plotWidth - 5;
             let plotHeight =
                 canvasRenderHeight -
                 (this.topMargin + yBump + this.bottomMargin);
@@ -584,16 +602,16 @@ export default Vue.component("research-score-plot", {
                 });
             }
 
-            let chrByPixel = plotWidth / dnaLength;
+            let chrByPixel = plotRenderWidth / dnaLength;
 
-            let xStart = this.leftMargin;
+            let xStart = this.leftMargin + 5;
             ctx.textAlign = "center";
             ctx.rotate((Math.PI * 2) / 4);
 
             if (chrs.length == 1) {
                 ctx.fillText(
                     chrLengthMin,
-                    this.leftMargin,
+                    this.leftMargin + 5,
                     this.topMargin + plotHeight + yBump + 20
                 );
 
@@ -630,7 +648,7 @@ export default Vue.component("research-score-plot", {
                 let chr = chrs[0];
                 this.renderData.sorted[chr].map((g) => {
                     let xPos =
-                        (g.locus - xStart) * chrByPixel + this.leftMargin;
+                        (g.locus - xStart) * chrByPixel + this.leftMargin + 5;
 
                     let yPosByPixel = plotHeight / (yMax - yMin);
 
@@ -671,9 +689,10 @@ export default Vue.component("research-score-plot", {
                             (g[this.renderConfig.yAxisField] - yMin) *
                                 yPosByPixel;
 
-                        let dotColor = this.chromosomeColors[
-                            chr % this.chromosomeColors.length
-                        ];
+                        let dotColor =
+                            this.chromosomeColors[
+                                chr % this.chromosomeColors.length
+                            ];
 
                         ctx.fillStyle = dotColor + "75";
 
@@ -696,7 +715,9 @@ export default Vue.component("research-score-plot", {
                 chrs.map((chr) => {
                     this.renderData.sorted[chr].map((g) => {
                         let xPos =
-                            (xStart + g.locus) * chrByPixel + this.leftMargin;
+                            (xStart + g.locus) * chrByPixel +
+                            this.leftMargin +
+                            5;
 
                         let yPosByPixel = plotHeight / (yMax - yMin);
 
@@ -706,9 +727,10 @@ export default Vue.component("research-score-plot", {
                             (g[this.renderConfig.yAxisField] - yMin) *
                                 yPosByPixel;
 
-                        let dotColor = this.chromosomeColors[
-                            chrNum % this.chromosomeColors.length
-                        ];
+                        let dotColor =
+                            this.chromosomeColors[
+                                chrNum % this.chromosomeColors.length
+                            ];
 
                         ctx.fillStyle = dotColor + "75";
 
@@ -753,6 +775,27 @@ $(function () {});
 </script>
 
 <style>
+.score-plot-ui-wrapper {
+    text-align: left;
+    font-size: 12px;
+    float: left;
+}
+
+.score-plot-render-by {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 15px;
+    border: solid 1px #aaa;
+    background-color: #fff;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.score-plot-render-by:hover {
+    cursor: pointer;
+    background-color: #eee;
+}
+
 .plot-score-options-ui {
     font-size: 12px;
     text-align: right;
@@ -762,6 +805,7 @@ $(function () {});
 .plot-score-option {
     display: inline-block;
     margin-right: 10px;
+    vertical-align: top;
 }
 
 .plot-score-option input[type="checkbox"] {
