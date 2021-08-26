@@ -27,7 +27,6 @@
                 >
                     <option value="avarage">Avarage Score</option>
                     <option value="high">Highest Score</option>
-                    <option value="low">Lowest Score</option>
                     <option value="all">All</option>
                 </select>
             </label>
@@ -130,22 +129,22 @@ export default Vue.component("research-score-plot", {
                 "#cb181d",
             ],
             compareGroupColors: [
-                "#007bff30",
-                "#04884530",
-                "#8490C830",
-                "#BF61A530",
-                "#EE312430",
-                "#FCD70030",
-                "#5555FF30",
-                "#7aaa1c30",
-                "#9F78AC30",
-                "#F8808430",
-                "#F5A4C730",
-                "#CEE6C130",
-                "#cccc0030",
-                "#6FC7B630",
-                "#D5A76830",
-                "#D4D4D430",
+                "#007bff50",
+                "#04884550",
+                "#8490C850",
+                "#BF61A550",
+                "#EE312450",
+                "#FCD70050",
+                "#5555FF50",
+                "#7aaa1c50",
+                "#9F78AC50",
+                "#F8808450",
+                "#F5A4C750",
+                "#CEE6C150",
+                "#cccc0050",
+                "#6FC7B650",
+                "#D5A76850",
+                "#D4D4D450",
             ],
             leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
             rightMargin: 0.5,
@@ -414,7 +413,6 @@ export default Vue.component("research-score-plot", {
             return colorIndex;
         },
         renderPlot() {
-            console.log(this.plotRenderBy);
             this.dotPosData = {};
 
             let wrapper = document.getElementById("clicked_dot_value");
@@ -659,28 +657,146 @@ export default Vue.component("research-score-plot", {
                         ) == true
                     ) {
                         let yField = g[this.renderConfig.yAxisField];
+                        let yPos,
+                            xLoc,
+                            yLoc,
+                            colorKey,
+                            dotColor,
+                            yFieldValue,
+                            yFieldKey,
+                            entries,
+                            yFieldValues;
 
-                        for (const [yKey, yValue] of Object.entries(yField)) {
-                            let yPos =
-                                this.topMargin +
-                                plotHeight -
-                                (yValue - yMin) * yPosByPixel;
+                        switch (this.plotRenderBy) {
+                            case "avarage":
+                                entries = 0;
+                                yFieldValues = 0;
+                                yFieldKey = "";
+                                for (const [yKey, yValue] of Object.entries(
+                                    yField
+                                )) {
+                                    entries++;
+                                    yFieldValues += yValue;
+                                    yFieldKey = yKey;
+                                }
 
-                            let colorKey = this.getColorIndex(yKey);
+                                yFieldValue = yFieldValues / entries;
 
-                            let dotColor = this.compareGroupColors[colorKey];
+                                yPos =
+                                    this.topMargin +
+                                    plotHeight -
+                                    (yFieldValue - yMin) * yPosByPixel;
 
-                            ctx.fillStyle = dotColor;
+                                colorKey = this.getColorIndex(yFieldKey);
 
-                            ctx.lineWidth = 0;
-                            ctx.beginPath();
-                            ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
-                            ctx.fill();
+                                dotColor =
+                                    entries == 1
+                                        ? this.compareGroupColors[colorKey]
+                                        : "#00000030";
 
-                            let xLoc = xPos.toString().split(".")[0];
-                            let yLoc = yPos.toString().split(".")[0];
+                                ctx.fillStyle = dotColor;
 
-                            this.add2HoverContent(xLoc, yLoc, g);
+                                ctx.lineWidth = 0;
+                                ctx.beginPath();
+                                ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                                ctx.fill();
+
+                                xLoc = xPos.toString().split(".")[0];
+                                yLoc = yPos.toString().split(".")[0];
+
+                                this.add2HoverContent(xLoc, yLoc, g);
+                                break;
+                            case "high":
+                                yFieldValue = 0;
+                                yFieldKey = "";
+                                entries = 0;
+                                for (const [yKey, yValue] of Object.entries(
+                                    yField
+                                )) {
+                                    yFieldKey =
+                                        entries == 0
+                                            ? yKey
+                                            : yValue > yFieldValue
+                                            ? yKey
+                                            : yFieldKey;
+
+                                    yFieldValue =
+                                        entries == 0
+                                            ? yValue
+                                            : yValue > yFieldValue
+                                            ? yValue
+                                            : yFieldValue;
+
+                                    entries++;
+                                }
+
+                                console.log("yFieldValue", yFieldValue);
+
+                                yPos =
+                                    this.topMargin +
+                                    plotHeight -
+                                    (yFieldValue - yMin) * yPosByPixel;
+
+                                colorKey = this.getColorIndex(yFieldKey);
+
+                                dotColor = this.compareGroupColors[colorKey];
+
+                                ctx.fillStyle = dotColor;
+
+                                ctx.lineWidth = 0;
+                                ctx.beginPath();
+                                ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                                ctx.fill();
+
+                                xLoc = xPos.toString().split(".")[0];
+                                yLoc = yPos.toString().split(".")[0];
+
+                                this.add2HoverContent(xLoc, yLoc, g);
+                                break;
+                            case "all":
+                                let yPosArr = [];
+                                for (const [yKey, yValue] of Object.entries(
+                                    yField
+                                )) {
+                                    yPos =
+                                        this.topMargin +
+                                        plotHeight -
+                                        (yValue - yMin) * yPosByPixel;
+
+                                    yPosArr.push(yPos);
+
+                                    colorKey = this.getColorIndex(yKey);
+
+                                    dotColor =
+                                        this.compareGroupColors[colorKey];
+
+                                    ctx.fillStyle = dotColor;
+
+                                    ctx.lineWidth = 0;
+                                    ctx.beginPath();
+                                    ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                                    ctx.fill();
+
+                                    xLoc = xPos.toString().split(".")[0];
+                                    yLoc = yPos.toString().split(".")[0];
+
+                                    this.add2HoverContent(xLoc, yLoc, g);
+                                }
+
+                                if (yPosArr.length > 1) {
+                                    yPosArr.sort();
+
+                                    ctx.beginPath();
+                                    ctx.lineWidth = 1;
+                                    ctx.strokeStyle = "#00000030";
+                                    ctx.moveTo(xPos, yPosArr[0]);
+                                    ctx.lineTo(
+                                        xPos,
+                                        yPosArr[yPosArr.length - 1]
+                                    );
+                                    ctx.stroke();
+                                }
+                                break;
                         }
                     } else {
                         let yPos =

@@ -335,19 +335,13 @@ new Vue({
         queryAPI() {
             uiUtils.showElement("data-loading-indicator");
 
-
-
-            //console.log("bioIndexContinue", this.$store.state.bioIndexContinue);
-
-
-
             if (this.apiParameters.query.type == "array") {
                 let parametersArr = this.apiParameters.query.format;
                 let parametersArrLength = parametersArr.length
 
                 let paramTrueCount = 0;
                 parametersArr.map((param, index) => {
-                    //console.log(keyParams[param], index);
+
                     if (!!keyParams[param]) {
                         paramTrueCount++;
                     }
@@ -357,7 +351,7 @@ new Vue({
                     this.$store.state.bioIndexContinue = [];
                     let queryParams = "";
                     parametersArr.map((param, index) => {
-                        //console.log(param, index);
+
                         queryParams += keyParams[param].trim();
                         if (index + 1 < parametersArr.length) {
                             queryParams += ",";
@@ -375,6 +369,7 @@ new Vue({
 
                     let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
+
                     this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
                 }
             }
@@ -390,7 +385,7 @@ new Vue({
 
                 switch (dataComparison) {
                     case "newSearch":
-                        //console.log("newSearch");
+
 
                         let compareReadyData = {};
 
@@ -411,14 +406,14 @@ new Vue({
                             compareReadyData[keyField] = tempObj;
                         })
 
-                        //console.log(compareReadyData);
+
 
                         return compareReadyData;
 
                         break;
 
                     case "overlapping":
-                        //console.log("overlapping");
+
                         let overlappingData = {};
 
                         newResearchData.map(d => {
@@ -434,13 +429,13 @@ new Vue({
                             }
                         });
 
-                        //console.log(overlappingData);
+
 
                         return overlappingData;
 
                         break;
                     case "all":
-                        //console.log("all");
+
                         let allData = {}
 
                         newResearchData.map(d => {
