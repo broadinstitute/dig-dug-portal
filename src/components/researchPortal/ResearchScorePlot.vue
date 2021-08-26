@@ -18,7 +18,7 @@
             v-html="renderConfig.legend"
         ></div>
         <div class="plot-score-options-ui">
-            <label
+            <label v-if="dataComparisonConfig != null"
                 >Render plot by:
                 <select
                     v-model="plotRenderBy"
@@ -67,7 +67,6 @@
             class="mbm-plot-label"
             v-html="renderConfig.label"
         ></div>
-        {{ searchParameters }}
     </div>
 </template>
 
@@ -178,7 +177,7 @@ export default Vue.component("research-score-plot", {
 
             let feedMassagedData = function (r) {
                 let region = r[renderConfig.xAxisField];
-                //console.log(region);
+
                 if (region != undefined && region != "" && region != null) {
                     let tempObj = {};
                     tempObj[renderConfig.renderBy] = r[renderConfig.renderBy];
@@ -222,7 +221,6 @@ export default Vue.component("research-score-plot", {
                 });
             }
 
-            //console.log(massagedData);
             return massagedData;
         },
     },
@@ -303,13 +301,37 @@ export default Vue.component("research-score-plot", {
                                 let hoverContent =
                                     this.renderConfig.hoverContent;
 
-                                hoverContent.map((h) => {
-                                    clickedDotValue +=
-                                        '<span class="content-on-clicked-dot">' +
-                                        h +
-                                        ": " +
-                                        dotObject[h] +
-                                        "</span>";
+                                hoverContent.map((hc) => {
+                                    if (
+                                        this.dataComparisonConfig != null &&
+                                        this.dataComparisonConfig.fieldsToCompare.includes(
+                                            hc
+                                        )
+                                    ) {
+                                        clickedDotValue +=
+                                            '<span class="content-on-clicked-dot">' +
+                                            hc +
+                                            ":</span>";
+
+                                        for (const [
+                                            hcKey,
+                                            hcValue,
+                                        ] of Object.entries(dotObject[hc])) {
+                                            clickedDotValue +=
+                                                '<span class="content-on-clicked-dot">&nbsp;&nbsp;' +
+                                                hcKey +
+                                                ": " +
+                                                hcValue +
+                                                "</span>";
+                                        }
+                                    } else {
+                                        clickedDotValue +=
+                                            '<span class="content-on-clicked-dot">' +
+                                            hc +
+                                            ": " +
+                                            dotObject[hc] +
+                                            "</span>";
+                                    }
                                 });
                             }
                         }
@@ -361,13 +383,39 @@ export default Vue.component("research-score-plot", {
                                     let hoverContent =
                                         this.renderConfig.hoverContent;
 
-                                    hoverContent.map((h) => {
-                                        clickedDotValue +=
-                                            '<span class="content-on-clicked-dot">' +
-                                            h +
-                                            ": " +
-                                            dotObject[h] +
-                                            "</span>";
+                                    hoverContent.map((hc) => {
+                                        if (
+                                            this.dataComparisonConfig != null &&
+                                            this.dataComparisonConfig.fieldsToCompare.includes(
+                                                hc
+                                            )
+                                        ) {
+                                            clickedDotValue +=
+                                                '<span class="content-on-clicked-dot">' +
+                                                hc +
+                                                ":</span>";
+
+                                            for (const [
+                                                hcKey,
+                                                hcValue,
+                                            ] of Object.entries(
+                                                dotObject[hc]
+                                            )) {
+                                                clickedDotValue +=
+                                                    '<span class="content-on-clicked-dot">&nbsp;&nbsp;' +
+                                                    hcKey +
+                                                    ": " +
+                                                    hcValue +
+                                                    "</span>";
+                                            }
+                                        } else {
+                                            clickedDotValue +=
+                                                '<span class="content-on-clicked-dot">' +
+                                                hc +
+                                                ": " +
+                                                dotObject[hc] +
+                                                "</span>";
+                                        }
                                     });
                                 }
                             }
@@ -555,8 +603,6 @@ export default Vue.component("research-score-plot", {
                 (key) => this.renderData.sorted[key].length > 0
             );
 
-            //console.log("chrs length", chrs.length);
-
             // compare length of chromosomes in the data to the defalt
             let chrLengthMax = 0;
             let chrLengthMin = 0;
@@ -730,8 +776,6 @@ export default Vue.component("research-score-plot", {
                                     entries++;
                                 }
 
-                                console.log("yFieldValue", yFieldValue);
-
                                 yPos =
                                     this.topMargin +
                                     plotHeight -
@@ -784,7 +828,9 @@ export default Vue.component("research-score-plot", {
                                 }
 
                                 if (yPosArr.length > 1) {
-                                    yPosArr.sort();
+                                    yPosArr.sort(function (a, b) {
+                                        return a - b;
+                                    });
 
                                     ctx.beginPath();
                                     ctx.lineWidth = 1;
