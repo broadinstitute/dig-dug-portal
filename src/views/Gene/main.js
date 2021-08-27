@@ -152,6 +152,31 @@ new Vue({
                 }
             }
         },
+        determineCategory(bayesfactor) {
+            let category;
+            if (bayesfactor <= 1) {
+                category = "No";
+            }
+            if (bayesfactor > 1 && bayesfactor < 3) {
+                category = "Anecdotal";
+            } else if (bayesfactor >= 3 && bayesfactor < 10) {
+                category = "Moderate";
+            } else if (bayesfactor >= 10 && bayesfactor < 30) {
+                category = "Strong";
+            } else if (bayesfactor >= 30 && bayesfactor < 100) {
+                category = "Very Strong";
+            } else if (bayesfactor >= 100 && bayesfactor < 350) {
+                category = "Extreme";
+            } else if (bayesfactor >= 350) {
+                category = "Compelling";
+            }
+            return category;
+        },
+        bayesFactorCombinedEvidence(commonBF, rareBF) {
+            let combinedbf = commonBF * rareBF;
+            return Number.parseFloat(combinedbf).toFixed(2);
+        },
+
         // go to region page
         exploreRegion(expanded = 0) {
             let r = this.region;
@@ -165,6 +190,110 @@ new Vue({
     },
 
     computed: {
+        bayesFactorRareVariation() {
+            let masks = [];
+            let rarebayesfactor = 1;
+            let beta;
+            let stdErr;
+            if (
+                this.isExomeWideSignificant(
+                    this.$store.state.geneAssociations52k.data,
+                    this.selectedPhenotype[0]
+                )
+            ) {
+                rarebayesfactor = 348;
+            } else {
+                if (this.$store.state.geneAssociations52k.data.length > 0) {
+                    for (
+                        let i = 0;
+                        i < this.$store.state.geneAssociations52k.data.length;
+                        i++
+                    ) {
+                        if (
+                            !!this.$store.state.geneAssociations52k.data[i]
+                                .phenotype &&
+                            this.$store.state.geneAssociations52k.data[i]
+                                .phenotype == this.selectedPhenotype[0]
+                        ) {
+                            //filter with selected phenotype
+                            masks = this.$store.state.geneAssociations52k.data[
+                                i
+                            ].masks;
+                            if (!!masks && masks.length > 0) {
+                                let d = masks.sort(
+                                    (a, b) => a.pValue - b.pValue
+                                );
+                                let mostSignificantMask = d[0];
+                                stdErr = mostSignificantMask.stdErr;
+                                beta = mostSignificantMask.beta;
+                                rarebayesfactor = this.bayes_factor(
+                                    beta,
+                                    stdErr
+                                );
+                            }
+                            if (rarebayesfactor < 1) {
+                                rarebayesfactor = 1;
+                            }
+                            return Number.parseFloat(rarebayesfactor).toFixed(
+                                2
+                            );
+                        }
+                        //if phenotype doesn't exist in 52K Associations data
+                        else {
+                            rarebayesfactor = 1;
+                        }
+                    }
+                }
+            }
+            return Number.parseFloat(rarebayesfactor).toFixed(2);
+        },
+        bayesFactorCommonVariation() {
+            let firstBF = 1;
+            let secondBF = 1;
+            let thirdBF = 1;
+            let commonBF = 1;
+            let data = this.$store.state.associations.data;
+            if (!!data.length > 0) {
+                for (let i = 0; i < data.length; i++) {
+                    //if GWAS evidence
+                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                        if (data[i].pValue <= 5e-8) {
+                            firstBF = 3;
+                            if (!!this.eglData) {
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "1C"
+                                ) {
+                                    secondBF = 117;
+                                }
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "2C"
+                                ) {
+                                    secondBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "2R"
+                                ) {
+                                    thirdBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "3R"
+                                ) {
+                                    thirdBF = 2.2;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            commonBF = firstBF * secondBF * thirdBF;
+            return Number.parseFloat(commonBF).toFixed(2);
+        },
+
         queries() {
             return [
                 // this.biolinkQueryGraph("NCBIGENE:1017", {

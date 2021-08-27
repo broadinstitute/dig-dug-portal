@@ -157,6 +157,23 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">HuGE Score</h4>
+                    <!-- Phenotype Selector -->
+                    <criterion-list-group>
+                        <filter-enumeration-control
+                            class="filter-col-lg"
+                            :field="'phenotype'"
+                            :options="$store.state.associations.data.map((association) => association.phenotype)"
+                            :multiple="false"
+                            :pillFormatter="
+                                (filter) =>$store.state.bioPortal.phenotypeMap[filter.threshold].description"
+                            :labelFormatter="
+                                (phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
+                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description
+                                        : phenotype"
+                        >
+                            <div class="label">Phenotypes:</div>
+                        </filter-enumeration-control>
+                    </criterion-list-group>
                     <div style="padding:10px 250px 10px 250px">
                         <br />
                         <span style="padding:10px 290px 10px 310px; font-weight:bold">

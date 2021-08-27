@@ -110,6 +110,33 @@ export default new Vuex.Store({
             let query = { q: context.state.geneName };
             context.dispatch("associations52k/query", query);
             context.dispatch("associations/query", query);
+        },
+        async getAssociationsData(context, phenoGeneInput) {
+            let gene = phenoGeneInput["gene"];
+            let phenotype = phenoGeneInput["phenotype"];
+            let locus = await regionUtils.parseRegion(gene, true, 50000);
+
+            if (locus) {
+                context.state.newChr = locus.chr
+                context.state.newStart = locus.start;
+                context.state.newEnd = locus.end;
+                //update the locus
+                context.commit("setLocus", locus);
+                context.commit("setPhenotype", phenotype);
+                context.commit("setSearchGene", gene);
+                context.commit("setPrior", 0.3696)
+            }
+            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
+            context.dispatch('associations/query', { q: phenoRegionQuery });
+        },
+        async getEGLData(context) {
+            let dataset = "mccarthy";
+            let trait = "t2d";
+            context.dispatch("kp4cd/getEglData", { dataset, trait });
+        },
+        async get52KAssociationData(context, gene) {
+            let name = gene || context.state.geneName;
+            context.dispatch('geneAssociations52k/query', { q: name });
         }
     }
 });
