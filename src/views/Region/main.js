@@ -123,6 +123,9 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        showHideSvg(svgWrapper) {
+            uiUtils.showHideSvg(svgWrapper);
+        },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
