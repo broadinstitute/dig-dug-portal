@@ -179,24 +179,17 @@
                             <div class="label">Phenotypes:</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
-                    <!-- <div style="padding:10px 250px 10px 250px">
+                    <div style="padding:10px 250px 10px 250px">
                         <br />
-                        <span style="padding:10px 290px 10px 310px; font-weight:bold">
-                            HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                            $parent.bayesFactorCommonVariation,
-                            $parent.bayesFactorRareVariation))}} evidence scale
-                        </span>
+                        <span
+                            style="padding:10px 290px 10px 310px; font-weight:bold"
+                        >HuGe score 280 falls in "Extreme" category in combined evidence scale</span>
                         <color-bar-plot
-                            v-if="$parent.bayesFactorRareVariation"
-                            :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation))"
+                            :category="'Extreme'"
                             :elementid="'combinedVariation'"
-                            :score=" $parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation)"
+                            :score=" 280"
                         ></color-bar-plot>
-                    </div>-->
+                    </div>
                 </div>
             </div>
 
@@ -405,3 +398,92 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<style>
+.color-bar-plot-wrapper {
+    width: calc(100% - 32px);
+    margin-left: 16px;
+}
+
+.color-bars-wrapper {
+    background-color: #eee;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.color-bar-plot-wrapper .each-bar-section {
+    width: calc(100% / 7);
+    text-align: center;
+}
+
+* {
+    box-sizing: border-box;
+}
+/* color bar plot */
+.arrow-up {
+    width: 0;
+    /*height: 40px;*/
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid #de202c;
+    animation: moveright 1s alternate 1s;
+    margin-left: auto;
+    margin-right: auto;
+}
+.arrow-side {
+    width: 0;
+    /*height: 40px;*/
+    border-left: 10px solid transparent;
+    border-bottom: 0px solid transparent;
+    border-top: 10px solid black;
+    animation: moveright 1s alternate 1s;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.arrow {
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+}
+
+.right {
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+}
+
+#combinedVariation .variationCausal {
+    background-color: #3fb54a;
+    font-weight: bold;
+}
+#combinedVariation .variationStrong {
+    background-color: #4ebf59;
+    font-weight: bold;
+}
+#combinedVariation .variationModerate {
+    background-color: #5ecc69;
+    font-weight: bold;
+}
+#combinedVariation .variationPossible {
+    background-color: #71d97b;
+    font-weight: bold;
+}
+#combinedVariation .variationPotential {
+    background-color: #7ee087;
+    font-weight: bold;
+}
+#combinedVariation .variationWeak {
+    background-color: #91eb9a;
+    font-weight: bold;
+}
+#combinedVariation .variationEquivocal {
+    background-color: #a1f0a9;
+    font-weight: bold;
+}
+
+#combinedVariation .variationNoEvidence {
+    background-color: #c4edc8;
+    font-weight: bold;
+}
+</style>
