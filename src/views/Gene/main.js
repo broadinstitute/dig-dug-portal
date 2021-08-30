@@ -69,12 +69,14 @@ new Vue({
         ResultsDashboard,
         NCATSPredicateTable,
         VariantSearch,
-        ColorBarPlot
+        ColorBarPlot,
+
     },
 
     data() {
         return {
             counter: 0,
+            regionPageSearchCriterion: [],
             externalResources: {
                 ensembl: {
                     title: "Ensembl",

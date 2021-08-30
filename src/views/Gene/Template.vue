@@ -158,16 +158,21 @@
                 <div class="card-body">
                     <h4 class="card-title">HuGE Score</h4>
                     <!-- Phenotype Selector -->
-                    <criterion-list-group>
+
+                    <criterion-list-group
+                        v-model="$parent.regionPageSearchCriterion"
+                        :header="''"
+                        class="top-associations-section-phenotype-filter"
+                    >
+                        <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             class="filter-col-lg"
                             :field="'phenotype'"
                             :options="$store.state.associations.data.map((association) => association.phenotype)"
                             :multiple="false"
-                            :pillFormatter="
-                                (filter) =>$store.state.bioPortal.phenotypeMap[filter.threshold].description"
-                            :labelFormatter="
-                                (phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
+                            :pillFormatter="(filter) =>$store.state.bioPortal.phenotypeMap[filter.threshold].description"
+                            :labelFormatter="(phenotype) =>
+                                    !!$store.state.bioPortal.phenotypeMap[phenotype]
                                         ? $store.state.bioPortal.phenotypeMap[phenotype].description
                                         : phenotype"
                         >
