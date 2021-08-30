@@ -17,6 +17,24 @@
             class="mbm-plot-legend"
             v-html="renderConfig.legend"
         ></div>
+        <div
+            v-if="
+                !!searchParameters &&
+                dataComparisonConfig != null &&
+                searchParameters[dataComparisonConfig.fieldsGroupDataKey].search
+                    .length > 1
+            "
+            class="score-plot-bubbles"
+        >
+            <span
+                v-for="(item, itemIndex) in searchParameters[
+                    dataComparisonConfig.fieldsGroupDataKey
+                ].search"
+                v-html="item"
+                :key="item"
+                :class="'plot-item-bubble reference bg-color-' + itemIndex"
+            ></span>
+        </div>
         <div class="plot-score-options-ui">
             <label v-if="dataComparisonConfig != null"
                 >Render plot by:
@@ -937,6 +955,18 @@ $(function () {});
 </script>
 
 <style>
+.score-plot-bubbles {
+    float: left;
+    font-size: 12px;
+    padding-top: 10px;
+}
+
+.plot-item-bubble {
+    margin-left: 3px;
+    margin-right: 3px;
+    padding: 2px 8px;
+    border-radius: 8px;
+}
 .score-plot-ui-wrapper {
     text-align: left;
     font-size: 12px;
