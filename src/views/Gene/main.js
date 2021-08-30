@@ -28,6 +28,8 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
+
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue"
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue"
@@ -70,7 +72,7 @@ new Vue({
         NCATSPredicateTable,
         VariantSearch,
         ColorBarPlot,
-
+        GenePageCombinedEvidenceTable,
     },
 
     data() {

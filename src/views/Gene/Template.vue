@@ -181,6 +181,7 @@
                     </criterion-list-group>
                     <div style="padding:10px 250px 10px 250px">
                         <br />
+                        <genepage-combinedevidence-table></genepage-combinedevidence-table>
                         <span
                             style="padding:10px 290px 10px 310px; font-weight:bold"
                         >HuGe score 280 falls in "Extreme" category in combined evidence scale</span>
