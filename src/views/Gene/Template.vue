@@ -174,7 +174,7 @@
                             <div class="label">Phenotypes:</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
-                    <div style="padding:10px 250px 10px 250px">
+                    <!-- <div style="padding:10px 250px 10px 250px">
                         <br />
                         <span style="padding:10px 290px 10px 310px; font-weight:bold">
                             HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
@@ -191,7 +191,7 @@
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation)"
                         ></color-bar-plot>
-                    </div>
+                    </div>-->
                 </div>
             </div>
 
