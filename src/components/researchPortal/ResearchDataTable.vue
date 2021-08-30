@@ -359,9 +359,8 @@ export default Vue.component("research-data-table", {
                 this.tableFormat["column formatting"] != undefined &&
                 this.tableFormat["column formatting"][tdKey] != undefined
             ) {
-                let formatTypes = this.tableFormat["column formatting"][tdKey][
-                    "type"
-                ];
+                let formatTypes =
+                    this.tableFormat["column formatting"][tdKey]["type"];
 
                 let linkToNewTab = !!this.tableFormat["column formatting"][
                     tdKey

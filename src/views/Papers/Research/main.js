@@ -378,14 +378,12 @@ new Vue({
 
             let dataComparison = this.$store.state.dataComparison;
 
-
             if (this.dataComparisonConfig != null && newResearchData.length > 0) {
 
                 let comparingFields = this.dataComparisonConfig.fieldsToCompare;
 
                 switch (dataComparison) {
                     case "newSearch":
-
 
                         let compareReadyData = {};
 
@@ -842,6 +840,8 @@ new Vue({
                     let dataTableFormat = { "top rows": topRows };
                     this.dataTableFormat = dataTableFormat;
                 }
+
+                console.log("updatedData", updatedData);
 
                 this.$store.dispatch("unfilteredData", updatedData);
                 this.$store.dispatch("filteredData", updatedData);
