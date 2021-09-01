@@ -64,6 +64,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
+
     },
 
     render(createElement, context) {
@@ -71,9 +72,7 @@ new Vue({
     },
 
     mounted() {
-        this.$nextTick(function () {
 
-        })
     },
     beforeDestroy() {
 
@@ -333,7 +332,6 @@ new Vue({
             }
         },
         queryAPI() {
-            uiUtils.showElement("data-loading-indicator");
 
             if (this.apiParameters.query.type == "array") {
                 let parametersArr = this.apiParameters.query.format;
@@ -371,6 +369,8 @@ new Vue({
 
 
                     this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                } else {
+                    uiUtils.hideElement("data-loading-indicator");
                 }
             }
         },
@@ -775,7 +775,7 @@ new Vue({
             }
         },
         researchPage(content) {
-            if (content.length != 0) {
+            if (content.length != 0 && content != null) {
                 if (content[0]["field_page_style"] != false) {
                     let css = content[0]["field_page_style"];
                     this.addcss(css);
@@ -786,6 +786,7 @@ new Vue({
                     this.dataTableFormat = JSON.parse(content[0]["field_data_table_format"]);
                 }
                 //Load data
+
                 if (content[0]["field_data_points"] != false) {
 
                     let dataFiles = content[0]["field_data_points"].split(",");
@@ -834,14 +835,11 @@ new Vue({
                 uiUtils.hideElement("data-loading-indicator");
                 let updatedData = this.checkDataComparison(content, this.$store.state.filteredData);
 
-
                 if (this.dataTableFormat == null) {
                     let topRows = Object.keys(content[0]);
                     let dataTableFormat = { "top rows": topRows };
                     this.dataTableFormat = dataTableFormat;
                 }
-
-                console.log("updatedData", updatedData);
 
                 this.$store.dispatch("unfilteredData", updatedData);
                 this.$store.dispatch("filteredData", updatedData);

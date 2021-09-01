@@ -17,15 +17,13 @@
             class="mbm-plot-legend"
             v-html="renderConfig.legend"
         ></div>
-        <div
-            v-if="
-                !!searchParameters &&
-                dataComparisonConfig != null &&
-                searchParameters[dataComparisonConfig.fieldsGroupDataKey].search
-                    .length > 1
-            "
-            class="score-plot-bubbles"
-        >
+        {{ searchParam }}
+        <div class="score-plot-bubbles">
+            <span
+                class="plot-item-bubble reference"
+                style="background-color: #00000030"
+                >Avarage</span
+            >
             <span
                 v-for="(item, itemIndex) in searchParameters[
                     dataComparisonConfig.fieldsGroupDataKey
@@ -48,7 +46,7 @@
                     <option value="all">All</option>
                 </select>
             </label>
-            <label
+            <label v-if="renderConfig.reCalculateScore == true"
                 >Score by:
                 <div
                     v-for="(option, opIndex) in renderConfig.scoreBy"
@@ -161,7 +159,7 @@ export default Vue.component("research-score-plot", {
                 "#cccc0050",
                 "#6FC7B650",
                 "#D5A76850",
-                "#D4D4D450",
+                "#d4d4d450",
             ],
             leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
             rightMargin: 0.5,
@@ -183,8 +181,12 @@ export default Vue.component("research-score-plot", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
+        searchParam() {
+            let rawSearchParam = this.$store.state.searchParameters;
+            return rawSearchParam;
+        },
         renderData() {
-            let rawData = this.plotData; //!!this.dataComparisonConfig ? this.obj2Array(this.plotData): this.plotData;
+            let rawData = this.plotData;
             let massagedData = { sorted: {}, unsorted: [] };
 
             for (const chr in this.chromosomeLength) {
@@ -246,10 +248,12 @@ export default Vue.component("research-score-plot", {
         renderData() {
             this.renderPlot();
         },
+        searchParam(SEARCH) {
+            console.log("new search param", SEARCH);
+        },
     },
     methods: {
         ...uiUtils,
-
         calculateScore() {
             let scoreColumns = function (row, scoreBy) {
                 let fieldValue = 0;

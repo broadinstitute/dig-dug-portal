@@ -79,7 +79,6 @@ export default new Vuex.Store({
         searchParameters(context, searchParameters) {
             context.commit("setSearchParameters", searchParameters);
         },
-
         dataComparison(context, dataComparison) {
             context.commit("setDataComparison", dataComparison);
         },

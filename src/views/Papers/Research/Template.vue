@@ -141,16 +141,16 @@
                                 ></research-page-filters>
                             </div>
                             <!-- plots -->
-                            <div :class="'col-md-12 ' + $parent.plotClass">
+                            <div
+                                :class="'col-md-12 ' + $parent.plotClass"
+                                v-if="$store.state.filteredData != ''"
+                            >
                                 <div
                                     class="plot-legend"
                                     v-html="$parent.plotLegend"
                                 ></div>
                                 <research-m-plot
-                                    v-if="
-                                        $store.state.filteredData != '' &&
-                                        $parent.plotType == 'm_plot'
-                                    "
+                                    v-if="$parent.plotType == 'm_plot'"
                                     :plotData="$store.state.filteredData"
                                     :locusKey="$parent.plotConfig['locusKey']"
                                     :scoreKey="$parent.plotConfig['scoreKey']"
@@ -168,19 +168,13 @@
                                 ></research-m-plot>
 
                                 <research-m-bitmap-plot
-                                    v-if="
-                                        $store.state.filteredData != '' &&
-                                        $parent.plotType == 'mbm_plot'
-                                    "
+                                    v-if="$parent.plotType == 'mbm_plot'"
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
                                 ></research-m-bitmap-plot>
                                 <research-region-plot
-                                    v-if="
-                                        $store.state.filteredData != '' &&
-                                        $parent.plotType == 'region_plot'
-                                    "
+                                    v-if="$parent.plotType == 'region_plot'"
                                     :genesInRegion="$store.state.genesInRegion"
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
@@ -194,10 +188,7 @@
                                 ></research-region-plot>
 
                                 <research-score-plot
-                                    v-if="
-                                        $store.state.filteredData != '' &&
-                                        $parent.plotType == 'score_plot'
-                                    "
+                                    v-if="$parent.plotType == 'score_plot'"
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
@@ -210,19 +201,13 @@
                                 ></research-score-plot>
 
                                 <research-volcano-plot
-                                    v-if="
-                                        $store.state.filteredData != '' &&
-                                        $parent.plotType == 'volcano_plot'
-                                    "
+                                    v-if="$parent.plotType == 'volcano_plot'"
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                 ></research-volcano-plot>
 
                                 <research-heatmap
-                                    v-if="
-                                        $store.state.filteredData != '' &&
-                                        $parent.plotType == 'h_map'
-                                    "
+                                    v-if="$parent.plotType == 'h_map'"
                                     :heatmapData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                 ></research-heatmap>
@@ -263,7 +248,7 @@
             </div>
             <div
                 class="data-loading-indicator"
-                v-if="$parent.dataPoints != false && $parent.isAPI == false"
+                v-if="$parent.dataPoints != false"
             >
                 Loading data...
             </div>

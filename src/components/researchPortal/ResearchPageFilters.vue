@@ -75,7 +75,12 @@
                     </div>
                     <b-badge
                         v-if="this.numberOfSearchParams() > 1"
-                        class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                        class="
+                            badge badge-secondary badge-pill
+                            btn
+                            search-bubble
+                            clear-all-filters-bubble
+                        "
                         @click="removeAllSearchParams()"
                     >
                         Clear all filters
@@ -221,7 +226,12 @@
             </div>
             <b-badge
                 v-if="this.numberOfSearches() > 1"
-                class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                class="
+                    badge badge-secondary badge-pill
+                    btn
+                    search-bubble
+                    clear-all-filters-bubble
+                "
                 @click="removeAllFilters()"
             >
                 Clear all search
@@ -584,14 +594,15 @@ export default Vue.component("research-page-filters", {
                                         }
                                     });
                                 } else if (searchIndex.type == "search_cd") {
-                                    let searchDirection = document.getElementById(
-                                        "filter_" +
-                                            searchIndex.field.replace(
-                                                / /g,
-                                                ""
-                                            ) +
-                                            "_direction"
-                                    ).value;
+                                    let searchDirection =
+                                        document.getElementById(
+                                            "filter_" +
+                                                searchIndex.field.replace(
+                                                    / /g,
+                                                    ""
+                                                ) +
+                                                "_direction"
+                                        ).value;
 
                                     targetData.filter((row) => {
                                         if (searchDirection == "lt") {
@@ -838,14 +849,15 @@ export default Vue.component("research-page-filters", {
                                         }
                                     }
                                 } else if (searchIndex.type == "search_cd") {
-                                    let searchDirection = document.getElementById(
-                                        "filter_" +
-                                            searchIndex.field.replace(
-                                                / /g,
-                                                ""
-                                            ) +
-                                            "_direction"
-                                    ).value;
+                                    let searchDirection =
+                                        document.getElementById(
+                                            "filter_" +
+                                                searchIndex.field.replace(
+                                                    / /g,
+                                                    ""
+                                                ) +
+                                                "_direction"
+                                        ).value;
 
                                     if (searchDirection == "lt") {
                                         for (var rowNum in targetData) {
