@@ -237,7 +237,6 @@
                 Clear all search
             </b-badge>
         </b-container>
-        {{ dataComparisonConfig }}
     </div>
 </template>
 

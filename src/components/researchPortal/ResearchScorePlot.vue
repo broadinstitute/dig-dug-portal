@@ -17,8 +17,7 @@
             class="mbm-plot-legend"
             v-html="renderConfig.legend"
         ></div>
-        {{ searchParam }}
-        <div class="score-plot-bubbles">
+        <div class="score-plot-bubbles" v-if="dataComparisonConfig != null">
             <span
                 class="plot-item-bubble reference"
                 style="background-color: #00000030"
@@ -181,10 +180,6 @@ export default Vue.component("research-score-plot", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
-        searchParam() {
-            let rawSearchParam = this.$store.state.searchParameters;
-            return rawSearchParam;
-        },
         renderData() {
             let rawData = this.plotData;
             let massagedData = { sorted: {}, unsorted: [] };
@@ -247,9 +242,6 @@ export default Vue.component("research-score-plot", {
     watch: {
         renderData() {
             this.renderPlot();
-        },
-        searchParam(SEARCH) {
-            console.log("new search param", SEARCH);
         },
     },
     methods: {
