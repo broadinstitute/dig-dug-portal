@@ -98,7 +98,6 @@ export default Vue.component("research-score-plot", {
     props: [
         "plotData",
         "renderConfig",
-        "filtersIndex",
         "dataComparisonConfig",
         "searchParameters",
     ],

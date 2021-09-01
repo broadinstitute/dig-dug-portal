@@ -191,7 +191,6 @@
                                     v-if="$parent.plotType == 'score_plot'"
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
-                                    :filtersIndex="$store.state.filtersIndex"
                                     :dataComparisonConfig="
                                         $parent.dataComparisonConfig
                                     "
