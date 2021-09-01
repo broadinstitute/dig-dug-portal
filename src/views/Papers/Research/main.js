@@ -20,6 +20,7 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
+import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
@@ -44,6 +45,7 @@ new Vue({
         ResearchMPlotBitmap,
         ResearchRegionPlot,
         ResearchScorePlot,
+        ResearchGenesTrack,
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,

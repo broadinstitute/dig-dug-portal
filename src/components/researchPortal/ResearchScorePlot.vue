@@ -98,7 +98,6 @@ export default Vue.component("research-score-plot", {
     props: [
         "plotData",
         "renderConfig",
-        "filtersIndex",
         "dataComparisonConfig",
         "searchParameters",
     ],
@@ -181,6 +180,7 @@ export default Vue.component("research-score-plot", {
     },
     computed: {
         renderData() {
+            console.log(this.plotData);
             let rawData = this.plotData;
             let massagedData = { sorted: {}, unsorted: [] };
 

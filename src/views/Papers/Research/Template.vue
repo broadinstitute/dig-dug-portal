@@ -191,7 +191,6 @@
                                     v-if="$parent.plotType == 'score_plot'"
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
-                                    :filtersIndex="$store.state.filtersIndex"
                                     :dataComparisonConfig="
                                         $parent.dataComparisonConfig
                                     "
@@ -199,6 +198,16 @@
                                         $store.state.searchParameters
                                     "
                                 ></research-score-plot>
+
+                                <research-genes-track
+                                    v-if="
+                                        $parent.plotConfig != null &&
+                                        !!$parent.plotConfig.genesTrack
+                                    "
+                                    :genesInRegion="$store.state.genesInRegion"
+                                    :plotConfig="$parent.plotConfig"
+                                    :plotType="'score_plot'"
+                                ></research-genes-track>
 
                                 <research-volcano-plot
                                     v-if="$parent.plotType == 'volcano_plot'"

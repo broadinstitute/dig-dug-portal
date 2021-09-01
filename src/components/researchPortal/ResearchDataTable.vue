@@ -38,10 +38,17 @@
                 </select>
             </label>
             <div
+                v-if="dataComparisonConfig == null"
                 class="convert-2-csv btn-sm"
                 @click="convertJson2Csv(filteredData, pageID + '_filtered')"
             >
                 Save as CSV
+            </div>
+            <div
+                class="convert-2-csv btn-sm"
+                @click="saveJson(filteredData, pageID + '_filtered')"
+            >
+                Save as JSON
             </div>
         </div>
 
@@ -354,6 +361,9 @@ export default Vue.component("research-data-table", {
         convertJson2Csv(DATA, FILENAME) {
             uiUtils.convertJson2Csv(DATA, FILENAME);
         },
+        saveJson(DATA, FILENAME) {
+            uiUtils.saveJson(DATA, FILENAME);
+        },
         formatValue(tdValue, tdKey) {
             if (
                 this.tableFormat["column formatting"] != undefined &&
@@ -634,6 +644,7 @@ table.research-data-table {
     padding: 3px 10px;
     border-radius: 15px;
     font-size: 12px;
+    margin-right: 10px;
     display: inline-block;
 }
 

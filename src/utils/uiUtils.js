@@ -165,6 +165,20 @@ let convertJson2Csv = function (DATA, FILENAME) {
     document.body.removeChild(downloadLink);
 };
 
+let saveJson = function (DATA, FILENAME) {
+    const items = DATA;
+    const downloadFilename = FILENAME || "download";
+
+    let downloadLink = document.createElement("a");
+    let blob = new Blob(["\ufeff", JSON.stringify(DATA)]);
+    let url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = downloadFilename + ".json"; //Name the file here
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+};
+
 let getAxisTicks = function (lo, hi) {
     let step = 10 ** (Math.round(Math.log10(hi - lo)) - 1);
     let value = (Math.floor((lo + step) / step) - 1) * step;
@@ -199,5 +213,6 @@ export default {
     getToolTipPosition,
     onScroll,
     convertJson2Csv,
+    saveJson,
     getAxisTicks
 };

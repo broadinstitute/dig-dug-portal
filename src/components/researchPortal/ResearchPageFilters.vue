@@ -1032,6 +1032,8 @@ export default Vue.component("research-page-filters", {
     padding: 15px;
     padding-left: 25px;
     transition: all 0.5s;
+    background-color: #ddefff;
+    border: solid 1px #bbdfff;
 }
 
 .filtering-ui-wrapper.search-criteria.closed {
