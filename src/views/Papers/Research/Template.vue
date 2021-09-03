@@ -173,7 +173,7 @@
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
                                 ></research-m-bitmap-plot>
-                                <!--<research-region-plot
+                                <research-region-plot
                                     v-if="$parent.plotType == 'region_plot'"
                                     :genesInRegion="$store.state.genesInRegion"
                                     :plotData="$store.state.filteredData"
@@ -185,7 +185,7 @@
                                     :dataComparisonConfig="
                                         $parent.dataComparisonConfig
                                     "
-                                ></research-region-plot>-->
+                                ></research-region-plot>
 
                                 <research-score-plot
                                     v-if="$parent.plotType == 'score_plot'"
@@ -194,6 +194,7 @@
                                     :dataComparisonConfig="
                                         $parent.dataComparisonConfig
                                     "
+                                    :region="$store.state.searchingRegion"
                                     :searchParameters="
                                         $store.state.searchParameters
                                     "

@@ -100,6 +100,7 @@ Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-score-plot", {
     props: [
+        "region",
         "plotData",
         "renderConfig",
         "dataComparisonConfig",
@@ -183,6 +184,18 @@ export default Vue.component("research-score-plot", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
+        searchingRegion() {
+            if (this.region == null) {
+                return null;
+            } else {
+                let returnObj = {};
+                let regionArr = this.region.split(":")[1].split("-");
+                returnObj["start"] = regionArr[0];
+                returnObj["end"] = regionArr[1];
+
+                return returnObj;
+            }
+        },
         renderData() {
             //console.log(this.plotData);
             let rawData = this.plotData;
@@ -487,7 +500,7 @@ export default Vue.component("research-score-plot", {
 
             let canvasRenderWidth = !!this.renderConfig.width
                 ? this.renderConfig.width + this.leftMargin + this.rightMargin
-                : document.getElementById("scorePlotWrapper").clientWidth - 30; // -30 for - padding//window.innerWidth - 115;
+                : document.getElementById("scorePlotWrapper").clientWidth - 30; //
 
             let canvasRenderHeight = !!this.renderConfig.height
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
@@ -528,7 +541,6 @@ export default Vue.component("research-score-plot", {
             );
 
             // render y ticker
-
             let yMin = null;
             let yMax = null;
 
@@ -615,6 +627,7 @@ export default Vue.component("research-score-plot", {
                 this.leftMargin - this.leftMargin / 2 - 14
             );
 
+            ctx.rotate((Math.PI * 2) / 4);
             let dnaLength = 0;
 
             //get list of chrs with variants
@@ -629,24 +642,62 @@ export default Vue.component("research-score-plot", {
             if (chrs.length == 1) {
                 let chr = chrs[0];
 
-                this.renderData.sorted[chr].map((v) => {
-                    if (chrLengthMin == 0) {
-                        chrLengthMin = v.locus;
-                    }
-                    if (chrLengthMax == 0) {
-                        chrLengthMax = v.locus;
-                    }
-                    if (v.locus < chrLengthMin) {
-                        chrLengthMin = v.locus;
-                    }
-                    if (v.locus > chrLengthMax) {
-                        chrLengthMax = v.locus;
-                    }
-                });
+                if (this.searchingRegion != null) {
+                    chrLengthMin = Number(this.searchingRegion.start);
+                    chrLengthMax = Number(this.searchingRegion.end);
+                } else {
+                    this.renderData.sorted[chr].map((v) => {
+                        if (chrLengthMin == 0) {
+                            chrLengthMin = v.locus;
+                        }
+                        if (chrLengthMax == 0) {
+                            chrLengthMax = v.locus;
+                        }
+                        if (v.locus < chrLengthMin) {
+                            chrLengthMin = v.locus;
+                        }
+                        if (v.locus > chrLengthMax) {
+                            chrLengthMax = v.locus;
+                        }
+                    });
+                }
 
                 this.chromosomeLength[chr] = chrLengthMax;
 
                 dnaLength = chrLengthMax - chrLengthMin;
+
+                let xStep = Math.ceil((chrLengthMax - chrLengthMin) / 4);
+
+                // X ticks
+                let xTickDistance = (plotWidth - 5) / 4;
+
+                console.log("xTickDistance", xTickDistance);
+
+                for (let i = 0; i < 5; i++) {
+                    let tickXPos = this.leftMargin + i * xTickDistance + 5;
+                    let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+                    ctx.moveTo(
+                        adjTickXPos,
+                        this.topMargin + plotHeight + yBump
+                    );
+                    ctx.lineTo(
+                        adjTickXPos,
+                        this.topMargin + plotHeight + yBump + 5
+                    );
+                    ctx.stroke();
+
+                    ctx.font = "12px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#000000";
+
+                    let posNum =
+                        i < 4 ? chrLengthMin + i * xStep : chrLengthMax;
+                    ctx.fillText(
+                        posNum,
+                        adjTickXPos,
+                        this.topMargin + plotHeight + yBump + 15
+                    );
+                }
             } else {
                 chrs.map((chr) => {
                     let chrLength = 0;
@@ -669,10 +720,8 @@ export default Vue.component("research-score-plot", {
 
             let xStart = this.leftMargin + 5;
             ctx.textAlign = "center";
-            ctx.rotate((Math.PI * 2) / 4);
-
-            if (chrs.length == 1) {
-                ctx.fillText(
+            if (chrs.length > 1) {
+                /*ctx.fillText(
                     chrLengthMin,
                     this.leftMargin + 5,
                     this.topMargin + plotHeight + yBump + 20
@@ -683,7 +732,7 @@ export default Vue.component("research-score-plot", {
                     plotWidth + this.leftMargin,
                     this.topMargin + plotHeight + yBump + 20
                 );
-            } else {
+            } else {*/
                 chrs.map((chr) => {
                     let chrLength = this.chromosomeLength[chr] * chrByPixel;
                     xStart += chrLength;
