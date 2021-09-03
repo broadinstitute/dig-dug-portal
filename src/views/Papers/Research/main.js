@@ -881,18 +881,22 @@ new Vue({
 
             if (this.plotConfig != null &&
                 !!this.plotConfig.genesTrack) {
+                let region;
                 switch (this.plotConfig.inputType) {
                     case "static":
+                        region = this.plotConfig.region;
                         break;
                     case "dynamic":
                         let regionParam = this.plotConfig.dynamicParameter;
                         let searchLength = this.$store.state.searchParameters[regionParam].search.length
-                        let region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
+                        region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
 
-                        this.$store.dispatch("searchingRegion", region);
-                        this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
                         break;
                 }
+
+
+                this.$store.dispatch("searchingRegion", region);
+                this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
             }
 
             if (content != null && content.length > 0) {
