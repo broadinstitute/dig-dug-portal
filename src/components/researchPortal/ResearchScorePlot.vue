@@ -1,5 +1,5 @@
 <template>
-    <div class="mbm-plot-content">
+    <div class="mbm-plot-content row">
         <div id="clicked_dot_value" class="clicked-dot-value hidden">
             <div id="clicked_dot_value_content"></div>
         </div>
@@ -17,66 +17,70 @@
             class="mbm-plot-legend"
             v-html="renderConfig.legend"
         ></div>
-        <div class="score-plot-bubbles" v-if="dataComparisonConfig != null">
-            <span
-                class="plot-item-bubble reference"
-                style="background-color: #00000030"
-                >Avarage</span
+        <div class="col-md-12">
+            <div class="score-plot-bubbles" v-if="dataComparisonConfig != null">
+                <span
+                    class="plot-item-bubble reference"
+                    style="background-color: #00000030"
+                    >Avarage</span
+                >
+                <span
+                    v-for="(item, itemIndex) in searchParameters[
+                        dataComparisonConfig.fieldsGroupDataKey
+                    ].search"
+                    v-html="item"
+                    :key="item"
+                    :class="'plot-item-bubble reference bg-color-' + itemIndex"
+                ></span>
+            </div>
+            <div class="plot-score-options-ui">
+                <label v-if="dataComparisonConfig != null"
+                    >Render plot by:
+                    <select
+                        v-model="plotRenderBy"
+                        class="score-plot-render-by"
+                        @change="renderPlot()"
+                    >
+                        <option value="avarage">Avarage Score</option>
+                        <option value="high">Highest Score</option>
+                        <option value="all">All</option>
+                    </select>
+                </label>
+                <label v-if="renderConfig.reCalculateScore == true"
+                    >Score by:
+                    <div
+                        v-for="(option, opIndex) in renderConfig.scoreBy"
+                        :key="opIndex"
+                        class="plot-score-option"
+                    >
+                        <input
+                            type="checkbox"
+                            :id="'score_chkbox_' + opIndex"
+                            :name="'score_chkbox_' + opIndex"
+                            checked
+                            @click="calculateScore"
+                        />
+                        <label
+                            :for="'score_chkbox_' + opIndex"
+                            v-html="option.field"
+                        ></label>
+                    </div>
+                </label>
+            </div>
+        </div>
+        <div id="scorePlotWrapper" class="col-md-12">
+            <canvas
+                v-if="!!renderConfig"
+                id="scorePlot"
+                @mouseleave="hidePanel"
+                @mousemove="checkPosition"
+                @resize="onResize"
+                @click="getFullList"
+                width=""
+                height=""
             >
-            <span
-                v-for="(item, itemIndex) in searchParameters[
-                    dataComparisonConfig.fieldsGroupDataKey
-                ].search"
-                v-html="item"
-                :key="item"
-                :class="'plot-item-bubble reference bg-color-' + itemIndex"
-            ></span>
+            </canvas>
         </div>
-        <div class="plot-score-options-ui">
-            <label v-if="dataComparisonConfig != null"
-                >Render plot by:
-                <select
-                    v-model="plotRenderBy"
-                    class="score-plot-render-by"
-                    @change="renderPlot()"
-                >
-                    <option value="avarage">Avarage Score</option>
-                    <option value="high">Highest Score</option>
-                    <option value="all">All</option>
-                </select>
-            </label>
-            <label v-if="renderConfig.reCalculateScore == true"
-                >Score by:
-                <div
-                    v-for="(option, opIndex) in renderConfig.scoreBy"
-                    :key="opIndex"
-                    class="plot-score-option"
-                >
-                    <input
-                        type="checkbox"
-                        :id="'score_chkbox_' + opIndex"
-                        :name="'score_chkbox_' + opIndex"
-                        checked
-                        @click="calculateScore"
-                    />
-                    <label
-                        :for="'score_chkbox_' + opIndex"
-                        v-html="option.field"
-                    ></label>
-                </div>
-            </label>
-        </div>
-        <canvas
-            v-if="!!renderConfig"
-            id="scorePlot"
-            @mouseleave="hidePanel"
-            @mousemove="checkPosition"
-            @resize="onResize"
-            @click="getFullList"
-            width=""
-            height=""
-        >
-        </canvas>
         <div
             v-if="!!renderConfig.label"
             class="mbm-plot-label"
@@ -180,7 +184,7 @@ export default Vue.component("research-score-plot", {
     },
     computed: {
         renderData() {
-            console.log(this.plotData);
+            //console.log(this.plotData);
             let rawData = this.plotData;
             let massagedData = { sorted: {}, unsorted: [] };
 
@@ -461,7 +465,7 @@ export default Vue.component("research-score-plot", {
             }
         },
         getColorIndex(SKEY) {
-            console.log(this.searchParameters);
+            //console.log(this.searchParameters);
             let keyField = this.dataComparisonConfig.fieldsGroupDataKey;
             let keyParameterSeach = this.searchParameters[keyField].search;
             let colorIndex = "";
@@ -483,14 +487,14 @@ export default Vue.component("research-score-plot", {
 
             let canvasRenderWidth = !!this.renderConfig.width
                 ? this.renderConfig.width + this.leftMargin + this.rightMargin
-                : window.innerWidth - 115;
+                : document.getElementById("scorePlotWrapper").clientWidth - 30; // -30 for - padding//window.innerWidth - 115;
 
             let canvasRenderHeight = !!this.renderConfig.height
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
                 : 400;
 
-            let xBump = canvasRenderWidth * 0.02;
-            let yBump = canvasRenderHeight * 0.02;
+            let xBump = canvasRenderWidth * 0.03;
+            let yBump = canvasRenderHeight * 0.03;
 
             let plotWidth =
                 canvasRenderWidth -
@@ -989,6 +993,10 @@ $(function () {});
     font-size: 12px;
     text-align: right;
     padding-right: 20px;
+}
+
+.plot-score-options-ui > label {
+    margin-bottom: 0 !important;
 }
 
 .plot-score-option {
