@@ -461,6 +461,7 @@ export default Vue.component("research-score-plot", {
             }
         },
         getColorIndex(SKEY) {
+            console.log(this.searchParameters);
             let keyField = this.dataComparisonConfig.fieldsGroupDataKey;
             let keyParameterSeach = this.searchParameters[keyField].search;
             let colorIndex = "";

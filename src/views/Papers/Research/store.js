@@ -26,24 +26,34 @@ export default new Vuex.Store({
     state: {
         filteredData: "",
         unfilteredData: "",
-        genesInRegion: "",
+        searchingRegion: null,
+        genesInRegion: null,
+        codingGenesData: null,
         variantCorrelations: "",
         bioIndexContinue: [],
-        searchParameters: {},
+        searchParameters: null,
         dataComparison: "newSearch",
+
     },
     mutations: {
         setFilteredData(state, data) {
-
             state.filteredData = data;
         },
         setUnfilteredData(state, data) {
 
             state.unfilteredData = data;
         },
+        setSearchingRegion(state, data) {
+
+            state.searchingRegion = data;
+        },
         setGenesInRegion(state, data) {
 
             state.genesInRegion = data;
+        },
+        setCodingGenesData(state, data) {
+
+            state.codingGenesData = data;
         },
         setVariantCorrelations(state, data) {
 
@@ -69,6 +79,12 @@ export default new Vuex.Store({
         },
         genesInRegion(context, genes) {
             context.commit("setGenesInRegion", genes);
+        },
+        searchingRegion(context, region) {
+            context.commit("setSearchingRegion", region);
+        },
+        codingGenesData(context, setCodingGenesData) {
+            context.commit("setCodingGenesData", setCodingGenesData);
         },
         variantCorrelations(context, ldData) {
             context.commit("setVariantCorrelations", ldData);

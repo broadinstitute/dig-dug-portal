@@ -173,7 +173,7 @@
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
                                 ></research-m-bitmap-plot>
-                                <research-region-plot
+                                <!--<research-region-plot
                                     v-if="$parent.plotType == 'region_plot'"
                                     :genesInRegion="$store.state.genesInRegion"
                                     :plotData="$store.state.filteredData"
@@ -185,7 +185,7 @@
                                     :dataComparisonConfig="
                                         $parent.dataComparisonConfig
                                     "
-                                ></research-region-plot>
+                                ></research-region-plot>-->
 
                                 <research-score-plot
                                     v-if="$parent.plotType == 'score_plot'"
@@ -202,13 +202,14 @@
                                 <research-genes-track
                                     v-if="
                                         $parent.plotConfig != null &&
-                                        !!$parent.plotConfig.genesTrack
+                                        !!$parent.plotConfig.genesTrack &&
+                                        $store.state.codingGenesData != null
                                     "
-                                    :genesInRegion="$store.state.genesInRegion"
+                                    :region="$store.state.searchingRegion"
+                                    :genesData="$store.state.codingGenesData"
                                     :plotConfig="$parent.plotConfig"
-                                    :plotType="'score_plot'"
+                                    :plotType="$parent.plotType"
                                 ></research-genes-track>
-
                                 <research-volcano-plot
                                     v-if="$parent.plotType == 'volcano_plot'"
                                     :plotData="$store.state.filteredData"

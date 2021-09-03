@@ -477,7 +477,7 @@ new Vue({
                 return newResearchData;
             }
 
-        }
+        },
     },
 
     computed: {
@@ -765,10 +765,54 @@ new Vue({
                 return null;
             }
             return contents[0]["field_data_table_legend"];
+        },
+        searchingGenes() {
+            let contents = this.$store.state.hugeampkpncms.genesInRegion;
+
+            if (contents.length > 0) {
+                return JSON.parse(contents);
+            }
+        },
+        codingGenesData() {
+            let contents = this.$store.state.hugeampkpncms.genesData;
+
+            if (contents != null) {
+                return JSON.parse(contents);
+            }
         }
     },
 
     watch: {
+        codingGenesData(DATA) {
+            this.$store.dispatch("codingGenesData", DATA["data"]);
+        },
+        searchingGenes(CONTENTS) {
+
+            //console.log("genes in region", CONTENTS);
+
+            let genesData = CONTENTS["data"];
+            let codingGenes = "";
+            let genesLength = CONTENTS["data"].length;
+            if (genesLength > 1) {
+                genesData.map(gene => {
+                    if (gene.type = "protein_coding") {
+                        codingGenes += "\'" + gene.name + "\',";
+                    }
+                })
+                //console.log("codingGenes", codingGenes);
+
+                codingGenes = codingGenes.slice(0, -1)
+
+                if (codingGenes.length > 1) {
+                    this.$store.dispatch("hugeampkpncms/getGenesData", { "genes": codingGenes });
+                } else {
+                    this.$store.dispatch("codingGenesData", null);
+                }
+            } else {
+                this.$store.dispatch("codingGenesData", null);
+            }
+
+        },
         researchMode(content) {
             let pageMode = content;
 
@@ -832,6 +876,24 @@ new Vue({
 
         },
         researchData(content) {
+
+            // reset searching region if applicable
+
+            if (this.plotConfig != null &&
+                !!this.plotConfig.genesTrack) {
+                switch (this.plotConfig.inputType) {
+                    case "static":
+                        break;
+                    case "dynamic":
+                        let regionParam = this.plotConfig.dynamicParameter;
+                        let searchLength = this.$store.state.searchParameters[regionParam].search.length
+                        let region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
+
+                        this.$store.dispatch("searchingRegion", region);
+                        this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
+                        break;
+                }
+            }
 
             if (content != null && content.length > 0) {
                 uiUtils.hideElement("data-loading-indicator");
