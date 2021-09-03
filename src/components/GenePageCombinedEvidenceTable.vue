@@ -3,12 +3,12 @@
         <b-table-simple borderless fixed small>
             <b-tbody>
                 <b-tr>
-                    <b-td style="width:150px;" class="text-center">1.00</b-td>
-                    <b-td style="width:150px;" class="text-center">X</b-td>
-                    <b-td style="width:150px;" class="text-center">1.26</b-td>
-                    <b-td style="width:150px;" class="text-center">=</b-td>
-                    <b-td style="width:150px;" class="text-center">1.26</b-td>
-                    <b-td style="width:150px;" class="text-left"><-- HuGE Score</b-td>
+                    <b-td style="width:50px;background-color:#E7EDF7" class="text-center">1.00</b-td>
+                    <b-td style="width:25px;" class="text-center">X</b-td>
+                    <b-td style="width:50px;background-color:#fef8dc" class="text-center">1.26</b-td>
+                    <b-td style="width:25px;" class="text-center">=</b-td>
+                    <b-td style="width:50px;background-color:#c4edc8" class="text-center">1.26</b-td>
+                    <b-td style="width:75px;" class="text-left"><-- HuGE Score</b-td>
                 </b-tr>
             </b-tbody>
             <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
@@ -18,7 +18,6 @@
         
 <script>
 import Vue from "vue";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";

@@ -160,7 +160,7 @@
                     <!-- Phenotype Selector -->
 
                     <criterion-list-group
-                        v-model="$parent.regionPageSearchCriterion"
+                        v-model="$parent.genePageSearchCriterion"
                         :header="''"
                         class="top-associations-section-phenotype-filter"
                     >
@@ -184,11 +184,11 @@
                         <genepage-combinedevidence-table></genepage-combinedevidence-table>
                         <span
                             style="padding:10px 290px 10px 310px; font-weight:bold"
-                        >HuGe score 280 falls in "Extreme" category in combined evidence scale</span>
+                        >HuGe score {{$parent.combinedScore}} falls in "Extreme" category in combined evidence scale</span>
                         <color-bar-plot
                             :category="'Extreme'"
                             :elementid="'combinedVariation'"
-                            :score=" 280"
+                            :score="$parent.combinedScore"
                         ></color-bar-plot>
                     </div>
                 </div>

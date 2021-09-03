@@ -18,7 +18,7 @@ import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import Formatters from "@/utils/formatters";
 import VariantSearch from "@/components/VariantSearch";
-
+import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 
@@ -78,7 +78,7 @@ new Vue({
     data() {
         return {
             counter: 0,
-            regionPageSearchCriterion: [],
+            genePageSearchCriterion: [],
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
@@ -191,10 +191,27 @@ new Vue({
                     r.chromosome
                     }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
-        }
+        },
+
     },
 
     computed: {
+        selectedPhenotypes() {
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            if (Object.keys(phenotypeMap).length === 0) {
+                return [];
+            }
+
+            return this.genePageSearchCriterion
+                .filter(criterion => criterion.field === "phenotype")
+                .map(criterion => phenotypeMap[criterion.threshold]);
+        },
+
+        combinedScore() {
+            return 250
+            //return this.bayesFactorRareVariation * this.bayesFactorCommonVariation;
+        },
+
         bayesFactorRareVariation() {
             let masks = [];
             let rarebayesfactor = 1;
@@ -452,6 +469,32 @@ new Vue({
     },
 
     watch: {
+        selectedPhenotypes(phenotypes, oldPhenotypes) {
+            const removedPhenotypes = _.difference(
+                oldPhenotypes.map(p => p.name),
+                phenotypes.map(p => p.name)
+            );
+            // if (removedPhenotypes.length > 0) {
+            //     removedPhenotypes.forEach(removedPhenotype => {
+            //         delete this.pageAssociationsMap[removedPhenotype];
+            //         this.pageAssociations = Object.entries(
+            //             this.pageAssociationsMap
+            //         ).flatMap(pam => pam[1]);
+            //     });
+            // }
+            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
+            //console.log("current phenotypes",phenotypes)
+
+            // // reload the global enrichment for these phenotypes
+            // this.$store.dispatch("globalEnrichment/clear");
+            // phenotypes.forEach(p => {
+            //     this.$store.dispatch("globalEnrichment/query", {
+            //         q: p.name,
+            //         append: true
+            //     });
+            // });
+        },
+
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },

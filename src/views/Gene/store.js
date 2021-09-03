@@ -129,14 +129,14 @@ export default new Vuex.Store({
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
             context.dispatch('associations/query', { q: phenoRegionQuery });
         },
-        async getEGLData(context) {
-            let dataset = "mccarthy";
-            let trait = "t2d";
-            context.dispatch("kp4cd/getEglData", { dataset, trait });
-        },
-        async get52KAssociationData(context, gene) {
-            let name = gene || context.state.geneName;
-            context.dispatch('geneAssociations52k/query', { q: name });
-        }
+        // async getEGLData(context) {
+        //     let dataset = "mccarthy";
+        //     let trait = "t2d";
+        //     context.dispatch("kp4cd/getEglData", { dataset, trait });
+        // },
+        // async get52KAssociationData(context, gene) {
+        //     let name = gene || context.state.geneName;
+        //     context.dispatch('geneAssociations52k/query', { q: name });
+        // }
     }
 });
