@@ -1,5 +1,5 @@
 <template>
-    <div class="mbm-plot-content">
+    <div class="mbm-plot-content row">
         <div id="clicked_dot_value" class="clicked-dot-value hidden">
             <div id="clicked_dot_value_content"></div>
         </div>
@@ -17,36 +17,70 @@
             class="mbm-plot-legend"
             v-html="renderConfig.legend"
         ></div>
-        <div class="plot-score-options-ui">
-            <div
-                v-for="(option, opIndex) in renderConfig.scoreBy"
-                :key="opIndex"
-                class="plot-score-option"
-            >
-                <input
-                    type="checkbox"
-                    :id="'score_chkbox_' + opIndex"
-                    :name="'score_chkbox_' + opIndex"
-                    checked
-                    @click="calculateScore"
-                />
-                <label
-                    :for="'score_chkbox_' + opIndex"
-                    v-html="option.field"
-                ></label>
+        <div class="col-md-12">
+            <div class="score-plot-bubbles" v-if="dataComparisonConfig != null">
+                <span
+                    class="plot-item-bubble reference"
+                    style="background-color: #00000030"
+                    >Avarage</span
+                >
+                <span
+                    v-for="(item, itemIndex) in searchParameters[
+                        dataComparisonConfig.fieldsGroupDataKey
+                    ].search"
+                    v-html="item"
+                    :key="item"
+                    :class="'plot-item-bubble reference bg-color-' + itemIndex"
+                ></span>
+            </div>
+            <div class="plot-score-options-ui">
+                <label v-if="dataComparisonConfig != null"
+                    >Render plot by:
+                    <select
+                        v-model="plotRenderBy"
+                        class="score-plot-render-by"
+                        @change="renderPlot()"
+                    >
+                        <option value="avarage">Avarage Score</option>
+                        <option value="high">Highest Score</option>
+                        <option value="all">All</option>
+                    </select>
+                </label>
+                <label v-if="renderConfig.reCalculateScore == true"
+                    >Score by:
+                    <div
+                        v-for="(option, opIndex) in renderConfig.scoreBy"
+                        :key="opIndex"
+                        class="plot-score-option"
+                    >
+                        <input
+                            type="checkbox"
+                            :id="'score_chkbox_' + opIndex"
+                            :name="'score_chkbox_' + opIndex"
+                            checked
+                            @click="calculateScore"
+                        />
+                        <label
+                            :for="'score_chkbox_' + opIndex"
+                            v-html="option.field"
+                        ></label>
+                    </div>
+                </label>
             </div>
         </div>
-        <canvas
-            v-if="!!renderConfig"
-            id="scorePlot"
-            @mouseleave="hidePanel"
-            @mousemove="checkPosition"
-            @resize="onResize"
-            @click="getFullList"
-            width=""
-            height=""
-        >
-        </canvas>
+        <div id="scorePlotWrapper" class="col-md-12">
+            <canvas
+                v-if="!!renderConfig"
+                id="scorePlot"
+                @mouseleave="hidePanel"
+                @mousemove="checkPosition"
+                @resize="onResize"
+                @click="getFullList"
+                width=""
+                height=""
+            >
+            </canvas>
+        </div>
         <div
             v-if="!!renderConfig.label"
             class="mbm-plot-label"
@@ -65,9 +99,16 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-score-plot", {
-    props: ["plotData", "renderConfig", "filtersIndex"],
+    props: [
+        "region",
+        "plotData",
+        "renderConfig",
+        "dataComparisonConfig",
+        "searchParameters",
+    ],
     data() {
         return {
+            plotRenderBy: "avarage",
             plotRendered: 0,
             chromosomeLength: {
                 1: 248956422,
@@ -105,6 +146,24 @@ export default Vue.component("research-score-plot", {
                 "#3f007d",
                 "#cb181d",
             ],
+            compareGroupColors: [
+                "#007bff50",
+                "#04884550",
+                "#8490C850",
+                "#BF61A550",
+                "#EE312450",
+                "#FCD70050",
+                "#5555FF50",
+                "#7aaa1c50",
+                "#9F78AC50",
+                "#F8808450",
+                "#F5A4C750",
+                "#CEE6C150",
+                "#cccc0050",
+                "#6FC7B650",
+                "#D5A76850",
+                "#d4d4d450",
+            ],
             leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
             rightMargin: 0.5,
             topMargin: 10.5, // -0.5 to draw crisp line
@@ -125,7 +184,20 @@ export default Vue.component("research-score-plot", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
+        searchingRegion() {
+            if (this.region == null) {
+                return null;
+            } else {
+                let returnObj = {};
+                let regionArr = this.region.split(":")[1].split("-");
+                returnObj["start"] = regionArr[0];
+                returnObj["end"] = regionArr[1];
+
+                return returnObj;
+            }
+        },
         renderData() {
+            //console.log(this.plotData);
             let rawData = this.plotData;
             let massagedData = { sorted: {}, unsorted: [] };
 
@@ -133,25 +205,24 @@ export default Vue.component("research-score-plot", {
                 massagedData.sorted[chr] = [];
             }
 
-            rawData.map((r) => {
-                let region = r[this.renderConfig.xAxisField];
-                //console.log(region);
+            let renderConfig = this.renderConfig;
+
+            let feedMassagedData = function (r) {
+                let region = r[renderConfig.xAxisField];
+
                 if (region != undefined && region != "" && region != null) {
                     let tempObj = {};
-                    tempObj[this.renderConfig.renderBy] =
-                        r[this.renderConfig.renderBy];
+                    tempObj[renderConfig.renderBy] = r[renderConfig.renderBy];
 
-                    if (!!this.renderConfig.hoverContent) {
-                        let hoverContent = this.renderConfig.hoverContent;
+                    if (!!renderConfig.hoverContent) {
+                        let hoverContent = renderConfig.hoverContent;
 
                         hoverContent.map((h) => {
                             tempObj[h] = r[h];
                         });
                     }
 
-                    let locationArr = r[this.renderConfig.xAxisField].split(
-                        ":"
-                    );
+                    let locationArr = r[renderConfig.xAxisField].split(":");
 
                     let chr = locationArr[0].trim();
 
@@ -164,13 +235,23 @@ export default Vue.component("research-score-plot", {
                               2
                             : Number(regionArr[0].trim());
 
-                    tempObj[this.renderConfig.yAxisField] =
-                        r[this.renderConfig.yAxisField];
+                    tempObj[renderConfig.yAxisField] =
+                        r[renderConfig.yAxisField];
 
                     massagedData.sorted[chr].push(tempObj);
                     massagedData.unsorted.push(tempObj);
                 }
-            });
+            };
+
+            if (!!this.dataComparisonConfig) {
+                for (const [rKey, r] of Object.entries(rawData)) {
+                    feedMassagedData(r);
+                }
+            } else {
+                rawData.map((r) => {
+                    feedMassagedData(r);
+                });
+            }
 
             return massagedData;
         },
@@ -192,7 +273,8 @@ export default Vue.component("research-score-plot", {
                     let fName = f.field;
                     switch (scoreType) {
                         case "boolean":
-                            let value2Score = f.valueToScore[row[fName]];
+                            let value2Score =
+                                f.valueToScore[row[fName]] * f.weight;
                             fieldValue += value2Score;
                             break;
                     }
@@ -247,16 +329,40 @@ export default Vue.component("research-score-plot", {
                                 "</b></span>";
 
                             if (!!this.renderConfig.hoverContent) {
-                                let hoverContent = this.renderConfig
-                                    .hoverContent;
+                                let hoverContent =
+                                    this.renderConfig.hoverContent;
 
-                                hoverContent.map((h) => {
-                                    clickedDotValue +=
-                                        '<span class="content-on-clicked-dot">' +
-                                        h +
-                                        ": " +
-                                        dotObject[h] +
-                                        "</span>";
+                                hoverContent.map((hc) => {
+                                    if (
+                                        this.dataComparisonConfig != null &&
+                                        this.dataComparisonConfig.fieldsToCompare.includes(
+                                            hc
+                                        )
+                                    ) {
+                                        clickedDotValue +=
+                                            '<span class="content-on-clicked-dot">' +
+                                            hc +
+                                            ":</span>";
+
+                                        for (const [
+                                            hcKey,
+                                            hcValue,
+                                        ] of Object.entries(dotObject[hc])) {
+                                            clickedDotValue +=
+                                                '<span class="content-on-clicked-dot">&nbsp;&nbsp;' +
+                                                hcKey +
+                                                ": " +
+                                                hcValue +
+                                                "</span>";
+                                        }
+                                    } else {
+                                        clickedDotValue +=
+                                            '<span class="content-on-clicked-dot">' +
+                                            hc +
+                                            ": " +
+                                            dotObject[hc] +
+                                            "</span>";
+                                    }
                                 });
                             }
                         }
@@ -305,16 +411,42 @@ export default Vue.component("research-score-plot", {
                                     "</b></span>";
 
                                 if (!!this.renderConfig.hoverContent) {
-                                    let hoverContent = this.renderConfig
-                                        .hoverContent;
+                                    let hoverContent =
+                                        this.renderConfig.hoverContent;
 
-                                    hoverContent.map((h) => {
-                                        clickedDotValue +=
-                                            '<span class="content-on-clicked-dot">' +
-                                            h +
-                                            ": " +
-                                            dotObject[h] +
-                                            "</span>";
+                                    hoverContent.map((hc) => {
+                                        if (
+                                            this.dataComparisonConfig != null &&
+                                            this.dataComparisonConfig.fieldsToCompare.includes(
+                                                hc
+                                            )
+                                        ) {
+                                            clickedDotValue +=
+                                                '<span class="content-on-clicked-dot">' +
+                                                hc +
+                                                ":</span>";
+
+                                            for (const [
+                                                hcKey,
+                                                hcValue,
+                                            ] of Object.entries(
+                                                dotObject[hc]
+                                            )) {
+                                                clickedDotValue +=
+                                                    '<span class="content-on-clicked-dot">&nbsp;&nbsp;' +
+                                                    hcKey +
+                                                    ": " +
+                                                    hcValue +
+                                                    "</span>";
+                                            }
+                                        } else {
+                                            clickedDotValue +=
+                                                '<span class="content-on-clicked-dot">' +
+                                                hc +
+                                                ": " +
+                                                dotObject[hc] +
+                                                "</span>";
+                                        }
                                     });
                                 }
                             }
@@ -345,6 +477,21 @@ export default Vue.component("research-score-plot", {
                 document.getElementById("scorePlot").classList.remove("hover");
             }
         },
+        getColorIndex(SKEY) {
+            //console.log(this.searchParameters);
+            let keyField = this.dataComparisonConfig.fieldsGroupDataKey;
+            let keyParameterSeach = this.searchParameters[keyField].search;
+            let colorIndex = "";
+            //if (keyParameterSeach.length > 1) {
+            keyParameterSeach.map((sValue, sIndex) => {
+                if (SKEY == sValue) {
+                    colorIndex = sIndex;
+                }
+            });
+            //}
+
+            return colorIndex;
+        },
         renderPlot() {
             this.dotPosData = {};
 
@@ -353,18 +500,19 @@ export default Vue.component("research-score-plot", {
 
             let canvasRenderWidth = !!this.renderConfig.width
                 ? this.renderConfig.width + this.leftMargin + this.rightMargin
-                : window.innerWidth - 115;
+                : document.getElementById("scorePlotWrapper").clientWidth - 30; //
 
             let canvasRenderHeight = !!this.renderConfig.height
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
                 : 400;
 
-            let xBump = canvasRenderWidth * 0.02;
-            let yBump = canvasRenderHeight * 0.02;
+            let xBump = canvasRenderWidth * 0.03;
+            let yBump = canvasRenderHeight * 0.03;
 
             let plotWidth =
                 canvasRenderWidth -
                 (this.leftMargin + this.rightMargin + xBump);
+            let plotRenderWidth = plotWidth - 5;
             let plotHeight =
                 canvasRenderHeight -
                 (this.topMargin + yBump + this.bottomMargin);
@@ -393,33 +541,55 @@ export default Vue.component("research-score-plot", {
             );
 
             // render y ticker
-
             let yMin = null;
             let yMax = null;
 
             this.renderData.unsorted.map((d) => {
-                //yAxisData.push(d[this.renderConfig.yAxisField]);
+                if (
+                    !!this.dataComparisonConfig &&
+                    this.dataComparisonConfig.fieldsToCompare.includes(
+                        this.renderConfig.yAxisField
+                    ) == true
+                ) {
+                    for (const [key, value] of Object.entries(
+                        d[this.renderConfig.yAxisField]
+                    )) {
+                        let yValue = value;
 
-                let yValue = d[this.renderConfig.yAxisField];
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
 
-                if (yMin == null) {
-                    yMin = yValue;
-                }
-                if (yMax == null) {
-                    yMax = yValue;
-                }
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }
+                    }
+                } else {
+                    let yValue = d[this.renderConfig.yAxisField];
 
-                if (yValue < yMin) {
-                    yMin = yValue;
-                }
-                if (yValue > yMax) {
-                    yMax = yValue;
+                    if (yMin == null) {
+                        yMin = yValue;
+                    }
+                    if (yMax == null) {
+                        yMax = yValue;
+                    }
+
+                    if (yValue < yMin) {
+                        yMin = yValue;
+                    }
+                    if (yValue > yMax) {
+                        yMax = yValue;
+                    }
                 }
             });
 
             let yStep = (yMax - yMin) / 4;
-
-            //let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
 
             let yTickDistance = plotHeight / 4;
             for (let i = 0; i < 5; i++) {
@@ -457,6 +627,7 @@ export default Vue.component("research-score-plot", {
                 this.leftMargin - this.leftMargin / 2 - 14
             );
 
+            ctx.rotate((Math.PI * 2) / 4);
             let dnaLength = 0;
 
             //get list of chrs with variants
@@ -465,42 +636,115 @@ export default Vue.component("research-score-plot", {
             );
 
             // compare length of chromosomes in the data to the defalt
+            let chrLengthMax = 0;
+            let chrLengthMin = 0;
 
-            chrs.map((chr) => {
-                let chrLength = 0;
-                this.renderData.sorted[chr].map((v) => {
-                    chrLength = v.locus > chrLength ? v.locus : chrLength;
+            if (chrs.length == 1) {
+                let chr = chrs[0];
+
+                if (this.searchingRegion != null) {
+                    chrLengthMin = Number(this.searchingRegion.start);
+                    chrLengthMax = Number(this.searchingRegion.end);
+                } else {
+                    this.renderData.sorted[chr].map((v) => {
+                        if (chrLengthMin == 0) {
+                            chrLengthMin = v.locus;
+                        }
+                        if (chrLengthMax == 0) {
+                            chrLengthMax = v.locus;
+                        }
+                        if (v.locus < chrLengthMin) {
+                            chrLengthMin = v.locus;
+                        }
+                        if (v.locus > chrLengthMax) {
+                            chrLengthMax = v.locus;
+                        }
+                    });
+                }
+
+                this.chromosomeLength[chr] = chrLengthMax;
+
+                dnaLength = chrLengthMax - chrLengthMin;
+
+                let xStep = Math.ceil((chrLengthMax - chrLengthMin) / 4);
+
+                // X ticks
+                let xTickDistance = (plotWidth - 5) / 4;
+
+                console.log("xTickDistance", xTickDistance);
+
+                for (let i = 0; i < 5; i++) {
+                    let tickXPos = this.leftMargin + i * xTickDistance + 5;
+                    let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+                    ctx.moveTo(
+                        adjTickXPos,
+                        this.topMargin + plotHeight + yBump
+                    );
+                    ctx.lineTo(
+                        adjTickXPos,
+                        this.topMargin + plotHeight + yBump + 5
+                    );
+                    ctx.stroke();
+
+                    ctx.font = "12px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#000000";
+
+                    let posNum =
+                        i < 4 ? chrLengthMin + i * xStep : chrLengthMax;
+                    ctx.fillText(
+                        posNum,
+                        adjTickXPos,
+                        this.topMargin + plotHeight + yBump + 15
+                    );
+                }
+            } else {
+                chrs.map((chr) => {
+                    let chrLength = 0;
+                    this.renderData.sorted[chr].map((v) => {
+                        chrLength = v.locus > chrLength ? v.locus : chrLength;
+                    });
+
+                    this.chromosomeLength[chr] =
+                        chrLength > this.chromosomeLength[chr]
+                            ? chrLength
+                            : this.chromosomeLength[chr];
                 });
 
-                this.chromosomeLength[chr] =
-                    chrLength > this.chromosomeLength[chr]
-                        ? chrLength
-                        : this.chromosomeLength[chr];
-            });
+                chrs.map((chr) => {
+                    dnaLength += this.chromosomeLength[chr];
+                });
+            }
 
-            chrs.map((chr) => {
-                dnaLength += this.chromosomeLength[chr];
-            });
+            let chrByPixel = plotRenderWidth / dnaLength;
 
-            let chrByPixel = plotWidth / dnaLength;
-
-            let xStart = this.leftMargin;
+            let xStart = this.leftMargin + 5;
             ctx.textAlign = "center";
-            ctx.rotate((Math.PI * 2) / 4);
-
-            chrs.map((chr) => {
-                let chrLength = this.chromosomeLength[chr] * chrByPixel;
-                xStart += chrLength;
-                let chrPos = xStart - chrLength / 2;
-
-                ctx.fillText(
-                    chr,
-                    chrPos,
-                    this.topMargin + plotHeight + yBump + 14
+            if (chrs.length > 1) {
+                /*ctx.fillText(
+                    chrLengthMin,
+                    this.leftMargin + 5,
+                    this.topMargin + plotHeight + yBump + 20
                 );
 
-                //console.log("step 2", chr);
-            });
+                ctx.fillText(
+                    chrLengthMax,
+                    plotWidth + this.leftMargin,
+                    this.topMargin + plotHeight + yBump + 20
+                );
+            } else {*/
+                chrs.map((chr) => {
+                    let chrLength = this.chromosomeLength[chr] * chrByPixel;
+                    xStart += chrLength;
+                    let chrPos = xStart - chrLength / 2;
+
+                    ctx.fillText(
+                        chr,
+                        chrPos,
+                        this.topMargin + plotHeight + yBump + 14
+                    );
+                });
+            }
 
             //Render x axis label
 
@@ -511,61 +755,248 @@ export default Vue.component("research-score-plot", {
             );
 
             //Render Dots
-
-            xStart = 0;
-            let exChr = "";
-            let chrNum = 1;
-
-            chrs.map((chr) => {
+            if (chrs.length == 1) {
+                xStart = chrLengthMin;
+                let chr = chrs[0];
                 this.renderData.sorted[chr].map((g) => {
                     let xPos =
-                        (xStart + g.locus) * chrByPixel + this.leftMargin;
+                        (g.locus - xStart) * chrByPixel + this.leftMargin + 5;
 
                     let yPosByPixel = plotHeight / (yMax - yMin);
 
-                    let yPos =
-                        this.topMargin +
-                        plotHeight -
-                        (g[this.renderConfig.yAxisField] - yMin) * yPosByPixel;
+                    if (
+                        !!this.dataComparisonConfig &&
+                        this.dataComparisonConfig.fieldsToCompare.includes(
+                            this.renderConfig.yAxisField
+                        ) == true
+                    ) {
+                        let yField = g[this.renderConfig.yAxisField];
+                        let yPos,
+                            xLoc,
+                            yLoc,
+                            colorKey,
+                            dotColor,
+                            yFieldValue,
+                            yFieldKey,
+                            entries,
+                            yFieldValues;
 
-                    let dotColor = this.chromosomeColors[
-                        chrNum % this.chromosomeColors.length
-                    ];
+                        switch (this.plotRenderBy) {
+                            case "avarage":
+                                entries = 0;
+                                yFieldValues = 0;
+                                yFieldKey = "";
+                                for (const [yKey, yValue] of Object.entries(
+                                    yField
+                                )) {
+                                    entries++;
+                                    yFieldValues += yValue;
+                                    yFieldKey = yKey;
+                                }
 
-                    ctx.fillStyle = dotColor + "75";
+                                yFieldValue = yFieldValues / entries;
 
-                    ctx.lineWidth = 0;
-                    ctx.beginPath();
-                    ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
-                    ctx.fill();
+                                yPos =
+                                    this.topMargin +
+                                    plotHeight -
+                                    (yFieldValue - yMin) * yPosByPixel;
 
-                    let xLoc = xPos.toString().split(".")[0];
-                    let yLoc = yPos.toString().split(".")[0];
+                                colorKey = this.getColorIndex(yFieldKey);
 
-                    let hoverContent;
+                                dotColor =
+                                    entries == 1
+                                        ? this.compareGroupColors[colorKey]
+                                        : "#00000030";
 
-                    if (!!this.renderConfig.hoverContent) {
-                        hoverContent = this.renderConfig.hoverContent;
-                    }
+                                ctx.fillStyle = dotColor;
 
-                    if (!this.dotPosData[xLoc]) {
-                        this.dotPosData[xLoc] = {};
-                    }
-                    this.dotPosData[xLoc][yLoc] = {};
-                    this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
-                        g[this.renderConfig.renderBy];
-                    if (!!this.renderConfig.hoverContent) {
-                        hoverContent.map((h) => {
-                            this.dotPosData[xLoc][yLoc][h] = g[h];
-                        });
+                                ctx.lineWidth = 0;
+                                ctx.beginPath();
+                                ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                                ctx.fill();
+
+                                xLoc = xPos.toString().split(".")[0];
+                                yLoc = yPos.toString().split(".")[0];
+
+                                this.add2HoverContent(xLoc, yLoc, g);
+                                break;
+                            case "high":
+                                yFieldValue = 0;
+                                yFieldKey = "";
+                                entries = 0;
+                                for (const [yKey, yValue] of Object.entries(
+                                    yField
+                                )) {
+                                    yFieldKey =
+                                        entries == 0
+                                            ? yKey
+                                            : yValue > yFieldValue
+                                            ? yKey
+                                            : yFieldKey;
+
+                                    yFieldValue =
+                                        entries == 0
+                                            ? yValue
+                                            : yValue > yFieldValue
+                                            ? yValue
+                                            : yFieldValue;
+
+                                    entries++;
+                                }
+
+                                yPos =
+                                    this.topMargin +
+                                    plotHeight -
+                                    (yFieldValue - yMin) * yPosByPixel;
+
+                                colorKey = this.getColorIndex(yFieldKey);
+
+                                dotColor = this.compareGroupColors[colorKey];
+
+                                ctx.fillStyle = dotColor;
+
+                                ctx.lineWidth = 0;
+                                ctx.beginPath();
+                                ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                                ctx.fill();
+
+                                xLoc = xPos.toString().split(".")[0];
+                                yLoc = yPos.toString().split(".")[0];
+
+                                this.add2HoverContent(xLoc, yLoc, g);
+                                break;
+                            case "all":
+                                let yPosArr = [];
+                                for (const [yKey, yValue] of Object.entries(
+                                    yField
+                                )) {
+                                    yPos =
+                                        this.topMargin +
+                                        plotHeight -
+                                        (yValue - yMin) * yPosByPixel;
+
+                                    yPosArr.push(yPos);
+
+                                    colorKey = this.getColorIndex(yKey);
+
+                                    dotColor =
+                                        this.compareGroupColors[colorKey];
+
+                                    ctx.fillStyle = dotColor;
+
+                                    ctx.lineWidth = 0;
+                                    ctx.beginPath();
+                                    ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                                    ctx.fill();
+
+                                    xLoc = xPos.toString().split(".")[0];
+                                    yLoc = yPos.toString().split(".")[0];
+
+                                    this.add2HoverContent(xLoc, yLoc, g);
+                                }
+
+                                if (yPosArr.length > 1) {
+                                    yPosArr.sort(function (a, b) {
+                                        return a - b;
+                                    });
+
+                                    ctx.beginPath();
+                                    ctx.lineWidth = 1;
+                                    ctx.strokeStyle = "#00000030";
+                                    ctx.moveTo(xPos, yPosArr[0]);
+                                    ctx.lineTo(
+                                        xPos,
+                                        yPosArr[yPosArr.length - 1]
+                                    );
+                                    ctx.stroke();
+                                }
+                                break;
+                        }
+                    } else {
+                        let yPos =
+                            this.topMargin +
+                            plotHeight -
+                            (g[this.renderConfig.yAxisField] - yMin) *
+                                yPosByPixel;
+
+                        let dotColor =
+                            this.chromosomeColors[
+                                chr % this.chromosomeColors.length
+                            ];
+
+                        ctx.fillStyle = dotColor + "75";
+
+                        ctx.lineWidth = 0;
+                        ctx.beginPath();
+                        ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                        ctx.fill();
+
+                        let xLoc = xPos.toString().split(".")[0];
+                        let yLoc = yPos.toString().split(".")[0];
+
+                        this.add2HoverContent(xLoc, yLoc, g);
                     }
                 });
-                //if (chr != 1) {
-                xStart += this.chromosomeLength[chr];
-                //}
-                //exChr = chr;
-                chrNum++;
-            });
+            } else {
+                xStart = 0;
+                let exChr = "";
+                let chrNum = 1;
+
+                chrs.map((chr) => {
+                    this.renderData.sorted[chr].map((g) => {
+                        let xPos =
+                            (xStart + g.locus) * chrByPixel +
+                            this.leftMargin +
+                            5;
+
+                        let yPosByPixel = plotHeight / (yMax - yMin);
+
+                        let yPos =
+                            this.topMargin +
+                            plotHeight -
+                            (g[this.renderConfig.yAxisField] - yMin) *
+                                yPosByPixel;
+
+                        let dotColor =
+                            this.chromosomeColors[
+                                chrNum % this.chromosomeColors.length
+                            ];
+
+                        ctx.fillStyle = dotColor + "75";
+
+                        ctx.lineWidth = 0;
+                        ctx.beginPath();
+                        ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                        ctx.fill();
+
+                        let xLoc = xPos.toString().split(".")[0];
+                        let yLoc = yPos.toString().split(".")[0];
+                        this.add2HoverContent(xLoc, yLoc, g);
+                    });
+
+                    xStart += this.chromosomeLength[chr];
+                    chrNum++;
+                });
+            }
+        },
+        add2HoverContent(xLoc, yLoc, g) {
+            let hoverContent;
+
+            if (!!this.renderConfig.hoverContent) {
+                hoverContent = this.renderConfig.hoverContent;
+            }
+
+            if (!this.dotPosData[xLoc]) {
+                this.dotPosData[xLoc] = {};
+            }
+            this.dotPosData[xLoc][yLoc] = {};
+            this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
+                g[this.renderConfig.renderBy];
+            if (!!this.renderConfig.hoverContent) {
+                hoverContent.map((h) => {
+                    this.dotPosData[xLoc][yLoc][h] = g[h];
+                });
+            }
         },
     },
 });
@@ -574,15 +1005,53 @@ $(function () {});
 </script>
 
 <style>
+.score-plot-bubbles {
+    float: left;
+    font-size: 12px;
+    padding-top: 10px;
+}
+
+.plot-item-bubble {
+    margin-left: 3px;
+    margin-right: 3px;
+    padding: 2px 8px;
+    border-radius: 8px;
+}
+.score-plot-ui-wrapper {
+    text-align: left;
+    font-size: 12px;
+    float: left;
+}
+
+.score-plot-render-by {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 15px;
+    border: solid 1px #aaa;
+    background-color: #fff;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.score-plot-render-by:hover {
+    cursor: pointer;
+    background-color: #eee;
+}
+
 .plot-score-options-ui {
     font-size: 12px;
     text-align: right;
     padding-right: 20px;
 }
 
+.plot-score-options-ui > label {
+    margin-bottom: 0 !important;
+}
+
 .plot-score-option {
     display: inline-block;
     margin-right: 10px;
+    vertical-align: top;
 }
 
 .plot-score-option input[type="checkbox"] {

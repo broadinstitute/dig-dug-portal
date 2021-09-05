@@ -20,6 +20,7 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
+import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
@@ -44,6 +45,7 @@ new Vue({
         ResearchMPlotBitmap,
         ResearchRegionPlot,
         ResearchScorePlot,
+        ResearchGenesTrack,
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,
@@ -56,6 +58,7 @@ new Vue({
             dataFiles: [],
             dataFilesLabels: null,
             dataTableFormat: null,
+
         }
     },
 
@@ -63,6 +66,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
+
     },
 
     render(createElement, context) {
@@ -70,9 +74,7 @@ new Vue({
     },
 
     mounted() {
-        this.$nextTick(function () {
 
-        })
     },
     beforeDestroy() {
 
@@ -208,9 +210,7 @@ new Vue({
             });
 
 
-            let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], jsonData) : jsonData;
-
-            return jsonData;//processedData;
+            return jsonData;
         },
 
         convertData(CONVERT, DATA) {
@@ -271,49 +271,53 @@ new Vue({
                 return locus;
             }
 
-            DATA.map(d => {
-                let tempObj = {};
-                CONVERT.map(c => {
+            if (CONVERT != "no convert") {
+                DATA.map(d => {
+                    let tempObj = {};
+                    CONVERT.map(c => {
 
-                    let cType = c.type;
+                        let cType = c.type;
 
 
-                    switch (cType) {
-                        case "join":
-                            tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
-                            break;
+                        switch (cType) {
+                            case "join":
+                                tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
+                                break;
 
-                        case "join multi":
-                            tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
-                            break;
+                            case "join multi":
+                                tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
+                                break;
 
-                        case "get locus":
-                            tempObj[c["field name"]] = formatLocus(c["chromosome"], c["start"], c["end"], d);
-                            break;
+                            case "get locus":
+                                tempObj[c["field name"]] = formatLocus(c["chromosome"], c["start"], c["end"], d);
+                                break;
 
-                        case "calculate":
+                            case "calculate":
 
-                            let calType = c["calculation type"];
+                                let calType = c["calculation type"];
 
-                            switch (calType) {
-                                case "-log10":
-                                    tempObj[c["field name"]] = -Math.log10(d[c["raw field"]]);
-                                    break;
-                            }
-                            break;
+                                switch (calType) {
+                                    case "-log10":
+                                        tempObj[c["field name"]] = -Math.log10(d[c["raw field"]]);
+                                        break;
+                                }
+                                break;
 
-                        case "raw":
-                            tempObj[c["field name"]] = d[c["raw field"]];
-                            break;
+                            case "raw":
+                                tempObj[c["field name"]] = d[c["raw field"]];
+                                break;
 
-                        case "score columns":
-                            tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], d);
-                            break;
-                    }
-                })
+                            case "score columns":
+                                tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], d);
+                                break;
+                        }
+                    })
 
-                convertedData.push(tempObj);
-            });
+                    convertedData.push(tempObj);
+                });
+            } else {
+                convertedData = DATA;
+            }
 
             return convertedData;
         },
@@ -330,13 +334,6 @@ new Vue({
             }
         },
         queryAPI() {
-            uiUtils.showElement("data-loading-indicator");
-
-
-
-            //console.log("bioIndexContinue", this.$store.state.bioIndexContinue);
-
-
 
             if (this.apiParameters.query.type == "array") {
                 let parametersArr = this.apiParameters.query.format;
@@ -344,7 +341,7 @@ new Vue({
 
                 let paramTrueCount = 0;
                 parametersArr.map((param, index) => {
-                    //console.log(keyParams[param], index);
+
                     if (!!keyParams[param]) {
                         paramTrueCount++;
                     }
@@ -354,7 +351,7 @@ new Vue({
                     this.$store.state.bioIndexContinue = [];
                     let queryParams = "";
                     parametersArr.map((param, index) => {
-                        //console.log(param, index);
+
                         queryParams += keyParams[param].trim();
                         if (index + 1 < parametersArr.length) {
                             queryParams += ",";
@@ -372,9 +369,114 @@ new Vue({
 
                     let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
+
                     this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                } else {
+                    uiUtils.hideElement("data-loading-indicator");
                 }
             }
+        },
+        checkDataComparison(newResearchData, previousData) {
+
+            let dataComparison = this.$store.state.dataComparison;
+
+            if (this.dataComparisonConfig != null && newResearchData.length > 0) {
+
+                let comparingFields = this.dataComparisonConfig.fieldsToCompare;
+
+                switch (dataComparison) {
+                    case "newSearch":
+
+                        let compareReadyData = {};
+
+                        newResearchData.map(d => {
+                            let keyField = d[this.dataComparisonConfig.keyField];
+                            let tempObj = {};
+                            for (const [key, value] of Object.entries(d)) {
+                                if (comparingFields.includes(key) == true) {
+
+                                    let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+
+                                    tempObj[key] = {};
+                                    tempObj[key][fieldGroupKey] = value;
+                                } else {
+                                    tempObj[key] = value;
+                                }
+                            }
+                            compareReadyData[keyField] = tempObj;
+                        })
+
+
+
+                        return compareReadyData;
+
+                        break;
+
+                    case "overlapping":
+
+                        let overlappingData = {};
+
+                        newResearchData.map(d => {
+                            let keyField = d[this.dataComparisonConfig.keyField];
+                            let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+                            if (!!previousData[keyField]) {
+                                let tempObj = previousData[keyField];
+                                comparingFields.map(cf => {
+                                    tempObj[cf][fieldGroupKey] = d[cf];
+                                });
+
+                                overlappingData[keyField] = tempObj;
+                            }
+                        });
+
+
+
+                        return overlappingData;
+
+                        break;
+                    case "all":
+
+                        let allData = {}
+
+                        newResearchData.map(d => {
+                            let keyField = d[this.dataComparisonConfig.keyField];
+                            let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+                            if (!!previousData[keyField]) {
+                                let tempObj = previousData[keyField];
+                                comparingFields.map(cf => {
+                                    tempObj[cf][fieldGroupKey] = d[cf];
+                                });
+                                allData[keyField] = tempObj;
+
+                            } else {
+
+                                let tempObj = {};
+                                for (const [key, value] of Object.entries(d)) {
+                                    if (comparingFields.includes(key) == true) {
+
+                                        let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+
+                                        tempObj[key] = {};
+                                        tempObj[key][fieldGroupKey] = value;
+                                    } else {
+                                        tempObj[key] = value;
+                                    }
+                                }
+
+                                allData[keyField] = tempObj;
+                            }
+
+                        });
+
+                        return allData;
+
+                        break;
+
+                }
+            } else {
+                return newResearchData;
+            }
+
         },
     },
 
@@ -387,14 +489,12 @@ new Vue({
                 return JSON.parse(contents[0]["field_api_parameters"]);
             }
         },
-        dataComparison() {
+        dataComparisonConfig() {
             let contents = this.researchPage;
 
             if (contents === null || contents[0]["field_data_comparison"] == false) {
                 return null;
             }
-
-            //console.log("compare", JSON.parse(contents[0]["field_data_comparison"]))
 
             return JSON.parse(contents[0]["field_data_comparison"]);
         },
@@ -564,71 +664,68 @@ new Vue({
             }
             return JSON.parse(contents[0].field_menu);
         },
-        /*testResearchData() {
-             let contents = this.$store.state.hugeampkpncms.researchData;
-             return contents;
-         },*/
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
             if (contents.length === 0) {
                 return null;
-            }
-
-            let convertedData = (this.dataType == 'json' || this.dataType == 'bioindex') ? JSON.parse(contents) : this.csv2Json(contents);
-
-            if (this.dataType == 'bioindex') {
-                if (convertedData.continuation != null) {
-                    this.$store.dispatch("bioIndexContinue", convertedData.data);
-
-
-                    let APIPoint = this.dataFiles[0];
-                    if (this.dataType == "bioindex") {
-                        APIPoint +=
-                            "cont?token=" +
-                            convertedData.continuation;
-                    }
-
-                    let fetchParam = { dataPoint: APIPoint, domain: "external" };
-
-                    this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
-
-                } else if (convertedData.continuation == null && convertedData.page == 1) {
-                    let returnData = convertedData.data;
-
-                    let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : returnData;
-
-                    return processedData;
-                } else if (convertedData.continuation == null && convertedData.page != 1) {
-                    //merge all data from continue
-
-
-                    let continuedData = this.$store.state.bioIndexContinue;
-
-                    let mergedData = [];
-
-                    continuedData.map(cont => {
-                        cont.map(i => {
-                            mergedData.push(i);
-                        })
-                    });
-
-
-
-                    let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], mergedData) : mergedData;
-
-                    return processedData;
-
-                }
             } else {
-                let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
 
-                let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : returnData;
+                let convertedData = (this.dataType == 'json' || this.dataType == 'bioindex') ? JSON.parse(contents) : this.csv2Json(contents);
 
-                return processedData;
+                if (this.dataType == 'bioindex') {
+                    if (convertedData.continuation != null) {
+                        this.$store.dispatch("bioIndexContinue", convertedData.data);
+
+
+                        let APIPoint = this.dataFiles[0];
+                        if (this.dataType == "bioindex") {
+                            APIPoint +=
+                                "cont?token=" +
+                                convertedData.continuation;
+                        }
+
+                        let fetchParam = { dataPoint: APIPoint, domain: "external" };
+
+                        this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+
+                    } else if (convertedData.continuation == null && convertedData.page == 1) {
+                        let returnData = convertedData.data;
+
+                        let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
+
+
+                        return processedData;
+                    } else if (convertedData.continuation == null && convertedData.page != 1) {
+                        //merge all data from continue
+
+
+                        let continuedData = this.$store.state.bioIndexContinue;
+
+                        let mergedData = [];
+
+                        continuedData.map(cont => {
+                            cont.map(i => {
+                                mergedData.push(i);
+                            })
+                        });
+
+                        let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], mergedData) : this.convertData("no convert", mergedData);
+
+                        return processedData;
+
+                    }
+                } else {
+                    let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
+
+                    let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
+
+                    return processedData;
+                }
             }
 
         },
+
         researchMode() {
             let contents = this.$store.state.hugeampkpncms.researchMode;
 
@@ -669,9 +766,53 @@ new Vue({
             }
             return contents[0]["field_data_table_legend"];
         },
+        searchingGenes() {
+            let contents = this.$store.state.hugeampkpncms.genesInRegion;
+
+            if (contents.length > 0) {
+                return JSON.parse(contents);
+            }
+        },
+        codingGenesData() {
+            let contents = this.$store.state.hugeampkpncms.genesData;
+
+            if (contents != null) {
+                return JSON.parse(contents);
+            }
+        }
     },
 
     watch: {
+        codingGenesData(DATA) {
+            this.$store.dispatch("codingGenesData", DATA["data"]);
+        },
+        searchingGenes(CONTENTS) {
+
+            //console.log("genes in region", CONTENTS);
+
+            let genesData = CONTENTS["data"];
+            let codingGenes = "";
+            let genesLength = CONTENTS["data"].length;
+            if (genesLength > 1) {
+                genesData.map(gene => {
+                    if (gene.type = "protein_coding") {
+                        codingGenes += "\'" + gene.name + "\',";
+                    }
+                })
+                //console.log("codingGenes", codingGenes);
+
+                codingGenes = codingGenes.slice(0, -1)
+
+                if (codingGenes.length > 1) {
+                    this.$store.dispatch("hugeampkpncms/getGenesData", { "genes": codingGenes });
+                } else {
+                    this.$store.dispatch("codingGenesData", null);
+                }
+            } else {
+                this.$store.dispatch("codingGenesData", null);
+            }
+
+        },
         researchMode(content) {
             let pageMode = content;
 
@@ -680,7 +821,7 @@ new Vue({
             }
         },
         researchPage(content) {
-            if (content.length != 0) {
+            if (content.length != 0 && content != null) {
                 if (content[0]["field_page_style"] != false) {
                     let css = content[0]["field_page_style"];
                     this.addcss(css);
@@ -691,6 +832,7 @@ new Vue({
                     this.dataTableFormat = JSON.parse(content[0]["field_data_table_format"]);
                 }
                 //Load data
+
                 if (content[0]["field_data_points"] != false) {
 
                     let dataFiles = content[0]["field_data_points"].split(",");
@@ -734,17 +876,42 @@ new Vue({
 
         },
         researchData(content) {
-            uiUtils.hideElement("data-loading-indicator");
 
-            if (this.dataTableFormat == null) {
-                let topRows = Object.keys(content[0]);
-                let dataTableFormat = { "top rows": topRows };
-                this.dataTableFormat = dataTableFormat;
+            // reset searching region if applicable
+
+            if (this.plotConfig != null &&
+                !!this.plotConfig.genesTrack) {
+                let region;
+                switch (this.plotConfig.inputType) {
+                    case "static":
+                        region = this.plotConfig.region;
+                        break;
+                    case "dynamic":
+                        let regionParam = this.plotConfig.dynamicParameter;
+                        let searchLength = this.$store.state.searchParameters[regionParam].search.length
+                        region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
+
+                        break;
+                }
+
+
+                this.$store.dispatch("searchingRegion", region);
+                this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
             }
 
-            //console.log("filteredData", content);
+            if (content != null && content.length > 0) {
+                uiUtils.hideElement("data-loading-indicator");
+                let updatedData = this.checkDataComparison(content, this.$store.state.filteredData);
 
-            this.$store.dispatch("filteredData", content);
+                if (this.dataTableFormat == null) {
+                    let topRows = Object.keys(content[0]);
+                    let dataTableFormat = { "top rows": topRows };
+                    this.dataTableFormat = dataTableFormat;
+                }
+
+                this.$store.dispatch("unfilteredData", updatedData);
+                this.$store.dispatch("filteredData", updatedData);
+            }
         }
     }
 }).$mount("#app");

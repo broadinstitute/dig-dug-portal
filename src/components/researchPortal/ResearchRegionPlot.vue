@@ -215,6 +215,7 @@
             >
             </canvas>
         </div>
+        {{ selectedRegion }}
     </div>
 </template>
 
@@ -228,7 +229,15 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-region-plot", {
-    props: ["genesInRegion", "plotData", "renderConfig", "filtersIndex"],
+    props: [
+        "genesInRegion",
+        "plotData",
+        "renderConfig",
+        "filtersIndex",
+        "selectedRegion",
+        "searchParameters",
+        "dataComparisonConfig",
+    ],
     data() {
         return {
             plotRendered: 0,
