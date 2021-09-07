@@ -119,6 +119,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
 
+        this.pushCriterionPhenotype("T2D")
+
     },
 
     render(createElement, context) {
@@ -131,6 +133,12 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        pushCriterionPhenotype(phenotypeName) {
+            this.genePageSearchCriterion.push({
+                field: "phenotype",
+                threshold: phenotypeName
+            });
+        },
         biolinkQueryGraph(subjectCurie, { subject, predicate, object }) {
             const uuid = Counter.getUniqueId;
             const sid = uuid('s');
@@ -215,10 +223,22 @@ new Vue({
                 return false;
             }
         },
+        topPhenotype(topAssocData) {
+            return topAssocData[0];
+        },
 
     },
 
     computed: {
+        smallestpValuePhenotype() {
+            // let data = this.$store.state.varassociations.data;
+            // let x = data.sort(
+            //     (a, b) => a.pValue - b.pValue
+            // );
+
+            return "T2D";
+
+        },
         selectedPhenotypes() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             if (Object.keys(phenotypeMap).length === 0) {
@@ -232,10 +252,8 @@ new Vue({
         },
 
         selectedPhenotype() {
-
             if (this.selectedPhenotypes.length > 0) {
                 return this.selectedPhenotypes[0].name
-
             }
             else
                 return "T2D"
@@ -544,7 +562,14 @@ new Vue({
             // console.log("current phenotypes", phenotypes[0].name)
 
             // // reload the global enrichment for these phenotypes
+            //this.setCriterionPhenotypes([topPhenotype.name]);
+            // let topPhenotype = "T2D"
+            // this.pushCriterionPhenotype(topPhenotype);
 
+            // if (oldPhenotypes.length == 0) {
+            //     console.log("no phenotype selected")
+            //     this.pushCriterionPhenotype("T2D");
+            // }
             this.$store.dispatch("get52KAssociationData");
             if (phenotypes.length > 0) {
                 this.$store.dispatch("getAssociationsData", phenotypes[0].name);

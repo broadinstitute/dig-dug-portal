@@ -206,7 +206,7 @@
                     <div style="padding:10px 230px 10px 230px">
                         <span
                             style=" padding:10px 200px 10px 200px; font-weight:bold"
-                        >HuGe score {{$parent.combinedScore}} falls in "Extreme" category in combined evidence scale</span>
+                        >HuGe score {{$parent.combinedScore}} falls in {{$parent.determineCategory($parent.combinedScore)}} category in combined evidence scale</span>
                         <color-bar-plot
                             :category="$parent.determineCategory($parent.combinedScore)"
                             :elementid="'combinedVariation'"
@@ -267,25 +267,17 @@
                                         v-if="$store.state.geneName"
                                         :id="$store.state.geneName"
                                         :type="'gene'"
-                                        :phenotypeMap="
-                                            $store.state.bioPortal.phenotypeMap
-                                        "
+                                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                                     ></lz-phewas-panel>
                                 </locuszoom>
                                 <unauthorized-message
-                                    :restricted="
-                                        $store.state.associations.restricted
-                                    "
+                                    :restricted="$store.state.associations.restricted"
                                 ></unauthorized-message>
                                 <gene-associations-table
                                     v-if="$store.state.gene.data.length > 0"
                                     :gene="$store.state.gene.data[0]"
-                                    :associations="
-                                        $store.state.associations.data
-                                    "
-                                    :phenotypeMap="
-                                        $store.state.bioPortal.phenotypeMap
-                                    "
+                                    :associations="$store.state.associations.data"
+                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                                     :filter="filter"
                                 ></gene-associations-table>
                             </template>
