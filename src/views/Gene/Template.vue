@@ -181,7 +181,11 @@
                     </criterion-list-group>
                     <div style="padding:10px 250px 10px 250px">
                         <br />
-                        <genepage-combinedevidence-table></genepage-combinedevidence-table>
+                        <genepage-combinedevidence-table
+                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                            :combinedBF="parseInt($parent.combinedScore)"
+                            :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                        ></genepage-combinedevidence-table>
                         <span
                             style="padding:10px 200px 10px 290px; font-weight:bold"
                         >HuGe score {{$parent.combinedScore}} falls in "Extreme" category in combined evidence scale</span>

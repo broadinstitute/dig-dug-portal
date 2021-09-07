@@ -157,6 +157,17 @@ new Vue({
                 }
             }
         },
+        bayes_factor(beta, stdErr) {
+            let w = this.$store.state.prior;
+            let v = Math.pow(stdErr, 2);
+            let f1 = v / (v + w);
+            let sqrt_f1 = Math.sqrt(f1);
+            let f2 = w * Math.pow(beta, 2);
+            let f3 = 2 * v * (v + w);
+            let f4 = f2 / f3;
+            let bayes_factor = sqrt_f1 * Math.exp(f4);
+            return bayes_factor;
+        },
         determineCategory(bayesfactor) {
             let category;
             if (bayesfactor <= 1) {
@@ -221,8 +232,7 @@ new Vue({
         },
 
         combinedScore() {
-            return this.bayesFactorCommonVariation * 1;
-            //return this.bayesFactorRareVariation * this.bayesFactorCommonVariation;
+            return this.bayesFactorCommonVariation * this.bayesFactorRareVariation;
         },
 
         bayesFactorRareVariation() {
@@ -234,18 +244,16 @@ new Vue({
             if (this.selectedPhenotypes.length > 0) {
                 selectedPhenotype = this.selectedPhenotypes[0].name
             }
-            
+
             let data = this.$store.state.associations52k.data
-            if (this.isExomeWideSignificant(data, this.selectedPhenotypes[0].name)) {
+            if (this.isExomeWideSignificant(data, selectedPhenotype)) {
                 rarebayesfactor = 348;
             } else {
                 if (data.length > 0) {
                     for (let i = 0; i < data.length; i++) {
                         if (
-                            !!this.$store.state.associations52k.data[i]
-                                .phenotype &&
-                            this.$store.state.associations52k.data[i]
-                                .phenotype == this.selectedPhenotypes[0].name
+                            !!this.$store.state.associations52k.data[i].phenotype &&
+                            this.$store.state.associations52k.data[i].phenotype == selectedPhenotype
                         ) {
                             //filter with selected phenotype
                             masks = data[i].masks;
@@ -264,9 +272,7 @@ new Vue({
                             if (rarebayesfactor < 1) {
                                 rarebayesfactor = 1;
                             }
-                            return Number.parseFloat(rarebayesfactor).toFixed(
-                                2
-                            );
+                            return Number.parseFloat(rarebayesfactor).toFixed(2);
                         }
                         //if phenotype doesn't exist in 52K Associations data
                         else {
@@ -275,6 +281,7 @@ new Vue({
                     }
                 }
             }
+
             return Number.parseFloat(rarebayesfactor).toFixed(2);
         },
 
@@ -497,7 +504,7 @@ new Vue({
             //         ).flatMap(pam => pam[1]);
             //     });
             // }
-            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
+            //keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
             // console.log("current phenotypes", phenotypes[0].name)
 
             // // reload the global enrichment for these phenotypes

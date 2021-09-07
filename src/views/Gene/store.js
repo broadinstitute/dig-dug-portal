@@ -24,6 +24,7 @@ export default new Vuex.Store({
     state: {
         geneName: keyParams.gene,
         aliasName: null,
+        prior: 0.3696
     },
 
     mutations: {
