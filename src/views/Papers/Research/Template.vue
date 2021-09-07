@@ -175,7 +175,6 @@
                                 ></research-m-bitmap-plot>
                                 <research-region-plot
                                     v-if="$parent.plotType == 'region_plot'"
-                                    :genesInRegion="$store.state.genesInRegion"
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
@@ -185,6 +184,7 @@
                                     :dataComparisonConfig="
                                         $parent.dataComparisonConfig
                                     "
+                                    :region="$store.state.searchingRegion"
                                 ></research-region-plot>
 
                                 <research-score-plot

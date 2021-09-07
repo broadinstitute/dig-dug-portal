@@ -1,12 +1,43 @@
 <template>
     <div class="mbm-plot-content row">
-        <div class="col-md-12 region-plot-default-legend">
+        <div class="col-md-12">
+            <div class="score-plot-bubbles" v-if="dataComparisonConfig != null">
+                <span
+                    class="plot-item-bubble reference"
+                    style="background-color: #00000030"
+                    >Chi-squared</span
+                >
+                <span
+                    v-for="(item, itemIndex) in searchParameters[
+                        dataComparisonConfig.fieldsGroupDataKey
+                    ].search"
+                    v-html="item"
+                    :class="'plot-item-bubble reference bg-color-' + itemIndex"
+                ></span>
+            </div>
+            <div class="plot-score-options-ui">
+                <label v-if="dataComparisonConfig != null"
+                    >Render plot by:
+                    <select
+                        v-model="plotRenderBy"
+                        class="score-plot-render-by"
+                        @change="renderPlot()"
+                    >
+                        <option value="chi">Chi-squared -log10(p-value)</option>
+                        <option value="high">Highest -log10(p-value)</option>
+                        <option value="all">All</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+        <div class="col-md-9 region-plot-default-legend"></div>
+        <div class="col-md-3 region-plot-default-legend">
             <span
                 class="plot-legend-dot"
                 style="background-color: #82409970"
             ></span>
             <span>Reference variant</span>
-            <span
+            <!--<span
                 class="plot-legend-dot"
                 style="background-color: #d0363360"
             ></span
@@ -36,7 +67,7 @@
                 class="plot-legend-dot"
                 style="background-color: #33333320"
             ></span>
-            <span>No data</span>
+            <span>No data</span>-->
         </div>
         <div id="regionPlotWrapper" class="col-md-9">
             <div id="clicked_dot_value" class="clicked-dot-value hidden">
@@ -60,13 +91,12 @@
                         v-for="(variant, vIndex) in hoverDotPosFullList"
                         v-if="vIndex < 5"
                     >
-                        <span class="gene-on-clicked-dot-mplot" :key="vIndex">
+                        <span class="gene-on-clicked-dot-mplot">
                             <b v-html="variant[renderConfig.renderBy]"></b
                         ></span>
                         <span
                             class="content-on-clicked-dot"
-                            v-for="(info, infoKey) in variant"
-                            :key="info"
+                            v-for="(info, infoKey, infoIndex) in variant"
                             v-html="infoKey + ': ' + info"
                         >
                         </span>
@@ -84,13 +114,12 @@
                     <template
                         v-for="(variant, vIndex) in clickedDotPosFullList"
                     >
-                        <span class="gene-on-clicked-dot-mplot" :key="vIndex">
+                        <span class="gene-on-clicked-dot-mplot">
                             <b v-html="variant[renderConfig.renderBy]"></b
                         ></span>
                         <span
                             class="content-on-clicked-dot"
                             v-for="(info, infoKey) in variant"
-                            :key="info"
                             v-html="infoKey + ': ' + info"
                         >
                         </span>
@@ -102,7 +131,7 @@
                                         variant[renderConfig.renderBy]
                                     )
                                 "
-                                >Set this LS Reference</a
+                                >Set as LD reference</a
                             >
                         </span>
                     </template>
@@ -151,16 +180,12 @@
                         v-for="(hLdVariant, hLdVIndex) in hoverLdDotPosFullList"
                         v-if="hLdVIndex < 5"
                     >
-                        <span
-                            class="gene-on-clicked-dot-mplot"
-                            :key="hLdVIndex"
-                        >
+                        <span class="gene-on-clicked-dot-mplot">
                             <b v-html="hLdVariant[renderConfig.renderBy]"></b
                         ></span>
                         <span
                             class="content-on-clicked-dot"
                             v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
-                            :key="hLdVInfo"
                             v-html="hLdVInfoKey + ': ' + hLdVInfo"
                         >
                         </span>
@@ -181,13 +206,12 @@
                     <template
                         v-for="(ldVariant, ldIndex) in clickedLdDotPosFullList"
                     >
-                        <span class="gene-on-clicked-dot-mplot" :key="ldIndex">
+                        <span class="gene-on-clicked-dot-mplot">
                             <b v-html="ldVariant[renderConfig.renderBy]"></b
                         ></span>
                         <span
                             class="content-on-clicked-dot"
                             v-for="(ldInfo, ldInfoKey) in ldVariant"
-                            :key="ldInfo"
                             v-html="ldInfoKey + ': ' + ldInfo"
                         >
                         </span>
@@ -226,20 +250,23 @@ import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
+import Chi from "chi-squared";
+
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-region-plot", {
     props: [
-        "genesInRegion",
         "plotData",
         "renderConfig",
         "filtersIndex",
         "selectedRegion",
         "searchParameters",
         "dataComparisonConfig",
+        "region",
     ],
     data() {
         return {
+            plotRenderBy: "chi",
             plotRendered: 0,
             leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
             rightMargin: 0.5,
@@ -251,10 +278,14 @@ export default Vue.component("research-region-plot", {
             hoverLdDotPosFullList: [],
             clickedDotPosFullList: [],
             clickedLdDotPosFullList: [],
-            chr: null,
-            start: null,
-            end: null,
             refVariant: null,
+            ldColor: [
+                "#2074B620",
+                "#32AFD520",
+                "#4DB05220",
+                "#EE982D20",
+                "#D0363320",
+            ],
         };
     },
     modules: {
@@ -263,8 +294,8 @@ export default Vue.component("research-region-plot", {
     },
     components: {},
     mounted: function () {
-        if (this.plotData != null) {
-            this.setRegionParams(this.plotData);
+        if (this.renderData != null) {
+            this.setRefVariant();
         }
 
         window.addEventListener("resize", this.onResize);
@@ -274,15 +305,20 @@ export default Vue.component("research-region-plot", {
     },
     computed: {
         renderData() {
-            return this.plotData;
-        },
-        genesInRegionData() {
-            let contents = this.$store.state.hugeampkpncms.genesInRegion;
-
-            if (contents == "") {
+            if (this.plotData == null) {
                 return null;
             } else {
-                return contents;
+                let rawData = this.plotData;
+                let comparingData = [];
+
+                if (!!this.dataComparisonConfig) {
+                    for (const [rKey, r] of Object.entries(rawData)) {
+                        comparingData.push(r);
+                    }
+                    return comparingData;
+                } else {
+                    return rawData;
+                }
             }
         },
         ldVariantCorrelationsData() {
@@ -294,55 +330,58 @@ export default Vue.component("research-region-plot", {
                 return contents;
             }
         },
+        searchingRegion() {
+            if (this.region == null) {
+                return null;
+            } else {
+                let returnObj = {};
+
+                returnObj["chr"] = this.region.split(":")[0];
+
+                let regionArr = this.region.split(":")[1].split("-");
+                returnObj["start"] = regionArr[0];
+                returnObj["end"] = regionArr[1];
+
+                return returnObj;
+            }
+        },
     },
     watch: {
         ldVariantCorrelationsData(data) {
             this.renderPlot();
         },
         renderData(data) {
-            this.setRegionParams(data);
-        },
-
-        genesInRegionData(data) {
-            if (!!data && data != null) {
-                this.getLDData();
-            }
+            console.log(data);
+            this.setRefVariant();
         },
     },
     methods: {
         ...uiUtils,
-        setLDReference(VARIANT) {
-            //console.log(VARIANT);
-            this.hidePanel("ld_dot_value_full_list");
-            this.hidePanel("dot_value_full_list");
+        chiSquared(row) {
+            let X = 0.0;
+            let n = 0;
 
-            this.refVariant = VARIANT;
-            this.getLDData();
+            for (let i in this.phenotypes) {
+                let p = row[`${this.phenotypes[i].name}:pValue`];
+
+                if (!!p) {
+                    X += -2 * Math.log(p);
+                    n++;
+                }
+            }
+
+            // calculate the combined p-value
+            let pdf = Chi.pdf(X, 2 * n);
+
+            return 2 * pdf;
         },
-        setRegionParams(DATA) {
-            let xMin = null,
-                xMax = null,
-                yMax = null;
+        setRefVariant() {
+            let DATA = this.renderData;
+            console.log(DATA);
+            let yMax = null;
             if (!!DATA && DATA.length > 0) {
-                this.chr = DATA[0][this.renderConfig.geneTrack.chr];
-
                 DATA.map((d) => {
-                    let xValue = Number(d[this.renderConfig.xAxisField]);
                     let yValue = Number(d[this.renderConfig.yAxisField]);
-
-                    if (xMin == null) {
-                        xMin = xValue;
-                    }
-                    if (xMax == null) {
-                        xMax = xValue;
-                    }
-
-                    if (xValue < xMin) {
-                        xMin = xValue;
-                    }
-                    if (xValue > xMax) {
-                        xMax = xValue;
-                    }
 
                     if (yMax == null) {
                         yMax = yValue;
@@ -350,7 +389,7 @@ export default Vue.component("research-region-plot", {
 
                     if (yValue > yMax) {
                         this.refVariant =
-                            this.chr +
+                            this.searchingRegion.chr +
                             ":" +
                             d[this.renderConfig.ldServer.pos] +
                             "_" +
@@ -360,12 +399,16 @@ export default Vue.component("research-region-plot", {
                         yMax = yValue;
                     }
                 });
-
-                this.start = xMin;
-                this.end = xMax;
-
-                this.getGenesInRegion();
+                console.log("this.refVariant", this.refVariant);
+                this.setLDReference(this.refVariant);
             }
+        },
+        setLDReference(VARIANT) {
+            this.hidePanel("ld_dot_value_full_list");
+            this.hidePanel("dot_value_full_list");
+
+            this.refVariant = VARIANT;
+            this.getLDData();
         },
 
         hidePanel(element) {
@@ -375,8 +418,6 @@ export default Vue.component("research-region-plot", {
             this.renderPlot();
         },
         getLDData() {
-            /* AFR, ALL, AMR, EAS, EUR, SAS */
-
             let dataPopulations = [
                 ...new Set(
                     this.renderData.map(
@@ -398,30 +439,18 @@ export default Vue.component("research-region-plot", {
                 "/variants?correlation=rsquare&variant=" +
                 this.refVariant +
                 "&chrom=" +
-                this.chr +
+                this.searchingRegion.chr +
                 "&start=" +
-                this.start +
+                this.searchingRegion.start +
                 "&stop=" +
-                this.end +
+                this.searchingRegion.end +
                 "&limit=100000";
 
             this.$store.dispatch("umLdServer/getVariantCorrelations", {
                 ldUrl: ldUrl,
             });
         },
-        getGenesInRegion() {
-            let dataPoint =
-                "https://bioindex.hugeamp.org/api/bio/query/genes?q=" +
-                this.chr +
-                ":" +
-                this.start +
-                "-" +
-                this.end;
 
-            let fetchParam = { dataPoint: dataPoint, domain: "external" };
-
-            this.$store.dispatch("hugeampkpncms/getGenesInRegion", fetchParam);
-        },
         getFullList(event) {
             this.clickedDotPosFullList = [];
             let wrapper = document.getElementById("dot_value_full_list");
@@ -555,10 +584,6 @@ export default Vue.component("research-region-plot", {
             let wrapper = document.getElementById("clicked_dot_value");
             wrapper.classList.add("hidden");
 
-            let genesInRegion = JSON.parse(this.genesInRegionData)[
-                "data"
-            ].filter((g) => g.source == "symbol");
-
             let canvasRenderWidth = !!this.renderConfig.width
                 ? this.renderConfig.width + this.leftMargin + this.rightMargin
                 : document.getElementById("regionPlotWrapper").clientWidth - 30; // -30 for - padding
@@ -566,10 +591,6 @@ export default Vue.component("research-region-plot", {
             let canvasRenderHeight = !!this.renderConfig.height
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
                 : 300 + this.topMargin + this.bottomMargin;
-
-            canvasRenderHeight += !!this.renderConfig.geneTrack
-                ? 15 * genesInRegion.length
-                : 0;
 
             let xBump = canvasRenderWidth * 0.03;
             let yBump = canvasRenderHeight * 0.02;
@@ -582,16 +603,15 @@ export default Vue.component("research-region-plot", {
                 ? this.renderConfig.height
                 : 300;
 
-            let ldDataLength = this.ldVariantCorrelationsData.data.correlation
-                .length;
+            let ldDataLength =
+                this.ldVariantCorrelationsData.data.correlation.length;
 
             let ldData = {};
 
             if (ldDataLength > 0) {
                 this.ldVariantCorrelationsData.data.variant2.map((v, index) => {
-                    ldData[v] = this.ldVariantCorrelationsData.data.correlation[
-                        index
-                    ];
+                    ldData[v] =
+                        this.ldVariantCorrelationsData.data.correlation[index];
                 });
             }
 
@@ -626,14 +646,13 @@ export default Vue.component("research-region-plot", {
 
             let yMin = null,
                 yMax = null,
-                xMin = null,
-                xMax = null;
+                xMin = Number(this.searchingRegion.start),
+                xMax = Number(this.searchingRegion.end);
 
-            let chr = this.plotData[0][this.renderConfig.geneTrack.chr];
+            console.log("xMin, xMax:", xMin, "-", xMax);
 
-            this.plotData.map((d) => {
+            this.renderData.map((d) => {
                 let yValue = d[this.renderConfig.yAxisField];
-                let xValue = Number(d[this.renderConfig.xAxisField]);
 
                 if (yMin == null) {
                     yMin = yValue;
@@ -647,20 +666,6 @@ export default Vue.component("research-region-plot", {
                 }
                 if (yValue > yMax) {
                     yMax = yValue;
-                }
-
-                if (xMin == null) {
-                    xMin = xValue;
-                }
-                if (xMax == null) {
-                    xMax = xValue;
-                }
-
-                if (xValue < xMin) {
-                    xMin = xValue;
-                }
-                if (xValue > xMax) {
-                    xMax = xValue;
                 }
             });
 
@@ -703,9 +708,9 @@ export default Vue.component("research-region-plot", {
                 ctx.font = "12px Arial";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#000000";
-
+                let position = i < 4 ? xMin + i * xStep : xMax;
                 ctx.fillText(
-                    xMin + i * xStep,
+                    position,
                     adjTickXPos,
                     this.topMargin + plotHeight + yBump + 15
                 );
@@ -738,7 +743,7 @@ export default Vue.component("research-region-plot", {
             */
 
             //Render dots
-            this.plotData.map((g) => {
+            this.renderData.map((g) => {
                 let xPos =
                     xStart +
                     xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
@@ -751,7 +756,7 @@ export default Vue.component("research-region-plot", {
                 let ldConfig = this.renderConfig.ldServer;
 
                 let dotID =
-                    this.chr +
+                    this.searchingRegion.chr +
                     ":" +
                     g[ldConfig.pos] +
                     "_" +
@@ -764,7 +769,7 @@ export default Vue.component("research-region-plot", {
                     : dotID == this.refVariant
                     ? 1
                     : 0;
-
+                /*
                 let dotColor =
                     ldScore == 1
                         ? "#82409970"
@@ -778,7 +783,9 @@ export default Vue.component("research-region-plot", {
                         ? "#32AFD530"
                         : ldScore < 0.2 && ldScore > 0
                         ? "#2074B620"
-                        : "#33333320";
+                        : "#33333320";*/
+
+                let dotColor = ldScore == 1 ? "#82409970" : "#33333340";
 
                 ctx.fillStyle = dotColor;
 
@@ -807,42 +814,6 @@ export default Vue.component("research-region-plot", {
                         this.dotPosData[xLoc][yLoc][h] = g[h];
                     });
                 }
-            });
-
-            let geneCtx = c.getContext("2d");
-            geneCtx.beginPath();
-
-            let gIndex = 0,
-                aboveGenesTrack =
-                    this.topMargin + plotHeight + yBump + 15 + 5 + 12;
-
-            genesInRegion.map((gene) => {
-                let gStart = gene.start <= xMin ? xMin : gene.start;
-                let gEnd = gene.end >= xMax ? xMax : gene.end;
-
-                let txtXPos =
-                    xStart +
-                    xPosByPixel *
-                        (gStart + Math.ceil((gEnd - gStart) / 2) - xMin);
-
-                let txtYPos = aboveGenesTrack + 15 * gIndex;
-
-                let startPos = xStart + xPosByPixel * (gStart - xMin);
-                let endPos = xStart + xPosByPixel * (gEnd - xMin);
-
-                geneCtx.font = "italic 11px Arial";
-                geneCtx.textAlign = "center";
-                geneCtx.fillStyle = "#0000FF";
-                geneCtx.fillText(gene.name, txtXPos, txtYPos);
-
-                //ctx.beginPath();
-                geneCtx.lineWidth = 1;
-                geneCtx.strokeStyle = "#0000FF";
-                geneCtx.moveTo(startPos, txtYPos + 5);
-                geneCtx.lineTo(endPos, txtYPos + 5);
-                geneCtx.stroke();
-
-                gIndex++;
             });
         },
         renderLDPlot(canvasH, plotH, LDData) {
@@ -889,9 +860,9 @@ export default Vue.component("research-region-plot", {
                 xMin = 0,
                 xMax = 1;
 
-            let chr = this.plotData[0][this.renderConfig.geneTrack.chr];
+            //let chr = this.searchingRegion.chr;
 
-            this.plotData.map((d) => {
+            this.renderData.map((d) => {
                 let yValue = d[this.renderConfig.yAxisField];
                 //let xValue = Number(d[this.renderConfig.xAxisField]);
 
@@ -911,7 +882,6 @@ export default Vue.component("research-region-plot", {
             });
 
             let yStep = (yMax - yMin) / 4;
-            let xStep = xMax / 4;
 
             // Y ticks
             let yTickDistance = plotHeight / 4;
@@ -933,10 +903,25 @@ export default Vue.component("research-region-plot", {
                 );
             }
 
-            // X ticks
-            let xTickDistance = (plotWidth - 5) / 4;
+            // X BG
+            let xBGDistance = (plotWidth - 5) / 5;
 
             for (let i = 0; i < 5; i++) {
+                let bgXPos = this.leftMargin + i * xBGDistance + 5;
+                let adBGXPos = Math.floor(bgXPos) + 0.5;
+                ctx.fillStyle = this.ldColor[i];
+                ctx.fillRect(
+                    adBGXPos,
+                    this.topMargin,
+                    xBGDistance - 1,
+                    plotHeight
+                );
+            }
+
+            // X ticks
+            let xTickDistance = (plotWidth - 5) / 5;
+
+            for (let i = 0; i < 6; i++) {
                 let tickXPos = this.leftMargin + i * xTickDistance + 5;
                 let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
                 ctx.moveTo(adjTickXPos, this.topMargin + plotHeight + yBump);
@@ -950,8 +935,9 @@ export default Vue.component("research-region-plot", {
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#000000";
 
+                console.log(i * 0.2);
                 ctx.fillText(
-                    xMin + i * xStep,
+                    parseFloat((i * 0.2).toFixed(2)),
                     adjTickXPos,
                     this.topMargin + plotHeight + yBump + 15
                 );
@@ -977,7 +963,7 @@ export default Vue.component("research-region-plot", {
             //Render x axis label
             ctx.rotate((-(Math.PI * 2) / 4) * 3);
             ctx.fillText(
-                "LD",
+                "LD(r2)",
                 plotWidth / 2 + this.leftMargin,
                 this.topMargin + plotHeight + yBump + 35
             );
@@ -986,9 +972,9 @@ export default Vue.component("research-region-plot", {
             let ldConfig = this.renderConfig.ldServer;
             let dotColor = "#33333320";
 
-            this.plotData.map((g) => {
+            this.renderData.map((g) => {
                 let dotID =
-                    this.chr +
+                    this.searchingRegion.chr +
                     ":" +
                     g[ldConfig.pos] +
                     "_" +
@@ -1003,7 +989,7 @@ export default Vue.component("research-region-plot", {
                     : 0;
 
                 //if (ldScore != 0) {
-                dotColor =
+                /*dotColor =
                     ldScore == 1
                         ? "#82409970"
                         : ldScore < 1 && ldScore >= 0.8
@@ -1016,7 +1002,9 @@ export default Vue.component("research-region-plot", {
                         ? "#32AFD530"
                         : ldScore < 0.2 && ldScore > 0
                         ? "#2074B620"
-                        : "#33333320";
+                        : "#33333320";*/
+
+                dotColor = ldScore == 1 ? "#82409970" : "#33333340";
 
                 let xPos = xStart + xPosByPixel * ldScore;
 
@@ -1061,6 +1049,9 @@ $(function () {});
 </script>
 
 <style>
+.region-plot-default-legend {
+    text-align: right;
+}
 .region-plot-default-legend span {
     font-size: 12px;
     display: inline-block;
@@ -1069,7 +1060,7 @@ $(function () {});
 .plot-legend-dot {
     width: 12px;
     height: 12px;
-    border-radius: 12px;
+    border-radius: 0px;
 }
 #manhattanPlot.hover,
 #ldPlot.hover {
