@@ -6,6 +6,7 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
+import regionUtils from "@/utils/regionUtils";
 
 Vue.use(Vuex);
 
@@ -16,6 +17,7 @@ export default new Vuex.Store({
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
         associations: bioIndex("gene-associations"),
+        varassociations: bioIndex("associations"),
         associations52k: bioIndex("gene-associations-52k"),
         uniprot
     },
@@ -111,9 +113,9 @@ export default new Vuex.Store({
             context.dispatch("associations52k/query", query);
             context.dispatch("associations/query", query);
         },
-        async getAssociationsData(context, phenoGeneInput) {
-            let gene = phenoGeneInput["gene"];
-            let phenotype = phenoGeneInput["phenotype"];
+        async getAssociationsData(context, phenotype) {
+            let gene = context.state.geneName;
+            // let phenotype = phenoGeneInput["phenotype"];
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {
@@ -121,22 +123,23 @@ export default new Vuex.Store({
                 context.state.newStart = locus.start;
                 context.state.newEnd = locus.end;
                 //update the locus
-                context.commit("setLocus", locus);
-                context.commit("setPhenotype", phenotype);
-                context.commit("setSearchGene", gene);
-                context.commit("setPrior", 0.3696)
+                //context.commit("setLocus", locus);
+                // context.commit("setPhenotype", phenotype);
+                // context.commit("setSearchGene", gene);
+                //context.commit("setPrior", 0.3696)
             }
+
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
-            context.dispatch('associations/query', { q: phenoRegionQuery });
+            context.dispatch('varassociations/query', { q: phenoRegionQuery });
         },
-        // async getEGLData(context) {
-        //     let dataset = "mccarthy";
-        //     let trait = "t2d";
-        //     context.dispatch("kp4cd/getEglData", { dataset, trait });
-        // },
-        // async get52KAssociationData(context, gene) {
-        //     let name = gene || context.state.geneName;
-        //     context.dispatch('geneAssociations52k/query', { q: name });
-        // }
+        async getEGLData(context) {
+            let dataset = "mccarthy";
+            let trait = "t2d";
+            context.dispatch("kp4cd/getEglData", { dataset, trait });
+        },
+        async get52KAssociationData(context) {
+            let name = context.state.geneName;
+            context.dispatch('associations52k/query', { q: name });
+        }
     }
 });

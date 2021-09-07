@@ -192,6 +192,18 @@ new Vue({
                     }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
+        isExomeWideSignificant(data, trait) {
+            if (!!data.length) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        if (data[i].pValue <= 2.5e-6) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        },
 
     },
 
@@ -205,10 +217,11 @@ new Vue({
             return this.genePageSearchCriterion
                 .filter(criterion => criterion.field === "phenotype")
                 .map(criterion => phenotypeMap[criterion.threshold]);
+
         },
 
         combinedScore() {
-            return 250
+            return this.bayesFactorCommonVariation * 1;
             //return this.bayesFactorRareVariation * this.bayesFactorCommonVariation;
         },
 
@@ -217,30 +230,25 @@ new Vue({
             let rarebayesfactor = 1;
             let beta;
             let stdErr;
-            if (
-                this.isExomeWideSignificant(
-                    this.$store.state.geneAssociations52k.data,
-                    this.selectedPhenotype[0]
-                )
-            ) {
+            let selectedPhenotype = ""
+            if (this.selectedPhenotypes.length > 0) {
+                selectedPhenotype = this.selectedPhenotypes[0].name
+            }
+            
+            let data = this.$store.state.associations52k.data
+            if (this.isExomeWideSignificant(data, this.selectedPhenotypes[0].name)) {
                 rarebayesfactor = 348;
             } else {
-                if (this.$store.state.geneAssociations52k.data.length > 0) {
-                    for (
-                        let i = 0;
-                        i < this.$store.state.geneAssociations52k.data.length;
-                        i++
-                    ) {
+                if (data.length > 0) {
+                    for (let i = 0; i < data.length; i++) {
                         if (
-                            !!this.$store.state.geneAssociations52k.data[i]
+                            !!this.$store.state.associations52k.data[i]
                                 .phenotype &&
-                            this.$store.state.geneAssociations52k.data[i]
-                                .phenotype == this.selectedPhenotype[0]
+                            this.$store.state.associations52k.data[i]
+                                .phenotype == this.selectedPhenotypes[0].name
                         ) {
                             //filter with selected phenotype
-                            masks = this.$store.state.geneAssociations52k.data[
-                                i
-                            ].masks;
+                            masks = data[i].masks;
                             if (!!masks && masks.length > 0) {
                                 let d = masks.sort(
                                     (a, b) => a.pValue - b.pValue
@@ -269,42 +277,48 @@ new Vue({
             }
             return Number.parseFloat(rarebayesfactor).toFixed(2);
         },
+
         bayesFactorCommonVariation() {
             let firstBF = 1;
             let secondBF = 1;
             let thirdBF = 1;
             let commonBF = 1;
-            let data = this.$store.state.associations.data;
+
+            let data = this.$store.state.varassociations.data;
+
+
             if (!!data.length > 0) {
                 for (let i = 0; i < data.length; i++) {
                     //if GWAS evidence
-                    if (data[i].phenotype == this.selectedPhenotype[0]) {
-                        if (data[i].pValue <= 5e-8) {
-                            firstBF = 3;
-                            if (!!this.eglData) {
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "1C"
-                                ) {
-                                    secondBF = 117;
-                                }
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "2C"
-                                ) {
-                                    secondBF = 5;
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "2R"
-                                ) {
-                                    thirdBF = 5;
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "3R"
-                                ) {
-                                    thirdBF = 2.2;
+                    if (this.selectedPhenotypes.length > 0) {
+                        if (data[i].phenotype == this.selectedPhenotypes[0].name) {
+                            if (data[i].pValue <= 5e-8) {
+                                firstBF = 3;
+                                if (!!this.eglData) {
+                                    if (
+                                        !!this.eglData.genetic &&
+                                        this.eglData.genetic == "1C"
+                                    ) {
+                                        secondBF = 117;
+                                    }
+                                    if (
+                                        !!this.eglData.genetic &&
+                                        this.eglData.genetic == "2C"
+                                    ) {
+                                        secondBF = 5;
+                                    }
+                                    if (
+                                        !!this.eglData.genomic &&
+                                        this.eglData.genomic == "2R"
+                                    ) {
+                                        thirdBF = 5;
+                                    }
+                                    if (
+                                        !!this.eglData.genomic &&
+                                        this.eglData.genomic == "3R"
+                                    ) {
+                                        thirdBF = 2.2;
+                                    }
                                 }
                             }
                         }
@@ -313,6 +327,7 @@ new Vue({
             }
 
             commonBF = firstBF * secondBF * thirdBF;
+            console.log(commonBF, "commonBF")
             return Number.parseFloat(commonBF).toFixed(2);
         },
 
@@ -483,16 +498,17 @@ new Vue({
             //     });
             // }
             keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
-            //console.log("current phenotypes",phenotypes)
+            // console.log("current phenotypes", phenotypes[0].name)
 
             // // reload the global enrichment for these phenotypes
-            // this.$store.dispatch("globalEnrichment/clear");
-            // phenotypes.forEach(p => {
-            //     this.$store.dispatch("globalEnrichment/query", {
-            //         q: p.name,
-            //         append: true
-            //     });
-            // });
+
+            this.$store.dispatch("get52KAssociationData");
+            if (phenotypes.length > 0) {
+                this.$store.dispatch("getAssociationsData", phenotypes[0].name);
+            }
+
+            // this.$store.dispatch("getEGLData");
+
         },
 
         diseaseGroup(group) {
