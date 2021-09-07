@@ -231,6 +231,42 @@ new Vue({
 
         },
 
+        selectedPhenotype() {
+
+            if (this.selectedPhenotypes.length > 0) {
+                return this.selectedPhenotypes[0].name
+
+            }
+            else
+                return "T2D"
+        },
+        eglData() {
+            let geneSymbol = this.$store.state.geneName;
+            if (this.selectedPhenotype == "T2D") {
+                if (!!this.$store.state.kp4cd.eglData.data) {
+                    let effectordata = this.$store.state.kp4cd.eglData.data;
+                    let effectorGeneData = {};
+
+                    for (var i = 0; i < effectordata.length; ++i) {
+                        if (
+                            effectordata[i].gene.toLowerCase() ===
+                            geneSymbol.toLowerCase()
+                        ) {
+                            effectorGeneData = effectordata[i];
+                            if (effectorGeneData.category == "(T2D_related)") {
+                                effectorGeneData.category = "No Evidence";
+                            }
+                            break;
+                        }
+                        //if the gene is in GWAS but not in mccarthy data
+                    }
+                    return effectorGeneData;
+                }
+            } else {
+                return { category: "in GWAS" };
+            }
+        },
+
         combinedScore() {
             return this.bayesFactorCommonVariation * this.bayesFactorRareVariation;
         },
@@ -514,7 +550,7 @@ new Vue({
                 this.$store.dispatch("getAssociationsData", phenotypes[0].name);
             }
 
-            // this.$store.dispatch("getEGLData");
+            this.$store.dispatch("getEGLData");
 
         },
 

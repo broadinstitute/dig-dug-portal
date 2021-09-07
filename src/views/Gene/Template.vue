@@ -186,6 +186,20 @@
                             :combinedBF="parseInt($parent.combinedScore)"
                             :rareBF="parseInt($parent.bayesFactorRareVariation)"
                         ></genepage-combinedevidence-table>
+                        <ul class="legend">
+                            <li>
+                                <span class="superawesome"></span> Common Variation Bayes Factor
+                            </li>
+                            <li>
+                                <span class="awesome"></span> Rare Variation Bayes Factor
+                            </li>
+                            <li>
+                                <a
+                                    :href="`http://localhost:8090/hugecalculatornew.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
+                                >View evidence in HuGE calculator >></a>
+                            </li>
+                        </ul>
+                        <br />
                         <span
                             style="padding:10px 200px 10px 290px; font-weight:bold"
                         >HuGe score {{$parent.combinedScore}} falls in "Extreme" category in combined evidence scale</span>
@@ -490,5 +504,27 @@
 #combinedVariation .variationNoEvidence {
     background-color: #c4edc8;
     font-weight: bold;
+}
+/* basic positioning */
+.legend {
+    list-style: none;
+}
+.legend li {
+    float: left;
+    margin-right: 10px;
+}
+.legend span {
+    border: 0px;
+    float: left;
+    width: 12px;
+    height: 12px;
+    margin: 2px;
+}
+/* your colors */
+.legend .superawesome {
+    background-color: #e7edf7;
+}
+.legend .awesome {
+    background-color: #fef8dc;
 }
 </style>
