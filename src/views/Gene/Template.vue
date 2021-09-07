@@ -208,7 +208,7 @@
                             style=" padding:10px 200px 10px 200px; font-weight:bold"
                         >HuGe score {{$parent.combinedScore}} falls in "Extreme" category in combined evidence scale</span>
                         <color-bar-plot
-                            :category="'Extreme'"
+                            :category="$parent.determineCategory($parent.combinedScore)"
                             :elementid="'combinedVariation'"
                             :score="$parent.combinedScore"
                         ></color-bar-plot>
