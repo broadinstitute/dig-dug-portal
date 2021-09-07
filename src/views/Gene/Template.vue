@@ -179,13 +179,15 @@
                             <div class="label">Phenotypes:</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
-                    <div style="padding:10px 250px 10px 250px">
+                    <div style="padding:10px 470px 10px 470px">
                         <br />
                         <genepage-combinedevidence-table
                             :commonBF="parseInt($parent.bayesFactorCommonVariation)"
                             :combinedBF="parseInt($parent.combinedScore)"
                             :rareBF="parseInt($parent.bayesFactorRareVariation)"
                         ></genepage-combinedevidence-table>
+                    </div>
+                    <div style="margin-bottom:35px;padding:10px 350px 10px 350px">
                         <ul class="legend">
                             <li>
                                 <span class="superawesome"></span> Common Variation Bayes Factor
@@ -200,8 +202,10 @@
                             </li>
                         </ul>
                         <br />
+                    </div>
+                    <div style="padding:10px 230px 10px 230px">
                         <span
-                            style="padding:10px 200px 10px 290px; font-weight:bold"
+                            style=" padding:10px 200px 10px 200px; font-weight:bold"
                         >HuGe score {{$parent.combinedScore}} falls in "Extreme" category in combined evidence scale</span>
                         <color-bar-plot
                             :category="'Extreme'"
