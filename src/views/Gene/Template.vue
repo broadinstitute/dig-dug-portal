@@ -160,7 +160,7 @@
                     <h5 style="font-weight: bold;">How is the HuGE score calculated?</h5>
                     <span>
                         <documentation
-                            name="gene.explore.subheader"
+                            name="gene.hugecal.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
                     </span>
@@ -172,11 +172,12 @@
                     >
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
+                            v-if="$store.state.bioPortal.phenotypeMap"
                             class="filter-col-lg"
                             :field="'phenotype'"
                             :options="$store.state.associations.data.map((association) => association.phenotype)"
                             :multiple="false"
-                            :pillFormatter="(filter) =>$store.state.bioPortal.phenotypeMap[filter.threshold].description"
+                            :pillFormatter="(filter) =>!!$store.state.bioPortal.phenotypeMap[filter.threshold] ? $store.state.bioPortal.phenotypeMap[filter.threshold].description :filter.threshold"
                             :labelFormatter="(phenotype) =>
                                     !!$store.state.bioPortal.phenotypeMap[phenotype]
                                         ? $store.state.bioPortal.phenotypeMap[phenotype].description
