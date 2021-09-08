@@ -172,7 +172,6 @@
                     >
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
-                            v-if="$store.state.bioPortal.phenotypeMap"
                             class="filter-col-lg"
                             :field="'phenotype'"
                             :options="$store.state.associations.data.map((association) => association.phenotype)"

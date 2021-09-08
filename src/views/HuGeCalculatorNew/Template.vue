@@ -128,6 +128,15 @@
                                     class="row"
                                 >
                                     <div class="col-md-8">
+                                        <h6
+                                            style="font-weight:bold;margin-top:10px"
+                                        >How is PPA calculated?</h6>
+                                        <span>
+                                            <documentation
+                                                name="hugecal.ppa.subheader"
+                                                :content-fill="$parent.documentationMap"
+                                            ></documentation>
+                                        </span>
                                         <hugecal-table
                                             style="padding:30px 250px 30px 250px"
                                             :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
@@ -194,6 +203,15 @@
                                             <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
                                         </span>
                                         <br />
+                                        <h6
+                                            style="font-weight:bold;margin-top:15px;margin-bottom:10px"
+                                        >How is common variation BF calculated?</h6>
+                                        <span>
+                                            <documentation
+                                                name="hugecal.commonvar.subheader"
+                                                :content-fill="$parent.documentationMap"
+                                            ></documentation>
+                                        </span>
                                         <span
                                             style="font-weight:bold; padding: 650px"
                                         >Is genome-wide significant?</span>
@@ -294,6 +312,7 @@
                                             >BF:{{$parent.bayesFactorRareVariation}}</div>
                                         </div>
                                     </span>
+
                                     <div
                                         style="cursor:pointer"
                                         :class="$parent.classArrs['rvsection']"
@@ -302,6 +321,15 @@
                                         ref="rvsection"
                                         v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
                                     >
+                                        <h6
+                                            style="font-weight:bold;margin-top:10px"
+                                        >How is rare variation BF calculated?</h6>
+                                        <span>
+                                            <documentation
+                                                name="hugecal.rarevar.subheader"
+                                                :content-fill="$parent.documentationMap"
+                                            ></documentation>
+                                        </span>
                                         <span
                                             style="font-weight:bold; padding: 650px"
                                         >Is exome-wide significant?</span>
@@ -360,6 +388,15 @@
                                         ref="rvsection"
                                         v-else
                                     >
+                                        <h6
+                                            style="font-weight:bold;margin-top:10px"
+                                        >How is rare variation BF calculated?</h6>
+                                        <span>
+                                            <documentation
+                                                name="hugecal.rarevar.subheader"
+                                                :content-fill="$parent.documentationMap"
+                                            ></documentation>
+                                        </span>
                                         <span
                                             style="font-weight:bold; padding: 650px"
                                         >Is exome-wide significant?</span>
