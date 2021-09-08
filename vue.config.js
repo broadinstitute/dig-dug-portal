@@ -171,13 +171,7 @@ let pages = {
         title: "HuGe Calculator",
         chunks: ["chunk-vendors", "chunk-common", "hugecalculator"]
     },
-    hugecalculatornew: {
-        entry: "src/views/HuGeCalculatorNew/main.js",
-        template: "public/index.html",
-        filename: "hugecalculatornew.html",
-        title: "HuGe Calculator New",
-        chunks: ["chunk-vendors", "chunk-common", "hugecalculatornew"]
-    },
+
     genefinder: {
         entry: "src/views/GeneFinder/main.js",
         template: "public/index.html",

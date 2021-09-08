@@ -203,7 +203,7 @@
                             </li>
                             <li>
                                 <a
-                                    :href="`http://localhost:8090/hugecalculatornew.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
+                                    :href="`http://localhost:8090/hugecalculator.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
                                 >View evidence in HuGE calculator >></a>
                             </li>
                         </ul>

@@ -36,9 +36,19 @@ export default new Vuex.Store({
         newEnd: keyParams.end,
         phenotypeParam: keyParams.phenotype,
         phenotype: null,
-        searchGene: keyParams.gene
+        searchGene: keyParams.gene,
+        suggestedPriorNew: 0,
+        universalPriorList: [0.05, 0.2]
+
     },
     mutations: {
+        setUniversalPriorList(state, universalPriorList) {
+            state.universalPriorList = universalPriorList
+        },
+        setSuggestedPriorNew(state, suggestedPriorNew) {
+            state.suggestedPriorNew = suggestedPriorNew
+            console.log("updated suggested prior state to " + suggestedPriorNew)
+        },
         setAssociationsData(state, associationsData) {
             state.associationsData = associationsData
         },
@@ -50,7 +60,6 @@ export default new Vuex.Store({
             keyParams.set({ prior: prior })
         },
         setLocus(state, region = {}) {
-
             state.chr = region.chr || state.newChr || state.chr;
             state.start = region.start || state.newStart || state.start;
             state.end = region.end || state.newEnd || state.end;
@@ -58,12 +67,6 @@ export default new Vuex.Store({
             state.newStart = state.start;
             state.newEnd = state.end;
             state.searchGene = null;
-
-            // keyParams.set({
-            //     chr: state.chr,
-            //     start: state.start,
-            //     end: state.end
-            // });
         },
         setPhenotype(state, phenotype) {
             state.phenotypeParam = phenotype;
@@ -106,6 +109,10 @@ export default new Vuex.Store({
             const phenoRegionQuery = `${phenotype},${newRegion.chromosome}:${newRegion.start}-${newRegion.end}`;
             context.dispatch('associations/query', { q: phenoRegionQuery });
         },
+        updatedUniversalSuggestedPriorList(context, universalPriorList) {
+            context.commit('setUniversalPriorList', universalPriorList);
+
+        },
 
         async getAssociationsData(context, phenoGeneInput) {
             let gene = phenoGeneInput["gene"];
@@ -121,7 +128,6 @@ export default new Vuex.Store({
                 context.commit("setPhenotype", phenotype);
                 context.commit("setSearchGene", gene);
                 context.commit("setPrior", 0.3696)
-
             }
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
             context.dispatch('associations/query', { q: phenoRegionQuery });
