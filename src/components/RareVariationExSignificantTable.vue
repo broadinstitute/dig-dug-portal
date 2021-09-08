@@ -40,7 +40,7 @@
                     ><--Burden statistic Association</b-td>
                 </b-tr>
                 <b-tr style="border: 3px solid white !important;">
-                    <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
+                    <b-th style="width:70px" rowspan="1" class="text-right"></b-th>
                     <b-td style="width:150px;" class="text-center"></b-td>
                     <b-td
                         style="width:150px;color:gray;background-color:#F5F5F5"

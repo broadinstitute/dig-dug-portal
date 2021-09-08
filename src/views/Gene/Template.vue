@@ -156,9 +156,15 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">HuGE Score</h4>
+                    <h4 style="font-weight: bold;" class="card-title">HuGE Score</h4>
+                    <h5 style="font-weight: bold;">How is the HuGE score calculated?</h5>
+                    <span>
+                        <documentation
+                            name="gene.explore.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
+                    </span>
                     <!-- Phenotype Selector -->
-
                     <criterion-list-group
                         v-model="$parent.genePageSearchCriterion"
                         :header="''"
@@ -176,7 +182,7 @@
                                         ? $store.state.bioPortal.phenotypeMap[phenotype].description
                                         : phenotype"
                         >
-                            <div class="label">Phenotypes:</div>
+                            <div class="label">Change Phenotype:</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
                     <div style="padding:10px 470px 10px 470px">
