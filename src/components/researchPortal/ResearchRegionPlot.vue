@@ -451,7 +451,7 @@ export default Vue.component("research-region-plot", {
                                 case "chi-square":
                                     combined = this.chiSquared(yAxisFieldArr);
                                     break;
-                                case "avarage":
+                                case "average":
                                     let X = 0;
                                     let index = 0;
                                     yAxisFieldArr.map((n) => {
