@@ -177,7 +177,6 @@
                                     v-if="$parent.plotType == 'region_plot'"
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
-                                    :filtersIndex="$store.state.filtersIndex"
                                     :searchParameters="
                                         $store.state.searchParameters
                                     "

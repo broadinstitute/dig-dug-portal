@@ -25,6 +25,7 @@ import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import uiUtils from "@/utils/uiUtils";
+import $ from "jquery";
 import keyParams from "@/utils/keyParams";
 import Alert, {
     postAlert,
@@ -645,7 +646,7 @@ new Vue({
             if (contents === null || contents[0]["field_data_visualizer_legend"] == false) {
                 return null;
             }
-            return contents[0]["field_data_visualizer_legend"];
+            return $("<textarea/>").html(contents[0]["field_data_visualizer_legend"]).text();
         },
         researchMethod() {
             let contents = this.$store.state.hugeampkpncms.researchMethod;

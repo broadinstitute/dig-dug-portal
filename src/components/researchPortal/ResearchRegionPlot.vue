@@ -93,10 +93,35 @@
                             <b v-html="variant[renderConfig.renderBy]"></b
                         ></span>
                         <span
+                            v-if="
+                                dataComparisonConfig == null ||
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    infoKey
+                                ) == false
+                            "
                             class="content-on-clicked-dot"
                             v-for="(info, infoKey, infoIndex) in variant"
                             v-html="infoKey + ': ' + info"
                         >
+                        </span>
+                        <span
+                            v-if="
+                                dataComparisonConfig != null &&
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    infoKey
+                                ) == true
+                            "
+                            class="content-on-clicked-dot"
+                            v-for="(info, infoKey, infoIndex) in variant"
+                        >
+                            {{ infoKey }}: <br />
+                            <span
+                                class="content-on-clicked-dot-values"
+                                v-for="(infoItem, infoItemKey) in info"
+                                v-html="
+                                    infoItemKey + ': ' + infoItem + '<br />'
+                                "
+                            ></span>
                         </span>
                     </template>
                 </div>
@@ -116,11 +141,37 @@
                             <b v-html="variant[renderConfig.renderBy]"></b
                         ></span>
                         <span
+                            v-if="
+                                dataComparisonConfig == null ||
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    infoKey
+                                ) == false
+                            "
                             class="content-on-clicked-dot"
                             v-for="(info, infoKey) in variant"
                             v-html="infoKey + ': ' + info"
                         >
                         </span>
+                        <span
+                            v-if="
+                                dataComparisonConfig != null &&
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    infoKey
+                                ) == true
+                            "
+                            class="content-on-clicked-dot"
+                            v-for="(info, infoKey) in variant"
+                        >
+                            {{ infoKey }}: <br />
+                            <span
+                                class="content-on-clicked-dot-values"
+                                v-for="(infoItem, infoItemKey) in info"
+                                v-html="
+                                    infoItemKey + ': ' + infoItem + '<br />'
+                                "
+                            ></span>
+                        </span>
+
                         <span class="set-it-ld-reference"
                             ><a
                                 href="javascript:;"
@@ -129,7 +180,7 @@
                                         variant[renderConfig.renderBy]
                                     )
                                 "
-                                >Set as LD reference</a
+                                >Set this LD reference</a
                             >
                         </span>
                     </template>
@@ -142,7 +193,7 @@
             ></div>
             <canvas
                 v-if="!!renderConfig"
-                id="manhattanPlot"
+                id="regionPlot"
                 @mousemove="checkPosition"
                 @resize="onResize"
                 @click="getFullList"
@@ -182,10 +233,35 @@
                             <b v-html="hLdVariant[renderConfig.renderBy]"></b
                         ></span>
                         <span
+                            v-if="
+                                dataComparisonConfig == null ||
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    hLdVInfoKey
+                                ) == false
+                            "
                             class="content-on-clicked-dot"
                             v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
                             v-html="hLdVInfoKey + ': ' + hLdVInfo"
                         >
+                        </span>
+                        <span
+                            v-if="
+                                dataComparisonConfig != null &&
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    hLdVInfoKey
+                                ) == true
+                            "
+                            class="content-on-clicked-dot"
+                            v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
+                        >
+                            {{ hLdVInfoKey }}: <br />
+                            <span
+                                class="content-on-clicked-dot-values"
+                                v-for="(hLdVItem, hLdVItemKey) in hLdVInfo"
+                                v-html="
+                                    hLdVItemKey + ': ' + hLdVItem + '<br />'
+                                "
+                            ></span>
                         </span>
                     </template>
                 </div>
@@ -208,10 +284,35 @@
                             <b v-html="ldVariant[renderConfig.renderBy]"></b
                         ></span>
                         <span
+                            v-if="
+                                dataComparisonConfig == null ||
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    ldInfoKey
+                                ) == false
+                            "
                             class="content-on-clicked-dot"
                             v-for="(ldInfo, ldInfoKey) in ldVariant"
                             v-html="ldInfoKey + ': ' + ldInfo"
                         >
+                        </span>
+                        <span
+                            v-if="
+                                dataComparisonConfig != null &&
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    ldInfoKey
+                                ) == true
+                            "
+                            class="content-on-clicked-dot"
+                            v-for="(ldInfo, ldInfoKey) in ldVariant"
+                        >
+                            {{ ldInfoKey }}: <br />
+                            <span
+                                class="content-on-clicked-dot-values"
+                                v-for="(ldInfoItem, ldInfoItemKey) in ldInfo"
+                                v-html="
+                                    ldInfoItemKey + ': ' + ldInfoItem + '<br />'
+                                "
+                            ></span>
                         </span>
                         <span class="set-it-ld-reference"
                             ><a
@@ -221,7 +322,7 @@
                                         ldVariant[renderConfig.renderBy]
                                     )
                                 "
-                                >Set this LS Reference</a
+                                >Set this LD Reference</a
                             >
                         </span>
                     </template>
@@ -256,7 +357,6 @@ export default Vue.component("research-region-plot", {
     props: [
         "plotData",
         "renderConfig",
-        "filtersIndex",
         "selectedRegion",
         "searchParameters",
         "dataComparisonConfig",
@@ -327,7 +427,7 @@ export default Vue.component("research-region-plot", {
             } else {
                 let rawData = this.plotData;
                 let comparingData = [];
-                this.xAxisFieldItems = [];
+                this.yAxisFieldItems = [];
 
                 if (!!this.dataComparisonConfig) {
                     for (const [rKey, r] of Object.entries(rawData)) {
@@ -419,7 +519,6 @@ export default Vue.component("research-region-plot", {
     },
     watch: {
         ldVariantCorrelationsData(data) {
-            //console.log("LDData", data);
             this.renderPlot();
         },
         renderData(data) {
@@ -476,6 +575,25 @@ export default Vue.component("research-region-plot", {
 
                                 break;
                             case "all":
+                                let highInAll = null;
+                                this.yAxisFieldItems.map((i) => {
+                                    if (highInAll == null) {
+                                        highInAll =
+                                            d[this.renderConfig.yAxisField][i];
+                                    } else {
+                                        if (
+                                            d[this.renderConfig.yAxisField][i] >
+                                            highInAll
+                                        ) {
+                                            highInAll =
+                                                d[this.renderConfig.yAxisField][
+                                                    i
+                                                ];
+                                        }
+                                    }
+                                });
+
+                                yValue = highInAll;
                                 break;
                         }
                     } else {
@@ -500,7 +618,6 @@ export default Vue.component("research-region-plot", {
                     }
                 });
 
-                //console.log("this.refVariant", this.refVariant);
                 this.setLDReference(null);
             }
         },
@@ -508,7 +625,6 @@ export default Vue.component("research-region-plot", {
             this.hidePanel("ld_dot_value_full_list");
             this.hidePanel("dot_value_full_list");
 
-            //this.refVariant = VARIANT;
             let tgVariant;
             if (VARIANT == null) {
                 switch (this.plotRenderBy) {
@@ -521,6 +637,8 @@ export default Vue.component("research-region-plot", {
                         this.getLDData(tgVariant);
                         break;
                     case "all":
+                        tgVariant = this.refVariant[0];
+                        this.getLDData(tgVariant);
                         break;
                 }
             } else {
@@ -536,8 +654,6 @@ export default Vue.component("research-region-plot", {
             this.renderPlot();
         },
         getLDData(REF_VARIANT) {
-            //console.log(this.renderData);
-
             let dataPopulations = [
                 ...new Set(
                     this.renderData.map(
@@ -545,8 +661,6 @@ export default Vue.component("research-region-plot", {
                     )
                 ),
             ];
-
-            //console.log("dataPopulations", dataPopulations);
 
             let targetPopulation =
                 dataPopulations.length > 1
@@ -594,15 +708,13 @@ export default Vue.component("research-region-plot", {
             }
 
             if (this.clickedDotPosFullList.length > 0) {
-                document.getElementById("manhattanPlot").classList.add("hover");
+                document.getElementById("regionPlot").classList.add("hover");
                 document
                     .getElementById("clicked_dot_value")
                     .classList.add("hidden");
             } else {
                 wrapper.classList.add("hidden");
-                document
-                    .getElementById("manhattanPlot")
-                    .classList.remove("hover");
+                document.getElementById("regionPlot").classList.remove("hover");
             }
         },
         getLDFullList(event) {
@@ -636,10 +748,42 @@ export default Vue.component("research-region-plot", {
                 document.getElementById("ldPlot").classList.remove("hover");
             }
         },
+        //checkPosition($event,"clicked_dot_value","regionPlot",this.dotPosData,this.hoverDotPosFullList)
+        /*checkPosition(event, WRAPPER, CANVAS, POS_DATA, FULL_LIST) {
+            this[FULL_LIST] = [];
+            let wrapper = document.getElementById(WRAPPER);
+            let canvas = document.getElementById(CANVAS);
+            wrapper.classList.remove("hidden");
+            let e = event;
+            var rect = e.target.getBoundingClientRect();
+            var x = Math.floor(e.clientX - rect.left);
+            var y = Math.floor(e.clientY - rect.top);
+            wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+
+            for (let h = -5; h <= 5; h++) {
+                for (let v = -5; v <= 5; v++) {
+                    if (this[POS_DATA][x + h] != undefined) {
+                        if (this[POS_DATA][x + h][y + v] != undefined) {
+                            let dotObject = this[POS_DATA][x + h][y + v];
+                            this[FULL_LIST].push(dotObject);
+                        }
+                    }
+                }
+            }
+
+            if (this[FULL_LIST].length > 0) {
+                document.getElementById(CANVAS).classList.add("hover");
+            } else {
+                wrapper.classList.add("hidden");
+                document.getElementById(CANVAS).classList.remove("hover");
+            }
+        },*/
+
         checkPosition(event) {
             this.hoverDotPosFullList = [];
             let wrapper = document.getElementById("clicked_dot_value");
-            let canvas = document.getElementById("manhattanPlot");
+            let canvas = document.getElementById("regionPlot");
             wrapper.classList.remove("hidden");
             let e = event;
             var rect = e.target.getBoundingClientRect();
@@ -660,12 +804,10 @@ export default Vue.component("research-region-plot", {
             }
 
             if (this.hoverDotPosFullList.length > 0) {
-                document.getElementById("manhattanPlot").classList.add("hover");
+                document.getElementById("regionPlot").classList.add("hover");
             } else {
                 wrapper.classList.add("hidden");
-                document
-                    .getElementById("manhattanPlot")
-                    .classList.remove("hover");
+                document.getElementById("regionPlot").classList.remove("hover");
             }
         },
         checkLDPosition(event) {
@@ -725,6 +867,7 @@ export default Vue.component("research-region-plot", {
                 ? this.renderConfig.height
                 : 300;
 
+            // render LD plot after gathering required data
             let ldDataLength =
                 this.ldVariantCorrelationsData.data.correlation.length;
 
@@ -738,8 +881,9 @@ export default Vue.component("research-region-plot", {
             }
 
             this.renderLDPlot(canvasRenderHeight, plotHeight, ldData);
+            /////
 
-            let c = document.getElementById("manhattanPlot");
+            let c = document.getElementById("regionPlot");
             c.setAttribute("width", canvasRenderWidth);
             c.setAttribute("height", canvasRenderHeight);
             let ctx = c.getContext("2d");
@@ -771,30 +915,115 @@ export default Vue.component("research-region-plot", {
                 xMin = Number(this.searchingRegion.start),
                 xMax = Number(this.searchingRegion.end);
 
-            //console.log("xMin, xMax:", xMin, "-", xMax);
-
             this.renderData.map((d) => {
-                let yValue = d[this.renderConfig.yAxisField];
+                let yValue;
+                if (!!this.dataComparisonConfig) {
+                    if (this.plotRenderBy == "combined") {
+                        yValue = d["combined"];
 
-                if (yMin == null) {
-                    yMin = yValue;
-                }
-                if (yMax == null) {
-                    yMax = yValue;
-                }
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
 
-                if (yValue < yMin) {
-                    yMin = yValue;
-                }
-                if (yValue > yMax) {
-                    yMax = yValue;
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }
+                    } else if (this.plotRenderBy == "high") {
+                        let highNum = null;
+                        this.yAxisFieldItems.map((i) => {
+                            if (highNum == null) {
+                                highNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] > highNum
+                                ) {
+                                    highNum =
+                                        d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+                        });
+
+                        yValue = highNum;
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
+
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }
+                    } else if (this.plotRenderBy == "all") {
+                        let highNum = null;
+                        let lowNum = null;
+                        this.yAxisFieldItems.map((i) => {
+                            if (highNum == null) {
+                                highNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] > highNum
+                                ) {
+                                    highNum =
+                                        d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+
+                            if (lowNum == null) {
+                                lowNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] < lowNum
+                                ) {
+                                    lowNum = d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+                        });
+
+                        if (yMin == null) {
+                            yMin = lowNum;
+                        }
+                        if (yMax == null) {
+                            yMax = highNum;
+                        }
+
+                        if (lowNum < yMin) {
+                            yMin = lowNum;
+                        }
+                        if (highNum > yMax) {
+                            yMax = highNum;
+                        }
+                    }
+                } else {
+                    yValue = d[this.renderConfig.yAxisField];
+
+                    if (yMin == null) {
+                        yMin = yValue;
+                    }
+                    if (yMax == null) {
+                        yMax = yValue;
+                    }
+
+                    if (yValue < yMin) {
+                        yMin = yValue;
+                    }
+                    if (yValue > yMax) {
+                        yMax = yValue;
+                    }
                 }
             });
 
-            let yStep = (yMax - yMin) / 4;
-            let xStep = Math.ceil((xMax - xMin) / 4);
-
             // Y ticks
+            let yStep = (yMax - yMin) / 4;
             let yTickDistance = plotHeight / 4;
             for (let i = 0; i < 5; i++) {
                 let tickYPos = this.topMargin + i * yTickDistance;
@@ -815,6 +1044,7 @@ export default Vue.component("research-region-plot", {
             }
 
             // X ticks
+            let xStep = Math.ceil((xMax - xMin) / 4);
             let xTickDistance = (plotWidth - 5) / 4;
 
             for (let i = 0; i < 5; i++) {
@@ -865,18 +1095,10 @@ export default Vue.component("research-region-plot", {
             */
 
             //Render dots
+            let ldConfig = this.renderConfig.ldServer;
+            let dotColor;
+
             this.renderData.map((g) => {
-                let xPos =
-                    xStart +
-                    xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
-
-                let yPos =
-                    yStart +
-                    plotHeight -
-                    yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
-
-                let ldConfig = this.renderConfig.ldServer;
-
                 let dotID =
                     this.searchingRegion.chr +
                     ":" +
@@ -907,34 +1129,149 @@ export default Vue.component("research-region-plot", {
                         ? "#2074B620"
                         : "#33333320";*/
 
-                let dotColor = ldScore == 1 ? "#82409970" : "#33333340";
+                dotColor = ldScore == 1 ? "#82409970" : "#33333340";
 
                 ctx.fillStyle = dotColor;
 
-                ctx.lineWidth = 0;
-                ctx.beginPath();
-                ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
-                ctx.fill();
+                let xPos =
+                    xStart +
+                    xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
+                /*
+                let yPos =
+                    yStart +
+                    plotHeight -
+                    yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);*/
+                let yPos;
+                if (!!this.dataComparisonConfig) {
+                    if (this.plotRenderBy == "combined") {
+                        yPos =
+                            yStart +
+                            plotHeight -
+                            yPosByPixel * (g["combined"] - yMin);
 
-                let xLoc = xPos.toString().split(".")[0];
-                let yLoc = yPos.toString().split(".")[0];
+                        let values = Object.keys(
+                            g[this.renderConfig.yAxisField]
+                        );
+                        if (
+                            values.length == 1 &&
+                            this.yAxisFieldItems.length > 1
+                        ) {
+                            dotColor = this.getColorIndex(values[0]);
+                        }
 
-                let hoverContent;
+                        this.renderDot(ctx, xPos, yPos, dotColor);
+                        let xLoc = xPos.toString().split(".")[0];
+                        let yLoc = yPos.toString().split(".")[0];
+                        this.feedHoverContent(
+                            xLoc,
+                            yLoc,
+                            g[this.renderConfig.renderBy],
+                            g,
+                            this.dotPosData
+                        );
+                    } else if (this.plotRenderBy == "high") {
+                        let highValue = null;
+                        let highItem;
 
-                if (!!this.renderConfig.hoverContent) {
-                    hoverContent = this.renderConfig.hoverContent;
-                }
+                        this.yAxisFieldItems.map((i) => {
+                            if (highValue == null) {
+                                highValue = g[this.renderConfig.yAxisField][i];
+                                highItem = i;
+                            } else {
+                                if (
+                                    g[this.renderConfig.yAxisField][i] >
+                                    highValue
+                                ) {
+                                    highValue =
+                                        g[this.renderConfig.yAxisField][i];
+                                    highItem = i;
+                                }
+                            }
+                        });
+                        yPos =
+                            yStart +
+                            plotHeight -
+                            yPosByPixel *
+                                (g[this.renderConfig.yAxisField][highItem] -
+                                    yMin);
 
-                if (!this.dotPosData[xLoc]) {
-                    this.dotPosData[xLoc] = {};
-                }
-                this.dotPosData[xLoc][yLoc] = {};
-                this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
-                    g[this.renderConfig.renderBy];
-                if (!!this.renderConfig.hoverContent) {
-                    hoverContent.map((h) => {
-                        this.dotPosData[xLoc][yLoc][h] = g[h];
-                    });
+                        dotColor =
+                            dotColor == "#82409970"
+                                ? dotColor
+                                : this.getColorIndex(highItem);
+
+                        this.renderDot(ctx, xPos, yPos, dotColor);
+                        let xLoc = xPos.toString().split(".")[0];
+                        let yLoc = yPos.toString().split(".")[0];
+                        this.feedHoverContent(
+                            xLoc,
+                            yLoc,
+                            g[this.renderConfig.renderBy],
+                            g,
+                            this.dotPosData
+                        );
+                    } else if (this.plotRenderBy == "all") {
+                        let yPosArr = [];
+                        let yPosObj = {};
+
+                        this.yAxisFieldItems.map((i) => {
+                            let yPos =
+                                yStart +
+                                plotHeight -
+                                yPosByPixel *
+                                    (g[this.renderConfig.yAxisField][i] - yMin);
+
+                            yPosObj[i] = yPos;
+                            yPosArr.push(yPos);
+                        });
+
+                        for (const [yKey, y] of Object.entries(yPosObj)) {
+                            dotColor =
+                                dotColor == "#82409970"
+                                    ? dotColor
+                                    : this.getColorIndex(yKey);
+                            this.renderDot(ctx, xPos, y, dotColor);
+
+                            let xLoc = xPos.toString().split(".")[0];
+                            let yLoc = y.toString().split(".")[0];
+                            this.feedHoverContent(
+                                xLoc,
+                                yLoc,
+                                g[this.renderConfig.renderBy],
+                                g,
+                                this.dotPosData
+                            );
+                        }
+                        if (yPosArr.length > 1) {
+                            yPosArr.sort(function (a, b) {
+                                return a - b;
+                            });
+
+                            ctx.beginPath();
+                            ctx.lineWidth = 1;
+                            ctx.strokeStyle = "#00000070";
+                            ctx.moveTo(xPos, yPosArr[0]);
+                            ctx.lineTo(xPos, yPosArr[yPosArr.length - 1]);
+                            ctx.stroke();
+                        }
+                    }
+                } else {
+                    yPos =
+                        yStart +
+                        plotHeight -
+                        yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
+
+                    this.renderDot(ctx, xPos, yPos, dotColor);
+
+                    let xLoc = xPos.toString().split(".")[0];
+                    let yLoc = yPos.toString().split(".")[0];
+                    this.feedHoverContent(
+                        xLoc,
+                        yLoc,
+                        g[this.renderConfig.renderBy],
+                        g,
+                        this.dotPosData
+                    );
                 }
             });
         },
@@ -989,10 +1326,21 @@ export default Vue.component("research-region-plot", {
                 if (!!this.dataComparisonConfig) {
                     if (this.plotRenderBy == "combined") {
                         yValue = d["combined"];
-                    } else if (
-                        this.plotRenderBy == "high" ||
-                        this.plotRenderBy == "all"
-                    ) {
+
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
+
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }
+                    } else if (this.plotRenderBy == "high") {
                         let highNum = null;
                         this.yAxisFieldItems.map((i) => {
                             if (highNum == null) {
@@ -1008,23 +1356,104 @@ export default Vue.component("research-region-plot", {
                         });
 
                         yValue = highNum;
+
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
+
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }
+                    } else if (this.plotRenderBy == "all") {
+                        /*let highNum = null;
+                        this.yAxisFieldItems.map((i) => {
+                            if (highNum == null) {
+                                highNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] > highNum
+                                ) {
+                                    highNum =
+                                        d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+                        });
+
+                        yValue = highNum;
+
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
+
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }*/
+                        let highNum = null;
+                        let lowNum = null;
+                        this.yAxisFieldItems.map((i) => {
+                            if (highNum == null) {
+                                highNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] > highNum
+                                ) {
+                                    highNum =
+                                        d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+
+                            if (lowNum == null) {
+                                lowNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] < lowNum
+                                ) {
+                                    lowNum = d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+                        });
+
+                        if (yMin == null) {
+                            yMin = lowNum;
+                        }
+                        if (yMax == null) {
+                            yMax = highNum;
+                        }
+
+                        if (lowNum < yMin) {
+                            yMin = lowNum;
+                        }
+                        if (highNum > yMax) {
+                            yMax = highNum;
+                        }
                     }
                 } else {
                     yValue = d[this.renderConfig.yAxisField];
-                }
+                    if (yMin == null) {
+                        yMin = yValue;
+                    }
+                    if (yMax == null) {
+                        yMax = yValue;
+                    }
 
-                if (yMin == null) {
-                    yMin = yValue;
-                }
-                if (yMax == null) {
-                    yMax = yValue;
-                }
-
-                if (yValue < yMin) {
-                    yMin = yValue;
-                }
-                if (yValue > yMax) {
-                    yMax = yValue;
+                    if (yValue < yMin) {
+                        yMin = yValue;
+                    }
+                    if (yValue > yMax) {
+                        yMax = yValue;
+                    }
                 }
             });
 
@@ -1082,7 +1511,6 @@ export default Vue.component("research-region-plot", {
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#000000";
 
-                //console.log(i * 0.2);
                 ctx.fillText(
                     parseFloat((i * 0.2).toFixed(2)),
                     adjTickXPos,
@@ -1182,12 +1610,14 @@ export default Vue.component("research-region-plot", {
                             xLoc,
                             yLoc,
                             g[this.renderConfig.renderBy],
-                            g
+                            g,
+                            this.ldDotPosData
                         );
                     } else if (this.plotRenderBy == "high") {
                         let highValue = null;
                         let highItem;
-                        this.xAxisFieldItems.map((i) => {
+
+                        this.yAxisFieldItems.map((i) => {
                             if (highValue == null) {
                                 highValue = g[this.renderConfig.yAxisField][i];
                                 highItem = i;
@@ -1209,15 +1639,10 @@ export default Vue.component("research-region-plot", {
                                 (g[this.renderConfig.yAxisField][highItem] -
                                     yMin);
 
-                        console.log(
-                            g[this.renderConfig.yAxisField],
-                            " : ",
-                            g[this.renderConfig.yAxisField][highItem],
-                            " : ",
-                            highItem
-                        );
-
-                        dotColor = this.getColorIndex(highItem);
+                        dotColor =
+                            dotColor == "#82409970"
+                                ? dotColor
+                                : this.getColorIndex(highItem);
 
                         this.renderDot(ctx, xPos, yPos, dotColor);
                         let xLoc = xPos.toString().split(".")[0];
@@ -1226,9 +1651,53 @@ export default Vue.component("research-region-plot", {
                             xLoc,
                             yLoc,
                             g[this.renderConfig.renderBy],
-                            g
+                            g,
+                            this.ldDotPosData
                         );
                     } else if (this.plotRenderBy == "all") {
+                        let yPosArr = [];
+                        let yPosObj = {};
+
+                        this.yAxisFieldItems.map((i) => {
+                            let yPos =
+                                yStart +
+                                plotHeight -
+                                yPosByPixel *
+                                    (g[this.renderConfig.yAxisField][i] - yMin);
+
+                            yPosObj[i] = yPos;
+                            yPosArr.push(yPos);
+                        });
+
+                        for (const [yKey, y] of Object.entries(yPosObj)) {
+                            dotColor =
+                                dotColor == "#82409970"
+                                    ? dotColor
+                                    : this.getColorIndex(yKey);
+                            this.renderDot(ctx, xPos, y, dotColor);
+
+                            let xLoc = xPos.toString().split(".")[0];
+                            let yLoc = y.toString().split(".")[0];
+                            this.feedHoverContent(
+                                xLoc,
+                                yLoc,
+                                g[this.renderConfig.renderBy],
+                                g,
+                                this.ldDotPosData
+                            );
+                        }
+                        if (yPosArr.length > 1) {
+                            yPosArr.sort(function (a, b) {
+                                return a - b;
+                            });
+
+                            ctx.beginPath();
+                            ctx.lineWidth = 1;
+                            ctx.strokeStyle = "#00000070";
+                            ctx.moveTo(xPos, yPosArr[0]);
+                            ctx.lineTo(xPos, yPosArr[yPosArr.length - 1]);
+                            ctx.stroke();
+                        }
                     }
                 } else {
                     yPos =
@@ -1244,7 +1713,8 @@ export default Vue.component("research-region-plot", {
                         xLoc,
                         yLoc,
                         g[this.renderConfig.renderBy],
-                        g
+                        g,
+                        this.ldDotPosData
                     );
                 }
             });
@@ -1268,7 +1738,6 @@ export default Vue.component("research-region-plot", {
             CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
             CTX.fill();
         },
-
         feedHoverContent(xLoc, yLoc, ID, CONTENT) {
             let hoverContent;
 
@@ -1276,14 +1745,33 @@ export default Vue.component("research-region-plot", {
                 hoverContent = this.renderConfig.hoverContent;
             }
 
-            if (!this.ldDotPosData[xLoc]) {
-                this.ldDotPosData[xLoc] = {};
+            if (!this.dotPosData[xLoc]) {
+                this.dotPosData[xLoc] = {};
             }
-            this.ldDotPosData[xLoc][yLoc] = {};
-            this.ldDotPosData[xLoc][yLoc][this.renderConfig.renderBy] = ID;
+            this.dotPosData[xLoc][yLoc] = {};
+            this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] = ID;
             if (!!this.renderConfig.hoverContent) {
                 hoverContent.map((h) => {
-                    this.ldDotPosData[xLoc][yLoc][h] = CONTENT[h];
+                    this.dotPosData[xLoc][yLoc][h] = CONTENT[h];
+                });
+            }
+        },
+
+        feedHoverContent(xLoc, yLoc, ID, CONTENT, POS_DATA) {
+            let hoverContent;
+
+            if (!!this.renderConfig.hoverContent) {
+                hoverContent = this.renderConfig.hoverContent;
+            }
+            //this.ldDotPosData
+            if (!POS_DATA[xLoc]) {
+                POS_DATA[xLoc] = {};
+            }
+            POS_DATA[xLoc][yLoc] = {};
+            POS_DATA[xLoc][yLoc][this.renderConfig.renderBy] = ID;
+            if (!!this.renderConfig.hoverContent) {
+                hoverContent.map((h) => {
+                    POS_DATA[xLoc][yLoc][h] = CONTENT[h];
                 });
             }
         },
@@ -1295,7 +1783,7 @@ $(function () {});
 
 <style>
 .region-plot-default-legend {
-    text-align: right;
+    text-align: center;
 }
 .region-plot-default-legend span {
     font-size: 12px;
@@ -1307,7 +1795,7 @@ $(function () {});
     height: 12px;
     border-radius: 0px;
 }
-#manhattanPlot.hover,
+#regionPlot.hover,
 #ldPlot.hover {
     cursor: pointer;
 }
@@ -1354,6 +1842,10 @@ $(function () {});
     overflow-x: hidden;
     overflow-y: auto;
     font-size: 14px;
+}
+
+.content-on-clicked-dot-values {
+    padding-left: 10px;
 }
 </style>
 
