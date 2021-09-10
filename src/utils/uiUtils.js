@@ -1,9 +1,9 @@
-let popOutElement = function(ELEMENT) {
+let popOutElement = function (ELEMENT) {
     let element = checkExist(ELEMENT);
     element.classList.toggle("popped-out");
 };
 
-let hideElement = function(ELEMENT) {
+let hideElement = function (ELEMENT) {
     let element = checkExist(ELEMENT);
 
     if (!!element) {
@@ -11,7 +11,7 @@ let hideElement = function(ELEMENT) {
     }
 };
 
-let showElement = function(ELEMENT, SEARCHBOX) {
+let showElement = function (ELEMENT, SEARCHBOX) {
     let element = checkExist(ELEMENT);
 
     if (!!element) {
@@ -28,7 +28,7 @@ let showElement = function(ELEMENT, SEARCHBOX) {
     }
 };
 
-let showHideElement = function(ELEMENT, SEARCHBOX) {
+let showHideElement = function (ELEMENT, SEARCHBOX) {
     let element = checkExist(ELEMENT);
 
     if (!!element) {
@@ -40,7 +40,7 @@ let showHideElement = function(ELEMENT, SEARCHBOX) {
     }
 };
 
-let showHideHelpContent = function(ELEMENT) {
+let showHideHelpContent = function (ELEMENT) {
     let element = checkExist(ELEMENT);
     if (element.classList.contains("hidden")) {
         element.classList.remove("hidden");
@@ -50,7 +50,7 @@ let showHideHelpContent = function(ELEMENT) {
     getToolTipPosition(ELEMENT);
 };
 
-let getToolTipPosition = function(ELEMENT) {
+let getToolTipPosition = function (ELEMENT) {
     let caller = document.getElementsByClassName(ELEMENT)[0];
     let viewer = document.getElementById(ELEMENT);
     let intViewportWidth = window.innerWidth;
@@ -72,7 +72,7 @@ let getToolTipPosition = function(ELEMENT) {
         */
 };
 
-let getOffset = function(ELEMENT) {
+let getOffset = function (ELEMENT) {
     let _x = 0;
     let _y = 0;
     while (ELEMENT && !isNaN(ELEMENT.offsetLeft) && !isNaN(ELEMENT.offsetTop)) {
@@ -83,7 +83,7 @@ let getOffset = function(ELEMENT) {
     return { top: _y, left: _x };
 };
 
-let switchViews = function(VIEWS, BUTTONTEXT) {
+let switchViews = function (VIEWS, BUTTONTEXT) {
     let x = VIEWS.length;
     var currentElement;
 
@@ -100,7 +100,7 @@ let switchViews = function(VIEWS, BUTTONTEXT) {
     celement.classList.remove("hidden");
 };
 
-let openPage = function(PAGE, PARAMETERS) {
+let openPage = function (PAGE, PARAMETERS) {
     let redirectURL = "./" + PAGE + "?";
 
     for (let [key, value] of Object.entries(PARAMETERS)) {
@@ -109,7 +109,7 @@ let openPage = function(PAGE, PARAMETERS) {
     window.location.href = redirectURL;
 };
 
-let checkExist = function(ELEMENT) {
+let checkExist = function (ELEMENT) {
     var element = document.getElementById(ELEMENT);
     if (typeof element == "undefined" || element == null) {
         element = document.getElementsByClassName(ELEMENT)[0];
@@ -117,7 +117,7 @@ let checkExist = function(ELEMENT) {
     return element;
 };
 
-let showHideByClass = function(CLASS) {
+let showHideByClass = function (CLASS) {
     let element = document.getElementsByClassName(CLASS);
     let x = element.length;
 
@@ -126,7 +126,7 @@ let showHideByClass = function(CLASS) {
     }
 };
 
-let onScroll = function(e) {
+let onScroll = function (e) {
     let windowTop = window.top.scrollY;
 
     let element = document.getElementsByClassName("search-header")[0];
@@ -141,7 +141,7 @@ let onScroll = function(e) {
     }
 };
 
-let convertJson2Csv = function(DATA, FILENAME) {
+let convertJson2Csv = function (DATA, FILENAME) {
     const items = DATA;
     const downloadFilename = FILENAME || "download";
     const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
@@ -165,7 +165,21 @@ let convertJson2Csv = function(DATA, FILENAME) {
     document.body.removeChild(downloadLink);
 };
 
-let getAxisTicks = function(lo, hi) {
+let saveJson = function (DATA, FILENAME) {
+    const items = DATA;
+    const downloadFilename = FILENAME || "download";
+
+    let downloadLink = document.createElement("a");
+    let blob = new Blob(["\ufeff", JSON.stringify(DATA)]);
+    let url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = downloadFilename + ".json"; //Name the file here
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+};
+
+let getAxisTicks = function (lo, hi) {
     let step = 10 ** (Math.round(Math.log10(hi - lo)) - 1);
     let value = (Math.floor((lo + step) / step) - 1) * step;
     let halfStep = step / 2;
@@ -199,5 +213,6 @@ export default {
     getToolTipPosition,
     onScroll,
     convertJson2Csv,
+    saveJson,
     getAxisTicks
 };

@@ -39,13 +39,15 @@
                         :id="'search_param_' + parameter.parameter"
                     />
                 </div>
-                <div class="col">
+                <div
+                    class="col"
+                    v-if="!!this.dataset && dataComparisonConfig != null"
+                >
+                    <div class="label" v-html="'Compare data'"></div>
                     <select id="ifMergeData" class="custom-select">
-                        <option value="noSet" selected>No set</option>
-                        <option value="overlapping">
-                            Display only overlapping
-                        </option>
-                        <option value="all">Display all</option>
+                        <option value="newSearch" selected>New search</option>
+                        <option value="overlapping">Only overlapping</option>
+                        <option value="all">All</option>
                     </select>
                 </div>
                 <div class="col">
@@ -68,15 +70,20 @@
                             :key="v"
                             :class="'btn search-bubble ' + i"
                             @click="removeSearch(value.field, i)"
-                            v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
+                            v-html="v"
                         ></b-badge>
                     </div>
                     <b-badge
                         v-if="this.numberOfSearchParams() > 1"
-                        class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                        class="
+                            badge badge-secondary badge-pill
+                            btn
+                            search-bubble
+                            clear-all-filters-bubble
+                        "
                         @click="removeAllSearchParams()"
                     >
-                        Clear all search
+                        Clear all filters
                     </b-badge>
                 </div>
             </div>
@@ -219,7 +226,12 @@
             </div>
             <b-badge
                 v-if="this.numberOfSearches() > 1"
-                class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                class="
+                    badge badge-secondary badge-pill
+                    btn
+                    search-bubble
+                    clear-all-filters-bubble
+                "
                 @click="removeAllFilters()"
             >
                 Clear all search
@@ -237,7 +249,7 @@ import keyParams from "@/utils/keyParams";
 export default Vue.component("research-page-filters", {
     props: [
         "apiParameters",
-        "dataComparison",
+        "dataComparisonConfig",
         "dataFiles",
         "dataType",
         "filesListLabels",
@@ -290,6 +302,7 @@ export default Vue.component("research-page-filters", {
             tempObj["search"] = [];
             this.searchParamsIndex["dataFiles"] = tempObj;
         }
+        this.$store.dispatch("searchParameters", this.searchParamsIndex);
     },
     mounted() {
         if (
@@ -299,16 +312,17 @@ export default Vue.component("research-page-filters", {
             let parametersArr = this.apiParameters.query.format;
 
             parametersArr.map((param, index) => {
-                //console.log(param, index);
                 if (keyParams[param] != undefined) {
                     document.getElementById("search_param_" + param).value =
                         keyParams[param];
 
                     this.searchParamsIndex[param].search.push(keyParams[param]);
+                    this.$store.dispatch(
+                        "searchParameters",
+                        this.searchParamsIndex
+                    );
                 }
             });
-
-            //console.log("this.searchParamsIndex", this.searchParamsIndex);
         }
     },
     comuted: {},
@@ -343,6 +357,13 @@ export default Vue.component("research-page-filters", {
                 return file;
             }
         },
+        setDataComparison() {
+            let ifCompareData = !!document.getElementById("ifMergeData")
+                ? document.getElementById("ifMergeData").value
+                : "newSearch";
+
+            this.$store.dispatch("dataComparison", ifCompareData);
+        },
         queryAPI() {
             this.showHideSearch();
             uiUtils.showElement("data-loading-indicator");
@@ -353,32 +374,38 @@ export default Vue.component("research-page-filters", {
 
             this.$store.state.bioIndexContinue = [];
 
-            /*console.log(
-                "if merge data",
-                document.getElementById("ifMergeData").value
-            );
-
-            console.log("this.dataset", typeof this.dataset);
-            console.log("this.dataset", this.dataset);
-            */
-
-            let ifCompareData = document.getElementById("ifMergeData").value;
-
-            if (ifCompareData != "noSet" && this.dataset != "") {
-            }
+            this.setDataComparison();
 
             let queryParams = "";
             if (this.apiParameters.query.type == "array") {
                 let parametersArr = this.apiParameters.query.format;
 
                 parametersArr.map((param, index) => {
-                    console.log(param, index);
                     queryParams += document.getElementById(
                         "search_param_" + param
                     ).value;
                     if (index + 1 < parametersArr.length) {
                         queryParams += ",";
                     }
+
+                    // add to search parameters index
+                    if (this.$store.state.dataComparison == "newSearch") {
+                        this.searchParamsIndex[param].search = [];
+                        this.searchParamsIndex[param].search.push(
+                            document.getElementById("search_param_" + param)
+                                .value
+                        );
+                    } else {
+                        this.searchParamsIndex[param].search.push(
+                            document.getElementById("search_param_" + param)
+                                .value
+                        );
+                    }
+
+                    this.$store.dispatch(
+                        "searchParameters",
+                        this.searchParamsIndex
+                    );
                 });
             }
 
@@ -424,23 +451,46 @@ export default Vue.component("research-page-filters", {
             this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
         },
         numberOfSearches() {
-            // console.log("called 3");
             let numberOfBubbles = 0;
             for (const FIELD in this.filtersIndex) {
                 numberOfBubbles += this.filtersIndex[FIELD].search.length;
             }
 
-            // console.log("numberOfBubbles", numberOfBubbles);
-
             return numberOfBubbles;
         },
         numberOfSearchParams() {},
         buildOptions(field) {
-            let options = this.dataset
-                .map((v) => v[field])
-                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
-                .filter((v, i, arr) => v != ""); //remove blank
-            return options.sort();
+            if (this.dataComparisonConfig == null) {
+                let options = this.dataset
+                    .map((v) => v[field])
+                    .filter((v, i, arr) => arr.indexOf(v) == i) //unique
+                    .filter((v, i, arr) => v != ""); //remove blank
+                return options.sort();
+            } else {
+                let options = [];
+
+                for (const [key, value] of Object.entries(this.dataset)) {
+                    if (
+                        typeof value[field] === "object" &&
+                        value[field] !== null &&
+                        !Array.isArray(value[field])
+                    ) {
+                        for (const [iKey, iValue] of Object.entries(
+                            value[field]
+                        )) {
+                            options.push(iValue);
+                        }
+                    } else {
+                        options.push(value[field]);
+                    }
+                }
+
+                let unqOptions = options
+                    .filter((v, i, arr) => arr.indexOf(v) == i) //unique
+                    .filter((v, i, arr) => v != ""); //remove blank
+
+                return unqOptions.sort();
+            }
         },
         filterData(EVENT, FIELD, TYPE, DATATYPE) {
             let searchValue = document.getElementById(
@@ -478,14 +528,15 @@ export default Vue.component("research-page-filters", {
                 }
             }
 
-            // console.log("this.filtersIndex", this.filtersIndex);
-
             this.applyFilters();
         },
         applyFilters() {
-            //console.log(this.filtersIndex);
+            let comparingFields =
+                this.dataComparisonConfig != null
+                    ? this.dataComparisonConfig.fieldsToCompare
+                    : null;
             let filtered = this.unfilteredDataset;
-            let tempFiltered = [];
+            let tempFiltered = comparingFields == null ? [] : {};
             let i = 0;
 
             for (var f in this.filtersIndex) {
@@ -497,85 +548,449 @@ export default Vue.component("research-page-filters", {
                         .map((s) => {
                             let targetData = filtered;
                             let search = s;
-
-                            if (searchIndex.type == "dropdown") {
-                                targetData.filter((row) => {
-                                    if (search === row[searchIndex.field]) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (
-                                searchIndex.type == "search" ||
-                                searchIndex.type == "dropdown_word"
-                            ) {
-                                targetData.filter((row) => {
-                                    if (
-                                        row[searchIndex.field]
-                                            .toLowerCase()
-                                            .includes(search.toLowerCase())
-                                    ) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (searchIndex.type == "search_gt") {
-                                targetData.filter((row) => {
-                                    if (row[searchIndex.field] >= search) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (searchIndex.type == "search_lt") {
-                                targetData.filter((row) => {
-                                    if (row[searchIndex.field] <= search) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (searchIndex.type == "search_or") {
-                                let searchVals = search.split(",");
-                                targetData.filter((row) => {
-                                    if (
-                                        row[searchIndex.field] <=
-                                            searchVals[0].trim() ||
-                                        row[searchIndex.field] >=
-                                            searchVals[1].trim()
-                                    ) {
-                                        tempFiltered.push(row);
-                                    }
-                                });
-                            } else if (searchIndex.type == "search_cd") {
-                                let searchDirection = document.getElementById(
-                                    "filter_" +
-                                        searchIndex.field.replace(/ /g, "") +
-                                        "_direction"
-                                ).value;
-
-                                targetData.filter((row) => {
-                                    if (searchDirection == "lt") {
-                                        if (row[searchIndex.field] <= search) {
+                            if (comparingFields == null) {
+                                if (searchIndex.type == "dropdown") {
+                                    targetData.filter((row) => {
+                                        if (search === row[searchIndex.field]) {
                                             tempFiltered.push(row);
                                         }
-                                    } else if (searchDirection == "gt") {
+                                    });
+                                } else if (
+                                    searchIndex.type == "search" ||
+                                    searchIndex.type == "dropdown_word"
+                                ) {
+                                    targetData.filter((row) => {
+                                        if (
+                                            row[searchIndex.field]
+                                                .toLowerCase()
+                                                .includes(search.toLowerCase())
+                                        ) {
+                                            tempFiltered.push(row);
+                                        }
+                                    });
+                                } else if (searchIndex.type == "search_gt") {
+                                    targetData.filter((row) => {
                                         if (row[searchIndex.field] >= search) {
                                             tempFiltered.push(row);
                                         }
+                                    });
+                                } else if (searchIndex.type == "search_lt") {
+                                    targetData.filter((row) => {
+                                        if (row[searchIndex.field] <= search) {
+                                            tempFiltered.push(row);
+                                        }
+                                    });
+                                } else if (searchIndex.type == "search_or") {
+                                    let searchVals = search.split(",");
+                                    targetData.filter((row) => {
+                                        if (
+                                            row[searchIndex.field] <=
+                                                searchVals[0].trim() ||
+                                            row[searchIndex.field] >=
+                                                searchVals[1].trim()
+                                        ) {
+                                            tempFiltered.push(row);
+                                        }
+                                    });
+                                } else if (searchIndex.type == "search_cd") {
+                                    let searchDirection =
+                                        document.getElementById(
+                                            "filter_" +
+                                                searchIndex.field.replace(
+                                                    / /g,
+                                                    ""
+                                                ) +
+                                                "_direction"
+                                        ).value;
+
+                                    targetData.filter((row) => {
+                                        if (searchDirection == "lt") {
+                                            if (
+                                                row[searchIndex.field] <= search
+                                            ) {
+                                                tempFiltered.push(row);
+                                            }
+                                        } else if (searchDirection == "gt") {
+                                            if (
+                                                row[searchIndex.field] >= search
+                                            ) {
+                                                tempFiltered.push(row);
+                                            }
+                                        }
+                                    });
+                                } else if (searchIndex.type == "search_and") {
+                                    let searchVals = search.split(",");
+                                    targetData.filter((row) => {
+                                        if (
+                                            row[searchIndex.field] >=
+                                                searchVals[0].trim() &&
+                                            row[searchIndex.field] <=
+                                                searchVals[1].trim()
+                                        ) {
+                                            tempFiltered.push(row);
+                                        }
+                                    });
+                                }
+                            } else {
+                                if (searchIndex.type == "dropdown") {
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    search ===
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ]
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                search ===
+                                                row[searchIndex.field]
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
                                     }
-                                });
-                            } else if (searchIndex.type == "search_and") {
-                                let searchVals = search.split(",");
-                                targetData.filter((row) => {
-                                    if (
-                                        row[searchIndex.field] >=
-                                            searchVals[0].trim() &&
-                                        row[searchIndex.field] <=
-                                            searchVals[1].trim()
-                                    ) {
-                                        tempFiltered.push(row);
+                                } else if (
+                                    searchIndex.type == "search" ||
+                                    searchIndex.type == "dropdown_word"
+                                ) {
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ]
+                                                        .toLowerCase()
+                                                        .includes(
+                                                            search.toLowerCase()
+                                                        )
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field]
+                                                    .toLowerCase()
+                                                    .includes(
+                                                        search.toLowerCase()
+                                                    )
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
                                     }
-                                });
+                                } else if (searchIndex.type == "search_gt") {
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] >= search
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field] >= search
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
+                                    }
+                                } else if (searchIndex.type == "search_lt") {
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] <= search
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field] <= search
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
+                                    }
+                                } else if (searchIndex.type == "search_or") {
+                                    let searchVals = search.split(",");
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] <= searchVals[0].trim() ||
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] >= searchVals[1].trim()
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field] <=
+                                                    searchVals[0].trim() ||
+                                                row[searchIndex.field] >=
+                                                    searchVals[1].trim()
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
+                                    }
+                                } else if (searchIndex.type == "search_cd") {
+                                    let searchDirection =
+                                        document.getElementById(
+                                            "filter_" +
+                                                searchIndex.field.replace(
+                                                    / /g,
+                                                    ""
+                                                ) +
+                                                "_direction"
+                                        ).value;
+
+                                    if (searchDirection == "lt") {
+                                        for (var rowNum in targetData) {
+                                            let row = targetData[rowNum];
+                                            if (
+                                                comparingFields.includes(
+                                                    searchIndex.field
+                                                ) == true
+                                            ) {
+                                                let meetSearch = false;
+                                                for (var cellNum in row[
+                                                    searchIndex.field
+                                                ]) {
+                                                    if (
+                                                        row[searchIndex.field][
+                                                            cellNum
+                                                        ] <= search
+                                                    ) {
+                                                        meetSearch = true;
+                                                    }
+                                                }
+                                                if (meetSearch == true) {
+                                                    tempFiltered[
+                                                        row[
+                                                            this.dataComparisonConfig.keyField
+                                                        ]
+                                                    ] = row;
+                                                }
+                                            } else {
+                                                if (
+                                                    row[searchIndex.field] <=
+                                                    search
+                                                ) {
+                                                    tempFiltered[
+                                                        row[
+                                                            this.dataComparisonConfig.keyField
+                                                        ]
+                                                    ] = row;
+                                                }
+                                            }
+                                        }
+                                    } else if (searchDirection == "gt") {
+                                        for (var rowNum in targetData) {
+                                            let row = targetData[rowNum];
+                                            if (
+                                                comparingFields.includes(
+                                                    searchIndex.field
+                                                ) == true
+                                            ) {
+                                                let meetSearch = false;
+                                                for (var cellNum in row[
+                                                    searchIndex.field
+                                                ]) {
+                                                    if (
+                                                        row[searchIndex.field][
+                                                            cellNum
+                                                        ] >= search
+                                                    ) {
+                                                        meetSearch = true;
+                                                    }
+                                                }
+                                                if (meetSearch == true) {
+                                                    tempFiltered[
+                                                        row[
+                                                            this.dataComparisonConfig.keyField
+                                                        ]
+                                                    ] = row;
+                                                }
+                                            } else {
+                                                if (
+                                                    row[searchIndex.field] >=
+                                                    search
+                                                ) {
+                                                    tempFiltered[
+                                                        row[
+                                                            this.dataComparisonConfig.keyField
+                                                        ]
+                                                    ] = row;
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else if (searchIndex.type == "search_and") {
+                                    let searchVals = search.split(",");
+                                    for (var rowNum in targetData) {
+                                        let row = targetData[rowNum];
+                                        if (
+                                            comparingFields.includes(
+                                                searchIndex.field
+                                            ) == true
+                                        ) {
+                                            let meetSearch = false;
+                                            for (var cellNum in row[
+                                                searchIndex.field
+                                            ]) {
+                                                if (
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] >= searchVals[0].trim() &&
+                                                    row[searchIndex.field][
+                                                        cellNum
+                                                    ] <= searchVals[1].trim()
+                                                ) {
+                                                    meetSearch = true;
+                                                }
+                                            }
+                                            if (meetSearch == true) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        } else {
+                                            if (
+                                                row[searchIndex.field] <=
+                                                    searchVals[0].trim() ||
+                                                row[searchIndex.field] >=
+                                                    searchVals[1].trim()
+                                            ) {
+                                                tempFiltered[
+                                                    row[
+                                                        this.dataComparisonConfig.keyField
+                                                    ]
+                                                ] = row;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         });
 
                     filtered = tempFiltered;
-                    tempFiltered = [];
+                    tempFiltered = comparingFields == null ? [] : {};
                     i++;
                 }
             }
@@ -617,6 +1032,8 @@ export default Vue.component("research-page-filters", {
     padding: 15px;
     padding-left: 25px;
     transition: all 0.5s;
+    background-color: #ddefff;
+    border: solid 1px #bbdfff;
 }
 
 .filtering-ui-wrapper.search-criteria.closed {

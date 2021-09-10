@@ -25,30 +25,48 @@ export default new Vuex.Store({
     },
     state: {
         filteredData: "",
-        multiGroupsData: "",
-        genesInRegion: "",
+        unfilteredData: "",
+        searchingRegion: null,
+        genesInRegion: null,
+        codingGenesData: null,
         variantCorrelations: "",
         bioIndexContinue: [],
+        searchParameters: null,
+        dataComparison: "newSearch",
+
     },
     mutations: {
         setFilteredData(state, data) {
-            //console.log("called 2");
             state.filteredData = data;
         },
-        setMultiGroupsData(state, data) {
-            //console.log("called 2");
-            state.multiGroupsData = data;
+        setUnfilteredData(state, data) {
+
+            state.unfilteredData = data;
+        },
+        setSearchingRegion(state, data) {
+
+            state.searchingRegion = data;
         },
         setGenesInRegion(state, data) {
-            //console.log("called 2");
+
             state.genesInRegion = data;
         },
+        setCodingGenesData(state, data) {
+
+            state.codingGenesData = data;
+        },
         setVariantCorrelations(state, data) {
-            //console.log("called 2");
+
             state.variantCorrelations = data;
         },
         setBioIndexContinue(state, data) {
             state.bioIndexContinue.push(data);
+        },
+        setSearchParameters(state, data) {
+            state.searchParameters = data;
+        },
+        setDataComparison(state, data) {
+            state.dataComparison = data;
         },
     },
     getters: {},
@@ -56,17 +74,29 @@ export default new Vuex.Store({
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);
         },
-        multiGroupsData(context, data) {
-            context.commit("setMultiGroupsData", data);
+        unfilteredData(context, unfiltered) {
+            context.commit("setUnfilteredData", unfiltered);
         },
         genesInRegion(context, genes) {
             context.commit("setGenesInRegion", genes);
+        },
+        searchingRegion(context, region) {
+            context.commit("setSearchingRegion", region);
+        },
+        codingGenesData(context, setCodingGenesData) {
+            context.commit("setCodingGenesData", setCodingGenesData);
         },
         variantCorrelations(context, ldData) {
             context.commit("setVariantCorrelations", ldData);
         },
         bioIndexContinue(context, moreData) {
             context.commit("setBioIndexContinue", moreData);
-        }
+        },
+        searchParameters(context, searchParameters) {
+            context.commit("setSearchParameters", searchParameters);
+        },
+        dataComparison(context, dataComparison) {
+            context.commit("setDataComparison", dataComparison);
+        },
     }
 });
