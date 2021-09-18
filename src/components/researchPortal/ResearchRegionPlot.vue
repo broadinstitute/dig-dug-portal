@@ -1,12 +1,41 @@
 <template>
     <div class="mbm-plot-content row">
-        <div class="col-md-12 region-plot-default-legend">
+        <div class="col-md-12">
+            <div class="score-plot-bubbles" v-if="dataComparisonConfig != null">
+                <span
+                    class="plot-item-bubble reference"
+                    style="background-color: #00000030"
+                    >Combined</span
+                >
+                <span
+                    v-for="(item, itemIndex) in yAxisFieldItems"
+                    v-html="item"
+                    :class="'plot-item-bubble reference bg-color-' + itemIndex"
+                ></span>
+            </div>
+            <div class="plot-score-options-ui">
+                <label v-if="dataComparisonConfig != null"
+                    >Render plot by:
+                    <select
+                        v-model="plotRenderBy"
+                        class="score-plot-render-by"
+                        @change="renderPlot()"
+                    >
+                        <option value="combined">Combined</option>
+                        <option value="high">Highest</option>
+                        <option value="all">All</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+        <div class="col-md-9 region-plot-default-legend"></div>
+        <div class="col-md-3 region-plot-default-legend">
             <span
                 class="plot-legend-dot"
                 style="background-color: #82409970"
             ></span>
             <span>Reference variant</span>
-            <span
+            <!--<span
                 class="plot-legend-dot"
                 style="background-color: #d0363360"
             ></span
@@ -36,7 +65,7 @@
                 class="plot-legend-dot"
                 style="background-color: #33333320"
             ></span>
-            <span>No data</span>
+            <span>No data</span>-->
         </div>
         <div id="regionPlotWrapper" class="col-md-9">
             <div id="clicked_dot_value" class="clicked-dot-value hidden">
@@ -60,15 +89,39 @@
                         v-for="(variant, vIndex) in hoverDotPosFullList"
                         v-if="vIndex < 5"
                     >
-                        <span class="gene-on-clicked-dot-mplot" :key="vIndex">
+                        <span class="gene-on-clicked-dot-mplot">
                             <b v-html="variant[renderConfig.renderBy]"></b
                         ></span>
                         <span
+                            v-if="
+                                dataComparisonConfig == null ||
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    infoKey
+                                ) == false
+                            "
                             class="content-on-clicked-dot"
-                            v-for="(info, infoKey) in variant"
-                            :key="info"
+                            v-for="(info, infoKey, infoIndex) in variant"
                             v-html="infoKey + ': ' + info"
                         >
+                        </span>
+                        <span
+                            v-if="
+                                dataComparisonConfig != null &&
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    infoKey
+                                ) == true
+                            "
+                            class="content-on-clicked-dot"
+                            v-for="(info, infoKey, infoIndex) in variant"
+                        >
+                            {{ infoKey }}: <br />
+                            <span
+                                class="content-on-clicked-dot-values"
+                                v-for="(infoItem, infoItemKey) in info"
+                                v-html="
+                                    infoItemKey + ': ' + infoItem + '<br />'
+                                "
+                            ></span>
                         </span>
                     </template>
                 </div>
@@ -84,16 +137,41 @@
                     <template
                         v-for="(variant, vIndex) in clickedDotPosFullList"
                     >
-                        <span class="gene-on-clicked-dot-mplot" :key="vIndex">
+                        <span class="gene-on-clicked-dot-mplot">
                             <b v-html="variant[renderConfig.renderBy]"></b
                         ></span>
                         <span
+                            v-if="
+                                dataComparisonConfig == null ||
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    infoKey
+                                ) == false
+                            "
                             class="content-on-clicked-dot"
                             v-for="(info, infoKey) in variant"
-                            :key="info"
                             v-html="infoKey + ': ' + info"
                         >
                         </span>
+                        <span
+                            v-if="
+                                dataComparisonConfig != null &&
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    infoKey
+                                ) == true
+                            "
+                            class="content-on-clicked-dot"
+                            v-for="(info, infoKey) in variant"
+                        >
+                            {{ infoKey }}: <br />
+                            <span
+                                class="content-on-clicked-dot-values"
+                                v-for="(infoItem, infoItemKey) in info"
+                                v-html="
+                                    infoItemKey + ': ' + infoItem + '<br />'
+                                "
+                            ></span>
+                        </span>
+
                         <span class="set-it-ld-reference"
                             ><a
                                 href="javascript:;"
@@ -102,7 +180,7 @@
                                         variant[renderConfig.renderBy]
                                     )
                                 "
-                                >Set this LS Reference</a
+                                >Set this LD reference</a
                             >
                         </span>
                     </template>
@@ -115,7 +193,7 @@
             ></div>
             <canvas
                 v-if="!!renderConfig"
-                id="manhattanPlot"
+                id="regionPlot"
                 @mousemove="checkPosition"
                 @resize="onResize"
                 @click="getFullList"
@@ -151,18 +229,39 @@
                         v-for="(hLdVariant, hLdVIndex) in hoverLdDotPosFullList"
                         v-if="hLdVIndex < 5"
                     >
-                        <span
-                            class="gene-on-clicked-dot-mplot"
-                            :key="hLdVIndex"
-                        >
+                        <span class="gene-on-clicked-dot-mplot">
                             <b v-html="hLdVariant[renderConfig.renderBy]"></b
                         ></span>
                         <span
+                            v-if="
+                                dataComparisonConfig == null ||
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    hLdVInfoKey
+                                ) == false
+                            "
                             class="content-on-clicked-dot"
                             v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
-                            :key="hLdVInfo"
                             v-html="hLdVInfoKey + ': ' + hLdVInfo"
                         >
+                        </span>
+                        <span
+                            v-if="
+                                dataComparisonConfig != null &&
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    hLdVInfoKey
+                                ) == true
+                            "
+                            class="content-on-clicked-dot"
+                            v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
+                        >
+                            {{ hLdVInfoKey }}: <br />
+                            <span
+                                class="content-on-clicked-dot-values"
+                                v-for="(hLdVItem, hLdVItemKey) in hLdVInfo"
+                                v-html="
+                                    hLdVItemKey + ': ' + hLdVItem + '<br />'
+                                "
+                            ></span>
                         </span>
                     </template>
                 </div>
@@ -181,15 +280,39 @@
                     <template
                         v-for="(ldVariant, ldIndex) in clickedLdDotPosFullList"
                     >
-                        <span class="gene-on-clicked-dot-mplot" :key="ldIndex">
+                        <span class="gene-on-clicked-dot-mplot">
                             <b v-html="ldVariant[renderConfig.renderBy]"></b
                         ></span>
                         <span
+                            v-if="
+                                dataComparisonConfig == null ||
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    ldInfoKey
+                                ) == false
+                            "
                             class="content-on-clicked-dot"
                             v-for="(ldInfo, ldInfoKey) in ldVariant"
-                            :key="ldInfo"
                             v-html="ldInfoKey + ': ' + ldInfo"
                         >
+                        </span>
+                        <span
+                            v-if="
+                                dataComparisonConfig != null &&
+                                dataComparisonConfig.fieldsToCompare.includes(
+                                    ldInfoKey
+                                ) == true
+                            "
+                            class="content-on-clicked-dot"
+                            v-for="(ldInfo, ldInfoKey) in ldVariant"
+                        >
+                            {{ ldInfoKey }}: <br />
+                            <span
+                                class="content-on-clicked-dot-values"
+                                v-for="(ldInfoItem, ldInfoItemKey) in ldInfo"
+                                v-html="
+                                    ldInfoItemKey + ': ' + ldInfoItem + '<br />'
+                                "
+                            ></span>
                         </span>
                         <span class="set-it-ld-reference"
                             ><a
@@ -199,7 +322,7 @@
                                         ldVariant[renderConfig.renderBy]
                                     )
                                 "
-                                >Set this LS Reference</a
+                                >Set this LD Reference</a
                             >
                         </span>
                     </template>
@@ -215,6 +338,7 @@
             >
             </canvas>
         </div>
+        {{ selectedRegion }}
     </div>
 </template>
 
@@ -225,12 +349,22 @@ import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
+import Chi from "chi-squared";
+
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-region-plot", {
-    props: ["genesInRegion", "plotData", "renderConfig", "filtersIndex"],
+    props: [
+        "plotData",
+        "renderConfig",
+        "selectedRegion",
+        "searchParameters",
+        "dataComparisonConfig",
+        "region",
+    ],
     data() {
         return {
+            plotRenderBy: "combined",
             plotRendered: 0,
             leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
             rightMargin: 0.5,
@@ -242,10 +376,33 @@ export default Vue.component("research-region-plot", {
             hoverLdDotPosFullList: [],
             clickedDotPosFullList: [],
             clickedLdDotPosFullList: [],
-            chr: null,
-            start: null,
-            end: null,
             refVariant: null,
+            ldColor: [
+                "#2074B620",
+                "#32AFD520",
+                "#4DB05220",
+                "#EE982D20",
+                "#D0363320",
+            ],
+            compareGroupColors: [
+                "#007bff50",
+                "#04884550",
+                "#8490C850",
+                "#BF61A550",
+                "#EE312450",
+                "#FCD70050",
+                "#5555FF50",
+                "#7aaa1c50",
+                "#9F78AC50",
+                "#F8808450",
+                "#F5A4C750",
+                "#CEE6C150",
+                "#cccc0050",
+                "#6FC7B650",
+                "#D5A76850",
+                "#d4d4d450",
+            ],
+            yAxisFieldItems: [],
         };
     },
     modules: {
@@ -254,8 +411,8 @@ export default Vue.component("research-region-plot", {
     },
     components: {},
     mounted: function () {
-        if (this.plotData != null) {
-            this.setRegionParams(this.plotData);
+        if (this.renderData != null) {
+            this.setRefVariant();
         }
 
         window.addEventListener("resize", this.onResize);
@@ -265,15 +422,74 @@ export default Vue.component("research-region-plot", {
     },
     computed: {
         renderData() {
-            return this.plotData;
-        },
-        genesInRegionData() {
-            let contents = this.$store.state.hugeampkpncms.genesInRegion;
-
-            if (contents == "") {
+            if (this.plotData == null) {
                 return null;
             } else {
-                return contents;
+                let rawData = this.plotData;
+                let comparingData = [];
+                this.yAxisFieldItems = [];
+
+                if (!!this.dataComparisonConfig) {
+                    for (const [rKey, r] of Object.entries(rawData)) {
+                        let tempObj = r;
+
+                        if (!!this.renderConfig.ifCombineYAxisField) {
+                            let yAxisFieldArr = [];
+                            let yAxisField =
+                                r[this.renderConfig.ifCombineYAxisField.field];
+
+                            for (const [yKey, y] of Object.entries(
+                                yAxisField
+                            )) {
+                                this.yAxisFieldItems.push(yKey);
+                                yAxisFieldArr.push(y);
+                            }
+                            let combined;
+                            switch (
+                                this.renderConfig.ifCombineYAxisField.type
+                            ) {
+                                case "chi-square":
+                                    combined = this.chiSquared(yAxisFieldArr);
+                                    break;
+                                case "average":
+                                    let X = 0;
+                                    let index = 0;
+                                    yAxisFieldArr.map((n) => {
+                                        X += n;
+                                        index++;
+                                    });
+
+                                    combined = X / index;
+                                    break;
+                            }
+
+                            if (
+                                !!this.renderConfig.ifCombineYAxisField
+                                    .calculate
+                            ) {
+                                switch (
+                                    this.renderConfig.ifCombineYAxisField
+                                        .calculate
+                                ) {
+                                    case "-log10":
+                                        tempObj["combined"] =
+                                            -Math.log10(combined);
+                                        break;
+                                }
+                            } else {
+                                tempObj["combined"] = combined;
+                            }
+                        }
+
+                        comparingData.push(tempObj);
+                    }
+
+                    this.yAxisFieldItems = [...new Set(this.yAxisFieldItems)];
+
+                    return comparingData;
+                } else {
+                    return rawData;
+                }
             }
         },
         ldVariantCorrelationsData() {
@@ -285,77 +501,149 @@ export default Vue.component("research-region-plot", {
                 return contents;
             }
         },
+        searchingRegion() {
+            if (this.region == null) {
+                return null;
+            } else {
+                let returnObj = {};
+
+                returnObj["chr"] = this.region.split(":")[0];
+
+                let regionArr = this.region.split(":")[1].split("-");
+                returnObj["start"] = regionArr[0];
+                returnObj["end"] = regionArr[1];
+
+                return returnObj;
+            }
+        },
     },
     watch: {
         ldVariantCorrelationsData(data) {
             this.renderPlot();
         },
         renderData(data) {
-            this.setRegionParams(data);
-        },
-
-        genesInRegionData(data) {
-            if (!!data && data != null) {
-                this.getLDData();
-            }
+            this.setRefVariant();
         },
     },
     methods: {
         ...uiUtils,
-        setLDReference(VARIANT) {
-            //console.log(VARIANT);
-            this.hidePanel("ld_dot_value_full_list");
-            this.hidePanel("dot_value_full_list");
+        chiSquared(ARRAY) {
+            let X = 0.0;
+            let n = ARRAY.length;
 
-            this.refVariant = VARIANT;
-            this.getLDData();
+            ARRAY.map((p) => {
+                X += -2 * Math.log(p);
+            });
+
+            let pdf = Chi.pdf(X, 2 * n);
+            let returnPdf = 2 * pdf;
+
+            return returnPdf;
         },
-        setRegionParams(DATA) {
-            let xMin = null,
-                xMax = null,
-                yMax = null;
+        setRefVariant() {
+            let DATA = this.renderData;
+            let yMax = null;
+
             if (!!DATA && DATA.length > 0) {
-                this.chr = DATA[0][this.renderConfig.geneTrack.chr];
-
+                let yValue;
                 DATA.map((d) => {
-                    let xValue = Number(d[this.renderConfig.xAxisField]);
-                    let yValue = Number(d[this.renderConfig.yAxisField]);
+                    if (!!this.dataComparisonConfig) {
+                        switch (this.plotRenderBy) {
+                            case "combined":
+                                yValue = d["combined"];
+                                break;
+                            case "high":
+                                let highNum = null;
+                                this.yAxisFieldItems.map((i) => {
+                                    if (highNum == null) {
+                                        highNum =
+                                            d[this.renderConfig.yAxisField][i];
+                                    } else {
+                                        if (
+                                            d[this.renderConfig.yAxisField][i] >
+                                            highNum
+                                        ) {
+                                            highNum =
+                                                d[this.renderConfig.yAxisField][
+                                                    i
+                                                ];
+                                        }
+                                    }
+                                });
 
-                    if (xMin == null) {
-                        xMin = xValue;
-                    }
-                    if (xMax == null) {
-                        xMax = xValue;
-                    }
+                                yValue = highNum;
 
-                    if (xValue < xMin) {
-                        xMin = xValue;
-                    }
-                    if (xValue > xMax) {
-                        xMax = xValue;
-                    }
+                                break;
+                            case "all":
+                                let highInAll = null;
+                                this.yAxisFieldItems.map((i) => {
+                                    if (highInAll == null) {
+                                        highInAll =
+                                            d[this.renderConfig.yAxisField][i];
+                                    } else {
+                                        if (
+                                            d[this.renderConfig.yAxisField][i] >
+                                            highInAll
+                                        ) {
+                                            highInAll =
+                                                d[this.renderConfig.yAxisField][
+                                                    i
+                                                ];
+                                        }
+                                    }
+                                });
 
+                                yValue = highInAll;
+                                break;
+                        }
+                    } else {
+                        yValue = Number(d[this.renderConfig.yAxisField]);
+                    }
                     if (yMax == null) {
                         yMax = yValue;
                     }
 
                     if (yValue > yMax) {
-                        this.refVariant =
-                            this.chr +
-                            ":" +
-                            d[this.renderConfig.ldServer.pos] +
-                            "_" +
-                            d[this.renderConfig.ldServer.ref] +
-                            "/" +
-                            d[this.renderConfig.ldServer.alt];
+                        this.refVariant = [];
+                        this.refVariant.push(
+                            this.searchingRegion.chr +
+                                ":" +
+                                d[this.renderConfig.ldServer.pos] +
+                                "_" +
+                                d[this.renderConfig.ldServer.ref] +
+                                "/" +
+                                d[this.renderConfig.ldServer.alt]
+                        );
                         yMax = yValue;
                     }
                 });
 
-                this.start = xMin;
-                this.end = xMax;
+                this.setLDReference(null);
+            }
+        },
+        setLDReference(VARIANT) {
+            this.hidePanel("ld_dot_value_full_list");
+            this.hidePanel("dot_value_full_list");
 
-                this.getGenesInRegion();
+            let tgVariant;
+            if (VARIANT == null) {
+                switch (this.plotRenderBy) {
+                    case "combined":
+                        tgVariant = this.refVariant[0];
+                        this.getLDData(tgVariant);
+                        break;
+                    case "high":
+                        tgVariant = this.refVariant[0];
+                        this.getLDData(tgVariant);
+                        break;
+                    case "all":
+                        tgVariant = this.refVariant[0];
+                        this.getLDData(tgVariant);
+                        break;
+                }
+            } else {
+                tgVariant = VARIANT;
+                this.getLDData(tgVariant);
             }
         },
 
@@ -365,9 +653,7 @@ export default Vue.component("research-region-plot", {
         onResize(e) {
             this.renderPlot();
         },
-        getLDData() {
-            /* AFR, ALL, AMR, EAS, EUR, SAS */
-
+        getLDData(REF_VARIANT) {
             let dataPopulations = [
                 ...new Set(
                     this.renderData.map(
@@ -387,32 +673,20 @@ export default Vue.component("research-region-plot", {
                 "https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
                 targetPopulation +
                 "/variants?correlation=rsquare&variant=" +
-                this.refVariant +
+                REF_VARIANT +
                 "&chrom=" +
-                this.chr +
+                this.searchingRegion.chr +
                 "&start=" +
-                this.start +
+                this.searchingRegion.start +
                 "&stop=" +
-                this.end +
+                this.searchingRegion.end +
                 "&limit=100000";
 
             this.$store.dispatch("umLdServer/getVariantCorrelations", {
                 ldUrl: ldUrl,
             });
         },
-        getGenesInRegion() {
-            let dataPoint =
-                "https://bioindex.hugeamp.org/api/bio/query/genes?q=" +
-                this.chr +
-                ":" +
-                this.start +
-                "-" +
-                this.end;
 
-            let fetchParam = { dataPoint: dataPoint, domain: "external" };
-
-            this.$store.dispatch("hugeampkpncms/getGenesInRegion", fetchParam);
-        },
         getFullList(event) {
             this.clickedDotPosFullList = [];
             let wrapper = document.getElementById("dot_value_full_list");
@@ -434,15 +708,13 @@ export default Vue.component("research-region-plot", {
             }
 
             if (this.clickedDotPosFullList.length > 0) {
-                document.getElementById("manhattanPlot").classList.add("hover");
+                document.getElementById("regionPlot").classList.add("hover");
                 document
                     .getElementById("clicked_dot_value")
                     .classList.add("hidden");
             } else {
                 wrapper.classList.add("hidden");
-                document
-                    .getElementById("manhattanPlot")
-                    .classList.remove("hover");
+                document.getElementById("regionPlot").classList.remove("hover");
             }
         },
         getLDFullList(event) {
@@ -476,10 +748,42 @@ export default Vue.component("research-region-plot", {
                 document.getElementById("ldPlot").classList.remove("hover");
             }
         },
+        //checkPosition($event,"clicked_dot_value","regionPlot",this.dotPosData,this.hoverDotPosFullList)
+        /*checkPosition(event, WRAPPER, CANVAS, POS_DATA, FULL_LIST) {
+            this[FULL_LIST] = [];
+            let wrapper = document.getElementById(WRAPPER);
+            let canvas = document.getElementById(CANVAS);
+            wrapper.classList.remove("hidden");
+            let e = event;
+            var rect = e.target.getBoundingClientRect();
+            var x = Math.floor(e.clientX - rect.left);
+            var y = Math.floor(e.clientY - rect.top);
+            wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+
+            for (let h = -5; h <= 5; h++) {
+                for (let v = -5; v <= 5; v++) {
+                    if (this[POS_DATA][x + h] != undefined) {
+                        if (this[POS_DATA][x + h][y + v] != undefined) {
+                            let dotObject = this[POS_DATA][x + h][y + v];
+                            this[FULL_LIST].push(dotObject);
+                        }
+                    }
+                }
+            }
+
+            if (this[FULL_LIST].length > 0) {
+                document.getElementById(CANVAS).classList.add("hover");
+            } else {
+                wrapper.classList.add("hidden");
+                document.getElementById(CANVAS).classList.remove("hover");
+            }
+        },*/
+
         checkPosition(event) {
             this.hoverDotPosFullList = [];
             let wrapper = document.getElementById("clicked_dot_value");
-            let canvas = document.getElementById("manhattanPlot");
+            let canvas = document.getElementById("regionPlot");
             wrapper.classList.remove("hidden");
             let e = event;
             var rect = e.target.getBoundingClientRect();
@@ -500,12 +804,10 @@ export default Vue.component("research-region-plot", {
             }
 
             if (this.hoverDotPosFullList.length > 0) {
-                document.getElementById("manhattanPlot").classList.add("hover");
+                document.getElementById("regionPlot").classList.add("hover");
             } else {
                 wrapper.classList.add("hidden");
-                document
-                    .getElementById("manhattanPlot")
-                    .classList.remove("hover");
+                document.getElementById("regionPlot").classList.remove("hover");
             }
         },
         checkLDPosition(event) {
@@ -546,10 +848,6 @@ export default Vue.component("research-region-plot", {
             let wrapper = document.getElementById("clicked_dot_value");
             wrapper.classList.add("hidden");
 
-            let genesInRegion = JSON.parse(this.genesInRegionData)[
-                "data"
-            ].filter((g) => g.source == "symbol");
-
             let canvasRenderWidth = !!this.renderConfig.width
                 ? this.renderConfig.width + this.leftMargin + this.rightMargin
                 : document.getElementById("regionPlotWrapper").clientWidth - 30; // -30 for - padding
@@ -557,10 +855,6 @@ export default Vue.component("research-region-plot", {
             let canvasRenderHeight = !!this.renderConfig.height
                 ? this.renderConfig.height + this.topMargin + this.bottomMargin
                 : 300 + this.topMargin + this.bottomMargin;
-
-            canvasRenderHeight += !!this.renderConfig.geneTrack
-                ? 15 * genesInRegion.length
-                : 0;
 
             let xBump = canvasRenderWidth * 0.03;
             let yBump = canvasRenderHeight * 0.02;
@@ -573,22 +867,23 @@ export default Vue.component("research-region-plot", {
                 ? this.renderConfig.height
                 : 300;
 
-            let ldDataLength = this.ldVariantCorrelationsData.data.correlation
-                .length;
+            // render LD plot after gathering required data
+            let ldDataLength =
+                this.ldVariantCorrelationsData.data.correlation.length;
 
             let ldData = {};
 
             if (ldDataLength > 0) {
                 this.ldVariantCorrelationsData.data.variant2.map((v, index) => {
-                    ldData[v] = this.ldVariantCorrelationsData.data.correlation[
-                        index
-                    ];
+                    ldData[v] =
+                        this.ldVariantCorrelationsData.data.correlation[index];
                 });
             }
 
             this.renderLDPlot(canvasRenderHeight, plotHeight, ldData);
+            /////
 
-            let c = document.getElementById("manhattanPlot");
+            let c = document.getElementById("regionPlot");
             c.setAttribute("width", canvasRenderWidth);
             c.setAttribute("height", canvasRenderHeight);
             let ctx = c.getContext("2d");
@@ -617,48 +912,118 @@ export default Vue.component("research-region-plot", {
 
             let yMin = null,
                 yMax = null,
-                xMin = null,
-                xMax = null;
+                xMin = Number(this.searchingRegion.start),
+                xMax = Number(this.searchingRegion.end);
 
-            let chr = this.plotData[0][this.renderConfig.geneTrack.chr];
+            this.renderData.map((d) => {
+                let yValue;
+                if (!!this.dataComparisonConfig) {
+                    if (this.plotRenderBy == "combined") {
+                        yValue = d["combined"];
 
-            this.plotData.map((d) => {
-                let yValue = d[this.renderConfig.yAxisField];
-                let xValue = Number(d[this.renderConfig.xAxisField]);
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
 
-                if (yMin == null) {
-                    yMin = yValue;
-                }
-                if (yMax == null) {
-                    yMax = yValue;
-                }
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }
+                    } else if (this.plotRenderBy == "high") {
+                        let highNum = null;
+                        this.yAxisFieldItems.map((i) => {
+                            if (highNum == null) {
+                                highNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] > highNum
+                                ) {
+                                    highNum =
+                                        d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+                        });
 
-                if (yValue < yMin) {
-                    yMin = yValue;
-                }
-                if (yValue > yMax) {
-                    yMax = yValue;
-                }
+                        yValue = highNum;
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
 
-                if (xMin == null) {
-                    xMin = xValue;
-                }
-                if (xMax == null) {
-                    xMax = xValue;
-                }
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }
+                    } else if (this.plotRenderBy == "all") {
+                        let highNum = null;
+                        let lowNum = null;
+                        this.yAxisFieldItems.map((i) => {
+                            if (highNum == null) {
+                                highNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] > highNum
+                                ) {
+                                    highNum =
+                                        d[this.renderConfig.yAxisField][i];
+                                }
+                            }
 
-                if (xValue < xMin) {
-                    xMin = xValue;
-                }
-                if (xValue > xMax) {
-                    xMax = xValue;
+                            if (lowNum == null) {
+                                lowNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] < lowNum
+                                ) {
+                                    lowNum = d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+                        });
+
+                        if (yMin == null) {
+                            yMin = lowNum;
+                        }
+                        if (yMax == null) {
+                            yMax = highNum;
+                        }
+
+                        if (lowNum < yMin) {
+                            yMin = lowNum;
+                        }
+                        if (highNum > yMax) {
+                            yMax = highNum;
+                        }
+                    }
+                } else {
+                    yValue = d[this.renderConfig.yAxisField];
+
+                    if (yMin == null) {
+                        yMin = yValue;
+                    }
+                    if (yMax == null) {
+                        yMax = yValue;
+                    }
+
+                    if (yValue < yMin) {
+                        yMin = yValue;
+                    }
+                    if (yValue > yMax) {
+                        yMax = yValue;
+                    }
                 }
             });
 
-            let yStep = (yMax - yMin) / 4;
-            let xStep = Math.ceil((xMax - xMin) / 4);
-
             // Y ticks
+            let yStep = (yMax - yMin) / 4;
             let yTickDistance = plotHeight / 4;
             for (let i = 0; i < 5; i++) {
                 let tickYPos = this.topMargin + i * yTickDistance;
@@ -679,6 +1044,7 @@ export default Vue.component("research-region-plot", {
             }
 
             // X ticks
+            let xStep = Math.ceil((xMax - xMin) / 4);
             let xTickDistance = (plotWidth - 5) / 4;
 
             for (let i = 0; i < 5; i++) {
@@ -694,9 +1060,9 @@ export default Vue.component("research-region-plot", {
                 ctx.font = "12px Arial";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#000000";
-
+                let position = i < 4 ? xMin + i * xStep : xMax;
                 ctx.fillText(
-                    xMin + i * xStep,
+                    position,
                     adjTickXPos,
                     this.topMargin + plotHeight + yBump + 15
                 );
@@ -729,20 +1095,12 @@ export default Vue.component("research-region-plot", {
             */
 
             //Render dots
-            this.plotData.map((g) => {
-                let xPos =
-                    xStart +
-                    xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
+            let ldConfig = this.renderConfig.ldServer;
+            let dotColor;
 
-                let yPos =
-                    yStart +
-                    plotHeight -
-                    yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
-
-                let ldConfig = this.renderConfig.ldServer;
-
+            this.renderData.map((g) => {
                 let dotID =
-                    this.chr +
+                    this.searchingRegion.chr +
                     ":" +
                     g[ldConfig.pos] +
                     "_" +
@@ -755,7 +1113,7 @@ export default Vue.component("research-region-plot", {
                     : dotID == this.refVariant
                     ? 1
                     : 0;
-
+                /*
                 let dotColor =
                     ldScore == 1
                         ? "#82409970"
@@ -769,71 +1127,152 @@ export default Vue.component("research-region-plot", {
                         ? "#32AFD530"
                         : ldScore < 0.2 && ldScore > 0
                         ? "#2074B620"
-                        : "#33333320";
+                        : "#33333320";*/
+
+                dotColor = ldScore == 1 ? "#82409970" : "#33333340";
 
                 ctx.fillStyle = dotColor;
 
-                ctx.lineWidth = 0;
-                ctx.beginPath();
-                ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
-                ctx.fill();
-
-                let xLoc = xPos.toString().split(".")[0];
-                let yLoc = yPos.toString().split(".")[0];
-
-                let hoverContent;
-
-                if (!!this.renderConfig.hoverContent) {
-                    hoverContent = this.renderConfig.hoverContent;
-                }
-
-                if (!this.dotPosData[xLoc]) {
-                    this.dotPosData[xLoc] = {};
-                }
-                this.dotPosData[xLoc][yLoc] = {};
-                this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
-                    g[this.renderConfig.renderBy];
-                if (!!this.renderConfig.hoverContent) {
-                    hoverContent.map((h) => {
-                        this.dotPosData[xLoc][yLoc][h] = g[h];
-                    });
-                }
-            });
-
-            let geneCtx = c.getContext("2d");
-            geneCtx.beginPath();
-
-            let gIndex = 0,
-                aboveGenesTrack =
-                    this.topMargin + plotHeight + yBump + 15 + 5 + 12;
-
-            genesInRegion.map((gene) => {
-                let gStart = gene.start <= xMin ? xMin : gene.start;
-                let gEnd = gene.end >= xMax ? xMax : gene.end;
-
-                let txtXPos =
+                let xPos =
                     xStart +
-                    xPosByPixel *
-                        (gStart + Math.ceil((gEnd - gStart) / 2) - xMin);
+                    xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
+                /*
+                let yPos =
+                    yStart +
+                    plotHeight -
+                    yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);*/
+                let yPos;
+                if (!!this.dataComparisonConfig) {
+                    if (this.plotRenderBy == "combined") {
+                        yPos =
+                            yStart +
+                            plotHeight -
+                            yPosByPixel * (g["combined"] - yMin);
 
-                let txtYPos = aboveGenesTrack + 15 * gIndex;
+                        let values = Object.keys(
+                            g[this.renderConfig.yAxisField]
+                        );
+                        if (
+                            values.length == 1 &&
+                            this.yAxisFieldItems.length > 1
+                        ) {
+                            dotColor = this.getColorIndex(values[0]);
+                        }
 
-                let startPos = xStart + xPosByPixel * (gStart - xMin);
-                let endPos = xStart + xPosByPixel * (gEnd - xMin);
+                        this.renderDot(ctx, xPos, yPos, dotColor);
+                        let xLoc = xPos.toString().split(".")[0];
+                        let yLoc = yPos.toString().split(".")[0];
+                        this.feedHoverContent(
+                            xLoc,
+                            yLoc,
+                            g[this.renderConfig.renderBy],
+                            g,
+                            this.dotPosData
+                        );
+                    } else if (this.plotRenderBy == "high") {
+                        let highValue = null;
+                        let highItem;
 
-                geneCtx.font = "italic 11px Arial";
-                geneCtx.textAlign = "center";
-                geneCtx.fillStyle = "#0000FF";
-                geneCtx.fillText(gene.name, txtXPos, txtYPos);
+                        this.yAxisFieldItems.map((i) => {
+                            if (highValue == null) {
+                                highValue = g[this.renderConfig.yAxisField][i];
+                                highItem = i;
+                            } else {
+                                if (
+                                    g[this.renderConfig.yAxisField][i] >
+                                    highValue
+                                ) {
+                                    highValue =
+                                        g[this.renderConfig.yAxisField][i];
+                                    highItem = i;
+                                }
+                            }
+                        });
+                        yPos =
+                            yStart +
+                            plotHeight -
+                            yPosByPixel *
+                                (g[this.renderConfig.yAxisField][highItem] -
+                                    yMin);
 
-                //ctx.beginPath();
-                geneCtx.lineWidth = 1;
-                geneCtx.strokeStyle = "#0000FF";
-                geneCtx.moveTo(startPos, txtYPos + 5);
-                geneCtx.lineTo(endPos, txtYPos + 5);
-                geneCtx.stroke();
+                        dotColor =
+                            dotColor == "#82409970"
+                                ? dotColor
+                                : this.getColorIndex(highItem);
 
-                gIndex++;
+                        this.renderDot(ctx, xPos, yPos, dotColor);
+                        let xLoc = xPos.toString().split(".")[0];
+                        let yLoc = yPos.toString().split(".")[0];
+                        this.feedHoverContent(
+                            xLoc,
+                            yLoc,
+                            g[this.renderConfig.renderBy],
+                            g,
+                            this.dotPosData
+                        );
+                    } else if (this.plotRenderBy == "all") {
+                        let yPosArr = [];
+                        let yPosObj = {};
+
+                        this.yAxisFieldItems.map((i) => {
+                            let yPos =
+                                yStart +
+                                plotHeight -
+                                yPosByPixel *
+                                    (g[this.renderConfig.yAxisField][i] - yMin);
+
+                            yPosObj[i] = yPos;
+                            yPosArr.push(yPos);
+                        });
+
+                        for (const [yKey, y] of Object.entries(yPosObj)) {
+                            dotColor =
+                                dotColor == "#82409970"
+                                    ? dotColor
+                                    : this.getColorIndex(yKey);
+                            this.renderDot(ctx, xPos, y, dotColor);
+
+                            let xLoc = xPos.toString().split(".")[0];
+                            let yLoc = y.toString().split(".")[0];
+                            this.feedHoverContent(
+                                xLoc,
+                                yLoc,
+                                g[this.renderConfig.renderBy],
+                                g,
+                                this.dotPosData
+                            );
+                        }
+                        if (yPosArr.length > 1) {
+                            yPosArr.sort(function (a, b) {
+                                return a - b;
+                            });
+
+                            ctx.beginPath();
+                            ctx.lineWidth = 1;
+                            ctx.strokeStyle = "#00000070";
+                            ctx.moveTo(xPos, yPosArr[0]);
+                            ctx.lineTo(xPos, yPosArr[yPosArr.length - 1]);
+                            ctx.stroke();
+                        }
+                    }
+                } else {
+                    yPos =
+                        yStart +
+                        plotHeight -
+                        yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
+
+                    this.renderDot(ctx, xPos, yPos, dotColor);
+
+                    let xLoc = xPos.toString().split(".")[0];
+                    let yLoc = yPos.toString().split(".")[0];
+                    this.feedHoverContent(
+                        xLoc,
+                        yLoc,
+                        g[this.renderConfig.renderBy],
+                        g,
+                        this.dotPosData
+                    );
+                }
             });
         },
         renderLDPlot(canvasH, plotH, LDData) {
@@ -880,29 +1319,145 @@ export default Vue.component("research-region-plot", {
                 xMin = 0,
                 xMax = 1;
 
-            let chr = this.plotData[0][this.renderConfig.geneTrack.chr];
+            //let chr = this.searchingRegion.chr;
 
-            this.plotData.map((d) => {
-                let yValue = d[this.renderConfig.yAxisField];
-                //let xValue = Number(d[this.renderConfig.xAxisField]);
+            this.renderData.map((d) => {
+                let yValue;
+                if (!!this.dataComparisonConfig) {
+                    if (this.plotRenderBy == "combined") {
+                        yValue = d["combined"];
 
-                if (yMin == null) {
-                    yMin = yValue;
-                }
-                if (yMax == null) {
-                    yMax = yValue;
-                }
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
 
-                if (yValue < yMin) {
-                    yMin = yValue;
-                }
-                if (yValue > yMax) {
-                    yMax = yValue;
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }
+                    } else if (this.plotRenderBy == "high") {
+                        let highNum = null;
+                        this.yAxisFieldItems.map((i) => {
+                            if (highNum == null) {
+                                highNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] > highNum
+                                ) {
+                                    highNum =
+                                        d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+                        });
+
+                        yValue = highNum;
+
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
+
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }
+                    } else if (this.plotRenderBy == "all") {
+                        /*let highNum = null;
+                        this.yAxisFieldItems.map((i) => {
+                            if (highNum == null) {
+                                highNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] > highNum
+                                ) {
+                                    highNum =
+                                        d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+                        });
+
+                        yValue = highNum;
+
+                        if (yMin == null) {
+                            yMin = yValue;
+                        }
+                        if (yMax == null) {
+                            yMax = yValue;
+                        }
+
+                        if (yValue < yMin) {
+                            yMin = yValue;
+                        }
+                        if (yValue > yMax) {
+                            yMax = yValue;
+                        }*/
+                        let highNum = null;
+                        let lowNum = null;
+                        this.yAxisFieldItems.map((i) => {
+                            if (highNum == null) {
+                                highNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] > highNum
+                                ) {
+                                    highNum =
+                                        d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+
+                            if (lowNum == null) {
+                                lowNum = d[this.renderConfig.yAxisField][i];
+                            } else {
+                                if (
+                                    d[this.renderConfig.yAxisField][i] < lowNum
+                                ) {
+                                    lowNum = d[this.renderConfig.yAxisField][i];
+                                }
+                            }
+                        });
+
+                        if (yMin == null) {
+                            yMin = lowNum;
+                        }
+                        if (yMax == null) {
+                            yMax = highNum;
+                        }
+
+                        if (lowNum < yMin) {
+                            yMin = lowNum;
+                        }
+                        if (highNum > yMax) {
+                            yMax = highNum;
+                        }
+                    }
+                } else {
+                    yValue = d[this.renderConfig.yAxisField];
+                    if (yMin == null) {
+                        yMin = yValue;
+                    }
+                    if (yMax == null) {
+                        yMax = yValue;
+                    }
+
+                    if (yValue < yMin) {
+                        yMin = yValue;
+                    }
+                    if (yValue > yMax) {
+                        yMax = yValue;
+                    }
                 }
             });
 
             let yStep = (yMax - yMin) / 4;
-            let xStep = xMax / 4;
 
             // Y ticks
             let yTickDistance = plotHeight / 4;
@@ -924,10 +1479,25 @@ export default Vue.component("research-region-plot", {
                 );
             }
 
-            // X ticks
-            let xTickDistance = (plotWidth - 5) / 4;
+            // X BG
+            let xBGDistance = (plotWidth - 5) / 5;
 
             for (let i = 0; i < 5; i++) {
+                let bgXPos = this.leftMargin + i * xBGDistance + 5;
+                let adBGXPos = Math.floor(bgXPos) + 0.5;
+                ctx.fillStyle = this.ldColor[i];
+                ctx.fillRect(
+                    adBGXPos,
+                    this.topMargin,
+                    xBGDistance - 1,
+                    plotHeight
+                );
+            }
+
+            // X ticks
+            let xTickDistance = (plotWidth - 5) / 5;
+
+            for (let i = 0; i < 6; i++) {
                 let tickXPos = this.leftMargin + i * xTickDistance + 5;
                 let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
                 ctx.moveTo(adjTickXPos, this.topMargin + plotHeight + yBump);
@@ -942,7 +1512,7 @@ export default Vue.component("research-region-plot", {
                 ctx.fillStyle = "#000000";
 
                 ctx.fillText(
-                    xMin + i * xStep,
+                    parseFloat((i * 0.2).toFixed(2)),
                     adjTickXPos,
                     this.topMargin + plotHeight + yBump + 15
                 );
@@ -968,7 +1538,7 @@ export default Vue.component("research-region-plot", {
             //Render x axis label
             ctx.rotate((-(Math.PI * 2) / 4) * 3);
             ctx.fillText(
-                "LD",
+                "LD(r2)",
                 plotWidth / 2 + this.leftMargin,
                 this.topMargin + plotHeight + yBump + 35
             );
@@ -977,9 +1547,9 @@ export default Vue.component("research-region-plot", {
             let ldConfig = this.renderConfig.ldServer;
             let dotColor = "#33333320";
 
-            this.plotData.map((g) => {
+            this.renderData.map((g) => {
                 let dotID =
-                    this.chr +
+                    this.searchingRegion.chr +
                     ":" +
                     g[ldConfig.pos] +
                     "_" +
@@ -989,12 +1559,14 @@ export default Vue.component("research-region-plot", {
 
                 let ldScore = !!LDData[dotID]
                     ? LDData[dotID]
-                    : dotID == this.refVariant
+                    : dotID == this.refVariant[0]
                     ? 1
                     : 0;
 
+                //console.log(dotID, " : ", ldScore);
+
                 //if (ldScore != 0) {
-                dotColor =
+                /*dotColor =
                     ldScore == 1
                         ? "#82409970"
                         : ldScore < 1 && ldScore >= 0.8
@@ -1007,43 +1579,201 @@ export default Vue.component("research-region-plot", {
                         ? "#32AFD530"
                         : ldScore < 0.2 && ldScore > 0
                         ? "#2074B620"
-                        : "#33333320";
+                        : "#33333320";*/
+
+                dotColor = ldScore == 1 ? "#82409970" : "#33333340";
 
                 let xPos = xStart + xPosByPixel * ldScore;
 
-                let yPos =
-                    yStart +
-                    plotHeight -
-                    yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
+                let yPos;
+                if (!!this.dataComparisonConfig) {
+                    if (this.plotRenderBy == "combined") {
+                        yPos =
+                            yStart +
+                            plotHeight -
+                            yPosByPixel * (g["combined"] - yMin);
 
-                ctx.fillStyle = dotColor;
+                        let values = Object.keys(
+                            g[this.renderConfig.yAxisField]
+                        );
+                        if (
+                            values.length == 1 &&
+                            this.yAxisFieldItems.length > 1
+                        ) {
+                            dotColor = this.getColorIndex(values[0]);
+                        }
 
-                ctx.lineWidth = 0;
-                ctx.beginPath();
-                ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
-                ctx.fill();
+                        this.renderDot(ctx, xPos, yPos, dotColor);
+                        let xLoc = xPos.toString().split(".")[0];
+                        let yLoc = yPos.toString().split(".")[0];
+                        this.feedHoverContent(
+                            xLoc,
+                            yLoc,
+                            g[this.renderConfig.renderBy],
+                            g,
+                            this.ldDotPosData
+                        );
+                    } else if (this.plotRenderBy == "high") {
+                        let highValue = null;
+                        let highItem;
 
-                let xLoc = xPos.toString().split(".")[0];
-                let yLoc = yPos.toString().split(".")[0];
+                        this.yAxisFieldItems.map((i) => {
+                            if (highValue == null) {
+                                highValue = g[this.renderConfig.yAxisField][i];
+                                highItem = i;
+                            } else {
+                                if (
+                                    g[this.renderConfig.yAxisField][i] >
+                                    highValue
+                                ) {
+                                    highValue =
+                                        g[this.renderConfig.yAxisField][i];
+                                    highItem = i;
+                                }
+                            }
+                        });
+                        yPos =
+                            yStart +
+                            plotHeight -
+                            yPosByPixel *
+                                (g[this.renderConfig.yAxisField][highItem] -
+                                    yMin);
 
-                let hoverContent;
+                        dotColor =
+                            dotColor == "#82409970"
+                                ? dotColor
+                                : this.getColorIndex(highItem);
 
-                if (!!this.renderConfig.hoverContent) {
-                    hoverContent = this.renderConfig.hoverContent;
-                }
+                        this.renderDot(ctx, xPos, yPos, dotColor);
+                        let xLoc = xPos.toString().split(".")[0];
+                        let yLoc = yPos.toString().split(".")[0];
+                        this.feedHoverContent(
+                            xLoc,
+                            yLoc,
+                            g[this.renderConfig.renderBy],
+                            g,
+                            this.ldDotPosData
+                        );
+                    } else if (this.plotRenderBy == "all") {
+                        let yPosArr = [];
+                        let yPosObj = {};
 
-                if (!this.ldDotPosData[xLoc]) {
-                    this.ldDotPosData[xLoc] = {};
-                }
-                this.ldDotPosData[xLoc][yLoc] = {};
-                this.ldDotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
-                    g[this.renderConfig.renderBy];
-                if (!!this.renderConfig.hoverContent) {
-                    hoverContent.map((h) => {
-                        this.ldDotPosData[xLoc][yLoc][h] = g[h];
-                    });
+                        this.yAxisFieldItems.map((i) => {
+                            let yPos =
+                                yStart +
+                                plotHeight -
+                                yPosByPixel *
+                                    (g[this.renderConfig.yAxisField][i] - yMin);
+
+                            yPosObj[i] = yPos;
+                            yPosArr.push(yPos);
+                        });
+
+                        for (const [yKey, y] of Object.entries(yPosObj)) {
+                            dotColor =
+                                dotColor == "#82409970"
+                                    ? dotColor
+                                    : this.getColorIndex(yKey);
+                            this.renderDot(ctx, xPos, y, dotColor);
+
+                            let xLoc = xPos.toString().split(".")[0];
+                            let yLoc = y.toString().split(".")[0];
+                            this.feedHoverContent(
+                                xLoc,
+                                yLoc,
+                                g[this.renderConfig.renderBy],
+                                g,
+                                this.ldDotPosData
+                            );
+                        }
+                        if (yPosArr.length > 1) {
+                            yPosArr.sort(function (a, b) {
+                                return a - b;
+                            });
+
+                            ctx.beginPath();
+                            ctx.lineWidth = 1;
+                            ctx.strokeStyle = "#00000070";
+                            ctx.moveTo(xPos, yPosArr[0]);
+                            ctx.lineTo(xPos, yPosArr[yPosArr.length - 1]);
+                            ctx.stroke();
+                        }
+                    }
+                } else {
+                    yPos =
+                        yStart +
+                        plotHeight -
+                        yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
+
+                    this.renderDot(ctx, xPos, yPos, dotColor);
+
+                    let xLoc = xPos.toString().split(".")[0];
+                    let yLoc = yPos.toString().split(".")[0];
+                    this.feedHoverContent(
+                        xLoc,
+                        yLoc,
+                        g[this.renderConfig.renderBy],
+                        g,
+                        this.ldDotPosData
+                    );
                 }
             });
+        },
+        getColorIndex(SKEY) {
+            let colorIndex = "";
+
+            this.yAxisFieldItems.map((sValue, sIndex) => {
+                if (SKEY == sValue) {
+                    colorIndex = this.compareGroupColors[sIndex];
+                }
+            });
+
+            return colorIndex;
+        },
+        renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
+            CTX.fillStyle = DOT_COLOR;
+
+            CTX.lineWidth = 0;
+            CTX.beginPath();
+            CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
+            CTX.fill();
+        },
+        feedHoverContent(xLoc, yLoc, ID, CONTENT) {
+            let hoverContent;
+
+            if (!!this.renderConfig.hoverContent) {
+                hoverContent = this.renderConfig.hoverContent;
+            }
+
+            if (!this.dotPosData[xLoc]) {
+                this.dotPosData[xLoc] = {};
+            }
+            this.dotPosData[xLoc][yLoc] = {};
+            this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] = ID;
+            if (!!this.renderConfig.hoverContent) {
+                hoverContent.map((h) => {
+                    this.dotPosData[xLoc][yLoc][h] = CONTENT[h];
+                });
+            }
+        },
+
+        feedHoverContent(xLoc, yLoc, ID, CONTENT, POS_DATA) {
+            let hoverContent;
+
+            if (!!this.renderConfig.hoverContent) {
+                hoverContent = this.renderConfig.hoverContent;
+            }
+            //this.ldDotPosData
+            if (!POS_DATA[xLoc]) {
+                POS_DATA[xLoc] = {};
+            }
+            POS_DATA[xLoc][yLoc] = {};
+            POS_DATA[xLoc][yLoc][this.renderConfig.renderBy] = ID;
+            if (!!this.renderConfig.hoverContent) {
+                hoverContent.map((h) => {
+                    POS_DATA[xLoc][yLoc][h] = CONTENT[h];
+                });
+            }
         },
     },
 });
@@ -1052,6 +1782,9 @@ $(function () {});
 </script>
 
 <style>
+.region-plot-default-legend {
+    text-align: center;
+}
 .region-plot-default-legend span {
     font-size: 12px;
     display: inline-block;
@@ -1060,9 +1793,9 @@ $(function () {});
 .plot-legend-dot {
     width: 12px;
     height: 12px;
-    border-radius: 12px;
+    border-radius: 0px;
 }
-#manhattanPlot.hover,
+#regionPlot.hover,
 #ldPlot.hover {
     cursor: pointer;
 }
@@ -1109,6 +1842,10 @@ $(function () {});
     overflow-x: hidden;
     overflow-y: auto;
     font-size: 14px;
+}
+
+.content-on-clicked-dot-values {
+    padding-left: 10px;
 }
 </style>
 
