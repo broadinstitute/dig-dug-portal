@@ -1,7 +1,10 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -9,7 +12,9 @@
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div class="col filter-col-md">
-                    <gene-selectpicker @onGeneChange="$store.dispatch('queryGeneName', $event)"></gene-selectpicker>
+                    <gene-selectpicker
+                        @onGeneChange="$store.dispatch('queryGeneName', $event)"
+                    ></gene-selectpicker>
                 </div>
             </search-header-wrapper>
 
@@ -26,16 +31,28 @@
                     <div class="col-md-4 gene-page-header-body">
                         <div v-if="$parent.symbolName" class="input-group">
                             <button
-                                class="btn btn-primary input-group-prepend explore-region-btn"
+                                class="
+                                    btn btn-primary
+                                    input-group-prepend
+                                    explore-region-btn
+                                "
                                 style="margin-right: 20px"
                                 :title="$parent.regionText"
                                 @click="$parent.exploreRegion()"
-                            >Explore Region</button>
+                            >
+                                Explore Region
+                            </button>
                             <button
-                                class="btn btn-primary input-group-append explore-region-btn"
+                                class="
+                                    btn btn-primary
+                                    input-group-append
+                                    explore-region-btn
+                                "
                                 :title="$parent.regionTextExpanded"
                                 @click="$parent.exploreRegion(50000)"
-                            >Explore &plusmn; 50 kb</button>
+                            >
+                                Explore &plusmn; 50 kb
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -62,7 +79,7 @@
                 <div class="card-body">
                     <h4>
                         {{
-                        `Functional associations for ${$store.state.geneName}`
+                            `Functional associations for ${$store.state.geneName}`
                         }}
                         <tooltip-documentation
                             name="gene.translator.tooltip.hover"
@@ -101,13 +118,19 @@
                                 </div>
                                 <div class="col-md-4">
                                     <h4>Info</h4>
-                                    <div v-if="$parent.geneNames" class="alternative-names">
-                                        <strong>Alternative names:&nbsp;</strong>
+                                    <div
+                                        v-if="$parent.geneNames"
+                                        class="alternative-names"
+                                    >
+                                        <strong
+                                            >Alternative names:&nbsp;</strong
+                                        >
                                         <span
                                             v-for="gene in $parent.alternateNames"
                                             v-if="gene.source == 'alias'"
                                             :key="gene.name"
-                                        >{{ gene.name }}</span>&nbsp;
+                                            >{{ gene.name }}</span
+                                        >&nbsp;
                                     </div>
                                     <div v-if="$parent.regionText">
                                         <strong>Coding sequence:</strong>
@@ -116,22 +139,19 @@
                                     <div v-if="$parent.region">
                                         <strong>Length:</strong>
                                         {{
-                                        " " +
-                                        (
-                                        $parent.region.end -
-                                        $parent.region.start
-                                        ).toLocaleString()
+                                            " " +
+                                            (
+                                                $parent.region.end -
+                                                $parent.region.start
+                                            ).toLocaleString()
                                         }}
                                         bp
                                     </div>
-                                    <div>
-                                        <strong>Assembly:</strong> GRCh37
-                                    </div>
+                                    <div><strong>Assembly:</strong> GRCh37</div>
                                     <div>
                                         <strong>Gene sources:</strong>
                                         <span>
-                                            &nbsp;Ensembl, HGNC, UCSC, RGD,
-                                            MGD
+                                            &nbsp;Ensembl, HGNC, UCSC, RGD, MGD
                                         </span>
                                     </div>
                                 </div>
@@ -156,8 +176,12 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 style="font-weight: bold;" class="card-title">HuGE Score</h4>
-                    <h5 style="font-weight: bold;">How is the HuGE score calculated?</h5>
+                    <h4 style="font-weight: bold" class="card-title">
+                        HuGE Score
+                    </h4>
+                    <h5 style="font-weight: bold">
+                        How is the HuGE score calculated?
+                    </h5>
                     <span>
                         <documentation
                             name="gene.hugecal.subheader"
@@ -174,47 +198,86 @@
                         <filter-enumeration-control
                             class="filter-col-lg"
                             :field="'phenotype'"
-                            :options="$store.state.associations.data.map((association) => association.phenotype)"
+                            :options="
+                                $store.state.associations.data.map(
+                                    (association) => association.phenotype
+                                )
+                            "
                             :multiple="false"
-                            :pillFormatter="(filter) =>!!$store.state.bioPortal.phenotypeMap[filter.threshold] ? $store.state.bioPortal.phenotypeMap[filter.threshold].description :filter.threshold"
-                            :labelFormatter="(phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[phenotype]
-                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description
-                                        : phenotype"
+                            :pillFormatter="
+                                (filter) =>
+                                    !!$store.state.bioPortal.phenotypeMap[
+                                        filter.threshold
+                                    ]
+                                        ? $store.state.bioPortal.phenotypeMap[
+                                              filter.threshold
+                                          ].description
+                                        : filter.threshold
+                            "
+                            :labelFormatter="
+                                (phenotype) =>
+                                    !!$store.state.bioPortal.phenotypeMap[
+                                        phenotype
+                                    ]
+                                        ? $store.state.bioPortal.phenotypeMap[
+                                              phenotype
+                                          ].description
+                                        : phenotype
+                            "
                         >
                             <div class="label">Change Phenotype:</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
-                    <div style="padding:10px 470px 10px 470px">
+                    <div style="padding: 10px 470px 10px 470px">
                         <br />
                         <genepage-combinedevidence-table
-                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                            :commonBF="
+                                parseInt($parent.bayesFactorCommonVariation)
+                            "
                             :combinedBF="parseInt($parent.combinedScore)"
                             :rareBF="parseInt($parent.bayesFactorRareVariation)"
                         ></genepage-combinedevidence-table>
                     </div>
-                    <div style="margin-bottom:35px;padding:10px 350px 10px 350px">
+                    <div
+                        style="
+                            margin-bottom: 35px;
+                            padding: 10px 350px 10px 350px;
+                        "
+                    >
                         <ul class="legend">
                             <li>
-                                <span class="superawesome"></span> Common Variation Bayes Factor
+                                <span class="superawesome"></span> Common
+                                Variation Bayes Factor
                             </li>
                             <li>
-                                <span class="awesome"></span> Rare Variation Bayes Factor
+                                <span class="awesome"></span> Rare Variation
+                                Bayes Factor
                             </li>
                             <li>
                                 <a
-                                    :href="`https://hugeamp.org:8000/hugecalculator.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
-                                >View evidence in HuGE calculator >></a>
+                                    :href="`/hugecalculator.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
+                                    >View evidence in HuGE calculator >></a
+                                >
                             </li>
                         </ul>
                         <br />
                     </div>
-                    <div style="padding:10px 230px 10px 230px">
+                    <div style="padding: 10px 230px 10px 230px">
                         <span
-                            style=" padding:10px 200px 10px 200px; font-weight:bold"
-                        >HuGe score {{$parent.combinedScore}} falls in {{$parent.determineCategory($parent.combinedScore)}} category in combined evidence scale</span>
+                            style="
+                                padding: 10px 200px 10px 200px;
+                                font-weight: bold;
+                            "
+                            >HuGe score {{ $parent.combinedScore }} falls in
+                            {{
+                                $parent.determineCategory($parent.combinedScore)
+                            }}
+                            category in combined evidence scale</span
+                        >
                         <color-bar-plot
-                            :category="$parent.determineCategory($parent.combinedScore)"
+                            :category="
+                                $parent.determineCategory($parent.combinedScore)
+                            "
                             :elementid="'combinedVariation'"
                             :score="$parent.combinedScore"
                         ></color-bar-plot>
@@ -273,17 +336,25 @@
                                         v-if="$store.state.geneName"
                                         :id="$store.state.geneName"
                                         :type="'gene'"
-                                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                        :phenotypeMap="
+                                            $store.state.bioPortal.phenotypeMap
+                                        "
                                     ></lz-phewas-panel>
                                 </locuszoom>
                                 <unauthorized-message
-                                    :restricted="$store.state.associations.restricted"
+                                    :restricted="
+                                        $store.state.associations.restricted
+                                    "
                                 ></unauthorized-message>
                                 <gene-associations-table
                                     v-if="$store.state.gene.data.length > 0"
                                     :gene="$store.state.gene.data[0]"
-                                    :associations="$store.state.associations.data"
-                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                    :associations="
+                                        $store.state.associations.data
+                                    "
+                                    :phenotypeMap="
+                                        $store.state.bioPortal.phenotypeMap
+                                    "
                                     :filter="filter"
                                 ></gene-associations-table>
                             </template>
@@ -369,7 +440,10 @@
                 <div class="card-body">
                     <div v-if="$parent.geneNames">
                         <h4 class="card-title">External resources</h4>
-                        <div v-if="$parent.accession.length > 0" class="gene-with-signal none">
+                        <div
+                            v-if="$parent.accession.length > 0"
+                            class="gene-with-signal none"
+                        >
                             <a
                                 :href="
                                     $parent.externalResources['uniprot'].link +
@@ -379,7 +453,8 @@
                                 :title="
                                     $parent.externalResources['uniprot'].title
                                 "
-                            >UNIPROT</a>
+                                >UNIPROT</a
+                            >
                         </div>
                         <div
                             v-for="gene in $parent.alternateNames"
@@ -397,7 +472,8 @@
                                 :title="
                                     $parent.externalResources[gene.source].title
                                 "
-                            >{{ gene.source.toUpperCase() }}</a>
+                                >{{ gene.source.toUpperCase() }}</a
+                            >
                             <a
                                 v-else
                                 :href="
@@ -408,7 +484,8 @@
                                 :title="
                                     $parent.externalResources[gene.source].title
                                 "
-                            >{{ gene.source.toUpperCase() }}</a>
+                                >{{ gene.source.toUpperCase() }}</a
+                            >
                         </div>
                     </div>
                 </div>
