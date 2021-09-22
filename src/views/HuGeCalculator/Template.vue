@@ -220,6 +220,9 @@
                                         ></commonvariation-genomesig-table>
                                     </div>
                                     <div v-else>
+                                        <h6
+                                            style="font-weight:bold;margin-top:15px;margin-bottom:10px"
+                                        >How is common variation BF calculated?</h6>
                                         <span
                                             style="font-weight:bold; padding:0px 150px 0px 650px"
                                         >Is genome-wide significant?</span>
@@ -309,7 +312,7 @@
                                             ></documentation>
                                         </span>
                                         <span
-                                            style="font-weight:bold; padding: 650px"
+                                            style="font-weight:bold;padding:0px 150px 0px 650px"
                                         >Is exome-wide significant?</span>
                                         <div style="padding:5px 0px 5px 0px"></div>
 
@@ -332,16 +335,10 @@
                                             ></color-bar-plot>
                                         </div>
                                         <div style="cursor:pointer">
-                                            <span
-                                                class="toggleIcon"
-                                                id="toggleIcon"
-                                            >{{$parent.toggleIcon}}</span>
+                                            <span>{{$parent.toggleIcon}}</span>
                                             View Burden Association Summary statistics
                                         </div>
-                                        <div
-                                            v-show="$parent.showMaskTableSection"
-                                            class="EGLT-table fiftytwo masktable"
-                                        >
+                                        <div class="EGLT-table fiftytwo masktable">
                                             <mask-table
                                                 v-if="$parent.masks.length"
                                                 :maskData="$parent.masks"
@@ -366,7 +363,7 @@
                                             ></documentation>
                                         </span>
                                         <span
-                                            style="font-weight:bold; padding: 650px"
+                                            style="font-weight:bold; padding:0px 150px 0px 650px"
                                         >Is exome-wide significant?</span>
                                         <div style="padding:5px 0px 5px 0px"></div>
 
