@@ -90,7 +90,9 @@
 
                                 <div style="padding:10px 250px 10px 250px">
                                     <br />
-                                    <span style="padding:10px 290px 10px 310px; font-weight:bold">
+                                    <span
+                                        style="padding:10px 290px 10px 310px; font-weight:bold; white-space: nowrap; overflow: hidden;"
+                                    >
                                         HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
                                         $parent.bayesFactorCommonVariation,
                                         $parent.bayesFactorRareVariation))}} evidence scale
@@ -163,14 +165,10 @@
                             <!-- NEW COMMON VARIATION -->
 
                             <div class="card-body" style="margin-block-end:20px cursor">
-                                <span
-                                    style="cursor:pointer"
-                                    v-on:click="$parent.toggleCollapse('cvsection')"
-                                >
+                                <span style="cursor:pointer">
                                     <div
                                         v-if="this.$store.state.associations.data"
                                         class="row"
-                                        id="suggestionBox"
                                         style="color: #254CA6; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #E7EDF7; padding:5px 5px 5px 5px"
                                     >
                                         <div class="col-md-6">
@@ -188,13 +186,7 @@
                                         >BF:{{$parent.bayesFactorCommonVariation}}</div>
                                     </div>
                                 </span>
-                                <div
-                                    style="cursor:pointer"
-                                    :class="$parent.classArrs['cvsection']"
-                                    :style="$parent.styleObjs['cvsection']"
-                                    id="sidebar-products"
-                                    ref="cvsection"
-                                >
+                                <div style="cursor:pointer">
                                     <div
                                         v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
                                     >
@@ -256,17 +248,11 @@
                                         ></color-bar-plot>
                                     </div>
 
-                                    <div
-                                        style="cursor:pointer"
-                                        v-on:click="$parent.toggleLocuszoom()"
-                                    >
-                                        <span
-                                            class="toggleIcon"
-                                            id="toggleIcon"
-                                        >{{$parent.toggleIcon}}</span>
+                                    <div style="cursor:pointer">
+                                        <span>{{$parent.toggleIcon}}</span>
                                         View {{$parent.selectedGene[0]}} on LocusZoom
                                     </div>
-                                    <div v-show="$parent.showLZSection">
+                                    <div>
                                         <locuszoom
                                             v-if="$parent.region"
                                             ref="locuszoom"
@@ -287,14 +273,10 @@
                                 <br />
                                 <!-- NEW RARE VARIATION -->
                                 <div>
-                                    <span
-                                        style="cursor:pointer"
-                                        v-on:click="$parent.toggleCollapse('rvsection')"
-                                    >
+                                    <span style="cursor:pointer">
                                         <div
                                             v-if="this.$store.state.associations.data"
                                             class="row"
-                                            id="suggestionBox"
                                             style="color: #af5934; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #fef8dc; padding:5px 5px 5px 5px"
                                         >
                                             <div class="col-md-6">
@@ -315,10 +297,6 @@
 
                                     <div
                                         style="cursor:pointer"
-                                        :class="$parent.classArrs['rvsection']"
-                                        :style="$parent.styleObjs['rvsection']"
-                                        id="sidebar-products"
-                                        ref="rvsection"
                                         v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
                                     >
                                         <h6
@@ -353,10 +331,7 @@
                                                 :score="parseInt($parent.bayesFactorRareVariation)"
                                             ></color-bar-plot>
                                         </div>
-                                        <div
-                                            style="cursor:pointer"
-                                            v-on:click="$parent.toggleRareVariationMaskTable()"
-                                        >
+                                        <div style="cursor:pointer">
                                             <span
                                                 class="toggleIcon"
                                                 id="toggleIcon"
@@ -380,14 +355,7 @@
                                             </ul>
                                         </div>
                                     </div>
-                                    <div
-                                        style="cursor:pointer"
-                                        :class="$parent.classArrs['rvsection']"
-                                        :style="$parent.styleObjs['rvsection']"
-                                        id="sidebar-products"
-                                        ref="rvsection"
-                                        v-else
-                                    >
+                                    <div style="cursor:pointer" v-else>
                                         <h6
                                             style="font-weight:bold;margin-top:10px"
                                         >How is rare variation BF calculated?</h6>
