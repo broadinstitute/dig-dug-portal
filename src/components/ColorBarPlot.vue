@@ -6,7 +6,7 @@
                  {{this.score}} HuGe score
             </span>-->
             <span
-                style="font-size:12px"
+                style="font-size:12px; padding:40px 145px 40px 145px"
             >*Compelling: HuGe Score >= 350 Extreme: >=100 Very Strong: >=30 Strong: >=10 Moderate: >=3 Anecdotal: >1 No Evidence: <=1</span>
             <div class="row color-bars-wrapper">
                 <div class="each-bar-section variationStrong">Compelling</div>
@@ -57,10 +57,6 @@ export default Vue.component("color-bar-plot", {
             type: String,
             required: true,
             default: "NO"
-        },
-        score: {
-            type: Number,
-            reuired: false
         }
     },
 

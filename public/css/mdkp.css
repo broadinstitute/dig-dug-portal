@@ -94,6 +94,12 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
+.front-top-banner-nagekp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/nagekp_front_bg.png),
+        linear-gradient(#751dc7, #9928c5);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
@@ -151,7 +157,11 @@ a:hover {
     width: 430px;
 }
 
-.front-top-banner-ndkpkpkp .front-logo-img {
+.front-top-banner-ndkpkp .front-logo-img {
+    width: 470px;
+}
+
+.front-top-banner-nagekp .front-logo-img {
     width: 470px;
 }
 
@@ -216,6 +226,10 @@ a:hover {
 }
 
 .front-logo-tagline-ndkpkp {
+    transform: translate(0%, 25%);
+}
+
+.front-logo-tagline-nagekp {
     transform: translate(0%, 25%);
 }
 
@@ -315,6 +329,10 @@ a:hover {
     height: 50px;
 }
 
+.nagekp-logo {
+    height: 50px;
+}
+
 .mdkp-header,
 .mdkp-footer {
     background-color: #0097d6;
@@ -384,6 +402,12 @@ a:hover {
 .ndkpkp-header,
 .ndkpkp-footer {
     background-color: #5698D2;
+    height: 50px;
+}
+
+.nagekp-header,
+.nagekp-footer {
+    background-color: #751dc7;
     height: 50px;
 }
 
@@ -479,7 +503,8 @@ a:hover {
 .lungkp-footer,
 .alskp-footer,
 .nephkp-footer,
-.ndkpkp-footer  {
+.ndkpkp-footer,
+.nagekp-footer  {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -498,7 +523,8 @@ a:hover {
 .lungkp-body,
 .alskp-body,
 .nephkp-body,
-.ndkpkp-body {
+.ndkpkp-body,
+.nagekp-body {
     background-color: #eee;
     min-height: 400px;
     padding-top: 10px;
@@ -515,7 +541,8 @@ a:hover {
 .lungkp-card,
 .alskp-card,
 .nephkp-card,
-.ndkpkp-card {
+.ndkpkp-card,
+.nagekp-card {
     margin-top: 10px;
     margin-bottom: 10px;
     min-width: 1024px !important;
@@ -1671,6 +1698,13 @@ a.to-previous-page:hover {
     background-color: #28a745 !important;
 }
 
+.filter-pill-geneHuge {
+    background-color: #52a866 !important;
+}
+
+.filter-pill-phenotypeHuge {
+    background-color: #b2c060 !important;
+}
 .filter-pill-consequence {
     background-color: #28a745 !important;
 }
@@ -1711,6 +1745,14 @@ a.to-previous-page:hover {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+/* HuGe Calculator specific */
+#huge .filter-pill-gene {
+    background-color: #ff8c00 !important;
+}
+#huge .filter-pill-phenotype {
+    background-color: #9de21c !important;
 }
 
 /* GAIT specific */
