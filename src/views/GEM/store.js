@@ -41,7 +41,10 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         searchGene: null,
-        matchingGenes: null
+        matchingGenes: null,
+
+        // data from selected credibleSet
+        selectedCredibleSet: null
     },
     mutations: {
         setPhenotypeByName(state, name) {
@@ -83,6 +86,9 @@ export default new Vuex.Store({
         },
         setMatchingGenes(state, genes) {
             state.matchingGenes = genes;
+        },
+        setSelectedCredibleSet(state, data) {
+            state.selectedCredibleSet = data;
         }
     },
     getters: {

@@ -120,6 +120,9 @@ new Vue({
         credibleSets() {
             return this.$store.state.credibleSets.data;
         },
+        selectedCredibleSetData() {
+            return this.$store.state.selectedCredibleSet.data;
+        },
 
         regionString() {
             let chr = this.$store.state.chr;
@@ -263,6 +266,10 @@ new Vue({
                     this.$store.state.phenotypeParam.split(",")[0]
                 );
             }
+        },
+        addCredibleVariantsData(event) {
+            const { phenotype, credibleSetId } = event;
+            console.log("here is credible data", event);
         },
         addAnnotationIntervalsPanel(r) {
             this.$children[0].$refs.locuszoom.addIntervalsPanel(

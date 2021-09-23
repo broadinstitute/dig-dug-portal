@@ -52,7 +52,8 @@
                                 :credibleSets="$parent.credibleSets"
                                 :clearOnSelected="true"
                                 @credibleset="
-                                    $parent.addCredibleVariantsPanel($event)
+                                    //$parent.addCredibleVariantsPanel($event)
+                                    $parent.addCredibleVariantsData($event)
                                 "
                             />
                         </div>
