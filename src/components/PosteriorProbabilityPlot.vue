@@ -239,7 +239,7 @@ export default Vue.component("posterior-probability-plot", {
 
             //hover over
             var bisect = d3.bisector(function(d) {
-                return d.ppa;
+                return d.prior;
             }).left;
             var focus = svg
                 .append("circle")
