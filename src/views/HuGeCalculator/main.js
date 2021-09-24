@@ -4,7 +4,7 @@ import store from "./store.js";
 import { BootstrapVue, BootstrapVueIcons, BIconMouse2 } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-
+import uiUtils from "@/utils/uiUtils";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -129,6 +129,7 @@ new Vue({
     },
 
     computed: {
+
         suggestedPriorNewOne() {
             return this.$store.state.suggestedPriorNew
         },
@@ -479,7 +480,9 @@ new Vue({
         //         this.classArrs[ref] = ['collapse', show]
         //     }, 340)
         // },
-
+        showHideFeature(ELEMENT) {
+            uiUtils.showHideElement(ELEMENT);
+        },
         toggleCollapse(ref) {
             let show = this.classArrs[ref].indexOf('show') > -1 ? false : 'show'
             this.classArrs[ref] = ['collapsing']

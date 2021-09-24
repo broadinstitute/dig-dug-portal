@@ -113,22 +113,18 @@
                                 <!-- First Collapsible section - Posterior probability - Start -->
                                 <div>
                                     <h6
-                                        v-on:click="$parent.toggleCollapse('ppasection')"
                                         style=" cursor:pointer; width: 100%;text-align: left;border-bottom: 1px solid #000;line-height: 0.05em;margin: 10px 0 20px;"
                                     >
-                                        <span style=" background: #fff;padding: 0 10px;">
+                                        <span
+                                            v-on:click="$parent.showHideFeature('ppasection')"
+                                            style=" background: #fff;padding: 0 10px;"
+                                        >
                                             Posterior probability
                                             <i class="arrow right"></i>
                                         </span>
                                     </h6>
                                 </div>
-                                <div
-                                    :class="$parent.classArrs['ppasection']"
-                                    :style="$parent.styleObjs['ppasection']"
-                                    id="sidebar-products"
-                                    ref="ppasection"
-                                    class="row"
-                                >
+                                <div :id="'ppasection'" class="row hidden">
                                     <div class="col-md-8">
                                         <h6
                                             style="font-weight:bold;margin-top:10px"
