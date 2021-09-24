@@ -250,11 +250,11 @@
                                         ></color-bar-plot>
                                     </div>
 
-                                    <div style="cursor:pointer">
-                                        <span>{{$parent.toggleIcon}}</span>
-                                        View {{$parent.selectedGene[0]}} on LocusZoom
-                                    </div>
-                                    <div>
+                                    <span
+                                        style="cursor:pointer"
+                                        v-on:click="$parent.showHideFeature('lzplot')"
+                                    >View {{$parent.selectedGene[0]}} on LocusZoom</span>
+                                    <div id="lzplot" class="hidden">
                                         <locuszoom
                                             v-if="$parent.region"
                                             ref="locuszoom"
