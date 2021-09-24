@@ -335,11 +335,14 @@
                                                     :score="parseInt($parent.bayesFactorRareVariation)"
                                                 ></color-bar-plot>
                                             </div>
-                                            <div style="cursor:pointer">
-                                                <span>{{$parent.toggleIcon}}</span>
-                                                View Burden Association Summary statistics
-                                            </div>
-                                            <div class="EGLT-table fiftytwo masktable">
+                                            <div
+                                                style="cursor:pointer margin-bottom:30px"
+                                                v-on:click="$parent.showHideFeature('masktable')"
+                                            >View Burden Association Summary statistics</div>
+                                            <div
+                                                class="EGLT-table fiftytwo masktable hidden"
+                                                id="masktable"
+                                            >
                                                 <mask-table
                                                     v-if="$parent.masks.length"
                                                     :maskData="$parent.masks"
