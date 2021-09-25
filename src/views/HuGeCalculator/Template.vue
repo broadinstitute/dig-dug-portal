@@ -252,7 +252,7 @@
 
                                     <span
                                         style="cursor:pointer"
-                                        v-on:click="$parent.showHideFeature('lzplot')"
+                                        v-on:click="$parent.showHideSvgFeature('lzplot')"
                                     >View {{$parent.selectedGene[0]}} on LocusZoom</span>
                                     <div id="lzplot" class="hidden">
                                         <locuszoom

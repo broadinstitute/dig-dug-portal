@@ -483,6 +483,9 @@ new Vue({
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
         },
+        showHideSvgFeature(svgWrapper) {
+            uiUtils.showHideSvg(svgWrapper);
+        },
         toggleCollapse(ref) {
             let show = this.classArrs[ref].indexOf('show') > -1 ? false : 'show'
             this.classArrs[ref] = ['collapsing']
