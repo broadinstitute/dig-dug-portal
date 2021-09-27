@@ -96,7 +96,7 @@
                                     >
                                         HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
                                         $parent.bayesFactorCommonVariation,
-                                        $parent.bayesFactorRareVariation))}} evidence scale
+                                        $parent.bayesFactorRareVariation))}} evidence range
                                     </span>
                                 </div>
                                 <div class="container">
@@ -210,7 +210,7 @@
                                         </span>
                                         <span
                                             style="font-weight:bold; padding: 650px"
-                                        >Is genome-wide significant?</span>
+                                        >Does the common variation have genome-wide significance?</span>
                                         <div style="padding:5px 0px 5px 0px"></div>
 
                                         <commonvariation-genomesig-table
@@ -229,7 +229,7 @@
                                         >How is common variation BF calculated?</h6>
                                         <span
                                             style="font-weight:bold; padding:0px 150px 0px 650px"
-                                        >Is genome-wide significant?</span>
+                                        >Does the common variation have genome-wide significance?</span>
                                         <div style="padding:5px 0px 5px 0px"></div>
 
                                         <commonvariation-not-genomesig-table
@@ -246,7 +246,7 @@
                                         <br />
                                         <span
                                             style="padding:10px 290px 10px 310px; font-weight:bold"
-                                        >HuGe score {{$parent.bayesFactorCommonVariation}} falls in {{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence scale</span>
+                                        >HuGe score {{$parent.bayesFactorCommonVariation}} falls in {{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence range</span>
                                         <color-bar-plot
                                             v-if="$parent.bayesFactorCommonVariation"
                                             :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
@@ -319,7 +319,7 @@
                                             </span>
                                             <span
                                                 style="font-weight:bold;padding:0px 150px 0px 650px"
-                                            >Is exome-wide significant?</span>
+                                            >Does the rare variation have exome-wide significance?</span>
                                             <div style="padding:5px 0px 5px 0px"></div>
 
                                             <rarevariation-exomesig-table
@@ -332,7 +332,7 @@
                                                 <br />
                                                 <span
                                                     style="padding:10px 290px 10px 310px; font-weight:bold"
-                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
+                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence range</span>
                                                 <color-bar-plot
                                                     v-if="$parent.bayesFactorRareVariation"
                                                     :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
@@ -373,7 +373,7 @@
                                             </span>
                                             <span
                                                 style="font-weight:bold; padding:0px 150px 0px 650px"
-                                            >Is exome-wide significant?</span>
+                                            >Does the rare variation have exome-wide significance?</span>
                                             <div style="padding:5px 0px 5px 0px"></div>
 
                                             <rarevariation-not-exomesig-table
@@ -388,7 +388,7 @@
                                                 <br />
                                                 <span
                                                     style="padding:10px 290px 10px 310px; font-weight:bold"
-                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence scale</span>
+                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence range</span>
                                                 <color-bar-plot
                                                     v-if="$parent.bayesFactorRareVariation"
                                                     :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
