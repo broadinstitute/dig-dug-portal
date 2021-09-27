@@ -189,14 +189,9 @@
                             "
                             :labelFormatter="
                                 (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
-                                        : phenotype
-                            "
+                                    !!$store.state.bioPortal.phenotypeMap[phenotype]
+                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description
+                                        : phenotype"
                         >
                             <div class="label">Change Phenotype:</div>
                         </filter-enumeration-control>
@@ -241,9 +236,7 @@
                     </div>
                     <div class="container">
                         <color-bar-plot
-                            :category="
-                                $parent.determineCategory($parent.combinedScore)
-                            "
+                            :category="$parent.determineCategory($parent.combinedScore)"
                             :elementid="'combinedVariation'"
                             :score="$parent.combinedScore"
                         ></color-bar-plot>

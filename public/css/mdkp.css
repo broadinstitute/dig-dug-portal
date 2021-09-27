@@ -750,7 +750,7 @@ div.filtering-tools table th {
 .table-filter label {
     display: block;
     max-width: 100%;
-    margin-bottom: 5px;
+    margin-bottom: 20px;
     font-weight: 700;
 }
 
@@ -1923,7 +1923,7 @@ span.volcano-score-2 {
 }
 
 .top-associations-section-phenotype-filter {
-    margin-bottom: 25px !important;
+    margin-bottom: 35px !important;
     display: block;
 }
 

@@ -61,7 +61,7 @@
                                         style="color: #3fb54a; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #e4f4e4; padding:5px 5px 5px 5px"
                                     >
                                         <div class="col-md-6">
-                                            HuGe Score(Combined Evidence)
+                                            HuGE Score(Combined Evidence)
                                             <tooltip-documentation
                                                 name="hugecal.combined.tooltip.hover"
                                                 :content-fill="$parent.documentationMap"

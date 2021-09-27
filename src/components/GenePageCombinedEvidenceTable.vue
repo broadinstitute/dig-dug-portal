@@ -18,7 +18,7 @@
                             style="width:30px;background-color:#c4edc8"
                             class="text-center"
                         >{{combinedBF}}</b-td>
-                        <b-td style="width:50px;" class="text-left"><-- HuGE Score</b-td>
+                        <b-td style="width:20px;" class="text-left"><-- HuGE Score</b-td>
                     </b-tr>
                 </b-tbody>
                 <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
