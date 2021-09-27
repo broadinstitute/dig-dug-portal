@@ -88,25 +88,30 @@
                                     :exomeSignificant="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
                                 ></hugescore-table>
 
-                                <div style="padding:10px 250px 10px 250px">
+                                <div class="container">
                                     <br />
                                     <span
-                                        style="padding:10px 290px 10px 310px; font-weight:bold; white-space: nowrap; overflow: hidden;"
+                                        class="center"
+                                        style="font-weight:bold; white-space: nowrap; overflow: hidden;"
                                     >
                                         HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
                                         $parent.bayesFactorCommonVariation,
                                         $parent.bayesFactorRareVariation))}} evidence scale
                                     </span>
-                                    <color-bar-plot
-                                        v-if="$parent.bayesFactorRareVariation"
-                                        :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
+                                </div>
+                                <div class="container">
+                                    <div class="center">
+                                        <color-bar-plot
+                                            v-if="$parent.bayesFactorRareVariation"
+                                            :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
-                                        :elementid="'combinedVariation'"
-                                        :score=" $parent.bayesFactorCombinedEvidence(
+                                            :elementid="'combinedVariation'"
+                                            :score=" $parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation)"
-                                    ></color-bar-plot>
+                                        ></color-bar-plot>
+                                    </div>
                                 </div>
                                 <div style="margin-block-end: 50px"></div>
 
