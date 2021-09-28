@@ -169,7 +169,6 @@
                     >
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
-                            class="filter-col-lg"
                             :field="'phenotype'"
                             :options="
                                 $store.state.associations.data.map(
@@ -200,14 +199,12 @@
                         <br />
 
                         <genepage-combinedevidence-table
-                            :commonBF="
-                                parseInt($parent.bayesFactorCommonVariation)
-                            "
-                            :combinedBF="parseInt($parent.combinedScore)"
-                            :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                            :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
+                            :combinedBF="parseFloat($parent.combinedScore)"
+                            :rareBF="parseFloat($parent.bayesFactorRareVariation)"
                         ></genepage-combinedevidence-table>
                     </div>
-                    <div style="margin-bottom: 35px;" class="container">
+                    <div style="margin-bottom: 25px;" class="container">
                         <ul class="legend center" style="white-space: nowrap;">
                             <li>
                                 <span class="superawesome"></span> Common
@@ -225,15 +222,7 @@
                         </ul>
                         <br />
                     </div>
-                    <div class="container" style="white-space: nowrap;font-weight:bold">
-                        <span class="center">
-                            HuGe score {{ $parent.combinedScore }} falls in
-                            {{
-                            $parent.determineCategory($parent.combinedScore)
-                            }}
-                            category in combined evidence scale
-                        </span>
-                    </div>
+
                     <div class="container">
                         <color-bar-plot
                             :category="$parent.determineCategory($parent.combinedScore)"

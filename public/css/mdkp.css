@@ -1923,7 +1923,7 @@ span.volcano-score-2 {
 }
 
 .top-associations-section-phenotype-filter {
-    margin-bottom: 35px !important;
+    margin-bottom: 35px;
     display: block;
 }
 
@@ -1931,7 +1931,7 @@ span.volcano-score-2 {
     background-color: #ddefff;
     border: solid 1px #bbdfff;
     border-radius: 5px;
-    height: 48px;
+    height: 58px;
 }
 
 .top-associations-section-phenotype-filter div.filtering-ui-wrapper {
@@ -1941,6 +1941,8 @@ span.volcano-score-2 {
     display: inline-block;
     text-align: left;
     padding-left: 30px;
+    padding-bottom:20px;
+    padding-top:10px;
 }
 
 .top-associations-section-phenotype-filter span.filter-pill-collection {
