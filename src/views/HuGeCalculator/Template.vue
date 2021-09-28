@@ -18,6 +18,7 @@
                     <criterion-list-group
                         v-model="$parent.hugecalSearchCriterion"
                         :header="'Search Criterion'"
+                        class="searchwrap"
                     >
                         <!-- select gene -->
                         <filter-enumeration-control
@@ -676,5 +677,9 @@ div.headerexpander:after {
     border-bottom: 1px solid;
     padding: 0px 5px 5px 5px;
     margin: auto;
+}
+.searchwrap div.filtering-ui-wrapper {
+    background-color: #ddefff;
+    border: solid 1px #bbdfff;
 }
 </style>

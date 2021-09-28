@@ -4,7 +4,7 @@
             <b-table-simple borderless fixed small>
                 <b-tbody>
                     <b-tr>
-                        <b-th style="width:70px"></b-th>
+                        <b-th style="width:150px"></b-th>
                         <b-td
                             style="width:75px;background-color:#D3DBED"
                             class="text-center"
@@ -15,7 +15,7 @@
                         ><--Common Variation BF</b-td>
                     </b-tr>
                     <b-tr style="border: 3px solid white !important;">
-                        <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
+                        <b-th style="width:150px" rowspan="1" class="text-right">X</b-th>
                         <b-td
                             style="width:75px;background-color:#fef8dc"
                             class="text-center"
@@ -39,7 +39,11 @@
                 <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
                 <b-tfoot>
                     <b-tr>
-                        <b-th style="width:80px" rowspan="1" class="text-right">HuGE Score:</b-th>
+                        <b-th
+                            style="width:150px;white-space: nowrap;"
+                            rowspan="1"
+                            class="text-right"
+                        >HuGE Score:</b-th>
                         <b-td
                             style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin;background-color:#c4edc8"
                             colspan="1"
