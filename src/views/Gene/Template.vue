@@ -170,22 +170,13 @@
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             :field="'phenotype'"
-                            :options="
-                                $store.state.associations.data.map(
-                                    (association) => association.phenotype
-                                )
-                            "
+                            :options="$store.state.associations.data.map((association) => association.phenotype)"
                             :multiple="false"
                             :pillFormatter="
                                 (filter) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        filter.threshold
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              filter.threshold
-                                          ].description
-                                        : filter.threshold
-                            "
+                                    !!$store.state.bioPortal.phenotypeMap[filter.threshold]
+                                        ? $store.state.bioPortal.phenotypeMap[filter.threshold].description
+                                        : filter.threshold"
                             :labelFormatter="
                                 (phenotype) =>
                                     !!$store.state.bioPortal.phenotypeMap[phenotype]
@@ -297,9 +288,7 @@
                                 <gene-associations-table
                                     v-if="$store.state.gene.data.length > 0"
                                     :gene="$store.state.gene.data[0]"
-                                    :associations="
-                                        $store.state.associations.data
-                                    "
+                                    :associations="$store.state.associations.data"
                                     :phenotypeMap="
                                         $store.state.bioPortal.phenotypeMap
                                     "
