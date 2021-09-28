@@ -70,7 +70,10 @@
                                                 :noIcon="false"
                                             ></tooltip-documentation>
                                         </div>
-                                        <div class="col-md-6" style="text-align: right;">
+                                        <div
+                                            class="col-md-6"
+                                            style="text-align: right;white-space: nowrap;"
+                                        >
                                             {{$parent.bayesFactorCommonVariation}}(Common variation BF) * {{$parent.bayesFactorRareVariation}}(Rare variation BF) = {{
                                             $parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)
                                             }}
@@ -243,19 +246,22 @@
                                             :commonBF="parseInt($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-not-genomesig-table>
                                     </div>
-                                    <div style="padding:10px 250px 10px 250px">
-                                        <br />
+                                    <div class="container">
                                         <span
-                                            style="padding:10px 290px 10px 310px; font-weight:bold"
+                                            class="center"
+                                            style=" font-weight:bold;white-space: nowrap;"
                                         >HuGe score {{$parent.bayesFactorCommonVariation}} falls in {{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence range</span>
-                                        <color-bar-plot
-                                            v-if="$parent.bayesFactorCommonVariation"
-                                            :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
-                                            :elementid="'commonVariation'"
-                                            :score="$parent.bayesFactorCommonVariation"
-                                        ></color-bar-plot>
                                     </div>
-
+                                    <div class="container">
+                                        <div class="center">
+                                            <color-bar-plot
+                                                v-if="$parent.bayesFactorCommonVariation"
+                                                :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
+                                                :elementid="'commonVariation'"
+                                                :score="$parent.bayesFactorCommonVariation"
+                                            ></color-bar-plot>
+                                        </div>
+                                    </div>
                                     <span
                                         style="cursor:pointer"
                                         v-on:click="$parent.showHideSvgFeature('lzplot')"
