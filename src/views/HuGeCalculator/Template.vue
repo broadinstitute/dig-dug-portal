@@ -203,9 +203,12 @@
                                                 :content-fill="$parent.documentationMap"
                                             ></documentation>
                                         </span>
-                                        <span
-                                            style="font-weight:bold; padding: 650px"
-                                        >Does the common variation have genome-wide significance?</span>
+                                        <div class="container">
+                                            <span
+                                                class="center"
+                                                style="font-weight:bold; white-space: nowrap;"
+                                            >Does the common variation have genome-wide significance?</span>
+                                        </div>
                                         <div style="padding:5px 0px 5px 0px"></div>
 
                                         <commonvariation-genomesig-table
@@ -222,9 +225,12 @@
                                         <h6
                                             style="font-weight:bold;margin-top:15px;margin-bottom:10px"
                                         >How is common variation BF calculated?</h6>
-                                        <span
-                                            style="font-weight:bold; padding:0px 150px 0px 650px"
-                                        >Does the common variation have genome-wide significance?</span>
+                                        <div class="container">
+                                            <span
+                                                class="center"
+                                                style="font-weight:bold; white-space: nowrap;"
+                                            >Does the common variation have genome-wide significance?</span>
+                                        </div>
                                         <div style="padding:5px 0px 5px 0px"></div>
 
                                         <commonvariation-not-genomesig-table
