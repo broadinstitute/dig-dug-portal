@@ -170,7 +170,7 @@
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             :field="'phenotype'"
-                            :options="$store.state.associations.data.map((association) => association.phenotype)"
+                            :options="$store.state.geneassociations.data.map((association) => association.phenotype)"
                             :multiple="false"
                             :pillFormatter="
                                 (filter) =>
@@ -242,7 +242,7 @@
                             <filter-enumeration-control
                                 :field="'phenotype'"
                                 :options="
-                                    $store.state.associations.data.map(
+                                    $store.state.geneassociations.data.map(
                                         (association) => association.phenotype
                                     )
                                 "
@@ -288,7 +288,7 @@
                                 <gene-associations-table
                                     v-if="$store.state.gene.data.length > 0"
                                     :gene="$store.state.gene.data[0]"
-                                    :associations="$store.state.associations.data"
+                                    :associations="$store.state.geneassociations.data"
                                     :phenotypeMap="
                                         $store.state.bioPortal.phenotypeMap
                                     "

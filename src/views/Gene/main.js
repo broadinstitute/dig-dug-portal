@@ -114,7 +114,7 @@ new Vue({
     created() {
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
-        this.$store.dispatch("queryAssociations");
+        //this.$store.dispatch("queryAssociations");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -494,7 +494,7 @@ new Vue({
         },
 
         associationPhenotypes() {
-            return this.$store.state.associations.data.map(a => a.phenotype);
+            return this.$store.state.geneassociations.data.map(a => a.phenotype);
         },
 
         documentationMap() {
@@ -515,7 +515,7 @@ new Vue({
             return this.$store.state.bioPortal.phenotypeMap;
         },
         topAssociations() {
-            let data = this.$store.state.associations.data;
+            let data = this.$store.state.geneassociations.data;
             let assocMap = {};
 
             for (let i in data) {
@@ -546,7 +546,7 @@ new Vue({
                 phenotypes.map(p => p.name)
             );
             this.$store.dispatch("get52KAssociationData");
-            if (phenotypes.length > 0) {
+            if (removedPhenotypes.length > 0) {
                 this.$store.dispatch("getVarAssociationsData", phenotypes[0].name);
             }
             this.$store.dispatch("getEGLData");
@@ -566,7 +566,9 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
-            this.$store.dispatch("getVarAssociationsData", symbol);
+            let topPhenotype = "T2D"
+            this.$store.dispatch("getVarAssociationsData", topPhenotype);
+            // this.$store.dispatch("getEGLData");
         }
     }
 }).$mount("#app");
