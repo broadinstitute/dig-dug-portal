@@ -262,10 +262,16 @@
                                             ></color-bar-plot>
                                         </div>
                                     </div>
-                                    <span
+                                    <div style="margin-block-end: 30px"></div>
+                                    <div
                                         style="cursor:pointer"
                                         v-on:click="$parent.showHideSvgFeature('lzplot')"
-                                    >View {{$parent.selectedGene[0]}} on LocusZoom</span>
+                                    >
+                                        <div
+                                            class="headerexpander"
+                                        >View {{$parent.selectedGene[0]}} on LocusZoom</div>
+                                    </div>
+
                                     <div id="lzplot" class="hidden">
                                         <locuszoom
                                             v-if="$parent.region"
