@@ -93,16 +93,6 @@
                                 ></hugescore-table>
 
                                 <div class="container">
-                                    <span
-                                        class="center"
-                                        style="font-weight:bold; white-space: nowrap; overflow: hidden;"
-                                    >
-                                        HuGE score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                                        $parent.bayesFactorCommonVariation,
-                                        $parent.bayesFactorRareVariation))}} evidence range
-                                    </span>
-                                </div>
-                                <div class="container">
                                     <div class="center">
                                         <color-bar-plot
                                             v-if="$parent.bayesFactorRareVariation"
@@ -110,9 +100,9 @@
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
                                             :elementid="'combinedVariation'"
-                                            :score=" $parent.bayesFactorCombinedEvidence(
+                                            :score=" parseInt($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation)"
+                                                                $parent.bayesFactorRareVariation))"
                                         ></color-bar-plot>
                                     </div>
                                 </div>
@@ -246,19 +236,14 @@
                                             :commonBF="parseInt($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-not-genomesig-table>
                                     </div>
-                                    <div class="container">
-                                        <span
-                                            class="center"
-                                            style=" font-weight:bold;white-space: nowrap;"
-                                        >HuGe score {{$parent.bayesFactorCommonVariation}} falls in {{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence range</span>
-                                    </div>
+
                                     <div class="container">
                                         <div class="center">
                                             <color-bar-plot
                                                 v-if="$parent.bayesFactorCommonVariation"
                                                 :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
                                                 :elementid="'commonVariation'"
-                                                :score="$parent.bayesFactorCommonVariation"
+                                                :score="parseInt($parent.bayesFactorCommonVariation)"
                                             ></color-bar-plot>
                                         </div>
                                     </div>
@@ -344,12 +329,7 @@
                                                 :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
                                                 :rareBF="parseInt($parent.bayesFactorRareVariation)"
                                             ></rarevariation-exomesig-table>
-                                            <div class="container">
-                                                <span
-                                                    class="center"
-                                                    style="font-weight:bold;white-space: nowrap;"
-                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence range</span>
-                                            </div>
+
                                             <div class="container">
                                                 <div class="center">
                                                     <color-bar-plot
@@ -413,17 +393,15 @@
                                                 :burdenAssocEvidence="$parent.beta"
                                             ></rarevariation-not-exomesig-table>
 
-                                            <div style="padding:10px 250px 10px 250px">
-                                                <br />
-                                                <span
-                                                    style="padding:10px 290px 10px 310px; font-weight:bold"
-                                                >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence range</span>
-                                                <color-bar-plot
-                                                    v-if="$parent.bayesFactorRareVariation"
-                                                    :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                    :elementid="'rareVariation'"
-                                                    :score="parseInt($parent.bayesFactorRareVariation)"
-                                                ></color-bar-plot>
+                                            <div class="container">
+                                                <div class="center">
+                                                    <color-bar-plot
+                                                        v-if="$parent.bayesFactorRareVariation"
+                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        :elementid="'rareVariation'"
+                                                        :score="parseInt($parent.bayesFactorRareVariation)"
+                                                    ></color-bar-plot>
+                                                </div>
                                             </div>
                                             <div style="margin-block-end: 30px"></div>
                                             <div
@@ -435,8 +413,8 @@
                                                 >View Burden Association Summary statistics</div>
                                             </div>
                                             <div
-                                                v-show="$parent.showMaskTableSection"
-                                                class="EGLT-table fiftytwo masktable"
+                                                id="masktable"
+                                                class="EGLT-table fiftytwo masktable hidden"
                                             >
                                                 <mask-table
                                                     v-if="$parent.masks.length"
