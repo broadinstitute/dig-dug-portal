@@ -117,18 +117,18 @@
 
                                 <!-- First Collapsible section - Posterior probability - Start -->
                                 <div>
-                                    <h6
-                                        style=" cursor:pointer; width: 100%;text-align: left;border-bottom: 1px solid #000;line-height: 0.05em;margin: 10px 0 20px;"
+                                    <div class="arrow-side"></div>
+                                    <div
+                                        style="cursor:pointer"
+                                        v-on:click="$parent.showHideFeature('ppasection')"
                                     >
-                                        <span
-                                            v-on:click="$parent.showHideFeature('ppasection')"
-                                            style=" background: #fff;padding: 0 10px;"
-                                        >
-                                            Posterior probability
-                                            <i class="arrow right"></i>
-                                        </span>
-                                    </h6>
+                                        <h6
+                                            class="headerexpander"
+                                            style="float-right"
+                                        >Posterior probability</h6>
+                                    </div>
                                 </div>
+
                                 <div :id="'ppasection'" class="row hidden">
                                     <div class="col-md-8">
                                         <h6
@@ -518,11 +518,10 @@
 }
 .arrow-side {
     width: 0;
-    /*height: 40px;*/
-    border-left: 10px solid transparent;
-    border-bottom: 0px solid transparent;
-    border-top: 10px solid black;
-    animation: moveright 1s alternate 1s;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-left: 10px solid rgb(0, 0, 0);
+    border-bottom: 10px solid transparent;
     margin-left: auto;
     margin-right: auto;
 }
@@ -658,5 +657,16 @@
 }
 #toggle {
     display: block;
+}
+h6.headerexpander {
+    display: flex;
+    flex-direction: row;
+}
+
+h6.headerexpander:after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid;
+    margin: auto;
 }
 </style>
