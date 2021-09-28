@@ -330,19 +330,21 @@
                                                     :content-fill="$parent.documentationMap"
                                                 ></documentation>
                                             </span>
-                                            <span
-                                                style="font-weight:bold;padding:0px 150px 0px 650px"
-                                            >Does the rare variation have exome-wide significance?</span>
+
+                                            <div class="container">
+                                                <span
+                                                    class="center"
+                                                    style="font-weight:bold; white-space: nowrap;"
+                                                >Does the rare variation have exome-wide significance?</span>
+                                            </div>
                                             <div style="padding:5px 0px 5px 0px"></div>
 
                                             <rarevariation-exomesig-table
-                                                style="padding:0px 300px 0px 300px"
                                                 :isExomeWideSignificant="true"
                                                 :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
                                                 :rareBF="parseInt($parent.bayesFactorRareVariation)"
                                             ></rarevariation-exomesig-table>
-                                            <div style="padding:10px 250px 10px 250px">
-                                                <br />
+                                            <div>
                                                 <span
                                                     style="padding:10px 290px 10px 310px; font-weight:bold"
                                                 >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence range</span>
@@ -384,9 +386,12 @@
                                                     :content-fill="$parent.documentationMap"
                                                 ></documentation>
                                             </span>
-                                            <span
-                                                style="font-weight:bold; padding:0px 150px 0px 650px"
-                                            >Does the rare variation have exome-wide significance?</span>
+                                            <div class="container">
+                                                <span
+                                                    class="center"
+                                                    style="font-weight:bold; white-space: nowrap;"
+                                                >Does the rare variation have exome-wide significance?</span>
+                                            </div>
                                             <div style="padding:5px 0px 5px 0px"></div>
 
                                             <rarevariation-not-exomesig-table
