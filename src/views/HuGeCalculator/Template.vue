@@ -83,10 +83,9 @@
                                 <div style="margin-block-end: 60px"></div>
 
                                 <hugescore-table
-                                    style="padding:0px 250px 0px 250px"
-                                    :commonBF="parseInt($parent.bayesFactorCommonVariation)"
-                                    :rareBF="parseInt($parent.bayesFactorRareVariation)"
-                                    :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
+                                    :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
+                                    :rareBF="parseFloat($parent.bayesFactorRareVariation)"
+                                    :hugeScore="parseFloat($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
                                     :exomeSignificant="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
@@ -100,7 +99,7 @@
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
                                             :elementid="'combinedVariation'"
-                                            :score=" parseInt($parent.bayesFactorCombinedEvidence(
+                                            :score=" parseFloat($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
                                         ></color-bar-plot>
@@ -129,8 +128,8 @@
                                             ></documentation>
                                         </span>
                                         <hugecal-table
-                                            style="padding:30px 250px 30px 250px"
-                                            :hugeScore="parseInt($parent.bayesFactorCombinedEvidence(
+                                            style="padding:50px 250px 50px 250px"
+                                            :hugeScore="parseFloat($parent.bayesFactorCombinedEvidence(
                                                                 $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
                                         ></hugecal-table>
@@ -140,7 +139,7 @@
                                             v-if="$parent.geneAssociations52k"
                                             :geneAssociationsData=" $parent.geneAssociations52k"
                                             :priorVariance="this.$store.state.prior"
-                                            :bayes_factor="parseInt($parent.bayesFactorCombinedEvidence(
+                                            :bayes_factor="parseFloat($parent.bayesFactorCombinedEvidence(
                                                         $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation))"
                                             :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
@@ -210,7 +209,7 @@
                                             :gwasEvidence="'3(P-value <= 5e-8)'"
                                             :codingEvidence="$parent.commonVariationMap['codingEvidence']"
                                             :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
-                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                            :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-genomesig-table>
                                     </div>
                                     <div v-else>
@@ -231,7 +230,7 @@
                                             :gwasEvidence="'1(No Evidence)'"
                                             :codingEvidence="$parent.commonVariationMap['codingEvidence']"
                                             :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
-                                            :commonBF="parseInt($parent.bayesFactorCommonVariation)"
+                                            :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-not-genomesig-table>
                                     </div>
 
@@ -241,7 +240,7 @@
                                                 v-if="$parent.bayesFactorCommonVariation"
                                                 :category=" $parent.determineCategory($parent.bayesFactorCommonVariation)"
                                                 :elementid="'commonVariation'"
-                                                :score="parseInt($parent.bayesFactorCommonVariation)"
+                                                :score="parseFloat($parent.bayesFactorCommonVariation)"
                                             ></color-bar-plot>
                                         </div>
                                     </div>
@@ -325,7 +324,7 @@
                                             <rarevariation-exomesig-table
                                                 :isExomeWideSignificant="true"
                                                 :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
-                                                :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                                :rareBF="parseFloat($parent.bayesFactorRareVariation)"
                                             ></rarevariation-exomesig-table>
 
                                             <div class="container">
@@ -334,7 +333,7 @@
                                                         v-if="$parent.bayesFactorRareVariation"
                                                         :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
                                                         :elementid="'rareVariation'"
-                                                        :score="parseInt($parent.bayesFactorRareVariation)"
+                                                        :score="parseFloat($parent.bayesFactorRareVariation)"
                                                     ></color-bar-plot>
                                                 </div>
                                             </div>
@@ -386,7 +385,7 @@
                                             <rarevariation-not-exomesig-table
                                                 :isExomeWideSignificant="false"
                                                 :priorVariance="$store.state.prior"
-                                                :rareBF="parseInt($parent.bayesFactorRareVariation)"
+                                                :rareBF="parseFloat($parent.bayesFactorRareVariation)"
                                                 :burdenAssocEvidence="$parent.beta"
                                             ></rarevariation-not-exomesig-table>
 
@@ -396,7 +395,7 @@
                                                         v-if="$parent.bayesFactorRareVariation"
                                                         :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
                                                         :elementid="'rareVariation'"
-                                                        :score="parseInt($parent.bayesFactorRareVariation)"
+                                                        :score="parseFloat($parent.bayesFactorRareVariation)"
                                                     ></color-bar-plot>
                                                 </div>
                                             </div>
