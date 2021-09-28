@@ -5,6 +5,12 @@
             <!-- <span>
                  {{this.score}} HuGe score
             </span>-->
+            <!-- <div class="container">
+                <span
+                    class="center"
+                    style="font-weight:bold;white-space: nowrap;"
+                >HuGe score {{this.score}} falls in {{this.category}} evidence range</span>
+            </div>-->
             <span
                 style="font-size:12px; padding:40px 145px 40px 145px; white-space: nowrap;"
             >*Compelling: HuGe Score >= 350 | Extreme: >=100 | Very Strong: >=30 | Strong: >=10 | Moderate: >=3 | Anecdotal: >1 | No Evidence: <=1</span>
@@ -57,6 +63,11 @@ export default Vue.component("color-bar-plot", {
             type: String,
             required: true,
             default: "NO"
+        },
+        score: {
+            type: Number,
+            required: false,
+            default: 1
         }
     },
 

@@ -344,21 +344,32 @@
                                                 :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
                                                 :rareBF="parseInt($parent.bayesFactorRareVariation)"
                                             ></rarevariation-exomesig-table>
-                                            <div>
+                                            <div class="container">
                                                 <span
-                                                    style="padding:10px 290px 10px 310px; font-weight:bold"
+                                                    class="center"
+                                                    style="font-weight:bold;white-space: nowrap;"
                                                 >HuGe score {{$parent.bayesFactorRareVariation}} falls in {{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence range</span>
-                                                <color-bar-plot
-                                                    v-if="$parent.bayesFactorRareVariation"
-                                                    :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                    :elementid="'rareVariation'"
-                                                    :score="parseInt($parent.bayesFactorRareVariation)"
-                                                ></color-bar-plot>
                                             </div>
+                                            <div class="container">
+                                                <div class="center">
+                                                    <color-bar-plot
+                                                        v-if="$parent.bayesFactorRareVariation"
+                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        :elementid="'rareVariation'"
+                                                        :score="parseInt($parent.bayesFactorRareVariation)"
+                                                    ></color-bar-plot>
+                                                </div>
+                                            </div>
+                                            <div style="margin-block-end: 30px"></div>
                                             <div
-                                                style="cursor:pointer margin-bottom:30px"
+                                                style="cursor:pointer;margin-bottom:30px"
                                                 v-on:click="$parent.showHideFeature('masktable')"
-                                            >View Burden Association Summary statistics</div>
+                                            >
+                                                <div
+                                                    class="headerexpander"
+                                                >View Burden Association Summary statistics</div>
+                                            </div>
+
                                             <div
                                                 class="EGLT-table fiftytwo masktable hidden"
                                                 id="masktable"
@@ -414,15 +425,14 @@
                                                     :score="parseInt($parent.bayesFactorRareVariation)"
                                                 ></color-bar-plot>
                                             </div>
+                                            <div style="margin-block-end: 30px"></div>
                                             <div
-                                                style="cursor:pointer"
-                                                v-on:click="$parent.toggleRareVariationMaskTable()"
+                                                style="cursor:pointer;margin-bottom:30px"
+                                                v-on:click="$parent.showHideFeature('masktable')"
                                             >
-                                                <span
-                                                    class="toggleIcon"
-                                                    id="toggleIcon"
-                                                >{{$parent.toggleIcon}}</span>
-                                                View Burden Association Summary statistics
+                                                <div
+                                                    class="headerexpander"
+                                                >View Burden Association Summary statistics</div>
                                             </div>
                                             <div
                                                 v-show="$parent.showMaskTableSection"
