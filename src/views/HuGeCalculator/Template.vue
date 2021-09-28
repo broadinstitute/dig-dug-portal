@@ -74,7 +74,7 @@
                                             $parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)
                                             }}
                                         </div>
-                                    </div>*HuGe Score(combined evidence) = BF of common variation * BF of rare variation
+                                    </div>*HuGE Score(combined evidence) = BF of common variation * BF of rare variation
                                 </span>
                                 <div style="margin-block-end: 60px"></div>
 
@@ -89,12 +89,11 @@
                                 ></hugescore-table>
 
                                 <div class="container">
-                                    <br />
                                     <span
                                         class="center"
                                         style="font-weight:bold; white-space: nowrap; overflow: hidden;"
                                     >
-                                        HuGe score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
+                                        HuGE score {{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}} falls in {{$parent.determineCategory($parent.bayesFactorCombinedEvidence(
                                         $parent.bayesFactorCommonVariation,
                                         $parent.bayesFactorRareVariation))}} evidence range
                                     </span>
@@ -116,17 +115,12 @@
                                 <div style="margin-block-end: 50px"></div>
 
                                 <!-- First Collapsible section - Posterior probability - Start -->
-                                <div>
-                                    <div class="arrow-side"></div>
-                                    <div
-                                        style="cursor:pointer"
-                                        v-on:click="$parent.showHideFeature('ppasection')"
-                                    >
-                                        <h6
-                                            class="headerexpander"
-                                            style="float-right"
-                                        >Posterior probability</h6>
-                                    </div>
+
+                                <div
+                                    style="cursor:pointer"
+                                    v-on:click="$parent.showHideFeature('ppasection')"
+                                >
+                                    <div class="headerexpander">Posterior probability</div>
                                 </div>
 
                                 <div :id="'ppasection'" class="row hidden">
@@ -658,15 +652,29 @@
 #toggle {
     display: block;
 }
-h6.headerexpander {
+div.headerexpander {
+    position: relative;
+    padding-left: 15px;
+    height: 15px;
+    font-size: 15px;
+    line-height: 15px;
     display: flex;
-    flex-direction: row;
 }
-
-h6.headerexpander:after {
+div.headerexpander:before {
+    content: "";
+    position: absolute;
+    border-left: 7.5px solid rgb(10, 10, 10);
+    border-top: 7.5px solid transparent;
+    border-bottom: 7.5px solid transparent;
+    top: 0;
+    bottom: 5px;
+    left: 0;
+}
+div.headerexpander:after {
     content: "";
     flex: 1;
     border-bottom: 1px solid;
+    padding: 0px 5px 5px 5px;
     margin: auto;
 }
 </style>
