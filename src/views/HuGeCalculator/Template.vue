@@ -106,7 +106,7 @@
                                         ></color-bar-plot>
                                     </div>
                                 </div>
-                                <div style="margin-block-end: 50px"></div>
+                                <div style="margin-block-end: 30px"></div>
 
                                 <!-- First Collapsible section - Posterior probability - Start -->
 
@@ -205,7 +205,6 @@
                                         <div style="padding:5px 0px 5px 0px"></div>
 
                                         <commonvariation-genomesig-table
-                                            style="padding:0px 300px 0px 300px"
                                             v-if="$parent.eglData"
                                             :isGenomeWideSignificant="true"
                                             :gwasEvidence="'3(P-value <= 5e-8)'"
@@ -227,7 +226,6 @@
                                         <div style="padding:5px 0px 5px 0px"></div>
 
                                         <commonvariation-not-genomesig-table
-                                            style="padding:0px 300px 0px 300px"
                                             v-if="$parent.eglData"
                                             :isGenomeWideSignificant="false"
                                             :gwasEvidence="'1(No Evidence)'"
@@ -386,7 +384,6 @@
                                             <div style="padding:5px 0px 5px 0px"></div>
 
                                             <rarevariation-not-exomesig-table
-                                                style="padding:0px 300px 0px 300px"
                                                 :isExomeWideSignificant="false"
                                                 :priorVariance="$store.state.prior"
                                                 :rareBF="parseInt($parent.bayesFactorRareVariation)"
