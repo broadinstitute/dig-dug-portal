@@ -496,25 +496,7 @@ new Vue({
         associationPhenotypes() {
             return this.$store.state.geneassociations.data.map(a => a.phenotype);
         },
-
-        documentationMap() {
-            let symbol = this.geneSymbol;
-            let r = this.region;
-
-            if (!!symbol && !!r) {
-                return {
-                    gene: symbol,
-                    region: `${r.chromosome}:${Formatters.intFormatter(
-                        r.start
-                    )}-${Formatters.intFormatter(r.end)}`
-                };
-            }
-        },
-
-        phenotypeMap() {
-            return this.$store.state.bioPortal.phenotypeMap;
-        },
-        topAssociations() {
+        geneassociations() {
             let data = this.$store.state.geneassociations.data;
             let assocMap = {};
 
@@ -534,12 +516,47 @@ new Vue({
 
             // convert to an array, sorted by p-value
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            return x
 
-            return x;
         },
+
+        documentationMap() {
+            let symbol = this.geneSymbol;
+            let r = this.region;
+
+            if (!!symbol && !!r) {
+                return {
+                    gene: symbol,
+                    region: `${r.chromosome}:${Formatters.intFormatter(
+                        r.start
+                    )}-${Formatters.intFormatter(r.end)}`
+                };
+            }
+        },
+
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        },
+
     },
 
     watch: {
+        // geneassociations(newTopPhenotype, oldTopPhenotype) {
+        //     const removedPhenotypes = _.difference(
+        //         oldPhenotypes.map(p => p.name),
+        //         phenotypes.map(p => p.name)
+        //     );
+        //     if (this.genePageSearchCriterion[0] != topPhenotype) {
+        //         this.genePageSearchCriterion = []
+        //     }
+        //     this.pushCriterionPhenotype(newTopPhenotype)
+        //     if (removedPhenotypes.length > 0) {
+        //         this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
+        //     }
+        //     this.$store.dispatch("getEGLData");
+        // },
+
+
         selectedPhenotypes(phenotypes, oldPhenotypes) {
             const removedPhenotypes = _.difference(
                 oldPhenotypes.map(p => p.name),
@@ -566,9 +583,17 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
-            let topPhenotype = "T2D"
-            this.$store.dispatch("getVarAssociationsData", topPhenotype);
-            // this.$store.dispatch("getEGLData");
+            let newTopPhenotype = "T2D"
+            if (this.genePageSearchCriterion[0] != newTopPhenotype) {
+                this.genePageSearchCriterion = []
+            }
+            this.pushCriterionPhenotype(newTopPhenotype)
+
+            this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
+
+            this.$store.dispatch("getEGLData");
+
+
         }
     }
 }).$mount("#app");

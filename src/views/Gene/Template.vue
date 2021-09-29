@@ -281,9 +281,7 @@
                                     ></lz-phewas-panel>
                                 </locuszoom>
                                 <unauthorized-message
-                                    :restricted="
-                                        $store.state.associations.restricted
-                                    "
+                                    :restricted="$store.state.varassociations.restricted"
                                 ></unauthorized-message>
                                 <gene-associations-table
                                     v-if="$store.state.gene.data.length > 0"
