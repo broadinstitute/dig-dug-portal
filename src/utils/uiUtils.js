@@ -27,7 +27,28 @@ let showElement = function (ELEMENT, SEARCHBOX) {
         }
     }
 };
-
+let showHideSvg = function (ELEMENT) {
+    let element = checkExist(ELEMENT);
+    if (!!element) {
+        if (element.classList.contains("hidden-svg")) {
+            showSvg(ELEMENT);
+        } else {
+            hideSvg(ELEMENT);
+        }
+    }
+};
+let showSvg = function (ELEMENT) {
+    let element = checkExist(ELEMENT);
+    if (!!element) {
+        element.classList.remove("hidden-svg");
+    }
+};
+let hideSvg = function (ELEMENT) {
+    let element = checkExist(ELEMENT);
+    if (!!element) {
+        element.classList.add("hidden-svg");
+    }
+};
 let showHideElement = function (ELEMENT, SEARCHBOX) {
     let element = checkExist(ELEMENT);
 
@@ -206,6 +227,7 @@ export default {
     hideElement,
     showElement,
     showHideElement,
+    showHideSvg,
     showHideHelpContent,
     openPage,
     showHideByClass,

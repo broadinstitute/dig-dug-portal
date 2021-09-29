@@ -1,24 +1,29 @@
 <template>
-    <div>
-        <b-table-simple borderless fixed small>
-            <b-tbody>
-                <b-tr>
-                    <b-td
-                        style="width:50px;background-color:#E7EDF7"
-                        class="text-center"
-                    >{{commonBF}}</b-td>
-                    <b-td style="width:25px;" class="text-center">X</b-td>
-                    <b-td style="width:50px;background-color:#fef8dc" class="text-center">{{rareBF}}</b-td>
-                    <b-td style="width:25px;" class="text-center">=</b-td>
-                    <b-td
-                        style="width:50px;background-color:#c4edc8"
-                        class="text-center"
-                    >{{combinedBF}}</b-td>
-                    <b-td style="width:75px;" class="text-left"><-- HuGE Score</b-td>
-                </b-tr>
-            </b-tbody>
-            <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
-        </b-table-simple>
+    <div class="container">
+        <div class="center">
+            <b-table-simple borderless fixed small>
+                <b-tbody>
+                    <b-tr>
+                        <b-td
+                            style="width:30px;background-color:#E7EDF7"
+                            class="text-center"
+                        >{{commonBF}}</b-td>
+                        <b-td style="width:15px;" class="text-center">X</b-td>
+                        <b-td
+                            style="width:30px;background-color:#fef8dc"
+                            class="text-center"
+                        >{{rareBF}}</b-td>
+                        <b-td style="width:15px;" class="text-center">=</b-td>
+                        <b-td
+                            style="width:30px;background-color:#c4edc8"
+                            class="text-center"
+                        >{{combinedBF}}</b-td>
+                        <b-td style="width:20px;" class="text-left"><-- HuGE Score</b-td>
+                    </b-tr>
+                </b-tbody>
+                <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
+            </b-table-simple>
+        </div>
     </div>
 </template>
         
@@ -77,5 +82,13 @@ export default Vue.component("genepage-combinedevidence-table", {
 <style>
 .hidden_header {
     display: none;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+}
+.center {
+    padding: 10px;
 }
 </style>

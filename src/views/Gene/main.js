@@ -393,21 +393,7 @@ new Vue({
 
         queries() {
             return [
-                // this.biolinkQueryGraph("NCBIGENE:1017", {
-                //     subject: "biolink:Gene",
-                //     predicate: "biolink:participates_in",
-                //     object: "biolink:Pathway",
-                // }),
-                // // this.biolinkQueryGraph('NCBIGENE:1017', {
-                // //     subject: 'biolink:Gene',
-                // //     predicate: 'biolink:participates_in',
-                // //     object: 'biolink:BiologicalProcess',
-                // // }),
-                // // this.biolinkQueryGraph('NCBIGENE:1017', {
-                // //     subject: 'biolink:Gene',
-                // //     predicate: 'biolink:expressed_in',
-                // //     object: 'biolink:CellularComponent',
-                // // }),
+
                 this.biolinkQueryGraph('NCBIGENE:1017', {
                     subject: 'biolink:Gene',
                     predicate: 'biolink:enables',
@@ -443,20 +429,7 @@ new Vue({
                 g => g.source === "alias"
             );
         },
-        // alternativeNames() {
-        //     let geneData = this.$store.state.gene.data
-        //     let data = this.$store.state.genes.data
-        //     let aliases = []
-        //     for (let i in data) {
-        //         if (data[i].chromosome == geneData[0].chromosome && data[i].start == geneData[0].start && data[i].end == geneData[0].end) {
-        //             if (data[i].source === "alias") {
-        //                 aliases.push(data[i].name);
-        //             }
-        //         }
 
-        //     }
-        //     return aliases;
-        // },
 
         alternateNames() {
             let geneData = this.$store.state.gene.data
@@ -521,7 +494,30 @@ new Vue({
         },
 
         associationPhenotypes() {
-            return this.$store.state.associations.data.map(a => a.phenotype);
+            return this.$store.state.geneassociations.data.map(a => a.phenotype);
+        },
+        geneassociations() {
+            let data = this.$store.state.geneassociations.data;
+            let assocMap = {};
+
+            for (let i in data) {
+                const assoc = data[i];
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[assoc.phenotype]) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+
+            // convert to an array, sorted by p-value
+            let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            return x
+
         },
 
         documentationMap() {
@@ -540,42 +536,37 @@ new Vue({
 
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
-        }
+        },
+
     },
 
     watch: {
+        // geneassociations(newTopPhenotype, oldTopPhenotype) {
+        //     const removedPhenotypes = _.difference(
+        //         oldPhenotypes.map(p => p.name),
+        //         phenotypes.map(p => p.name)
+        //     );
+        //     if (this.genePageSearchCriterion[0] != topPhenotype) {
+        //         this.genePageSearchCriterion = []
+        //     }
+        //     this.pushCriterionPhenotype(newTopPhenotype)
+        //     if (removedPhenotypes.length > 0) {
+        //         this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
+        //     }
+        //     this.$store.dispatch("getEGLData");
+        // },
+
+
         selectedPhenotypes(phenotypes, oldPhenotypes) {
             const removedPhenotypes = _.difference(
                 oldPhenotypes.map(p => p.name),
                 phenotypes.map(p => p.name)
             );
-            // if (removedPhenotypes.length > 0) {
-            //     removedPhenotypes.forEach(removedPhenotype => {
-            //         delete this.pageAssociationsMap[removedPhenotype];
-            //         this.pageAssociations = Object.entries(
-            //             this.pageAssociationsMap
-            //         ).flatMap(pam => pam[1]);
-            //     });
-            // }
-            //keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
-            // console.log("current phenotypes", phenotypes[0].name)
-
-            // // reload the global enrichment for these phenotypes
-            //this.setCriterionPhenotypes([topPhenotype.name]);
-            // let topPhenotype = "T2D"
-            // this.pushCriterionPhenotype(topPhenotype);
-
-            // if (oldPhenotypes.length == 0) {
-            //     console.log("no phenotype selected")
-            //     this.pushCriterionPhenotype("T2D");
-            // }
             this.$store.dispatch("get52KAssociationData");
-            if (phenotypes.length > 0) {
-                this.$store.dispatch("getAssociationsData", phenotypes[0].name);
+            if (removedPhenotypes.length > 0) {
+                this.$store.dispatch("getVarAssociationsData", phenotypes[0].name);
             }
-
             this.$store.dispatch("getEGLData");
-
         },
 
         diseaseGroup(group) {
@@ -592,6 +583,17 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
+            let newTopPhenotype = "T2D"
+            if (this.genePageSearchCriterion[0] != newTopPhenotype) {
+                this.genePageSearchCriterion = []
+            }
+            this.pushCriterionPhenotype(newTopPhenotype)
+
+            this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
+
+            this.$store.dispatch("getEGLData");
+
+
         }
     }
 }).$mount("#app");
