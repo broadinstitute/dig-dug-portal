@@ -228,6 +228,13 @@ let pages = {
         filename: "research.html",
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"]
+    },
+    bchvariantsearch: {
+        entry: "src/views/BCHVariantSearch/main.js",
+        template: "public/index.html",
+        filename: "bchvariantsearch.html",
+        title: "BCH Variant Search",
+        chunks: ["chunk-vendors", "chunk-common", "bchvariantsearch"]
     }
 };
 
@@ -243,17 +250,19 @@ module.exports = {
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
         let bioindex_host = "https://bioindex.hugeamp.org"; // production by default
+        let bioindex_host_private = "http://100.80.30.84:5000";
+        let portal_host = "https://bioindex.hugeamp.org";
 
         if (!!bioindex_dev) {
             bioindex_host =
                 bioindex_dev == "localhost"
-                    ? "http://localhost:5000"
+                    ? "http://100.80.30.84:5000"
                     : "https://bioindex-dev.hugeamp.org";
         }
 
         // output which bioindex is being used
         console.log(
-            `BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host}`
+            `BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host} ${bioindex_host_private}`
         );
 
         // add the transform rule for bioindex
@@ -263,6 +272,18 @@ module.exports = {
             options: {
                 search: "SERVER_IP_ADDRESS",
                 replace: bioindex_host,
+                flags: "g"
+            }
+        });
+
+        // add the transform rule for bioindex
+        // Helen 2021-06-17
+        config.module.rules.push({
+            test: /bioIndexUtils\.js$/,
+            loader: "string-replace-loader",
+            options: {
+                search: "SERVER_IP_PRIVATE",
+                replace: bioindex_host_private,
                 flags: "g"
             }
         });
