@@ -16,29 +16,37 @@ if (!!document.cookie) {
 
 // updated at compile-time to the dev or production BioIndex server
 export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
+export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 
 /* Returns the path for any BioIndex API end-point.
  */
-export function apiUrl(path) {
+export function apiUrl(path, query_private=false) {
     if (path.startsWith("/")) {
         path = path.substr(1);
     }
-
-    return `${BIO_INDEX_HOST}/${path}`;
+    
+    if (query_private){
+        console.log("query_private:", query_private);
+        return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
+    } else {
+        console.log("query_private is false:", query_private);
+        return `${BIO_INDEX_HOST}/${path}`;
+    }
+    
 }
 
 /* Useful for /api/raw end-points with query parameters.
  */
-export function rawUrl(path, query_params) {
+export function rawUrl(path, query_params, query_private=false) {
     let qs = querystring.stringify(query_params, { skipNull: true });
 
-    return `${apiUrl(path)}${qs ? "?" + qs : ""}`;
+    return `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`;
 }
 
 /* Build a generic request to a BioIndex end-point.
  */
-export async function request(path, query_params) {
-    return fetch(rawUrl(path, query_params), {
+export async function request(path, query_params, query_private=false) {
+    return fetch(rawUrl(path, query_params, query_private), {
         headers: {
             "x-bioindex-access-token": session_cookie
         }
@@ -47,21 +55,21 @@ export async function request(path, query_params) {
 
 /* Perform a BioIndex query.
  */
-export async function query(index, q, opts = {}) {
-    let { limit, onResolve, onError, onLoad, limitWhile } = opts;
-    let req = request(`/api/bio/query/${index}`, { q, limit });
+export async function query(index, q, opts = {}, query_private=false) {
+    let { limit, onResolve, onError, onLoad, limitWhile} = opts;
+    let req = request(`/api/bio/query/${index}`, { q, limit }, query_private);
 
-    return await processRequest(req, onResolve, onError, onLoad, limitWhile);
+    return await processRequest(req, onResolve, onError, onLoad, limitWhile, query_private);
 }
 
 /* Perform a BioIndex match.
  */
-export async function match(index, q, opts = {}) {
+export async function match(index, q, opts = {},query_private=false) {
     let { limit, onLoad, onResolve, onError } = opts;
-    let req = request(`/api/bio/match/${index}`, { q, limit });
+    let req = request(`/api/bio/match/${index}`, { q, limit }, query_private);
 
     // perform the fetch, make sure it succeeds
-    return await processRequest(req, onResolve, onError, onLoad);
+    return await processRequest(req, onResolve, onError, onLoad, query_private);
 }
 
 /* Alters the json to filter results and stop continuing.
@@ -83,7 +91,7 @@ function limitRecordsWhile(json, limitWhile) {
 
 /* Follow continuations and continue reading all data.
  */
-async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
+async function processRequest(req, onResolve, onError, onLoad, limitWhile, query_private=false) {
     let resp = await req;
     let json = await resp.json();
     let data = [];
@@ -103,7 +111,7 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
 
         // this will also fail if resp.status !== 200
         while (!!json.continuation) {
-            let req = request(`/api/bio/cont`, { token: json.continuation });
+            let req = request(`/api/bio/cont`, { token: json.continuation }, query_private);
 
             // follow the continuation
             resp = await req;
@@ -139,4 +147,5 @@ export default {
     request,
     rawUrl,
     BIO_INDEX_HOST,
+    BIO_INDEX_HOST_PRIVATE
 }
