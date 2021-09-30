@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
+    "serve": "vue-cli-service serve --port 8090 --host 100.80.30.84",
     "watch": "vue-cli-service build --mode development --watch",
     "build": "vue-cli-service build --mode development",
     "deploy": "vue-cli-service build --mode production"
