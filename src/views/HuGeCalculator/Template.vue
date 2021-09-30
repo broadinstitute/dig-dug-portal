@@ -254,7 +254,7 @@
                                         >View {{$parent.selectedGene[0]}} on LocusZoom</div>
                                     </div>
 
-                                    <div id="lzplot" class="hidden">
+                                    <div id="lzplot" class="svg-wrapper hidden-svg">
                                         <locuszoom
                                             v-if="$parent.region"
                                             ref="locuszoom"
