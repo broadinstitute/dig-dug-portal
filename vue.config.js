@@ -245,7 +245,12 @@ if (process.env.NODE_ENV === "production") {
 
 module.exports = {
     devServer: {
-        writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
+        //proxy: 'http://100.80.30.84:8090',
+        writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
+        /*headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+        }*/
     },
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
