@@ -438,13 +438,14 @@ new Vue({
                     case "all":
 
                         let allData = {}
-
+                        
                         newResearchData.map(d => {
                             let keyField = d[this.dataComparisonConfig.keyField];
                             let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
                             if (!!previousData[keyField]) {
                                 let tempObj = previousData[keyField];
                                 comparingFields.map(cf => {
+                                    //console.log("d",d,"cf",cf,"fieldGroupKey",fieldGroupKey)
                                     tempObj[cf][fieldGroupKey] = d[cf];
                                 });
                                 allData[keyField] = tempObj;
@@ -785,11 +786,12 @@ new Vue({
 
     watch: {
         codingGenesData(DATA) {
+            console.log(DATA);
             this.$store.dispatch("codingGenesData", DATA["data"]);
         },
         searchingGenes(CONTENTS) {
 
-            //console.log("genes in region", CONTENTS);
+            console.log("genes in region", CONTENTS);
 
             let genesData = CONTENTS["data"];
             let codingGenes = "";

@@ -140,6 +140,7 @@
                                     "
                                 ></research-page-filters>
                             </div>
+
                             <!-- plots -->
                             <div
                                 :class="'col-md-12 ' + $parent.plotClass"
