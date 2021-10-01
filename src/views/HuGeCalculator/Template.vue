@@ -182,7 +182,11 @@
                                         >BF:{{$parent.bayesFactorCommonVariation}}</div>
                                     </div>
                                 </span>
-                                <div id="commonvariation" style="cursor:pointer;" class="card-body">
+                                <div
+                                    id="commonvariation"
+                                    style="cursor:pointer;"
+                                    class="card-body hidden"
+                                >
                                     <div
                                         v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
                                     >
@@ -218,6 +222,11 @@
                                         ></commonvariation-genomesig-table>
                                     </div>
                                     <div v-else>
+                                        <span class="lead" style="font-size:12px ">
+                                            *Common variation BF = 1 if a gene is not genome wide significant
+                                            <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
+                                        </span>
+                                        <br />
                                         <h6
                                             style="font-weight:bold;margin-top:15px;margin-bottom:10px"
                                         >How is common variation BF calculated?</h6>
