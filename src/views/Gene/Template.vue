@@ -154,7 +154,7 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 style="font-weight: bold" class="card-title">HuGE Score</h4>
-                    <h5 style="font-weight: bold">How is the HuGE score calculated?</h5>
+
                     <span>
                         <documentation
                             name="gene.hugecal.subheader"

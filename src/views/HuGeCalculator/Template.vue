@@ -47,6 +47,11 @@
                         >
                             <div class="label">Phenotype</div>
                         </filter-enumeration-control>
+                        <!-- <b-badge
+                            v-if="$parent.numberOfSearches > 1"
+                            class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                            @click="removeAllFilters()"
+                        >Clear all search</b-badge>-->
                     </criterion-list-group>
 
                     <div
@@ -177,7 +182,11 @@
                                         >BF:{{$parent.bayesFactorCommonVariation}}</div>
                                     </div>
                                 </span>
-                                <div id="commonvariation" style="cursor:pointer" class="hidden">
+                                <div
+                                    id="commonvariation"
+                                    style="cursor:pointer;"
+                                    class="card-body hidden"
+                                >
                                     <div
                                         v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
                                     >
@@ -213,9 +222,20 @@
                                         ></commonvariation-genomesig-table>
                                     </div>
                                     <div v-else>
+                                        <span class="lead" style="font-size:12px ">
+                                            *Common variation BF = 1 if a gene is not genome wide significant
+                                            <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
+                                        </span>
+                                        <br />
                                         <h6
                                             style="font-weight:bold;margin-top:15px;margin-bottom:10px"
                                         >How is common variation BF calculated?</h6>
+                                        <span>
+                                            <documentation
+                                                name="hugecal.commonvar.subheader"
+                                                :content-fill="$parent.documentationMap"
+                                            ></documentation>
+                                        </span>
                                         <div class="container">
                                             <span
                                                 class="center"
@@ -247,14 +267,16 @@
                                     <div style="margin-block-end: 30px"></div>
                                     <div
                                         style="cursor:pointer"
-                                        v-on:click="$parent.showHideSvgFeature('lzplot')"
+                                        v-on:click="$parent.showHideSvg('lzplot')"
                                     >
                                         <div
                                             class="headerexpander"
                                         >View {{$parent.selectedGene[0]}} on LocusZoom</div>
                                     </div>
 
-                                    <div id="lzplot" class="hidden">
+                                    <!-- <a href="javascript:;" @click="$parent.showHideSvg('svgWrapper1')">SVG Wrapper test</a> -->
+
+                                    <div id="lzplot" class="svg-wrapper hidden-svg">
                                         <locuszoom
                                             v-if="$parent.region"
                                             ref="locuszoom"

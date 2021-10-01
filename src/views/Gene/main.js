@@ -230,6 +230,31 @@ new Vue({
     },
 
     computed: {
+
+        geneassociations() {
+            let data = this.$store.state.geneassociations.data;
+            let assocMap = {};
+
+            for (let i in data) {
+                const assoc = data[i];
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[assoc.phenotype]) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+
+            // convert to an array, sorted by p-value
+            let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            return x
+
+        },
+
         smallestpValuePhenotype() {
             // let data = this.$store.state.varassociations.data;
             // let x = data.sort(
@@ -496,29 +521,7 @@ new Vue({
         associationPhenotypes() {
             return this.$store.state.geneassociations.data.map(a => a.phenotype);
         },
-        geneassociations() {
-            let data = this.$store.state.geneassociations.data;
-            let assocMap = {};
 
-            for (let i in data) {
-                const assoc = data[i];
-
-                // skip associations not part of the disease group
-                if (!this.phenotypeMap[assoc.phenotype]) {
-                    continue;
-                }
-
-                const curAssoc = assocMap[assoc.phenotype];
-                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
-                    assocMap[assoc.phenotype] = assoc;
-                }
-            }
-
-            // convert to an array, sorted by p-value
-            let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
-            return x
-
-        },
 
         documentationMap() {
             let symbol = this.geneSymbol;
@@ -541,20 +544,28 @@ new Vue({
     },
 
     watch: {
-        // geneassociations(newTopPhenotype, oldTopPhenotype) {
-        //     const removedPhenotypes = _.difference(
-        //         oldPhenotypes.map(p => p.name),
-        //         phenotypes.map(p => p.name)
-        //     );
-        //     if (this.genePageSearchCriterion[0] != topPhenotype) {
-        //         this.genePageSearchCriterion = []
-        //     }
-        //     this.pushCriterionPhenotype(newTopPhenotype)
-        //     if (removedPhenotypes.length > 0) {
-        //         this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
-        //     }
-        //     this.$store.dispatch("getEGLData");
-        // },
+        geneassociations(newData, oldData) {
+            let topPhenotype = "LDL"
+            if (newData.length > 0) {
+                topPhenotype = newData[0].phenotype
+                console.log("top-phenotype", topPhenotype)
+                if (this.genePageSearchCriterion[0] != topPhenotype) {
+                    this.genePageSearchCriterion = []
+                }
+                this.pushCriterionPhenotype(topPhenotype)
+
+                this.$store.dispatch("getVarAssociationsData", topPhenotype);
+
+                this.$store.dispatch("getEGLData");
+            }
+
+
+            //this.pushCriterionPhenotype(newTopPhenotype)
+            // if (removedPhenotypes.length > 0) {
+            //     this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
+            // }
+            // this.$store.dispatch("getEGLData");
+        },
 
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {
@@ -583,15 +594,7 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
-            let newTopPhenotype = "T2D"
-            if (this.genePageSearchCriterion[0] != newTopPhenotype) {
-                this.genePageSearchCriterion = []
-            }
-            this.pushCriterionPhenotype(newTopPhenotype)
 
-            this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
-
-            this.$store.dispatch("getEGLData");
 
 
         }
