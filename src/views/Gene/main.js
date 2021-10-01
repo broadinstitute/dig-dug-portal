@@ -554,7 +554,7 @@ new Vue({
                 }
                 this.pushCriterionPhenotype(topPhenotype)
 
-                this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
+                this.$store.dispatch("getVarAssociationsData", topPhenotype);
 
                 this.$store.dispatch("getEGLData");
             }
