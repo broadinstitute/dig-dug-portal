@@ -177,7 +177,7 @@
                                         >BF:{{$parent.bayesFactorCommonVariation}}</div>
                                     </div>
                                 </span>
-                                <div id="commonvariation" style="cursor:pointer" class="hidden">
+                                <div id="commonvariation" style="cursor:pointer;" class="card-body">
                                     <div
                                         v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
                                     >
@@ -245,34 +245,35 @@
                                         </div>
                                     </div>
                                     <div style="margin-block-end: 30px"></div>
-                                </div>
-                                <div
-                                    style="cursor:pointer"
-                                    v-on:click="$parent.showHideSvg('lzplot')"
-                                >
                                     <div
-                                        class="headerexpander"
-                                    >View {{$parent.selectedGene[0]}} on LocusZoom</div>
-                                </div>
-
-                                <!-- <a href="javascript:;" @click="$parent.showHideSvg('svgWrapper1')">SVG Wrapper test</a> -->
-
-                                <div id="lzplot" class="svg-wrapper hidden-svg">
-                                    <locuszoom
-                                        v-if="$parent.region"
-                                        ref="locuszoom"
-                                        :chr="$parent.region.chromosome"
-                                        :start="$parent.region.start -50000"
-                                        :end="$parent.region.end +50000"
-                                        :refSeq="true"
-                                        :ldpop="true"
+                                        style="cursor:pointer"
+                                        v-on:click="$parent.showHideSvg('lzplot')"
                                     >
-                                        <lz-associations-panel
-                                            :phenotype="$parent.selectedPhenotype[0]"
-                                            @input="$parent.updateAssociationsTable"
-                                        ></lz-associations-panel>
-                                    </locuszoom>
+                                        <div
+                                            class="headerexpander"
+                                        >View {{$parent.selectedGene[0]}} on LocusZoom</div>
+                                    </div>
+
+                                    <!-- <a href="javascript:;" @click="$parent.showHideSvg('svgWrapper1')">SVG Wrapper test</a> -->
+
+                                    <div id="lzplot" class="svg-wrapper hidden-svg">
+                                        <locuszoom
+                                            v-if="$parent.region"
+                                            ref="locuszoom"
+                                            :chr="$parent.region.chromosome"
+                                            :start="$parent.region.start -50000"
+                                            :end="$parent.region.end +50000"
+                                            :refSeq="true"
+                                            :ldpop="true"
+                                        >
+                                            <lz-associations-panel
+                                                :phenotype="$parent.selectedPhenotype[0]"
+                                                @input="$parent.updateAssociationsTable"
+                                            ></lz-associations-panel>
+                                        </locuszoom>
+                                    </div>
                                 </div>
+
                                 <br />
                                 <!-- NEW RARE VARIATION -->
                                 <div>

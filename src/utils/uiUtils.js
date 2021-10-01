@@ -55,6 +55,7 @@ let showHideElement = function (ELEMENT, SEARCHBOX) {
     if (!!element) {
         if (element.classList.contains("hidden")) {
             showElement(ELEMENT, SEARCHBOX);
+
         } else {
             hideElement(ELEMENT);
         }
