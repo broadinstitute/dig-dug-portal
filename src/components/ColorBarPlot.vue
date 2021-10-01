@@ -13,7 +13,7 @@
             </div>
             <span
                 style="font-size:12px; padding:40px 145px 40px 145px; white-space: nowrap;"
-            >*Compelling: HuGe Score >= 350 | Extreme: >=100 | Very Strong: >=30 | Strong: >=10 | Moderate: >=3 | Anecdotal: >1 | No Evidence: <=1</span>
+            >Compelling: HuGe Score >= 350 | Extreme: >=100 | Very Strong: >=30 | Strong: >=10 | Moderate: >=3 | Anecdotal: >1 | No Evidence: <=1</span>
             <div class="row color-bars-wrapper">
                 <div class="each-bar-section variationStrong">Compelling</div>
                 <div class="each-bar-section variationModerate">Extreme</div>
