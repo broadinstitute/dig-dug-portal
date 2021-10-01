@@ -129,6 +129,10 @@ new Vue({
     },
 
     computed: {
+        numberOfSearches() {
+            return this.hugecalSearchCriterion.length;
+        },
+
 
         suggestedPriorNewOne() {
             return this.$store.state.suggestedPriorNew
@@ -604,7 +608,8 @@ new Vue({
                 this.$store.dispatch("get52KAssociationData", gene);
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
-        }
+        },
+
     },
 
     watch: {

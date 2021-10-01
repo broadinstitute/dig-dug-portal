@@ -47,6 +47,11 @@
                         >
                             <div class="label">Phenotype</div>
                         </filter-enumeration-control>
+                        <!-- <b-badge
+                            v-if="$parent.numberOfSearches > 1"
+                            class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                            @click="removeAllFilters()"
+                        >Clear all search</b-badge>-->
                     </criterion-list-group>
 
                     <div
