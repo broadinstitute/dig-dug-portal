@@ -464,26 +464,11 @@ new Vue({
 
     },
     methods: {
-        // toggleCollapse(ref) {
-        //     let show = this.classArrs[ref].indexOf('show') > -1 ? false : 'show'
-        //     this.classArrs[ref] = ['collapsing']
-        //     setTimeout(() => {
-        //         if (show) {
-        //             let height = 400 + 'px';
-        //             this.styleObjs[ref] = { height }
-        //         }
-        //         else {
-        //             this.styleObjs[ref] = {}
-        //         }
-        //     }, 10)
-        //     setTimeout(() => {
-        //         this.classArrs[ref] = ['collapse', show]
-        //     }, 340)
-        // },
+
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
         },
-        showHideSvgFeature(svgWrapper) {
+        showHideSvg(svgWrapper) {
             uiUtils.showHideSvg(svgWrapper);
         },
         toggleCollapse(ref) {

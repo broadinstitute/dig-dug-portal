@@ -245,33 +245,34 @@
                                         </div>
                                     </div>
                                     <div style="margin-block-end: 30px"></div>
+                                </div>
+                                <div
+                                    style="cursor:pointer"
+                                    v-on:click="$parent.showHideSvg('lzplot')"
+                                >
                                     <div
-                                        style="cursor:pointer"
-                                        v-on:click="$parent.showHideSvgFeature('lzplot')"
-                                    >
-                                        <div
-                                            class="headerexpander"
-                                        >View {{$parent.selectedGene[0]}} on LocusZoom</div>
-                                    </div>
-
-                                    <div id="lzplot" class="svg-wrapper hidden-svg">
-                                        <locuszoom
-                                            v-if="$parent.region"
-                                            ref="locuszoom"
-                                            :chr="$parent.region.chromosome"
-                                            :start="$parent.region.start -50000"
-                                            :end="$parent.region.end +50000"
-                                            :refSeq="true"
-                                            :ldpop="true"
-                                        >
-                                            <lz-associations-panel
-                                                :phenotype="$parent.selectedPhenotype[0]"
-                                                @input="$parent.updateAssociationsTable"
-                                            ></lz-associations-panel>
-                                        </locuszoom>
-                                    </div>
+                                        class="headerexpander"
+                                    >View {{$parent.selectedGene[0]}} on LocusZoom</div>
                                 </div>
 
+                                <!-- <a href="javascript:;" @click="$parent.showHideSvg('svgWrapper1')">SVG Wrapper test</a> -->
+
+                                <div id="lzplot" class="svg-wrapper hidden-svg">
+                                    <locuszoom
+                                        v-if="$parent.region"
+                                        ref="locuszoom"
+                                        :chr="$parent.region.chromosome"
+                                        :start="$parent.region.start -50000"
+                                        :end="$parent.region.end +50000"
+                                        :refSeq="true"
+                                        :ldpop="true"
+                                    >
+                                        <lz-associations-panel
+                                            :phenotype="$parent.selectedPhenotype[0]"
+                                            @input="$parent.updateAssociationsTable"
+                                        ></lz-associations-panel>
+                                    </locuszoom>
+                                </div>
                                 <br />
                                 <!-- NEW RARE VARIATION -->
                                 <div>
