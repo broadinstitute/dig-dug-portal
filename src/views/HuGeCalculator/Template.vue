@@ -221,6 +221,12 @@
                                         <h6
                                             style="font-weight:bold;margin-top:15px;margin-bottom:10px"
                                         >How is common variation BF calculated?</h6>
+                                        <span>
+                                            <documentation
+                                                name="hugecal.commonvar.subheader"
+                                                :content-fill="$parent.documentationMap"
+                                            ></documentation>
+                                        </span>
                                         <div class="container">
                                             <span
                                                 class="center"
