@@ -1,32 +1,38 @@
 <template>
-    <div>
-        <b-table small :fields="fields" :items="items" responsive="sm">
-            <template #head(huGeScore)="data">
-                <span style="color:#3fb54a ">{{ data.label }}</span>
-            </template>
-
-            <template slot="bottom-row" slot-scope="data">
-                <td style="white-space: nowrap;">Set prior</td>
-                <td>
-                    <input
-                        v-model.number="suggestedPriorinput"
-                        type="number"
-                        id="prior_input"
-                        @keyup.enter="addToItems($event)"
-                    />
-                </td>
-            </template>
-            <template #cell(removeItem)="data">
-                <b-button
-                    style="padding: 0;border: none;background: none; cursor: pointer;"
-                    v-on:click="removeItems(data.item)"
-                >
-                    <span style="color: green; background:white">
-                        <b-icon-x-circle-fill></b-icon-x-circle-fill>
-                    </span>
-                </b-button>
-            </template>
-        </b-table>
+    <div class="container">
+        <div class="center">
+            <b-table-simple borderless fixed small>
+                <b-tbody>
+                    <b-tr>
+                        <b-td style="width:150"></b-td>
+                        <b-th style="width:150px">Suggested prior</b-th>
+                        <b-th style="width:150px">Posterior probability</b-th>
+                    </b-tr>
+                </b-tbody>
+                <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
+                <b-tfoot>
+                    <b-tr>
+                        <b-th
+                            style="width:150px;white-space: nowrap;"
+                            rowspan="1"
+                            class="text-right"
+                        >Set Prior:</b-th>
+                        <b-td>
+                            <b-button
+                                style="padding: 0;border: none;background: none; cursor: pointer;"
+                                v-on:click="removeItems(data.item)"
+                            >
+                                <span style="color: green; background:white">
+                                    <b-icon-x-circle-fill></b-icon-x-circle-fill>
+                                </span>
+                            </b-button>
+                        </b-td>
+                        <b-td style="width:150px;"></b-td>
+                        <b-td style="width:150px;"></b-td>
+                    </b-tr>
+                </b-tfoot>
+            </b-table-simple>
+        </div>
     </div>
 </template>
         
@@ -47,7 +53,7 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("hugecal-table", {
+export default Vue.component("ppascore-table", {
     props: {
         hugeScore: {
             type: Number,

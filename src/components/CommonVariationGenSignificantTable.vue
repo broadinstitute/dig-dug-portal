@@ -1,63 +1,81 @@
 <template>
-    <div>
-        <b-table-simple borderless fixed small>
-            <b-tbody>
-                <b-tr>
-                    <b-th style="width:70px"></b-th>
+    <div class="container">
+        <div class="center">
+            <b-table-simple borderless fixed small>
+                <b-tbody>
+                    <b-tr>
+                        <b-th style="width:150px"></b-th>
 
-                    <b-td style="width:150px;" class="text-center">
-                        <span
-                            style="padding-left: 8px; padding-right: 8px;border-radius:20px; background: #254CA6; color:white;"
-                        >Yes</span>
-                    </b-td>
-                    <b-td style="width:150px;color:gray" class="text-center">No</b-td>
-                    <b-td style="width:200px;" class="text-left"></b-td>
-                </b-tr>
-                <b-tr style="border: 3px solid white !important;">
-                    <b-th style="width:70px"></b-th>
-                    <b-td
-                        style="width:150px;background-color:#E7EDF7"
-                        class="text-center"
-                    >{{gwasEvidence}}</b-td>
-                    <b-td
-                        class="text-center"
-                        style="width:150px;color:gray;background-color:#F5F5F5"
-                    >N/A</b-td>
-                    <b-td style="width:200px;color:gray;" class="text-left"><--GWAS Evidence</b-td>
-                </b-tr>
-                <b-tr style="border: 3px solid white !important;">
-                    <b-th style="width:70px"></b-th>
-                    <b-td
-                        style="width:150px;background-color:#E7EDF7"
-                        class="text-center"
-                    >{{codingEvidence}}</b-td>
-                    <b-td style="width:150px;" class="text-center"></b-td>
-                    <b-td style="width:200px;color:gray;" class="text-left"><--Coding Evidence</b-td>
-                </b-tr>
-                <b-tr style="border: 3px solid white !important;">
-                    <b-th style="width:70px" rowspan="1" class="text-right">X</b-th>
-                    <b-td
-                        style="width:150px;color:gray;background-color:#F5F5F5"
-                        class="text-center"
-                    >N/A</b-td>
-                    <b-td style="width:150px;" class="text-center">{{regulatoryEvidence}}</b-td>
-                    <b-td style="width:200px;color:gray;" class="text-left"><--Regulatory Evidence</b-td>
-                </b-tr>
-            </b-tbody>
-            <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
-            <b-tfoot>
-                <b-tr>
-                    <b-th style="width:80px" rowspan="1" class="text-right">Bayes Factor:</b-th>
-                    <b-td
-                        style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin;background-color:#E7EDF7"
-                        colspan="2"
-                        class="text-center"
-                    >
-                        <b>{{commonBF}}</b>
-                    </b-td>
-                </b-tr>
-            </b-tfoot>
-        </b-table-simple>
+                        <b-td style="width:150px;" class="text-center">
+                            <span
+                                style="padding-left: 8px; padding-right: 8px;border-radius:20px; background: #254CA6; color:white;"
+                            >Yes</span>
+                        </b-td>
+                        <b-td
+                            style="width:150px;color:gray;white-space: nowrap;"
+                            class="text-center"
+                        >No</b-td>
+                        <b-td style="width:200px;" class="text-left"></b-td>
+                    </b-tr>
+                    <b-tr style="border: 3px solid white !important;">
+                        <b-th style="width:150px"></b-th>
+                        <b-td
+                            style="width:150px;background-color:#E7EDF7"
+                            class="text-center"
+                        >{{gwasEvidence}}</b-td>
+                        <b-td
+                            class="text-center"
+                            style="width:150px;color:gray;background-color:#F5F5F5"
+                        >N/A</b-td>
+                        <b-td
+                            style="width:200px;color:gray;white-space: nowrap;"
+                            class="text-left"
+                        ><--GWAS Evidence</b-td>
+                    </b-tr>
+                    <b-tr style="border: 3px solid white !important;">
+                        <b-th style="width:150px"></b-th>
+                        <b-td
+                            style="width:150px;background-color:#E7EDF7"
+                            class="text-center"
+                        >{{codingEvidence}}</b-td>
+                        <b-td style="width:150px;" class="text-center"></b-td>
+                        <b-td
+                            style="width:200px;color:gray;white-space: nowrap;"
+                            class="text-left"
+                        ><--Coding Evidence</b-td>
+                    </b-tr>
+                    <b-tr style="border: 3px solid white !important;">
+                        <b-th style="width:150px" rowspan="1" class="text-right">X</b-th>
+                        <b-td
+                            style="width:150px;color:gray;background-color:#F5F5F5"
+                            class="text-center"
+                        >N/A</b-td>
+                        <b-td style="width:150px;" class="text-center">{{regulatoryEvidence}}</b-td>
+                        <b-td
+                            style="width:200px;color:gray;white-space: nowrap;"
+                            class="text-left"
+                        ><--Regulatory Evidence</b-td>
+                    </b-tr>
+                </b-tbody>
+                <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
+                <b-tfoot>
+                    <b-tr>
+                        <b-th
+                            style="width:150px;white-space: nowrap;"
+                            rowspan="1"
+                            class="text-right"
+                        >Bayes Factor:</b-th>
+                        <b-td
+                            style="width:100px;border-top: 0.25px solid;border-color:#D0D0D0;border-width:thin;background-color:#E7EDF7"
+                            colspan="2"
+                            class="text-center"
+                        >
+                            <b>{{commonBF}}</b>
+                        </b-td>
+                    </b-tr>
+                </b-tfoot>
+            </b-table-simple>
+        </div>
     </div>
 </template>
         
@@ -152,5 +170,13 @@ export default Vue.component("commonvariation-genomesig-table", {
 <style>
 .hidden_header {
     display: none;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+}
+.center {
+    padding: 10px;
 }
 </style>

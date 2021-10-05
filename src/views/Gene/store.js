@@ -16,7 +16,7 @@ export default new Vuex.Store({
         kp4cd,
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
-        associations: bioIndex("gene-associations"),
+        geneassociations: bioIndex("gene-associations"),
         varassociations: bioIndex("associations"),
         associations52k: bioIndex("gene-associations-52k"),
         uniprot
@@ -112,9 +112,9 @@ export default new Vuex.Store({
         async queryAssociations(context) {
             let query = { q: context.state.geneName };
             context.dispatch("associations52k/query", query);
-            context.dispatch("associations/query", query);
+            context.dispatch("geneassociations/query", query);
         },
-        async getAssociationsData(context, phenotype) {
+        async getVarAssociationsData(context, phenotype) {
             let gene = context.state.geneName;
             // let phenotype = phenoGeneInput["phenotype"];
             let locus = await regionUtils.parseRegion(gene, true, 50000);
@@ -123,11 +123,6 @@ export default new Vuex.Store({
                 context.state.newChr = locus.chr
                 context.state.newStart = locus.start;
                 context.state.newEnd = locus.end;
-                //update the locus
-                //context.commit("setLocus", locus);
-                // context.commit("setPhenotype", phenotype);
-                // context.commit("setSearchGene", gene);
-                //context.commit("setPrior", 0.3696)
             }
 
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
