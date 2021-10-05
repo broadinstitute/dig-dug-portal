@@ -333,6 +333,14 @@ a:hover {
     height: 50px;
 }
 
+.registered-mark {
+    display: none;
+}
+
+.mdkp-footer .registered-mark {
+    display: contents;
+}
+
 .mdkp-header,
 .mdkp-footer {
     background-color: #0097d6;
