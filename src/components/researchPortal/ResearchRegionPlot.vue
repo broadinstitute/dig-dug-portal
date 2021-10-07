@@ -3,15 +3,23 @@
 		<div class="col-md-12">
 			<div class="score-plot-bubbles" v-if="dataComparisonConfig != null">
 				<span
+					v-for="(item, itemIndex) in yAxisFieldItems"
+					v-html="item"
+					:class="'plot-item-bubble reference bg-color-' + itemIndex"
+				></span>
+				<span
+					v-if="this.plotRenderBy == 'combined'"
 					class="plot-item-bubble reference"
 					style="background-color: #00000030"
 					>Combined</span
 				>
 				<span
-					v-for="(item, itemIndex) in yAxisFieldItems"
-					v-html="item"
-					:class="'plot-item-bubble reference bg-color-' + itemIndex"
-				></span>
+					v-if="yAxisFieldItems.length > 1"
+					class="plot-item-bubble reference"
+					style="background-color: #ffffff; border: solid 1px #666666"
+					@click="showHideSplitPlots()"
+					>Show/hide split plots</span
+				>
 			</div>
 			<div class="plot-score-options-ui">
 				<label v-if="dataComparisonConfig != null"
@@ -203,17 +211,19 @@
 			</canvas>
 			<div
 				id="splitPlots"
+				class="hidden"
 				v-if="!!renderConfig && yAxisFieldItems.length > 1"
-				v-for="(item, itemIndex) in yAxisFieldItems"
 			>
-				<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
-				<canvas
-					:id="'splitPlot' + itemIndex"
-					@mousemove="checkPosition"
-					@click="getFullList"
-					width=""
-					height=""
-				></canvas>
+				<div v-for="(item, itemIndex) in yAxisFieldItems">
+					<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
+					<canvas
+						:id="'splitPlot' + itemIndex"
+						@mousemove="checkPosition"
+						@click="getFullList"
+						width=""
+						height=""
+					></canvas>
+				</div>
 			</div>
 
 			<div
@@ -354,17 +364,19 @@
 			</canvas>
 			<div
 				id="splitLDPlots"
+				class="hidden"
 				v-if="!!renderConfig && yAxisFieldItems.length > 1"
-				v-for="(item, itemIndex) in yAxisFieldItems"
 			>
-				<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
-				<canvas
-					:id="'splitLDPlot' + itemIndex"
-					@mousemove="checkLDPosition"
-					@click="getLDFullList"
-					width=""
-					height=""
-				></canvas>
+				<div v-for="(item, itemIndex) in yAxisFieldItems">
+					<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
+					<canvas
+						:id="'splitLDPlot' + itemIndex"
+						@mousemove="checkLDPosition"
+						@click="getLDFullList"
+						width=""
+						height=""
+					></canvas>
+				</div>
 			</div>
 		</div>
 		{{ selectedRegion }}
@@ -730,6 +742,11 @@ export default Vue.component("research-region-plot", {
 
 				this.getLDData(VARIANT, ANCESTRY_ID);
 			}*/
+		},
+
+		showHideSplitPlots() {
+			uiUtils.showHideElement("splitPlots");
+			uiUtils.showHideElement("splitLDPlots");
 		},
 
 		hidePanel(element) {
