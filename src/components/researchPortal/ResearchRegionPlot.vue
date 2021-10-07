@@ -364,7 +364,6 @@
 					@click="getLDFullList"
 					width=""
 					height=""
-					style="border: solid 1px #000"
 				></canvas>
 			</div>
 		</div>
@@ -436,6 +435,7 @@ export default Vue.component("research-region-plot", {
 			ldPopulations: {},
 			ldDataCalled: {},
 			ancestryOnCall: null,
+			ldPosItems: null,
 		};
 	},
 	modules: {
@@ -552,7 +552,7 @@ export default Vue.component("research-region-plot", {
 	},
 	watch: {
 		ldVariantCorrelationsData(data) {
-			console.log("ancesteryOnCall", this.ancestryOnCall);
+			//console.log("ancesteryOnCall", this.ancestryOnCall);
 			//console.log("ld data", data);
 			let ldData = {};
 
@@ -577,7 +577,7 @@ export default Vue.component("research-region-plot", {
 				}
 			}
 
-			console.log("this.ldPopulations", this.ldPopulations);
+			//console.log("this.ldPopulations", this.ldPopulations);
 
 			if (notLoadedLDScore > 0) {
 				this.getLDData(refVariant, ancester);
@@ -1142,7 +1142,7 @@ export default Vue.component("research-region-plot", {
 			this.renderData.map((d) => {
 				let yValue;
 				if (!!this.dataComparisonConfig) {
-					if (this.plotRenderBy == "combined") {
+					/*if (this.plotRenderBy == "combined") {
 						yValue = d["combined"];
 
 						if (yMin == null) {
@@ -1187,46 +1187,41 @@ export default Vue.component("research-region-plot", {
 						if (yValue > yMax) {
 							yMax = yValue;
 						}
-					} else if (this.plotRenderBy == "all") {
-						let highNum = null;
-						let lowNum = null;
-						this.yAxisFieldItems.map((i) => {
-							if (highNum == null) {
+					} else if (this.plotRenderBy == "all") {*/
+					let highNum = null;
+					let lowNum = null;
+					this.yAxisFieldItems.map((i) => {
+						if (highNum == null) {
+							highNum = d[this.renderConfig.yAxisField][i];
+						} else {
+							if (d[this.renderConfig.yAxisField][i] > highNum) {
 								highNum = d[this.renderConfig.yAxisField][i];
-							} else {
-								if (
-									d[this.renderConfig.yAxisField][i] > highNum
-								) {
-									highNum =
-										d[this.renderConfig.yAxisField][i];
-								}
 							}
+						}
 
-							if (lowNum == null) {
+						if (lowNum == null) {
+							lowNum = d[this.renderConfig.yAxisField][i];
+						} else {
+							if (d[this.renderConfig.yAxisField][i] < lowNum) {
 								lowNum = d[this.renderConfig.yAxisField][i];
-							} else {
-								if (
-									d[this.renderConfig.yAxisField][i] < lowNum
-								) {
-									lowNum = d[this.renderConfig.yAxisField][i];
-								}
 							}
-						});
+						}
+					});
 
-						if (yMin == null) {
-							yMin = lowNum;
-						}
-						if (yMax == null) {
-							yMax = highNum;
-						}
-
-						if (lowNum < yMin) {
-							yMin = lowNum;
-						}
-						if (highNum > yMax) {
-							yMax = highNum;
-						}
+					if (yMin == null) {
+						yMin = lowNum;
 					}
+					if (yMax == null) {
+						yMax = highNum;
+					}
+
+					if (lowNum < yMin) {
+						yMin = lowNum;
+					}
+					if (highNum > yMax) {
+						yMax = highNum;
+					}
+					//}
 				} else {
 					yValue = d[this.renderConfig.yAxisField];
 
@@ -1482,7 +1477,7 @@ export default Vue.component("research-region-plot", {
 			this.renderData.map((d) => {
 				let yValue;
 				if (!!this.dataComparisonConfig) {
-					if (this.plotRenderBy == "combined") {
+					/*if (this.plotRenderBy == "combined") {
 						yValue = d["combined"];
 
 						if (yMin == null) {
@@ -1528,46 +1523,41 @@ export default Vue.component("research-region-plot", {
 						if (yValue > yMax) {
 							yMax = yValue;
 						}
-					} else if (this.plotRenderBy == "all") {
-						let highNum = null;
-						let lowNum = null;
-						this.yAxisFieldItems.map((i) => {
-							if (highNum == null) {
+					} else if (this.plotRenderBy == "all" || this.plotRenderBy == "all") {*/
+					let highNum = null;
+					let lowNum = null;
+					this.yAxisFieldItems.map((i) => {
+						if (highNum == null) {
+							highNum = d[this.renderConfig.yAxisField][i];
+						} else {
+							if (d[this.renderConfig.yAxisField][i] > highNum) {
 								highNum = d[this.renderConfig.yAxisField][i];
-							} else {
-								if (
-									d[this.renderConfig.yAxisField][i] > highNum
-								) {
-									highNum =
-										d[this.renderConfig.yAxisField][i];
-								}
 							}
+						}
 
-							if (lowNum == null) {
+						if (lowNum == null) {
+							lowNum = d[this.renderConfig.yAxisField][i];
+						} else {
+							if (d[this.renderConfig.yAxisField][i] < lowNum) {
 								lowNum = d[this.renderConfig.yAxisField][i];
-							} else {
-								if (
-									d[this.renderConfig.yAxisField][i] < lowNum
-								) {
-									lowNum = d[this.renderConfig.yAxisField][i];
-								}
 							}
-						});
+						}
+					});
 
-						if (yMin == null) {
-							yMin = lowNum;
-						}
-						if (yMax == null) {
-							yMax = highNum;
-						}
-
-						if (lowNum < yMin) {
-							yMin = lowNum;
-						}
-						if (highNum > yMax) {
-							yMax = highNum;
-						}
+					if (yMin == null) {
+						yMin = lowNum;
 					}
+					if (yMax == null) {
+						yMax = highNum;
+					}
+
+					if (lowNum < yMin) {
+						yMin = lowNum;
+					}
+					if (highNum > yMax) {
+						yMax = highNum;
+					}
+					//}
 				} else {
 					yValue = d[this.renderConfig.yAxisField];
 					if (yMin == null) {
@@ -1698,6 +1688,8 @@ export default Vue.component("research-region-plot", {
 				});
 			});
 
+			this.ldPosItems = posItems;
+
 			for (const [id, posItem] of Object.entries(posItems)) {
 				if (Object.keys(posItem).length > 1) {
 					let posItemArr = [];
@@ -1707,7 +1699,7 @@ export default Vue.component("research-region-plot", {
 					}
 
 					posItemArr.map((s, sIndex) => {
-						console.log("sIndex", sIndex);
+						//console.log("sIndex", sIndex);
 						if (sIndex < posItemArr.length - 1) {
 							ctx.beginPath();
 							ctx.lineWidth = 1;
@@ -1754,6 +1746,122 @@ export default Vue.component("research-region-plot", {
 				let ctx = c.getContext("2d");
 
 				ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
+
+				let yMin = null,
+					yMax = null,
+					xMin = 0,
+					xMax = 1;
+
+				//let chr = this.searchingRegion.chr;
+
+				this.renderData.map((d) => {
+					let yValue;
+					if (!!this.dataComparisonConfig) {
+						let highNum = null;
+						let lowNum = null;
+						this.yAxisFieldItems.map((i) => {
+							if (highNum == null) {
+								highNum = d[this.renderConfig.yAxisField][i];
+							} else {
+								if (
+									d[this.renderConfig.yAxisField][i] > highNum
+								) {
+									highNum =
+										d[this.renderConfig.yAxisField][i];
+								}
+							}
+
+							if (lowNum == null) {
+								lowNum = d[this.renderConfig.yAxisField][i];
+							} else {
+								if (
+									d[this.renderConfig.yAxisField][i] < lowNum
+								) {
+									lowNum = d[this.renderConfig.yAxisField][i];
+								}
+							}
+						});
+
+						if (yMin == null) {
+							yMin = lowNum;
+						}
+						if (yMax == null) {
+							yMax = highNum;
+						}
+
+						if (lowNum < yMin) {
+							yMin = lowNum;
+						}
+						if (highNum > yMax) {
+							yMax = highNum;
+						}
+						//}
+					} else {
+						yValue = d[this.renderConfig.yAxisField];
+						if (yMin == null) {
+							yMin = yValue;
+						}
+						if (yMax == null) {
+							yMax = yValue;
+						}
+
+						if (yValue < yMin) {
+							yMin = yValue;
+						}
+						if (yValue > yMax) {
+							yMax = yValue;
+						}
+					}
+				});
+
+				let yStep = (yMax - yMin) / 4;
+
+				// X BG
+				let xBGDistance = (plotWidth - 5) / 5;
+
+				for (let i = 0; i < 5; i++) {
+					let bgXPos = this.leftMargin + i * xBGDistance + 5;
+					let adBGXPos = Math.floor(bgXPos) + 0.5;
+					ctx.fillStyle = this.ldColor[i];
+					ctx.fillRect(
+						adBGXPos,
+						this.topMargin,
+						xBGDistance - 1,
+						plotHeight
+					);
+				}
+
+				this.renderAxis(
+					ctx,
+					plotWidth,
+					plotHeight,
+					xMin,
+					xMax,
+					yMin,
+					yMax,
+					xBump,
+					yBump
+				);
+
+				//Render x axis label
+				ctx.fillText(
+					"LD(r2)",
+					plotWidth / 2 + this.leftMargin,
+					this.topMargin + plotHeight + yBump + 35
+				);
+
+				console.log("this.ldPosItems", this.ldPosItems);
+				for (const [posItemKey, posItem] of Object.entries(
+					this.ldPosItems
+				)) {
+					if (!!posItem[item]) {
+						let xPos = posItem[item].xPos;
+						let yPos = posItem[item].yPos;
+						let dotColor = this.getColorIndex(item);
+
+						this.renderDot(ctx, xPos, yPos, dotColor);
+					}
+				}
 			});
 		},
 		getColorIndex(SKEY) {
