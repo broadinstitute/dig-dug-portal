@@ -280,7 +280,7 @@
                                         :start="$parent.region.start -50000"
                                         :end="$parent.region.end +50000"
                                         :refSeq="true"
-                                        :ldpop="true"
+                                        :ldpop="false"
                                     >
                                         <lz-associations-panel
                                             :phenotype="$parent.selectedPhenotype[0]"
