@@ -25,11 +25,11 @@
                                 style="white-space: nowrap;"
                                 v-if="this.exomeSignificant == false"
                             >
-                                <--Rare Variation BF(
+                                <--Rare Variation BF
                                 <a
                                     href="#"
                                     @click.prevent="$bvModal.show('exampleModal')"
-                                >Reset Prior Allelic variance</a>)
+                                >(Reset Prior Allelic variance)</a>
                             </span>
                             <span v-else><--Rare Variation BF</span>
                             <reset-prior-widget :beta="3" :rareBF="this.rareBF"></reset-prior-widget>
