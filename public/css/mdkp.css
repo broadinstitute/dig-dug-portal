@@ -1979,6 +1979,6 @@ span.volcano-score-2 {
     height: auto;
 }
 .svg-wrapper.hidden-svg {
-    visibility:hidden;
-    height: 1px;
+    display: none;
+    height: 5px;
 }

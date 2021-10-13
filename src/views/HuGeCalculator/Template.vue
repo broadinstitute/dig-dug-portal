@@ -272,9 +272,13 @@
 
                                     <!-- <a href="javascript:;" @click="$parent.showHideSvg('svgWrapper1')">SVG Wrapper test</a> -->
                                 </div>
-                                <div id="lzplot" class="svg-wrapper hidden-svg">
+                                <div
+                                    v-if="$parent.region"
+                                    id="lzplot"
+                                    class="svg-wrapper hidden-svg"
+                                >
                                     <locuszoom
-                                        v-if="$parent.region"
+                                        v-if="expand_plot"
                                         ref="locuszoom"
                                         :chr="$parent.region.chromosome"
                                         :start="$parent.region.start -50000"
