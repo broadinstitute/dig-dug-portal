@@ -438,7 +438,7 @@ new Vue({
                     case "all":
 
                         let allData = {}
-                        
+
                         newResearchData.map(d => {
                             let keyField = d[this.dataComparisonConfig.keyField];
                             let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
@@ -785,6 +785,9 @@ new Vue({
     },
 
     watch: {
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
         codingGenesData(DATA) {
             console.log(DATA);
             this.$store.dispatch("codingGenesData", DATA["data"]);
