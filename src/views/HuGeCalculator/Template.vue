@@ -67,7 +67,7 @@
                                         style="color: #3fb54a; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #e4f4e4; padding:5px 5px 5px 5px"
                                     >
                                         <div class="col-md-6">
-                                            HuGE Score(Combined Evidence)
+                                            HuGE Score (Combined Evidence)
                                             <tooltip-documentation
                                                 name="hugecal.combined.tooltip.hover"
                                                 :content-fill="$parent.documentationMap"
@@ -271,25 +271,23 @@
                                     </div>
 
                                     <!-- <a href="javascript:;" @click="$parent.showHideSvg('svgWrapper1')">SVG Wrapper test</a> -->
-
-                                    <div id="lzplot" class="svg-wrapper hidden-svg">
-                                        <locuszoom
-                                            v-if="$parent.region"
-                                            ref="locuszoom"
-                                            :chr="$parent.region.chromosome"
-                                            :start="$parent.region.start -50000"
-                                            :end="$parent.region.end +50000"
-                                            :refSeq="true"
-                                            :ldpop="true"
-                                        >
-                                            <lz-associations-panel
-                                                :phenotype="$parent.selectedPhenotype[0]"
-                                                @input="$parent.updateAssociationsTable"
-                                            ></lz-associations-panel>
-                                        </locuszoom>
-                                    </div>
                                 </div>
-
+                                <div id="lzplot" class="svg-wrapper hidden-svg">
+                                    <locuszoom
+                                        v-if="$parent.region"
+                                        ref="locuszoom"
+                                        :chr="$parent.region.chromosome"
+                                        :start="$parent.region.start -50000"
+                                        :end="$parent.region.end +50000"
+                                        :refSeq="true"
+                                        :ldpop="false"
+                                    >
+                                        <lz-associations-panel
+                                            :phenotype="$parent.selectedPhenotype[0]"
+                                            @input="$parent.updateAssociationsTable"
+                                        ></lz-associations-panel>
+                                    </locuszoom>
+                                </div>
                                 <br />
                                 <!-- NEW RARE VARIATION -->
                                 <div>
