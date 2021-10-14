@@ -278,7 +278,6 @@
                                     class="svg-wrapper hidden-svg"
                                 >
                                     <locuszoom
-                                        v-if="expand_plot"
                                         ref="locuszoom"
                                         :chr="$parent.region.chromosome"
                                         :start="$parent.region.start -50000"
@@ -453,7 +452,19 @@
     </div>
 </template>
 
+<script>
+//   setup() {
+//             this.$nextTick(() => {
+//                 this.$refs.annotations.$refs.input.focus();
+//             });
+//             this.shouldRender = ref(false);
+//             nextTick(() => {
+//                 shouldRender.value = true;
+//             });
 
+//             return shouldRender;
+//         },
+</script>
 <style>
 .color-bar-plot-wrapper {
     width: calc(100% - 32px);

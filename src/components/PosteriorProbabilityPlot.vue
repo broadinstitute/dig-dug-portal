@@ -200,7 +200,7 @@ export default Vue.component("posterior-probability-plot", {
             //     suggestedPrior.push(newMap)
             // }
             this.universalPriorList.forEach((x, i) => {
-                console.log(x + " selected prior ");
+               
                 var data3 = this.referenceLineNew(x);
                 // var data4 = this.referenceLineNew(0.2);
                 var path3 = svg

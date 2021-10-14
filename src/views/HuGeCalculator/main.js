@@ -1,4 +1,5 @@
 import Vue from "vue";
+
 import Template from "./Template.vue";
 import store from "./store.js";
 import { BootstrapVue, BootstrapVueIcons, BIconMouse2 } from "bootstrap-vue";
@@ -63,7 +64,7 @@ new Vue({
         RareVariationExSignificantTable,
         RareVariationNotExSignificantTable,
         CommonVariationNotGenSignificantTable,
-        ResetPriorWidget
+        ResetPriorWidget,
 
     },
     render(createElement, context) {
@@ -104,7 +105,10 @@ new Vue({
                 : [],
             commonVariationStart: null,
             commonVariationEnd: null,
-            showPosteriorProbability: false
+            showPosteriorProbability: false,
+            shouldRender: false,
+            isModalVisible: false,
+
         };
     },
     created() {
@@ -468,6 +472,7 @@ new Vue({
 
     },
     methods: {
+
 
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
