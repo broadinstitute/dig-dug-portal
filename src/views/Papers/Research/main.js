@@ -445,6 +445,7 @@ new Vue({
                             if (!!previousData[keyField]) {
                                 let tempObj = previousData[keyField];
                                 comparingFields.map(cf => {
+                                    //console.log("d",d,"cf",cf,"fieldGroupKey",fieldGroupKey)
                                     tempObj[cf][fieldGroupKey] = d[cf];
                                 });
                                 allData[keyField] = tempObj;
@@ -784,12 +785,16 @@ new Vue({
     },
 
     watch: {
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
         codingGenesData(DATA) {
+            console.log(DATA);
             this.$store.dispatch("codingGenesData", DATA["data"]);
         },
         searchingGenes(CONTENTS) {
 
-            //console.log("genes in region", CONTENTS);
+            console.log("genes in region", CONTENTS);
 
             let genesData = CONTENTS["data"];
             let codingGenes = "";
