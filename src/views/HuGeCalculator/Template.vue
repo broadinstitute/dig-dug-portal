@@ -269,9 +269,8 @@
                                             class="headerexpander"
                                         >View {{$parent.selectedGene[0]}} on LocusZoom</div>
                                     </div>
-
-                                    <!-- <a href="javascript:;" @click="$parent.showHideSvg('svgWrapper1')">SVG Wrapper test</a> -->
                                 </div>
+
                                 <div
                                     v-if="$parent.region"
                                     id="lzplot"
