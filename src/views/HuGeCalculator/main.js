@@ -332,7 +332,7 @@ new Vue({
             if (!!data.length > 0) {
                 for (let i = 0; i < data.length; i++) {
                     //if GWAS evidence
-                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                    if (data[i].phenotype.toUpperCase() == this.selectedPhenotype[0].toUpperCase()) {
                         if (data[i].pValue <= 5e-8) {
                             firstBF = 3;
                             if (!!this.eglData) {
