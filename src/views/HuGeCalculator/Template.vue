@@ -38,7 +38,7 @@
                             :pillFormatter="
                                 (filter) =>
                                     !!$store.state.bioPortal.phenotypeMap[filter.threshold] ? $store.state.bioPortal.phenotypeMap[filter.threshold].description : filter.threshold "
-                            :options="$store.state.geneAssociations52k.data.map((association) => association.phenotype)"
+                            :options="$parent.phenotypeOptions.map((phenotype) => phenotype.name)"
                             :multiple="false"
                             :labelFormatter="(phenotype) =>
                                         !!$store.state.bioPortal.phenotypeMap[phenotype]

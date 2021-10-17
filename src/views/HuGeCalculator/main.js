@@ -117,9 +117,9 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
-        if (keyParams.gene) {
-            this.$store.dispatch("get52KAssociationData", keyParams.gene);
-        }
+        // if (keyParams.gene) {
+        //     this.$store.dispatch("get52KAssociationData", keyParams.gene);
+        // }
         if (keyParams.gene && keyParams.phenotype) {
             let gene = keyParams.gene;
             let phenotype = keyParams.phenotype;
@@ -133,6 +133,9 @@ new Vue({
     },
 
     computed: {
+        phenotypeOptions() {
+            return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
+        },
         numberOfSearches() {
             return this.hugecalSearchCriterion.length;
         },
@@ -246,14 +249,11 @@ new Vue({
                     i++
                 ) {
                     if (
-                        !!this.$store.state.geneAssociations52k.data[i]
-                            .phenotype &&
-                        this.$store.state.geneAssociations52k.data[i]
-                            .phenotype == this.selectedPhenotype[0]
+                        !!this.$store.state.geneAssociations52k.data[i].phenotype &&
+                        this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]
                     ) {
                         //filter with selected phenotype
-                        maskdata = this.$store.state.geneAssociations52k.data[i]
-                            .masks;
+                        maskdata = this.$store.state.geneAssociations52k.data[i].masks;
                     }
                 }
             }
@@ -624,13 +624,13 @@ new Vue({
         criterion(newCriterion, oldCriterion) {
             //check if the old and new criterion are different only then update the Associations
             if (!isEqual(newCriterion, oldCriterion)) {
-                if (newCriterion.gene.length > 0) {
-                    this.$store.dispatch(
-                        "get52KAssociationData",
-                        newCriterion.gene[0]
-                    );
-                }
-                if (newCriterion.phenotype.length > 0) {
+                // if (newCriterion.gene.length > 0) {
+                //     this.$store.dispatch(
+                //         "get52KAssociationData",
+                //         newCriterion.gene[0]
+                //     );
+                // }
+                if (newCriterion.phenotype.length > 0 && newCriterion.gene.length > 0) {
                     if (newCriterion.gene !== oldCriterion.gene) {
                         this.$store.dispatch("gene/query", {
                             q: newCriterion.gene
