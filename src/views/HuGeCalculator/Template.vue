@@ -38,7 +38,7 @@
                             :pillFormatter="
                                 (filter) =>
                                     !!$store.state.bioPortal.phenotypeMap[filter.threshold] ? $store.state.bioPortal.phenotypeMap[filter.threshold].description : filter.threshold "
-                            :options="$store.state.geneAssociations52k.data.map((association) => association.phenotype)"
+                            :options="$parent.phenotypeOptions.map((phenotype) => phenotype.name)"
                             :multiple="false"
                             :labelFormatter="(phenotype) =>
                                         !!$store.state.bioPortal.phenotypeMap[phenotype]
@@ -55,7 +55,7 @@
                     </criterion-list-group>
 
                     <div
-                        v-if="this.$store.state.associations.data.length >0 && $parent.selectedPhenotype.length != 0"
+                        v-if="$parent.selectedPhenotype.length != 0 && $parent.selectedGene.length !=0 "
                     >
                         <div>
                             <div class="card-body">
@@ -118,10 +118,17 @@
                                     style="cursor:pointer"
                                     v-on:click="$parent.showHideFeature('ppasection')"
                                 >
-                                    <div class="headerexpander">Posterior probability</div>
+                                    <div
+                                        v-if="$parent.geneAssociations52k"
+                                        class="headerexpander"
+                                    >Posterior probability</div>
                                 </div>
 
-                                <div :id="'ppasection'" class="row hidden">
+                                <div
+                                    v-if="$parent.geneAssociations52k"
+                                    :id="'ppasection'"
+                                    class="row hidden"
+                                >
                                     <div class="col-md-8">
                                         <h6
                                             style="font-weight:bold;margin-top:10px"
@@ -141,7 +148,6 @@
                                     </div>
                                     <div class="col-md-4">
                                         <posterior-probability-plot
-                                            v-if="$parent.geneAssociations52k"
                                             :geneAssociationsData=" $parent.geneAssociations52k"
                                             :priorVariance="this.$store.state.prior"
                                             :bayes_factor="parseFloat($parent.bayesFactorCombinedEvidence(
@@ -268,12 +274,14 @@
                                             class="headerexpander"
                                         >View {{$parent.selectedGene[0]}} on LocusZoom</div>
                                     </div>
-
-                                    <!-- <a href="javascript:;" @click="$parent.showHideSvg('svgWrapper1')">SVG Wrapper test</a> -->
                                 </div>
-                                <div id="lzplot" class="svg-wrapper hidden-svg">
+
+                                <div
+                                    v-if="$parent.region"
+                                    id="lzplot"
+                                    class="svg-wrapper hidden-svg"
+                                >
                                     <locuszoom
-                                        v-if="$parent.region"
                                         ref="locuszoom"
                                         :chr="$parent.region.chromosome"
                                         :start="$parent.region.start -50000"
@@ -358,6 +366,7 @@
                                                 v-on:click="$parent.showHideFeature('masktable')"
                                             >
                                                 <div
+                                                    v-if="$parent.geneAssociations52k"
                                                     class="headerexpander"
                                                 >View Burden Association Summary statistics</div>
                                             </div>
@@ -420,6 +429,7 @@
                                                 v-on:click="$parent.showHideFeature('masktable')"
                                             >
                                                 <div
+                                                    v-if="$parent.geneAssociations52k"
                                                     class="headerexpander"
                                                 >View Burden Association Summary statistics</div>
                                             </div>
@@ -448,7 +458,19 @@
     </div>
 </template>
 
+<script>
+//   setup() {
+//             this.$nextTick(() => {
+//                 this.$refs.annotations.$refs.input.focus();
+//             });
+//             this.shouldRender = ref(false);
+//             nextTick(() => {
+//                 shouldRender.value = true;
+//             });
 
+//             return shouldRender;
+//         },
+</script>
 <style>
 .color-bar-plot-wrapper {
     width: calc(100% - 32px);

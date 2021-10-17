@@ -116,7 +116,7 @@ export default new Vuex.Store({
 
         async getAssociationsData(context, phenoGeneInput) {
             let gene = phenoGeneInput["gene"];
-            let phenotype = phenoGeneInput["phenotype"].toUpperCase();
+            let phenotype = phenoGeneInput["phenotype"];
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {
