@@ -118,10 +118,17 @@
                                     style="cursor:pointer"
                                     v-on:click="$parent.showHideFeature('ppasection')"
                                 >
-                                    <div class="headerexpander">Posterior probability</div>
+                                    <div
+                                        v-if="$parent.geneAssociations52k"
+                                        class="headerexpander"
+                                    >Posterior probability</div>
                                 </div>
 
-                                <div :id="'ppasection'" class="row hidden">
+                                <div
+                                    v-if="$parent.geneAssociations52k"
+                                    :id="'ppasection'"
+                                    class="row hidden"
+                                >
                                     <div class="col-md-8">
                                         <h6
                                             style="font-weight:bold;margin-top:10px"
@@ -141,7 +148,6 @@
                                     </div>
                                     <div class="col-md-4">
                                         <posterior-probability-plot
-                                            v-if="$parent.geneAssociations52k"
                                             :geneAssociationsData=" $parent.geneAssociations52k"
                                             :priorVariance="this.$store.state.prior"
                                             :bayes_factor="parseFloat($parent.bayesFactorCombinedEvidence(
@@ -360,6 +366,7 @@
                                                 v-on:click="$parent.showHideFeature('masktable')"
                                             >
                                                 <div
+                                                    v-if="$parent.geneAssociations52k"
                                                     class="headerexpander"
                                                 >View Burden Association Summary statistics</div>
                                             </div>
@@ -422,6 +429,7 @@
                                                 v-on:click="$parent.showHideFeature('masktable')"
                                             >
                                                 <div
+                                                    v-if="$parent.geneAssociations52k"
                                                     class="headerexpander"
                                                 >View Burden Association Summary statistics</div>
                                             </div>
