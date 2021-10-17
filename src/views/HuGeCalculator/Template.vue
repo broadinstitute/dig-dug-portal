@@ -55,7 +55,7 @@
                     </criterion-list-group>
 
                     <div
-                        v-if="this.$store.state.associations.data.length >0 && $parent.selectedPhenotype.length != 0"
+                        v-if="$parent.selectedPhenotype.length != 0 && $parent.selectedGene.length !=0 "
                     >
                         <div>
                             <div class="card-body">

@@ -219,7 +219,6 @@ new Vue({
                 if (!!this.$store.state.kp4cd.eglData.data) {
                     let effectordata = this.$store.state.kp4cd.eglData.data;
                     let effectorGeneData = {};
-
                     for (var i = 0; i < effectordata.length; ++i) {
                         if (
                             effectordata[i].gene.toLowerCase() ===
@@ -605,7 +604,7 @@ new Vue({
             //this call goes to store to get associations data
             let phenoRegionQuery = {};
 
-            if (phenotype.length > 0) {
+            if (gene.length > 0 && phenotype.length > 0) {
                 this.$store.dispatch("gene/query", { q: gene });
                 let r = this.$store.getters.region;
                 phenoRegionQuery = { gene: gene[0], phenotype: phenotype[0] };
@@ -624,12 +623,16 @@ new Vue({
         criterion(newCriterion, oldCriterion) {
             //check if the old and new criterion are different only then update the Associations
             if (!isEqual(newCriterion, oldCriterion)) {
-                // if (newCriterion.gene.length > 0) {
-                //     this.$store.dispatch(
-                //         "get52KAssociationData",
-                //         newCriterion.gene[0]
-                //     );
-                // }
+
+                keyParams.set({
+                    gene: newCriterion.gene ? newCriterion.gene : []
+                });
+
+
+                keyParams.set({
+                    phenotype: newCriterion.phenotype ? newCriterion.phenotype : []
+                });
+
                 if (newCriterion.phenotype.length > 0 && newCriterion.gene.length > 0) {
                     if (newCriterion.gene !== oldCriterion.gene) {
                         this.$store.dispatch("gene/query", {
