@@ -261,11 +261,58 @@ new Vue({
 
         beta() {
 
+            let masks = [];
+            let rarebayesfactor = 1;
+            let beta = 1;
+            let stdErr;
 
-            return 3;
+            // if (this.$store.state.geneAssociations52k.data.length > 0) {
+            //     for (
+            //         let i = 0;
+            //         i < this.$store.state.geneAssociations52k.data.length;
+            //         i++
+            //     ) {
+            //         if (
+            //             !!this.$store.state.geneAssociations52k.data[i]
+            //                 .phenotype &&
+            //             this.$store.state.geneAssociations52k.data[i]
+            //                 .phenotype == this.selectedPhenotype[0]
+            //         ) {
+            //             //filter with selected phenotype
+            //             masks = this.$store.state.geneAssociations52k.data[
+            //                 i
+            //             ].masks;
+            //             if (!!masks && masks.length > 0) {
+            //                 let d = masks.sort(
+            //                     (a, b) => a.pValue - b.pValue
+            //                 );
+            //                 let mostSignificantMask = d[0];
+            //                 stdErr = mostSignificantMask.stdErr;
+            //                 beta = mostSignificantMask.beta;
+            //                 rarebayesfactor = this.bayes_factor(
+            //                     beta,
+            //                     stdErr
+            //                 );
+            //             }
+            //             if (rarebayesfactor < 1) {
+            //                 rarebayesfactor = 1;
+            //             }
+            //             return Number.parseFloat(rarebayesfactor).toFixed(
+            //                 2
+            //             );
+            //         }
+            //         //if phenotype doesn't exist in 52K Associations data
+            //         else {
+            //             rarebayesfactor = 1;
+            //         }
+
+            //     }
+            //}
+            return beta;
         },
 
         bayesFactorRareVariation() {
+            let betabfmap = {}
             let masks = [];
             let rarebayesfactor = 1;
             let beta;
@@ -309,21 +356,23 @@ new Vue({
                             if (rarebayesfactor < 1) {
                                 rarebayesfactor = 1;
                             }
-                            return Number.parseFloat(rarebayesfactor).toFixed(
-                                2
-                            );
+                            betabfmap["rareBF"] = Number.parseFloat(rarebayesfactor).toFixed(2)
+                            betabfmap["beta"] = beta
+                            return betabfmap;
                         }
                         //if phenotype doesn't exist in 52K Associations data
                         else {
                             rarebayesfactor = 1;
+                            betabfmap["rareBF"] = rarebayesfactor
+                            betabfmap["beta"] = 1
                         }
                     }
                 }
             }
-            return Number.parseFloat(rarebayesfactor).toFixed(2);
+            return betabfmap
         },
         bayesFactorCombinedEvidencecomputed() {
-            let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation
+            let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation.rareBF
             return x
         },
         bayesFactorCommonVariation() {
