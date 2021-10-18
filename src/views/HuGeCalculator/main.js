@@ -266,7 +266,7 @@ new Vue({
         },
 
         bayesFactorRareVariation() {
-            let betararebfmap = {}
+
             let masks = [];
             let rarebayesfactor = 1;
             let beta;
@@ -324,7 +324,7 @@ new Vue({
                     }
                 }
             }
-            return betararebfmap;
+            return Number.parseFloat(rarebayesfactor).toFixed(2);
         },
         bayesFactorCombinedEvidencecomputed() {
             let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation
