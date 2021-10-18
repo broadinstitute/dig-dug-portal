@@ -79,7 +79,7 @@
                                             class="col-md-6"
                                             style="text-align: right;white-space: nowrap;"
                                         >
-                                            {{$parent.bayesFactorCommonVariation}}(Common variation BF) * {{$parent.bayesFactorRareVariation}}(Rare variation BF) = {{
+                                            {{$parent.bayesFactorCommonVariation}}(Common variation BF) * {{$parent.bayesFactorRareVariation.rareBF}}(Rare variation BF) = {{
                                             $parent.bayesFactorCombinedEvidencecomputed
                                             }}
                                         </div>
@@ -89,7 +89,7 @@
 
                                 <hugescore-table
                                     :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
-                                    :rareBF="parseFloat($parent.bayesFactorRareVariation)"
+                                    :rareBF="parseFloat($parent.bayesFactorRareVariation.rareBF)"
                                     :hugeScore="parseFloat($parent.bayesFactorCombinedEvidencecomputed)"
                                     :exomeSignificant="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
                                 ></hugescore-table>
@@ -97,7 +97,7 @@
                                 <div class="container">
                                     <div class="center">
                                         <color-bar-plot
-                                            v-if="$parent.bayesFactorRareVariation"
+                                            v-if="$parent.bayesFactorRareVariation.rareBF"
                                             :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidencecomputed)"
                                             :elementid="'combinedVariation'"
                                             :score=" parseFloat($parent.bayesFactorCombinedEvidencecomputed)"
@@ -310,7 +310,7 @@
                                             <div
                                                 class="col-md-6"
                                                 style="text-align: right;"
-                                            >BF:{{$parent.bayesFactorRareVariation}}</div>
+                                            >BF:{{$parent.bayesFactorRareVariation.rareBF}}</div>
                                         </div>
                                     </span>
                                     <div class="hidden" id="rarevariation">
@@ -338,16 +338,16 @@
                                             <rarevariation-exomesig-table
                                                 :isExomeWideSignificant="true"
                                                 :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
-                                                :rareBF="parseFloat($parent.bayesFactorRareVariation)"
+                                                :rareBF="parseFloat($parent.bayesFactorRareVariation.rareBF)"
                                             ></rarevariation-exomesig-table>
 
                                             <div class="container">
                                                 <div class="center">
                                                     <color-bar-plot
-                                                        v-if="$parent.bayesFactorRareVariation"
-                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        v-if="$parent.bayesFactorRareVariation.rareBF"
+                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation.rareBF)"
                                                         :elementid="'rareVariation'"
-                                                        :score="parseFloat($parent.bayesFactorRareVariation)"
+                                                        :score="parseFloat($parent.bayesFactorRareVariation.rareBF)"
                                                     ></color-bar-plot>
                                                 </div>
                                             </div>
@@ -400,17 +400,17 @@
                                             <rarevariation-not-exomesig-table
                                                 :isExomeWideSignificant="false"
                                                 :priorVariance="$store.state.prior"
-                                                :rareBF="parseFloat($parent.bayesFactorRareVariation)"
-                                                :burdenAssocEvidence="$parent.beta"
+                                                :rareBF="parseFloat($parent.bayesFactorRareVariation.rareBF)"
+                                                :burdenAssocEvidence="parseFloat($parent.bayesFactorRareVariation.beta)"
                                             ></rarevariation-not-exomesig-table>
 
                                             <div class="container">
                                                 <div class="center">
                                                     <color-bar-plot
-                                                        v-if="$parent.bayesFactorRareVariation"
-                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        v-if="$parent.bayesFactorRareVariation.rareBF"
+                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation.rareBF)"
                                                         :elementid="'rareVariation'"
-                                                        :score="parseFloat($parent.bayesFactorRareVariation)"
+                                                        :score="parseFloat($parent.bayesFactorRareVariation.rareBF)"
                                                     ></color-bar-plot>
                                                 </div>
                                             </div>

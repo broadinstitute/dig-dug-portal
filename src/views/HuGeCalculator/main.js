@@ -266,7 +266,7 @@ new Vue({
         },
 
         bayesFactorRareVariation() {
-
+            let betararebfmap = {}
             let masks = [];
             let rarebayesfactor = 1;
             let beta;
@@ -278,6 +278,9 @@ new Vue({
                 )
             ) {
                 rarebayesfactor = 348;
+                betararebfmap["rareBF"] = rarebayesfactor
+                betararebfmap["beta"] = 1
+
             } else {
                 if (this.$store.state.geneAssociations52k.data.length > 0) {
                     for (
@@ -310,24 +313,24 @@ new Vue({
                             if (rarebayesfactor < 1) {
                                 rarebayesfactor = 1;
                             }
-                            // betararebfmap["rareBF"] = Number.parseFloat(rarebayesfactor).toFixed(2)
-                            // betararebfmap["beta"] = beta
-                            return Number.parseFloat(rarebayesfactor).toFixed(2)
+                            betararebfmap["rareBF"] = Number.parseFloat(rarebayesfactor).toFixed(2)
+                            betararebfmap["beta"] = beta
+                            return betararebfmap
                         }
                         //if phenotype doesn't exist in 52K Associations data
                         else {
                             rarebayesfactor = 1;
-                            // betararebfmap["rareBF"] = Number.parseFloat(rarebayesfactor).toFixed(2)
-                            // betararebfmap["beta"] = beta
+                            betararebfmap["rareBF"] = rarebayesfactor
+                            betararebfmap["beta"] = 1
 
                         }
                     }
                 }
             }
-            return Number.parseFloat(rarebayesfactor).toFixed(2);
+            return betararebfmap;
         },
         bayesFactorCombinedEvidencecomputed() {
-            let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation
+            let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation.rareBF
             return x
         },
         bayesFactorCommonVariation() {
