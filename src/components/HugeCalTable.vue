@@ -51,8 +51,7 @@ export default Vue.component("hugecal-table", {
     props: {
         hugeScore: {
             type: Number,
-            required: true,
-            default: 0.6
+            required: true
         }
     },
 

@@ -55,7 +55,7 @@
                     </criterion-list-group>
 
                     <div
-                        v-if="$parent.selectedPhenotype.length != 0 && $parent.selectedGene.length !=0 "
+                        v-if="$store.state.associations.data.length >0 && $parent.selectedPhenotype.length != 0 && $parent.selectedGene.length !=0 "
                     >
                         <div>
                             <div class="card-body">
@@ -115,20 +115,14 @@
                                 <!-- First Collapsible section - Posterior probability - Start -->
 
                                 <div
+                                    v-if="$parent.geneAssociations52k"
                                     style="cursor:pointer"
                                     v-on:click="$parent.showHideFeature('ppasection')"
                                 >
-                                    <div
-                                        v-if="$parent.geneAssociations52k"
-                                        class="headerexpander"
-                                    >Posterior probability</div>
+                                    <div class="headerexpander">Posterior probability</div>
                                 </div>
 
-                                <div
-                                    v-if="$parent.geneAssociations52k"
-                                    :id="'ppasection'"
-                                    class="row hidden"
-                                >
+                                <div :id="'ppasection'" class="row hidden">
                                     <div class="col-md-8">
                                         <h6
                                             style="font-weight:bold;margin-top:10px"
@@ -141,21 +135,24 @@
                                         </span>
                                         <hugecal-table
                                             style="padding:50px 250px 50px 250px"
-                                            :hugeScore="parseFloat($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation))"
+                                            :hugeScore="$parent.bayesFactorCombinedEvidencecomputed"
                                         ></hugecal-table>
                                     </div>
                                     <div class="col-md-4">
                                         <posterior-probability-plot
-                                            :geneAssociationsData=" $parent.geneAssociations52k"
+                                            :geneAssociationsData="$parent.geneAssociations52k"
                                             :priorVariance="this.$store.state.prior"
-                                            :bayes_factor="parseFloat($parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
-                                                        $parent.bayesFactorRareVariation))"
+                                            :bayes_factor="$parent.bayesFactorCombinedEvidencecomputed"
                                             :universalPriorList="this.$store.state.universalPriorList"
                                         ></posterior-probability-plot>
                                     </div>
+                                    <!-- <div class="col-md-4">
+                                        <posterior-probability-plot
+                                            :geneAssociationsData="$parent.geneAssociations52k"
+                                            :priorVariance="this.$store.state.prior"
+                                            :bayes_factor="$parent.bayesFactorCombinedEvidencecomputed"
+                                        ></posterior-probability-plot>
+                                    </div>-->
                                 </div>
                                 <!-- End of Posterior probability Collapsible section -->
                             </div>

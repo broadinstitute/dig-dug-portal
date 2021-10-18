@@ -322,6 +322,10 @@ new Vue({
             }
             return Number.parseFloat(rarebayesfactor).toFixed(2);
         },
+        bayesFactorCombinedEvidencecomputed() {
+            let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation
+            return x
+        },
         bayesFactorCommonVariation() {
             let firstBF = 1;
             let secondBF = 1;
