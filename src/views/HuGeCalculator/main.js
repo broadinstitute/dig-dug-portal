@@ -266,6 +266,7 @@ new Vue({
         },
 
         bayesFactorRareVariation() {
+            let betararebfmap = {}
             let masks = [];
             let rarebayesfactor = 1;
             let beta;
@@ -309,21 +310,24 @@ new Vue({
                             if (rarebayesfactor < 1) {
                                 rarebayesfactor = 1;
                             }
-                            return Number.parseFloat(rarebayesfactor).toFixed(
-                                2
-                            );
+                            betararebfmap["rareBF"] = Number.parseFloat(rarebayesfactor).toFixed(2)
+                            betararebfmap["beta"] = beta
+                            return betararebfmap
                         }
                         //if phenotype doesn't exist in 52K Associations data
                         else {
                             rarebayesfactor = 1;
+                            betararebfmap["rareBF"] = Number.parseFloat(rarebayesfactor).toFixed(2)
+                            betararebfmap["beta"] = beta
+
                         }
                     }
                 }
             }
-            return Number.parseFloat(rarebayesfactor).toFixed(2);
+            return betararebfmap;
         },
         bayesFactorCombinedEvidencecomputed() {
-            let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation
+            let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation.rareBF
             return x
         },
         bayesFactorCommonVariation() {
