@@ -36,7 +36,7 @@
                         <b-td
                             style="width:200px;color:gray;white-space: nowrap;"
                             class="text-left"
-                        ><--Burden statistic Association</b-td>
+                        ><--Burden statistic(beta)</b-td>
                     </b-tr>
                     <b-tr style="border: 3px solid white !important;">
                         <b-th style="width:150px" rowspan="1" class="text-right"></b-th>
