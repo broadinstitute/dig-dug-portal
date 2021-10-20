@@ -718,7 +718,7 @@ new Vue({
 
                     }
                 } else {
-                    let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
+                    let returnData = (this.dataType == 'json') ? JSON.parse(convertedData).data : convertedData;
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
