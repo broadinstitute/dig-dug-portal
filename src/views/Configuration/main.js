@@ -60,8 +60,10 @@ new Vue({
 
         pageConfiguration() {
             let configContent = {
-                "pageTitle": "Page feature cofiguration: proof of concept",
-                "features": ["feature1", "feature2", "feature3", "feature4"]
+                "md.configuration.html": {
+                    "pageTitle": "Page feature cofiguration: proof of concept",
+                    "features": ["feature1", "feature2", "feature3", "feature4"]
+                }
             };
             return configContent;
         },
@@ -78,13 +80,27 @@ new Vue({
             }
             return contents[0];
         },
+
+
+        pageTitle() {
+            if (!!this.diseaseGroup && !!this.pageConfiguration) {
+                let path = this.diseaseGroup.name + "." + window.location.pathname.substring(1);
+
+                return this.pageConfiguration[path].pageTitle;
+            }
+        },
+
+        featuresConfigName() {
+            return this.diseaseGroup.name + "." + window.location.pathname.substring(1);
+        },
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
 
-            let pageFeatures = this.pageConfiguration.features;
+            let featuresConfig = this.featuresConfigName;
+            let pageFeatures = this.pageConfiguration[featuresConfig].features;
             pageFeatures.map(f => {
                 var featureWrapper = document.createElement("div");
                 featureWrapper.className = "card mdkp-card";
@@ -93,8 +109,8 @@ new Vue({
                 document.getElementById("page_features_wrapper").appendChild(featureWrapper);
             });
 
-            let featuresWrapper = document.getElementById('collectionOfFeatures');
-            featuresWrapper.remove();
+            let featureCollectionWrapper = document.getElementById('collectionOfFeatures');
+            featureCollectionWrapper.remove();
 
         },
     }

@@ -11,7 +11,7 @@
 			<div class="card mdkp-card dataset-page-header">
 				<div class="row card-body">
 					<div class="col-md-12">
-						<h2 v-html="$parent.pageConfiguration.pageTitle"></h2>
+						<h2 v-html="$parent.pageTitle"></h2>
 					</div>
 				</div>
 			</div>
