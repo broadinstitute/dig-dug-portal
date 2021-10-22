@@ -228,6 +228,13 @@ let pages = {
         filename: "research.html",
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"]
+    },
+    configuration: {
+        entry: "src/views/Configuration/main.js",
+        template: "public/index.html",
+        filename: "configuration.html",
+        title: "Configuration",
+        chunks: ["chunk-vendors", "chunk-common", "configuration"]
     }
 };
 
