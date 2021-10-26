@@ -375,8 +375,9 @@ new Vue({
         tableData: {
             handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
-                    this.updateSelectedVariants(); //update selected variants when table data is ready
+                    this.updateSelectedVariants(); //update selected variants when tableData is ready
                     //when rows are selected or unselected, tableData won't change, only the selected rows changed
+                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
                 }
             },
             deep: true
