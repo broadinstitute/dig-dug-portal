@@ -21,7 +21,7 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 new Vue({
-    el:'#app',
+    el: "#app",
     store,
     mixins: [pageMixin],
     components: {
@@ -110,7 +110,8 @@ new Vue({
             ],
             fields: [],
             optionalFields: [],
-            searchCriteria: []
+            searchCriteria: [],
+            selectedVariants: []
         };
     },
     created() {
@@ -140,10 +141,7 @@ new Vue({
                 return [];
             }
         },
-        selectedVariants() {
-            //get only the varIDs for selected rows
-            return this.tableData.filter(v => v.selected).map(v => v.varId);
-        },
+
         selectedGene() {
             return this.searchCriteria
                 .filter(v => {
@@ -202,6 +200,7 @@ new Vue({
             });
             this.criteriaChanged = false;
             this.$store.commit("ldServer/setCovariances", []);
+            this.updateSelectedVariants();
         },
         searchCovariances() {
             this.showCovariances = true;
@@ -292,6 +291,19 @@ new Vue({
                     })
                 );
             }
+        },
+        show(a, b, c) {
+            console.log("a", a);
+            console.log("b", b);
+            console.log("c", c);
+        },
+        updateSelectedVariants() {
+            //get only the varIDs for selected rows
+            this.selectedVariants = this.tableData
+                .filter(v => {
+                    return v.selected === true;
+                })
+                .map(v => v.varId);
         }
     },
     watch: {
@@ -365,6 +377,14 @@ new Vue({
         },
         "$store.state.ldServer.runTestsError": function() {
             this.loadingCovariances = false;
+        },
+        tableData: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    console.log("table data changed");
+                }
+            },
+            deep: true
         }
     }
 }).$mount("#app");
