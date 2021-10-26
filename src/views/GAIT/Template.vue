@@ -492,6 +492,9 @@
                                                                 data.item
                                                                     .selected
                                                             "
+                                                            @change="
+                                                                $parent.updateSelectedVariants()
+                                                            "
                                                         />
                                                     </b-form-group>
                                                 </template>
@@ -691,7 +694,10 @@
                                                             @click="
                                                                 data.toggleDetails
                                                             "
-                                                            class="mr-2 btn-mini"
+                                                            class="
+                                                                mr-2
+                                                                btn-mini
+                                                            "
                                                         >
                                                             {{
                                                                 data.detailsShowing
