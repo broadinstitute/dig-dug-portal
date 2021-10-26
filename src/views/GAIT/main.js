@@ -200,7 +200,6 @@ new Vue({
             });
             this.criteriaChanged = false;
             this.$store.commit("ldServer/setCovariances", []);
-            this.updateSelectedVariants();
         },
         searchCovariances() {
             this.showCovariances = true;
@@ -292,11 +291,6 @@ new Vue({
                 );
             }
         },
-        show(a, b, c) {
-            console.log("a", a);
-            console.log("b", b);
-            console.log("c", c);
-        },
         updateSelectedVariants() {
             //get only the varIDs for selected rows
             this.selectedVariants = this.tableData
@@ -381,7 +375,8 @@ new Vue({
         tableData: {
             handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
-                    console.log("table data changed");
+                    this.updateSelectedVariants(); //update selected variants when table data is ready
+                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
                 }
             },
             deep: true
