@@ -58,14 +58,34 @@ new Vue({
 
     computed: {
 
-        pageConfiguration() {
+        featureConfiguration() {
             let configContent = {
+                "default": {
+                    "pageTitle": "Page default title",
+                    "features": ["feature1", "feature2", "feature3", "feature4"]
+                },
                 "md.configuration.html": {
                     "pageTitle": "Page feature cofiguration: proof of concept",
-                    "features": ["feature1", "feature2", "feature3", "feature4"]
+                    "features": ["feature1", "feature2", "feature3", "feature10"],
+                    "featureConfigOverride": {
+                        "feature1": { "pHtml": "Feature 1 param overridden." }
+                    }
                 }
             };
-            return configContent;
+
+            if (!!this.diseaseGroup) {
+                let path = this.diseaseGroup.name + "." + window.location.pathname.substring(1);
+
+                if (!!configContent[path]) {
+                    return configContent[path];
+                } else {
+                    return configContent["default"];
+                }
+
+
+            } else {
+                return null;
+            }
         },
 
         diseaseGroup() {
@@ -83,15 +103,9 @@ new Vue({
 
 
         pageTitle() {
-            if (!!this.diseaseGroup && !!this.pageConfiguration) {
-                let path = this.diseaseGroup.name + "." + window.location.pathname.substring(1);
-
-                return this.pageConfiguration[path].pageTitle;
+            if (this.featureConfiguration != null) {
+                return this.featureConfiguration.pageTitle;
             }
-        },
-
-        featuresConfigName() {
-            return this.diseaseGroup.name + "." + window.location.pathname.substring(1);
         },
     },
 
@@ -99,8 +113,7 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
 
-            let featuresConfig = this.featuresConfigName;
-            let pageFeatures = this.pageConfiguration[featuresConfig].features;
+            let pageFeatures = this.featureConfiguration.features;
             pageFeatures.map(f => {
                 var featureWrapper = document.createElement("div");
                 featureWrapper.className = "card mdkp-card";
