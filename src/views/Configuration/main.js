@@ -81,8 +81,6 @@ new Vue({
                 } else {
                     return configContent["default"];
                 }
-
-
             } else {
                 return null;
             }
