@@ -33,7 +33,7 @@ export default new Vuex.Store({
         bioIndexContinue: [],
         searchParameters: null,
         dataComparison: "newSearch",
-
+        initialSearch: 1,
     },
     mutations: {
         setFilteredData(state, data) {

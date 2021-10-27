@@ -537,7 +537,6 @@ new Vue({
             } else {
                 return true;
             }
-
         },
 
         filterWidth() {
@@ -794,7 +793,7 @@ new Vue({
         },
         searchingGenes(CONTENTS) {
 
-            console.log("genes in region", CONTENTS);
+            //console.log("genes in region", CONTENTS);
 
             let genesData = CONTENTS["data"];
             let codingGenes = "";
@@ -857,6 +856,7 @@ new Vue({
                     if (this.isAPI != null && this.isAPI == false) {
 
                         this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+
                     } else if (this.isAPI == true) {
 
                         this.queryAPI();
