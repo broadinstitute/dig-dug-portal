@@ -260,9 +260,12 @@
 			<div
 				class="data-loading-indicator"
 				v-if="$parent.dataPoints != false"
-			>
-				Loading data...
-			</div>
+				v-html="
+					$store.state.initialSearch == 1 && $parent.isAPI == true
+						? 'Start search'
+						: 'Loading data...'
+				"
+			></div>
 		</div>
 
 		<!-- Research portal Footer-->

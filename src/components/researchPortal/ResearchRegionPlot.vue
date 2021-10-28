@@ -202,7 +202,7 @@
 			<canvas
 				v-if="!!renderConfig"
 				id="regionPlot"
-				@mousemove="checkPosition"
+				@mousemove="checkPosition($event, 'regionPlot')"
 				@resize="onResize"
 				@click="getFullList"
 				width=""
@@ -218,7 +218,9 @@
 					<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
 					<canvas
 						:id="'splitPlot' + itemIndex"
-						@mousemove="checkPosition"
+						@mousemove="
+							checkPosition($event, 'splitPlot' + itemIndex)
+						"
 						@click="getFullList"
 						width=""
 						height=""
@@ -356,7 +358,7 @@
 			<canvas
 				v-if="!!renderConfig"
 				id="ldPlot"
-				@mousemove="checkLDPosition"
+				@mousemove="checkLDPosition($event, 'ldPlot')"
 				@click="getLDFullList"
 				width=""
 				height=""
@@ -371,7 +373,9 @@
 					<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
 					<canvas
 						:id="'splitLDPlot' + itemIndex"
-						@mousemove="checkLDPosition"
+						@mousemove="
+							checkLDPosition($event, 'splitLDPlot' + itemIndex)
+						"
 						@click="getLDFullList"
 						width=""
 						height=""
@@ -836,17 +840,22 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 
-		checkPosition(event) {
+		checkPosition(event, PLOT_ID) {
 			this.hoverDotPosFullList = [];
 			let wrapper = document.getElementById("clicked_dot_value");
-			let canvas = document.getElementById("regionPlot");
+			let canvas = document.getElementById(PLOT_ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
 			var rect = e.target.getBoundingClientRect();
 			var x = Math.floor(e.clientX - rect.left);
 			var y = Math.floor(e.clientY - rect.top);
 			wrapper.style.top = y + canvas.offsetTop + "px";
-			wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+			wrapper.style.left =
+				x + canvas.offsetLeft + 150 > canvas.width
+					? x + canvas.offsetLeft + -215 + "px"
+					: x + canvas.offsetLeft + 15 + "px";
+			wrapper.style.width =
+				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
@@ -866,17 +875,22 @@ export default Vue.component("research-region-plot", {
 				document.getElementById("regionPlot").classList.remove("hover");
 			}
 		},
-		checkLDPosition(event) {
+		checkLDPosition(event, PLOT_ID) {
 			this.hoverLdDotPosFullList = [];
 			let wrapper = document.getElementById("ld_clicked_dot_value");
-			let canvas = document.getElementById("ldPlot");
+			let canvas = document.getElementById(PLOT_ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
 			var rect = e.target.getBoundingClientRect();
 			var x = Math.floor(e.clientX - rect.left);
 			var y = Math.floor(e.clientY - rect.top);
 			wrapper.style.top = y + canvas.offsetTop + "px";
-			wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+			wrapper.style.left =
+				x + canvas.offsetLeft + 150 > canvas.width
+					? x + canvas.offsetLeft + -215 + "px"
+					: x + canvas.offsetLeft + 15 + "px";
+			wrapper.style.width =
+				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";
 
 			let numOfValues = 0;
 
@@ -1867,7 +1881,7 @@ export default Vue.component("research-region-plot", {
 					this.topMargin + plotHeight + yBump + 35
 				);
 
-				console.log("this.ldPosItems", this.ldPosItems);
+				//console.log("this.ldPosItems", this.ldPosItems);
 				for (const [posItemKey, posItem] of Object.entries(
 					this.ldPosItems
 				)) {
