@@ -7,6 +7,9 @@
                     <span
                         style="font-weight:500; font-size: 1.2em; vertical-align:-.1em;"
                     >HuGeAMP</span>
+                    <span class="registered-mark">
+                        &nbsp;&nbsp;|&nbsp;&nbsp;ACCELERATING MEDICINES PARTNERSHIP and AMP are registered service marks of the U.S. Department of Health and Human Services.
+                    </span>
                 </a>
             </div>
         </div>

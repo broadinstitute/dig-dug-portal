@@ -73,6 +73,8 @@ export default Vue.component("research-m-bitmap-plot", {
                 20: 64444167,
                 21: 46709983,
                 22: 50818468,
+                23: 156040895,
+                24: 57227415,
                 X: 156040895,
                 Y: 57227415,
             },
@@ -114,6 +116,7 @@ export default Vue.component("research-m-bitmap-plot", {
 
             rawData.map((r) => {
                 let region = r[this.renderConfig.xAxisField];
+                //console.log(region);
                 if (region != undefined && region != "" && region != null) {
                     let tempObj = {};
                     tempObj[this.renderConfig.renderBy] =
@@ -380,8 +383,12 @@ export default Vue.component("research-m-bitmap-plot", {
                 ctx.textAlign = "right";
                 ctx.fillStyle = "#000000";
 
+                let yTickText = Formatters.floatFormatter(yMin + i * yStep);
+
+                yTickText = yTickText == "-" ? 0 : yTickText;
+
                 ctx.fillText(
-                    Formatters.floatFormatter(yMin + i * yStep),
+                    yTickText,
                     this.leftMargin - 10,
                     this.topMargin + plotHeight + 5 - i * yTickDistance
                 );

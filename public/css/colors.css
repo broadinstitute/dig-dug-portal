@@ -46,6 +46,7 @@
 .border-color.TYPE.DIABETES { border-color: #639bc0; }
 .border-color.HEMATOLOGICAL { border-color: #aa0000; }
 
+.reference.color-0 { background-color: #007bff; }
 .reference.color-1 { background-color: #048845; }
 .reference.color-2 { background-color: #8490C8; }
 .reference.color-3 { background-color: #BF61A5; }
@@ -62,6 +63,24 @@
 .reference.color-14 { background-color: #D5A768; }
 .reference.color-15 { background-color: #D4D4D4; }
 
+.reference.bg-color-0 { background-color: #007bff30; }
+.reference.bg-color-1 { background-color: #04884530; }
+.reference.bg-color-2 { background-color: #8490C830; }
+.reference.bg-color-3 { background-color: #BF61A530; }
+.reference.bg-color-4 { background-color: #EE312430; }
+.reference.bg-color-5 { background-color: #FCD70030; }
+.reference.bg-color-6 { background-color: #5555FF30; }
+.reference.bg-color-7 { background-color: #7aaa1c30; }
+.reference.bg-color-8 { background-color: #9F78AC30; }
+.reference.bg-color-9 { background-color: #F8808430; }
+.reference.bg-color-10 { background-color: #F5A4C730; }
+.reference.bg-color-11 { background-color: #CEE6C130; }
+.reference.bg-color-12 { background-color: #cccc0030; }
+.reference.bg-color-13 { background-color: #6FC7B630; }
+.reference.bg-color-14 { background-color: #D5A76830; }
+.reference.bg-color-15 { background-color: #D4D4D430; }
+
+.text.color-0 { color: #007bff; }
 .text.color-1 { color: #048845; }
 .text.color-2 { color: #8490C8; }
 .text.color-3 { color: #BF61A5; }
@@ -78,6 +97,7 @@
 .text.color-14 { color: #D5A768; }
 .text.color-15 { color: #D4D4D4; }
 
+.text.color-0-bg { background-color: #007bff40; }
 .text.color-1-bg { background-color: #04884540; }
 .text.color-2-bg { background-color: #8490C840; }
 .text.color-3-bg { background-color: #BF61A540; }

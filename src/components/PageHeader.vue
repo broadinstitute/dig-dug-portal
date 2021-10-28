@@ -8,7 +8,7 @@
         <div v-if="diseaseGroup" class="container-fluid">
             <div class="row amp-banner-2021" v-if="diseaseGroup.default">
                 <a
-                    href="https://fnih.org/our-programs/amp/accelerating-medicines-common-metabolic-diseases"
+                    href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/common-metabolic-diseases"
                     ><img
                         :src="'//kp4cd.org/sites/default/files/vueportal/amp_text.svg'"
                         style="

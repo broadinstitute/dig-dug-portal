@@ -1,6 +1,57 @@
 <template>
     <div class="research-data-table-wrapper">
         <div v-html="tableLegend" class="data-table-legend"></div>
+        <div
+            v-if="!!dataset"
+            v-html="'Total rows: ' + this.rows"
+            class="table-total-rows"
+        ></div>
+        <div
+            v-if="
+                !!searchParameters &&
+                dataComparisonConfig != null &&
+                searchParameters[dataComparisonConfig.fieldsGroupDataKey].search
+                    .length > 1
+            "
+            class="table-total-rows"
+        >
+            <span
+                v-for="(item, itemIndex) in searchParameters[
+                    dataComparisonConfig.fieldsGroupDataKey
+                ].search"
+                v-html="item"
+                :key="item"
+                :class="'group-item-bubble reference bg-color-' + itemIndex"
+            ></span>
+        </div>
+        <div class="table-ui-wrapper">
+            <label
+                >Rows per page:
+                <select v-model="perPageNumber" class="number-per-page">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="100">100</option>
+                    <option value="0">
+                        <span style="color: #f00">All</span>
+                    </option>
+                </select>
+            </label>
+            <div
+                v-if="dataComparisonConfig == null"
+                class="convert-2-csv btn-sm"
+                @click="convertJson2Csv(filteredData, pageID + '_filtered')"
+            >
+                Save as CSV
+            </div>
+            <div
+                class="convert-2-csv btn-sm"
+                @click="saveJson(filteredData, pageID + '_filtered')"
+            >
+                Save as JSON
+            </div>
+        </div>
+
         <table
             :class="'table table-sm research-data-table ' + pageID"
             cellpadding="0"
@@ -27,12 +78,32 @@
 
             <tbody v-for="(value, index) in pagedData" :key="index" class="">
                 <tr>
-                    <td
-                        v-if="topRows.includes(tdKey)"
+                    <template
                         v-for="(tdValue, tdKey) in value"
-                        :key="tdKey"
-                        v-html="formatValue(tdValue, tdKey)"
-                    ></td>
+                        v-if="topRows.includes(tdKey)"
+                    >
+                        <td
+                            v-if="ifDataObject(tdValue) == false"
+                            :key="tdKey"
+                            v-html="formatValue(tdValue, tdKey)"
+                        ></td>
+                        <td
+                            v-if="ifDataObject(tdValue) == true"
+                            :key="tdKey"
+                            class="multi-value-td"
+                        >
+                            <span
+                                v-for="(sValue, sKey, sIndex) in tdValue"
+                                :class="
+                                    sKey +
+                                    ' reference bg-color-' +
+                                    getColorIndex(sKey)
+                                "
+                                v-html="formatValue(sValue, tdKey)"
+                                :key="sKey"
+                            ></span>
+                        </td>
+                    </template>
                     <td v-if="tableFormat['features'] != undefined">
                         <span
                             href="javascript:;"
@@ -57,7 +128,9 @@
             </tbody>
         </table>
         <b-container
-            v-if="!!perPageNumber && perPageNumber != null"
+            v-if="
+                !!perPageNumber && perPageNumber != null && perPageNumber != 0
+            "
             class="egl-table-page-ui-wrapper"
         >
             <b-pagination
@@ -80,18 +153,31 @@ import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
 export default Vue.component("research-data-table", {
-    props: ["pageID", "dataset", "tableFormat", "perPageNumber", "tableLegend"],
+    props: [
+        "pageID",
+        "dataset",
+        "tableFormat",
+        "initPerPageNumber",
+        "tableLegend",
+        "dataComparisonConfig",
+        "searchParameters",
+    ],
     data() {
-        return { currentPage: 1, perPage: null };
+        return { currentPage: 1, perPageNumber: null };
     },
     modules: {},
     components: { ResearchDataTableFeatures },
     created() {},
     beforeMount() {},
 
-    mounted() {},
+    mounted() {
+        this.perPageNumber = this.initPerPageNumber;
+    },
     updated() {},
     computed: {
+        filteredData() {
+            return this.$store.state.filteredData;
+        },
         dataScores() {
             if (
                 !!this.dataset &&
@@ -138,40 +224,73 @@ export default Vue.component("research-data-table", {
         },
         rows() {
             if (!!this.dataset) {
-                return this.dataset.length;
+                if (this.dataComparisonConfig == null) {
+                    return this.dataset.length;
+                } else {
+                    return Object.keys(this.dataset).length;
+                }
             }
         },
         pagedData() {
+            //console.log(this.dataset);
             if (!!this.perPageNumber && this.perPageNumber != null) {
                 let rawData = this.dataset;
                 let formattedData = [];
 
-                rawData.map((d) => {
-                    let tempObj = {};
+                if (this.dataComparisonConfig == null) {
+                    rawData.map((d) => {
+                        let tempObj = {};
 
-                    this.tableFormat["top rows"].map((t) => {
-                        tempObj[t] = d[t];
-                    });
-
-                    if (this.tableFormat["features"] != undefined) {
-                        tempObj["features"] = {};
-                        this.tableFormat["features"].map((f) => {
-                            tempObj["features"][f] = [];
-
-                            let fTempObj = {};
-                            this.tableFormat[f].map((fItem) => {
-                                fTempObj[fItem] = d[fItem];
-                            });
-
-                            tempObj["features"][f].push(fTempObj);
+                        this.tableFormat["top rows"].map((t) => {
+                            tempObj[t] = d[t];
                         });
+
+                        if (this.tableFormat["features"] != undefined) {
+                            tempObj["features"] = {};
+                            this.tableFormat["features"].map((f) => {
+                                tempObj["features"][f] = [];
+
+                                let fTempObj = {};
+                                this.tableFormat[f].map((fItem) => {
+                                    fTempObj[fItem] = d[fItem];
+                                });
+
+                                tempObj["features"][f].push(fTempObj);
+                            });
+                        }
+                        formattedData.push(tempObj);
+                    });
+                } else {
+                    for (const [key, value] of Object.entries(rawData)) {
+                        let tempObj = {};
+
+                        this.tableFormat["top rows"].map((t) => {
+                            tempObj[t] = value[t];
+                        });
+
+                        if (this.tableFormat["features"] != undefined) {
+                            tempObj["features"] = {};
+                            this.tableFormat["features"].map((f) => {
+                                tempObj["features"][f] = [];
+
+                                let fTempObj = {};
+                                this.tableFormat[f].map((fItem) => {
+                                    fTempObj[fItem] = value[fItem];
+                                });
+
+                                tempObj["features"][f].push(fTempObj);
+                            });
+                        }
+                        formattedData.push(tempObj);
                     }
-                    formattedData.push(tempObj);
-                });
+                }
 
                 //let filtered = this.dataset;
                 let paged = [];
-                let perPage = Number(this.perPageNumber);
+                let perPage =
+                    Number(this.perPageNumber) != 0
+                        ? Number(this.perPageNumber)
+                        : formattedData.length;
 
                 let startIndex = (this.currentPage - 1) * perPage;
                 let endIndex =
@@ -179,10 +298,19 @@ export default Vue.component("research-data-table", {
                         ? this.currentPage * perPage
                         : this.rows;
 
+                /*console.log(
+                    "startIndex",
+                    startIndex,
+                    "/endIndex",
+                    endIndex,
+                    "/rows",
+                    this.rows
+                );*/
+
                 for (let i = startIndex; i < endIndex; i++) {
                     paged.push(formattedData[i]);
                 }
-
+                //console.log("paged", paged);
                 return paged;
             } else {
                 return this.dataset;
@@ -202,17 +330,53 @@ export default Vue.component("research-data-table", {
     watch: {},
     methods: {
         ...Formatters,
+        getColorIndex(SKEY) {
+            let keyField = this.dataComparisonConfig.fieldsGroupDataKey;
+            let keyParameterSeach = this.searchParameters[keyField].search;
+            let colorIndex = "";
+            if (keyParameterSeach.length > 1) {
+                keyParameterSeach.map((sValue, sIndex) => {
+                    if (SKEY == sValue) {
+                        colorIndex = sIndex;
+                    }
+                });
+            }
+
+            return colorIndex;
+        },
+        ifDataObject(VALUE) {
+            if (
+                typeof VALUE === "object" &&
+                VALUE !== null &&
+                !Array.isArray(VALUE)
+            ) {
+                return true;
+            } else {
+                return false;
+            }
+        },
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
+        },
+        convertJson2Csv(DATA, FILENAME) {
+            uiUtils.convertJson2Csv(DATA, FILENAME);
+        },
+        saveJson(DATA, FILENAME) {
+            uiUtils.saveJson(DATA, FILENAME);
         },
         formatValue(tdValue, tdKey) {
             if (
                 this.tableFormat["column formatting"] != undefined &&
                 this.tableFormat["column formatting"][tdKey] != undefined
             ) {
-                let formatTypes = this.tableFormat["column formatting"][tdKey][
-                    "type"
-                ];
+                let formatTypes =
+                    this.tableFormat["column formatting"][tdKey]["type"];
+
+                let linkToNewTab = !!this.tableFormat["column formatting"][
+                    tdKey
+                ]["new tab"]
+                    ? this.tableFormat["column formatting"][tdKey]["new tab"]
+                    : null;
 
                 //console.log(formatTypes);
 
@@ -221,6 +385,8 @@ export default Vue.component("research-data-table", {
                 formatTypes.map((type) => {
                     if (type == "scientific notation") {
                         cellValue = Formatters.pValueFormatter(tdValue);
+
+                        cellValue = cellValue == "-" ? 0 : cellValue;
                     }
 
                     if (type == "link") {
@@ -229,10 +395,12 @@ export default Vue.component("research-data-table", {
                             this.tableFormat["column formatting"][tdKey][
                                 "link to"
                             ] +
-                            cellValue +
-                            "'>" +
-                            cellValue +
-                            "</a>";
+                            cellValue;
+
+                        linkString +=
+                            linkToNewTab == "true"
+                                ? "' target='_blank'>" + cellValue + "</a>"
+                                : "'>" + cellValue + "</a>";
 
                         cellValue = linkString;
                     }
@@ -271,14 +439,57 @@ export default Vue.component("research-data-table", {
                 return tdValue;
             }
         },
-        applySorting(key) {
-            //console.log(key);
+        object2Array(DATASET, KEY, SORT_DIRECTION) {
+            let arrayedObject = [];
 
+            let firstItem = DATASET[Object.keys(DATASET)[0]];
+            let isObjct = !!this.dataComparisonConfig.fieldsToCompare.includes(
+                KEY
+            )
+                ? true
+                : false;
+
+            for (const [dKey, dValue] of Object.entries(DATASET)) {
+                if (isObjct == true) {
+                    let tempObj = {};
+                    for (const [iKey, iValue] of Object.entries(dValue)) {
+                        if (iKey == KEY) {
+                            let arr = Object.values(iValue);
+                            if (SORT_DIRECTION == false) {
+                                tempObj[iKey] = Math.min(...arr);
+                            } else {
+                                tempObj[iKey] = Math.max(...arr);
+                            }
+                        } else {
+                            tempObj[iKey] = iValue;
+                        }
+                        arrayedObject.push(tempObj);
+                    }
+                } else {
+                    arrayedObject.push(dValue);
+                }
+            }
+            return arrayedObject;
+        },
+        array2Object(DATASET, RAW_DATASET, KEY) {
+            let objectedArray = {};
+            DATASET.map((d) => {
+                let keyField = d[this.dataComparisonConfig.keyField];
+                objectedArray[keyField] = RAW_DATASET[keyField];
+            });
+
+            //console.log(objectedArray);
+            return objectedArray;
+        },
+        applySorting(key) {
+            let sortDirection = this.sortDirection == "asc" ? false : true;
+            this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
             if (key != this.tableFormat["locus field"]) {
-                let filtered = this.dataset;
-                let sortDirection = this.sortDirection == "asc" ? false : true;
-                this.sortDirection =
-                    this.sortDirection == "asc" ? "desc" : "asc";
+                let filtered =
+                    this.dataComparisonConfig == null
+                        ? this.dataset
+                        : this.object2Array(this.dataset, key, sortDirection);
+
                 let keyData = filtered[0][key];
                 let isNumeric = typeof keyData != "number" ? false : true;
 
@@ -288,13 +499,14 @@ export default Vue.component("research-data-table", {
                     isNumeric,
                     sortDirection
                 );
-                this.$store.dispatch("filteredData", filtered);
+                let returnData =
+                    this.dataComparisonConfig == null
+                        ? filtered
+                        : this.array2Object(filtered, this.dataset, key);
+                this.$store.dispatch("filteredData", returnData);
             } else if (key == this.tableFormat["locus field"]) {
                 let sortKey = this.tableFormat["locus field"];
                 let filtered = this.dataset;
-                let sortDirection = this.sortDirection == "asc" ? false : true;
-                this.sortDirection =
-                    this.sortDirection == "asc" ? "desc" : "asc";
 
                 filtered.map(function (g) {
                     let locusArr = g[sortKey].split(":");
@@ -338,6 +550,17 @@ export default Vue.component("research-data-table", {
 </script>
 
 <style>
+.group-item-bubble {
+    margin-left: 3px;
+    margin-right: 3px;
+    padding: 2px 8px;
+    border-radius: 8px;
+}
+.table-total-rows {
+    float: left;
+    font-size: 12px;
+    padding-top: 10px;
+}
 .data-table-legend {
     margin-bottom: -15px;
 }
@@ -376,6 +599,17 @@ table.research-data-table {
     border-left: solid 1px #eee !important;
     border-bottom: solid 1px #ddd !important;
     height: 27px;
+    vertical-align: middle;
+}
+
+.research-data-table td.multi-value-td {
+    padding: 0 !important;
+}
+
+.research-data-table td.multi-value-td span {
+    display: block;
+    padding: 0.3rem;
+    border-bottom: solid 1px #fff;
 }
 
 .research-data-table .features-td {
@@ -396,5 +630,41 @@ table.research-data-table {
     background-color: #55aaee50 !important;
     color: #3388cc;
     cursor: pointer;
+}
+
+.table-ui-wrapper {
+    text-align: right;
+    font-size: 12px;
+    float: right;
+}
+
+.convert-2-csv {
+    border: solid 1px #aaa;
+    background-color: #fff;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    margin-right: 10px;
+    display: inline-block;
+}
+
+.convert-2-csv:hover {
+    cursor: pointer;
+    background-color: #eee;
+}
+
+.number-per-page {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 15px;
+    border: solid 1px #aaa;
+    background-color: #fff;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.number-per-page:hover {
+    cursor: pointer;
+    background-color: #eee;
 }
 </style>

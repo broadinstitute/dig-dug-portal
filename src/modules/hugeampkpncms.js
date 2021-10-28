@@ -14,6 +14,8 @@ export default {
             researchMethod: [],
             researchMenu: [],
             researchData: [],
+            genesInRegion: [],
+            genesData: null,
         };
     },
 
@@ -33,6 +35,12 @@ export default {
         },
         setResearchData(state, data) {
             state.researchData = data;
+        },
+        setGenesInRegion(state, data) {
+            state.genesInRegion = data;
+        },
+        setGenesData(state, data) {
+            state.genesData = data;
         },
     },
 
@@ -87,6 +95,23 @@ export default {
             //console.log(csv);
 
             context.commit("setResearchData", csv);
+        },
+        async getGenesInRegion(context, param) {
+
+
+
+            let fetchUrl = "https://bioindex.hugeamp.org/api/bio/query/genes?q=" + param.region;
+            let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+
+            context.commit("setGenesInRegion", genes);
+        },
+        async getGenesData(context, param) {
+            //console.log("param", param);
+
+            let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + param.genes;
+            let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+
+            context.commit("setGenesData", genesData);
         },
     }
 };

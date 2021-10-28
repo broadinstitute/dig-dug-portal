@@ -21,6 +21,7 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 new Vue({
+    el: "#app",
     store,
     mixins: [pageMixin],
     components: {
@@ -109,7 +110,8 @@ new Vue({
             ],
             fields: [],
             optionalFields: [],
-            searchCriteria: []
+            searchCriteria: [],
+            selectedVariants: []
         };
     },
     created() {
@@ -139,10 +141,7 @@ new Vue({
                 return [];
             }
         },
-        selectedVariants() {
-            //get only the varIDs for selected rows
-            return this.tableData.filter(v => v.selected).map(v => v.varId);
-        },
+
         selectedGene() {
             return this.searchCriteria
                 .filter(v => {
@@ -291,6 +290,14 @@ new Vue({
                     })
                 );
             }
+        },
+        updateSelectedVariants() {
+            //get only the varIDs for selected rows
+            this.selectedVariants = this.tableData
+                .filter(v => {
+                    return v.selected === true;
+                })
+                .map(v => v.varId);
         }
     },
     watch: {
@@ -364,6 +371,16 @@ new Vue({
         },
         "$store.state.ldServer.runTestsError": function() {
             this.loadingCovariances = false;
+        },
+        tableData: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.updateSelectedVariants(); //update selected variants when tableData is ready
+                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
+                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
+                }
+            },
+            deep: true
         }
     }
 }).$mount("#app");
