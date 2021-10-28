@@ -373,7 +373,8 @@ export default Vue.component("research-page-filters", {
 			}
 			this.$store.state.initialSearch = 0;
 			this.$store.state.bioIndexContinue = [];
-
+			//this.$store.state.hugeampkpncms.dispatch("cancelResearchData");
+			this.$store.dispatch("hugeampkpncms/cancelResearchData");
 			this.setDataComparison();
 
 			let queryParams = "";

@@ -72,6 +72,7 @@ export default new Vuex.Store({
     getters: {},
     actions: {
         filteredData(context, filtered) {
+            console.log("called");
             context.commit("setFilteredData", filtered);
         },
         unfilteredData(context, unfiltered) {

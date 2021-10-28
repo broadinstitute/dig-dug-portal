@@ -379,6 +379,8 @@ new Vue({
         },
         checkDataComparison(newResearchData, previousData) {
 
+            console.log(newResearchData.length, Object.keys(previousData).length);
+
             let dataComparison = this.$store.state.dataComparison;
 
             if (this.dataComparisonConfig != null && newResearchData.length > 0) {
@@ -407,7 +409,8 @@ new Vue({
                             compareReadyData[keyField] = tempObj;
                         })
 
-
+                        this.$store.dispatch("unfilteredData", compareReadyData);
+                        this.$store.dispatch("filteredData", compareReadyData);
 
                         return compareReadyData;
 
@@ -416,22 +419,24 @@ new Vue({
                     case "overlapping":
 
                         let overlappingData = {};
+                        let fieldGroupKeyValue = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+
+                        console.log("fieldGroupKeyValue", fieldGroupKeyValue);
 
                         newResearchData.map(d => {
-                            let keyField = d[this.dataComparisonConfig.keyField];
-                            let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
-                            if (!!previousData[keyField]) {
-                                let tempObj = previousData[keyField];
+                            let keyFieldID = d[this.dataComparisonConfig.keyField];
+                            if (!!previousData[keyFieldID]) {
+                                overlappingData[keyFieldID] = previousData[keyFieldID]
                                 comparingFields.map(cf => {
-                                    tempObj[cf][fieldGroupKey] = d[cf];
+                                    overlappingData[keyFieldID][cf][fieldGroupKeyValue] = d[cf];
                                 });
-
-                                overlappingData[keyField] = tempObj;
                             }
                         });
 
+                        this.$store.dispatch("unfilteredData", overlappingData);
+                        this.$store.dispatch("filteredData", overlappingData);
 
-
+                        console.log("overlappingData", overlappingData);
                         return overlappingData;
 
                         break;
@@ -469,6 +474,9 @@ new Vue({
                             }
 
                         });
+
+                        this.$store.dispatch("unfilteredData", allData);
+                        this.$store.dispatch("filteredData", allData);
 
                         return allData;
 
@@ -678,7 +686,6 @@ new Vue({
                     if (convertedData.continuation != null) {
                         this.$store.dispatch("bioIndexContinue", convertedData.data);
 
-
                         let APIPoint = this.dataFiles[0];
                         if (this.dataType == "bioindex") {
                             APIPoint +=
@@ -690,31 +697,29 @@ new Vue({
 
                         this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
 
-                    } else if (convertedData.continuation == null && convertedData.page == 1) {
-                        let returnData = convertedData.data;
-
-                        let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
-
-
-                        return processedData;
                     } else if (convertedData.continuation == null && convertedData.page != 1) {
+                        // merge the last arrived data to the collection of research data
+                        this.$store.dispatch("bioIndexContinue", convertedData.data);
                         //merge all data from continue
-
-
                         let continuedData = this.$store.state.bioIndexContinue;
-
                         let mergedData = [];
 
                         continuedData.map(cont => {
-                            cont.map(i => {
-                                mergedData.push(i);
-                            })
+                            mergedData = mergedData.concat(cont);
                         });
+
+                        //console.log("mergedData", mergedData);
 
                         let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], mergedData) : this.convertData("no convert", mergedData);
 
                         return processedData;
 
+                    } else if (convertedData.continuation == null && convertedData.page == 1) {
+                        let returnData = convertedData.data;
+
+                        let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
+
+                        return processedData;
                     }
                 } else {
                     let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
@@ -788,7 +793,7 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         codingGenesData(DATA) {
-            console.log(DATA);
+            //console.log(DATA);
             this.$store.dispatch("codingGenesData", DATA["data"]);
         },
         searchingGenes(CONTENTS) {
@@ -883,6 +888,7 @@ new Vue({
         },
         researchData(content) {
 
+            //console.log("merged research data", content);
             // reset searching region if applicable
 
             if (this.plotConfig != null &&
@@ -907,7 +913,11 @@ new Vue({
 
             if (content != null && content.length > 0) {
                 uiUtils.hideElement("data-loading-indicator");
-                let updatedData = this.checkDataComparison(content, this.$store.state.filteredData);
+
+                //console.log("this.$store.state.bioIndexContinue", this.$store.state.bioIndexContinue);
+                //console.log("content", content);
+
+                this.checkDataComparison(content, this.$store.state.filteredData);
 
                 if (this.dataTableFormat == null) {
                     let topRows = Object.keys(content[0]);
@@ -915,8 +925,6 @@ new Vue({
                     this.dataTableFormat = dataTableFormat;
                 }
 
-                this.$store.dispatch("unfilteredData", updatedData);
-                this.$store.dispatch("filteredData", updatedData);
             }
         }
     }

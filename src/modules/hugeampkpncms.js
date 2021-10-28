@@ -85,20 +85,17 @@ export default {
             // set the data
             context.commit("setResearchPage", json);
         },
+        cancelResearchData(context) {
+            context.commit("setResearchData", []);
+        },
         async getResearchData(context, param) {
 
-            //console.log(param);
-            //console.log(param.domain);
             let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
             let csv = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
-
-            //console.log(csv);
 
             context.commit("setResearchData", csv);
         },
         async getGenesInRegion(context, param) {
-
-
 
             let fetchUrl = "https://bioindex.hugeamp.org/api/bio/query/genes?q=" + param.region;
             let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
