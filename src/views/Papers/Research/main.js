@@ -882,12 +882,12 @@ new Vue({
             if (this.plotConfig != null &&
                 !!this.plotConfig.genesTrack) {
                 let region;
-                switch (this.plotConfig.inputType) {
+                switch (this.plotConfig.genesTrack.inputType) {
                     case "static":
-                        region = this.plotConfig.region;
+                        region = this.plotConfig.genesTrack.region;
                         break;
                     case "dynamic":
-                        let regionParam = this.plotConfig.dynamicParameter;
+                        let regionParam = this.plotConfig.genesTrack.dynamicParameter;
                         let searchLength = this.$store.state.searchParameters[regionParam].search.length
                         region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
 

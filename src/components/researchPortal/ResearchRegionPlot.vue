@@ -741,25 +741,17 @@ export default Vue.component("research-region-plot", {
 							if (this.ldPopulations[p].high == null) {
 								this.ldPopulations[p].high = yValue;
 								this.ldPopulations[p].refVariant =
-									this.searchingRegion.chr +
-									":" +
-									d[this.renderConfig.ldServer.pos] +
-									"_" +
-									d[this.renderConfig.ldServer.ref] +
-									"/" +
-									d[this.renderConfig.ldServer.alt];
+									d[
+										this.renderConfig.ldServer.ref_variant_field
+									];
 
 								this.ldPopulations[p].high = yValue;
 							}
 							if (yValue > this.ldPopulations[p].high) {
 								this.ldPopulations[p].refVariant =
-									this.searchingRegion.chr +
-									":" +
-									d[this.renderConfig.ldServer.pos] +
-									"_" +
-									d[this.renderConfig.ldServer.ref] +
-									"/" +
-									d[this.renderConfig.ldServer.alt];
+									d[
+										this.renderConfig.ldServer.ref_variant_field
+									];
 
 								this.ldPopulations[p].high = yValue;
 							}
@@ -1280,15 +1272,6 @@ export default Vue.component("research-region-plot", {
 			let dotColor;
 
 			this.renderData.map((g) => {
-				let dotID =
-					this.searchingRegion.chr +
-					":" +
-					g[ldConfig.pos] +
-					"_" +
-					g[ldConfig.ref] +
-					"/" +
-					g[ldConfig.alt];
-
 				let xPos =
 					xStart +
 					xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
@@ -1591,14 +1574,7 @@ export default Vue.component("research-region-plot", {
 						g[this.renderConfig.yAxisField][ldG] != null &&
 						g[this.renderConfig.yAxisField][ldG] != undefined
 					) {
-						let dotID =
-							this.searchingRegion.chr +
-							":" +
-							g[ldConfig.pos] +
-							"_" +
-							g[ldConfig.ref] +
-							"/" +
-							g[ldConfig.alt];
+						let dotID = g[ldConfig.ref_variant_field];
 
 						let ldScore = !!LDData[dotID]
 							? LDData[dotID]
