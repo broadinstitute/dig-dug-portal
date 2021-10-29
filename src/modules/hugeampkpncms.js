@@ -103,7 +103,6 @@ export default {
             context.commit("setGenesInRegion", genes);
         },
         async getGenesData(context, param) {
-            //console.log("param", param);
 
             let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + param.genes;
             let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));

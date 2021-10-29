@@ -379,8 +379,6 @@ new Vue({
         },
         checkDataComparison(newResearchData, previousData) {
 
-            console.log(newResearchData.length, Object.keys(previousData).length);
-
             let dataComparison = this.$store.state.dataComparison;
 
             if (this.dataComparisonConfig != null && newResearchData.length > 0) {
@@ -421,8 +419,6 @@ new Vue({
                         let overlappingData = {};
                         let fieldGroupKeyValue = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
 
-                        console.log("fieldGroupKeyValue", fieldGroupKeyValue);
-
                         newResearchData.map(d => {
                             let keyFieldID = d[this.dataComparisonConfig.keyField];
                             if (!!previousData[keyFieldID]) {
@@ -436,7 +432,6 @@ new Vue({
                         this.$store.dispatch("unfilteredData", overlappingData);
                         this.$store.dispatch("filteredData", overlappingData);
 
-                        console.log("overlappingData", overlappingData);
                         return overlappingData;
 
                         break;
@@ -450,7 +445,7 @@ new Vue({
                             if (!!previousData[keyField]) {
                                 let tempObj = previousData[keyField];
                                 comparingFields.map(cf => {
-                                    //console.log("d",d,"cf",cf,"fieldGroupKey",fieldGroupKey)
+
                                     tempObj[cf][fieldGroupKey] = d[cf];
                                 });
                                 allData[keyField] = tempObj;
@@ -708,8 +703,6 @@ new Vue({
                             mergedData = mergedData.concat(cont);
                         });
 
-                        //console.log("mergedData", mergedData);
-
                         let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], mergedData) : this.convertData("no convert", mergedData);
 
                         return processedData;
@@ -793,12 +786,10 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         codingGenesData(DATA) {
-            //console.log(DATA);
+
             this.$store.dispatch("codingGenesData", DATA["data"]);
         },
         searchingGenes(CONTENTS) {
-
-            //console.log("genes in region", CONTENTS);
 
             let genesData = CONTENTS["data"];
             let codingGenes = "";
@@ -809,7 +800,6 @@ new Vue({
                         codingGenes += "\'" + gene.name + "\',";
                     }
                 })
-                //console.log("codingGenes", codingGenes);
 
                 codingGenes = codingGenes.slice(0, -1)
 
@@ -887,8 +877,6 @@ new Vue({
 
         },
         researchData(content) {
-
-            //console.log("merged research data", content);
             // reset searching region if applicable
 
             if (this.plotConfig != null &&
@@ -913,9 +901,6 @@ new Vue({
 
             if (content != null && content.length > 0) {
                 uiUtils.hideElement("data-loading-indicator");
-
-                //console.log("this.$store.state.bioIndexContinue", this.$store.state.bioIndexContinue);
-                //console.log("content", content);
 
                 this.checkDataComparison(content, this.$store.state.filteredData);
 
