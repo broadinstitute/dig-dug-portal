@@ -95,6 +95,31 @@ new Vue({
                     key: "maf",
                     label: "Minor Allele Frequency",
                     visible: true
+                },
+                {
+                    key: "siftPred",
+                    label: "SIFT",
+                    visible: true
+                },
+                {
+                    key: "polyphen2HdivPred",
+                    label: "PPH Hdiv",
+                    visible: true
+                },
+                {
+                    key: "polyphen2HvarPred",
+                    label: "PPH Hvar",
+                    visible: true
+                },
+                {
+                    key: "lrtPred",
+                    label: "LRT",
+                    visible: true
+                },
+                {
+                    key: "mutationtasterPred",
+                    label: "MutTas",
+                    visible: true
                 }
             ],
             defaultFields: [
