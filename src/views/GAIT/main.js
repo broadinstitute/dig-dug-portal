@@ -247,7 +247,7 @@ new Vue({
                     addFields.push({
                         key: k,
                         label: startCase(k),
-                        visible: false
+                        visible: true
                     });
                 }
             });
