@@ -479,6 +479,9 @@ new Vue({
 
                 }
             } else {
+
+                this.$store.dispatch("unfilteredData", newResearchData);
+                this.$store.dispatch("filteredData", newResearchData);
                 return newResearchData;
             }
 
@@ -878,6 +881,9 @@ new Vue({
         },
         researchData(content) {
             // reset searching region if applicable
+            console.log("data", content);
+            console.log("this.plotConfig", this.plotConfig);
+            console.log("this.dataTableFormat", this.dataTableFormat);
 
             if (this.plotConfig != null &&
                 !!this.plotConfig.genesTrack) {
@@ -905,6 +911,7 @@ new Vue({
                 this.checkDataComparison(content, this.$store.state.filteredData);
 
                 if (this.dataTableFormat == null) {
+
                     let topRows = Object.keys(content[0]);
                     let dataTableFormat = { "top rows": topRows };
                     this.dataTableFormat = dataTableFormat;
