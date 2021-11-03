@@ -371,6 +371,14 @@ new Vue({
                     return v.selected === true;
                 })
                 .map(v => v.varId);
+        },
+        selectAllVariants() {
+            this.tableData.forEach(v => (v.selected = true));
+            this.updateSelectedVariants();
+        },
+        deselectAllVariants() {
+            this.tableData.forEach(v => (v.selected = false));
+            this.updateSelectedVariants();
         }
     },
     watch: {

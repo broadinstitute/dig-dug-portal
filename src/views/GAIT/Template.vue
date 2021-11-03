@@ -448,30 +448,54 @@
                                             class="variants"
                                             v-if="$parent.tableData.length > 0"
                                         >
-                                            <strong
-                                                >View optional columns
-                                            </strong>
-                                            <template
-                                                v-for="field in $parent.optionalFields"
-                                            >
-                                                <b-checkbox
-                                                    v-if="
-                                                        $parent.defaultFields.indexOf(
-                                                            field.key
-                                                        ) < 0
+                                            <div class="my-2">
+                                                <b-button
+                                                    size="sm"
+                                                    variant="outline-secondary"
+                                                    @click="
+                                                        $parent.selectAllVariants()
                                                     "
-                                                    :disabled="
-                                                        $parent.visibleFields
-                                                            .length == 1 &&
-                                                        field.visible
-                                                    "
-                                                    :key="field.key"
-                                                    v-model="field.visible"
-                                                    inline
+                                                    >Select all
+                                                    variants</b-button
                                                 >
-                                                    {{ field.label }}
-                                                </b-checkbox>
-                                            </template>
+                                                <b-button
+                                                    size="sm"
+                                                    variant="outline-secondary"
+                                                    class="ml-2"
+                                                    @click="
+                                                        $parent.deselectAllVariants()
+                                                    "
+                                                    >Unselect all
+                                                    variants</b-button
+                                                >
+                                            </div>
+                                            <div>
+                                                <strong
+                                                    >View optional columns
+                                                </strong>
+                                                <template
+                                                    v-for="field in $parent.optionalFields"
+                                                >
+                                                    <b-checkbox
+                                                        v-if="
+                                                            $parent.defaultFields.indexOf(
+                                                                field.key
+                                                            ) < 0
+                                                        "
+                                                        :disabled="
+                                                            $parent
+                                                                .visibleFields
+                                                                .length == 1 &&
+                                                            field.visible
+                                                        "
+                                                        :key="field.key"
+                                                        v-model="field.visible"
+                                                        inline
+                                                    >
+                                                        {{ field.label }}
+                                                    </b-checkbox>
+                                                </template>
+                                            </div>
 
                                             <b-table
                                                 striped
