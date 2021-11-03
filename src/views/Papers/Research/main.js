@@ -479,6 +479,9 @@ new Vue({
 
                 }
             } else {
+                this.$store.dispatch("unfilteredData", newResearchData);
+                this.$store.dispatch("filteredData", newResearchData);
+
                 return newResearchData;
             }
 
