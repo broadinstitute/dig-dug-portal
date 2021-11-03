@@ -455,7 +455,12 @@
                                                     @click="
                                                         $parent.selectAllVariants()
                                                     "
-                                                    >Select all
+                                                    title="Select all variants in the table below."
+                                                    ><b-icon
+                                                        icon="check2-all"
+                                                        aria-hidden="true"
+                                                    ></b-icon>
+                                                    Select all
                                                     variants</b-button
                                                 >
                                                 <b-button
@@ -465,7 +470,12 @@
                                                     @click="
                                                         $parent.deselectAllVariants()
                                                     "
-                                                    >Deselect all
+                                                    title="Deselect all variants in the table below."
+                                                    ><b-icon
+                                                        icon="dash"
+                                                        aria-hidden="true"
+                                                    ></b-icon>
+                                                    Deselect all
                                                     variants</b-button
                                                 >
                                             </div>
