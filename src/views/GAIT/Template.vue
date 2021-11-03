@@ -465,7 +465,7 @@
                                                     @click="
                                                         $parent.deselectAllVariants()
                                                     "
-                                                    >Unselect all
+                                                    >Deselect all
                                                     variants</b-button
                                                 >
                                             </div>
