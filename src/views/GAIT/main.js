@@ -181,6 +181,11 @@ new Vue({
                     key: "vest4Rankscore",
                     label: "VEST4",
                     visible: false
+                },
+                {
+                    key: "gnomadGenomesPopmaxAf",
+                    label: "Max AF",
+                    visible: false
                 }
             ],
             searchCriteria: [],
