@@ -102,14 +102,92 @@ new Vue({
                 "selected",
                 "varId",
                 "burdenBinId",
+                // "caddRawRankscore",
                 "impact",
                 "maf",
+                // "siftPred",
+                // "polyphen2HdivPred",
+                // "polyphen2HvarPred",
+                // "lrtPred",
+                // "mutationtasterPred",
                 "gene",
                 "pick",
                 "transcript_id"
             ],
             fields: [],
-            optionalFields: [],
+            //optionalFields: [],
+            optionalFields: [
+                {
+                    key: "siftPred",
+                    label: "SIFT",
+                    visible: false
+                },
+                {
+                    key: "polyphen2HdivPred",
+                    label: "PPH Hdiv",
+                    visible: false
+                },
+                {
+                    key: "polyphen2HvarPred",
+                    label: "PPH Hvar",
+                    visible: false
+                },
+                {
+                    key: "lrtPred",
+                    label: "LRT",
+                    visible: false
+                },
+                {
+                    key: "mutationtasterPred",
+                    label: "MutTas",
+                    visible: false
+                },
+                {
+                    key: "caddRawRankscore",
+                    label: "CADD",
+                    visible: false
+                },
+                {
+                    key: "dannRankscore",
+                    label: "DANN",
+                    visible: false
+                },
+                {
+                    key: "eigenPcRawCodingRankscore",
+                    label: "Eigen-PC",
+                    visible: false
+                },
+                {
+                    key: "fathmmMklCodingPred",
+                    label: "FATHMM-MKL",
+                    visible: false
+                },
+                {
+                    key: "fathmmPred",
+                    label: "FATHMM",
+                    visible: false
+                },
+                {
+                    key: "lof",
+                    label: "LOF",
+                    visible: false
+                },
+                {
+                    key: "proveanPred",
+                    label: "PROVEAN",
+                    visible: false
+                },
+                {
+                    key: "vest4Rankscore",
+                    label: "VEST4",
+                    visible: false
+                },
+                {
+                    key: "gnomadGenomesPopmaxAf",
+                    label: "Max AF",
+                    visible: false
+                }
+            ],
             searchCriteria: [],
             selectedVariants: []
         };
@@ -216,19 +294,19 @@ new Vue({
             this.testChanged = false;
         },
         updateFields() {
-            let addFields = [];
-            Object.keys(this.tableData[0]).forEach(k => {
-                if (this.defaultFields.indexOf(k) < 0) {
-                    addFields.push({
-                        key: k,
-                        label: startCase(k),
-                        visible: false
-                    });
-                }
-            });
+            // let addFields = [];
+            // Object.keys(this.tableData[0]).forEach(k => {
+            //     if (this.defaultFields.indexOf(k) < 0) {
+            //         addFields.push({
+            //             key: k,
+            //             label: startCase(k),
+            //             visible: false
+            //         });
+            //     }
+            // });
 
-            this.optionalFields = addFields;
-            this.fields = this.baseFields.concat(addFields);
+            // this.optionalFields = addFields;
+            this.fields = this.baseFields.concat(this.optionalFields);
         },
         formatTestData(samples, data) {
             let formatted = [];
@@ -298,6 +376,14 @@ new Vue({
                     return v.selected === true;
                 })
                 .map(v => v.varId);
+        },
+        selectAllVariants() {
+            this.tableData.forEach(v => (v.selected = true));
+            this.updateSelectedVariants();
+        },
+        deselectAllVariants() {
+            this.tableData.forEach(v => (v.selected = false));
+            this.updateSelectedVariants();
         }
     },
     watch: {

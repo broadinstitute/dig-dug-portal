@@ -482,6 +482,7 @@ new Vue({
 
                 this.$store.dispatch("unfilteredData", newResearchData);
                 this.$store.dispatch("filteredData", newResearchData);
+
                 return newResearchData;
             }
 
