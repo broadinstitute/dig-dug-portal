@@ -79,22 +79,26 @@ new Vue({
                 {
                     key: "varId",
                     label: "Variant ID",
-                    visible: true
+                    visible: true,
+                    sortable: true
                 },
                 {
                     key: "burdenBinId",
                     label: "Mask",
-                    visible: true
+                    visible: true,
+                    sortable: true
                 },
                 {
                     key: "impact",
                     label: "Impact",
-                    visible: true
+                    visible: true,
+                    sortable: true
                 },
                 {
                     key: "maf",
                     label: "Minor Allele Frequency",
-                    visible: true
+                    visible: true,
+                    sortable: true
                 }
             ],
             defaultFields: [
@@ -120,72 +124,86 @@ new Vue({
                 {
                     key: "siftPred",
                     label: "SIFT",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "polyphen2HdivPred",
                     label: "PPH Hdiv",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "polyphen2HvarPred",
                     label: "PPH Hvar",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "lrtPred",
                     label: "LRT",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "mutationtasterPred",
                     label: "MutTas",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "caddRawRankscore",
                     label: "CADD",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "dannRankscore",
                     label: "DANN",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "eigenPcRawCodingRankscore",
                     label: "Eigen-PC",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "fathmmMklCodingPred",
                     label: "FATHMM-MKL",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "fathmmPred",
                     label: "FATHMM",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "lof",
                     label: "LOF",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "proveanPred",
                     label: "PROVEAN",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "vest4Rankscore",
                     label: "VEST4",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 },
                 {
                     key: "gnomadGenomesPopmaxAf",
                     label: "Max AF",
-                    visible: false
+                    visible: false,
+                    sortable: true
                 }
             ],
             searchCriteria: [],
