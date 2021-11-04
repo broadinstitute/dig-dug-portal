@@ -21,6 +21,7 @@
 .phenotype-group.STROKE { background-color: #cccc00; }
 .phenotype-group.TYPE.DIABETES { background-color: #639bc0; }
 .phenotype-group.HEMATOLOGICAL { background-color: #aa0000; }
+.phenotype-group.NON-ADDITIVE.EFFECTS { background-color: #770000; }
 
 .border-color.ANTHROPOMETRIC { border-color: #048845; }
 .border-color.ATRIAL.FIBRILLATION { border-color: #7aaa1c; }
@@ -45,6 +46,7 @@
 .border-color.STROKE { border-color: #cccc00; }
 .border-color.TYPE.DIABETES { border-color: #639bc0; }
 .border-color.HEMATOLOGICAL { border-color: #aa0000; }
+.border-color.NON-ADDITIVE.EFFECTS { border-color: #770000; }
 
 .reference.color-0 { background-color: #007bff; }
 .reference.color-1 { background-color: #048845; }

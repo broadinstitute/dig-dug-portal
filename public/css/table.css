@@ -116,6 +116,7 @@ td.border-color > div {
 .nowrap {
     white-space: nowrap;
 }
-.table.b-table > thead > tr > [aria-sort="none"] {
+.table.b-table > thead > tr > [aria-sort="none"],
+.table.b-table > thead > tr > [aria-sort=none] {
     background-image: none;
 }
