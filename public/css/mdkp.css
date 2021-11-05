@@ -1983,3 +1983,37 @@ span.volcano-score-2 {
     visibility:hidden;
     height: 5px;
 }
+
+.kp-tabs {
+}
+.kp-tabs-contents {
+}
+
+.kp-tabs li {
+	display: inline-block;
+	background-color: #eee;
+	border: solid 1px #ccc;
+	border-bottom: none;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	left: 5px;
+	margin-left: 5px;
+}
+.kp-tabs li.active {
+	background-color: #fff;
+}
+
+.kp-tabs li > a {
+	display: block;
+	padding: 10px 15px 5px 15px;
+}
+
+.kp-tab-content {
+	visibility: hidden;
+	height: 0px !important;
+}
+
+.kp-tab-content.active {
+	visibility: visible;
+	height: auto !important;
+}

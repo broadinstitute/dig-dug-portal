@@ -1,6 +1,9 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
+//import BootstrapVue from "bootstrap-vue";
+//import { BootstrapVueIcons } from "bootstrap-vue";
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
 
 Vue.use(BootstrapVueIcons);
 
@@ -87,6 +90,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+
         addcss(css) {
             var head = document.getElementsByTagName('head')[0];
             var s = document.createElement('style');
@@ -487,6 +491,9 @@ new Vue({
             }
 
         },
+        showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
+            uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
+        },
     },
 
     computed: {
@@ -654,6 +661,14 @@ new Vue({
                 return null;
             }
             return $("<textarea/>").html(contents[0]["field_data_visualizer_legend"]).text();
+        },
+        researchMethodID() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_research_method"] == false) {
+                return null;
+            }
+            return contents[0]["field_research_method"];
         },
         researchMethod() {
             let contents = this.$store.state.hugeampkpncms.researchMethod;
