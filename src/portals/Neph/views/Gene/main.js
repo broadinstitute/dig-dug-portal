@@ -264,120 +264,6 @@ new Vue({
             }
         },
 
-        combinedScore() {
-            return (
-                this.bayesFactorCommonVariation * this.bayesFactorRareVariation
-            );
-        },
-
-        bayesFactorRareVariation() {
-            let masks = [];
-            let rarebayesfactor = 1;
-            let beta;
-            let stdErr;
-            let selectedPhenotype = "";
-            if (this.selectedPhenotypes.length > 0) {
-                selectedPhenotype = this.selectedPhenotypes[0].name;
-            }
-
-            let data = this.$store.state.associations52k.data;
-            if (this.isExomeWideSignificant(data, selectedPhenotype)) {
-                rarebayesfactor = 348;
-            } else {
-                if (data.length > 0) {
-                    for (let i = 0; i < data.length; i++) {
-                        if (
-                            !!this.$store.state.associations52k.data[i]
-                                .phenotype &&
-                            this.$store.state.associations52k.data[i]
-                                .phenotype == selectedPhenotype
-                        ) {
-                            //filter with selected phenotype
-                            masks = data[i].masks;
-                            if (!!masks && masks.length > 0) {
-                                let d = masks.sort(
-                                    (a, b) => a.pValue - b.pValue
-                                );
-                                let mostSignificantMask = d[0];
-                                stdErr = mostSignificantMask.stdErr;
-                                beta = mostSignificantMask.beta;
-                                rarebayesfactor = this.bayes_factor(
-                                    beta,
-                                    stdErr
-                                );
-                            }
-                            if (rarebayesfactor < 1) {
-                                rarebayesfactor = 1;
-                            }
-                            return Number.parseFloat(rarebayesfactor).toFixed(
-                                2
-                            );
-                        }
-                        //if phenotype doesn't exist in 52K Associations data
-                        else {
-                            rarebayesfactor = 1;
-                        }
-                    }
-                }
-            }
-
-            return Number.parseFloat(rarebayesfactor).toFixed(2);
-        },
-
-        bayesFactorCommonVariation() {
-            let firstBF = 1;
-            let secondBF = 1;
-            let thirdBF = 1;
-            let commonBF = 1;
-
-            let data = this.$store.state.varassociations.data;
-
-            if (!!data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    //if GWAS evidence
-                    if (this.selectedPhenotypes.length > 0) {
-                        if (
-                            data[i].phenotype == this.selectedPhenotypes[0].name
-                        ) {
-                            if (data[i].pValue <= 5e-8) {
-                                firstBF = 3;
-                                if (!!this.eglData) {
-                                    if (
-                                        !!this.eglData.genetic &&
-                                        this.eglData.genetic == "1C"
-                                    ) {
-                                        secondBF = 117;
-                                    }
-                                    if (
-                                        !!this.eglData.genetic &&
-                                        this.eglData.genetic == "2C"
-                                    ) {
-                                        secondBF = 5;
-                                    }
-                                    if (
-                                        !!this.eglData.genomic &&
-                                        this.eglData.genomic == "2R"
-                                    ) {
-                                        thirdBF = 5;
-                                    }
-                                    if (
-                                        !!this.eglData.genomic &&
-                                        this.eglData.genomic == "3R"
-                                    ) {
-                                        thirdBF = 2.2;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            commonBF = firstBF * secondBF * thirdBF;
-            console.log(commonBF, "commonBF");
-            return Number.parseFloat(commonBF).toFixed(2);
-        },
-
         queries() {
             return [
                 this.biolinkQueryGraph("NCBIGENE:1017", {
@@ -526,20 +412,20 @@ new Vue({
             // this.$store.dispatch("getEGLData");
         },
 
-        selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = _.difference(
-                oldPhenotypes.map(p => p.name),
-                phenotypes.map(p => p.name)
-            );
-            this.$store.dispatch("get52KAssociationData");
-            if (removedPhenotypes.length > 0) {
-                this.$store.dispatch(
-                    "getVarAssociationsData",
-                    phenotypes[0].name
-                );
-            }
-            this.$store.dispatch("getEGLData");
-        },
+        // selectedPhenotypes(phenotypes, oldPhenotypes) {
+        //     const removedPhenotypes = _.difference(
+        //         oldPhenotypes.map(p => p.name),
+        //         phenotypes.map(p => p.name)
+        //     );
+        //     this.$store.dispatch("get52KAssociationData");
+        //     if (removedPhenotypes.length > 0) {
+        //         this.$store.dispatch(
+        //             "getVarAssociationsData",
+        //             phenotypes[0].name
+        //         );
+        //     }
+        //     this.$store.dispatch("getEGLData");
+        // },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);

@@ -114,31 +114,6 @@
                     </div>
                 </div>
             </div>
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <div v-if="$parent.dbReference">
-                        <h4 class="card-title">
-                            Rare variant gene-level associations for
-                            {{ $store.state.geneName }}
-                            <tooltip-documentation
-                                name="gene.52k.tooltip.hover"
-                                :content-fill="$parent.documentationMap"
-                                :isHover="true"
-                                :noIcon="false"
-                            ></tooltip-documentation>
-                        </h4>
-                        <unauthorized-message
-                            :restricted="
-                                $store.state.associations52k.restricted
-                            "
-                        ></unauthorized-message>
-                        <gene-associations-masks
-                            :associations="$store.state.associations52k.data"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                        ></gene-associations-masks>
-                    </div>
-                </div>
-            </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
