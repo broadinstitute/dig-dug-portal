@@ -31,6 +31,14 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">Variant Search</h4>
+                    <variant-search
+                        :gene="$store.state.geneName"
+                    ></variant-search>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
                             Common variant gene-level associations for
