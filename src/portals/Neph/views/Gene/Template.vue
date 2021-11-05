@@ -116,54 +116,6 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="card-body">
-                    <div v-if="$parent.dbReference">
-                        <h4 class="card-title">
-                            UniProt cross-references
-                            <tooltip-documentation
-                                name="gene.xref.tooltip.hover"
-                                :content-fill="$parent.documentationMap"
-                                :isHover="true"
-                                :noIcon="false"
-                            ></tooltip-documentation>
-                        </h4>
-
-                        <criterion-function-group :inclusive="true">
-                            <filter-enumeration-control
-                                :field="'source'"
-                                :options="
-                                    $parent.dbReference.map(
-                                        (reference) => reference.source
-                                    )
-                                "
-                                :inclusive="false"
-                            >
-                                <div class="label">Sources</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'moleculeType'"
-                                :options="
-                                    $parent.dbReference.map(
-                                        (reference) => reference.moleculeType
-                                    )
-                                "
-                                :inclusive="true"
-                            >
-                                <div class="label">Molecule Type</div>
-                            </filter-enumeration-control>
-
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <uniprot-references-table
-                                    :references="$parent.dbReference"
-                                    :filter="filter"
-                                ></uniprot-references-table>
-                            </template>
-                        </criterion-function-group>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mdkp-card">
                 <!-- <div class="card-body">
                     <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
                     <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
@@ -267,6 +219,68 @@
                                 :geneSymbol="$store.state.geneName"
                                 :field="'pathway'"
                             ></translator-predicate-table>
+                        </b-tab>
+                        <b-tab title="Uniprot">
+                            <div class="card-body row">
+                                <div class="col-md-12">
+                                    <div v-if="$parent.dbReference">
+                                        <h4 class="card-title">
+                                            UniProt cross-references
+                                            <tooltip-documentation
+                                                name="gene.xref.tooltip.hover"
+                                                :content-fill="
+                                                    $parent.documentationMap
+                                                "
+                                                :isHover="true"
+                                                :noIcon="false"
+                                            ></tooltip-documentation>
+                                        </h4>
+
+                                        <criterion-function-group
+                                            :inclusive="true"
+                                        >
+                                            <filter-enumeration-control
+                                                :field="'source'"
+                                                :options="
+                                                    $parent.dbReference.map(
+                                                        (reference) =>
+                                                            reference.source
+                                                    )
+                                                "
+                                                :inclusive="false"
+                                            >
+                                                <div class="label">Sources</div>
+                                            </filter-enumeration-control>
+                                            <filter-enumeration-control
+                                                :field="'moleculeType'"
+                                                :options="
+                                                    $parent.dbReference.map(
+                                                        (reference) =>
+                                                            reference.moleculeType
+                                                    )
+                                                "
+                                                :inclusive="true"
+                                            >
+                                                <div class="label">
+                                                    Molecule Type
+                                                </div>
+                                            </filter-enumeration-control>
+
+                                            <template
+                                                slot="filtered"
+                                                slot-scope="{ filter }"
+                                            >
+                                                <uniprot-references-table
+                                                    :references="
+                                                        $parent.dbReference
+                                                    "
+                                                    :filter="filter"
+                                                ></uniprot-references-table>
+                                            </template>
+                                        </criterion-function-group>
+                                    </div>
+                                </div>
+                            </div>
                         </b-tab>
                     </b-tabs>
                 </div>
