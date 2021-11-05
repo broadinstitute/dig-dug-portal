@@ -4,7 +4,7 @@
 
 let pages = {
     index: {
-        entry: "src/views/Index/main.js",
+        entry: "src/portals/Neph/views/Index/main.js",
         template: "public/index.html",
         filename: "index.html",
         title: "Home",

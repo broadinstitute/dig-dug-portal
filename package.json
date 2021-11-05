@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "watch": "vue-cli-service build --mode development --watch",
+    "watch:neph": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.Neph.js vue-cli-service build --mode development --watch",
     "build": "vue-cli-service build --mode development",
     "deploy": "vue-cli-service build --mode production"
   },
