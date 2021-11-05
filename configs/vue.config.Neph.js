@@ -17,6 +17,13 @@ let pages = {
         title: "Page Not Found",
         chunks: ["chunk-vendors", "chunk-common", "page404"]
     },
+    phenotype: {
+        entry: "src/views/Phenotype/main.js",
+        template: "public/index.html",
+        filename: "phenotype.html",
+        title: "Phenotype",
+        chunks: ["chunk-vendors", "chunk-common", "phenotype"]
+    },
     region: {
         entry: "src/views/Region/main.js",
         template: "public/index.html",
@@ -32,7 +39,7 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "variant"]
     },
     gene: {
-        entry: "src/views/Gene/main.js",
+        entry: "src/portals/Neph/views/Gene/main.js",
         template: "public/index.html",
         filename: "gene.html",
         title: "Gene Info",
