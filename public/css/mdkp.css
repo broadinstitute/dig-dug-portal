@@ -1984,33 +1984,49 @@ span.volcano-score-2 {
     height: 5px;
 }
 
-.kp-tabs {
+.kp-tabs-wrapper {
+    margin-bottom: -1px;
+    padding-left: 20px;
 }
-.kp-tabs-contents {
+
+.kp-tabs {
+    z-index: 1;
+    margin: 0 !important;
+    padding: 0 !important;
+    white-space: nowrap;
+    margin-left: 40px;
 }
 
 .kp-tabs li {
 	display: inline-block;
 	background-color: #eee;
-	border: solid 1px #ccc;
-	border-bottom: none;
+	border: solid 1px #ddd;
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;
-	left: 5px;
-	margin-left: 5px;
 }
 .kp-tabs li.active {
+    border-bottom: solid 1px #fff;
 	background-color: #fff;
 }
 
 .kp-tabs li > a {
 	display: block;
 	padding: 10px 15px 5px 15px;
+    cursor:pointer;
+}
+
+.kp-tabs-contents {
+    margin: auto;
+    background-color: #fff;
+    padding: 1.25em;
+    border-radius: 5px;
+    border: solid 1px #ddd;
 }
 
 .kp-tab-content {
 	visibility: hidden;
 	height: 0px !important;
+    margin: 0 !important;
 }
 
 .kp-tab-content.active {

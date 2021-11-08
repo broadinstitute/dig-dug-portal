@@ -94,7 +94,10 @@
 				</div>
 			</div>
 			<!-- tabs nav -->
-			<div>
+			<div
+				class="kp-tabs-wrapper"
+				v-if="$parent.researchMethodID != null"
+			>
 				<ul class="kp-tabs" id="rp_tabs">
 					<li
 						id="view_data"
@@ -128,11 +131,8 @@
 			</div>
 			<!-- tabs content -->
 			<div class="kp-tabs-contents" id="rp_tabs_contents">
-				<div
-					class="content card mdkp-card kp-tab-content active"
-					id="view_data_content"
-				>
-					<div class="row card-body">
+				<div class="kp-tab-content active" id="view_data_content">
+					<div class="row">
 						<div
 							class="col-md-12"
 							v-html="$parent.pageDescription"
@@ -275,10 +275,10 @@
 						$parent.isLandingPage != true &&
 						$parent.researchMethodID != null
 					"
-					class="content card mdkp-card p-tab-content"
+					class="kp-tab-content"
 					id="research_method_content"
 				>
-					<div class="row card-body">
+					<div class="row">
 						<div
 							class="col-md-12"
 							v-html="$parent.researchMethod"

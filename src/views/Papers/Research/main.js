@@ -668,6 +668,7 @@ new Vue({
             if (contents === null || contents[0]["field_research_method"] == false) {
                 return null;
             }
+
             return contents[0]["field_research_method"];
         },
         researchMethod() {
