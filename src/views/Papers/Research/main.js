@@ -691,11 +691,14 @@ new Vue({
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
+
             if (contents.length === 0) {
                 return null;
             } else {
 
                 let convertedData = (this.dataType == 'json' || this.dataType == 'bioindex') ? JSON.parse(contents) : this.csv2Json(contents);
+
+
 
                 if (this.dataType == 'bioindex') {
                     if (convertedData.continuation != null) {
@@ -735,7 +738,9 @@ new Vue({
                         return processedData;
                     }
                 } else {
-                    let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
+                    let returnData = (this.dataType == 'json') ? JSON.parse(convertedData).data : convertedData;
+
+                    console.log("returnData", convertedData["data"]);
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 

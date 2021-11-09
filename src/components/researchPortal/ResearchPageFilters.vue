@@ -1027,7 +1027,7 @@ export default Vue.component("research-page-filters", {
 	position: absolute;
 	z-index: 200;
 	width: 210px;
-	left: -40px;
+	left: -25px;
 	top: 10px;
 	text-align: left;
 	padding: 15px;
@@ -1038,7 +1038,7 @@ export default Vue.component("research-page-filters", {
 }
 
 .filtering-ui-wrapper.search-criteria.closed {
-	left: -240px;
+	left: -225px;
 	transition: all 0.5s;
 }
 
