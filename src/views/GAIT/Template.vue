@@ -511,6 +511,7 @@
                                                 striped
                                                 hover
                                                 small
+                                                sort-icon-left
                                                 responsive="sm"
                                                 sticky-header="400px"
                                                 :items="$parent.tableData"
@@ -932,3 +933,6 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+<style>
+@import url("/css/table.css");
+</style>
