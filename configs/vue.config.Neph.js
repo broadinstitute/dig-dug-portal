@@ -51,6 +51,55 @@ let pages = {
         filename: "datasets.html",
         title: "Datasets",
         chunks: ["chunk-vendors", "chunk-common", "datasets"]
+    },
+    dinspector: {
+        entry: "src/views/DatasetInspector/main.js",
+        template: "public/index.html",
+        filename: "dinspector.html",
+        title: "Dataset Inspector",
+        chunks: ["chunk-vendors", "chunk-common", "dinspector"]
+    },
+    policies: {
+        entry: "src/views/Policies/main.js",
+        template: "public/index.html",
+        filename: "policies.html",
+        title: "Policies",
+        chunks: ["chunk-vendors", "chunk-common", "policies"]
+    },
+    about: {
+        entry: "src/views/About/main.js",
+        template: "public/index.html",
+        filename: "about.html",
+        title: "About",
+        chunks: ["chunk-vendors", "chunk-common", "about"]
+    },
+    collaborate: {
+        entry: "src/views/Collaborate/main.js",
+        template: "public/index.html",
+        filename: "collaborate.html",
+        title: "Collaborate",
+        chunks: ["chunk-vendors", "chunk-common", "collaborate"]
+    },
+    resources: {
+        entry: "src/views/Resources/main.js",
+        template: "public/index.html",
+        filename: "resources.html",
+        title: "Resources",
+        chunks: ["chunk-vendors", "chunk-common", "resources"]
+    },
+    news: {
+        entry: "src/views/News/main.js",
+        template: "public/index.html",
+        filename: "news.html",
+        title: "News",
+        chunks: ["chunk-vendors", "chunk-common", "news"]
+    },
+    contacts: {
+        entry: "src/views/Contacts/main.js",
+        template: "public/index.html",
+        filename: "contacts.html",
+        title: "Contacts",
+        chunks: ["chunk-vendors", "chunk-common", "contacts"]
     }
 };
 
