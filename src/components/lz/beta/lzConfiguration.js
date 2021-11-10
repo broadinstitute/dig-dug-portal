@@ -14,6 +14,9 @@ import { applyNamespaces, mutate_attrs, query_attrs }  from "locuszoom/esm/helpe
 // getters
 // - full
 
+// FIXME: Recommend this class for total removal.
+//  This effectively wraps the LocusZoom.Layouts registry, with several custom functions that introduce major bugs while re-implementing existing functionality.
+//  It will likely need to be removed before LZjs 0.14, which will change how namespaces work
 export class LzLayout {
     layout = null;
     constructor(firstParam, secondParam, shared_name=undefined) {
@@ -64,7 +67,7 @@ export class LzLayout {
             fragile_fields.forEach(field => {
                 LocusZoom.Layouts.mutate_attrs(this.layout, correction_target(field, target_namespace), original_namespace); // since `original_namespace` was the correct value, no need to redeclare
                 LocusZoom.Layouts.mutate_attrs(this.layout, correction_target2(field, target_namespace), original_namespace); // since `original_namespace` was the correct value, no need to redeclare
-            })   
+            })
         }
 
         return this;
@@ -177,7 +180,7 @@ export class LzDataSource {
             this.name = firstParam;
         }
         if (secondParam === Object(secondParam)) {
-            // 
+            //
         }
         this.params = thirdParam;
     }

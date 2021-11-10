@@ -81,6 +81,10 @@
     background-color: #aa0000;
 }
 
+.pws-phenotype-group.NON-ADDITIVE.EFFECTS div.pws-progress-bar {
+    background-color: #770000;
+}
+
 .pws-box.ANTHROPOMETRIC {
     border-top: solid 5px #048845 !important;
 }
@@ -151,6 +155,10 @@
 
 .pws-box.HEMATOLOGICAL {
     border-top: solid 5px #aa0000 !important;
+}
+
+.pws-box.NON-ADDITIVE.EFFECTS {
+    border-top: solid 5px  #770000 !important;
 }
 
 /* merged plot */

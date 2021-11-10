@@ -568,8 +568,6 @@ export default Vue.component("research-region-plot", {
 	},
 	watch: {
 		ldVariantCorrelationsData(data) {
-			//console.log("ancesteryOnCall", this.ancestryOnCall);
-			//console.log("ld data", data);
 			let ldData = {};
 
 			if (data.data.correlation.length > 0) {
@@ -588,12 +586,10 @@ export default Vue.component("research-region-plot", {
 				if (item.ldData == null) {
 					notLoadedLDScore++;
 					this.ancestryOnCall = item.name;
-					ancester = item.id;
+					ancester = item.ancestry;
 					refVariant = item.refVariant;
 				}
 			}
-
-			//console.log("this.ldPopulations", this.ldPopulations);
 
 			if (notLoadedLDScore > 0) {
 				this.getLDData(refVariant, ancester);
@@ -623,129 +619,172 @@ export default Vue.component("research-region-plot", {
 		setRefVariant() {
 			let DATA = this.renderData;
 			let yMax = null;
+			let dataGroups = {};
 			let populations = [];
+			this.ldPopulations = {};
+
+			console.log("DATA", DATA);
+			console.log(
+				"this.renderConfig.ldServer",
+				this.renderConfig.ldServer
+			);
 
 			if (!!DATA && DATA.length > 0) {
 				DATA.map((d) => {
-					if (!!this.dataComparisonConfig) {
-						for (const [key, ancestry] of Object.entries(
-							d[this.renderConfig.ldServer.populations_field]
-						)) {
-							populations.push(key);
+					if (
+						!!this.dataComparisonConfig &&
+						!!this.renderConfig.ldServer.populations_field
+					) {
+						// case of ancestry value of dynamic
+						if (
+							this.renderConfig.ldServer.populations_type ==
+							"dynamic"
+						) {
+							for (const [key, ancestry] of Object.entries(
+								d[this.renderConfig.ldServer.populations_field]
+							)) {
+								if (!!dataGroups[key]) {
+									dataGroups[key].push(ancestry);
+								} else {
+									dataGroups[key] = [];
+									dataGroups[key].push(ancestry);
+								}
+							}
+						} else if (
+							this.renderConfig.ldServer.populations_type ==
+							"fixed"
+						) {
+							for (const [key, ancestry] of Object.entries(
+								d[this.renderConfig.ldServer.populations_field]
+							)) {
+								dataGroups[key] = [];
+								dataGroups[key].push(
+									this.renderConfig.ldServer
+										.populations_fixed_ancestry
+								);
+							}
 						}
-					} else {
-						populations.push(
-							d[this.renderConfig.ldServer.populations_field]
-						);
+					} else if (
+						// fixed data but multiple values in ancesry column
+						!this.dataComparisonConfig &&
+						!!this.renderConfig.ldServer.populations_field
+					) {
+						// case of ancestry value of dynamic
+						if (
+							this.renderConfig.ldServer.populations_type ==
+							"dynamic"
+						) {
+							if (
+								d[
+									this.renderConfig.ldServer.populations_field
+								] != null &&
+								d[
+									this.renderConfig.ldServer.populations_field
+								] != undefined &&
+								d[
+									this.renderConfig.ldServer.populations_field
+								] != ""
+							) {
+								if (!!dataGroups["default"]) {
+									dataGroups["default"].push(
+										this.renderConfig.ldServer
+											.populations_fixed_ancestry
+									);
+								} else {
+									dataGroups["default"] = [];
+									dataGroups["default"].push(
+										this.renderConfig.ldServer
+											.populations_fixed_ancestry
+									);
+								}
+							}
+						} else if (
+							this.renderConfig.ldServer.populations_type ==
+							"fixed"
+						) {
+							dataGroups["default"] = [];
+							dataGroups["default"].push(
+								d[this.renderConfig.ldServer.populations_field]
+							);
+						}
 					}
 				});
 
-				populations = [...new Set(populations)];
+				for (const [dataGroupKey, dataGroupAncestry] of Object.entries(
+					dataGroups
+				)) {
+					dataGroups[dataGroupKey] = [...new Set(dataGroupAncestry)];
+				}
 
-				this.ldPopulations = {};
-
-				populations.map((p) => {
+				for (const [dataGroupKey, dataGroupAncestry] of Object.entries(
+					dataGroups
+				)) {
 					let tempObj = {};
-					tempObj["id"] = this.renderConfig.ldServer.populations[p];
-					tempObj["name"] = p;
+					tempObj["ancestry"] =
+						this.renderConfig.ldServer.populations[
+							dataGroupAncestry[0]
+						];
+					tempObj["id"] = dataGroupKey;
+					tempObj["name"] = dataGroupKey;
 					tempObj["high"] = null;
 					tempObj["refVariant"] = null;
 					tempObj["ldData"] = null;
-					this.ldPopulations[p] = tempObj;
-				});
+					this.ldPopulations[dataGroupKey] = tempObj;
+				}
 
-				// revisit this part for cases of data comparison being false
 				let yValue;
 				DATA.map((d) => {
 					if (!!this.dataComparisonConfig) {
-						populations.map((p) => {
+						Object.keys(dataGroups).map((p) => {
 							yValue = Number(d[this.renderConfig.yAxisField][p]);
 
 							if (this.ldPopulations[p].high == null) {
 								this.ldPopulations[p].high = yValue;
 								this.ldPopulations[p].refVariant =
-									this.searchingRegion.chr +
-									":" +
-									d[this.renderConfig.ldServer.pos] +
-									"_" +
-									d[this.renderConfig.ldServer.ref] +
-									"/" +
-									d[this.renderConfig.ldServer.alt];
+									d[
+										this.renderConfig.ldServer.ref_variant_field
+									];
 
 								this.ldPopulations[p].high = yValue;
 							}
 							if (yValue > this.ldPopulations[p].high) {
 								this.ldPopulations[p].refVariant =
-									this.searchingRegion.chr +
-									":" +
-									d[this.renderConfig.ldServer.pos] +
-									"_" +
-									d[this.renderConfig.ldServer.ref] +
-									"/" +
-									d[this.renderConfig.ldServer.alt];
+									d[
+										this.renderConfig.ldServer.ref_variant_field
+									];
 
 								this.ldPopulations[p].high = yValue;
 							}
 						});
-					} /*else {
-						// more development needed
-						yValue = Number(d[this.renderConfig.yAxisField]);
-
-						if (yMax == null) {
-							yMax = yValue;
-						}
-
-						if (yValue > yMax) {
-							this.refVariant = [];
-							let tempObj = {};
-							this.refVariant.push(
-								this.searchingRegion.chr +
-									":" +
-									d[this.renderConfig.ldServer.pos] +
-									"_" +
-									d[this.renderConfig.ldServer.ref] +
-									"/" +
-									d[this.renderConfig.ldServer.alt]
-							);
-							yMax = yValue;
-						}
-					}*/
+					}
 				});
+
+				console.log("this.ldPopulations", this.ldPopulations);
 
 				if (!!this.dataComparisonConfig) {
 					let searchItem = Object.keys(this.ldPopulations)[0];
 
 					this.ancestryOnCall = this.ldPopulations[searchItem].name;
+
 					this.setLDReference(
 						true,
 						this.ldPopulations[searchItem].refVariant,
-						this.ldPopulations[searchItem].id
+						this.ldPopulations[searchItem].ancestry
 					);
-				} /*else {
-					if (populations.length > 1) {
-						this.setLDReference(false, this.refVariant[0], "ALL");
-					} else if (populations.length == 1) {
-						this.setLDReference(
-							false,
-							this.refVariant[0],
-							this.ldPopulations[populations[0]].id
-						);
-					}
-				}*/
+				}
 			}
 		},
 		setLDReference(DATA_COMPARE, VARIANT, ANCESTRY_ID) {
 			this.hidePanel("ld_dot_value_full_list");
 			this.hidePanel("dot_value_full_list");
 
+			console.log("test 1", DATA_COMPARE, VARIANT, ANCESTRY_ID);
+
 			if (DATA_COMPARE == true) {
 				//make the first LD score call
-				this.getLDData(VARIANT, ANCESTRY_ID);
-			} /*else if (DATA_COMPARE == false) {
-
 
 				this.getLDData(VARIANT, ANCESTRY_ID);
-			}*/
+			}
 		},
 
 		showHideSplitPlots() {
@@ -760,6 +799,7 @@ export default Vue.component("research-region-plot", {
 			this.renderPlot();
 		},
 		getLDData(REF_VARIANT, ANCESTRY) {
+			console.log("ANCESTRY", ANCESTRY);
 			let ldUrl =
 				"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
 				ANCESTRY +
@@ -1137,23 +1177,6 @@ export default Vue.component("research-region-plot", {
 			let plotHeight = !!this.renderConfig.height
 				? this.renderConfig.height
 				: 300;
-
-			// render LD plot after gathering required data
-			/*
-			let ldDataLength =
-				this.ldVariantCorrelationsData.data.correlation.length;
-
-			let ldData = {};
-
-			if (ldDataLength > 0) {
-				this.ldVariantCorrelationsData.data.variant2.map((v, index) => {
-					ldData[v] =
-						this.ldVariantCorrelationsData.data.correlation[index];
-				});
-			}
-
-			
-            */
 			/////
 
 			let c = document.getElementById("regionPlot");
@@ -1173,52 +1196,6 @@ export default Vue.component("research-region-plot", {
 			this.renderData.map((d) => {
 				let yValue;
 				if (!!this.dataComparisonConfig) {
-					/*if (this.plotRenderBy == "combined") {
-						yValue = d["combined"];
-
-						if (yMin == null) {
-							yMin = yValue;
-						}
-						if (yMax == null) {
-							yMax = yValue;
-						}
-
-						if (yValue < yMin) {
-							yMin = yValue;
-						}
-						if (yValue > yMax) {
-							yMax = yValue;
-						}
-					} else if (this.plotRenderBy == "high") {
-						let highNum = null;
-						this.yAxisFieldItems.map((i) => {
-							if (highNum == null) {
-								highNum = d[this.renderConfig.yAxisField][i];
-							} else {
-								if (
-									d[this.renderConfig.yAxisField][i] > highNum
-								) {
-									highNum =
-										d[this.renderConfig.yAxisField][i];
-								}
-							}
-						});
-
-						yValue = highNum;
-						if (yMin == null) {
-							yMin = yValue;
-						}
-						if (yMax == null) {
-							yMax = yValue;
-						}
-
-						if (yValue < yMin) {
-							yMin = yValue;
-						}
-						if (yValue > yMax) {
-							yMax = yValue;
-						}
-					} else if (this.plotRenderBy == "all") {*/
 					let highNum = null;
 					let lowNum = null;
 					this.yAxisFieldItems.map((i) => {
@@ -1295,27 +1272,6 @@ export default Vue.component("research-region-plot", {
 			let dotColor;
 
 			this.renderData.map((g) => {
-				let dotID =
-					this.searchingRegion.chr +
-					":" +
-					g[ldConfig.pos] +
-					"_" +
-					g[ldConfig.ref] +
-					"/" +
-					g[ldConfig.alt];
-
-				/*
-				let ldScore = !!ldData[dotID]
-					? ldData[dotID]
-					: this.refVariant.includes(dotID) == true
-					? 1
-					: 0;
-
-				dotColor = ldScore == 1 ? "#82409970" : "#33333340";
-                */
-
-				//ctx.fillStyle = dotColor;
-
 				let xPos =
 					xStart +
 					xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
@@ -1508,53 +1464,6 @@ export default Vue.component("research-region-plot", {
 			this.renderData.map((d) => {
 				let yValue;
 				if (!!this.dataComparisonConfig) {
-					/*if (this.plotRenderBy == "combined") {
-						yValue = d["combined"];
-
-						if (yMin == null) {
-							yMin = yValue;
-						}
-						if (yMax == null) {
-							yMax = yValue;
-						}
-
-						if (yValue < yMin) {
-							yMin = yValue;
-						}
-						if (yValue > yMax) {
-							yMax = yValue;
-						}
-					} else if (this.plotRenderBy == "high") {
-						let highNum = null;
-						this.yAxisFieldItems.map((i) => {
-							if (highNum == null) {
-								highNum = d[this.renderConfig.yAxisField][i];
-							} else {
-								if (
-									d[this.renderConfig.yAxisField][i] > highNum
-								) {
-									highNum =
-										d[this.renderConfig.yAxisField][i];
-								}
-							}
-						});
-
-						yValue = highNum;
-
-						if (yMin == null) {
-							yMin = yValue;
-						}
-						if (yMax == null) {
-							yMax = yValue;
-						}
-
-						if (yValue < yMin) {
-							yMin = yValue;
-						}
-						if (yValue > yMax) {
-							yMax = yValue;
-						}
-					} else if (this.plotRenderBy == "all" || this.plotRenderBy == "all") {*/
 					let highNum = null;
 					let lowNum = null;
 					this.yAxisFieldItems.map((i) => {
@@ -1665,14 +1574,7 @@ export default Vue.component("research-region-plot", {
 						g[this.renderConfig.yAxisField][ldG] != null &&
 						g[this.renderConfig.yAxisField][ldG] != undefined
 					) {
-						let dotID =
-							this.searchingRegion.chr +
-							":" +
-							g[ldConfig.pos] +
-							"_" +
-							g[ldConfig.ref] +
-							"/" +
-							g[ldConfig.alt];
+						let dotID = g[ldConfig.ref_variant_field];
 
 						let ldScore = !!LDData[dotID]
 							? LDData[dotID]
