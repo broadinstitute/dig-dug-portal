@@ -223,6 +223,22 @@ let getAxisTicks = function (lo, hi) {
     return { lo, hi, step, ticks };
 };
 
+let showTabContent = function (TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
+    let tabList = document.querySelectorAll('.kp-tabs#' + TAB_WRAPPER + ' .kp-tab');
+    let contentList = document.querySelectorAll('.kp-tabs-contents#' + CONTENT_WRAPPER + ' .kp-tab-content');
+
+    for (let i = 0; i < tabList.length; i++) {
+        tabList[i].classList.remove("active");
+    }
+
+    for (let i = 0; i < contentList.length; i++) {
+        contentList[i].classList.remove("active");
+    }
+
+    document.getElementById(TAB).classList.add("active");
+    document.getElementById(CONTENT).classList.add("active");
+}
+
 export default {
     popOutElement,
     hideElement,
@@ -237,5 +253,6 @@ export default {
     onScroll,
     convertJson2Csv,
     saveJson,
-    getAxisTicks
+    getAxisTicks,
+    showTabContent
 };
