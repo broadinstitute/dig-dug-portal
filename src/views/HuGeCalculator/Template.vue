@@ -38,7 +38,7 @@
                             :pillFormatter="
                                 (filter) =>
                                     !!$store.state.bioPortal.phenotypeMap[filter.threshold] ? $store.state.bioPortal.phenotypeMap[filter.threshold].description : filter.threshold "
-                            :options="$store.state.geneAssociations52k.data.map((association) => association.phenotype)"
+                            :options="$parent.phenotypeOptions.map((phenotype) => phenotype.name)"
                             :multiple="false"
                             :labelFormatter="(phenotype) =>
                                         !!$store.state.bioPortal.phenotypeMap[phenotype]
@@ -47,10 +47,15 @@
                         >
                             <div class="label">Phenotype</div>
                         </filter-enumeration-control>
+                        <!-- <b-badge
+                            v-if="$parent.numberOfSearches > 1"
+                            class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                            @click="removeAllFilters()"
+                        >Clear all search</b-badge>-->
                     </criterion-list-group>
 
                     <div
-                        v-if="this.$store.state.associations.data.length >0 && $parent.selectedPhenotype.length != 0"
+                        v-if="$store.state.associations.data.length >0 && $parent.selectedPhenotype.length != 0 && $parent.selectedGene.length !=0 "
                     >
                         <div>
                             <div class="card-body">
@@ -62,7 +67,7 @@
                                         style="color: #3fb54a; font-size: 15px; font-weight : bold; border-radius: 10px; background-color: #e4f4e4; padding:5px 5px 5px 5px"
                                     >
                                         <div class="col-md-6">
-                                            HuGE Score(Combined Evidence)
+                                            HuGE Score (Combined Evidence)
                                             <tooltip-documentation
                                                 name="hugecal.combined.tooltip.hover"
                                                 :content-fill="$parent.documentationMap"
@@ -74,8 +79,8 @@
                                             class="col-md-6"
                                             style="text-align: right;white-space: nowrap;"
                                         >
-                                            {{$parent.bayesFactorCommonVariation}}(Common variation BF) * {{$parent.bayesFactorRareVariation}}(Rare variation BF) = {{
-                                            $parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)
+                                            {{$parent.bayesFactorCommonVariation}}(Common variation BF) * {{$parent.bayesFactorRareVariation.rareBF}}(Rare variation BF) = {{
+                                            $parent.bayesFactorCombinedEvidencecomputed
                                             }}
                                         </div>
                                     </div>*HuGE Score(combined evidence) = BF of common variation * BF of rare variation
@@ -84,24 +89,18 @@
 
                                 <hugescore-table
                                     :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
-                                    :rareBF="parseFloat($parent.bayesFactorRareVariation)"
-                                    :hugeScore="parseFloat($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation))"
+                                    :rareBF="parseFloat($parent.bayesFactorRareVariation.rareBF)"
+                                    :hugeScore="parseFloat($parent.bayesFactorCombinedEvidencecomputed)"
                                     :exomeSignificant="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
                                 ></hugescore-table>
 
                                 <div class="container">
                                     <div class="center">
                                         <color-bar-plot
-                                            v-if="$parent.bayesFactorRareVariation"
-                                            :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation))"
+                                            v-if="$parent.bayesFactorRareVariation.rareBF"
+                                            :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidencecomputed)"
                                             :elementid="'combinedVariation'"
-                                            :score=" parseFloat($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation))"
+                                            :score=" parseFloat($parent.bayesFactorCombinedEvidencecomputed)"
                                         ></color-bar-plot>
                                     </div>
                                 </div>
@@ -110,6 +109,7 @@
                                 <!-- First Collapsible section - Posterior probability - Start -->
 
                                 <div
+                                    v-if="$parent.geneAssociations52k"
                                     style="cursor:pointer"
                                     v-on:click="$parent.showHideFeature('ppasection')"
                                 >
@@ -129,23 +129,24 @@
                                         </span>
                                         <hugecal-table
                                             style="padding:50px 250px 50px 250px"
-                                            :hugeScore="parseFloat($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
-                                                                $parent.bayesFactorRareVariation))"
+                                            :hugeScore="$parent.bayesFactorCombinedEvidencecomputed"
                                         ></hugecal-table>
                                     </div>
                                     <div class="col-md-4">
                                         <posterior-probability-plot
-                                            v-if="$parent.geneAssociations52k"
-                                            :geneAssociationsData=" $parent.geneAssociations52k"
+                                            :geneAssociationsData="$parent.geneAssociations52k"
                                             :priorVariance="this.$store.state.prior"
-                                            :bayes_factor="parseFloat($parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
-                                                        $parent.bayesFactorRareVariation))"
-                                            :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
+                                            :bayes_factor="$parent.bayesFactorCombinedEvidencecomputed"
                                             :universalPriorList="this.$store.state.universalPriorList"
                                         ></posterior-probability-plot>
                                     </div>
+                                    <!-- <div class="col-md-4">
+                                        <posterior-probability-plot
+                                            :geneAssociationsData="$parent.geneAssociations52k"
+                                            :priorVariance="this.$store.state.prior"
+                                            :bayes_factor="$parent.bayesFactorCombinedEvidencecomputed"
+                                        ></posterior-probability-plot>
+                                    </div>-->
                                 </div>
                                 <!-- End of Posterior probability Collapsible section -->
                             </div>
@@ -177,15 +178,15 @@
                                         >BF:{{$parent.bayesFactorCommonVariation}}</div>
                                     </div>
                                 </span>
-                                <div id="commonvariation" style="cursor:pointer" class="hidden">
+                                <div id="commonvariation" style="cursor:pointer;" class="hidden">
                                     <div
                                         v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
                                     >
-                                        <span class="lead" style="font-size:12px ">
+                                        <div class="lead" style="font-size:12px ">
                                             *Common variation BF = 1 if a gene is not genome wide significant
                                             <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
-                                        </span>
-                                        <br />
+                                        </div>
+
                                         <h6
                                             style="font-weight:bold;margin-top:15px;margin-bottom:10px"
                                         >How is common variation BF calculated?</h6>
@@ -213,9 +214,20 @@
                                         ></commonvariation-genomesig-table>
                                     </div>
                                     <div v-else>
+                                        <span class="lead" style="font-size:12px ">
+                                            *Common variation BF = 1 if a gene is not genome wide significant
+                                            <br />*If a gene is genome-wide significant, common variation BF = BF of GWAS evidence * BF of coding evidence * BF of regulatory evidence
+                                        </span>
+
                                         <h6
                                             style="font-weight:bold;margin-top:15px;margin-bottom:10px"
                                         >How is common variation BF calculated?</h6>
+                                        <span>
+                                            <documentation
+                                                name="hugecal.commonvar.subheader"
+                                                :content-fill="$parent.documentationMap"
+                                            ></documentation>
+                                        </span>
                                         <div class="container">
                                             <span
                                                 class="center"
@@ -247,31 +259,33 @@
                                     <div style="margin-block-end: 30px"></div>
                                     <div
                                         style="cursor:pointer"
-                                        v-on:click="$parent.showHideSvgFeature('lzplot')"
+                                        v-on:click="$parent.showHideSvg('lzplot')"
                                     >
                                         <div
                                             class="headerexpander"
                                         >View {{$parent.selectedGene[0]}} on LocusZoom</div>
                                     </div>
-
-                                    <div id="lzplot" class="hidden">
-                                        <locuszoom
-                                            v-if="$parent.region"
-                                            ref="locuszoom"
-                                            :chr="$parent.region.chromosome"
-                                            :start="$parent.region.start -50000"
-                                            :end="$parent.region.end +50000"
-                                            :refSeq="true"
-                                            :ldpop="true"
-                                        >
-                                            <lz-associations-panel
-                                                :phenotype="$parent.selectedPhenotype[0]"
-                                                @input="$parent.updateAssociationsTable"
-                                            ></lz-associations-panel>
-                                        </locuszoom>
-                                    </div>
                                 </div>
 
+                                <div
+                                    v-if="$parent.region"
+                                    id="lzplot"
+                                    class="svg-wrapper hidden-svg"
+                                >
+                                    <locuszoom
+                                        ref="locuszoom"
+                                        :chr="$parent.region.chromosome"
+                                        :start="$parent.region.start -50000"
+                                        :end="$parent.region.end +50000"
+                                        :refSeq="true"
+                                        :ldpop="false"
+                                    >
+                                        <lz-associations-panel
+                                            :phenotype="$parent.selectedPhenotype[0]"
+                                            @input="$parent.updateAssociationsTable"
+                                        ></lz-associations-panel>
+                                    </locuszoom>
+                                </div>
                                 <br />
                                 <!-- NEW RARE VARIATION -->
                                 <div>
@@ -296,7 +310,7 @@
                                             <div
                                                 class="col-md-6"
                                                 style="text-align: right;"
-                                            >BF:{{$parent.bayesFactorRareVariation}}</div>
+                                            >BF:{{$parent.bayesFactorRareVariation.rareBF}}</div>
                                         </div>
                                     </span>
                                     <div class="hidden" id="rarevariation">
@@ -324,16 +338,16 @@
                                             <rarevariation-exomesig-table
                                                 :isExomeWideSignificant="true"
                                                 :exomeEvidence="$parent.rareVariationScoreEvidenceMap['exomeEvidence']"
-                                                :rareBF="parseFloat($parent.bayesFactorRareVariation)"
+                                                :rareBF="parseFloat($parent.bayesFactorRareVariation.rareBF)"
                                             ></rarevariation-exomesig-table>
 
                                             <div class="container">
                                                 <div class="center">
                                                     <color-bar-plot
-                                                        v-if="$parent.bayesFactorRareVariation"
-                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        v-if="$parent.bayesFactorRareVariation.rareBF"
+                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation.rareBF)"
                                                         :elementid="'rareVariation'"
-                                                        :score="parseFloat($parent.bayesFactorRareVariation)"
+                                                        :score="parseFloat($parent.bayesFactorRareVariation.rareBF)"
                                                     ></color-bar-plot>
                                                 </div>
                                             </div>
@@ -343,6 +357,7 @@
                                                 v-on:click="$parent.showHideFeature('masktable')"
                                             >
                                                 <div
+                                                    v-if="$parent.geneAssociations52k"
                                                     class="headerexpander"
                                                 >View Burden Association Summary statistics</div>
                                             </div>
@@ -385,17 +400,17 @@
                                             <rarevariation-not-exomesig-table
                                                 :isExomeWideSignificant="false"
                                                 :priorVariance="$store.state.prior"
-                                                :rareBF="parseFloat($parent.bayesFactorRareVariation)"
-                                                :burdenAssocEvidence="$parent.beta"
+                                                :rareBF="parseFloat($parent.bayesFactorRareVariation.rareBF)"
+                                                :burdenAssocEvidence="parseFloat($parent.bayesFactorRareVariation.beta)"
                                             ></rarevariation-not-exomesig-table>
 
                                             <div class="container">
                                                 <div class="center">
                                                     <color-bar-plot
-                                                        v-if="$parent.bayesFactorRareVariation"
-                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        v-if="$parent.bayesFactorRareVariation.rareBF"
+                                                        :category=" $parent.determineCategory($parent.bayesFactorRareVariation.rareBF)"
                                                         :elementid="'rareVariation'"
-                                                        :score="parseFloat($parent.bayesFactorRareVariation)"
+                                                        :score="parseFloat($parent.bayesFactorRareVariation.rareBF)"
                                                     ></color-bar-plot>
                                                 </div>
                                             </div>
@@ -405,6 +420,7 @@
                                                 v-on:click="$parent.showHideFeature('masktable')"
                                             >
                                                 <div
+                                                    v-if="$parent.geneAssociations52k"
                                                     class="headerexpander"
                                                 >View Burden Association Summary statistics</div>
                                             </div>
@@ -433,7 +449,19 @@
     </div>
 </template>
 
+<script>
+//   setup() {
+//             this.$nextTick(() => {
+//                 this.$refs.annotations.$refs.input.focus();
+//             });
+//             this.shouldRender = ref(false);
+//             nextTick(() => {
+//                 shouldRender.value = true;
+//             });
 
+//             return shouldRender;
+//         },
+</script>
 <style>
 .color-bar-plot-wrapper {
     width: calc(100% - 32px);

@@ -2,6 +2,7 @@
 node_modules
 /dist
 /distPapers
+/portals
 
 # local env files
 .env.local

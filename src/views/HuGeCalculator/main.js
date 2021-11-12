@@ -1,4 +1,5 @@
 import Vue from "vue";
+
 import Template from "./Template.vue";
 import store from "./store.js";
 import { BootstrapVue, BootstrapVueIcons, BIconMouse2 } from "bootstrap-vue";
@@ -63,7 +64,7 @@ new Vue({
         RareVariationExSignificantTable,
         RareVariationNotExSignificantTable,
         CommonVariationNotGenSignificantTable,
-        ResetPriorWidget
+        ResetPriorWidget,
 
     },
     render(createElement, context) {
@@ -104,7 +105,10 @@ new Vue({
                 : [],
             commonVariationStart: null,
             commonVariationEnd: null,
-            showPosteriorProbability: false
+            showPosteriorProbability: false,
+            shouldRender: false,
+            isModalVisible: false,
+
         };
     },
     created() {
@@ -113,9 +117,9 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
-        if (keyParams.gene) {
-            this.$store.dispatch("get52KAssociationData", keyParams.gene);
-        }
+        // if (keyParams.gene) {
+        //     this.$store.dispatch("get52KAssociationData", keyParams.gene);
+        // }
         if (keyParams.gene && keyParams.phenotype) {
             let gene = keyParams.gene;
             let phenotype = keyParams.phenotype;
@@ -129,6 +133,13 @@ new Vue({
     },
 
     computed: {
+        phenotypeOptions() {
+            return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
+        },
+        numberOfSearches() {
+            return this.hugecalSearchCriterion.length;
+        },
+
 
         suggestedPriorNewOne() {
             return this.$store.state.suggestedPriorNew
@@ -208,7 +219,6 @@ new Vue({
                 if (!!this.$store.state.kp4cd.eglData.data) {
                     let effectordata = this.$store.state.kp4cd.eglData.data;
                     let effectorGeneData = {};
-
                     for (var i = 0; i < effectordata.length; ++i) {
                         if (
                             effectordata[i].gene.toLowerCase() ===
@@ -238,14 +248,11 @@ new Vue({
                     i++
                 ) {
                     if (
-                        !!this.$store.state.geneAssociations52k.data[i]
-                            .phenotype &&
-                        this.$store.state.geneAssociations52k.data[i]
-                            .phenotype == this.selectedPhenotype[0]
+                        !!this.$store.state.geneAssociations52k.data[i].phenotype &&
+                        this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]
                     ) {
                         //filter with selected phenotype
-                        maskdata = this.$store.state.geneAssociations52k.data[i]
-                            .masks;
+                        maskdata = this.$store.state.geneAssociations52k.data[i].masks;
                     }
                 }
             }
@@ -259,6 +266,7 @@ new Vue({
         },
 
         bayesFactorRareVariation() {
+            let betararebfmap = {}
             let masks = [];
             let rarebayesfactor = 1;
             let beta;
@@ -270,6 +278,9 @@ new Vue({
                 )
             ) {
                 rarebayesfactor = 348;
+                betararebfmap["rareBF"] = rarebayesfactor
+                betararebfmap["beta"] = 1
+
             } else {
                 if (this.$store.state.geneAssociations52k.data.length > 0) {
                     for (
@@ -302,18 +313,25 @@ new Vue({
                             if (rarebayesfactor < 1) {
                                 rarebayesfactor = 1;
                             }
-                            return Number.parseFloat(rarebayesfactor).toFixed(
-                                2
-                            );
+                            betararebfmap["rareBF"] = Number.parseFloat(rarebayesfactor).toFixed(2)
+                            betararebfmap["beta"] = beta
+                            return betararebfmap
                         }
                         //if phenotype doesn't exist in 52K Associations data
                         else {
                             rarebayesfactor = 1;
+                            betararebfmap["rareBF"] = rarebayesfactor
+                            betararebfmap["beta"] = 1
+
                         }
                     }
                 }
             }
-            return Number.parseFloat(rarebayesfactor).toFixed(2);
+            return betararebfmap;
+        },
+        bayesFactorCombinedEvidencecomputed() {
+            let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation.rareBF
+            return x
         },
         bayesFactorCommonVariation() {
             let firstBF = 1;
@@ -324,7 +342,7 @@ new Vue({
             if (!!data.length > 0) {
                 for (let i = 0; i < data.length; i++) {
                     //if GWAS evidence
-                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                    if (data[i].phenotype.toUpperCase() == this.selectedPhenotype[0].toUpperCase()) {
                         if (data[i].pValue <= 5e-8) {
                             firstBF = 3;
                             if (!!this.eglData) {
@@ -464,26 +482,12 @@ new Vue({
 
     },
     methods: {
-        // toggleCollapse(ref) {
-        //     let show = this.classArrs[ref].indexOf('show') > -1 ? false : 'show'
-        //     this.classArrs[ref] = ['collapsing']
-        //     setTimeout(() => {
-        //         if (show) {
-        //             let height = 400 + 'px';
-        //             this.styleObjs[ref] = { height }
-        //         }
-        //         else {
-        //             this.styleObjs[ref] = {}
-        //         }
-        //     }, 10)
-        //     setTimeout(() => {
-        //         this.classArrs[ref] = ['collapse', show]
-        //     }, 340)
-        // },
+
+
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
         },
-        showHideSvgFeature(svgWrapper) {
+        showHideSvg(svgWrapper) {
             uiUtils.showHideSvg(svgWrapper);
         },
         toggleCollapse(ref) {
@@ -611,7 +615,7 @@ new Vue({
             //this call goes to store to get associations data
             let phenoRegionQuery = {};
 
-            if (phenotype.length > 0) {
+            if (gene.length > 0 && phenotype.length > 0) {
                 this.$store.dispatch("gene/query", { q: gene });
                 let r = this.$store.getters.region;
                 phenoRegionQuery = { gene: gene[0], phenotype: phenotype[0] };
@@ -619,7 +623,8 @@ new Vue({
                 this.$store.dispatch("get52KAssociationData", gene);
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
-        }
+        },
+
     },
 
     watch: {
@@ -629,13 +634,17 @@ new Vue({
         criterion(newCriterion, oldCriterion) {
             //check if the old and new criterion are different only then update the Associations
             if (!isEqual(newCriterion, oldCriterion)) {
-                if (newCriterion.gene.length > 0) {
-                    this.$store.dispatch(
-                        "get52KAssociationData",
-                        newCriterion.gene[0]
-                    );
-                }
-                if (newCriterion.phenotype.length > 0) {
+
+                keyParams.set({
+                    gene: newCriterion.gene ? newCriterion.gene : []
+                });
+
+
+                keyParams.set({
+                    phenotype: newCriterion.phenotype ? newCriterion.phenotype : []
+                });
+
+                if (newCriterion.phenotype.length > 0 && newCriterion.gene.length > 0) {
                     if (newCriterion.gene !== oldCriterion.gene) {
                         this.$store.dispatch("gene/query", {
                             q: newCriterion.gene

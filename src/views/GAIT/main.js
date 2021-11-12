@@ -21,7 +21,7 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 new Vue({
-    el:'#app',
+    el: "#app",
     store,
     mixins: [pageMixin],
     components: {
@@ -79,22 +79,26 @@ new Vue({
                 {
                     key: "varId",
                     label: "Variant ID",
-                    visible: true
+                    visible: true,
+                    sortable: true
                 },
                 {
                     key: "burdenBinId",
                     label: "Mask",
-                    visible: true
+                    visible: true,
+                    sortable: true
                 },
                 {
                     key: "impact",
                     label: "Impact",
-                    visible: true
+                    visible: true,
+                    sortable: true
                 },
                 {
                     key: "maf",
                     label: "Minor Allele Frequency",
-                    visible: true
+                    visible: true,
+                    sortable: true
                 }
             ],
             defaultFields: [
@@ -102,15 +106,108 @@ new Vue({
                 "selected",
                 "varId",
                 "burdenBinId",
+                // "caddRawRankscore",
                 "impact",
                 "maf",
+                // "siftPred",
+                // "polyphen2HdivPred",
+                // "polyphen2HvarPred",
+                // "lrtPred",
+                // "mutationtasterPred",
                 "gene",
                 "pick",
                 "transcript_id"
             ],
             fields: [],
-            optionalFields: [],
-            searchCriteria: []
+            //optionalFields: [],
+            optionalFields: [
+                {
+                    key: "siftPred",
+                    label: "SIFT",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "polyphen2HdivPred",
+                    label: "PPH Hdiv",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "polyphen2HvarPred",
+                    label: "PPH Hvar",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "lrtPred",
+                    label: "LRT",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "mutationtasterPred",
+                    label: "MutTas",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "caddRawRankscore",
+                    label: "CADD",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "dannRankscore",
+                    label: "DANN",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "eigenPcRawCodingRankscore",
+                    label: "Eigen-PC",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "fathmmMklCodingPred",
+                    label: "FATHMM-MKL",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "fathmmPred",
+                    label: "FATHMM",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "lof",
+                    label: "LOF",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "proveanPred",
+                    label: "PROVEAN",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "vest4Rankscore",
+                    label: "VEST4",
+                    visible: false,
+                    sortable: true
+                },
+                {
+                    key: "gnomadGenomesPopmaxAf",
+                    label: "Max AF",
+                    visible: false,
+                    sortable: true
+                }
+            ],
+            searchCriteria: [],
+            selectedVariants: []
         };
     },
     created() {
@@ -140,10 +237,7 @@ new Vue({
                 return [];
             }
         },
-        selectedVariants() {
-            //get only the varIDs for selected rows
-            return this.tableData.filter(v => v.selected).map(v => v.varId);
-        },
+
         selectedGene() {
             return this.searchCriteria
                 .filter(v => {
@@ -218,19 +312,19 @@ new Vue({
             this.testChanged = false;
         },
         updateFields() {
-            let addFields = [];
-            Object.keys(this.tableData[0]).forEach(k => {
-                if (this.defaultFields.indexOf(k) < 0) {
-                    addFields.push({
-                        key: k,
-                        label: startCase(k),
-                        visible: false
-                    });
-                }
-            });
+            // let addFields = [];
+            // Object.keys(this.tableData[0]).forEach(k => {
+            //     if (this.defaultFields.indexOf(k) < 0) {
+            //         addFields.push({
+            //             key: k,
+            //             label: startCase(k),
+            //             visible: false
+            //         });
+            //     }
+            // });
 
-            this.optionalFields = addFields;
-            this.fields = this.baseFields.concat(addFields);
+            // this.optionalFields = addFields;
+            this.fields = this.baseFields.concat(this.optionalFields);
         },
         formatTestData(samples, data) {
             let formatted = [];
@@ -292,6 +386,22 @@ new Vue({
                     })
                 );
             }
+        },
+        updateSelectedVariants() {
+            //get only the varIDs for selected rows
+            this.selectedVariants = this.tableData
+                .filter(v => {
+                    return v.selected === true;
+                })
+                .map(v => v.varId);
+        },
+        selectAllVariants() {
+            this.tableData.forEach(v => (v.selected = true));
+            this.updateSelectedVariants();
+        },
+        deselectAllVariants() {
+            this.tableData.forEach(v => (v.selected = false));
+            this.updateSelectedVariants();
         }
     },
     watch: {
@@ -365,6 +475,16 @@ new Vue({
         },
         "$store.state.ldServer.runTestsError": function() {
             this.loadingCovariances = false;
+        },
+        tableData: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.updateSelectedVariants(); //update selected variants when tableData is ready
+                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
+                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
+                }
+            },
+            deep: true
         }
     }
 }).$mount("#app");
