@@ -112,9 +112,10 @@
             </div>
             <div v-else class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">
-                        Select phenotype for associations
-                    </h4>
+                    <b-alert show class="text-center">
+                        <b-icon icon="exclamation-circle"></b-icon> Select a
+                        phenotype to view associations
+                    </b-alert>
                 </div>
             </div>
 
