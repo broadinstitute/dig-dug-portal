@@ -14,11 +14,13 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         gene: bioIndex("gene"),
-        variants: bioIndex("variant-phenotype", {query_private:true}),
+        variants: bioIndex("variants", { query_private: true }),
         uniprot
-    },state: {
+    },
+    state: {
         geneName: keyParams.gene
-    }, mutations: {
+    },
+    mutations: {
         setGeneName(state, geneName) {
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
@@ -43,7 +45,7 @@ export default new Vuex.Store({
                     end: gene.end
                 };
             }
-        },
+        }
 
         /*canonicalSymbol(state) {
             let data = state.genes.data;
@@ -64,22 +66,21 @@ export default new Vuex.Store({
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
             }
-            
         },
 
         async queryGeneRegion(context, region) {
-            console.log("query gene region:"+region);
+            console.log("query gene region:" + region);
             let { chromosome, start, end } = region || context.getters.region;
             //let q = `${chromosome}:${start}-${end}`;
             let name = context.state.geneName;
-            context.commit("setGene", {name, chromosome, start, end});
+            context.commit("setGene", { name, chromosome, start, end });
             let q = context.state.geneRegion;
             console.log(q);
             //context.dispatch("genes/query", { q });
             context.dispatch("variants/query", { q });
             //console.log(context.state.gene)
             //console.log(context.state.genes)
-        },
+        }
 
         /*async queryUniprot(context, symbol) {
             let name = symbol || context.getters.canonicalSymbol;
@@ -101,7 +102,7 @@ export default new Vuex.Store({
             let chromosome=region.chromosome;
             let start=region.start;
             let end = region.end;
-            
+
             context.commit("setGene", {name, chromosome, start, end});
             let q = context.state.geneRegion;
             console.log(q)

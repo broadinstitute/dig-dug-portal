@@ -246,7 +246,7 @@ if (process.env.NODE_ENV === "production") {
 module.exports = {
     devServer: {
         //proxy: 'http://100.80.30.84:8090',
-        writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
+        writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
         /*headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
@@ -255,13 +255,13 @@ module.exports = {
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
         let bioindex_host = "https://bioindex.hugeamp.org"; // production by default
-        let bioindex_host_private = "http://100.80.30.84:5000";
+        let bioindex_host_private = "https://bioindex.hugeamp.org/nephkp";
         let portal_host = "https://bioindex.hugeamp.org";
 
         if (!!bioindex_dev) {
             bioindex_host =
                 bioindex_dev == "localhost"
-                    ? "http://100.80.30.84:5000"
+                    ? "localhost:5000"
                     : "https://bioindex-dev.hugeamp.org";
         }
 
