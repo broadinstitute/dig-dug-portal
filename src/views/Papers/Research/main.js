@@ -1,6 +1,9 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
+//import BootstrapVue from "bootstrap-vue";
+//import { BootstrapVueIcons } from "bootstrap-vue";
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
 
 Vue.use(BootstrapVueIcons);
 
@@ -87,6 +90,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+
         addcss(css) {
             var head = document.getElementsByTagName('head')[0];
             var s = document.createElement('style');
@@ -479,12 +483,16 @@ new Vue({
 
                 }
             } else {
+
                 this.$store.dispatch("unfilteredData", newResearchData);
                 this.$store.dispatch("filteredData", newResearchData);
 
                 return newResearchData;
             }
 
+        },
+        showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
+            uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
         },
     },
 
@@ -654,6 +662,15 @@ new Vue({
             }
             return $("<textarea/>").html(contents[0]["field_data_visualizer_legend"]).text();
         },
+        researchMethodID() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_research_method"] == false) {
+                return null;
+            }
+
+            return contents[0]["field_research_method"];
+        },
         researchMethod() {
             let contents = this.$store.state.hugeampkpncms.researchMethod;
 
@@ -674,11 +691,14 @@ new Vue({
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
+
             if (contents.length === 0) {
                 return null;
             } else {
 
                 let convertedData = (this.dataType == 'json' || this.dataType == 'bioindex') ? JSON.parse(contents) : this.csv2Json(contents);
+
+
 
                 if (this.dataType == 'bioindex') {
                     if (convertedData.continuation != null) {
@@ -718,7 +738,9 @@ new Vue({
                         return processedData;
                     }
                 } else {
-                    let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
+                    let returnData = (this.dataType == 'json') ? JSON.parse(convertedData).data : convertedData;
+
+                    console.log("returnData", convertedData["data"]);
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
@@ -881,6 +903,9 @@ new Vue({
         },
         researchData(content) {
             // reset searching region if applicable
+            console.log("data", content);
+            console.log("this.plotConfig", this.plotConfig);
+            console.log("this.dataTableFormat", this.dataTableFormat);
 
             if (this.plotConfig != null &&
                 !!this.plotConfig.genesTrack) {
@@ -908,6 +933,7 @@ new Vue({
                 this.checkDataComparison(content, this.$store.state.filteredData);
 
                 if (this.dataTableFormat == null) {
+
                     let topRows = Object.keys(content[0]);
                     let dataTableFormat = { "top rows": topRows };
                     this.dataTableFormat = dataTableFormat;
