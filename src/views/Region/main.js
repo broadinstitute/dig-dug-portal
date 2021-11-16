@@ -192,10 +192,14 @@ new Vue({
                     this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
                         keyParams.phenotype.split(",")[0]
                     );
-                } else {
+                } else if (this.$store.state.phenotypeParam) {
                     //get phenotype list from state if url is empty
                     this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
                         this.$store.state.phenotypeParam.split(",")[0]
+                    );
+                } else {
+                    console.error(
+                        "Error: Cannot display computed credible set. There's no phenotype selected."
                     );
                 }
             }
