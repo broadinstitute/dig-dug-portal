@@ -16,7 +16,7 @@ import Documentation from "@/components/Documentation";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
-import LocusZoomCoaccessibilityPanel from "@/components/lz/panels/LocusZoomCoaccessibilityPanel"
+import LocusZoomCoaccessibilityPanel from "@/components/lz/panels/LocusZoomCoaccessibilityPanel";
 
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
@@ -100,10 +100,10 @@ new Vue({
         return {
             enrichmentScoring: null,
 
-            associationsFilter: function (id) {
+            associationsFilter: function(id) {
                 return true;
             },
-            annotationsFilter: function (id) {
+            annotationsFilter: function(id) {
                 return true;
             },
             pageAssociationsMap: {},
@@ -129,8 +129,9 @@ new Vue({
                 if (this.selectedPhenotypes.length > 0) {
                     this.$store.dispatch("credibleSets/clear");
                     this.selectedPhenotypes.forEach(p => {
-                        const queryString = `${p.name},${this.$store.state.chr
-                            }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        const queryString = `${p.name},${
+                            this.$store.state.chr
+                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                         this.$store.dispatch("credibleSets/query", {
                             q: queryString,
                             append: true
@@ -143,7 +144,9 @@ new Vue({
         updateLocalRegion(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
-                this.localRegion = `${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
+                this.localRegion = `${this.$store.state.chr}:${Number.parseInt(
+                    start
+                )}-${Number.parseInt(end)}`;
             }
         },
         /*
@@ -184,9 +187,17 @@ new Vue({
                 );
             } else if (credibleSetId === "computed") {
                 // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
-                this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
-                    this.$store.state.phenotypeParam.split(",")[0]
-                );
+                if (keyParams.phenotype) {
+                    //get phenotype list from url
+                    this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
+                        keyParams.phenotype.split(",")[0]
+                    );
+                } else {
+                    //get phenotype list from state if url is empty
+                    this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
+                        this.$store.state.phenotypeParam.split(",")[0]
+                    );
+                }
             }
         },
         addAnnotationIntervalsPanel(r) {
@@ -259,7 +270,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function (gene) {
+            return this.$store.state.genes.data.filter(function(gene) {
                 return gene.source == "symbol";
             });
         },
