@@ -54,9 +54,10 @@
                 :current-page="currentPage"
                 ><template #thead-top="data">
                     <b-tr>
-                        <b-th colspan="3"
+                        <b-th colspan="4"
                             ><span class="sr-only"
-                                >Variant, dbSNP, Consequence</span
+                                >Variant, Consequence, Protein Position, Amino
+                                Acids</span
                             ></b-th
                         >
                         <b-th
@@ -65,15 +66,9 @@
                             variant="secondary"
                             >Allele</b-th
                         >
-                        <b-th><span class="sr-only">Max AF</span></b-th>
+
                         <b-th
-                            colspan="2"
-                            class="text-center"
-                            variant="secondary"
-                            >Heterozygous</b-th
-                        >
-                        <b-th
-                            colspan="2"
+                            colspan="1"
                             class="text-center"
                             variant="secondary"
                             style="border-left: 1px solid #dee2e6"
@@ -353,24 +348,23 @@ export default Vue.component("variant-search", {
                 },
                 {
                     key: "allelecount",
-                    label: "Case Allele Count",
+                    label: "Count",
                 },
                 {
                     key: "allelnumber",
-                    label: "Case Allele Number",
+                    label: "Number",
                 },
 
                 {
                     key: "allelefrequency",
-                    label: "Case Allele Frequency",
+                    label: "Frequency",
                     sortable: true,
                 },
                 {
                     key: "TWO_ALT_GENO_CTS",
-                    label: "Case Number of Homozygotes",
+                    label: "Count",
                     sortable: true,
                 },
-
                 {
                     key: "view",
                     label: "View Additional Data",
