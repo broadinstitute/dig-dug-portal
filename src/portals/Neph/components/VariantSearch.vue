@@ -82,20 +82,26 @@
                         <b-th><span class="sr-only">View VEP Data</span></b-th>
                     </b-tr>
                 </template>
-                <template #cell(varId)="data">
-                    <a :href="`/variant.html?variant=${data.item.varId}`">{{
-                        data.item.varId
+                <template #cell(varID)="data">
+                    <a :href="`/variant.html?variant=${data.item.varID}`">{{
+                        data.item.varID
                     }}</a> </template
                 ><template #cell(dbSNP)="data">
                     <a :href="`/variant.html?variant=${data.item.dbSNP}`">{{
                         data.item.dbSNP
                     }}</a>
                 </template>
-                <template #cell(consequence)="data">
-                    <div class="border-color" :class="data.item.impact">
-                        {{ consequenceFormatter(data.item.consequence) }}
-                    </div></template
-                >
+                <template #cell(max_consequence)="data">
+                    <div
+                        v-if="data.item.Max_Impact"
+                        class="border-color"
+                        :class="data.item.Max_Impact"
+                    >
+                        {{ consequenceFormatter(data.item.max_consequence) }}
+                    </div>
+                    <div v-else class="border-color NONE"></div>
+                </template>
+
                 <template #cell(view)="data">
                     <b-btn
                         v-if="!data.item.consequence"
@@ -111,10 +117,10 @@
                         variant="outline-primary"
                         class="btn-mini showData"
                         @click="
-                            showVariantData(data.item.varId);
+                            showVariantData(data.item.varID);
                             data.toggleDetails();
                         "
-                        ><span v-if="!!loadingData[data.item.varId]"
+                        ><span v-if="!!loadingData[data.item.varID]"
                             ><b-spinner small></b-spinner>
                             <span class="sr-only">Loading...</span></span
                         ><span v-else>
@@ -128,21 +134,21 @@
                     <div class="details">
                         <div
                             v-if="
-                                variantData[escapedVarID(row.item.varId)] &&
-                                variantData[escapedVarID(row.item.varId)].length
+                                variantData[escapedVarID(row.item.varID)] &&
+                                variantData[escapedVarID(row.item.varID)].length
                             "
                         >
                             <b-table
                                 :items="
-                                    variantData[escapedVarID(row.item.varId)]
+                                    variantData[escapedVarID(row.item.varID)]
                                 "
                                 :fields="subFields"
                                 :per-page="perPage"
                                 :tbody-tr-class="rowPickClass"
-                                ><template #cell(varId)="data">
+                                ><template #cell(varID)="data">
                                     <a
-                                        :href="`/variant.html?variant=${data.item.varId}`"
-                                        >{{ data.item.varId }}</a
+                                        :href="`/variant.html?variant=${data.item.varID}`"
+                                        >{{ data.item.varID }}</a
                                     >
                                 </template>
                                 <template #head(transcriptId)="data">
@@ -242,8 +248,8 @@
                         </div>
                         <div
                             v-else-if="
-                                variantData[escapedVarID(row.item.varId)] &&
-                                variantData[escapedVarID(row.item.varId)]
+                                variantData[escapedVarID(row.item.varID)] &&
+                                variantData[escapedVarID(row.item.varID)]
                                     .length === 0
                             "
                         >
@@ -289,6 +295,39 @@ export default Vue.component("variant-search", {
     },
     data() {
         return {
+            HPOTerms: [
+                { "HP-0000119": "Abnormality of the genitourinary system" },
+                { "HP-0000152": "Abnormality of head or neck" },
+                { "HP-0000478": "Abnormality of the eye" },
+                { "HP-0000598": "Abnormality of the ear" },
+                { "HP-0000707": "Abnormality of the nervous system" },
+                { "HP-0000769": "Abnormality of the breast" },
+                { "HP-0000818": "Abnormality of the endocrine system" },
+                {
+                    "HP-0001197":
+                        "Abnormality of prenatal development or birth",
+                },
+                { "HP-0001507": "Growth abnormality" },
+                { "HP-0001574": "Abnormality of the integument" },
+                { "HP-0001608": "Abnormality of the voice" },
+                { "HP-0001626": "Abnormality of the cardiovascular system" },
+                {
+                    "HP-0001871":
+                        "Abnormality of blood and blood-forming tissues",
+                },
+                { "HP-0001939": "Abnormality of metabolism/homeostasis" },
+                { "HP-0002086": "Abnormality of the respiratory system" },
+                { "HP-0002664": "Neoplasm" },
+                { "HP-0002715": "Abnormality of the immune system" },
+                { "HP-0025031": "Abnormality of the digestive system" },
+                { "HP-0025142": "Constitutional symptom" },
+                { "HP-0025354": "Abnormal cellular phenotype" },
+                { "HP-0033127": "Abnormality of the musculoskeletal system" },
+                { "HP-0040064": "Abnormality of limbs" },
+                { "HP-0045027": "Abnormality of the thoracic cavity" },
+                { AllControl: "Controls" },
+            ],
+
             perPage: 10,
             currentPage: 1,
 
@@ -296,63 +335,45 @@ export default Vue.component("variant-search", {
             consequences: {},
             fields: [
                 {
-                    key: "varId",
+                    key: "varID",
                     label: "Variant",
                 },
                 {
-                    key: "dbSNP",
-                    label: "dbSNP",
+                    key: "max_consequence",
+                    label: "Consequence",
+                    tdClass: "border-color",
                 },
                 {
-                    key: "consequence",
-                    label: "Consequence",
+                    key: "Protein_Position",
+                    label: "Protein Position",
+                },
+                {
+                    key: "Amino_Acids",
+                    label: "Amino Acids",
+                },
+                {
+                    key: "allelecount",
+                    label: "Case Allele Count",
+                },
+                {
+                    key: "allelnumber",
+                    label: "Case Allele Number",
                 },
 
                 {
-                    key: "alleleCountCases",
-                    label: "Cases",
+                    key: "allelefrequency",
+                    label: "Case Allele Frequency",
                     sortable: true,
                 },
                 {
-                    key: "alleleCountControls",
-                    label: "Controls",
-                    sortable: true,
-                },
-                {
-                    key: "alleleCount",
-                    label: "Count",
-                    sortable: true,
-                },
-                {
-                    key: "maf",
-                    label: "Max AF",
-                    sortable: true,
-                    thStyle: "min-width: 120px;",
-                },
-                {
-                    key: "heterozygousCases",
-                    label: "Cases",
-                    sortable: true,
-                },
-                {
-                    key: "heterozygousControls",
-                    label: "Controls",
-                    sortable: true,
-                },
-                {
-                    key: "homozygousCases",
-                    label: "Cases",
-                    sortable: true,
-                },
-                {
-                    key: "homozygousControls",
-                    label: "Controls",
+                    key: "TWO_ALT_GENO_CTS",
+                    label: "Case Number of Homozygotes",
                     sortable: true,
                 },
 
                 {
                     key: "view",
-                    label: "View VEP Data",
+                    label: "View Additional Data",
                     class: "nowrap",
                 },
             ],
@@ -419,16 +440,81 @@ export default Vue.component("variant-search", {
             loadingData: {},
         };
     },
-    // created() {
-    //     if (this.gene) {
-    //         this.searchVariants();
-    //     }
-    // },
+    created() {
+        if (this.gene) {
+            this.searchVariants();
+        }
+    },
     computed: {
         //This works to display all data fro BI
         tableData() {
             if (this.variants && this.variants.length) {
-                return this.variants;
+                for (let i = 0; i < this.variants.length; i++) {
+                    this.variants[i].allelecount =
+                        2 * parseInt(this.variants[i].TWO_ALT_GENO_CTS) +
+                        parseInt(this.variants[i].GHET_REF_ALT_CTS);
+                    this.variants[i].allelnumber =
+                        2 *
+                        (parseInt(this.variants[i].HOM_REF_CT) +
+                            parseInt(this.variants[i].GHET_REF_ALT_CTS) +
+                            parseInt(this.variants[i].TWO_ALT_GENO_CTS));
+                    this.variants[i].allelefrequency =
+                        this.variants[i].allelecount /
+                        this.variants[i].allelnumber;
+                    this.variants[i].allelefrequency =
+                        this.variants[i].allelefrequency.toExponential(2);
+                    for (
+                        let m = 0;
+                        m < this.variants[i].hprecords.length;
+                        m++
+                    ) {
+                        let hp = this.variants[i].hprecords[m];
+                        if (hp.HP == "AllControl") {
+                            this.variants[i].c_allelecount =
+                                2 * parseInt(hp.TWO_ALT_GENO_CTS) +
+                                parseInt(hp.HET_REF_ALT_CTS);
+                            this.variants[i].c_allelnumber =
+                                2 *
+                                (parseInt(hp.HOM_REF_CT) +
+                                    parseInt(hp.HET_REF_ALT_CTS) +
+                                    parseInt(
+                                        this.variants[i].TWO_ALT_GENO_CTS
+                                    ));
+                            this.variants[i].c_allelefrequency =
+                                this.variants[i].c_allelecount /
+                                this.variants[i].c_allelnumber;
+                            this.variants[i].c_allelefrequency =
+                                this.variants[
+                                    i
+                                ].c_allelefrequency.toExponential(2);
+                            this.variants[i].c_TWO_ALT_GENO_CTS =
+                                hp.TWO_ALT_GENO_CTS;
+                        }
+                    }
+                    this.variants[i].vep = this.variants[i].veprecords.length;
+                    if (this.variants[i].vep > 0) {
+                        let varrecords = this.variants[i].veprecords;
+
+                        for (let j = 0; j < varrecords.length; j++) {
+                            console.log("this gene", this.gene);
+                            if (varrecords[j].Gene_Symbol === this.gene) {
+                                this.variants[i].Gene_Symbol =
+                                    varrecords[j].Gene_Symbol;
+                                this.variants[i].Max_Impact =
+                                    varrecords[j].Max_Impact;
+                                this.variants[i].max_consequence =
+                                    varrecords[j].max_consequence;
+                                this.variants[i].Protein_Position =
+                                    varrecords[j].Protein_Position;
+                                this.variants[i].Amino_Acids =
+                                    varrecords[j].Amino_Acids;
+                            }
+                        }
+                        //Max_Impact	Biotype Gene_Symbol	Transcript_count	Amino_Acids	Protein_Position	CDS_position	Refgene	max_consequence
+                    }
+                }
+                let dataRows = this.variants;
+                return dataRows;
             } else {
                 return [];
             }
@@ -436,11 +522,17 @@ export default Vue.component("variant-search", {
         rows() {
             if (this.tableData) return this.tableData.length;
         },
+        sortedData(hprecords) {
+            console.log(hprecords);
+            return hprecords.sort(function (a, b) {
+                return a.allelecount > b.allelecount;
+            });
+        },
     },
     methods: {
         async searchVariants() {
             this.currentPage = 1; //reset on new search
-            this.variants = await query("gene-variants", this.gene);
+            this.variants = await query("variants", this.gene, {}, true);
         },
         async getTranscriptConsequences(varID) {
             if (!!varID) {
@@ -470,6 +562,49 @@ export default Vue.component("variant-search", {
                 this.loadingData[escapedVarID] = false;
             }
         },
+        showPhenoData(varID, hprecords) {
+            //console.log(varID);
+            let escapedVarID = this.escapedVarID(varID);
+            //alert(escapedVarID);
+            var hpdisplay = [];
+            var j = 0;
+            if (this.variantData[escapedVarID] === undefined) {
+                this.loadingData[escapedVarID] = true;
+
+                for (var i = 0; i < hprecords.length; i++) {
+                    var hp = hprecords[i];
+                    if (hp.HP != "AllControl") {
+                        hpdisplay[j] = {};
+                        hpdisplay[j].hpoterms = HPOTerms[hp.HP];
+                        hpdisplay[j].allelecount =
+                            2 * hp.TWO_ALT_GENO_CTS + hp.HET_REF_ALT_CTS;
+                        hpdisplay[j].allelnumber =
+                            2 *
+                            (hp.HOM_REF_CT +
+                                hp.HET_REF_ALT_CTS +
+                                hp.TWO_ALT_GENO_CTS);
+                        hpdisplay[j].allelefrequency =
+                            hpdisplay[j].allelecount / hpdisplay[j].allelnumber;
+                        hpdisplay[j].allelefrequency =
+                            hpdisplay[j].allelefrequency.toExponential(2);
+                        hpdisplay[j].TWO_ALT_GENO_CTS = hp.TWO_ALT_GENO_CTS;
+                        j++;
+                    }
+                }
+                hpdisplay = hpdisplay.sort(function (a, b) {
+                    //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
+                    if (a.allelecount > b.allelecount) {
+                        return -1;
+                    } else if (a.allelecount < b.allelecount) {
+                        return 1;
+                    }
+                    return 0;
+                });
+                //console.log(hprecords);
+                Vue.set(this.variantData, escapedVarID, hpdisplay);
+                this.loadingData[escapedVarID] = false;
+            }
+        },
         escapedVarID(varID) {
             if (!!varID) return varID.replace(/:\s*/g, "_");
             else {
@@ -486,7 +621,7 @@ export default Vue.component("variant-search", {
             handler(val) {
                 if (!!val) this.searchVariants();
             },
-            immediate: true,
+            //immediate: true,
         },
     },
 });

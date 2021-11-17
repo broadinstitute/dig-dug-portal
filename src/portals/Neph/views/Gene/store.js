@@ -72,19 +72,20 @@ export default new Vuex.Store({
             let geneData = state.gene.data;
 
             for (let i in data) {
-                if (data[i].chromosome == geneData[0].chromosome && data[i].start == geneData[0].start && data[i].end == geneData[0].end) {
+                if (
+                    data[i].chromosome == geneData[0].chromosome &&
+                    data[i].start == geneData[0].start &&
+                    data[i].end == geneData[0].end
+                ) {
                     if (data[i].source === "symbol") {
                         return data[i].name;
                     }
                 }
-
             }
-        },
-
+        }
     },
 
     actions: {
-
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
             context.commit("setGeneName", name);
@@ -120,13 +121,13 @@ export default new Vuex.Store({
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {
-                context.state.newChr = locus.chr
+                context.state.newChr = locus.chr;
                 context.state.newStart = locus.start;
                 context.state.newEnd = locus.end;
             }
 
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
-            context.dispatch('varassociations/query', { q: phenoRegionQuery });
+            context.dispatch("varassociations/query", { q: phenoRegionQuery });
         },
         async getEGLData(context) {
             let dataset = "mccarthy";
@@ -135,7 +136,7 @@ export default new Vuex.Store({
         },
         async get52KAssociationData(context) {
             let name = context.state.geneName;
-            context.dispatch('associations52k/query', { q: name });
+            context.dispatch("associations52k/query", { q: name });
         }
     }
 });
