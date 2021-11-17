@@ -110,6 +110,9 @@ td.border-color > div {
 .border-color.HIGH {
     border-color: rgb(217, 130, 135);
 }
+.border-color.NONE {
+    border-color: transparent;
+}
 .legends .btn-mini {
     border-left-width: thick;
 }
