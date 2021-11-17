@@ -17,7 +17,7 @@ import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import Formatters from "@/utils/formatters";
-import VariantSearch from "@/components/VariantSearch";
+import VariantSearch from "@/portals/Neph/components/VariantSearch";
 import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
