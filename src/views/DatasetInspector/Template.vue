@@ -42,7 +42,9 @@
 					<div class="filtering-ui-wrapper container-fluid">
 						<div class="filtering-ui-content">
 							<div class="col filter-col-lg">
-								<div class="label">Phenotype</div>
+								<div class="label">
+									Available phenotypes for this dataset:
+								</div>
 								<phenotype-selectpicker
 									v-if="$store.state.bioPortal.phenotypeMap"
 									:phenotypes="$parent.datasetPhenotypes"
