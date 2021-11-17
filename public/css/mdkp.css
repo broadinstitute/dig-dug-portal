@@ -1815,7 +1815,8 @@ a.to-previous-page:hover {
     margin-bottom: auto;
 }
 #gait .alert-info,
-#variant-search .alert-info {
+#variant-search .alert-info,
+#dataset_inspector .alert-info {
     padding: 0.1rem 1.25rem;
 }
 #gait .b-table-details {
