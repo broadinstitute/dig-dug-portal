@@ -99,14 +99,24 @@
 
                 <template #cell(view)="data">
                     <b-btn
-                        v-if="!data.item.consequence"
+                        size="sm"
+                        class="btn-mini mr-2"
+                        variant="outline-primary"
+                        @click="
+                            showPhenoData(data.item.varID, data.item.hprecords);
+                            data.toggleDetails();
+                        "
+                        >Phenotypes</b-btn
+                    >
+                    <b-btn
+                        v-if="data.item.veprecords.length === 0"
                         disabled
                         size="sm"
                         class="btn-mini"
                         variant="outline-secondary"
                         >No Annotation</b-btn
                     >
-                    <b-button
+                    <b-btn
                         v-else
                         size="sm"
                         variant="outline-primary"
@@ -122,7 +132,7 @@
                             {{ data.detailsShowing ? "Hide" : "Show" }}
                             Annotations</span
                         >
-                    </b-button>
+                    </b-btn>
                 </template>
 
                 <template #row-details="row">
@@ -133,6 +143,16 @@
                                 variantData[escapedVarID(row.item.varID)].length
                             "
                         >
+                            <b-table
+                                :items="
+                                    variantData[escapedVarID(row.item.varID)]
+                                "
+                                :fields="hprecordFields"
+                                :per-page="perPage"
+                                :tbody-tr-class="rowPickClass"
+                            >
+                            </b-table>
+
                             <b-table
                                 :items="
                                     variantData[escapedVarID(row.item.varID)]
@@ -168,43 +188,6 @@
                                         >{{ data.item.transcriptId }}</a
                                     >
                                 </template>
-                                <!-- <template #cell(gene_symbol)="data">
-                                    <a
-                                        v-if="
-                                            data.item.gene_symbol_source ===
-                                            'HGNC'
-                                        "
-                                        :href="`/gene.html?gene=${data.item.gene_symbol}`"
-                                        >{{ data.item.gene_symbol }}</a
-                                    ><span
-                                        v-else-if="
-                                            data.item.gene_id &&
-                                            data.item.gene_id.indexOf(
-                                                'ENSG'
-                                            ) !== -1
-                                        "
-                                        class="external_source"
-                                    >
-                                        <a
-                                            :href="`https://grch37.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=${data.item.gene_id}`"
-                                            target="_blank"
-                                            >{{ data.item.gene_symbol }}</a
-                                        ><b-badge
-                                            pill
-                                            disabled
-                                            class="ml-1"
-                                            variant="secondary"
-                                            title="Link to external source."
-                                            >E</b-badge
-                                        ></span
-                                    >
-
-                                    <span
-                                        v-else
-                                        title="There's no data available for this gene."
-                                        >{{ data.item.gene_symbol }}</span
-                                    >
-                                </template> -->
                                 <template #cell(position)="data">
                                     {{
                                         data.item.proteinStart !==
@@ -430,6 +413,33 @@ export default Vue.component("variant-search", {
                     label: "gnomAD AF",
                 },
             ],
+            hprecordFields: [
+                {
+                    key: "hpoterms",
+                    label: "Phenotype",
+                },
+                {
+                    key: "allelecount",
+                    label: "Allele Count",
+                    sortable: true,
+                },
+                {
+                    key: "allelnumber",
+                    label: "Allele Number",
+                    sortable: true,
+                },
+
+                {
+                    key: "allelefrequency",
+                    label: "Allele Frequency",
+                    sortable: true,
+                },
+                {
+                    key: "TWO_ALT_GENO_CTS",
+                    label: "Homozygotes",
+                    sortable: true,
+                },
+            ],
             variantData: {},
             loadingData: {},
         };
@@ -560,16 +570,16 @@ export default Vue.component("variant-search", {
             //console.log(varID);
             let escapedVarID = this.escapedVarID(varID);
             //alert(escapedVarID);
-            var hpdisplay = [];
-            var j = 0;
+            let hpdisplay = [];
+            let j = 0;
             if (this.variantData[escapedVarID] === undefined) {
                 this.loadingData[escapedVarID] = true;
 
-                for (var i = 0; i < hprecords.length; i++) {
-                    var hp = hprecords[i];
+                for (let i = 0; i < hprecords.length; i++) {
+                    let hp = hprecords[i];
                     if (hp.HP != "AllControl") {
                         hpdisplay[j] = {};
-                        hpdisplay[j].hpoterms = HPOTerms[hp.HP];
+                        hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
                         hpdisplay[j].allelecount =
                             2 * hp.TWO_ALT_GENO_CTS + hp.HET_REF_ALT_CTS;
                         hpdisplay[j].allelnumber =
