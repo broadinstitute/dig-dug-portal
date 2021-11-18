@@ -43,6 +43,8 @@ import Formatters from "@/utils/formatters";
 import filterHelpers from "@/utils/filterHelpers";
 import uiUtils from "@/utils/uiUtils";
 
+import kpDataViewerPkg from "@/components/kpDataViewer/kpDataViewerPkg.vue";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -82,7 +84,8 @@ new Vue({
         FilterGreaterThan,
         SearchHeaderWrapper,
         ClumpedVariantsTable,
-        ExpandRegion
+        ExpandRegion,
+        kpDataViewerPkg
     },
 
     async created() {
@@ -100,10 +103,10 @@ new Vue({
         return {
             enrichmentScoring: null,
 
-            associationsFilter: function(id) {
+            associationsFilter: function (id) {
                 return true;
             },
-            annotationsFilter: function(id) {
+            annotationsFilter: function (id) {
                 return true;
             },
             pageAssociationsMap: {},
@@ -129,9 +132,8 @@ new Vue({
                 if (this.selectedPhenotypes.length > 0) {
                     this.$store.dispatch("credibleSets/clear");
                     this.selectedPhenotypes.forEach(p => {
-                        const queryString = `${p.name},${
-                            this.$store.state.chr
-                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        const queryString = `${p.name},${this.$store.state.chr
+                            }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                         this.$store.dispatch("credibleSets/query", {
                             q: queryString,
                             append: true
@@ -244,6 +246,23 @@ new Vue({
     },
 
     computed: {
+        kpRegionViewerData() {
+            if (this.pageAssociations.length == 0) {
+                return null;
+            } else {
+
+                var massagedData = [];
+                this.pageAssociations.map(variant => {
+                    variant["nLog10"] = -Math.log10(variant.pValue);
+                    variant["ldVarID"] = variant.chromosome + ":" + variant.position + "_" + variant.reference + "/" + variant.alt;
+                    massagedData.push(variant);
+                })
+
+                console.log("massagedData", massagedData);
+
+                return massagedData;
+            }
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {
@@ -274,7 +293,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function(gene) {
+            return this.$store.state.genes.data.filter(function (gene) {
                 return gene.source == "symbol";
             });
         },
