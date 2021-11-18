@@ -203,15 +203,31 @@
 							viewers: ['kpRegionViewer', 'kpGenesTrack'],
 							pkgID: 'testPkg',
 							kpRegionViewer: {
-								xAxisField: 'position',
-								xAxisLabel: 'Chromosome ' + $store.state.newChr,
-								yAxisField: 'nLog10',
-								yAxisLabel: 'P-Value(-log10)',
-								renderBy: 'ldVarID',
-								multiPlotsBy: 'phenotype',
-								hoverContent: ['pValue'],
-								height: 300,
+								viewerConfig: {
+									xAxisField: 'position',
+									xAxisLabel:
+										'Chromosome ' + $store.state.newChr,
+									yAxisField: 'nLog10P',
+									yAxisLabel: 'P-Value(-log10)',
+									renderBy: 'ldVarID',
+									multiPlotsBy: 'phenotype',
+									hoverContent: ['pValue'],
+									height: 300,
+									features: ['LD', 'recombination'],
+								},
+								region:
+									$store.state.newChr +
+									':' +
+									$store.state.newStart +
+									'-' +
+									$store.state.newEnd,
 								data: $parent.kpRegionViewerData,
+							},
+							plotLayout: {
+								leftMargin: 74.5,
+								rightMargin: 0.5,
+								topMargin: 10.5,
+								bottomMargin: 50.5,
 							},
 						}"
 					></kp-data-viewer-pkg>

@@ -253,7 +253,7 @@ new Vue({
 
                 var massagedData = [];
                 this.pageAssociations.map(variant => {
-                    variant["nLog10"] = -Math.log10(variant.pValue);
+                    variant["nLog10P"] = -Math.log10(variant.pValue);
                     variant["ldVarID"] = variant.chromosome + ":" + variant.position + "_" + variant.reference + "/" + variant.alt;
                     massagedData.push(variant);
                 })
