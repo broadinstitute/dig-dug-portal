@@ -4,6 +4,7 @@
 		<div id="viewers_collection">
 			<kp-region-viewer
 				:id="pkgID + '_kpRegionViewer'"
+				:pkgID="pkgID"
 				:plotData="pkgConfig.kpRegionViewer.data"
 				:plotLayout="pkgConfig.plotLayout"
 				:renderConfig="pkgConfig.kpRegionViewer.viewerConfig"

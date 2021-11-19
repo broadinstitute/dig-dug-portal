@@ -1,13 +1,27 @@
 <template>
 	<div class="mbm-plot-content">
 		<div
-			class="kp-region-viewer-wrapper row"
+			class="kp-region-viewer-wrapper"
 			v-for="(item, itemKey) in gatheredData"
 		>
-			<div class="col-md-12">
-				<h4 v-html="itemKey"></h4>
-				<div class="col-md-8"></div>
-				<div class="col-md-4"></div>
+			<h5 v-html="itemKey"></h5>
+			<div class="row">
+				<div class="col-md-8 association-plot-wrapper">
+					<canvas
+						:id="pkgID + '_' + itemKey + '_associationPlot'"
+						width=""
+						height=""
+					>
+					</canvas>
+				</div>
+				<div class="col-md-4 ld-plot-wrapper">
+					<canvas
+						:id="pkgID + '_' + itemKey + '_ldPlot'"
+						width=""
+						height=""
+					>
+					</canvas>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -16,11 +30,12 @@
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import umLdServer from "@/modules/umLdServer.js";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("kp-region-viewer", {
-	props: ["plotData", "plotLayout", "renderConfig", "region"],
+	props: ["plotData", "plotLayout", "renderConfig", "region", "pkgID"],
 	data() {
 		return {
 			gatheredData: {},
@@ -61,11 +76,11 @@ export default Vue.component("kp-region-viewer", {
 	},
 	computed: {
 		plotsList() {
-			let plotsKeys = [];
+			//let plotsKeys = [];
 			if (this.plotData != null) {
-				this.plotData.map((p) => {
-					plotsKeys.push(p[this.renderConfig.multiPlotsBy]);
-				});
+				let plotsKeys = this.plotData.map(
+					(p) => p[this.renderConfig.multiPlotsBy]
+				);
 
 				plotsKeys = [...new Set(plotsKeys)];
 
@@ -74,33 +89,97 @@ export default Vue.component("kp-region-viewer", {
 				return null;
 			}
 		},
-		variantData() {
+		associationData() {
 			if (this.plotsList != null) {
 				this.gatheredData = {};
 				/// add each plotting groups data wrappers to gatheredData
 				this.plotsList.map((p) => {
 					this.gatheredData[p] = {};
-					this.gatheredData[p]["variantsData"] = {};
+					this.gatheredData[p]["association"] = {};
+					this.gatheredData[p]["associationHi"] = null;
+					this.gatheredData[p]["associationLow"] = null;
+
+					//set this.gateredData object for LD & recombination rate, or any other features in the future
 					if (this.renderConfig.features.length > 0) {
 						this.renderConfig.features.map((f) => {
 							this.gatheredData[p][f] = {};
+							if (f == "LD") {
+								this.gatheredData[p]["ldReference"] = {
+									variant: null,
+									ldPopulation: !!this.renderConfig
+										.ldPopulation.ifStatic
+										? this.renderConfig.ldPopulation.value
+										: null,
+								};
+							}
 						});
 					}
 				});
+				// gather data for association plot
+				var populationsObj = {};
 				this.plotData.map((p) => {
 					let group = p[this.renderConfig.multiPlotsBy];
+
+					let xFieldValue = p[this.renderConfig.xAxisField];
+					let yFieldValue = p[this.renderConfig.yAxisField];
+
 					let tempObj = {};
-					tempObj[this.renderConfig.xAxisField] =
-						p[this.renderConfig.xAxisField];
-					tempObj[this.renderConfig.yAxisField] =
-						p[this.renderConfig.yAxisField];
+					tempObj[this.renderConfig.xAxisField] = xFieldValue;
+					tempObj[this.renderConfig.yAxisField] = yFieldValue;
 
 					this.renderConfig.hoverContent.map((h) => {
 						tempObj[h] = p[h];
 					});
-					this.gatheredData[group]["variantsData"][
+					this.gatheredData[group].association[
 						p[this.renderConfig.renderBy]
 					] = tempObj;
+
+					// set high and low values of association data
+					// set association high
+					let assoHi = this.gatheredData[group].associationHi;
+					this.gatheredData[group].associationHi =
+						assoHi == null
+							? yFieldValue
+							: yFieldValue > assoHi
+							? yFieldValue
+							: assoHi;
+					// set ld reference variant
+					this.gatheredData[group].ldReference.variant =
+						assoHi == null
+							? p[this.renderConfig.renderBy]
+							: yFieldValue > assoHi
+							? p[this.renderConfig.renderBy]
+							: this.gatheredData[group].ldReference.variant;
+
+					// set association low
+					let assoLow = this.gatheredData[group].associationLow;
+
+					this.gatheredData[group].associationLow =
+						assoLow == null
+							? yFieldValue
+							: yFieldValue < assoLow
+							? yFieldValue
+							: assoLow;
+
+					//gather population IDs for the next step, setting LD population
+
+					populationsObj[group] = !!populationsObj[group]
+						? populationsObj[group]
+						: [];
+
+					populationsObj[group].push(
+						p[this.renderConfig.ldPopulation.value]
+					);
+				});
+
+				this.plotsList.map((p) => {
+					if (this.gatheredData[p].ldReference.ldPopulation == null) {
+						let ldPopulationArr = [...new Set(populationsObj[p])];
+						this.gatheredData[p].ldReference.ldPopulation =
+							ldPopulationArr.length == 1
+								? ldPopulationArr[0]
+								: "ALL";
+					}
 				});
 
 				return this.gatheredData;
@@ -108,19 +187,57 @@ export default Vue.component("kp-region-viewer", {
 		},
 	},
 	watch: {
-		variantData(DATA) {
-			this.renderPlots(DATA);
+		associationData(DATA) {
+			this.callLD();
 		},
 	},
 	methods: {
 		onResize() {},
-		renderPlots(DATA) {},
+		callLD() {
+			console.log("callLD is called", this.gatheredData);
+			for (const [key, value] of Object.entries(this.gatheredData)) {
+				this.getLDData(
+					value.ldReference.variant,
+					value.ldReference.ldPopulation,
+					key
+				);
+			}
+		},
+		async getLDData(REF_VARIANT, ANCESTRY, GROUP) {
+			let ldUrl =
+				"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
+				ANCESTRY +
+				"/variants?correlation=rsquare&variant=" +
+				REF_VARIANT +
+				"&chrom=" +
+				this.region.chr +
+				"&start=" +
+				this.region.start +
+				"&stop=" +
+				this.region.end +
+				"&limit=100000";
+
+			let json = await fetch(ldUrl).then((resp) => resp.json());
+
+			console.log("LD json", json);
+		},
 	},
 });
 </script>
 
 <style>
+.association-plot-wrapper,
+.ld-plot-wrapper {
+	padding: 0 !important;
+}
 </style>
 
 
+async getVariantCorrelations(context, param) {
 
+            let json = await fetch(
+                param.ldUrl
+            ).then(resp => resp.json());
+
+            context.commit("setVariantCorrelations", json);
+        }

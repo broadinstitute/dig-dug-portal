@@ -255,10 +255,12 @@ new Vue({
                 this.pageAssociations.map(variant => {
                     variant["nLog10P"] = -Math.log10(variant.pValue);
                     variant["ldVarID"] = variant.chromosome + ":" + variant.position + "_" + variant.reference + "/" + variant.alt;
+                    let ldPopulationArr = Object.keys(variant.af);
+                    variant["ldPopulation"] = ldPopulationArr.length > 1 ? 'ALL' : ldPopulationArr.length == 1 ? ldPopulationArr[0] : null;
                     massagedData.push(variant);
                 })
 
-                console.log("massagedData", massagedData);
+                //console.log("massagedData", massagedData);
 
                 return massagedData;
             }

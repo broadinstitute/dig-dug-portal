@@ -200,7 +200,7 @@
 				<div class="card-body">
 					<kp-data-viewer-pkg
 						:pkgConfig="{
-							viewers: ['kpRegionViewer', 'kpGenesTrack'],
+							viewers: ['kpGenesTrack', 'kpRegionViewer'],
 							pkgID: 'testPkg',
 							kpRegionViewer: {
 								viewerConfig: {
@@ -214,13 +214,14 @@
 									hoverContent: ['pValue'],
 									height: 300,
 									features: ['LD', 'recombination'],
+									ldPopulation: { value: 'ldPopulation' },
+									//ldPopulation: { ifStatic: true, value: 'ALL' }, //ifStatic->true: fixed value ifStatic not set value has to be a field name
 								},
-								region:
-									$store.state.newChr +
-									':' +
-									$store.state.newStart +
-									'-' +
-									$store.state.newEnd,
+								region: {
+									chr: $store.state.newChr,
+									start: $store.state.newStart,
+									end: $store.state.newEnd,
+								},
 								data: $parent.kpRegionViewerData,
 							},
 							plotLayout: {
@@ -258,7 +259,6 @@
 						v-model="$parent.regionPageSearchCriterion"
 						:header="''"
 					>
-						<!-- Phenotype Selector -->
 						<filter-enumeration-control
 							class="filter-col-lg"
 							:field="'phenotype'"
@@ -392,12 +392,6 @@
 								>
 									<div class="label">Effect (+/-)</div>
 								</filter-effect-direction-control>
-								<!--
-                                <template
-                                    slot="filtered"
-                                    slot-scope="{ filter }"
-                                >
-                                </template> -->
 							</criterion-function-group>
 						</b-tab>
 						<b-tab title="Annotations by global enrichment">
@@ -411,12 +405,6 @@
 									<filter-greater-control :field="'fold'">
 										<div class="label">Fold (&ge;)</div>
 									</filter-greater-control>
-
-									<!-- <template
-                                        slot="filtered"
-                                        slot-scope="{ filter }"
-                                    >
-                                    </template> -->
 								</criterion-function-group>
 							</div>
 						</b-tab>
@@ -466,13 +454,7 @@
 						"
 					>
 						<h4 class="card-title">
-							Variants in region
-							<!--<span
-                            v-for="p in $parent.selectedPhenotypes"
-                            class="item"
-                            >{{ p.description }}</span
-                        >-->
-							&nbsp;
+							Variants in region &nbsp;
 							<tooltip-documentation
 								name="region.topassoc.tooltip"
 								:isHover="true"
