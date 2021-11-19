@@ -103,8 +103,8 @@
                         class="btn-mini mr-2"
                         variant="outline-primary"
                         @click="
-                            showPhenoData(data.item.varID, data.item.hprecords);
-                            data.toggleDetails();
+                            //showPhenoData(data.item.varID, data.item.hprecords);
+                            data.toggleDetails()
                         "
                         >Phenotypes</b-btn
                     >
@@ -137,105 +137,79 @@
 
                 <template #row-details="row">
                     <div class="details">
-                        <div
-                            v-if="
-                                variantData[escapedVarID(row.item.varID)] &&
-                                variantData[escapedVarID(row.item.varID)].length
-                            "
+                        <b-table
+                            :items="row.item.hpdisplay"
+                            :fields="hprecordFields"
+                            :per-page="perPage"
+                            :tbody-tr-class="rowPickClass"
                         >
-                            <b-table
-                                :items="
-                                    variantData[escapedVarID(row.item.varID)]
-                                "
-                                :fields="hprecordFields"
-                                :per-page="perPage"
-                                :tbody-tr-class="rowPickClass"
-                            >
-                            </b-table>
+                        </b-table>
 
-                            <b-table
-                                :items="
-                                    variantData[escapedVarID(row.item.varID)]
-                                "
-                                :fields="subFields"
-                                :per-page="perPage"
-                                :tbody-tr-class="rowPickClass"
-                                ><template #cell(varID)="data">
-                                    <a
-                                        :href="`/variant.html?variant=${data.item.varID}`"
-                                        >{{ data.item.varID }}</a
-                                    >
-                                </template>
-                                <template #head(transcriptId)="data">
-                                    <span class="external_source"
-                                        >Feature
-                                        <b-badge
-                                            pill
-                                            disabled
-                                            class="ml-1"
-                                            variant="secondary"
-                                            title="Link to external source."
-                                            >E</b-badge
-                                        ></span
-                                    >
-                                </template>
-                                <template #cell(transcriptId)="data">
-                                    <a
-                                        v-if="data.item.transcriptId"
-                                        :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
-                                        target="_blank"
-                                        rel="noopener noreferrer nofollow"
-                                        >{{ data.item.transcriptId }}</a
-                                    >
-                                </template>
-                                <template #cell(position)="data">
-                                    {{
-                                        data.item.proteinStart !==
-                                        data.item.proteinEnd
-                                            ? `${data.item.proteinStart}-${data.item.proteinEnd}`
-                                            : data.item.proteinStart
-                                    }}
-                                </template>
-                                <template #cell(consequenceTerms)="data">
-                                    <div
-                                        class="border-color"
-                                        :class="data.item.impact"
-                                    >
-                                        <span
-                                            v-for="(c, i) in data.item
-                                                .consequenceTerms"
-                                            :key="c"
-                                            >{{ consequenceFormatter(c)
-                                            }}{{
-                                                i <
-                                                data.item.consequenceTerms
-                                                    .length -
-                                                    1
-                                                    ? ", "
-                                                    : ""
-                                            }}</span
-                                        >
-                                    </div></template
+                        <b-table
+                            :items="variantData[escapedVarID(row.item.varID)]"
+                            :fields="subFields"
+                            :per-page="perPage"
+                            :tbody-tr-class="rowPickClass"
+                            ><template #cell(varID)="data">
+                                <a
+                                    :href="`/variant.html?variant=${data.item.varID}`"
+                                    >{{ data.item.varID }}</a
                                 >
-                                <template #cell(siftPrediction)="data">
-                                    {{
-                                        siftFormatter(data.item.siftPrediction)
-                                    }}
-                                </template>
-                            </b-table>
-                        </div>
-                        <div
-                            v-else-if="
-                                variantData[escapedVarID(row.item.varID)] &&
-                                variantData[escapedVarID(row.item.varID)]
-                                    .length === 0
-                            "
-                        >
-                            <b-alert show variant="warning">
-                                No predicted transcript consequences found for
-                                this variant.</b-alert
+                            </template>
+                            <template #head(transcriptId)="data">
+                                <span class="external_source"
+                                    >Feature
+                                    <b-badge
+                                        pill
+                                        disabled
+                                        class="ml-1"
+                                        variant="secondary"
+                                        title="Link to external source."
+                                        >E</b-badge
+                                    ></span
+                                >
+                            </template>
+                            <template #cell(transcriptId)="data">
+                                <a
+                                    v-if="data.item.transcriptId"
+                                    :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
+                                    target="_blank"
+                                    rel="noopener noreferrer nofollow"
+                                    >{{ data.item.transcriptId }}</a
+                                >
+                            </template>
+                            <template #cell(position)="data">
+                                {{
+                                    data.item.proteinStart !==
+                                    data.item.proteinEnd
+                                        ? `${data.item.proteinStart}-${data.item.proteinEnd}`
+                                        : data.item.proteinStart
+                                }}
+                            </template>
+                            <template #cell(consequenceTerms)="data">
+                                <div
+                                    class="border-color"
+                                    :class="data.item.impact"
+                                >
+                                    <span
+                                        v-for="(c, i) in data.item
+                                            .consequenceTerms"
+                                        :key="c"
+                                        >{{ consequenceFormatter(c)
+                                        }}{{
+                                            i <
+                                            data.item.consequenceTerms.length -
+                                                1
+                                                ? ", "
+                                                : ""
+                                        }}</span
+                                    >
+                                </div></template
                             >
-                        </div>
+                            <template #cell(siftPrediction)="data">
+                                {{ siftFormatter(data.item.siftPrediction) }}
+                            </template>
+                        </b-table>
                     </div>
                 </template>
             </b-table>
@@ -495,8 +469,9 @@ export default Vue.component("variant-search", {
                                 hp.TWO_ALT_GENO_CTS;
                         }
                     }
-                    this.variants[i].vep = this.variants[i].veprecords.length;
-                    if (this.variants[i].vep > 0) {
+                    //do we need vep count?
+                    //this.variants[i].vep = this.variants[i].veprecords.length;
+                    if (this.variants[i].veprecords.length > 0) {
                         let varrecords = this.variants[i].veprecords;
 
                         for (let j = 0; j < varrecords.length; j++) {
@@ -515,6 +490,54 @@ export default Vue.component("variant-search", {
                             }
                         }
                         //Max_Impact	Biotype Gene_Symbol	Transcript_count	Amino_Acids	Protein_Position	CDS_position	Refgene	max_consequence
+                    }
+
+                    if (this.variants[i].hprecords.length > 0) {
+                        let hpdisplay = [];
+                        let j = 0;
+
+                        for (
+                            let k = 0;
+                            k < this.variants[i].hprecords.length;
+                            k++
+                        ) {
+                            let hp = this.variants[i].hprecords[k];
+                            if (hp.HP != "AllControl") {
+                                hpdisplay[j] = {};
+                                hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
+                                hpdisplay[j].allelecount =
+                                    2 * hp.TWO_ALT_GENO_CTS +
+                                    hp.HET_REF_ALT_CTS;
+                                hpdisplay[j].allelnumber =
+                                    2 *
+                                    (hp.HOM_REF_CT +
+                                        hp.HET_REF_ALT_CTS +
+                                        hp.TWO_ALT_GENO_CTS);
+                                hpdisplay[j].allelefrequency =
+                                    this.formatAlleleFrequency(
+                                        hpdisplay[j].allelecount,
+                                        hpdisplay[j].allelnumber
+                                    );
+
+                                hpdisplay[j].TWO_ALT_GENO_CTS =
+                                    hp.TWO_ALT_GENO_CTS;
+                                j++;
+                            }
+                        }
+                        hpdisplay = hpdisplay.sort(function (a, b) {
+                            //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
+                            if (a.allelecount > b.allelecount) {
+                                return -1;
+                            } else if (a.allelecount < b.allelecount) {
+                                return 1;
+                            }
+                            return 0;
+                        });
+                        //console.log(hprecords);
+                        // Vue.set(this.variantData, escapedVarID, hpdisplay);
+                        // this.loadingData[escapedVarID] = false;
+
+                        this.variants[i].hpdisplay = hpdisplay;
                     }
                 }
                 let dataRows = this.variants;
@@ -618,6 +641,10 @@ export default Vue.component("variant-search", {
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
             if (item.pick === 1) return "row-pick";
+        },
+        formatAlleleFrequency(count, number) {
+            if (count === 0 || number === 0) return 0;
+            else return Number.parseFloat(count / number).toExponential(2);
         },
     },
     watch: {
