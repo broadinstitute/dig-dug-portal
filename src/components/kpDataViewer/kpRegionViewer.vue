@@ -194,7 +194,7 @@ export default Vue.component("kp-region-viewer", {
 	methods: {
 		onResize() {},
 		callLD() {
-			console.log("callLD is called", this.gatheredData);
+			//console.log("callLD is called", this.gatheredData);
 			for (const [key, value] of Object.entries(this.gatheredData)) {
 				this.getLDData(
 					value.ldReference.variant,
@@ -217,9 +217,16 @@ export default Vue.component("kp-region-viewer", {
 				this.region.end +
 				"&limit=100000";
 
-			let json = await fetch(ldUrl).then((resp) => resp.json());
+			let ldJson = await fetch(ldUrl).then((resp) => resp.json());
 
-			console.log("LD json", json);
+			if (ldJson.error == null) {
+				ldJson.data.variant2.map((v, vIndex) => {
+					this.gatheredData[GROUP].LD[v] =
+						ldJson.data.correlation[vIndex];
+				});
+			}
+
+			//console.log("this.gatheredData", this.gatheredData);
 		},
 	},
 });
