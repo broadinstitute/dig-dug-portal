@@ -104,9 +104,18 @@
                         variant="outline-primary"
                         @click="
                             //showPhenoData(data.item.varID, data.item.hprecords);
-                            data.toggleDetails()
+
+                            toToggle(data.detailsShowing, 1)
+                                ? data.toggleDetails()
+                                : ''
                         "
-                        >Phenotypes</b-btn
+                    >
+                        {{
+                            data.detailsShowing && showButton === 1
+                                ? "Hide"
+                                : "Show"
+                        }}
+                        Phenotypes</b-btn
                     >
                     <b-btn
                         v-if="data.item.veprecords.length === 0"
@@ -122,14 +131,20 @@
                         variant="outline-primary"
                         class="btn-mini showData"
                         @click="
-                            showVariantData(data.item.varID);
-                            data.toggleDetails();
+                            //showVariantData(data.item.varID);
+                            toToggle(data.detailsShowing, 2)
+                                ? data.toggleDetails()
+                                : ''
                         "
                         ><span v-if="!!loadingData[data.item.varID]"
                             ><b-spinner small></b-spinner>
                             <span class="sr-only">Loading...</span></span
                         ><span v-else>
-                            {{ data.detailsShowing ? "Hide" : "Show" }}
+                            {{
+                                data.detailsShowing && showButton === 2
+                                    ? "Hide"
+                                    : "Show"
+                            }}
                             Annotations</span
                         >
                     </b-btn>
@@ -138,6 +153,7 @@
                 <template #row-details="row">
                     <div class="details">
                         <b-table
+                            v-if="showButton === 1"
                             :items="row.item.hpdisplay"
                             :fields="hprecordFields"
                             :per-page="perPage"
@@ -146,7 +162,11 @@
                         </b-table>
 
                         <b-table
-                            :items="variantData[escapedVarID(row.item.varID)]"
+                            v-if="
+                                row.item.veprecords.length > 0 &&
+                                showButton === 2
+                            "
+                            :items="row.item.veprecords"
                             :fields="subFields"
                             :per-page="perPage"
                             :tbody-tr-class="rowPickClass"
@@ -156,7 +176,7 @@
                                     >{{ data.item.varID }}</a
                                 >
                             </template>
-                            <template #head(transcriptId)="data">
+                            <template #head(Feature)="data">
                                 <span class="external_source"
                                     >Feature
                                     <b-badge
@@ -169,13 +189,13 @@
                                     ></span
                                 >
                             </template>
-                            <template #cell(transcriptId)="data">
+                            <template #cell(Feature)="data">
                                 <a
-                                    v-if="data.item.transcriptId"
-                                    :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
+                                    v-if="data.item.Feature"
+                                    :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.Feature}`"
                                     target="_blank"
                                     rel="noopener noreferrer nofollow"
-                                    >{{ data.item.transcriptId }}</a
+                                    >{{ data.item.Feature }}</a
                                 >
                             </template>
                             <template #cell(position)="data">
@@ -186,24 +206,16 @@
                                         : data.item.proteinStart
                                 }}
                             </template>
-                            <template #cell(consequenceTerms)="data">
+                            <template #cell(max_consequence)="data">
                                 <div
                                     class="border-color"
-                                    :class="data.item.impact"
+                                    :class="data.item.Max_Impact"
                                 >
-                                    <span
-                                        v-for="(c, i) in data.item
-                                            .consequenceTerms"
-                                        :key="c"
-                                        >{{ consequenceFormatter(c)
-                                        }}{{
-                                            i <
-                                            data.item.consequenceTerms.length -
-                                                1
-                                                ? ", "
-                                                : ""
-                                        }}</span
-                                    >
+                                    <span>{{
+                                        consequenceFormatter(
+                                            data.item.max_consequence
+                                        )
+                                    }}</span>
                                 </div></template
                             >
                             <template #cell(siftPrediction)="data">
@@ -282,7 +294,7 @@ export default Vue.component("variant-search", {
 
             perPage: 10,
             currentPage: 1,
-
+            showButton: null,
             variants: [],
             consequences: {},
             fields: [
@@ -330,61 +342,33 @@ export default Vue.component("variant-search", {
             ],
             subFields: [
                 {
-                    key: "transcriptId",
+                    key: "Feature",
                     label: "Feature",
                 },
                 {
-                    key: "position",
+                    key: "Protein_Position",
                     label: "Position",
                 },
                 {
-                    key: "aminoAcids",
+                    key: "Amino_Acids",
                     label: "Amino Acids",
                 },
                 {
-                    key: "consequenceTerms",
+                    key: "max_consequence",
                     label: "Consequence",
                     tdClass: "border-color",
                 },
                 {
-                    key: "hgncId",
+                    key: "HGNC",
                     label: "HGNC",
                 },
                 {
-                    key: "hgvsc",
+                    key: "HGVSc",
                     label: "HGVSc",
                 },
                 {
-                    key: "hgvsp",
+                    key: "HGVSp",
                     label: "HGVSp",
-                },
-                {
-                    key: "polyphen2HdivPred",
-                    label: "PolyPhen (HDIV)",
-                },
-                {
-                    key: "polyphen2HvarPred",
-                    label: "PolyPhen (HVAR)",
-                },
-                {
-                    key: "siftPrediction",
-                    label: "SIFT Prediction",
-                },
-                {
-                    key: "lrtPred",
-                    label: "LRT",
-                },
-                {
-                    key: "mutationTaster",
-                    label: "Mutation Taster",
-                },
-                {
-                    key: "caddRawRankscore",
-                    label: "CADD-Phred Score",
-                },
-                {
-                    key: "gnomadGenomesPopmaxAf",
-                    label: "gnomAD AF",
                 },
             ],
             hprecordFields: [
@@ -504,7 +488,8 @@ export default Vue.component("variant-search", {
                             let hp = this.variants[i].hprecords[k];
                             if (hp.HP != "AllControl") {
                                 hpdisplay[j] = {};
-                                hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
+                                //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
+                                hpdisplay[j].hpoterms = hp.HP;
                                 hpdisplay[j].allelecount =
                                     2 * hp.TWO_ALT_GENO_CTS +
                                     hp.HET_REF_ALT_CTS;
@@ -549,12 +534,12 @@ export default Vue.component("variant-search", {
         rows() {
             if (this.tableData) return this.tableData.length;
         },
-        sortedData(hprecords) {
-            console.log(hprecords);
-            return hprecords.sort(function (a, b) {
-                return a.allelecount > b.allelecount;
-            });
-        },
+        // sortedData(hprecords) {
+        //     console.log(hprecords);
+        //     return hprecords.sort(function (a, b) {
+        //         return a.allelecount > b.allelecount;
+        //     });
+        // },
     },
     methods: {
         async searchVariants() {
@@ -645,6 +630,18 @@ export default Vue.component("variant-search", {
         formatAlleleFrequency(count, number) {
             if (count === 0 || number === 0) return 0;
             else return Number.parseFloat(count / number).toExponential(2);
+        },
+        toToggle(isShowing, buttonClicked) {
+            if (isShowing) {
+                if (this.showButton === buttonClicked) return true;
+                else {
+                    this.showButton = buttonClicked;
+                    return false;
+                }
+            } else {
+                this.showButton = buttonClicked;
+                return true;
+            }
         },
     },
     watch: {
