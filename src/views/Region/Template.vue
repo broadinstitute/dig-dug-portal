@@ -212,7 +212,7 @@
 									renderBy: 'ldVarID',
 									multiPlotsBy: 'phenotype',
 									hoverContent: ['pValue'],
-									height: 300,
+									height: 250,
 									features: ['LD', 'recombination'],
 									ldPopulation: { value: 'ldPopulation' },
 									//ldPopulation: { ifStatic: true, value: 'ALL' }, //ifStatic->true: fixed value ifStatic not set value has to be a field name
@@ -226,7 +226,7 @@
 							},
 							plotLayout: {
 								leftMargin: 74.5,
-								rightMargin: 0.5,
+								rightMargin: 25.5,
 								topMargin: 10.5,
 								bottomMargin: 50.5,
 							},
