@@ -526,7 +526,8 @@ export default Vue.component("variant-search", {
                         this.variants[i].hpdisplay = hpdisplay;
                     }
                 }
-                let dataRows = this.variants;
+                //Filter out variants that don't have consequences
+                let dataRows = this.variants.filter((v) => v.max_consequence);
                 return dataRows;
             } else {
                 return [];
