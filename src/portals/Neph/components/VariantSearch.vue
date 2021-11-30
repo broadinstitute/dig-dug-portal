@@ -489,7 +489,8 @@ export default Vue.component("variant-search", {
                             if (hp.HP != "AllControl") {
                                 hpdisplay[j] = {};
                                 //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
-                                hpdisplay[j].hpoterms = hp.HP;
+                                hpdisplay[j].hpoterms =
+                                    Formatters.snakeFormatter(hp.HP);
                                 hpdisplay[j].allelecount =
                                     2 * hp.TWO_ALT_GENO_CTS +
                                     hp.HET_REF_ALT_CTS;
