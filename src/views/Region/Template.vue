@@ -210,7 +210,7 @@
 									yAxisField: 'nLog10P',
 									yAxisLabel: 'P-Value(-log10)',
 									renderBy: 'ldVarID',
-									multiPlotsBy: 'phenotype',
+									plotsBy: 'phenotype',
 									hoverContent: ['pValue'],
 									height: 250,
 									features: ['LD', 'recombination'],

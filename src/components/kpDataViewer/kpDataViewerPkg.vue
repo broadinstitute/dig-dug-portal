@@ -36,7 +36,7 @@ export default Vue.component("kp-data-viewer-pkg", {
 	components: { kpRegionViewer },
 	mounted: function () {
 		if (this.pkgConfig != null) {
-			console.log("mounted", this.pkgConfig.viewers);
+			//console.log("mounted", this.pkgConfig.viewers);
 			let viewersWrapper = document.getElementById(this.pkgConfig.pkgID);
 			this.pkgConfig.viewers.map((v) => {
 				let viewer = document.getElementById(

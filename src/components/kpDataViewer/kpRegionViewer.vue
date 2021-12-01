@@ -1,17 +1,18 @@
 <template>
-	<div class="mbm-plot-content">
+	<div class="mbm-plot-content kp-region-viewer-wrapper">
 		<div
 			class="kp-region-viewer-wrapper"
-			v-for="(item, itemKey) in gatheredData"
+			v-for="item in plotsList"
+			v-if="plotsList != null"
 		>
-			<h5 v-html="itemKey"></h5>
+			<h5 v-html="item"></h5>
 			<div class="row">
 				<div
 					class="col-md-9 association-plot-wrapper"
-					:id="pkgID + '_' + itemKey + '_associationPlot_wrapper'"
+					:id="pkgID + '_' + item + '_associationPlot_wrapper'"
 				>
 					<canvas
-						:id="pkgID + '_' + itemKey + '_associationPlot'"
+						:id="pkgID + '_' + item + '_associationPlot'"
 						width=""
 						height=""
 					>
@@ -19,10 +20,10 @@
 				</div>
 				<div
 					class="col-md-3 ld-plot-wrapper"
-					:id="pkgID + '_' + itemKey + '_ldPlot_wrapper'"
+					:id="pkgID + '_' + item + '_ldPlot_wrapper'"
 				>
 					<canvas
-						:id="pkgID + '_' + itemKey + '_ldPlot'"
+						:id="pkgID + '_' + item + '_ldPlot'"
 						width=""
 						height=""
 					>
@@ -45,8 +46,12 @@ export default Vue.component("kp-region-viewer", {
 	props: ["plotData", "plotLayout", "renderConfig", "region", "pkgID"],
 	data() {
 		return {
-			gatheredData: {},
-			recombData: {},
+			state: {
+				assoData: null,
+				ldData: [],
+				recombData: null,
+			},
+
 			ldColor: [
 				"#2074B620",
 				"#32AFD520",
@@ -80,22 +85,21 @@ export default Vue.component("kp-region-viewer", {
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		if (this.renderConfig.features.includes("recombination")) {
-			this.callSignal();
-		}
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
-		renderingData() {
-			return this.gatheredData;
+		ldDataLoaded() {
+			return this.state.ldData;
+		},
+		recombinationData() {
+			return this.state.recombData;
 		},
 		plotsList() {
-			//let plotsKeys = [];
 			if (this.plotData != null) {
 				let plotsKeys = this.plotData.map(
-					(p) => p[this.renderConfig.multiPlotsBy]
+					(p) => p[this.renderConfig.plotsBy]
 				);
 
 				plotsKeys = [...new Set(plotsKeys)];
@@ -107,20 +111,20 @@ export default Vue.component("kp-region-viewer", {
 		},
 		associationData() {
 			if (this.plotsList != null) {
-				this.gatheredData = {};
-				/// add each plotting groups data wrappers to gatheredData
+				let assoData = {};
+				/// add each plotting groups data wrappers to assoData
 				this.plotsList.map((p) => {
-					this.gatheredData[p] = {};
-					this.gatheredData[p]["association"] = {};
-					this.gatheredData[p]["associationHi"] = null;
-					this.gatheredData[p]["associationLow"] = null;
+					assoData[p] = {};
+					assoData[p]["association"] = {};
+					assoData[p]["associationHi"] = null;
+					assoData[p]["associationLow"] = null;
 
 					//set this.gateredData object for LD & recombination rate, or any other features in the future
 					if (this.renderConfig.features.length > 0) {
 						this.renderConfig.features.map((f) => {
-							this.gatheredData[p][f] = {};
+							assoData[p][f] = {};
 							if (f == "LD") {
-								this.gatheredData[p]["ldReference"] = {
+								assoData[p]["ldReference"] = {
 									variant: null,
 									ldPopulation: !!this.renderConfig
 										.ldPopulation.ifStatic
@@ -134,7 +138,7 @@ export default Vue.component("kp-region-viewer", {
 				// gather data for association plot
 				var populationsObj = {};
 				this.plotData.map((p) => {
-					let group = p[this.renderConfig.multiPlotsBy];
+					let group = p[this.renderConfig.plotsBy];
 
 					let xFieldValue = p[this.renderConfig.xAxisField];
 					let yFieldValue = p[this.renderConfig.yAxisField];
@@ -146,23 +150,22 @@ export default Vue.component("kp-region-viewer", {
 					this.renderConfig.hoverContent.map((h) => {
 						tempObj[h] = p[h];
 					});
-					this.gatheredData[group].association[
-						p[this.renderConfig.renderBy]
-					] = tempObj;
+					assoData[group].association[p[this.renderConfig.renderBy]] =
+						tempObj;
 
 					// set high and low values of association data
 					// set association high
-					let assoHi = this.gatheredData[group].associationHi;
-					this.gatheredData[group].associationHi =
+					let assoHi = assoData[group].associationHi;
+					assoData[group].associationHi =
 						assoHi == null
 							? yFieldValue
 							: yFieldValue > assoHi
 							? yFieldValue
 							: assoHi;
 					// set association low
-					let assoLow = this.gatheredData[group].associationLow;
+					let assoLow = assoData[group].associationLow;
 
-					this.gatheredData[group].associationLow =
+					assoData[group].associationLow =
 						assoLow == null
 							? yFieldValue
 							: yFieldValue < assoLow
@@ -171,12 +174,12 @@ export default Vue.component("kp-region-viewer", {
 
 					// set ld reference variant
 					if (this.renderConfig.features.includes("LD")) {
-						this.gatheredData[group].ldReference.variant =
+						assoData[group].ldReference.variant =
 							assoHi == null
 								? p[this.renderConfig.renderBy]
 								: yFieldValue > assoHi
 								? p[this.renderConfig.renderBy]
-								: this.gatheredData[group].ldReference.variant;
+								: assoData[group].ldReference.variant;
 
 						//gather population IDs for the next step, setting LD population
 						populationsObj[group] = !!populationsObj[group]
@@ -191,14 +194,11 @@ export default Vue.component("kp-region-viewer", {
 
 				if (this.renderConfig.features.includes("LD")) {
 					this.plotsList.map((p) => {
-						if (
-							this.gatheredData[p].ldReference.ldPopulation ==
-							null
-						) {
+						if (assoData[p].ldReference.ldPopulation == null) {
 							let ldPopulationArr = [
 								...new Set(populationsObj[p]),
 							];
-							this.gatheredData[p].ldReference.ldPopulation =
+							assoData[p].ldReference.ldPopulation =
 								ldPopulationArr.length == 1
 									? ldPopulationArr[0]
 									: "ALL";
@@ -206,26 +206,33 @@ export default Vue.component("kp-region-viewer", {
 					});
 				}
 
-				return this.gatheredData;
+				return assoData;
 			}
 		},
 	},
 	watch: {
-		associationData(DATA) {
-			if (this.renderConfig.features.includes("LD")) {
-				this.callLD();
+		plotsList(DATA) {
+			// this one can be removed later
+			if (DATA != null) {
 			}
 		},
-		renderingData(DATA) {
-			this.renderRegionPlots();
+		associationData(DATA) {
+			this.state.assoData = DATA;
+			this.callLD();
+		},
+		ldDataLoaded(DATA) {
+			this.callSignal();
+		},
+		recombinationData(DATA) {
+			if (this.state.ldData.length == this.plotsList.length) {
+				this.renderRegionPlots();
+			}
 		},
 	},
 	methods: {
 		onResize() {},
 		renderRegionPlots() {
-			console.log("this.gatheredData", this.gatheredData);
-
-			//console.log("plotLayout", this.plotLayout);
+			console.log("this.renderRegionPlots() called");
 			var assoCanvasWidth = !!document.querySelector(
 				".association-plot-wrapper"
 			)
@@ -254,7 +261,7 @@ export default Vue.component("kp-region-viewer", {
 
 			if (assoCanvasWidth != null) {
 				for (const [groupKey, groupValue] of Object.entries(
-					this.gatheredData
+					this.state.assoData
 				)) {
 					let canvasId =
 						this.pkgID + "_" + groupKey + "_associationPlot";
@@ -281,7 +288,7 @@ export default Vue.component("kp-region-viewer", {
 							this.renderConfig.yAxisLabel
 						);
 
-						if (!!this.recombData.position) {
+						if (!!this.state.recombData.position) {
 							this.renderSignal(
 								ctx,
 								assoPlotWidth,
@@ -291,13 +298,15 @@ export default Vue.component("kp-region-viewer", {
 								groupKey
 							);
 						}
+
+						this.renderDots(ctx, groupKey);
 					}
 				}
 			}
 
 			if (ldCanvasWidth != null) {
 				for (const [groupKey, groupValue] of Object.entries(
-					this.gatheredData
+					this.state.assoData
 				)) {
 					let canvasId = this.pkgID + "_" + groupKey + "_ldPlot";
 
@@ -327,15 +336,17 @@ export default Vue.component("kp-region-viewer", {
 			}
 		},
 		renderDots(CTX, GROUP) {
-			console.log("group:", GROUP);
+			console.log("renderDots called");
+			console.log("asso data", this.state.assoData[GROUP].association);
 		},
 		renderSignal(CTX, PWIDTH, PHEIGHT, START, END, GROUP) {
-			var DATA = this.recombData;
+			console.log("renderSignal called");
+			var DATA = this.state.recombData;
 			var xPixel = (PWIDTH - 10) / (END - START);
 			var yPixel = (PHEIGHT - 5) / 100;
 			CTX.beginPath();
 			CTX.lineWidth = 1;
-			CTX.strokeStyle = "#0056B3";
+			CTX.strokeStyle = "#007BFF";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			DATA.position.map((xPos, xPosIndex) => {
@@ -355,8 +366,6 @@ export default Vue.component("kp-region-viewer", {
 				);
 				CTX.stroke();
 			});
-
-			this.renderDots(CTX, GROUP);
 		},
 		renderAxis(
 			plotType,
@@ -555,19 +564,35 @@ export default Vue.component("kp-region-viewer", {
 			);
 		},
 		callLD() {
-			//console.log("callLD is called", this.gatheredData);
-			for (const [key, value] of Object.entries(this.gatheredData)) {
+			this.state.ldData = [];
+			this.plotsList.map((group) => {
+				//this.state.ldData[group] = {};
+			});
+
+			let index = 0;
+			this.plotsList.map((group) => {
 				this.getLDData(
-					value.ldReference.variant,
-					value.ldReference.ldPopulation,
-					key
+					this.state.assoData[group].ldReference.variant,
+					this.state.assoData[group].ldReference.ldPopulation,
+					group
 				);
-			}
+			});
+			/*for (const [key, value] of Object.entries(this.state.assoData)) {
+				if (index == 0) {
+					this.getLDData(
+						value.ldReference.variant,
+						value.ldReference.ldPopulation,
+						key
+					);
+					index++;
+				}
+			}*/
 		},
 		callSignal() {
 			this.getSignalData();
 		},
 		async getLDData(REF_VARIANT, ANCESTRY, GROUP) {
+			//check if ld data exist
 			let ldURL =
 				"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
 				ANCESTRY +
@@ -584,11 +609,16 @@ export default Vue.component("kp-region-viewer", {
 			let ldJson = await fetch(ldURL).then((resp) => resp.json());
 
 			if (ldJson.error == null) {
-				this.gatheredData[GROUP].LD = {};
-				ldJson.data.variant2.map((v, vIndex) => {
-					this.gatheredData[GROUP].LD[v] =
-						ldJson.data.correlation[vIndex];
+				let tempObj = {};
+				tempObj["group"] = GROUP;
+				tempObj["refVariant"] = ldJson.data.variant1[0];
+				tempObj["variants"] = {};
+				ldJson.data.variant2.map((variant, variantIndex) => {
+					tempObj["variants"][variant] =
+						ldJson.data.correlation[variantIndex];
 				});
+
+				this.state.ldData.push(tempObj);
 			}
 		},
 		async getSignalData() {
@@ -603,9 +633,10 @@ export default Vue.component("kp-region-viewer", {
 			var signalJson = await fetch(signalURL).then((resp) => resp.json());
 
 			if (signalJson.error == null) {
-				console.log("feeding recomb_data");
-				this.recombData["position"] = signalJson.data.position;
-				this.recombData["recomb_rate"] = signalJson.data.recomb_rate;
+				this.state.recombData = {};
+				this.state.recombData["position"] = signalJson.data.position;
+				this.state.recombData["recomb_rate"] =
+					signalJson.data.recomb_rate;
 			}
 		},
 	},
