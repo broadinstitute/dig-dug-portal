@@ -577,16 +577,6 @@ export default Vue.component("kp-region-viewer", {
 					group
 				);
 			});
-			/*for (const [key, value] of Object.entries(this.state.assoData)) {
-				if (index == 0) {
-					this.getLDData(
-						value.ldReference.variant,
-						value.ldReference.ldPopulation,
-						key
-					);
-					index++;
-				}
-			}*/
 		},
 		callSignal() {
 			this.getSignalData();

@@ -198,44 +198,6 @@
 			</div>
 			<div class="card mdkp-card">
 				<div class="card-body">
-					<kp-data-viewer-pkg
-						:pkgConfig="{
-							viewers: ['kpGenesTrack', 'kpRegionViewer'],
-							pkgID: 'testPkg',
-							kpRegionViewer: {
-								viewerConfig: {
-									xAxisField: 'position',
-									xAxisLabel:
-										'Chromosome ' + $store.state.newChr,
-									yAxisField: 'nLog10P',
-									yAxisLabel: 'P-Value(-log10)',
-									renderBy: 'ldVarID',
-									plotsBy: 'phenotype',
-									hoverContent: ['pValue'],
-									height: 250,
-									features: ['LD', 'recombination'],
-									ldPopulation: { value: 'ldPopulation' },
-									//ldPopulation: { ifStatic: true, value: 'ALL' }, //ifStatic->true: fixed value ifStatic not set value has to be a field name
-								},
-								region: {
-									chr: $store.state.newChr,
-									start: $store.state.newStart,
-									end: $store.state.newEnd,
-								},
-								data: $parent.kpRegionViewerData,
-							},
-							plotLayout: {
-								leftMargin: 74.5,
-								rightMargin: 25.5,
-								topMargin: 10.5,
-								bottomMargin: 50.5,
-							},
-						}"
-					></kp-data-viewer-pkg>
-				</div>
-			</div>
-			<div class="card mdkp-card">
-				<div class="card-body">
 					<documentation
 						name="region.lz.subheader"
 						:content-fill="$parent.documentationMap"
