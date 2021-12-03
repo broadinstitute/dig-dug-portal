@@ -582,7 +582,7 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		ldVariantCorrelationsData(data) {
-			this.checkIfAllDataLoaded();
+			//this.checkIfAllDataLoaded();
 			let ldData = {};
 
 			if (data.data.correlation.length > 0) {
@@ -617,26 +617,17 @@ export default Vue.component("research-region-plot", {
 		},
 		recombinationData(DATA) {
 			if (DATA != null) {
-				this.checkIfAllDataLoaded();
+				//this.checkIfAllDataLoaded();
 			}
 		},
 		renderData(data) {
-			this.checkIfAllDataLoaded();
+			//this.checkIfAllDataLoaded();
 			this.setRefVariant();
 			this.getSignalData();
 		},
 	},
 	methods: {
 		...uiUtils,
-		checkIfAllDataLoaded() {
-			//console.log("check if called");
-			//console.log("renderData", Object.keys(this.plotData).length);
-			//console.log("recombinationData", this.recombinationData);
-			/*console.log(
-				"ldVariantCorrelationsData",
-				this.ldVariantCorrelationsData
-			);*/
-		},
 		getSignalData() {
 			if (this.searchingRegion != null) {
 				var signalURL =
@@ -1678,10 +1669,10 @@ export default Vue.component("research-region-plot", {
 			let yStep = (yMax - yMin) / 4;
 
 			// X BG
-			let xBGDistance = (plotWidth - 5) / 5;
+			let xBGDistance = plotWidth / 5;
 
 			for (let i = 0; i < 5; i++) {
-				let bgXPos = this.plotMargin.leftMargin + i * xBGDistance + 5;
+				let bgXPos = this.plotMargin.leftMargin + i * xBGDistance;
 				let adBGXPos = Math.floor(bgXPos) + 0.5;
 				ctx.fillStyle = this.ldColor[i];
 				ctx.fillRect(
@@ -1711,7 +1702,7 @@ export default Vue.component("research-region-plot", {
 
 			//Render dots
 			let ldConfig = this.renderConfig.ldServer;
-			let dotColor = "#33333340";
+			let dotColor;
 
 			let ldGroups = Object.keys(this.ldPopulations);
 			let posItems = {};
@@ -1724,16 +1715,15 @@ export default Vue.component("research-region-plot", {
 						g[this.renderConfig.yAxisField][ldG] != undefined
 					) {
 						let dotID = g[ldConfig.ref_variant_field];
+						console.log("dotID", LDData[dotID]);
 
-						let ldScore = !!LDData[dotID]
-							? LDData[dotID]
-							: dotID == refVariant
-							? 1
-							: 0;
+						let ldScore = !!LDData[dotID] ? LDData[dotID] : 0;
 
 						dotColor =
 							ldScore == 1
 								? "#82409970"
+								: ldScore == 0
+								? "#33333340"
 								: this.getColorIndex(ldG);
 
 						let xPos = xStart + xPosByPixel * ldScore;
@@ -1755,7 +1745,12 @@ export default Vue.component("research-region-plot", {
 						posItems[dotID][ldG]["xPos"] = xPos;
 						posItems[dotID][ldG]["yPos"] = yPos;
 
-						this.renderDot(ctx, xPos, yPos, dotColor);
+						if (dotID == refVariant) {
+							this.renderDiamond(ctx, xPos, yPos, dotColor);
+						} else {
+							this.renderDot(ctx, xPos, yPos, dotColor);
+						}
+						//this.renderDot(ctx, xPos, yPos, dotColor);
 
 						let xLoc = xPos.toString().split(".")[0];
 						let yLoc = yPos.toString().split(".")[0];
@@ -1785,9 +1780,9 @@ export default Vue.component("research-region-plot", {
 							ctx.beginPath();
 							ctx.lineWidth = 1;
 							ctx.strokeStyle = "#00000070";
-							ctx.moveTo(s.xPos, s.yPos);
+							ctx.moveTo(s.xPos - 2.5, s.yPos);
 							ctx.lineTo(
-								posItemArr[sIndex + 1]["xPos"],
+								posItemArr[sIndex + 1]["xPos"] - 2.5,
 								posItemArr[sIndex + 1]["yPos"]
 							);
 							ctx.stroke();
@@ -1899,11 +1894,10 @@ export default Vue.component("research-region-plot", {
 				let yStep = (yMax - yMin) / 4;
 
 				// X BG
-				let xBGDistance = (plotWidth - 5) / 5;
+				let xBGDistance = plotWidth / 5;
 
 				for (let i = 0; i < 5; i++) {
-					let bgXPos =
-						this.plotMargin.leftMargin + i * xBGDistance + 5;
+					let bgXPos = this.plotMargin.leftMargin + i * xBGDistance;
 					let adBGXPos = Math.floor(bgXPos) + 0.5;
 					ctx.fillStyle = this.ldColor[i];
 					ctx.fillRect(
@@ -1928,10 +1922,17 @@ export default Vue.component("research-region-plot", {
 				for (const [posItemKey, posItem] of Object.entries(
 					this.ldPosItems
 				)) {
+					let refVariant = this.ldPopulations[item].refVariant;
+
 					if (!!posItem[item]) {
 						let xPos = posItem[item].xPos;
 						let yPos = posItem[item].yPos;
 						let dotColor = "#00000030"; //this.getColorIndex(item);
+						if (posItemKey == refVariant) {
+							this.renderDiamond(ctx, xPos, yPos, dotColor);
+						} else {
+							this.renderDot(ctx, xPos, yPos, dotColor);
+						}
 
 						this.renderDot(ctx, xPos, yPos, dotColor);
 					}
@@ -1949,12 +1950,39 @@ export default Vue.component("research-region-plot", {
 
 			return colorIndex;
 		},
+		renderDiamond(CTX, XPOS, YPOS, DOT_COLOR) {
+			let WIDTH = 10;
+			let HEIGHT = 14;
+			let xpos = XPOS - WIDTH / 2;
+			let ypos = YPOS - HEIGHT / 2;
+			CTX.save();
+			CTX.fillStyle = DOT_COLOR;
+			CTX.lineWidth = 0;
+
+			CTX.beginPath();
+			CTX.moveTo(xpos, ypos);
+
+			// top left edge
+			CTX.lineTo(xpos - WIDTH / 2, ypos + HEIGHT / 2);
+
+			// bottom left edge
+			CTX.lineTo(xpos, ypos + HEIGHT);
+
+			// bottom right edge
+			CTX.lineTo(xpos + WIDTH / 2, ypos + HEIGHT / 2);
+
+			CTX.closePath();
+			CTX.strokeStyle = "#824099";
+			CTX.stroke();
+			CTX.fill();
+			CTX.restore();
+		},
 		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
 			CTX.fillStyle = DOT_COLOR;
 
 			CTX.lineWidth = 0;
 			CTX.beginPath();
-			CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
+			CTX.arc(XPOS - 4, YPOS, 5, 0, 2 * Math.PI);
 			CTX.fill();
 		},
 		feedHoverContent(xLoc, yLoc, ID, CONTENT) {
