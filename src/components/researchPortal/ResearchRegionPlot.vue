@@ -14,7 +14,7 @@
 					>Combined</span
 				>
 				<span
-					v-if="yAxisFieldItems.length > 1"
+					v-if="yAxisFieldItems.length > 0"
 					class="plot-item-bubble reference"
 					style="background-color: #ffffff; border: solid 1px #666666"
 					@click="showHideSplitPlots()"
@@ -199,20 +199,10 @@
 				class="mbm-plot-legend"
 				v-html="renderConfig.legend"
 			></div>
-			<canvas
-				v-if="!!renderConfig"
-				id="regionPlot"
-				@mousemove="checkPosition($event, 'regionPlot')"
-				@resize="onResize"
-				@click="getFullList"
-				width=""
-				height=""
-			>
-			</canvas>
 			<div
 				id="splitPlots"
 				class="hidden"
-				v-if="!!renderConfig && yAxisFieldItems.length > 1"
+				v-if="!!renderConfig && yAxisFieldItems.length > 0"
 			>
 				<div v-for="(item, itemIndex) in yAxisFieldItems">
 					<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
@@ -227,6 +217,16 @@
 					></canvas>
 				</div>
 			</div>
+			<canvas
+				v-if="!!renderConfig"
+				id="regionPlot"
+				@mousemove="checkPosition($event, 'regionPlot')"
+				@resize="onResize"
+				@click="getFullList"
+				width=""
+				height=""
+			>
+			</canvas>
 
 			<div
 				v-if="!!renderConfig.label"
@@ -355,19 +355,10 @@
 					</template>
 				</div>
 			</div>
-			<canvas
-				v-if="!!renderConfig"
-				id="ldPlot"
-				@mousemove="checkLDPosition($event, 'ldPlot')"
-				@click="getLDFullList"
-				width=""
-				height=""
-			>
-			</canvas>
 			<div
 				id="splitLDPlots"
 				class="hidden"
-				v-if="!!renderConfig && yAxisFieldItems.length > 1"
+				v-if="!!renderConfig && yAxisFieldItems.length > 0"
 			>
 				<div v-for="(item, itemIndex) in yAxisFieldItems">
 					<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
@@ -382,8 +373,16 @@
 					></canvas>
 				</div>
 			</div>
+			<canvas
+				v-if="!!renderConfig"
+				id="ldPlot"
+				@mousemove="checkLDPosition($event, 'ldPlot')"
+				@click="getLDFullList"
+				width=""
+				height=""
+			>
+			</canvas>
 		</div>
-		{{ selectedRegion }}
 	</div>
 </template>
 
@@ -402,19 +401,15 @@ export default Vue.component("research-region-plot", {
 	props: [
 		"plotData",
 		"renderConfig",
-		"selectedRegion",
 		"searchParameters",
 		"dataComparisonConfig",
 		"region",
+		"plotMargin",
 	],
 	data() {
 		return {
 			plotRenderBy: "all",
 			plotRendered: 0,
-			leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			rightMargin: 0.5,
-			topMargin: 10.5, // -0.5 to draw crisp line
-			bottomMargin: 50.5,
 			dotPosData: {},
 			ldDotPosData: {},
 			hoverDotPosFullList: [],
@@ -462,6 +457,9 @@ export default Vue.component("research-region-plot", {
 	mounted: function () {
 		if (this.renderData != null) {
 			this.setRefVariant();
+		}
+		if (this.renderData != null && this.searchingRegion != null) {
+			this.getSignalData();
 		}
 
 		window.addEventListener("resize", this.onResize);
@@ -550,6 +548,17 @@ export default Vue.component("research-region-plot", {
 				return contents;
 			}
 		},
+
+		recombinationData() {
+			let contents = this.$store.state.umLdServer.recombRate;
+
+			if (contents == "") {
+				return null;
+			} else {
+				return contents;
+			}
+		},
+
 		searchingRegion() {
 			if (this.region == null) {
 				return null;
@@ -567,7 +576,13 @@ export default Vue.component("research-region-plot", {
 		},
 	},
 	watch: {
+		searchingRegion(DATA) {
+			if (DATA != null) {
+				this.getSignalData();
+			}
+		},
 		ldVariantCorrelationsData(data) {
+			this.checkIfAllDataLoaded();
 			let ldData = {};
 
 			if (data.data.correlation.length > 0) {
@@ -593,16 +608,50 @@ export default Vue.component("research-region-plot", {
 
 			if (notLoadedLDScore > 0) {
 				this.getLDData(refVariant, ancester);
-			} else if (notLoadedLDScore == 0) {
+			} else if (
+				notLoadedLDScore == 0 &&
+				this.recombinationData != null
+			) {
 				this.renderPlot();
 			}
 		},
+		recombinationData(DATA) {
+			if (DATA != null) {
+				this.checkIfAllDataLoaded();
+			}
+		},
 		renderData(data) {
+			this.checkIfAllDataLoaded();
 			this.setRefVariant();
+			this.getSignalData();
 		},
 	},
 	methods: {
 		...uiUtils,
+		checkIfAllDataLoaded() {
+			//console.log("check if called");
+			//console.log("renderData", Object.keys(this.plotData).length);
+			//console.log("recombinationData", this.recombinationData);
+			/*console.log(
+				"ldVariantCorrelationsData",
+				this.ldVariantCorrelationsData
+			);*/
+		},
+		getSignalData() {
+			if (this.searchingRegion != null) {
+				var signalURL =
+					"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
+					this.searchingRegion.chr +
+					"' and position gt " +
+					this.searchingRegion.start +
+					" and position lt " +
+					this.searchingRegion.end;
+				//console.log("signalURL", signalURL);
+				this.$store.dispatch("umLdServer/getRecombRate", {
+					url: signalURL,
+				});
+			}
+		},
 		chiSquared(ARRAY) {
 			let X = 0.0;
 			let n = ARRAY.length;
@@ -622,12 +671,6 @@ export default Vue.component("research-region-plot", {
 			let dataGroups = {};
 			let populations = [];
 			this.ldPopulations = {};
-
-			console.log("DATA", DATA);
-			console.log(
-				"this.renderConfig.ldServer",
-				this.renderConfig.ldServer
-			);
 
 			if (!!DATA && DATA.length > 0) {
 				DATA.map((d) => {
@@ -659,8 +702,7 @@ export default Vue.component("research-region-plot", {
 							)) {
 								dataGroups[key] = [];
 								dataGroups[key].push(
-									this.renderConfig.ldServer
-										.populations_fixed_ancestry
+									this.renderConfig.ldServer.fixed_population
 								);
 							}
 						}
@@ -759,8 +801,6 @@ export default Vue.component("research-region-plot", {
 					}
 				});
 
-				console.log("this.ldPopulations", this.ldPopulations);
-
 				if (!!this.dataComparisonConfig) {
 					let searchItem = Object.keys(this.ldPopulations)[0];
 
@@ -777,8 +817,6 @@ export default Vue.component("research-region-plot", {
 		setLDReference(DATA_COMPARE, VARIANT, ANCESTRY_ID) {
 			this.hidePanel("ld_dot_value_full_list");
 			this.hidePanel("dot_value_full_list");
-
-			console.log("test 1", DATA_COMPARE, VARIANT, ANCESTRY_ID);
 
 			if (DATA_COMPARE == true) {
 				//make the first LD score call
@@ -799,7 +837,6 @@ export default Vue.component("research-region-plot", {
 			this.renderPlot();
 		},
 		getLDData(REF_VARIANT, ANCESTRY) {
-			console.log("ANCESTRY", ANCESTRY);
 			let ldUrl =
 				"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
 				ANCESTRY +
@@ -956,23 +993,22 @@ export default Vue.component("research-region-plot", {
 			let canvasRenderWidth = document
 				.getElementById("regionPlot")
 				.getAttribute("width");
-			let canvasRenderHeight = document
-				.getElementById("regionPlot")
-				.getAttribute("height");
 
-			let xBump = canvasRenderWidth * 0.03;
-			let yBump = canvasRenderHeight * 0.02;
+			let canvasRenderHeight = !!this.renderConfig.height
+				? this.renderConfig.height +
+				  this.plotMargin.topMargin +
+				  this.plotMargin.bottomMargin
+				: 300 +
+				  this.plotMargin.topMargin +
+				  this.plotMargin.bottomMargin;
 
-			let plotWidth =
-				canvasRenderWidth -
-				(this.leftMargin + this.rightMargin + xBump);
+			let plotWidth = canvasRenderWidth - this.plotMargin.leftMargin * 2;
 
 			let plotHeight = !!this.renderConfig.height
 				? this.renderConfig.height
 				: 300;
 
 			this.yAxisFieldItems.map((item, itemIndex) => {
-				//console.log("canvasRenderWidth", canvasRenderWidth);
 				let c = document.getElementById("splitPlot" + itemIndex);
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
@@ -986,8 +1022,6 @@ export default Vue.component("research-region-plot", {
 					xMax = Number(this.searchingRegion.end);
 
 				this.renderData.map((d) => {
-					//let yValue;
-
 					let highNum = null;
 					let lowNum = null;
 					this.yAxisFieldItems.map((i) => {
@@ -1031,19 +1065,36 @@ export default Vue.component("research-region-plot", {
 					xMax,
 					yMin,
 					yMax,
-					xBump,
-					yBump
+					"asso"
 				);
 
-				let xStart = this.leftMargin + 5;
-				let yStart = this.topMargin;
+				this.renderRecombRate(ctx, plotWidth, plotHeight, xMin, xMax);
+
+				let xStart = this.plotMargin.leftMargin + 5;
+				let yStart = this.plotMargin.topMargin;
 				let xPosByPixel = (plotWidth - 5) / (xMax - xMin);
 				let yPosByPixel = plotHeight / (yMax - yMin);
 
-				let dotColor = this.getColorIndex(item);
-				ctx.fillStyle = dotColor;
+				let dotColor; //this.getColorIndex(item);
 
+				//console.log("item", item);
+				//console.log("this.ldPosItems", this.ldPopulations[item].ldData);
 				this.renderData.map((g) => {
+					let varID = g[this.renderConfig.renderBy];
+
+					/*console.log(
+						item +
+							" " +
+							g[this.renderConfig.renderBy] +
+							" ld score:",
+						this.ldPopulations[item].ldData[varID]
+					);*/
+
+					if (this.ldPopulations[item].ldData[varID] != undefined) {
+						dotColor = this.getColorIndex(item);
+					} else {
+						dotColor = "#00000030";
+					}
 					let xPos =
 						xStart +
 						xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
@@ -1057,49 +1108,67 @@ export default Vue.component("research-region-plot", {
 							yPosByPixel *
 								(g[this.renderConfig.yAxisField][item] - yMin);
 
+						ctx.fillStyle = dotColor;
+
 						this.renderDot(ctx, xPos, yPos, dotColor);
 					}
 				});
 			});
 		},
 
-		renderAxis(
-			CTX,
-			plotWidth,
-			plotHeight,
-			xMin,
-			xMax,
-			yMin,
-			yMax,
-			xBump,
-			yBump
-		) {
+		renderAxis(CTX, plotWidth, plotHeight, xMin, xMax, yMin, yMax, TYPE) {
+			let bump = 5.5;
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
-			CTX.moveTo(this.leftMargin, this.topMargin);
-			CTX.lineTo(this.leftMargin, plotHeight + this.topMargin + 5);
+			CTX.moveTo(
+				this.plotMargin.leftMargin - bump,
+				this.plotMargin.topMargin
+			);
+			CTX.lineTo(
+				this.plotMargin.leftMargin - bump,
+				plotHeight + this.plotMargin.topMargin + bump
+			);
 			CTX.stroke();
 
+			// render recombination Rate y axis
+			if (TYPE == "asso") {
+				CTX.moveTo(
+					this.plotMargin.leftMargin + plotWidth + bump,
+					this.plotMargin.topMargin
+				);
+				CTX.lineTo(
+					this.plotMargin.leftMargin + plotWidth + bump,
+					plotHeight + this.plotMargin.topMargin + bump
+				);
+
+				CTX.stroke();
+			}
+
 			//render x axis
-			CTX.moveTo(this.leftMargin, plotHeight + this.topMargin + 5);
+			CTX.moveTo(
+				this.plotMargin.leftMargin - bump,
+				plotHeight + this.plotMargin.topMargin + bump
+			);
 			CTX.lineTo(
-				plotWidth + this.leftMargin,
-				plotHeight + this.topMargin + 5
+				TYPE == "asso"
+					? plotWidth + this.plotMargin.leftMargin + bump
+					: plotWidth + this.plotMargin.leftMargin,
+				plotHeight + this.plotMargin.topMargin + bump
 			);
 			CTX.stroke();
 
 			// Y ticks
-			let yStep = (yMax - yMin) / 4;
-			let yTickDistance = plotHeight / 4;
-			for (let i = 0; i < 5; i++) {
-				let tickYPos = this.topMargin + i * yTickDistance;
+			let yStep = (yMax - yMin) / 5;
+			let yTickDistance = plotHeight / 5;
+			for (let i = 0; i < 6; i++) {
+				let tickYPos = this.plotMargin.topMargin + i * yTickDistance;
 				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
-				CTX.moveTo(this.leftMargin - 5, adjTickYPos);
-				CTX.lineTo(this.leftMargin, adjTickYPos);
+				CTX.moveTo(this.plotMargin.leftMargin - bump * 2, adjTickYPos);
+				CTX.lineTo(this.plotMargin.leftMargin - bump, adjTickYPos);
 				CTX.stroke();
 
 				CTX.font = "12px Arial";
@@ -1108,49 +1177,143 @@ export default Vue.component("research-region-plot", {
 
 				CTX.fillText(
 					Formatters.floatFormatter(yMin + i * yStep),
-					this.leftMargin - 10,
-					this.topMargin + plotHeight + 5 - i * yTickDistance
+					this.plotMargin.leftMargin - bump * 3,
+					this.plotMargin.topMargin +
+						plotHeight +
+						bump -
+						i * yTickDistance
 				);
 			}
 
-			// X ticks
-			let xStep = Math.ceil((xMax - xMin) / 4);
-			let xTickDistance = (plotWidth - 5) / 4;
+			// render recombination Rate y ticks
+			if (TYPE == "asso") {
+				let yStep = 20;
+				let yTickDistance = plotHeight / 5;
+				let recombYMin = 0;
+				for (let i = 0; i < 6; i++) {
+					let tickYPos =
+						this.plotMargin.topMargin + i * yTickDistance;
+					let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+					CTX.moveTo(
+						this.plotMargin.leftMargin + plotWidth + bump,
+						adjTickYPos
+					);
+					CTX.lineTo(
+						this.plotMargin.leftMargin + plotWidth + bump * 2,
+						adjTickYPos
+					);
+					CTX.stroke();
 
-			for (let i = 0; i < 5; i++) {
-				let tickXPos = this.leftMargin + i * xTickDistance + 5;
+					CTX.font = "12px Arial";
+					CTX.textAlign = "left";
+					CTX.fillStyle = "#000000";
+
+					CTX.fillText(
+						recombYMin + i * yStep,
+						this.plotMargin.leftMargin + plotWidth + bump * 3,
+						this.plotMargin.topMargin +
+							plotHeight +
+							5 -
+							i * yTickDistance
+					);
+				}
+			}
+
+			// X ticks
+			let xStep = TYPE == "asso" ? Math.ceil((xMax - xMin) / 5) : 0.2;
+			let xTickDistance = plotWidth / 5;
+
+			for (let i = 0; i < 6; i++) {
+				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
 				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
-				CTX.moveTo(adjTickXPos, this.topMargin + plotHeight + yBump);
+				CTX.moveTo(
+					adjTickXPos,
+					this.plotMargin.topMargin + plotHeight + bump
+				);
 				CTX.lineTo(
 					adjTickXPos,
-					this.topMargin + plotHeight + yBump + 5
+					this.plotMargin.topMargin + plotHeight + bump * 2
 				);
 				CTX.stroke();
 
 				CTX.font = "12px Arial";
 				CTX.textAlign = "center";
 				CTX.fillStyle = "#000000";
-				let position = i < 4 ? xMin + i * xStep : xMax;
+				let positionLabel =
+					TYPE == "asso"
+						? i < 5
+							? xMin + i * xStep
+							: xMax
+						: i < 5
+						? i == 0
+							? 0
+							: (xMin + i * xStep).toFixed(1)
+						: xMax;
 				CTX.fillText(
-					position,
+					positionLabel,
 					adjTickXPos,
-					this.topMargin + plotHeight + yBump + 15
+					this.plotMargin.topMargin + plotHeight + bump * 4
 				);
 			}
 
 			//Render y axis label
-			CTX.font = "14px Arial";
+			CTX.font = "12px Arial";
 			CTX.textAlign = "center";
 			CTX.fillStyle = "#000000";
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
 				this.renderConfig.yAxisLabel,
-				-(this.topMargin + plotHeight / 2),
-				this.leftMargin - this.leftMargin / 2 - 14
+				-(this.plotMargin.topMargin + plotHeight / 2),
+				bump + 12
 			);
+
+			//Render recombination rate y axis label
+			if (TYPE == "asso") {
+				CTX.fillText(
+					"Recombination Rate (cM/Mb)",
+					-(this.plotMargin.topMargin + plotHeight / 2),
+					this.plotMargin.leftMargin * 2 + plotWidth - (bump + 12)
+				);
+			}
 
 			//Render x axis label
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
+			CTX.fillText(
+				TYPE == "LD" ? "LD(r2)" : this.renderConfig.xAxisLabel,
+				plotWidth / 2 + this.plotMargin.leftMargin,
+				this.plotMargin.topMargin +
+					this.plotMargin.bottomMargin +
+					plotHeight -
+					12
+			);
+		},
+		renderRecombRate(CTX, PWIDTH, PHEIGHT, START, END) {
+			//console.log("recomb data", this.recombinationData);
+			var DATA = this.recombinationData["data"];
+			var xPixel = (PWIDTH - 10) / (END - START);
+			var yPixel = (PHEIGHT - 5) / 100;
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#007BFF";
+			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+			DATA.position.map((xPos, xPosIndex) => {
+				let x1PosPixel = (xPos - START) * xPixel;
+				let y1PosPixel = DATA.recomb_rate[xPosIndex] * yPixel;
+				let x2PosPixel =
+					(DATA.position[xPosIndex + 1] - START) * xPixel;
+				let y2PosPixel = DATA.recomb_rate[xPosIndex + 1] * yPixel;
+
+				CTX.moveTo(
+					this.plotMargin.leftMargin + 5 + x1PosPixel,
+					this.plotMargin.topMargin + PHEIGHT - y1PosPixel
+				);
+				CTX.lineTo(
+					this.plotMargin.leftMargin + 5 + x2PosPixel,
+					this.plotMargin.topMargin + PHEIGHT - y2PosPixel
+				);
+				CTX.stroke();
+			});
 		},
 		renderPlot() {
 			this.dotPosData = {};
@@ -1158,21 +1321,21 @@ export default Vue.component("research-region-plot", {
 			let wrapper = document.getElementById("clicked_dot_value");
 			wrapper.classList.add("hidden");
 
-			// canvasRenderWidth, canvasRenderHeight, plotWidth, plotHeight, xBump, yBump
 			let canvasRenderWidth = !!this.renderConfig.width
-				? this.renderConfig.width + this.leftMargin + this.rightMargin
+				? this.renderConfig.width +
+				  this.plotMargin.leftMargin +
+				  this.plotMargin.rightMargin
 				: document.getElementById("regionPlotWrapper").clientWidth - 30; // -30 for - padding
 
 			let canvasRenderHeight = !!this.renderConfig.height
-				? this.renderConfig.height + this.topMargin + this.bottomMargin
-				: 300 + this.topMargin + this.bottomMargin;
+				? this.renderConfig.height +
+				  this.plotMargin.topMargin +
+				  this.plotMargin.bottomMargin
+				: 300 +
+				  this.plotMargin.topMargin +
+				  this.plotMargin.bottomMargin;
 
-			let xBump = canvasRenderWidth * 0.03;
-			let yBump = canvasRenderHeight * 0.02;
-
-			let plotWidth =
-				canvasRenderWidth -
-				(this.leftMargin + this.rightMargin + xBump);
+			let plotWidth = canvasRenderWidth - this.plotMargin.leftMargin * 2;
 
 			let plotHeight = !!this.renderConfig.height
 				? this.renderConfig.height
@@ -1257,12 +1420,13 @@ export default Vue.component("research-region-plot", {
 				xMax,
 				yMin,
 				yMax,
-				xBump,
-				yBump
+				"asso"
 			);
 
-			let xStart = this.leftMargin + 5;
-			let yStart = this.topMargin;
+			this.renderRecombRate(ctx, plotWidth, plotHeight, xMin, xMax);
+
+			let xStart = this.plotMargin.leftMargin + 5;
+			let yStart = this.plotMargin.topMargin;
 			let xPosByPixel = (plotWidth - 5) / (xMax - xMin);
 
 			let yPosByPixel = plotHeight / (yMax - yMin);
@@ -1422,9 +1586,9 @@ export default Vue.component("research-region-plot", {
 				}
 			});
 
-			if (this.yAxisFieldItems.length > 1) {
-				this.renderSplitPlots();
-			}
+			//if (this.yAxisFieldItems.length > 1) {
+			this.renderSplitPlots();
+			//}
 
 			this.renderLDPlot(canvasRenderHeight, plotHeight);
 		},
@@ -1436,12 +1600,9 @@ export default Vue.component("research-region-plot", {
 
 			let canvasRenderHeight = canvasH;
 
-			let xBump = canvasRenderWidth * 0.03;
-			let yBump = canvasRenderHeight * 0.02;
-
 			let plotWidth =
 				canvasRenderWidth -
-				(this.leftMargin + this.rightMargin + xBump);
+				(this.plotMargin.leftMargin + this.plotMargin.rightMargin);
 
 			let plotHeight = plotH;
 
@@ -1458,8 +1619,6 @@ export default Vue.component("research-region-plot", {
 				yMax = null,
 				xMin = 0,
 				xMax = 1;
-
-			//let chr = this.searchingRegion.chr;
 
 			this.renderData.map((d) => {
 				let yValue;
@@ -1522,12 +1681,12 @@ export default Vue.component("research-region-plot", {
 			let xBGDistance = (plotWidth - 5) / 5;
 
 			for (let i = 0; i < 5; i++) {
-				let bgXPos = this.leftMargin + i * xBGDistance + 5;
+				let bgXPos = this.plotMargin.leftMargin + i * xBGDistance + 5;
 				let adBGXPos = Math.floor(bgXPos) + 0.5;
 				ctx.fillStyle = this.ldColor[i];
 				ctx.fillRect(
 					adBGXPos,
-					this.topMargin,
+					this.plotMargin.topMargin,
 					xBGDistance - 1,
 					plotHeight
 				);
@@ -1541,28 +1700,18 @@ export default Vue.component("research-region-plot", {
 				xMax,
 				yMin,
 				yMax,
-				xBump,
-				yBump
+				"LD"
 			);
 
-			let xStart = this.leftMargin + 5;
-			let yStart = this.topMargin;
+			let xStart = this.plotMargin.leftMargin + 5;
+			let yStart = this.plotMargin.topMargin;
 			let xPosByPixel = (plotWidth - 5) / (xMax - xMin);
 
 			let yPosByPixel = plotHeight / (yMax - yMin);
 
-			//Render x axis label
-			ctx.fillText(
-				"LD(r2)",
-				plotWidth / 2 + this.leftMargin,
-				this.topMargin + plotHeight + yBump + 35
-			);
-
 			//Render dots
 			let ldConfig = this.renderConfig.ldServer;
 			let dotColor = "#33333340";
-
-			//console.log("LDData", LDData);
 
 			let ldGroups = Object.keys(this.ldPopulations);
 			let posItems = {};
@@ -1632,7 +1781,6 @@ export default Vue.component("research-region-plot", {
 					}
 
 					posItemArr.map((s, sIndex) => {
-						//console.log("sIndex", sIndex);
 						if (sIndex < posItemArr.length - 1) {
 							ctx.beginPath();
 							ctx.lineWidth = 1;
@@ -1648,31 +1796,32 @@ export default Vue.component("research-region-plot", {
 				}
 			}
 
-			if (this.yAxisFieldItems.length > 1) {
-				this.renderSplitLDPlots();
-			}
+			//if (this.yAxisFieldItems.length > 1) {
+			this.renderSplitLDPlots();
+			//}
 		},
 		renderSplitLDPlots() {
 			let canvasRenderWidth = document
 				.getElementById("ldPlot")
 				.getAttribute("width");
-			let canvasRenderHeight = document
-				.getElementById("ldPlot")
-				.getAttribute("height");
 
-			let xBump = canvasRenderWidth * 0.03;
-			let yBump = canvasRenderHeight * 0.02;
+			let canvasRenderHeight = !!this.renderConfig.height
+				? this.renderConfig.height +
+				  this.plotMargin.topMargin +
+				  this.plotMargin.bottomMargin
+				: 300 +
+				  this.plotMargin.topMargin +
+				  this.plotMargin.bottomMargin;
 
 			let plotWidth =
 				canvasRenderWidth -
-				(this.leftMargin + this.rightMargin + xBump);
+				(this.plotMargin.leftMargin + this.plotMargin.rightMargin);
 
 			let plotHeight = !!this.renderConfig.height
 				? this.renderConfig.height
 				: 300;
 
 			this.yAxisFieldItems.map((item, itemIndex) => {
-				//console.log("canvasRenderWidth", canvasRenderWidth);
 				let c = document.getElementById("splitLDPlot" + itemIndex);
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
@@ -1753,12 +1902,13 @@ export default Vue.component("research-region-plot", {
 				let xBGDistance = (plotWidth - 5) / 5;
 
 				for (let i = 0; i < 5; i++) {
-					let bgXPos = this.leftMargin + i * xBGDistance + 5;
+					let bgXPos =
+						this.plotMargin.leftMargin + i * xBGDistance + 5;
 					let adBGXPos = Math.floor(bgXPos) + 0.5;
 					ctx.fillStyle = this.ldColor[i];
 					ctx.fillRect(
 						adBGXPos,
-						this.topMargin,
+						this.plotMargin.topMargin,
 						xBGDistance - 1,
 						plotHeight
 					);
@@ -1772,25 +1922,16 @@ export default Vue.component("research-region-plot", {
 					xMax,
 					yMin,
 					yMax,
-					xBump,
-					yBump
+					"LD"
 				);
 
-				//Render x axis label
-				ctx.fillText(
-					"LD(r2)",
-					plotWidth / 2 + this.leftMargin,
-					this.topMargin + plotHeight + yBump + 35
-				);
-
-				//console.log("this.ldPosItems", this.ldPosItems);
 				for (const [posItemKey, posItem] of Object.entries(
 					this.ldPosItems
 				)) {
 					if (!!posItem[item]) {
 						let xPos = posItem[item].xPos;
 						let yPos = posItem[item].yPos;
-						let dotColor = this.getColorIndex(item);
+						let dotColor = "#00000030"; //this.getColorIndex(item);
 
 						this.renderDot(ctx, xPos, yPos, dotColor);
 					}
