@@ -220,11 +220,11 @@ export default Vue.component("research-region-plot", {
 			} else {
 				let returnObj = {};
 
-				returnObj["chr"] = this.region.split(":")[0];
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 
 				let regionArr = this.region.split(":")[1].split("-");
-				returnObj["start"] = regionArr[0];
-				returnObj["end"] = regionArr[1];
+				returnObj["start"] = parseInt(regionArr[0], 10);
+				returnObj["end"] = parseInt(regionArr[1], 10);
 
 				return returnObj;
 			}
@@ -324,6 +324,7 @@ export default Vue.component("research-region-plot", {
 			let bump = 5.5;
 
 			console.log("this.assoData", this.assoData);
+			console.log("this.ldData", this.ldData);
 
 			this.plotsList.map((p) => {
 				// first asso plot
@@ -342,8 +343,8 @@ export default Vue.component("research-region-plot", {
 					plotHeight,
 					this.assoData[p].yXHigh,
 					this.assoData[p].yXLow,
-					parseInt(this.searchingRegion.end, 10),
-					parseInt(this.searchingRegion.start, 10),
+					this.searchingRegion.end,
+					this.searchingRegion.start,
 					bump,
 					"asso"
 				);
@@ -352,9 +353,21 @@ export default Vue.component("research-region-plot", {
 					ctx,
 					assoPlotWidth,
 					plotHeight,
-					parseInt(this.searchingRegion.end, 10),
-					parseInt(this.searchingRegion.start, 10),
-					bump
+					this.searchingRegion.end,
+					this.searchingRegion.start
+				);
+
+				this.renderDots(
+					ctx,
+					ldPlotWidth,
+					plotHeight,
+					this.assoData[p].yXHigh,
+					this.assoData[p].yXLow,
+					this.searchingRegion.end,
+					this.searchingRegion.start,
+					bump,
+					"asso",
+					p
 				);
 
 				// second LD plot
@@ -378,9 +391,69 @@ export default Vue.component("research-region-plot", {
 				);
 			});
 		},
-		renderRecombLine(CTX, PWIDTH, PHEIGHT, END, START, BUMP) {
-			console.log("recomb data", this.recombData);
+		renderDots(
+			CTX,
+			WIDTH,
+			HEIGHT,
+			yMax,
+			yMin,
+			xMax,
+			xMin,
+			bump,
+			TYPE,
+			GROUP
+		) {
+			var assoData = this.assoData[GROUP].data;
+			var ldData = this.ldData[GROUP];
 
+			console.log("assoData", assoData);
+			console.log("ldData", ldData);
+
+			var xStep = WIDTH / (xMax - xMin);
+			var yStep = HEIGHT / (yMax - yMin);
+			var xField = this.renderConfig.xAxisField;
+			var yField = this.renderConfig.yAxisField;
+
+			for (const [key, value] of Object.entries(assoData)) {
+				//temp save here
+			}
+		},
+		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
+			CTX.fillStyle = DOT_COLOR;
+
+			CTX.lineWidth = 0;
+			CTX.beginPath();
+			CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
+			CTX.fill();
+		},
+		renderDiamond(CTX, XPOS, YPOS, DOT_COLOR) {
+			let WIDTH = 10;
+			let HEIGHT = 14;
+			let xpos = XPOS - WIDTH / 2;
+			let ypos = YPOS - HEIGHT / 2;
+			CTX.save();
+			CTX.fillStyle = DOT_COLOR;
+			CTX.lineWidth = 0;
+
+			CTX.beginPath();
+			CTX.moveTo(xpos, ypos);
+
+			// top left edge
+			CTX.lineTo(xpos - WIDTH / 2, ypos + HEIGHT / 2);
+
+			// bottom left edge
+			CTX.lineTo(xpos, ypos + HEIGHT);
+
+			// bottom right edge
+			CTX.lineTo(xpos + WIDTH / 2, ypos + HEIGHT / 2);
+
+			CTX.closePath();
+			CTX.strokeStyle = "#824099";
+			CTX.stroke();
+			CTX.fill();
+			CTX.restore();
+		},
+		renderRecombLine(CTX, PWIDTH, PHEIGHT, END, START) {
 			var DATA = this.recombData;
 			var xPixel = PWIDTH / (END - START);
 			var yPixel = PHEIGHT / 100;
