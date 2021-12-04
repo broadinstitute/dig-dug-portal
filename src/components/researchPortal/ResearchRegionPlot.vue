@@ -1,13 +1,71 @@
 <template>
 	<div class="mbm-plot-content row">
+		<div
+			v-if="!!renderConfig.legend"
+			class="mbm-plot-legend col-md-12"
+			v-html="renderConfig.legend"
+		></div>
+		<div class="col-md-12 region-plot-default-legend">
+			<span
+				class="plot-legend-dot"
+				style="background-color: #82409970"
+			></span>
+			<span>Reference variant</span>
+			<span
+				class="plot-legend-dot"
+				style="background-color: #d0363360"
+			></span
+			><span>1 > r2 >= 0.8</span>
+			<span
+				class="plot-legend-dot"
+				style="background-color: #ee982d50"
+			></span
+			><span>0.8 > r2 >= 0.6</span>
+			<span
+				class="plot-legend-dot"
+				style="background-color: #4db05240"
+			></span
+			><span>0.6 > r2 >= 0.4</span>
+			<span
+				class="plot-legend-dot"
+				style="background-color: #32afd530"
+			></span
+			><span>0.4 > r2 >= 0.2</span>
+			<span
+				class="plot-legend-dot"
+				style="background-color: #2074b620"
+			></span
+			><span>0.2 > r2 > 0</span>
+
+			<span
+				class="plot-legend-dot"
+				style="background-color: #33333320"
+			></span>
+			<span>No data</span>
+		</div>
+
 		<div class="col-md-12" v-for="(item, itemIndex) in plotsList">
 			<div id="assoPlotsWrapper" class="col-md-9">
 				<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
-				<canvas :id="'asso_plot_' + item" width="" height=""></canvas>
+				<canvas
+					:id="'asso_plot_' + item"
+					width=""
+					height=""
+					@resize="onResize"
+					@click="checkPosition($event, item, 'asso', 'click')"
+					@mousemove="checkPosition($event, item, 'asso', 'move')"
+				></canvas>
 			</div>
 			<div id="ldPlotsWrapper" class="col-md-3">
 				<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
-				<canvas :id="'ld_plot_' + item" width="" height=""></canvas>
+				<canvas
+					:id="'ld_plot_' + item"
+					width=""
+					height=""
+					@resize="onResize"
+					@click="checkPosition($event, item, 'LD', 'click')"
+					@mousemove="checkPosition($event, item, 'LD', 'move')"
+				></canvas>
 			</div>
 		</div>
 	</div>
@@ -108,6 +166,8 @@ export default Vue.component("research-region-plot", {
 				this.assoData = {}; // reset assoData
 				this.ldData = {}; // reset ldData
 				this.recombData = ""; // reset recombData
+				this.assoPos = {};
+				this.ldPos = {};
 
 				//feed assoData + set initial reference variant
 				var yXField = this.renderConfig.yAxisField;
@@ -125,6 +185,10 @@ export default Vue.component("research-region-plot", {
 						population: [],
 						data: null,
 					};
+					if (group != "Combined") {
+						this.assoPos[group] = {};
+						this.ldPos[group] = {};
+					}
 
 					for (const [dKey, dValue] of Object.entries(
 						this.plotData
@@ -243,6 +307,38 @@ export default Vue.component("research-region-plot", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		onResize(e) {
+			this.renderPlots();
+		},
+		checkPosition(event, GROUP, TYPE, EVTYPE) {
+			if (GROUP != "Combined") {
+				var posData =
+					TYPE == "asso" ? this.assoPos[GROUP] : this.ldPos[GROUP];
+
+				var dotsOnPosition = [];
+
+				var e = event;
+				var rect = e.target.getBoundingClientRect();
+				var x = Math.floor(e.clientX - rect.left);
+				var y = Math.floor(e.clientY - rect.top);
+
+				for (let h = -5; h <= 5; h++) {
+					for (let v = -5; v <= 5; v++) {
+						if (posData[x + h] != undefined) {
+							if (posData[x + h][y + v] != undefined) {
+								let dotObject = posData[x + h][y + v];
+								dotsOnPosition =
+									dotObject.concat(dotsOnPosition);
+							}
+						}
+					}
+				}
+
+				if (dotsOnPosition.length > 0) {
+					console.log("dotsOnPosition", dotsOnPosition);
+				}
+			}
+		},
 		setUpWrappers() {
 			this.callForRecombData();
 		},
@@ -410,6 +506,7 @@ export default Vue.component("research-region-plot", {
 					p
 				);
 			});
+			console.log("assoPos", this.assoPos, "ldPos", this.ldPos);
 		},
 		renderDots(
 			CTX,
@@ -423,9 +520,6 @@ export default Vue.component("research-region-plot", {
 			TYPE,
 			GROUP
 		) {
-			//console.log("assoData", this.assoData[GROUP]);
-			//console.log("ldData", this.ldData[GROUP]);
-
 			let xStart = this.plotMargin.leftMargin;
 			let yStart = this.plotMargin.topMargin + HEIGHT;
 			let xPosByPixel = WIDTH / (xMax - xMin);
@@ -442,6 +536,27 @@ export default Vue.component("research-region-plot", {
 							xStart + (value[xField] - xMin) * xPosByPixel;
 						let yPos =
 							yStart - (value[yField] - yMin) * yPosByPixel;
+
+						let floorXpos = Math.floor(xPos);
+						let floorYpos = Math.floor(yPos);
+
+						if (!this.assoPos[GROUP][floorXpos]) {
+							this.assoPos[GROUP][floorXpos] = {};
+							this.assoPos[GROUP][floorXpos][floorYpos] = [];
+							this.assoPos[GROUP][floorXpos][floorYpos].push(key);
+						} else {
+							if (!this.assoPos[GROUP][floorXpos][floorYpos]) {
+								this.assoPos[GROUP][floorXpos][floorYpos] = [];
+								this.assoPos[GROUP][floorXpos][floorYpos].push(
+									key
+								);
+							} else {
+								this.assoPos[GROUP][floorXpos][floorYpos].push(
+									key
+								);
+							}
+						}
+
 						let dotColor = this.getDotColor(
 							this.ldData[GROUP].data[key]
 						);
@@ -529,6 +644,34 @@ export default Vue.component("research-region-plot", {
 									(this.assoData[GROUP].data[key][yField] -
 										yMin) *
 										yPosByPixel;
+
+								let floorXpos = Math.floor(xPos);
+								let floorYpos = Math.floor(yPos);
+
+								if (!this.ldPos[GROUP][floorXpos]) {
+									this.ldPos[GROUP][floorXpos] = {};
+									this.ldPos[GROUP][floorXpos][floorYpos] =
+										[];
+									this.ldPos[GROUP][floorXpos][
+										floorYpos
+									].push(key);
+								} else {
+									if (
+										!this.ldPos[GROUP][floorXpos][floorYpos]
+									) {
+										this.ldPos[GROUP][floorXpos][
+											floorYpos
+										] = [];
+										this.ldPos[GROUP][floorXpos][
+											floorYpos
+										].push(key);
+									} else {
+										this.ldPos[GROUP][floorXpos][
+											floorYpos
+										].push(key);
+									}
+								}
+
 								let dotColor = this.getDotColor(value);
 								if (key == this.ldData[GROUP].refVariant) {
 									this.renderDiamond(
@@ -644,7 +787,6 @@ export default Vue.component("research-region-plot", {
 			yPosByPixel,
 			linesObj
 		) {
-			console.log("linesObj", linesObj);
 			for (const [key, value] of Object.entries(linesObj)) {
 				if (value.xValue.length > 1) {
 					for (let i = 0; i < value.xValue.length - 1; i++) {
