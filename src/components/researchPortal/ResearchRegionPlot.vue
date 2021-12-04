@@ -42,6 +42,14 @@ export default Vue.component("research-region-plot", {
 				"#EE982D20",
 				"#D0363320",
 			],
+			ldDotColor: [
+				"#2074B650",
+				"#32AFD550",
+				"#4DB05250",
+				"#EE982D50",
+				"#D0363350",
+				"#82409970",
+			],
 			compareGroupColors: [
 				"#007bff50",
 				"#04884550",
@@ -64,6 +72,8 @@ export default Vue.component("research-region-plot", {
 			assoData: {},
 			ldData: {},
 			recombData: "",
+			assoPos: {},
+			ldPos: {},
 		};
 	},
 	modules: {
@@ -323,9 +333,6 @@ export default Vue.component("research-region-plot", {
 
 			let bump = 5.5;
 
-			console.log("this.assoData", this.assoData);
-			console.log("this.ldData", this.ldData);
-
 			this.plotsList.map((p) => {
 				// first asso plot
 				let c, ctx;
@@ -359,7 +366,7 @@ export default Vue.component("research-region-plot", {
 
 				this.renderDots(
 					ctx,
-					ldPlotWidth,
+					assoPlotWidth,
 					plotHeight,
 					this.assoData[p].yXHigh,
 					this.assoData[p].yXLow,
@@ -389,6 +396,19 @@ export default Vue.component("research-region-plot", {
 					bump,
 					"LD"
 				);
+
+				this.renderDots(
+					ctx,
+					ldPlotWidth,
+					plotHeight,
+					this.assoData[p].yXHigh,
+					this.assoData[p].yXLow,
+					1,
+					0,
+					bump,
+					"LD",
+					p
+				);
 			});
 		},
 		renderDots(
@@ -403,24 +423,252 @@ export default Vue.component("research-region-plot", {
 			TYPE,
 			GROUP
 		) {
-			var assoData = this.assoData[GROUP].data;
-			var ldData = this.ldData[GROUP];
+			//console.log("assoData", this.assoData[GROUP]);
+			//console.log("ldData", this.ldData[GROUP]);
 
-			console.log("assoData", assoData);
-			console.log("ldData", ldData);
+			let xStart = this.plotMargin.leftMargin;
+			let yStart = this.plotMargin.topMargin + HEIGHT;
+			let xPosByPixel = WIDTH / (xMax - xMin);
+			let yPosByPixel = HEIGHT / (yMax - yMin);
 
-			var xStep = WIDTH / (xMax - xMin);
-			var yStep = HEIGHT / (yMax - yMin);
-			var xField = this.renderConfig.xAxisField;
-			var yField = this.renderConfig.yAxisField;
+			if (TYPE == "asso") {
+				var xField = this.renderConfig.xAxisField;
+				var yField = this.renderConfig.yAxisField;
+				if (GROUP != "Combined") {
+					for (const [key, value] of Object.entries(
+						this.assoData[GROUP].data
+					)) {
+						let xPos =
+							xStart + (value[xField] - xMin) * xPosByPixel;
+						let yPos =
+							yStart - (value[yField] - yMin) * yPosByPixel;
+						let dotColor = this.getDotColor(
+							this.ldData[GROUP].data[key]
+						);
+						if (key == this.ldData[GROUP].refVariant) {
+							this.renderDiamond(CTX, xPos, yPos, dotColor);
+						} else {
+							this.renderDot(CTX, xPos, yPos, dotColor);
+						}
+					}
+				}
 
-			for (const [key, value] of Object.entries(assoData)) {
-				//temp save here
+				if (GROUP == "Combined") {
+					let linesObj = {};
+
+					this.plotsList.map((pGroup, pIndex) => {
+						if (pGroup != "Combined") {
+							for (const [key, value] of Object.entries(
+								this.assoData[pGroup].data
+							)) {
+								if (!linesObj[key]) {
+									let tempObj = { xValue: [], yValue: [] };
+									tempObj.xValue.push(value[xField]);
+									tempObj.yValue.push(value[yField]);
+									linesObj[key] = tempObj;
+								} else if (!!linesObj[key]) {
+									linesObj[key].xValue.push(value[xField]);
+									linesObj[key].yValue.push(value[yField]);
+								}
+
+								let xPos =
+									xStart +
+									(value[xField] - xMin) * xPosByPixel;
+								let yPos =
+									yStart -
+									(value[yField] - yMin) * yPosByPixel;
+								let dotColor = this.compareGroupColors[pIndex];
+								if (key == this.ldData[pGroup].refVariant) {
+									this.renderDiamond(
+										CTX,
+										xPos,
+										yPos,
+										dotColor
+									);
+								} else {
+									this.renderDot(CTX, xPos, yPos, dotColor);
+								}
+							}
+						}
+					});
+
+					this.renderConntingLine(
+						CTX,
+						xStart,
+						yStart,
+						xMin,
+						yMin,
+						xPosByPixel,
+						yPosByPixel,
+						linesObj
+					);
+				}
+			}
+
+			if (TYPE == "LD") {
+				if (GROUP != "Combined") {
+					if (Object.keys(this.ldData[GROUP].data).length == 0) {
+						CTX.textAlign = "center";
+						CTX.fillStyle = "#000000";
+						CTX.fillText(
+							"No LD data loaded against " +
+								this.ldData[GROUP].refVariant,
+							this.plotMargin.leftMargin + WIDTH / 2,
+							this.plotMargin.topMargin + HEIGHT / 2
+						);
+					} else {
+						var yField = this.renderConfig.yAxisField;
+
+						for (const [key, value] of Object.entries(
+							this.ldData[GROUP].data
+						)) {
+							if (!!this.assoData[GROUP].data[key]) {
+								let xPos = xStart + value * xPosByPixel;
+								let yPos =
+									yStart -
+									(this.assoData[GROUP].data[key][yField] -
+										yMin) *
+										yPosByPixel;
+								let dotColor = this.getDotColor(value);
+								if (key == this.ldData[GROUP].refVariant) {
+									this.renderDiamond(
+										CTX,
+										xPos,
+										yPos,
+										dotColor
+									);
+								} else {
+									this.renderDot(CTX, xPos, yPos, dotColor);
+								}
+							}
+						}
+					}
+				}
+
+				if (GROUP == "Combined") {
+					let linesObj = {};
+					var yField = this.renderConfig.yAxisField;
+
+					this.plotsList.map((pGroup, pIndex) => {
+						if (pGroup != "Combined") {
+							let dotColor = this.compareGroupColors[pIndex];
+							if (
+								Object.keys(this.ldData[pGroup].data).length !=
+								0
+							) {
+								for (const [key, value] of Object.entries(
+									this.ldData[pGroup].data
+								)) {
+									if (!!this.assoData[pGroup].data[key]) {
+										if (!linesObj[key]) {
+											let tempObj = {
+												xValue: [],
+												yValue: [],
+											};
+											tempObj.xValue.push(value);
+											tempObj.yValue.push(
+												this.assoData[pGroup].data[key][
+													yField
+												]
+											);
+											linesObj[key] = tempObj;
+										} else if (!!linesObj[key]) {
+											linesObj[key].xValue.push(value);
+											linesObj[key].yValue.push(
+												this.assoData[pGroup].data[key][
+													yField
+												]
+											);
+										}
+										let xPos = xStart + value * xPosByPixel;
+										let yPos =
+											yStart -
+											(this.assoData[pGroup].data[key][
+												yField
+											] -
+												yMin) *
+												yPosByPixel;
+
+										if (
+											key ==
+											this.ldData[pGroup].refVariant
+										) {
+											this.renderDiamond(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										} else {
+											this.renderDot(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										}
+									}
+								}
+							}
+						}
+					});
+
+					this.renderConntingLine(
+						CTX,
+						xStart,
+						yStart,
+						xMin,
+						yMin,
+						xPosByPixel,
+						yPosByPixel,
+						linesObj
+					);
+				}
+			}
+		},
+		getDotColor(SCORE) {
+			if (SCORE == undefined) {
+				return "#00000030";
+			} else {
+				let index = Math.floor(SCORE * 5);
+				return this.ldDotColor[index];
+			}
+		},
+		renderConntingLine(
+			CTX,
+			xStart,
+			yStart,
+			xMin,
+			yMin,
+			xPosByPixel,
+			yPosByPixel,
+			linesObj
+		) {
+			console.log("linesObj", linesObj);
+			for (const [key, value] of Object.entries(linesObj)) {
+				if (value.xValue.length > 1) {
+					for (let i = 0; i < value.xValue.length - 1; i++) {
+						let xPos1 =
+							xStart + (value.xValue[i] - xMin) * xPosByPixel;
+						let xPos2 =
+							xStart + (value.xValue[i + 1] - xMin) * xPosByPixel;
+						let yPos1 =
+							yStart - (value.yValue[i] - yMin) * yPosByPixel;
+						let yPos2 =
+							yStart - (value.yValue[i + 1] - yMin) * yPosByPixel;
+
+						CTX.beginPath();
+						CTX.lineWidth = 1;
+						CTX.strokeStyle = "#00000050";
+						CTX.moveTo(xPos1, yPos1);
+						CTX.lineTo(xPos2, yPos2);
+						CTX.stroke();
+					}
+				}
 			}
 		},
 		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
 			CTX.fillStyle = DOT_COLOR;
-
 			CTX.lineWidth = 0;
 			CTX.beginPath();
 			CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
@@ -429,23 +677,23 @@ export default Vue.component("research-region-plot", {
 		renderDiamond(CTX, XPOS, YPOS, DOT_COLOR) {
 			let WIDTH = 10;
 			let HEIGHT = 14;
-			let xpos = XPOS - WIDTH / 2;
-			let ypos = YPOS - HEIGHT / 2;
+			let xpos = XPOS;
+			let ypos = YPOS;
 			CTX.save();
 			CTX.fillStyle = DOT_COLOR;
 			CTX.lineWidth = 0;
 
 			CTX.beginPath();
-			CTX.moveTo(xpos, ypos);
+			CTX.moveTo(xpos, ypos - HEIGHT / 2);
 
 			// top left edge
-			CTX.lineTo(xpos - WIDTH / 2, ypos + HEIGHT / 2);
+			CTX.lineTo(xpos - WIDTH / 2, ypos);
 
 			// bottom left edge
-			CTX.lineTo(xpos, ypos + HEIGHT);
+			CTX.lineTo(xpos, ypos + HEIGHT / 2);
 
 			// bottom right edge
-			CTX.lineTo(xpos + WIDTH / 2, ypos + HEIGHT / 2);
+			CTX.lineTo(xpos + WIDTH / 2, ypos);
 
 			CTX.closePath();
 			CTX.strokeStyle = "#824099";
@@ -484,6 +732,8 @@ export default Vue.component("research-region-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
+			CTX.font = "12px Arial";
+			CTX.fillStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
@@ -533,9 +783,7 @@ export default Vue.component("research-region-plot", {
 				CTX.lineTo(this.plotMargin.leftMargin - bump, adjTickYPos);
 				CTX.stroke();
 
-				CTX.font = "12px Arial";
 				CTX.textAlign = "right";
-				CTX.fillStyle = "#000000";
 
 				CTX.fillText(
 					Formatters.floatFormatter(yMin + i * yStep),
@@ -566,9 +814,7 @@ export default Vue.component("research-region-plot", {
 					);
 					CTX.stroke();
 
-					CTX.font = "12px Arial";
 					CTX.textAlign = "left";
-					CTX.fillStyle = "#000000";
 
 					CTX.fillText(
 						recombYMin + i * yStep,
@@ -598,9 +844,7 @@ export default Vue.component("research-region-plot", {
 				);
 				CTX.stroke();
 
-				CTX.font = "12px Arial";
 				CTX.textAlign = "center";
-				CTX.fillStyle = "#000000";
 				let positionLabel =
 					TYPE == "asso"
 						? i < 5
@@ -619,27 +863,8 @@ export default Vue.component("research-region-plot", {
 				);
 			}
 
-			//render LD plots background
-			if (TYPE == "LD") {
-				let xBGDistance = WIDTH / 5;
-
-				for (let i = 0; i < 5; i++) {
-					let bgXPos = this.plotMargin.leftMargin + i * xBGDistance;
-					let adBGXPos = Math.floor(bgXPos) + 0.5;
-					CTX.fillStyle = this.ldColor[i];
-					CTX.fillRect(
-						adBGXPos,
-						this.plotMargin.topMargin,
-						xBGDistance - 1,
-						HEIGHT
-					);
-				}
-			}
-
 			//Render y axis label
-			CTX.font = "12px Arial";
 			CTX.textAlign = "center";
-			CTX.fillStyle = "#000000";
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
 				this.renderConfig.yAxisLabel,
@@ -666,6 +891,23 @@ export default Vue.component("research-region-plot", {
 					HEIGHT -
 					12
 			);
+
+			//render LD plots background
+			if (TYPE == "LD") {
+				let xBGDistance = WIDTH / 5;
+
+				for (let i = 0; i < 5; i++) {
+					let bgXPos = this.plotMargin.leftMargin + i * xBGDistance;
+					let adBGXPos = Math.floor(bgXPos) + 0.5;
+					CTX.fillStyle = this.ldColor[i];
+					CTX.fillRect(
+						adBGXPos,
+						this.plotMargin.topMargin,
+						xBGDistance - 1,
+						HEIGHT
+					);
+				}
+			}
 		},
 	},
 });
