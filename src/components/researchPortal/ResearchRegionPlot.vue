@@ -1,5 +1,53 @@
 <template>
 	<div class="mbm-plot-content row">
+		<div id="fixedInfoBox" class="fixed-info-box hidden">
+			<div
+				class="fixed-info-box-close"
+				@click="showHidePanel('#fixedInfoBox')"
+			>
+				<b-icon icon="x-circle-fill"></b-icon>
+			</div>
+			<div class="fixed-info-box-content">
+				<div v-for="(d, dIndex) in dotsClicked">
+					<div><strong v-html="d"></strong></div>
+					<div>
+						<strong v-html="'Set this LD reference for: '"></strong>
+						<template v-for="(i, iIndex) in plotsList">
+							<strong
+								v-if="i != 'Combined' && !!assoData[i].data[d]"
+								v-html="i"
+								class="group-bubble"
+								:style="
+									'background-color:' +
+									compareGroupColors[iIndex] +
+									';'
+								"
+								@click="resetLdReference(i, d)"
+							></strong>
+							<strong
+								v-if="i == 'Combined'"
+								v-html="'All'"
+								class="group-bubble"
+								style="background-color: #dddddd"
+								@click="resetLdReference('All', d)"
+							></strong>
+						</template>
+					</div>
+					<div
+						v-if="g != 'Combined' && !!assoData[g].data[d]"
+						v-for="(g, gIndex) in plotsList"
+					>
+						<div v-for="(h, hIndex) in renderConfig.hoverContent">
+							<span
+								v-html="
+									h + '(' + g + '):' + assoData[g].data[d][h]
+								"
+							></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div
 			v-if="!!renderConfig.legend"
 			class="mbm-plot-legend col-md-12"
@@ -171,6 +219,7 @@ export default Vue.component("research-region-plot", {
 			recombData: "",
 			assoPos: {},
 			ldPos: {},
+			dotsClicked: [],
 		};
 	},
 	modules: {
@@ -349,6 +398,32 @@ export default Vue.component("research-region-plot", {
 		onResize(e) {
 			this.renderPlots();
 		},
+		resetLdReference(GROUP, VARIANT) {
+			console.log(GROUP, VARIANT);
+			console.log(this.ldData);
+			this.showHidePanel("#fixedInfoBox");
+			if (GROUP != "All") {
+				this.ldData[GROUP].refVariant = VARIANT;
+				this.ldData[GROUP].data = null;
+			} else if (GROUP == "All") {
+				this.plotsList.map((p) => {
+					if (p != "combined") {
+						this.ldData[p].refVariant = VARIANT;
+						this.ldData[p].data = null;
+					}
+				});
+			}
+
+			this.callForLDData();
+		},
+		showHidePanel(PANEL) {
+			let wrapper = document.querySelector(PANEL);
+			if (wrapper.classList.contains("hidden")) {
+				wrapper.classList.remove("hidden");
+			} else {
+				wrapper.classList.add("hidden");
+			}
+		},
 		showHideSplitPlots() {
 			this.plotsList.map((p) => {
 				if (p != "Combined") {
@@ -378,7 +453,7 @@ export default Vue.component("research-region-plot", {
 
 			return dotsList;
 		},
-		checkPosition(event, GROUP, TYPE) {
+		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
 			var e = event;
 			var rect = e.target.getBoundingClientRect();
 			var x = Math.floor(e.clientX - rect.left);
@@ -405,45 +480,50 @@ export default Vue.component("research-region-plot", {
 				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";
 
 			if (dotsOnPosition.length > 0) {
-				let infoContent =
-					dotsOnPosition.length > 5
-						? "<span class='info-box-direction'>Viewing 5 of " +
-						  dotsOnPosition.length +
-						  " variants. Click to view full list or to change LD reference variant.</span><br />"
-						: "<span class='info-box-direction'>Click to change LD reference variant.</span><br />";
+				if (EVENT_TYPE == "move") {
+					let infoContent =
+						dotsOnPosition.length > 5
+							? "<span class='info-box-direction'>Viewing 5 of " +
+							  dotsOnPosition.length +
+							  " variants. Click to view full list or to change LD reference variant.</span><br />"
+							: "<span class='info-box-direction'>Click to change LD reference variant.</span><br />";
 
-				dotsOnPosition.map((d, dIndex) => {
-					if (dIndex < 5) {
-						infoContent += "<strong>" + d + "</strong><br />";
-						this.renderConfig.hoverContent.map((h) => {
-							if (GROUP != "Combined") {
-								infoContent +=
-									h +
-									": " +
-									this.assoData[GROUP].data[d][h] +
-									"<br />";
-							} else if (GROUP == "Combined") {
-								this.plotsList.map((G) => {
-									if (
-										G != "Combined" &&
-										this.assoData[G].data[d]
-									) {
-										infoContent +=
-											h +
-											"(" +
-											G +
-											")" +
-											": " +
-											this.assoData[G].data[d][h] +
-											"<br />";
-									}
-								});
-							}
-						});
-					}
-				});
-				wrapper.classList.remove("hidden");
-				wrapper.innerHTML = infoContent;
+					dotsOnPosition.map((d, dIndex) => {
+						if (dIndex < 5) {
+							infoContent += "<strong>" + d + "</strong><br />";
+							this.renderConfig.hoverContent.map((h) => {
+								if (GROUP != "Combined") {
+									infoContent +=
+										h +
+										": " +
+										this.assoData[GROUP].data[d][h] +
+										"<br />";
+								} else if (GROUP == "Combined") {
+									this.plotsList.map((G) => {
+										if (
+											G != "Combined" &&
+											this.assoData[G].data[d]
+										) {
+											infoContent +=
+												h +
+												"(" +
+												G +
+												")" +
+												": " +
+												this.assoData[G].data[d][h] +
+												"<br />";
+										}
+									});
+								}
+							});
+						}
+					});
+					wrapper.classList.remove("hidden");
+					wrapper.innerHTML = infoContent;
+				} else if (EVENT_TYPE == "click") {
+					this.dotsClicked = dotsOnPosition;
+					this.showHidePanel("#fixedInfoBox");
+				}
 			} else {
 				wrapper.classList.add("hidden");
 			}
@@ -1182,6 +1262,39 @@ $(function () {});
 	font-weight: bold;
 }
 
+.fixed-info-box-close {
+	position: absolute;
+	top: 0;
+	right: 3px;
+	font-size: 14px;
+	color: #69f;
+}
+
+.fixed-info-box-close:hover {
+	color: #36c;
+}
+
+.fixed-info-box {
+	position: fixed;
+	width: 400px;
+	height: 300px;
+	left: calc(50% - 200px);
+	top: calc(50% - 150px);
+	padding: 20px 0px 3px 15px;
+	border-radius: 5px;
+	border: solid 1px #ddd;
+	background-color: #fff;
+	z-index: 100;
+}
+
+.fixed-info-box-content {
+	width: 100%;
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
+	font-size: 14px !important;
+}
+
 .group-bubble {
 	font-size: 12px;
 	margin-left: 3px;
@@ -1215,41 +1328,6 @@ $(function () {});
 #clicked_dot_value,
 #ld_clicked_dot_value {
 	padding: 8px 20px 8px 10px !important;
-}
-
-.clicked-dot-value-close {
-	position: absolute;
-	top: 0;
-	right: 3px;
-	font-size: 14px;
-	color: #69f;
-}
-
-.clicked-dot-value-close:hover {
-	color: #36c;
-}
-
-.dot-value-full-list,
-.ld-dot-value-full-list {
-	position: fixed;
-	width: 400px;
-	height: 300px;
-	left: calc(50% - 200px);
-	top: calc(50% - 150px);
-	padding: 20px 0px 3px 15px;
-	border-radius: 5px;
-	border: solid 1px #ddd;
-	background-color: #fff;
-	z-index: 100;
-}
-
-#dot_value_full_list_content,
-#ld_dot_value_full_list_content {
-	width: 100%;
-	height: 100%;
-	overflow-x: hidden;
-	overflow-y: auto;
-	font-size: 14px;
 }
 
 .content-on-clicked-dot-values {
