@@ -233,6 +233,7 @@
 								:genesData="$store.state.codingGenesData"
 								:plotConfig="$parent.plotConfig"
 								:plotType="$parent.plotType"
+								:plotMargin="$parent.plotMargin"
 							></research-genes-track>
 							<research-volcano-plot
 								v-if="$parent.plotType == 'volcano_plot'"
