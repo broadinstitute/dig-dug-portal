@@ -5,46 +5,68 @@
 			class="mbm-plot-legend col-md-12"
 			v-html="renderConfig.legend"
 		></div>
-		<div class="col-md-12 region-plot-default-legend">
-			<span
-				class="plot-legend-dot"
-				style="background-color: #82409970"
-			></span>
-			<span>Reference variant</span>
-			<span
-				class="plot-legend-dot"
-				style="background-color: #d0363360"
-			></span
-			><span>1 > r2 >= 0.8</span>
-			<span
-				class="plot-legend-dot"
-				style="background-color: #ee982d50"
-			></span
-			><span>0.8 > r2 >= 0.6</span>
-			<span
-				class="plot-legend-dot"
-				style="background-color: #4db05240"
-			></span
-			><span>0.6 > r2 >= 0.4</span>
-			<span
-				class="plot-legend-dot"
-				style="background-color: #32afd530"
-			></span
-			><span>0.4 > r2 >= 0.2</span>
-			<span
-				class="plot-legend-dot"
-				style="background-color: #2074b620"
-			></span
-			><span>0.2 > r2 > 0</span>
 
-			<span
-				class="plot-legend-dot"
-				style="background-color: #33333320"
-			></span>
-			<span>No data</span>
-		</div>
+		<div
+			class="col-md-12"
+			:id="'plotsWrapper' + item"
+			v-for="(item, itemIndex) in plotsList"
+		>
+			<div class="col-md-12 region-plot-default-legend">
+				<span
+					v-for="(g, gIndex) in plotsList"
+					v-if="item == 'Combined' && g != 'Combined'"
+					class="group-bubble"
+					v-html="g"
+					:style="
+						'background-color:' + compareGroupColors[gIndex] + ';'
+					"
+				></span>
+				<button
+					type="button"
+					v-if="item == 'Combined'"
+					class="group-bubble reference"
+					style="background-color: #ffffff; border: solid 1px #666666"
+					@click="showHideSplitPlots()"
+				>
+					Show/hide Individual plots
+				</button>
+				<span
+					class="plot-legend-dot"
+					style="background-color: #82409970"
+				></span>
+				<span>Reference variant</span>
+				<span
+					class="plot-legend-dot"
+					style="background-color: #d0363360"
+				></span
+				><span>1 > r2 >= 0.8</span>
+				<span
+					class="plot-legend-dot"
+					style="background-color: #ee982d50"
+				></span
+				><span>0.8 > r2 >= 0.6</span>
+				<span
+					class="plot-legend-dot"
+					style="background-color: #4db05240"
+				></span
+				><span>0.6 > r2 >= 0.4</span>
+				<span
+					class="plot-legend-dot"
+					style="background-color: #32afd530"
+				></span
+				><span>0.4 > r2 >= 0.2</span>
+				<span
+					class="plot-legend-dot"
+					style="background-color: #2074b620"
+				></span
+				><span>0.2 > r2 > 0</span>
 
-		<div class="col-md-12" v-for="(item, itemIndex) in plotsList">
+				<span
+					class="plot-legend-dot"
+					style="background-color: #33333320"
+				></span>
+				<span>No data</span>
+			</div>
 			<div
 				:id="'assoPlotsWrapper' + item"
 				class="col-md-9 asso-plots-wrapper"
@@ -52,6 +74,7 @@
 				<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
 				<canvas
 					:id="'asso_plot_' + item"
+					class="asso-plot"
 					width=""
 					height=""
 					@resize="onResize"
@@ -67,15 +90,20 @@
 				:id="'ldPlotsWrapper' + item"
 				class="col-md-3 ld-plots-wrapper"
 			>
-				<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
+				<h6
+					v-html="item + ' <small>*Showing only with LD</small>'"
+					:class="'text color-' + itemIndex"
+				></h6>
 				<canvas
 					:id="'ld_plot_' + item"
+					class="ld-plot"
 					width=""
 					height=""
 					@resize="onResize"
 					@click="checkPosition($event, item, 'LD', 'click')"
 					@mousemove="checkPosition($event, item, 'LD', 'move')"
 				></canvas>
+
 				<div :id="'ldInfoBox' + item" class="ld-info-box hidden"></div>
 			</div>
 		</div>
@@ -321,6 +349,18 @@ export default Vue.component("research-region-plot", {
 		onResize(e) {
 			this.renderPlots();
 		},
+		showHideSplitPlots() {
+			this.plotsList.map((p) => {
+				if (p != "Combined") {
+					let wrapper = document.querySelector("#plotsWrapper" + p);
+					if (wrapper.classList.contains("hidden")) {
+						wrapper.classList.remove("hidden");
+					} else {
+						wrapper.classList.add("hidden");
+					}
+				}
+			});
+		},
 		getDotsOnPosition(TYPE, GROUP, X, Y) {
 			var posData =
 				TYPE == "asso" ? this.assoPos[GROUP] : this.ldPos[GROUP];
@@ -383,6 +423,21 @@ export default Vue.component("research-region-plot", {
 									this.assoData[GROUP].data[d][h] +
 									"<br />";
 							} else if (GROUP == "Combined") {
+								this.plotsList.map((G) => {
+									if (
+										G != "Combined" &&
+										this.assoData[G].data[d]
+									) {
+										infoContent +=
+											h +
+											"(" +
+											G +
+											")" +
+											": " +
+											this.assoData[G].data[d][h] +
+											"<br />";
+									}
+								});
 							}
 						});
 					}
@@ -1115,7 +1170,7 @@ $(function () {});
 .ld-info-box {
 	position: absolute;
 	max-width: 300px;
-	padding: 5px;
+	padding: 5px 10px;
 	border: solid 1px #ddd;
 	border-radius: 5px;
 	background-color: #fff;
@@ -1125,6 +1180,14 @@ $(function () {});
 .info-box-direction {
 	color: #36c;
 	font-weight: bold;
+}
+
+.group-bubble {
+	font-size: 12px;
+	margin-left: 3px;
+	margin-right: 3px;
+	padding: 0px 8px;
+	border-radius: 8px;
 }
 /* remove later if unused */
 .region-plot-default-legend {
@@ -1140,8 +1203,8 @@ $(function () {});
 	height: 12px;
 	border-radius: 0px;
 }
-#regionPlot.hover,
-#ldPlot.hover {
+.asso-plot.hover,
+.ld-plot.hover {
 	cursor: pointer;
 }
 .gene-on-clicked-dot-mplot,
