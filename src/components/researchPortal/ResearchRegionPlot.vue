@@ -321,78 +321,76 @@ export default Vue.component("research-region-plot", {
 		onResize(e) {
 			this.renderPlots();
 		},
-		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
-			if (GROUP != "Combined") {
-				var posData =
-					TYPE == "asso" ? this.assoPos[GROUP] : this.ldPos[GROUP];
+		getDotsOnPosition(TYPE, GROUP, X, Y) {
+			var posData =
+				TYPE == "asso" ? this.assoPos[GROUP] : this.ldPos[GROUP];
+			var dotsList = [];
 
-				var dotsOnPosition = [];
-
-				var e = event;
-				var rect = e.target.getBoundingClientRect();
-				var x = Math.floor(e.clientX - rect.left);
-				var y = Math.floor(e.clientY - rect.top);
-
-				for (let h = -5; h <= 5; h++) {
-					for (let v = -5; v <= 5; v++) {
-						if (posData[x + h] != undefined) {
-							if (posData[x + h][y + v] != undefined) {
-								let dotObject = posData[x + h][y + v];
-								dotsOnPosition =
-									dotObject.concat(dotsOnPosition);
-							}
+			for (let h = -5; h <= 5; h++) {
+				for (let v = -5; v <= 5; v++) {
+					if (posData[X + h] != undefined) {
+						if (posData[X + h][Y + v] != undefined) {
+							dotsList = dotsList.concat(posData[X + h][Y + v]);
 						}
 					}
 				}
+			}
 
-				let infoBoxId =
-					TYPE == "asso"
-						? "#assoInfoBox" + GROUP
-						: "#ldInfoBox" + GROUP;
+			return dotsList;
+		},
+		checkPosition(event, GROUP, TYPE) {
+			var e = event;
+			var rect = e.target.getBoundingClientRect();
+			var x = Math.floor(e.clientX - rect.left);
+			var y = Math.floor(e.clientY - rect.top);
 
-				let canvasId =
-					TYPE == "asso"
-						? "#asso_plot_" + GROUP
-						: "#ld_plot_" + GROUP;
+			var dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
+			dotsOnPosition = [...new Set(dotsOnPosition)];
 
-				let wrapper = document.querySelector(infoBoxId);
-				let canvas = document.querySelector(canvasId);
+			let infoBoxId =
+				TYPE == "asso" ? "#assoInfoBox" + GROUP : "#ldInfoBox" + GROUP;
 
-				wrapper.style.top = y + canvas.offsetTop + "px";
-				wrapper.style.left =
-					x + canvas.offsetLeft + 150 > canvas.width
-						? x + canvas.offsetLeft + -215 + "px"
-						: x + canvas.offsetLeft + 15 + "px";
-				wrapper.style.width =
-					x + canvas.offsetLeft + 150 > canvas.width
-						? "200px"
-						: "auto";
+			let canvasId =
+				TYPE == "asso" ? "#asso_plot_" + GROUP : "#ld_plot_" + GROUP;
 
-				if (dotsOnPosition.length > 0) {
-					let infoContent =
-						dotsOnPosition.length > 5
-							? "<span class='info-box-direction'>Viewing 5 of " +
-							  dotsOnPosition.length +
-							  " variants. Click to view full list or to change LD reference variant.</span><br />"
-							: "<span class='info-box-direction'>Click to change LD reference variant.</span><br />";
+			let wrapper = document.querySelector(infoBoxId);
+			let canvas = document.querySelector(canvasId);
 
-					dotsOnPosition.map((d, dIndex) => {
-						if (dIndex < 5) {
-							infoContent += "<strong>" + d + "</strong><br />";
-							this.renderConfig.hoverContent.map((h) => {
+			wrapper.style.top = y + canvas.offsetTop + "px";
+			wrapper.style.left =
+				x + canvas.offsetLeft + 150 > canvas.width
+					? x + canvas.offsetLeft + -215 + "px"
+					: x + canvas.offsetLeft + 15 + "px";
+			wrapper.style.width =
+				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";
+
+			if (dotsOnPosition.length > 0) {
+				let infoContent =
+					dotsOnPosition.length > 5
+						? "<span class='info-box-direction'>Viewing 5 of " +
+						  dotsOnPosition.length +
+						  " variants. Click to view full list or to change LD reference variant.</span><br />"
+						: "<span class='info-box-direction'>Click to change LD reference variant.</span><br />";
+
+				dotsOnPosition.map((d, dIndex) => {
+					if (dIndex < 5) {
+						infoContent += "<strong>" + d + "</strong><br />";
+						this.renderConfig.hoverContent.map((h) => {
+							if (GROUP != "Combined") {
 								infoContent +=
 									h +
 									": " +
 									this.assoData[GROUP].data[d][h] +
 									"<br />";
-							});
-						}
-					});
-					wrapper.classList.remove("hidden");
-					wrapper.innerHTML = infoContent;
-				} else {
-					wrapper.classList.add("hidden");
-				}
+							} else if (GROUP == "Combined") {
+							}
+						});
+					}
+				});
+				wrapper.classList.remove("hidden");
+				wrapper.innerHTML = infoContent;
+			} else {
+				wrapper.classList.add("hidden");
 			}
 		},
 		setUpWrappers() {
@@ -562,7 +560,6 @@ export default Vue.component("research-region-plot", {
 					p
 				);
 			});
-			console.log("assoPos", this.assoPos, "ldPos", this.ldPos);
 		},
 		renderDots(
 			CTX,
@@ -594,25 +591,7 @@ export default Vue.component("research-region-plot", {
 						let yPos =
 							yStart - (value[yField] - yMin) * yPosByPixel;
 
-						let floorXpos = Math.floor(xPos);
-						let floorYpos = Math.floor(yPos);
-
-						if (!this.assoPos[GROUP][floorXpos]) {
-							this.assoPos[GROUP][floorXpos] = {};
-							this.assoPos[GROUP][floorXpos][floorYpos] = [];
-							this.assoPos[GROUP][floorXpos][floorYpos].push(key);
-						} else {
-							if (!this.assoPos[GROUP][floorXpos][floorYpos]) {
-								this.assoPos[GROUP][floorXpos][floorYpos] = [];
-								this.assoPos[GROUP][floorXpos][floorYpos].push(
-									key
-								);
-							} else {
-								this.assoPos[GROUP][floorXpos][floorYpos].push(
-									key
-								);
-							}
-						}
+						this.feedPosData(this.assoPos[GROUP], xPos, yPos, key);
 
 						let dotColor = this.getDotColor(
 							this.ldData[GROUP].data[key]
@@ -649,6 +628,14 @@ export default Vue.component("research-region-plot", {
 								let yPos =
 									yStart -
 									(value[yField] - yMin) * yPosByPixel;
+
+								this.feedPosData(
+									this.assoPos[GROUP],
+									xPos,
+									yPos,
+									key
+								);
+
 								let dotColor = this.compareGroupColors[pIndex];
 								if (key == this.ldData[pGroup].refVariant) {
 									this.renderDiamond(
@@ -703,32 +690,12 @@ export default Vue.component("research-region-plot", {
 										yMin) *
 										yPosByPixel;
 
-								let floorXpos = Math.floor(xPos);
-								let floorYpos = Math.floor(yPos);
-
-								if (!this.ldPos[GROUP][floorXpos]) {
-									this.ldPos[GROUP][floorXpos] = {};
-									this.ldPos[GROUP][floorXpos][floorYpos] =
-										[];
-									this.ldPos[GROUP][floorXpos][
-										floorYpos
-									].push(key);
-								} else {
-									if (
-										!this.ldPos[GROUP][floorXpos][floorYpos]
-									) {
-										this.ldPos[GROUP][floorXpos][
-											floorYpos
-										] = [];
-										this.ldPos[GROUP][floorXpos][
-											floorYpos
-										].push(key);
-									} else {
-										this.ldPos[GROUP][floorXpos][
-											floorYpos
-										].push(key);
-									}
-								}
+								this.feedPosData(
+									this.ldPos[GROUP],
+									xPos,
+									yPos,
+									key
+								);
 
 								let dotColor = this.getDotColor(value);
 								if (key == this.ldData[GROUP].refVariant) {
@@ -790,6 +757,13 @@ export default Vue.component("research-region-plot", {
 												yMin) *
 												yPosByPixel;
 
+										this.feedPosData(
+											this.ldPos[GROUP],
+											xPos,
+											yPos,
+											key
+										);
+
 										if (
 											key ==
 											this.ldData[pGroup].refVariant
@@ -824,6 +798,23 @@ export default Vue.component("research-region-plot", {
 						yPosByPixel,
 						linesObj
 					);
+				}
+			}
+		},
+		feedPosData(POS_DATA, X, Y, KEY) {
+			let floorXpos = Math.floor(X);
+			let floorYpos = Math.floor(Y);
+
+			if (!POS_DATA[floorXpos]) {
+				POS_DATA[floorXpos] = {};
+				POS_DATA[floorXpos][floorYpos] = [];
+				POS_DATA[floorXpos][floorYpos].push(KEY);
+			} else {
+				if (!POS_DATA[floorXpos][floorYpos]) {
+					POS_DATA[floorXpos][floorYpos] = [];
+					POS_DATA[floorXpos][floorYpos].push(KEY);
+				} else {
+					POS_DATA[floorXpos][floorYpos].push(KEY);
 				}
 			}
 		},
