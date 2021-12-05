@@ -45,7 +45,10 @@
 		</div>
 
 		<div class="col-md-12" v-for="(item, itemIndex) in plotsList">
-			<div id="assoPlotsWrapper" class="col-md-9">
+			<div
+				:id="'assoPlotsWrapper' + item"
+				class="col-md-9 asso-plots-wrapper"
+			>
 				<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
 				<canvas
 					:id="'asso_plot_' + item"
@@ -55,8 +58,15 @@
 					@click="checkPosition($event, item, 'asso', 'click')"
 					@mousemove="checkPosition($event, item, 'asso', 'move')"
 				></canvas>
+				<div
+					:id="'assoInfoBox' + item"
+					class="asso-info-box hidden"
+				></div>
 			</div>
-			<div id="ldPlotsWrapper" class="col-md-3">
+			<div
+				:id="'ldPlotsWrapper' + item"
+				class="col-md-3 ld-plots-wrapper"
+			>
 				<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
 				<canvas
 					:id="'ld_plot_' + item"
@@ -66,6 +76,7 @@
 					@click="checkPosition($event, item, 'LD', 'click')"
 					@mousemove="checkPosition($event, item, 'LD', 'move')"
 				></canvas>
+				<div :id="'ldInfoBox' + item" class="ld-info-box hidden"></div>
 			</div>
 		</div>
 	</div>
@@ -310,7 +321,7 @@ export default Vue.component("research-region-plot", {
 		onResize(e) {
 			this.renderPlots();
 		},
-		checkPosition(event, GROUP, TYPE, EVTYPE) {
+		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
 			if (GROUP != "Combined") {
 				var posData =
 					TYPE == "asso" ? this.assoPos[GROUP] : this.ldPos[GROUP];
@@ -334,8 +345,53 @@ export default Vue.component("research-region-plot", {
 					}
 				}
 
+				let infoBoxId =
+					TYPE == "asso"
+						? "#assoInfoBox" + GROUP
+						: "#ldInfoBox" + GROUP;
+
+				let canvasId =
+					TYPE == "asso"
+						? "#asso_plot_" + GROUP
+						: "#ld_plot_" + GROUP;
+
+				let wrapper = document.querySelector(infoBoxId);
+				let canvas = document.querySelector(canvasId);
+
+				wrapper.style.top = y + canvas.offsetTop + "px";
+				wrapper.style.left =
+					x + canvas.offsetLeft + 150 > canvas.width
+						? x + canvas.offsetLeft + -215 + "px"
+						: x + canvas.offsetLeft + 15 + "px";
+				wrapper.style.width =
+					x + canvas.offsetLeft + 150 > canvas.width
+						? "200px"
+						: "auto";
+
 				if (dotsOnPosition.length > 0) {
-					console.log("dotsOnPosition", dotsOnPosition);
+					let infoContent =
+						dotsOnPosition.length > 5
+							? "<span class='info-box-direction'>Viewing 5 of " +
+							  dotsOnPosition.length +
+							  " variants. Click to view full list or to change LD reference variant.</span><br />"
+							: "<span class='info-box-direction'>Click to change LD reference variant.</span><br />";
+
+					dotsOnPosition.map((d, dIndex) => {
+						if (dIndex < 5) {
+							infoContent += "<strong>" + d + "</strong><br />";
+							this.renderConfig.hoverContent.map((h) => {
+								infoContent +=
+									h +
+									": " +
+									this.assoData[GROUP].data[d][h] +
+									"<br />";
+							});
+						}
+					});
+					wrapper.classList.remove("hidden");
+					wrapper.innerHTML = infoContent;
+				} else {
+					wrapper.classList.add("hidden");
 				}
 			}
 		},
@@ -404,9 +460,9 @@ export default Vue.component("research-region-plot", {
 		renderPlots() {
 			// findout width and height of canvas and actual plots
 			let assoCanvasWidth =
-				document.getElementById("assoPlotsWrapper").clientWidth - 30;
+				document.querySelector(".asso-plots-wrapper").clientWidth - 30;
 			let ldCanvasWidth =
-				document.getElementById("ldPlotsWrapper").clientWidth - 30;
+				document.querySelector(".ld-plots-wrapper").clientWidth - 30;
 
 			let canvasHeight = !!this.renderConfig.height
 				? this.renderConfig.height +
@@ -526,6 +582,7 @@ export default Vue.component("research-region-plot", {
 			let yPosByPixel = HEIGHT / (yMax - yMin);
 
 			if (TYPE == "asso") {
+				this.assoPos[GROUP] = {};
 				var xField = this.renderConfig.xAxisField;
 				var yField = this.renderConfig.yAxisField;
 				if (GROUP != "Combined") {
@@ -621,6 +678,7 @@ export default Vue.component("research-region-plot", {
 			}
 
 			if (TYPE == "LD") {
+				this.ldPos[GROUP] = {};
 				if (GROUP != "Combined") {
 					if (Object.keys(this.ldData[GROUP].data).length == 0) {
 						CTX.textAlign = "center";
@@ -1058,9 +1116,24 @@ $(function () {});
 </script>
 
 <style>
-#assoPlotsWrapper,
-#ldPlotsWrapper {
+.asso-plots-wrapper,
+.ld-plots-wrapper {
 	display: inline-block;
+}
+.asso-info-box,
+.ld-info-box {
+	position: absolute;
+	max-width: 300px;
+	padding: 5px;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	background-color: #fff;
+	z-index: 10;
+	font-size: 14px;
+}
+.info-box-direction {
+	color: #36c;
+	font-weight: bold;
 }
 /* remove later if unused */
 .region-plot-default-legend {
