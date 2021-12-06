@@ -1,5 +1,5 @@
 <template>
-	<div class="mbm-plot-content row">
+	<div class="mbm-plot-content row" id="rp_region_plot">
 		<div id="fixedInfoBox" class="fixed-info-box hidden">
 			<div
 				class="fixed-info-box-close"
@@ -55,7 +55,7 @@
 		></div>
 
 		<div
-			class="col-md-12"
+			class="col-md-12 region-plots-wrapper"
 			:id="'plotsWrapper' + item"
 			v-for="(item, itemIndex) in plotsList"
 		>
@@ -399,8 +399,6 @@ export default Vue.component("research-region-plot", {
 			this.renderPlots();
 		},
 		resetLdReference(GROUP, VARIANT) {
-			console.log(GROUP, VARIANT);
-			console.log(this.ldData);
 			this.showHidePanel("#fixedInfoBox");
 			if (GROUP != "All") {
 				this.ldData[GROUP].refVariant = VARIANT;
@@ -591,11 +589,13 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		renderPlots() {
-			// findout width and height of canvas and actual plots
+			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
 			let assoCanvasWidth =
-				document.querySelector(".asso-plots-wrapper").clientWidth - 30;
+				document.querySelector("#rp_region_plot").clientWidth * 0.75 -
+				30; //30 <- left & right padding of wrapper
 			let ldCanvasWidth =
-				document.querySelector(".ld-plots-wrapper").clientWidth - 30;
+				document.querySelector("#rp_region_plot").clientWidth * 0.25 -
+				30; //30 <- left & right padding of wrapper
 
 			let canvasHeight = !!this.renderConfig.height
 				? this.renderConfig.height +
@@ -1242,6 +1242,9 @@ $(function () {});
 </script>
 
 <style>
+.region-plots-wrapper {
+	padding: 0 !important;
+}
 .asso-plots-wrapper,
 .ld-plots-wrapper {
 	display: inline-block;

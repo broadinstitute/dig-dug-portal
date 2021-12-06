@@ -1,6 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
-		<div class="col-md-12">
+		<div class="col-md-12 genes-plot-wrapper">
 			<div
 				id="genesTrackWrapper"
 				:class="plotType == 'region_plot' ? 'col-md-9' : 'col-md-12'"
@@ -69,9 +69,10 @@ export default Vue.component("research-genes-track", {
 			this.renderTrack(this.genesData);
 		},
 		renderTrack(GENES) {
+			console.log("GENES", GENES);
 			let genesArray = GENES;
 			let canvasRenderWidth, canvasRenderHeight;
-			let eachGeneTrackHeight = 30; //15: gene name, 10: gene track, 5: space between tracks
+			let eachGeneTrackHeight = 10; //15: gene name, 10: gene track, 5: space between tracks
 
 			canvasRenderWidth = !!this.plotConfig.width
 				? this.plotConfig.width +
@@ -127,7 +128,8 @@ export default Vue.component("research-genes-track", {
 						? xStart + (gene.end - xMin) * xPosByPixel
 						: xStart + (xMax - xMin) * xPosByPixel;
 
-				let yPos = this.plotMargin.topMargin + geneIndex * 30;
+				let yPos =
+					this.plotMargin.topMargin + geneIndex * eachGeneTrackHeight;
 
 				yPos += yPos % 1 == 0 ? 0.5 : 0;
 
@@ -155,7 +157,9 @@ export default Vue.component("research-genes-track", {
 				ctx.stroke();
 
 				gene.exons.map((exon) => {
-					if (exon.start < xMax) {
+					console.log(gene.gene_name, ": ", exon.start, exon.end);
+
+					if (exon.start < xMax && exon.end > xMin) {
 						let xonStartPos =
 							exon.start > xMin
 								? xStart + (exon.start - xMin) * xPosByPixel
@@ -184,6 +188,9 @@ $(function () {});
 </script>
 
 <style>
+.genes-plot-wrapper {
+	padding: 0 !important;
+}
 </style>
 
 
