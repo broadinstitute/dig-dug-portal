@@ -1,15 +1,17 @@
 <template>
 	<div class="mbm-plot-content row">
-		<div
-			id="genesTrackWrapper"
-			:class="plotType == 'region_plot' ? 'col-md-9' : 'col-md-12'"
-		>
-			<canvas
-				id="genesTrack"
-				@resize="onResize"
-				width=""
-				height=""
-			></canvas>
+		<div class="col-md-12">
+			<div
+				id="genesTrackWrapper"
+				:class="plotType == 'region_plot' ? 'col-md-9' : 'col-md-12'"
+			>
+				<canvas
+					id="genesTrack"
+					@resize="onResize"
+					width=""
+					height=""
+				></canvas>
+			</div>
 		</div>
 	</div>
 </template>
@@ -75,21 +77,21 @@ export default Vue.component("research-genes-track", {
 				? this.plotConfig.width +
 				  this.plotMargin.leftMargin +
 				  this.plotMargin.rightMargin
-				: document.getElementById("genesTrackWrapper").clientWidth - 30; // -30 for - padding
+				: document.getElementById("genesTrackWrapper").clientWidth - 30; // -30 for padding
 
 			canvasRenderHeight =
 				this.plotMargin.topMargin +
 				this.plotMargin.bottomMargin +
 				eachGeneTrackHeight * genesArray.length;
 
-			let xBump = 5.5;
-			let yBump = 5.5;
+			let bump = 5.5;
 
 			let plotWidth =
-				canvasRenderWidth -
-				(this.plotMargin.leftMargin +
-					this.plotMargin.rightMargin +
-					xBump);
+				this.plotType == "region_plot"
+					? canvasRenderWidth - this.plotMargin.leftMargin * 2
+					: canvasRenderWidth -
+					  (this.plotMargin.leftMargin +
+							this.plotMargin.rightMargin);
 
 			let plotHeight = eachGeneTrackHeight * genesArray.length;
 
@@ -110,7 +112,7 @@ export default Vue.component("research-genes-track", {
 
 			let xStart = this.plotMargin.leftMargin;
 			let yStart = this.plotMargin.topMargin;
-			let xPosByPixel = (plotWidth - 5) / (xMax - xMin);
+			let xPosByPixel = plotWidth / (xMax - xMin);
 
 			ctx.font = "italic bold 12px Arial";
 			ctx.textAlign = "center";
@@ -125,14 +127,17 @@ export default Vue.component("research-genes-track", {
 						? xStart + (gene.end - xMin) * xPosByPixel
 						: xStart + (xMax - xMin) * xPosByPixel;
 
-				let yPos = this.plotMargin.topMargin + yBump + geneIndex * 30;
+				let yPos = this.plotMargin.topMargin + geneIndex * 30;
 
 				yPos += yPos % 1 == 0 ? 0.5 : 0;
 
+				var left = '"\\u' + "2190" + '"';
+				var right = '"\\u' + "2192" + '"';
+
 				let geneName =
 					gene.strand == "+"
-						? gene.gene_name + " >>"
-						: "<< " + gene.gene_name;
+						? gene.gene_name + " " + eval(right)
+						: eval(left) + " " + gene.gene_name;
 
 				ctx.fillText(
 					geneName,
@@ -179,64 +184,6 @@ $(function () {});
 </script>
 
 <style>
-.region-plot-default-legend span {
-	font-size: 12px;
-	display: inline-block;
-	margin-right: 5px;
-}
-.plot-legend-dot {
-	width: 12px;
-	height: 12px;
-	border-radius: 12px;
-}
-#manhattanPlot.hover,
-#ldPlot.hover {
-	cursor: pointer;
-}
-.gene-on-clicked-dot-mplot,
-.content-on-clicked-dot {
-	display: block !important;
-}
-
-#clicked_dot_value,
-#ld_clicked_dot_value {
-	padding: 8px 20px 8px 10px !important;
-}
-
-.clicked-dot-value-close {
-	position: absolute;
-	top: 0;
-	right: 3px;
-	font-size: 14px;
-	color: #69f;
-}
-
-.clicked-dot-value-close:hover {
-	color: #36c;
-}
-
-.dot-value-full-list,
-.ld-dot-value-full-list {
-	position: fixed;
-	width: 400px;
-	height: 300px;
-	left: calc(50% - 200px);
-	top: calc(50% - 150px);
-	padding: 20px 0px 3px 15px;
-	border-radius: 5px;
-	border: solid 1px #ddd;
-	background-color: #fff;
-	z-index: 100;
-}
-
-#dot_value_full_list_content,
-#ld_dot_value_full_list_content {
-	width: 100%;
-	height: 100%;
-	overflow-x: hidden;
-	overflow-y: auto;
-	font-size: 14px;
-}
 </style>
 
 
