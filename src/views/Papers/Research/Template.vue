@@ -207,11 +207,12 @@
 									$parent.dataComparisonConfig
 								"
 								:region="$store.state.searchingRegion"
+								:plotMargin="$parent.plotMargin"
 							></research-region-plot>
 
 							<research-score-plot
 								v-if="$parent.plotType == 'score_plot'"
-								:plotData="$store.state.filteredData"
+								:plotData="$parent.filteredData"
 								:renderConfig="$parent.plotConfig"
 								:dataComparisonConfig="
 									$parent.dataComparisonConfig
@@ -232,6 +233,7 @@
 								:genesData="$store.state.codingGenesData"
 								:plotConfig="$parent.plotConfig"
 								:plotType="$parent.plotType"
+								:plotMargin="$parent.plotMargin"
 							></research-genes-track>
 							<research-volcano-plot
 								v-if="$parent.plotType == 'volcano_plot'"
@@ -244,6 +246,43 @@
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-heatmap>
+							<!--
+							<kp-data-viewer-pkg
+								:pkgConfig="{
+									viewers: ['kpGenesTrack', 'kpRegionViewer'],
+									pkgID: 'testPkg',
+									kpRegionViewer: {
+										viewerConfig: {
+											xAxisField: 'position',
+											xAxisLabel: 'Chromosome 9',
+											yAxisField: 'nLog10P',
+											yAxisLabel: 'P-Value(-log10)',
+											renderBy: 'ldVarID',
+											plotsBy: 'phenotype',
+											hoverContent: ['pValue'],
+											height: 250,
+											features: ['LD', 'recombination'],
+											ldPopulation: {
+												value: 'ldPopulation',
+											},
+											//ldPopulation: { ifStatic: true, value: 'ALL' }, //ifStatic->true: fixed value ifStatic not set value has to be a field name
+										},
+										region: {
+											chr: 9,
+											start: 21940000,
+											end: 22190000,
+										},
+										data: $store.state.filteredData,
+									},
+									plotLayout: {
+										leftMargin: 74.5,
+										rightMargin: 25.5,
+										topMargin: 10.5,
+										bottomMargin: 50.5,
+									},
+								}"
+							></kp-data-viewer-pkg>
+							-->
 						</div>
 						<div
 							class="col-md-12"
@@ -254,7 +293,7 @@
 						>
 							<research-data-table
 								:pageID="$parent.pageID"
-								:dataset="$store.state.filteredData"
+								:dataset="$parent.filteredData"
 								:tableFormat="$parent.dataTableFormat"
 								:initPerPageNumber="$parent.tablePerPageNumber"
 								:tableLegend="$parent.tableLegend"
