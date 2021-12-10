@@ -25,6 +25,7 @@
 			></research-genes-track>
 			<research-annotations-plot
 				:region="$store.state.searchingRegion"
+				:plotMargin="plotMargin"
 			></research-annotations-plot>
 		</div>
 	</div>
