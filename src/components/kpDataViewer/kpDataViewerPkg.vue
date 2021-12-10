@@ -23,6 +23,9 @@
 				:plotType="'region_plot'"
 				:plotMargin="plotMargin"
 			></research-genes-track>
+			<research-annotations-plot
+				:region="$store.state.searchingRegion"
+			></research-annotations-plot>
 		</div>
 	</div>
 </template>
@@ -35,6 +38,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
+import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -46,7 +50,11 @@ export default Vue.component("kp-data-viewer-pkg", {
 	modules: {
 		uiUtils,
 	},
-	components: { ResearchRegionPlot, ResearchGenesTrack },
+	components: {
+		ResearchRegionPlot,
+		ResearchGenesTrack,
+		ResearchAnnotationsPlot,
+	},
 	mounted: function () {
 		if (this.pkgConfig != null) {
 			//console.log("mounted", this.pkgConfig.viewers);
