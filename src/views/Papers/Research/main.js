@@ -615,20 +615,59 @@ new Vue({
             return this.$store.bioportal;
         },
         plotType() {
-            let contents = this.researchPage;
+            /*let contents = this.researchPage;
 
             if (contents === null || contents[0]["field_data_visualizer"] == false) {
                 return null;
             }
-            return contents[0]["field_data_visualizer"];
+            return contents[0]["field_data_visualizer"];*/
+
+            return 'gem-package';
         },
         plotConfig() {
             let contents = this.researchPage;
 
-            if (contents === null || contents[0]["field_visualizer_configuration"] == false) {
-                return null;
+            //if (contents === null || contents[0]["field_visualizer_configuration"] == false) {
+            //return null;
+            //}
+            //return JSON.parse(contents[0]["field_visualizer_configuration"]);
+
+            let tempPlotConfig = {
+                viewers: ['region_plot', 'annotations_plot'],
+                pkgID: 'testPkg',
+                regionViewer: {
+                    xAxisField: 'position',
+                    yAxisField: '-log10(P-Value)',
+                    renderBy: 'Variant ID',
+                    yAxisLabel: '-Log10(p-value)',
+                    xAxisLabel: 'Chromosome',
+                    hoverContent: ['P-Value', 'Beta'],
+                    height: 120,
+                    ldServer: {
+                        pos: 'position',
+                        ref: 'ref',
+                        alt: 'alt',
+                        ref_variant_field: 'Variant ID',
+                        populations_field: 'P-Value',
+                        populations_type: 'fixed',
+                        fixed_population: 'ALL',
+                        populations: { ALL: 'ALL' },
+                    },
+
+                    inputType: 'dynamic',
+                    dynamicParameter: 'region',
+                    ifCombineYAxisField: {
+                        type: 'average',
+                        field: '-log10(P-Value)',
+                    },
+                },
+                genesTrack: {
+                    inputType: 'dynamic',
+                    dynamicParameter: 'region',
+                },
             }
-            return JSON.parse(contents[0]["field_visualizer_configuration"]);
+
+            return tempPlotConfig;
         },
         plotClass() {
             let contents = this.researchPage;

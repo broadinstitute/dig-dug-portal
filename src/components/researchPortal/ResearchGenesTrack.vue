@@ -69,7 +69,7 @@ export default Vue.component("research-genes-track", {
 			this.renderTrack(this.genesData);
 		},
 		renderTrack(GENES) {
-			console.log("GENES", GENES);
+			//console.log("GENES", GENES);
 			let genesArray = GENES;
 			let canvasRenderWidth, canvasRenderHeight;
 			let eachGeneTrackHeight = 10; //15: gene name, 10: gene track, 5: space between tracks
@@ -157,7 +157,7 @@ export default Vue.component("research-genes-track", {
 				ctx.stroke();
 
 				gene.exons.map((exon) => {
-					console.log(gene.gene_name, ": ", exon.start, exon.end);
+					//console.log(gene.gene_name, ": ", exon.start, exon.end);
 
 					if (exon.start < xMax && exon.end > xMin) {
 						let xonStartPos =

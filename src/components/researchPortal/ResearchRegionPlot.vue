@@ -518,6 +518,10 @@ export default Vue.component("research-region-plot", {
 					});
 					wrapper.classList.remove("hidden");
 					wrapper.innerHTML = infoContent;
+
+					setTimeout(function () {
+						wrapper.classList.add("hidden");
+					}, 7000);
 				} else if (EVENT_TYPE == "click") {
 					this.dotsClicked = dotsOnPosition;
 					this.showHidePanel("#fixedInfoBox");

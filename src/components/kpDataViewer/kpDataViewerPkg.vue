@@ -2,15 +2,27 @@
 	<div>
 		<div :id="pkgID"></div>
 		<div id="viewers_collection">
-			<kp-region-viewer
-				:id="pkgID + '_kpRegionViewer'"
-				:pkgID="pkgID"
-				:plotData="pkgConfig.kpRegionViewer.data"
-				:plotLayout="pkgConfig.plotLayout"
-				:renderConfig="pkgConfig.kpRegionViewer.viewerConfig"
-				:region="pkgConfig.kpRegionViewer.region"
-			></kp-region-viewer>
-			<div :id="pkgID + '_kpGenesTrack'">kpGenesTrack</div>
+			<research-region-plot
+				v-if="pkgConfig.viewers.includes('region_plot') == true"
+				:plotData="$store.state.filteredData"
+				:renderConfig="pkgConfig.regionViewer"
+				:dataComparisonConfig="dataComparisonConfig"
+				:region="$store.state.searchingRegion"
+				:plotMargin="plotMargin"
+			></research-region-plot>
+
+			<research-genes-track
+				v-if="
+					pkgConfig != null &&
+					!!pkgConfig.genesTrack &&
+					$store.state.codingGenesData != null
+				"
+				:region="$store.state.searchingRegion"
+				:genesData="$store.state.codingGenesData"
+				:plotConfig="pkgConfig.regionViewer"
+				:plotType="'region_plot'"
+				:plotMargin="plotMargin"
+			></research-genes-track>
 		</div>
 	</div>
 </template>
@@ -21,19 +33,20 @@ import uiUtils from "@/utils/uiUtils";
 
 import { BootstrapVueIcons } from "bootstrap-vue";
 
-import kpRegionViewer from "@/components/kpDataViewer/kpRegionViewer.vue";
+import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
+import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("kp-data-viewer-pkg", {
-	props: ["pkgConfig"],
+	props: ["pkgConfig", "dataComparisonConfig", "plotMargin"],
 	data() {
 		return {};
 	},
 	modules: {
 		uiUtils,
 	},
-	components: { kpRegionViewer },
+	components: { ResearchRegionPlot, ResearchGenesTrack },
 	mounted: function () {
 		if (this.pkgConfig != null) {
 			//console.log("mounted", this.pkgConfig.viewers);
@@ -42,7 +55,7 @@ export default Vue.component("kp-data-viewer-pkg", {
 				let viewer = document.getElementById(
 					this.pkgConfig.pkgID + "_" + v
 				);
-				viewersWrapper.appendChild(viewer);
+				//viewersWrapper.appendChild(viewer);
 			});
 		}
 	},
