@@ -16,7 +16,7 @@
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
                     <div class="col-md-12">
-                        <h2>Genetic Association Interactive Tool</h2>
+                        <h2>Non-Coding Genetic Association Interactive Tool</h2>
 
                         <documentation
                             style="margin-top: 20px"
