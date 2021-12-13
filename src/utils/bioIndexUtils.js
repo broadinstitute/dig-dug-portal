@@ -145,5 +145,6 @@ export default {
     apiUrl,
     request,
     rawUrl,
-    BIO_INDEX_HOST
+    BIO_INDEX_HOST,
+    BIO_INDEX_HOST_PRIVATE
 };
