@@ -16,15 +16,22 @@ if (!!document.cookie) {
 
 // updated at compile-time to the dev or production BioIndex server
 export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
+export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 
 /* Returns the path for any BioIndex API end-point.
  */
-export function apiUrl(path) {
+export function apiUrl(path, query_private = false) {
     if (path.startsWith("/")) {
         path = path.substr(1);
     }
 
-    return `${BIO_INDEX_HOST}/${path}`;
+    if (query_private) {
+        console.log("query_private:", query_private);
+        return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
+    } else {
+        console.log("query_private is false:", query_private);
+        return `${BIO_INDEX_HOST}/${path}`;
+    }
 }
 
 /* Useful for /api/raw end-points with query parameters.
@@ -138,5 +145,5 @@ export default {
     apiUrl,
     request,
     rawUrl,
-    BIO_INDEX_HOST,
-}
+    BIO_INDEX_HOST
+};
