@@ -100,10 +100,10 @@ new Vue({
         return {
             enrichmentScoring: null,
 
-            associationsFilter: function(id) {
+            associationsFilter: function (id) {
                 return true;
             },
-            annotationsFilter: function(id) {
+            annotationsFilter: function (id) {
                 return true;
             },
             pageAssociationsMap: {},
@@ -129,9 +129,8 @@ new Vue({
                 if (this.selectedPhenotypes.length > 0) {
                     this.$store.dispatch("credibleSets/clear");
                     this.selectedPhenotypes.forEach(p => {
-                        const queryString = `${p.name},${
-                            this.$store.state.chr
-                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        const queryString = `${p.name},${this.$store.state.chr
+                            }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                         this.$store.dispatch("credibleSets/query", {
                             q: queryString,
                             append: true
@@ -274,7 +273,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function(gene) {
+            return this.$store.state.genes.data.filter(function (gene) {
                 return gene.source == "symbol";
             });
         },

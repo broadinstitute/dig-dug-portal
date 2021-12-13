@@ -27,6 +27,7 @@ import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.v
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
+import kpDataViewerPkg from "@/components/kpDataViewer/kpDataViewerPkg.vue";
 import uiUtils from "@/utils/uiUtils";
 import $ from "jquery";
 import keyParams from "@/utils/keyParams";
@@ -53,6 +54,7 @@ new Vue({
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,
+        kpDataViewerPkg,
         Documentation
     },
     data() {
@@ -384,15 +386,18 @@ new Vue({
         checkDataComparison(newResearchData, previousData) {
 
             let dataComparison = this.$store.state.dataComparison;
+            console.log("dataComparison", dataComparison);
 
             if (this.dataComparisonConfig != null && newResearchData.length > 0) {
 
                 let comparingFields = this.dataComparisonConfig.fieldsToCompare;
+                let fieldGroupKeyValue = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+                let processedData = {};
 
                 switch (dataComparison) {
                     case "newSearch":
 
-                        let compareReadyData = {};
+
 
                         newResearchData.map(d => {
                             let keyField = d[this.dataComparisonConfig.keyField];
@@ -400,88 +405,80 @@ new Vue({
                             for (const [key, value] of Object.entries(d)) {
                                 if (comparingFields.includes(key) == true) {
 
-                                    let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
-
                                     tempObj[key] = {};
-                                    tempObj[key][fieldGroupKey] = value;
+                                    tempObj[key][fieldGroupKeyValue] = value;
                                 } else {
                                     tempObj[key] = value;
                                 }
                             }
-                            compareReadyData[keyField] = tempObj;
+                            processedData[keyField] = tempObj;
                         })
 
-                        this.$store.dispatch("unfilteredData", compareReadyData);
-                        this.$store.dispatch("filteredData", compareReadyData);
 
-                        return compareReadyData;
 
                         break;
 
                     case "overlapping":
 
-                        let overlappingData = {};
-                        let fieldGroupKeyValue = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+                        //let overlappingData = {};
+
 
                         newResearchData.map(d => {
                             let keyFieldID = d[this.dataComparisonConfig.keyField];
                             if (!!previousData[keyFieldID]) {
-                                overlappingData[keyFieldID] = previousData[keyFieldID]
+                                processedData[keyFieldID] = previousData[keyFieldID]
                                 comparingFields.map(cf => {
-                                    overlappingData[keyFieldID][cf][fieldGroupKeyValue] = d[cf];
+                                    processedData[keyFieldID][cf][fieldGroupKeyValue] = d[cf];
                                 });
                             }
                         });
 
-                        this.$store.dispatch("unfilteredData", overlappingData);
-                        this.$store.dispatch("filteredData", overlappingData);
+                        //this.$store.dispatch("unfilteredData", overlappingData);
+                        //this.$store.dispatch("filteredData", overlappingData);
 
-                        return overlappingData;
+                        //return overlappingData;
 
                         break;
                     case "all":
-
-                        let allData = {}
+                        //let allData = {};
 
                         newResearchData.map(d => {
-                            let keyField = d[this.dataComparisonConfig.keyField];
-                            let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
-                            if (!!previousData[keyField]) {
-                                let tempObj = previousData[keyField];
+                            let keyFieldID = d[this.dataComparisonConfig.keyField];
+                            if (!!previousData[keyFieldID]) {
+                                processedData[keyFieldID] = previousData[keyFieldID]
                                 comparingFields.map(cf => {
-
-                                    tempObj[cf][fieldGroupKey] = d[cf];
+                                    processedData[keyFieldID][cf][fieldGroupKeyValue] = d[cf];
                                 });
-                                allData[keyField] = tempObj;
-
                             } else {
 
                                 let tempObj = {};
                                 for (const [key, value] of Object.entries(d)) {
                                     if (comparingFields.includes(key) == true) {
 
-                                        let fieldGroupKey = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
-
                                         tempObj[key] = {};
-                                        tempObj[key][fieldGroupKey] = value;
+                                        tempObj[key][fieldGroupKeyValue] = value;
                                     } else {
                                         tempObj[key] = value;
                                     }
                                 }
-
-                                allData[keyField] = tempObj;
+                                processedData[keyFieldID] = tempObj;
                             }
-
                         });
 
-                        this.$store.dispatch("unfilteredData", allData);
-                        this.$store.dispatch("filteredData", allData);
-
-                        return allData;
+                        for (const [key, value] of Object.entries(previousData)) {
+                            if (!processedData[key]) {
+                                processedData[key] = value;
+                            }
+                        }
 
                         break;
 
                 }
+
+                this.$store.dispatch("unfilteredData", processedData);
+                this.$store.dispatch("filteredData", processedData);
+
+                return processedData;
             } else {
 
                 this.$store.dispatch("unfilteredData", newResearchData);
@@ -552,6 +549,9 @@ new Vue({
                 return true;
             }
         },
+        filteredData() {
+            return this.$store.state.filteredData;
+        },
 
         filterWidth() {
             let contents = this.researchPage;
@@ -588,6 +588,9 @@ new Vue({
                 return null;
             }
             return true;
+        },
+        plotMargin() {
+            return { leftMargin: 75, rightMargin: 10, topMargin: 10, bottomMargin: 50 }
         },
         pageDescription() {
             let contents = this.researchPage;
@@ -740,7 +743,7 @@ new Vue({
                 } else {
                     let returnData = (this.dataType == 'json') ? JSON.parse(convertedData).data : convertedData;
 
-                    console.log("returnData", convertedData["data"]);
+                    //console.log("returnData", convertedData["data"]);
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
@@ -807,6 +810,7 @@ new Vue({
     },
 
     watch: {
+        filteredData(DATA) { },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
@@ -903,9 +907,9 @@ new Vue({
         },
         researchData(content) {
             // reset searching region if applicable
-            console.log("data", content);
-            console.log("this.plotConfig", this.plotConfig);
-            console.log("this.dataTableFormat", this.dataTableFormat);
+            //console.log("data", content);
+            //console.log("this.plotConfig", this.plotConfig);
+            //console.log("this.dataTableFormat", this.dataTableFormat);
 
             if (this.plotConfig != null &&
                 !!this.plotConfig.genesTrack) {
@@ -930,7 +934,12 @@ new Vue({
             if (content != null && content.length > 0) {
                 uiUtils.hideElement("data-loading-indicator");
 
-                this.checkDataComparison(content, this.$store.state.filteredData);
+                let allData = this.checkDataComparison(content, this.$store.state.filteredData);
+
+                console.log("All data 2", Object.keys(allData).length);
+
+                //this.$store.dispatch("unfilteredData", allData);
+                //this.$store.dispatch("filteredData", allData);
 
                 if (this.dataTableFormat == null) {
 
