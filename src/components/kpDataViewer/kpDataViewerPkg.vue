@@ -9,6 +9,7 @@
 				:dataComparisonConfig="dataComparisonConfig"
 				:region="$store.state.searchingRegion"
 				:plotMargin="plotMargin"
+				:compareGroupColors="colors.moderate"
 			></research-region-plot>
 
 			<research-genes-track
@@ -26,6 +27,7 @@
 			<research-annotations-plot
 				:region="$store.state.searchingRegion"
 				:plotMargin="plotMargin"
+				:compareGroupColors="colors.bold"
 			></research-annotations-plot>
 		</div>
 	</div>
@@ -44,7 +46,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotat
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("kp-data-viewer-pkg", {
-	props: ["pkgConfig", "dataComparisonConfig", "plotMargin"],
+	props: ["pkgConfig", "dataComparisonConfig", "plotMargin", "colors"],
 	data() {
 		return {};
 	},

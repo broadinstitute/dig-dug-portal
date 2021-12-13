@@ -176,6 +176,7 @@ export default Vue.component("research-region-plot", {
 		"dataComparisonConfig",
 		"region",
 		"plotMargin",
+		"compareGroupColors",
 	],
 	data() {
 		return {
@@ -195,24 +196,7 @@ export default Vue.component("research-region-plot", {
 				"#D0363350",
 				"#82409970",
 			],
-			compareGroupColors: [
-				"#007bff50",
-				"#04884550",
-				"#8490C850",
-				"#BF61A550",
-				"#EE312450",
-				"#FCD70050",
-				"#5555FF50",
-				"#7aaa1c50",
-				"#9F78AC50",
-				"#F8808450",
-				"#F5A4C750",
-				"#CEE6C150",
-				"#cccc0050",
-				"#6FC7B650",
-				"#D5A76850",
-				"#d4d4d450",
-			],
+
 			//rebuilding start
 			assoData: {},
 			ldData: {},
@@ -521,7 +505,7 @@ export default Vue.component("research-region-plot", {
 
 					setTimeout(function () {
 						wrapper.classList.add("hidden");
-					}, 7000);
+					}, 5000);
 				} else if (EVENT_TYPE == "click") {
 					this.dotsClicked = dotsOnPosition;
 					this.showHidePanel("#fixedInfoBox");
@@ -1078,13 +1062,13 @@ export default Vue.component("research-region-plot", {
 			CTX.stroke();
 
 			// render recombination Rate y axis
+			let recomXpos =
+				Math.round(this.plotMargin.leftMargin + WIDTH + bump) + 0.5;
+
 			if (TYPE == "asso") {
-				CTX.moveTo(
-					this.plotMargin.leftMargin + WIDTH + bump,
-					this.plotMargin.topMargin
-				);
+				CTX.moveTo(recomXpos, this.plotMargin.topMargin);
 				CTX.lineTo(
-					this.plotMargin.leftMargin + WIDTH + bump,
+					recomXpos,
 					HEIGHT + this.plotMargin.topMargin + bump
 				);
 				CTX.stroke();
@@ -1134,14 +1118,8 @@ export default Vue.component("research-region-plot", {
 					let tickYPos =
 						this.plotMargin.topMargin + i * yTickDistance;
 					let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
-					CTX.moveTo(
-						this.plotMargin.leftMargin + WIDTH + bump,
-						adjTickYPos
-					);
-					CTX.lineTo(
-						this.plotMargin.leftMargin + WIDTH + bump * 2,
-						adjTickYPos
-					);
+					CTX.moveTo(recomXpos, adjTickYPos);
+					CTX.lineTo(recomXpos + bump, adjTickYPos);
 					CTX.stroke();
 
 					CTX.textAlign = "left";

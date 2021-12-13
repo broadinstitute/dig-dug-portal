@@ -64,6 +64,62 @@ new Vue({
             dataFiles: [],
             dataFilesLabels: null,
             dataTableFormat: null,
+            colors: {
+                moderate: [
+                    "#007bff25",
+                    "#04884525",
+                    "#8490C825",
+                    "#BF61A525",
+                    "#EE312425",
+                    "#FCD70025",
+                    "#5555FF25",
+                    "#7aaa1c25",
+                    "#9F78AC25",
+                    "#F8808425",
+                    "#F5A4C725",
+                    "#CEE6C125",
+                    "#cccc0025",
+                    "#6FC7B625",
+                    "#D5A76825",
+                    "#d4d4d425",
+                ],
+                moderate: [
+                    "#007bff50",
+                    "#04884550",
+                    "#8490C850",
+                    "#BF61A550",
+                    "#EE312450",
+                    "#FCD70050",
+                    "#5555FF50",
+                    "#7aaa1c50",
+                    "#9F78AC50",
+                    "#F8808450",
+                    "#F5A4C750",
+                    "#CEE6C150",
+                    "#cccc0050",
+                    "#6FC7B650",
+                    "#D5A76850",
+                    "#d4d4d450",
+                ],
+                bold: [
+                    "#007bff75",
+                    "#04884575",
+                    "#8490C875",
+                    "#BF61A575",
+                    "#EE312475",
+                    "#FCD70075",
+                    "#5555FF75",
+                    "#7aaa1c75",
+                    "#9F78AC75",
+                    "#F8808475",
+                    "#F5A4C775",
+                    "#CEE6C175",
+                    "#cccc0075",
+                    "#6FC7B675",
+                    "#D5A76875",
+                    "#d4d4d475",
+                ],
+            },
 
         }
     },
@@ -615,59 +671,20 @@ new Vue({
             return this.$store.bioportal;
         },
         plotType() {
-            /*let contents = this.researchPage;
+            let contents = this.researchPage;
 
             if (contents === null || contents[0]["field_data_visualizer"] == false) {
                 return null;
             }
-            return contents[0]["field_data_visualizer"];*/
-
-            return 'gem-package';
+            return contents[0]["field_data_visualizer"];
         },
         plotConfig() {
             let contents = this.researchPage;
 
-            //if (contents === null || contents[0]["field_visualizer_configuration"] == false) {
-            //return null;
-            //}
-            //return JSON.parse(contents[0]["field_visualizer_configuration"]);
-
-            let tempPlotConfig = {
-                viewers: ['region_plot', 'annotations_plot'],
-                pkgID: 'testPkg',
-                regionViewer: {
-                    xAxisField: 'position',
-                    yAxisField: '-log10(P-Value)',
-                    renderBy: 'Variant ID',
-                    yAxisLabel: '-Log10(p-value)',
-                    xAxisLabel: 'Chromosome',
-                    hoverContent: ['P-Value', 'Beta'],
-                    height: 120,
-                    ldServer: {
-                        pos: 'position',
-                        ref: 'ref',
-                        alt: 'alt',
-                        ref_variant_field: 'Variant ID',
-                        populations_field: 'P-Value',
-                        populations_type: 'fixed',
-                        fixed_population: 'ALL',
-                        populations: { ALL: 'ALL' },
-                    },
-
-                    inputType: 'dynamic',
-                    dynamicParameter: 'region',
-                    ifCombineYAxisField: {
-                        type: 'average',
-                        field: '-log10(P-Value)',
-                    },
-                },
-                genesTrack: {
-                    inputType: 'dynamic',
-                    dynamicParameter: 'region',
-                },
+            if (contents === null || contents[0]["field_visualizer_configuration"] == false) {
+                return null;
             }
-
-            return tempPlotConfig;
+            return JSON.parse(contents[0]["field_visualizer_configuration"]);
         },
         plotClass() {
             let contents = this.researchPage;
