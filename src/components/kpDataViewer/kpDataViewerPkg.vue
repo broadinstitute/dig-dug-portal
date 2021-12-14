@@ -14,8 +14,7 @@
 
 			<research-genes-track
 				v-if="
-					pkgConfig != null &&
-					!!pkgConfig.genesTrack &&
+					pkgConfig.viewers.includes('genes_plot') == true &&
 					$store.state.codingGenesData != null
 				"
 				:region="$store.state.searchingRegion"
@@ -25,9 +24,13 @@
 				:plotMargin="plotMargin"
 			></research-genes-track>
 			<research-annotations-plot
+				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
 				:region="$store.state.searchingRegion"
+				:phenotype="$store.state.searchingPhenotype"
+				:renderConfig="pkgConfig.annotationsViewer"
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
+				:dataComparison="this.$store.state.dataComparison"
 			></research-annotations-plot>
 		</div>
 	</div>

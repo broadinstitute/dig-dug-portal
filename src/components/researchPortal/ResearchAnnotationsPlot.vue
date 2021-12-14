@@ -60,6 +60,7 @@
 									v-html="tissueKey"
 								></option>
 							</select>
+							{{ searchingPhenotype }}
 						</div>
 					</div>
 				</div>
@@ -78,9 +79,16 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-annotations-plot", {
-	props: ["region", "plotMargin", "compareGroupColors"],
+	props: [
+		"region",
+		"phenotype",
+		"renderConfig",
+		"plotMargin",
+		"compareGroupColors",
+		"dataComparison",
+	],
 	data() {
-		return { annoData: {}, tissuesData: {}, selectedAnno: {} };
+		return { annoData: {}, GEData: {}, tissuesData: {}, selectedAnno: {} };
 	},
 	modules: {
 		uiUtils,
@@ -89,14 +97,13 @@ export default Vue.component("research-annotations-plot", {
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		//this.renderTrack(this.genesData);
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
 		searchingRegion() {
-			console.log(this.region);
+			//console.log("search Called from region");
 			let returnObj = {};
 			let regionArr = this.region.split(":");
 			returnObj["chr"] = regionArr[0];
@@ -107,9 +114,21 @@ export default Vue.component("research-annotations-plot", {
 
 			return returnObj;
 		},
+		searchingPhenotype() {
+			//console.log("search Called from phenotype");
+			let returnObj = {};
+			let regionArr = this.region.split(":");
+			returnObj["chr"] = regionArr[0];
+			returnObj["start"] = regionArr[1].split("-")[0];
+			returnObj["end"] = regionArr[1].split("-")[1];
+
+			this.getAnnotations(returnObj);
+
+			return this.phenotype;
+		},
 		testReferencing() {
 			if (this.searchingRegion != null) {
-				console.log("it works");
+				//console.log("it works");
 			}
 		},
 	},
@@ -117,7 +136,7 @@ export default Vue.component("research-annotations-plot", {
 	methods: {
 		...uiUtils,
 		onResize(e) {
-			//this.renderTrack(this.genesData);
+			this.renderByAnnotations();
 		},
 		updateTissuesList(event) {
 			this.selectedAnno = this.annoData[event.target.value];
@@ -127,6 +146,77 @@ export default Vue.component("research-annotations-plot", {
 			let i = annoArry.indexOf(anno);
 			return this.compareGroupColors[i];
 		},
+		async getGlobalEnrichment() {
+			let annoServer =
+				this.renderConfig.annotationsServer == "KP BioIndex"
+					? "https://bioindex.hugeamp.org/api/bio"
+					: this.renderConfig.annotationsServer;
+
+			let phenotype = this.searchingPhenotype;
+
+			var GEURL = annoServer + "/query/global-enrichment?q=" + phenotype;
+
+			var GEJson = await fetch(GEURL).then((resp) => resp.json());
+
+			if (GEJson.error == null) {
+				if (this.dataComparison == "newSearch") {
+					this.GEData = {};
+				}
+
+				this.GEData[this.searchingPhenotype] = GEJson.data;
+
+				for (const [phenotype, phenotypeValue] of Object.entries(
+					this.GEData
+				)) {
+					phenotypeValue.map((p) => {
+						let ancestry = p.ancestry;
+						let annotation = p.annotation;
+						let pValue = p.pValue;
+						let phenotype = p.phenotype;
+						let tissue = p.tissue;
+
+						if (
+							!!this.annoData[annotation] &&
+							!!this.annoData[annotation][tissue]
+						) {
+							if (
+								!this.annoData[annotation][tissue].ancestries[
+									ancestry
+								]
+							) {
+								this.annoData[annotation][tissue].ancestries[
+									ancestry
+								] = {};
+							}
+							this.annoData[annotation][tissue].ancestries[
+								ancestry
+							][phenotype] = pValue;
+						}
+
+						if (
+							!!this.tissuesData[tissue] &&
+							!!this.tissuesData[tissue][annotation]
+						) {
+							if (
+								!this.tissuesData[tissue][annotation]
+									.ancestries[ancestry]
+							) {
+								this.tissuesData[tissue][annotation].ancestries[
+									ancestry
+								] = {};
+							}
+							this.tissuesData[tissue][annotation].ancestries[
+								ancestry
+							][phenotype] = pValue;
+						}
+					});
+				}
+
+				//this.renderByTissues();
+				this.renderByAnnotations();
+			}
+		},
+
 		async getAnnotations(REGION_OBJ) {
 			if (
 				!!REGION_OBJ &&
@@ -134,8 +224,14 @@ export default Vue.component("research-annotations-plot", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
+				let annoServer =
+					this.renderConfig.annotationsServer == "KP BioIndex"
+						? "https://bioindex.hugeamp.org/api/bio"
+						: this.renderConfig.annotationsServer;
+
 				var annotationsURL =
-					"https://bioindex.hugeamp.org/api/bio/query/regions?q=" +
+					annoServer +
+					"/query/regions?q=" +
 					REGION_OBJ.chr +
 					":" +
 					REGION_OBJ.start +
@@ -156,10 +252,13 @@ export default Vue.component("research-annotations-plot", {
 							this.annoData[a.annotation] = {};
 						}
 						if (!this.annoData[a.annotation][a.tissue]) {
-							this.annoData[a.annotation][a.tissue] = [];
+							this.annoData[a.annotation][a.tissue] = {
+								region: [],
+								ancestries: {},
+							};
 						}
 
-						this.annoData[a.annotation][a.tissue].push(a);
+						this.annoData[a.annotation][a.tissue].region.push(a);
 
 						//tissuesData
 						if (!this.tissuesData[a.tissue]) {
@@ -167,20 +266,167 @@ export default Vue.component("research-annotations-plot", {
 						}
 
 						if (!this.tissuesData[a.tissue][a.annotation]) {
-							this.tissuesData[a.tissue][a.annotation] = [];
+							this.tissuesData[a.tissue][a.annotation] = {
+								region: [],
+								ancestries: {},
+							};
 						}
-						this.tissuesData[a.tissue][a.annotation].push(a);
+						this.tissuesData[a.tissue][a.annotation].region.push(a);
 					});
-					this.renderAnnoPlot();
+					this.getGlobalEnrichment();
 				}
 			}
 		},
-		renderAnnoPlot() {
+		renderByAnnotations() {
+			var annotations = Object.keys(this.annoData);
+
+			var tempHeight = 0;
+			let fontSize = 14;
+			let perTissue = 7;
+			let spaceBtnAnnotations = 50;
+
+			for (const [annotation, tissues] of Object.entries(this.annoData)) {
+				tempHeight += fontSize;
+				tempHeight += Object.keys(tissues).length * perTissue;
+				tempHeight += spaceBtnAnnotations;
+			}
+
+			let canvasWidth =
+				document.querySelector("#annotationsPlotWrapper").clientWidth *
+					0.75 -
+				30; //30 <- left & right padding of wrapper
+
+			let canvasHeight =
+				tempHeight +
+				this.plotMargin.topMargin +
+				this.plotMargin.bottomMargin;
+
+			let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
+			let plotHeight = tempHeight;
+			let bump = 5.5;
+
+			let xPerPixel =
+				plotWidth /
+				(this.searchingRegion.end - this.searchingRegion.start);
+
+			let c, ctx;
+			c = document.querySelector("#annotationsPlot");
+			c.setAttribute("width", canvasWidth);
+			c.setAttribute("height", canvasHeight);
+			ctx = c.getContext("2d");
+
+			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+			let renderHeight = fontSize;
+
+			for (const [annotation, tissues] of Object.entries(this.annoData)) {
+				ctx.font = fontSize + "px Arial";
+				ctx.textAlign = "left";
+				ctx.fillStyle = "#000000";
+				ctx.fillText(annotation, bump, renderHeight);
+
+				let blockHeight = Object.keys(tissues).length * perTissue;
+				renderHeight += fontSize;
+
+				this.renderAxis(
+					ctx,
+					plotWidth,
+					blockHeight,
+					this.searchingRegion.end,
+					this.searchingRegion.start,
+					renderHeight,
+					bump
+				);
+
+				ctx.fillStyle = this.getColorIndex(annotation);
+
+				for (const [tissue, regions] of Object.entries(tissues)) {
+					regions.region.map((p) => {
+						let xPosStart =
+							(p.start - this.searchingRegion.start) * xPerPixel +
+							this.plotMargin.leftMargin;
+
+						xPosStart =
+							xPosStart <= this.plotMargin.leftMargin
+								? this.plotMargin.leftMargin
+								: xPosStart;
+						let xPosEnd =
+							(p.end - this.searchingRegion.start) * xPerPixel +
+							this.plotMargin.leftMargin;
+
+						xPosEnd =
+							xPosEnd > this.plotMargin.leftMargin + plotWidth
+								? this.plotMargin.leftMargin + plotWidth
+								: xPosEnd;
+
+						let xPosWidth = xPosEnd - xPosStart;
+
+						ctx.fillRect(
+							xPosStart,
+							renderHeight,
+							xPosWidth,
+							perTissue - 1
+						);
+					});
+
+					renderHeight += perTissue;
+				}
+				renderHeight += spaceBtnAnnotations;
+			}
+		},
+		renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#999999";
+			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+			// render y axis
+			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos);
+			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
+			CTX.stroke();
+
+			// render recombination Rate y axis
+			let recomXpos =
+				Math.round(this.plotMargin.leftMargin + WIDTH + bump) + 0.5;
+
+			CTX.moveTo(recomXpos, yPos);
+			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
+			CTX.stroke();
+
+			//render x axis
+			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
+			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
+			CTX.stroke();
+
+			// X ticks
+
+			let xStep = Math.ceil((xMax - xMin) / 5);
+			let xTickDistance = WIDTH / 5;
+
+			for (let i = 0; i < 6; i++) {
+				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
+				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				CTX.moveTo(adjTickXPos, yPos + HEIGHT + bump);
+				CTX.lineTo(adjTickXPos, yPos + HEIGHT + bump * 2);
+				CTX.stroke();
+
+				CTX.textAlign = "center";
+				let positionLabel = i < 5 ? xMin + i * xStep : xMax;
+				CTX.font = "12px Arial";
+				CTX.fillStyle = "#999999";
+				CTX.fillText(
+					positionLabel,
+					adjTickXPos,
+					yPos + HEIGHT + bump * 4
+				);
+			}
+		},
+		renderByTissues() {
 			var sortedTissues = Object.keys(this.tissuesData)
 				.sort()
 				.reduce((a, c) => ((a[c] = this.tissuesData[c]), a), {});
 
-			console.log("sortedTissues", sortedTissues);
+			//console.log("sortedTissues", sortedTissues);
 
 			var tempHeight = 0;
 			let fontSize = 14;
@@ -218,34 +464,9 @@ export default Vue.component("research-annotations-plot", {
 			c.setAttribute("height", canvasHeight);
 			ctx = c.getContext("2d");
 
-			this.renderByTissues(
-				ctx,
-				sortedTissues,
-				canvasWidth,
-				canvasHeight,
-				plotWidth,
-				perPixel,
-				fontSize,
-				perAnnotation,
-				spaceBtnTissue,
-				bump
-			);
-		},
-		renderByTissues(
-			ctx,
-			sortedTissues,
-			canvasWidth,
-			canvasHeight,
-			plotWidth,
-			perPixel,
-			fontSize,
-			perAnnotation,
-			spaceBtnTissue,
-			bump
-		) {
 			let renderHeight = fontSize;
 
-			console.log("this.searchingRegion", this.searchingRegion);
+			//console.log("this.searchingRegion", this.searchingRegion);
 			// render by tissues
 			for (const [tissue, annotations] of Object.entries(sortedTissues)) {
 				ctx.font = fontSize + "px Arial";
@@ -264,13 +485,9 @@ export default Vue.component("research-annotations-plot", {
 						renderHeight
 					);
 
-					//console.log("color", this.getColorIndex(annoKey));
-
-					//this.renderAxisPerTrack(ctx,);
-
 					ctx.fillStyle = this.getColorIndex(annoKey);
 
-					position.map((p) => {
+					position.region.map((p) => {
 						///
 						ctx.strokeStyle = "#aaaaaa";
 						ctx.moveTo(

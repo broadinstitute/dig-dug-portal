@@ -505,7 +505,7 @@ export default Vue.component("research-region-plot", {
 
 					setTimeout(function () {
 						wrapper.classList.add("hidden");
-					}, 5000);
+					}, 3000);
 				} else if (EVENT_TYPE == "click") {
 					this.dotsClicked = dotsOnPosition;
 					this.showHidePanel("#fixedInfoBox");

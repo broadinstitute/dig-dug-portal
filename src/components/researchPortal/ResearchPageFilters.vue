@@ -373,9 +373,23 @@ export default Vue.component("research-page-filters", {
 			}
 			this.$store.state.initialSearch = 0;
 			this.$store.state.bioIndexContinue = [];
-			//this.$store.state.hugeampkpncms.dispatch("cancelResearchData");
+
 			this.$store.dispatch("hugeampkpncms/cancelResearchData");
 			this.setDataComparison();
+
+			if (this.dataType == "bioindex") {
+				/// set store.searchingPhenotype if searching BioIndex
+				if (
+					this.apiParameters.query.format.includes("phenotype") ==
+					true
+				) {
+					var phenotype = document.getElementById(
+						"search_param_phenotype"
+					).value;
+
+					this.$store.dispatch("searchingPhenotype", phenotype);
+				}
+			}
 
 			let queryParams = "";
 			if (this.apiParameters.query.type == "array") {

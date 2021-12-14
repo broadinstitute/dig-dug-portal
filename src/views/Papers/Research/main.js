@@ -128,7 +128,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
-
     },
 
     render(createElement, context) {
@@ -423,6 +422,8 @@ new Vue({
 
                     let APIPoint = this.dataFiles[0];
                     if (this.dataType == "bioindex") {
+
+                        /// set BioIndex API point
                         APIPoint +=
                             "query/" +
                             this.apiParameters.query.index +
@@ -431,7 +432,6 @@ new Vue({
                     }
 
                     let fetchParam = { dataPoint: APIPoint, domain: "external" };
-
 
                     this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
                 } else {
@@ -963,9 +963,6 @@ new Vue({
         },
         researchData(content) {
             // reset searching region if applicable
-            //console.log("data", content);
-            //console.log("this.plotConfig", this.plotConfig);
-            //console.log("this.dataTableFormat", this.dataTableFormat);
 
             if (this.plotConfig != null &&
                 !!this.plotConfig.genesTrack) {
@@ -982,7 +979,6 @@ new Vue({
                         break;
                 }
 
-
                 this.$store.dispatch("searchingRegion", region);
                 this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
             }
@@ -993,9 +989,6 @@ new Vue({
                 let allData = this.checkDataComparison(content, this.$store.state.filteredData);
 
                 console.log("All data 2", Object.keys(allData).length);
-
-                //this.$store.dispatch("unfilteredData", allData);
-                //this.$store.dispatch("filteredData", allData);
 
                 if (this.dataTableFormat == null) {
 
