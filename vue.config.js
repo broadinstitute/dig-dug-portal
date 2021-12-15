@@ -257,6 +257,9 @@ module.exports = {
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
         let bioindex_host = "https://bioindex.hugeamp.org"; // production by default
+        //set private bioindex host if variable is defined, otherwise use default
+        let bioindex_host_private =
+            process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";
 
         if (!!bioindex_dev) {
             bioindex_host =
@@ -265,9 +268,9 @@ module.exports = {
                     : "https://bioindex-dev.hugeamp.org";
         }
 
-        // output which bioindex is being used
+        // output which vue config file and bioindex is being used
         console.log(
-            `BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host}`
+            `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host} and ${bioindex_host_private}`
         );
 
         // add the transform rule for bioindex
@@ -277,6 +280,18 @@ module.exports = {
             options: {
                 search: "SERVER_IP_ADDRESS",
                 replace: bioindex_host,
+                flags: "g"
+            }
+        });
+
+        // add the transform rule for bioindex
+        // Helen 2021-06-17
+        config.module.rules.push({
+            test: /bioIndexUtils\.js$/,
+            loader: "string-replace-loader",
+            options: {
+                search: "SERVER_IP_PRIVATE",
+                replace: bioindex_host_private,
                 flags: "g"
             }
         });
