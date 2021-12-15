@@ -23,6 +23,7 @@
 				:plotType="'region_plot'"
 				:plotMargin="plotMargin"
 			></research-genes-track>
+
 			<research-annotations-plot
 				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
 				:region="$store.state.searchingRegion"

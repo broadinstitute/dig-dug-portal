@@ -6,61 +6,73 @@
 			v-if="searchingRegion != null"
 		>
 			<div class="col-md-9 anno-plot-wrapper">
+				<div id="tissueInfoBox" class="hidden"></div>
 				<canvas
 					id="annotationsPlot"
 					@resize="onResize"
+					@mousemove="checkPosition($event, 'annotation')"
 					width=""
 					height=""
 				></canvas>
 			</div>
-			<div
-				id="annotationsUIWrapper"
-				class="col-md-3 anno-plot-ui-wrapper"
-			>
-				<div class="filtering-ui-wrapper">
-					<div class="filtering-ui-content">
-						<div class="col">
-							<span
-								v-for="(
-									annoValue, annoKey, annoIndex
-								) in annoData"
-								class="anno-bubble"
-								v-html="annoKey"
-								:style="
-									'background-color:' +
-									compareGroupColors[annoIndex] +
-									';'
-								"
-								:key="annoKey"
-							></span>
-							<select
-								class="custom-select"
-								@change="updateTissuesList($event)"
-							>
-								<option>{{ "Select annotation" }}</option>
-								<option
-									:value="'all'"
-									v-html="'All annotations'"
-								></option>
-								<option
-									v-for="(annoValue, annoKey) in annoData"
-									:key="annoKey"
-									:value="annoKey"
-									v-html="annoKey"
-								></option>
-							</select>
-							<select class="custom-select">
-								<option>{{ "Select tissue" }}</option>
-								<option
-									v-for="(
-										tissueValue, tissueKey
-									) in selectedAnno"
-									:key="tissueKey"
-									:value="tissueKey"
-									v-html="tissueKey"
-								></option>
-							</select>
-							{{ searchingPhenotype }}
+			<div class="col-md-3 anno-plot-ui-wrapper">
+				<div>
+					<span
+						v-for="(annoValue, annoKey, annoIndex) in annoData"
+						class="anno-bubble"
+						v-html="annoKey"
+						:style="
+							'background-color:' +
+							compareGroupColors[annoIndex] +
+							';'
+						"
+						:key="annoKey"
+					></span>
+					<div
+						v-if="searchingPhenotype != null"
+						id="GEInfoBox"
+						class="hidden"
+					></div>
+					<canvas
+						v-if="searchingPhenotype != null"
+						id="GEPlot"
+						width=""
+						height=""
+						style="border: solid 1px #000"
+					></canvas>
+				</div>
+				<div id="annotationsUIWrapper">
+					<div class="filtering-ui-wrapper">
+						<div class="filtering-ui-content">
+							<div class="col">
+								<select
+									class="custom-select"
+									@change="updateTissuesList($event)"
+								>
+									<option>{{ "Select annotation" }}</option>
+									<option
+										:value="'all'"
+										v-html="'All annotations'"
+									></option>
+									<option
+										v-for="(annoValue, annoKey) in annoData"
+										:key="annoKey"
+										:value="annoKey"
+										v-html="annoKey"
+									></option>
+								</select>
+								<select class="custom-select">
+									<option>{{ "Select tissue" }}</option>
+									<option
+										v-for="(
+											tissueValue, tissueKey
+										) in selectedAnno"
+										:key="tissueKey"
+										:value="tissueKey"
+										v-html="tissueKey"
+									></option>
+								</select>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -88,7 +100,14 @@ export default Vue.component("research-annotations-plot", {
 		"dataComparison",
 	],
 	data() {
-		return { annoData: {}, GEData: {}, tissuesData: {}, selectedAnno: {} };
+		return {
+			annoData: {},
+			GEData: {},
+			tissuesData: {},
+			selectedAnno: {},
+			annoPosData: {},
+			spaceBy: 7,
+		};
 	},
 	modules: {
 		uiUtils,
@@ -140,6 +159,54 @@ export default Vue.component("research-annotations-plot", {
 		},
 		updateTissuesList(event) {
 			this.selectedAnno = this.annoData[event.target.value];
+		},
+		checkPosition(event, TYPE) {
+			var e = event;
+			var rect = e.target.getBoundingClientRect();
+			var x = Math.floor(e.clientX - rect.left);
+			var rawX = e.clientX - rect.left;
+
+			const infoBox = document.querySelector("#tissueInfoBox");
+
+			if (
+				x >= this.plotMargin.leftMargin &&
+				x <= rect.width - this.plotMargin.leftMargin
+			) {
+				var y =
+					Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy) -
+					1;
+
+				let rawY = e.clientY - rect.top;
+
+				//console.log("y", y, "raw y", Math.floor(e.clientY - rect.top));
+				if (!!this.annoPosData[y]) {
+					let infoContent = this.annoPosData[y].tissue;
+					for (const [region, regionValue] of Object.entries(
+						this.annoPosData[y].regions
+					)) {
+						let hPosition = region.split("_");
+						let start = hPosition[0];
+						let end = hPosition[1];
+						if (x >= start && x <= end) {
+							infoContent +=
+								"<br />" +
+								regionValue.start +
+								"-" +
+								regionValue.end;
+						}
+					}
+					infoBox.innerHTML = infoContent;
+					infoBox.setAttribute("class", "");
+					infoBox.style.left = rawX + 15 + "px";
+					infoBox.style.top = rawY + this.spaceBy + "px";
+				} else {
+					infoBox.innerHTML = "";
+					infoBox.setAttribute("class", "hidden");
+				}
+			} else {
+				infoBox.innerHTML = "";
+				infoBox.setAttribute("class", "hidden");
+			}
 		},
 		getColorIndex(anno) {
 			let annoArry = Object.keys(this.annoData);
@@ -278,17 +345,17 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		renderByAnnotations() {
-			var annotations = Object.keys(this.annoData);
-
 			var tempHeight = 0;
-			let fontSize = 14;
-			let perTissue = 7;
-			let spaceBtnAnnotations = 50;
+			let annotationTitleH = this.spaceBy * 2;
+			let btnAnnotations = this.spaceBy * 7;
+			let perTissue = this.spaceBy;
+			let topMargin = this.spaceBy * 2;
+			let bottomMargin = this.spaceBy * 2;
 
 			for (const [annotation, tissues] of Object.entries(this.annoData)) {
-				tempHeight += fontSize;
+				tempHeight += annotationTitleH;
 				tempHeight += Object.keys(tissues).length * perTissue;
-				tempHeight += spaceBtnAnnotations;
+				tempHeight += btnAnnotations;
 			}
 
 			let canvasWidth =
@@ -296,10 +363,7 @@ export default Vue.component("research-annotations-plot", {
 					0.75 -
 				30; //30 <- left & right padding of wrapper
 
-			let canvasHeight =
-				tempHeight +
-				this.plotMargin.topMargin +
-				this.plotMargin.bottomMargin;
+			let canvasHeight = tempHeight + topMargin + bottomMargin;
 
 			let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
 			let plotHeight = tempHeight;
@@ -317,30 +381,44 @@ export default Vue.component("research-annotations-plot", {
 
 			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-			let renderHeight = fontSize;
+			let renderHeight = annotationTitleH;
 
 			for (const [annotation, tissues] of Object.entries(this.annoData)) {
-				ctx.font = fontSize + "px Arial";
+				ctx.font = "14px Arial";
 				ctx.textAlign = "left";
 				ctx.fillStyle = "#000000";
 				ctx.fillText(annotation, bump, renderHeight);
 
 				let blockHeight = Object.keys(tissues).length * perTissue;
-				renderHeight += fontSize;
+				renderHeight += annotationTitleH;
 
 				this.renderAxis(
 					ctx,
 					plotWidth,
 					blockHeight,
-					this.searchingRegion.end,
-					this.searchingRegion.start,
+					Number(this.searchingRegion.end),
+					Number(this.searchingRegion.start),
 					renderHeight,
 					bump
 				);
-
-				ctx.fillStyle = this.getColorIndex(annotation);
-
+				let tissueIndex = 0;
 				for (const [tissue, regions] of Object.entries(tissues)) {
+					let yPosBtn = Math.ceil(renderHeight / this.spaceBy);
+
+					this.annoPosData[yPosBtn] = { tissue: tissue, regions: {} };
+
+					if (tissueIndex % 2 == 0) {
+						ctx.fillStyle = "#eeeeee";
+						ctx.fillRect(
+							this.plotMargin.leftMargin,
+							renderHeight,
+							plotWidth,
+							perTissue
+						);
+					}
+
+					tissueIndex++;
+
 					regions.region.map((p) => {
 						let xPosStart =
 							(p.start - this.searchingRegion.start) * xPerPixel +
@@ -360,18 +438,23 @@ export default Vue.component("research-annotations-plot", {
 								: xPosEnd;
 
 						let xPosWidth = xPosEnd - xPosStart;
-
+						ctx.fillStyle = this.getColorIndex(annotation);
 						ctx.fillRect(
 							xPosStart,
 							renderHeight,
 							xPosWidth,
 							perTissue - 1
 						);
+						let xPosBtn = xPosStart + "_" + (xPosStart + xPosWidth);
+						this.annoPosData[yPosBtn].regions[xPosBtn] = {
+							start: p.start,
+							end: p.end,
+						};
 					});
 
 					renderHeight += perTissue;
 				}
-				renderHeight += spaceBtnAnnotations;
+				renderHeight += btnAnnotations;
 			}
 		},
 		renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
@@ -426,8 +509,6 @@ export default Vue.component("research-annotations-plot", {
 				.sort()
 				.reduce((a, c) => ((a[c] = this.tissuesData[c]), a), {});
 
-			//console.log("sortedTissues", sortedTissues);
-
 			var tempHeight = 0;
 			let fontSize = 14;
 			let perAnnotation = 14;
@@ -466,7 +547,6 @@ export default Vue.component("research-annotations-plot", {
 
 			let renderHeight = fontSize;
 
-			//console.log("this.searchingRegion", this.searchingRegion);
 			// render by tissues
 			for (const [tissue, annotations] of Object.entries(sortedTissues)) {
 				ctx.font = fontSize + "px Arial";
@@ -579,13 +659,23 @@ $(function () {});
 }
 .anno-bubble {
 	display: block;
-	font-size: 14px;
+	font-size: 12px;
 	margin-left: 3px;
 	margin-right: 3px;
-	padding: 0px 8px;
-	border-radius: 8px;
+	padding: 0px 3px;
+	border-radius: 5px;
 	float: left;
 	margin-bottom: 3px;
+}
+
+#tissueInfoBox {
+	position: absolute;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	padding: 5px 15px;
+	z-index: 11;
+	font-size: 14px;
 }
 </style>
 
