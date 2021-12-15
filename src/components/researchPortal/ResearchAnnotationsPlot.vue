@@ -16,31 +16,7 @@
 				></canvas>
 			</div>
 			<div class="col-md-3 anno-plot-ui-wrapper">
-				<div>
-					<span
-						v-for="(annoValue, annoKey, annoIndex) in annoData"
-						class="anno-bubble"
-						v-html="annoKey"
-						:style="
-							'background-color:' +
-							compareGroupColors[annoIndex] +
-							';'
-						"
-						:key="annoKey"
-					></span>
-					<div
-						v-if="searchingPhenotype != null"
-						id="GEInfoBox"
-						class="hidden"
-					></div>
-					<canvas
-						v-if="searchingPhenotype != null"
-						id="GEPlot"
-						width=""
-						height=""
-						style="border: solid 1px #000"
-					></canvas>
-				</div>
+				<h6>Add Tissue Track</h6>
 				<div id="annotationsUIWrapper">
 					<div class="filtering-ui-wrapper">
 						<div class="filtering-ui-content">
@@ -75,6 +51,32 @@
 							</div>
 						</div>
 					</div>
+				</div>
+				<h6>Global Enrichment</h6>
+				<div id="GEPlotWrapper">
+					<!--<span
+						v-for="(annoValue, annoKey, annoIndex) in annoData"
+						class="anno-bubble"
+						v-html="annoKey"
+						:style="
+							'background-color:' +
+							compareGroupColors[annoIndex] +
+							';'
+						"
+						:key="annoKey"
+					></span>-->
+					<div
+						v-if="searchingPhenotype != null"
+						id="GEInfoBox"
+						class="hidden"
+					></div>
+					<canvas
+						v-if="searchingPhenotype != null"
+						id="GEPlot"
+						width=""
+						height=""
+						style="border: solid 1px #000"
+					></canvas>
 				</div>
 			</div>
 		</div>
@@ -281,6 +283,7 @@ export default Vue.component("research-annotations-plot", {
 
 				//this.renderByTissues();
 				this.renderByAnnotations();
+				this.renderGE();
 			}
 		},
 
@@ -342,6 +345,77 @@ export default Vue.component("research-annotations-plot", {
 					});
 					this.getGlobalEnrichment();
 				}
+			}
+		},
+		renderGE() {
+			let sortedGEData = {};
+			for (const [phenotype, GE] of Object.entries(this.GEData)) {
+				sortedGEData[phenotype] = { max: null, min: null };
+				GE.map((g) => {
+					if (!sortedGEData[phenotype][g.annotation]) {
+						sortedGEData[phenotype][g.annotation] = {};
+					}
+					let pValue = -Math.log10(g.pValue);
+
+					sortedGEData[phenotype].max =
+						sortedGEData[phenotype].max == null
+							? pValue
+							: pValue > sortedGEData[phenotype].max
+							? pValue
+							: sortedGEData[phenotype].max;
+
+					sortedGEData[phenotype].min =
+						sortedGEData[phenotype].min == null
+							? pValue
+							: pValue < sortedGEData[phenotype].min
+							? pValue
+							: sortedGEData[phenotype].min;
+
+					if (!sortedGEData[phenotype][g.annotation][g.tissue]) {
+						sortedGEData[phenotype][g.annotation][g.tissue] =
+							pValue;
+					}
+				});
+			}
+			console.log("sortedGEData", sortedGEData);
+
+			let titleSize = this.spaceBy * 2;
+			let plotHeight = 150;
+			let bump = 5.5;
+
+			let canvasWidth =
+				document.querySelector("#GEPlotWrapper").clientWidth; //30 <- left & right padding of wrapper
+
+			let numOfPhenotypes = Object.keys(sortedGEData).length;
+			let canvasHeight =
+				(this.plotMargin.topMargin +
+					this.plotMargin.bottomMargin +
+					plotHeight +
+					titleSize) *
+				numOfPhenotypes;
+
+			let c, ctx;
+			c = document.querySelector("#GEPlot");
+			c.setAttribute("width", canvasWidth);
+			c.setAttribute("height", canvasHeight);
+			ctx = c.getContext("2d");
+
+			let pIndex = 0;
+			for (const [phenotype, GE] of Object.entries(sortedGEData)) {
+				let titleYPos =
+					titleSize +
+					(this.plotMargin.topMargin +
+						this.plotMargin.bottomMargin +
+						plotHeight +
+						titleSize) *
+						pIndex;
+
+				ctx.font = "14px Arial";
+				ctx.textAlign = "left";
+				ctx.fillStyle = "#000000";
+				ctx.fillText(phenotype, bump, titleYPos);
+
+				pIndex++;
 			}
 		},
 		renderByAnnotations() {
