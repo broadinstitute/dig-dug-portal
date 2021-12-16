@@ -52,7 +52,7 @@
                                         >
                                             {{ $parent.selectedGene[0] }}
                                         </b-badge>
-                                        <template
+                                        <!-- <template
                                             v-if="
                                                 $parent.selectedMasks.length > 0
                                             "
@@ -68,7 +68,7 @@
                                                     ).text
                                                 }}
                                             </b-badge>
-                                        </template>
+                                        </template> -->
                                     </div>
                                 </b-button>
                             </b-card-header>
@@ -143,14 +143,11 @@
                                     <div class="function">
                                         <b-button
                                             variant="primary"
-                                            @click="$parent.searchVariants"
+                                            @click="$parent.searchRegions"
                                             :disabled="
-                                                $parent.selectedGene.length ==
-                                                    0 ||
-                                                $parent.selectedMasks.length ==
-                                                    0
+                                                $parent.selectedGene.length == 0
                                             "
-                                            >Search Variants</b-button
+                                            >Search Regions</b-button
                                         >
                                     </div>
                                 </b-card-body>

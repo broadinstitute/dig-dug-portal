@@ -16,7 +16,7 @@ import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
-
+import regionUtils from "@/utils/regionUtils";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
@@ -297,6 +297,54 @@ new Vue({
             this.criteriaChanged = false;
             this.$store.commit("ldServer/setCovariances", []);
         },
+
+        //for NC GAIT
+        async searchRegions() {
+            let locus = await regionUtils.parseRegion(this.selectedGene[0]);
+            if (locus) {
+                console.log("locus found: ", locus);
+
+                let region = {
+                    regions: [
+                        {
+                            chrom: locus.chr,
+                            start: locus.start,
+                            stop: locus.end
+                        }
+                    ]
+                };
+                console.log("region: ", region);
+                let liftedRegion = await this.liftOver(region);
+                if (liftedRegion) {
+                    console.log("liftedRegion: ", liftedRegion.regions);
+                }
+            }
+        },
+
+        async liftOver(regions) {
+            let test = {
+                regions: [
+                    { chrom: "22", start: 44269672, stop: 44270672 },
+                    { chrom: "22", start: 44279672, stop: 44280672 }
+                ]
+            };
+            const liftOverAPI = "https://bioindex.hugeamp.org/liftover";
+            const response = await fetch(liftOverAPI, {
+                // method: "POST",
+                // // mode: "no-cors",
+                // headers: {
+                //     Accept: "application/json, text/plain, */*",
+                //     "Content-Type": "application/json"
+                // },
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(regions) // body data type must match "Content-Type" header
+            });
+            return response.json(); // parses JSON response into native JavaScript objects
+        },
+        //end NC GAIT
         searchCovariances() {
             this.showCovariances = true;
             this.loadingCovariances = true;
