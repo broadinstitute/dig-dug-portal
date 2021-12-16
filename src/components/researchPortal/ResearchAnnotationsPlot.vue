@@ -21,7 +21,7 @@
 					<div class="filtering-ui-wrapper">
 						<div class="filtering-ui-content">
 							<div class="col">
-								<select
+								<!--<select
 									class="custom-select"
 									@change="updateTissuesList($event)"
 								>
@@ -36,7 +36,7 @@
 										:value="annoKey"
 										v-html="annoKey"
 									></option>
-								</select>
+								</select>-->
 								<select class="custom-select">
 									<option>{{ "Select tissue" }}</option>
 									<option
@@ -75,6 +75,7 @@
 						id="GEPlot"
 						width=""
 						height=""
+						@mousemove="checkGEPosition($event)"
 					></canvas>
 				</div>
 			</div>
@@ -104,6 +105,7 @@ export default Vue.component("research-annotations-plot", {
 		return {
 			annoData: {},
 			GEData: {},
+			GEPosData: {},
 			tissuesData: {},
 			selectedAnno: {},
 			annoPosData: {},
@@ -161,6 +163,17 @@ export default Vue.component("research-annotations-plot", {
 		},
 		updateTissuesList(event) {
 			this.selectedAnno = this.annoData[event.target.value];
+		},
+		checkGEPosition(event) {
+			var e = event;
+			var rect = e.target.getBoundingClientRect();
+			var x = Math.floor(e.clientX - rect.left);
+			var y = Math.floor(e.clientY - rect.top);
+
+			const infoBox = document.querySelector("#GEInfoBox");
+
+			var infoBoxContent = "";
+			for (let v = 0; v < 6; v++) {}
 		},
 		checkPosition(event, TYPE) {
 			var e = event;
@@ -350,36 +363,80 @@ export default Vue.component("research-annotations-plot", {
 		renderGE() {
 			let sortedGEData = {};
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
-				sortedGEData[phenotype] = { max: null, min: null };
+				sortedGEData[phenotype] = {
+					xMax: null,
+					xMin: null,
+					yMax: null,
+					yMin: null,
+				};
 				GE.map((g) => {
 					if (!!this.annoData[g.annotation][g.tissue]) {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
 						let pValue = -Math.log10(g.pValue);
+						let fold = Math.log(g.SNPs / g.expectedSNPs);
 
-						sortedGEData[phenotype].max =
-							sortedGEData[phenotype].max == null
-								? pValue
-								: pValue > sortedGEData[phenotype].max
-								? pValue
-								: sortedGEData[phenotype].max;
+						sortedGEData[phenotype].xMax =
+							sortedGEData[phenotype].xMax == null
+								? fold
+								: fold > sortedGEData[phenotype].xMax
+								? fold
+								: sortedGEData[phenotype].xMax;
 
-						sortedGEData[phenotype].min =
-							sortedGEData[phenotype].min == null
-								? pValue
-								: pValue < sortedGEData[phenotype].min
-								? pValue
-								: sortedGEData[phenotype].min;
+						sortedGEData[phenotype].xMin =
+							sortedGEData[phenotype].xMin == null
+								? fold
+								: fold < sortedGEData[phenotype].xMin
+								? fold
+								: sortedGEData[phenotype].xMin;
 
-						if (!sortedGEData[phenotype][g.annotation][g.tissue]) {
-							sortedGEData[phenotype][g.annotation][g.tissue] =
-								pValue;
-						}
+						sortedGEData[phenotype].yMax =
+							sortedGEData[phenotype].yMax == null
+								? pValue
+								: pValue > sortedGEData[phenotype].yMax
+								? pValue
+								: sortedGEData[phenotype].yMax;
+
+						sortedGEData[phenotype].yMin =
+							sortedGEData[phenotype].yMin == null
+								? pValue
+								: pValue < sortedGEData[phenotype].yMin
+								? pValue
+								: sortedGEData[phenotype].yMin;
+
+						sortedGEData[phenotype][g.annotation][g.tissue] =
+							!sortedGEData[phenotype][g.annotation][g.tissue]
+								? { pValue: null, fold: null }
+								: sortedGEData[phenotype][g.annotation][
+										g.tissue
+								  ];
+
+						let currentPvalue =
+							sortedGEData[phenotype][g.annotation][g.tissue]
+								.pValue;
+
+						let currentFold =
+							sortedGEData[phenotype][g.annotation][g.tissue]
+								.fold;
+
+						sortedGEData[phenotype][g.annotation][g.tissue].pValue =
+							currentPvalue == null
+								? pValue
+								: pValue > currentPvalue
+								? pValue
+								: currentPvalue;
+
+						sortedGEData[phenotype][g.annotation][g.tissue].fold =
+							currentFold == null
+								? fold
+								: fold > currentFold
+								? fold
+								: currentFold;
 					}
 				});
 			}
-			console.log("sortedGEData", sortedGEData);
+			console.log("this.GEData", sortedGEData);
 			console.log("annoData", this.annoData);
 
 			let canvasWidth =
@@ -426,8 +483,10 @@ export default Vue.component("research-annotations-plot", {
 					ctx,
 					plotWidth,
 					plotHeight,
-					GE.max,
-					GE.min,
+					GE.xMax,
+					GE.xMin,
+					GE.yMax,
+					GE.yMin,
 					titleYPos,
 					bump
 				);
@@ -443,27 +502,27 @@ export default Vue.component("research-annotations-plot", {
 					}
 				});
 
-				//console.log("tissuesCount: ", tissuesCount);
-
-				let xPosByPixel = plotWidth / tissuesCount;
-				let yPosByPixel = plotHeight / (GE.max - GE.min);
+				let xPosByPixel = plotWidth / (GE.xMax - GE.xMin);
+				let yPosByPixel = plotHeight / (GE.yMax - GE.yMin);
 
 				tissuesCount = 0;
 
 				annotationsArr.map((annotation, annoIndex) => {
 					let dotColor = this.compareGroupColors[annoIndex];
 
-					for (const [tissue, pValue] of Object.entries(
+					let firstTissueInAnno = 0;
+					for (const [tissue, tValue] of Object.entries(
 						GE[annotation]
 					)) {
 						let xPos =
 							this.plotMargin.leftMargin +
-							tissuesCount * xPosByPixel;
+							(tValue.fold - GE.xMin) * xPosByPixel;
+
 						let yPos =
 							titleYPos +
 							this.plotMargin.topMargin +
 							plotHeight -
-							(pValue - GE.min) * yPosByPixel;
+							(tValue.pValue - GE.yMin) * yPosByPixel;
 
 						ctx.fillStyle = dotColor;
 						ctx.lineWidth = 0;
@@ -471,21 +530,51 @@ export default Vue.component("research-annotations-plot", {
 						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
 						ctx.fill();
 
-						tissuesCount += 1;
+						if (firstTissueInAnno == 0) {
+							ctx.font = "12px Arial";
+							ctx.fillStyle = "#000000";
+							if (xPos > canvasWidth * 0.75) {
+								ctx.textAlign = "right";
+								ctx.fillText(tissue, xPos - 7, yPos + 3);
+							} else {
+								ctx.textAlign = "left";
+								ctx.fillText(tissue, xPos + 7, yPos + 3);
+							}
+						}
+
+						if (!this.GEPosData[Math.round(yPos)]) {
+							this.GEPosData[Math.round(yPos)] = {};
+						}
+						if (
+							!this.GEPosData[Math.round(yPos)][Math.round(xPos)]
+						) {
+							this.GEPosData[Math.round(yPos)][Math.round(xPos)] =
+								{};
+						}
+
+						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
+							tissue
+						] = { pValue: null, fold: null };
+
+						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
+							tissue
+						]["pValue"] = tValue.pValue;
+
+						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
+							tissue
+						]["fold"] = tValue.fold;
+
+						tissuesCount++;
+						firstTissueInAnno++;
 					}
 				});
 
-				/*
-				ctx.fillStyle = DOT_COLOR;
-				ctx.lineWidth = 0;
-				ctx.beginPath();
-				ctx.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
-				ctx.fill();
-*/
 				pIndex++;
 			}
+
+			console.log("this.GEPosData", this.GEPosData);
 		},
-		renderGEAxis(CTX, WIDTH, HEIGHT, YMAX, YMIN, YPOS, BUMP) {
+		renderGEAxis(CTX, WIDTH, HEIGHT, XMAX, XMIN, YMAX, YMIN, YPOS, BUMP) {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
@@ -549,6 +638,43 @@ export default Vue.component("research-annotations-plot", {
 				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
 			);
 			CTX.stroke();
+
+			// x ticks
+			let xStep = (XMAX - XMIN) / 5;
+			let xTickDistance = WIDTH / 5;
+
+			for (let i = 0; i < 6; i++) {
+				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
+
+				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+
+				CTX.moveTo(
+					adjTickXPos,
+					YPOS + HEIGHT + this.plotMargin.topMargin + BUMP
+				);
+				CTX.lineTo(
+					adjTickXPos,
+					YPOS + HEIGHT + this.plotMargin.topMargin + BUMP * 2
+				);
+				CTX.stroke();
+
+				CTX.textAlign = "center";
+				CTX.font = "12px Arial";
+
+				CTX.fillText(
+					Formatters.floatFormatter(XMIN + i * xStep),
+					adjTickXPos,
+					YPOS + HEIGHT + this.plotMargin.topMargin + BUMP * 4
+				);
+			}
+
+			//Render x axis label
+			CTX.textAlign = "center";
+			CTX.fillText(
+				"Log10(fold)",
+				this.plotMargin.leftMargin + WIDTH / 2,
+				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
+			);
 		},
 		renderByAnnotations() {
 			var tempHeight = 0;
@@ -874,7 +1000,8 @@ $(function () {});
 	margin-bottom: 3px;
 }
 
-#tissueInfoBox {
+#tissueInfoBox,
+#GEInfoBox {
 	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;
