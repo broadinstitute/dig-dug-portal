@@ -75,7 +75,6 @@
 						id="GEPlot"
 						width=""
 						height=""
-						style="border: solid 1px #000"
 					></canvas>
 				</div>
 			</div>
@@ -158,6 +157,7 @@ export default Vue.component("research-annotations-plot", {
 		...uiUtils,
 		onResize(e) {
 			this.renderByAnnotations();
+			this.renderGE();
 		},
 		updateTissuesList(event) {
 			this.selectedAnno = this.annoData[event.target.value];
@@ -352,47 +352,54 @@ export default Vue.component("research-annotations-plot", {
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = { max: null, min: null };
 				GE.map((g) => {
-					if (!sortedGEData[phenotype][g.annotation]) {
-						sortedGEData[phenotype][g.annotation] = {};
-					}
-					let pValue = -Math.log10(g.pValue);
+					if (!!this.annoData[g.annotation][g.tissue]) {
+						if (!sortedGEData[phenotype][g.annotation]) {
+							sortedGEData[phenotype][g.annotation] = {};
+						}
+						let pValue = -Math.log10(g.pValue);
 
-					sortedGEData[phenotype].max =
-						sortedGEData[phenotype].max == null
-							? pValue
-							: pValue > sortedGEData[phenotype].max
-							? pValue
-							: sortedGEData[phenotype].max;
+						sortedGEData[phenotype].max =
+							sortedGEData[phenotype].max == null
+								? pValue
+								: pValue > sortedGEData[phenotype].max
+								? pValue
+								: sortedGEData[phenotype].max;
 
-					sortedGEData[phenotype].min =
-						sortedGEData[phenotype].min == null
-							? pValue
-							: pValue < sortedGEData[phenotype].min
-							? pValue
-							: sortedGEData[phenotype].min;
+						sortedGEData[phenotype].min =
+							sortedGEData[phenotype].min == null
+								? pValue
+								: pValue < sortedGEData[phenotype].min
+								? pValue
+								: sortedGEData[phenotype].min;
 
-					if (!sortedGEData[phenotype][g.annotation][g.tissue]) {
-						sortedGEData[phenotype][g.annotation][g.tissue] =
-							pValue;
+						if (!sortedGEData[phenotype][g.annotation][g.tissue]) {
+							sortedGEData[phenotype][g.annotation][g.tissue] =
+								pValue;
+						}
 					}
 				});
 			}
 			console.log("sortedGEData", sortedGEData);
-
-			let titleSize = this.spaceBy * 2;
-			let plotHeight = 150;
-			let bump = 5.5;
+			console.log("annoData", this.annoData);
 
 			let canvasWidth =
 				document.querySelector("#GEPlotWrapper").clientWidth; //30 <- left & right padding of wrapper
 
 			let numOfPhenotypes = Object.keys(sortedGEData).length;
+			let plotHeight = 130;
+			let titleSize = this.spaceBy * 2;
 			let canvasHeight =
 				(this.plotMargin.topMargin +
 					this.plotMargin.bottomMargin +
 					plotHeight +
 					titleSize) *
 				numOfPhenotypes;
+
+			let plotWidth =
+				canvasWidth -
+				this.plotMargin.leftMargin -
+				this.plotMargin.rightMargin;
+			let bump = 5.5;
 
 			let c, ctx;
 			c = document.querySelector("#GEPlot");
@@ -415,8 +422,133 @@ export default Vue.component("research-annotations-plot", {
 				ctx.fillStyle = "#000000";
 				ctx.fillText(phenotype, bump, titleYPos);
 
+				this.renderGEAxis(
+					ctx,
+					plotWidth,
+					plotHeight,
+					GE.max,
+					GE.min,
+					titleYPos,
+					bump
+				);
+
+				let annotationsArr = Object.keys(this.annoData);
+				let tissuesCount = 0;
+
+				annotationsArr.map((annotation) => {
+					for (const [tissue, tissueValue] of Object.entries(
+						GE[annotation]
+					)) {
+						tissuesCount++;
+					}
+				});
+
+				//console.log("tissuesCount: ", tissuesCount);
+
+				let xPosByPixel = plotWidth / tissuesCount;
+				let yPosByPixel = plotHeight / (GE.max - GE.min);
+
+				tissuesCount = 0;
+
+				annotationsArr.map((annotation, annoIndex) => {
+					let dotColor = this.compareGroupColors[annoIndex];
+
+					for (const [tissue, pValue] of Object.entries(
+						GE[annotation]
+					)) {
+						let xPos =
+							this.plotMargin.leftMargin +
+							tissuesCount * xPosByPixel;
+						let yPos =
+							titleYPos +
+							this.plotMargin.topMargin +
+							plotHeight -
+							(pValue - GE.min) * yPosByPixel;
+
+						ctx.fillStyle = dotColor;
+						ctx.lineWidth = 0;
+						ctx.beginPath();
+						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+						ctx.fill();
+
+						tissuesCount += 1;
+					}
+				});
+
+				/*
+				ctx.fillStyle = DOT_COLOR;
+				ctx.lineWidth = 0;
+				ctx.beginPath();
+				ctx.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
+				ctx.fill();
+*/
 				pIndex++;
 			}
+		},
+		renderGEAxis(CTX, WIDTH, HEIGHT, YMAX, YMIN, YPOS, BUMP) {
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#000000";
+			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+			// render y axis
+			CTX.moveTo(
+				this.plotMargin.leftMargin - BUMP,
+				YPOS + this.plotMargin.topMargin
+			);
+			CTX.lineTo(
+				this.plotMargin.leftMargin - BUMP,
+				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
+			);
+
+			// Y ticks
+			let yStep = (YMAX - YMIN) / 5;
+			let yTickDistance = HEIGHT / 5;
+
+			for (let i = 0; i < 6; i++) {
+				let tickYPos =
+					YPOS + this.plotMargin.topMargin + i * yTickDistance;
+
+				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+
+				CTX.moveTo(this.plotMargin.leftMargin - BUMP * 2, adjTickYPos);
+				CTX.lineTo(this.plotMargin.leftMargin - BUMP, adjTickYPos);
+				CTX.stroke();
+
+				CTX.textAlign = "right";
+				CTX.font = "12px Arial";
+
+				CTX.fillText(
+					Formatters.floatFormatter(YMIN + i * yStep),
+					this.plotMargin.leftMargin - BUMP * 3,
+					YPOS +
+						this.plotMargin.topMargin +
+						HEIGHT +
+						BUMP -
+						i * yTickDistance
+				);
+			}
+
+			//Render y axis label
+			CTX.textAlign = "center";
+			CTX.rotate(-(Math.PI * 2) / 4);
+			CTX.fillText(
+				"-Log10(p-value)",
+				-(this.plotMargin.topMargin + HEIGHT / 2) - YPOS,
+				BUMP + 12
+			);
+
+			// render x axis
+			CTX.rotate((-(Math.PI * 2) / 4) * 3);
+			CTX.moveTo(
+				this.plotMargin.leftMargin - BUMP,
+				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
+			);
+			CTX.lineTo(
+				this.plotMargin.leftMargin + WIDTH,
+				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
+			);
+			CTX.stroke();
 		},
 		renderByAnnotations() {
 			var tempHeight = 0;
@@ -466,7 +598,7 @@ export default Vue.component("research-annotations-plot", {
 				let blockHeight = Object.keys(tissues).length * perTissue;
 				renderHeight += annotationTitleH;
 
-				this.renderAxis(
+				this.renderAnnoAxis(
 					ctx,
 					plotWidth,
 					blockHeight,
@@ -531,7 +663,7 @@ export default Vue.component("research-annotations-plot", {
 				renderHeight += btnAnnotations;
 			}
 		},
-		renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
+		renderAnnoAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#999999";
