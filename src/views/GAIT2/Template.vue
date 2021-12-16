@@ -150,6 +150,20 @@
                                             >Search Regions</b-button
                                         >
                                     </div>
+
+                                    <b-table
+                                        striped
+                                        hover
+                                        small
+                                        responsive="sm"
+                                        :items="
+                                            $parent.pageCovariances
+                                                ? $parent.pageCovariances
+                                                      .variants
+                                                : []
+                                        "
+                                    >
+                                    </b-table>
                                 </b-card-body>
                             </b-collapse>
                         </b-card>

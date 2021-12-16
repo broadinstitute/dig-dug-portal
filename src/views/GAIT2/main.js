@@ -207,7 +207,8 @@ new Vue({
                 }
             ],
             searchCriteria: [],
-            selectedVariants: []
+            selectedVariants: [],
+            pageCovariances: null
         };
     },
     created() {
@@ -314,35 +315,80 @@ new Vue({
                     ]
                 };
                 console.log("region: ", region);
-                let liftedRegion = await this.liftOver(region);
-                if (liftedRegion) {
-                    console.log("liftedRegion: ", liftedRegion.regions);
+                let liftedRegions = await this.liftOver(region);
+                if (liftedRegions) {
+                    console.log("liftedRegion: ", liftedRegions);
+                    let input = {
+                        chrom: "22",
+                        start: 44269672,
+                        stop: 44270672,
+                        summaryStatisticDataset: 1,
+                        genomeBuild: "GRCh38",
+                        maskDefinitions: [
+                            {
+                                id: 11,
+                                name: "My locus of interest",
+                                description:
+                                    "Example of specifying groups as regions",
+                                genome_build: "GRCh38",
+                                group_type: "REGION",
+                                identifier_type: "COORDINATES",
+                                groups: {
+                                    "enhancer-1": {
+                                        start: 44269672,
+                                        stop: 44270172
+                                    },
+                                    "enhancer-2": {
+                                        start: 44270172,
+                                        stop: 44270672
+                                    }
+                                }
+                            }
+                        ]
+                    };
+                    let covariances = await this.getCovariances(input);
+                    console.log("covariances: ", covariances.data);
+                    this.pageCovariances = covariances.data;
+                } else {
+                    console.log("no lifted region", liftedRegions);
                 }
             }
         },
 
         async liftOver(regions) {
-            let test = {
-                regions: [
-                    { chrom: "22", start: 44269672, stop: 44270672 },
-                    { chrom: "22", start: 44279672, stop: 44280672 }
-                ]
-            };
             const liftOverAPI = "https://bioindex.hugeamp.org/liftover";
             const response = await fetch(liftOverAPI, {
-                // method: "POST",
-                // // mode: "no-cors",
-                // headers: {
-                //     Accept: "application/json, text/plain, */*",
-                //     "Content-Type": "application/json"
-                // },
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(regions) // body data type must match "Content-Type" header
+            }).then(resp => {
+                if (resp.ok) {
+                    return resp.json();
+                } else {
+                    throw new Error("Request to Liftover server failed");
+                }
             });
-            return response.json(); // parses JSON response into native JavaScript objects
+            return response;
+        },
+
+        async getCovariances(regions) {
+            const covAPI = "http://35.232.6.190/aggregation/covariance";
+            const response = await fetch(covAPI, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(regions)
+            }).then(resp => {
+                if (resp.ok) {
+                    return resp.json();
+                } else {
+                    throw new Error("Request to LD server failed");
+                }
+            });
+            return response;
         },
         //end NC GAIT
         searchCovariances() {
