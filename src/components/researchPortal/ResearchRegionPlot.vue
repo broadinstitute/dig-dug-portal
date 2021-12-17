@@ -119,7 +119,11 @@
 				:id="'assoPlotsWrapper' + item"
 				class="col-md-9 asso-plots-wrapper"
 			>
-				<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
+				<h6
+					v-if="item != 'default'"
+					v-html="item"
+					:class="'text color-' + itemIndex"
+				></h6>
 				<canvas
 					:id="'asso_plot_' + item"
 					class="asso-plot"
@@ -140,7 +144,11 @@
 				class="col-md-3 ld-plots-wrapper"
 			>
 				<h6
-					v-html="item + ' <small>*Showing only with LD</small>'"
+					v-html="
+						item != 'default'
+							? item + ' <small>*Showing only with LD</small>'
+							: ' <small>*Showing only with LD</small>'
+					"
 					:class="'text color-' + itemIndex"
 				></h6>
 				<canvas

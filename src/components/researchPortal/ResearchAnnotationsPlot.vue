@@ -42,11 +42,28 @@
 									<option
 										v-for="(
 											tissueValue, tissueKey
-										) in selectedAnno"
+										) in tissuesData"
 										:key="tissueKey"
 										:value="tissueKey"
-										v-html="tissueKey"
-									></option>
+									>
+										<span
+											v-html="tissueKey + '&nbsp;'"
+										></span>
+										<span
+											v-for="(
+												annoValue, annoKey
+											) in tissueValue"
+											:key="annoKey"
+											:style="
+												'background-color:' +
+												compareGroupColors[
+													getColorIndex(annoKey)
+												] +
+												';'
+											"
+											v-html="'(' + annoKey[0] + ')'"
+										></span>
+									</option>
 								</select>
 							</div>
 						</div>
@@ -180,14 +197,14 @@ export default Vue.component("research-annotations-plot", {
 							for (const [key, value] of Object.entries(
 								this.GEPosData[y + v][x + h]
 							)) {
-								infoBoxContent += key + "<br />";
-
-								/*for (const [tKey, tValue] of Object.entries(
-									value
-								)) {
-									infoBoxContent +=
-										tKey + ": " + tValue + "<br />";
-								}*/
+								infoBoxContent +=
+									"<span style='color:" +
+									this.compareGroupColors[
+										value.annotationIndex
+									] +
+									"'>" +
+									key +
+									"</span><br />";
 							}
 						}
 					}
@@ -197,8 +214,15 @@ export default Vue.component("research-annotations-plot", {
 			if (infoBoxContent != "") {
 				infoBox.innerHTML = infoBoxContent;
 				infoBox.setAttribute("class", "");
-				infoBox.style.left = x + 15 + "px";
-				infoBox.style.top = y + this.spaceBy + "px";
+				if (x < rect.width * 0.75) {
+					infoBox.style.width = "auto";
+					infoBox.style.left = x + 15 + "px";
+					infoBox.style.top = y + this.spaceBy + "px";
+				} else {
+					infoBox.style.width = "200px";
+					infoBox.style.left = x - (200 + 15) + "px";
+					infoBox.style.top = y + this.spaceBy + "px";
+				}
 			} else {
 				infoBox.setAttribute("class", "hidden");
 			}
@@ -603,6 +627,10 @@ export default Vue.component("research-annotations-plot", {
 						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
 							tissue
 						]["fold"] = tValue.fold;
+
+						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
+							tissue
+						]["annotationIndex"] = annoIndex;
 
 						//tissuesCount++;
 						//firstTissueInAnno++;
