@@ -1,19 +1,29 @@
 <template>
 	<div class="mbm-plot-content row">
 		<div
-			id="annotationsPlotWrapper"
 			class="col-md-12 annotations-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
 			<div class="col-md-9 anno-plot-wrapper">
-				<div id="tissueInfoBox" class="hidden"></div>
-				<canvas
-					id="annotationsPlot"
-					@resize="onResize"
-					@mousemove="checkPosition($event, 'annotation')"
-					width=""
-					height=""
-				></canvas>
+				<div id="tissuesPlotWrapper">
+					<div id="selectedTissueInfoBox" class="hidden"></div>
+					<canvas
+						id="tissuesPlot"
+						@resize="onResize"
+						width="0"
+						height="0"
+					></canvas>
+				</div>
+				<div id="annotationsPlotWrapper">
+					<div id="tissueInfoBox" class="hidden"></div>
+					<canvas
+						id="annotationsPlot"
+						@resize="onResize"
+						@mousemove="checkPosition($event, 'annotation')"
+						width=""
+						height=""
+					></canvas>
+				</div>
 			</div>
 			<div class="col-md-3 anno-plot-ui-wrapper">
 				<h6>Add Tissue Track</h6>
@@ -37,7 +47,10 @@
 										v-html="annoKey"
 									></option>
 								</select>-->
-								<select class="custom-select">
+								<select
+									class="custom-select"
+									@change="addTissueTrack($event)"
+								>
 									<option>{{ "Select tissue" }}</option>
 									<option
 										v-for="(
@@ -124,7 +137,7 @@ export default Vue.component("research-annotations-plot", {
 			GEData: {},
 			GEPosData: {},
 			tissuesData: {},
-			selectedAnno: {},
+			selectedTissues: [],
 			annoPosData: {},
 			spaceBy: 7,
 		};
@@ -178,8 +191,145 @@ export default Vue.component("research-annotations-plot", {
 			this.renderByAnnotations();
 			this.renderGE();
 		},
-		updateTissuesList(event) {
-			this.selectedAnno = this.annoData[event.target.value];
+		addTissueTrack(event) {
+			this.selectedTissues.push(event.target.value);
+			this.renderTissuesTracks();
+		},
+		renderTissuesTracks() {
+			let canvas = document.querySelector("#tissuesPlot");
+			let wrapper = document.querySelector("#tissuesPlotWrapper");
+
+			var tempHeight = 0;
+			let tissueTitleH = this.spaceBy * 2;
+			let btwnTissues = this.spaceBy * 3;
+			let perAnnotation = this.spaceBy;
+			let topMargin = this.spaceBy;
+			let bottomMargin = this.spaceBy * 2;
+			let bump = 5.5;
+
+			let canvasWidth = wrapper.clientWidth; //30 <- left & right padding of wrapper
+			let canvasHeight =
+				this.plotMargin.topMargin + this.plotMargin.bottomMargin; //30 <- left & right padding of wrapper
+
+			let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
+			let xPerPixel =
+				plotWidth /
+				(this.searchingRegion.end - this.searchingRegion.start);
+
+			this.selectedTissues.map((t) => {
+				let numOfAnno = Object.keys(this.tissuesData[t]).length;
+				canvasHeight +=
+					tissueTitleH +
+					btwnTissues +
+					topMargin +
+					perAnnotation * numOfAnno;
+			});
+
+			canvas.setAttribute("width", canvasWidth);
+			canvas.setAttribute("height", canvasHeight);
+
+			let c, ctx;
+			c = canvas;
+			ctx = c.getContext("2d");
+			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+			let renderHeight = this.plotMargin.topMargin;
+
+			this.selectedTissues.map((t, tIndex) => {
+				ctx.font = "14px Arial";
+				ctx.textAlign = "left";
+				ctx.fillStyle = "#000000";
+				ctx.fillText(t, bump, renderHeight + this.spaceBy);
+
+				console.log(t, ": ", this.tissuesData[t]);
+
+				renderHeight += tissueTitleH;
+
+				ctx.strokeStyle = "#999999";
+
+				ctx.moveTo(this.plotMargin.leftMargin - bump, renderHeight);
+				ctx.lineTo(
+					this.plotMargin.leftMargin - bump,
+					renderHeight +
+						bump +
+						perAnnotation * Object.keys(this.tissuesData[t]).length
+				);
+				ctx.stroke();
+
+				ctx.moveTo(
+					this.plotMargin.leftMargin + plotWidth + bump,
+					renderHeight
+				);
+				ctx.lineTo(
+					this.plotMargin.leftMargin + plotWidth + bump,
+					renderHeight +
+						bump +
+						perAnnotation * Object.keys(this.tissuesData[t]).length
+				);
+				ctx.stroke();
+
+				ctx.moveTo(
+					this.plotMargin.leftMargin - bump,
+					renderHeight +
+						bump +
+						perAnnotation * Object.keys(this.tissuesData[t]).length
+				);
+				ctx.lineTo(
+					this.plotMargin.leftMargin + plotWidth + bump,
+					renderHeight +
+						bump +
+						perAnnotation * Object.keys(this.tissuesData[t]).length
+				);
+				ctx.stroke();
+
+				let aIndex = 0;
+				for (const [a, aValue] of Object.entries(this.tissuesData[t])) {
+					let region = aValue.region;
+
+					if (aIndex % 2 == 0) {
+						ctx.fillStyle = "#eeeeee";
+						ctx.fillRect(
+							this.plotMargin.leftMargin,
+							renderHeight,
+							plotWidth,
+							perAnnotation
+						);
+					}
+
+					aIndex++;
+
+					ctx.fillStyle = this.getColorIndex(a);
+
+					region.map((p) => {
+						let xPosStart =
+							(p.start - this.searchingRegion.start) * xPerPixel +
+							this.plotMargin.leftMargin;
+
+						xPosStart =
+							xPosStart <= this.plotMargin.leftMargin
+								? this.plotMargin.leftMargin
+								: xPosStart;
+						let xPosEnd =
+							(p.end - this.searchingRegion.start) * xPerPixel +
+							this.plotMargin.leftMargin;
+
+						xPosEnd =
+							xPosEnd > this.plotMargin.leftMargin + plotWidth
+								? this.plotMargin.leftMargin + plotWidth
+								: xPosEnd;
+
+						let xPosWidth = xPosEnd - xPosStart;
+						ctx.fillRect(
+							xPosStart,
+							renderHeight,
+							xPosWidth,
+							perAnnotation - 1
+						);
+					});
+					renderHeight += perAnnotation;
+				}
+				renderHeight += btwnTissues;
+			});
 		},
 		checkGEPosition(event) {
 			var e = event;
@@ -413,6 +563,7 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		renderGE() {
+			this.GEPosData = {};
 			let sortedGEData = {};
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
@@ -495,7 +646,7 @@ export default Vue.component("research-annotations-plot", {
 			//console.log("annoData", this.annoData);
 
 			let canvasWidth =
-				document.querySelector("#GEPlotWrapper").clientWidth; //30 <- left & right padding of wrapper
+				document.querySelector("#GEPlotWrapper").clientWidth;
 
 			let numOfPhenotypes = Object.keys(sortedGEData).length;
 			let plotHeight = 130;
@@ -747,7 +898,7 @@ export default Vue.component("research-annotations-plot", {
 		renderByAnnotations() {
 			var tempHeight = 0;
 			let annotationTitleH = this.spaceBy * 2;
-			let btnAnnotations = this.spaceBy * 7;
+			let btwnAnnotations = this.spaceBy * 7;
 			let perTissue = this.spaceBy;
 			let topMargin = this.spaceBy * 2;
 			let bottomMargin = this.spaceBy * 2;
@@ -755,13 +906,12 @@ export default Vue.component("research-annotations-plot", {
 			for (const [annotation, tissues] of Object.entries(this.annoData)) {
 				tempHeight += annotationTitleH;
 				tempHeight += Object.keys(tissues).length * perTissue;
-				tempHeight += btnAnnotations;
+				tempHeight += btwnAnnotations;
 			}
 
-			let canvasWidth =
-				document.querySelector("#annotationsPlotWrapper").clientWidth *
-					0.75 -
-				30; //30 <- left & right padding of wrapper
+			let canvasWidth = document.querySelector(
+				"#annotationsPlotWrapper"
+			).clientWidth;
 
 			let canvasHeight = tempHeight + topMargin + bottomMargin;
 
@@ -854,7 +1004,7 @@ export default Vue.component("research-annotations-plot", {
 
 					renderHeight += perTissue;
 				}
-				renderHeight += btnAnnotations;
+				renderHeight += btwnAnnotations;
 			}
 		},
 		renderAnnoAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
@@ -1068,11 +1218,14 @@ $(function () {});
 	margin-bottom: 3px;
 }
 
-#GEPlotWrapper {
+#GEPlotWrapper,
+#tissuesPlotWrapper,
+#annotationsPlotWrapper {
 	position: relative;
 }
 
 #tissueInfoBox,
+#selectedTissueInfoBox,
 #GEInfoBox {
 	position: absolute;
 	background-color: #fff;
