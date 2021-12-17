@@ -2,15 +2,37 @@
 	<div>
 		<div :id="pkgID"></div>
 		<div id="viewers_collection">
-			<kp-region-viewer
-				:id="pkgID + '_kpRegionViewer'"
-				:pkgID="pkgID"
-				:plotData="pkgConfig.kpRegionViewer.data"
-				:plotLayout="pkgConfig.plotLayout"
-				:renderConfig="pkgConfig.kpRegionViewer.viewerConfig"
-				:region="pkgConfig.kpRegionViewer.region"
-			></kp-region-viewer>
-			<div :id="pkgID + '_kpGenesTrack'">kpGenesTrack</div>
+			<research-region-plot
+				v-if="pkgConfig.viewers.includes('region_plot') == true"
+				:plotData="$store.state.filteredData"
+				:renderConfig="pkgConfig.regionViewer"
+				:dataComparisonConfig="dataComparisonConfig"
+				:region="$store.state.searchingRegion"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.moderate"
+			></research-region-plot>
+
+			<research-genes-track
+				v-if="
+					pkgConfig.viewers.includes('genes_plot') == true &&
+					$store.state.codingGenesData != null
+				"
+				:region="$store.state.searchingRegion"
+				:genesData="$store.state.codingGenesData"
+				:plotConfig="pkgConfig.regionViewer"
+				:plotType="'region_plot'"
+				:plotMargin="plotMargin"
+			></research-genes-track>
+
+			<research-annotations-plot
+				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
+				:region="$store.state.searchingRegion"
+				:phenotype="$store.state.searchingPhenotype"
+				:renderConfig="pkgConfig.annotationsViewer"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.bold"
+				:dataComparison="this.$store.state.dataComparison"
+			></research-annotations-plot>
 		</div>
 	</div>
 </template>
@@ -21,19 +43,25 @@ import uiUtils from "@/utils/uiUtils";
 
 import { BootstrapVueIcons } from "bootstrap-vue";
 
-import kpRegionViewer from "@/components/kpDataViewer/kpRegionViewer.vue";
+import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
+import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
+import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("kp-data-viewer-pkg", {
-	props: ["pkgConfig"],
+	props: ["pkgConfig", "dataComparisonConfig", "plotMargin", "colors"],
 	data() {
 		return {};
 	},
 	modules: {
 		uiUtils,
 	},
-	components: { kpRegionViewer },
+	components: {
+		ResearchRegionPlot,
+		ResearchGenesTrack,
+		ResearchAnnotationsPlot,
+	},
 	mounted: function () {
 		if (this.pkgConfig != null) {
 			//console.log("mounted", this.pkgConfig.viewers);
@@ -42,7 +70,7 @@ export default Vue.component("kp-data-viewer-pkg", {
 				let viewer = document.getElementById(
 					this.pkgConfig.pkgID + "_" + v
 				);
-				viewersWrapper.appendChild(viewer);
+				//viewersWrapper.appendChild(viewer);
 			});
 		}
 	},

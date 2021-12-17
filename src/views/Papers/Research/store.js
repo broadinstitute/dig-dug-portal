@@ -27,6 +27,7 @@ export default new Vuex.Store({
         filteredData: "",
         unfilteredData: "",
         searchingRegion: null,
+        searchingPhenotype: null,
         genesInRegion: null,
         codingGenesData: null,
         variantCorrelations: "",
@@ -46,6 +47,10 @@ export default new Vuex.Store({
         setSearchingRegion(state, data) {
 
             state.searchingRegion = data;
+        },
+        setSearchingPhenotype(state, data) {
+
+            state.searchingPhenotype = data;
         },
         setGenesInRegion(state, data) {
 
@@ -82,6 +87,9 @@ export default new Vuex.Store({
         },
         searchingRegion(context, region) {
             context.commit("setSearchingRegion", region);
+        },
+        searchingPhenotype(context, phenotype) {
+            context.commit("setSearchingPhenotype", phenotype);
         },
         codingGenesData(context, setCodingGenesData) {
             context.commit("setCodingGenesData", setCodingGenesData);
