@@ -173,7 +173,35 @@ export default Vue.component("research-annotations-plot", {
 			const infoBox = document.querySelector("#GEInfoBox");
 
 			var infoBoxContent = "";
-			for (let v = 0; v < 6; v++) {}
+			for (let v = -5; v <= 5; v++) {
+				for (let h = -5; h <= 5; h++) {
+					if (this.GEPosData[y + v] != undefined) {
+						if (this.GEPosData[y + v][x + h] != undefined) {
+							for (const [key, value] of Object.entries(
+								this.GEPosData[y + v][x + h]
+							)) {
+								infoBoxContent += key + "<br />";
+
+								/*for (const [tKey, tValue] of Object.entries(
+									value
+								)) {
+									infoBoxContent +=
+										tKey + ": " + tValue + "<br />";
+								}*/
+							}
+						}
+					}
+				}
+			}
+
+			if (infoBoxContent != "") {
+				infoBox.innerHTML = infoBoxContent;
+				infoBox.setAttribute("class", "");
+				infoBox.style.left = x + 15 + "px";
+				infoBox.style.top = y + this.spaceBy + "px";
+			} else {
+				infoBox.setAttribute("class", "hidden");
+			}
 		},
 		checkPosition(event, TYPE) {
 			var e = event;
@@ -362,6 +390,7 @@ export default Vue.component("research-annotations-plot", {
 		},
 		renderGE() {
 			let sortedGEData = {};
+
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
 					xMax: null,
@@ -369,13 +398,14 @@ export default Vue.component("research-annotations-plot", {
 					yMax: null,
 					yMin: null,
 				};
+
 				GE.map((g) => {
 					if (!!this.annoData[g.annotation][g.tissue]) {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
 						let pValue = -Math.log10(g.pValue);
-						let fold = Math.log(g.SNPs / g.expectedSNPs);
+						let fold = g.SNPs / g.expectedSNPs;
 
 						sortedGEData[phenotype].xMax =
 							sortedGEData[phenotype].xMax == null
@@ -436,8 +466,9 @@ export default Vue.component("research-annotations-plot", {
 					}
 				});
 			}
-			console.log("this.GEData", sortedGEData);
-			console.log("annoData", this.annoData);
+
+			//console.log("this.GEData", sortedGEData);
+			//console.log("annoData", this.annoData);
 
 			let canvasWidth =
 				document.querySelector("#GEPlotWrapper").clientWidth; //30 <- left & right padding of wrapper
@@ -492,25 +523,32 @@ export default Vue.component("research-annotations-plot", {
 				);
 
 				let annotationsArr = Object.keys(this.annoData);
-				let tissuesCount = 0;
+				//let tissuesCount = 0;
 
+				let pValArr = [];
 				annotationsArr.map((annotation) => {
 					for (const [tissue, tissueValue] of Object.entries(
 						GE[annotation]
 					)) {
-						tissuesCount++;
+						//tissuesCount++;
+						pValArr.push(tissueValue.pValue);
 					}
 				});
+
+				//console.log("pValArr1", pValArr);
+				pValArr.sort((a, b) => b - a);
+
+				//console.log("pValArr2", pValArr);
 
 				let xPosByPixel = plotWidth / (GE.xMax - GE.xMin);
 				let yPosByPixel = plotHeight / (GE.yMax - GE.yMin);
 
-				tissuesCount = 0;
+				//tissuesCount = 0;
 
 				annotationsArr.map((annotation, annoIndex) => {
 					let dotColor = this.compareGroupColors[annoIndex];
 
-					let firstTissueInAnno = 0;
+					//let firstTissueInAnno = 0;
 					for (const [tissue, tValue] of Object.entries(
 						GE[annotation]
 					)) {
@@ -530,7 +568,9 @@ export default Vue.component("research-annotations-plot", {
 						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
 						ctx.fill();
 
-						if (firstTissueInAnno == 0) {
+						//console.log(tValue.pValue, ":", pValArr[3]);
+
+						if (tValue.pValue >= pValArr[2]) {
 							ctx.font = "12px Arial";
 							ctx.fillStyle = "#000000";
 							if (xPos > canvasWidth * 0.75) {
@@ -564,15 +604,15 @@ export default Vue.component("research-annotations-plot", {
 							tissue
 						]["fold"] = tValue.fold;
 
-						tissuesCount++;
-						firstTissueInAnno++;
+						//tissuesCount++;
+						//firstTissueInAnno++;
 					}
 				});
 
 				pIndex++;
 			}
 
-			console.log("this.GEPosData", this.GEPosData);
+			//console.log("this.GEPosData", this.GEPosData);
 		},
 		renderGEAxis(CTX, WIDTH, HEIGHT, XMAX, XMIN, YMAX, YMIN, YPOS, BUMP) {
 			CTX.beginPath();
@@ -671,7 +711,7 @@ export default Vue.component("research-annotations-plot", {
 			//Render x axis label
 			CTX.textAlign = "center";
 			CTX.fillText(
-				"Log10(fold)",
+				"Fold",
 				this.plotMargin.leftMargin + WIDTH / 2,
 				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
 			);
@@ -998,6 +1038,10 @@ $(function () {});
 	border-radius: 5px;
 	float: left;
 	margin-bottom: 3px;
+}
+
+#GEPlotWrapper {
+	position: relative;
 }
 
 #tissueInfoBox,

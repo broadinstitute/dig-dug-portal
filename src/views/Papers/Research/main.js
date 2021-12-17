@@ -664,7 +664,7 @@ new Vue({
             return true;
         },
         plotMargin() {
-            return { leftMargin: 75, rightMargin: 10, topMargin: 10, bottomMargin: 50 }
+            return { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50 }
         },
         pageDescription() {
             let contents = this.researchPage;
