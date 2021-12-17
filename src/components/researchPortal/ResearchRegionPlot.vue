@@ -224,17 +224,25 @@ export default Vue.component("research-region-plot", {
 			//used rebuild
 			if (this.plotData != null) {
 				var plotsKeys = [];
-				var field = this.dataComparisonConfig.fieldsToCompare[0];
-				// get list of data groups
-				for (const [pKey, pValue] of Object.entries(this.plotData)) {
-					for (const [key, value] of Object.entries(pValue[field])) {
-						plotsKeys.push(key);
+				if (this.dataComparisonConfig != null) {
+					var field = this.dataComparisonConfig.fieldsToCompare[0];
+					// get list of data groups
+					for (const [pKey, pValue] of Object.entries(
+						this.plotData
+					)) {
+						for (const [key, value] of Object.entries(
+							pValue[field]
+						)) {
+							plotsKeys.push(key);
+						}
 					}
-				}
-				plotsKeys = [...new Set(plotsKeys)];
+					plotsKeys = [...new Set(plotsKeys)];
 
-				if (plotsKeys.length > 1) {
-					plotsKeys.push("Combined");
+					if (plotsKeys.length > 1) {
+						plotsKeys.push("Combined");
+					}
+				} else if (this.dataComparisonConfig == null) {
+					plotsKeys.push("default");
 				}
 
 				this.assoData = {}; // reset assoData
@@ -244,14 +252,14 @@ export default Vue.component("research-region-plot", {
 				this.ldPos = {};
 
 				//feed assoData + set initial reference variant
-				var yXField = this.renderConfig.yAxisField;
+				var yAxField = this.renderConfig.yAxisField;
 				var populationsType =
 					this.renderConfig.ldServer.populations_type;
 
 				plotsKeys.map((group) => {
 					this.assoData[group] = {
-						yXHigh: null,
-						yXLow: null,
+						yAxHigh: null,
+						yAxLow: null,
 						data: {},
 					};
 					this.ldData[group] = {
@@ -259,68 +267,159 @@ export default Vue.component("research-region-plot", {
 						population: [],
 						data: null,
 					};
+
 					if (group != "Combined") {
 						this.assoPos[group] = {};
 						this.ldPos[group] = {};
 					}
 
-					for (const [dKey, dValue] of Object.entries(
-						this.plotData
-					)) {
-						if (group != "Combined") {
-							let yXValue = dValue[yXField][group];
-							if (!!yXValue) {
+					if (group != "default") {
+						for (const [dKey, dValue] of Object.entries(
+							this.plotData
+						)) {
+							if (group != "Combined") {
+								let yAxValue = dValue[yAxField][group];
+
+								if (!!yAxValue) {
+									// set population for calling LD API
+
+									if (populationsType == "fixed") {
+										this.ldData[group].population =
+											this.renderConfig.ldServer.fixed_population;
+									} else if (populationsType == "dynamic") {
+										let population =
+											dValue[
+												this.renderConfig.ldServer
+													.populations_field
+											][group];
+
+										this.ldData[group].population.push(
+											population
+										);
+									}
+
+									// set initial refVarint
+									this.ldData[group].refVariant =
+										this.assoData[group].yAxHigh == null
+											? dKey
+											: yAxValue >
+											  this.assoData[group].yAxHigh
+											? dKey
+											: this.ldData[group].refVariant;
+
+									// set high / low values of the group
+									this.assoData[group].yAxHigh =
+										this.assoData[group].yAxHigh == null
+											? yAxValue
+											: yAxValue >
+											  this.assoData[group].yAxHigh
+											? yAxValue
+											: this.assoData[group].yAxHigh;
+
+									this.assoData[group].yAxLow =
+										this.assoData[group].yAxLow == null
+											? yAxValue
+											: yAxValue <
+											  this.assoData[group].yAxLow
+											? yAxValue
+											: this.assoData[group].yAxLow;
+									// add data to asso data
+									this.assoData[group].data[dKey] = {};
+
+									for (const [fKey, fValue] of Object.entries(
+										dValue
+									)) {
+										if (this.dataComparisonConfig != null) {
+											this.assoData[group].data[dKey][
+												fKey
+											] =
+												this.dataComparisonConfig.fieldsToCompare.includes(
+													fKey
+												) == true
+													? fValue[group]
+													: fValue;
+										} else if (
+											this.dataComparisonConfig == null
+										) {
+											this.assoData[group].data[dKey][
+												fKey
+											] = fValue;
+										}
+									}
+								}
+							}
+						}
+					} else if (group == "default") {
+						this.plotData.map((dValue) => {
+							let yAxValue = dValue[yAxField];
+
+							if (!!yAxValue) {
 								// set population for calling LD API
 
 								if (populationsType == "fixed") {
 									this.ldData[group].population =
 										this.renderConfig.ldServer.fixed_population;
 								} else if (populationsType == "dynamic") {
-									this.ldData[group].population.push(
+									let population =
 										dValue[
 											this.renderConfig.ldServer
 												.populations_field
-										][group]
+										];
+
+									this.ldData[group].population.push(
+										population
 									);
 								}
 
+								let dKey = dValue[this.renderConfig.renderBy];
+
 								// set initial refVarint
+
 								this.ldData[group].refVariant =
-									this.assoData[group].yXHigh == null
+									this.assoData[group].yAxHigh == null
 										? dKey
-										: yXValue > this.assoData[group].yXHigh
+										: yAxValue >
+										  this.assoData[group].yAxHigh
 										? dKey
 										: this.ldData[group].refVariant;
 
 								// set high / low values of the group
-								this.assoData[group].yXHigh =
-									this.assoData[group].yXHigh == null
-										? yXValue
-										: yXValue > this.assoData[group].yXHigh
-										? yXValue
-										: this.assoData[group].yXHigh;
+								this.assoData[group].yAxHigh =
+									this.assoData[group].yAxHigh == null
+										? yAxValue
+										: yAxValue >
+										  this.assoData[group].yAxHigh
+										? yAxValue
+										: this.assoData[group].yAxHigh;
 
-								this.assoData[group].yXLow =
-									this.assoData[group].yXLow == null
-										? yXValue
-										: yXValue < this.assoData[group].yXLow
-										? yXValue
-										: this.assoData[group].yXLow;
+								this.assoData[group].yAxLow =
+									this.assoData[group].yAxLow == null
+										? yAxValue
+										: yAxValue < this.assoData[group].yAxLow
+										? yAxValue
+										: this.assoData[group].yAxLow;
 								// add data to asso data
 								this.assoData[group].data[dKey] = {};
 
 								for (const [fKey, fValue] of Object.entries(
 									dValue
 								)) {
-									this.assoData[group].data[dKey][fKey] =
-										this.dataComparisonConfig.fieldsToCompare.includes(
-											fKey
-										) == true
-											? fValue[group]
-											: fValue;
+									if (this.dataComparisonConfig != null) {
+										this.assoData[group].data[dKey][fKey] =
+											this.dataComparisonConfig.fieldsToCompare.includes(
+												fKey
+											) == true
+												? fValue[group]
+												: fValue;
+									} else if (
+										this.dataComparisonConfig == null
+									) {
+										this.assoData[group].data[dKey][fKey] =
+											fValue;
+									}
 								}
 							}
-						}
+						});
 					}
 
 					// set LD population
@@ -335,24 +434,26 @@ export default Vue.component("research-region-plot", {
 							  ];
 				});
 
+				console.log("this.ldData", this.ldData);
+
 				if (plotsKeys.includes("Combined") == true) {
 					plotsKeys.map((p) => {
-						let yXHighValue = this.assoData[p].yXHigh;
-						let yXLowValue = this.assoData[p].yXLow;
+						let yAxHighValue = this.assoData[p].yAxHigh;
+						let yAxLowValue = this.assoData[p].yAxLow;
 
-						this.assoData.Combined.yXHigh =
-							this.assoData.Combined.yXHigh == null
-								? yXHighValue
-								: yXHighValue > this.assoData.Combined.yXHigh
-								? yXHighValue
-								: this.assoData.Combined.yXHigh;
+						this.assoData.Combined.yAxHigh =
+							this.assoData.Combined.yAxHigh == null
+								? yAxHighValue
+								: yAxHighValue > this.assoData.Combined.yAxHigh
+								? yAxHighValue
+								: this.assoData.Combined.yAxHigh;
 
-						this.assoData.Combined.yXLow =
-							this.assoData.Combined.yXLow == null
-								? yXLowValue
-								: yXLowValue < this.assoData.Combined.yXLow
-								? yXLowValue
-								: this.assoData.Combined.yXLow;
+						this.assoData.Combined.yAxLow =
+							this.assoData.Combined.yAxLow == null
+								? yAxLowValue
+								: yAxLowValue < this.assoData.Combined.yAxLow
+								? yAxLowValue
+								: this.assoData.Combined.yAxLow;
 					});
 				}
 
@@ -627,8 +728,8 @@ export default Vue.component("research-region-plot", {
 					ctx,
 					assoPlotWidth,
 					plotHeight,
-					this.assoData[p].yXHigh,
-					this.assoData[p].yXLow,
+					this.assoData[p].yAxHigh,
+					this.assoData[p].yAxLow,
 					this.searchingRegion.end,
 					this.searchingRegion.start,
 					bump,
@@ -647,8 +748,8 @@ export default Vue.component("research-region-plot", {
 					ctx,
 					assoPlotWidth,
 					plotHeight,
-					this.assoData[p].yXHigh,
-					this.assoData[p].yXLow,
+					this.assoData[p].yAxHigh,
+					this.assoData[p].yAxLow,
 					this.searchingRegion.end,
 					this.searchingRegion.start,
 					bump,
@@ -668,8 +769,8 @@ export default Vue.component("research-region-plot", {
 					ctx,
 					ldPlotWidth,
 					plotHeight,
-					this.assoData[p].yXHigh,
-					this.assoData[p].yXLow,
+					this.assoData[p].yAxHigh,
+					this.assoData[p].yAxLow,
 					1,
 					0,
 					bump,
@@ -680,8 +781,8 @@ export default Vue.component("research-region-plot", {
 					ctx,
 					ldPlotWidth,
 					plotHeight,
-					this.assoData[p].yXHigh,
-					this.assoData[p].yXLow,
+					this.assoData[p].yAxHigh,
+					this.assoData[p].yAxLow,
 					1,
 					0,
 					bump,
