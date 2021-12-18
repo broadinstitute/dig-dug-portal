@@ -51,7 +51,9 @@
 									class="custom-select"
 									@change="addTissueTrack($event)"
 								>
-									<option>{{ "Select tissue" }}</option>
+									<option value="">
+										{{ "Select tissue" }}
+									</option>
 									<option
 										v-for="(
 											tissueValue, tissueKey
@@ -190,10 +192,13 @@ export default Vue.component("research-annotations-plot", {
 		onResize(e) {
 			this.renderByAnnotations();
 			this.renderGE();
+			this.renderTissuesTracks();
 		},
 		addTissueTrack(event) {
-			this.selectedTissues.push(event.target.value);
-			this.renderTissuesTracks();
+			if (event.target.value != "") {
+				this.selectedTissues.push(event.target.value);
+				this.renderTissuesTracks();
+			}
 		},
 		renderTissuesTracks() {
 			let canvas = document.querySelector("#tissuesPlot");
@@ -207,9 +212,8 @@ export default Vue.component("research-annotations-plot", {
 			let bottomMargin = this.spaceBy * 2;
 			let bump = 5.5;
 
-			let canvasWidth = wrapper.clientWidth; //30 <- left & right padding of wrapper
-			let canvasHeight =
-				this.plotMargin.topMargin + this.plotMargin.bottomMargin; //30 <- left & right padding of wrapper
+			let canvasWidth = wrapper.clientWidth;
+			let canvasHeight = this.plotMargin.topMargin;
 
 			let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
 			let xPerPixel =
@@ -281,6 +285,54 @@ export default Vue.component("research-annotations-plot", {
 						perAnnotation * Object.keys(this.tissuesData[t]).length
 				);
 				ctx.stroke();
+				if (tIndex + 1 == this.selectedTissues.length) {
+					let xStep =
+						(this.searchingRegion.end -
+							this.searchingRegion.start) /
+						5;
+					let xTickDistance = plotWidth / 5;
+
+					for (let i = 0; i < 6; i++) {
+						let tickXPos =
+							this.plotMargin.leftMargin + i * xTickDistance;
+
+						let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+
+						ctx.moveTo(
+							adjTickXPos,
+							renderHeight +
+								bump +
+								perAnnotation *
+									Object.keys(this.tissuesData[t]).length
+						);
+						ctx.lineTo(
+							adjTickXPos,
+							renderHeight +
+								bump * 2 +
+								perAnnotation *
+									Object.keys(this.tissuesData[t]).length
+						);
+						ctx.stroke();
+
+						ctx.textAlign = "center";
+						ctx.font = "12px Arial";
+						ctx.fillStyle = "#999999";
+
+						let positionLabel =
+							i < 5
+								? Number(this.searchingRegion.start) + i * xStep
+								: Number(this.searchingRegion.end);
+
+						ctx.fillText(
+							Math.floor(positionLabel),
+							adjTickXPos,
+							renderHeight +
+								bump * 4 +
+								perAnnotation *
+									Object.keys(this.tissuesData[t]).length
+						);
+					}
+				}
 
 				let aIndex = 0;
 				for (const [a, aValue] of Object.entries(this.tissuesData[t])) {
@@ -495,6 +547,10 @@ export default Vue.component("research-annotations-plot", {
 						}
 					});
 				}
+
+				this.tissuesData = Object.fromEntries(
+					Object.entries(this.tissuesData).sort()
+				);
 
 				//this.renderByTissues();
 				this.renderByAnnotations();
