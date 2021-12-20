@@ -85,7 +85,7 @@ export default Vue.component("research-genes-track", {
 				this.plotMargin.bottomMargin +
 				eachGeneTrackHeight * genesArray.length;
 
-			let bump = 5.5;
+			let bump = this.plotMargin.bump;
 
 			let plotWidth =
 				this.plotType == "region_plot"

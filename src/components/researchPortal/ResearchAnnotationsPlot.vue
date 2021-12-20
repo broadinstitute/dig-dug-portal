@@ -169,20 +169,13 @@ export default Vue.component("research-annotations-plot", {
 			return returnObj;
 		},
 		searchingPhenotype() {
-			//console.log("search Called from phenotype");
-			let returnObj = {};
-			let regionArr = this.region.split(":");
-			returnObj["chr"] = regionArr[0];
-			returnObj["start"] = regionArr[1].split("-")[0];
-			returnObj["end"] = regionArr[1].split("-")[1];
-
-			this.getAnnotations(returnObj);
-
 			if (this.phenotype != null) {
+				this.getAnnotations(this.searchingRegion);
 				return this.phenotype;
 			} else if (this.phenotype == null) {
-				if (!!keyParams["phenotype"]) {
-					return keyParams["phenotype"];
+				if (!!keyParams[this.renderConfig.phenotypeParameter]) {
+					this.getAnnotations(this.searchingRegion);
+					return keyParams[this.renderConfig.phenotypeParameter];
 				} else {
 					return null;
 				}
@@ -218,7 +211,7 @@ export default Vue.component("research-annotations-plot", {
 			let perAnnotation = this.spaceBy;
 			let topMargin = this.spaceBy;
 			let bottomMargin = this.spaceBy * 2;
-			let bump = 5.5;
+			let bump = this.plotMargin.bump;
 
 			let canvasWidth = wrapper.clientWidth;
 			let canvasHeight = this.plotMargin.topMargin;
@@ -253,7 +246,7 @@ export default Vue.component("research-annotations-plot", {
 				ctx.fillStyle = "#000000";
 				ctx.fillText(t, bump, renderHeight + this.spaceBy);
 
-				console.log(t, ": ", this.tissuesData[t]);
+				//console.log(t, ": ", this.tissuesData[t]);
 
 				/// Render delete track icon
 				ctx.beginPath();
@@ -451,7 +444,7 @@ export default Vue.component("research-annotations-plot", {
 				}
 				renderHeight += btwnTissues;
 			});
-			console.log("this.tissuesPosData", this.tissuesPosData);
+			//console.log("this.tissuesPosData", this.tissuesPosData);
 		},
 		removeTissueTrack(event) {
 			var e = event;
@@ -647,7 +640,7 @@ export default Vue.component("research-annotations-plot", {
 
 			let phenotype = this.searchingPhenotype;
 
-			console.log("phenotype", phenotype);
+			//console.log("phenotype", phenotype);
 
 			var GEURL = annoServer + "/query/global-enrichment?q=" + phenotype;
 
@@ -711,7 +704,6 @@ export default Vue.component("research-annotations-plot", {
 					Object.entries(this.tissuesData).sort()
 				);
 
-				//this.renderByTissues();
 				this.renderByAnnotations();
 				this.renderGE();
 			}
@@ -1267,140 +1259,6 @@ export default Vue.component("research-annotations-plot", {
 					adjTickXPos,
 					yPos + HEIGHT + bump * 4
 				);
-			}
-		},
-		renderByTissues() {
-			var sortedTissues = Object.keys(this.tissuesData)
-				.sort()
-				.reduce((a, c) => ((a[c] = this.tissuesData[c]), a), {});
-
-			var tempHeight = 0;
-			let fontSize = 14;
-			let perAnnotation = 14;
-			let spaceBtnTissue = 10;
-
-			for (const [tissue, annotations] of Object.entries(sortedTissues)) {
-				tempHeight += fontSize;
-				tempHeight += Object.keys(annotations).length * perAnnotation;
-				tempHeight += spaceBtnTissue;
-			}
-
-			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
-			let canvasWidth =
-				document.querySelector("#annotationsPlotWrapper").clientWidth *
-					0.75 -
-				30; //30 <- left & right padding of wrapper
-
-			let canvasHeight =
-				tempHeight +
-				this.plotMargin.topMargin +
-				this.plotMargin.bottomMargin;
-
-			let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
-			let plotHeight = tempHeight;
-			let bump = 5.5;
-
-			let perPixel =
-				plotWidth /
-				(this.searchingRegion.end - this.searchingRegion.start);
-
-			let c, ctx;
-			c = document.querySelector("#annotationsPlot");
-			c.setAttribute("width", canvasWidth);
-			c.setAttribute("height", canvasHeight);
-			ctx = c.getContext("2d");
-
-			let renderHeight = fontSize;
-
-			// render by tissues
-			for (const [tissue, annotations] of Object.entries(sortedTissues)) {
-				ctx.font = fontSize + "px Arial";
-				ctx.textAlign = "left";
-				ctx.fillStyle = "#000000";
-				ctx.fillText(tissue, bump, renderHeight);
-				renderHeight += fontSize;
-				for (const [annoKey, position] of Object.entries(annotations)) {
-					//console.log("position", position);
-					ctx.font = fontSize - 2 + "px Arial";
-					ctx.textAlign = "left";
-					ctx.fillStyle = "#000000";
-					ctx.fillText(
-						annoKey,
-						this.plotMargin.leftMargin + plotWidth + bump * 2,
-						renderHeight
-					);
-
-					ctx.fillStyle = this.getColorIndex(annoKey);
-
-					position.region.map((p) => {
-						///
-						ctx.strokeStyle = "#aaaaaa";
-						ctx.moveTo(
-							this.plotMargin.leftMargin - bump,
-							renderHeight - fontSize * 0.75
-						);
-						ctx.lineTo(
-							this.plotMargin.leftMargin - bump,
-							renderHeight - fontSize * 0.75 + perAnnotation
-						);
-						//ctx.stroke();
-
-						ctx.moveTo(
-							Math.round(
-								this.plotMargin.leftMargin + plotWidth + bump
-							) + 0.5,
-							renderHeight - fontSize * 0.75
-						);
-						ctx.lineTo(
-							Math.round(
-								this.plotMargin.leftMargin + plotWidth + bump
-							) + 0.5,
-							renderHeight - fontSize * 0.75 + perAnnotation
-						);
-						ctx.stroke();
-
-						ctx.strokeStyle = "#eaeaea";
-						ctx.moveTo(
-							this.plotMargin.leftMargin - bump,
-							Math.round(renderHeight + fontSize * 0.25) - 0.5
-						);
-						ctx.lineTo(
-							Math.round(
-								this.plotMargin.leftMargin + plotWidth + bump
-							) + 0.5,
-							Math.round(renderHeight + fontSize * 0.25) - 0.5
-						);
-						ctx.stroke();
-						///
-						let xPosStart =
-							(p.start - this.searchingRegion.start) * perPixel +
-							this.plotMargin.leftMargin;
-
-						xPosStart =
-							xPosStart <= this.plotMargin.leftMargin
-								? this.plotMargin.leftMargin
-								: xPosStart;
-						let xPosEnd =
-							(p.end - this.searchingRegion.start) * perPixel +
-							this.plotMargin.leftMargin;
-
-						xPosEnd =
-							xPosEnd > this.plotMargin.leftMargin + plotWidth
-								? this.plotMargin.leftMargin + plotWidth
-								: xPosEnd;
-
-						let xPosWidth = xPosEnd - xPosStart;
-
-						ctx.fillRect(
-							xPosStart,
-							renderHeight - fontSize * 0.75,
-							xPosWidth,
-							perAnnotation
-						);
-					});
-					renderHeight += perAnnotation;
-				}
-				renderHeight += spaceBtnTissue;
 			}
 		},
 	},

@@ -442,7 +442,7 @@ export default Vue.component("research-region-plot", {
 							  ];
 				});
 
-				console.log("this.ldData", this.ldData);
+				//console.log("this.ldData", this.ldData);
 
 				if (plotsKeys.includes("Combined") == true) {
 					plotsKeys.map((p) => {
@@ -719,7 +719,7 @@ export default Vue.component("research-region-plot", {
 				? this.renderConfig.height
 				: 300;
 
-			let bump = 5.5;
+			let bump = this.plotMargin.bump;
 
 			this.plotsList.map((p) => {
 				// first asso plot

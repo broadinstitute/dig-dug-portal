@@ -664,7 +664,7 @@ new Vue({
             return true;
         },
         plotMargin() {
-            return { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50 }
+            return { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50, bump: 5.5 }
         },
         pageDescription() {
             let contents = this.researchPage;
@@ -1006,7 +1006,7 @@ new Vue({
 
                 let allData = this.checkDataComparison(content, this.$store.state.filteredData);
 
-                console.log("All data 2", Object.keys(allData).length);
+                //console.log("All data 2", Object.keys(allData).length);
 
                 if (this.dataTableFormat == null) {
 

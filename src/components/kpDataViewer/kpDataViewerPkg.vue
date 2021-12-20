@@ -23,6 +23,14 @@
 				:plotType="'region_plot'"
 				:plotMargin="plotMargin"
 			></research-genes-track>
+			<research-credible-sets-plot
+				v-if="pkgConfig.viewers.includes('credible_sets_plot') == true"
+				:region="$store.state.searchingRegion"
+				:phenotype="$store.state.searchingPhenotype"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.bold"
+				:renderConfig="pkgConfig.credibleSetsViewer"
+			></research-credible-sets-plot>
 
 			<research-annotations-plot
 				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
@@ -46,6 +54,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
+import ResearchCredibleSets from "@/components/researchPortal/ResearchCredibleSets.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -61,6 +70,7 @@ export default Vue.component("kp-data-viewer-pkg", {
 		ResearchRegionPlot,
 		ResearchGenesTrack,
 		ResearchAnnotationsPlot,
+		ResearchCredibleSets,
 	},
 	mounted: function () {
 		if (this.pkgConfig != null) {
