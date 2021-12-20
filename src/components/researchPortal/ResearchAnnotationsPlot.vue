@@ -10,6 +10,8 @@
 					<canvas
 						id="tissuesPlot"
 						@resize="onResize"
+						@mousemove="checkTissuesPosition($event)"
+						@click="removeTissueTrack($event)"
 						width="0"
 						height="0"
 					></canvas>
@@ -19,7 +21,7 @@
 					<canvas
 						id="annotationsPlot"
 						@resize="onResize"
-						@mousemove="checkPosition($event, 'annotation')"
+						@mousemove="checkPosition($event)"
 						width=""
 						height=""
 					></canvas>
@@ -85,7 +87,7 @@
 					</div>
 				</div>
 				<h6>Global Enrichment</h6>
-				<div id="GEPlotWrapper">
+				<div id="GEPlotWrapper" v-if="searchingPhenotype != null">
 					<!--<span
 						v-for="(annoValue, annoKey, annoIndex) in annoData"
 						class="anno-bubble"
@@ -97,13 +99,8 @@
 						"
 						:key="annoKey"
 					></span>-->
-					<div
-						v-if="searchingPhenotype != null"
-						id="GEInfoBox"
-						class="hidden"
-					></div>
+					<div id="GEInfoBox" class="hidden"></div>
 					<canvas
-						v-if="searchingPhenotype != null"
 						id="GEPlot"
 						width=""
 						height=""
@@ -121,6 +118,7 @@ import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
+import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -139,6 +137,7 @@ export default Vue.component("research-annotations-plot", {
 			GEData: {},
 			GEPosData: {},
 			tissuesData: {},
+			tissuesPosData: {},
 			selectedTissues: [],
 			annoPosData: {},
 			spaceBy: 7,
@@ -147,6 +146,7 @@ export default Vue.component("research-annotations-plot", {
 	modules: {
 		uiUtils,
 		Formatters,
+		keyParams,
 	},
 	components: {},
 	mounted: function () {
@@ -178,7 +178,15 @@ export default Vue.component("research-annotations-plot", {
 
 			this.getAnnotations(returnObj);
 
-			return this.phenotype;
+			if (this.phenotype != null) {
+				return this.phenotype;
+			} else if (this.phenotype == null) {
+				if (!!keyParams["phenotype"]) {
+					return keyParams["phenotype"];
+				} else {
+					return null;
+				}
+			}
 		},
 		testReferencing() {
 			if (this.searchingRegion != null) {
@@ -247,7 +255,51 @@ export default Vue.component("research-annotations-plot", {
 
 				console.log(t, ": ", this.tissuesData[t]);
 
+				/// Render delete track icon
+				ctx.beginPath();
+				ctx.fillStyle = "#666666";
+				ctx.lineWidth = 0;
+				ctx.arc(
+					this.plotMargin.leftMargin + plotWidth + bump * 3,
+					renderHeight + bump * 2,
+					7,
+					0,
+					2 * Math.PI
+				);
+				ctx.fill();
+
+				ctx.font = "bold 12px Arial";
+				ctx.textAlign = "center";
+				ctx.fillStyle = "#ffffff";
+				ctx.fillText(
+					eval('"\\u' + "2715" + '"'),
+					this.plotMargin.leftMargin + plotWidth + bump * 3,
+					renderHeight + bump * 2 + 3.5
+				);
+
+				//feed close button position
+				let yPosBtwn = Math.ceil(
+					(renderHeight + bump * 2) / this.spaceBy
+				);
+				let xPos = this.plotMargin.leftMargin + plotWidth + bump * 3;
+				let xPosStart = xPos - 3.5,
+					xPosEnd = xPos + 3.5;
+				let xPosBtwn = xPosStart + "_" + xPosEnd;
+
+				this.tissuesPosData[yPosBtwn] = {
+					tissue: t,
+					annotation: "close",
+					regions: {},
+				};
+
+				this.tissuesPosData[yPosBtwn].regions[xPosBtwn] =
+					"Remove track";
+
+				///
+
 				renderHeight += tissueTitleH;
+
+				ctx.beginPath();
 
 				ctx.strokeStyle = "#999999";
 
@@ -352,6 +404,15 @@ export default Vue.component("research-annotations-plot", {
 
 					ctx.fillStyle = this.getColorIndex(a);
 
+					//feed close button position
+					let yPosBtwn = Math.ceil(renderHeight / this.spaceBy);
+
+					this.tissuesPosData[yPosBtwn] = {
+						tissue: t,
+						annotation: a,
+						regions: {},
+					};
+
 					region.map((p) => {
 						let xPosStart =
 							(p.start - this.searchingRegion.start) * xPerPixel +
@@ -377,11 +438,107 @@ export default Vue.component("research-annotations-plot", {
 							xPosWidth,
 							perAnnotation - 1
 						);
+
+						let xPosBtwn =
+							xPosStart + "_" + (xPosStart + xPosWidth);
+						this.tissuesPosData[yPosBtwn].regions[xPosBtwn] = {
+							start: p.start,
+							end: p.end,
+						};
 					});
+
 					renderHeight += perAnnotation;
 				}
 				renderHeight += btwnTissues;
 			});
+			console.log("this.tissuesPosData", this.tissuesPosData);
+		},
+		removeTissueTrack(event) {
+			var e = event;
+			var rect = e.target.getBoundingClientRect();
+			var x = Math.floor(e.clientX - rect.left);
+			var rawX = e.clientX - rect.left;
+			var y = Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy);
+
+			if (!!this.tissuesPosData[y]) {
+				for (const [region, regionValue] of Object.entries(
+					this.tissuesPosData[y].regions
+				)) {
+					let hPosition = region.split("_");
+					let start = hPosition[0];
+					let end = hPosition[1];
+					if (x >= start && x <= end) {
+						let tissue = this.tissuesPosData[y].tissue;
+						const tIndex = this.selectedTissues.indexOf(tissue);
+						if (tIndex > -1) {
+							this.selectedTissues.splice(tIndex, 1);
+							this.renderTissuesTracks();
+						}
+					}
+				}
+			}
+		},
+		checkTissuesPosition(event) {
+			var e = event;
+			var rect = e.target.getBoundingClientRect();
+			var x = Math.floor(e.clientX - rect.left);
+			var rawX = e.clientX - rect.left;
+			var y = Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy);
+
+			let rawY = e.clientY - rect.top;
+
+			const infoBox = document.querySelector("#selectedTissueInfoBox");
+			let infoContent = "";
+
+			if (
+				x >= this.plotMargin.leftMargin &&
+				x <= rect.width - this.plotMargin.leftMargin
+			) {
+				if (!!this.tissuesPosData[y]) {
+					infoContent =
+						this.tissuesPosData[y].annotation == "close"
+							? ""
+							: this.tissuesPosData[y].annotation;
+
+					for (const [region, regionValue] of Object.entries(
+						this.tissuesPosData[y].regions
+					)) {
+						let hPosition = region.split("_");
+						let start = hPosition[0];
+						let end = hPosition[1];
+						if (x >= start && x <= end) {
+							infoContent +=
+								"<br />" +
+								regionValue.start +
+								"-" +
+								regionValue.end;
+						}
+					}
+				}
+			} else {
+				if (!!this.tissuesPosData[y]) {
+					for (const [region, regionValue] of Object.entries(
+						this.tissuesPosData[y].regions
+					)) {
+						let hPosition = region.split("_");
+						let start = hPosition[0];
+						let end = hPosition[1];
+						if (x >= start && x <= end) {
+							infoContent += regionValue;
+						}
+					}
+				}
+			}
+
+			if (infoContent != "") {
+				infoBox.innerHTML = infoContent;
+				infoBox.setAttribute("class", "");
+				infoBox.style.left = rawX + 15 + "px";
+				infoBox.style.top = rawY + this.spaceBy + "px";
+			} else {
+				infoBox.innerHTML = "";
+				infoBox.setAttribute("class", "hidden");
+			}
 		},
 		checkGEPosition(event) {
 			var e = event;
@@ -489,6 +646,8 @@ export default Vue.component("research-annotations-plot", {
 					: this.renderConfig.annotationsServer;
 
 			let phenotype = this.searchingPhenotype;
+
+			console.log("phenotype", phenotype);
 
 			var GEURL = annoServer + "/query/global-enrichment?q=" + phenotype;
 
