@@ -1269,6 +1269,11 @@ div.filtering-ui-wrapper {
     position: relative;
 }
 
+div.filtering-ui-wrapper.add-content {
+    background-color: #ddefff;
+    border: 1px solid #bbdfff;
+}
+
 div.filtering-ui-wrapper .filter-by-label {
     font-size: 14px;
     font-weight: 600;

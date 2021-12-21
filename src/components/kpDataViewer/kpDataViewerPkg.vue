@@ -30,6 +30,7 @@
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
 				:renderConfig="pkgConfig.credibleSetsViewer"
+				:dataComparison="this.$store.state.dataComparison"
 			></research-credible-sets-plot>
 
 			<research-annotations-plot

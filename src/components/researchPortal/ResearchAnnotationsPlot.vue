@@ -30,25 +30,9 @@
 			<div class="col-md-3 anno-plot-ui-wrapper">
 				<h6>Add Tissue Track</h6>
 				<div id="annotationsUIWrapper">
-					<div class="filtering-ui-wrapper">
+					<div class="filtering-ui-wrapper add-content">
 						<div class="filtering-ui-content">
 							<div class="col">
-								<!--<select
-									class="custom-select"
-									@change="updateTissuesList($event)"
-								>
-									<option>{{ "Select annotation" }}</option>
-									<option
-										:value="'all'"
-										v-html="'All annotations'"
-									></option>
-									<option
-										v-for="(annoValue, annoKey) in annoData"
-										:key="annoKey"
-										:value="annoKey"
-										v-html="annoKey"
-									></option>
-								</select>-->
 								<select
 									class="custom-select"
 									@change="addTissueTrack($event)"
@@ -86,9 +70,8 @@
 						</div>
 					</div>
 				</div>
-				<h6>Global Enrichment</h6>
-				<div id="GEPlotWrapper" v-if="searchingPhenotype != null">
-					<!--<span
+				<div style="padding-bottom: 40px !important">
+					<span
 						v-for="(annoValue, annoKey, annoIndex) in annoData"
 						class="anno-bubble"
 						v-html="annoKey"
@@ -98,7 +81,10 @@
 							';'
 						"
 						:key="annoKey"
-					></span>-->
+					></span>
+				</div>
+				<h6>Global Enrichment</h6>
+				<div id="GEPlotWrapper" v-if="searchingPhenotype != null">
 					<div id="GEInfoBox" class="hidden"></div>
 					<canvas
 						id="GEPlot"
@@ -244,7 +230,11 @@ export default Vue.component("research-annotations-plot", {
 				ctx.font = "14px Arial";
 				ctx.textAlign = "left";
 				ctx.fillStyle = "#000000";
-				ctx.fillText(t, bump, renderHeight + this.spaceBy);
+				ctx.fillText(
+					t + " (Rendered in GE score order)",
+					bump,
+					renderHeight + this.spaceBy
+				);
 
 				//console.log(t, ": ", this.tissuesData[t]);
 
