@@ -90,17 +90,7 @@
                                             "
                                             >Please select a gene.</b-alert
                                         >
-
-                                        <b-alert
-                                            show
-                                            v-else-if="
-                                                $parent.selectedMasks.length ==
-                                                0
-                                            "
-                                            >Please select one or more
-                                            masks.</b-alert
-                                        ></transition
-                                    >
+                                    </transition>
                                     <criterion-list-group
                                         v-model="$parent.searchCriteria"
                                         :header="'Search Criteria'"
@@ -115,28 +105,6 @@
                                             "
                                         >
                                             <div class="label">Gene</div>
-                                        </filter-enumeration-control>
-
-                                        <b-col class="divider"></b-col>
-
-                                        <filter-enumeration-control
-                                            ref="mask"
-                                            :field="'mask'"
-                                            :multiple="true"
-                                            :disableSort="true"
-                                            placeholder="Select one or more masks ..."
-                                            :options="
-                                                $parent.masks.map(
-                                                    (v) => v.value
-                                                )
-                                            "
-                                            :labelFormatter="
-                                                (v) =>
-                                                    $parent.masks.find(
-                                                        (o) => o.value === v
-                                                    ).text
-                                            "
-                                            ><div class="label">Masks</div>
                                         </filter-enumeration-control>
                                     </criterion-list-group>
 
@@ -156,6 +124,8 @@
                                         hover
                                         small
                                         responsive="sm"
+                                        :per-page="$parent.perPage"
+                                        :current-page="$parent.currentPage"
                                         :items="
                                             $parent.pageCovariances
                                                 ? $parent.pageCovariances
@@ -164,6 +134,26 @@
                                         "
                                     >
                                     </b-table>
+                                    <b-pagination
+                                        v-show="
+                                            $parent.pageCovariances
+                                                ? $parent.pageCovariances
+                                                      .variants.length > 0
+                                                : false
+                                        "
+                                        class="
+                                            pagination-sm
+                                            justify-content-center
+                                        "
+                                        v-model="$parent.currentPage"
+                                        :total-rows="
+                                            $parent.pageCovariances
+                                                ? $parent.pageCovariances
+                                                      .variants.length
+                                                : 0
+                                        "
+                                        :per-page="$parent.perPage"
+                                    ></b-pagination>
                                 </b-card-body>
                             </b-collapse>
                         </b-card>
