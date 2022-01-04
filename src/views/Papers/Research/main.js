@@ -27,7 +27,7 @@ import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.v
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
-import kpDataViewerPkg from "@/components/kpDataViewer/kpDataViewerPkg.vue";
+import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import uiUtils from "@/utils/uiUtils";
 import $ from "jquery";
 import keyParams from "@/utils/keyParams";
@@ -54,7 +54,7 @@ new Vue({
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,
-        kpDataViewerPkg,
+        kpGEMPkg,
         Documentation
     },
     data() {
@@ -694,7 +694,17 @@ new Vue({
             if (contents === null || contents[0]["field_data_visualizer"] == false) {
                 return null;
             }
+            console.log("plotType", contents[0]["field_data_visualizer"])
             return contents[0]["field_data_visualizer"];
+        },
+        customPlotType() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_custom_visualizer"] == false) {
+                return null;
+            }
+            console.log("customPlotType", contents[0]["field_custom_visualizer"])
+            return contents[0]["field_custom_visualizer"];
         },
         plotConfig() {
             let contents = this.researchPage;

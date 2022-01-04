@@ -59,7 +59,7 @@ import ResearchCredibleSets from "@/components/researchPortal/ResearchCredibleSe
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("kp-data-viewer-pkg", {
+export default Vue.component("kp-gem-pkg", {
 	props: ["pkgConfig", "dataComparisonConfig", "plotMargin", "colors"],
 	data() {
 		return {};

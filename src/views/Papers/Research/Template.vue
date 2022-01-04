@@ -227,7 +227,7 @@
 							<research-genes-track
 								v-if="
 									$parent.plotConfig != null &&
-									$parent.plotType != 'gem_pkg' &&
+									$parent.plotType != 'custom_pkg' &&
 									!!$parent.plotConfig.genesTrack &&
 									$store.state.codingGenesData != null
 								"
@@ -249,15 +249,18 @@
 								:renderConfig="$parent.plotConfig"
 							></research-heatmap>
 
-							<kp-data-viewer-pkg
-								v-if="$parent.plotType == 'gem_pkg'"
+							<kp-gem-pkg
+								v-if="
+									$parent.plotType == 'custom_pkg' &&
+									$parent.customPlotType == 'gem package'
+								"
 								:pkgConfig="$parent.plotConfig"
 								:plotMargin="$parent.plotMargin"
 								:dataComparisonConfig="
 									$parent.dataComparisonConfig
 								"
 								:colors="$parent.colors"
-							></kp-data-viewer-pkg>
+							></kp-gem-pkg>
 						</div>
 						<div
 							class="col-md-12"

@@ -15,7 +15,17 @@
 					"
 					width=""
 					height=""
+					@mousemove="checkCSPosition($event)"
 				></canvas>
+				<div
+					id="CSInitialMessage"
+					class="hidden"
+					v-html="
+						credibleSets.length == 0
+							? 'There is no available credible sets.'
+							: 'Please select a credible set to render.'
+					"
+				></div>
 			</div>
 			<div class="col-md-3" id="CSUIWrapper">
 				<h6>Add Credible Sets Track</h6>
@@ -54,11 +64,18 @@
 						</div>
 					</div>
 				</div>
-				<div style="padding-bottom: 40px !important">
+
+				<div>
 					<template v-for="c in credibleSets">
 						<span
-							class="CS-bubble"
-							v-html="c.credibleSetId + ', ' + c.phenotype"
+							:id="getBubbleId(c.credibleSetId, c.phenotype)"
+							class="CS-bubble hidden"
+							v-html="
+								c.credibleSetId +
+								', ' +
+								c.phenotype +
+								' &#10006;'
+							"
 							:style="
 								'background-color:' +
 								getColorIndex(
@@ -67,6 +84,7 @@
 								';'
 							"
 							:key="c.credibleSetId + ', ' + c.phenotype"
+							@click="removeCSData(c.credibleSetId, c.phenotype)"
 						></span>
 					</template>
 				</div>
@@ -95,7 +113,7 @@ export default Vue.component("research-credible-sets-plot", {
 		"dataComparison",
 	],
 	data() {
-		return { credibleSets: [], CSData: {}, spaceBy: 7 };
+		return { credibleSets: [], CSData: {}, CSPosData: {}, spaceBy: 7 };
 	},
 	modules: {
 		uiUtils,
@@ -105,6 +123,7 @@ export default Vue.component("research-credible-sets-plot", {
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
+		this.renderCSPlot();
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -151,7 +170,9 @@ export default Vue.component("research-credible-sets-plot", {
 	watch: {},
 	methods: {
 		...uiUtils,
-		onResize(e) {},
+		onResize(e) {
+			this.renderCSPlot();
+		},
 		getColorIndex(CS) {
 			let CSArry = this.credibleSets.map(
 				(c) => c.credibleSetId + ", " + c.phenotype
@@ -160,8 +181,91 @@ export default Vue.component("research-credible-sets-plot", {
 			let i = CSArry.indexOf(CS);
 			return this.compareGroupColors[i];
 		},
+		getBubbleId(CSID, PTYPE) {
+			var idString = CSID + PTYPE;
+			idString = idString.replace(/[^a-zA-Z0-9 ]/g, "");
+
+			return idString;
+		},
+		removeCSData(CSID, PTYPE) {
+			var idString = CSID + PTYPE;
+			idString = idString.replace(/[^a-zA-Z0-9 ]/g, "");
+
+			let bubble = document.getElementById(idString);
+
+			bubble.classList.add("hidden");
+
+			delete this.CSData[PTYPE][CSID];
+
+			if (Object.keys(this.CSData[PTYPE]).length == 0) {
+				delete this.CSData[PTYPE];
+			}
+
+			this.renderCSPlot();
+		},
+
+		checkCSPosition(event) {
+			var e = event;
+			var rect = e.target.getBoundingClientRect();
+			var x = Math.floor(e.clientX - rect.left);
+			var y = Math.floor(e.clientY - rect.top);
+
+			const infoBox = document.querySelector("#CSInfoBox");
+
+			var infoBoxContent = "";
+			for (let v = -5; v <= 5; v++) {
+				for (let h = -5; h <= 5; h++) {
+					if (this.CSPosData[y + v] != undefined) {
+						if (this.CSPosData[y + v][x + h] != undefined) {
+							for (const [key, value] of Object.entries(
+								this.CSPosData[y + v][x + h]
+							)) {
+								infoBoxContent +=
+									"<strong>" + key + "</strong><br />";
+								this.renderConfig.hoverContent.map((h) => {
+									infoBoxContent +=
+										"<span>" +
+										h +
+										": <span>" +
+										value[h] +
+										"<br />";
+								});
+							}
+						}
+					}
+				}
+			}
+
+			if (infoBoxContent != "") {
+				infoBox.innerHTML = infoBoxContent;
+				infoBox.setAttribute("class", "");
+				if (x < rect.width * 0.75) {
+					infoBox.style.width = "auto";
+					infoBox.style.left = x + 15 + "px";
+					infoBox.style.top = y + this.spaceBy + "px";
+				} else {
+					infoBox.style.width = "200px";
+					infoBox.style.left = x - (200 + 15) + "px";
+					infoBox.style.top = y + this.spaceBy + "px";
+				}
+			} else {
+				infoBox.setAttribute("class", "hidden");
+			}
+		},
 		renderCSPlot() {
 			console.log("this.CSData", this.CSData);
+
+			this.CSPosData = {};
+
+			if (Object.keys(this.CSData).length == 0) {
+				document
+					.getElementById("CSInitialMessage")
+					.classList.remove("hidden");
+			} else {
+				document
+					.getElementById("CSInitialMessage")
+					.classList.add("hidden");
+			}
 			let canvas = document.querySelector("#CSPlot");
 			let wrapper = document.querySelector("#CSPlotWrapper");
 
@@ -197,67 +301,94 @@ export default Vue.component("research-credible-sets-plot", {
 			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
 			let renderHeight = this.plotMargin.topMargin;
-
-			for (const [phenotype, credibleSets] of Object.entries(
-				this.CSData
-			)) {
-				ctx.font = "14px Arial";
-				ctx.textAlign = "left";
-				ctx.fillStyle = "#000000";
-				ctx.fillText(phenotype, bump, renderHeight + this.spaceBy);
-
-				renderHeight += phenotypeTitleH;
-
-				this.renderAxis(
-					ctx,
-					plotWidth,
-					plotHeight,
-					this.searchingRegion.end,
-					this.searchingRegion.start,
-					renderHeight,
-					bump
-				);
-
-				for (const [CSID, credibleSet] of Object.entries(
-					credibleSets
+			if (Object.keys(this.CSData).length > 0) {
+				for (const [phenotype, credibleSets] of Object.entries(
+					this.CSData
 				)) {
-					let inRegion = 0;
-					credibleSet.map((v) => {
-						if (
-							v.position >= this.searchingRegion.start &&
-							v.position <= this.searchingRegion.end
-						) {
-							let xPos =
-								(v.position - this.searchingRegion.start) *
-									xPerPixel +
-								this.plotMargin.leftMargin;
-							let yPos =
-								renderHeight +
-								plotHeight -
-								v.posteriorProbability * yPerPixel;
-							let colorID = v.credibleSetId + ", " + v.phenotype;
-							let dotColor = this.getColorIndex(colorID);
+					ctx.font = "14px Arial";
+					ctx.textAlign = "left";
+					ctx.fillStyle = "#000000";
+					ctx.fillText(phenotype, bump, renderHeight + this.spaceBy);
 
-							this.renderDot(ctx, xPos, yPos, dotColor);
+					renderHeight += phenotypeTitleH;
 
-							inRegion++;
+					this.renderAxis(
+						ctx,
+						plotWidth,
+						plotHeight,
+						this.searchingRegion.end,
+						this.searchingRegion.start,
+						renderHeight,
+						bump
+					);
+
+					for (const [CSID, credibleSet] of Object.entries(
+						credibleSets
+					)) {
+						let inRegion = 0;
+						credibleSet.map((v) => {
+							if (
+								v.position >= this.searchingRegion.start &&
+								v.position <= this.searchingRegion.end
+							) {
+								let xPos =
+									(v[this.renderConfig.xAxisField] -
+										this.searchingRegion.start) *
+										xPerPixel +
+									this.plotMargin.leftMargin;
+								let yPos =
+									renderHeight +
+									plotHeight -
+									v[[this.renderConfig.yAxisField]] *
+										yPerPixel;
+								let colorID =
+									v.credibleSetId + ", " + v.phenotype;
+								let dotColor = this.getColorIndex(colorID);
+
+								this.renderDot(ctx, xPos, yPos, dotColor);
+
+								if (!this.CSPosData[Math.round(yPos)]) {
+									this.CSPosData[Math.round(yPos)] = {};
+								}
+								if (
+									!this.CSPosData[Math.round(yPos)][
+										Math.round(xPos)
+									]
+								) {
+									this.CSPosData[Math.round(yPos)][
+										Math.round(xPos)
+									] = {};
+								}
+
+								let tempObj = {};
+
+								this.renderConfig.hoverContent.map((c) => {
+									tempObj[c] = v[c];
+								});
+
+								this.CSPosData[Math.round(yPos)][
+									Math.round(xPos)
+								][v[this.renderConfig.renderBy]] = tempObj;
+
+								inRegion++;
+							}
+						});
+
+						if (inRegion == 0) {
+							ctx.font = "14px Arial";
+							ctx.textAlign = "center";
+							ctx.fillStyle = "#000000";
+							ctx.fillText(
+								"No credible variant in the region for " +
+									phenotype,
+								this.plotMargin.leftMargin + plotWidth / 2,
+								renderHeight + plotHeight / 2
+							);
 						}
-					});
-
-					if (inRegion == 0) {
-						ctx.font = "14px Arial";
-						ctx.textAlign = "center";
-						ctx.fillStyle = "#000000";
-						ctx.fillText(
-							"No credible variant in the region for " +
-								phenotype,
-							this.plotMargin.leftMargin + plotWidth / 2,
-							renderHeight + plotHeight / 2
-						);
 					}
-				}
 
-				renderHeight += perPhenotype + btwnPhenotype;
+					renderHeight += perPhenotype + btwnPhenotype;
+				}
 			}
 		},
 		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
@@ -354,33 +485,43 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 		async getCS(event) {
 			console.log("value", event.target.value);
-			let valueArr = event.target.value.split(",");
+			if (event.target.value != "") {
+				let valueArr = event.target.value.split(",");
 
-			let CSID = valueArr[0];
-			let phenotype = valueArr[1];
+				let CSID = valueArr[0];
+				let phenotype = valueArr[1];
 
-			let CSServer =
-				this.renderConfig.credibleSetsServer == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
-					: this.renderConfig.credibleSetsServer;
+				let CSServer =
+					this.renderConfig.credibleSetsServer == "KP BioIndex"
+						? "https://bioindex.hugeamp.org/api/bio"
+						: this.renderConfig.credibleSetsServer;
 
-			var CSURL =
-				CSServer +
-				"/query/credible-variants?q=" +
-				phenotype +
-				"," +
-				CSID;
+				var CSURL =
+					CSServer +
+					"/query/credible-variants?q=" +
+					phenotype +
+					"," +
+					CSID;
 
-			var CSJson = await fetch(CSURL).then((resp) => resp.json());
+				var CSJson = await fetch(CSURL).then((resp) => resp.json());
 
-			if (CSJson.error == null) {
-				if (!this.CSData[phenotype]) {
-					this.CSData[phenotype] = {};
+				if (CSJson.error == null) {
+					if (!this.CSData[phenotype]) {
+						this.CSData[phenotype] = {};
+					}
+
+					this.CSData[phenotype][CSID] = CSJson.data;
+
+					let bubbleId = event.target.value.replace(
+						/[^a-zA-Z0-9 ]/g,
+						""
+					);
+					let bubble = document.getElementById(bubbleId);
+
+					bubble.classList.remove("hidden");
+
+					this.renderCSPlot();
 				}
-
-				this.CSData[phenotype][CSID] = CSJson.data;
-
-				this.renderCSPlot();
 			}
 		},
 		async getCredibleSetsList(REGION, PHENOTYPE) {
@@ -438,7 +579,6 @@ $(function () {});
 }
 
 .CS-bubble {
-	display: block;
 	font-size: 12px;
 	margin-left: 3px;
 	margin-right: 3px;
@@ -446,6 +586,30 @@ $(function () {});
 	border-radius: 5px;
 	float: left;
 	margin-bottom: 3px;
+}
+
+.CS-bubble:hover {
+	cursor: pointer;
+}
+
+#CSInitialMessage {
+	width: 300px;
+	border: solid 1px #ddd;
+	color: #666;
+	margin: 0 auto;
+	border-radius: 25px;
+	text-align: center;
+	font-size: 13px;
+}
+
+#CSInfoBox {
+	position: absolute;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	padding: 5px 15px;
+	z-index: 11;
+	font-size: 14px;
 }
 </style>
 
