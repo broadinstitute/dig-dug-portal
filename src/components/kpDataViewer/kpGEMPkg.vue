@@ -11,7 +11,6 @@
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.moderate"
 			></research-region-plot>
-
 			<research-genes-track
 				v-if="
 					pkgConfig.viewers.includes('genes_plot') == true &&
@@ -31,8 +30,8 @@
 				:compareGroupColors="colors.bold"
 				:renderConfig="pkgConfig.credibleSetsViewer"
 				:dataComparison="this.$store.state.dataComparison"
+				:pkgData="pkgData"
 			></research-credible-sets-plot>
-
 			<research-annotations-plot
 				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
 				:region="$store.state.searchingRegion"
@@ -41,6 +40,7 @@
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
 				:dataComparison="this.$store.state.dataComparison"
+				:pkgData="pkgData"
 			></research-annotations-plot>
 		</div>
 	</div>
@@ -60,7 +60,13 @@ import ResearchCredibleSets from "@/components/researchPortal/ResearchCredibleSe
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("kp-gem-pkg", {
-	props: ["pkgConfig", "dataComparisonConfig", "plotMargin", "colors"],
+	props: [
+		"pkgConfig",
+		"dataComparisonConfig",
+		"plotMargin",
+		"colors",
+		"pkgData",
+	],
 	data() {
 		return {};
 	},

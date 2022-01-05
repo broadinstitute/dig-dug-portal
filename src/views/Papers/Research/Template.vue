@@ -255,6 +255,7 @@
 									$parent.customPlotType == 'gem package'
 								"
 								:pkgConfig="$parent.plotConfig"
+								:pkgData="$store.state.pkgData"
 								:plotMargin="$parent.plotMargin"
 								:dataComparisonConfig="
 									$parent.dataComparisonConfig

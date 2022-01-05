@@ -111,6 +111,7 @@ export default Vue.component("research-credible-sets-plot", {
 		"compareGroupColors",
 		"plotMargin",
 		"dataComparison",
+		"pkgData",
 	],
 	data() {
 		return { credibleSets: [], CSData: {}, CSPosData: {}, spaceBy: 7 };
@@ -201,6 +202,14 @@ export default Vue.component("research-credible-sets-plot", {
 				delete this.CSData[PTYPE];
 			}
 
+			if (this.pkgData != null) {
+				delete this.pkgData.CSData[PTYPE][CSID];
+
+				if (Object.keys(this.pkgData.CSData[PTYPE]).length == 0) {
+					delete this.pkgData.CSData[PTYPE];
+				}
+			}
+
 			this.renderCSPlot();
 		},
 
@@ -230,6 +239,51 @@ export default Vue.component("research-credible-sets-plot", {
 										value[h] +
 										"<br />";
 								});
+
+								/// add annotations per selected tissues
+								if (
+									this.pkgData != null &&
+									!!this.pkgData.selectedTissues &&
+									this.pkgData.selectedTissues.length > 0
+								) {
+									this.pkgData.selectedTissues.map((t) => {
+										let isTissue = 0;
+										let annoContent = "";
+										for (const [
+											annoKey,
+											annoValue,
+										] of Object.entries(
+											this.pkgData.tissuesData[t]
+										)) {
+											annoValue.region.map((r) => {
+												if (
+													value.position >= r.start &&
+													value.position <= r.end
+												) {
+													isTissue = 1;
+													annoContent +=
+														annoKey + ", ";
+												}
+											});
+										}
+
+										if (isTissue == 1) {
+											annoContent = annoContent.substring(
+												0,
+												annoContent.length - 2
+											);
+											annoContent =
+												"<span><strong>" +
+												t +
+												":</strong> " +
+												annoContent +
+												"</span><br />";
+
+											infoBoxContent += annoContent;
+										}
+									});
+								}
+								infoBoxContent += "<br />";
 							}
 						}
 					}
@@ -253,8 +307,6 @@ export default Vue.component("research-credible-sets-plot", {
 			}
 		},
 		renderCSPlot() {
-			console.log("this.CSData", this.CSData);
-
 			this.CSPosData = {};
 
 			if (Object.keys(this.CSData).length == 0) {
@@ -362,6 +414,10 @@ export default Vue.component("research-credible-sets-plot", {
 
 								let tempObj = {};
 
+								tempObj["phenotype"] = phenotype;
+								tempObj["position"] =
+									v[this.renderConfig.xAxisField];
+
 								this.renderConfig.hoverContent.map((c) => {
 									tempObj[c] = v[c];
 								});
@@ -390,6 +446,7 @@ export default Vue.component("research-credible-sets-plot", {
 					renderHeight += perPhenotype + btwnPhenotype;
 				}
 			}
+			console.log("this.CSPosData", this.CSPosData);
 		},
 		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
 			CTX.fillStyle = DOT_COLOR;
@@ -512,6 +569,16 @@ export default Vue.component("research-credible-sets-plot", {
 
 					this.CSData[phenotype][CSID] = CSJson.data;
 
+					if (this.pkgData != null) {
+						if (!this.pkgData.CSData[phenotype]) {
+							this.pkgData.CSData[phenotype] = {};
+						}
+
+						this.pkgData.CSData[phenotype][CSID] = CSJson.data;
+					}
+
+					console.log("this.pkgData", this.pkgData);
+
 					let bubbleId = event.target.value.replace(
 						/[^a-zA-Z0-9 ]/g,
 						""
@@ -549,14 +616,15 @@ export default Vue.component("research-credible-sets-plot", {
 				if (this.dataComparison == "newSearch") {
 					this.credibleSets = [];
 					this.CSData = {};
+					if (this.pkgData != null && !this.pkgData.CSData) {
+						this.pkgData["CSData"] = {};
+					}
 				}
 
 				CSJson.data.map((CS) => {
 					this.credibleSets.push(CS);
 				});
 			}
-
-			//console.log("this.credibleSets", this.credibleSets);
 		},
 	},
 });

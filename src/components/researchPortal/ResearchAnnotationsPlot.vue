@@ -116,6 +116,7 @@ export default Vue.component("research-annotations-plot", {
 		"plotMargin",
 		"compareGroupColors",
 		"dataComparison",
+		"pkgData",
 	],
 	data() {
 		return {
@@ -143,7 +144,6 @@ export default Vue.component("research-annotations-plot", {
 	},
 	computed: {
 		searchingRegion() {
-			//console.log("search Called from region");
 			let returnObj = {};
 			let regionArr = this.region.split(":");
 			returnObj["chr"] = regionArr[0];
@@ -184,6 +184,11 @@ export default Vue.component("research-annotations-plot", {
 		addTissueTrack(event) {
 			if (event.target.value != "") {
 				this.selectedTissues.push(event.target.value);
+
+				if (this.pkgData != null) {
+					this.pkgData["selectedTissues"] = this.selectedTissues;
+					console.log("this.pkgData", this.pkgData);
+				}
 				this.renderTissuesTracks();
 			}
 		},
@@ -235,8 +240,6 @@ export default Vue.component("research-annotations-plot", {
 					bump,
 					renderHeight + this.spaceBy
 				);
-
-				//console.log(t, ": ", this.tissuesData[t]);
 
 				/// Render delete track icon
 				ctx.beginPath();
@@ -434,7 +437,6 @@ export default Vue.component("research-annotations-plot", {
 				}
 				renderHeight += btwnTissues;
 			});
-			//console.log("this.tissuesPosData", this.tissuesPosData);
 		},
 		removeTissueTrack(event) {
 			var e = event;
@@ -587,7 +589,6 @@ export default Vue.component("research-annotations-plot", {
 
 				let rawY = e.clientY - rect.top;
 
-				//console.log("y", y, "raw y", Math.floor(e.clientY - rect.top));
 				if (!!this.annoPosData[y]) {
 					let infoContent = this.annoPosData[y].tissue;
 					for (const [region, regionValue] of Object.entries(
@@ -629,8 +630,6 @@ export default Vue.component("research-annotations-plot", {
 					: this.renderConfig.annotationsServer;
 
 			let phenotype = this.searchingPhenotype;
-
-			//console.log("phenotype", phenotype);
 
 			var GEURL = annoServer + "/query/global-enrichment?q=" + phenotype;
 
@@ -694,6 +693,14 @@ export default Vue.component("research-annotations-plot", {
 					Object.entries(this.tissuesData).sort()
 				);
 
+				if (this.pkgData != null) {
+					this.pkgData["GEData"] = this.GEData;
+					this.pkgData["annoData"] = this.annoData;
+					this.pkgData["tissuesData"] = this.tissuesData;
+				}
+
+				console.log("this.pkgData", this.pkgData);
+
 				this.renderByAnnotations();
 				this.renderGE();
 			}
@@ -755,6 +762,14 @@ export default Vue.component("research-annotations-plot", {
 						}
 						this.tissuesData[a.tissue][a.annotation].region.push(a);
 					});
+
+					if (this.pkgData != null) {
+						this.pkgData["annoData"] = this.annoData;
+						this.pkgData["tissuesData"] = this.tissuesData;
+					}
+
+					//console.log("this.pkgData 1", this.pkgData);
+
 					this.getGlobalEnrichment();
 				}
 			}
@@ -839,9 +854,6 @@ export default Vue.component("research-annotations-plot", {
 				});
 			}
 
-			//console.log("this.GEData", sortedGEData);
-			//console.log("annoData", this.annoData);
-
 			let canvasWidth =
 				document.querySelector("#GEPlotWrapper").clientWidth;
 
@@ -907,15 +919,10 @@ export default Vue.component("research-annotations-plot", {
 					}
 				});
 
-				//console.log("pValArr1", pValArr);
 				pValArr.sort((a, b) => b - a);
-
-				//console.log("pValArr2", pValArr);
 
 				let xPosByPixel = plotWidth / (GE.xMax - GE.xMin);
 				let yPosByPixel = plotHeight / (GE.yMax - GE.yMin);
-
-				//tissuesCount = 0;
 
 				annotationsArr.map((annotation, annoIndex) => {
 					let dotColor = this.compareGroupColors[annoIndex];
@@ -939,8 +946,6 @@ export default Vue.component("research-annotations-plot", {
 						ctx.beginPath();
 						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
 						ctx.fill();
-
-						//console.log(tValue.pValue, ":", pValArr[3]);
 
 						if (tValue.pValue >= pValArr[2]) {
 							ctx.font = "12px Arial";
@@ -987,8 +992,6 @@ export default Vue.component("research-annotations-plot", {
 
 				pIndex++;
 			}
-
-			//console.log("this.GEPosData", this.GEPosData);
 		},
 		renderGEAxis(CTX, WIDTH, HEIGHT, XMAX, XMIN, YMAX, YMIN, YPOS, BUMP) {
 			CTX.beginPath();

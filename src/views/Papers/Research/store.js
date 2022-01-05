@@ -35,6 +35,7 @@ export default new Vuex.Store({
         searchParameters: null,
         dataComparison: "newSearch",
         initialSearch: 1,
+        pkgData: {},
     },
     mutations: {
         setFilteredData(state, data) {
@@ -73,6 +74,9 @@ export default new Vuex.Store({
         setDataComparison(state, data) {
             state.dataComparison = data;
         },
+        setPkgData(state, data) {
+            state.pkgData = data;
+        },
     },
     getters: {},
     actions: {
@@ -105,6 +109,9 @@ export default new Vuex.Store({
         },
         dataComparison(context, dataComparison) {
             context.commit("setDataComparison", dataComparison);
+        },
+        pkgData(context, pkgData) {
+            context.commit("setPkgData", pkgData);
         },
     }
 });
