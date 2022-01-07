@@ -78,42 +78,44 @@
 				>
 					Show/hide Individual plots
 				</button>
-				<span
-					class="plot-legend-dot"
-					style="background-color: #82409970"
-				></span>
-				<span>Reference variant</span>
-				<span
-					class="plot-legend-dot"
-					style="background-color: #d0363360"
-				></span
-				><span>1 > r2 >= 0.8</span>
-				<span
-					class="plot-legend-dot"
-					style="background-color: #ee982d50"
-				></span
-				><span>0.8 > r2 >= 0.6</span>
-				<span
-					class="plot-legend-dot"
-					style="background-color: #4db05240"
-				></span
-				><span>0.6 > r2 >= 0.4</span>
-				<span
-					class="plot-legend-dot"
-					style="background-color: #32afd530"
-				></span
-				><span>0.4 > r2 >= 0.2</span>
-				<span
-					class="plot-legend-dot"
-					style="background-color: #2074b620"
-				></span
-				><span>0.2 > r2 > 0</span>
+				<div v-if="item != 'Combined'">
+					<span
+						class="plot-legend-dot"
+						style="background-color: #82409970"
+					></span>
+					<span>Reference variant</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #d0363360"
+					></span
+					><span>1 > r2 >= 0.8</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #ee982d50"
+					></span
+					><span>0.8 > r2 >= 0.6</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #4db05240"
+					></span
+					><span>0.6 > r2 >= 0.4</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #32afd530"
+					></span
+					><span>0.4 > r2 >= 0.2</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #2074b620"
+					></span
+					><span>0.2 > r2 > 0</span>
 
-				<span
-					class="plot-legend-dot"
-					style="background-color: #33333320"
-				></span>
-				<span>No data</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #33333320"
+					></span>
+					<span>No data</span>
+				</div>
 			</div>
 			<div
 				:id="'assoPlotsWrapper' + item"

@@ -262,7 +262,15 @@ export default Vue.component("research-credible-sets-plot", {
 												) {
 													isTissue = 1;
 													annoContent +=
-														annoKey + ", ";
+														"&nbsp;&nbsp;&nbsp;" +
+														annoKey +
+														": " +
+														this.getGregor(
+															t,
+															annoKey,
+															value.phenotype
+														) +
+														"<br />";
 												}
 											});
 										}
@@ -275,9 +283,9 @@ export default Vue.component("research-credible-sets-plot", {
 											annoContent =
 												"<span><strong>" +
 												t +
-												":</strong> " +
+												":</strong> <br />" +
 												annoContent +
-												"</span><br />";
+												"</span>";
 
 											infoBoxContent += annoContent;
 										}
@@ -305,6 +313,24 @@ export default Vue.component("research-credible-sets-plot", {
 			} else {
 				infoBox.setAttribute("class", "hidden");
 			}
+		},
+		getGregor(TISSUE, ANNO, PHENOTYPE) {
+			let pValue = Formatters.pValueFormatter(
+				this.pkgData.GEByTissueData[PHENOTYPE][TISSUE][ANNO].pValue
+			);
+			let fold = Formatters.pValueFormatter(
+				this.pkgData.GEByTissueData[PHENOTYPE][TISSUE][ANNO].fold
+			);
+			/*let gregorScore = Math.floor(
+				Math.log10(
+					this.pkgData.GEByTissueData[PHENOTYPE][TISSUE][ANNO].gregor
+				) * 100
+			);
+
+			let gregorRounded = Math.round(gregorScore) / 100;*/
+
+			let content = "Fold: " + fold + "  |  P-Value: " + pValue;
+			return content;
 		},
 		renderCSPlot() {
 			this.CSPosData = {};
@@ -446,7 +472,7 @@ export default Vue.component("research-credible-sets-plot", {
 					renderHeight += perPhenotype + btwnPhenotype;
 				}
 			}
-			console.log("this.CSPosData", this.CSPosData);
+			//console.log("this.CSPosData", this.CSPosData);
 		},
 		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
 			CTX.fillStyle = DOT_COLOR;
@@ -518,7 +544,7 @@ export default Vue.component("research-credible-sets-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				let positionLabel = i < 5 ? xMin + i * xStep : xMax;
+				let positionLabel = i < 5 ? Number(xMin) + i * xStep : xMax;
 				CTX.font = "12px Arial";
 				CTX.fillStyle = "#999999";
 				CTX.fillText(
@@ -541,7 +567,7 @@ export default Vue.component("research-credible-sets-plot", {
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 		},
 		async getCS(event) {
-			console.log("value", event.target.value);
+			//console.log("value", event.target.value);
 			if (event.target.value != "") {
 				let valueArr = event.target.value.split(",");
 
@@ -592,7 +618,7 @@ export default Vue.component("research-credible-sets-plot", {
 			}
 		},
 		async getCredibleSetsList(REGION, PHENOTYPE) {
-			console.log("CS called");
+			//console.log("CS called");
 
 			let CSServer =
 				this.renderConfig.credibleSetsServer == "KP BioIndex"
