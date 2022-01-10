@@ -5,7 +5,15 @@
 	>
 		<div class="col-md-12 CS-plot-wrapper">
 			<div class="col-md-9" id="CSPlotWrapper">
-				<div id="CSInfoBox" class="hidden"></div>
+				<div id="CSInfoBox" class="hidden">
+					<div
+						class="fixed-info-box-close"
+						@click="showHidePanel('#CSInfoBox')"
+					>
+						<b-icon icon="x-circle-fill"></b-icon>
+					</div>
+					<div class="info-box-content" id="CSInfoBoxContent"></div>
+				</div>
 				<canvas
 					id="CSPlot"
 					:class="
@@ -16,6 +24,8 @@
 					width=""
 					height=""
 					@mousemove="checkCSPosition($event)"
+					@mouseout="onMouseOut('CSInfoBox')"
+					@click="showHidePanel('#CSInfoBox')"
 				></canvas>
 				<div
 					id="CSInitialMessage"
@@ -171,6 +181,17 @@ export default Vue.component("research-credible-sets-plot", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		showHidePanel(PANEL) {
+			let wrapper = document.querySelector(PANEL);
+			if (wrapper.classList.contains("fixed")) {
+				wrapper.classList.remove("fixed");
+			} else {
+				wrapper.classList.add("fixed");
+			}
+		},
+		onMouseOut(BOXID) {
+			uiUtils.removeOnMouseOut(BOXID);
+		},
 		onResize(e) {
 			this.renderCSPlot();
 		},
@@ -220,98 +241,144 @@ export default Vue.component("research-credible-sets-plot", {
 			var y = Math.floor(e.clientY - rect.top);
 
 			const infoBox = document.querySelector("#CSInfoBox");
+			const infoBoxContentDiv =
+				document.querySelector("#CSInfoBoxContent");
 
-			var infoBoxContent = "";
-			for (let v = -5; v <= 5; v++) {
-				for (let h = -5; h <= 5; h++) {
-					if (this.CSPosData[y + v] != undefined) {
-						if (this.CSPosData[y + v][x + h] != undefined) {
-							for (const [key, value] of Object.entries(
-								this.CSPosData[y + v][x + h]
-							)) {
-								infoBoxContent +=
-									"<strong>" + key + "</strong><br />";
-								this.renderConfig.hoverContent.map((h) => {
+			if (!infoBox.classList.contains("fixed")) {
+				var infoBoxContent = "";
+				for (let v = -5; v <= 5; v++) {
+					for (let h = -5; h <= 5; h++) {
+						if (this.CSPosData[y + v] != undefined) {
+							if (this.CSPosData[y + v][x + h] != undefined) {
+								for (const [key, value] of Object.entries(
+									this.CSPosData[y + v][x + h]
+								)) {
 									infoBoxContent +=
-										"<span>" +
-										h +
-										": <span>" +
-										value[h] +
-										"<br />";
-								});
-
-								/// add annotations per selected tissues
-								if (
-									this.pkgData != null &&
-									!!this.pkgData.selectedTissues &&
-									this.pkgData.selectedTissues.length > 0
-								) {
-									this.pkgData.selectedTissues.map((t) => {
-										let isTissue = 0;
-										let annoContent = "";
-										for (const [
-											annoKey,
-											annoValue,
-										] of Object.entries(
-											this.pkgData.tissuesData[t]
-										)) {
-											annoValue.region.map((r) => {
-												if (
-													value.position >= r.start &&
-													value.position <= r.end
-												) {
-													isTissue = 1;
-													annoContent +=
-														"&nbsp;&nbsp;&nbsp;" +
-														annoKey +
-														": " +
-														this.getGregor(
-															t,
-															annoKey,
-															value.phenotype
-														) +
-														"<br />";
-												}
-											});
-										}
-
-										if (isTissue == 1) {
-											annoContent = annoContent.substring(
-												0,
-												annoContent.length - 2
-											);
-											annoContent =
-												"<span><strong>" +
-												t +
-												":</strong> <br />" +
-												annoContent +
-												"</span>";
-
-											infoBoxContent += annoContent;
-										}
+										"<strong>" + key + "</strong><br />";
+									this.renderConfig.hoverContent.map((h) => {
+										infoBoxContent +=
+											"<span>" +
+											h +
+											": <span>" +
+											value[h] +
+											"<br />";
 									});
+
+									/// add annotations per selected tissues
+									if (
+										this.pkgData != null &&
+										!!this.pkgData.selectedTissues &&
+										this.pkgData.selectedTissues.length > 0
+									) {
+										this.pkgData.selectedTissues.map(
+											(t) => {
+												let isTissue = 0;
+												let annoContent = "";
+												let ovelappingRegion = {
+													start: null,
+													end: null,
+												};
+												for (const [
+													annoKey,
+													annoValue,
+												] of Object.entries(
+													this.pkgData.tissuesData[t]
+												)) {
+													annoValue.region.map(
+														(r) => {
+															if (
+																value.position >=
+																	r.start &&
+																value.position <=
+																	r.end
+															) {
+																ovelappingRegion.start =
+																	ovelappingRegion.start ==
+																	null
+																		? r.start
+																		: ovelappingRegion.start <
+																		  r.start
+																		? r.start
+																		: ovelappingRegion.start;
+
+																ovelappingRegion.end =
+																	ovelappingRegion.end ==
+																	null
+																		? r.end
+																		: ovelappingRegion.end >
+																		  r.end
+																		? r.end
+																		: ovelappingRegion.end;
+																isTissue = 1;
+																annoContent +=
+																	"<span class='spacer-1'></span>" +
+																	annoKey +
+																	"<br /><span class='spacer-2'></span>Region: " +
+																	r.start +
+																	"-" +
+																	r.end +
+																	this.getGregor(
+																		t,
+																		annoKey,
+																		value.phenotype
+																	) +
+																	"<br />";
+															}
+														}
+													);
+												}
+
+												if (isTissue == 1) {
+													annoContent =
+														annoContent.substring(
+															0,
+															annoContent.length -
+																2
+														);
+													annoContent =
+														"<span><strong>" +
+														t +
+														":</strong> <br />" +
+														annoContent +
+														"</span><span class='spacer-1'></span>Region Overlap: " +
+														ovelappingRegion.start +
+														"-" +
+														ovelappingRegion.end +
+														"<br />";
+
+													infoBoxContent +=
+														annoContent;
+												}
+											}
+										);
+									}
+									infoBoxContent += "<br />";
 								}
-								infoBoxContent += "<br />";
 							}
 						}
 					}
 				}
-			}
 
-			if (infoBoxContent != "") {
-				infoBox.innerHTML = infoBoxContent;
-				infoBox.setAttribute("class", "");
-				if (x < rect.width * 0.75) {
-					infoBox.style.width = "auto";
-					infoBox.style.left = x + 15 + "px";
-					infoBox.style.top = y + this.spaceBy + "px";
+				if (infoBoxContent != "") {
+					let closeBtn = "";
+					infoBoxContent =
+						closeBtn +
+						"<strong>Click to fix info panel</strong><br /><br />" +
+						infoBoxContent;
+					infoBoxContentDiv.innerHTML = infoBoxContent;
+					infoBox.classList.remove("hidden");
+					if (x < rect.width * 0.75) {
+						infoBox.style.width = "auto";
+						infoBox.style.left = x + 15 + "px";
+						infoBox.style.top = y + this.spaceBy + "px";
+					} else {
+						infoBox.style.width = "200px";
+						infoBox.style.left = x - (200 + 15) + "px";
+						infoBox.style.top = y + this.spaceBy + "px";
+					}
 				} else {
-					infoBox.style.width = "200px";
-					infoBox.style.left = x - (200 + 15) + "px";
-					infoBox.style.top = y + this.spaceBy + "px";
+					infoBox.classList.add("hidden");
 				}
-			} else {
-				infoBox.setAttribute("class", "hidden");
 			}
 		},
 		getGregor(TISSUE, ANNO, PHENOTYPE) {
@@ -321,15 +388,12 @@ export default Vue.component("research-credible-sets-plot", {
 			let fold = Formatters.pValueFormatter(
 				this.pkgData.GEByTissueData[PHENOTYPE][TISSUE][ANNO].fold
 			);
-			/*let gregorScore = Math.floor(
-				Math.log10(
-					this.pkgData.GEByTissueData[PHENOTYPE][TISSUE][ANNO].gregor
-				) * 100
-			);
 
-			let gregorRounded = Math.round(gregorScore) / 100;*/
-
-			let content = "Fold: " + fold + "  |  P-Value: " + pValue;
+			let content =
+				"<br /><span class='spacer-2'></span>Fold: " +
+				fold +
+				"<br /><span class='spacer-2'></span>P-Value: " +
+				pValue;
 			return content;
 		},
 		renderCSPlot() {
@@ -704,6 +768,22 @@ $(function () {});
 	padding: 5px 15px;
 	z-index: 11;
 	font-size: 14px;
+	min-width: 200px;
+	max-height: 500px;
+	overflow-y: auto;
+}
+
+#CSInfoBox.fixed.hidden,
+#CSInfoBox.fixed {
+	display: block;
+}
+
+#CSInfoBox .fixed-info-box-close {
+	display: none;
+}
+
+#CSInfoBox.fixed .fixed-info-box-close {
+	display: block;
 }
 </style>
 

@@ -134,7 +134,7 @@
 					@resize="onResize"
 					@click="checkPosition($event, item, 'asso', 'click')"
 					@mousemove="checkPosition($event, item, 'asso', 'move')"
-					@mouseout="onMouseOut($event, item, 'asso', 'move')"
+					@mouseout="onMouseOut('assoInfoBox' + item)"
 				></canvas>
 				<div
 					:id="'assoInfoBox' + item"
@@ -161,7 +161,7 @@
 					@resize="onResize"
 					@click="checkPosition($event, item, 'LD', 'click')"
 					@mousemove="checkPosition($event, item, 'LD', 'move')"
-					@mouseout="onMouseOut($event, item, 'LD', 'move')"
+					@mouseout="onMouseOut('ldInfoBox' + item)"
 				></canvas>
 
 				<div :id="'ldInfoBox' + item" class="ld-info-box hidden"></div>
@@ -219,7 +219,7 @@ export default Vue.component("research-region-plot", {
 		};
 	},
 	modules: {
-		uiUtils,
+		...uiUtils,
 		Formatters,
 	},
 	components: {},
@@ -623,13 +623,8 @@ export default Vue.component("research-region-plot", {
 				wrapper.classList.add("hidden");
 			}
 		},
-		onMouseOut(event, GROUP, TYPE, EVENT_TYPE) {
-			let infoBoxId =
-				TYPE == "asso" ? "#assoInfoBox" + GROUP : "#ldInfoBox" + GROUP;
-			let wrapper = document.querySelector(infoBoxId);
-			setTimeout(function () {
-				wrapper.classList.add("hidden");
-			}, 3000);
+		onMouseOut(BOXID) {
+			uiUtils.removeOnMouseOut(BOXID);
 		},
 		setUpWrappers() {
 			this.callForRecombData();

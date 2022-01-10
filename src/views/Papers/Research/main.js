@@ -20,6 +20,7 @@ import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.v
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import ResearchGEMDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
@@ -47,6 +48,7 @@ new Vue({
         ResearchPageFooter,
         ResearchPageFilters,
         ResearchDataTable,
+        ResearchGEMDataTable,
         ResearchMPlotBitmap,
         ResearchRegionPlot,
         ResearchScorePlot,

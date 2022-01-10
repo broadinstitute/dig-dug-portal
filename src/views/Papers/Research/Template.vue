@@ -271,6 +271,7 @@
 							"
 						>
 							<research-data-table
+								v-if="!$parent.dataTableFormat['custom table']"
 								:pageID="$parent.pageID"
 								:dataset="$parent.filteredData"
 								:tableFormat="$parent.dataTableFormat"
@@ -284,6 +285,26 @@
 								"
 							>
 							</research-data-table>
+							<research-gem-data-table
+								v-if="
+									!!$parent.dataTableFormat['custom table'] &&
+									$parent.dataTableFormat['custom table'] ==
+										'gem package'
+								"
+								:pageID="$parent.pageID"
+								:dataset="$parent.filteredData"
+								:tableFormat="$parent.dataTableFormat"
+								:initPerPageNumber="$parent.tablePerPageNumber"
+								:tableLegend="$parent.tableLegend"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:searchParameters="
+									$store.state.searchParameters
+								"
+								:pkgData="$store.state.pkgData"
+							>
+							</research-gem-data-table>
 						</div>
 					</div>
 				</div>

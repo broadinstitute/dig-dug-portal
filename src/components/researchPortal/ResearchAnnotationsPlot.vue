@@ -11,6 +11,7 @@
 						id="tissuesPlot"
 						@resize="onResize"
 						@mousemove="checkTissuesPosition($event)"
+						@mouseout="onMouseOut('selectedTissueInfoBox')"
 						@click="removeTissueTrack($event)"
 						width="0"
 						height="0"
@@ -28,6 +29,7 @@
 						id="annotationsPlot"
 						@resize="onResize"
 						@mousemove="checkPosition($event)"
+						@mouseout="onMouseOut('tissueInfoBox')"
 						@click="removeAnnoTrack($event)"
 						width=""
 						height=""
@@ -131,6 +133,7 @@
 						width=""
 						height=""
 						@mousemove="checkGEPosition($event)"
+						@mouseout="onMouseOut('GEInfoBox')"
 					></canvas>
 				</div>
 			</div>
@@ -221,6 +224,9 @@ export default Vue.component("research-annotations-plot", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		onMouseOut(BOXID) {
+			uiUtils.removeOnMouseOut(BOXID);
+		},
 		onResize(e) {
 			uiUtils.showElement("annotationsPlotWrapper");
 			this.renderByAnnotations();
@@ -501,7 +507,10 @@ export default Vue.component("research-annotations-plot", {
 			var rawX = e.clientX - rect.left;
 			var y = Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy);
 
-			if (!!this.tissuesPosData[y]) {
+			if (
+				x > rect.width - this.plotMargin.leftMargin &&
+				!!this.tissuesPosData[y]
+			) {
 				for (const [region, regionValue] of Object.entries(
 					this.tissuesPosData[y].regions
 				)) {
@@ -1532,6 +1541,16 @@ $(function () {});
 	padding: 5px 15px;
 	z-index: 11;
 	font-size: 14px;
+}
+#annoInitialMessage,
+#tissueInitialMessage {
+	width: 300px;
+	border: solid 1px #ddd;
+	color: #666;
+	margin: 0 auto;
+	border-radius: 25px;
+	text-align: center;
+	font-size: 13px;
 }
 </style>
 
