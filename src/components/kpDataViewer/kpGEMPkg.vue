@@ -30,7 +30,8 @@
 				:compareGroupColors="colors.bold"
 				:renderConfig="pkgConfig.credibleSetsViewer"
 				:dataComparison="this.$store.state.dataComparison"
-				:pkgData="pkgData"
+				:pkgData="$store.state.pkgData"
+				:pkgDataSelected="$store.state.pkgDataSelected"
 			></research-credible-sets-plot>
 			<research-annotations-plot
 				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
@@ -41,6 +42,7 @@
 				:compareGroupColors="colors.bold"
 				:dataComparison="this.$store.state.dataComparison"
 				:pkgData="pkgData"
+				:pkgDataSelected="$store.state.pkgDataSelected"
 			></research-annotations-plot>
 		</div>
 	</div>

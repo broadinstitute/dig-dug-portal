@@ -8,7 +8,7 @@
 				<div id="CSInfoBox" class="hidden">
 					<div
 						class="fixed-info-box-close"
-						@click="showHidePanel('#CSInfoBox')"
+						@click="showHidePanel('#CSInfoBox', 'closeBtn')"
 					>
 						<b-icon icon="x-circle-fill"></b-icon>
 					</div>
@@ -16,6 +16,7 @@
 				</div>
 				<canvas
 					id="CSPlot"
+					v-model="pkgData"
 					:class="
 						Object.keys(CSData).length > 0
 							? 'CS-plot'
@@ -114,17 +115,24 @@ import keyParams from "@/utils/keyParams";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-credible-sets-plot", {
-	props: [
-		"region",
-		"phenotype",
-		"renderConfig",
-		"compareGroupColors",
-		"plotMargin",
-		"dataComparison",
-		"pkgData",
-	],
+	props: {
+		region: String,
+		phenotype: String,
+		renderConfig: Object,
+		compareGroupColors: Array,
+		plotMargin: Object,
+		dataComparison: String,
+		pkgData: Object,
+		pkgDataSelected: Array,
+	},
 	data() {
-		return { credibleSets: [], CSData: {}, CSPosData: {}, spaceBy: 7 };
+		return {
+			credibleSets: [],
+			CSData: {},
+			CSPosData: {},
+			spaceBy: 7,
+			test: null,
+		};
 	},
 	modules: {
 		uiUtils,
@@ -178,15 +186,44 @@ export default Vue.component("research-credible-sets-plot", {
 			return phenotype;
 		},
 	},
-	watch: {},
+	watch: {
+		pkgDataSelected: {
+			handler: function (n, o) {
+				if (n.length > 0) {
+					this.renderCSPlot();
+				}
+			},
+			deep: true,
+			immediate: true,
+		},
+	},
 	methods: {
 		...uiUtils,
-		showHidePanel(PANEL) {
+		showHidePanel(PANEL, CLOSEBTN) {
 			let wrapper = document.querySelector(PANEL);
-			if (wrapper.classList.contains("fixed")) {
-				wrapper.classList.remove("fixed");
-			} else {
-				wrapper.classList.add("fixed");
+			var e = event;
+			var rect = e.target.getBoundingClientRect();
+			var x = Math.floor(e.clientX - rect.left);
+			var y = Math.floor(e.clientY - rect.top);
+
+			var isData = null;
+
+			for (let v = -5; v <= 5; v++) {
+				for (let h = -5; h <= 5; h++) {
+					if (this.CSPosData[y + v] != undefined) {
+						if (this.CSPosData[y + v][x + h] != undefined) {
+							isData = true;
+						}
+					}
+				}
+			}
+
+			if (isData == true || CLOSEBTN == "closeBtn") {
+				if (wrapper.classList.contains("fixed")) {
+					wrapper.classList.remove("fixed");
+				} else {
+					wrapper.classList.add("fixed");
+				}
 			}
 		},
 		onMouseOut(BOXID) {
@@ -231,7 +268,13 @@ export default Vue.component("research-credible-sets-plot", {
 				}
 			}
 
-			this.renderCSPlot();
+			this.$store.dispatch("pkgDataSelected", {
+				type: "CS",
+				id: CSID,
+				action: "remove",
+			});
+
+			//this.renderCSPlot();
 		},
 
 		checkCSPosition(event) {
@@ -340,9 +383,10 @@ export default Vue.component("research-credible-sets-plot", {
 														t +
 														":</strong> <br />" +
 														annoContent +
-														"</span><span class='spacer-1'></span>Region Overlap: " +
+														"</span><span class='spacer-1'></span>Overlapping Region <br />" +
+														"<span class='spacer-2'></span>Start: " +
 														ovelappingRegion.start +
-														"-" +
+														"<br /><span class='spacer-2'></span>End: " +
 														ovelappingRegion.end +
 														"<br />";
 
@@ -397,6 +441,7 @@ export default Vue.component("research-credible-sets-plot", {
 			return content;
 		},
 		renderCSPlot() {
+			console.log("this.pkgData", this.pkgData);
 			this.CSPosData = {};
 
 			if (Object.keys(this.CSData).length == 0) {
@@ -473,50 +518,55 @@ export default Vue.component("research-credible-sets-plot", {
 								v.position >= this.searchingRegion.start &&
 								v.position <= this.searchingRegion.end
 							) {
-								let xPos =
-									(v[this.renderConfig.xAxisField] -
-										this.searchingRegion.start) *
-										xPerPixel +
-									this.plotMargin.leftMargin;
-								let yPos =
-									renderHeight +
-									plotHeight -
-									v[[this.renderConfig.yAxisField]] *
-										yPerPixel;
-								let colorID =
-									v.credibleSetId + ", " + v.phenotype;
-								let dotColor = this.getColorIndex(colorID);
+								let ifInRegion = this.checkIfInRegion(
+									v.position
+								);
+								if (ifInRegion == true) {
+									let xPos =
+										(v[this.renderConfig.xAxisField] -
+											this.searchingRegion.start) *
+											xPerPixel +
+										this.plotMargin.leftMargin;
+									let yPos =
+										renderHeight +
+										plotHeight -
+										v[[this.renderConfig.yAxisField]] *
+											yPerPixel;
+									let colorID =
+										v.credibleSetId + ", " + v.phenotype;
+									let dotColor = this.getColorIndex(colorID);
 
-								this.renderDot(ctx, xPos, yPos, dotColor);
+									this.renderDot(ctx, xPos, yPos, dotColor);
 
-								if (!this.CSPosData[Math.round(yPos)]) {
-									this.CSPosData[Math.round(yPos)] = {};
-								}
-								if (
-									!this.CSPosData[Math.round(yPos)][
-										Math.round(xPos)
-									]
-								) {
+									if (!this.CSPosData[Math.round(yPos)]) {
+										this.CSPosData[Math.round(yPos)] = {};
+									}
+									if (
+										!this.CSPosData[Math.round(yPos)][
+											Math.round(xPos)
+										]
+									) {
+										this.CSPosData[Math.round(yPos)][
+											Math.round(xPos)
+										] = {};
+									}
+
+									let tempObj = {};
+
+									tempObj["phenotype"] = phenotype;
+									tempObj["position"] =
+										v[this.renderConfig.xAxisField];
+
+									this.renderConfig.hoverContent.map((c) => {
+										tempObj[c] = v[c];
+									});
+
 									this.CSPosData[Math.round(yPos)][
 										Math.round(xPos)
-									] = {};
+									][v[this.renderConfig.renderBy]] = tempObj;
+
+									inRegion++;
 								}
-
-								let tempObj = {};
-
-								tempObj["phenotype"] = phenotype;
-								tempObj["position"] =
-									v[this.renderConfig.xAxisField];
-
-								this.renderConfig.hoverContent.map((c) => {
-									tempObj[c] = v[c];
-								});
-
-								this.CSPosData[Math.round(yPos)][
-									Math.round(xPos)
-								][v[this.renderConfig.renderBy]] = tempObj;
-
-								inRegion++;
 							}
 						});
 
@@ -537,6 +587,38 @@ export default Vue.component("research-credible-sets-plot", {
 				}
 			}
 			//console.log("this.CSPosData", this.CSPosData);
+		},
+		checkIfInRegion(POSITION) {
+			let ifInTissue = false;
+			if (
+				!!this.pkgData.selectedTissues &&
+				this.pkgData.selectedTissues.length > 0
+			) {
+				let ifInTissueNum = 0;
+				let selectedTissuesNum = this.pkgData.selectedTissues.length;
+
+				this.pkgData.selectedTissues.map((t) => {
+					let ifInAnnoNum = 0;
+					this.pkgData.selectedAnnos.map((a) => {
+						this.pkgData.tissuesData[t][a].region.map((r) => {
+							if (POSITION >= r.start && POSITION <= r.end) {
+								ifInAnnoNum++;
+							}
+						});
+					});
+					if (ifInAnnoNum > 0) {
+						ifInTissueNum++;
+					}
+				});
+
+				if (ifInTissueNum == selectedTissuesNum) {
+					ifInTissue = true;
+				}
+			} else {
+				ifInTissue = true;
+			}
+
+			return ifInTissue;
 		},
 		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
 			CTX.fillStyle = DOT_COLOR;
@@ -665,9 +747,13 @@ export default Vue.component("research-credible-sets-plot", {
 						}
 
 						this.pkgData.CSData[phenotype][CSID] = CSJson.data;
-					}
 
-					console.log("this.pkgData", this.pkgData);
+						this.$store.dispatch("pkgDataSelected", {
+							type: "CS",
+							id: CSID,
+							action: "add",
+						});
+					}
 
 					let bubbleId = event.target.value.replace(
 						/[^a-zA-Z0-9 ]/g,
@@ -677,7 +763,7 @@ export default Vue.component("research-credible-sets-plot", {
 
 					bubble.classList.remove("hidden");
 
-					this.renderCSPlot();
+					//this.renderCSPlot();
 				}
 			}
 		},
@@ -765,11 +851,15 @@ $(function () {});
 	background-color: #fff;
 	border: solid 1px #ddd;
 	border-radius: 5px;
-	padding: 5px 15px;
+	padding: 5px 0px 5px 15px;
 	z-index: 11;
 	font-size: 14px;
 	min-width: 200px;
 	max-height: 500px;
+}
+
+#CSInfoBoxContent {
+	max-height: 485px;
 	overflow-y: auto;
 }
 
@@ -783,6 +873,7 @@ $(function () {});
 }
 
 #CSInfoBox.fixed .fixed-info-box-close {
+	background-color: #fff;
 	display: block;
 }
 </style>

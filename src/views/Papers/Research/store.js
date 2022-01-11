@@ -36,6 +36,7 @@ export default new Vuex.Store({
         dataComparison: "newSearch",
         initialSearch: 1,
         pkgData: {},
+        pkgDataSelected: [],
     },
     mutations: {
         setFilteredData(state, data) {
@@ -77,6 +78,24 @@ export default new Vuex.Store({
         setPkgData(state, data) {
             state.pkgData = data;
         },
+        setPkgDataSelected(state, data) {
+            if (data.action == "add") {
+                var tempObject = { type: null, id: null };
+                tempObject.type = data.type;
+                tempObject.id = data.id;
+                state.pkgDataSelected.push(tempObject);
+            }
+
+            if (data.action == "remove") {
+                let tempArray = [];
+                state.pkgDataSelected.map(p => {
+                    if (p.type != data.type || p.id != data.id) {
+                        tempArray.push(p);
+                    }
+                })
+                state.pkgDataSelected = tempArray;
+            }
+        },
     },
     getters: {},
     actions: {
@@ -112,6 +131,9 @@ export default new Vuex.Store({
         },
         pkgData(context, pkgData) {
             context.commit("setPkgData", pkgData);
+        },
+        pkgDataSelected(context, data) {
+            context.commit("setPkgDataSelected", data);
         },
     }
 });
