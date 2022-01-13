@@ -108,6 +108,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import dataConvert from "@/utils/dataConvert";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 import keyParams from "@/utils/keyParams";
@@ -115,16 +116,16 @@ import keyParams from "@/utils/keyParams";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-credible-sets-plot", {
-	props: {
-		region: String,
-		phenotype: String,
-		renderConfig: Object,
-		compareGroupColors: Array,
-		plotMargin: Object,
-		dataComparison: String,
-		pkgData: Object,
-		pkgDataSelected: Array,
-	},
+	props: [
+		"region",
+		"phenotype",
+		"renderConfig",
+		"compareGroupColors",
+		"plotMargin",
+		"dataComparison",
+		"pkgData",
+		"pkgDataSelected",
+	],
 	data() {
 		return {
 			credibleSets: [],
@@ -138,6 +139,7 @@ export default Vue.component("research-credible-sets-plot", {
 		uiUtils,
 		Formatters,
 		keyParams,
+		dataConvert,
 	},
 	components: {},
 	mounted: function () {
@@ -189,9 +191,9 @@ export default Vue.component("research-credible-sets-plot", {
 	watch: {
 		pkgDataSelected: {
 			handler: function (n, o) {
-				if (n.length > 0) {
-					this.renderCSPlot();
-				}
+				//if (n.length > 0) {
+				this.renderCSPlot();
+				//}
 			},
 			deep: true,
 			immediate: true,
@@ -269,7 +271,7 @@ export default Vue.component("research-credible-sets-plot", {
 			}
 
 			this.$store.dispatch("pkgDataSelected", {
-				type: "CS",
+				type: "Credible Set",
 				id: CSID,
 				action: "remove",
 			});
@@ -441,7 +443,6 @@ export default Vue.component("research-credible-sets-plot", {
 			return content;
 		},
 		renderCSPlot() {
-			console.log("this.pkgData", this.pkgData);
 			this.CSPosData = {};
 
 			if (Object.keys(this.CSData).length == 0) {
@@ -586,7 +587,6 @@ export default Vue.component("research-credible-sets-plot", {
 					renderHeight += perPhenotype + btwnPhenotype;
 				}
 			}
-			//console.log("this.CSPosData", this.CSPosData);
 		},
 		checkIfInRegion(POSITION) {
 			let ifInTissue = false;
@@ -600,11 +600,16 @@ export default Vue.component("research-credible-sets-plot", {
 				this.pkgData.selectedTissues.map((t) => {
 					let ifInAnnoNum = 0;
 					this.pkgData.selectedAnnos.map((a) => {
-						this.pkgData.tissuesData[t][a].region.map((r) => {
-							if (POSITION >= r.start && POSITION <= r.end) {
-								ifInAnnoNum++;
-							}
-						});
+						if (
+							!!this.pkgData.tissuesData[t] &&
+							!!this.pkgData.tissuesData[t][a]
+						) {
+							this.pkgData.tissuesData[t][a].region.map((r) => {
+								if (POSITION >= r.start && POSITION <= r.end) {
+									ifInAnnoNum++;
+								}
+							});
+						}
 					});
 					if (ifInAnnoNum > 0) {
 						ifInTissueNum++;
@@ -713,7 +718,6 @@ export default Vue.component("research-credible-sets-plot", {
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 		},
 		async getCS(event) {
-			//console.log("value", event.target.value);
 			if (event.target.value != "") {
 				let valueArr = event.target.value.split(",");
 
@@ -739,7 +743,14 @@ export default Vue.component("research-credible-sets-plot", {
 						this.CSData[phenotype] = {};
 					}
 
-					this.CSData[phenotype][CSID] = CSJson.data;
+					this.CSData[phenotype][CSID] = !!this.renderConfig[
+						"data convert"
+					]
+						? dataConvert.convertData(
+								this.renderConfig["data convert"],
+								CSJson.data
+						  )
+						: CSJson.data;
 
 					if (this.pkgData != null) {
 						if (!this.pkgData.CSData[phenotype]) {
@@ -749,7 +760,7 @@ export default Vue.component("research-credible-sets-plot", {
 						this.pkgData.CSData[phenotype][CSID] = CSJson.data;
 
 						this.$store.dispatch("pkgDataSelected", {
-							type: "CS",
+							type: "Credible Set",
 							id: CSID,
 							action: "add",
 						});
@@ -768,8 +779,6 @@ export default Vue.component("research-credible-sets-plot", {
 			}
 		},
 		async getCredibleSetsList(REGION, PHENOTYPE) {
-			//console.log("CS called");
-
 			let CSServer =
 				this.renderConfig.credibleSetsServer == "KP BioIndex"
 					? "https://bioindex.hugeamp.org/api/bio"

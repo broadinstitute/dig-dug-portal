@@ -56,7 +56,7 @@
 			:class="'table table-sm research-data-table ' + pageID"
 			cellpadding="0"
 			cellspacing="0"
-			v-if="!!dataset && !!tableFormat"
+			v-if="!!dataset && !!newTableFormat"
 		>
 			<thead class="">
 				<tr>
@@ -69,7 +69,7 @@
 					></th>
 					<th
 						class="th-evidence"
-						v-if="tableFormat['features'] != undefined"
+						v-if="newTableFormat['features'] != undefined"
 					>
 						Evidence
 					</th>
@@ -104,7 +104,7 @@
 							></span>
 						</td>
 					</template>
-					<td v-if="tableFormat['features'] != undefined">
+					<td v-if="newTableFormat['features'] != undefined">
 						<span
 							href="javascript:;"
 							@click="showHideFeature('feature_' + index)"
@@ -114,14 +114,14 @@
 					</td>
 				</tr>
 				<tr
-					v-if="tableFormat['features'] != undefined"
+					v-if="newTableFormat['features'] != undefined"
 					:id="'feature_' + index"
 					:class="'hidden'"
 				>
 					<td :colspan="topRowNumber" class="features-td">
 						<research-data-table-features
 							:featuresData="value.features"
-							:featuresFormat="tableFormat"
+							:featuresFormat="newTableFormat"
 						></research-data-table-features>
 					</td>
 				</tr>
@@ -162,9 +162,15 @@ export default Vue.component("research-gem-data-table", {
 		"dataComparisonConfig",
 		"searchParameters",
 		"pkgData",
+		"pkgDataSelected",
 	],
 	data() {
-		return { currentPage: 1, perPageNumber: null };
+		return {
+			currentPage: 1,
+			perPageNumber: null,
+			newTableFormat: null,
+			newRawData: null,
+		};
 	},
 	modules: {},
 	components: { ResearchDataTableFeatures },
@@ -181,12 +187,12 @@ export default Vue.component("research-gem-data-table", {
 		},
 		dataScores() {
 			if (
-				!!this.dataset &&
-				!!this.tableFormat &&
-				this.tableFormat["column formatting"] != undefined
+				!!this.rawData &&
+				!!this.newTableFormat &&
+				this.newTableFormat["column formatting"] != undefined
 			) {
 				let scores = {};
-				let columnFormatting = this.tableFormat["column formatting"];
+				let columnFormatting = this.newTableFormat["column formatting"];
 
 				for (const column in columnFormatting) {
 					if (
@@ -198,7 +204,7 @@ export default Vue.component("research-gem-data-table", {
 					}
 				}
 
-				this.dataset.map((row) => {
+				this.rawData.map((row) => {
 					for (const field in scores) {
 						let fieldValue =
 							typeof row[field] != "number"
@@ -224,35 +230,144 @@ export default Vue.component("research-gem-data-table", {
 			}
 		},
 		rows() {
-			if (!!this.dataset) {
+			if (!!this.rawData) {
 				if (this.dataComparisonConfig == null) {
-					return this.dataset.length;
+					return this.rawData.length;
 				} else {
-					return Object.keys(this.dataset).length;
+					return Object.keys(this.rawData).length;
 				}
 			}
 		},
+
+		rawData() {
+			let updatedData = {};
+			let rawData = { ...this.dataset };
+			let newTableFormat = { ...this.tableFormat };
+
+			if (this.pkgDataSelected.length > 0) {
+				var newRows = [
+					...new Set(this.pkgDataSelected.map((p) => p.type)),
+				];
+				var oldRows = newTableFormat["top rows"];
+				var newTopRows = oldRows.concat(newRows);
+				newTableFormat["top rows"] = newTopRows;
+				newTableFormat["features"] = ["Evidence"];
+				newTableFormat["Evidence"] = [];
+				this.pkgDataSelected.map((p) => {
+					newTableFormat["Evidence"].push(p.id);
+				});
+			}
+
+			if (this.pkgDataSelected.length > 0) {
+				this.pkgDataSelected.map((p) => {
+					if (p.type == "Credible Set") {
+						for (const [phenotype, CSData] of Object.entries(
+							this.pkgData.CSData
+						)) {
+							if (!!CSData[p.id]) {
+								CSData[p.id].map((c) => {
+									let keyField =
+										this.tableFormat["custom table"][
+											"Credible Set"
+										]["key field"];
+									let PPAField =
+										this.tableFormat["custom table"][
+											"Credible Set"
+										]["PPA"];
+
+									if (!!rawData[c[keyField]]) {
+										if (!updatedData[c[keyField]]) {
+											updatedData[c[keyField]] = {
+												...rawData[c[keyField]],
+											};
+										}
+										updatedData[c[keyField]][p.id] =
+											c[PPAField];
+
+										///add credible set value
+
+										if (
+											!updatedData[c[keyField]][
+												"Credible Set"
+											]
+										) {
+											updatedData[c[keyField]][
+												"Credible Set"
+											] = {};
+										}
+										if (
+											!updatedData[c[keyField]][
+												"Credible Set"
+											][phenotype]
+										) {
+											updatedData[c[keyField]][
+												"Credible Set"
+											][phenotype] =
+												p.id + ":" + c[PPAField];
+										} else {
+											updatedData[
+												c[keyField]["Credible Set"]
+											][phenotype] +=
+												", " + p.id + ":" + c[PPAField];
+										}
+									}
+								});
+							}
+						}
+					}
+				});
+				updatedData = Object.entries(updatedData)
+					.sort()
+					.reduce((o, [k, v]) => ((o[k] = v), o), {});
+
+				/// feed null to value for phenotype under Credible sets
+
+				for (const [vKey, vValue] of Object.entries(updatedData)) {
+					let compareField =
+						this.dataComparisonConfig.fieldsToCompare[1];
+					let activePhenotypes = Object.keys(vValue[compareField]);
+					let tempObj = {};
+					activePhenotypes.map((p) => {
+						if (!!vValue["Credible Set"][p]) {
+							tempObj[p] = vValue["Credible Set"][p];
+						} else {
+							tempObj[p] = "N/A";
+						}
+					});
+					vValue["Credible Set"] = tempObj;
+				}
+			} else {
+				updatedData = rawData;
+			}
+
+			this.newTableFormat = newTableFormat;
+
+			return updatedData;
+		},
+
 		pagedData() {
-			//console.log(this.dataset);
 			if (!!this.perPageNumber && this.perPageNumber != null) {
-				let rawData = this.dataset;
+				let rawData = this.rawData;
+
+				//console.log("this.rawData", this.rawData);
+
 				let formattedData = [];
 
 				if (this.dataComparisonConfig == null) {
 					rawData.map((d) => {
 						let tempObj = {};
 
-						this.tableFormat["top rows"].map((t) => {
+						this.newTableFormat["top rows"].map((t) => {
 							tempObj[t] = d[t];
 						});
 
-						if (this.tableFormat["features"] != undefined) {
+						if (this.newTableFormat["features"] != undefined) {
 							tempObj["features"] = {};
-							this.tableFormat["features"].map((f) => {
+							this.newTableFormat["features"].map((f) => {
 								tempObj["features"][f] = [];
 
 								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
+								this.newTableFormat[f].map((fItem) => {
 									fTempObj[fItem] = d[fItem];
 								});
 
@@ -265,17 +380,17 @@ export default Vue.component("research-gem-data-table", {
 					for (const [key, value] of Object.entries(rawData)) {
 						let tempObj = {};
 
-						this.tableFormat["top rows"].map((t) => {
+						this.newTableFormat["top rows"].map((t) => {
 							tempObj[t] = value[t];
 						});
 
-						if (this.tableFormat["features"] != undefined) {
+						if (this.newTableFormat["features"] != undefined) {
 							tempObj["features"] = {};
-							this.tableFormat["features"].map((f) => {
+							this.newTableFormat["features"].map((f) => {
 								tempObj["features"][f] = [];
 
 								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
+								this.newTableFormat[f].map((fItem) => {
 									fTempObj[fItem] = value[fItem];
 								});
 
@@ -286,7 +401,6 @@ export default Vue.component("research-gem-data-table", {
 					}
 				}
 
-				//let filtered = this.dataset;
 				let paged = [];
 				let perPage =
 					Number(this.perPageNumber) != 0
@@ -299,36 +413,41 @@ export default Vue.component("research-gem-data-table", {
 						? this.currentPage * perPage
 						: this.rows;
 
-				/*console.log(
-                    "startIndex",
-                    startIndex,
-                    "/endIndex",
-                    endIndex,
-                    "/rows",
-                    this.rows
-                );*/
-
 				for (let i = startIndex; i < endIndex; i++) {
 					paged.push(formattedData[i]);
 				}
+
 				//console.log("paged", paged);
+
 				return paged;
 			} else {
-				return this.dataset;
+				return this.rawData;
 			}
 		},
 		topRows() {
-			return this.tableFormat["top rows"];
+			return this.newTableFormat["top rows"];
 		},
 		topRowNumber() {
 			let topRows =
-				this.tableFormat["features"] != undefined
-					? this.tableFormat["top rows"].length + 1
-					: this.tableFormat["top rows"].length;
+				this.newTableFormat["features"] != undefined
+					? this.topRows.length + 1
+					: this.topRows.length;
 			return topRows;
 		},
 	},
-	watch: {},
+	watch: {
+		pkgDataSelected: {
+			handler: function (n, o) {
+				if (n.length > 0) {
+					console.log("this.rawData", this.rawData);
+					console.log("this.pkgData", this.pkgData);
+					console.log("this.pkgDataSelected", this.pkgDataSelected);
+				}
+			},
+			deep: true,
+			immediate: true,
+		},
+	},
 	methods: {
 		...Formatters,
 		getColorIndex(SKEY) {
@@ -367,19 +486,17 @@ export default Vue.component("research-gem-data-table", {
 		},
 		formatValue(tdValue, tdKey) {
 			if (
-				this.tableFormat["column formatting"] != undefined &&
-				this.tableFormat["column formatting"][tdKey] != undefined
+				this.newTableFormat["column formatting"] != undefined &&
+				this.newTableFormat["column formatting"][tdKey] != undefined
 			) {
 				let formatTypes =
-					this.tableFormat["column formatting"][tdKey]["type"];
+					this.newTableFormat["column formatting"][tdKey]["type"];
 
-				let linkToNewTab = !!this.tableFormat["column formatting"][
+				let linkToNewTab = !!this.newTableFormat["column formatting"][
 					tdKey
 				]["new tab"]
-					? this.tableFormat["column formatting"][tdKey]["new tab"]
+					? this.newTableFormat["column formatting"][tdKey]["new tab"]
 					: null;
-
-				//console.log(formatTypes);
 
 				let cellValue = tdValue;
 
@@ -393,7 +510,7 @@ export default Vue.component("research-gem-data-table", {
 					if (type == "link") {
 						let linkString =
 							"<a href='" +
-							this.tableFormat["column formatting"][tdKey][
+							this.newTableFormat["column formatting"][tdKey][
 								"link to"
 							] +
 							cellValue;
@@ -409,9 +526,9 @@ export default Vue.component("research-gem-data-table", {
 					if (type == "render background percent") {
 						let fieldValue =
 							typeof tdValue != "number"
-								? this.tableFormat["column formatting"][tdKey][
-										"percent if empty"
-								  ]
+								? this.newTableFormat["column formatting"][
+										tdKey
+								  ]["percent if empty"]
 								: tdValue;
 
 						let weight = Math.floor(
@@ -483,9 +600,10 @@ export default Vue.component("research-gem-data-table", {
 			return objectedArray;
 		},
 		applySorting(key) {
+			/*
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
-			if (key != this.tableFormat["locus field"]) {
+			if (key != this.newTableFormat["locus field"]) {
 				let filtered =
 					this.dataComparisonConfig == null
 						? this.dataset
@@ -504,9 +622,10 @@ export default Vue.component("research-gem-data-table", {
 					this.dataComparisonConfig == null
 						? filtered
 						: this.array2Object(filtered, this.dataset, key);
+
 				this.$store.dispatch("filteredData", returnData);
-			} else if (key == this.tableFormat["locus field"]) {
-				let sortKey = this.tableFormat["locus field"];
+			} else if (key == this.newTableFormat["locus field"]) {
+				let sortKey = this.newTableFormat["locus field"];
 				let filtered = this.dataset;
 
 				filtered.map(function (g) {
@@ -544,7 +663,7 @@ export default Vue.component("research-gem-data-table", {
 					sortDirection
 				);
 				this.$store.dispatch("filteredData", filtered);
-			}
+			}*/
 		},
 	},
 });

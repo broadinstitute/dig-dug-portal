@@ -31,7 +31,7 @@
 				:renderConfig="pkgConfig.credibleSetsViewer"
 				:dataComparison="this.$store.state.dataComparison"
 				:pkgData="$store.state.pkgData"
-				:pkgDataSelected="$store.state.pkgDataSelected"
+				:pkgDataSelected="pkgDataSelected"
 			></research-credible-sets-plot>
 			<research-annotations-plot
 				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
@@ -42,7 +42,7 @@
 				:compareGroupColors="colors.bold"
 				:dataComparison="this.$store.state.dataComparison"
 				:pkgData="pkgData"
-				:pkgDataSelected="$store.state.pkgDataSelected"
+				:pkgDataSelected="pkgDataSelected"
 			></research-annotations-plot>
 		</div>
 	</div>
@@ -68,6 +68,7 @@ export default Vue.component("kp-gem-pkg", {
 		"plotMargin",
 		"colors",
 		"pkgData",
+		"pkgDataSelected",
 	],
 	data() {
 		return {};
@@ -83,7 +84,6 @@ export default Vue.component("kp-gem-pkg", {
 	},
 	mounted: function () {
 		if (this.pkgConfig != null) {
-			//console.log("mounted", this.pkgConfig.viewers);
 			let viewersWrapper = document.getElementById(this.pkgConfig.pkgID);
 			this.pkgConfig.viewers.map((v) => {
 				let viewer = document.getElementById(

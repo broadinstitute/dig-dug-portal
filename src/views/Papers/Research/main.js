@@ -462,7 +462,7 @@ new Vue({
         checkDataComparison(newResearchData, previousData) {
 
             let dataComparison = this.$store.state.dataComparison;
-            console.log("dataComparison", dataComparison);
+
 
             if (this.dataComparisonConfig != null && newResearchData.length > 0) {
 
@@ -696,7 +696,7 @@ new Vue({
             if (contents === null || contents[0]["field_data_visualizer"] == false) {
                 return null;
             }
-            console.log("plotType", contents[0]["field_data_visualizer"])
+
             return contents[0]["field_data_visualizer"];
         },
         customPlotType() {
@@ -705,7 +705,7 @@ new Vue({
             if (contents === null || contents[0]["field_custom_visualizer"] == false) {
                 return null;
             }
-            console.log("customPlotType", contents[0]["field_custom_visualizer"])
+
             return contents[0]["field_custom_visualizer"];
         },
         plotConfig() {
@@ -829,7 +829,7 @@ new Vue({
                 } else {
                     let returnData = (this.dataType == 'json') ? JSON.parse(convertedData).data : convertedData;
 
-                    //console.log("returnData", convertedData["data"]);
+
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
@@ -1018,7 +1018,7 @@ new Vue({
 
                 let allData = this.checkDataComparison(content, this.$store.state.filteredData);
 
-                //console.log("All data 2", Object.keys(allData).length);
+
 
                 if (this.dataTableFormat == null) {
 

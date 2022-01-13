@@ -261,6 +261,7 @@
 									$parent.dataComparisonConfig
 								"
 								:colors="$parent.colors"
+								:pkgDataSelected="$store.state.pkgDataSelected"
 							></kp-gem-pkg>
 						</div>
 						<div
@@ -288,8 +289,8 @@
 							<research-gem-data-table
 								v-if="
 									!!$parent.dataTableFormat['custom table'] &&
-									$parent.dataTableFormat['custom table'] ==
-										'gem package'
+									$parent.dataTableFormat['custom table']
+										.name == 'gem package'
 								"
 								:pageID="$parent.pageID"
 								:dataset="$parent.filteredData"
@@ -303,6 +304,7 @@
 									$store.state.searchParameters
 								"
 								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
 							>
 							</research-gem-data-table>
 						</div>

@@ -218,20 +218,14 @@ export default Vue.component("research-annotations-plot", {
 				}
 			}
 		},
-		testReferencing() {
-			if (this.searchingRegion != null) {
-				//console.log("it works");
-			}
-		},
 	},
 	watch: {
 		pkgDataSelected: {
 			handler: function (n, o) {
-				//console.log("watch from annotation", n);
-				if (n.length > 0) {
-					this.renderByAnnotations();
-					this.renderTissuesTracks();
-				}
+				//if (n.length > 0) {
+				this.renderByAnnotations();
+				this.renderTissuesTracks();
+				//}
 			},
 			deep: true,
 			immediate: true,
@@ -258,11 +252,10 @@ export default Vue.component("research-annotations-plot", {
 				if (this.pkgData != null) {
 					this.pkgData["selectedAnnos"] = this.selectedAnnos;
 					this.$store.dispatch("pkgDataSelected", {
-						type: "annos",
+						type: "Annotation",
 						id: event.target.value,
 						action: "add",
 					});
-					//console.log("this.pkgData", this.pkgData);
 				}
 				//this.renderByAnnotations();
 			}
@@ -275,12 +268,10 @@ export default Vue.component("research-annotations-plot", {
 					this.pkgData["selectedTissues"] = this.selectedTissues;
 
 					this.$store.dispatch("pkgDataSelected", {
-						type: "tissues",
+						type: "Tissue",
 						id: event.target.value,
 						action: "add",
 					});
-
-					//console.log("this.pkgData", this.pkgData);
 				}
 				//this.renderTissuesTracks();
 			}
@@ -561,7 +552,7 @@ export default Vue.component("research-annotations-plot", {
 							this.selectedTissues.splice(tIndex, 1);
 							if (this.pkgData != null) {
 								this.$store.dispatch("pkgDataSelected", {
-									type: "tissues",
+									type: "Tissue",
 									id: tissue,
 									action: "remove",
 								});
@@ -715,7 +706,7 @@ export default Vue.component("research-annotations-plot", {
 										this.$store.dispatch(
 											"pkgDataSelected",
 											{
-												type: "annos",
+												type: "Annotation",
 												id: annotation,
 												action: "remove",
 											}
@@ -884,8 +875,6 @@ export default Vue.component("research-annotations-plot", {
 					this.pkgData["tissuesData"] = this.tissuesData;
 				}
 
-				//console.log("this.pkgData from annoplot", this.pkgData);
-
 				this.renderByAnnotations();
 				this.renderGE();
 			}
@@ -1000,8 +989,6 @@ export default Vue.component("research-annotations-plot", {
 						this.pkgData["annoData"] = this.annoData;
 						this.pkgData["tissuesData"] = this.tissuesData;
 					}
-
-					//console.log("this.pkgData 1", this.pkgData);
 
 					this.getGlobalEnrichment();
 				}
@@ -1493,7 +1480,6 @@ export default Vue.component("research-annotations-plot", {
 					renderHeight += btwnAnnotations;
 				}
 			}
-			//console.log("this.annoPosData", this.annoPosData);
 		},
 		renderAnnoAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
 			CTX.beginPath();
