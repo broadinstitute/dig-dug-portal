@@ -240,14 +240,13 @@ export default Vue.component("research-gem-data-table", {
 		},
 
 		rawData() {
-			let updatedData = {};
-			let rawData = { ...this.dataset };
-			let newTableFormat = { ...this.tableFormat };
+			var updatedData = {};
+			var rawData = { ...this.dataset };
+			var newTableFormat = { ...this.tableFormat };
+			var newRows = [];
 
 			if (this.pkgDataSelected.length > 0) {
-				var newRows = [
-					...new Set(this.pkgDataSelected.map((p) => p.type)),
-				];
+				newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
 				var oldRows = newTableFormat["top rows"];
 				var newTopRows = oldRows.concat(newRows);
 				newTableFormat["top rows"] = newTopRows;
@@ -258,83 +257,109 @@ export default Vue.component("research-gem-data-table", {
 				});
 			}
 
-			if (this.pkgDataSelected.length > 0) {
-				this.pkgDataSelected.map((p) => {
-					if (p.type == "Credible Set") {
-						for (const [phenotype, CSData] of Object.entries(
-							this.pkgData.CSData
-						)) {
-							if (!!CSData[p.id]) {
-								CSData[p.id].map((c) => {
-									let keyField =
-										this.tableFormat["custom table"][
-											"Credible Set"
-										]["key field"];
-									let PPAField =
-										this.tableFormat["custom table"][
-											"Credible Set"
-										]["PPA"];
+			console.log("newRows", newRows);
 
-									if (!!rawData[c[keyField]]) {
-										if (!updatedData[c[keyField]]) {
-											updatedData[c[keyField]] = {
-												...rawData[c[keyField]],
-											};
-										}
-										updatedData[c[keyField]][p.id] =
-											c[PPAField];
+			if (newRows.length > 0) {
+				if (!!newRows.includes("Credible Set")) {
+					this.pkgDataSelected.map((p) => {
+						if (p.type == "Credible Set") {
+							for (const [phenotype, CSData] of Object.entries(
+								this.pkgData.CSData
+							)) {
+								if (!!CSData[p.id]) {
+									CSData[p.id].map((c) => {
+										let keyField =
+											this.tableFormat["custom table"][
+												"Credible Set"
+											]["key field"];
+										let PPAField =
+											this.tableFormat["custom table"][
+												"Credible Set"
+											]["PPA"];
 
-										///add credible set value
+										if (!!rawData[c[keyField]]) {
+											if (!updatedData[c[keyField]]) {
+												updatedData[c[keyField]] = {
+													...rawData[c[keyField]],
+												};
+											}
+											updatedData[c[keyField]][p.id] =
+												c[PPAField];
 
-										if (
-											!updatedData[c[keyField]][
-												"Credible Set"
-											]
-										) {
-											updatedData[c[keyField]][
-												"Credible Set"
-											] = {};
+											///add credible set value
+
+											if (
+												!updatedData[c[keyField]][
+													"Credible Set"
+												]
+											) {
+												updatedData[c[keyField]][
+													"Credible Set"
+												] = {};
+											}
+
+											if (
+												!updatedData[c[keyField]][
+													"Credible Set"
+												][phenotype]
+											) {
+												updatedData[c[keyField]][
+													"Credible Set"
+												][phenotype] =
+													"<strong>" +
+													p.id +
+													"</strong>(" +
+													c[PPAField] +
+													")";
+											} else if (
+												!!updatedData[c[keyField]][
+													"Credible Set"
+												][phenotype]
+											) {
+												updatedData[c[keyField]][
+													"Credible Set"
+												][phenotype] +=
+													", " +
+													"<strong>" +
+													p.id +
+													"</strong>(" +
+													c[PPAField] +
+													")";
+											}
 										}
-										if (
-											!updatedData[c[keyField]][
-												"Credible Set"
-											][phenotype]
-										) {
-											updatedData[c[keyField]][
-												"Credible Set"
-											][phenotype] =
-												p.id + ":" + c[PPAField];
-										} else {
-											updatedData[
-												c[keyField]["Credible Set"]
-											][phenotype] +=
-												", " + p.id + ":" + c[PPAField];
-										}
-									}
-								});
+									});
+								}
 							}
 						}
-					}
-				});
-				updatedData = Object.entries(updatedData)
-					.sort()
-					.reduce((o, [k, v]) => ((o[k] = v), o), {});
-
-				/// feed null to value for phenotype under Credible sets
-
-				for (const [vKey, vValue] of Object.entries(updatedData)) {
-					let compareField =
-						this.dataComparisonConfig.fieldsToCompare[1];
-					let activePhenotypes = Object.keys(vValue[compareField]);
-					let tempObj = {};
-					activePhenotypes.map((p) => {
-						if (!!vValue["Credible Set"][p]) {
-							tempObj[p] = vValue["Credible Set"][p];
-						} else {
-							tempObj[p] = "N/A";
-						}
 					});
-					vValue["Credible Set"] = tempObj;
+					updatedData = Object.entries(updatedData)
+						.sort()
+						.reduce((o, [k, v]) => ((o[k] = v), o), {});
+
+					/// feed null to value for phenotype under Credible sets
+
+					for (const [vKey, vValue] of Object.entries(updatedData)) {
+						let compareField =
+							this.dataComparisonConfig.fieldsToCompare[1];
+						let activePhenotypes = Object.keys(
+							vValue[compareField]
+						);
+						let tempObj = {};
+						activePhenotypes.map((p) => {
+							if (!!vValue["Credible Set"][p]) {
+								tempObj[p] = vValue["Credible Set"][p];
+							} else {
+								tempObj[p] = "N/A";
+							}
+						});
+						vValue["Credible Set"] = tempObj;
+					}
+					if (!!newRows.includes("Tissue")) {
+						this.pkgDataSelected.map((p) => {
+							if (p.type == "Tissue") {
+							}
+						});
+					}
 				}
 			} else {
 				updatedData = rawData;

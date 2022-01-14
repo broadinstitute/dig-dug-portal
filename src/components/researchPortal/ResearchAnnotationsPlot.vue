@@ -44,6 +44,29 @@
 				</div>
 			</div>
 			<div class="col-md-3 anno-plot-ui-wrapper">
+				<h6>Add Annotation Track</h6>
+				<div id="annotationsUIWrapper">
+					<div class="filtering-ui-wrapper add-content">
+						<div class="filtering-ui-content">
+							<div class="col">
+								<select
+									class="custom-select"
+									@change="addAnnoTrack($event)"
+								>
+									<option value="">
+										{{ "Select annotation" }}
+									</option>
+									<option
+										v-for="(annoValue, annoKey) in annoData"
+										:key="annoKey"
+										:value="annoKey"
+										v-html="annoKey"
+									></option>
+								</select>
+							</div>
+						</div>
+					</div>
+				</div>
 				<h6>Add Tissue Track</h6>
 				<div id="annotationsUIWrapper">
 					<div class="filtering-ui-wrapper add-content">
@@ -81,29 +104,6 @@
 											v-html="'(' + annoKey[0] + ')'"
 										></span>
 									</option>
-								</select>
-							</div>
-						</div>
-					</div>
-				</div>
-				<h6>Add Annotation Track</h6>
-				<div id="annotationsUIWrapper">
-					<div class="filtering-ui-wrapper add-content">
-						<div class="filtering-ui-content">
-							<div class="col">
-								<select
-									class="custom-select"
-									@change="addAnnoTrack($event)"
-								>
-									<option value="">
-										{{ "Select annotation" }}
-									</option>
-									<option
-										v-for="(annoValue, annoKey) in annoData"
-										:key="annoKey"
-										:value="annoKey"
-										v-html="annoKey"
-									></option>
 								</select>
 							</div>
 						</div>
