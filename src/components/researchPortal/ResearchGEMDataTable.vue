@@ -99,6 +99,11 @@
 									' reference bg-color-' +
 									getColorIndex(sKey)
 								"
+								:style="
+									'height:' +
+									100 / Object.keys(tdValue).length +
+									'%;'
+								"
 								v-html="formatValue(sValue, tdKey)"
 								:key="sKey"
 							></span>
@@ -119,10 +124,10 @@
 					:class="'hidden'"
 				>
 					<td :colspan="topRowNumber" class="features-td">
-						<research-data-table-features
+						<research-gem-table-features
 							:featuresData="value.features"
 							:featuresFormat="newTableFormat"
-						></research-data-table-features>
+						></research-gem-table-features>
 					</td>
 				</tr>
 			</tbody>
@@ -145,7 +150,7 @@
 
 <script>
 import Vue from "vue";
-import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
+import ResearchGEMTableFeatures from "@/components/researchPortal/ResearchGEMTableFeatures.vue";
 
 import Formatters from "@/utils/formatters";
 
@@ -173,7 +178,7 @@ export default Vue.component("research-gem-data-table", {
 		};
 	},
 	modules: {},
-	components: { ResearchDataTableFeatures },
+	components: { ResearchGEMTableFeatures },
 	created() {},
 	beforeMount() {},
 
@@ -244,6 +249,7 @@ export default Vue.component("research-gem-data-table", {
 			var rawData = { ...this.dataset };
 			var newTableFormat = { ...this.tableFormat };
 			var newRows = [];
+			var selectedBy = {};
 
 			if (this.pkgDataSelected.length > 0) {
 				newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
@@ -253,82 +259,99 @@ export default Vue.component("research-gem-data-table", {
 				newTableFormat["features"] = ["Evidence"];
 				newTableFormat["Evidence"] = [];
 				this.pkgDataSelected.map((p) => {
-					newTableFormat["Evidence"].push(p.id);
+					if (!selectedBy[p.type]) {
+						selectedBy[p.type] = [];
+					}
+					selectedBy[p.type].push(p.id);
 				});
+
+				if (!!selectedBy["Credible Set"]) {
+					selectedBy["Credible Set"].map((p) => {
+						newTableFormat["Evidence"].push(p);
+					});
+				}
+
+				if (!!selectedBy["Tissue"]) {
+					selectedBy["Tissue"].map((p) => {
+						newTableFormat["Evidence"].push(p);
+					});
+				}
+
+				if (!!selectedBy["Annotation"]) {
+					selectedBy["Annotation"].map((p) => {
+						newTableFormat["Evidence"].push(p);
+					});
+				}
 			}
 
-			console.log("newRows", newRows);
-
 			if (newRows.length > 0) {
-				if (!!newRows.includes("Credible Set")) {
-					this.pkgDataSelected.map((p) => {
-						if (p.type == "Credible Set") {
-							for (const [phenotype, CSData] of Object.entries(
-								this.pkgData.CSData
-							)) {
-								if (!!CSData[p.id]) {
-									CSData[p.id].map((c) => {
-										let keyField =
-											this.tableFormat["custom table"][
-												"Credible Set"
-											]["key field"];
-										let PPAField =
-											this.tableFormat["custom table"][
-												"Credible Set"
-											]["PPA"];
+				if (!!selectedBy["Credible Set"]) {
+					let keyField =
+						this.tableFormat["custom table"]["Credible Set"][
+							"key field"
+						];
+					let PPAField =
+						this.tableFormat["custom table"]["Credible Set"]["PPA"];
 
-										if (!!rawData[c[keyField]]) {
-											if (!updatedData[c[keyField]]) {
-												updatedData[c[keyField]] = {
-													...rawData[c[keyField]],
-												};
-											}
-											updatedData[c[keyField]][p.id] =
-												c[PPAField];
+					selectedBy["Credible Set"].map((CS) => {
+						for (const [phenotype, CSData] of Object.entries(
+							this.pkgData.CSData
+						)) {
+							if (!!CSData[CS]) {
+								CSData[CS].map((CSItem) => {
+									let variant = CSItem[keyField];
+									let PPA = CSItem[PPAField];
 
-											///add credible set value
-
-											if (
-												!updatedData[c[keyField]][
-													"Credible Set"
-												]
-											) {
-												updatedData[c[keyField]][
-													"Credible Set"
-												] = {};
-											}
-
-											if (
-												!updatedData[c[keyField]][
-													"Credible Set"
-												][phenotype]
-											) {
-												updatedData[c[keyField]][
-													"Credible Set"
-												][phenotype] =
-													"<strong>" +
-													p.id +
-													"</strong>(" +
-													c[PPAField] +
-													")";
-											} else if (
-												!!updatedData[c[keyField]][
-													"Credible Set"
-												][phenotype]
-											) {
-												updatedData[c[keyField]][
-													"Credible Set"
-												][phenotype] +=
-													", " +
-													"<strong>" +
-													p.id +
-													"</strong>(" +
-													c[PPAField] +
-													")";
-											}
+									if (!!rawData[variant]) {
+										if (!updatedData[variant]) {
+											updatedData[variant] = {
+												...rawData[variant],
+											};
 										}
-									});
-								}
+										updatedData[variant][CS] = PPA;
+
+										///add credible set value
+
+										if (
+											!updatedData[variant][
+												"Credible Set"
+											]
+										) {
+											updatedData[variant][
+												"Credible Set"
+											] = {};
+										}
+
+										if (
+											!updatedData[variant][
+												"Credible Set"
+											][phenotype]
+										) {
+											updatedData[variant][
+												"Credible Set"
+											][phenotype] =
+												"<strong>" +
+												CS +
+												"</strong>(" +
+												PPA +
+												")";
+										} else if (
+											!!updatedData[variant][
+												"Credible Set"
+											][phenotype]
+										) {
+											updatedData[variant][
+												"Credible Set"
+											][phenotype] +=
+												", " +
+												"<strong>" +
+												CS +
+												"</strong>(" +
+												PPA +
+												")";
+										}
+									}
+								});
 							}
 						}
 					});
@@ -354,11 +377,116 @@ export default Vue.component("research-gem-data-table", {
 						});
 						vValue["Credible Set"] = tempObj;
 					}
-					if (!!newRows.includes("Tissue")) {
-						this.pkgDataSelected.map((p) => {
-							if (p.type == "Tissue") {
+
+					if (
+						!!selectedBy["Credible Set"] &&
+						selectedBy["Credible Set"].length > 0 &&
+						!!selectedBy["Tissue"] &&
+						selectedBy["Tissue"].length > 0 &&
+						!!selectedBy["Annotation"] &&
+						selectedBy["Annotation"].length > 0
+					) {
+						//console.log("selectedBy", selectedBy);
+
+						for (const [vKey, vValue] of Object.entries(
+							updatedData
+						)) {
+							let annotationContent = {};
+							selectedBy["Tissue"].map((t) => {
+								annotationContent[t] = {};
+								selectedBy["Annotation"].map((a) => {
+									annotationContent[t][a] = null;
+								});
+							});
+
+							selectedBy["Tissue"].map((t) => {
+								let inTissue = 0;
+
+								selectedBy["Annotation"].map((a) => {
+									let inAnnotation = 0;
+									let tissueContent = "";
+									this.pkgData.tissuesData[t][a].region.map(
+										(r) => {
+											if (
+												vValue.Position >= r.start &&
+												vValue.Position <= r.end
+											) {
+												inAnnotation = 1;
+												annotationContent[t][a] = {
+													start: r.start,
+													end: r.end,
+												};
+											}
+										}
+									);
+									if (inAnnotation == 1) {
+										inTissue = 1;
+									}
+								});
+								if (inTissue == 0) {
+									delete updatedData[vKey];
+								}
+							});
+
+							if (!!updatedData[vKey]) {
+								let compareField =
+									this.dataComparisonConfig
+										.fieldsToCompare[1];
+
+								let activePhenotypes = Object.keys(
+									vValue[compareField]
+								);
+								let tissueColmContent = "";
+								let overStart = null;
+								let overEnd = null;
+
+								for (const [
+									tissue,
+									annotations,
+								] of Object.entries(annotationContent)) {
+									tissueColmContent +=
+										"<strong>" +
+										tissue +
+										"</strong><br />Annotations: ";
+									for (const [
+										annoKey,
+										annoValue,
+									] of Object.entries(annotations)) {
+										if (annoValue != null) {
+											tissueColmContent += annoKey + ", ";
+											overStart =
+												overStart == null
+													? annoValue.start
+													: overStart <
+													  annoValue.start
+													? annoValue.start
+													: overStart;
+
+											overEnd =
+												overEnd == null
+													? annoValue.end
+													: overEnd > annoValue.end
+													? annoValue.end
+													: overEnd;
+
+											//Feed feature column
+										}
+									}
+									tissueColmContent = tissueColmContent.slice(
+										0,
+										-2
+									);
+									tissueColmContent += "<br />";
+								}
+								tissueColmContent +=
+									"<strong>Overlapping Region</strong>: " +
+									overStart +
+									"-" +
+									overEnd;
+
+								updatedData[vKey]["Tissue"] = tissueColmContent;
 							}
-						});
+						}
 					}
 				}
 			} else {
@@ -366,6 +494,8 @@ export default Vue.component("research-gem-data-table", {
 			}
 
 			this.newTableFormat = newTableFormat;
+
+			//console.log("updatedData", updatedData);
 
 			return updatedData;
 		},
@@ -464,9 +594,9 @@ export default Vue.component("research-gem-data-table", {
 		pkgDataSelected: {
 			handler: function (n, o) {
 				if (n.length > 0) {
-					console.log("this.rawData", this.rawData);
+					//console.log("this.rawData", this.rawData);
 					console.log("this.pkgData", this.pkgData);
-					console.log("this.pkgDataSelected", this.pkgDataSelected);
+					//console.log("this.pkgDataSelected", this.pkgDataSelected);
 				}
 			},
 			deep: true,

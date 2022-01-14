@@ -5,7 +5,6 @@
 			:key="index"
 			class="research-data-table-features"
 		>
-			<!--<div class="feature-title">{{ value }}</div>-->
 			<table class="table table-sm feature-table">
 				<tr>
 					<th
@@ -28,9 +27,11 @@
 					:key="featureIndex"
 				>
 					<td
-						v-for="(contentValue, contentKey) in featureValue"
-						:key="contentKey"
-						v-html="contentValue"
+						v-for="(headerValue, headerIndex) in featuresFormat[
+							value
+						]"
+						:key="headerIndex"
+						v-html="featureValue[headerValue]"
 					></td>
 				</tr>
 			</table>
@@ -41,7 +42,7 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("research-data-table-features", {
+export default Vue.component("research-gem-table-features", {
 	props: ["featuresData", "featuresFormat"],
 	data() {
 		return {};
