@@ -46,7 +46,7 @@
 			</div>
 			<div
 				class="convert-2-csv btn-sm"
-				@click="saveJson(filteredData, pageID + '_filtered')"
+				@click="saveJson(rawData, pageID + '_filtered')"
 			>
 				Save as JSON
 			</div>
@@ -429,13 +429,7 @@ export default Vue.component("research-gem-data-table", {
 							});
 
 							if (!!updatedData[vKey]) {
-								let compareField =
-									this.dataComparisonConfig
-										.fieldsToCompare[1];
-
-								let activePhenotypes = Object.keys(
-									vValue[compareField]
-								);
+								/// feed "Tissue" column content
 								let tissueColmContent = "";
 								let overStart = null;
 								let overEnd = null;
@@ -485,6 +479,64 @@ export default Vue.component("research-gem-data-table", {
 									overEnd;
 
 								updatedData[vKey]["Tissue"] = tissueColmContent;
+
+								///Feed "Annotation" column content
+								let compareField =
+									this.dataComparisonConfig
+										.fieldsToCompare[1];
+
+								let activePhenotypes = Object.keys(
+									vValue[compareField]
+								);
+
+								updatedData[vKey]["Annotation"] = {};
+
+								activePhenotypes.map((p) => {
+									let annoColmContent = "";
+									for (const [
+										tissue,
+										annotations,
+									] of Object.entries(annotationContent)) {
+										annoColmContent +=
+											"<strong>" +
+											tissue +
+											"</strong><br />";
+										for (const [
+											annoKey,
+											annoValue,
+										] of Object.entries(annotations)) {
+											let annoParams =
+												this.pkgData.GEByTissueData[p][
+													tissue
+												][annoKey];
+											annoColmContent += annoKey + "(";
+											annoColmContent +=
+												"P-Value:" +
+												Formatters.pValueFormatter(
+													annoParams.pValue
+												) +
+												", Fold: " +
+												Formatters.pValueFormatter(
+													annoParams.fold
+												) +
+												")<br />";
+											/*for (const [
+												param,
+												paramValue,
+											] of Object.entries(annoParams)) {
+												annoColmContent +=
+													param +
+													": " +
+													Formatters.pValueFormatter(
+														paramValue
+													) +
+													"<br />";
+											}*/
+										}
+									}
+									updatedData[vKey]["Annotation"][p] =
+										annoColmContent;
+								});
 							}
 						}
 					}
@@ -495,7 +547,7 @@ export default Vue.component("research-gem-data-table", {
 
 			this.newTableFormat = newTableFormat;
 
-			//console.log("updatedData", updatedData);
+			console.log("updatedData", updatedData);
 
 			return updatedData;
 		},
