@@ -53,8 +53,8 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
-.front-top-banner-v2fkp {
-    background-image: url(//kp4cd.org/sites/default/files/vueportal/v2fkp_front_bg.png),
+.front-top-banner-v2fkp,.front-top-banner-a2fkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/a2fkp_front_bg.png),
         linear-gradient(#f7835c, #bd516f);
     background-position: 120% 100px, top left;
 }
@@ -138,7 +138,7 @@ a:hover {
     width: 430px;
 }
 
-.front-top-banner-v2fkp .front-logo-img {
+.front-top-banner-v2fkp .front-logo-img, .front-top-banner-a2fkp .front-logo-img {
     width: 430px;
 }
 
@@ -202,7 +202,7 @@ a:hover {
     transform: translate(0%, 35%);
 }
 
-.front-logo-tagline-v2fkp {
+.front-logo-tagline-v2fkp, .front-logo-tagline-a2fkp {
     transform: translate(0%, 42%);
 }
 
@@ -302,7 +302,7 @@ a:hover {
     height: 50px;
 }
 
-.v2fkp-logo {
+.v2fkp-logo, .a2fkp-logo {
     height: 50px;
 }
 
@@ -373,7 +373,9 @@ a:hover {
 }
 
 .v2fkp-header,
-.v2fkp-footer {
+.v2fkp-footer,
+.a2fkp-header,
+.a2fkp-footer {
     background-color: #f7835c;
     height: 50px;
 }
@@ -507,6 +509,7 @@ a:hover {
 .t2dkp-footer,
 .cdkp-footer,
 .v2fkp-footer,
+.a2fkp-footer,
 .t1dkp-footer,
 .mskkp-footer,
 .lungkp-footer,
@@ -527,6 +530,7 @@ a:hover {
 .t2dkp-body,
 .cdkp-body,
 .v2fkp-body,
+.a2fkp-body,
 .t1dkp-body,
 .mskkp-body,
 .lungkp-body,
@@ -545,6 +549,7 @@ a:hover {
 .t2dkp-card,
 .cdkp-card,
 .v2fkp-card,
+.a2fkp-card,
 .t1dkp-card,
 .mskkp-card,
 .lungkp-card,

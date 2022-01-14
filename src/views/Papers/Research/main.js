@@ -64,6 +64,80 @@ new Vue({
             dataFiles: [],
             dataFilesLabels: null,
             dataTableFormat: null,
+            colors: {
+                moderate: [
+                    "#007bff25",
+                    "#04884525",
+                    "#8490C825",
+                    "#BF61A525",
+                    "#EE312425",
+                    "#FCD70025",
+                    "#5555FF25",
+                    "#7aaa1c25",
+                    "#9F78AC25",
+                    "#F8808425",
+                    "#F5A4C725",
+                    "#CEE6C125",
+                    "#cccc0025",
+                    "#6FC7B625",
+                    "#D5A76825",
+                    "#d4d4d425",
+                ],
+                moderate: [
+                    "#007bff50",
+                    "#04884550",
+                    "#8490C850",
+                    "#BF61A550",
+                    "#EE312450",
+                    "#FCD70050",
+                    "#5555FF50",
+                    "#7aaa1c50",
+                    "#9F78AC50",
+                    "#F8808450",
+                    "#F5A4C750",
+                    "#CEE6C150",
+                    "#cccc0050",
+                    "#6FC7B650",
+                    "#D5A76850",
+                    "#d4d4d450",
+                ],
+                bold: [
+                    "#007bff75",
+                    "#04884575",
+                    "#8490C875",
+                    "#BF61A575",
+                    "#EE312475",
+                    "#FCD70075",
+                    "#5555FF75",
+                    "#7aaa1c75",
+                    "#9F78AC75",
+                    "#F8808475",
+                    "#F5A4C775",
+                    "#CEE6C175",
+                    "#cccc0075",
+                    "#6FC7B675",
+                    "#D5A76875",
+                    "#d4d4d475",
+                ],
+                extraBold: [
+                    "#007bff",
+                    "#048845",
+                    "#8490C8",
+                    "#BF61A5",
+                    "#EE3124",
+                    "#FCD700",
+                    "#5555FF",
+                    "#7aaa1c",
+                    "#9F78AC",
+                    "#F88084",
+                    "#F5A4C7",
+                    "#CEE6C1",
+                    "#cccc00",
+                    "#6FC7B6",
+                    "#D5A768",
+                    "#d4d4d4",
+                ],
+            },
 
         }
     },
@@ -72,7 +146,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
-
     },
 
     render(createElement, context) {
@@ -367,6 +440,8 @@ new Vue({
 
                     let APIPoint = this.dataFiles[0];
                     if (this.dataType == "bioindex") {
+
+                        /// set BioIndex API point
                         APIPoint +=
                             "query/" +
                             this.apiParameters.query.index +
@@ -375,7 +450,6 @@ new Vue({
                     }
 
                     let fetchParam = { dataPoint: APIPoint, domain: "external" };
-
 
                     this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
                 } else {
@@ -590,7 +664,7 @@ new Vue({
             return true;
         },
         plotMargin() {
-            return { leftMargin: 75, rightMargin: 10, topMargin: 10, bottomMargin: 50 }
+            return { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50 }
         },
         pageDescription() {
             let contents = this.researchPage;
@@ -907,9 +981,6 @@ new Vue({
         },
         researchData(content) {
             // reset searching region if applicable
-            //console.log("data", content);
-            //console.log("this.plotConfig", this.plotConfig);
-            //console.log("this.dataTableFormat", this.dataTableFormat);
 
             if (this.plotConfig != null &&
                 !!this.plotConfig.genesTrack) {
@@ -926,7 +997,6 @@ new Vue({
                         break;
                 }
 
-
                 this.$store.dispatch("searchingRegion", region);
                 this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
             }
@@ -937,9 +1007,6 @@ new Vue({
                 let allData = this.checkDataComparison(content, this.$store.state.filteredData);
 
                 console.log("All data 2", Object.keys(allData).length);
-
-                //this.$store.dispatch("unfilteredData", allData);
-                //this.$store.dispatch("filteredData", allData);
 
                 if (this.dataTableFormat == null) {
 

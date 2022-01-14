@@ -208,6 +208,7 @@
 								"
 								:region="$store.state.searchingRegion"
 								:plotMargin="$parent.plotMargin"
+								:compareGroupColors="$parent.colors.moderate"
 							></research-region-plot>
 
 							<research-score-plot
@@ -226,6 +227,7 @@
 							<research-genes-track
 								v-if="
 									$parent.plotConfig != null &&
+									$parent.plotType != 'gem_pkg' &&
 									!!$parent.plotConfig.genesTrack &&
 									$store.state.codingGenesData != null
 								"
@@ -246,43 +248,16 @@
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-heatmap>
-							<!--
+
 							<kp-data-viewer-pkg
-								:pkgConfig="{
-									viewers: ['kpGenesTrack', 'kpRegionViewer'],
-									pkgID: 'testPkg',
-									kpRegionViewer: {
-										viewerConfig: {
-											xAxisField: 'position',
-											xAxisLabel: 'Chromosome 9',
-											yAxisField: 'nLog10P',
-											yAxisLabel: 'P-Value(-log10)',
-											renderBy: 'ldVarID',
-											plotsBy: 'phenotype',
-											hoverContent: ['pValue'],
-											height: 250,
-											features: ['LD', 'recombination'],
-											ldPopulation: {
-												value: 'ldPopulation',
-											},
-											//ldPopulation: { ifStatic: true, value: 'ALL' }, //ifStatic->true: fixed value ifStatic not set value has to be a field name
-										},
-										region: {
-											chr: 9,
-											start: 21940000,
-											end: 22190000,
-										},
-										data: $store.state.filteredData,
-									},
-									plotLayout: {
-										leftMargin: 74.5,
-										rightMargin: 25.5,
-										topMargin: 10.5,
-										bottomMargin: 50.5,
-									},
-								}"
+								v-if="$parent.plotType == 'gem_pkg'"
+								:pkgConfig="$parent.plotConfig"
+								:plotMargin="$parent.plotMargin"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:colors="$parent.colors"
 							></kp-data-viewer-pkg>
-							-->
 						</div>
 						<div
 							class="col-md-12"
