@@ -42,6 +42,38 @@
 						v-html="'Please select annotation to render.'"
 					></div>
 				</div>
+				<div
+					v-if="
+						selectedTissues.length > 0 && selectedAnnos.length > 0
+					"
+				>
+					<table
+						class="table table-sm ge-data-table"
+						cellpadding="0"
+						cellspacing="0"
+					>
+						<thead>
+							<tr>
+								<th>Tissues</th>
+								<th
+									v-for="(pValue, pKey, pIndex) in GEData"
+									:key="pKey"
+									v-html="pKey"
+								></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="tissue in selectedTissues" :key="tissue">
+								<td v-html="tissue"></td>
+								<td
+									v-for="(pValue, pKey, pIndex) in GEData"
+									:key="pKey"
+									v-html="getGEContent(pKey, tissue)"
+								></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
 			<div class="col-md-3 anno-plot-ui-wrapper">
 				<h6>Add Annotation Track</h6>
@@ -109,6 +141,7 @@
 						</div>
 					</div>
 				</div>
+
 				<h6>Global Enrichment</h6>
 				<div>
 					<div
@@ -244,6 +277,25 @@ export default Vue.component("research-annotations-plot", {
 		},
 		showHideAnnoPlots() {
 			uiUtils.showHideElement("annotationsPlotWrapper");
+		},
+		getGEContent(PKEY, TISSUE) {
+			var content = "";
+			this.selectedAnnos.map((a) => {
+				if (this.pkgData.GEByTissueData[PKEY][TISSUE]) {
+					if (this.pkgData.GEByTissueData[PKEY][TISSUE][a]) {
+						let data = this.pkgData.GEByTissueData[PKEY][TISSUE][a];
+						content +=
+							"<strong>" +
+							a +
+							"</strong>(P-Value:" +
+							Formatters.pValueFormatter(data.pValue) +
+							", Fold:" +
+							Formatters.pValueFormatter(data.fold) +
+							")<br />";
+					}
+				}
+			});
+			return content;
 		},
 		addAnnoTrack(event) {
 			if (event.target.value != "") {
@@ -995,6 +1047,7 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		renderGE() {
+			console.log("this.pkgData", this.pkgData);
 			this.GEPosData = {};
 			let sortedGEData = {};
 
@@ -1592,6 +1645,29 @@ $(function () {});
 	border-radius: 25px;
 	text-align: center;
 	font-size: 13px;
+}
+
+table.ge-data-table {
+	border-top: solid 1px #ddd;
+	border-right: solid 1px #ddd;
+	border-collapse: inherit;
+	text-align: center;
+}
+
+.ge-data-table th {
+	background-color: #eeeeee;
+	border: none !important;
+	border-left: solid 1px #ddd !important;
+	border-bottom: solid 2px #ccc !important;
+	font-size: 13px;
+}
+
+.ge-data-table td {
+	border: none !important;
+	border-left: solid 1px #eee !important;
+	border-bottom: solid 1px #ddd !important;
+	vertical-align: middle;
+	font-size: 14px;
 }
 </style>
 

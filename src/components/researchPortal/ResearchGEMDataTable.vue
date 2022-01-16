@@ -256,15 +256,26 @@ export default Vue.component("research-gem-data-table", {
 				var oldRows = newTableFormat["top rows"];
 				var newTopRows = oldRows.concat(newRows);
 				newTableFormat["top rows"] = newTopRows;
+
+				const annoIndex =
+					newTableFormat["top rows"].indexOf("Annotation");
+				if (annoIndex > -1) {
+					newTableFormat["top rows"].splice(annoIndex, 1);
+				}
+
+				/*
 				newTableFormat["features"] = ["Evidence"];
 				newTableFormat["Evidence"] = [];
+*/
 				this.pkgDataSelected.map((p) => {
 					if (!selectedBy[p.type]) {
 						selectedBy[p.type] = [];
 					}
 					selectedBy[p.type].push(p.id);
 				});
-
+				//console.log("newRows", newRows);
+				//console.log("newTableFormat", newTableFormat);
+				/*
 				if (!!selectedBy["Credible Set"]) {
 					selectedBy["Credible Set"].map((p) => {
 						newTableFormat["Evidence"].push(p);
@@ -282,6 +293,7 @@ export default Vue.component("research-gem-data-table", {
 						newTableFormat["Evidence"].push(p);
 					});
 				}
+				*/
 			}
 
 			if (newRows.length > 0) {
@@ -405,8 +417,10 @@ export default Vue.component("research-gem-data-table", {
 								selectedBy["Annotation"].map((a) => {
 									let inAnnotation = 0;
 									let tissueContent = "";
-									this.pkgData.tissuesData[t][a].region.map(
-										(r) => {
+									if (!!this.pkgData.tissuesData[t][a]) {
+										this.pkgData.tissuesData[t][
+											a
+										].region.map((r) => {
 											if (
 												vValue.Position >= r.start &&
 												vValue.Position <= r.end
@@ -417,10 +431,10 @@ export default Vue.component("research-gem-data-table", {
 													end: r.end,
 												};
 											}
+										});
+										if (inAnnotation == 1) {
+											inTissue = 1;
 										}
-									);
-									if (inAnnotation == 1) {
-										inTissue = 1;
 									}
 								});
 								if (inTissue == 0) {
@@ -481,7 +495,7 @@ export default Vue.component("research-gem-data-table", {
 								updatedData[vKey]["Tissue"] = tissueColmContent;
 
 								///Feed "Annotation" column content
-								let compareField =
+								/*let compareField =
 									this.dataComparisonConfig
 										.fieldsToCompare[1];
 
@@ -520,23 +534,11 @@ export default Vue.component("research-gem-data-table", {
 													annoParams.fold
 												) +
 												")<br />";
-											/*for (const [
-												param,
-												paramValue,
-											] of Object.entries(annoParams)) {
-												annoColmContent +=
-													param +
-													": " +
-													Formatters.pValueFormatter(
-														paramValue
-													) +
-													"<br />";
-											}*/
 										}
 									}
 									updatedData[vKey]["Annotation"][p] =
 										annoColmContent;
-								});
+								});*/
 							}
 						}
 					}
@@ -547,7 +549,7 @@ export default Vue.component("research-gem-data-table", {
 
 			this.newTableFormat = newTableFormat;
 
-			console.log("updatedData", updatedData);
+			//console.log("updatedData", updatedData);
 
 			return updatedData;
 		},
@@ -647,7 +649,7 @@ export default Vue.component("research-gem-data-table", {
 			handler: function (n, o) {
 				if (n.length > 0) {
 					//console.log("this.rawData", this.rawData);
-					console.log("this.pkgData", this.pkgData);
+					//console.log("this.pkgData", this.pkgData);
 					//console.log("this.pkgDataSelected", this.pkgDataSelected);
 				}
 			},
