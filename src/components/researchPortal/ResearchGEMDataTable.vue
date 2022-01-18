@@ -20,7 +20,7 @@
 					dataComparisonConfig.fieldsGroupDataKey
 				].search"
 				v-html="item"
-				:key="item"
+				:key="item + itemIndex"
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
 			></span>
 		</div>
@@ -64,8 +64,16 @@
 						v-for="(value, index) in topRows"
 						:key="index"
 						v-html="value"
-						@click="applySorting(value)"
-						:class="'sortable-th ' + value"
+						@click="
+							!!tableFormat['top rows'].includes(value)
+								? applySorting(value)
+								: ''
+						"
+						:class="
+							!!tableFormat['top rows'].includes(value)
+								? 'sortable-th ' + value
+								: value
+						"
 					></th>
 					<th
 						class="th-evidence"
@@ -174,7 +182,6 @@ export default Vue.component("research-gem-data-table", {
 			currentPage: 1,
 			perPageNumber: null,
 			newTableFormat: null,
-			newRawData: null,
 		};
 	},
 	modules: {},
@@ -251,6 +258,14 @@ export default Vue.component("research-gem-data-table", {
 			var newRows = [];
 			var selectedBy = {};
 
+			let vIndex = 0;
+			for (const [vKey, vValue] of Object.entries(rawData)) {
+				vValue["indexNum"] = vIndex;
+				vIndex++;
+			}
+
+			//console.log("rawData", rawData);
+
 			if (this.pkgDataSelected.length > 0) {
 				newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
 				var oldRows = newTableFormat["top rows"];
@@ -266,7 +281,7 @@ export default Vue.component("research-gem-data-table", {
 				/*
 				newTableFormat["features"] = ["Evidence"];
 				newTableFormat["Evidence"] = [];
-*/
+				*/
 				this.pkgDataSelected.map((p) => {
 					if (!selectedBy[p.type]) {
 						selectedBy[p.type] = [];
@@ -543,13 +558,27 @@ export default Vue.component("research-gem-data-table", {
 						}
 					}
 				}
+
+				var sortedData = [];
+
+				for (const [vKey, vValue] of Object.entries(updatedData)) {
+					sortedData.push(vValue);
+				}
+
+				sortedData.sort((a, b) => (a.indexNum > b.indexNum ? 1 : -1));
+
+				updatedData = {};
+
+				sortedData.map((s) => {
+					updatedData[s["Variant ID"]] = s;
+				});
 			} else {
 				updatedData = rawData;
 			}
 
 			this.newTableFormat = newTableFormat;
 
-			//console.log("updatedData", updatedData);
+			console.log("updatedData");
 
 			return updatedData;
 		},
@@ -557,8 +586,6 @@ export default Vue.component("research-gem-data-table", {
 		pagedData() {
 			if (!!this.perPageNumber && this.perPageNumber != null) {
 				let rawData = this.rawData;
-
-				//console.log("this.rawData", this.rawData);
 
 				let formattedData = [];
 
@@ -809,10 +836,9 @@ export default Vue.component("research-gem-data-table", {
 			return objectedArray;
 		},
 		applySorting(key) {
-			/*
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
-			if (key != this.newTableFormat["locus field"]) {
+			if (key != this.tableFormat["locus field"]) {
 				let filtered =
 					this.dataComparisonConfig == null
 						? this.dataset
@@ -831,10 +857,9 @@ export default Vue.component("research-gem-data-table", {
 					this.dataComparisonConfig == null
 						? filtered
 						: this.array2Object(filtered, this.dataset, key);
-
 				this.$store.dispatch("filteredData", returnData);
-			} else if (key == this.newTableFormat["locus field"]) {
-				let sortKey = this.newTableFormat["locus field"];
+			} else if (key == this.tableFormat["locus field"]) {
+				let sortKey = this.tableFormat["locus field"];
 				let filtered = this.dataset;
 
 				filtered.map(function (g) {
@@ -872,7 +897,7 @@ export default Vue.component("research-gem-data-table", {
 					sortDirection
 				);
 				this.$store.dispatch("filteredData", filtered);
-			}*/
+			}
 		},
 	},
 });
