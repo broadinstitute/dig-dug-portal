@@ -240,7 +240,13 @@ export default Vue.component("research-annotations-plot", {
 			if (this.phenotype != null) {
 				uiUtils.showElement("annotationsPlotWrapper");
 				this.getAnnotations(this.searchingRegion);
-				return this.phenotype;
+
+				let returnPhenotype = !!this.renderConfig["phenotype match"]
+					? this.renderConfig["phenotype match"][this.phenotype]
+					: this.phenotype;
+
+				console.log("returnPhenotype", returnPhenotype);
+				return returnPhenotype;
 			} else if (this.phenotype == null) {
 				if (!!keyParams[this.renderConfig.phenotypeParameter]) {
 					uiUtils.showElement("annotationsPlotWrapper");

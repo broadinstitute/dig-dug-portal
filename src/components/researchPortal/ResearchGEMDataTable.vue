@@ -312,14 +312,14 @@ export default Vue.component("research-gem-data-table", {
 			}
 
 			if (newRows.length > 0) {
-				if (!!selectedBy["Credible Set"]) {
-					let keyField =
-						this.tableFormat["custom table"]["Credible Set"][
-							"key field"
-						];
-					let PPAField =
-						this.tableFormat["custom table"]["Credible Set"]["PPA"];
+				let keyField =
+					this.tableFormat["custom table"]["Credible Set"][
+						"key field"
+					];
+				let PPAField =
+					this.tableFormat["custom table"]["Credible Set"]["PPA"];
 
+				if (!!selectedBy["Credible Set"]) {
 					selectedBy["Credible Set"].map((CS) => {
 						for (const [phenotype, CSData] of Object.entries(
 							this.pkgData.CSData
@@ -386,7 +386,7 @@ export default Vue.component("research-gem-data-table", {
 						.sort()
 						.reduce((o, [k, v]) => ((o[k] = v), o), {});
 
-					/// feed null to value for phenotype under Credible sets
+					/// feed null to value for phenotype in Credible sets column
 
 					for (const [vKey, vValue] of Object.entries(updatedData)) {
 						let compareField =
@@ -508,52 +508,149 @@ export default Vue.component("research-gem-data-table", {
 									overEnd;
 
 								updatedData[vKey]["Tissue"] = tissueColmContent;
+							}
+						}
+					}
+				} else {
+					if (!!selectedBy["Tissue"] && !!selectedBy["Annotation"]) {
+						var enrichedPosition = null;
 
-								///Feed "Annotation" column content
-								/*let compareField =
-									this.dataComparisonConfig
-										.fieldsToCompare[1];
+						selectedBy["Annotation"].map((a) => {
+							selectedBy["Tissue"].map((t) => {
+								if (
+									!!this.pkgData.annoData[a] &&
+									!!this.pkgData.annoData[a][t]
+								) {
+									let tempArr = [];
+									this.pkgData.annoData[a][t].region.map(
+										(r) => {
+											for (
+												let i = r.start;
+												i <= r.end;
+												i++
+											) {
+												tempArr.push(i);
+											}
+										}
+									);
 
-								let activePhenotypes = Object.keys(
-									vValue[compareField]
-								);
+									if (enrichedPosition == null) {
+										enrichedPosition = tempArr;
+									} else {
+										enrichedPosition =
+											this.getArraysIntersection(
+												enrichedPosition,
+												tempArr
+											);
+									}
+								}
+							});
+						});
 
-								updatedData[vKey]["Annotation"] = {};
+						//filter rawData
 
-								activePhenotypes.map((p) => {
-									let annoColmContent = "";
-									for (const [
-										tissue,
-										annotations,
-									] of Object.entries(annotationContent)) {
-										annoColmContent +=
-											"<strong>" +
-											tissue +
-											"</strong><br />";
-										for (const [
-											annoKey,
-											annoValue,
-										] of Object.entries(annotations)) {
-											let annoParams =
-												this.pkgData.GEByTissueData[p][
-													tissue
-												][annoKey];
-											annoColmContent += annoKey + "(";
-											annoColmContent +=
-												"P-Value:" +
-												Formatters.pValueFormatter(
-													annoParams.pValue
-												) +
-												", Fold: " +
-												Formatters.pValueFormatter(
-													annoParams.fold
-												) +
-												")<br />";
+						for (const [vKey, vValue] of Object.entries(rawData)) {
+							let position = vValue.Position;
+							if (!!enrichedPosition.includes(position)) {
+								updatedData[vKey] = vValue;
+							}
+						}
+
+						//console.log("selectedBy", selectedBy);
+
+						for (const [vKey, vValue] of Object.entries(
+							updatedData
+						)) {
+							let annotationContent = {};
+							selectedBy["Tissue"].map((t) => {
+								annotationContent[t] = {};
+								selectedBy["Annotation"].map((a) => {
+									annotationContent[t][a] = null;
+								});
+							});
+
+							selectedBy["Tissue"].map((t) => {
+								let inTissue = 0;
+
+								selectedBy["Annotation"].map((a) => {
+									let inAnnotation = 0;
+									let tissueContent = "";
+									if (!!this.pkgData.tissuesData[t][a]) {
+										this.pkgData.tissuesData[t][
+											a
+										].region.map((r) => {
+											if (
+												vValue.Position >= r.start &&
+												vValue.Position <= r.end
+											) {
+												inAnnotation = 1;
+												annotationContent[t][a] = {
+													start: r.start,
+													end: r.end,
+												};
+											}
+										});
+										if (inAnnotation == 1) {
+											inTissue = 1;
 										}
 									}
-									updatedData[vKey]["Annotation"][p] =
-										annoColmContent;
-								});*/
+								});
+								if (inTissue == 0) {
+									delete updatedData[vKey];
+								}
+							});
+
+							if (!!updatedData[vKey]) {
+								/// feed "Tissue" column content
+								let tissueColmContent = "";
+								let overStart = null;
+								let overEnd = null;
+
+								for (const [
+									tissue,
+									annotations,
+								] of Object.entries(annotationContent)) {
+									tissueColmContent +=
+										"<strong>" +
+										tissue +
+										"</strong><br />Annotations: ";
+									for (const [
+										annoKey,
+										annoValue,
+									] of Object.entries(annotations)) {
+										if (annoValue != null) {
+											tissueColmContent += annoKey + ", ";
+											overStart =
+												overStart == null
+													? annoValue.start
+													: overStart <
+													  annoValue.start
+													? annoValue.start
+													: overStart;
+
+											overEnd =
+												overEnd == null
+													? annoValue.end
+													: overEnd > annoValue.end
+													? annoValue.end
+													: overEnd;
+
+											//Feed feature column
+										}
+									}
+									tissueColmContent = tissueColmContent.slice(
+										0,
+										-2
+									);
+									tissueColmContent += "<br />";
+								}
+								tissueColmContent +=
+									"<strong>Overlapping Region</strong>: " +
+									overStart +
+									"-" +
+									overEnd;
+
+								updatedData[vKey]["Tissue"] = tissueColmContent;
 							}
 						}
 					}
@@ -686,6 +783,11 @@ export default Vue.component("research-gem-data-table", {
 	},
 	methods: {
 		...Formatters,
+		getArraysIntersection(a1, a2) {
+			return a1.filter(function (n) {
+				return a2.indexOf(n) !== -1;
+			});
+		},
 		getColorIndex(SKEY) {
 			let keyField = this.dataComparisonConfig.fieldsGroupDataKey;
 			let keyParameterSeach = this.searchParameters[keyField].search;

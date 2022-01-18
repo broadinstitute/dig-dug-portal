@@ -159,7 +159,10 @@ export default Vue.component("research-credible-sets-plot", {
 
 			let phenotype = null;
 			if (this.phenotype != null) {
-				phenotype = this.phenotype;
+				//phenotype = this.phenotype;
+				phenotype = !!this.renderConfig["phenotype match"]
+					? this.renderConfig["phenotype match"][this.phenotype]
+					: this.phenotype;
 			} else if (this.phenotype == null) {
 				if (!!keyParams[this.renderConfig.phenotypeParameter]) {
 					phenotype = keyParams[this.renderConfig.phenotypeParameter];
@@ -177,7 +180,10 @@ export default Vue.component("research-credible-sets-plot", {
 		searchingPhenotype() {
 			let phenotype = null;
 			if (this.phenotype != null) {
-				phenotype = this.phenotype;
+				//phenotype = this.phenotype;
+				phenotype = !!this.renderConfig["phenotype match"]
+					? this.renderConfig["phenotype match"][this.phenotype]
+					: this.phenotype;
 			} else if (this.phenotype == null) {
 				if (!!keyParams[this.renderConfig.phenotypeParameter]) {
 					phenotype = keyParams[this.renderConfig.phenotypeParameter];
@@ -185,6 +191,7 @@ export default Vue.component("research-credible-sets-plot", {
 					phenotype = null;
 				}
 			}
+
 			return phenotype;
 		},
 	},
