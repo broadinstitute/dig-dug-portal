@@ -252,9 +252,19 @@ export default Vue.component("research-gem-data-table", {
 		},
 
 		rawData() {
-			var updatedData = {};
-			var rawData = { ...this.dataset };
 			var newTableFormat = { ...this.tableFormat };
+			var updatedData = {};
+			var rawData = {};
+			if (this.dataComparisonConfig == null) {
+				let keyField =
+					newTableFormat["custom table"]["Credible Set"]["key field"];
+				this.dataset.map((d) => {
+					rawData[d[keyField]] = d;
+				});
+			} else {
+				rawData = { ...this.dataset };
+			}
+
 			var newRows = [];
 			var selectedBy = {};
 
@@ -277,53 +287,27 @@ export default Vue.component("research-gem-data-table", {
 				if (annoIndex > -1) {
 					newTableFormat["top rows"].splice(annoIndex, 1);
 				}
-
-				/*
-				newTableFormat["features"] = ["Evidence"];
-				newTableFormat["Evidence"] = [];
-				*/
 				this.pkgDataSelected.map((p) => {
 					if (!selectedBy[p.type]) {
 						selectedBy[p.type] = [];
 					}
 					selectedBy[p.type].push(p.id);
 				});
-				//console.log("newRows", newRows);
-				//console.log("newTableFormat", newTableFormat);
-				/*
-				if (!!selectedBy["Credible Set"]) {
-					selectedBy["Credible Set"].map((p) => {
-						newTableFormat["Evidence"].push(p);
-					});
-				}
-
-				if (!!selectedBy["Tissue"]) {
-					selectedBy["Tissue"].map((p) => {
-						newTableFormat["Evidence"].push(p);
-					});
-				}
-
-				if (!!selectedBy["Annotation"]) {
-					selectedBy["Annotation"].map((p) => {
-						newTableFormat["Evidence"].push(p);
-					});
-				}
-				*/
 			}
 
 			if (newRows.length > 0) {
 				let keyField =
-					this.tableFormat["custom table"]["Credible Set"][
-						"key field"
-					];
+					newTableFormat["custom table"]["Credible Set"]["key field"];
 				let PPAField =
-					this.tableFormat["custom table"]["Credible Set"]["PPA"];
+					newTableFormat["custom table"]["Credible Set"]["PPA"];
 
 				if (!!selectedBy["Credible Set"]) {
+					//console.log("selectedBy", selectedBy);
 					selectedBy["Credible Set"].map((CS) => {
 						for (const [phenotype, CSData] of Object.entries(
 							this.pkgData.CSData
 						)) {
+							//console.log("phenotype", phenotype);
 							if (!!CSData[CS]) {
 								CSData[CS].map((CSItem) => {
 									let variant = CSItem[keyField];
@@ -338,71 +322,121 @@ export default Vue.component("research-gem-data-table", {
 										updatedData[variant][CS] = PPA;
 
 										///add credible set value
+										if (this.dataComparisonConfig == null) {
+											if (
+												!updatedData[variant][
+													"Credible Set"
+												]
+											) {
+												updatedData[variant][
+													"Credible Set"
+												] =
+													"<strong>" +
+													CS +
+													"</strong>(" +
+													PPA +
+													")";
+											} else if (
+												!!updatedData[variant][
+													"Credible Set"
+												]
+											) {
+												updatedData[variant][
+													"Credible Set"
+												] +=
+													", " +
+													"<strong>" +
+													CS +
+													"</strong>(" +
+													PPA +
+													")";
+											}
+										} else {
+											if (
+												!updatedData[variant][
+													"Credible Set"
+												]
+											) {
+												updatedData[variant][
+													"Credible Set"
+												] = {};
+											}
 
-										if (
-											!updatedData[variant][
-												"Credible Set"
-											]
-										) {
-											updatedData[variant][
-												"Credible Set"
-											] = {};
-										}
-
-										if (
-											!updatedData[variant][
-												"Credible Set"
-											][phenotype]
-										) {
-											updatedData[variant][
-												"Credible Set"
-											][phenotype] =
-												"<strong>" +
-												CS +
-												"</strong>(" +
-												PPA +
-												")";
-										} else if (
-											!!updatedData[variant][
-												"Credible Set"
-											][phenotype]
-										) {
-											updatedData[variant][
-												"Credible Set"
-											][phenotype] +=
-												", " +
-												"<strong>" +
-												CS +
-												"</strong>(" +
-												PPA +
-												")";
+											if (
+												!updatedData[variant][
+													"Credible Set"
+												][phenotype]
+											) {
+												updatedData[variant][
+													"Credible Set"
+												][phenotype] =
+													"<strong>" +
+													CS +
+													"</strong>(" +
+													PPA +
+													")";
+											} else if (
+												!!updatedData[variant][
+													"Credible Set"
+												][phenotype]
+											) {
+												updatedData[variant][
+													"Credible Set"
+												][phenotype] +=
+													", " +
+													"<strong>" +
+													CS +
+													"</strong>(" +
+													PPA +
+													")";
+											}
 										}
 									}
 								});
 							}
 						}
 					});
+
+					console.log("updatedData", updatedData);
+
 					updatedData = Object.entries(updatedData)
 						.sort()
 						.reduce((o, [k, v]) => ((o[k] = v), o), {});
 
 					/// feed null to value for phenotype in Credible sets column
+					if (!!this.dataComparisonConfig) {
+						for (const [vKey, vValue] of Object.entries(
+							updatedData
+						)) {
+							let compareField =
+								this.dataComparisonConfig.fieldsToCompare[1];
+							let activePhenotypes = Object.keys(
+								vValue[compareField]
+							);
+							let tempObj = {};
+							activePhenotypes.map((p) => {
+								///custom table
 
-					for (const [vKey, vValue] of Object.entries(updatedData)) {
-						let compareField =
-							this.dataComparisonConfig.fieldsToCompare[1];
-						let activePhenotypes = Object.keys(
-							vValue[compareField]
-						);
-						let tempObj = {};
-						activePhenotypes.map((p) => {
-							if (!!vValue["Credible Set"][p]) {
-								tempObj[p] = vValue["Credible Set"][p];
-							} else {
-								tempObj[p] = "N/A";
-							}
-						});
-						vValue["Credible Set"] = tempObj;
+								let phenotype = !!newTableFormat[
+									"custom table"
+								]["phenotype match"][p]
+									? newTableFormat["custom table"][
+											"phenotype match"
+									  ][p]
+									: p;
+								///
+
+								//console.log("phenotype", phenotype);
+
+								if (!!vValue["Credible Set"][phenotype]) {
+									tempObj[p] =
+										vValue["Credible Set"][phenotype];
+								} else {
+									tempObj[p] = "N/A";
+								}
+							});
+							vValue["Credible Set"] = tempObj;
+						}
 					}
 
 					if (
@@ -491,8 +525,6 @@ export default Vue.component("research-gem-data-table", {
 													: overEnd > annoValue.end
 													? annoValue.end
 													: overEnd;
-
-											//Feed feature column
 										}
 									}
 									tissueColmContent = tissueColmContent.slice(
@@ -675,7 +707,14 @@ export default Vue.component("research-gem-data-table", {
 
 			this.newTableFormat = newTableFormat;
 
-			console.log("updatedData");
+			if (this.dataComparisonConfig == null) {
+				let uDataNoCompare = [];
+				for (const [dKey, dValue] of Object.entries(updatedData)) {
+					uDataNoCompare.push(dValue);
+				}
+
+				updatedData = uDataNoCompare;
+			}
 
 			return updatedData;
 		},
@@ -940,7 +979,7 @@ export default Vue.component("research-gem-data-table", {
 		applySorting(key) {
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
-			if (key != this.tableFormat["locus field"]) {
+			if (key != this.newTableFormat["locus field"]) {
 				let filtered =
 					this.dataComparisonConfig == null
 						? this.dataset
@@ -960,8 +999,8 @@ export default Vue.component("research-gem-data-table", {
 						? filtered
 						: this.array2Object(filtered, this.dataset, key);
 				this.$store.dispatch("filteredData", returnData);
-			} else if (key == this.tableFormat["locus field"]) {
-				let sortKey = this.tableFormat["locus field"];
+			} else if (key == this.newTableFormat["locus field"]) {
+				let sortKey = this.newTableFormat["locus field"];
 				let filtered = this.dataset;
 
 				filtered.map(function (g) {
