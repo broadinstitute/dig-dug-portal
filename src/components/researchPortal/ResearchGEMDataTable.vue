@@ -417,13 +417,17 @@ export default Vue.component("research-gem-data-table", {
 							activePhenotypes.map((p) => {
 								///custom table
 
-								let phenotype = !!newTableFormat[
-									"custom table"
-								]["phenotype match"][p]
-									? newTableFormat["custom table"][
-											"phenotype match"
-									  ][p]
-									: p;
+								let phenotype =
+									!!newTableFormat["custom table"][
+										"phenotype match"
+									] &&
+									!!newTableFormat["custom table"][
+										"phenotype match"
+									][p]
+										? newTableFormat["custom table"][
+												"phenotype match"
+										  ][p]
+										: p;
 								///
 
 								//console.log("phenotype", phenotype);
