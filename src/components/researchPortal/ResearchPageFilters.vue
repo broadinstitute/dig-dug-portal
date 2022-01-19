@@ -20,17 +20,69 @@
 					:key="parameter.parameter"
 				>
 					<div class="label" v-html="parameter.label"></div>
+					<!--{{ $store.state.bioPortal.phenotypes }}
+					<input
+						v-model="phenoSearch"
+						placeholder=""
+						v-if="
+							parameter.type == 'list' &&
+							parameter.values == 'kp phenotypes'
+						"
+					/>
 					<select
 						:id="'search_param_' + parameter.parameter"
 						class="custom-select"
+						v-if="
+							parameter.type == 'list' &&
+							parameter.values == 'kp phenotypes'
+						"
+					>
+						<template
+							v-for="phenotype in $store.state.bioPortal
+								.phenotypes"
+						>
+							<option
+								:value="phenotype.name"
+								v-html="phenotype.description"
+								:key="phenotype.name"
+								v-if="
+									phenoSearch.length > 2 &&
+									!!phenotype.description
+										.toLowerCase()
+										.includes(phenoSearch.toLowerCase())
+								"
+							></option>
+						</template>
+					</select>-->
+
+					<input
+						v-model="phenoSearch"
+						placeholder=""
+						v-if="
+							parameter.type == 'list' &&
+							parameter.values.length > 10
+						"
+					/>
+
+					<select
+						:id="'search_param_' + parameter.parameter"
+						class="custom-select"
+						:size="phenoSearch.length > 2 ? 5 : 0"
 						v-if="parameter.type == 'list'"
 					>
-						<option
-							v-for="param in parameter.values"
-							:value="param.trim()"
-							v-html="getFileLabel(param.trim())"
-							:key="param.trim()"
-						></option>
+						<template v-for="param in parameter.values">
+							<option
+								:value="param.trim()"
+								v-html="getFileLabel(param.trim())"
+								:key="param.trim()"
+								v-if="
+									phenoSearch.length > 2 &&
+									!!getFileLabel(param.trim())
+										.toLowerCase()
+										.includes(phenoSearch.toLowerCase())
+								"
+							></option>
+						</template>
 					</select>
 					<input
 						v-if="parameter.type == 'input'"
@@ -88,6 +140,7 @@
 				</div>
 			</div>
 		</div>
+
 		<div
 			class="filtering-ui-wrapper search-criteria"
 			id="searchCriteria"
@@ -264,6 +317,7 @@ export default Vue.component("research-page-filters", {
 		return {
 			filtersIndex: {},
 			searchParamsIndex: {},
+			phenoSearch: "",
 		};
 	},
 	created() {
@@ -1033,6 +1087,16 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
+.custom-select {
+	width: auto !important;
+}
+
+.custom-select option {
+	width: auto;
+	display: block;
+	padding: 5px 0px;
+	border-bottom: solid 1px #ddd;
+}
 .clear-all-filters-bubble {
 	background-color: #ff0000;
 }

@@ -444,8 +444,6 @@ export default Vue.component("research-region-plot", {
 							  ];
 				});
 
-				//console.log("this.ldData", this.ldData);
-
 				if (plotsKeys.includes("Combined") == true) {
 					plotsKeys.map((p) => {
 						let yAxHighValue = this.assoData[p].yAxHigh;

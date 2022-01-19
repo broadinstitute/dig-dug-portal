@@ -575,7 +575,17 @@ new Vue({
             if (contents === null || contents[0]["field_api_parameters"] == false) {
                 return null;
             } else {
-                return JSON.parse(contents[0]["field_api_parameters"]);
+                let apiConfig = JSON.parse(contents[0]["field_api_parameters"]);
+                let parameters = apiConfig.parameters;
+
+                parameters.map(pr => {
+                    if (pr.parameter == 'phenotype' && pr.values == "kp phenotypes") {
+                        let values = this.$store.state.bioPortal.phenotypes.map(p => p.name);
+                        pr.values = values;
+                    }
+                });
+
+                return apiConfig;
             }
         },
         dataComparisonConfig() {
@@ -953,7 +963,34 @@ new Vue({
                     let dataFiles = content[0]["field_data_points"].split(",");
 
                     this.dataFiles = dataFiles;
-                    this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+
+                    /// in case of phenotypes == kp phenotypes
+
+                    let apis = JSON.parse(content[0]["field_api_parameters"]);
+                    let isKPPhenotype = false;
+
+                    apis.parameters.map(pr => {
+                        if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
+                            isKPPhenotype = true;
+                        }
+                    })
+
+                    //console.log("this.apiParameters", this.apiParameters);
+
+                    if (isKPPhenotype == true) {
+                        let kpPhenotypes = this.$store.state.bioPortal.phenotypes
+                        let tempObj = {};
+
+                        kpPhenotypes.map(p => {
+                            tempObj[p.name] = p.description;
+                        });
+
+                        this.dataFilesLabels = tempObj;
+
+                    } else {
+                        this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+                    }
+
 
                     let initialData = dataFiles[0];
 

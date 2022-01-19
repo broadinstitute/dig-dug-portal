@@ -245,7 +245,6 @@ export default Vue.component("research-annotations-plot", {
 					? this.renderConfig["phenotype match"][this.phenotype]
 					: this.phenotype;
 
-				console.log("returnPhenotype", returnPhenotype);
 				return returnPhenotype;
 			} else if (this.phenotype == null) {
 				if (!!keyParams[this.renderConfig.phenotypeParameter]) {
@@ -1053,7 +1052,6 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		renderGE() {
-			console.log("this.pkgData", this.pkgData);
 			this.GEPosData = {};
 			let sortedGEData = {};
 

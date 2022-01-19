@@ -237,7 +237,7 @@ export default Vue.component("research-gem-data-table", {
 								: scores[field].low;
 					}
 				});
-				//console.log("scores", scores);
+
 				return scores;
 			}
 		},
@@ -274,8 +274,6 @@ export default Vue.component("research-gem-data-table", {
 				vIndex++;
 			}
 
-			//console.log("rawData", rawData);
-
 			if (this.pkgDataSelected.length > 0) {
 				newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
 				var oldRows = newTableFormat["top rows"];
@@ -302,12 +300,10 @@ export default Vue.component("research-gem-data-table", {
 					newTableFormat["custom table"]["Credible Set"]["PPA"];
 
 				if (!!selectedBy["Credible Set"]) {
-					//console.log("selectedBy", selectedBy);
 					selectedBy["Credible Set"].map((CS) => {
 						for (const [phenotype, CSData] of Object.entries(
 							this.pkgData.CSData
 						)) {
-							//console.log("phenotype", phenotype);
 							if (!!CSData[CS]) {
 								CSData[CS].map((CSItem) => {
 									let variant = CSItem[keyField];
@@ -397,8 +393,6 @@ export default Vue.component("research-gem-data-table", {
 						}
 					});
 
-					console.log("updatedData", updatedData);
-
 					updatedData = Object.entries(updatedData)
 						.sort()
 						.reduce((o, [k, v]) => ((o[k] = v), o), {});
@@ -430,7 +424,7 @@ export default Vue.component("research-gem-data-table", {
 										: p;
 								///
 
-								//console.log("phenotype", phenotype);
+								console.log("phenotype", phenotype);
 
 								if (!!vValue["Credible Set"][phenotype]) {
 									tempObj[p] =
@@ -451,8 +445,6 @@ export default Vue.component("research-gem-data-table", {
 						!!selectedBy["Annotation"] &&
 						selectedBy["Annotation"].length > 0
 					) {
-						//console.log("selectedBy", selectedBy);
-
 						for (const [vKey, vValue] of Object.entries(
 							updatedData
 						)) {
@@ -591,8 +583,6 @@ export default Vue.component("research-gem-data-table", {
 								updatedData[vKey] = vValue;
 							}
 						}
-
-						//console.log("selectedBy", selectedBy);
 
 						for (const [vKey, vValue] of Object.entries(
 							updatedData
@@ -793,8 +783,6 @@ export default Vue.component("research-gem-data-table", {
 					paged.push(formattedData[i]);
 				}
 
-				//console.log("paged", paged);
-
 				return paged;
 			} else {
 				return this.rawData;
@@ -977,7 +965,6 @@ export default Vue.component("research-gem-data-table", {
 				objectedArray[keyField] = RAW_DATASET[keyField];
 			});
 
-			//console.log(objectedArray);
 			return objectedArray;
 		},
 		applySorting(key) {

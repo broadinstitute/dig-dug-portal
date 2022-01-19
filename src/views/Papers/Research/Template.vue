@@ -93,6 +93,7 @@
 					</div>
 				</div>
 			</div>
+
 			<!-- tabs nav -->
 			<div
 				class="kp-tabs-wrapper"
@@ -150,7 +151,8 @@
 							<research-page-filters
 								:dataFiles="$parent.dataFiles"
 								:filesListLabels="
-									$parent.dataFiles.length > 1
+									$parent.dataFiles.length > 1 ||
+									$parent.dataFilesLabels != false
 										? $parent.dataFilesLabels
 										: null
 								"
