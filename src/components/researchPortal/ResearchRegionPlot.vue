@@ -738,7 +738,8 @@ export default Vue.component("research-region-plot", {
 					this.searchingRegion.end,
 					this.searchingRegion.start,
 					bump,
-					"asso"
+					"asso",
+					p
 				);
 
 				this.renderRecombLine(
@@ -779,7 +780,8 @@ export default Vue.component("research-region-plot", {
 					1,
 					0,
 					bump,
-					"LD"
+					"LD",
+					p
 				);
 
 				this.renderDots(
@@ -1154,7 +1156,18 @@ export default Vue.component("research-region-plot", {
 				CTX.stroke();
 			});
 		},
-		renderAxis(CTX, WIDTH, HEIGHT, yMax, yMin, xMax, xMin, bump, TYPE) {
+		renderAxis(
+			CTX,
+			WIDTH,
+			HEIGHT,
+			yMax,
+			yMin,
+			xMax,
+			xMin,
+			bump,
+			TYPE,
+			GROUP
+		) {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
@@ -1313,7 +1326,7 @@ export default Vue.component("research-region-plot", {
 			);
 
 			//render LD plots background
-			if (TYPE == "LD") {
+			if (TYPE == "LD" && GROUP == "Combined") {
 				let xBGDistance = WIDTH / 5;
 
 				for (let i = 0; i < 5; i++) {
