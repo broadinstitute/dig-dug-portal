@@ -20,54 +20,33 @@
 					:key="parameter.parameter"
 				>
 					<div class="label" v-html="parameter.label"></div>
-					<!--{{ $store.state.bioPortal.phenotypes }}
-					<input
-						v-model="phenoSearch"
-						placeholder=""
-						v-if="
-							parameter.type == 'list' &&
-							parameter.values == 'kp phenotypes'
-						"
-					/>
-					<select
-						:id="'search_param_' + parameter.parameter"
-						class="custom-select"
-						v-if="
-							parameter.type == 'list' &&
-							parameter.values == 'kp phenotypes'
-						"
-					>
-						<template
-							v-for="phenotype in $store.state.bioPortal
-								.phenotypes"
-						>
-							<option
-								:value="phenotype.name"
-								v-html="phenotype.description"
-								:key="phenotype.name"
-								v-if="
-									phenoSearch.length > 2 &&
-									!!phenotype.description
-										.toLowerCase()
-										.includes(phenoSearch.toLowerCase())
-								"
-							></option>
-						</template>
-					</select>-->
 
 					<input
-						v-model="phenoSearch"
+						v-model="paramSearch"
 						placeholder=""
 						v-if="
 							parameter.type == 'list' &&
 							parameter.values.length > 10
 						"
+						class="form-control"
 					/>
 
 					<select
 						:id="'search_param_' + parameter.parameter"
-						class="custom-select"
-						:size="phenoSearch.length > 2 ? 5 : 0"
+						class="custom-select custom-select-search"
+						:size="
+							parameter.values.length > 10
+								? paramSearch.length > 2
+									? 5
+									: 1
+								: 'auto'
+						"
+						:style="
+							parameter.values.length > 10 &&
+							paramSearch.length <= 2
+								? 'display:none !important;'
+								: ''
+						"
 						v-if="parameter.type == 'list'"
 					>
 						<template v-for="param in parameter.values">
@@ -75,11 +54,14 @@
 								:value="param.trim()"
 								v-html="getFileLabel(param.trim())"
 								:key="param.trim()"
-								v-if="
-									phenoSearch.length > 2 &&
-									!!getFileLabel(param.trim())
+								:class="
+									parameter.values.length > 10 &&
+									paramSearch.length > 2 &&
+									!getFileLabel(param.trim())
 										.toLowerCase()
-										.includes(phenoSearch.toLowerCase())
+										.includes(paramSearch.toLowerCase())
+										? 'hidden'
+										: ''
 								"
 							></option>
 						</template>
@@ -317,7 +299,7 @@ export default Vue.component("research-page-filters", {
 		return {
 			filtersIndex: {},
 			searchParamsIndex: {},
-			phenoSearch: "",
+			paramSearch: "",
 		};
 	},
 	created() {
@@ -383,6 +365,7 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		emptySearchInput(ID) {},
 		showHideSearch() {
 			let searchUIWrapper = document.getElementById("searchCriteria");
 			let searchUIHandle = document.getElementById("openCloseSearch");
@@ -490,6 +473,8 @@ export default Vue.component("research-page-filters", {
 			let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
 			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+
+			this.paramSearch = "";
 		},
 		switchData(event) {
 			uiUtils.showElement("data-loading-indicator");
@@ -1087,15 +1072,25 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
-.custom-select {
+.custom-select-search {
 	width: auto !important;
+	min-width: 175px;
 }
 
-.custom-select option {
+.custom-select-search.hidden {
+	display: none !important;
+}
+
+.custom-select-search option {
 	width: auto;
+	min-width: 175px;
 	display: block;
 	padding: 5px 0px;
 	border-bottom: solid 1px #ddd;
+}
+
+.custom-select-search option.hidden {
+	display: none;
 }
 .clear-all-filters-bubble {
 	background-color: #ff0000;
