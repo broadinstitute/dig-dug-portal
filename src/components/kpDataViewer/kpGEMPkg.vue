@@ -22,7 +22,17 @@
 				:plotType="'region_plot'"
 				:plotMargin="plotMargin"
 			></research-genes-track>
+			<div
+				v-if="pkgConfig.viewers.includes('credible_sets_plot') == true"
+			>
+				<a
+					href="javascript:;"
+					@click="showHideSection('credibleSetSection')"
+					>Show/Hide Credible Sets UI</a
+				>
+			</div>
 			<research-credible-sets-plot
+				id="credibleSetSection"
 				v-if="pkgConfig.viewers.includes('credible_sets_plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -33,6 +43,7 @@
 				:pkgData="$store.state.pkgData"
 				:pkgDataSelected="pkgDataSelected"
 			></research-credible-sets-plot>
+			<div>Show/Hide Annotations UI</div>
 			<research-annotations-plot
 				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
 				:region="$store.state.searchingRegion"
@@ -106,6 +117,9 @@ export default Vue.component("kp-gem-pkg", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		showHideSection(SECTION) {
+			uiUtils.showHideSvg(SECTION);
+		},
 	},
 });
 </script>
