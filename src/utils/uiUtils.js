@@ -29,9 +29,7 @@ let showElement = function (ELEMENT, SEARCHBOX) {
 };
 let showHideSvg = function (ELEMENT) {
     let element = checkExist(ELEMENT);
-
     if (!!element) {
-        console.log("called in Element")
         if (element.classList.contains("hidden-svg")) {
             showSvg(ELEMENT);
         } else {

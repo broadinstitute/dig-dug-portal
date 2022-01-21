@@ -24,15 +24,25 @@
 			></research-genes-track>
 			<div
 				v-if="pkgConfig.viewers.includes('credible_sets_plot') == true"
+				class="section-opener"
+				id="credibleSetSectionOpener"
 			>
 				<a
 					href="javascript:;"
-					@click="showHideSection('credibleSetSection')"
-					>Show/Hide Credible Sets UI</a
+					@click="
+						showHideSection(
+							$event,
+							'credibleSetSection',
+							'credibleSetSectionOpener',
+							'Filter associated variants by credible sets'
+						)
+					"
+					>Filter associated variants by credible sets</a
 				>
 			</div>
 			<research-credible-sets-plot
 				id="credibleSetSection"
+				class="svg-wrapper hidden-svg"
 				v-if="pkgConfig.viewers.includes('credible_sets_plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -43,8 +53,27 @@
 				:pkgData="$store.state.pkgData"
 				:pkgDataSelected="pkgDataSelected"
 			></research-credible-sets-plot>
-			<div>Show/Hide Annotations UI</div>
+			<div
+				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
+				class="section-opener"
+				id="annotationSectionOpener"
+			>
+				<a
+					href="javascript:;"
+					@click="
+						showHideSection(
+							$event,
+							'annotationSection',
+							'annotationSectionOpener',
+							'Filter associated variants by tissues and annotations'
+						)
+					"
+					>Filter associated variants by tissues and annotations</a
+				>
+			</div>
 			<research-annotations-plot
+				id="annotationSection"
+				class="svg-wrapper hidden-svg"
 				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -117,7 +146,17 @@ export default Vue.component("kp-gem-pkg", {
 	watch: {},
 	methods: {
 		...uiUtils,
-		showHideSection(SECTION) {
+		showHideSection(event, SECTION, OPENER, LABEL) {
+			let element = document.getElementById(OPENER);
+
+			if (element.classList.contains("open")) {
+				element.classList.remove("open");
+				event.target.innerText = LABEL;
+			} else {
+				element.classList.add("open");
+				event.target.innerText = "Hide Section";
+			}
+
 			uiUtils.showHideSvg(SECTION);
 		},
 	},
@@ -125,6 +164,27 @@ export default Vue.component("kp-gem-pkg", {
 </script>
 
 <style>
+.section-opener {
+	height: 25px;
+	margin-bottom: 10px;
+}
+
+.section-opener a {
+	display: block;
+	font-size: 13px;
+	text-align: center;
+	background-color: #efefef;
+	border: solid 1px #ddd;
+	border-radius: 15px;
+	margin-bottom: 10px;
+	width: 100%;
+	transition: all 0.5s;
+	float: right;
+}
+.section-opener.open a {
+	width: 25%;
+	float: right;
+}
 </style>
 
 
