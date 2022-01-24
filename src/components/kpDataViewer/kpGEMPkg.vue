@@ -26,19 +26,16 @@
 				v-if="pkgConfig.viewers.includes('credible_sets_plot') == true"
 				class="section-opener"
 				id="credibleSetSectionOpener"
+				@click="
+					showHideSection(
+						$event,
+						'credibleSetSection',
+						'credibleSetSectionOpener',
+						'Filter associated variants by credible sets'
+					)
+				"
 			>
-				<a
-					href="javascript:;"
-					@click="
-						showHideSection(
-							$event,
-							'credibleSetSection',
-							'credibleSetSectionOpener',
-							'Filter associated variants by credible sets'
-						)
-					"
-					>Filter associated variants by credible sets</a
-				>
+				Filter associated variants by credible sets
 			</div>
 			<research-credible-sets-plot
 				id="credibleSetSection"
@@ -57,19 +54,16 @@
 				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
 				class="section-opener"
 				id="annotationSectionOpener"
+				@click="
+					showHideSection(
+						$event,
+						'annotationSection',
+						'annotationSectionOpener',
+						'Filter associated variants by tissues and annotations'
+					)
+				"
 			>
-				<a
-					href="javascript:;"
-					@click="
-						showHideSection(
-							$event,
-							'annotationSection',
-							'annotationSectionOpener',
-							'Filter associated variants by tissues and annotations'
-						)
-					"
-					>Filter associated variants by tissues and annotations</a
-				>
+				Filter associated variants by tissues and annotations
 			</div>
 			<research-annotations-plot
 				id="annotationSection"
@@ -165,25 +159,27 @@ export default Vue.component("kp-gem-pkg", {
 
 <style>
 .section-opener {
-	height: 25px;
+	position: relative;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: bold;
+	padding: 0px 5px;
+	background-color: #666;
+	color: #ffffff;
 	margin-bottom: 10px;
+	width: auto;
+	transition: all 0.75s;
+	z-index: 10;
+	transform-origin: top left;
+	margin-left: -20px;
 }
-
-.section-opener a {
-	display: block;
-	font-size: 13px;
-	text-align: center;
-	background-color: #efefef;
-	border: solid 1px #ddd;
-	border-radius: 15px;
-	margin-bottom: 10px;
-	width: 100%;
-	transition: all 0.5s;
-	float: right;
+.section-opener:hover {
+	cursor: pointer;
 }
-.section-opener.open a {
-	width: 25%;
-	float: right;
+.section-opener.open {
+	transform: rotate(90deg);
+	transform-origin: top left;
+	margin-left: -10px;
 }
 </style>
 
