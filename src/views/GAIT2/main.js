@@ -374,7 +374,7 @@ new Vue({
         },
 
         async getCovariances(regions) {
-            const covAPI = "http://35.232.6.190/aggregation/covariance";
+            const covAPI = "https://ld.hugeamp.org/ld2/aggregation/covariance";
             const response = await fetch(covAPI, {
                 method: "POST",
                 headers: {
