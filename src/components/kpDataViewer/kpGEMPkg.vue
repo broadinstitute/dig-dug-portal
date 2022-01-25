@@ -164,8 +164,10 @@ export default Vue.component("kp-gem-pkg", {
 	font-size: 12px;
 	font-weight: bold;
 	padding: 0px 5px;
-	background-color: #666;
-	color: #ffffff;
+	border: solid 1px #cccccc;
+	border-left: none;
+	background-color: #eeeeee;
+	color: #333;
 	margin-bottom: 10px;
 	width: auto;
 	transition: all 0.75s;
@@ -177,6 +179,8 @@ export default Vue.component("kp-gem-pkg", {
 	cursor: pointer;
 }
 .section-opener.open {
+	background-color: #666;
+	color: #ffffff;
 	transform: rotate(90deg);
 	transform-origin: top left;
 	margin-left: -10px;
