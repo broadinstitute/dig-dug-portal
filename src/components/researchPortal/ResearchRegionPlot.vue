@@ -53,7 +53,6 @@
 			class="mbm-plot-legend col-md-12"
 			v-html="renderConfig.legend"
 		></div>
-
 		<div
 			class="col-md-12 region-plots-wrapper"
 			:id="'plotsWrapper' + item"
@@ -189,6 +188,8 @@ export default Vue.component("research-region-plot", {
 		"region",
 		"plotMargin",
 		"compareGroupColors",
+		"regionZoom",
+		"regionViewArea",
 	],
 	data() {
 		return {
@@ -480,8 +481,23 @@ export default Vue.component("research-region-plot", {
 				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 
 				let regionArr = this.region.split(":")[1].split("-");
-				returnObj["start"] = parseInt(regionArr[0], 10);
-				returnObj["end"] = parseInt(regionArr[1], 10);
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
 
 				return returnObj;
 			}
@@ -817,24 +833,32 @@ export default Vue.component("research-region-plot", {
 				this.assoPos[GROUP] = {};
 				var xField = this.renderConfig.xAxisField;
 				var yField = this.renderConfig.yAxisField;
+
 				if (GROUP != "Combined") {
 					for (const [key, value] of Object.entries(
 						this.assoData[GROUP].data
 					)) {
-						let xPos =
-							xStart + (value[xField] - xMin) * xPosByPixel;
-						let yPos =
-							yStart - (value[yField] - yMin) * yPosByPixel;
+						if (value[xField] >= xMin && value[xField] <= xMax) {
+							let xPos =
+								xStart + (value[xField] - xMin) * xPosByPixel;
+							let yPos =
+								yStart - (value[yField] - yMin) * yPosByPixel;
 
-						this.feedPosData(this.assoPos[GROUP], xPos, yPos, key);
+							this.feedPosData(
+								this.assoPos[GROUP],
+								xPos,
+								yPos,
+								key
+							);
 
-						let dotColor = this.getDotColor(
-							this.ldData[GROUP].data[key]
-						);
-						if (key == this.ldData[GROUP].refVariant) {
-							this.renderDiamond(CTX, xPos, yPos, dotColor);
-						} else {
-							this.renderDot(CTX, xPos, yPos, dotColor);
+							let dotColor = this.getDotColor(
+								this.ldData[GROUP].data[key]
+							);
+							if (key == this.ldData[GROUP].refVariant) {
+								this.renderDiamond(CTX, xPos, yPos, dotColor);
+							} else {
+								this.renderDot(CTX, xPos, yPos, dotColor);
+							}
 						}
 					}
 				}
@@ -847,40 +871,58 @@ export default Vue.component("research-region-plot", {
 							for (const [key, value] of Object.entries(
 								this.assoData[pGroup].data
 							)) {
-								if (!linesObj[key]) {
-									let tempObj = { xValue: [], yValue: [] };
-									tempObj.xValue.push(value[xField]);
-									tempObj.yValue.push(value[yField]);
-									linesObj[key] = tempObj;
-								} else if (!!linesObj[key]) {
-									linesObj[key].xValue.push(value[xField]);
-									linesObj[key].yValue.push(value[yField]);
-								}
+								if (
+									value[xField] >= xMin &&
+									value[xField] <= xMax
+								) {
+									if (!linesObj[key]) {
+										let tempObj = {
+											xValue: [],
+											yValue: [],
+										};
+										tempObj.xValue.push(value[xField]);
+										tempObj.yValue.push(value[yField]);
+										linesObj[key] = tempObj;
+									} else if (!!linesObj[key]) {
+										linesObj[key].xValue.push(
+											value[xField]
+										);
+										linesObj[key].yValue.push(
+											value[yField]
+										);
+									}
 
-								let xPos =
-									xStart +
-									(value[xField] - xMin) * xPosByPixel;
-								let yPos =
-									yStart -
-									(value[yField] - yMin) * yPosByPixel;
+									let xPos =
+										xStart +
+										(value[xField] - xMin) * xPosByPixel;
+									let yPos =
+										yStart -
+										(value[yField] - yMin) * yPosByPixel;
 
-								this.feedPosData(
-									this.assoPos[GROUP],
-									xPos,
-									yPos,
-									key
-								);
-
-								let dotColor = this.compareGroupColors[pIndex];
-								if (key == this.ldData[pGroup].refVariant) {
-									this.renderDiamond(
-										CTX,
+									this.feedPosData(
+										this.assoPos[GROUP],
 										xPos,
 										yPos,
-										dotColor
+										key
 									);
-								} else {
-									this.renderDot(CTX, xPos, yPos, dotColor);
+
+									let dotColor =
+										this.compareGroupColors[pIndex];
+									if (key == this.ldData[pGroup].refVariant) {
+										this.renderDiamond(
+											CTX,
+											xPos,
+											yPos,
+											dotColor
+										);
+									} else {
+										this.renderDot(
+											CTX,
+											xPos,
+											yPos,
+											dotColor
+										);
+									}
 								}
 							}
 						}

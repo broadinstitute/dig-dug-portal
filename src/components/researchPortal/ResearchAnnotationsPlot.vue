@@ -196,6 +196,8 @@ export default Vue.component("research-annotations-plot", {
 		"dataComparison",
 		"pkgData",
 		"pkgDataSelected",
+		"regionZoom",
+		"regionViewArea",
 	],
 	data() {
 		return {
@@ -236,6 +238,38 @@ export default Vue.component("research-annotations-plot", {
 
 			return returnObj;
 		},
+		viewingRegion() {
+			if (this.region == null) {
+				return null;
+			} else {
+				let returnObj = {};
+
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
+
+				let regionArr = this.region.split(":")[1].split("-");
+				let chr = this.region.split(":")[0];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+					returnObj["chr"] = chr;
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["chr"] = chr;
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
+
+				return returnObj;
+			}
+		},
 		searchingPhenotype() {
 			if (this.phenotype != null) {
 				uiUtils.showElement("annotationsPlotWrapper");
@@ -259,6 +293,16 @@ export default Vue.component("research-annotations-plot", {
 	},
 	watch: {
 		pkgDataSelected: {
+			handler: function (n, o) {
+				//if (n.length > 0) {
+				this.renderByAnnotations();
+				this.renderTissuesTracks();
+				//}
+			},
+			deep: true,
+			immediate: true,
+		},
+		viewingRegion: {
 			handler: function (n, o) {
 				//if (n.length > 0) {
 				this.renderByAnnotations();
@@ -344,14 +388,14 @@ export default Vue.component("research-annotations-plot", {
 			let topMargin = this.spaceBy;
 			let bottomMargin = this.spaceBy * 2;
 			let bump = this.plotMargin.bump;
+			let regionStart = this.viewingRegion.start;
+			let regionEnd = this.viewingRegion.end;
 
 			let canvasWidth = wrapper.clientWidth;
 			let canvasHeight = this.plotMargin.topMargin;
 
 			let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
-			let xPerPixel =
-				plotWidth /
-				(this.searchingRegion.end - this.searchingRegion.start);
+			let xPerPixel = plotWidth / (regionEnd - regionStart);
 
 			this.selectedTissues.map((t) => {
 				let selectedAnnosNum = 0;
@@ -470,10 +514,7 @@ export default Vue.component("research-annotations-plot", {
 				ctx.stroke();
 
 				if (tIndex + 1 == this.selectedTissues.length) {
-					let xStep =
-						(this.searchingRegion.end -
-							this.searchingRegion.start) /
-						5;
+					let xStep = (regionEnd - regionStart) / 5;
 					let xTickDistance = plotWidth / 5;
 
 					for (let i = 0; i < 6; i++) {
@@ -502,8 +543,8 @@ export default Vue.component("research-annotations-plot", {
 
 						let positionLabel =
 							i < 5
-								? Number(this.searchingRegion.start) + i * xStep
-								: Number(this.searchingRegion.end);
+								? Number(regionStart) + i * xStep
+								: Number(regionEnd);
 
 						ctx.fillText(
 							Math.floor(positionLabel),
@@ -544,39 +585,42 @@ export default Vue.component("research-annotations-plot", {
 						};
 
 						region.map((p) => {
-							let xPosStart =
-								(p.start - this.searchingRegion.start) *
-									xPerPixel +
-								this.plotMargin.leftMargin;
+							if (p.start <= regionEnd && p.end >= regionStart) {
+								let xPosStart =
+									(p.start - regionStart) * xPerPixel +
+									this.plotMargin.leftMargin;
 
-							xPosStart =
-								xPosStart <= this.plotMargin.leftMargin
-									? this.plotMargin.leftMargin
-									: xPosStart;
-							let xPosEnd =
-								(p.end - this.searchingRegion.start) *
-									xPerPixel +
-								this.plotMargin.leftMargin;
+								xPosStart =
+									xPosStart <= this.plotMargin.leftMargin
+										? this.plotMargin.leftMargin
+										: xPosStart;
+								let xPosEnd =
+									(p.end - regionStart) * xPerPixel +
+									this.plotMargin.leftMargin;
 
-							xPosEnd =
-								xPosEnd > this.plotMargin.leftMargin + plotWidth
-									? this.plotMargin.leftMargin + plotWidth
-									: xPosEnd;
+								xPosEnd =
+									xPosEnd >
+									this.plotMargin.leftMargin + plotWidth
+										? this.plotMargin.leftMargin + plotWidth
+										: xPosEnd;
 
-							let xPosWidth = xPosEnd - xPosStart;
-							ctx.fillRect(
-								xPosStart,
-								renderHeight,
-								xPosWidth,
-								perAnnotation - 1
-							);
+								let xPosWidth = xPosEnd - xPosStart;
+								ctx.fillRect(
+									xPosStart,
+									renderHeight,
+									xPosWidth,
+									perAnnotation - 1
+								);
 
-							let xPosBtwn =
-								xPosStart + "_" + (xPosStart + xPosWidth);
-							this.tissuesPosData[yPosBtwn].regions[xPosBtwn] = {
-								start: p.start,
-								end: p.end,
-							};
+								let xPosBtwn =
+									xPosStart + "_" + (xPosStart + xPosWidth);
+								this.tissuesPosData[yPosBtwn].regions[
+									xPosBtwn
+								] = {
+									start: p.start,
+									end: p.end,
+								};
+							}
 						});
 
 						renderHeight += perAnnotation;
@@ -1379,6 +1423,8 @@ export default Vue.component("research-annotations-plot", {
 			let perTissue = this.spaceBy;
 			let topMargin = this.spaceBy * 2;
 			let bottomMargin = this.spaceBy * 2;
+			let regionStart = this.viewingRegion.start;
+			let regionEnd = this.viewingRegion.end;
 
 			for (const [annotation, tissues] of Object.entries(this.annoData)) {
 				if (this.selectedAnnos.includes(annotation)) {
@@ -1398,9 +1444,7 @@ export default Vue.component("research-annotations-plot", {
 			let plotHeight = tempHeight;
 			let bump = 5.5;
 
-			let xPerPixel =
-				plotWidth /
-				(this.searchingRegion.end - this.searchingRegion.start);
+			let xPerPixel = plotWidth / (regionEnd - regionStart);
 
 			let c, ctx;
 			c = document.querySelector("#annotationsPlot");
@@ -1466,8 +1510,8 @@ export default Vue.component("research-annotations-plot", {
 						ctx,
 						plotWidth,
 						blockHeight,
-						Number(this.searchingRegion.end),
-						Number(this.searchingRegion.start),
+						Number(regionEnd),
+						Number(regionStart),
 						renderHeight,
 						bump
 					);
@@ -1497,39 +1541,40 @@ export default Vue.component("research-annotations-plot", {
 						tissueIndex++;
 
 						regions.region.map((p) => {
-							let xPosStart =
-								(p.start - this.searchingRegion.start) *
-									xPerPixel +
-								this.plotMargin.leftMargin;
+							if (p.start <= regionEnd && p.end >= regionStart) {
+								let xPosStart =
+									(p.start - regionStart) * xPerPixel +
+									this.plotMargin.leftMargin;
 
-							xPosStart =
-								xPosStart <= this.plotMargin.leftMargin
-									? this.plotMargin.leftMargin
-									: xPosStart;
-							let xPosEnd =
-								(p.end - this.searchingRegion.start) *
-									xPerPixel +
-								this.plotMargin.leftMargin;
+								xPosStart =
+									xPosStart <= this.plotMargin.leftMargin
+										? this.plotMargin.leftMargin
+										: xPosStart;
+								let xPosEnd =
+									(p.end - regionStart) * xPerPixel +
+									this.plotMargin.leftMargin;
 
-							xPosEnd =
-								xPosEnd > this.plotMargin.leftMargin + plotWidth
-									? this.plotMargin.leftMargin + plotWidth
-									: xPosEnd;
+								xPosEnd =
+									xPosEnd >
+									this.plotMargin.leftMargin + plotWidth
+										? this.plotMargin.leftMargin + plotWidth
+										: xPosEnd;
 
-							let xPosWidth = xPosEnd - xPosStart;
-							ctx.fillStyle = this.getColorIndex(annotation);
-							ctx.fillRect(
-								xPosStart,
-								renderHeight,
-								xPosWidth,
-								perTissue - 1
-							);
-							let xPosBtn =
-								xPosStart + "_" + (xPosStart + xPosWidth);
-							this.annoPosData[yPosBtn].regions[xPosBtn] = {
-								start: p.start,
-								end: p.end,
-							};
+								let xPosWidth = xPosEnd - xPosStart;
+								ctx.fillStyle = this.getColorIndex(annotation);
+								ctx.fillRect(
+									xPosStart,
+									renderHeight,
+									xPosWidth,
+									perTissue - 1
+								);
+								let xPosBtn =
+									xPosStart + "_" + (xPosStart + xPosWidth);
+								this.annoPosData[yPosBtn].regions[xPosBtn] = {
+									start: p.start,
+									end: p.end,
+								};
+							}
 						});
 
 						renderHeight += perTissue;

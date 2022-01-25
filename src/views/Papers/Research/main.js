@@ -61,6 +61,8 @@ new Vue({
     },
     data() {
         return {
+            regionZoom: 0,
+            regionViewArea: 0,
             devID: null,
             devPW: null,
             dataFiles: [],

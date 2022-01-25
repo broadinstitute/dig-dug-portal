@@ -10,6 +10,8 @@
 				:region="$store.state.searchingRegion"
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.moderate"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
 			></research-region-plot>
 			<research-genes-track
 				v-if="
@@ -21,6 +23,8 @@
 				:plotConfig="pkgConfig.regionViewer"
 				:plotType="'region_plot'"
 				:plotMargin="plotMargin"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
 			></research-genes-track>
 			<div
 				v-if="pkgConfig.viewers.includes('credible_sets_plot') == true"
@@ -49,6 +53,8 @@
 				:dataComparison="this.$store.state.dataComparison"
 				:pkgData="$store.state.pkgData"
 				:pkgDataSelected="pkgDataSelected"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
 			></research-credible-sets-plot>
 			<div
 				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
@@ -77,6 +83,8 @@
 				:dataComparison="this.$store.state.dataComparison"
 				:pkgData="pkgData"
 				:pkgDataSelected="pkgDataSelected"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
 			></research-annotations-plot>
 		</div>
 	</div>
@@ -103,6 +111,8 @@ export default Vue.component("kp-gem-pkg", {
 		"colors",
 		"pkgData",
 		"pkgDataSelected",
+		"regionZoom",
+		"regionViewArea",
 	],
 	data() {
 		return {};

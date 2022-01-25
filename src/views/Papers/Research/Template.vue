@@ -170,6 +170,172 @@
 						</div>
 
 						<!-- plots -->
+						<div class="col-md-12 zoom-ui-wrapper">
+							<span>Zoom plots</span>
+							<form class="zoom-radio-wrapper">
+								<span class="zoom-radio-number">0</span>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="0"
+									@click="$parent.regionZoom = 0"
+									class="zoom-radio"
+									checked
+								/>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="10"
+									@click="$parent.regionZoom = 10"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="20"
+									@click="$parent.regionZoom = 20"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="30"
+									@click="$parent.regionZoom = 30"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="40"
+									@click="$parent.regionZoom = 40"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="50"
+									@click="$parent.regionZoom = 50"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="60"
+									@click="$parent.regionZoom = 60"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="70"
+									@click="$parent.regionZoom = 70"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="80"
+									@click="$parent.regionZoom = 80"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionZoom"
+									value="90"
+									@click="$parent.regionZoom = 90"
+									class="zoom-radio"
+								/>
+								<span class="zoom-radio-number">90</span>
+							</form>
+
+							<span>Move viewing area</span>
+							<form class="zoom-radio-wrapper">
+								<span class="zoom-radio-number">Left</span>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="-100"
+									@click="$parent.regionViewArea = -100"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="-80"
+									@click="$parent.regionViewArea = -80"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="-60"
+									@click="$parent.regionViewArea = -60"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="-40"
+									@click="$parent.regionViewArea = -40"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="-20"
+									@click="$parent.regionViewArea = -20"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="0"
+									@click="$parent.regionViewArea = 0"
+									class="zoom-radio"
+									checked
+								/>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="20"
+									@click="$parent.regionViewArea = 20"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="40"
+									@click="$parent.regionViewArea = 40"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="60"
+									@click="$parent.regionViewArea = 60"
+									class="zoom-radio"
+								/>
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="80"
+									@click="$parent.regionViewArea = 80"
+									class="zoom-radio"
+								/>
+
+								<input
+									type="radio"
+									name="regionViewArea"
+									value="100"
+									@click="$parent.regionViewArea = 100"
+									class="zoom-radio"
+								/>
+								<span class="zoom-radio-number">Right</span>
+							</form>
+							{{ $parent.regionZoom }}:{{
+								$parent.regionViewArea
+							}}
+						</div>
 						<div
 							:class="'col-md-12 ' + $parent.plotClass"
 							v-if="$store.state.filteredData != ''"
@@ -264,6 +430,8 @@
 								"
 								:colors="$parent.colors"
 								:pkgDataSelected="$store.state.pkgDataSelected"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
 							></kp-gem-pkg>
 						</div>
 						<div
@@ -356,4 +524,39 @@
 
 <style>
 @import url("/css/effectorGenes.css");
+.zoom-ui-wrapper {
+	font-size: 13px;
+	font-weight: 700;
+	text-align: right;
+}
+.zoom-radio-wrapper {
+	width: auto;
+	display: inline-block;
+	font-size: 13px;
+	font-weight: 300;
+	border: solid 1px #ddd;
+	padding: 3px 7px 0 7px;
+	border-radius: 15px;
+	margin: 0 10px 0 5px;
+}
+.zoom-radio {
+	box-sizing: border-box;
+	appearance: none;
+	background: #eeeeee;
+	outline: none;
+	border: none;
+	width: 7px;
+	height: 15px;
+	margin: 0 3px;
+}
+
+.zoom-radio:checked {
+	background: #05bd02;
+	outline: solid 1px #05bd02;
+}
+
+.zoom-radio-number {
+	display: inline-block;
+	vertical-align: 2px;
+}
 </style>
