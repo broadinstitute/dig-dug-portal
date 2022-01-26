@@ -377,6 +377,8 @@
 								:region="$store.state.searchingRegion"
 								:plotMargin="$parent.plotMargin"
 								:compareGroupColors="$parent.colors.moderate"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
 							></research-region-plot>
 
 							<research-score-plot
@@ -404,6 +406,8 @@
 								:plotConfig="$parent.plotConfig"
 								:plotType="$parent.plotType"
 								:plotMargin="$parent.plotMargin"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
 							></research-genes-track>
 							<research-volcano-plot
 								v-if="$parent.plotType == 'volcano_plot'"

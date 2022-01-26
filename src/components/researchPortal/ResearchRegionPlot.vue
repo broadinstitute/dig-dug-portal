@@ -703,6 +703,8 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		renderPlots() {
+			let regionStart = this.searchingRegion.start;
+			let regionEnd = this.searchingRegion.end;
 			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
 			let assoCanvasWidth =
 				document.querySelector("#rp_region_plot").clientWidth * 0.75 -
@@ -749,8 +751,8 @@ export default Vue.component("research-region-plot", {
 					plotHeight,
 					this.assoData[p].yAxHigh,
 					this.assoData[p].yAxLow,
-					this.searchingRegion.end,
-					this.searchingRegion.start,
+					regionEnd,
+					regionStart,
 					bump,
 					"asso",
 					p
@@ -760,8 +762,8 @@ export default Vue.component("research-region-plot", {
 					ctx,
 					assoPlotWidth,
 					plotHeight,
-					this.searchingRegion.end,
-					this.searchingRegion.start
+					regionEnd,
+					regionStart
 				);
 
 				this.renderDots(
@@ -770,8 +772,8 @@ export default Vue.component("research-region-plot", {
 					plotHeight,
 					this.assoData[p].yAxHigh,
 					this.assoData[p].yAxLow,
-					this.searchingRegion.end,
-					this.searchingRegion.start,
+					regionEnd,
+					regionStart,
 					bump,
 					"asso",
 					p

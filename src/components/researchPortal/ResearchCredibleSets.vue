@@ -125,6 +125,8 @@ export default Vue.component("research-credible-sets-plot", {
 		"dataComparison",
 		"pkgData",
 		"pkgDataSelected",
+		"regionZoom",
+		"regionViewArea",
 	],
 	data() {
 		return {
@@ -177,6 +179,38 @@ export default Vue.component("research-credible-sets-plot", {
 
 			return returnObj;
 		},
+		viewingRegion() {
+			if (this.region == null) {
+				return null;
+			} else {
+				let returnObj = {};
+
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
+
+				let regionArr = this.region.split(":")[1].split("-");
+				let chr = this.region.split(":")[0];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+					returnObj["chr"] = chr;
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["chr"] = chr;
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
+
+				return returnObj;
+			}
+		},
 		searchingPhenotype() {
 			let phenotype = null;
 			if (this.phenotype != null) {
@@ -197,6 +231,15 @@ export default Vue.component("research-credible-sets-plot", {
 	},
 	watch: {
 		pkgDataSelected: {
+			handler: function (n, o) {
+				//if (n.length > 0) {
+				this.renderCSPlot();
+				//}
+			},
+			deep: true,
+			immediate: true,
+		},
+		viewingRegion: {
 			handler: function (n, o) {
 				//if (n.length > 0) {
 				this.renderCSPlot();
@@ -451,6 +494,8 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 		renderCSPlot() {
 			this.CSPosData = {};
+			let regionStart = this.viewingRegion.start;
+			let regionEnd = this.viewingRegion.end;
 
 			if (Object.keys(this.CSData).length == 0) {
 				document
@@ -474,9 +519,7 @@ export default Vue.component("research-credible-sets-plot", {
 
 			let plotWidth = canvasWidth - 30 - this.plotMargin.leftMargin * 2; //-30 for side paddings
 			let plotHeight = perPhenotype;
-			let xPerPixel =
-				plotWidth /
-				(this.searchingRegion.end - this.searchingRegion.start);
+			let xPerPixel = plotWidth / (regionEnd - regionStart);
 
 			let yPerPixel = plotHeight / 1;
 
@@ -511,8 +554,8 @@ export default Vue.component("research-credible-sets-plot", {
 						ctx,
 						plotWidth,
 						plotHeight,
-						this.searchingRegion.end,
-						this.searchingRegion.start,
+						regionEnd,
+						regionStart,
 						renderHeight,
 						bump
 					);
@@ -523,8 +566,8 @@ export default Vue.component("research-credible-sets-plot", {
 						let inRegion = 0;
 						credibleSet.map((v) => {
 							if (
-								v.position >= this.searchingRegion.start &&
-								v.position <= this.searchingRegion.end
+								v.position >= regionStart &&
+								v.position <= regionEnd
 							) {
 								let ifInRegion = this.checkIfInRegion(
 									v.position
@@ -532,7 +575,7 @@ export default Vue.component("research-credible-sets-plot", {
 								if (ifInRegion == true) {
 									let xPos =
 										(v[this.renderConfig.xAxisField] -
-											this.searchingRegion.start) *
+											regionStart) *
 											xPerPixel +
 										this.plotMargin.leftMargin;
 									let yPos =
