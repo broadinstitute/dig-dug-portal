@@ -241,9 +241,7 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				//if (n.length > 0) {
 				this.renderCSPlot();
-				//}
 			},
 			deep: true,
 			immediate: true,
