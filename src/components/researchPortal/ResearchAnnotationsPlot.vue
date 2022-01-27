@@ -380,254 +380,266 @@ export default Vue.component("research-annotations-plot", {
 		renderTissuesTracks() {
 			let canvas = document.querySelector("#tissuesPlot");
 			let wrapper = document.querySelector("#tissuesPlotWrapper");
+			if (!!canvas && !!wrapper) {
+				var tempHeight = 0;
+				let tissueTitleH = this.spaceBy * 2;
+				let btwnTissues = this.spaceBy * 3;
+				let perAnnotation = this.spaceBy;
+				let topMargin = this.spaceBy;
+				let bottomMargin = this.spaceBy * 2;
+				let bump = this.plotMargin.bump;
+				let regionStart = this.viewingRegion.start;
+				let regionEnd = this.viewingRegion.end;
 
-			var tempHeight = 0;
-			let tissueTitleH = this.spaceBy * 2;
-			let btwnTissues = this.spaceBy * 3;
-			let perAnnotation = this.spaceBy;
-			let topMargin = this.spaceBy;
-			let bottomMargin = this.spaceBy * 2;
-			let bump = this.plotMargin.bump;
-			let regionStart = this.viewingRegion.start;
-			let regionEnd = this.viewingRegion.end;
+				let canvasWidth = wrapper.clientWidth;
+				let canvasHeight = this.plotMargin.topMargin;
 
-			let canvasWidth = wrapper.clientWidth;
-			let canvasHeight = this.plotMargin.topMargin;
+				let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
+				let xPerPixel = plotWidth / (regionEnd - regionStart);
 
-			let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
-			let xPerPixel = plotWidth / (regionEnd - regionStart);
-
-			this.selectedTissues.map((t) => {
-				let selectedAnnosNum = 0;
-				for (const [annoKey, annoValue] of Object.entries(
-					this.tissuesData[t]
-				)) {
-					if (this.selectedAnnos.includes(annoKey) == true) {
-						selectedAnnosNum++;
+				this.selectedTissues.map((t) => {
+					let selectedAnnosNum = 0;
+					for (const [annoKey, annoValue] of Object.entries(
+						this.tissuesData[t]
+					)) {
+						if (this.selectedAnnos.includes(annoKey) == true) {
+							selectedAnnosNum++;
+						}
 					}
-				}
-				canvasHeight +=
-					tissueTitleH +
-					btwnTissues +
-					topMargin +
-					perAnnotation * selectedAnnosNum;
-			});
+					canvasHeight +=
+						tissueTitleH +
+						btwnTissues +
+						topMargin +
+						perAnnotation * selectedAnnosNum;
+				});
 
-			canvas.setAttribute("width", canvasWidth);
-			canvas.setAttribute("height", canvasHeight);
+				canvas.setAttribute("width", canvasWidth);
+				canvas.setAttribute("height", canvasHeight);
 
-			let c, ctx;
-			c = canvas;
-			ctx = c.getContext("2d");
-			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+				let c, ctx;
+				c = canvas;
+				ctx = c.getContext("2d");
+				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-			let renderHeight = this.plotMargin.topMargin;
+				let renderHeight = this.plotMargin.topMargin;
 
-			this.selectedTissues.map((t, tIndex) => {
-				let selectedAnnosNum = 0;
-				for (const [annoKey, annoValue] of Object.entries(
-					this.tissuesData[t]
-				)) {
-					if (this.selectedAnnos.includes(annoKey) == true) {
-						selectedAnnosNum++;
+				this.selectedTissues.map((t, tIndex) => {
+					let selectedAnnosNum = 0;
+					for (const [annoKey, annoValue] of Object.entries(
+						this.tissuesData[t]
+					)) {
+						if (this.selectedAnnos.includes(annoKey) == true) {
+							selectedAnnosNum++;
+						}
 					}
-				}
 
-				ctx.font = "14px Arial";
-				ctx.textAlign = "left";
-				ctx.fillStyle = "#000000";
-				ctx.fillText(t, bump, renderHeight + this.spaceBy);
+					ctx.font = "14px Arial";
+					ctx.textAlign = "left";
+					ctx.fillStyle = "#000000";
+					ctx.fillText(t, bump, renderHeight + this.spaceBy);
 
-				/// Render delete track icon
-				ctx.beginPath();
-				ctx.fillStyle = "#666666";
-				ctx.lineWidth = 0;
-				ctx.arc(
-					this.plotMargin.leftMargin + plotWidth + bump * 3,
-					renderHeight + bump * 2,
-					7,
-					0,
-					2 * Math.PI
-				);
-				ctx.fill();
+					/// Render delete track icon
+					ctx.beginPath();
+					ctx.fillStyle = "#666666";
+					ctx.lineWidth = 0;
+					ctx.arc(
+						this.plotMargin.leftMargin + plotWidth + bump * 3,
+						renderHeight + bump * 2,
+						7,
+						0,
+						2 * Math.PI
+					);
+					ctx.fill();
 
-				ctx.font = "bold 12px Arial";
-				ctx.textAlign = "center";
-				ctx.fillStyle = "#ffffff";
-				ctx.fillText(
-					eval('"\\u' + "2715" + '"'),
-					this.plotMargin.leftMargin + plotWidth + bump * 3,
-					renderHeight + bump * 2 + 3.5
-				);
+					ctx.font = "bold 12px Arial";
+					ctx.textAlign = "center";
+					ctx.fillStyle = "#ffffff";
+					ctx.fillText(
+						eval('"\\u' + "2715" + '"'),
+						this.plotMargin.leftMargin + plotWidth + bump * 3,
+						renderHeight + bump * 2 + 3.5
+					);
 
-				//feed close button position
-				let yPosBtwn = Math.ceil(
-					(renderHeight + bump * 2) / this.spaceBy
-				);
-				let xPos = this.plotMargin.leftMargin + plotWidth + bump * 3;
-				let xPosStart = xPos - 3.5,
-					xPosEnd = xPos + 3.5;
-				let xPosBtwn = xPosStart + "_" + xPosEnd;
+					//feed close button position
+					let yPosBtwn = Math.ceil(
+						(renderHeight + bump * 2) / this.spaceBy
+					);
+					let xPos =
+						this.plotMargin.leftMargin + plotWidth + bump * 3;
+					let xPosStart = xPos - 3.5,
+						xPosEnd = xPos + 3.5;
+					let xPosBtwn = xPosStart + "_" + xPosEnd;
 
-				this.tissuesPosData[yPosBtwn] = {
-					tissue: t,
-					annotation: "close",
-					regions: {},
-				};
+					this.tissuesPosData[yPosBtwn] = {
+						tissue: t,
+						annotation: "close",
+						regions: {},
+					};
 
-				this.tissuesPosData[yPosBtwn].regions[xPosBtwn] =
-					"Remove track";
+					this.tissuesPosData[yPosBtwn].regions[xPosBtwn] =
+						"Remove track";
 
-				///
+					///
 
-				renderHeight += tissueTitleH;
+					renderHeight += tissueTitleH;
 
-				ctx.beginPath();
+					ctx.beginPath();
 
-				ctx.strokeStyle = "#999999";
+					ctx.strokeStyle = "#999999";
 
-				ctx.moveTo(this.plotMargin.leftMargin - bump, renderHeight);
-				ctx.lineTo(
-					this.plotMargin.leftMargin - bump,
-					renderHeight + bump + perAnnotation * selectedAnnosNum
-				);
-				ctx.stroke();
+					ctx.moveTo(this.plotMargin.leftMargin - bump, renderHeight);
+					ctx.lineTo(
+						this.plotMargin.leftMargin - bump,
+						renderHeight + bump + perAnnotation * selectedAnnosNum
+					);
+					ctx.stroke();
 
-				ctx.moveTo(
-					this.plotMargin.leftMargin + plotWidth + bump,
-					renderHeight
-				);
-				ctx.lineTo(
-					this.plotMargin.leftMargin + plotWidth + bump,
-					renderHeight + bump + perAnnotation * selectedAnnosNum
-				);
-				ctx.stroke();
+					ctx.moveTo(
+						this.plotMargin.leftMargin + plotWidth + bump,
+						renderHeight
+					);
+					ctx.lineTo(
+						this.plotMargin.leftMargin + plotWidth + bump,
+						renderHeight + bump + perAnnotation * selectedAnnosNum
+					);
+					ctx.stroke();
 
-				ctx.moveTo(
-					this.plotMargin.leftMargin - bump,
-					renderHeight + bump + perAnnotation * selectedAnnosNum
-				);
-				ctx.lineTo(
-					this.plotMargin.leftMargin + plotWidth + bump,
-					renderHeight + bump + perAnnotation * selectedAnnosNum
-				);
-				ctx.stroke();
+					ctx.moveTo(
+						this.plotMargin.leftMargin - bump,
+						renderHeight + bump + perAnnotation * selectedAnnosNum
+					);
+					ctx.lineTo(
+						this.plotMargin.leftMargin + plotWidth + bump,
+						renderHeight + bump + perAnnotation * selectedAnnosNum
+					);
+					ctx.stroke();
 
-				if (tIndex + 1 == this.selectedTissues.length) {
-					let xStep = (regionEnd - regionStart) / 5;
-					let xTickDistance = plotWidth / 5;
+					if (tIndex + 1 == this.selectedTissues.length) {
+						let xStep = (regionEnd - regionStart) / 5;
+						let xTickDistance = plotWidth / 5;
 
-					for (let i = 0; i < 6; i++) {
-						let tickXPos =
-							this.plotMargin.leftMargin + i * xTickDistance;
+						for (let i = 0; i < 6; i++) {
+							let tickXPos =
+								this.plotMargin.leftMargin + i * xTickDistance;
 
-						let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+							let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
 
-						ctx.moveTo(
-							adjTickXPos,
-							renderHeight +
-								bump +
-								perAnnotation * selectedAnnosNum
-						);
-						ctx.lineTo(
-							adjTickXPos,
-							renderHeight +
-								bump * 2 +
-								perAnnotation * selectedAnnosNum
-						);
-						ctx.stroke();
+							ctx.moveTo(
+								adjTickXPos,
+								renderHeight +
+									bump +
+									perAnnotation * selectedAnnosNum
+							);
+							ctx.lineTo(
+								adjTickXPos,
+								renderHeight +
+									bump * 2 +
+									perAnnotation * selectedAnnosNum
+							);
+							ctx.stroke();
 
-						ctx.textAlign = "center";
-						ctx.font = "12px Arial";
-						ctx.fillStyle = "#999999";
+							ctx.textAlign = "center";
+							ctx.font = "12px Arial";
+							ctx.fillStyle = "#999999";
 
-						let positionLabel =
-							i < 5
-								? Number(regionStart) + i * xStep
-								: Number(regionEnd);
+							let positionLabel =
+								i < 5
+									? Number(regionStart) + i * xStep
+									: Number(regionEnd);
 
-						ctx.fillText(
-							Math.floor(positionLabel),
-							adjTickXPos,
-							renderHeight +
-								bump * 4 +
-								perAnnotation * selectedAnnosNum
-						);
-					}
-				}
-
-				let aIndex = 0;
-				for (const [a, aValue] of Object.entries(this.tissuesData[t])) {
-					if (this.selectedAnnos.includes(a) == true) {
-						let region = aValue.region;
-
-						if (aIndex % 2 == 0) {
-							ctx.fillStyle = "#eeeeee";
-							ctx.fillRect(
-								this.plotMargin.leftMargin,
-								renderHeight,
-								plotWidth,
-								perAnnotation
+							ctx.fillText(
+								Math.floor(positionLabel),
+								adjTickXPos,
+								renderHeight +
+									bump * 4 +
+									perAnnotation * selectedAnnosNum
 							);
 						}
-
-						aIndex++;
-
-						ctx.fillStyle = this.getColorIndex(a);
-
-						//feed close button position
-						let yPosBtwn = Math.ceil(renderHeight / this.spaceBy);
-
-						this.tissuesPosData[yPosBtwn] = {
-							tissue: t,
-							annotation: a,
-							regions: {},
-						};
-
-						region.map((p) => {
-							if (p.start <= regionEnd && p.end >= regionStart) {
-								let xPosStart =
-									(p.start - regionStart) * xPerPixel +
-									this.plotMargin.leftMargin;
-
-								xPosStart =
-									xPosStart <= this.plotMargin.leftMargin
-										? this.plotMargin.leftMargin
-										: xPosStart;
-								let xPosEnd =
-									(p.end - regionStart) * xPerPixel +
-									this.plotMargin.leftMargin;
-
-								xPosEnd =
-									xPosEnd >
-									this.plotMargin.leftMargin + plotWidth
-										? this.plotMargin.leftMargin + plotWidth
-										: xPosEnd;
-
-								let xPosWidth = xPosEnd - xPosStart;
-								ctx.fillRect(
-									xPosStart,
-									renderHeight,
-									xPosWidth,
-									perAnnotation - 1
-								);
-
-								let xPosBtwn =
-									xPosStart + "_" + (xPosStart + xPosWidth);
-								this.tissuesPosData[yPosBtwn].regions[
-									xPosBtwn
-								] = {
-									start: p.start,
-									end: p.end,
-								};
-							}
-						});
-
-						renderHeight += perAnnotation;
 					}
-				}
-				renderHeight += btwnTissues;
-			});
+
+					let aIndex = 0;
+					for (const [a, aValue] of Object.entries(
+						this.tissuesData[t]
+					)) {
+						if (this.selectedAnnos.includes(a) == true) {
+							let region = aValue.region;
+
+							if (aIndex % 2 == 0) {
+								ctx.fillStyle = "#eeeeee";
+								ctx.fillRect(
+									this.plotMargin.leftMargin,
+									renderHeight,
+									plotWidth,
+									perAnnotation
+								);
+							}
+
+							aIndex++;
+
+							ctx.fillStyle = this.getColorIndex(a);
+
+							//feed close button position
+							let yPosBtwn = Math.ceil(
+								renderHeight / this.spaceBy
+							);
+
+							this.tissuesPosData[yPosBtwn] = {
+								tissue: t,
+								annotation: a,
+								regions: {},
+							};
+
+							region.map((p) => {
+								if (
+									p.start <= regionEnd &&
+									p.end >= regionStart
+								) {
+									let xPosStart =
+										(p.start - regionStart) * xPerPixel +
+										this.plotMargin.leftMargin;
+
+									xPosStart =
+										xPosStart <= this.plotMargin.leftMargin
+											? this.plotMargin.leftMargin
+											: xPosStart;
+									let xPosEnd =
+										(p.end - regionStart) * xPerPixel +
+										this.plotMargin.leftMargin;
+
+									xPosEnd =
+										xPosEnd >
+										this.plotMargin.leftMargin + plotWidth
+											? this.plotMargin.leftMargin +
+											  plotWidth
+											: xPosEnd;
+
+									let xPosWidth = xPosEnd - xPosStart;
+									ctx.fillRect(
+										xPosStart,
+										renderHeight,
+										xPosWidth,
+										perAnnotation - 1
+									);
+
+									let xPosBtwn =
+										xPosStart +
+										"_" +
+										(xPosStart + xPosWidth);
+									this.tissuesPosData[yPosBtwn].regions[
+										xPosBtwn
+									] = {
+										start: p.start,
+										end: p.end,
+									};
+								}
+							});
+
+							renderHeight += perAnnotation;
+						}
+					}
+					renderHeight += btwnTissues;
+				});
+			}
 		},
 		removeTissueTrack(event) {
 			var e = event;
@@ -1434,152 +1446,172 @@ export default Vue.component("research-annotations-plot", {
 				}
 			}
 
-			let canvasWidth = document.querySelector(
-				"#annotationsPlotWrapper"
-			).clientWidth;
+			let wrapper = document.querySelector("#annotationsPlotWrapper");
+			let canvas = document.querySelector("#annotationsPlot");
 
-			let canvasHeight = tempHeight + topMargin + bottomMargin;
+			if (!!canvas && !!wrapper) {
+				let canvasWidth = document.querySelector(
+					"#annotationsPlotWrapper"
+				).clientWidth;
 
-			let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
-			let plotHeight = tempHeight;
-			let bump = 5.5;
+				let canvasHeight = tempHeight + topMargin + bottomMargin;
 
-			let xPerPixel = plotWidth / (regionEnd - regionStart);
+				let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
+				let plotHeight = tempHeight;
+				let bump = 5.5;
 
-			let c, ctx;
-			c = document.querySelector("#annotationsPlot");
-			c.setAttribute("width", canvasWidth);
-			c.setAttribute("height", canvasHeight);
-			ctx = c.getContext("2d");
+				let xPerPixel = plotWidth / (regionEnd - regionStart);
 
-			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+				let c, ctx;
+				c = document.querySelector("#annotationsPlot");
+				c.setAttribute("width", canvasWidth);
+				c.setAttribute("height", canvasHeight);
+				ctx = c.getContext("2d");
 
-			let renderHeight = annotationTitleH;
+				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-			for (const [annotation, tissues] of Object.entries(this.annoData)) {
-				if (this.selectedAnnos.includes(annotation)) {
-					ctx.font = "14px Arial";
-					ctx.textAlign = "left";
-					ctx.fillStyle = "#000000";
-					ctx.fillText(annotation, bump, renderHeight);
+				let renderHeight = annotationTitleH;
 
-					/// Render delete track icon
-					ctx.beginPath();
-					ctx.fillStyle = "#666666";
-					ctx.lineWidth = 0;
-					ctx.arc(
-						this.plotMargin.leftMargin + plotWidth + bump * 3,
-						renderHeight + bump * 2,
-						7,
-						0,
-						2 * Math.PI
-					);
-					ctx.fill();
+				for (const [annotation, tissues] of Object.entries(
+					this.annoData
+				)) {
+					if (this.selectedAnnos.includes(annotation)) {
+						ctx.font = "14px Arial";
+						ctx.textAlign = "left";
+						ctx.fillStyle = "#000000";
+						ctx.fillText(annotation, bump, renderHeight);
 
-					ctx.font = "bold 12px Arial";
-					ctx.textAlign = "center";
-					ctx.fillStyle = "#ffffff";
-					ctx.fillText(
-						eval('"\\u' + "2715" + '"'),
-						this.plotMargin.leftMargin + plotWidth + bump * 3,
-						renderHeight + bump * 2 + 3.5
-					);
+						/// Render delete track icon
+						ctx.beginPath();
+						ctx.fillStyle = "#666666";
+						ctx.lineWidth = 0;
+						ctx.arc(
+							this.plotMargin.leftMargin + plotWidth + bump * 3,
+							renderHeight + bump * 2,
+							7,
+							0,
+							2 * Math.PI
+						);
+						ctx.fill();
 
-					//feed close button position
-					let yPosBtwn = Math.floor(renderHeight + bump * 2);
-					let xPos =
-						this.plotMargin.leftMargin + plotWidth + bump * 3;
-					let xPosStart = xPos - 3.5,
-						xPosEnd = xPos + 3.5;
-					let xPosBtwn = xPosStart + "_" + xPosEnd;
+						ctx.font = "bold 12px Arial";
+						ctx.textAlign = "center";
+						ctx.fillStyle = "#ffffff";
+						ctx.fillText(
+							eval('"\\u' + "2715" + '"'),
+							this.plotMargin.leftMargin + plotWidth + bump * 3,
+							renderHeight + bump * 2 + 3.5
+						);
 
-					this.annoPosData[yPosBtwn] = {
-						annotation: annotation,
-						regions: {},
-					};
+						//feed close button position
+						let yPosBtwn = Math.floor(renderHeight + bump * 2);
+						let xPos =
+							this.plotMargin.leftMargin + plotWidth + bump * 3;
+						let xPosStart = xPos - 3.5,
+							xPosEnd = xPos + 3.5;
+						let xPosBtwn = xPosStart + "_" + xPosEnd;
 
-					this.annoPosData[yPosBtwn].regions[xPosBtwn] =
-						"Remove track";
+						this.annoPosData[yPosBtwn] = {
+							annotation: annotation,
+							regions: {},
+						};
 
-					/////
+						this.annoPosData[yPosBtwn].regions[xPosBtwn] =
+							"Remove track";
 
-					let blockHeight = Object.keys(tissues).length * perTissue;
-					renderHeight += annotationTitleH;
+						/////
 
-					this.renderAnnoAxis(
-						ctx,
-						plotWidth,
-						blockHeight,
-						Number(regionEnd),
-						Number(regionStart),
-						renderHeight,
-						bump
-					);
-					let tissueIndex = 0;
-					for (const [tissue, regions] of Object.entries(tissues)) {
-						let yPosBtn = Math.ceil(renderHeight / this.spaceBy);
+						let blockHeight =
+							Object.keys(tissues).length * perTissue;
+						renderHeight += annotationTitleH;
 
-						if (!this.annoPosData[yPosBtn]) {
-							this.annoPosData[yPosBtn] = {
-								tissue: tissue,
-								regions: {},
-							};
-						} else {
-							this.annoPosData[yPosBtn]["tissue"] = tissue;
-						}
-
-						if (tissueIndex % 2 == 0) {
-							ctx.fillStyle = "#eeeeee";
-							ctx.fillRect(
-								this.plotMargin.leftMargin,
-								renderHeight,
-								plotWidth,
-								perTissue
+						this.renderAnnoAxis(
+							ctx,
+							plotWidth,
+							blockHeight,
+							Number(regionEnd),
+							Number(regionStart),
+							renderHeight,
+							bump
+						);
+						let tissueIndex = 0;
+						for (const [tissue, regions] of Object.entries(
+							tissues
+						)) {
+							let yPosBtn = Math.ceil(
+								renderHeight / this.spaceBy
 							);
-						}
 
-						tissueIndex++;
-
-						regions.region.map((p) => {
-							if (p.start <= regionEnd && p.end >= regionStart) {
-								let xPosStart =
-									(p.start - regionStart) * xPerPixel +
-									this.plotMargin.leftMargin;
-
-								xPosStart =
-									xPosStart <= this.plotMargin.leftMargin
-										? this.plotMargin.leftMargin
-										: xPosStart;
-								let xPosEnd =
-									(p.end - regionStart) * xPerPixel +
-									this.plotMargin.leftMargin;
-
-								xPosEnd =
-									xPosEnd >
-									this.plotMargin.leftMargin + plotWidth
-										? this.plotMargin.leftMargin + plotWidth
-										: xPosEnd;
-
-								let xPosWidth = xPosEnd - xPosStart;
-								ctx.fillStyle = this.getColorIndex(annotation);
-								ctx.fillRect(
-									xPosStart,
-									renderHeight,
-									xPosWidth,
-									perTissue - 1
-								);
-								let xPosBtn =
-									xPosStart + "_" + (xPosStart + xPosWidth);
-								this.annoPosData[yPosBtn].regions[xPosBtn] = {
-									start: p.start,
-									end: p.end,
+							if (!this.annoPosData[yPosBtn]) {
+								this.annoPosData[yPosBtn] = {
+									tissue: tissue,
+									regions: {},
 								};
+							} else {
+								this.annoPosData[yPosBtn]["tissue"] = tissue;
 							}
-						});
 
-						renderHeight += perTissue;
+							if (tissueIndex % 2 == 0) {
+								ctx.fillStyle = "#eeeeee";
+								ctx.fillRect(
+									this.plotMargin.leftMargin,
+									renderHeight,
+									plotWidth,
+									perTissue
+								);
+							}
+
+							tissueIndex++;
+
+							regions.region.map((p) => {
+								if (
+									p.start <= regionEnd &&
+									p.end >= regionStart
+								) {
+									let xPosStart =
+										(p.start - regionStart) * xPerPixel +
+										this.plotMargin.leftMargin;
+
+									xPosStart =
+										xPosStart <= this.plotMargin.leftMargin
+											? this.plotMargin.leftMargin
+											: xPosStart;
+									let xPosEnd =
+										(p.end - regionStart) * xPerPixel +
+										this.plotMargin.leftMargin;
+
+									xPosEnd =
+										xPosEnd >
+										this.plotMargin.leftMargin + plotWidth
+											? this.plotMargin.leftMargin +
+											  plotWidth
+											: xPosEnd;
+
+									let xPosWidth = xPosEnd - xPosStart;
+									ctx.fillStyle =
+										this.getColorIndex(annotation);
+									ctx.fillRect(
+										xPosStart,
+										renderHeight,
+										xPosWidth,
+										perTissue - 1
+									);
+									let xPosBtn =
+										xPosStart +
+										"_" +
+										(xPosStart + xPosWidth);
+									this.annoPosData[yPosBtn].regions[xPosBtn] =
+										{
+											start: p.start,
+											end: p.end,
+										};
+								}
+							});
+
+							renderHeight += perTissue;
+						}
+						renderHeight += btwnAnnotations;
 					}
-					renderHeight += btwnAnnotations;
 				}
 			}
 		},

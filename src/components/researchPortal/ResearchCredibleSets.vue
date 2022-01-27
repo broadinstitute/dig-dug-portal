@@ -496,143 +496,164 @@ export default Vue.component("research-credible-sets-plot", {
 			let regionEnd = this.viewingRegion.end;
 
 			if (Object.keys(this.CSData).length == 0) {
-				document
-					.getElementById("CSInitialMessage")
-					.classList.remove("hidden");
+				if (!!document.getElementById("CSInitialMessage")) {
+					document
+						.getElementById("CSInitialMessage")
+						.classList.remove("hidden");
+				}
 			} else {
 				document
 					.getElementById("CSInitialMessage")
 					.classList.add("hidden");
 			}
+
 			let canvas = document.querySelector("#CSPlot");
 			let wrapper = document.querySelector("#CSPlotWrapper");
+			if (!!canvas && !!wrapper) {
+				let perPhenotype = 50;
+				let phenotypeTitleH = this.spaceBy * 2;
+				let btwnPhenotype = this.spaceBy * 7;
+				let bump = this.plotMargin.bump;
 
-			let perPhenotype = 50;
-			let phenotypeTitleH = this.spaceBy * 2;
-			let btwnPhenotype = this.spaceBy * 7;
-			let bump = this.plotMargin.bump;
+				let canvasWidth = wrapper.clientWidth;
+				let canvasHeight = this.plotMargin.topMargin;
 
-			let canvasWidth = wrapper.clientWidth;
-			let canvasHeight = this.plotMargin.topMargin;
+				let plotWidth =
+					canvasWidth - 30 - this.plotMargin.leftMargin * 2; //-30 for side paddings
+				let plotHeight = perPhenotype;
+				let xPerPixel = plotWidth / (regionEnd - regionStart);
 
-			let plotWidth = canvasWidth - 30 - this.plotMargin.leftMargin * 2; //-30 for side paddings
-			let plotHeight = perPhenotype;
-			let xPerPixel = plotWidth / (regionEnd - regionStart);
+				let yPerPixel = plotHeight / 1;
 
-			let yPerPixel = plotHeight / 1;
+				let numOfP = Object.keys(this.CSData).length;
 
-			let numOfP = Object.keys(this.CSData).length;
+				canvasHeight +=
+					phenotypeTitleH * numOfP +
+					perPhenotype * numOfP +
+					btwnPhenotype * numOfP;
 
-			canvasHeight +=
-				phenotypeTitleH * numOfP +
-				perPhenotype * numOfP +
-				btwnPhenotype * numOfP;
+				canvas.setAttribute("width", canvasWidth);
+				canvas.setAttribute("height", canvasHeight);
 
-			canvas.setAttribute("width", canvasWidth);
-			canvas.setAttribute("height", canvasHeight);
+				let c, ctx;
+				c = canvas;
+				ctx = c.getContext("2d");
+				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-			let c, ctx;
-			c = canvas;
-			ctx = c.getContext("2d");
-			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-			let renderHeight = this.plotMargin.topMargin;
-			if (Object.keys(this.CSData).length > 0) {
-				for (const [phenotype, credibleSets] of Object.entries(
-					this.CSData
-				)) {
-					ctx.font = "14px Arial";
-					ctx.textAlign = "left";
-					ctx.fillStyle = "#000000";
-					ctx.fillText(phenotype, bump, renderHeight + this.spaceBy);
-
-					renderHeight += phenotypeTitleH;
-
-					this.renderAxis(
-						ctx,
-						plotWidth,
-						plotHeight,
-						regionEnd,
-						regionStart,
-						renderHeight,
-						bump
-					);
-
-					for (const [CSID, credibleSet] of Object.entries(
-						credibleSets
+				let renderHeight = this.plotMargin.topMargin;
+				if (Object.keys(this.CSData).length > 0) {
+					for (const [phenotype, credibleSets] of Object.entries(
+						this.CSData
 					)) {
-						let inRegion = 0;
-						credibleSet.map((v) => {
-							if (
-								v.position >= regionStart &&
-								v.position <= regionEnd
-							) {
-								let ifInRegion = this.checkIfInRegion(
-									v.position
-								);
-								if (ifInRegion == true) {
-									let xPos =
-										(v[this.renderConfig.xAxisField] -
-											regionStart) *
-											xPerPixel +
-										this.plotMargin.leftMargin;
-									let yPos =
-										renderHeight +
-										plotHeight -
-										v[[this.renderConfig.yAxisField]] *
-											yPerPixel;
-									let colorID =
-										v.credibleSetId + ", " + v.phenotype;
-									let dotColor = this.getColorIndex(colorID);
+						ctx.font = "14px Arial";
+						ctx.textAlign = "left";
+						ctx.fillStyle = "#000000";
+						ctx.fillText(
+							phenotype,
+							bump,
+							renderHeight + this.spaceBy
+						);
 
-									this.renderDot(ctx, xPos, yPos, dotColor);
+						renderHeight += phenotypeTitleH;
 
-									if (!this.CSPosData[Math.round(yPos)]) {
-										this.CSPosData[Math.round(yPos)] = {};
-									}
-									if (
-										!this.CSPosData[Math.round(yPos)][
-											Math.round(xPos)
-										]
-									) {
+						this.renderAxis(
+							ctx,
+							plotWidth,
+							plotHeight,
+							regionEnd,
+							regionStart,
+							renderHeight,
+							bump
+						);
+
+						for (const [CSID, credibleSet] of Object.entries(
+							credibleSets
+						)) {
+							let inRegion = 0;
+							credibleSet.map((v) => {
+								if (
+									v.position >= regionStart &&
+									v.position <= regionEnd
+								) {
+									let ifInRegion = this.checkIfInRegion(
+										v.position
+									);
+									if (ifInRegion == true) {
+										let xPos =
+											(v[this.renderConfig.xAxisField] -
+												regionStart) *
+												xPerPixel +
+											this.plotMargin.leftMargin;
+										let yPos =
+											renderHeight +
+											plotHeight -
+											v[[this.renderConfig.yAxisField]] *
+												yPerPixel;
+										let colorID =
+											v.credibleSetId +
+											", " +
+											v.phenotype;
+										let dotColor =
+											this.getColorIndex(colorID);
+
+										this.renderDot(
+											ctx,
+											xPos,
+											yPos,
+											dotColor
+										);
+
+										if (!this.CSPosData[Math.round(yPos)]) {
+											this.CSPosData[Math.round(yPos)] =
+												{};
+										}
+										if (
+											!this.CSPosData[Math.round(yPos)][
+												Math.round(xPos)
+											]
+										) {
+											this.CSPosData[Math.round(yPos)][
+												Math.round(xPos)
+											] = {};
+										}
+
+										let tempObj = {};
+
+										tempObj["phenotype"] = phenotype;
+										tempObj["position"] =
+											v[this.renderConfig.xAxisField];
+
+										this.renderConfig.hoverContent.map(
+											(c) => {
+												tempObj[c] = v[c];
+											}
+										);
+
 										this.CSPosData[Math.round(yPos)][
 											Math.round(xPos)
-										] = {};
+										][v[this.renderConfig.renderBy]] =
+											tempObj;
+
+										inRegion++;
 									}
-
-									let tempObj = {};
-
-									tempObj["phenotype"] = phenotype;
-									tempObj["position"] =
-										v[this.renderConfig.xAxisField];
-
-									this.renderConfig.hoverContent.map((c) => {
-										tempObj[c] = v[c];
-									});
-
-									this.CSPosData[Math.round(yPos)][
-										Math.round(xPos)
-									][v[this.renderConfig.renderBy]] = tempObj;
-
-									inRegion++;
 								}
+							});
+
+							if (inRegion == 0) {
+								ctx.font = "14px Arial";
+								ctx.textAlign = "center";
+								ctx.fillStyle = "#000000";
+								ctx.fillText(
+									"No credible variant in the region for " +
+										phenotype,
+									this.plotMargin.leftMargin + plotWidth / 2,
+									renderHeight + plotHeight / 2
+								);
 							}
-						});
-
-						if (inRegion == 0) {
-							ctx.font = "14px Arial";
-							ctx.textAlign = "center";
-							ctx.fillStyle = "#000000";
-							ctx.fillText(
-								"No credible variant in the region for " +
-									phenotype,
-								this.plotMargin.leftMargin + plotWidth / 2,
-								renderHeight + plotHeight / 2
-							);
 						}
-					}
 
-					renderHeight += perPhenotype + btwnPhenotype;
+						renderHeight += perPhenotype + btwnPhenotype;
+					}
 				}
 			}
 		},
