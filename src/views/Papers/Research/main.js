@@ -582,7 +582,7 @@ new Vue({
 
                 parameters.map(pr => {
                     if (pr.parameter == 'phenotype' && pr.values == "kp phenotypes") {
-                        let values = this.$store.state.bioPortal.phenotypes.map(p => p.name);
+                        let values = this.$store.state.bioPortal.phenotypes.map(p => p.name).sort();
                         pr.values = values;
                     }
                 });
