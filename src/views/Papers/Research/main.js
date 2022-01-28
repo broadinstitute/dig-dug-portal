@@ -572,6 +572,9 @@ new Vue({
     },
 
     computed: {
+        kpGenes() {
+            return kpGenes;
+        },
         apiParameters() {
             let contents = this.researchPage;
             if (contents === null || contents[0]["field_api_parameters"] == false) {

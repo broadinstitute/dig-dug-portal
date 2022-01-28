@@ -19,7 +19,23 @@
 					v-for="parameter in this.apiParameters.parameters"
 					:key="parameter.parameter"
 				>
-					<div class="label" v-html="parameter.label"></div>
+					<div class="label">
+						<span v-html="parameter.label"></span
+						><a
+							v-if="
+								parameter.type == 'input' &&
+								parameter.values == 'kp genes'
+							"
+							href="javascript:;"
+							><small
+								@click="
+									showHideElement('kp_gene_search_wrapper')
+								"
+							>
+								(Get region by gene)
+							</small></a
+						>
+					</div>
 
 					<input
 						v-model="paramSearch"
@@ -66,6 +82,45 @@
 							></option>
 						</template>
 					</select>
+
+					<div
+						v-if="
+							parameter.type == 'input' &&
+							parameter.values == 'kp genes'
+						"
+						id="kp_gene_search_wrapper"
+						class="hidden"
+					>
+						<input
+							v-model="geneSearch"
+							placeholder=""
+							class="form-control"
+							@keyup="getGenes($event)"
+							id="kp_gene_search"
+						/>
+
+						<div
+							class="custom-select custom-select-search"
+							:size="kpGenes.length >= 5 ? 5 : 'auto'"
+							:style="
+								kpGenes.length == 0
+									? 'display:none !important;'
+									: ''
+							"
+						>
+							<template v-for="gene in kpGenes">
+								<a
+									href="javascript:;"
+									v-html="gene"
+									:key="gene"
+									@click="
+										getRegion(gene, parameter.parameter)
+									"
+									class="custom-select-a-option"
+								></a>
+							</template>
+						</div>
+					</div>
 					<input
 						v-if="parameter.type == 'input'"
 						type="text"
@@ -300,6 +355,8 @@ export default Vue.component("research-page-filters", {
 			filtersIndex: {},
 			searchParamsIndex: {},
 			paramSearch: "",
+			geneSearch: "",
+			kpGenes: [],
 		};
 	},
 	created() {
@@ -365,6 +422,43 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		showHideElement(ELEMENT) {
+			uiUtils.showHideElement(ELEMENT);
+		},
+		async getRegion(KEY, PARAM) {
+			let searchPoint =
+				"https://bioindex.hugeamp.org/api/bio/query/gene?q=" + KEY;
+
+			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
+
+			if (geneJson.error == null) {
+				let region =
+					geneJson.data[0].chromosome +
+					":" +
+					geneJson.data[0].start +
+					"-" +
+					geneJson.data[0].end;
+				document.getElementById("search_param_" + PARAM).value = region;
+				this.geneSearch = "";
+				this.kpGenes = [];
+				uiUtils.hideElement("kp_gene_search_wrapper");
+			}
+		},
+		async getGenes(EVENT) {
+			if (EVENT.target.value.length > 2) {
+				let searchPoint =
+					"https://bioindex.hugeamp.org/api/bio/match/gene?q=" +
+					EVENT.target.value;
+
+				var geneJson = await fetch(searchPoint).then((resp) =>
+					resp.json()
+				);
+
+				if (geneJson.error == null) {
+					this.kpGenes = geneJson.data;
+				}
+			}
+		},
 		emptySearchInput(ID) {},
 		showHideSearch() {
 			let searchUIWrapper = document.getElementById("searchCriteria");
@@ -1072,6 +1166,15 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
+#kp_gene_search_wrapper {
+	position: absolute;
+	background-color: #efefef;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	padding: 10px 10px;
+	z-index: 10;
+	left: 50px;
+}
 .custom-select-search {
 	width: auto !important;
 	min-width: 175px;
@@ -1091,6 +1194,27 @@ export default Vue.component("research-page-filters", {
 
 .custom-select-search option.hidden {
 	display: none;
+}
+
+div.custom-select-search {
+	overflow-y: auto;
+	height: auto;
+	max-height: 250px;
+}
+
+.custom-select-a-option {
+	display: block;
+	width: 100%;
+	border-bottom: solid 1px #eee;
+	font-size: 14px;
+	color: #666666 !important;
+	background-color: #ffffff;
+}
+
+.custom-select-a-option:hover {
+	color: #333333 !important;
+	background-color: #efefef;
+	text-decoration: none;
 }
 .clear-all-filters-bubble {
 	background-color: #ff0000;
