@@ -237,7 +237,14 @@ let showTabContent = function (TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
 
     document.getElementById(TAB).classList.add("active");
     document.getElementById(CONTENT).classList.add("active");
-}
+};
+
+let removeOnMouseOut = function (BOXID) {
+    let wrapper = document.getElementById(BOXID);
+    setTimeout(function () {
+        wrapper.classList.add("hidden");
+    }, 1000);
+};
 
 export default {
     popOutElement,
@@ -254,5 +261,6 @@ export default {
     convertJson2Csv,
     saveJson,
     getAxisTicks,
-    showTabContent
+    showTabContent,
+    removeOnMouseOut
 };

@@ -1274,6 +1274,11 @@ div.filtering-ui-wrapper {
     position: relative;
 }
 
+div.filtering-ui-wrapper.add-content {
+    background-color: #ddefff;
+    border: 1px solid #bbdfff;
+}
+
 div.filtering-ui-wrapper .filter-by-label {
     font-size: 14px;
     font-weight: 600;
@@ -2038,4 +2043,28 @@ span.volcano-score-2 {
 .kp-tab-content.active {
 	visibility: visible;
 	height: auto !important;
+}
+
+span[class^="spacer-"], span[class^=" spacer-"] {
+    display: inline-block;
+}
+
+span.spacer-1 {
+    width: 1em;
+}
+
+span.spacer-2 {
+    width: 2em;
+}
+
+span.spacer-3 {
+    width: 3em;
+}
+
+span.spacer-4 {
+    width: 4em;
+}
+
+span.spacer-5 {
+    width: 5em;
 }

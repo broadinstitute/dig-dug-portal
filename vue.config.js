@@ -228,13 +228,6 @@ let pages = {
         filename: "research.html",
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"]
-    },
-    lztest: {
-        entry: "src/views/LZTest/main.js",
-        template: "public/index.html",
-        filename: "lztest.html",
-        title: "LZ Test",
-        chunks: ["chunk-vendors", "chunk-common", "lztest"]
     }
 };
 

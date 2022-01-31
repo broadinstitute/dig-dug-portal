@@ -20,6 +20,7 @@ import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.v
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import ResearchGEMDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
@@ -27,7 +28,7 @@ import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.v
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
-import kpDataViewerPkg from "@/components/kpDataViewer/kpDataViewerPkg.vue";
+import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import uiUtils from "@/utils/uiUtils";
 import $ from "jquery";
 import keyParams from "@/utils/keyParams";
@@ -47,6 +48,7 @@ new Vue({
         ResearchPageFooter,
         ResearchPageFilters,
         ResearchDataTable,
+        ResearchGEMDataTable,
         ResearchMPlotBitmap,
         ResearchRegionPlot,
         ResearchScorePlot,
@@ -54,11 +56,13 @@ new Vue({
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,
-        kpDataViewerPkg,
+        kpGEMPkg,
         Documentation
     },
     data() {
         return {
+            regionZoom: 0,
+            regionViewArea: 0,
             devID: null,
             devPW: null,
             dataFiles: [],
@@ -460,7 +464,7 @@ new Vue({
         checkDataComparison(newResearchData, previousData) {
 
             let dataComparison = this.$store.state.dataComparison;
-            console.log("dataComparison", dataComparison);
+
 
             if (this.dataComparisonConfig != null && newResearchData.length > 0) {
 
@@ -568,12 +572,25 @@ new Vue({
     },
 
     computed: {
+        kpGenes() {
+            return kpGenes;
+        },
         apiParameters() {
             let contents = this.researchPage;
             if (contents === null || contents[0]["field_api_parameters"] == false) {
                 return null;
             } else {
-                return JSON.parse(contents[0]["field_api_parameters"]);
+                let apiConfig = JSON.parse(contents[0]["field_api_parameters"]);
+                let parameters = apiConfig.parameters;
+
+                parameters.map(pr => {
+                    if (pr.parameter == 'phenotype' && pr.values == "kp phenotypes") {
+                        let values = this.$store.state.bioPortal.phenotypes.map(p => p.name).sort();
+                        pr.values = values;
+                    }
+                });
+
+                return apiConfig;
             }
         },
         dataComparisonConfig() {
@@ -664,7 +681,7 @@ new Vue({
             return true;
         },
         plotMargin() {
-            return { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50 }
+            return { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50, bump: 5.5 }
         },
         pageDescription() {
             let contents = this.researchPage;
@@ -694,7 +711,17 @@ new Vue({
             if (contents === null || contents[0]["field_data_visualizer"] == false) {
                 return null;
             }
+
             return contents[0]["field_data_visualizer"];
+        },
+        customPlotType() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_custom_visualizer"] == false) {
+                return null;
+            }
+
+            return contents[0]["field_custom_visualizer"];
         },
         plotConfig() {
             let contents = this.researchPage;
@@ -817,7 +844,7 @@ new Vue({
                 } else {
                     let returnData = (this.dataType == 'json') ? JSON.parse(convertedData).data : convertedData;
 
-                    //console.log("returnData", convertedData["data"]);
+
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
@@ -941,7 +968,34 @@ new Vue({
                     let dataFiles = content[0]["field_data_points"].split(",");
 
                     this.dataFiles = dataFiles;
-                    this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+
+                    /// in case of phenotypes == kp phenotypes
+
+                    let apis = JSON.parse(content[0]["field_api_parameters"]);
+                    let isKPPhenotype = false;
+
+                    apis.parameters.map(pr => {
+                        if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
+                            isKPPhenotype = true;
+                        }
+                    })
+
+                    //console.log("this.apiParameters", this.apiParameters);
+
+                    if (isKPPhenotype == true) {
+                        let kpPhenotypes = this.$store.state.bioPortal.phenotypes
+                        let tempObj = {};
+
+                        kpPhenotypes.map(p => {
+                            tempObj[p.name] = p.description;
+                        });
+
+                        this.dataFilesLabels = tempObj;
+
+                    } else {
+                        this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+                    }
+
 
                     let initialData = dataFiles[0];
 
@@ -1006,7 +1060,7 @@ new Vue({
 
                 let allData = this.checkDataComparison(content, this.$store.state.filteredData);
 
-                console.log("All data 2", Object.keys(allData).length);
+
 
                 if (this.dataTableFormat == null) {
 

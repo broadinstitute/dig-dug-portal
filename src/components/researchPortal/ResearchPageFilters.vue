@@ -19,19 +19,108 @@
 					v-for="parameter in this.apiParameters.parameters"
 					:key="parameter.parameter"
 				>
-					<div class="label" v-html="parameter.label"></div>
+					<div class="label">
+						<span v-html="parameter.label"></span
+						><a
+							v-if="
+								parameter.type == 'input' &&
+								parameter.values == 'kp genes'
+							"
+							href="javascript:;"
+							><small
+								@click="
+									showHideElement('kp_gene_search_wrapper')
+								"
+							>
+								(Get region by gene)
+							</small></a
+						>
+					</div>
+
+					<input
+						v-model="paramSearch"
+						placeholder=""
+						v-if="
+							parameter.type == 'list' &&
+							parameter.values.length > 10
+						"
+						class="form-control"
+					/>
+
 					<select
 						:id="'search_param_' + parameter.parameter"
-						class="custom-select"
+						class="custom-select custom-select-search"
+						:size="
+							parameter.values.length > 10
+								? paramSearch.length > 2
+									? 5
+									: 1
+								: 'auto'
+						"
+						:style="
+							parameter.values.length > 10 &&
+							paramSearch.length <= 2
+								? 'display:none !important;'
+								: ''
+						"
 						v-if="parameter.type == 'list'"
 					>
-						<option
-							v-for="param in parameter.values"
-							:value="param.trim()"
-							v-html="getFileLabel(param.trim())"
-							:key="param.trim()"
-						></option>
+						<template v-for="param in parameter.values">
+							<option
+								:value="param.trim()"
+								v-html="getFileLabel(param.trim())"
+								:key="param.trim()"
+								:class="
+									parameter.values.length > 10 &&
+									paramSearch.length > 2 &&
+									!getFileLabel(param.trim())
+										.toLowerCase()
+										.includes(paramSearch.toLowerCase())
+										? 'hidden'
+										: ''
+								"
+							></option>
+						</template>
 					</select>
+
+					<div
+						v-if="
+							parameter.type == 'input' &&
+							parameter.values == 'kp genes'
+						"
+						id="kp_gene_search_wrapper"
+						class="hidden"
+					>
+						<input
+							v-model="geneSearch"
+							placeholder=""
+							class="form-control"
+							@keyup="getGenes($event)"
+							id="kp_gene_search"
+						/>
+
+						<div
+							class="custom-select custom-select-search"
+							:size="kpGenes.length >= 5 ? 5 : 'auto'"
+							:style="
+								kpGenes.length == 0
+									? 'display:none !important;'
+									: ''
+							"
+						>
+							<template v-for="gene in kpGenes">
+								<a
+									href="javascript:;"
+									v-html="gene"
+									:key="gene"
+									@click="
+										getRegion(gene, parameter.parameter)
+									"
+									class="custom-select-a-option"
+								></a>
+							</template>
+						</div>
+					</div>
 					<input
 						v-if="parameter.type == 'input'"
 						type="text"
@@ -88,6 +177,7 @@
 				</div>
 			</div>
 		</div>
+
 		<div
 			class="filtering-ui-wrapper search-criteria"
 			id="searchCriteria"
@@ -264,6 +354,9 @@ export default Vue.component("research-page-filters", {
 		return {
 			filtersIndex: {},
 			searchParamsIndex: {},
+			paramSearch: "",
+			geneSearch: "",
+			kpGenes: [],
 		};
 	},
 	created() {
@@ -329,6 +422,44 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		showHideElement(ELEMENT) {
+			uiUtils.showHideElement(ELEMENT);
+		},
+		async getRegion(KEY, PARAM) {
+			let searchPoint =
+				"https://bioindex.hugeamp.org/api/bio/query/gene?q=" + KEY;
+
+			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
+
+			if (geneJson.error == null) {
+				let region =
+					geneJson.data[0].chromosome +
+					":" +
+					geneJson.data[0].start +
+					"-" +
+					geneJson.data[0].end;
+				document.getElementById("search_param_" + PARAM).value = region;
+				this.geneSearch = "";
+				this.kpGenes = [];
+				uiUtils.hideElement("kp_gene_search_wrapper");
+			}
+		},
+		async getGenes(EVENT) {
+			if (EVENT.target.value.length > 2) {
+				let searchPoint =
+					"https://bioindex.hugeamp.org/api/bio/match/gene?q=" +
+					EVENT.target.value;
+
+				var geneJson = await fetch(searchPoint).then((resp) =>
+					resp.json()
+				);
+
+				if (geneJson.error == null) {
+					this.kpGenes = geneJson.data;
+				}
+			}
+		},
+		emptySearchInput(ID) {},
 		showHideSearch() {
 			let searchUIWrapper = document.getElementById("searchCriteria");
 			let searchUIHandle = document.getElementById("openCloseSearch");
@@ -436,6 +567,8 @@ export default Vue.component("research-page-filters", {
 			let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
 			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+
+			this.paramSearch = "";
 		},
 		switchData(event) {
 			uiUtils.showElement("data-loading-indicator");
@@ -1033,6 +1166,56 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
+#kp_gene_search_wrapper {
+	position: absolute;
+	background-color: #efefef;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	padding: 10px 10px;
+	z-index: 10;
+	left: 50px;
+}
+.custom-select-search {
+	width: auto !important;
+	min-width: 175px;
+}
+
+.custom-select-search.hidden {
+	display: none !important;
+}
+
+.custom-select-search option {
+	width: auto;
+	min-width: 175px;
+	display: block;
+	padding: 5px 0px;
+	border-bottom: solid 1px #ddd;
+}
+
+.custom-select-search option.hidden {
+	display: none;
+}
+
+div.custom-select-search {
+	overflow-y: auto;
+	height: auto;
+	max-height: 250px;
+}
+
+.custom-select-a-option {
+	display: block;
+	width: 100%;
+	border-bottom: solid 1px #eee;
+	font-size: 14px;
+	color: #666666 !important;
+	background-color: #ffffff;
+}
+
+.custom-select-a-option:hover {
+	color: #333333 !important;
+	background-color: #efefef;
+	text-decoration: none;
+}
 .clear-all-filters-bubble {
 	background-color: #ff0000;
 }
