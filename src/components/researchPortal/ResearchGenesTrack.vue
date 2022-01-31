@@ -184,13 +184,16 @@ export default Vue.component("research-genes-track", {
 
 					yPos += yPos % 1 == 0 ? 0.5 : 0;
 
-					var left = '"\\u' + "2190" + '"';
-					var right = '"\\u' + "2192" + '"';
+					//var left = '"\\u' + "2190" + '"';
+					//var right = '"\\u' + "2192" + '"';
+
+					var left = "\u{2190}";
+					var right = "\u{2192}";
 
 					let geneName =
 						gene.strand == "+"
-							? gene.gene_name + " " + eval(right)
-							: eval(left) + " " + gene.gene_name;
+							? gene.gene_name + " " + right
+							: left + " " + gene.gene_name;
 
 					ctx.fillText(
 						geneName,

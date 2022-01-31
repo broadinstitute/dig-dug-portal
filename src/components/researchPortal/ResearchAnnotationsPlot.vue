@@ -451,11 +451,11 @@ export default Vue.component("research-annotations-plot", {
 					);
 					ctx.fill();
 
-					ctx.font = "bold 12px Arial";
+					ctx.font = "12px Arial";
 					ctx.textAlign = "center";
 					ctx.fillStyle = "#ffffff";
 					ctx.fillText(
-						eval('"\\u' + "2715" + '"'),
+						"\u{2715}",
 						this.plotMargin.leftMargin + plotWidth + bump * 3,
 						renderHeight + bump * 2 + 3.5
 					);
@@ -1494,11 +1494,12 @@ export default Vue.component("research-annotations-plot", {
 						);
 						ctx.fill();
 
-						ctx.font = "bold 12px Arial";
+						ctx.font = "12px Arial";
 						ctx.textAlign = "center";
 						ctx.fillStyle = "#ffffff";
+
 						ctx.fillText(
-							eval('"\\u' + "2715" + '"'),
+							"\u{2715}",
 							this.plotMargin.leftMargin + plotWidth + bump * 3,
 							renderHeight + bump * 2 + 3.5
 						);
