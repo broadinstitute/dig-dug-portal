@@ -173,6 +173,7 @@
 						<div
 							class="col-md-12 zoom-ui-wrapper"
 							v-if="
+								!!$parent.plotConfig &&
 								!!$parent.plotConfig.zoom &&
 								$parent.plotConfig.zoom == 'true'
 							"
