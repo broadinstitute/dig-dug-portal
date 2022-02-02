@@ -225,10 +225,10 @@
 					<template
 						v-if="
 							filter.type == 'search' ||
-							filter.type == 'search_gt' ||
-							filter.type == 'search_lt' ||
-							filter.type == 'search_or' ||
-							filter.type == 'search_and'
+							filter.type == 'search greater than' ||
+							filter.type == 'search lower than' ||
+							filter.type == 'search or' ||
+							filter.type == 'search and'
 						"
 					>
 						<input
@@ -240,7 +240,7 @@
 							"
 						/>
 					</template>
-					<template v-if="filter.type == 'search_cd'">
+					<template v-if="filter.type == 'search change direction'">
 						<select
 							class="egl-filter-direction"
 							:id="
@@ -660,10 +660,10 @@ export default Vue.component("research-page-filters", {
 					]["search"].filter((v, i, arr) => arr.indexOf(v) == i);
 				});
 			} else if (
-				TYPE == "search_gt" ||
-				TYPE == "search_lt" ||
-				TYPE == "search_or" ||
-				TYPE == "search_and"
+				TYPE == "search greater than" ||
+				TYPE == "search lower than" ||
+				TYPE == "search or" ||
+				TYPE == "search and"
 			) {
 				this.filtersIndex[FIELD]["search"] = [searchValue];
 			} else {
@@ -681,7 +681,7 @@ export default Vue.component("research-page-filters", {
 		applyFilters() {
 			let comparingFields =
 				this.dataComparisonConfig != null
-					? this.dataComparisonConfig.fieldsToCompare
+					? this.dataComparisonConfig["fields to compare"]
 					: null;
 			let filtered = this.unfilteredDataset;
 			let tempFiltered = comparingFields == null ? [] : {};
@@ -705,7 +705,7 @@ export default Vue.component("research-page-filters", {
 									});
 								} else if (
 									searchIndex.type == "search" ||
-									searchIndex.type == "dropdown_word"
+									searchIndex.type == "dropdown word"
 								) {
 									targetData.filter((row) => {
 										if (
@@ -716,19 +716,23 @@ export default Vue.component("research-page-filters", {
 											tempFiltered.push(row);
 										}
 									});
-								} else if (searchIndex.type == "search_gt") {
+								} else if (
+									searchIndex.type == "search greater than"
+								) {
 									targetData.filter((row) => {
 										if (row[searchIndex.field] >= search) {
 											tempFiltered.push(row);
 										}
 									});
-								} else if (searchIndex.type == "search_lt") {
+								} else if (
+									searchIndex.type == "search lower than"
+								) {
 									targetData.filter((row) => {
 										if (row[searchIndex.field] <= search) {
 											tempFiltered.push(row);
 										}
 									});
-								} else if (searchIndex.type == "search_or") {
+								} else if (searchIndex.type == "search or") {
 									let searchVals = search.split(",");
 									targetData.filter((row) => {
 										if (
@@ -740,7 +744,10 @@ export default Vue.component("research-page-filters", {
 											tempFiltered.push(row);
 										}
 									});
-								} else if (searchIndex.type == "search_cd") {
+								} else if (
+									searchIndex.type ==
+									"search change direction"
+								) {
 									let searchDirection =
 										document.getElementById(
 											"filter_" +
@@ -766,7 +773,7 @@ export default Vue.component("research-page-filters", {
 											}
 										}
 									});
-								} else if (searchIndex.type == "search_and") {
+								} else if (searchIndex.type == "search and") {
 									let searchVals = search.split(",");
 									targetData.filter((row) => {
 										if (
@@ -804,7 +811,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -815,7 +824,9 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -823,7 +834,7 @@ export default Vue.component("research-page-filters", {
 									}
 								} else if (
 									searchIndex.type == "search" ||
-									searchIndex.type == "dropdown_word"
+									searchIndex.type == "dropdown word"
 								) {
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
@@ -851,7 +862,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -865,13 +878,17 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_gt") {
+								} else if (
+									searchIndex.type == "search greater than"
+								) {
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
 										if (
@@ -894,7 +911,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -904,13 +923,17 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_lt") {
+								} else if (
+									searchIndex.type == "search lower than"
+								) {
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
 										if (
@@ -933,7 +956,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -943,13 +968,15 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_or") {
+								} else if (searchIndex.type == "search or") {
 									let searchVals = search.split(",");
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
@@ -976,7 +1003,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -989,13 +1018,18 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_cd") {
+								} else if (
+									searchIndex.type ==
+									"search change direction"
+								) {
 									let searchDirection =
 										document.getElementById(
 											"filter_" +
@@ -1029,7 +1063,9 @@ export default Vue.component("research-page-filters", {
 												if (meetSearch == true) {
 													tempFiltered[
 														row[
-															this.dataComparisonConfig.keyField
+															this.dataComparisonConfig[
+																"key field"
+															]
 														]
 													] = row;
 												}
@@ -1040,7 +1076,9 @@ export default Vue.component("research-page-filters", {
 												) {
 													tempFiltered[
 														row[
-															this.dataComparisonConfig.keyField
+															this.dataComparisonConfig[
+																"key field"
+															]
 														]
 													] = row;
 												}
@@ -1069,7 +1107,9 @@ export default Vue.component("research-page-filters", {
 												if (meetSearch == true) {
 													tempFiltered[
 														row[
-															this.dataComparisonConfig.keyField
+															this.dataComparisonConfig[
+																"key field"
+															]
 														]
 													] = row;
 												}
@@ -1080,14 +1120,16 @@ export default Vue.component("research-page-filters", {
 												) {
 													tempFiltered[
 														row[
-															this.dataComparisonConfig.keyField
+															this.dataComparisonConfig[
+																"key field"
+															]
 														]
 													] = row;
 												}
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_and") {
+								} else if (searchIndex.type == "search and") {
 									let searchVals = search.split(",");
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
@@ -1114,7 +1156,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -1127,7 +1171,9 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
