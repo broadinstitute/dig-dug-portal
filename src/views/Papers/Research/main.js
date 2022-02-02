@@ -974,11 +974,14 @@ new Vue({
                     let apis = JSON.parse(content[0]["field_api_parameters"]);
                     let isKPPhenotype = false;
 
-                    apis.parameters.map(pr => {
-                        if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
-                            isKPPhenotype = true;
-                        }
-                    })
+                    if (!!apis) {
+                        apis.parameters.map(pr => {
+                            if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
+                                isKPPhenotype = true;
+                            }
+                        })
+                    }
+
 
                     //console.log("this.apiParameters", this.apiParameters);
 
