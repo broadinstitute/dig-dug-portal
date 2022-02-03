@@ -10,14 +10,14 @@
 			v-if="
 				!!searchParameters &&
 				dataComparisonConfig != null &&
-				searchParameters[dataComparisonConfig.fieldsGroupDataKey].search
-					.length > 1
+				searchParameters[dataComparisonConfig['fields group data key']]
+					.search.length > 1
 			"
 			class="table-total-rows"
 		>
 			<span
 				v-for="(item, itemIndex) in searchParameters[
-					dataComparisonConfig.fieldsGroupDataKey
+					dataComparisonConfig['fields group data key']
 				].search"
 				v-html="item"
 				:key="item + itemIndex"
@@ -403,7 +403,9 @@ export default Vue.component("research-gem-data-table", {
 							updatedData
 						)) {
 							let compareField =
-								this.dataComparisonConfig.fieldsToCompare[1];
+								this.dataComparisonConfig[
+									"fields to compare"
+								][1];
 							let activePhenotypes = Object.keys(
 								vValue[compareField]
 							);
@@ -820,7 +822,7 @@ export default Vue.component("research-gem-data-table", {
 			});
 		},
 		getColorIndex(SKEY) {
-			let keyField = this.dataComparisonConfig.fieldsGroupDataKey;
+			let keyField = this.dataComparisonConfig["fields group data key"];
 			let keyParameterSeach = this.searchParameters[keyField].search;
 			let colorIndex = "";
 			if (keyParameterSeach.length > 1) {
@@ -930,9 +932,9 @@ export default Vue.component("research-gem-data-table", {
 			let arrayedObject = [];
 
 			let firstItem = DATASET[Object.keys(DATASET)[0]];
-			let isObjct = !!this.dataComparisonConfig.fieldsToCompare.includes(
-				KEY
-			)
+			let isObjct = !!this.dataComparisonConfig[
+				"fields to compare"
+			].includes(KEY)
 				? true
 				: false;
 
@@ -961,7 +963,7 @@ export default Vue.component("research-gem-data-table", {
 		array2Object(DATASET, RAW_DATASET, KEY) {
 			let objectedArray = {};
 			DATASET.map((d) => {
-				let keyField = d[this.dataComparisonConfig.keyField];
+				let keyField = d[this.dataComparisonConfig["key field"]];
 				objectedArray[keyField] = RAW_DATASET[keyField];
 			});
 

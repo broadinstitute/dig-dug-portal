@@ -166,8 +166,9 @@ export default Vue.component("research-credible-sets-plot", {
 					? this.renderConfig["phenotype match"][this.phenotype]
 					: this.phenotype;
 			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig.phenotypeParameter]) {
-					phenotype = keyParams[this.renderConfig.phenotypeParameter];
+				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
+					phenotype =
+						keyParams[this.renderConfig["phenotype parameter"]];
 				} else {
 					phenotype = null;
 				}
@@ -219,8 +220,9 @@ export default Vue.component("research-credible-sets-plot", {
 					? this.renderConfig["phenotype match"][this.phenotype]
 					: this.phenotype;
 			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig.phenotypeParameter]) {
-					phenotype = keyParams[this.renderConfig.phenotypeParameter];
+				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
+					phenotype =
+						keyParams[this.renderConfig["phenotype parameter"]];
 				} else {
 					phenotype = null;
 				}
@@ -348,14 +350,16 @@ export default Vue.component("research-credible-sets-plot", {
 								)) {
 									infoBoxContent +=
 										"<strong>" + key + "</strong><br />";
-									this.renderConfig.hoverContent.map((h) => {
-										infoBoxContent +=
-											"<span>" +
-											h +
-											": <span>" +
-											value[h] +
-											"<br />";
-									});
+									this.renderConfig["hover content"].map(
+										(h) => {
+											infoBoxContent +=
+												"<span>" +
+												h +
+												": <span>" +
+												value[h] +
+												"<br />";
+										}
+									);
 
 									/// add annotations per selected tissues
 									if (
@@ -580,14 +584,24 @@ export default Vue.component("research-credible-sets-plot", {
 									);
 									if (ifInRegion == true) {
 										let xPos =
-											(v[this.renderConfig.xAxisField] -
+											(v[
+												this.renderConfig[
+													"x axis field"
+												]
+											] -
 												regionStart) *
 												xPerPixel +
 											this.plotMargin.leftMargin;
 										let yPos =
 											renderHeight +
 											plotHeight -
-											v[[this.renderConfig.yAxisField]] *
+											v[
+												[
+													this.renderConfig[
+														"y axis field"
+													],
+												]
+											] *
 												yPerPixel;
 										let colorID =
 											v.credibleSetId +
@@ -621,9 +635,13 @@ export default Vue.component("research-credible-sets-plot", {
 
 										tempObj["phenotype"] = phenotype;
 										tempObj["position"] =
-											v[this.renderConfig.xAxisField];
+											v[
+												this.renderConfig[
+													"x axis field"
+												]
+											];
 
-										this.renderConfig.hoverContent.map(
+										this.renderConfig["hover content"].map(
 											(c) => {
 												tempObj[c] = v[c];
 											}
@@ -631,7 +649,7 @@ export default Vue.component("research-credible-sets-plot", {
 
 										this.CSPosData[Math.round(yPos)][
 											Math.round(xPos)
-										][v[this.renderConfig.renderBy]] =
+										][v[this.renderConfig["render by"]]] =
 											tempObj;
 
 										inRegion++;
@@ -794,9 +812,9 @@ export default Vue.component("research-credible-sets-plot", {
 				let phenotype = valueArr[1];
 
 				let CSServer =
-					this.renderConfig.credibleSetsServer == "KP BioIndex"
+					this.renderConfig["credible sets server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"
-						: this.renderConfig.credibleSetsServer;
+						: this.renderConfig["credible sets server"];
 
 				var CSURL =
 					CSServer +
@@ -849,9 +867,9 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 		async getCredibleSetsList(REGION, PHENOTYPE) {
 			let CSServer =
-				this.renderConfig.credibleSetsServer == "KP BioIndex"
+				this.renderConfig["credible sets server"] == "KP BioIndex"
 					? "https://bioindex.hugeamp.org/api/bio"
-					: this.renderConfig.credibleSetsServer;
+					: this.renderConfig["credible sets server"];
 
 			var CSURL =
 				CSServer +

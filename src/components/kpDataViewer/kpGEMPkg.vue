@@ -3,9 +3,9 @@
 		<div :id="pkgID"></div>
 		<div id="viewers_collection">
 			<research-region-plot
-				v-if="pkgConfig.viewers.includes('region_plot') == true"
+				v-if="pkgConfig.viewers.includes('region plot') == true"
 				:plotData="$store.state.filteredData"
-				:renderConfig="pkgConfig.regionViewer"
+				:renderConfig="pkgConfig['region viewer']"
 				:dataComparisonConfig="dataComparisonConfig"
 				:region="$store.state.searchingRegion"
 				:plotMargin="plotMargin"
@@ -15,19 +15,19 @@
 			></research-region-plot>
 			<research-genes-track
 				v-if="
-					pkgConfig.viewers.includes('genes_plot') == true &&
+					pkgConfig.viewers.includes('genes plot') == true &&
 					$store.state.codingGenesData != null
 				"
 				:region="$store.state.searchingRegion"
 				:genesData="$store.state.codingGenesData"
-				:plotConfig="pkgConfig.regionViewer"
+				:plotConfig="pkgConfig['region viewer']"
 				:plotType="'region_plot'"
 				:plotMargin="plotMargin"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
 			></research-genes-track>
 			<div
-				v-if="pkgConfig.viewers.includes('credible_sets_plot') == true"
+				v-if="pkgConfig.viewers.includes('credible sets plot') == true"
 				class="section-opener"
 				id="credibleSetSectionOpener"
 				@click="
@@ -44,12 +44,12 @@
 			<research-credible-sets-plot
 				id="credibleSetSection"
 				class="svg-wrapper hidden-svg"
-				v-if="pkgConfig.viewers.includes('credible_sets_plot') == true"
+				v-if="pkgConfig.viewers.includes('credible sets plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
-				:renderConfig="pkgConfig.credibleSetsViewer"
+				:renderConfig="pkgConfig['credible sets viewer']"
 				:dataComparison="this.$store.state.dataComparison"
 				:pkgData="$store.state.pkgData"
 				:pkgDataSelected="pkgDataSelected"
@@ -57,7 +57,7 @@
 				:regionViewArea="regionViewArea"
 			></research-credible-sets-plot>
 			<div
-				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
+				v-if="pkgConfig.viewers.includes('annotations plot') == true"
 				class="section-opener"
 				id="annotationSectionOpener"
 				@click="
@@ -74,10 +74,10 @@
 			<research-annotations-plot
 				id="annotationSection"
 				class="svg-wrapper hidden-svg"
-				v-if="pkgConfig.viewers.includes('annotations_plot') == true"
+				v-if="pkgConfig.viewers.includes('annotations plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
-				:renderConfig="pkgConfig.annotationsViewer"
+				:renderConfig="pkgConfig['annotations viewer']"
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
 				:dataComparison="this.$store.state.dataComparison"
