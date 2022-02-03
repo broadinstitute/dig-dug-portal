@@ -1,38 +1,16 @@
 <template>
     <div id="variant-search">
         <b-row>
-            <b-col cols="9">
-                <div class="legends" v-show="tableData.length">
-                    <strong class="mr-2">Impact:</strong>
-                    <b-btn
-                        disabled
-                        variant="outline-danger"
-                        size="sm"
-                        class="mr-1 btn-mini"
-                        >HIGH</b-btn
+            <b-col>
+                <b-btn
+                        class="btn btn-secondary btn-sm"
+                        @click="
+                            showHideElement(
+                                'filter_pop_up'
+                            )
+                        "
+                        >Open Filter</b-btn
                     >
-                    <b-btn
-                        disabled
-                        variant="outline-warning"
-                        size="sm"
-                        class="mr-1 btn-mini"
-                        >MODERATE</b-btn
-                    >
-                    <b-btn
-                        disabled
-                        variant="outline-success"
-                        size="sm"
-                        class="mr-1 btn-mini"
-                        >LOW</b-btn
-                    >
-                    <b-btn
-                        disabled
-                        variant="outline-secondary"
-                        size="sm"
-                        class="btn-mini"
-                        >MODIFIER</b-btn
-                    >
-                </div>
             </b-col>
             <b-col class="text-right mb-2">
                 <csv-download
@@ -42,6 +20,63 @@
                 ></csv-download
             ></b-col>
         </b-row>
+        <b-row>
+            <b-col>
+                <div id="filter_pop_up_example">
+                    <div id="filter_pop_up" class="hidden">
+                        <div>
+                            <form>
+                                <fieldset>
+                                    <legend>
+                                        Select impact:
+                                    </legend>
+                                    <tamplate v-for="(key, value) in this.disablebtn">
+                                        <b-form-checkbox
+                                            name="impact"
+                                            v-model="filters['impacts']"
+                                            :disabled="key"
+                                            :value="value"
+                                            inline
+                                        >{{ value }}</b-form-checkbox>
+                                    </tamplate>
+
+                                    <legend>
+                                        Select phenotypes:
+                                    </legend>
+                                    <tamplate v-for="(key, value) in this.HPOTerms">
+                                        <b-form-checkbox 
+                                            name="phenotypes"
+                                            v-model="filters['phenotypes']"
+                                            :value="value" >{{ key }}</b-form-checkbox>
+                                    </tamplate>
+                                </fieldset>
+                            </form>
+                        </div>
+                        <b-btn
+                            class="btn btn-secondary btn-sm"
+                            @click="
+                                showHideElement(
+                                    'filter_pop_up'
+                                )
+                            "
+                            style="margin-right: 5px"
+                            >Cancel</b-btn
+                        >
+                        <b-btn
+                            class="btn btn-secondary btn-sm"
+                            @click="
+                                addfilter();
+                                showHideElement(
+                                    'filter_pop_up'
+                                )
+                            "
+                            >Apply filter</b-btn
+                        >
+                    </div>
+                </div>
+            </b-col>
+        </b-row>
+        
         <div v-show="tableData.length">
             <b-table
                 hover
@@ -86,6 +121,26 @@
                         data.item.dbSNP
                     }}</a>
                 </template>
+                <template #cell(allelecount)="data">
+                    <div align="right">{{
+                        data.item.allelecount
+                    }}</div>
+                </template>
+                <template #cell(allelnumber)="data">
+                    <div align="right">{{
+                        data.item.allelnumber
+                    }}</div>
+                </template>
+                <template #cell(allelefrequency)="data">
+                    <div align="right">{{
+                        data.item.allelefrequency
+                    }}</div>
+                </template>
+                <template #cell(TWO_ALT_GENO_CTS)="data">
+                    <div align="right">{{
+                        data.item.TWO_ALT_GENO_CTS
+                    }}</div>
+                </template>
                 <template #cell(max_consequence)="data">
                     <div
                         v-if="data.item.Max_Impact"
@@ -103,8 +158,6 @@
                         class="btn-mini mr-2"
                         variant="outline-primary"
                         @click="
-                            //showPhenoData(data.item.varID, data.item.hprecords);
-
                             toToggle(data.detailsShowing, 1)
                                 ? data.toggleDetails()
                                 : ''
@@ -156,9 +209,30 @@
                             v-if="showButton === 1"
                             :items="row.item.hpdisplay"
                             :fields="hprecordFields"
-                            :per-page="perPage"
+                            :per-page="perPagephenotype"
                             :tbody-tr-class="rowPickClass"
                         >
+                            
+                            <template #cell(allelecount)="row">
+                                <div align="right">{{
+                                    row.item.allelecount
+                                }}</div>
+                            </template>
+                            <template #cell(allelnumber)="row">
+                                <div align="right">{{
+                                    row.item.allelnumber
+                                }}</div>
+                            </template>
+                            <template #cell(allelefrequency)="row">
+                                <div align="right">{{
+                                    row.item.allelefrequency
+                                }}</div>
+                            </template>
+                            <template #cell(TWO_ALT_GENO_CTS)="row">
+                                <div align="right">{{
+                                    row.item.TWO_ALT_GENO_CTS
+                                }}</div>
+                            </template>
                         </b-table>
 
                         <b-table
@@ -210,8 +284,7 @@
                                 <div
                                     class="border-color"
                                     :class="data.item.Max_Impact"
-                                >
-                                    <span>{{
+                                >  <span>{{
                                         consequenceFormatter(
                                             data.item.max_consequence
                                         )
@@ -244,6 +317,14 @@ import Formatters from "@/utils/formatters";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 import CsvDownload from "@/components/CsvDownload";
+//import PhenotypePicker from "@/components/PhenotypePicker.vue";
+import FilterWrapper from "@/portals/Neph/components/FilterWrapper.vue";
+//import Multiselect from 'vue-multiselect';
+
+import uiUtils from "@/utils/uiUtils";
+
+// register globally
+//Vue.component('multiselect', Multiselect)
 
 export default Vue.component("variant-search", {
     components: {
@@ -253,50 +334,62 @@ export default Vue.component("variant-search", {
         TooltipDocumentation,
         Formatters,
         CsvDownload,
+        //PhenotypePicker,
+        FilterWrapper,
     },
     props: {
         gene: [String, Array],
     },
     data() {
         return {
-            HPOTerms: [
-                { "HP-0000119": "Abnormality of the genitourinary system" },
-                { "HP-0000152": "Abnormality of head or neck" },
-                { "HP-0000478": "Abnormality of the eye" },
-                { "HP-0000598": "Abnormality of the ear" },
-                { "HP-0000707": "Abnormality of the nervous system" },
-                { "HP-0000769": "Abnormality of the breast" },
-                { "HP-0000818": "Abnormality of the endocrine system" },
-                {
-                    "HP-0001197":
-                        "Abnormality of prenatal development or birth",
-                },
-                { "HP-0001507": "Growth abnormality" },
-                { "HP-0001574": "Abnormality of the integument" },
-                { "HP-0001608": "Abnormality of the voice" },
-                { "HP-0001626": "Abnormality of the cardiovascular system" },
-                {
-                    "HP-0001871":
-                        "Abnormality of blood and blood-forming tissues",
-                },
-                { "HP-0001939": "Abnormality of metabolism/homeostasis" },
-                { "HP-0002086": "Abnormality of the respiratory system" },
-                { "HP-0002664": "Neoplasm" },
-                { "HP-0002715": "Abnormality of the immune system" },
-                { "HP-0025031": "Abnormality of the digestive system" },
-                { "HP-0025142": "Constitutional symptom" },
-                { "HP-0025354": "Abnormal cellular phenotype" },
-                { "HP-0033127": "Abnormality of the musculoskeletal system" },
-                { "HP-0040064": "Abnormality of limbs" },
-                { "HP-0045027": "Abnormality of the thoracic cavity" },
-                { AllControl: "Controls" },
-            ],
+            filters:{
+                "impacts":[],
+                "phenotypes":[]
+            },
+            applyfilter:false,
+            disablebtn:{
+                "HIGH": true,
+                "LOW": true,
+                "LOWEST": true,
+                "MODERATE": true,
+                "MODIFIER": true,
+                //"REMOVE": false,
+            },
+            HPOTerms: {
+                "HP-0000119": "Abnormality of the genitourinary system",
+                "HP-0000152": "Abnormality of head or neck",
+                "HP-0000478": "Abnormality of the eye",
+                "HP-0000598": "Abnormality of the ear",
+                "HP-0000707": "Abnormality of the nervous system",
+                "HP-0000769": "Abnormality of the breast",
+                "HP-0000818": "Abnormality of the endocrine system",
+                "HP-0001197":"Abnormality of prenatal development or birth",
+                "HP-0001507": "Growth abnormality",
+                "HP-0001574": "Abnormality of the integument",
+                "HP-0001608": "Abnormality of the voice",
+                "HP-0001626": "Abnormality of the cardiovascular system",
+                "HP-0001871":"Abnormality of blood and blood-forming tissues",
+                "HP-0001939": "Abnormality of metabolism/homeostasis",
+                "HP-0002086": "Abnormality of the respiratory system",
+                "HP-0002664": "Neoplasm",
+                "HP-0002715": "Abnormality of the immune system",
+                "HP-0025031": "Abnormality of the digestive system",
+                "HP-0025142": "Constitutional symptom",
+                "HP-0025354": "Abnormal cellular phenotype",
+                "HP-0033127": "Abnormality of the musculoskeletal system",
+                "HP-0040064": "Abnormality of limbs",
+                "HP-0045027": "Abnormality of the thoracic cavity",
+                "AllControl": "Controls",
+            },
 
             perPage: 10,
+            perPagephenotype: 23,
             currentPage: 1,
             showButton: null,
             variants: [],
             consequences: {},
+            currentSort:'allelecount',
+            currentSortDir:'desc',
             fields: [
                 {
                     key: "varID",
@@ -318,6 +411,7 @@ export default Vue.component("variant-search", {
                 {
                     key: "allelecount",
                     label: "Count",
+                    sortable: true,
                 },
                 {
                     key: "allelnumber",
@@ -398,8 +492,9 @@ export default Vue.component("variant-search", {
                     sortable: true,
                 },
             ],
-            variantData: {},
+            variantData: [],
             loadingData: {},
+            
         };
     },
     created() {
@@ -410,6 +505,33 @@ export default Vue.component("variant-search", {
     computed: {
         //This works to display all data fro BI
         tableData() {
+            if (this.variantData && this.variantData.length) {
+                return this.variantData;
+            } else {
+                return [];
+            }
+        },
+        rows() {
+            //alert("call rows");
+            if (this.tableData) return this.tableData.length;
+        },
+        // sortedData(hprecords) {
+        //     console.log(hprecords);
+        //     return hprecords.sort(function (a, b) {
+        //         return a.allelecount > b.allelecount;
+        //     });
+        // },
+    },
+    methods: {
+        ...uiUtils,
+        showHideElement(ELEMENT) {
+            uiUtils.showHideElement(ELEMENT);
+        },
+        async searchVariants() {
+            this.currentPage = 1; //reset on new search
+            //Helen 2022-01-09
+            //this.variants = await query("variants", this.gene, {}, true);
+            this.variants = await query("variant-phenotype", this.gene, {}, true);
             if (this.variants && this.variants.length) {
                 for (let i = 0; i < this.variants.length; i++) {
                     this.variants[i].allelecount =
@@ -425,11 +547,7 @@ export default Vue.component("variant-search", {
                         this.variants[i].allelnumber;
                     this.variants[i].allelefrequency =
                         this.variants[i].allelefrequency.toExponential(2);
-                    for (
-                        let m = 0;
-                        m < this.variants[i].hprecords.length;
-                        m++
-                    ) {
+                    for (let m = 0;m < this.variants[i].hprecords.length;m++) {
                         let hp = this.variants[i].hprecords[m];
                         if (hp.HP == "AllControl") {
                             this.variants[i].c_allelecount =
@@ -465,12 +583,15 @@ export default Vue.component("variant-search", {
                                     varrecords[j].Gene_Symbol;
                                 this.variants[i].Max_Impact =
                                     varrecords[j].Max_Impact;
+                                    //helen test 2022-01-17
                                 this.variants[i].max_consequence =
                                     varrecords[j].max_consequence;
                                 this.variants[i].Protein_Position =
                                     varrecords[j].Protein_Position;
                                 this.variants[i].Amino_Acids =
                                     varrecords[j].Amino_Acids;
+
+                                this.disablebtn[this.variants[i].Max_Impact]=false;
                             }
                         }
                         //Max_Impact	Biotype Gene_Symbol	Transcript_count	Amino_Acids	Protein_Position	CDS_position	Refgene	max_consequence
@@ -480,17 +601,14 @@ export default Vue.component("variant-search", {
                         let hpdisplay = [];
                         let j = 0;
 
-                        for (
-                            let k = 0;
-                            k < this.variants[i].hprecords.length;
-                            k++
-                        ) {
+                        for (let k = 0;k < this.variants[i].hprecords.length;k++) {
                             let hp = this.variants[i].hprecords[k];
                             if (hp.HP != "AllControl") {
                                 hpdisplay[j] = {};
                                 //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
+                                hpdisplay[j].hp = hp.HP;
                                 hpdisplay[j].hpoterms =
-                                    Formatters.snakeFormatter(hp.HP);
+                                    Formatters.snakeFormatter(this.HPOTerms[hp.HP]);
                                 hpdisplay[j].allelecount =
                                     2 * hp.TWO_ALT_GENO_CTS +
                                     hp.HET_REF_ALT_CTS;
@@ -519,34 +637,12 @@ export default Vue.component("variant-search", {
                             }
                             return 0;
                         });
-                        //console.log(hprecords);
-                        // Vue.set(this.variantData, escapedVarID, hpdisplay);
-                        // this.loadingData[escapedVarID] = false;
-
+                        this.variants[i].hpdisplay2 = hpdisplay;
                         this.variants[i].hpdisplay = hpdisplay;
                     }
                 }
-                //Filter out variants that don't have consequences
-                let dataRows = this.variants.filter((v) => v.max_consequence);
-                return dataRows;
-            } else {
-                return [];
+                this.variantData = this.variants;
             }
-        },
-        rows() {
-            if (this.tableData) return this.tableData.length;
-        },
-        // sortedData(hprecords) {
-        //     console.log(hprecords);
-        //     return hprecords.sort(function (a, b) {
-        //         return a.allelecount > b.allelecount;
-        //     });
-        // },
-    },
-    methods: {
-        async searchVariants() {
-            this.currentPage = 1; //reset on new search
-            this.variants = await query("variants", this.gene, {}, true);
         },
         async getTranscriptConsequences(varID) {
             if (!!varID) {
@@ -566,7 +662,7 @@ export default Vue.component("variant-search", {
         siftFormatter(name) {
             return Formatters.snakeFormatter(name);
         },
-        async showVariantData(varID) {
+        /*async showVariantData(varID) {
             let escapedVarID = this.escapedVarID(varID);
 
             if (this.variantData[escapedVarID] === undefined) {
@@ -575,50 +671,7 @@ export default Vue.component("variant-search", {
                 Vue.set(this.variantData, escapedVarID, tcQuery);
                 this.loadingData[escapedVarID] = false;
             }
-        },
-        showPhenoData(varID, hprecords) {
-            //console.log(varID);
-            let escapedVarID = this.escapedVarID(varID);
-            //alert(escapedVarID);
-            let hpdisplay = [];
-            let j = 0;
-            if (this.variantData[escapedVarID] === undefined) {
-                this.loadingData[escapedVarID] = true;
-
-                for (let i = 0; i < hprecords.length; i++) {
-                    let hp = hprecords[i];
-                    if (hp.HP != "AllControl") {
-                        hpdisplay[j] = {};
-                        hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
-                        hpdisplay[j].allelecount =
-                            2 * hp.TWO_ALT_GENO_CTS + hp.HET_REF_ALT_CTS;
-                        hpdisplay[j].allelnumber =
-                            2 *
-                            (hp.HOM_REF_CT +
-                                hp.HET_REF_ALT_CTS +
-                                hp.TWO_ALT_GENO_CTS);
-                        hpdisplay[j].allelefrequency =
-                            hpdisplay[j].allelecount / hpdisplay[j].allelnumber;
-                        hpdisplay[j].allelefrequency =
-                            hpdisplay[j].allelefrequency.toExponential(2);
-                        hpdisplay[j].TWO_ALT_GENO_CTS = hp.TWO_ALT_GENO_CTS;
-                        j++;
-                    }
-                }
-                hpdisplay = hpdisplay.sort(function (a, b) {
-                    //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
-                    if (a.allelecount > b.allelecount) {
-                        return -1;
-                    } else if (a.allelecount < b.allelecount) {
-                        return 1;
-                    }
-                    return 0;
-                });
-                //console.log(hprecords);
-                Vue.set(this.variantData, escapedVarID, hpdisplay);
-                this.loadingData[escapedVarID] = false;
-            }
-        },
+        },*/
         escapedVarID(varID) {
             if (!!varID) return varID.replace(/:\s*/g, "_");
             else {
@@ -645,6 +698,34 @@ export default Vue.component("variant-search", {
                 return true;
             }
         },
+
+        addfilter: function(){
+            let dataRows = this.variants;
+            if(this.filters["impacts"].length> 0){
+                dataRows = dataRows.filter(item =>
+                    this.filters["impacts"].includes(item.Max_Impact)
+                );
+            }
+            if(this.filters["phenotypes"].length > 0){
+                for (let i=0;i<dataRows.length;i++){
+                    dataRows[i].hpdisplay = dataRows[i].hpdisplay2;
+                    dataRows[i].hpdisplay = dataRows[i].hpdisplay.filter(v => 
+                        this.filters["phenotypes"].includes(v.hp)
+                    )
+                    
+                }
+            }
+            this.variantData = dataRows;
+            return this.tableData;
+        },
+        sort:function(s) {
+            //if s == current sort, reverse
+            console.log("sort", this.currentSort);
+            if(s === this.currentSort) {
+            this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+            }
+            this.currentSort = s;
+        }
     },
     watch: {
         gene: {
@@ -658,4 +739,19 @@ export default Vue.component("variant-search", {
 </script>
 <style>
 @import url("/css/table.css");
+
+#filter_pop_up {
+	position: fixed;
+	width: 50%;
+    height: 250px; 
+    overflow: auto; 
+    margin-left: -5px;
+	top: 200px;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	padding: 15px;
+	left: 25%;
+	box-shadow: 0px 7px 5px 5px rgba(100, 100, 100, 0.35);
+}
 </style>
