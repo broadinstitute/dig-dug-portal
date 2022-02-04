@@ -326,7 +326,7 @@
 								v-if="
 									$parent.plotConfig != null &&
 									$parent.plotType != 'custom_pkg' &&
-									!!$parent.plotConfig.genesTrack &&
+									!!$parent.plotConfig['genes track'] &&
 									$store.state.codingGenesData != null
 								"
 								:region="$store.state.searchingRegion"
