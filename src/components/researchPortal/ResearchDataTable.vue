@@ -10,15 +10,12 @@
 			v-if="
 				!!searchParameters &&
 				dataComparisonConfig != null &&
-				searchParameters[dataComparisonConfig['fields group data key']]
-					.search.length > 1
+				compareGroups.length > 1
 			"
 			class="table-total-rows"
 		>
 			<span
-				v-for="(item, itemIndex) in searchParameters[
-					dataComparisonConfig['fields group data key']
-				].search"
+				v-for="(item, itemIndex) in compareGroups"
 				v-html="item"
 				:key="item"
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
@@ -163,7 +160,7 @@ export default Vue.component("research-data-table", {
 		"searchParameters",
 	],
 	data() {
-		return { currentPage: 1, perPageNumber: null };
+		return { currentPage: 1, perPageNumber: null, compareGroups: [] };
 	},
 	modules: {},
 	components: { ResearchDataTableFeatures },
@@ -327,15 +324,36 @@ export default Vue.component("research-data-table", {
 			return topRows;
 		},
 	},
-	watch: {},
+	watch: {
+		dataset(DATA) {
+			console.log("data updated");
+
+			this.compareGroups = [];
+			let loopNum =
+				this.searchParameters[
+					this.dataComparisonConfig["fields group data key"][0]
+				].search.length;
+
+			for (let i = 0; i < loopNum; i++) {
+				let groupString = "";
+				this.dataComparisonConfig["fields group data key"].map(
+					(gKey) => {
+						groupString +=
+							this.searchParameters[gKey].search[i] + " ";
+					}
+				);
+
+				this.compareGroups.push(groupString.slice(0, -1));
+			}
+		},
+	},
 	methods: {
 		...Formatters,
 		getColorIndex(SKEY) {
-			let keyField = this.dataComparisonConfig["fields group data key"];
-			let keyParameterSeach = this.searchParameters[keyField].search;
 			let colorIndex = "";
-			if (keyParameterSeach.length > 1) {
-				keyParameterSeach.map((sValue, sIndex) => {
+			let compareGroups = this.compareGroups;
+			if (compareGroups.length > 1) {
+				this.compareGroups.map((sValue, sIndex) => {
 					if (SKEY == sValue) {
 						colorIndex = sIndex;
 					}

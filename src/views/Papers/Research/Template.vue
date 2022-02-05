@@ -373,6 +373,8 @@
 								$parent.dataTableFormat != null
 							"
 						>
+							<!--{{ $store.state.searchParameters }}
+							{{ $parent.filteredData }}-->
 							<research-data-table
 								v-if="!$parent.dataTableFormat['custom table']"
 								:pageID="$parent.pageID"
