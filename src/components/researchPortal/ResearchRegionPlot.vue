@@ -57,7 +57,7 @@
 		></div>
 		<div
 			class="col-md-12 region-plots-wrapper"
-			:id="'plotsWrapper' + item"
+			:id="'plotsWrapper' + item.replaceAll(' ', '_')"
 			v-for="(item, itemIndex) in plotsList"
 		>
 			<div class="col-md-12 region-plot-default-legend">
@@ -119,7 +119,7 @@
 				</div>
 			</div>
 			<div
-				:id="'assoPlotsWrapper' + item"
+				:id="'assoPlotsWrapper' + item.replaceAll(' ', '_')"
 				class="col-md-9 asso-plots-wrapper"
 			>
 				<h6
@@ -128,7 +128,7 @@
 					:class="'text color-' + itemIndex"
 				></h6>
 				<canvas
-					:id="'asso_plot_' + item"
+					:id="'asso_plot_' + item.replaceAll(' ', '_')"
 					class="asso-plot"
 					width=""
 					height=""
@@ -138,12 +138,12 @@
 					@mouseout="onMouseOut('assoInfoBox' + item)"
 				></canvas>
 				<div
-					:id="'assoInfoBox' + item"
+					:id="'assoInfoBox' + item.replaceAll(' ', '_')"
 					class="asso-info-box hidden"
 				></div>
 			</div>
 			<div
-				:id="'ldPlotsWrapper' + item"
+				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_')"
 				class="col-md-3 ld-plots-wrapper"
 			>
 				<h6
@@ -155,7 +155,7 @@
 					:class="'text color-' + itemIndex"
 				></h6>
 				<canvas
-					:id="'ld_plot_' + item"
+					:id="'ld_plot_' + item.replaceAll(' ', '_')"
 					class="ld-plot"
 					width=""
 					height=""
@@ -547,7 +547,9 @@ export default Vue.component("research-region-plot", {
 		showHideSplitPlots() {
 			this.plotsList.map((p) => {
 				if (p != "Combined") {
-					let wrapper = document.querySelector("#plotsWrapper" + p);
+					let wrapper = document.querySelector(
+						"#plotsWrapper" + p.replaceAll(" ", "_")
+					);
 					if (wrapper.classList.contains("hidden")) {
 						wrapper.classList.remove("hidden");
 					} else {
@@ -583,10 +585,14 @@ export default Vue.component("research-region-plot", {
 			dotsOnPosition = [...new Set(dotsOnPosition)];
 
 			let infoBoxId =
-				TYPE == "asso" ? "#assoInfoBox" + GROUP : "#ldInfoBox" + GROUP;
+				TYPE == "asso"
+					? "#assoInfoBox" + GROUP.replaceAll(" ", "_")
+					: "#ldInfoBox" + GROUP.replaceAll(" ", "_");
 
 			let canvasId =
-				TYPE == "asso" ? "#asso_plot_" + GROUP : "#ld_plot_" + GROUP;
+				TYPE == "asso"
+					? "#asso_plot_" + GROUP.replaceAll(" ", "_")
+					: "#ld_plot_" + GROUP.replaceAll(" ", "_");
 
 			let wrapper = document.querySelector(infoBoxId);
 			let canvas = document.querySelector(canvasId);
@@ -649,7 +655,7 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		onMouseOut(BOXID) {
-			uiUtils.removeOnMouseOut(BOXID);
+			uiUtils.removeOnMouseOut(BOXID.replaceAll(" ", "_"));
 		},
 		setUpWrappers() {
 			this.callForRecombData();
@@ -750,7 +756,9 @@ export default Vue.component("research-region-plot", {
 				// first asso plot
 				let c, ctx;
 
-				c = document.getElementById("asso_plot_" + p);
+				c = document.getElementById(
+					"asso_plot_" + p.replaceAll(" ", "_")
+				);
 				c.setAttribute("width", assoCanvasWidth);
 				c.setAttribute("height", canvasHeight);
 				ctx = c.getContext("2d");
@@ -792,7 +800,9 @@ export default Vue.component("research-region-plot", {
 				);
 
 				// second LD plot
-				c = document.getElementById("ld_plot_" + p);
+				c = document.getElementById(
+					"ld_plot_" + p.replaceAll(" ", "_")
+				);
 				c.setAttribute("width", ldCanvasWidth);
 				c.setAttribute("height", canvasHeight);
 				ctx = c.getContext("2d");
