@@ -467,9 +467,49 @@ new Vue({
 
 
             if (this.dataComparisonConfig != null && newResearchData.length > 0) {
+                /*
+                let comparingFields = this.dataComparisonConfig.fieldsToCompare;
+                let fieldGroupKeyValue = "";
+                let keyParamIndex = 1;
+                let groupKeysLength = this.dataComparisonConfig.fieldsGroupDataKey.length;
+
+                this.dataComparisonConfig.fieldsGroupDataKey.map(keyParam => {
+                    if (groupKeysLength == 1) {
+                        fieldGroupKeyValue = document.getElementById("search_param_" + keyParam).value;
+                    }
+                    if (groupKeysLength > 1) {
+                        if (keyParamIndex < groupKeysLength) {
+                            fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value + " ";
+                        } else {
+                            fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value;
+                        }
+
+                        keyParamIndex++
+                    }
+
+                })
+                */
 
                 let comparingFields = this.dataComparisonConfig["fields to compare"];
-                let fieldGroupKeyValue = document.getElementById("search_param_" + this.dataComparisonConfig["fields group data key"]).value;
+
+                let fieldGroupKeyValue = "";
+                let keyParamIndex = 1;
+                let groupKeysLength = this.dataComparisonConfig["fields group data key"].length;
+
+                this.dataComparisonConfig["fields group data key"].map(keyParam => {
+                    if (groupKeysLength == 1) {
+                        fieldGroupKeyValue = document.getElementById("search_param_" + keyParam).value;
+                    }
+                    if (groupKeysLength > 1) {
+                        if (keyParamIndex < groupKeysLength) {
+                            fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value + " ";
+                        } else {
+                            fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value;
+                        }
+                        keyParamIndex++
+                    }
+                })
+
                 let processedData = {};
 
                 switch (dataComparison) {
