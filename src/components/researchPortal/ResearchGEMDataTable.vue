@@ -10,15 +10,12 @@
 			v-if="
 				!!searchParameters &&
 				dataComparisonConfig != null &&
-				searchParameters[dataComparisonConfig['fields group data key']]
-					.search.length > 1
+				compareGroups.length > 1
 			"
 			class="table-total-rows"
 		>
 			<span
-				v-for="(item, itemIndex) in searchParameters[
-					dataComparisonConfig['fields group data key']
-				].search"
+				v-for="(item, itemIndex) in compareGroups"
 				v-html="item"
 				:key="item + itemIndex"
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
@@ -182,6 +179,7 @@ export default Vue.component("research-gem-data-table", {
 			currentPage: 1,
 			perPageNumber: null,
 			newTableFormat: null,
+			compareGroups: [],
 		};
 	},
 	modules: {},
@@ -805,13 +803,29 @@ export default Vue.component("research-gem-data-table", {
 		pkgDataSelected: {
 			handler: function (n, o) {
 				if (n.length > 0) {
-					//console.log("this.rawData", this.rawData);
-					//console.log("this.pkgData", this.pkgData);
-					//console.log("this.pkgDataSelected", this.pkgDataSelected);
 				}
 			},
 			deep: true,
 			immediate: true,
+		},
+		dataset(DATA) {
+			this.compareGroups = [];
+			let loopNum =
+				this.searchParameters[
+					this.dataComparisonConfig["fields group data key"][0]
+				].search.length;
+
+			for (let i = 0; i < loopNum; i++) {
+				let groupString = "";
+				this.dataComparisonConfig["fields group data key"].map(
+					(gKey) => {
+						groupString +=
+							this.searchParameters[gKey].search[i] + " ";
+					}
+				);
+
+				this.compareGroups.push(groupString.slice(0, -1));
+			}
 		},
 	},
 	methods: {
@@ -822,11 +836,10 @@ export default Vue.component("research-gem-data-table", {
 			});
 		},
 		getColorIndex(SKEY) {
-			let keyField = this.dataComparisonConfig["fields group data key"];
-			let keyParameterSeach = this.searchParameters[keyField].search;
 			let colorIndex = "";
-			if (keyParameterSeach.length > 1) {
-				keyParameterSeach.map((sValue, sIndex) => {
+			let compareGroups = this.compareGroups;
+			if (compareGroups.length > 1) {
+				this.compareGroups.map((sValue, sIndex) => {
 					if (SKEY == sValue) {
 						colorIndex = sIndex;
 					}

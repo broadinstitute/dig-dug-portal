@@ -215,7 +215,7 @@ export default Vue.component("research-data-table", {
 								: scores[field].low;
 					}
 				});
-				//console.log("scores", scores);
+
 				return scores;
 			}
 		},
@@ -229,7 +229,6 @@ export default Vue.component("research-data-table", {
 			}
 		},
 		pagedData() {
-			//console.log(this.dataset);
 			if (!!this.perPageNumber && this.perPageNumber != null) {
 				let rawData = this.dataset;
 				let formattedData = [];
@@ -295,19 +294,10 @@ export default Vue.component("research-data-table", {
 						? this.currentPage * perPage
 						: this.rows;
 
-				/*console.log(
-                    "startIndex",
-                    startIndex,
-                    "/endIndex",
-                    endIndex,
-                    "/rows",
-                    this.rows
-                );*/
-
 				for (let i = startIndex; i < endIndex; i++) {
 					paged.push(formattedData[i]);
 				}
-				//console.log("paged", paged);
+
 				return paged;
 			} else {
 				return this.dataset;
@@ -326,8 +316,6 @@ export default Vue.component("research-data-table", {
 	},
 	watch: {
 		dataset(DATA) {
-			console.log("data updated");
-
 			this.compareGroups = [];
 			let loopNum =
 				this.searchParameters[
@@ -395,8 +383,6 @@ export default Vue.component("research-data-table", {
 				]["new tab"]
 					? this.tableFormat["column formatting"][tdKey]["new tab"]
 					: null;
-
-				//console.log(formatTypes);
 
 				let cellValue = tdValue;
 
@@ -496,7 +482,6 @@ export default Vue.component("research-data-table", {
 				objectedArray[keyField] = RAW_DATASET[keyField];
 			});
 
-			//console.log(objectedArray);
 			return objectedArray;
 		},
 		applySorting(key) {
