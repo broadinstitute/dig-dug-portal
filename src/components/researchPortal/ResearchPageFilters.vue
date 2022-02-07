@@ -305,7 +305,7 @@
 					:class="'btn search-bubble ' + i"
 					@click="removeFilter(value.field, i)"
 					v-html="
-						value.labelInBubble == true
+						value['label in bubble'] == true
 							? value.field +
 							  ': ' +
 							  v +
@@ -368,8 +368,8 @@ export default Vue.component("research-page-filters", {
 				tempObj["type"] = f.type;
 				tempObj["field"] = f.field;
 				tempObj["search"] = [];
-				tempObj["labelInBubble"] =
-					!!f.labelInBubble && f.labelInBubble == "true"
+				tempObj["label in bubble"] =
+					!!f["label in bubble"] && f["label in bubble"] == "true"
 						? true
 						: false;
 				this.filtersIndex[f.field] = tempObj;
