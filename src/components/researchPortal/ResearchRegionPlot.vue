@@ -165,7 +165,10 @@
 					@mouseout="onMouseOut('ldInfoBox' + item)"
 				></canvas>
 
-				<div :id="'ldInfoBox' + item" class="ld-info-box hidden"></div>
+				<div
+					:id="'ldInfoBox' + item.replaceAll(' ', '_')"
+					class="ld-info-box hidden"
+				></div>
 			</div>
 		</div>
 	</div>
@@ -483,7 +486,6 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		searchingRegion() {
-			console.log("this.region", this.region);
 			if (this.region == null) {
 				return null;
 			} else {
