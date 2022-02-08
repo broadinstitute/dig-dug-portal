@@ -275,14 +275,6 @@
 							<research-m-plot
 								v-if="$parent.plotType == 'm_plot'"
 								:plotData="$store.state.filteredData"
-								:locusKey="$parent.plotConfig['locusKey']"
-								:scoreKey="$parent.plotConfig['scoreKey']"
-								:renderBy="$parent.plotConfig['renderBy']"
-								:yAxisLabel="$parent.plotConfig['yAxisLabel']"
-								:xAxisLabel="$parent.plotConfig['xAxisLabel']"
-								:popUpContent="
-									$parent.plotConfig['hoverContent']
-								"
 								:renderConfig="$parent.plotConfig"
 							></research-m-plot>
 
@@ -290,7 +282,6 @@
 								v-if="$parent.plotType == 'mbm_plot'"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
-								:filtersIndex="$store.state.filtersIndex"
 							></research-m-bitmap-plot>
 							<research-region-plot
 								v-if="$parent.plotType == 'region_plot'"
@@ -373,8 +364,6 @@
 								$parent.dataTableFormat != null
 							"
 						>
-							<!--{{ $store.state.searchParameters }}
-							{{ $parent.filteredData }}-->
 							<research-data-table
 								v-if="!$parent.dataTableFormat['custom table']"
 								:pageID="$parent.pageID"

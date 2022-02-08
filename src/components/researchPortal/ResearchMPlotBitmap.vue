@@ -46,7 +46,7 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-m-bitmap-plot", {
-	props: ["plotData", "renderConfig", "filtersIndex"],
+	props: ["plotData", "renderConfig"],
 	data() {
 		return {
 			plotRendered: 0,

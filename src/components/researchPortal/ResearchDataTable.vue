@@ -111,7 +111,7 @@
 					</td>
 				</tr>
 				<tr
-					v-if="tableFormat['features'] != undefined"
+					v-if="!!tableFormat['features']"
 					:id="'feature_' + index"
 					:class="'hidden'"
 				>
@@ -229,6 +229,7 @@ export default Vue.component("research-data-table", {
 			}
 		},
 		pagedData() {
+			//console.log(this.tableFormat["features"]);
 			if (!!this.perPageNumber && this.perPageNumber != null) {
 				let rawData = this.dataset;
 				let formattedData = [];
