@@ -132,6 +132,7 @@ export default Vue.component("research-m-plot", {
 				let LKey = this.renderConfig["x axis field"];
 				let SKey = this.renderConfig["y axis field"];
 				let renderKey = this.renderConfig["render by"];
+				let linkToValue = this.renderConfig["link to"];
 				let scores = [];
 
 				this.plotData.map(function (p) {
@@ -232,25 +233,42 @@ export default Vue.component("research-m-plot", {
 								];
 							let dotOppacity = "75";
 
-							document.getElementById(
-								"chr_dots_" + chrNum
-							).innerHTML +=
-								'<a href="/region.html?chr=' +
-								chrNum +
-								"&end=" +
-								endPos +
-								"&start=" +
-								startPos +
-								'" class="dot" target="_blank" style="left:calc(' +
-								bpHLoc +
-								"% - 6px);top:calc(" +
-								bpVLoc +
-								"% - 6px); background-color:" +
-								dotColor +
-								dotOppacity +
-								'">' +
-								dotContent +
-								"</a>";
+							let linkTo =
+								linkToValue != undefined
+									? (document.getElementById(
+											"chr_dots_" + chrNum
+									  ).innerHTML +=
+											'<a href="' +
+											linkToValue +
+											"?chr=" +
+											chrNum +
+											"&end=" +
+											endPos +
+											"&start=" +
+											startPos +
+											'" class="dot" target="_blank" style="left:calc(' +
+											bpHLoc +
+											"% - 6px);top:calc(" +
+											bpVLoc +
+											"% - 6px); background-color:" +
+											dotColor +
+											dotOppacity +
+											'">' +
+											dotContent +
+											"</a>")
+									: (document.getElementById(
+											"chr_dots_" + chrNum
+									  ).innerHTML +=
+											'<a href="javascript:;" class="dot" style="left:calc(' +
+											bpHLoc +
+											"% - 6px);top:calc(" +
+											bpVLoc +
+											"% - 6px); background-color:" +
+											dotColor +
+											dotOppacity +
+											'">' +
+											dotContent +
+											"</a>");
 						}
 					});
 				} else if (grouped == true) {
