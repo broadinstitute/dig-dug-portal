@@ -1,5 +1,8 @@
 <template>
-	<div class="egl-m-plot-content">
+	<div
+		class="egl-m-plot-content"
+		:style="'height:' + renderConfig['height'] + 'px;'"
+	>
 		<div class="bunch-by-locus">
 			<div class="bunch-ui">
 				<input
