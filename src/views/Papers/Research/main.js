@@ -468,8 +468,26 @@ new Vue({
 
             if (this.dataComparisonConfig != null && newResearchData.length > 0) {
 
-                let comparingFields = this.dataComparisonConfig.fieldsToCompare;
-                let fieldGroupKeyValue = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+                let comparingFields = this.dataComparisonConfig["fields to compare"];
+
+                let fieldGroupKeyValue = "";
+                let keyParamIndex = 1;
+                let groupKeysLength = this.dataComparisonConfig["fields group data key"].length;
+
+                this.dataComparisonConfig["fields group data key"].map(keyParam => {
+                    if (groupKeysLength == 1) {
+                        fieldGroupKeyValue = document.getElementById("search_param_" + keyParam).value;
+                    }
+                    if (groupKeysLength > 1) {
+                        if (keyParamIndex < groupKeysLength) {
+                            fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value + " ";
+                        } else {
+                            fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value;
+                        }
+                        keyParamIndex++
+                    }
+                })
+
                 let processedData = {};
 
                 switch (dataComparison) {
@@ -478,7 +496,7 @@ new Vue({
 
 
                         newResearchData.map(d => {
-                            let keyField = d[this.dataComparisonConfig.keyField];
+                            let keyField = d[this.dataComparisonConfig["key field"]];
                             let tempObj = {};
                             for (const [key, value] of Object.entries(d)) {
                                 if (comparingFields.includes(key) == true) {
@@ -502,7 +520,7 @@ new Vue({
 
 
                         newResearchData.map(d => {
-                            let keyFieldID = d[this.dataComparisonConfig.keyField];
+                            let keyFieldID = d[this.dataComparisonConfig["key field"]];
                             if (!!previousData[keyFieldID]) {
                                 processedData[keyFieldID] = previousData[keyFieldID]
                                 comparingFields.map(cf => {
@@ -521,7 +539,7 @@ new Vue({
                         //let allData = {};
 
                         newResearchData.map(d => {
-                            let keyFieldID = d[this.dataComparisonConfig.keyField];
+                            let keyFieldID = d[this.dataComparisonConfig["key field"]];
                             if (!!previousData[keyFieldID]) {
                                 processedData[keyFieldID] = previousData[keyFieldID]
                                 comparingFields.map(cf => {
@@ -972,6 +990,8 @@ new Vue({
                     /// in case of phenotypes == kp phenotypes
 
                     let apis = JSON.parse(content[0]["field_api_parameters"]);
+
+                    console.log("apis", apis);
                     let isKPPhenotype = false;
 
                     if (!!apis) {
@@ -982,8 +1002,6 @@ new Vue({
                         })
                     }
 
-
-                    //console.log("this.apiParameters", this.apiParameters);
 
                     if (isKPPhenotype == true) {
                         let kpPhenotypes = this.$store.state.bioPortal.phenotypes
@@ -1040,14 +1058,14 @@ new Vue({
             // reset searching region if applicable
 
             if (this.plotConfig != null &&
-                !!this.plotConfig.genesTrack) {
+                !!this.plotConfig["genes track"]) {
                 let region;
-                switch (this.plotConfig.genesTrack.inputType) {
+                switch (this.plotConfig["genes track"]["input type"]) {
                     case "static":
-                        region = this.plotConfig.genesTrack.region;
+                        region = this.plotConfig["genes track"].region;
                         break;
                     case "dynamic":
-                        let regionParam = this.plotConfig.genesTrack.dynamicParameter;
+                        let regionParam = this.plotConfig["genes track"]["dynamic parameter"];
                         let searchLength = this.$store.state.searchParameters[regionParam].search.length
                         region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
 

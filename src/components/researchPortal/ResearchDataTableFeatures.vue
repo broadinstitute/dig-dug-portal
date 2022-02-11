@@ -4,8 +4,8 @@
 			v-for="(value, index) in featuresFormat['features']"
 			:key="index"
 			class="research-data-table-features"
+			:v-if="!!featuresData && !!featuresFormat['features']"
 		>
-			<!--<div class="feature-title">{{ value }}</div>-->
 			<table class="table table-sm feature-table">
 				<tr>
 					<th
@@ -54,13 +54,13 @@ export default Vue.component("research-data-table-features", {
 	mounted() {},
 	updated() {},
 	computed: {
-		topRowNumber() {
+		/*topRowNumber() {
 			let topRows =
 				this.tableFormat["features"] != undefined
 					? this.tableFormat["top rows"].length + 1
 					: this.tableFormat["top rows"].length;
 			return topRows;
-		},
+		},*/
 	},
 	watch: {},
 	methods: {},
