@@ -281,10 +281,10 @@ export default Vue.component("research-annotations-plot", {
 
 				return returnPhenotype;
 			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig.phenotypeParameter]) {
+				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
 					uiUtils.showElement("annotationsPlotWrapper");
 					this.getAnnotations(this.searchingRegion);
-					return keyParams[this.renderConfig.phenotypeParameter];
+					return keyParams[this.renderConfig["phenotype parameter"]];
 				} else {
 					return null;
 				}
@@ -911,9 +911,9 @@ export default Vue.component("research-annotations-plot", {
 		},
 		async getGlobalEnrichment() {
 			let annoServer =
-				this.renderConfig.annotationsServer == "KP BioIndex"
+				this.renderConfig["annotations server"] == "KP BioIndex"
 					? "https://bioindex.hugeamp.org/api/bio"
-					: this.renderConfig.annotationsServer;
+					: this.renderConfig["annotations server"];
 
 			let phenotype = this.searchingPhenotype;
 
@@ -1049,9 +1049,9 @@ export default Vue.component("research-annotations-plot", {
 				REGION_OBJ.end
 			) {
 				let annoServer =
-					this.renderConfig.annotationsServer == "KP BioIndex"
+					this.renderConfig["annotations server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"
-						: this.renderConfig.annotationsServer;
+						: this.renderConfig["annotations server"];
 
 				var annotationsURL =
 					annoServer +

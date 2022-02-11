@@ -272,28 +272,29 @@
 								class="plot-legend"
 								v-html="$parent.plotLegend"
 							></div>
+							<!--v-if="$parent.plotType == 'm_plot'"-->
 							<research-m-plot
-								v-if="$parent.plotType == 'm_plot'"
-								:plotData="$store.state.filteredData"
-								:locusKey="$parent.plotConfig['locusKey']"
-								:scoreKey="$parent.plotConfig['scoreKey']"
-								:renderBy="$parent.plotConfig['renderBy']"
-								:yAxisLabel="$parent.plotConfig['yAxisLabel']"
-								:xAxisLabel="$parent.plotConfig['xAxisLabel']"
-								:popUpContent="
-									$parent.plotConfig['hoverContent']
+								v-if="
+									$parent.plotConfig['type'] ==
+									'manhattan plot'
 								"
+								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-m-plot>
-
+							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-bitmap-plot
-								v-if="$parent.plotType == 'mbm_plot'"
+								v-if="
+									$parent.plotConfig['type'] ==
+									'manhattan bitmap plot'
+								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
-								:filtersIndex="$store.state.filtersIndex"
 							></research-m-bitmap-plot>
+							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
-								v-if="$parent.plotType == 'region_plot'"
+								v-if="
+									$parent.plotConfig['type'] == 'region plot'
+								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 								:searchParameters="
@@ -308,9 +309,11 @@
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
 							></research-region-plot>
-
+							<!--v-if="$parent.plotType == 'score_plot'"-->
 							<research-score-plot
-								v-if="$parent.plotType == 'score_plot'"
+								v-if="
+									$parent.plotConfig['type'] == 'score plot'
+								"
 								:plotData="$parent.filteredData"
 								:renderConfig="$parent.plotConfig"
 								:dataComparisonConfig="
@@ -325,8 +328,9 @@
 							<research-genes-track
 								v-if="
 									$parent.plotConfig != null &&
-									$parent.plotType != 'custom_pkg' &&
-									!!$parent.plotConfig.genesTrack &&
+									$parent.plotConfig['type'] !=
+										'gem package' &&
+									!!$parent.plotConfig['genes track'] &&
 									$store.state.codingGenesData != null
 								"
 								:region="$store.state.searchingRegion"
@@ -337,22 +341,27 @@
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
 							></research-genes-track>
+							<!--v-if="$parent.plotType == 'volcano_plot'"-->
 							<research-volcano-plot
-								v-if="$parent.plotType == 'volcano_plot'"
+								v-if="
+									$parent.plotConfig['type'] == 'volcano plot'
+								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-volcano-plot>
-
+							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-heatmap
-								v-if="$parent.plotType == 'h_map'"
+								v-if="$parent.plotConfig['type'] == 'heat map'"
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-heatmap>
-
-							<kp-gem-pkg
-								v-if="
+							<!--v-if="
 									$parent.plotType == 'custom_pkg' &&
 									$parent.customPlotType == 'gem package'
+								"-->
+							<kp-gem-pkg
+								v-if="
+									$parent.plotConfig['type'] == 'gem package'
 								"
 								:pkgConfig="$parent.plotConfig"
 								:pkgData="$store.state.pkgData"

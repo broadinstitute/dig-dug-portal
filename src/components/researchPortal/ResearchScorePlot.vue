@@ -46,10 +46,10 @@
 						<option value="all">All</option>
 					</select>
 				</label>
-				<label v-if="renderConfig.reCalculateScore == true"
+				<label v-if="renderConfig['recalculate score'] == true"
 					>Score by:
 					<div
-						v-for="(option, opIndex) in renderConfig.scoreBy"
+						v-for="(option, opIndex) in renderConfig['score by']"
 						:key="opIndex"
 						class="plot-score-option"
 					>
@@ -208,21 +208,23 @@ export default Vue.component("research-score-plot", {
 			let renderConfig = this.renderConfig;
 
 			let feedMassagedData = function (r) {
-				let region = r[renderConfig.xAxisField];
+				let region = r[renderConfig["x axis field"]];
 
 				if (region != undefined && region != "" && region != null) {
 					let tempObj = {};
-					tempObj[renderConfig.renderBy] = r[renderConfig.renderBy];
+					tempObj[renderConfig["render by"]] =
+						r[renderConfig["render by"]];
 
-					if (!!renderConfig.hoverContent) {
-						let hoverContent = renderConfig.hoverContent;
+					if (!!renderConfig["hover content"]) {
+						let hoverContent = renderConfig["hover content"];
 
 						hoverContent.map((h) => {
 							tempObj[h] = r[h];
 						});
 					}
 
-					let locationArr = r[renderConfig.xAxisField].split(":");
+					let locationArr =
+						r[renderConfig["x axis field"]].split(":");
 
 					let chr = locationArr[0].trim();
 
@@ -235,8 +237,8 @@ export default Vue.component("research-score-plot", {
 							  2
 							: Number(regionArr[0].trim());
 
-					tempObj[renderConfig.yAxisField] =
-						r[renderConfig.yAxisField];
+					tempObj[renderConfig["y axis field"]] =
+						r[renderConfig["y axis field"]];
 
 					massagedData.sorted[chr].push(tempObj);
 					massagedData.unsorted.push(tempObj);
@@ -274,7 +276,7 @@ export default Vue.component("research-score-plot", {
 					switch (scoreType) {
 						case "boolean":
 							let value2Score =
-								f.valueToScore[row[fName]] * f.weight;
+								f["value to score"][row[fName]] * f.weight;
 							fieldValue += value2Score;
 							break;
 					}
@@ -285,7 +287,7 @@ export default Vue.component("research-score-plot", {
 
 			let countingFields = [];
 
-			this.renderConfig.scoreBy.map((f, fIndex) => {
+			this.renderConfig["score by"].map((f, fIndex) => {
 				if (document.getElementById("score_chkbox_" + fIndex).checked) {
 					countingFields.push(f);
 				}
@@ -295,7 +297,7 @@ export default Vue.component("research-score-plot", {
 			this.plotData.map((d, dIndex) => {
 				let score = scoreColumns(d, countingFields);
 				dataWithNewScore[dIndex][
-					this.renderConfig.scoreColumnTableHeader
+					this.renderConfig["score column table header"]
 				] = score;
 			});
 
@@ -325,12 +327,12 @@ export default Vue.component("research-score-plot", {
 							let dotObject = this.dotPosData[x + h][y + v];
 							clickedDotValue +=
 								'<span class="gene-on-clicked-dot-mplot"><b>' +
-								dotObject[this.renderConfig.renderBy] +
+								dotObject[this.renderConfig["render by"]] +
 								"</b></span>";
 
-							if (!!this.renderConfig.hoverContent) {
+							if (!!this.renderConfig["hover content"]) {
 								let hoverContent =
-									this.renderConfig.hoverContent;
+									this.renderConfig["hover content"];
 
 								hoverContent.map((hc) => {
 									if (
@@ -407,12 +409,12 @@ export default Vue.component("research-score-plot", {
 								let dotObject = this.dotPosData[x + h][y + v];
 								clickedDotValue +=
 									'<span class="gene-on-clicked-dot-mplot"><b>' +
-									dotObject[this.renderConfig.renderBy] +
+									dotObject[this.renderConfig["render by"]] +
 									"</b></span>";
 
-								if (!!this.renderConfig.hoverContent) {
+								if (!!this.renderConfig["hover content"]) {
 									let hoverContent =
-										this.renderConfig.hoverContent;
+										this.renderConfig["hover content"];
 
 									hoverContent.map((hc) => {
 										if (
@@ -548,11 +550,11 @@ export default Vue.component("research-score-plot", {
 				if (
 					!!this.dataComparisonConfig &&
 					this.dataComparisonConfig.fieldsToCompare.includes(
-						this.renderConfig.yAxisField
+						this.renderConfig["y axis field"]
 					) == true
 				) {
 					for (const [key, value] of Object.entries(
-						d[this.renderConfig.yAxisField]
+						d[this.renderConfig["y axis field"]]
 					)) {
 						let yValue = value;
 
@@ -571,7 +573,7 @@ export default Vue.component("research-score-plot", {
 						}
 					}
 				} else {
-					let yValue = d[this.renderConfig.yAxisField];
+					let yValue = d[this.renderConfig["y axis field"]];
 
 					if (yMin == null) {
 						yMin = yValue;
@@ -622,7 +624,7 @@ export default Vue.component("research-score-plot", {
 			ctx.fillStyle = "#000000";
 			ctx.rotate(-(Math.PI * 2) / 4);
 			ctx.fillText(
-				this.renderConfig.yAxisLabel,
+				this.renderConfig["y axis label"],
 				-(this.topMargin + plotHeight / 2),
 				this.leftMargin - this.leftMargin / 2 - 14
 			);
@@ -749,7 +751,7 @@ export default Vue.component("research-score-plot", {
 			//Render x axis label
 
 			ctx.fillText(
-				this.renderConfig.xAxisLabel,
+				this.renderConfig["x axis label"],
 				plotWidth / 2 + this.leftMargin,
 				this.topMargin + plotHeight + yBump + 44
 			);
@@ -767,10 +769,10 @@ export default Vue.component("research-score-plot", {
 					if (
 						!!this.dataComparisonConfig &&
 						this.dataComparisonConfig.fieldsToCompare.includes(
-							this.renderConfig.yAxisField
+							this.renderConfig["y axis field"]
 						) == true
 					) {
-						let yField = g[this.renderConfig.yAxisField];
+						let yField = g[this.renderConfig["y axis field"]];
 						let yPos,
 							xLoc,
 							yLoc,
@@ -916,7 +918,7 @@ export default Vue.component("research-score-plot", {
 						let yPos =
 							this.topMargin +
 							plotHeight -
-							(g[this.renderConfig.yAxisField] - yMin) *
+							(g[this.renderConfig["y axis field"]] - yMin) *
 								yPosByPixel;
 
 						let dotColor =
@@ -954,7 +956,7 @@ export default Vue.component("research-score-plot", {
 						let yPos =
 							this.topMargin +
 							plotHeight -
-							(g[this.renderConfig.yAxisField] - yMin) *
+							(g[this.renderConfig["y axis field"]] - yMin) *
 								yPosByPixel;
 
 						let dotColor =
@@ -982,17 +984,17 @@ export default Vue.component("research-score-plot", {
 		add2HoverContent(xLoc, yLoc, g) {
 			let hoverContent;
 
-			if (!!this.renderConfig.hoverContent) {
-				hoverContent = this.renderConfig.hoverContent;
+			if (!!this.renderConfig["hover content"]) {
+				hoverContent = this.renderConfig["hover content"];
 			}
 
 			if (!this.dotPosData[xLoc]) {
 				this.dotPosData[xLoc] = {};
 			}
 			this.dotPosData[xLoc][yLoc] = {};
-			this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
-				g[this.renderConfig.renderBy];
-			if (!!this.renderConfig.hoverContent) {
+			this.dotPosData[xLoc][yLoc][this.renderConfig["render by"]] =
+				g[this.renderConfig["render by"]];
+			if (!!this.renderConfig["hover content"]) {
 				hoverContent.map((h) => {
 					this.dotPosData[xLoc][yLoc][h] = g[h];
 				});

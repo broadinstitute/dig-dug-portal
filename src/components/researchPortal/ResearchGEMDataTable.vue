@@ -10,15 +10,12 @@
 			v-if="
 				!!searchParameters &&
 				dataComparisonConfig != null &&
-				searchParameters[dataComparisonConfig.fieldsGroupDataKey].search
-					.length > 1
+				compareGroups.length > 1
 			"
 			class="table-total-rows"
 		>
 			<span
-				v-for="(item, itemIndex) in searchParameters[
-					dataComparisonConfig.fieldsGroupDataKey
-				].search"
+				v-for="(item, itemIndex) in compareGroups"
 				v-html="item"
 				:key="item + itemIndex"
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
@@ -182,6 +179,7 @@ export default Vue.component("research-gem-data-table", {
 			currentPage: 1,
 			perPageNumber: null,
 			newTableFormat: null,
+			compareGroups: [],
 		};
 	},
 	modules: {},
@@ -403,7 +401,9 @@ export default Vue.component("research-gem-data-table", {
 							updatedData
 						)) {
 							let compareField =
-								this.dataComparisonConfig.fieldsToCompare[1];
+								this.dataComparisonConfig[
+									"fields to compare"
+								][1];
 							let activePhenotypes = Object.keys(
 								vValue[compareField]
 							);
@@ -803,13 +803,29 @@ export default Vue.component("research-gem-data-table", {
 		pkgDataSelected: {
 			handler: function (n, o) {
 				if (n.length > 0) {
-					//console.log("this.rawData", this.rawData);
-					//console.log("this.pkgData", this.pkgData);
-					//console.log("this.pkgDataSelected", this.pkgDataSelected);
 				}
 			},
 			deep: true,
 			immediate: true,
+		},
+		dataset(DATA) {
+			this.compareGroups = [];
+			let loopNum =
+				this.searchParameters[
+					this.dataComparisonConfig["fields group data key"][0]
+				].search.length;
+
+			for (let i = 0; i < loopNum; i++) {
+				let groupString = "";
+				this.dataComparisonConfig["fields group data key"].map(
+					(gKey) => {
+						groupString +=
+							this.searchParameters[gKey].search[i] + " ";
+					}
+				);
+
+				this.compareGroups.push(groupString.slice(0, -1));
+			}
 		},
 	},
 	methods: {
@@ -820,11 +836,10 @@ export default Vue.component("research-gem-data-table", {
 			});
 		},
 		getColorIndex(SKEY) {
-			let keyField = this.dataComparisonConfig.fieldsGroupDataKey;
-			let keyParameterSeach = this.searchParameters[keyField].search;
 			let colorIndex = "";
-			if (keyParameterSeach.length > 1) {
-				keyParameterSeach.map((sValue, sIndex) => {
+			let compareGroups = this.compareGroups;
+			if (compareGroups.length > 1) {
+				this.compareGroups.map((sValue, sIndex) => {
 					if (SKEY == sValue) {
 						colorIndex = sIndex;
 					}
@@ -930,9 +945,9 @@ export default Vue.component("research-gem-data-table", {
 			let arrayedObject = [];
 
 			let firstItem = DATASET[Object.keys(DATASET)[0]];
-			let isObjct = !!this.dataComparisonConfig.fieldsToCompare.includes(
-				KEY
-			)
+			let isObjct = !!this.dataComparisonConfig[
+				"fields to compare"
+			].includes(KEY)
 				? true
 				: false;
 
@@ -961,7 +976,7 @@ export default Vue.component("research-gem-data-table", {
 		array2Object(DATASET, RAW_DATASET, KEY) {
 			let objectedArray = {};
 			DATASET.map((d) => {
-				let keyField = d[this.dataComparisonConfig.keyField];
+				let keyField = d[this.dataComparisonConfig["key field"]];
 				objectedArray[keyField] = RAW_DATASET[keyField];
 			});
 
