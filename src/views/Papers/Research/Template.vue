@@ -275,8 +275,9 @@
 							<!--v-if="$parent.plotType == 'm_plot'"-->
 							<research-m-plot
 								v-if="
+									$parent.plotConfig != null &&
 									$parent.plotConfig['type'] ==
-									'manhattan plot'
+										'manhattan plot'
 								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
@@ -284,8 +285,9 @@
 							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-bitmap-plot
 								v-if="
+									$parent.plotConfig != null &&
 									$parent.plotConfig['type'] ==
-									'manhattan bitmap plot'
+										'manhattan bitmap plot'
 								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
@@ -293,6 +295,7 @@
 							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
 								v-if="
+									!!$parent.plotConfig &&
 									$parent.plotConfig['type'] == 'region plot'
 								"
 								:plotData="$store.state.filteredData"
@@ -312,6 +315,7 @@
 							<!--v-if="$parent.plotType == 'score_plot'"-->
 							<research-score-plot
 								v-if="
+									$parent.plotConfig != null &&
 									$parent.plotConfig['type'] == 'score plot'
 								"
 								:plotData="$parent.filteredData"
@@ -344,6 +348,7 @@
 							<!--v-if="$parent.plotType == 'volcano_plot'"-->
 							<research-volcano-plot
 								v-if="
+									$parent.plotConfig != null &&
 									$parent.plotConfig['type'] == 'volcano plot'
 								"
 								:plotData="$store.state.filteredData"
@@ -351,7 +356,10 @@
 							></research-volcano-plot>
 							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-heatmap
-								v-if="$parent.plotConfig['type'] == 'heat map'"
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'heat map'
+								"
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-heatmap>
@@ -361,6 +369,7 @@
 								"-->
 							<kp-gem-pkg
 								v-if="
+									$parent.plotConfig != null &&
 									$parent.plotConfig['type'] == 'gem package'
 								"
 								:pkgConfig="$parent.plotConfig"
