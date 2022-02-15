@@ -3,7 +3,7 @@
 		<div class="col-md-12 genes-plot-wrapper">
 			<div
 				id="genesTrackWrapper"
-				:class="plotType == 'region_plot' ? 'col-md-9' : 'col-md-12'"
+				:class="plotType == 'region plot' ? 'col-md-9' : 'col-md-12'"
 			>
 				<canvas
 					id="genesTrack"
@@ -137,7 +137,7 @@ export default Vue.component("research-genes-track", {
 			let bump = this.plotMargin.bump;
 
 			let plotWidth =
-				this.plotType == "region_plot"
+				this.plotType == "region plot"
 					? canvasRenderWidth - this.plotMargin.leftMargin * 2
 					: canvasRenderWidth -
 					  (this.plotMargin.leftMargin +

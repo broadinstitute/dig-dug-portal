@@ -340,7 +340,7 @@
 								:region="$store.state.searchingRegion"
 								:genesData="$store.state.codingGenesData"
 								:plotConfig="$parent.plotConfig"
-								:plotType="$parent.plotType"
+								:plotType="$parent.plotConfig['type']"
 								:plotMargin="$parent.plotMargin"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
