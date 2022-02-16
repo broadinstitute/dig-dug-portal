@@ -134,10 +134,10 @@
 			<div class="kp-tabs-contents" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
 					<div class="row">
-						<div
-							class="col-md-12"
-							v-html="$parent.pageDescription"
-						></div>
+						<research-page-description
+							v-if="$parent.pageDescription != null"
+							:content="$parent.pageDescription"
+						></research-page-description>
 						<div
 							class="col-md-12"
 							v-if="

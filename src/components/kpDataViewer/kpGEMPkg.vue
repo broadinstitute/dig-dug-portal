@@ -21,7 +21,7 @@
 				:region="$store.state.searchingRegion"
 				:genesData="$store.state.codingGenesData"
 				:plotConfig="pkgConfig['region viewer']"
-				:plotType="'region_plot'"
+				:plotType="'region plot'"
 				:plotMargin="plotMargin"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"

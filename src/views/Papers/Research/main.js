@@ -18,6 +18,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchGEMDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
@@ -46,6 +47,7 @@ new Vue({
         PageFooter,
         ResearchPageHeader,
         ResearchPageFooter,
+        ResearchPageDescription,
         ResearchPageFilters,
         ResearchDataTable,
         ResearchGEMDataTable,
