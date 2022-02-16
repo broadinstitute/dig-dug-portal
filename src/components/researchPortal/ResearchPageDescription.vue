@@ -5,6 +5,7 @@
 <script>
 import Vue from "vue";
 import Formatters from "@/utils/formatters.js";
+import PlotUtils from "@/utils/plotUtils.js";
 
 export default Vue.component("research-page-description", {
 	props: ["content"],
@@ -60,7 +61,13 @@ export default Vue.component("research-page-description", {
 				//ctx.fillRect(20, 20, 150, 100);
 				switch (p.type) {
 					case "bar":
-						this.renderBarPlot(ctx, p.data, p.width, p.height);
+						this.renderBarPlot(
+							ctx,
+							p.data,
+							p.width,
+							p.height,
+							p.color
+						);
 						break;
 
 					case "pie":
@@ -68,13 +75,15 @@ export default Vue.component("research-page-description", {
 						break;
 
 					case "line":
-						this.renderlinePlot(ctx, p.data, p.width, p.height);
+						this.renderLinePlot(ctx, p.data, p.width, p.height);
 						break;
 				}
 			});
 		},
-		renderBarPlot(CTX, DATA, WIDTH, HEIGHT) {
+		renderBarPlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
+			console.log("color", COLOR);
 			let margin = this.plotMargin;
+			let spacer = 10;
 			let valueHiLow = { high: null, low: null };
 
 			for (const [key, value] of Object.entries(DATA)) {
@@ -92,71 +101,103 @@ export default Vue.component("research-page-description", {
 					value < valueHiLow.low ? value : valueHiLow.low;
 			}
 
-			let valueBump = (valueHiLow.high - valueHiLow.low) / 5;
+			PlotUtils.renderAxis(
+				CTX,
+				WIDTH,
+				HEIGHT,
+				margin,
+				"y",
+				5,
+				valueHiLow.low,
+				valueHiLow.high
+			);
 
-			valueHiLow.high = Math.round(valueHiLow.high + valueBump);
-			valueHiLow.low = Math.round(valueHiLow.low - valueBump);
+			PlotUtils.renderGuideLine(
+				CTX,
+				WIDTH,
+				HEIGHT,
+				margin,
+				"y",
+				5,
+				valueHiLow.low,
+				valueHiLow.high
+			);
 
-			CTX.beginPath();
-			CTX.lineWidth = 0.5;
-			CTX.strokeStyle = "#000000";
-			CTX.font = "12px Arial";
-			CTX.fillStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			PlotUtils.renderAxis(CTX, WIDTH, HEIGHT, margin, "x", null);
 
-			// render y axis
-			CTX.moveTo(margin.left, margin.top);
-			CTX.lineTo(margin.left, HEIGHT - margin.bottom);
-			CTX.stroke();
-
-			// render x axis
-			CTX.moveTo(margin.left, HEIGHT - margin.bottom);
-			CTX.lineTo(WIDTH - margin.right, HEIGHT - margin.bottom);
-			CTX.stroke();
-
-			// Y ticks
-			let yStep = (valueHiLow.high - valueHiLow.low) / 5;
-			let yTickDistance = (HEIGHT - margin.top - margin.bottom) / 5;
-			for (let i = 0; i < 6; i++) {
-				let tickYPos = margin.top + i * yTickDistance;
-				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
-				CTX.moveTo(margin.left, adjTickYPos);
-				CTX.lineTo(margin.left - margin.bump, adjTickYPos);
-				CTX.stroke();
-
-				CTX.textAlign = "right";
-
-				let tickValue =
-					i == 5
-						? valueHiLow.low
-						: Formatters.floatFormatter(
-								valueHiLow.high - i * yStep
-						  );
-
-				CTX.fillText(
-					tickValue,
-					margin.left - margin.bump * 2,
-					adjTickYPos + 3
-				);
-			}
+			PlotUtils.renderTicksByKeys(
+				CTX,
+				WIDTH,
+				HEIGHT,
+				margin,
+				"x",
+				Object.keys(DATA),
+				spacer
+			);
 
 			///render bars
-			var spacer = 5;
-			var barWidth =
-				(WIDTH -
-					margin.left -
-					margin.right -
-					spacer * (Object.keys(DATA).length + 1)) /
-				Object.keys(DATA).length;
-
-			for (const [key, value] of Object.entries(DATA)) {
-			}
+			PlotUtils.renderBars(
+				CTX,
+				WIDTH,
+				HEIGHT,
+				margin,
+				"x",
+				5,
+				DATA,
+				valueHiLow.low,
+				valueHiLow.high,
+				spacer,
+				COLOR
+			);
 		},
 		renderPiePlot(CTX, DATA, WIDTH, HEIGHT) {
-			console.log(CTX, DATA, WIDTH, HEIGHT);
+			PlotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT);
 		},
 		renderLinePlot(CTX, DATA, WIDTH, HEIGHT) {
 			console.log(CTX, DATA, WIDTH, HEIGHT);
+			let margin = this.plotMargin;
+			let valueHiLow = { high: null, low: null };
+
+			for (const [key, value] of Object.entries(DATA)) {
+				for (const [vKey, vValue] of Object.entries(value)) {
+					if (valueHiLow.high == null) {
+						valueHiLow.high = vValue;
+					}
+
+					if (valueHiLow.low == null) {
+						valueHiLow.low = vValue;
+					}
+
+					valueHiLow.high =
+						vValue > valueHiLow.high ? vValue : valueHiLow.high;
+					valueHiLow.low =
+						vValue < valueHiLow.low ? vValue : valueHiLow.low;
+				}
+			}
+
+			PlotUtils.renderAxis(
+				CTX,
+				WIDTH,
+				HEIGHT,
+				margin,
+				"y",
+				5,
+				valueHiLow.low,
+				valueHiLow.high
+			);
+
+			PlotUtils.renderAxis(CTX, WIDTH, HEIGHT, margin, "x", null);
+
+			PlotUtils.renderGuideLine(
+				CTX,
+				WIDTH,
+				HEIGHT,
+				margin,
+				"y",
+				5,
+				valueHiLow.low,
+				valueHiLow.high
+			);
 		},
 	},
 	watch: {},
