@@ -81,7 +81,7 @@ export default Vue.component("research-page-description", {
 			});
 		},
 		renderBarPlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
-			console.log("color", COLOR);
+			//console.log("color", COLOR);
 			let margin = this.plotMargin;
 			let spacer = 10;
 			let valueHiLow = { high: null, low: null };
@@ -154,7 +154,7 @@ export default Vue.component("research-page-description", {
 			PlotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT);
 		},
 		renderLinePlot(CTX, DATA, WIDTH, HEIGHT) {
-			console.log(CTX, DATA, WIDTH, HEIGHT);
+			//console.log(CTX, DATA, WIDTH, HEIGHT);
 			let margin = this.plotMargin;
 			let valueHiLow = { high: null, low: null };
 
@@ -188,6 +188,18 @@ export default Vue.component("research-page-description", {
 
 			PlotUtils.renderAxis(CTX, WIDTH, HEIGHT, margin, "x", null);
 
+			let keys = Object.keys(DATA[Object.keys(DATA)[0]]);
+
+			PlotUtils.renderTicksByKeys(
+				CTX,
+				WIDTH,
+				HEIGHT,
+				margin,
+				"x",
+				keys,
+				0
+			);
+
 			PlotUtils.renderGuideLine(
 				CTX,
 				WIDTH,
@@ -195,6 +207,18 @@ export default Vue.component("research-page-description", {
 				margin,
 				"y",
 				5,
+				valueHiLow.low,
+				valueHiLow.high
+			);
+
+			PlotUtils.renderLine(
+				CTX,
+				WIDTH,
+				HEIGHT,
+				margin,
+				"x",
+				5,
+				DATA,
 				valueHiLow.low,
 				valueHiLow.high
 			);

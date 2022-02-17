@@ -17,6 +17,109 @@ var colors = ["#007bff75",
     "#D5A76875",
     "#d4d4d475"]
 
+
+var renderDot = function (CTX, XPOS, YPOS, DOT_COLOR) {
+    CTX.fillStyle = DOT_COLOR;
+    CTX.lineWidth = 0;
+    CTX.beginPath();
+    CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
+    CTX.fill();
+}
+
+var connectDots = function (CTX, X1, Y1, X2, Y2, COLOR) {
+    CTX.beginPath();
+    CTX.lineWidth = 1;
+    CTX.strokeStyle = COLOR;
+    CTX.moveTo(X1, Y1);
+    CTX.lineTo(X2, Y2);
+    CTX.stroke();
+}
+
+const renderLine = function (
+    CTX,
+    WIDTH,
+    HEIGHT,
+    MARGIN,
+    DIRECTION,
+    TICK_NUM,
+    DATA,
+    MIN,
+    MAX
+) {
+
+    CTX.beginPath();
+    CTX.lineWidth = 0.5;
+    //CTX.strokeStyle = "#000000";
+    CTX.font = "12px Arial";
+    //CTX.fillStyle = "#000000";
+    CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+
+    var dataGroupKeys = {};
+
+    for (const [key, value] of Object.entries(DATA)) {
+        dataGroupKeys[key] = [];
+        for (const [vKey, vValue] of Object.entries(value)) {
+            dataGroupKeys[key].push(vKey);
+        }
+    }
+
+
+    var dataLength = null;
+
+    for (const [key, value] of Object.entries(dataGroupKeys)) {
+        dataLength = (dataLength == null) ? value.length : (value > dataLength) ? value.length : dataLength;
+    }
+
+
+    var valueBump = (MAX - MIN) / TICK_NUM;
+    var max = Math.round(MAX + valueBump);
+    var min = Math.round(MIN - valueBump);
+
+    switch (DIRECTION) {
+        case "x":
+            var xStep = (WIDTH - MARGIN.left - MARGIN.right) / dataLength;
+
+            let vIndex = 0
+
+            for (const [key, value] of Object.entries(DATA)) {
+
+                let hIndex = 0;
+                CTX.strokeStyle = colors[vIndex];
+                CTX.fillStyle = colors[vIndex];
+
+                let previousX = null;
+                let previousY = null;
+
+                for (const [vKey, vValue] of Object.entries(value)) {
+                    let xPos1 = MARGIN.left + hIndex * xStep;
+                    let xPos2 = MARGIN.left + (hIndex + 1) * xStep;
+                    let xPos = xPos1 + ((xPos2 - xPos1) / 2);
+
+                    let yPos = ((vValue - min) / (max - min)) * (HEIGHT - MARGIN.top - MARGIN.bottom);
+
+                    renderDot(CTX, xPos, yPos, colors[vIndex]);
+
+                    if (previousX != null && previousY != null) {
+                        connectDots(CTX, xPos, yPos, previousX, previousY, colors[vIndex]);
+                    }
+
+                    previousX = xPos;
+                    previousY = yPos;
+
+                    hIndex++;
+                }
+                vIndex++;
+            }
+
+            break;
+
+        case "y":
+            break;
+    }
+
+}
+
 const renderPie = function (CTX, DATA, WIDTH, HEIGHT) {
     var lastend = - Math.PI / 2;
     var valueTotal = 0; // Automatically calculated so don't touch
@@ -68,7 +171,7 @@ const renderPie = function (CTX, DATA, WIDTH, HEIGHT) {
 }
 
 const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DATA, MIN, MAX, SPACER, COLORS) {
-    console.log(COLORS)
+
     CTX.beginPath();
     CTX.lineWidth = 0.5;
     CTX.strokeStyle = "#000000";
@@ -83,8 +186,6 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
     var valueBump = (MAX - MIN) / TICK_NUM;
     var max = Math.round(MAX + valueBump);
     var min = Math.round(MIN - valueBump);
-
-    console.log("max,min", max, min)
 
     switch (DIRECTION) {
         case "x":
@@ -333,5 +434,6 @@ export default {
     renderTicksByKeys,
     renderBars,
     renderPie,
-    renderGuideLine
+    renderGuideLine,
+    renderLine
 };
