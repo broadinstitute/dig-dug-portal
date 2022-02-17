@@ -104,6 +104,14 @@ const renderLine = function (
                         connectDots(CTX, xPos, yPos, previousX, previousY, colors[vIndex]);
                     }
 
+                    if (hIndex == 0) {
+                        CTX.font = "12px Arial";
+                        //CTX.fillStyle = colors[vIndex];
+                        CTX.fillStyle = "#000000";
+                        CTX.textAlign = "start";
+                        CTX.fillText(key, xPos, yPos - 7);
+                    }
+
                     previousX = xPos;
                     previousY = yPos;
 
