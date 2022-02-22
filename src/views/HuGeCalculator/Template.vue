@@ -230,11 +230,9 @@
                                         <div style="padding:5px 0px 5px 0px"></div>
 
                                         <commonvariation-not-genomesig-table
-                                            v-if="$parent.eglData"
                                             :isGenomeWideSignificant="false"
                                             :gwasEvidence="'1(No Evidence)'"
-                                            :codingEvidence="'N/A'"
-                                            :regulatoryEvidence="'N/A'"
+                                          
                                             :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-not-genomesig-table>
                                     </div>
