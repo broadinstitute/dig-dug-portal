@@ -129,14 +129,14 @@ export default new Vuex.Store({
                 context.commit("setSearchGene", gene);
                 context.commit("setPrior", 0.3696)
             }
-            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
+            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start - 50000}-${locus.end + 50000}`;
+            const regionQuery = `${locus.chr}:${locus.start - 250000}-${locus.end + 250000}`;
             context.dispatch('associations/query', { q: phenoRegionQuery });
+            context.dispatch('genes/query', { q: regionQuery });
         },
 
         async getRegion(context, gene) {
             context.dispatch('gene/query', { q: gene });
-
-
         },
         async getEGLData(context) {
             let dataset = "mccarthy";
