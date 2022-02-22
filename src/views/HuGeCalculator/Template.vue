@@ -198,11 +198,8 @@
                                         <div style="padding:5px 0px 5px 0px"></div>
 
                                         <commonvariation-genomesig-table
-                                            v-if="$parent.eglData"
                                             :isGenomeWideSignificant="true"
                                             :gwasEvidence="'3(P-value <= 5e-8)'"
-                                            :codingEvidence="'N/A'"
-                                            :regulatoryEvidence="'N/A'"
                                             :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-genomesig-table>
                                     </div>
@@ -232,7 +229,6 @@
                                         <commonvariation-not-genomesig-table
                                             :isGenomeWideSignificant="false"
                                             :gwasEvidence="'1(No Evidence)'"
-                                          
                                             :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-not-genomesig-table>
                                     </div>
