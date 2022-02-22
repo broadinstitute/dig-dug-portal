@@ -98,7 +98,7 @@
                                     <div class="center">
                                         <color-bar-plot
                                             v-if="$parent.bayesFactorRareVariation.rareBF"
-                                            :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidencecomputed)"
+                                            :category=" $parent.determineCategory(parseFloat($parent.bayesFactorCombinedEvidencecomputed))"
                                             :elementid="'combinedVariation'"
                                             :score=" parseFloat($parent.bayesFactorCombinedEvidencecomputed)"
                                         ></color-bar-plot>
@@ -129,24 +129,17 @@
                                         </span>
                                         <hugecal-table
                                             style="padding:50px 250px 50px 250px"
-                                            :hugeScore="$parent.bayesFactorCombinedEvidencecomputed"
+                                            :hugeScore="parseFloat($parent.bayesFactorCombinedEvidencecomputed)"
                                         ></hugecal-table>
                                     </div>
                                     <div class="col-md-4">
                                         <posterior-probability-plot
                                             :geneAssociationsData="$parent.geneAssociations52k"
                                             :priorVariance="this.$store.state.prior"
-                                            :bayes_factor="$parent.bayesFactorCombinedEvidencecomputed"
+                                            :bayes_factor="parseFloat($parent.bayesFactorCombinedEvidencecomputed)"
                                             :universalPriorList="this.$store.state.universalPriorList"
                                         ></posterior-probability-plot>
                                     </div>
-                                    <!-- <div class="col-md-4">
-                                        <posterior-probability-plot
-                                            :geneAssociationsData="$parent.geneAssociations52k"
-                                            :priorVariance="this.$store.state.prior"
-                                            :bayes_factor="$parent.bayesFactorCombinedEvidencecomputed"
-                                        ></posterior-probability-plot>
-                                    </div>-->
                                 </div>
                                 <!-- End of Posterior probability Collapsible section -->
                             </div>
@@ -208,8 +201,8 @@
                                             v-if="$parent.eglData"
                                             :isGenomeWideSignificant="true"
                                             :gwasEvidence="'3(P-value <= 5e-8)'"
-                                            :codingEvidence="$parent.commonVariationMap['codingEvidence']"
-                                            :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
+                                            :codingEvidence="'N/A'"
+                                            :regulatoryEvidence="'N/A'"
                                             :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-genomesig-table>
                                     </div>
@@ -240,8 +233,8 @@
                                             v-if="$parent.eglData"
                                             :isGenomeWideSignificant="false"
                                             :gwasEvidence="'1(No Evidence)'"
-                                            :codingEvidence="$parent.commonVariationMap['codingEvidence']"
-                                            :regulatoryEvidence="$parent.commonVariationMap['regulatoryEvidence']"
+                                            :codingEvidence="'N/A'"
+                                            :regulatoryEvidence="'N/A'"
                                             :commonBF="parseFloat($parent.bayesFactorCommonVariation)"
                                         ></commonvariation-not-genomesig-table>
                                     </div>
