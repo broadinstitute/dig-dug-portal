@@ -79,6 +79,8 @@ const renderLine = function (
     switch (DIRECTION) {
         case "x":
             var xStep = (WIDTH - MARGIN.left - MARGIN.right) / dataLength;
+            var yStep = (HEIGHT - MARGIN.top - MARGIN.bottom) / (max - min);
+            var yStart = HEIGHT - MARGIN.bottom;
 
             let vIndex = 0
 
@@ -96,7 +98,7 @@ const renderLine = function (
                     let xPos2 = MARGIN.left + (hIndex + 1) * xStep;
                     let xPos = xPos1 + ((xPos2 - xPos1) / 2);
 
-                    let yPos = ((vValue - min) / (max - min)) * (HEIGHT - MARGIN.top - MARGIN.bottom);
+                    let yPos = yStart - ((vValue - min) * yStep);
 
                     renderDot(CTX, xPos, yPos, colors[vIndex]);
 
