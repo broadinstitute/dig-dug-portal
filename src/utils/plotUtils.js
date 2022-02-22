@@ -130,7 +130,7 @@ const renderLine = function (
 
 }
 
-const renderPie = function (CTX, DATA, WIDTH, HEIGHT) {
+const renderPie = function (CTX, DATA, WIDTH, HEIGHT, COLOR) {
     var lastend = - Math.PI / 2;
     var valueTotal = 0; // Automatically calculated so don't touch
     var dataKeys = Object.keys(DATA);
@@ -143,7 +143,7 @@ const renderPie = function (CTX, DATA, WIDTH, HEIGHT) {
     }
 
     for (var i = 0; i < dataKeys.length; i++) {
-        CTX.fillStyle = colors[i % colors.length];
+        CTX.fillStyle = (COLOR == "single") ? colors[0] : colors[i % colors.length];
         CTX.strokeStyle = 'white';
         CTX.lineWidth = 1;
         CTX.beginPath();

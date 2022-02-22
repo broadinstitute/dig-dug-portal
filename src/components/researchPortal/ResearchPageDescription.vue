@@ -39,7 +39,13 @@ export default Vue.component("research-page-description", {
 			var plots = document.querySelectorAll("div.plot");
 
 			for (let i = 0; i < plots.length; ++i) {
-				this.plotData[i] = JSON.parse(plots[i].innerHTML);
+				console.log(plots[i].innerHTML);
+				//[/<p>&nbsp;<\/p>/g,""],
+				let innerHtml = plots[i].innerHTML
+					.replace(/<p>/g, "")
+					.replace(/<\/p>/g, "")
+					.replace(/<br>/g, "");
+				this.plotData[i] = JSON.parse(innerHtml);
 
 				let plotContent =
 					"<canvas id='plot" +
@@ -71,7 +77,13 @@ export default Vue.component("research-page-description", {
 						break;
 
 					case "pie":
-						this.renderPiePlot(ctx, p.data, p.width, p.height);
+						this.renderPiePlot(
+							ctx,
+							p.data,
+							p.width,
+							p.height,
+							p.color
+						);
 						break;
 
 					case "line":
@@ -150,8 +162,8 @@ export default Vue.component("research-page-description", {
 				COLOR
 			);
 		},
-		renderPiePlot(CTX, DATA, WIDTH, HEIGHT) {
-			PlotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT);
+		renderPiePlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
+			PlotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT, COLOR);
 		},
 		renderLinePlot(CTX, DATA, WIDTH, HEIGHT) {
 			//console.log(CTX, DATA, WIDTH, HEIGHT);
