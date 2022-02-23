@@ -1,14 +1,48 @@
 <template>
 	<div id="variant-search">
 		<b-row>
-			<b-col>
+			<b-col cols="9">
+                <div class="legends" v-show="tableData.length">
+                    <strong class="mr-2">Impact:</strong>
+                    <b-btn
+                        disabled
+                        variant="outline-danger"
+                        size="sm"
+                        class="mr-1 btn-mini"
+                        >HIGH</b-btn
+                    >
+                    <b-btn
+                        disabled
+                        variant="outline-warning"
+                        size="sm"
+                        class="mr-1 btn-mini"
+                        >MODERATE</b-btn
+                    >
+                    <b-btn
+                        disabled
+                        variant="outline-success"
+                        size="sm"
+                        class="mr-1 btn-mini"
+                        >LOW</b-btn
+                    >
+                    <b-btn
+                        disabled
+                        variant="outline-secondary"
+                        size="sm"
+                        class="btn-mini"
+                        >MODIFIER</b-btn
+                    >
+                </div>
+            </b-col>
+			<b-col class="text-right mb-2">
 				<b-btn
 					class="btn btn-secondary btn-sm"
 					@click="showHideElement('filter_pop_up')"
-					>Open Filter</b-btn
+					>Filter Results</b-btn
 				>
 			</b-col>
 			<b-col class="text-right mb-2">
+				
 				<csv-download
 					v-if="tableData.length"
 					:data="tableData"
