@@ -361,12 +361,17 @@ new Vue({
             //if  GWAS significant
             else {
                 //if top variant is coding and the impact of that coding variant is high or moderate
-                if (coding_variants.hasOwnProperty(topVariant_consequence)) {
-                    if (coding_variants[topVariant_consequence] == "HIGH" || "MODERATE") {
-                        //you HAVE TP CHECK IF IT IS SAME GENE - TO DO
-                        commonBF = 360
+                let start = this.$store.state.gene.data[0].start
+                let end = this.$store.state.gene.data[0].end
+                if (topVariant.position >= start && topVariant.position <= end) {
+                    if (coding_variants.hasOwnProperty(topVariant_consequence)) {
+                        if (coding_variants[topVariant_consequence] == "HIGH" || "MODERATE") {
+                            //you HAVE TP CHECK IF IT IS SAME GENE - TO DO
+                            commonBF = 360
+                        }
                     }
                 }
+
                 else if (lowestPvalueClosestGene.name == this.selectedGene[0]) {
                     commonBF = 45
                     console.log(lowestPvalueClosestGene, "lowestPvalueClosestGene")
