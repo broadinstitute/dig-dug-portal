@@ -15,6 +15,11 @@
 					: 'research-portal-header'
 			"
 			:researchMenu="$parent.researchMenu"
+			:headerLogo="
+				$parent.displayOnKP == true || $parent.headerLogo == false
+					? null
+					: $parent.headerLogo
+			"
 		></research-page-header>
 
 		<!-- Body -->
@@ -94,6 +99,16 @@
 				</div>
 			</div>
 
+			<div class="card mdkp-card" v-if="$parent.pageDescription != null">
+				<div class="row card-body">
+					<div class="col-md-12">
+						<research-page-description
+							:content="$parent.pageDescription"
+						></research-page-description>
+					</div>
+				</div>
+			</div>
+
 			<!-- tabs nav -->
 			<div
 				class="kp-tabs-wrapper"
@@ -134,10 +149,6 @@
 			<div class="kp-tabs-contents" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
 					<div class="row">
-						<research-page-description
-							v-if="$parent.pageDescription != null"
-							:content="$parent.pageDescription"
-						></research-page-description>
 						<div
 							class="col-md-12"
 							v-if="
@@ -474,6 +485,9 @@
 
 <style>
 @import url("/css/effectorGenes.css");
+html {
+	font-size: 14px !important;
+}
 .zoom-ui-wrapper {
 	font-size: 13px;
 	font-weight: 700;

@@ -706,6 +706,8 @@ new Vue({
         pageDescription() {
             let contents = this.researchPage;
 
+            console.log("contents", contents);
+
             if (contents === null || contents[0]["body"] == false) {
                 return null;
             }
@@ -806,11 +808,31 @@ new Vue({
         },
         researchMenu() {
             let contents = this.$store.state.hugeampkpncms.researchMenu;
+            console.log("menu contents", contents)
 
             if (contents.length === 0) {
                 return null;
             }
+
             return JSON.parse(contents[0].field_menu);
+        },
+        headerLogo() {
+            let contents = this.$store.state.hugeampkpncms.researchMenu;
+
+            if (contents.length === 0) {
+                return null;
+            }
+
+            return contents[0].field_header_logo;
+        },
+        portalStyle() {
+            let contents = this.$store.state.hugeampkpncms.researchMenu;
+
+            if (contents.length === 0) {
+                return null;
+            }
+
+            return contents[0].field_portal_style;
         },
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
@@ -970,12 +992,23 @@ new Vue({
                 this.$store.dispatch("hugeampkpncms/getResearchPage", { 'pageID': keyParams.pageid });
             }
         },
+        portalStyle(style) {
+
+            console.log("style", style);
+            if (style != false && style != null) {
+
+                this.addcss(style);
+            }
+        },
         researchPage(content) {
             if (content.length != 0 && content != null) {
+
                 if (content[0]["field_page_style"] != false) {
                     let css = content[0]["field_page_style"];
                     this.addcss(css);
                 }
+
+
                 //set Table format
                 if (content[0]["field_data_table_format"] != false) {
 
