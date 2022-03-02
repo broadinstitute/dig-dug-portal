@@ -18,6 +18,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchGEMDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
@@ -46,6 +47,7 @@ new Vue({
         PageFooter,
         ResearchPageHeader,
         ResearchPageFooter,
+        ResearchPageDescription,
         ResearchPageFilters,
         ResearchDataTable,
         ResearchGEMDataTable,
@@ -85,7 +87,7 @@ new Vue({
                     "#cccc0025",
                     "#6FC7B625",
                     "#D5A76825",
-                    "#d4d4d425",
+                    "#d4d4d425"
                 ],
                 moderate: [
                     "#007bff50",
@@ -103,7 +105,7 @@ new Vue({
                     "#cccc0050",
                     "#6FC7B650",
                     "#D5A76850",
-                    "#d4d4d450",
+                    "#d4d4d450"
                 ],
                 bold: [
                     "#007bff75",
@@ -121,7 +123,7 @@ new Vue({
                     "#cccc0075",
                     "#6FC7B675",
                     "#D5A76875",
-                    "#d4d4d475",
+                    "#d4d4d475"
                 ],
                 extraBold: [
                     "#007bff",
@@ -139,7 +141,7 @@ new Vue({
                     "#cccc00",
                     "#6FC7B6",
                     "#D5A768",
-                    "#d4d4d4",
+                    "#d4d4d4"
                 ],
             },
 
@@ -704,6 +706,8 @@ new Vue({
         pageDescription() {
             let contents = this.researchPage;
 
+            console.log("contents", contents);
+
             if (contents === null || contents[0]["body"] == false) {
                 return null;
             }
@@ -804,11 +808,31 @@ new Vue({
         },
         researchMenu() {
             let contents = this.$store.state.hugeampkpncms.researchMenu;
+            console.log("menu contents", contents)
 
             if (contents.length === 0) {
                 return null;
             }
+
             return JSON.parse(contents[0].field_menu);
+        },
+        headerLogo() {
+            let contents = this.$store.state.hugeampkpncms.researchMenu;
+
+            if (contents.length === 0) {
+                return null;
+            }
+
+            return contents[0].field_header_logo;
+        },
+        portalStyle() {
+            let contents = this.$store.state.hugeampkpncms.researchMenu;
+
+            if (contents.length === 0) {
+                return null;
+            }
+
+            return contents[0].field_portal_style;
         },
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
@@ -968,12 +992,23 @@ new Vue({
                 this.$store.dispatch("hugeampkpncms/getResearchPage", { 'pageID': keyParams.pageid });
             }
         },
+        portalStyle(style) {
+
+            console.log("style", style);
+            if (style != false && style != null) {
+
+                this.addcss(style);
+            }
+        },
         researchPage(content) {
             if (content.length != 0 && content != null) {
+
                 if (content[0]["field_page_style"] != false) {
                     let css = content[0]["field_page_style"];
                     this.addcss(css);
                 }
+
+
                 //set Table format
                 if (content[0]["field_data_table_format"] != false) {
 
