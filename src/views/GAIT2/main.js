@@ -237,9 +237,16 @@ new Vue({
         //         return [];
         //     }
         // },
+
         tableData() {
-            return this.pageCovariances || [];
-            //return [];
+            if (this.pageCovariances && this.pageCovariances.variants) {
+                return this.pageCovariances.variants.map(v => ({
+                    selected: true, //add selected column for manual selection
+                    ...v
+                }));
+            } else {
+                return [];
+            }
         },
 
         selectedGene() {
@@ -379,7 +386,7 @@ new Vue({
                     let covariances = await this.getCovariances(input);
                     //console.log("covariances: ", covariances.data);
                     console.log("covariances: ", covariances);
-                    this.pageCovariances = covariances;
+                    this.pageCovariances = covariances.data;
                 } else {
                     console.log("no lifted region", liftedRegions);
                 }
@@ -549,15 +556,15 @@ new Vue({
                 );
             }
         },
-        // not selecting variants yet
-        // updateSelectedVariants() {
-        //     //get only the varIDs for selected rows
-        //     this.selectedVariants = this.tableData
-        //         .filter(v => {
-        //             return v.selected === true;
-        //         })
-        //         .map(v => v.varId);
-        // },
+
+        updateSelectedVariants() {
+            //get only the varIDs for selected rows
+            this.selectedVariants = this.tableData
+                .filter(v => {
+                    return v.selected === true;
+                })
+                .map(v => v.variant);
+        },
         selectAllVariants() {
             this.tableData.forEach(v => (v.selected = true));
             this.updateSelectedVariants();

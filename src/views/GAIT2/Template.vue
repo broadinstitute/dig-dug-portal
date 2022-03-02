@@ -118,40 +118,6 @@
                                             >Search Regions</b-button
                                         >
                                     </div>
-
-                                    <b-table
-                                        striped
-                                        hover
-                                        small
-                                        responsive="sm"
-                                        :per-page="$parent.perPage"
-                                        :current-page="$parent.currentPage"
-                                        :items="
-                                            $parent.pageCovariances
-                                                ? $parent.pageCovariances
-                                                : []
-                                        "
-                                    >
-                                    </b-table>
-                                    <b-pagination
-                                        v-show="
-                                            $parent.pageCovariances
-                                                ? $parent.pageCovariances
-                                                      .length > 0
-                                                : false
-                                        "
-                                        class="
-                                            pagination-sm
-                                            justify-content-center
-                                        "
-                                        v-model="$parent.currentPage"
-                                        :total-rows="
-                                            $parent.pageCovariances
-                                                ? $parent.pageCovariances.length
-                                                : 0
-                                        "
-                                        :per-page="$parent.perPage"
-                                    ></b-pagination>
                                 </b-card-body>
                             </b-collapse>
                         </b-card>
@@ -477,33 +443,6 @@
                                                     Deselect all
                                                     variants</b-button
                                                 >
-                                            </div>
-                                            <div>
-                                                <strong
-                                                    >View optional columns
-                                                </strong>
-                                                <template
-                                                    v-for="field in $parent.optionalFields"
-                                                >
-                                                    <b-checkbox
-                                                        v-if="
-                                                            $parent.defaultFields.indexOf(
-                                                                field.key
-                                                            ) < 0
-                                                        "
-                                                        :disabled="
-                                                            $parent
-                                                                .visibleFields
-                                                                .length == 1 &&
-                                                            field.visible
-                                                        "
-                                                        :key="field.key"
-                                                        v-model="field.visible"
-                                                        inline
-                                                    >
-                                                        {{ field.label }}
-                                                    </b-checkbox>
-                                                </template>
                                             </div>
 
                                             <b-table
