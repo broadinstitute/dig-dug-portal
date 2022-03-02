@@ -90,13 +90,13 @@ export default {
                     ).id, //for different versions and phenotypes
                     variantFormat: "COLONS",
                     samples: "ALL",
-                    genomeBuild: "GRCh37",
+                    genomeBuild: build,
                     maskDefinitions: [
                         {
                             id: 1, //integer, required
                             name: "Fetch Data", //required
                             description: "Default", //required
-                            genome_build: "GRCh37",
+                            genome_build: build,
                             group_type: "GENE",
                             identifier_type: "ENSEMBL",
                             groups: {

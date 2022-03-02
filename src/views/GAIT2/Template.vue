@@ -129,7 +129,6 @@
                                         :items="
                                             $parent.pageCovariances
                                                 ? $parent.pageCovariances
-                                                      .variants
                                                 : []
                                         "
                                     >
@@ -138,7 +137,7 @@
                                         v-show="
                                             $parent.pageCovariances
                                                 ? $parent.pageCovariances
-                                                      .variants.length > 0
+                                                      .length > 0
                                                 : false
                                         "
                                         class="
@@ -148,8 +147,7 @@
                                         v-model="$parent.currentPage"
                                         :total-rows="
                                             $parent.pageCovariances
-                                                ? $parent.pageCovariances
-                                                      .variants.length
+                                                ? $parent.pageCovariances.length
                                                 : 0
                                         "
                                         :per-page="$parent.perPage"
@@ -665,9 +663,9 @@
                                                     results.</b-alert
                                                 >
                                                 <b-table
-                                                    v-for="(p, i) in $store
-                                                        .state.ldServer
-                                                        .covariances"
+                                                    v-for="(
+                                                        p, i
+                                                    ) in $parent.pageCovariances"
                                                     :key="p.phenotype"
                                                     striped
                                                     hover

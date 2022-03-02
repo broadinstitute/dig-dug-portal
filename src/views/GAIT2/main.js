@@ -17,6 +17,8 @@ import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
 import regionUtils from "@/utils/regionUtils";
+import * as raremetal from "raremetal.js";
+
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
@@ -48,17 +50,14 @@ new Vue({
                 { text: "5/5 + 1/5 1%", value: "1of5_1pct" },
                 { text: "5/5 + 0/5 1%", value: "0of5_1pct" }
             ],
-            datasets: [
-                { text: "52K", value: "52k" },
-                { text: "TOPMed", value: "TopMed" }
-            ],
+            datasets: [{ text: "TOPMed", value: "TopMed" }],
             testMethods: [
                 { text: "Collapsing Burden", value: "burden" },
                 { text: "Variable Threshold", value: "vt" },
                 { text: "SKAT", value: "skat" },
                 { text: "SKAT Optimal", value: "skat-o" }
             ],
-            topmedDatasets: ["T2D", "FG", "FI"],
+            topmedDatasets: ["T2D"],
             selectedMethods: [],
             matchingGenes: [],
             showVariants: false,
@@ -225,18 +224,22 @@ new Vue({
         visibleFields() {
             return this.fields.filter(field => !!field.visible);
         },
+        // tableData() {
+        //     if (
+        //         this.$store.state.variants &&
+        //         this.$store.state.variants.length
+        //     ) {
+        //         return this.$store.state.variants.map(v => ({
+        //             selected: true, //add selected column for manual selection
+        //             ...v
+        //         }));
+        //     } else {
+        //         return [];
+        //     }
+        // },
         tableData() {
-            if (
-                this.$store.state.variants &&
-                this.$store.state.variants.length
-            ) {
-                return this.$store.state.variants.map(v => ({
-                    selected: true, //add selected column for manual selection
-                    ...v
-                }));
-            } else {
-                return [];
-            }
+            return this.pageCovariances || [];
+            //return [];
         },
 
         selectedGene() {
@@ -318,15 +321,45 @@ new Vue({
                 let liftedRegions = await this.liftOver(region);
                 if (liftedRegions) {
                     console.log("liftedRegion: ", liftedRegions);
+                    //hardcoded example
+                    // let input = {
+                    //     chrom: "22",
+                    //     start: 44269672,
+                    //     stop: 44270672,
+                    //     summaryStatisticDataset: 1,
+                    //     genomeBuild: "GRCh38",
+                    //     maskDefinitions: [
+                    //         {
+                    //             id: 1,
+                    //             name: "My locus of interest",
+                    //             description:
+                    //                 "Example of specifying groups as regions",
+                    //             genome_build: "GRCh38",
+                    //             group_type: "REGION",
+                    //             identifier_type: "COORDINATES",
+                    //             groups: {
+                    //                 "enhancer-1": {
+                    //                     start: 44269672,
+                    //                     stop: 44270172
+                    //                 },
+                    //                 "enhancer-2": {
+                    //                     start: 44270172,
+                    //                     stop: 44270672
+                    //                 }
+                    //             }
+                    //         }
+                    //     ]
+                    // };
+
                     let input = {
-                        chrom: "22",
-                        start: 44269672,
-                        stop: 44270672,
+                        chrom: liftedRegions.regions[0].chrom,
+                        start: liftedRegions.regions[0].start,
+                        stop: liftedRegions.regions[0].stop,
                         summaryStatisticDataset: 1,
                         genomeBuild: "GRCh38",
                         maskDefinitions: [
                             {
-                                id: 11,
+                                id: 1,
                                 name: "My locus of interest",
                                 description:
                                     "Example of specifying groups as regions",
@@ -334,21 +367,19 @@ new Vue({
                                 group_type: "REGION",
                                 identifier_type: "COORDINATES",
                                 groups: {
-                                    "enhancer-1": {
-                                        start: 44269672,
-                                        stop: 44270172
-                                    },
-                                    "enhancer-2": {
-                                        start: 44270172,
-                                        stop: 44270672
+                                    region: {
+                                        start: liftedRegions.regions[0].start,
+                                        stop: liftedRegions.regions[0].stop
                                     }
                                 }
                             }
                         ]
                     };
+                    console.log("input: ", input);
                     let covariances = await this.getCovariances(input);
-                    console.log("covariances: ", covariances.data);
-                    this.pageCovariances = covariances.data;
+                    //console.log("covariances: ", covariances.data);
+                    console.log("covariances: ", covariances);
+                    this.pageCovariances = covariances;
                 } else {
                     console.log("no lifted region", liftedRegions);
                 }
@@ -374,6 +405,7 @@ new Vue({
         },
 
         async getCovariances(regions) {
+            let samples = 0;
             const covAPI = "https://ld.hugeamp.org/ld2/aggregation/covariance";
             const response = await fetch(covAPI, {
                 method: "POST",
@@ -388,9 +420,30 @@ new Vue({
                     throw new Error("Request to LD server failed");
                 }
             });
+            console.log("getcov", response);
             return response;
         },
-        //end NC GAIT
+
+        //return a promise
+        runRaremetal(data) {
+            console.log("waiting for raremetal");
+            console.log("json: ", data);
+            //let samples = data.data.nSamples || 0;
+            // Use the returned covariance data to run aggregation tests and return results (note that runner.run() returns a Promise)
+            const [groups, variants] = raremetal.helpers.parsePortalJSON(data);
+            const runner = new raremetal.helpers.PortalTestRunner(
+                groups,
+                variants
+                //tests
+                //["burden", "skat"]
+                // One or more test names can be specified!
+                //["burden", "skat", "skat-o", "vt"]
+            );
+            console.log("runner: running ");
+            return runner.run();
+        },
+
+        //this for coding GAIT
         searchCovariances() {
             this.showCovariances = true;
             this.loadingCovariances = true;
@@ -405,6 +458,21 @@ new Vue({
             });
             this.testChanged = false;
         },
+        //end NC GAIT
+        // searchCovariances() {
+        //     this.showCovariances = true;
+        //     this.loadingCovariances = true;
+        //     this.$store.dispatch("ldServer/runTests", {
+        //         variants: this.selectedVariants,
+        //         phenotypes: this.selectedPhenotypes,
+        //         dataset: this.selectedDataset,
+        //         tests:
+        //             this.selectedTests.length > 0
+        //                 ? this.selectedTests
+        //                 : ["burden"]
+        //     });
+        //     this.testChanged = false;
+        // },
         updateFields() {
             // let addFields = [];
             // Object.keys(this.tableData[0]).forEach(k => {
@@ -481,14 +549,15 @@ new Vue({
                 );
             }
         },
-        updateSelectedVariants() {
-            //get only the varIDs for selected rows
-            this.selectedVariants = this.tableData
-                .filter(v => {
-                    return v.selected === true;
-                })
-                .map(v => v.varId);
-        },
+        // not selecting variants yet
+        // updateSelectedVariants() {
+        //     //get only the varIDs for selected rows
+        //     this.selectedVariants = this.tableData
+        //         .filter(v => {
+        //             return v.selected === true;
+        //         })
+        //         .map(v => v.varId);
+        // },
         selectAllVariants() {
             this.tableData.forEach(v => (v.selected = true));
             this.updateSelectedVariants();
@@ -569,16 +638,17 @@ new Vue({
         },
         "$store.state.ldServer.runTestsError": function() {
             this.loadingCovariances = false;
-        },
-        tableData: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.updateSelectedVariants(); //update selected variants when tableData is ready
-                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
-                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
-                }
-            },
-            deep: true
         }
+        //check for table data update
+        // tableData: {
+        //     handler(newData, oldData) {
+        //         if (!isEqual(newData, oldData)) {
+        //             this.updateSelectedVariants(); //update selected variants when tableData is ready
+        //             //when rows are selected or unselected, tableData won't change, only the selected rows changed
+        //             //updateSelectedVariants() function should be call when check/uncheck to update selected rows
+        //         }
+        //     },
+        //     deep: true
+        // }
     }
 }).$mount("#app");
