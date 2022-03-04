@@ -109,6 +109,29 @@
 						:style="'width:' + value.left_width + '%; right:0'"
 						:class="'forest-plot-html-item'"
 					></div>
+					<div
+						v-if="!!labelMap[value[labelBy]]"
+						class="beta-box"
+						:class="
+							value[sortBy] < significant
+								? 'p-significant'
+								: value[sortBy] <= moderate
+								? 'p-moderate'
+								: value[sortBy] <= weak
+								? 'p-weak'
+								: ''
+						"
+						:style="
+							(value[bulletBy].toFixed(3) > -1
+								? 'display:none; '
+								: '') +
+							'right:calc(' +
+							value.left_beta_position +
+							'% - 6px);'
+						"
+					>
+						&nbsp;
+					</div>
 				</div>
 			</div>
 			<div class="beta-0" :style="'left:' + plotData.beta_0 + '%;'">
@@ -130,6 +153,29 @@
 						:style="'width:' + value.right_width + '%; left:0'"
 						:class="'forest-plot-html-item'"
 					></div>
+					<div
+						v-if="!!labelMap[value[labelBy]]"
+						class="beta-box"
+						:class="
+							value[sortBy] < significant
+								? 'p-significant'
+								: value[sortBy] <= moderate
+								? 'p-moderate'
+								: value[sortBy] <= weak
+								? 'p-weak'
+								: ''
+						"
+						:style="
+							(value[bulletBy].toFixed(3) < 1
+								? 'display:none; '
+								: '') +
+							'left:calc(' +
+							value.right_beta_position +
+							'% - 6px);'
+						"
+					>
+						&nbsp;
+					</div>
 				</div>
 			</div>
 			<div class="end-max">{{ plotData.high_max }}</div>
@@ -220,7 +266,9 @@
 							: ''
 					"
 					:style="
-						(value.beta_position > 100 ? 'display:none; ' : '') +
+						(value.beta_position > 100 || value.beta_position < 0
+							? 'display:none; '
+							: '') +
 						'left:calc(' +
 						value.beta_position +
 						'% - 6px);'
@@ -358,9 +406,13 @@ export default Vue.component("forest-plot-html", {
 
 				content["data"].map((item) => {
 					let updated = item;
+					let itemCenterHigh =
+						item.high > 1 ? 1 : item.high < -1 ? -1 : item.high;
+					let itemCenterLow =
+						item.low > 1 ? 1 : item.low < -1 ? -1 : item.low;
 					let itemWidth =
-						((item.high - item.low) / content.max_min_difference) *
-						100;
+						((itemCenterHigh - itemCenterLow) / 2) * 100;
+
 					let itemLeftWidth =
 						item.low > -1
 							? 0
@@ -370,9 +422,6 @@ export default Vue.component("forest-plot-html", {
 						item.high <= 1
 							? 0
 							: ((item.high - 1) / (content.max_value - 1)) * 100;
-
-					console.log("itemLeftWidth", itemLeftWidth);
-					console.log("itemRightWidth", itemRightWidth);
 
 					itemWidth = itemWidth > 100 ? 100 : itemWidth;
 					let itemLeft =
@@ -389,6 +438,10 @@ export default Vue.component("forest-plot-html", {
 						((item.measure - content.low_min) /
 							content.max_min_difference) *
 						100;
+					let itemBetaLeft =
+						((item.measure - -1) / (content.min_value - -1)) * 100;
+					let itemBetaRight =
+						((item.measure - 1) / (content.max_value - 1)) * 100;
 
 					updated["width"] = itemWidth;
 					updated["left_width"] = itemLeftWidth;
@@ -396,6 +449,8 @@ export default Vue.component("forest-plot-html", {
 					updated["left"] = itemLeft;
 					updated["right"] = itemRight;
 					updated["beta_position"] = itemBeta;
+					updated["left_beta_position"] = itemBetaLeft;
+					updated["right_beta_position"] = itemBetaRight;
 					updated["phenotype"] = item.phenotype;
 					return updated;
 				});
