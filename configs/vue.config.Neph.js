@@ -32,7 +32,7 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "region"]
     },
     variant: {
-        entry: "src/views/Variant/main.js",
+        entry: "src/portals/Neph/views/Variant/main.js",
         template: "public/index.html",
         filename: "variant.html",
         title: "Variant Info",

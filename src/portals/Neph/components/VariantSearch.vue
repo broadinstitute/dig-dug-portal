@@ -564,6 +564,7 @@ export default Vue.component("variant-search", {
 			this.currentPage = 1; //reset on new search
 			//Helen 2022-01-09
 			//this.variants = await query("variants", this.gene, {}, true);
+			//alert("variant-phenotype"+this.gene);
 			this.variants = await query(
 				"variant-phenotype",
 				this.gene,
