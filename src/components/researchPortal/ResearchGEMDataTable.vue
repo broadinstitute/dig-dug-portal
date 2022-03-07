@@ -57,7 +57,7 @@
 		>
 			<thead class="">
 				<tr>
-					<th
+					<!--<th
 						v-for="(value, index) in topRows"
 						:key="index"
 						v-html="value"
@@ -71,6 +71,13 @@
 								? 'sortable-th ' + value
 								: value
 						"
+					></th>-->
+					<th
+						v-for="(value, index) in topRows"
+						:key="index"
+						v-html="value == 'Credible Set' ? 'PPA' : value"
+						@click="applySorting(value)"
+						:class="'sortable-th ' + value"
 					></th>
 					<th
 						class="th-evidence"
@@ -180,6 +187,8 @@ export default Vue.component("research-gem-data-table", {
 			perPageNumber: null,
 			newTableFormat: null,
 			compareGroups: [],
+			sortByCredibleSet: false,
+			sortDirection: "asc",
 		};
 	},
 	modules: {},
@@ -253,6 +262,7 @@ export default Vue.component("research-gem-data-table", {
 			var newTableFormat = { ...this.tableFormat };
 			var updatedData = {};
 			var rawData = {};
+
 			if (this.dataComparisonConfig == null) {
 				let keyField =
 					newTableFormat["custom table"]["Credible Set"]["key field"];
@@ -272,6 +282,8 @@ export default Vue.component("research-gem-data-table", {
 				vIndex++;
 			}
 
+			console.log("this.pkgDataSelected", this.pkgDataSelected);
+
 			if (this.pkgDataSelected.length > 0) {
 				newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
 				var oldRows = newTableFormat["top rows"];
@@ -283,11 +295,21 @@ export default Vue.component("research-gem-data-table", {
 				if (annoIndex > -1) {
 					newTableFormat["top rows"].splice(annoIndex, 1);
 				}
+
+				// add "features" to table format
+				newTableFormat["features"] = ["Evidence"];
+				newTableFormat["Evidence"] = [];
+
 				this.pkgDataSelected.map((p) => {
 					if (!selectedBy[p.type]) {
 						selectedBy[p.type] = [];
 					}
 					selectedBy[p.type].push(p.id);
+
+					// add filtering CS and tissues to Evidence list
+					if (p.type == "Credible Set") {
+						newTableFormat["Evidence"].push(p.id);
+					}
 				});
 			}
 
@@ -305,7 +327,7 @@ export default Vue.component("research-gem-data-table", {
 							if (!!CSData[CS]) {
 								CSData[CS].map((CSItem) => {
 									let variant = CSItem[keyField];
-									let PPA = CSItem[PPAField];
+									let PPA = Number(CSItem[PPAField]);
 
 									if (!!rawData[variant]) {
 										if (!updatedData[variant]) {
@@ -324,26 +346,22 @@ export default Vue.component("research-gem-data-table", {
 											) {
 												updatedData[variant][
 													"Credible Set"
-												] =
-													"<strong>" +
-													CS +
-													"</strong>(" +
-													PPA +
-													")";
+												] = PPA;
 											} else if (
 												!!updatedData[variant][
 													"Credible Set"
 												]
 											) {
+												let previousPPA =
+													updatedData[variant][
+														"Credible Set"
+													];
 												updatedData[variant][
 													"Credible Set"
-												] +=
-													", " +
-													"<strong>" +
-													CS +
-													"</strong>(" +
-													PPA +
-													")";
+												] =
+													PPA > previousPPA
+														? PPA
+														: previousPPA;
 											}
 										} else {
 											if (
@@ -363,26 +381,22 @@ export default Vue.component("research-gem-data-table", {
 											) {
 												updatedData[variant][
 													"Credible Set"
-												][phenotype] =
-													"<strong>" +
-													CS +
-													"</strong>(" +
-													PPA +
-													")";
+												][phenotype] = PPA;
 											} else if (
 												!!updatedData[variant][
 													"Credible Set"
 												][phenotype]
 											) {
+												let previousPPA =
+													updatedData[variant][
+														"Credible Set"
+													][phenotype];
 												updatedData[variant][
 													"Credible Set"
-												][phenotype] +=
-													", " +
-													"<strong>" +
-													CS +
-													"</strong>(" +
-													PPA +
-													")";
+												][phenotype] =
+													PPA > previousPPA
+														? PPA
+														: previousPPA;
 											}
 										}
 									}
@@ -423,8 +437,6 @@ export default Vue.component("research-gem-data-table", {
 										  ][p]
 										: p;
 								///
-
-								console.log("phenotype", phenotype);
 
 								if (!!vValue["Credible Set"][phenotype]) {
 									tempObj[p] =
@@ -688,7 +700,38 @@ export default Vue.component("research-gem-data-table", {
 					sortedData.push(vValue);
 				}
 
-				sortedData.sort((a, b) => (a.indexNum > b.indexNum ? 1 : -1));
+				if (this.sortByCredibleSet == true) {
+					//usually data sorting happens with applySorting function.
+					//but for credible sets case it happens here to avoide destroying original data
+
+					sortedData.map((s) => {
+						let CSValue = null;
+
+						for (const [cKey, cValue] of Object.entries(
+							s["Credible Set"]
+						)) {
+							if (CSValue == null) {
+								CSValue = cValue;
+							}
+
+							if (CSValue == "N/A") {
+								CSValue = 0;
+							} else {
+								CSValue = cValue > CSValue ? cValue : CSValue;
+							}
+						}
+
+						s["CSValue"] = CSValue;
+					});
+
+					sortedData = sortedData.sort((a, b) =>
+						a.CSValue < b.CSValue ? 1 : -1
+					);
+				} else {
+					sortedData.sort((a, b) =>
+						a.indexNum > b.indexNum ? 1 : -1
+					);
+				}
 
 				updatedData = {};
 
@@ -983,9 +1026,14 @@ export default Vue.component("research-gem-data-table", {
 			return objectedArray;
 		},
 		applySorting(key) {
+			console.log(key);
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
-			if (key != this.newTableFormat["locus field"]) {
+			this.sortByCredibleSet = false;
+			if (
+				key != this.newTableFormat["locus field"] &&
+				key != "Credible Set"
+			) {
 				let filtered =
 					this.dataComparisonConfig == null
 						? this.dataset
@@ -1044,6 +1092,10 @@ export default Vue.component("research-gem-data-table", {
 					sortDirection
 				);
 				this.$store.dispatch("filteredData", filtered);
+			} else if (key == "Credible Set") {
+				let returnData = this.dataset;
+				this.sortByCredibleSet = true;
+				this.$store.dispatch("filteredData", returnData);
 			}
 		},
 	},
