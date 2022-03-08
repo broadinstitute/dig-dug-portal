@@ -47,6 +47,7 @@
 						selectedTissues.length > 0 && selectedAnnos.length > 0
 					"
 				>
+					<!-- selected tissues table -->
 					<table
 						class="table table-sm ge-data-table"
 						cellpadding="0"
@@ -54,11 +55,11 @@
 					>
 						<thead>
 							<tr>
-								<th>Tissues</th>
+								<th>Selected Tissues</th>
 								<th
 									v-for="(pValue, pKey, pIndex) in GEData"
 									:key="pKey"
-									v-html="pKey"
+									v-html="'Global Enrichment (' + pKey + ')'"
 								></th>
 							</tr>
 						</thead>
@@ -71,6 +72,83 @@
 									v-html="getGEContent(pKey, tissue)"
 								></td>
 							</tr>
+						</tbody>
+					</table>
+				</div>
+				<!-- selected annotations table -->
+				<div v-if="selectedAnnos.length > 0">
+					<table
+						class="table table-sm ge-data-table"
+						cellpadding="0"
+						cellspacing="0"
+					>
+						<thead>
+							<tr>
+								<th
+									v-for="(pValue, pKey, pIndex) in GEData"
+									:key="pKey"
+									v-html="'Gregor (' + pKey + ')'"
+								></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td
+									v-for="(pValue, pKey, pIndex) in GEData"
+									:key="pKey"
+								>
+									<table class="table table-sm ge-data-table">
+										<thead>
+											<tr>
+												<th>Tissues</th>
+												<th
+													v-for="annotation in selectedAnnos"
+													:key="annotation"
+													v-html="annotation"
+												></th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr
+												v-for="(
+													tissueValue, tissueKey
+												) in getSortByAnno(
+													pkgData.GEByTissueData[pKey]
+												)"
+												:key="tissueKey"
+											>
+												<td v-html="tissueKey"></td>
+												<td
+													v-for="annotation in selectedAnnos"
+													:key="annotation"
+													v-html="
+														!!tissueValue[
+															annotation
+														]
+															? tissueValue[
+																	annotation
+															  ].gregor
+															: ''
+													"
+												></td>
+											</tr>
+										</tbody>
+									</table>
+								</td>
+							</tr>
+							<!--
+							<tr
+								v-for="annotation in selectedAnnos"
+								:key="annotation"
+							>
+								<td v-html="annotation"></td>
+								<td
+									v-for="(pValue, pKey, pIndex) in GEData"
+									:key="pKey"
+									v-html="getAnnoContent(pKey, annotation)"
+								></td>
+							</tr>
+							-->
 						</tbody>
 					</table>
 				</div>
@@ -329,6 +407,10 @@ export default Vue.component("research-annotations-plot", {
 		},
 		getGEContent(PKEY, TISSUE) {
 			var content = "";
+			/*console.log(
+				"this.pkgData.GEByTissueData",
+				this.pkgData.GEByTissueData
+			);*/
 			this.selectedAnnos.map((a) => {
 				if (this.pkgData.GEByTissueData[PKEY][TISSUE]) {
 					if (this.pkgData.GEByTissueData[PKEY][TISSUE][a]) {
@@ -336,14 +418,92 @@ export default Vue.component("research-annotations-plot", {
 						content +=
 							"<strong>" +
 							a +
-							"</strong>(P-Value:" +
+							"</strong> (P-Value:" +
 							Formatters.pValueFormatter(data.pValue) +
 							", Fold:" +
 							Formatters.pValueFormatter(data.fold) +
+							", Gregor:" +
+							Formatters.pValueFormatter(data.gregor) +
 							")<br />";
 					}
 				}
 			});
+			return content;
+		},
+		getSortByAnno(DATA) {
+			var contentObj = {};
+
+			console.log("contentObj", DATA);
+
+			var sortedData = [];
+			for (const [tissue, annotations] of Object.entries(DATA)) {
+				let tempObj = { tissue: tissue, gregor: null };
+				for (const [annotation, annoParams] of Object.entries(
+					annotations
+				)) {
+					if (this.selectedAnnos.includes(annotation) == true) {
+						if (tempObj.gregor == null) {
+							tempObj.gregor = annoParams.gregor;
+						} else {
+							tempObj.gregor =
+								annoParams.gregor > tempObj.gregor
+									? annoParams.gregor
+									: tempObj.gregor;
+						}
+					}
+				}
+
+				sortedData.push(tempObj);
+			}
+
+			sortedData = sortedData.sort((a, b) =>
+				a.gregor < b.gregor ? 1 : -1
+			);
+
+			sortedData.map((d) => {
+				contentObj[d.tissue] = DATA[d.tissue];
+			});
+
+			return contentObj;
+		},
+		getAnnoContent(PKEY, ANNOTATION) {
+			var content = "";
+
+			let tempArr = [];
+			let phenotypeAnnoData = this.pkgData.GEByTissueData[PKEY];
+
+			for (const [tissue, tissueAnno] of Object.entries(
+				phenotypeAnnoData
+			)) {
+				if (!!tissueAnno[ANNOTATION]) {
+					let tempObj = {};
+					tempObj["tissue"] = tissue;
+					tempObj["gregor"] = tissueAnno[ANNOTATION].gregor;
+
+					tempArr.push(tempObj);
+				}
+			}
+
+			let sortedData = tempArr.sort((a, b) =>
+				a.gregor < b.gregor ? 1 : -1
+			);
+
+			//console.log("sortedData", sortedData);
+
+			sortedData.map((d) => {
+				let tissueData = phenotypeAnnoData[d.tissue][ANNOTATION];
+				content +=
+					"<strong>" +
+					d.tissue +
+					"</strong> (P-Value:" +
+					Formatters.pValueFormatter(tissueData.pValue) +
+					", Fold:" +
+					Formatters.pValueFormatter(tissueData.fold) +
+					", Gregor:" +
+					Formatters.pValueFormatter(tissueData.gregor) +
+					")<br />";
+			});
+
 			return content;
 		},
 		addAnnoTrack(event) {

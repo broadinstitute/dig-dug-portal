@@ -83,7 +83,7 @@
 						class="th-evidence"
 						v-if="newTableFormat['features'] != undefined"
 					>
-						Evidence
+						Credible Sets
 					</th>
 				</tr>
 			</thead>
@@ -297,6 +297,7 @@ export default Vue.component("research-gem-data-table", {
 				}
 
 				// add "features" to table format
+				//if (!!newTopRows.includes("Credible Set")) {
 				newTableFormat["features"] = ["Evidence"];
 				newTableFormat["Evidence"] = [];
 
@@ -307,10 +308,11 @@ export default Vue.component("research-gem-data-table", {
 					selectedBy[p.type].push(p.id);
 
 					// add filtering CS and tissues to Evidence list
-					if (p.type == "Credible Set") {
-						newTableFormat["Evidence"].push(p.id);
-					}
+					//if (p.type == "Credible Set") {
+					newTableFormat["Evidence"].push(p.id);
+					//}
 				});
+				//}
 			}
 
 			if (newRows.length > 0) {
