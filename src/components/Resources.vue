@@ -1,7 +1,7 @@
 <template>
 	<div class="row">
 		<div class="col-md-3">
-			<ul>
+			<ul class="toc-ul">
 				<li v-for="(row, i) in documentResourcesList">
 					<a
 						:href="'#' + row.nid"
@@ -12,7 +12,7 @@
 			</ul>
 		</div>
 		<div class="col-md-9">
-			<h2>Videos</h2>
+			<!--<h2>Videos</h2>
 			<div class="page-info-wrapper">
 				<div
 					v-for="(row, i) in videoResourcesList"
@@ -64,6 +64,7 @@
 			</div>
 
 			<h2>Help documentation</h2>
+            -->
 			<div class="page-info-wrapper">
 				<div
 					v-for="(row, i) in documentResourcesList"
@@ -168,4 +169,21 @@ export default Vue.component("resources-section", {
 	},
 });
 </script>
+<style>
+.toc-ul {
+	list-style: none;
+	padding: 0;
+	font-size: 16px;
+}
+
+.toc-ul li {
+	display: block;
+	padding: 7px 0;
+	border-bottom: solid 1px #dddddd;
+}
+
+.toc-ul li a {
+	color: #333333 !important;
+}
+</style>
 
