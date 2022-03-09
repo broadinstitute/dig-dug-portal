@@ -23,6 +23,13 @@
 		</div>
 		<div class="table-ui-wrapper">
 			<label
+				>Filter by tissue type:
+				<select v-model="filterTissueType" class="number-per-page">
+					<option value="or">Or</option>
+					<option value="and">And</option>
+				</select>
+			</label>
+			<label
 				>Rows per page:
 				<select v-model="perPageNumber" class="number-per-page">
 					<option value="10">10</option>
@@ -76,8 +83,18 @@
 						v-for="(value, index) in topRows"
 						:key="index"
 						v-html="value == 'Credible Set' ? 'PPA' : value"
-						@click="applySorting(value)"
-						:class="'sortable-th ' + value"
+						@click="
+							!!tableFormat['top rows'].includes(value) ||
+							value == 'Credible Set'
+								? applySorting(value)
+								: ''
+						"
+						:class="
+							!!tableFormat['top rows'].includes(value) ||
+							value == 'Credible Set'
+								? 'sortable-th ' + value
+								: ''
+						"
 					></th>
 					<th
 						class="th-evidence"
@@ -185,6 +202,7 @@ export default Vue.component("research-gem-data-table", {
 		return {
 			currentPage: 1,
 			perPageNumber: null,
+			filterTissueType: "or",
 			newTableFormat: null,
 			compareGroups: [],
 			sortByCredibleSet: false,
@@ -286,6 +304,12 @@ export default Vue.component("research-gem-data-table", {
 
 			if (this.pkgDataSelected.length > 0) {
 				newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
+
+				this.pkgDataSelected.map((p) => {
+					if (p.type == "Tissue") {
+						newRows.push(p.id);
+					}
+				});
 				var oldRows = newTableFormat["top rows"];
 				var newTopRows = oldRows.concat(newRows);
 				newTableFormat["top rows"] = newTopRows;
@@ -296,10 +320,19 @@ export default Vue.component("research-gem-data-table", {
 					newTableFormat["top rows"].splice(annoIndex, 1);
 				}
 
+				const tissueIndex =
+					newTableFormat["top rows"].indexOf("Tissue");
+				if (tissueIndex > -1) {
+					//newTableFormat["top rows"].splice(tissueIndex, 1);
+					newTableFormat["top rows"][tissueIndex] =
+						"Overlapping Region";
+				}
+
 				// add "features" to table format
-				//if (!!newTopRows.includes("Credible Set")) {
-				newTableFormat["features"] = ["Evidence"];
-				newTableFormat["Evidence"] = [];
+				if (!!newTopRows.includes("Credible Set")) {
+					newTableFormat["features"] = ["Credible Set"];
+					newTableFormat["Credible Set"] = [];
+				}
 
 				this.pkgDataSelected.map((p) => {
 					if (!selectedBy[p.type]) {
@@ -308,20 +341,29 @@ export default Vue.component("research-gem-data-table", {
 					selectedBy[p.type].push(p.id);
 
 					// add filtering CS and tissues to Evidence list
-					//if (p.type == "Credible Set") {
-					newTableFormat["Evidence"].push(p.id);
-					//}
+					if (p.type == "Credible Set") {
+						newTableFormat["Credible Set"].push(p.id);
+					}
 				});
-				//}
 			}
 
-			if (newRows.length > 0) {
+			if (
+				(!!selectedBy["Credible Set"] &&
+					selectedBy["Credible Set"].length > 0) ||
+				(!!selectedBy["Tissue"] &&
+					selectedBy["Tissue"].length > 0 &&
+					!!selectedBy["Annotation"] &&
+					selectedBy["Annotation"].length > 0)
+			) {
 				let keyField =
 					newTableFormat["custom table"]["Credible Set"]["key field"];
 				let PPAField =
 					newTableFormat["custom table"]["Credible Set"]["PPA"];
 
+				//console.log("point 1");
+
 				if (!!selectedBy["Credible Set"]) {
+					console.log("point 2");
 					selectedBy["Credible Set"].map((CS) => {
 						for (const [phenotype, CSData] of Object.entries(
 							this.pkgData.CSData
@@ -459,6 +501,60 @@ export default Vue.component("research-gem-data-table", {
 						!!selectedBy["Annotation"] &&
 						selectedBy["Annotation"].length > 0
 					) {
+						var enrichedPosition = null;
+
+						selectedBy["Annotation"].map((a) => {
+							selectedBy["Tissue"].map((t) => {
+								if (
+									!!this.pkgData.annoData[a] &&
+									!!this.pkgData.annoData[a][t]
+								) {
+									let tempArr = [];
+									this.pkgData.annoData[a][t].region.map(
+										(r) => {
+											for (
+												let i = r.start;
+												i <= r.end;
+												i++
+											) {
+												tempArr.push(i);
+											}
+										}
+									);
+
+									if (enrichedPosition == null) {
+										enrichedPosition = tempArr;
+										//enrichedPosition2 = tempArr;
+									} else {
+										enrichedPosition =
+											this.filterTissueType == "or"
+												? enrichedPosition.concat(
+														tempArr
+												  )
+												: this.getArraysIntersection(
+														enrichedPosition,
+														tempArr
+												  ); // getting only intersecting positions
+									}
+								}
+							});
+						});
+
+						//filter rawData
+
+						for (const [vKey, vValue] of Object.entries(rawData)) {
+							//let position = vValue.Position;
+
+							if (!!vValue["Credible Set"]) {
+								updatedData[vKey] = vValue;
+							}
+						}
+
+						console.log(
+							"Object.keys(updatedData).length",
+							Object.keys(updatedData).length
+						);
+						///"OR" filtering
 						for (const [vKey, vValue] of Object.entries(
 							updatedData
 						)) {
@@ -497,7 +593,9 @@ export default Vue.component("research-gem-data-table", {
 									}
 								});
 								if (inTissue == 0) {
-									delete updatedData[vKey];
+									if (this.filterTissueType == "and") {
+										delete updatedData[vKey];
+									}
 								}
 							});
 
@@ -511,10 +609,103 @@ export default Vue.component("research-gem-data-table", {
 									tissue,
 									annotations,
 								] of Object.entries(annotationContent)) {
-									tissueColmContent +=
-										"<strong>" +
-										tissue +
-										"</strong><br />Annotations: ";
+									let enrichedAnnotations = "";
+									for (const [
+										annoKey,
+										annoValue,
+									] of Object.entries(annotations)) {
+										if (annoValue != null) {
+											enrichedAnnotations +=
+												annoKey + ", ";
+											overStart =
+												overStart == null
+													? annoValue.start
+													: overStart <
+													  annoValue.start
+													? annoValue.start
+													: overStart;
+
+											overEnd =
+												overEnd == null
+													? annoValue.end
+													: overEnd > annoValue.end
+													? annoValue.end
+													: overEnd;
+
+											//Feed feature column
+										}
+									}
+
+									if (enrichedAnnotations != "") {
+										updatedData[vKey][tissue] =
+											enrichedAnnotations.slice(0, -2);
+									}
+								}
+
+								updatedData[vKey]["Overlapping Region"] =
+									overStart + "-" + overEnd;
+
+								if (overStart == null && overEnd == null) {
+									delete updatedData[vKey];
+								}
+							}
+						}
+					}
+					/*for (const [vKey, vValue] of Object.entries(
+							updatedData
+						)) {
+							let annotationContent = {};
+							selectedBy["Tissue"].map((t) => {
+								annotationContent[t] = {};
+								selectedBy["Annotation"].map((a) => {
+									annotationContent[t][a] = null;
+								});
+							});
+
+							selectedBy["Tissue"].map((t) => {
+								let inTissue = 0;
+
+								selectedBy["Annotation"].map((a) => {
+									let inAnnotation = 0;
+									let tissueContent = "";
+									if (!!this.pkgData.tissuesData[t][a]) {
+										this.pkgData.tissuesData[t][
+											a
+										].region.map((r) => {
+											if (
+												vValue.Position >= r.start &&
+												vValue.Position <= r.end
+											) {
+												inAnnotation = 1;
+												annotationContent[t][a] = {
+													start: r.start,
+													end: r.end,
+												};
+											}
+										});
+										if (inAnnotation == 1) {
+											inTissue = 1;
+										}
+									}
+								});
+								if (inTissue == 0) {
+									//if (this.filterTissueType == "and") {
+									delete updatedData[vKey];
+									//}
+								}
+							});
+
+							if (!!updatedData[vKey]) {
+								/// feed "Tissue" column content
+								let tissueColmContent = "";
+								let overStart = null;
+								let overEnd = null;
+
+								for (const [
+									tissue,
+									annotations,
+								] of Object.entries(annotationContent)) {
+									
 									for (const [
 										annoKey,
 										annoValue,
@@ -541,18 +732,17 @@ export default Vue.component("research-gem-data-table", {
 										0,
 										-2
 									);
-									tissueColmContent += "<br />";
+									//tissueColmContent += "<br />";
+									updatedData[vKey][tissue] =
+										tissueColmContent;
 								}
-								tissueColmContent +=
-									"<strong>Overlapping Region</strong>: " +
-									overStart +
-									"-" +
-									overEnd;
+								
 
-								updatedData[vKey]["Tissue"] = tissueColmContent;
+								updatedData[vKey]["Overlapping Region"] =
+									overStart + "-" + overEnd;
 							}
-						}
-					}
+						}*/
+					//}
 				} else {
 					if (!!selectedBy["Tissue"] && !!selectedBy["Annotation"]) {
 						var enrichedPosition = null;
@@ -578,12 +768,17 @@ export default Vue.component("research-gem-data-table", {
 
 									if (enrichedPosition == null) {
 										enrichedPosition = tempArr;
+										//enrichedPosition2 = tempArr;
 									} else {
 										enrichedPosition =
-											this.getArraysIntersection(
-												enrichedPosition,
-												tempArr
-											);
+											this.filterTissueType == "or"
+												? enrichedPosition.concat(
+														tempArr
+												  )
+												: this.getArraysIntersection(
+														enrichedPosition,
+														tempArr
+												  ); // getting only intersecting positions
 									}
 								}
 							});
@@ -598,6 +793,11 @@ export default Vue.component("research-gem-data-table", {
 							}
 						}
 
+						console.log(
+							"Object.keys(updatedData).length",
+							Object.keys(updatedData).length
+						);
+						///"OR" filtering
 						for (const [vKey, vValue] of Object.entries(
 							updatedData
 						)) {
@@ -636,7 +836,9 @@ export default Vue.component("research-gem-data-table", {
 									}
 								});
 								if (inTissue == 0) {
-									delete updatedData[vKey];
+									if (this.filterTissueType == "and") {
+										delete updatedData[vKey];
+									}
 								}
 							});
 
@@ -650,16 +852,14 @@ export default Vue.component("research-gem-data-table", {
 									tissue,
 									annotations,
 								] of Object.entries(annotationContent)) {
-									tissueColmContent +=
-										"<strong>" +
-										tissue +
-										"</strong><br />Annotations: ";
+									let enrichedAnnotations = "";
 									for (const [
 										annoKey,
 										annoValue,
 									] of Object.entries(annotations)) {
 										if (annoValue != null) {
-											tissueColmContent += annoKey + ", ";
+											enrichedAnnotations +=
+												annoKey + ", ";
 											overStart =
 												overStart == null
 													? annoValue.start
@@ -678,19 +878,15 @@ export default Vue.component("research-gem-data-table", {
 											//Feed feature column
 										}
 									}
-									tissueColmContent = tissueColmContent.slice(
-										0,
-										-2
-									);
-									tissueColmContent += "<br />";
-								}
-								tissueColmContent +=
-									"<strong>Overlapping Region</strong>: " +
-									overStart +
-									"-" +
-									overEnd;
 
-								updatedData[vKey]["Tissue"] = tissueColmContent;
+									if (enrichedAnnotations != "") {
+										updatedData[vKey][tissue] =
+											enrichedAnnotations.slice(0, -2);
+									}
+								}
+
+								updatedData[vKey]["Overlapping Region"] =
+									overStart + "-" + overEnd;
 							}
 						}
 					}
@@ -759,6 +955,7 @@ export default Vue.component("research-gem-data-table", {
 		},
 
 		pagedData() {
+			//console.log("rawData", this.rawData);
 			if (!!this.perPageNumber && this.perPageNumber != null) {
 				let rawData = this.rawData;
 

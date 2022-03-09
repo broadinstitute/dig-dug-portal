@@ -116,6 +116,7 @@
 													pkgData.GEByTissueData[pKey]
 												)"
 												:key="tissueKey"
+												:v-if="tissueValue"
 											>
 												<td v-html="tissueKey"></td>
 												<td
@@ -433,15 +434,14 @@ export default Vue.component("research-annotations-plot", {
 		getSortByAnno(DATA) {
 			var contentObj = {};
 
-			console.log("contentObj", DATA);
-
 			var sortedData = [];
 			for (const [tissue, annotations] of Object.entries(DATA)) {
-				let tempObj = { tissue: tissue, gregor: null };
+				let tempObj = { tissue: tissue, gregor: null, render: null };
 				for (const [annotation, annoParams] of Object.entries(
 					annotations
 				)) {
 					if (this.selectedAnnos.includes(annotation) == true) {
+						tempObj.render = true;
 						if (tempObj.gregor == null) {
 							tempObj.gregor = annoParams.gregor;
 						} else {
@@ -461,9 +461,12 @@ export default Vue.component("research-annotations-plot", {
 			);
 
 			sortedData.map((d) => {
-				contentObj[d.tissue] = DATA[d.tissue];
+				if (d.render == true) {
+					contentObj[d.tissue] = DATA[d.tissue];
+				}
 			});
 
+			console.log("contentObj", contentObj);
 			return contentObj;
 		},
 		getAnnoContent(PKEY, ANNOTATION) {
