@@ -59,7 +59,9 @@
 								<th
 									v-for="(pValue, pKey, pIndex) in GEData"
 									:key="pKey"
-									v-html="'Global Enrichment (' + pKey + ')'"
+									v-html="
+										pKey + ': Annotation(P-Value / Fold)'
+									"
 								></th>
 							</tr>
 						</thead>
@@ -77,6 +79,7 @@
 				</div>
 				<!-- selected annotations table -->
 				<div v-if="selectedAnnos.length > 0">
+					<span>Table is sort by fold across annotations.</span>
 					<table
 						class="table table-sm ge-data-table"
 						cellpadding="0"
@@ -87,7 +90,7 @@
 								<th
 									v-for="(pValue, pKey, pIndex) in GEData"
 									:key="pKey"
-									v-html="'Gregor (' + pKey + ')'"
+									v-html="pKey"
 								></th>
 							</tr>
 						</thead>
@@ -104,7 +107,10 @@
 												<th
 													v-for="annotation in selectedAnnos"
 													:key="annotation"
-													v-html="annotation"
+													v-html="
+														annotation +
+														'(P-Value/Fold)'
+													"
 												></th>
 											</tr>
 										</thead>
@@ -128,7 +134,11 @@
 														]
 															? tissueValue[
 																	annotation
-															  ].gregor
+															  ].pValue +
+															  ' / ' +
+															  tissueValue[
+																	annotation
+															  ].fold
 															: ''
 													"
 												></td>
@@ -419,12 +429,10 @@ export default Vue.component("research-annotations-plot", {
 						content +=
 							"<strong>" +
 							a +
-							"</strong> (P-Value:" +
+							"</strong> (" +
 							Formatters.pValueFormatter(data.pValue) +
-							", Fold:" +
+							" / " +
 							Formatters.pValueFormatter(data.fold) +
-							", Gregor:" +
-							Formatters.pValueFormatter(data.gregor) +
 							")<br />";
 					}
 				}
@@ -436,29 +444,33 @@ export default Vue.component("research-annotations-plot", {
 
 			var sortedData = [];
 			for (const [tissue, annotations] of Object.entries(DATA)) {
-				let tempObj = { tissue: tissue, gregor: null, render: null };
 				for (const [annotation, annoParams] of Object.entries(
 					annotations
 				)) {
-					if (this.selectedAnnos.includes(annotation) == true) {
+					if (
+						this.selectedAnnos.includes(annotation) == true &&
+						!!this.annoData[annotation][tissue]
+					) {
+						let tempObj = {
+							tissue: tissue,
+							fold: null,
+							render: null,
+						};
 						tempObj.render = true;
-						if (tempObj.gregor == null) {
-							tempObj.gregor = annoParams.gregor;
+						if (tempObj.fold == null) {
+							tempObj.fold = annoParams.fold;
 						} else {
-							tempObj.gregor =
-								annoParams.gregor > tempObj.gregor
-									? annoParams.gregor
-									: tempObj.gregor;
+							tempObj.fold =
+								annoParams.fold > tempObj.fold
+									? annoParams.fold
+									: tempObj.fold;
 						}
+						sortedData.push(tempObj);
 					}
 				}
-
-				sortedData.push(tempObj);
 			}
 
-			sortedData = sortedData.sort((a, b) =>
-				a.gregor < b.gregor ? 1 : -1
-			);
+			sortedData = sortedData.sort((a, b) => (a.fold < b.fold ? 1 : -1));
 
 			sortedData.map((d) => {
 				if (d.render == true) {
@@ -466,10 +478,10 @@ export default Vue.component("research-annotations-plot", {
 				}
 			});
 
-			console.log("contentObj", contentObj);
+			//console.log("contentObj", contentObj);
 			return contentObj;
 		},
-		getAnnoContent(PKEY, ANNOTATION) {
+		/*getAnnoContent(PKEY, ANNOTATION) {
 			var content = "";
 
 			let tempArr = [];
@@ -508,7 +520,7 @@ export default Vue.component("research-annotations-plot", {
 			});
 
 			return content;
-		},
+		},*/
 		addAnnoTrack(event) {
 			if (event.target.value != "") {
 				this.selectedAnnos.push(event.target.value);
@@ -1167,7 +1179,7 @@ export default Vue.component("research-annotations-plot", {
 					if (!GEByTissue[phenotype][g.tissue]) {
 						GEByTissue[phenotype][g.tissue] = {};
 					}
-
+					///Adding "gregor" slot for later use.
 					if (!GEByTissue[phenotype][g.tissue][g.annotation]) {
 						GEByTissue[phenotype][g.tissue][g.annotation] = {
 							pValue: null,
@@ -1181,22 +1193,22 @@ export default Vue.component("research-annotations-plot", {
 
 					if (pPerTissue == null) {
 						GEByTissue[phenotype][g.tissue][g.annotation].pValue =
-							g.pValue;
+							Formatters.pValueFormatter(g.pValue);
 						GEByTissue[phenotype][g.tissue][g.annotation].fold =
-							g.SNPs / g.expectedSNPs;
-						GEByTissue[phenotype][g.tissue][g.annotation].gregor =
+							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
+						/*GEByTissue[phenotype][g.tissue][g.annotation].gregor =
 							GEByTissue[phenotype][g.tissue][g.annotation].fold /
 							GEByTissue[phenotype][g.tissue][g.annotation]
-								.pValue;
+								.pValue;*/
 					} else if (g.pValue < pPerTissue) {
 						GEByTissue[phenotype][g.tissue][g.annotation].pValue =
-							g.pValue;
+							Formatters.pValueFormatter(g.pValue);
 						GEByTissue[phenotype][g.tissue][g.annotation].fold =
-							g.SNPs / g.expectedSNPs;
-						GEByTissue[phenotype][g.tissue][g.annotation].gregor =
+							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
+						/*GEByTissue[phenotype][g.tissue][g.annotation].gregor =
 							GEByTissue[phenotype][g.tissue][g.annotation].fold /
 							GEByTissue[phenotype][g.tissue][g.annotation]
-								.pValue;
+								.pValue;*/
 					}
 				});
 			}
@@ -1274,6 +1286,9 @@ export default Vue.component("research-annotations-plot", {
 			this.GEPosData = {};
 			let sortedGEData = {};
 
+			console.log("this.GEData", this.GEData);
+			console.log("this.annoData", this.annoData);
+
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
 					xMax: null,
@@ -1290,33 +1305,33 @@ export default Vue.component("research-annotations-plot", {
 						let pValue = -Math.log10(g.pValue);
 						let fold = g.SNPs / g.expectedSNPs;
 
-						sortedGEData[phenotype].xMax =
-							sortedGEData[phenotype].xMax == null
-								? fold
-								: fold > sortedGEData[phenotype].xMax
-								? fold
-								: sortedGEData[phenotype].xMax;
-
-						sortedGEData[phenotype].xMin =
-							sortedGEData[phenotype].xMin == null
-								? fold
-								: fold < sortedGEData[phenotype].xMin
-								? fold
-								: sortedGEData[phenotype].xMin;
-
 						sortedGEData[phenotype].yMax =
 							sortedGEData[phenotype].yMax == null
-								? pValue
-								: pValue > sortedGEData[phenotype].yMax
-								? pValue
+								? fold
+								: fold > sortedGEData[phenotype].yMax
+								? fold
 								: sortedGEData[phenotype].yMax;
 
 						sortedGEData[phenotype].yMin =
 							sortedGEData[phenotype].yMin == null
-								? pValue
-								: pValue < sortedGEData[phenotype].yMin
-								? pValue
+								? fold
+								: fold < sortedGEData[phenotype].yMin
+								? fold
 								: sortedGEData[phenotype].yMin;
+
+						sortedGEData[phenotype].xMax =
+							sortedGEData[phenotype].xMax == null
+								? pValue
+								: pValue > sortedGEData[phenotype].xMax
+								? pValue
+								: sortedGEData[phenotype].xMax;
+
+						sortedGEData[phenotype].xMin =
+							sortedGEData[phenotype].xMin == null
+								? pValue
+								: pValue < sortedGEData[phenotype].xMin
+								? pValue
+								: sortedGEData[phenotype].xMin;
 
 						sortedGEData[phenotype][g.annotation][g.tissue] =
 							!sortedGEData[phenotype][g.annotation][g.tissue]
@@ -1405,6 +1420,7 @@ export default Vue.component("research-annotations-plot", {
 				let annotationsArr = Object.keys(this.annoData);
 				//let tissuesCount = 0;
 
+				let foldArr = [];
 				let pValArr = [];
 				annotationsArr.map((annotation) => {
 					for (const [tissue, tissueValue] of Object.entries(
@@ -1412,9 +1428,11 @@ export default Vue.component("research-annotations-plot", {
 					)) {
 						//tissuesCount++;
 						pValArr.push(tissueValue.pValue);
+						foldArr.push(tissueValue.fold);
 					}
 				});
 
+				foldArr.sort((a, b) => b - a);
 				pValArr.sort((a, b) => b - a);
 
 				let xPosByPixel = plotWidth / (GE.xMax - GE.xMin);
@@ -1429,13 +1447,13 @@ export default Vue.component("research-annotations-plot", {
 					)) {
 						let xPos =
 							this.plotMargin.leftMargin +
-							(tValue.fold - GE.xMin) * xPosByPixel;
+							(tValue.pValue - GE.xMin) * xPosByPixel;
 
 						let yPos =
 							titleYPos +
 							this.plotMargin.topMargin +
 							plotHeight -
-							(tValue.pValue - GE.yMin) * yPosByPixel;
+							(tValue.fold - GE.yMin) * yPosByPixel;
 
 						ctx.fillStyle = dotColor;
 						ctx.lineWidth = 0;
@@ -1443,7 +1461,10 @@ export default Vue.component("research-annotations-plot", {
 						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
 						ctx.fill();
 
-						if (tValue.pValue >= pValArr[2]) {
+						if (
+							tValue.fold >= foldArr[2] ||
+							tValue.pValue >= pValArr[2]
+						) {
 							ctx.font = "12px Arial";
 							ctx.fillStyle = "#000000";
 							if (xPos > canvasWidth * 0.75) {
@@ -1537,7 +1558,7 @@ export default Vue.component("research-annotations-plot", {
 			CTX.textAlign = "center";
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
-				"-Log10(p-value)",
+				"Fold",
 				-(this.plotMargin.topMargin + HEIGHT / 2) - YPOS,
 				BUMP + 12
 			);
@@ -1586,7 +1607,7 @@ export default Vue.component("research-annotations-plot", {
 			//Render x axis label
 			CTX.textAlign = "center";
 			CTX.fillText(
-				"Fold",
+				"-Log10(p-value)",
 				this.plotMargin.leftMargin + WIDTH / 2,
 				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
 			);
