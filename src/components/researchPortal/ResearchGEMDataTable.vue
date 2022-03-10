@@ -616,7 +616,12 @@ export default Vue.component("research-gem-data-table", {
 									] of Object.entries(annotations)) {
 										if (annoValue != null) {
 											enrichedAnnotations +=
-												annoKey + ", ";
+												annoKey +
+												": " +
+												annoValue.start +
+												"-" +
+												annoValue.end +
+												", ";
 											overStart =
 												overStart == null
 													? annoValue.start
@@ -786,18 +791,57 @@ export default Vue.component("research-gem-data-table", {
 
 						//filter rawData
 
-						for (const [vKey, vValue] of Object.entries(rawData)) {
-							let position = vValue.Position;
-							if (!!enrichedPosition.includes(position)) {
-								updatedData[vKey] = vValue;
+						enrichedPosition.sort(function (a, b) {
+							return a - b;
+						});
+
+						var enrichedRegion = [];
+
+						for (let i = 0; i < enrichedPosition.length; i++) {
+							if (i == 0 || i == enrichedPosition.length - 1) {
+								enrichedRegion.push(enrichedPosition[i]);
+							} else {
+								let pos1 = enrichedPosition[i - 1] + 1;
+								let pos2 = enrichedPosition[i];
+
+								if (pos2 > pos1) {
+									enrichedRegion.push(
+										enrichedPosition[i - 1]
+									);
+									enrichedRegion.push(enrichedPosition[i]);
+								}
 							}
 						}
 
-						console.log(
-							"Object.keys(updatedData).length",
-							Object.keys(updatedData).length
-						);
-						///"OR" filtering
+						var overlappingRegions = [];
+
+						for (let i = 0; i < enrichedRegion.length - 1; i += 2) {
+							let tempObj = {};
+							tempObj["start"] = enrichedRegion[i];
+							tempObj["end"] = enrichedRegion[i + 1];
+							overlappingRegions.push(tempObj);
+						}
+
+						console.log("enrichedRegion", enrichedRegion);
+						console.log("overlappingRegions", overlappingRegions);
+
+						for (const [vKey, vValue] of Object.entries(rawData)) {
+							let position = vValue.Position;
+							/*if (!!enrichedPosition.includes(position)) {
+								updatedData[vKey] = vValue;
+							}*/
+
+							overlappingRegions.map((r) => {
+								if (position >= r.start && position <= r.end) {
+									updatedData[vKey] = vValue;
+									updatedData[vKey]["overStart"] = r.start;
+									updatedData[vKey]["overEnd"] = r.end;
+								}
+							});
+						}
+
+						console.log("updatedData", updatedData);
+
 						for (const [vKey, vValue] of Object.entries(
 							updatedData
 						)) {
@@ -845,8 +889,8 @@ export default Vue.component("research-gem-data-table", {
 							if (!!updatedData[vKey]) {
 								/// feed "Tissue" column content
 								let tissueColmContent = "";
-								let overStart = null;
-								let overEnd = null;
+								//let overStart = null;
+								//let overEnd = null;
 
 								for (const [
 									tissue,
@@ -859,8 +903,13 @@ export default Vue.component("research-gem-data-table", {
 									] of Object.entries(annotations)) {
 										if (annoValue != null) {
 											enrichedAnnotations +=
-												annoKey + ", ";
-											overStart =
+												annoKey +
+												": " +
+												annoValue.start +
+												"-" +
+												annoValue.end +
+												", ";
+											/*overStart =
 												overStart == null
 													? annoValue.start
 													: overStart <
@@ -874,7 +923,7 @@ export default Vue.component("research-gem-data-table", {
 													: overEnd > annoValue.end
 													? annoValue.end
 													: overEnd;
-
+*/
 											//Feed feature column
 										}
 									}
@@ -886,7 +935,9 @@ export default Vue.component("research-gem-data-table", {
 								}
 
 								updatedData[vKey]["Overlapping Region"] =
-									overStart + "-" + overEnd;
+									updatedData[vKey].overStart +
+									"-" +
+									updatedData[vKey].overEnd;
 							}
 						}
 					}
