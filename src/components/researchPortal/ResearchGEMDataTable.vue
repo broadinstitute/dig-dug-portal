@@ -281,6 +281,7 @@ export default Vue.component("research-gem-data-table", {
 			var updatedData = {};
 			var rawData = {};
 
+			//If the data queried is not compared, change it from array to object
 			if (this.dataComparisonConfig == null) {
 				let keyField =
 					newTableFormat["custom table"]["Credible Set"]["key field"];
@@ -291,42 +292,44 @@ export default Vue.component("research-gem-data-table", {
 				rawData = { ...this.dataset };
 			}
 
-			var newRows = [];
-			var selectedBy = {};
-
+			// Add original index to each items in the rawData, so it can be sorted back to original order after processing;
 			let vIndex = 0;
 			for (const [vKey, vValue] of Object.entries(rawData)) {
 				vValue["indexNum"] = vIndex;
 				vIndex++;
 			}
 
-			console.log("this.pkgDataSelected", this.pkgDataSelected);
+			var newRows = [];
+			var selectedBy = {};
+
+			// Add "Credible sets" and selected tissues to the top rows
 
 			if (this.pkgDataSelected.length > 0) {
+				// get the list of the types of filtering credible sets, and tissues X annotations
 				newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
+
+				//Remove "Annotation" from newRows since we are going to have annotations in tissues column
+				const annoIndex = newRows.indexOf("Annotation");
+				if (annoIndex > -1) {
+					newRows.splice(annoIndex, 1);
+				}
+
+				//Replace "Tissue" with "Overlapping Region"
+				const tissueIndex = newRows.indexOf("Tissue");
+				if (tissueIndex > -1) {
+					newRows[tissueIndex] = "Overlapping Region";
+				}
 
 				this.pkgDataSelected.map((p) => {
 					if (p.type == "Tissue") {
 						newRows.push(p.id);
 					}
 				});
+
+				//Merge new top rows original top rows
 				var oldRows = newTableFormat["top rows"];
 				var newTopRows = oldRows.concat(newRows);
 				newTableFormat["top rows"] = newTopRows;
-
-				const annoIndex =
-					newTableFormat["top rows"].indexOf("Annotation");
-				if (annoIndex > -1) {
-					newTableFormat["top rows"].splice(annoIndex, 1);
-				}
-
-				const tissueIndex =
-					newTableFormat["top rows"].indexOf("Tissue");
-				if (tissueIndex > -1) {
-					//newTableFormat["top rows"].splice(tissueIndex, 1);
-					newTableFormat["top rows"][tissueIndex] =
-						"Overlapping Region";
-				}
 
 				// add "features" to table format
 				if (!!newTopRows.includes("Credible Set")) {
@@ -347,652 +350,367 @@ export default Vue.component("research-gem-data-table", {
 				});
 			}
 
+			//Let's filter rawData by credible sets
 			if (
-				(!!selectedBy["Credible Set"] &&
-					selectedBy["Credible Set"].length > 0) ||
-				(!!selectedBy["Tissue"] &&
-					selectedBy["Tissue"].length > 0 &&
-					!!selectedBy["Annotation"] &&
-					selectedBy["Annotation"].length > 0)
+				!!selectedBy["Credible Set"] &&
+				selectedBy["Credible Set"].length > 0
 			) {
+				// get variant id field name and ppa field name
 				let keyField =
 					newTableFormat["custom table"]["Credible Set"]["key field"];
 				let PPAField =
 					newTableFormat["custom table"]["Credible Set"]["PPA"];
 
-				//console.log("point 1");
+				selectedBy["Credible Set"].map((CS) => {
+					for (const [phenotype, CSData] of Object.entries(
+						this.pkgData.CSData
+					)) {
+						if (!!CSData[CS]) {
+							CSData[CS].map((CSItem) => {
+								let variant = CSItem[keyField];
+								let PPA = Number(CSItem[PPAField]);
 
-				if (!!selectedBy["Credible Set"]) {
-					console.log("point 2");
-					selectedBy["Credible Set"].map((CS) => {
-						for (const [phenotype, CSData] of Object.entries(
-							this.pkgData.CSData
-						)) {
-							if (!!CSData[CS]) {
-								CSData[CS].map((CSItem) => {
-									let variant = CSItem[keyField];
-									let PPA = Number(CSItem[PPAField]);
-
-									if (!!rawData[variant]) {
-										if (!updatedData[variant]) {
-											updatedData[variant] = {
-												...rawData[variant],
-											};
-										}
-										updatedData[variant][CS] = PPA;
-
-										///add credible set value
-										if (this.dataComparisonConfig == null) {
-											if (
-												!updatedData[variant][
-													"Credible Set"
-												]
-											) {
-												updatedData[variant][
-													"Credible Set"
-												] = PPA;
-											} else if (
-												!!updatedData[variant][
-													"Credible Set"
-												]
-											) {
-												let previousPPA =
-													updatedData[variant][
-														"Credible Set"
-													];
-												updatedData[variant][
-													"Credible Set"
-												] =
-													PPA > previousPPA
-														? PPA
-														: previousPPA;
-											}
-										} else {
-											if (
-												!updatedData[variant][
-													"Credible Set"
-												]
-											) {
-												updatedData[variant][
-													"Credible Set"
-												] = {};
-											}
-
-											if (
-												!updatedData[variant][
-													"Credible Set"
-												][phenotype]
-											) {
-												updatedData[variant][
-													"Credible Set"
-												][phenotype] = PPA;
-											} else if (
-												!!updatedData[variant][
-													"Credible Set"
-												][phenotype]
-											) {
-												let previousPPA =
-													updatedData[variant][
-														"Credible Set"
-													][phenotype];
-												updatedData[variant][
-													"Credible Set"
-												][phenotype] =
-													PPA > previousPPA
-														? PPA
-														: previousPPA;
-											}
-										}
+								// first check if a variant from CS exist in the rawData
+								if (!!rawData[variant]) {
+									///Add the variant information to updatedData
+									if (!updatedData[variant]) {
+										updatedData[variant] = {
+											...rawData[variant],
+										};
 									}
-								});
-							}
-						}
-					});
+									//Add PPA to each CS property
+									updatedData[variant][CS] = PPA;
 
-					updatedData = Object.entries(updatedData)
-						.sort()
-						.reduce((o, [k, v]) => ((o[k] = v), o), {});
-
-					/// feed null to value for phenotype in Credible sets column
-					if (!!this.dataComparisonConfig) {
-						for (const [vKey, vValue] of Object.entries(
-							updatedData
-						)) {
-							let compareField =
-								this.dataComparisonConfig[
-									"fields to compare"
-								][1];
-							let activePhenotypes = Object.keys(
-								vValue[compareField]
-							);
-							let tempObj = {};
-							activePhenotypes.map((p) => {
-								///custom table
-
-								let phenotype =
-									!!newTableFormat["custom table"][
-										"phenotype match"
-									] &&
-									!!newTableFormat["custom table"][
-										"phenotype match"
-									][p]
-										? newTableFormat["custom table"][
-												"phenotype match"
-										  ][p]
-										: p;
-								///
-
-								if (!!vValue["Credible Set"][phenotype]) {
-									tempObj[p] =
-										vValue["Credible Set"][phenotype];
-								} else {
-									tempObj[p] = "N/A";
-								}
-							});
-							vValue["Credible Set"] = tempObj;
-						}
-					}
-
-					if (
-						!!selectedBy["Credible Set"] &&
-						selectedBy["Credible Set"].length > 0 &&
-						!!selectedBy["Tissue"] &&
-						selectedBy["Tissue"].length > 0 &&
-						!!selectedBy["Annotation"] &&
-						selectedBy["Annotation"].length > 0
-					) {
-						var enrichedPosition = null;
-
-						selectedBy["Annotation"].map((a) => {
-							selectedBy["Tissue"].map((t) => {
-								if (
-									!!this.pkgData.annoData[a] &&
-									!!this.pkgData.annoData[a][t]
-								) {
-									let tempArr = [];
-									this.pkgData.annoData[a][t].region.map(
-										(r) => {
-											for (
-												let i = r.start;
-												i <= r.end;
-												i++
-											) {
-												tempArr.push(i);
-											}
+									//Add highest PPA from each of the CS to "Credible Set" property which will be placed under "PPA" column
+									//Case of no data comparison
+									if (this.dataComparisonConfig == null) {
+										if (
+											!updatedData[variant][
+												"Credible Set"
+											]
+										) {
+											updatedData[variant][
+												"Credible Set"
+											] = PPA;
+										} else if (
+											!!updatedData[variant][
+												"Credible Set"
+											]
+										) {
+											let previousPPA =
+												updatedData[variant][
+													"Credible Set"
+												];
+											updatedData[variant][
+												"Credible Set"
+											] =
+												PPA > previousPPA
+													? PPA
+													: previousPPA;
 										}
-									);
-
-									if (enrichedPosition == null) {
-										enrichedPosition = tempArr;
-										//enrichedPosition2 = tempArr;
 									} else {
-										enrichedPosition =
-											this.filterTissueType == "or"
-												? enrichedPosition.concat(
-														tempArr
-												  )
-												: this.getArraysIntersection(
-														enrichedPosition,
-														tempArr
-												  ); // getting only intersecting positions
-									}
-								}
-							});
-						});
+										// if multiple dataset are compared
+										if (
+											!updatedData[variant][
+												"Credible Set"
+											]
+										) {
+											updatedData[variant][
+												"Credible Set"
+											] = {};
+										}
 
-						//filter rawData
-
-						for (const [vKey, vValue] of Object.entries(rawData)) {
-							//let position = vValue.Position;
-
-							if (!!vValue["Credible Set"]) {
-								updatedData[vKey] = vValue;
-							}
-						}
-
-						console.log(
-							"Object.keys(updatedData).length",
-							Object.keys(updatedData).length
-						);
-						///"OR" filtering
-						for (const [vKey, vValue] of Object.entries(
-							updatedData
-						)) {
-							let annotationContent = {};
-							selectedBy["Tissue"].map((t) => {
-								annotationContent[t] = {};
-								selectedBy["Annotation"].map((a) => {
-									annotationContent[t][a] = null;
-								});
-							});
-
-							selectedBy["Tissue"].map((t) => {
-								let inTissue = 0;
-
-								selectedBy["Annotation"].map((a) => {
-									let inAnnotation = 0;
-									let tissueContent = "";
-									if (!!this.pkgData.tissuesData[t][a]) {
-										this.pkgData.tissuesData[t][
-											a
-										].region.map((r) => {
-											if (
-												vValue.Position >= r.start &&
-												vValue.Position <= r.end
-											) {
-												inAnnotation = 1;
-												annotationContent[t][a] = {
-													start: r.start,
-													end: r.end,
-												};
-											}
-										});
-										if (inAnnotation == 1) {
-											inTissue = 1;
+										if (
+											!updatedData[variant][
+												"Credible Set"
+											][phenotype]
+										) {
+											updatedData[variant][
+												"Credible Set"
+											][phenotype] = PPA;
+										} else if (
+											!!updatedData[variant][
+												"Credible Set"
+											][phenotype]
+										) {
+											let previousPPA =
+												updatedData[variant][
+													"Credible Set"
+												][phenotype];
+											updatedData[variant][
+												"Credible Set"
+											][phenotype] =
+												PPA > previousPPA
+													? PPA
+													: previousPPA;
 										}
 									}
-								});
-								if (inTissue == 0) {
-									if (this.filterTissueType == "and") {
-										delete updatedData[vKey];
-									}
 								}
 							});
-
-							if (!!updatedData[vKey]) {
-								/// feed "Tissue" column content
-								let tissueColmContent = "";
-								let overStart = null;
-								let overEnd = null;
-
-								for (const [
-									tissue,
-									annotations,
-								] of Object.entries(annotationContent)) {
-									let enrichedAnnotations = "";
-									for (const [
-										annoKey,
-										annoValue,
-									] of Object.entries(annotations)) {
-										if (annoValue != null) {
-											enrichedAnnotations +=
-												annoKey +
-												": " +
-												annoValue.start +
-												"-" +
-												annoValue.end +
-												", ";
-											overStart =
-												overStart == null
-													? annoValue.start
-													: overStart <
-													  annoValue.start
-													? annoValue.start
-													: overStart;
-
-											overEnd =
-												overEnd == null
-													? annoValue.end
-													: overEnd > annoValue.end
-													? annoValue.end
-													: overEnd;
-
-											//Feed feature column
-										}
-									}
-
-									if (enrichedAnnotations != "") {
-										updatedData[vKey][tissue] =
-											enrichedAnnotations.slice(0, -2);
-									}
-								}
-
-								updatedData[vKey]["Overlapping Region"] =
-									overStart + "-" + overEnd;
-
-								if (overStart == null && overEnd == null) {
-									delete updatedData[vKey];
-								}
-							}
-						}
-					}
-					/*for (const [vKey, vValue] of Object.entries(
-							updatedData
-						)) {
-							let annotationContent = {};
-							selectedBy["Tissue"].map((t) => {
-								annotationContent[t] = {};
-								selectedBy["Annotation"].map((a) => {
-									annotationContent[t][a] = null;
-								});
-							});
-
-							selectedBy["Tissue"].map((t) => {
-								let inTissue = 0;
-
-								selectedBy["Annotation"].map((a) => {
-									let inAnnotation = 0;
-									let tissueContent = "";
-									if (!!this.pkgData.tissuesData[t][a]) {
-										this.pkgData.tissuesData[t][
-											a
-										].region.map((r) => {
-											if (
-												vValue.Position >= r.start &&
-												vValue.Position <= r.end
-											) {
-												inAnnotation = 1;
-												annotationContent[t][a] = {
-													start: r.start,
-													end: r.end,
-												};
-											}
-										});
-										if (inAnnotation == 1) {
-											inTissue = 1;
-										}
-									}
-								});
-								if (inTissue == 0) {
-									//if (this.filterTissueType == "and") {
-									delete updatedData[vKey];
-									//}
-								}
-							});
-
-							if (!!updatedData[vKey]) {
-								/// feed "Tissue" column content
-								let tissueColmContent = "";
-								let overStart = null;
-								let overEnd = null;
-
-								for (const [
-									tissue,
-									annotations,
-								] of Object.entries(annotationContent)) {
-									
-									for (const [
-										annoKey,
-										annoValue,
-									] of Object.entries(annotations)) {
-										if (annoValue != null) {
-											tissueColmContent += annoKey + ", ";
-											overStart =
-												overStart == null
-													? annoValue.start
-													: overStart <
-													  annoValue.start
-													? annoValue.start
-													: overStart;
-
-											overEnd =
-												overEnd == null
-													? annoValue.end
-													: overEnd > annoValue.end
-													? annoValue.end
-													: overEnd;
-										}
-									}
-									tissueColmContent = tissueColmContent.slice(
-										0,
-										-2
-									);
-									//tissueColmContent += "<br />";
-									updatedData[vKey][tissue] =
-										tissueColmContent;
-								}
-								
-
-								updatedData[vKey]["Overlapping Region"] =
-									overStart + "-" + overEnd;
-							}
-						}*/
-					//}
-				} else {
-					if (!!selectedBy["Tissue"] && !!selectedBy["Annotation"]) {
-						var enrichedPosition = null;
-
-						selectedBy["Annotation"].map((a) => {
-							selectedBy["Tissue"].map((t) => {
-								if (
-									!!this.pkgData.annoData[a] &&
-									!!this.pkgData.annoData[a][t]
-								) {
-									let tempArr = [];
-									this.pkgData.annoData[a][t].region.map(
-										(r) => {
-											for (
-												let i = r.start;
-												i <= r.end;
-												i++
-											) {
-												tempArr.push(i);
-											}
-										}
-									);
-
-									if (enrichedPosition == null) {
-										enrichedPosition = tempArr;
-										//enrichedPosition2 = tempArr;
-									} else {
-										enrichedPosition =
-											this.filterTissueType == "or"
-												? enrichedPosition.concat(
-														tempArr
-												  )
-												: this.getArraysIntersection(
-														enrichedPosition,
-														tempArr
-												  ); // getting only intersecting positions
-									}
-								}
-							});
-						});
-
-						//filter rawData
-
-						enrichedPosition.sort(function (a, b) {
-							return a - b;
-						});
-
-						var enrichedRegion = [];
-
-						for (let i = 0; i < enrichedPosition.length; i++) {
-							if (i == 0 || i == enrichedPosition.length - 1) {
-								enrichedRegion.push(enrichedPosition[i]);
-							} else {
-								let pos1 = enrichedPosition[i - 1] + 1;
-								let pos2 = enrichedPosition[i];
-
-								if (pos2 > pos1) {
-									enrichedRegion.push(
-										enrichedPosition[i - 1]
-									);
-									enrichedRegion.push(enrichedPosition[i]);
-								}
-							}
-						}
-
-						var overlappingRegions = [];
-
-						for (let i = 0; i < enrichedRegion.length - 1; i += 2) {
-							let tempObj = {};
-							tempObj["start"] = enrichedRegion[i];
-							tempObj["end"] = enrichedRegion[i + 1];
-							overlappingRegions.push(tempObj);
-						}
-
-						console.log("enrichedRegion", enrichedRegion);
-						console.log("overlappingRegions", overlappingRegions);
-
-						for (const [vKey, vValue] of Object.entries(rawData)) {
-							let position = vValue.Position;
-							/*if (!!enrichedPosition.includes(position)) {
-								updatedData[vKey] = vValue;
-							}*/
-
-							overlappingRegions.map((r) => {
-								if (position >= r.start && position <= r.end) {
-									updatedData[vKey] = vValue;
-									updatedData[vKey]["overStart"] = r.start;
-									updatedData[vKey]["overEnd"] = r.end;
-								}
-							});
-						}
-
-						console.log("updatedData", updatedData);
-
-						for (const [vKey, vValue] of Object.entries(
-							updatedData
-						)) {
-							let annotationContent = {};
-							selectedBy["Tissue"].map((t) => {
-								annotationContent[t] = {};
-								selectedBy["Annotation"].map((a) => {
-									annotationContent[t][a] = null;
-								});
-							});
-
-							selectedBy["Tissue"].map((t) => {
-								let inTissue = 0;
-
-								selectedBy["Annotation"].map((a) => {
-									let inAnnotation = 0;
-									let tissueContent = "";
-									if (!!this.pkgData.tissuesData[t][a]) {
-										this.pkgData.tissuesData[t][
-											a
-										].region.map((r) => {
-											if (
-												vValue.Position >= r.start &&
-												vValue.Position <= r.end
-											) {
-												inAnnotation = 1;
-												annotationContent[t][a] = {
-													start: r.start,
-													end: r.end,
-												};
-											}
-										});
-										if (inAnnotation == 1) {
-											inTissue = 1;
-										}
-									}
-								});
-								if (inTissue == 0) {
-									if (this.filterTissueType == "and") {
-										delete updatedData[vKey];
-									}
-								}
-							});
-
-							if (!!updatedData[vKey]) {
-								/// feed "Tissue" column content
-								let tissueColmContent = "";
-								//let overStart = null;
-								//let overEnd = null;
-
-								for (const [
-									tissue,
-									annotations,
-								] of Object.entries(annotationContent)) {
-									let enrichedAnnotations = "";
-									for (const [
-										annoKey,
-										annoValue,
-									] of Object.entries(annotations)) {
-										if (annoValue != null) {
-											enrichedAnnotations +=
-												annoKey +
-												": " +
-												annoValue.start +
-												"-" +
-												annoValue.end +
-												", ";
-											/*overStart =
-												overStart == null
-													? annoValue.start
-													: overStart <
-													  annoValue.start
-													? annoValue.start
-													: overStart;
-
-											overEnd =
-												overEnd == null
-													? annoValue.end
-													: overEnd > annoValue.end
-													? annoValue.end
-													: overEnd;
-*/
-											//Feed feature column
-										}
-									}
-
-									if (enrichedAnnotations != "") {
-										updatedData[vKey][tissue] =
-											enrichedAnnotations.slice(0, -2);
-									}
-								}
-
-								updatedData[vKey]["Overlapping Region"] =
-									updatedData[vKey].overStart +
-									"-" +
-									updatedData[vKey].overEnd;
-							}
 						}
 					}
-				}
-
-				var sortedData = [];
-
-				for (const [vKey, vValue] of Object.entries(updatedData)) {
-					sortedData.push(vValue);
-				}
-
-				if (this.sortByCredibleSet == true) {
-					//usually data sorting happens with applySorting function.
-					//but for credible sets case it happens here to avoide destroying original data
-
-					sortedData.map((s) => {
-						let CSValue = null;
-
-						for (const [cKey, cValue] of Object.entries(
-							s["Credible Set"]
-						)) {
-							if (CSValue == null) {
-								CSValue = cValue;
-							}
-
-							if (CSValue == "N/A") {
-								CSValue = 0;
-							} else {
-								CSValue = cValue > CSValue ? cValue : CSValue;
-							}
-						}
-
-						s["CSValue"] = CSValue;
-					});
-
-					sortedData = sortedData.sort((a, b) =>
-						a.CSValue < b.CSValue ? 1 : -1
-					);
-				} else {
-					sortedData.sort((a, b) =>
-						a.indexNum > b.indexNum ? 1 : -1
-					);
-				}
-
-				updatedData = {};
-
-				sortedData.map((s) => {
-					updatedData[s["Variant ID"]] = s;
 				});
+
+				updatedData = Object.entries(updatedData)
+					.sort()
+					.reduce((o, [k, v]) => ((o[k] = v), o), {}); // reduce
+
+				/// feed null to value for phenotype in Credible sets column. It runs only data comparion is configured
+				if (!!this.dataComparisonConfig) {
+					for (const [vKey, vValue] of Object.entries(updatedData)) {
+						let compareField =
+							this.dataComparisonConfig["fields to compare"][1];
+						let activePhenotypes = Object.keys(
+							vValue[compareField]
+						);
+						let tempObj = {};
+						activePhenotypes.map((p) => {
+							///custom table
+							/// custom data other than KP data is loaded
+							let phenotype =
+								!!newTableFormat["custom table"][
+									"phenotype match"
+								] &&
+								!!newTableFormat["custom table"][
+									"phenotype match"
+								][p]
+									? newTableFormat["custom table"][
+											"phenotype match"
+									  ][p]
+									: p;
+							///
+
+							if (!!vValue["Credible Set"][phenotype]) {
+								tempObj[p] = vValue["Credible Set"][phenotype];
+							} else {
+								tempObj[p] = "N/A";
+							}
+						});
+						vValue["Credible Set"] = tempObj;
+					}
+				}
 			} else {
 				updatedData = rawData;
 			}
 
+			///Filter data if tissues and annotations selected
+
+			if (
+				!!selectedBy["Tissue"] &&
+				selectedBy["Tissue"].length > 0 &&
+				!!selectedBy["Annotation"] &&
+				selectedBy["Annotation"].length > 0
+			) {
+				//first get all enriched positions
+				var enrichedPosition = null;
+
+				selectedBy["Annotation"].map((a) => {
+					selectedBy["Tissue"].map((t) => {
+						if (
+							!!this.pkgData.annoData[a] &&
+							!!this.pkgData.annoData[a][t]
+						) {
+							let tempArr = [];
+							this.pkgData.annoData[a][t].region.map((r) => {
+								for (let i = r.start; i <= r.end; i++) {
+									tempArr.push(i);
+								}
+							});
+
+							if (enrichedPosition == null) {
+								enrichedPosition = tempArr;
+							} else {
+								enrichedPosition =
+									this.filterTissueType == "or"
+										? enrichedPosition.concat(tempArr)
+										: this.getArraysIntersection(
+												enrichedPosition,
+												tempArr
+										  ); // getting only intersecting positions
+							}
+						}
+					});
+				});
+
+				//sort enriched position so I can remove position between start and end positions
+				enrichedPosition.sort(function (a, b) {
+					return a - b;
+				});
+
+				//leave only start and end of overlapping regions
+				var enrichedRegion = [];
+
+				for (let i = 0; i < enrichedPosition.length; i++) {
+					if (i == 0 || i == enrichedPosition.length - 1) {
+						enrichedRegion.push(enrichedPosition[i]);
+					} else {
+						let pos1 = enrichedPosition[i - 1] + 1;
+						let pos2 = enrichedPosition[i];
+
+						if (pos2 > pos1) {
+							enrichedRegion.push(enrichedPosition[i - 1]);
+							enrichedRegion.push(enrichedPosition[i]);
+						}
+					}
+				}
+
+				///build object of overlapping regions
+				var overlappingRegions = [];
+
+				for (let i = 0; i < enrichedRegion.length - 1; i += 2) {
+					let tempObj = {};
+					tempObj["start"] = enrichedRegion[i];
+					tempObj["end"] = enrichedRegion[i + 1];
+					overlappingRegions.push(tempObj);
+				}
+
+				//filter out unovelapping variants and add overlapping region info to each variants
+				var overlappingVariants = {};
+				for (const [vKey, vValue] of Object.entries(updatedData)) {
+					let position = vValue.Position;
+
+					overlappingRegions.map((r) => {
+						if (position >= r.start && position <= r.end) {
+							overlappingVariants[vKey] = vValue;
+							overlappingVariants[vKey]["overStart"] = r.start;
+							overlappingVariants[vKey]["overEnd"] = r.end;
+						}
+					});
+				}
+
+				updatedData = overlappingVariants;
+
+				//Add tissue content
+				for (const [vKey, vValue] of Object.entries(updatedData)) {
+					let annotationContent = {};
+					selectedBy["Tissue"].map((t) => {
+						annotationContent[t] = {};
+						selectedBy["Annotation"].map((a) => {
+							annotationContent[t][a] = null;
+						});
+					});
+
+					selectedBy["Tissue"].map((t) => {
+						let inTissue = 0;
+
+						selectedBy["Annotation"].map((a) => {
+							let inAnnotation = 0;
+							let tissueContent = "";
+							if (!!this.pkgData.tissuesData[t][a]) {
+								this.pkgData.tissuesData[t][a].region.map(
+									(r) => {
+										if (
+											vValue.Position >= r.start &&
+											vValue.Position <= r.end
+										) {
+											inAnnotation = 1;
+											annotationContent[t][a] = {
+												start: r.start,
+												end: r.end,
+											};
+										}
+									}
+								);
+								if (inAnnotation == 1) {
+									inTissue = 1;
+								}
+							}
+						});
+						if (inTissue == 0) {
+							if (this.filterTissueType == "and") {
+								delete updatedData[vKey];
+							}
+						}
+					});
+
+					if (!!updatedData[vKey]) {
+						/// feed "Tissue" column content
+						let tissueColmContent = "";
+
+						for (const [tissue, annotations] of Object.entries(
+							annotationContent
+						)) {
+							let enrichedAnnotations = "";
+							for (const [annoKey, annoValue] of Object.entries(
+								annotations
+							)) {
+								if (annoValue != null) {
+									enrichedAnnotations +=
+										annoKey +
+										": " +
+										annoValue.start +
+										"-" +
+										annoValue.end +
+										", ";
+								}
+							}
+
+							if (enrichedAnnotations != "") {
+								updatedData[vKey][tissue] =
+									enrichedAnnotations.slice(0, -2);
+							}
+						}
+
+						updatedData[vKey]["Overlapping Region"] =
+							updatedData[vKey].overStart +
+							"-" +
+							updatedData[vKey].overEnd;
+					}
+				}
+			}
+
+			//usually data sorting happens with applySorting() function.
+			//but for credible sets case it happens here to avoide destroying original data
+			//if data is not sorted by PPA, sort is by original index
+
+			var sortedData = [];
+
+			for (const [vKey, vValue] of Object.entries(updatedData)) {
+				sortedData.push(vValue);
+			}
+
+			if (
+				this.sortByCredibleSet == true &&
+				!!selectedBy["Credible Set"] &&
+				selectedBy["Credible Set"].length > 0
+			) {
+				sortedData.map((s) => {
+					let CSValue = null;
+
+					for (const [cKey, cValue] of Object.entries(
+						s["Credible Set"]
+					)) {
+						if (CSValue == null) {
+							CSValue = cValue;
+						}
+
+						if (CSValue == "N/A") {
+							CSValue = 0;
+						} else {
+							CSValue = cValue > CSValue ? cValue : CSValue;
+						}
+					}
+
+					s["CSValue"] = CSValue;
+				});
+
+				sortedData = sortedData.sort((a, b) =>
+					a.CSValue < b.CSValue ? 1 : -1
+				);
+			} else {
+				sortedData.sort((a, b) => (a.indexNum > b.indexNum ? 1 : -1));
+			}
+
+			updatedData = {};
+
+			sortedData.map((s) => {
+				updatedData[s["Variant ID"]] = s;
+			});
+
+			// replace global tableFormat with newTableFormat
 			this.newTableFormat = newTableFormat;
 
+			//convert data back to array if data is not compared
 			if (this.dataComparisonConfig == null) {
 				let uDataNoCompare = [];
 				for (const [dKey, dValue] of Object.entries(updatedData)) {
@@ -1276,7 +994,7 @@ export default Vue.component("research-gem-data-table", {
 			return objectedArray;
 		},
 		applySorting(key) {
-			console.log(key);
+			//console.log(key);
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
 			this.sortByCredibleSet = false;

@@ -1286,8 +1286,8 @@ export default Vue.component("research-annotations-plot", {
 			this.GEPosData = {};
 			let sortedGEData = {};
 
-			console.log("this.GEData", this.GEData);
-			console.log("this.annoData", this.annoData);
+			//console.log("this.GEData", this.GEData);
+			//console.log("this.annoData", this.annoData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
