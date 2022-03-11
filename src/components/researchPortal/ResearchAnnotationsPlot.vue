@@ -4,7 +4,173 @@
 			class="col-md-12 annotations-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
+			<div id="annotationsUIWrapper">
+				<div
+					class="filtering-ui-wrapper add-content"
+					style="width: calc(100% - 30px); margin-left: 15px"
+				>
+					<div class="filtering-ui-content">
+						<div class="col">
+							<div
+								class="label"
+								style="
+									display: inline-block;
+									margin-right: 10px;
+								"
+							>
+								Select Annotation
+							</div>
+							<select
+								class="custom-select"
+								@change="addAnnoTrack($event)"
+							>
+								<option value="">
+									{{ "Select annotation" }}
+								</option>
+								<option
+									v-for="(annoValue, annoKey) in annoData"
+									:key="annoKey"
+									:value="annoKey"
+									v-html="annoKey"
+								></option>
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
 			<div class="col-md-9 anno-plot-wrapper">
+				<!-- selected annotations table -->
+				<div v-if="selectedAnnos.length > 0">
+					<div class="annotations-table-wrapper">
+						<span
+							>Table is sort by fold (SNPs/expectedSNPs) across
+							annotations.</span
+						>
+						<table
+							class="table table-sm ge-data-table"
+							cellpadding="0"
+							cellspacing="0"
+						>
+							<thead>
+								<tr>
+									<th
+										v-for="(pValue, pKey, pIndex) in GEData"
+										:key="pKey"
+										v-html="
+											pKey +
+											'(Tissue/Annotation(P-Value/Fold))'
+										"
+									></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td
+										v-for="(pValue, pKey, pIndex) in GEData"
+										:key="pKey"
+										class="phenotype-tissue-td"
+										style="
+											padding: 0;
+											border: none !important;
+										"
+									>
+										<table
+											class="table table-sm ge-data-table"
+											cellpadding="0"
+											cellspacing="0"
+										>
+											<thead>
+												<tr>
+													<th></th>
+													<th>Tissues</th>
+													<th
+														v-for="annotation in selectedAnnos"
+														:key="annotation"
+														v-html="annotation"
+													></th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr
+													v-for="(
+														tissueValue, tissueKey
+													) in getSortByAnno(
+														pkgData.GEByTissueData[
+															pKey
+														]
+													)"
+													:key="tissueKey"
+													:v-if="tissueValue"
+												>
+													<td>
+														<input
+															type="checkbox"
+															:value="tissueKey"
+															@click="
+																addRemoveTissueTrack(
+																	$event
+																)
+															"
+														/>
+													</td>
+													<td v-html="tissueKey"></td>
+													<td
+														v-for="annotation in selectedAnnos"
+														:key="annotation"
+														v-html="
+															!!tissueValue[
+																annotation
+															]
+																? tissueValue[
+																		annotation
+																  ].pValue +
+																  ' / ' +
+																  tissueValue[
+																		annotation
+																  ].fold
+																: ''
+														"
+													></td>
+												</tr>
+											</tbody>
+										</table>
+									</td>
+								</tr>
+								<!--
+							<tr
+								v-for="annotation in selectedAnnos"
+								:key="annotation"
+							>
+								<td v-html="annotation"></td>
+								<td
+									v-for="(pValue, pKey, pIndex) in GEData"
+									:key="pKey"
+									v-html="getAnnoContent(pKey, annotation)"
+								></td>
+							</tr>
+							-->
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div id="annotationsPlotWrapper">
+					<div id="tissueInfoBox" class="hidden"></div>
+					<canvas
+						id="annotationsPlot"
+						@resize="onResize"
+						@mousemove="checkPosition($event)"
+						@mouseout="onMouseOut('tissueInfoBox')"
+						@click="removeAnnoTrack($event)"
+						width=""
+						height=""
+					></canvas>
+					<div
+						id="annoInitialMessage"
+						:class="selectedAnnos.length > 0 ? 'hidden' : ''"
+						v-html="'Please select annotation to render.'"
+					></div>
+				</div>
+
 				<div id="tissuesPlotWrapper">
 					<div id="selectedTissueInfoBox" class="hidden"></div>
 					<canvas
@@ -25,23 +191,6 @@
 					></div>
 				</div>
 
-				<div id="annotationsPlotWrapper">
-					<div id="tissueInfoBox" class="hidden"></div>
-					<canvas
-						id="annotationsPlot"
-						@resize="onResize"
-						@mousemove="checkPosition($event)"
-						@mouseout="onMouseOut('tissueInfoBox')"
-						@click="removeAnnoTrack($event)"
-						width=""
-						height=""
-					></canvas>
-					<div
-						id="annoInitialMessage"
-						:class="selectedAnnos.length > 0 ? 'hidden' : ''"
-						v-html="'Please select annotation to render.'"
-					></div>
-				</div>
 				<div
 					v-if="
 						selectedTissues.length > 0 && selectedAnnos.length > 0
@@ -77,95 +226,9 @@
 						</tbody>
 					</table>
 				</div>
-				<!-- selected annotations table -->
-				<div v-if="selectedAnnos.length > 0">
-					<span>Table is sort by fold across annotations.</span>
-					<table
-						class="table table-sm ge-data-table"
-						cellpadding="0"
-						cellspacing="0"
-					>
-						<thead>
-							<tr>
-								<th
-									v-for="(pValue, pKey, pIndex) in GEData"
-									:key="pKey"
-									v-html="pKey"
-								></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td
-									v-for="(pValue, pKey, pIndex) in GEData"
-									:key="pKey"
-								>
-									<table class="table table-sm ge-data-table">
-										<thead>
-											<tr>
-												<th>Tissues</th>
-												<th
-													v-for="annotation in selectedAnnos"
-													:key="annotation"
-													v-html="
-														annotation +
-														'(P-Value/Fold)'
-													"
-												></th>
-											</tr>
-										</thead>
-										<tbody>
-											<tr
-												v-for="(
-													tissueValue, tissueKey
-												) in getSortByAnno(
-													pkgData.GEByTissueData[pKey]
-												)"
-												:key="tissueKey"
-												:v-if="tissueValue"
-											>
-												<td v-html="tissueKey"></td>
-												<td
-													v-for="annotation in selectedAnnos"
-													:key="annotation"
-													v-html="
-														!!tissueValue[
-															annotation
-														]
-															? tissueValue[
-																	annotation
-															  ].pValue +
-															  ' / ' +
-															  tissueValue[
-																	annotation
-															  ].fold
-															: ''
-													"
-												></td>
-											</tr>
-										</tbody>
-									</table>
-								</td>
-							</tr>
-							<!--
-							<tr
-								v-for="annotation in selectedAnnos"
-								:key="annotation"
-							>
-								<td v-html="annotation"></td>
-								<td
-									v-for="(pValue, pKey, pIndex) in GEData"
-									:key="pKey"
-									v-html="getAnnoContent(pKey, annotation)"
-								></td>
-							</tr>
-							-->
-						</tbody>
-					</table>
-				</div>
 			</div>
 			<div class="col-md-3 anno-plot-ui-wrapper">
-				<h6>Add Tissue Track</h6>
+				<!--<h6>Add Tissue Track</h6>
 				<div id="annotationsUIWrapper">
 					<div class="filtering-ui-wrapper add-content">
 						<div class="filtering-ui-content">
@@ -229,7 +292,7 @@
 							</div>
 						</div>
 					</div>
-				</div>
+				</div>-->
 
 				<h6>Global Enrichment</h6>
 				<div>
@@ -523,17 +586,49 @@ export default Vue.component("research-annotations-plot", {
 		},*/
 		addAnnoTrack(event) {
 			if (event.target.value != "") {
-				this.selectedAnnos.push(event.target.value);
+				console.log(this.selectedAnnos.indexOf(event.target.value));
+				if (this.selectedAnnos.indexOf(event.target.value) < 0) {
+					this.selectedAnnos.push(event.target.value);
+
+					if (this.pkgData != null) {
+						this.pkgData["selectedAnnos"] = this.selectedAnnos;
+						this.$store.dispatch("pkgDataSelected", {
+							type: "Annotation",
+							id: event.target.value,
+							action: "add",
+						});
+					}
+				}
+			}
+		},
+		addRemoveTissueTrack(event) {
+			console.log("event.target.value", event.target.value);
+			console.log("event.target.checked", event.target.checked);
+			var tissue = event.target.value;
+			if (event.target.checked == true) {
+				this.selectedTissues.push(tissue);
 
 				if (this.pkgData != null) {
-					this.pkgData["selectedAnnos"] = this.selectedAnnos;
+					this.pkgData["selectedTissues"] = this.selectedTissues;
+
 					this.$store.dispatch("pkgDataSelected", {
-						type: "Annotation",
-						id: event.target.value,
+						type: "Tissue",
+						id: tissue,
 						action: "add",
 					});
 				}
-				//this.renderByAnnotations();
+			} else {
+				const tIndex = this.selectedTissues.indexOf(tissue);
+				if (tIndex > -1) {
+					this.selectedTissues.splice(tIndex, 1);
+					if (this.pkgData != null) {
+						this.$store.dispatch("pkgDataSelected", {
+							type: "Tissue",
+							id: tissue,
+							action: "remove",
+						});
+					}
+				}
 			}
 		},
 		addTissueTrack(event) {
@@ -1558,7 +1653,7 @@ export default Vue.component("research-annotations-plot", {
 			CTX.textAlign = "center";
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
-				"Fold",
+				"Fold(SNPs/expectedSNPs)",
 				-(this.plotMargin.topMargin + HEIGHT / 2) - YPOS,
 				BUMP + 12
 			);
@@ -1854,6 +1949,18 @@ $(function () {});
 </script>
 
 <style>
+.phenotype-tissue-td {
+	vertical-align: top !important;
+}
+
+.annotations-table-wrapper {
+	height: 300px;
+	overflow: auto;
+	padding: 15px;
+	background-color: #eee;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+}
 .annotations-plots-wrapper {
 	padding: 0 !important;
 }
@@ -1918,13 +2025,19 @@ table.ge-data-table {
 	border-right: solid 1px #ddd;
 	border-collapse: inherit;
 	text-align: center;
+	background-color: #fff;
+}
+
+.ge-data-table table {
+	border: none;
 }
 
 .ge-data-table th {
-	background-color: #eeeeee;
+	background-color: #cccccc;
+	color: #333333;
 	border: none !important;
 	border-left: solid 1px #ddd !important;
-	border-bottom: solid 2px #ccc !important;
+	border-bottom: solid 1px #ddd !important;
 	font-size: 13px;
 }
 
