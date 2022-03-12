@@ -99,12 +99,17 @@
 															pKey
 														]
 													)"
-													:key="tissueKey"
-													:v-if="tissueValue"
+													:key="tissueKey + pKey"
 												>
 													<td>
 														<input
 															type="checkbox"
+															:class="
+																tissueKey.replace(
+																	/ /g,
+																	'_'
+																)
+															"
 															:value="tissueKey"
 															@click="
 																addRemoveTissueTrack(
@@ -190,13 +195,13 @@
 						"
 					></div>
 				</div>
-
+				<!--
 				<div
 					v-if="
 						selectedTissues.length > 0 && selectedAnnos.length > 0
 					"
 				>
-					<!-- selected tissues table -->
+					
 					<table
 						class="table table-sm ge-data-table"
 						cellpadding="0"
@@ -226,6 +231,7 @@
 						</tbody>
 					</table>
 				</div>
+				-->
 			</div>
 			<div class="col-md-3 anno-plot-ui-wrapper">
 				<!--<h6>Add Tissue Track</h6>
@@ -448,7 +454,7 @@ export default Vue.component("research-annotations-plot", {
 			handler: function (n, o) {
 				//if (n.length > 0) {
 				this.renderByAnnotations();
-				this.renderTissuesTracks();
+				//this.renderTissuesTracks();
 				//}
 			},
 			deep: true,
@@ -458,7 +464,7 @@ export default Vue.component("research-annotations-plot", {
 			handler: function (n, o) {
 				//if (n.length > 0) {
 				this.renderByAnnotations();
-				this.renderTissuesTracks();
+				//this.renderTissuesTracks();
 				//}
 			},
 			deep: true,
@@ -474,7 +480,7 @@ export default Vue.component("research-annotations-plot", {
 			uiUtils.showElement("annotationsPlotWrapper");
 			this.renderByAnnotations();
 			this.renderGE();
-			this.renderTissuesTracks();
+			//this.renderTissuesTracks();
 		},
 		showHideAnnoPlots() {
 			uiUtils.showHideElement("annotationsPlotWrapper");
@@ -602,10 +608,16 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		addRemoveTissueTrack(event) {
-			console.log("event.target.value", event.target.value);
-			console.log("event.target.checked", event.target.checked);
 			var tissue = event.target.value;
+			var tClass = tissue.replace(/ /g, "_");
+
+			const chkBoxes = document.querySelectorAll("input." + tClass);
+			console.log(chkBoxes);
 			if (event.target.checked == true) {
+				chkBoxes.forEach(function (c) {
+					c.checked = true;
+				});
+
 				this.selectedTissues.push(tissue);
 
 				if (this.pkgData != null) {
@@ -618,6 +630,9 @@ export default Vue.component("research-annotations-plot", {
 					});
 				}
 			} else {
+				chkBoxes.forEach(function (c) {
+					c.checked = false;
+				});
 				const tIndex = this.selectedTissues.indexOf(tissue);
 				if (tIndex > -1) {
 					this.selectedTissues.splice(tIndex, 1);
@@ -1708,6 +1723,7 @@ export default Vue.component("research-annotations-plot", {
 			);
 		},
 		renderByAnnotations() {
+			console.log("selectedTissues in render by", this.selectedTissues);
 			var tempHeight = 0;
 			let annotationTitleH = this.spaceBy * 2;
 			let btwnAnnotations = this.spaceBy * 7;
@@ -1868,8 +1884,16 @@ export default Vue.component("research-annotations-plot", {
 											: xPosEnd;
 
 									let xPosWidth = xPosEnd - xPosStart;
-									ctx.fillStyle =
-										this.getColorIndex(annotation);
+									if (
+										this.selectedTissues.indexOf(tissue) >
+										-1
+									) {
+										ctx.fillStyle = "#000000";
+									} else {
+										ctx.fillStyle =
+											this.getColorIndex(annotation);
+									}
+
 									ctx.fillRect(
 										xPosStart,
 										renderHeight,
@@ -1954,12 +1978,13 @@ $(function () {});
 }
 
 .annotations-table-wrapper {
-	height: 300px;
+	max-height: 300px;
 	overflow: auto;
 	padding: 15px;
 	background-color: #eee;
 	border: solid 1px #ddd;
 	border-radius: 5px;
+	margin-bottom: 15px;
 }
 .annotations-plots-wrapper {
 	padding: 0 !important;
