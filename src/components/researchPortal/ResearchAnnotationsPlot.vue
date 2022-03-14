@@ -187,13 +187,13 @@
 						width="0"
 						height="0"
 					></canvas>
-					<div
+					<!--<div
 						id="tissueInitialMessage"
 						:class="selectedTissues.length > 0 ? 'hidden' : ''"
 						v-html="
 							'Please select tissue to render. At leaset 1 selected annotation required.'
 						"
-					></div>
+					></div>-->
 				</div>
 				<!--
 				<div
@@ -338,6 +338,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 import keyParams from "@/utils/keyParams";
@@ -452,6 +453,7 @@ export default Vue.component("research-annotations-plot", {
 	watch: {
 		pkgDataSelected: {
 			handler: function (n, o) {
+				console.log("updated", this.pkgDataSelected);
 				//if (n.length > 0) {
 				this.renderByAnnotations();
 				//this.renderTissuesTracks();

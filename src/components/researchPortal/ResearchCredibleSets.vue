@@ -579,81 +579,58 @@ export default Vue.component("research-credible-sets-plot", {
 									v.position >= regionStart &&
 									v.position <= regionEnd
 								) {
-									let ifInRegion = this.checkIfInRegion(
+									/*let ifInRegion = this.checkIfInRegion(
 										v.position
 									);
-									if (ifInRegion == true) {
-										let xPos =
-											(v[
-												this.renderConfig[
-													"x axis field"
-												]
-											] -
-												regionStart) *
-												xPerPixel +
-											this.plotMargin.leftMargin;
-										let yPos =
-											renderHeight +
-											plotHeight -
-											v[
-												[
-													this.renderConfig[
-														"y axis field"
-													],
-												]
-											] *
-												yPerPixel;
-										let colorID =
-											v.credibleSetId +
-											", " +
-											v.phenotype;
-										let dotColor =
-											this.getColorIndex(colorID);
+									if (ifInRegion == true) {*/
+									let xPos =
+										(v[this.renderConfig["x axis field"]] -
+											regionStart) *
+											xPerPixel +
+										this.plotMargin.leftMargin;
+									let yPos =
+										renderHeight +
+										plotHeight -
+										v[[this.renderConfig["y axis field"]]] *
+											yPerPixel;
+									let colorID =
+										v.credibleSetId + ", " + v.phenotype;
+									let dotColor = this.getColorIndex(colorID);
 
-										this.renderDot(
-											ctx,
-											xPos,
-											yPos,
-											dotColor
-										);
+									this.renderDot(ctx, xPos, yPos, dotColor);
 
-										if (!this.CSPosData[Math.round(yPos)]) {
-											this.CSPosData[Math.round(yPos)] =
-												{};
-										}
-										if (
-											!this.CSPosData[Math.round(yPos)][
-												Math.round(xPos)
-											]
-										) {
-											this.CSPosData[Math.round(yPos)][
-												Math.round(xPos)
-											] = {};
-										}
-
-										let tempObj = {};
-
-										tempObj["phenotype"] = phenotype;
-										tempObj["position"] =
-											v[
-												this.renderConfig[
-													"x axis field"
-												]
-											];
-
-										this.renderConfig["hover content"].map(
-											(c) => {
-												tempObj[c] = v[c];
-											}
-										);
-
+									if (!this.CSPosData[Math.round(yPos)]) {
+										this.CSPosData[Math.round(yPos)] = {};
+									}
+									if (
+										!this.CSPosData[Math.round(yPos)][
+											Math.round(xPos)
+										]
+									) {
 										this.CSPosData[Math.round(yPos)][
 											Math.round(xPos)
-										][v[this.renderConfig["render by"]]] =
-											tempObj;
-
-										inRegion++;
+										] = {};
 									}
+
+									let tempObj = {};
+
+									tempObj["phenotype"] = phenotype;
+									tempObj["position"] =
+										v[this.renderConfig["x axis field"]];
+
+									this.renderConfig["hover content"].map(
+										(c) => {
+											tempObj[c] = v[c];
+										}
+									);
+
+									this.CSPosData[Math.round(yPos)][
+										Math.round(xPos)
+									][v[this.renderConfig["render by"]]] =
+										tempObj;
+
+									inRegion++;
+									//}
 								}
 							});
 
