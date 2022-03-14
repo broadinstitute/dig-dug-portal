@@ -15,7 +15,7 @@
 					"
 				>
 					<div class="filtering-ui-content">
-						<div class="col">
+						<div class="col" style="padding: 2px">
 							<div
 								class="label"
 								style="
@@ -44,7 +44,7 @@
 					<div
 						class=""
 						v-if="selectedAnnos.length > 0"
-						style="position: absolute; right: 10px; top: 10px"
+						style="position: absolute; right: 10px; top: 8px"
 					>
 						<b-badge
 							pill
@@ -61,11 +61,32 @@
 			<div class="col-md-9 anno-plot-wrapper">
 				<!-- selected annotations table -->
 				<div v-if="selectedAnnos.length > 0">
+					<div style="padding: 5px">
+						<strong>Select Tissues</strong>
+						<div
+							class=""
+							v-if="selectedTissues.length > 0"
+							style="position: absolute; right: 10px; top: 5px"
+						>
+							<b-badge
+								pill
+								v-for="a in selectedTissues"
+								:key="a"
+								:class="'btn search-bubble '"
+								:style="'background-color:#666666'"
+								v-html="
+									a + '&nbsp;<span class=\'remove\'>X</span>'
+								"
+								@click="addRemoveTissueTrack(null, a)"
+							></b-badge>
+						</div>
+					</div>
 					<div class="annotations-table-wrapper">
 						<span
 							>Table is sort by fold (SNPs/expectedSNPs) across
 							annotations.</span
 						>
+
 						<table
 							class="table table-sm ge-data-table"
 							cellpadding="0"
@@ -107,6 +128,12 @@
 														v-for="annotation in selectedAnnos"
 														:key="annotation"
 														v-html="annotation"
+														:style="
+															'background-color:' +
+															getColorIndex(
+																annotation
+															)
+														"
 													></th>
 												</tr>
 											</thead>
@@ -133,7 +160,8 @@
 															:value="tissueKey"
 															@click="
 																addRemoveTissueTrack(
-																	$event
+																	$event,
+																	null
 																)
 															"
 														/>
@@ -191,7 +219,7 @@
 					<div
 						id="annoInitialMessage"
 						:class="selectedAnnos.length > 0 ? 'hidden' : ''"
-						v-html="'Please select annotation to render.'"
+						v-html="'Please select annotation.'"
 					></div>
 				</div>
 
@@ -735,29 +763,46 @@ export default Vue.component("research-annotations-plot", {
 				}
 			}
 		},
-		addRemoveTissueTrack(event) {
-			var tissue = event.target.value;
+		addRemoveTissueTrack(event, TISSUE) {
+			var tissue = TISSUE != null ? TISSUE : event.target.value;
 			var tClass = tissue.replace(/ /g, "_");
 
 			const chkBoxes = document.querySelectorAll("input." + tClass);
-			console.log(chkBoxes);
-			if (event.target.checked == true) {
-				chkBoxes.forEach(function (c) {
-					c.checked = true;
-				});
 
-				this.selectedTissues.push(tissue);
-
-				if (this.pkgData != null) {
-					this.pkgData["selectedTissues"] = this.selectedTissues;
-
-					this.$store.dispatch("pkgDataSelected", {
-						type: "Tissue",
-						id: tissue,
-						action: "add",
+			if (event != null) {
+				if (event.target.checked == true) {
+					chkBoxes.forEach(function (c) {
+						c.checked = true;
 					});
+
+					this.selectedTissues.push(tissue);
+
+					if (this.pkgData != null) {
+						this.pkgData["selectedTissues"] = this.selectedTissues;
+
+						this.$store.dispatch("pkgDataSelected", {
+							type: "Tissue",
+							id: tissue,
+							action: "add",
+						});
+					}
+				} else {
+					chkBoxes.forEach(function (c) {
+						c.checked = false;
+					});
+					const tIndex = this.selectedTissues.indexOf(tissue);
+					if (tIndex > -1) {
+						this.selectedTissues.splice(tIndex, 1);
+						if (this.pkgData != null) {
+							this.$store.dispatch("pkgDataSelected", {
+								type: "Tissue",
+								id: tissue,
+								action: "remove",
+							});
+						}
+					}
 				}
-			} else {
+			} else if (event == null) {
 				chkBoxes.forEach(function (c) {
 					c.checked = false;
 				});
@@ -1914,7 +1959,7 @@ export default Vue.component("research-annotations-plot", {
 					if (this.selectedAnnos.includes(annotation)) {
 						ctx.font = "14px Arial";
 						ctx.textAlign = "left";
-						ctx.fillStyle = "#000000";
+						ctx.fillStyle = "#00000050";
 						ctx.fillText(annotation, bump, renderHeight);
 
 						/// Render delete track icon
@@ -1992,7 +2037,7 @@ export default Vue.component("research-annotations-plot", {
 							}
 
 							if (tissueIndex % 2 == 0) {
-								ctx.fillStyle = "#eeeeee";
+								ctx.fillStyle = "#00000010";
 								ctx.fillRect(
 									this.plotMargin.leftMargin,
 									renderHeight,

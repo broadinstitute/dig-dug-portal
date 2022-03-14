@@ -3,6 +3,80 @@
 		class="mbm-plot-content row"
 		v-if="searchingRegion != null && searchingPhenotype != null"
 	>
+		<div id="CSUIWrapper">
+			<div
+				class="filtering-ui-wrapper add-content"
+				style="
+					width: calc(100% - 30px);
+					margin-left: 15px;
+					padding: 0 10px;
+					text-align: left;
+				"
+			>
+				<div class="filtering-ui-content">
+					<div class="col" style="padding: 2px">
+						<div
+							class="label"
+							style="display: inline-block; margin-right: 8px"
+						>
+							Select Credible Sets
+						</div>
+						<select class="custom-select" @change="getCS($event)">
+							<option value="">
+								{{ "Select credible set" }}
+							</option>
+							<option
+								v-for="credibleSet in credibleSets"
+								:key="
+									credibleSet.credibleSetId +
+									',' +
+									credibleSet.phenotype
+								"
+								v-html="
+									credibleSet.credibleSetId +
+									'(' +
+									credibleSet.phenotype +
+									', ' +
+									credibleSet.dataset +
+									')'
+								"
+								:value="
+									credibleSet.credibleSetId +
+									',' +
+									credibleSet.phenotype
+								"
+							></option>
+						</select>
+					</div>
+				</div>
+				<div
+					class=""
+					style="position: absolute; right: 10px; top: 10px"
+				>
+					<template v-for="c in credibleSets">
+						<span
+							:id="getBubbleId(c.credibleSetId, c.phenotype)"
+							class="CS-bubble hidden"
+							v-html="
+								c.credibleSetId +
+								', ' +
+								c.phenotype +
+								' &#10006;'
+							"
+							:style="
+								'background-color:' +
+								getColorIndex(
+									c.credibleSetId + ', ' + c.phenotype
+								) +
+								';'
+							"
+							:key="c.credibleSetId + ', ' + c.phenotype"
+							@click="removeCSData(c.credibleSetId, c.phenotype)"
+						></span>
+					</template>
+				</div>
+			</div>
+		</div>
 		<div class="col-md-12 CS-plot-wrapper">
 			<div class="col-md-9" id="CSPlotWrapper">
 				<div id="CSInfoBox" class="hidden">
@@ -38,7 +112,7 @@
 					"
 				></div>
 			</div>
-			<div class="col-md-3" id="CSUIWrapper">
+			<!--<div class="col-md-3" id="CSUIWrapper">
 				<h6>Add Credible Sets Track</h6>
 				<div class="filtering-ui-wrapper add-content">
 					<div class="filtering-ui-content">
@@ -74,10 +148,10 @@
 							</select>
 						</div>
 					</div>
-				</div>
+				</div>-->
 
 				<div>
-					<template v-for="c in credibleSets">
+					<!--<template v-for="c in credibleSets">
 						<span
 							:id="getBubbleId(c.credibleSetId, c.phenotype)"
 							class="CS-bubble hidden"
@@ -97,7 +171,7 @@
 							:key="c.credibleSetId + ', ' + c.phenotype"
 							@click="removeCSData(c.credibleSetId, c.phenotype)"
 						></span>
-					</template>
+					</template>-->
 				</div>
 			</div>
 		</div>
@@ -884,8 +958,8 @@ $(function () {});
 <style>
 #CSPlotWrapper,
 #CSUIWrapper {
-	display: inline-block;
 	vertical-align: top;
+	width: calc(100% - 30px);
 }
 
 #CSTracksWrapper {
