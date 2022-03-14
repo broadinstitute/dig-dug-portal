@@ -572,7 +572,10 @@ export default Vue.component("research-annotations-plot", {
 				}
 
 				this.pkgData["overlappingRegions"] = overlappingRegions;
-				console.log("this.pkgData", this.pkgData);
+				console.log(
+					'this.pkgData["overlappingRegions"]',
+					this.pkgData["overlappingRegions"]
+				);
 			}
 		},
 		getArraysIntersection(a1, a2) {
@@ -699,7 +702,7 @@ export default Vue.component("research-annotations-plot", {
 		},*/
 		addAnnoTrack(event) {
 			if (event.target.value != "") {
-				console.log(this.selectedAnnos.indexOf(event.target.value));
+				//console.log(this.selectedAnnos.indexOf(event.target.value));
 				if (this.selectedAnnos.indexOf(event.target.value) < 0) {
 					this.selectedAnnos.push(event.target.value);
 
@@ -719,7 +722,7 @@ export default Vue.component("research-annotations-plot", {
 			var tClass = tissue.replace(/ /g, "_");
 
 			const chkBoxes = document.querySelectorAll("input." + tClass);
-			console.log(chkBoxes);
+			//console.log(chkBoxes);
 			if (event.target.checked == true) {
 				chkBoxes.forEach(function (c) {
 					c.checked = true;
