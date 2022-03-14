@@ -7,7 +7,12 @@
 			<div id="annotationsUIWrapper">
 				<div
 					class="filtering-ui-wrapper add-content"
-					style="width: calc(100% - 30px); margin-left: 15px"
+					style="
+						width: calc(100% - 30px);
+						margin-left: 15px;
+						padding: 0 10px;
+						text-align: left;
+					"
 				>
 					<div class="filtering-ui-content">
 						<div class="col">
@@ -35,6 +40,21 @@
 								></option>
 							</select>
 						</div>
+					</div>
+					<div
+						class=""
+						v-if="selectedAnnos.length > 0"
+						style="position: absolute; right: 10px; top: 10px"
+					>
+						<b-badge
+							pill
+							v-for="a in selectedAnnos"
+							:key="a"
+							:class="'btn search-bubble '"
+							:style="'background-color:' + getColorIndex(a)"
+							v-html="a + '&nbsp;<span class=\'remove\'>X</span>'"
+							@click="removeAnnoTrack(a)"
+						></b-badge>
 					</div>
 				</div>
 			</div>
@@ -165,7 +185,6 @@
 						@resize="onResize"
 						@mousemove="checkPosition($event)"
 						@mouseout="onMouseOut('tissueInfoBox')"
-						@click="removeAnnoTrack($event)"
 						width=""
 						height=""
 					></canvas>
@@ -1178,7 +1197,20 @@ export default Vue.component("research-annotations-plot", {
 				infoBox.setAttribute("class", "hidden");
 			}
 		},
-		removeAnnoTrack(event) {
+		removeAnnoTrack(ANNO) {
+			const aIndex = this.selectedAnnos.indexOf(ANNO);
+			if (aIndex > -1) {
+				this.selectedAnnos.splice(aIndex, 1);
+				if (this.pkgData != null) {
+					this.$store.dispatch("pkgDataSelected", {
+						type: "Annotation",
+						id: ANNO,
+						action: "remove",
+					});
+				}
+			}
+		},
+		/*removeAnnoTrack(event) {
 			var e = event;
 			var rect = e.target.getBoundingClientRect();
 			var x = Math.floor(e.clientX - rect.left);
@@ -1227,7 +1259,7 @@ export default Vue.component("research-annotations-plot", {
 					}
 				}
 			}
-		},
+		},*/
 		checkPosition(event, TYPE) {
 			var e = event;
 			var rect = e.target.getBoundingClientRect();
@@ -1886,6 +1918,7 @@ export default Vue.component("research-annotations-plot", {
 						ctx.fillText(annotation, bump, renderHeight);
 
 						/// Render delete track icon
+						/*
 						ctx.beginPath();
 						ctx.fillStyle = "#666666";
 						ctx.lineWidth = 0;
@@ -1897,15 +1930,16 @@ export default Vue.component("research-annotations-plot", {
 							2 * Math.PI
 						);
 						ctx.fill();
-
+						
 						ctx.font = "12px Arial";
 						ctx.textAlign = "center";
 						ctx.fillStyle = "#ffffff";
+						ctx.textBaseline = "middle";
 
 						ctx.fillText(
 							"\u{2715}",
 							this.plotMargin.leftMargin + plotWidth + bump * 3,
-							renderHeight + bump * 2 + 3.5
+							renderHeight + bump * 2 + 1
 						);
 
 						//feed close button position
@@ -1923,6 +1957,7 @@ export default Vue.component("research-annotations-plot", {
 
 						this.annoPosData[yPosBtwn].regions[xPosBtwn] =
 							"Remove track";
+							*/
 
 						/////
 
@@ -1997,7 +2032,7 @@ export default Vue.component("research-annotations-plot", {
 										this.selectedTissues.indexOf(tissue) >
 										-1
 									) {
-										ctx.fillStyle = "#000000";
+										ctx.fillStyle = "#FF0000";
 									} else {
 										ctx.fillStyle =
 											this.getColorIndex(annotation);
@@ -2022,6 +2057,14 @@ export default Vue.component("research-annotations-plot", {
 							});
 
 							renderHeight += perTissue;
+
+							if (this.selectedTissues.indexOf(tissue) > -1) {
+								ctx.fillStyle = "#000000";
+								ctx.textAlign = "start";
+								ctx.textBaseline = "middle";
+								ctx.font = "12px Arial";
+								ctx.fillText(tissue, 5, renderHeight - 2);
+							}
 						}
 						renderHeight += btwnAnnotations;
 					}
