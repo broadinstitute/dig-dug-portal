@@ -207,7 +207,8 @@ new Vue({
             ],
             searchCriteria: [],
             selectedVariants: [],
-            pageCovariances: null
+            pageCovariances: null,
+            runResults: null
         };
     },
     created() {
@@ -432,22 +433,29 @@ new Vue({
         },
 
         //return a promise
-        runRaremetal(data) {
+        async runRaremetal() {
+            let data = this.pageCovariances;
             console.log("waiting for raremetal");
-            console.log("json: ", data);
-            //let samples = data.data.nSamples || 0;
+            console.log("data: ", data);
+            let samples = data.nSamples || 0;
             // Use the returned covariance data to run aggregation tests and return results (note that runner.run() returns a Promise)
             const [groups, variants] = raremetal.helpers.parsePortalJSON(data);
             const runner = new raremetal.helpers.PortalTestRunner(
                 groups,
-                variants
+                variants,
+                this.selectedTests
                 //tests
                 //["burden", "skat"]
                 // One or more test names can be specified!
                 //["burden", "skat", "skat-o", "vt"]
             );
             console.log("runner: running ");
-            return runner.run();
+            let runResult = await runner.run();
+            console.log("runner: done", runResult);
+            this.runResults = runResult;
+            //hardcoded phenotype for now
+            //return { phenotype: "T2D", samples, data: runResult };
+            console.log("runResults: ", this.runResults);
         },
 
         //this for coding GAIT
@@ -645,17 +653,17 @@ new Vue({
         },
         "$store.state.ldServer.runTestsError": function() {
             this.loadingCovariances = false;
-        }
+        },
         //check for table data update
-        // tableData: {
-        //     handler(newData, oldData) {
-        //         if (!isEqual(newData, oldData)) {
-        //             this.updateSelectedVariants(); //update selected variants when tableData is ready
-        //             //when rows are selected or unselected, tableData won't change, only the selected rows changed
-        //             //updateSelectedVariants() function should be call when check/uncheck to update selected rows
-        //         }
-        //     },
-        //     deep: true
-        // }
+        tableData: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.updateSelectedVariants(); //update selected variants when tableData is ready
+                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
+                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
+                }
+            },
+            deep: true
+        }
     }
 }).$mount("#app");

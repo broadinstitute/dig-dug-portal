@@ -402,7 +402,7 @@
                                                     "
                                                     variant="primary"
                                                     @click="
-                                                        $parent.searchCovariances
+                                                        $parent.runRaremetal()
                                                     "
                                                     >Run Analysis</b-button
                                                 >
@@ -544,6 +544,14 @@
                                                 }"
                                             ></b-skeleton-table>
                                         </template>
+                                        <b-table
+                                            striped
+                                            hover
+                                            small
+                                            responsive="sm"
+                                            :items="$parent.runResults"
+                                        ></b-table>
+                                        {{ $parent.runResults }}
 
                                         <div
                                             id="covariances"
@@ -604,7 +612,7 @@
                                                 <b-table
                                                     v-for="(
                                                         p, i
-                                                    ) in $parent.pageCovariances"
+                                                    ) in $parent.runResults"
                                                     :key="p.phenotype"
                                                     striped
                                                     hover
