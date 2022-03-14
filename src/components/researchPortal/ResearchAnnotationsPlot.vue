@@ -473,6 +473,113 @@ export default Vue.component("research-annotations-plot", {
 	},
 	methods: {
 		...uiUtils,
+		getOverlappingRegion() {
+			var selectedBy = {};
+			if (this.pkgDataSelected.length > 0) {
+				this.pkgDataSelected.map((p) => {
+					if (!selectedBy[p.type]) {
+						selectedBy[p.type] = [];
+					}
+					selectedBy[p.type].push(p.id);
+				});
+			}
+			if (
+				!!selectedBy["Tissue"] &&
+				selectedBy["Tissue"].length > 0 &&
+				!!selectedBy["Annotation"] &&
+				selectedBy["Annotation"].length > 0
+			) {
+				var enrichedPosition = { and: null, or: null };
+
+				selectedBy["Annotation"].map((a) => {
+					selectedBy["Tissue"].map((t) => {
+						if (
+							!!this.pkgData.annoData[a] &&
+							!!this.pkgData.annoData[a][t]
+						) {
+							for (const [key, arr] of Object.entries(
+								enrichedPosition
+							)) {
+								let tempArr = [];
+								this.pkgData.annoData[a][t].region.map((r) => {
+									for (let i = r.start; i <= r.end; i++) {
+										tempArr.push(i);
+									}
+								});
+
+								if (arr == null) {
+									enrichedPosition[key] = tempArr;
+								} else {
+									enrichedPosition[key] =
+										key == "and"
+											? this.getArraysIntersection(
+													enrichedPosition[key],
+													tempArr
+											  )
+											: enrichedPosition[key].concat(
+													tempArr
+											  ); // getting only intersecting positions
+								}
+							}
+						}
+					});
+				});
+				//console.log("enrichedPosition", enrichedPosition);
+				//sort enriched position so I can remove position between start and end positions
+				for (const [key, arr] of Object.entries(enrichedPosition)) {
+					enrichedPosition[key].sort(function (a, b) {
+						return a - b;
+					});
+				}
+
+				//leave only start and end of overlapping regions
+				var enrichedRegion = { and: [], or: [] };
+				for (const [key, arr] of Object.entries(enrichedRegion)) {
+					for (let i = 0; i < enrichedPosition[key].length; i++) {
+						if (i == 0 || i == enrichedPosition[key].length - 1) {
+							enrichedRegion[key].push(enrichedPosition[key][i]);
+						} else {
+							let pos1 = enrichedPosition[key][i - 1] + 1;
+							let pos2 = enrichedPosition[key][i];
+
+							if (pos2 > pos1) {
+								enrichedRegion[key].push(
+									enrichedPosition[key][i - 1]
+								);
+								enrichedRegion[key].push(
+									enrichedPosition[key][i]
+								);
+							}
+						}
+					}
+				}
+
+				//console.log("enrichedRegion", enrichedRegion);
+
+				///build object of overlapping regions
+				var overlappingRegions = { and: [], or: [] };
+				for (const [key, arr] of Object.entries(enrichedRegion)) {
+					for (
+						let i = 0;
+						i < enrichedRegion[key].length - 1;
+						i += 2
+					) {
+						let tempObj = {};
+						tempObj["start"] = enrichedRegion[key][i];
+						tempObj["end"] = enrichedRegion[key][i + 1];
+						overlappingRegions[key].push(tempObj);
+					}
+				}
+
+				this.pkgData["overlappingRegions"] = overlappingRegions;
+				console.log("this.pkgData", this.pkgData);
+			}
+		},
+		getArraysIntersection(a1, a2) {
+			return a1.filter(function (n) {
+				return a2.indexOf(n) !== -1;
+			});
+		},
 		onMouseOut(BOXID) {
 			uiUtils.removeOnMouseOut(BOXID);
 		},
@@ -1723,7 +1830,7 @@ export default Vue.component("research-annotations-plot", {
 			);
 		},
 		renderByAnnotations() {
-			console.log("selectedTissues in render by", this.selectedTissues);
+			//console.log("selectedTissues in render by", this.selectedTissues);
 			var tempHeight = 0;
 			let annotationTitleH = this.spaceBy * 2;
 			let btwnAnnotations = this.spaceBy * 7;
@@ -1918,6 +2025,8 @@ export default Vue.component("research-annotations-plot", {
 					}
 				}
 			}
+			// get ovelapping region
+			this.getOverlappingRegion();
 		},
 		renderAnnoAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
 			CTX.beginPath();
