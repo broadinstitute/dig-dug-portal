@@ -4,61 +4,58 @@
 			class="col-md-12 annotations-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
-			<div id="annotationsUIWrapper">
-				<div
-					class="filtering-ui-wrapper add-content"
-					style="
-						width: calc(100% - 30px);
-						margin-left: 15px;
-						padding: 0 10px;
-						text-align: left;
-					"
-				>
-					<div class="filtering-ui-content">
-						<div class="col" style="padding: 2px">
-							<div
-								class="label"
-								style="
-									display: inline-block;
-									margin-right: 10px;
-								"
-							>
-								Select Annotation
+			<div class="col-md-9 anno-plot-wrapper">
+				<div id="annotationsUIWrapper">
+					<div
+						class="filtering-ui-wrapper add-content"
+						style="width: 100%; padding: 0 10px; text-align: left"
+					>
+						<div class="filtering-ui-content">
+							<div class="col" style="padding: 2px">
+								<div
+									class="label"
+									style="
+										display: inline-block;
+										margin-right: 10px;
+									"
+								>
+									Select Annotation
+								</div>
+								<select
+									class="custom-select"
+									@change="addAnnoTrack($event)"
+								>
+									<option value="">
+										{{ "Select annotation" }}
+									</option>
+									<option
+										v-for="(annoValue, annoKey) in annoData"
+										:key="annoKey"
+										:value="annoKey"
+										v-html="annoKey"
+									></option>
+								</select>
 							</div>
-							<select
-								class="custom-select"
-								@change="addAnnoTrack($event)"
-							>
-								<option value="">
-									{{ "Select annotation" }}
-								</option>
-								<option
-									v-for="(annoValue, annoKey) in annoData"
-									:key="annoKey"
-									:value="annoKey"
-									v-html="annoKey"
-								></option>
-							</select>
+						</div>
+						<div
+							class=""
+							v-if="selectedAnnos.length > 0"
+							style="position: absolute; right: 10px; top: 8px"
+						>
+							<b-badge
+								pill
+								v-for="a in selectedAnnos"
+								:key="a"
+								:class="'btn search-bubble '"
+								:style="'background-color:' + getColorIndex(a)"
+								v-html="
+									a + '&nbsp;<span class=\'remove\'>X</span>'
+								"
+								@click="removeAnnoTrack(a)"
+							></b-badge>
 						</div>
 					</div>
-					<div
-						class=""
-						v-if="selectedAnnos.length > 0"
-						style="position: absolute; right: 10px; top: 8px"
-					>
-						<b-badge
-							pill
-							v-for="a in selectedAnnos"
-							:key="a"
-							:class="'btn search-bubble '"
-							:style="'background-color:' + getColorIndex(a)"
-							v-html="a + '&nbsp;<span class=\'remove\'>X</span>'"
-							@click="removeAnnoTrack(a)"
-						></b-badge>
-					</div>
 				</div>
-			</div>
-			<div class="col-md-9 anno-plot-wrapper">
 				<!-- selected annotations table -->
 				<div v-if="selectedAnnos.length > 0">
 					<div style="padding: 5px">
@@ -66,14 +63,14 @@
 						<div
 							class=""
 							v-if="selectedTissues.length > 0"
-							style="position: absolute; right: 10px; top: 5px"
+							style="float: right"
 						>
 							<b-badge
 								pill
 								v-for="a in selectedTissues"
 								:key="a"
 								:class="'btn search-bubble '"
-								:style="'background-color:#666666'"
+								:style="'background-color:#999999'"
 								v-html="
 									a + '&nbsp;<span class=\'remove\'>X</span>'
 								"
@@ -280,7 +277,7 @@
 				</div>
 				-->
 			</div>
-			<div class="col-md-3 anno-plot-ui-wrapper">
+			<div class="col-md-3 anno-plot-ui-wrapper reference-area">
 				<!--<h6>Add Tissue Track</h6>
 				<div id="annotationsUIWrapper">
 					<div class="filtering-ui-wrapper add-content">
@@ -347,7 +344,7 @@
 					</div>
 				</div>-->
 
-				<h6>Global Enrichment</h6>
+				<h6><strong>Global Enrichment</strong></h6>
 				<div>
 					<div
 						v-for="(annoValue, annoKey, annoIndex) in annoData"
@@ -372,6 +369,7 @@
 						id="GEPlot"
 						width=""
 						height=""
+						style="background-color: #ffffff"
 						@mousemove="checkGEPosition($event)"
 						@mouseout="onMouseOut('GEInfoBox')"
 					></canvas>
@@ -523,105 +521,122 @@ export default Vue.component("research-annotations-plot", {
 	methods: {
 		...uiUtils,
 		getOverlappingRegion() {
-			var selectedBy = {};
-			if (this.pkgDataSelected.length > 0) {
-				this.pkgDataSelected.map((p) => {
-					if (!selectedBy[p.type]) {
-						selectedBy[p.type] = [];
-					}
-					selectedBy[p.type].push(p.id);
-				});
-			}
+			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
-				!!selectedBy["Tissue"] &&
-				selectedBy["Tissue"].length > 0 &&
-				!!selectedBy["Annotation"] &&
-				selectedBy["Annotation"].length > 0
+				!!this.renderConfig["overlapping regions"] &&
+				this.renderConfig["overlapping regions"] != "false"
 			) {
-				var enrichedPosition = { and: null, or: null };
-
-				selectedBy["Annotation"].map((a) => {
-					selectedBy["Tissue"].map((t) => {
-						if (
-							!!this.pkgData.annoData[a] &&
-							!!this.pkgData.annoData[a][t]
-						) {
-							for (const [key, arr] of Object.entries(
-								enrichedPosition
-							)) {
-								let tempArr = [];
-								this.pkgData.annoData[a][t].region.map((r) => {
-									for (let i = r.start; i <= r.end; i++) {
-										tempArr.push(i);
-									}
-								});
-
-								if (arr == null) {
-									enrichedPosition[key] = tempArr;
-								} else {
-									enrichedPosition[key] =
-										key == "and"
-											? this.getArraysIntersection(
-													enrichedPosition[key],
-													tempArr
-											  )
-											: enrichedPosition[key].concat(
-													tempArr
-											  ); // getting only intersecting positions
-								}
-							}
+				var selectedBy = {};
+				if (this.pkgDataSelected.length > 0) {
+					this.pkgDataSelected.map((p) => {
+						if (!selectedBy[p.type]) {
+							selectedBy[p.type] = [];
 						}
-					});
-				});
-				//console.log("enrichedPosition", enrichedPosition);
-				//sort enriched position so I can remove position between start and end positions
-				for (const [key, arr] of Object.entries(enrichedPosition)) {
-					enrichedPosition[key].sort(function (a, b) {
-						return a - b;
+						selectedBy[p.type].push(p.id);
 					});
 				}
+				if (
+					!!selectedBy["Tissue"] &&
+					selectedBy["Tissue"].length > 0 &&
+					!!selectedBy["Annotation"] &&
+					selectedBy["Annotation"].length > 0
+				) {
+					var enrichedPosition = { and: null, or: null };
 
-				//leave only start and end of overlapping regions
-				var enrichedRegion = { and: [], or: [] };
-				for (const [key, arr] of Object.entries(enrichedRegion)) {
-					for (let i = 0; i < enrichedPosition[key].length; i++) {
-						if (i == 0 || i == enrichedPosition[key].length - 1) {
-							enrichedRegion[key].push(enrichedPosition[key][i]);
-						} else {
-							let pos1 = enrichedPosition[key][i - 1] + 1;
-							let pos2 = enrichedPosition[key][i];
+					selectedBy["Annotation"].map((a) => {
+						selectedBy["Tissue"].map((t) => {
+							if (
+								!!this.pkgData.annoData[a] &&
+								!!this.pkgData.annoData[a][t]
+							) {
+								for (const [key, arr] of Object.entries(
+									enrichedPosition
+								)) {
+									let tempArr = [];
+									this.pkgData.annoData[a][t].region.map(
+										(r) => {
+											for (
+												let i = r.start;
+												i <= r.end;
+												i++
+											) {
+												tempArr.push(i);
+											}
+										}
+									);
 
-							if (pos2 > pos1) {
-								enrichedRegion[key].push(
-									enrichedPosition[key][i - 1]
-								);
+									if (arr == null) {
+										enrichedPosition[key] = tempArr;
+									} else {
+										enrichedPosition[key] =
+											key == "and"
+												? this.getArraysIntersection(
+														enrichedPosition[key],
+														tempArr
+												  )
+												: enrichedPosition[key].concat(
+														tempArr
+												  ); // getting only intersecting positions
+									}
+								}
+							}
+						});
+					});
+					//console.log("enrichedPosition", enrichedPosition);
+					//sort enriched position so I can remove position between start and end positions
+					for (const [key, arr] of Object.entries(enrichedPosition)) {
+						enrichedPosition[key].sort(function (a, b) {
+							return a - b;
+						});
+					}
+
+					//leave only start and end of overlapping regions
+					var enrichedRegion = { and: [], or: [] };
+					for (const [key, arr] of Object.entries(enrichedRegion)) {
+						for (let i = 0; i < enrichedPosition[key].length; i++) {
+							if (
+								i == 0 ||
+								i == enrichedPosition[key].length - 1
+							) {
 								enrichedRegion[key].push(
 									enrichedPosition[key][i]
 								);
+							} else {
+								let pos1 = enrichedPosition[key][i - 1] + 1;
+								let pos2 = enrichedPosition[key][i];
+
+								if (pos2 > pos1) {
+									enrichedRegion[key].push(
+										enrichedPosition[key][i - 1]
+									);
+									enrichedRegion[key].push(
+										enrichedPosition[key][i]
+									);
+								}
 							}
 						}
 					}
-				}
 
-				//console.log("enrichedRegion", enrichedRegion);
+					//console.log("enrichedRegion", enrichedRegion);
 
-				///build object of overlapping regions
-				var overlappingRegions = { and: [], or: [] };
-				for (const [key, arr] of Object.entries(enrichedRegion)) {
-					for (
-						let i = 0;
-						i < enrichedRegion[key].length - 1;
-						i += 2
-					) {
-						let tempObj = {};
-						tempObj["start"] = enrichedRegion[key][i];
-						tempObj["end"] = enrichedRegion[key][i + 1];
-						overlappingRegions[key].push(tempObj);
+					///build object of overlapping regions
+					var overlappingRegions = { and: [], or: [] };
+					for (const [key, arr] of Object.entries(enrichedRegion)) {
+						for (
+							let i = 0;
+							i < enrichedRegion[key].length - 1;
+							i += 2
+						) {
+							let tempObj = {};
+							tempObj["start"] = enrichedRegion[key][i];
+							tempObj["end"] = enrichedRegion[key][i + 1];
+							overlappingRegions[key].push(tempObj);
+						}
 					}
-				}
 
-				this.pkgData["overlappingRegions"] = overlappingRegions;
-				console.log("this.pkgData", this.pkgData);
+					this.pkgData["overlappingRegions"] = overlappingRegions;
+					console.log("this.pkgData", this.pkgData);
+				}
 			}
 		},
 		getArraysIntersection(a1, a2) {

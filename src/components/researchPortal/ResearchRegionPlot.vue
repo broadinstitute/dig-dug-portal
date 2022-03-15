@@ -60,7 +60,7 @@
 			:id="'plotsWrapper' + item.replaceAll(' ', '_')"
 			v-for="(item, itemIndex) in plotsList"
 		>
-			<div class="col-md-12 region-plot-default-legend">
+			<div class="col-md-9 region-plot-default-legend">
 				<span
 					v-for="(g, gIndex) in plotsList"
 					v-if="item == 'Combined' && g != 'Combined'"
@@ -144,7 +144,7 @@
 			</div>
 			<div
 				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_')"
-				class="col-md-3 ld-plots-wrapper"
+				class="col-md-3 ld-plots-wrapper reference-area"
 			>
 				<h6
 					v-html="
