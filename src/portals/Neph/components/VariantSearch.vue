@@ -68,25 +68,38 @@
 										"
 									>
 										<tamplate
-											v-for="(key, value) in this
-												.disablebtn"
-										>
+											v-for="(key, value) in this.disablebtn">
 											<b-form-checkbox
 												name="impact"
 												v-model="filters['impacts']"
 												:disabled="key"
 												:value="value"
 												inline
-												>{{ value }}</b-form-checkbox
-											>
+												><b-btn
+													disabled
+													:variant="disablebtnstyle[value]"
+													size="sm"
+													class="mr-1 btn-mini"
+													>{{ value }}</b-btn>
+												</b-form-checkbox>
 										</tamplate>
 									</div>
-									<h6>Select phenotypes</h6>
-									<div style="padding-left: 15px">
-										<tamplate
-											v-for="(key, value) in this
-												.HPOTerms"
+									<div>
+										<h6>Select phenotypes</h6>
+										<b-btn
+											class="btn btn-secondary btn-sm"
+											@click="selectAllElements('phenotypes', true)"
+											>Select All</b-btn
+										>&nbsp;
+										<b-btn
+											class="btn btn-secondary btn-sm"
+											@click="selectAllElements('phenotypes', false)"
+											>Unselect All</b-btn
 										>
+									</div>
+									
+									<div style="padding-left: 15px">
+										<tamplate v-for="(key, value) in this.HPOTerms">
 											<b-form-checkbox
 												name="phenotypes"
 												v-model="filters['phenotypes']"
@@ -151,6 +164,13 @@
 							style="border-left: 1px solid #dee2e6"
 							>Homozygous</b-th
 						>
+						<b-th
+							colspan="1"
+							class="text-center"
+							variant="secondary"
+							style="border-left: 1px solid #dee2e6"
+							>gnomAD Information</b-th
+						>
 						<b-th><span class="sr-only">View VEP Data</span></b-th>
 					</b-tr>
 				</template>
@@ -174,6 +194,21 @@
 				</template>
 				<template #cell(TWO_ALT_GENO_CTS)="data">
 					<div align="right">{{ data.item.TWO_ALT_GENO_CTS }}</div>
+				</template>
+				<template #cell(gnomAD_exomes_AC)="row">
+					<div align="right">
+						{{ row.item.gnomAD_exomes_AC}}
+					</div>
+				</template>
+				<template #cell(gnomAD_exomes_AN)="row">
+					<div align="right">
+						{{ row.item.gnomAD_exomes_AN}}
+					</div>
+				</template>
+				<template #cell(gnomAD_exomes_AF)="row">
+					<div align="right">
+						{{ row.item.gnomAD_exomes_AF}}
+					</div>
 				</template>
 				<template #cell(max_consequence)="data">
 					<div
@@ -266,6 +301,7 @@
 									{{ row.item.TWO_ALT_GENO_CTS }}
 								</div>
 							</template>
+							
 						</b-table>
 
 						<b-table
@@ -383,11 +419,15 @@ export default Vue.component("variant-search", {
 			applyfilter: false,
 			disablebtn: {
 				HIGH: true,
-				LOW: true,
-				LOWEST: true,
 				MODERATE: true,
+				LOW: true,
 				MODIFIER: true,
-				//"REMOVE": false,
+			},
+			disablebtnstyle: {
+				HIGH: "outline-danger",
+                MODERATE: "outline-warning",
+				LOW: "outline-success",
+				MODIFIER: "outline-secondary",
 			},
 			HPOTerms: {
 				"HP-0000119": "Abnormality of the genitourinary system",
@@ -413,7 +453,7 @@ export default Vue.component("variant-search", {
 				"HP-0033127": "Abnormality of the musculoskeletal system",
 				"HP-0040064": "Abnormality of limbs",
 				"HP-0045027": "Abnormality of the thoracic cavity",
-				AllControl: "Controls",
+				"AllControl": "Controls",
 			},
 
 			perPage: 10,
@@ -460,6 +500,21 @@ export default Vue.component("variant-search", {
 				{
 					key: "TWO_ALT_GENO_CTS",
 					label: "Count",
+					sortable: true,
+				},
+				{
+					key: "gnomAD_exomes_AC",
+					label: "gnomAD_AC",
+					sortable: true,
+				},
+				{
+					key: "gnomAD_exomes_AN",
+					label: "gnomAD_AN",
+					sortable: true,
+				},
+				{
+					key: "gnomAD_exomes_AF",
+					label: "gnomAD_AF",
 					sortable: true,
 				},
 				{
@@ -560,6 +615,21 @@ export default Vue.component("variant-search", {
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
+		selectAllElements(name, flag) {
+			//alert(name);
+			const allcheckbox = document.getElementsByName(name);
+			//alert(allcheckbox.length);
+			for(let c in allcheckbox) {
+				if(parseInt(c) >= 0){
+					if(flag){
+						allcheckbox[c].checked = true;
+					} else {
+						allcheckbox[c].checked = false;
+					}
+				}
+				
+			}
+		},
 		async searchVariants() {
 			this.currentPage = 1; //reset on new search
 			//Helen 2022-01-09
@@ -586,6 +656,13 @@ export default Vue.component("variant-search", {
 						this.variants[i].allelnumber;
 					this.variants[i].allelefrequency =
 						this.variants[i].allelefrequency.toExponential(2);
+					if (this.variants[i].gnomAD_info) {
+						this.variants[i].gnomAD_exomes_AC = this.variants[i].gnomAD_info.gnomAD_exomes_AC;
+						this.variants[i].gnomAD_exomes_AN = this.variants[i].gnomAD_info.gnomAD_exomes_AN;
+						this.variants[i].gnomAD_exomes_AF = this.variants[i].gnomAD_info.gnomAD_exomes_AF;
+						//alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
+					}
+					
 					for (
 						let m = 0;
 						m < this.variants[i].hprecords.length;
@@ -626,6 +703,9 @@ export default Vue.component("variant-search", {
 									varrecords[j].Gene_Symbol;
 								this.variants[i].Max_Impact =
 									varrecords[j].Max_Impact;
+								if (this.variants[i].Max_Impact == 'LOWEST'){
+									this.variants[i].Max_Impact = 'MODIFIER';
+								}
 								//helen test 2022-01-17
 								this.variants[i].max_consequence =
 									varrecords[j].max_consequence;
@@ -652,7 +732,7 @@ export default Vue.component("variant-search", {
 							k++
 						) {
 							let hp = this.variants[i].hprecords[k];
-							if (hp.HP != "AllControl") {
+							//if (hp.HP != "AllControl") {
 								hpdisplay[j] = {};
 								//hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
 								hpdisplay[j].hp = hp.HP;
@@ -677,7 +757,7 @@ export default Vue.component("variant-search", {
 								hpdisplay[j].TWO_ALT_GENO_CTS =
 									hp.TWO_ALT_GENO_CTS;
 								j++;
-							}
+							//}
 						}
 						hpdisplay = hpdisplay.sort(function (a, b) {
 							//console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
@@ -763,6 +843,10 @@ export default Vue.component("variant-search", {
 					dataRows[i].hpdisplay = dataRows[i].hpdisplay.filter((v) =>
 						this.filters["phenotypes"].includes(v.hp)
 					);
+				}
+			} else {
+				for (let i = 0; i < dataRows.length; i++) {
+					dataRows[i].hpdisplay = dataRows[i].hpdisplay2;
 				}
 			}
 			this.variantData = dataRows;
