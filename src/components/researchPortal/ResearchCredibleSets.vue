@@ -58,8 +58,32 @@
 						</div>
 						<div
 							class=""
-							style="position: absolute; right: 10px; top: 10px"
+							style="position: absolute; right: 10px; top: 7px"
 						>
+							<!--<b-badge
+								pill
+								v-for="c in credibleSets"
+								:id="getBubbleId(c.credibleSetId, c.phenotype)"
+								:key="c.credibleSetId + ', ' + c.phenotype"
+								:class="'btn search-bubble CS-bubble hidden'"
+								:style="
+									'background-color:' +
+									getColorIndex(
+										c.credibleSetId + ', ' + c.phenotype
+									) +
+									';'
+								"
+								v-html="
+									c.credibleSetId +
+									', ' +
+									c.phenotype +
+									'&nbsp;<span class=\'remove\'>X</span>'
+								"
+								@click="
+									removeCSData(c.credibleSetId, c.phenotype)
+								"
+							></b-badge>-->
+
 							<template v-for="c in credibleSets">
 								<span
 									:id="
@@ -73,7 +97,7 @@
 										c.credibleSetId +
 										', ' +
 										c.phenotype +
-										' &#10006;'
+										' &nbsp;<span class=\'remove\'>X</span>'
 									"
 									:style="
 										'background-color:' +
@@ -933,12 +957,22 @@ $(function () {});
 
 .CS-bubble {
 	font-size: 12px;
-	margin-left: 3px;
-	margin-right: 3px;
-	padding: 0px 3px;
+	margin-right: 5px;
 	border-radius: 5px;
-	float: left;
 	margin-bottom: 3px;
+	color: #fff;
+	float: left;
+	font-weight: 400;
+	line-height: 1;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	user-select: none;
+	border: 1px solid transparent;
+	padding: 0.25em 0.4em;
+	padding-right: 0.6em;
+	padding-left: 0.6em;
+	border-radius: 10rem;
 }
 
 .CS-bubble:hover {

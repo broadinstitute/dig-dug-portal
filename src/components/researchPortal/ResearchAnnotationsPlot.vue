@@ -40,7 +40,7 @@
 						<div
 							class=""
 							v-if="selectedAnnos.length > 0"
-							style="position: absolute; right: 10px; top: 8px"
+							style="position: absolute; right: 10px; top: 7px"
 						>
 							<b-badge
 								pill
