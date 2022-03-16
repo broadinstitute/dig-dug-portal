@@ -29,6 +29,7 @@ import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.v
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
+import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import uiUtils from "@/utils/uiUtils";
 import $ from "jquery";
@@ -50,6 +51,7 @@ new Vue({
         ResearchPageDescription,
         ResearchPageFilters,
         ResearchDataTable,
+        ResearchAnnotationsPlot,
         ResearchGEMDataTable,
         ResearchMPlotBitmap,
         ResearchRegionPlot,
@@ -706,7 +708,7 @@ new Vue({
         pageDescription() {
             let contents = this.researchPage;
 
-            console.log("contents", contents);
+            //console.log("contents", contents);
 
             if (contents === null || contents[0]["body"] == false) {
                 return null;
@@ -808,7 +810,7 @@ new Vue({
         },
         researchMenu() {
             let contents = this.$store.state.hugeampkpncms.researchMenu;
-            console.log("menu contents", contents)
+            //console.log("menu contents", contents)
 
             if (contents.length === 0) {
                 return null;
@@ -994,7 +996,7 @@ new Vue({
         },
         portalStyle(style) {
 
-            console.log("style", style);
+            //console.log("style", style);
             if (style != false && style != null) {
 
                 this.addcss(style);
@@ -1026,7 +1028,7 @@ new Vue({
 
                     let apis = JSON.parse(content[0]["field_api_parameters"]);
 
-                    console.log("apis", apis);
+                    //console.log("apis", apis);
                     let isKPPhenotype = false;
 
                     if (!!apis) {

@@ -5,7 +5,6 @@
 				id="genesTrackWrapper"
 				:class="plotType == 'region plot' ? 'col-md-9' : 'col-md-12'"
 			>
-				{{ plotType }}
 				<canvas
 					id="genesTrack"
 					@resize="onResize"

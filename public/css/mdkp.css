@@ -2068,3 +2068,10 @@ span.spacer-4 {
 span.spacer-5 {
     width: 5em;
 }
+
+.reference-area {
+    border-left: solid 1px #ddd;
+    height: 100%;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}

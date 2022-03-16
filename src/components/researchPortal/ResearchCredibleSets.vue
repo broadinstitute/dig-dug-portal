@@ -4,7 +4,104 @@
 		v-if="searchingRegion != null && searchingPhenotype != null"
 	>
 		<div class="col-md-12 CS-plot-wrapper">
-			<div class="col-md-9" id="CSPlotWrapper">
+			<div
+				class="col-md-9"
+				id="CSPlotWrapper"
+				style="display: inline-block"
+			>
+				<div id="CSUIWrapper">
+					<div
+						class="filtering-ui-wrapper add-content"
+						style="width: 100%; padding: 0 10px; text-align: left"
+					>
+						<div class="filtering-ui-content">
+							<div class="col" style="padding: 2px">
+								<div
+									class="label"
+									style="
+										display: inline-block;
+										margin-right: 8px;
+									"
+								>
+									Select Credible Sets
+								</div>
+								<select
+									class="custom-select"
+									@change="getCS($event)"
+								>
+									<option value="">
+										{{ "Select credible set" }}
+									</option>
+									<option
+										v-for="credibleSet in credibleSets"
+										:key="
+											credibleSet.credibleSetId +
+											',' +
+											credibleSet.phenotype
+										"
+										v-html="
+											credibleSet.credibleSetId +
+											'(' +
+											credibleSet.phenotype +
+											', ' +
+											credibleSet.dataset +
+											')'
+										"
+										:value="
+											credibleSet.credibleSetId +
+											',' +
+											credibleSet.phenotype
+										"
+									></option>
+								</select>
+							</div>
+						</div>
+						<div
+							class=""
+							style="position: absolute; right: 10px; top: 7px"
+						>
+							<template v-for="c in credibleSets">
+								<span
+									:id="
+										getBubbleId(
+											c.credibleSetId,
+											c.phenotype
+										)
+									"
+									v-if="
+										pkgDataSelected
+											.filter(
+												(s) => s.type == 'Credible Set'
+											)
+											.map((s) => s.id)
+											.indexOf(c.credibleSetId) > -1
+									"
+									class="CS-bubble"
+									v-html="
+										c.credibleSetId +
+										', ' +
+										c.phenotype +
+										' &nbsp;<span class=\'remove\'>X</span>'
+									"
+									:style="
+										'background-color:' +
+										getColorIndex(
+											c.credibleSetId + ', ' + c.phenotype
+										) +
+										';'
+									"
+									:key="c.credibleSetId + ', ' + c.phenotype"
+									@click="
+										removeCSData(
+											c.credibleSetId,
+											c.phenotype
+										)
+									"
+								></span>
+							</template>
+						</div>
+					</div>
+				</div>
 				<div id="CSInfoBox" class="hidden">
 					<div
 						class="fixed-info-box-close"
@@ -16,7 +113,6 @@
 				</div>
 				<canvas
 					id="CSPlot"
-					v-model="pkgData"
 					:class="
 						Object.keys(CSData).length > 0
 							? 'CS-plot'
@@ -30,76 +126,23 @@
 				></canvas>
 				<div
 					id="CSInitialMessage"
-					class="hidden"
+					v-if="
+						pkgDataSelected
+							.filter((s) => s.type == 'Credible Set')
+							.map((s) => s.id).length == 0
+					"
 					v-html="
 						credibleSets.length == 0
-							? 'There is no available credible sets.'
+							? 'There is no available credible set.'
 							: 'Please select a credible set to render.'
 					"
 				></div>
 			</div>
-			<div class="col-md-3" id="CSUIWrapper">
-				<h6>Add Credible Sets Track</h6>
-				<div class="filtering-ui-wrapper add-content">
-					<div class="filtering-ui-content">
-						<div class="col">
-							<select
-								class="custom-select"
-								@change="getCS($event)"
-							>
-								<option value="">
-									{{ "Select credible set" }}
-								</option>
-								<option
-									v-for="credibleSet in credibleSets"
-									:key="
-										credibleSet.credibleSetId +
-										',' +
-										credibleSet.phenotype
-									"
-									v-html="
-										credibleSet.credibleSetId +
-										'(' +
-										credibleSet.phenotype +
-										', ' +
-										credibleSet.dataset +
-										')'
-									"
-									:value="
-										credibleSet.credibleSetId +
-										',' +
-										credibleSet.phenotype
-									"
-								></option>
-							</select>
-						</div>
-					</div>
-				</div>
 
-				<div>
-					<template v-for="c in credibleSets">
-						<span
-							:id="getBubbleId(c.credibleSetId, c.phenotype)"
-							class="CS-bubble hidden"
-							v-html="
-								c.credibleSetId +
-								', ' +
-								c.phenotype +
-								' &#10006;'
-							"
-							:style="
-								'background-color:' +
-								getColorIndex(
-									c.credibleSetId + ', ' + c.phenotype
-								) +
-								';'
-							"
-							:key="c.credibleSetId + ', ' + c.phenotype"
-							@click="removeCSData(c.credibleSetId, c.phenotype)"
-						></span>
-					</template>
-				</div>
-			</div>
+			<div
+				class="col-md-3 reference-area"
+				style="display: inline-block"
+			></div>
 		</div>
 	</div>
 </template>
@@ -232,6 +275,14 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 	},
 	watch: {
+		/*"this.phenotype"(phenotype) {
+			console.log("this.phenotype", this.phenotype);
+			this.renderCSPlot();
+		},
+		"this.region"(region) {
+			console.log("this.region", this.region);
+			this.renderCSPlot();
+		},*/
 		pkgDataSelected: {
 			handler: function (n, o) {
 				//if (n.length > 0) {
@@ -495,21 +546,14 @@ export default Vue.component("research-credible-sets-plot", {
 			return content;
 		},
 		renderCSPlot() {
+			var selectedCS = this.pkgDataSelected
+				.filter((s) => s.type == "Credible Set")
+				.map((s) => s.id);
+			//console.log("selectedCS.length", selectedCS.length);
+
 			this.CSPosData = {};
 			let regionStart = this.viewingRegion.start;
 			let regionEnd = this.viewingRegion.end;
-
-			if (Object.keys(this.CSData).length == 0) {
-				if (!!document.getElementById("CSInitialMessage")) {
-					document
-						.getElementById("CSInitialMessage")
-						.classList.remove("hidden");
-				}
-			} else {
-				document
-					.getElementById("CSInitialMessage")
-					.classList.add("hidden");
-			}
 
 			let canvas = document.querySelector("#CSPlot");
 			let wrapper = document.querySelector("#CSPlotWrapper");
@@ -544,45 +588,46 @@ export default Vue.component("research-credible-sets-plot", {
 				ctx = c.getContext("2d");
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-				let renderHeight = this.plotMargin.topMargin;
-				if (Object.keys(this.CSData).length > 0) {
-					for (const [phenotype, credibleSets] of Object.entries(
-						this.CSData
-					)) {
-						ctx.font = "14px Arial";
-						ctx.textAlign = "left";
-						ctx.fillStyle = "#000000";
-						ctx.fillText(
-							phenotype,
-							bump,
-							renderHeight + this.spaceBy
-						);
-
-						renderHeight += phenotypeTitleH;
-
-						this.renderAxis(
-							ctx,
-							plotWidth,
-							plotHeight,
-							regionEnd,
-							regionStart,
-							renderHeight,
-							bump
-						);
-
-						for (const [CSID, credibleSet] of Object.entries(
-							credibleSets
+				if (selectedCS.length > 0) {
+					let renderHeight = this.plotMargin.topMargin;
+					if (Object.keys(this.CSData).length > 0) {
+						for (const [phenotype, credibleSets] of Object.entries(
+							this.CSData
 						)) {
-							let inRegion = 0;
-							credibleSet.map((v) => {
-								if (
-									v.position >= regionStart &&
-									v.position <= regionEnd
-								) {
-									let ifInRegion = this.checkIfInRegion(
+							ctx.font = "14px Arial";
+							ctx.textAlign = "left";
+							ctx.fillStyle = "#000000";
+							ctx.fillText(
+								phenotype,
+								bump,
+								renderHeight + this.spaceBy
+							);
+
+							renderHeight += phenotypeTitleH;
+
+							this.renderAxis(
+								ctx,
+								plotWidth,
+								plotHeight,
+								regionEnd,
+								regionStart,
+								renderHeight,
+								bump
+							);
+
+							for (const [CSID, credibleSet] of Object.entries(
+								credibleSets
+							)) {
+								let inRegion = 0;
+								credibleSet.map((v) => {
+									if (
+										v.position >= regionStart &&
+										v.position <= regionEnd
+									) {
+										/*let ifInRegion = this.checkIfInRegion(
 										v.position
 									);
-									if (ifInRegion == true) {
+									if (ifInRegion == true) {*/
 										let xPos =
 											(v[
 												this.renderConfig[
@@ -653,24 +698,26 @@ export default Vue.component("research-credible-sets-plot", {
 											tempObj;
 
 										inRegion++;
+										//}
 									}
+								});
+
+								if (inRegion == 0) {
+									ctx.font = "14px Arial";
+									ctx.textAlign = "center";
+									ctx.fillStyle = "#000000";
+									ctx.fillText(
+										"No credible variant in the region for " +
+											phenotype,
+										this.plotMargin.leftMargin +
+											plotWidth / 2,
+										renderHeight + plotHeight / 2
+									);
 								}
-							});
-
-							if (inRegion == 0) {
-								ctx.font = "14px Arial";
-								ctx.textAlign = "center";
-								ctx.fillStyle = "#000000";
-								ctx.fillText(
-									"No credible variant in the region for " +
-										phenotype,
-									this.plotMargin.leftMargin + plotWidth / 2,
-									renderHeight + plotHeight / 2
-								);
 							}
-						}
 
-						renderHeight += perPhenotype + btwnPhenotype;
+							renderHeight += perPhenotype + btwnPhenotype;
+						}
 					}
 				}
 			}
@@ -857,9 +904,9 @@ export default Vue.component("research-credible-sets-plot", {
 						/[^a-zA-Z0-9 ]/g,
 						""
 					);
-					let bubble = document.getElementById(bubbleId);
+					/*let bubble = document.getElementById(bubbleId);
 
-					bubble.classList.remove("hidden");
+					bubble.classList.remove("hidden");*/
 
 					//this.renderCSPlot();
 				}
@@ -905,10 +952,14 @@ $(function () {});
 </script>
 
 <style>
-#CSPlotWrapper,
-#CSUIWrapper {
-	display: inline-block;
+#CSPlotWrapper {
 	vertical-align: top;
+	width: calc(100% - 30px);
+}
+
+#CSUIWrapper {
+	vertical-align: top;
+	width: 100%;
 }
 
 #CSTracksWrapper {
@@ -920,12 +971,22 @@ $(function () {});
 
 .CS-bubble {
 	font-size: 12px;
-	margin-left: 3px;
-	margin-right: 3px;
-	padding: 0px 3px;
+	margin-right: 5px;
 	border-radius: 5px;
-	float: left;
 	margin-bottom: 3px;
+	color: #fff;
+	float: left;
+	font-weight: 400;
+	line-height: 1;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	user-select: none;
+	border: 1px solid transparent;
+	padding: 0.25em 0.4em;
+	padding-right: 0.6em;
+	padding-left: 0.6em;
+	border-radius: 10rem;
 }
 
 .CS-bubble:hover {

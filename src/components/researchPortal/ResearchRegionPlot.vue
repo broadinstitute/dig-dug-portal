@@ -60,7 +60,7 @@
 			:id="'plotsWrapper' + item.replaceAll(' ', '_')"
 			v-for="(item, itemIndex) in plotsList"
 		>
-			<div class="col-md-12 region-plot-default-legend">
+			<div class="col-md-9 region-plot-default-legend">
 				<span
 					v-for="(g, gIndex) in plotsList"
 					v-if="item == 'Combined' && g != 'Combined'"
@@ -144,7 +144,7 @@
 			</div>
 			<div
 				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_')"
-				class="col-md-3 ld-plots-wrapper"
+				class="col-md-3 ld-plots-wrapper reference-area"
 			>
 				<h6
 					v-html="
@@ -178,6 +178,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import PlotUtils from "@/utils/plotUtils.js";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
@@ -663,7 +664,7 @@ export default Vue.component("research-region-plot", {
 			this.callForRecombData();
 		},
 		async callForRecombData() {
-			console.log("this.searchingRegion", this.searchingRegion);
+			//console.log("this.searchingRegion", this.searchingRegion);
 			var signalURL =
 				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
 				this.searchingRegion.chr +
@@ -681,6 +682,14 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		async callForLDData() {
+			const plotWrappers = document.querySelectorAll(
+				".region-plots-wrapper"
+			);
+
+			plotWrappers.forEach(function (plotWrapper) {
+				plotWrapper.classList.remove("hidden");
+			});
+
 			var plotID = null;
 
 			for (var i = 0; i < this.plotsList.length; i++) {
@@ -721,6 +730,7 @@ export default Vue.component("research-region-plot", {
 			} else {
 				this.renderPlots();
 			}
+			this.$forceUpdate();
 		},
 		renderPlots() {
 			let regionStart = this.searchingRegion.start;
