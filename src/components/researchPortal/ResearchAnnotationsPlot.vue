@@ -192,6 +192,21 @@
 																	null
 																)
 															"
+															:checked="
+																pkgDataSelected
+																	.filter(
+																		(s) =>
+																			s.type ==
+																			'Tissue'
+																	)
+																	.map(
+																		(s) =>
+																			s.id
+																	)
+																	.includes(
+																		tissueKey
+																	)
+															"
 														/>
 													</td>
 													<td v-html="tissueKey"></td>

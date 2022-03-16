@@ -68,7 +68,15 @@
 											c.phenotype
 										)
 									"
-									class="CS-bubble hidden"
+									v-if="
+										pkgDataSelected
+											.filter(
+												(s) => s.type == 'Credible Set'
+											)
+											.map((s) => s.id)
+											.indexOf(c.credibleSetId) > -1
+									"
+									class="CS-bubble"
 									v-html="
 										c.credibleSetId +
 										', ' +
@@ -105,7 +113,6 @@
 				</div>
 				<canvas
 					id="CSPlot"
-					v-model="pkgData"
 					:class="
 						Object.keys(CSData).length > 0
 							? 'CS-plot'
@@ -119,10 +126,14 @@
 				></canvas>
 				<div
 					id="CSInitialMessage"
-					class="hidden"
+					v-if="
+						pkgDataSelected
+							.filter((s) => s.type == 'Credible Set')
+							.map((s) => s.id).length == 0
+					"
 					v-html="
 						credibleSets.length == 0
-							? 'There is no available credible sets.'
+							? 'There is no available credible set.'
 							: 'Please select a credible set to render.'
 					"
 				></div>
@@ -264,6 +275,14 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 	},
 	watch: {
+		/*"this.phenotype"(phenotype) {
+			console.log("this.phenotype", this.phenotype);
+			this.renderCSPlot();
+		},
+		"this.region"(region) {
+			console.log("this.region", this.region);
+			this.renderCSPlot();
+		},*/
 		pkgDataSelected: {
 			handler: function (n, o) {
 				//if (n.length > 0) {
@@ -527,21 +546,14 @@ export default Vue.component("research-credible-sets-plot", {
 			return content;
 		},
 		renderCSPlot() {
+			var selectedCS = this.pkgDataSelected
+				.filter((s) => s.type == "Credible Set")
+				.map((s) => s.id);
+			//console.log("selectedCS.length", selectedCS.length);
+
 			this.CSPosData = {};
 			let regionStart = this.viewingRegion.start;
 			let regionEnd = this.viewingRegion.end;
-
-			if (Object.keys(this.CSData).length == 0) {
-				if (!!document.getElementById("CSInitialMessage")) {
-					document
-						.getElementById("CSInitialMessage")
-						.classList.remove("hidden");
-				}
-			} else {
-				document
-					.getElementById("CSInitialMessage")
-					.classList.add("hidden");
-			}
 
 			let canvas = document.querySelector("#CSPlot");
 			let wrapper = document.querySelector("#CSPlotWrapper");
@@ -576,110 +588,136 @@ export default Vue.component("research-credible-sets-plot", {
 				ctx = c.getContext("2d");
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-				let renderHeight = this.plotMargin.topMargin;
-				if (Object.keys(this.CSData).length > 0) {
-					for (const [phenotype, credibleSets] of Object.entries(
-						this.CSData
-					)) {
-						ctx.font = "14px Arial";
-						ctx.textAlign = "left";
-						ctx.fillStyle = "#000000";
-						ctx.fillText(
-							phenotype,
-							bump,
-							renderHeight + this.spaceBy
-						);
-
-						renderHeight += phenotypeTitleH;
-
-						this.renderAxis(
-							ctx,
-							plotWidth,
-							plotHeight,
-							regionEnd,
-							regionStart,
-							renderHeight,
-							bump
-						);
-
-						for (const [CSID, credibleSet] of Object.entries(
-							credibleSets
+				if (selectedCS.length > 0) {
+					let renderHeight = this.plotMargin.topMargin;
+					if (Object.keys(this.CSData).length > 0) {
+						for (const [phenotype, credibleSets] of Object.entries(
+							this.CSData
 						)) {
-							let inRegion = 0;
-							credibleSet.map((v) => {
-								if (
-									v.position >= regionStart &&
-									v.position <= regionEnd
-								) {
-									/*let ifInRegion = this.checkIfInRegion(
+							ctx.font = "14px Arial";
+							ctx.textAlign = "left";
+							ctx.fillStyle = "#000000";
+							ctx.fillText(
+								phenotype,
+								bump,
+								renderHeight + this.spaceBy
+							);
+
+							renderHeight += phenotypeTitleH;
+
+							this.renderAxis(
+								ctx,
+								plotWidth,
+								plotHeight,
+								regionEnd,
+								regionStart,
+								renderHeight,
+								bump
+							);
+
+							for (const [CSID, credibleSet] of Object.entries(
+								credibleSets
+							)) {
+								let inRegion = 0;
+								credibleSet.map((v) => {
+									if (
+										v.position >= regionStart &&
+										v.position <= regionEnd
+									) {
+										/*let ifInRegion = this.checkIfInRegion(
 										v.position
 									);
 									if (ifInRegion == true) {*/
-									let xPos =
-										(v[this.renderConfig["x axis field"]] -
-											regionStart) *
-											xPerPixel +
-										this.plotMargin.leftMargin;
-									let yPos =
-										renderHeight +
-										plotHeight -
-										v[[this.renderConfig["y axis field"]]] *
-											yPerPixel;
-									let colorID =
-										v.credibleSetId + ", " + v.phenotype;
-									let dotColor = this.getColorIndex(colorID);
+										let xPos =
+											(v[
+												this.renderConfig[
+													"x axis field"
+												]
+											] -
+												regionStart) *
+												xPerPixel +
+											this.plotMargin.leftMargin;
+										let yPos =
+											renderHeight +
+											plotHeight -
+											v[
+												[
+													this.renderConfig[
+														"y axis field"
+													],
+												]
+											] *
+												yPerPixel;
+										let colorID =
+											v.credibleSetId +
+											", " +
+											v.phenotype;
+										let dotColor =
+											this.getColorIndex(colorID);
 
-									this.renderDot(ctx, xPos, yPos, dotColor);
+										this.renderDot(
+											ctx,
+											xPos,
+											yPos,
+											dotColor
+										);
 
-									if (!this.CSPosData[Math.round(yPos)]) {
-										this.CSPosData[Math.round(yPos)] = {};
-									}
-									if (
-										!this.CSPosData[Math.round(yPos)][
-											Math.round(xPos)
-										]
-									) {
+										if (!this.CSPosData[Math.round(yPos)]) {
+											this.CSPosData[Math.round(yPos)] =
+												{};
+										}
+										if (
+											!this.CSPosData[Math.round(yPos)][
+												Math.round(xPos)
+											]
+										) {
+											this.CSPosData[Math.round(yPos)][
+												Math.round(xPos)
+											] = {};
+										}
+
+										let tempObj = {};
+
+										tempObj["phenotype"] = phenotype;
+										tempObj["position"] =
+											v[
+												this.renderConfig[
+													"x axis field"
+												]
+											];
+
+										this.renderConfig["hover content"].map(
+											(c) => {
+												tempObj[c] = v[c];
+											}
+										);
+
 										this.CSPosData[Math.round(yPos)][
 											Math.round(xPos)
-										] = {};
+										][v[this.renderConfig["render by"]]] =
+											tempObj;
+
+										inRegion++;
+										//}
 									}
+								});
 
-									let tempObj = {};
-
-									tempObj["phenotype"] = phenotype;
-									tempObj["position"] =
-										v[this.renderConfig["x axis field"]];
-
-									this.renderConfig["hover content"].map(
-										(c) => {
-											tempObj[c] = v[c];
-										}
+								if (inRegion == 0) {
+									ctx.font = "14px Arial";
+									ctx.textAlign = "center";
+									ctx.fillStyle = "#000000";
+									ctx.fillText(
+										"No credible variant in the region for " +
+											phenotype,
+										this.plotMargin.leftMargin +
+											plotWidth / 2,
+										renderHeight + plotHeight / 2
 									);
-
-									this.CSPosData[Math.round(yPos)][
-										Math.round(xPos)
-									][v[this.renderConfig["render by"]]] =
-										tempObj;
-
-									inRegion++;
-									//}
 								}
-							});
-
-							if (inRegion == 0) {
-								ctx.font = "14px Arial";
-								ctx.textAlign = "center";
-								ctx.fillStyle = "#000000";
-								ctx.fillText(
-									"No credible variant in the region for " +
-										phenotype,
-									this.plotMargin.leftMargin + plotWidth / 2,
-									renderHeight + plotHeight / 2
-								);
 							}
-						}
 
-						renderHeight += perPhenotype + btwnPhenotype;
+							renderHeight += perPhenotype + btwnPhenotype;
+						}
 					}
 				}
 			}
@@ -866,9 +904,9 @@ export default Vue.component("research-credible-sets-plot", {
 						/[^a-zA-Z0-9 ]/g,
 						""
 					);
-					let bubble = document.getElementById(bubbleId);
+					/*let bubble = document.getElementById(bubbleId);
 
-					bubble.classList.remove("hidden");
+					bubble.classList.remove("hidden");*/
 
 					//this.renderCSPlot();
 				}
