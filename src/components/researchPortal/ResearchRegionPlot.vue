@@ -682,6 +682,14 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		async callForLDData() {
+			const plotWrappers = document.querySelectorAll(
+				".region-plots-wrapper"
+			);
+
+			plotWrappers.forEach(function (plotWrapper) {
+				plotWrapper.classList.remove("hidden");
+			});
+
 			var plotID = null;
 
 			for (var i = 0; i < this.plotsList.length; i++) {

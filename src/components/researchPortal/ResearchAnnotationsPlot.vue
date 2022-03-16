@@ -217,22 +217,32 @@
 																'Annotation'
 														)"
 														:key="annotation.id"
-														v-html="
-															!!tissueValue[
-																annotation.id
-															]
-																? tissueValue[
-																		annotation
-																			.id
-																  ].pValue +
-																  ' / ' +
-																  tissueValue[
-																		annotation
-																			.id
-																  ].fold
-																: ''
-														"
-													></td>
+													>
+														<span
+															v-if="
+																!!annoData[
+																	annotation
+																		.id
+																][tissueKey]
+															"
+															v-html="
+																!!tissueValue[
+																	annotation
+																		.id
+																]
+																	? tissueValue[
+																			annotation
+																				.id
+																	  ].pValue +
+																	  ' / ' +
+																	  tissueValue[
+																			annotation
+																				.id
+																	  ].fold
+																	: ''
+															"
+														></span>
+													</td>
 												</tr>
 											</tbody>
 										</table>
@@ -1842,7 +1852,7 @@ export default Vue.component("research-annotations-plot", {
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
 				let renderHeight = annotationTitleH;
-
+				console.log("this.annoData", this.annoData);
 				for (const [annotation, tissues] of Object.entries(
 					this.annoData
 				)) {
