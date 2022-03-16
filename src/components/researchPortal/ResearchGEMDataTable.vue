@@ -306,7 +306,15 @@ export default Vue.component("research-gem-data-table", {
 
 			if (this.pkgDataSelected.length > 0) {
 				// get the list of the types of filtering credible sets, and tissues X annotations
-				newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
+				var selectedTypes = this.pkgDataSelected.map((p) => p.type);
+				//console.log("selectedTypes", selectedTypes);
+				//newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
+				if (selectedTypes.indexOf("Credible Set") > -1) {
+					newRows.push("Credible Set");
+				}
+				if (selectedTypes.indexOf("Tissue") > -1) {
+					newRows.push("Tissue");
+				}
 
 				//Remove "Annotation" from newRows since we are going to have annotations in tissues column
 				const annoIndex = newRows.indexOf("Annotation");

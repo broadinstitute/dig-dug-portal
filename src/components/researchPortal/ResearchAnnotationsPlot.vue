@@ -443,7 +443,7 @@ export default Vue.component("research-annotations-plot", {
 	watch: {
 		pkgDataSelected: {
 			handler: function (n, o) {
-				console.log("updated", this.pkgDataSelected);
+				//console.log("updated", this.pkgDataSelected);
 				//if (n.length > 0) {
 				this.renderByAnnotations();
 				//this.renderTissuesTracks();
@@ -580,7 +580,7 @@ export default Vue.component("research-annotations-plot", {
 					}
 
 					this.pkgData["overlappingRegions"] = overlappingRegions;
-					console.log("this.pkgData", this.pkgData);
+					//console.log("this.pkgData", this.pkgData);
 				}
 			}
 		},
@@ -1187,12 +1187,12 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		removeAnnoTrack(ANNO) {
-			console.log("called", ANNO);
+			//console.log("called", ANNO);
 			let selectedAnnotations = this.pkgDataSelected
 				.filter((s) => s.type == "Annotation")
 				.map((s) => s.id);
 			const aIndex = selectedAnnotations.indexOf(ANNO);
-			console.log("called2", aIndex, selectedAnnotations);
+			//console.log("called2", aIndex, selectedAnnotations);
 			if (aIndex > -1) {
 				//this.selectedAnnos.splice(aIndex, 1);
 				if (this.pkgData != null) {
@@ -1852,7 +1852,7 @@ export default Vue.component("research-annotations-plot", {
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
 				let renderHeight = annotationTitleH;
-				console.log("this.annoData", this.annoData);
+				//console.log("this.annoData", this.annoData);
 				for (const [annotation, tissues] of Object.entries(
 					this.annoData
 				)) {

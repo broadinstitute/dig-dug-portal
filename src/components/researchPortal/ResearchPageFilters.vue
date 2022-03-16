@@ -602,12 +602,12 @@ export default Vue.component("research-page-filters", {
 
 			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
 
-			this.paramSearch = "";
+			//this.paramSearch = "";
 		},
 		updateSearchInput(event) {
 			var label = this.getFileLabel(event.target.value.trim());
-			console.log(event.target.value);
-			console.log(label);
+			//console.log(event.target.value);
+			//console.log(label);
 			this.paramSearch = label + "(" + event.target.value + ")";
 		},
 		switchData(event) {
