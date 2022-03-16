@@ -60,30 +60,6 @@
 							class=""
 							style="position: absolute; right: 10px; top: 7px"
 						>
-							<!--<b-badge
-								pill
-								v-for="c in credibleSets"
-								:id="getBubbleId(c.credibleSetId, c.phenotype)"
-								:key="c.credibleSetId + ', ' + c.phenotype"
-								:class="'btn search-bubble CS-bubble hidden'"
-								:style="
-									'background-color:' +
-									getColorIndex(
-										c.credibleSetId + ', ' + c.phenotype
-									) +
-									';'
-								"
-								v-html="
-									c.credibleSetId +
-									', ' +
-									c.phenotype +
-									'&nbsp;<span class=\'remove\'>X</span>'
-								"
-								@click="
-									removeCSData(c.credibleSetId, c.phenotype)
-								"
-							></b-badge>-->
-
 							<template v-for="c in credibleSets">
 								<span
 									:id="

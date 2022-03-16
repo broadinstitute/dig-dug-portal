@@ -722,6 +722,7 @@ export default Vue.component("research-region-plot", {
 			} else {
 				this.renderPlots();
 			}
+			this.$forceUpdate();
 		},
 		renderPlots() {
 			let regionStart = this.searchingRegion.start;
