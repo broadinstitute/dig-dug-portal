@@ -19,7 +19,9 @@ export default new Vuex.Store({
         gene: bioIndex("gene")
     },
     state: {
-        variants: []
+        variants: [],
+        pkgData: {},
+        pkgDataSelected: []
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -27,6 +29,27 @@ export default new Vuex.Store({
         },
         setVariants(state, data) {
             state.variants = data;
+        },
+        setPkgData(state, data) {
+            state.pkgData = data;
+        },
+        setPkgDataSelected(state, data) {
+            if (data.action == "add") {
+                var tempObject = { type: null, id: null };
+                tempObject.type = data.type;
+                tempObject.id = data.id;
+                state.pkgDataSelected.push(tempObject);
+            }
+
+            if (data.action == "remove") {
+                let tempArray = [];
+                state.pkgDataSelected.map(p => {
+                    if (p.type != data.type || p.id != data.id) {
+                        tempArray.push(p);
+                    }
+                });
+                state.pkgDataSelected = tempArray;
+            }
         }
     },
     getters: {
@@ -67,6 +90,12 @@ export default new Vuex.Store({
                 .then(results => results.flatMap(data => data))
                 .then(data => uniqBy(data, "varId"));
             context.commit("setVariants", data);
+        },
+        pkgData(context, pkgData) {
+            context.commit("setPkgData", pkgData);
+        },
+        pkgDataSelected(context, data) {
+            context.commit("setPkgDataSelected", data);
         }
     }
 });
