@@ -701,6 +701,7 @@ export default Vue.component("research-region-plot", {
 					break;
 				}
 			}
+
 			if (plotID != null) {
 				let ldURL =
 					"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
