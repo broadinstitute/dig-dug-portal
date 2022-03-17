@@ -168,6 +168,60 @@
                                                 "overlappingRegions"
                                             ]
                                         }}
+                                        <div
+                                            v-if="
+                                                $store.state.pkgData[
+                                                    'overlappingRegions'
+                                                ] &&
+                                                Object.keys(
+                                                    $store.state.pkgData[
+                                                        'overlappingRegions'
+                                                    ]
+                                                ).length !== 0
+                                            "
+                                            class="
+                                                filtering-ui-wrapper
+                                                add-content
+                                            "
+                                            style="
+                                                width: 100%;
+                                                padding: 0 10px;
+                                                text-align: left;
+                                            "
+                                        >
+                                            <div class="filtering-ui-content">
+                                                <div
+                                                    class="col"
+                                                    style="padding: 2px"
+                                                >
+                                                    <div
+                                                        class="label"
+                                                        style="
+                                                            display: inline-block;
+                                                            margin-right: 10px;
+                                                        "
+                                                    >
+                                                        Show overlapping regions
+                                                        by
+                                                    </div>
+                                                    <select
+                                                        class="custom-select"
+                                                        @change="
+                                                            $parent.regionSelectionType(
+                                                                $event
+                                                            )
+                                                        "
+                                                    >
+                                                        <option value="or">
+                                                            Union (OR)
+                                                        </option>
+                                                        <option value="and">
+                                                            Intersection (AND)
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </b-card-body>
                             </b-collapse>

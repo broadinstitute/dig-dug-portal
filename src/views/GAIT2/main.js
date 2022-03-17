@@ -459,6 +459,9 @@ new Vue({
             //return { phenotype: "T2D", samples, data: runResult };
             console.log("runResults: ", this.runResults);
         },
+        regionSelectionType(value) {
+            console.log("regionSelectionType: ", value);
+        },
 
         //this for coding GAIT
         searchCovariances() {
