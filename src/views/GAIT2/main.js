@@ -211,11 +211,7 @@ new Vue({
             selectedVariants: [],
             pageCovariances: null,
             runResults: null,
-            regionSelectionTypes: {
-                or: "Union (OR)",
-                and: "Intersection (AND)"
-            },
-            selectedRegionType: "or"
+            selectedRegionType: "and"
         };
     },
     created() {

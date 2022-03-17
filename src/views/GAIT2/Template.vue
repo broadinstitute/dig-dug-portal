@@ -210,14 +210,11 @@
                                                         "
                                                         class="custom-select"
                                                     >
-                                                        <option
-                                                            v-for="(
-                                                                v, k
-                                                            ) in $parent.regionSelectionTypes"
-                                                            :key="k"
-                                                            :value="k"
-                                                        >
-                                                            {{ v }}
+                                                        <option value="or">
+                                                            Union (OR)
+                                                        </option>
+                                                        <option value="and">
+                                                            Intersection (AND)
                                                         </option>
                                                     </select>
                                                 </div>
