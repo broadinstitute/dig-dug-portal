@@ -210,7 +210,12 @@ new Vue({
             searchCriteria: [],
             selectedVariants: [],
             pageCovariances: null,
-            runResults: null
+            runResults: null,
+            regionSelectionTypes: {
+                or: "Union (OR)",
+                and: "Intersection (AND)"
+            },
+            selectedRegionType: "or"
         };
     },
     created() {

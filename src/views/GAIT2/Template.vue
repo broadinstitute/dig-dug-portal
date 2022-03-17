@@ -205,18 +205,19 @@
                                                         by
                                                     </div>
                                                     <select
-                                                        class="custom-select"
-                                                        @change="
-                                                            $parent.regionSelectionType(
-                                                                $event
-                                                            )
+                                                        v-model="
+                                                            $parent.selectedRegionType
                                                         "
+                                                        class="custom-select"
                                                     >
-                                                        <option value="or">
-                                                            Union (OR)
-                                                        </option>
-                                                        <option value="and">
-                                                            Intersection (AND)
+                                                        <option
+                                                            v-for="(
+                                                                v, k
+                                                            ) in $parent.regionSelectionTypes"
+                                                            :key="k"
+                                                            :value="k"
+                                                        >
+                                                            {{ v }}
                                                         </option>
                                                     </select>
                                                 </div>
