@@ -3,7 +3,7 @@
 		<div class="col-md-12 genes-plot-wrapper">
 			<div
 				id="genesTrackWrapper"
-				:class="plotType == 'region_plot' ? 'col-md-9' : 'col-md-12'"
+				:class="plotType == 'region plot' ? 'col-md-9' : 'col-md-12'"
 			>
 				<canvas
 					id="genesTrack"
@@ -26,7 +26,15 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-genes-track", {
-	props: ["region", "genesData", "plotConfig", "plotType", "plotMargin"],
+	props: [
+		"region",
+		"genesData",
+		"plotConfig",
+		"plotType",
+		"plotMargin",
+		"regionZoom",
+		"regionViewArea",
+	],
 	data() {
 		return {
 			plotRendered: 0,
@@ -53,6 +61,38 @@ export default Vue.component("research-genes-track", {
 
 			return returnObj;
 		},
+		viewingRegion() {
+			if (this.region == null) {
+				return null;
+			} else {
+				let returnObj = {};
+
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
+
+				let regionArr = this.region.split(":")[1].split("-");
+				let chr = this.region.split(":")[0];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+					returnObj["chr"] = chr;
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["chr"] = chr;
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
+
+				return returnObj;
+			}
+		},
 		codingGenes() {
 			let codingGenesData = this.genesData;
 			return codingGenesData;
@@ -61,6 +101,15 @@ export default Vue.component("research-genes-track", {
 	watch: {
 		codingGenes(DATA) {
 			this.renderTrack(this.genesData);
+		},
+		viewingRegion: {
+			handler: function (n, o) {
+				//if (n.length > 0) {
+				this.renderTrack(this.genesData);
+				//}
+			},
+			deep: true,
+			immediate: true,
 		},
 	},
 	methods: {
@@ -85,10 +134,10 @@ export default Vue.component("research-genes-track", {
 				this.plotMargin.bottomMargin +
 				eachGeneTrackHeight * genesArray.length;
 
-			let bump = 5.5;
+			let bump = this.plotMargin.bump;
 
 			let plotWidth =
-				this.plotType == "region_plot"
+				this.plotType == "region plot"
 					? canvasRenderWidth - this.plotMargin.leftMargin * 2
 					: canvasRenderWidth -
 					  (this.plotMargin.leftMargin +
@@ -108,8 +157,8 @@ export default Vue.component("research-genes-track", {
 			ctx.strokeStyle = "#000000";
 			ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
-			let xMin = Number(this.searchingRegion.start),
-				xMax = Number(this.searchingRegion.end);
+			let xMin = Number(this.viewingRegion.start),
+				xMax = Number(this.viewingRegion.end);
 
 			let xStart = this.plotMargin.leftMargin;
 			let yStart = this.plotMargin.topMargin;
@@ -119,66 +168,72 @@ export default Vue.component("research-genes-track", {
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
 			genesArray.map((gene, geneIndex) => {
-				let xStartPos =
-					gene.start > xMin
-						? xStart + (gene.start - xMin) * xPosByPixel
-						: xStart;
-				let xEndPos =
-					gene.end < xMax
-						? xStart + (gene.end - xMin) * xPosByPixel
-						: xStart + (xMax - xMin) * xPosByPixel;
+				if (gene.start <= xMax && gene.end >= xMin) {
+					let xStartPos =
+						gene.start > xMin
+							? xStart + (gene.start - xMin) * xPosByPixel
+							: xStart;
+					let xEndPos =
+						gene.end < xMax
+							? xStart + (gene.end - xMin) * xPosByPixel
+							: xStart + (xMax - xMin) * xPosByPixel;
 
-				let yPos =
-					this.plotMargin.topMargin + geneIndex * eachGeneTrackHeight;
+					let yPos =
+						this.plotMargin.topMargin +
+						geneIndex * eachGeneTrackHeight;
 
-				yPos += yPos % 1 == 0 ? 0.5 : 0;
+					yPos += yPos % 1 == 0 ? 0.5 : 0;
 
-				var left = '"\\u' + "2190" + '"';
-				var right = '"\\u' + "2192" + '"';
+					//var left = '"\\u' + "2190" + '"';
+					//var right = '"\\u' + "2192" + '"';
 
-				let geneName =
-					gene.strand == "+"
-						? gene.gene_name + " " + eval(right)
-						: eval(left) + " " + gene.gene_name;
+					var left = "\u{2190}";
+					var right = "\u{2192}";
 
-				ctx.fillText(
-					geneName,
-					xStartPos + (xEndPos - xStartPos) / 2,
-					yPos
-				);
+					let geneName =
+						gene.strand == "+"
+							? gene.gene_name + " " + right
+							: left + " " + gene.gene_name;
 
-				ctx.beginPath();
-				ctx.lineWidth = 1;
-				ctx.strokeStyle = "#000000";
-				ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+					ctx.fillText(
+						geneName,
+						xStartPos + (xEndPos - xStartPos) / 2,
+						yPos
+					);
 
-				ctx.moveTo(xStartPos, yPos + 10);
-				ctx.lineTo(xEndPos, yPos + 10);
-				ctx.stroke();
+					ctx.beginPath();
+					ctx.lineWidth = 1;
+					ctx.strokeStyle = "#000000";
+					ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
-				gene.exons.map((exon) => {
-					//console.log(gene.gene_name, ": ", exon.start, exon.end);
+					ctx.moveTo(xStartPos, yPos + 10);
+					ctx.lineTo(xEndPos, yPos + 10);
+					ctx.stroke();
 
-					if (exon.start < xMax && exon.end > xMin) {
-						let xonStartPos =
-							exon.start > xMin
-								? xStart + (exon.start - xMin) * xPosByPixel
-								: xStart;
-						let xonEndPos =
-							exon.end < xMax
-								? xStart + (exon.end - xMin) * xPosByPixel
-								: xStart + (xMax - xMin) * xPosByPixel;
+					gene.exons.map((exon) => {
+						//console.log(gene.gene_name, ": ", exon.start, exon.end);
 
-						let xonWidth = xonEndPos - xonStartPos;
+						if (exon.start < xMax && exon.end > xMin) {
+							let xonStartPos =
+								exon.start > xMin
+									? xStart + (exon.start - xMin) * xPosByPixel
+									: xStart;
+							let xonEndPos =
+								exon.end < xMax
+									? xStart + (exon.end - xMin) * xPosByPixel
+									: xStart + (xMax - xMin) * xPosByPixel;
 
-						ctx.fillRect(
-							xonStartPos,
-							yPos + 5,
-							xonWidth - 0.5,
-							9.5
-						);
-					}
-				});
+							let xonWidth = xonEndPos - xonStartPos;
+
+							ctx.fillRect(
+								xonStartPos,
+								yPos + 5,
+								xonWidth - 0.5,
+								9.5
+							);
+						}
+					});
+				}
 			});
 		},
 	},

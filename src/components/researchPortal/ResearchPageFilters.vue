@@ -19,21 +19,123 @@
 					v-for="parameter in this.apiParameters.parameters"
 					:key="parameter.parameter"
 				>
-					<div class="label" v-html="parameter.label"></div>
-					<select
-						:id="'search_param_' + parameter.parameter"
-						class="custom-select"
-						v-if="parameter.type == 'list'"
+					<div class="label">
+						<span v-html="parameter.label"></span>
+					</div>
+					<template
+						v-if="
+							parameter.type == 'list' &&
+							parameter.values.length <= 10
+						"
 					>
-						<option
-							v-for="param in parameter.values"
-							:value="param.trim()"
-							v-html="getFileLabel(param.trim())"
-							:key="param.trim()"
-						></option>
-					</select>
+						<select
+							:id="'search_param_' + parameter.parameter"
+							class="custom-select custom-select-search"
+							v-if="parameter.type == 'list'"
+						>
+							<template v-for="param in parameter.values">
+								<option
+									:value="param.trim()"
+									v-html="getFileLabel(param.trim())"
+									:key="param.trim()"
+								></option>
+							</template>
+						</select>
+					</template>
+					<template
+						v-if="
+							parameter.type == 'list' &&
+							parameter.values.length > 10
+						"
+					>
+						<input
+							v-model="paramSearch"
+							placeholder=""
+							class="form-control"
+						/>
+
+						<select
+							:id="'search_param_' + parameter.parameter"
+							:class="
+								'custom-select custom-select-search ' +
+								getVisibleValues(parameter.values, paramSearch)
+							"
+							:size="
+								parameter.values.length > 10
+									? paramSearch.length > 2
+										? 5
+										: 1
+									: 'auto'
+							"
+							:style="
+								parameter.values.length > 10 &&
+								paramSearch.length <= 2
+									? 'display:none !important;'
+									: ''
+							"
+							v-if="parameter.type == 'list'"
+							@change="updateSearchInput($event)"
+						>
+							<option
+								v-for="param in parameter.values"
+								:value="param.trim()"
+								v-html="getFileLabel(param.trim())"
+								:key="param.trim()"
+								:class="
+									parameter.values.length > 10 &&
+									paramSearch.length > 2 &&
+									!getFileLabel(param.trim())
+										.toLowerCase()
+										.includes(paramSearch.toLowerCase())
+										? 'hidden'
+										: ''
+								"
+							></option>
+						</select>
+					</template>
+
+					<div
+						v-if="
+							parameter.type == 'input' &&
+							parameter.values == 'kp genes'
+						"
+						id="kp_gene_search_wrapper"
+					>
+						<input
+							v-model="geneSearch"
+							placeholder=""
+							class="form-control"
+							@keyup="getGenes($event)"
+							:id="'search_param_' + parameter.parameter"
+						/>
+
+						<div
+							class="custom-select custom-select-search"
+							:size="kpGenes.length >= 5 ? 5 : 'auto'"
+							:style="
+								kpGenes.length == 0
+									? 'display:none !important;'
+									: ''
+							"
+						>
+							<template v-for="gene in kpGenes">
+								<a
+									href="javascript:;"
+									v-html="gene"
+									:key="gene"
+									@click="
+										getRegion(gene, parameter.parameter)
+									"
+									class="custom-select-a-option"
+								></a>
+							</template>
+						</div>
+					</div>
 					<input
-						v-if="parameter.type == 'input'"
+						v-if="
+							parameter.type == 'input' &&
+							parameter.values != 'kp genes'
+						"
 						type="text"
 						class="form-control"
 						:id="'search_param_' + parameter.parameter"
@@ -88,6 +190,7 @@
 				</div>
 			</div>
 		</div>
+
 		<div
 			class="filtering-ui-wrapper search-criteria"
 			id="searchCriteria"
@@ -135,10 +238,10 @@
 					<template
 						v-if="
 							filter.type == 'search' ||
-							filter.type == 'search_gt' ||
-							filter.type == 'search_lt' ||
-							filter.type == 'search_or' ||
-							filter.type == 'search_and'
+							filter.type == 'search greater than' ||
+							filter.type == 'search lower than' ||
+							filter.type == 'search or' ||
+							filter.type == 'search and'
 						"
 					>
 						<input
@@ -150,7 +253,7 @@
 							"
 						/>
 					</template>
-					<template v-if="filter.type == 'search_cd'">
+					<template v-if="filter.type == 'search change direction'">
 						<select
 							class="egl-filter-direction"
 							:id="
@@ -215,7 +318,7 @@
 					:class="'btn search-bubble ' + i"
 					@click="removeFilter(value.field, i)"
 					v-html="
-						value.labelInBubble == true
+						value['label in bubble'] == true
 							? value.field +
 							  ': ' +
 							  v +
@@ -264,6 +367,9 @@ export default Vue.component("research-page-filters", {
 		return {
 			filtersIndex: {},
 			searchParamsIndex: {},
+			paramSearch: "",
+			geneSearch: "",
+			kpGenes: [],
 		};
 	},
 	created() {
@@ -275,8 +381,8 @@ export default Vue.component("research-page-filters", {
 				tempObj["type"] = f.type;
 				tempObj["field"] = f.field;
 				tempObj["search"] = [];
-				tempObj["labelInBubble"] =
-					!!f.labelInBubble && f.labelInBubble == "true"
+				tempObj["label in bubble"] =
+					!!f["label in bubble"] && f["label in bubble"] == "true"
 						? true
 						: false;
 				this.filtersIndex[f.field] = tempObj;
@@ -329,6 +435,61 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		showHideElement(ELEMENT) {
+			uiUtils.showHideElement(ELEMENT);
+		},
+		getVisibleValues(VALUES, SEARCH) {
+			var numOfVisible = 0;
+
+			VALUES.map((v) => {
+				if (
+					!!this.getFileLabel(v.trim())
+						.toLowerCase()
+						.includes(SEARCH.toLowerCase())
+				) {
+					numOfVisible++;
+				}
+			});
+
+			numOfVisible = numOfVisible == 0 ? "hidden" : "";
+			return numOfVisible;
+		},
+		async getRegion(KEY, PARAM) {
+			let searchPoint =
+				"https://bioindex.hugeamp.org/api/bio/query/gene?q=" + KEY;
+
+			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
+
+			if (geneJson.error == null) {
+				let region =
+					geneJson.data[0].chromosome +
+					":" +
+					geneJson.data[0].start +
+					"-" +
+					geneJson.data[0].end;
+				//document.getElementById("search_param_" + PARAM).value = region;
+				//document.getElementById("kp_gene_search").value = region;
+				this.geneSearch = region;
+				this.kpGenes = [];
+				//uiUtils.hideElement("kp_gene_search_wrapper");
+			}
+		},
+		async getGenes(EVENT) {
+			if (EVENT.target.value.length > 2) {
+				let searchPoint =
+					"https://bioindex.hugeamp.org/api/bio/match/gene?q=" +
+					EVENT.target.value;
+
+				var geneJson = await fetch(searchPoint).then((resp) =>
+					resp.json()
+				);
+
+				if (geneJson.error == null) {
+					this.kpGenes = geneJson.data;
+				}
+			}
+		},
+		emptySearchInput(ID) {},
 		showHideSearch() {
 			let searchUIWrapper = document.getElementById("searchCriteria");
 			let searchUIHandle = document.getElementById("openCloseSearch");
@@ -410,6 +571,10 @@ export default Vue.component("research-page-filters", {
 							document.getElementById("search_param_" + param)
 								.value
 						);
+						if (!!this.$store.state.pkgDataSelected.length > 0) {
+							this.$store.state.pkgDataSelected = [];
+							this.$store.state.pkgData = {};
+						}
 					} else {
 						this.searchParamsIndex[param].search.push(
 							document.getElementById("search_param_" + param)
@@ -436,6 +601,14 @@ export default Vue.component("research-page-filters", {
 			let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
 			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+
+			//this.paramSearch = "";
+		},
+		updateSearchInput(event) {
+			var label = this.getFileLabel(event.target.value.trim());
+			//console.log(event.target.value);
+			//console.log(label);
+			this.paramSearch = label + "(" + event.target.value + ")";
 		},
 		switchData(event) {
 			uiUtils.showElement("data-loading-indicator");
@@ -527,10 +700,10 @@ export default Vue.component("research-page-filters", {
 					]["search"].filter((v, i, arr) => arr.indexOf(v) == i);
 				});
 			} else if (
-				TYPE == "search_gt" ||
-				TYPE == "search_lt" ||
-				TYPE == "search_or" ||
-				TYPE == "search_and"
+				TYPE == "search greater than" ||
+				TYPE == "search lower than" ||
+				TYPE == "search or" ||
+				TYPE == "search and"
 			) {
 				this.filtersIndex[FIELD]["search"] = [searchValue];
 			} else {
@@ -548,7 +721,7 @@ export default Vue.component("research-page-filters", {
 		applyFilters() {
 			let comparingFields =
 				this.dataComparisonConfig != null
-					? this.dataComparisonConfig.fieldsToCompare
+					? this.dataComparisonConfig["fields to compare"]
 					: null;
 			let filtered = this.unfilteredDataset;
 			let tempFiltered = comparingFields == null ? [] : {};
@@ -572,7 +745,7 @@ export default Vue.component("research-page-filters", {
 									});
 								} else if (
 									searchIndex.type == "search" ||
-									searchIndex.type == "dropdown_word"
+									searchIndex.type == "dropdown word"
 								) {
 									targetData.filter((row) => {
 										if (
@@ -583,19 +756,23 @@ export default Vue.component("research-page-filters", {
 											tempFiltered.push(row);
 										}
 									});
-								} else if (searchIndex.type == "search_gt") {
+								} else if (
+									searchIndex.type == "search greater than"
+								) {
 									targetData.filter((row) => {
 										if (row[searchIndex.field] >= search) {
 											tempFiltered.push(row);
 										}
 									});
-								} else if (searchIndex.type == "search_lt") {
+								} else if (
+									searchIndex.type == "search lower than"
+								) {
 									targetData.filter((row) => {
 										if (row[searchIndex.field] <= search) {
 											tempFiltered.push(row);
 										}
 									});
-								} else if (searchIndex.type == "search_or") {
+								} else if (searchIndex.type == "search or") {
 									let searchVals = search.split(",");
 									targetData.filter((row) => {
 										if (
@@ -607,7 +784,10 @@ export default Vue.component("research-page-filters", {
 											tempFiltered.push(row);
 										}
 									});
-								} else if (searchIndex.type == "search_cd") {
+								} else if (
+									searchIndex.type ==
+									"search change direction"
+								) {
 									let searchDirection =
 										document.getElementById(
 											"filter_" +
@@ -633,7 +813,7 @@ export default Vue.component("research-page-filters", {
 											}
 										}
 									});
-								} else if (searchIndex.type == "search_and") {
+								} else if (searchIndex.type == "search and") {
 									let searchVals = search.split(",");
 									targetData.filter((row) => {
 										if (
@@ -671,7 +851,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -682,7 +864,9 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -690,7 +874,7 @@ export default Vue.component("research-page-filters", {
 									}
 								} else if (
 									searchIndex.type == "search" ||
-									searchIndex.type == "dropdown_word"
+									searchIndex.type == "dropdown word"
 								) {
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
@@ -718,7 +902,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -732,13 +918,17 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_gt") {
+								} else if (
+									searchIndex.type == "search greater than"
+								) {
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
 										if (
@@ -761,7 +951,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -771,13 +963,17 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_lt") {
+								} else if (
+									searchIndex.type == "search lower than"
+								) {
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
 										if (
@@ -800,7 +996,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -810,13 +1008,15 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_or") {
+								} else if (searchIndex.type == "search or") {
 									let searchVals = search.split(",");
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
@@ -843,7 +1043,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -856,13 +1058,18 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_cd") {
+								} else if (
+									searchIndex.type ==
+									"search change direction"
+								) {
 									let searchDirection =
 										document.getElementById(
 											"filter_" +
@@ -896,7 +1103,9 @@ export default Vue.component("research-page-filters", {
 												if (meetSearch == true) {
 													tempFiltered[
 														row[
-															this.dataComparisonConfig.keyField
+															this.dataComparisonConfig[
+																"key field"
+															]
 														]
 													] = row;
 												}
@@ -907,7 +1116,9 @@ export default Vue.component("research-page-filters", {
 												) {
 													tempFiltered[
 														row[
-															this.dataComparisonConfig.keyField
+															this.dataComparisonConfig[
+																"key field"
+															]
 														]
 													] = row;
 												}
@@ -936,7 +1147,9 @@ export default Vue.component("research-page-filters", {
 												if (meetSearch == true) {
 													tempFiltered[
 														row[
-															this.dataComparisonConfig.keyField
+															this.dataComparisonConfig[
+																"key field"
+															]
 														]
 													] = row;
 												}
@@ -947,14 +1160,16 @@ export default Vue.component("research-page-filters", {
 												) {
 													tempFiltered[
 														row[
-															this.dataComparisonConfig.keyField
+															this.dataComparisonConfig[
+																"key field"
+															]
 														]
 													] = row;
 												}
 											}
 										}
 									}
-								} else if (searchIndex.type == "search_and") {
+								} else if (searchIndex.type == "search and") {
 									let searchVals = search.split(",");
 									for (var rowNum in targetData) {
 										let row = targetData[rowNum];
@@ -981,7 +1196,9 @@ export default Vue.component("research-page-filters", {
 											if (meetSearch == true) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -994,7 +1211,9 @@ export default Vue.component("research-page-filters", {
 											) {
 												tempFiltered[
 													row[
-														this.dataComparisonConfig.keyField
+														this.dataComparisonConfig[
+															"key field"
+														]
 													]
 												] = row;
 											}
@@ -1033,6 +1252,56 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
+#kp_gene_search_wrapper {
+	/*position: absolute;
+	background-color: #efefef;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	padding: 10px 10px;
+	z-index: 10;
+	left: 50px;*/
+}
+.custom-select-search {
+	width: auto !important;
+	min-width: 175px;
+}
+
+.custom-select-search.hidden {
+	display: none !important;
+}
+
+.custom-select-search option {
+	width: auto;
+	min-width: 175px;
+	display: block;
+	padding: 5px 0px;
+	border-bottom: solid 1px #ddd;
+}
+
+.custom-select-search option.hidden {
+	display: none;
+}
+
+div.custom-select-search {
+	overflow-y: auto;
+	height: auto;
+	max-height: 250px;
+}
+
+.custom-select-a-option {
+	display: block;
+	width: 100%;
+	border-bottom: solid 1px #eee;
+	font-size: 14px;
+	color: #666666 !important;
+	background-color: #ffffff;
+}
+
+.custom-select-a-option:hover {
+	color: #333333 !important;
+	background-color: #efefef;
+	text-decoration: none;
+}
 .clear-all-filters-bubble {
 	background-color: #ff0000;
 }

@@ -15,6 +15,11 @@
 					: 'research-portal-header'
 			"
 			:researchMenu="$parent.researchMenu"
+			:headerLogo="
+				$parent.displayOnKP == true || $parent.headerLogo == false
+					? null
+					: $parent.headerLogo
+			"
 		></research-page-header>
 
 		<!-- Body -->
@@ -93,6 +98,17 @@
 					</div>
 				</div>
 			</div>
+
+			<div class="card mdkp-card" v-if="$parent.pageDescription != null">
+				<div class="row card-body">
+					<div class="col-md-12">
+						<research-page-description
+							:content="$parent.pageDescription"
+						></research-page-description>
+					</div>
+				</div>
+			</div>
+
 			<!-- tabs nav -->
 			<div
 				class="kp-tabs-wrapper"
@@ -135,10 +151,6 @@
 					<div class="row">
 						<div
 							class="col-md-12"
-							v-html="$parent.pageDescription"
-						></div>
-						<div
-							class="col-md-12"
 							v-if="
 								($parent.dataFilters != null &&
 									$parent.researchData != null &&
@@ -150,7 +162,8 @@
 							<research-page-filters
 								:dataFiles="$parent.dataFiles"
 								:filesListLabels="
-									$parent.dataFiles.length > 1
+									$parent.dataFiles.length > 1 ||
+									$parent.dataFilesLabels != false
 										? $parent.dataFilesLabels
 										: null
 								"
@@ -169,6 +182,100 @@
 
 						<!-- plots -->
 						<div
+							class="col-md-12 zoom-ui-wrapper"
+							v-if="
+								!!$parent.plotConfig &&
+								!!$parent.plotConfig.zoom &&
+								$parent.plotConfig.zoom == 'true'
+							"
+						>
+							<span>Zoom plots</span>
+
+							<form class="zoom-radio-wrapper">
+								<span
+									class="zoom-radio-number"
+									@click="
+										$parent.regionZoom -=
+											$parent.regionZoom != 0 ? 10 : 0
+									"
+									><b-icon icon="zoom-out"></b-icon
+								></span>
+
+								<input
+									v-for="value in [
+										0, 10, 20, 30, 40, 50, 60, 70, 80, 90,
+									]"
+									type="radio"
+									name="regionZoom"
+									:value="value"
+									@click="$parent.regionZoom = value"
+									:class="
+										$parent.regionZoom == value
+											? 'zoom-radio checked'
+											: 'zoom-radio'
+									"
+									:key="value"
+								/>
+
+								<span
+									class="zoom-radio-number"
+									@click="
+										$parent.regionZoom +=
+											$parent.regionZoom != 90 ? 10 : 0
+									"
+									><b-icon icon="zoom-in"></b-icon
+								></span>
+							</form>
+
+							<span>Move viewing area</span>
+							<form class="zoom-radio-wrapper">
+								<span
+									class="zoom-radio-number"
+									@click="
+										$parent.regionViewArea -=
+											$parent.regionViewArea != -100 &&
+											$parent.regionZoom != 0
+												? 20
+												: 0
+									"
+									><b-icon icon="arrow-left-circle"></b-icon
+								></span>
+								<input
+									v-for="value in [
+										-100, -80, -60, -40, -20, 0, 20, 40, 60,
+										80, 100,
+									]"
+									type="radio"
+									name="regionViewArea"
+									:value="value"
+									@click="
+										$parent.regionZoom != 0
+											? ($parent.regionViewArea = value)
+											: ''
+									"
+									:class="
+										$parent.regionViewArea == value
+											? 'zoom-radio checked'
+											: value == 0
+											? 'zoom-radio center'
+											: 'zoom-radio'
+									"
+									:key="value"
+								/>
+								<span
+									class="zoom-radio-number"
+									@click="
+										$parent.regionViewArea +=
+											$parent.regionViewArea != 100 &&
+											$parent.regionZoom != 0
+												? 20
+												: 0
+									"
+									><b-icon icon="arrow-right-circle"></b-icon
+								></span>
+							</form>
+						</div>
+						<div
 							:class="'col-md-12 ' + $parent.plotClass"
 							v-if="$store.state.filteredData != ''"
 						>
@@ -176,28 +283,32 @@
 								class="plot-legend"
 								v-html="$parent.plotLegend"
 							></div>
+							<!--v-if="$parent.plotType == 'm_plot'"-->
 							<research-m-plot
-								v-if="$parent.plotType == 'm_plot'"
-								:plotData="$store.state.filteredData"
-								:locusKey="$parent.plotConfig['locusKey']"
-								:scoreKey="$parent.plotConfig['scoreKey']"
-								:renderBy="$parent.plotConfig['renderBy']"
-								:yAxisLabel="$parent.plotConfig['yAxisLabel']"
-								:xAxisLabel="$parent.plotConfig['xAxisLabel']"
-								:popUpContent="
-									$parent.plotConfig['hoverContent']
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] ==
+										'manhattan plot'
 								"
+								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-m-plot>
-
+							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-bitmap-plot
-								v-if="$parent.plotType == 'mbm_plot'"
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] ==
+										'manhattan bitmap plot'
+								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
-								:filtersIndex="$store.state.filtersIndex"
 							></research-m-bitmap-plot>
+							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
-								v-if="$parent.plotType == 'region_plot'"
+								v-if="
+									!!$parent.plotConfig &&
+									$parent.plotConfig['type'] == 'region plot'
+								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 								:searchParameters="
@@ -209,10 +320,15 @@
 								:region="$store.state.searchingRegion"
 								:plotMargin="$parent.plotMargin"
 								:compareGroupColors="$parent.colors.moderate"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
 							></research-region-plot>
-
+							<!--v-if="$parent.plotType == 'score_plot'"-->
 							<research-score-plot
-								v-if="$parent.plotType == 'score_plot'"
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'score plot'
+								"
 								:plotData="$parent.filteredData"
 								:renderConfig="$parent.plotConfig"
 								:dataComparisonConfig="
@@ -227,37 +343,57 @@
 							<research-genes-track
 								v-if="
 									$parent.plotConfig != null &&
-									$parent.plotType != 'gem_pkg' &&
-									!!$parent.plotConfig.genesTrack &&
+									$parent.plotConfig['type'] !=
+										'gem package' &&
+									!!$parent.plotConfig['genes track'] &&
 									$store.state.codingGenesData != null
 								"
 								:region="$store.state.searchingRegion"
 								:genesData="$store.state.codingGenesData"
 								:plotConfig="$parent.plotConfig"
-								:plotType="$parent.plotType"
+								:plotType="$parent.plotConfig['type']"
 								:plotMargin="$parent.plotMargin"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
 							></research-genes-track>
+							<!--v-if="$parent.plotType == 'volcano_plot'"-->
 							<research-volcano-plot
-								v-if="$parent.plotType == 'volcano_plot'"
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'volcano plot'
+								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-volcano-plot>
-
+							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-heatmap
-								v-if="$parent.plotType == 'h_map'"
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'heat map'
+								"
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-heatmap>
-
-							<kp-data-viewer-pkg
-								v-if="$parent.plotType == 'gem_pkg'"
+							<!--v-if="
+									$parent.plotType == 'custom_pkg' &&
+									$parent.customPlotType == 'gem package'
+								"-->
+							<kp-gem-pkg
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'gem package'
+								"
 								:pkgConfig="$parent.plotConfig"
+								:pkgData="$store.state.pkgData"
 								:plotMargin="$parent.plotMargin"
 								:dataComparisonConfig="
 									$parent.dataComparisonConfig
 								"
 								:colors="$parent.colors"
-							></kp-data-viewer-pkg>
+								:pkgDataSelected="$store.state.pkgDataSelected"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
+							></kp-gem-pkg>
 						</div>
 						<div
 							class="col-md-12"
@@ -267,6 +403,7 @@
 							"
 						>
 							<research-data-table
+								v-if="!$parent.dataTableFormat['custom table']"
 								:pageID="$parent.pageID"
 								:dataset="$parent.filteredData"
 								:tableFormat="$parent.dataTableFormat"
@@ -280,6 +417,27 @@
 								"
 							>
 							</research-data-table>
+							<research-gem-data-table
+								v-if="
+									!!$parent.dataTableFormat['custom table'] &&
+									$parent.dataTableFormat['custom table']
+										.name == 'gem package'
+								"
+								:pageID="$parent.pageID"
+								:dataset="$parent.filteredData"
+								:tableFormat="$parent.dataTableFormat"
+								:initPerPageNumber="$parent.tablePerPageNumber"
+								:tableLegend="$parent.tableLegend"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:searchParameters="
+									$store.state.searchParameters
+								"
+								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
+							>
+							</research-gem-data-table>
 						</div>
 					</div>
 				</div>
@@ -327,4 +485,56 @@
 
 <style>
 @import url("/css/effectorGenes.css");
+html {
+	font-size: 14px !important;
+}
+.zoom-ui-wrapper {
+	font-size: 13px;
+	font-weight: 700;
+	text-align: right;
+	margin-bottom: 15px;
+}
+.zoom-radio-wrapper {
+	width: auto;
+	display: inline-block;
+	font-size: 15px;
+	font-weight: 300;
+	border: solid 1px #ddd;
+	padding: 3px 7px 0 7px;
+	border-radius: 15px;
+	margin: 0 10px 0 5px;
+}
+.zoom-radio {
+	box-sizing: border-box;
+	appearance: none;
+	background: #eeeeee;
+	outline: none;
+	border: none;
+	width: 8px;
+	height: 15px;
+	margin: 0 1px;
+}
+.zoom-radio.center {
+	background: #bbbbbb;
+}
+.zoom-radio:hover {
+	background: #666666;
+	cursor: pointer;
+}
+
+.zoom-radio.checked {
+	background: #05bd02;
+}
+
+.zoom-radio-number {
+	display: inline-block;
+	vertical-align: 2px;
+	color: #000000;
+	margin: 0 2px;
+}
+
+.zoom-radio-number:hover {
+	color: #3388ff;
+	cursor: pointer;
+}
 </style>

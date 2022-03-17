@@ -18,8 +18,10 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import ResearchGEMDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
@@ -27,7 +29,8 @@ import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.v
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
-import kpDataViewerPkg from "@/components/kpDataViewer/kpDataViewerPkg.vue";
+import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
+import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import uiUtils from "@/utils/uiUtils";
 import $ from "jquery";
 import keyParams from "@/utils/keyParams";
@@ -45,8 +48,11 @@ new Vue({
         PageFooter,
         ResearchPageHeader,
         ResearchPageFooter,
+        ResearchPageDescription,
         ResearchPageFilters,
         ResearchDataTable,
+        ResearchAnnotationsPlot,
+        ResearchGEMDataTable,
         ResearchMPlotBitmap,
         ResearchRegionPlot,
         ResearchScorePlot,
@@ -54,11 +60,13 @@ new Vue({
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,
-        kpDataViewerPkg,
+        kpGEMPkg,
         Documentation
     },
     data() {
         return {
+            regionZoom: 0,
+            regionViewArea: 0,
             devID: null,
             devPW: null,
             dataFiles: [],
@@ -81,7 +89,7 @@ new Vue({
                     "#cccc0025",
                     "#6FC7B625",
                     "#D5A76825",
-                    "#d4d4d425",
+                    "#d4d4d425"
                 ],
                 moderate: [
                     "#007bff50",
@@ -99,7 +107,7 @@ new Vue({
                     "#cccc0050",
                     "#6FC7B650",
                     "#D5A76850",
-                    "#d4d4d450",
+                    "#d4d4d450"
                 ],
                 bold: [
                     "#007bff75",
@@ -117,7 +125,7 @@ new Vue({
                     "#cccc0075",
                     "#6FC7B675",
                     "#D5A76875",
-                    "#d4d4d475",
+                    "#d4d4d475"
                 ],
                 extraBold: [
                     "#007bff",
@@ -135,7 +143,7 @@ new Vue({
                     "#cccc00",
                     "#6FC7B6",
                     "#D5A768",
-                    "#d4d4d4",
+                    "#d4d4d4"
                 ],
             },
 
@@ -460,12 +468,30 @@ new Vue({
         checkDataComparison(newResearchData, previousData) {
 
             let dataComparison = this.$store.state.dataComparison;
-            console.log("dataComparison", dataComparison);
+
 
             if (this.dataComparisonConfig != null && newResearchData.length > 0) {
 
-                let comparingFields = this.dataComparisonConfig.fieldsToCompare;
-                let fieldGroupKeyValue = document.getElementById("search_param_" + this.dataComparisonConfig.fieldsGroupDataKey).value;
+                let comparingFields = this.dataComparisonConfig["fields to compare"];
+
+                let fieldGroupKeyValue = "";
+                let keyParamIndex = 1;
+                let groupKeysLength = this.dataComparisonConfig["fields group data key"].length;
+
+                this.dataComparisonConfig["fields group data key"].map(keyParam => {
+                    if (groupKeysLength == 1) {
+                        fieldGroupKeyValue = document.getElementById("search_param_" + keyParam).value;
+                    }
+                    if (groupKeysLength > 1) {
+                        if (keyParamIndex < groupKeysLength) {
+                            fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value + " ";
+                        } else {
+                            fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value;
+                        }
+                        keyParamIndex++
+                    }
+                })
+
                 let processedData = {};
 
                 switch (dataComparison) {
@@ -474,7 +500,7 @@ new Vue({
 
 
                         newResearchData.map(d => {
-                            let keyField = d[this.dataComparisonConfig.keyField];
+                            let keyField = d[this.dataComparisonConfig["key field"]];
                             let tempObj = {};
                             for (const [key, value] of Object.entries(d)) {
                                 if (comparingFields.includes(key) == true) {
@@ -498,7 +524,7 @@ new Vue({
 
 
                         newResearchData.map(d => {
-                            let keyFieldID = d[this.dataComparisonConfig.keyField];
+                            let keyFieldID = d[this.dataComparisonConfig["key field"]];
                             if (!!previousData[keyFieldID]) {
                                 processedData[keyFieldID] = previousData[keyFieldID]
                                 comparingFields.map(cf => {
@@ -517,7 +543,7 @@ new Vue({
                         //let allData = {};
 
                         newResearchData.map(d => {
-                            let keyFieldID = d[this.dataComparisonConfig.keyField];
+                            let keyFieldID = d[this.dataComparisonConfig["key field"]];
                             if (!!previousData[keyFieldID]) {
                                 processedData[keyFieldID] = previousData[keyFieldID]
                                 comparingFields.map(cf => {
@@ -568,12 +594,25 @@ new Vue({
     },
 
     computed: {
+        kpGenes() {
+            return kpGenes;
+        },
         apiParameters() {
             let contents = this.researchPage;
             if (contents === null || contents[0]["field_api_parameters"] == false) {
                 return null;
             } else {
-                return JSON.parse(contents[0]["field_api_parameters"]);
+                let apiConfig = JSON.parse(contents[0]["field_api_parameters"]);
+                let parameters = apiConfig.parameters;
+
+                parameters.map(pr => {
+                    if (pr.parameter == 'phenotype' && pr.values == "kp phenotypes") {
+                        let values = this.$store.state.bioPortal.phenotypes.map(p => p.name).sort();
+                        pr.values = values;
+                    }
+                });
+
+                return apiConfig;
             }
         },
         dataComparisonConfig() {
@@ -664,10 +703,12 @@ new Vue({
             return true;
         },
         plotMargin() {
-            return { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50 }
+            return { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50, bump: 5.5 }
         },
         pageDescription() {
             let contents = this.researchPage;
+
+            //console.log("contents", contents);
 
             if (contents === null || contents[0]["body"] == false) {
                 return null;
@@ -694,7 +735,17 @@ new Vue({
             if (contents === null || contents[0]["field_data_visualizer"] == false) {
                 return null;
             }
+
             return contents[0]["field_data_visualizer"];
+        },
+        customPlotType() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_custom_visualizer"] == false) {
+                return null;
+            }
+
+            return contents[0]["field_custom_visualizer"];
         },
         plotConfig() {
             let contents = this.researchPage;
@@ -759,11 +810,31 @@ new Vue({
         },
         researchMenu() {
             let contents = this.$store.state.hugeampkpncms.researchMenu;
+            //console.log("menu contents", contents)
 
             if (contents.length === 0) {
                 return null;
             }
+
             return JSON.parse(contents[0].field_menu);
+        },
+        headerLogo() {
+            let contents = this.$store.state.hugeampkpncms.researchMenu;
+
+            if (contents.length === 0) {
+                return null;
+            }
+
+            return contents[0].field_header_logo;
+        },
+        portalStyle() {
+            let contents = this.$store.state.hugeampkpncms.researchMenu;
+
+            if (contents.length === 0) {
+                return null;
+            }
+
+            return contents[0].field_portal_style;
         },
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
@@ -817,7 +888,7 @@ new Vue({
                 } else {
                     let returnData = (this.dataType == 'json') ? JSON.parse(convertedData).data : convertedData;
 
-                    //console.log("returnData", convertedData["data"]);
+
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
@@ -923,12 +994,23 @@ new Vue({
                 this.$store.dispatch("hugeampkpncms/getResearchPage", { 'pageID': keyParams.pageid });
             }
         },
+        portalStyle(style) {
+
+            //console.log("style", style);
+            if (style != false && style != null) {
+
+                this.addcss(style);
+            }
+        },
         researchPage(content) {
             if (content.length != 0 && content != null) {
+
                 if (content[0]["field_page_style"] != false) {
                     let css = content[0]["field_page_style"];
                     this.addcss(css);
                 }
+
+
                 //set Table format
                 if (content[0]["field_data_table_format"] != false) {
 
@@ -941,7 +1023,37 @@ new Vue({
                     let dataFiles = content[0]["field_data_points"].split(",");
 
                     this.dataFiles = dataFiles;
-                    this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+
+                    /// in case of phenotypes == kp phenotypes
+
+                    let apis = JSON.parse(content[0]["field_api_parameters"]);
+
+                    //console.log("apis", apis);
+                    let isKPPhenotype = false;
+
+                    if (!!apis) {
+                        apis.parameters.map(pr => {
+                            if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
+                                isKPPhenotype = true;
+                            }
+                        })
+                    }
+
+
+                    if (isKPPhenotype == true) {
+                        let kpPhenotypes = this.$store.state.bioPortal.phenotypes
+                        let tempObj = {};
+
+                        kpPhenotypes.map(p => {
+                            tempObj[p.name] = p.description;
+                        });
+
+                        this.dataFilesLabels = tempObj;
+
+                    } else {
+                        this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+                    }
+
 
                     let initialData = dataFiles[0];
 
@@ -983,14 +1095,14 @@ new Vue({
             // reset searching region if applicable
 
             if (this.plotConfig != null &&
-                !!this.plotConfig.genesTrack) {
+                !!this.plotConfig["genes track"]) {
                 let region;
-                switch (this.plotConfig.genesTrack.inputType) {
+                switch (this.plotConfig["genes track"]["input type"]) {
                     case "static":
-                        region = this.plotConfig.genesTrack.region;
+                        region = this.plotConfig["genes track"].region;
                         break;
                     case "dynamic":
-                        let regionParam = this.plotConfig.genesTrack.dynamicParameter;
+                        let regionParam = this.plotConfig["genes track"]["dynamic parameter"];
                         let searchLength = this.$store.state.searchParameters[regionParam].search.length
                         region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
 
@@ -1006,7 +1118,7 @@ new Vue({
 
                 let allData = this.checkDataComparison(content, this.$store.state.filteredData);
 
-                console.log("All data 2", Object.keys(allData).length);
+
 
                 if (this.dataTableFormat == null) {
 
