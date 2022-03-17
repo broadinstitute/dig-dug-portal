@@ -121,7 +121,7 @@
 
                                     <div id="annotation-plot-container">
                                         <research-annotations-plot
-                                            :region="'1:227615-267253'"
+                                            :region="$parent.searchRegionString"
                                             :phenotype="'T2D'"
                                             :renderConfig="{
                                                 'annotations server':

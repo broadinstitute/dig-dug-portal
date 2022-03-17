@@ -211,7 +211,12 @@ new Vue({
             selectedVariants: [],
             pageCovariances: null,
             runResults: null,
-            selectedRegionType: "and"
+            selectedRegionType: "and",
+            searchRegion: {
+                chrom: "",
+                start: "",
+                stop: ""
+            }
         };
     },
     created() {
@@ -287,6 +292,9 @@ new Vue({
                     return v.field === "test";
                 })
                 .map(v => v.threshold);
+        },
+        searchRegionString() {
+            return `${this.searchRegion.chrom}:${this.searchRegion.start}-${this.searchRegion.stop}`;
         }
     },
     methods: {
@@ -318,7 +326,11 @@ new Vue({
             let locus = await regionUtils.parseRegion(this.selectedGene[0]);
             if (locus) {
                 console.log("locus found: ", locus);
-
+                this.searchRegion = {
+                    chrom: locus.chr,
+                    start: locus.start,
+                    stop: locus.end
+                };
                 let region = {
                     regions: [
                         {
