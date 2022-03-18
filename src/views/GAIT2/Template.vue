@@ -111,15 +111,15 @@
                                     <div class="function">
                                         <b-button
                                             variant="primary"
-                                            @click="$parent.searchRegions"
-                                            :disabled="
-                                                $parent.selectedGene.length == 0
-                                            "
-                                            >Search Regions</b-button
+                                            @click="$parent.searchAnnotations"
+                                            >Search Annotations</b-button
                                         >
                                     </div>
 
-                                    <div id="annotation-plot-container">
+                                    <div
+                                        id="annotation-plot-container"
+                                        v-if="$parent.show"
+                                    >
                                         <research-annotations-plot
                                             :region="$parent.searchRegionString"
                                             :phenotype="'T2D'"
@@ -253,6 +253,16 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="function">
+                                        <b-button
+                                            variant="primary"
+                                            @click="$parent.searchRegions"
+                                            :disabled="
+                                                $parent.selectedGene.length == 0
+                                            "
+                                            >Search Regions</b-button
+                                        >
                                     </div>
                                 </b-card-body>
                             </b-collapse>

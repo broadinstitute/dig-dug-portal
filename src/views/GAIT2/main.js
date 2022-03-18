@@ -216,7 +216,8 @@ new Vue({
                 chrom: "",
                 start: "",
                 stop: ""
-            }
+            },
+            show: false
         };
     },
     created() {
@@ -322,7 +323,7 @@ new Vue({
         },
 
         //for NC GAIT
-        async searchRegions() {
+        async searchAnnotations() {
             let locus = await regionUtils.parseRegion(this.selectedGene[0]);
             if (locus) {
                 console.log("locus found: ", locus);
@@ -331,81 +332,100 @@ new Vue({
                     start: locus.start,
                     stop: locus.end
                 };
-                let region = {
-                    regions: [
+            }
+            console.log("searching annotations");
+            this.show = true;
+        },
+
+        async searchRegions() {
+            //if (this.searchRegionString) {
+            //parse the region string
+            this.show = false;
+            console.log("searching regions");
+            let regions = this.$store.state.pkgData["overlappingRegions"][
+                this.selectedRegionType
+            ].map(region => {
+                return {
+                    chrom: this.searchRegion.chrom,
+                    start: region.start,
+                    stop: region.end
+                };
+            });
+
+            let input = {
+                regions: regions
+            };
+
+            if (regions) {
+                console.log("regions found");
+                //console.log(JSON.stringify(regions));
+            } else {
+                console.log("no regions found");
+            }
+            let liftedRegions = await this.liftOver(input);
+            if (liftedRegions) {
+                console.log("liftedRegion: ", liftedRegions);
+                //hardcoded example
+                // let input = {
+                //     chrom: "22",
+                //     start: 44269672,
+                //     stop: 44270672,
+                //     summaryStatisticDataset: 1,
+                //     genomeBuild: "GRCh38",
+                //     maskDefinitions: [
+                //         {
+                //             id: 1,
+                //             name: "My locus of interest",
+                //             description:
+                //                 "Example of specifying groups as regions",
+                //             genome_build: "GRCh38",
+                //             group_type: "REGION",
+                //             identifier_type: "COORDINATES",
+                //             groups: {
+                //                 "enhancer-1": {
+                //                     start: 44269672,
+                //                     stop: 44270172
+                //                 },
+                //                 "enhancer-2": {
+                //                     start: 44270172,
+                //                     stop: 44270672
+                //                 }
+                //             }
+                //         }
+                //     ]
+                // };
+
+                let input = {
+                    chrom: liftedRegions.regions[0].chrom,
+                    start: liftedRegions.regions[0].start,
+                    stop: liftedRegions.regions[0].stop,
+                    summaryStatisticDataset: 1,
+                    genomeBuild: "GRCh38",
+                    maskDefinitions: [
                         {
-                            chrom: locus.chr,
-                            start: locus.start,
-                            stop: locus.end
+                            id: 1,
+                            name: "My locus of interest",
+                            description:
+                                "Example of specifying groups as regions",
+                            genome_build: "GRCh38",
+                            group_type: "REGION",
+                            identifier_type: "COORDINATES",
+                            groups: {
+                                region: {
+                                    start: liftedRegions.regions[0].start,
+                                    stop: liftedRegions.regions[0].stop
+                                }
+                            }
                         }
                     ]
                 };
-                console.log("region: ", region);
-                let liftedRegions = await this.liftOver(region);
-                if (liftedRegions) {
-                    console.log("liftedRegion: ", liftedRegions);
-                    //hardcoded example
-                    // let input = {
-                    //     chrom: "22",
-                    //     start: 44269672,
-                    //     stop: 44270672,
-                    //     summaryStatisticDataset: 1,
-                    //     genomeBuild: "GRCh38",
-                    //     maskDefinitions: [
-                    //         {
-                    //             id: 1,
-                    //             name: "My locus of interest",
-                    //             description:
-                    //                 "Example of specifying groups as regions",
-                    //             genome_build: "GRCh38",
-                    //             group_type: "REGION",
-                    //             identifier_type: "COORDINATES",
-                    //             groups: {
-                    //                 "enhancer-1": {
-                    //                     start: 44269672,
-                    //                     stop: 44270172
-                    //                 },
-                    //                 "enhancer-2": {
-                    //                     start: 44270172,
-                    //                     stop: 44270672
-                    //                 }
-                    //             }
-                    //         }
-                    //     ]
-                    // };
-
-                    let input = {
-                        chrom: liftedRegions.regions[0].chrom,
-                        start: liftedRegions.regions[0].start,
-                        stop: liftedRegions.regions[0].stop,
-                        summaryStatisticDataset: 1,
-                        genomeBuild: "GRCh38",
-                        maskDefinitions: [
-                            {
-                                id: 1,
-                                name: "My locus of interest",
-                                description:
-                                    "Example of specifying groups as regions",
-                                genome_build: "GRCh38",
-                                group_type: "REGION",
-                                identifier_type: "COORDINATES",
-                                groups: {
-                                    region: {
-                                        start: liftedRegions.regions[0].start,
-                                        stop: liftedRegions.regions[0].stop
-                                    }
-                                }
-                            }
-                        ]
-                    };
-                    console.log("input: ", input);
-                    let covariances = await this.getCovariances(input);
-                    //console.log("covariances: ", covariances.data);
-                    console.log("covariances: ", covariances);
-                    this.pageCovariances = covariances.data;
-                } else {
-                    console.log("no lifted region", liftedRegions);
-                }
+                console.log("input: ", input);
+                let covariances = await this.getCovariances(input);
+                //console.log("covariances: ", covariances.data);
+                console.log("covariances: ", covariances);
+                this.pageCovariances = covariances.data;
+            } else {
+                console.log("no lifted region", liftedRegions);
             }
         },
 
