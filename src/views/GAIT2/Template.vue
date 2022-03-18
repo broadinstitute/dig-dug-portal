@@ -217,6 +217,39 @@
                                                             Intersection (AND)
                                                         </option>
                                                     </select>
+                                                    <template
+                                                        v-if="
+                                                            $store.state
+                                                                .pkgData[
+                                                                'overlappingRegions'
+                                                            ] &&
+                                                            $store.state
+                                                                .pkgData[
+                                                                'overlappingRegions'
+                                                            ].length !== 0
+                                                        "
+                                                        ><div
+                                                            v-if="
+                                                                $parent.selectedRegionType ===
+                                                                'or'
+                                                            "
+                                                        >
+                                                            {{
+                                                                $store.state
+                                                                    .pkgData[
+                                                                    "overlappingRegions"
+                                                                ]["or"]
+                                                            }}
+                                                        </div>
+                                                        <div v-else>
+                                                            {{
+                                                                $store.state
+                                                                    .pkgData[
+                                                                    "overlappingRegions"
+                                                                ]["and"]
+                                                            }}
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             </div>
                                         </div>
