@@ -445,7 +445,7 @@ export default Vue.component("research-annotations-plot", {
             handler: function (n, o) {
                 //console.log("updated", this.pkgDataSelected);
                 //if (n.length > 0) {
-                this.renderByAnnotations();
+                //this.renderByAnnotations();
                 //this.renderTissuesTracks();
                 //}
             },
@@ -455,7 +455,7 @@ export default Vue.component("research-annotations-plot", {
         viewingRegion: {
             handler: function (n, o) {
                 //if (n.length > 0) {
-                this.renderByAnnotations();
+                //this.renderByAnnotations();
                 //this.renderTissuesTracks();
                 //}
             },
@@ -1815,172 +1815,172 @@ export default Vue.component("research-annotations-plot", {
         },
         renderByAnnotations() {
             //console.log("selectedTissues in render by", this.selectedTissues);
-            let tempHeight = 0;
-            let annotationTitleH = this.spaceBy * 2;
-            let btwnAnnotations = this.spaceBy * 7;
-            let perTissue = this.spaceBy;
-            let topMargin = this.spaceBy * 2;
-            let bottomMargin = this.spaceBy * 2;
-            let regionStart = this.viewingRegion.start;
-            let regionEnd = this.viewingRegion.end;
+            // let tempHeight = 0;
+            // let annotationTitleH = this.spaceBy * 2;
+            // let btwnAnnotations = this.spaceBy * 7;
+            // let perTissue = this.spaceBy;
+            // let topMargin = this.spaceBy * 2;
+            // let bottomMargin = this.spaceBy * 2;
+            // let regionStart = this.viewingRegion.start;
+            // let regionEnd = this.viewingRegion.end;
 
-            let selectedAnnotations = this.pkgDataSelected
-                .filter((s) => s.type == "Annotation")
-                .map((s) => s.id);
+            // let selectedAnnotations = this.pkgDataSelected
+            //     .filter((s) => s.type == "Annotation")
+            //     .map((s) => s.id);
 
-            let selectedTissues = this.pkgDataSelected
-                .filter((s) => s.type == "Tissue")
-                .map((s) => s.id);
+            // let selectedTissues = this.pkgDataSelected
+            //     .filter((s) => s.type == "Tissue")
+            //     .map((s) => s.id);
 
-            for (const [annotation, tissues] of Object.entries(this.annoData)) {
-                if (selectedAnnotations.includes(annotation)) {
-                    tempHeight += annotationTitleH;
-                    tempHeight += Object.keys(tissues).length * perTissue;
-                    tempHeight += btwnAnnotations;
-                }
-            }
+            // for (const [annotation, tissues] of Object.entries(this.annoData)) {
+            //     if (selectedAnnotations.includes(annotation)) {
+            //         tempHeight += annotationTitleH;
+            //         tempHeight += Object.keys(tissues).length * perTissue;
+            //         tempHeight += btwnAnnotations;
+            //     }
+            // }
 
-            let wrapper = document.querySelector("#annotationsPlotWrapper");
-            let canvas = document.querySelector("#annotationsPlot");
+            // let wrapper = document.querySelector("#annotationsPlotWrapper");
+            // let canvas = document.querySelector("#annotationsPlot");
 
-            if (!!canvas && !!wrapper) {
-                let canvasWidth = document.querySelector(
-                    "#annotationsPlotWrapper"
-                ).clientWidth;
+            // if (!!canvas && !!wrapper) {
+            //     let canvasWidth = document.querySelector(
+            //         "#annotationsPlotWrapper"
+            //     ).clientWidth;
 
-                let canvasHeight = tempHeight + topMargin + bottomMargin;
+            //     let canvasHeight = tempHeight + topMargin + bottomMargin;
 
-                let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
-                let plotHeight = tempHeight;
-                let bump = 5.5;
+            //     let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
+            //     let plotHeight = tempHeight;
+            //     let bump = 5.5;
 
-                let xPerPixel = plotWidth / (regionEnd - regionStart);
+            //     let xPerPixel = plotWidth / (regionEnd - regionStart);
 
-                let c, ctx;
-                c = document.querySelector("#annotationsPlot");
-                c.setAttribute("width", canvasWidth);
-                c.setAttribute("height", canvasHeight);
-                ctx = c.getContext("2d");
+            //     let c, ctx;
+            //     c = document.querySelector("#annotationsPlot");
+            //     c.setAttribute("width", canvasWidth);
+            //     c.setAttribute("height", canvasHeight);
+            //     ctx = c.getContext("2d");
 
-                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            //     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-                let renderHeight = annotationTitleH;
-                //console.log("this.annoData", this.annoData);
-                for (const [annotation, tissues] of Object.entries(
-                    this.annoData
-                )) {
-                    if (selectedAnnotations.includes(annotation)) {
-                        ctx.font = "14px Arial";
-                        ctx.textAlign = "left";
-                        ctx.fillStyle = "#00000050";
-                        ctx.fillText(annotation, bump, renderHeight);
+            //     let renderHeight = annotationTitleH;
+            //     //console.log("this.annoData", this.annoData);
+            //     for (const [annotation, tissues] of Object.entries(
+            //         this.annoData
+            //     )) {
+            //         if (selectedAnnotations.includes(annotation)) {
+            //             ctx.font = "14px Arial";
+            //             ctx.textAlign = "left";
+            //             ctx.fillStyle = "#00000050";
+            //             ctx.fillText(annotation, bump, renderHeight);
 
-                        let blockHeight =
-                            Object.keys(tissues).length * perTissue;
-                        renderHeight += annotationTitleH;
+            //             let blockHeight =
+            //                 Object.keys(tissues).length * perTissue;
+            //             renderHeight += annotationTitleH;
 
-                        this.renderAnnoAxis(
-                            ctx,
-                            plotWidth,
-                            blockHeight,
-                            Number(regionEnd),
-                            Number(regionStart),
-                            renderHeight,
-                            bump
-                        );
-                        let tissueIndex = 0;
-                        for (const [tissue, regions] of Object.entries(
-                            tissues
-                        )) {
-                            let yPosBtn = Math.ceil(
-                                renderHeight / this.spaceBy
-                            );
+            //             this.renderAnnoAxis(
+            //                 ctx,
+            //                 plotWidth,
+            //                 blockHeight,
+            //                 Number(regionEnd),
+            //                 Number(regionStart),
+            //                 renderHeight,
+            //                 bump
+            //             );
+            //             let tissueIndex = 0;
+            //             for (const [tissue, regions] of Object.entries(
+            //                 tissues
+            //             )) {
+            //                 let yPosBtn = Math.ceil(
+            //                     renderHeight / this.spaceBy
+            //                 );
 
-                            if (!this.annoPosData[yPosBtn]) {
-                                this.annoPosData[yPosBtn] = {
-                                    tissue: tissue,
-                                    regions: {},
-                                };
-                            } else {
-                                this.annoPosData[yPosBtn]["tissue"] = tissue;
-                            }
+            //                 if (!this.annoPosData[yPosBtn]) {
+            //                     this.annoPosData[yPosBtn] = {
+            //                         tissue: tissue,
+            //                         regions: {},
+            //                     };
+            //                 } else {
+            //                     this.annoPosData[yPosBtn]["tissue"] = tissue;
+            //                 }
 
-                            if (tissueIndex % 2 == 0) {
-                                ctx.fillStyle = "#00000010";
-                                ctx.fillRect(
-                                    this.plotMargin.leftMargin,
-                                    renderHeight,
-                                    plotWidth,
-                                    perTissue
-                                );
-                            }
+            //                 if (tissueIndex % 2 == 0) {
+            //                     ctx.fillStyle = "#00000010";
+            //                     ctx.fillRect(
+            //                         this.plotMargin.leftMargin,
+            //                         renderHeight,
+            //                         plotWidth,
+            //                         perTissue
+            //                     );
+            //                 }
 
-                            tissueIndex++;
+            //                 tissueIndex++;
 
-                            regions.region.map((p) => {
-                                if (
-                                    p.start <= regionEnd &&
-                                    p.end >= regionStart
-                                ) {
-                                    let xPosStart =
-                                        (p.start - regionStart) * xPerPixel +
-                                        this.plotMargin.leftMargin;
+            //                 regions.region.map((p) => {
+            //                     if (
+            //                         p.start <= regionEnd &&
+            //                         p.end >= regionStart
+            //                     ) {
+            //                         let xPosStart =
+            //                             (p.start - regionStart) * xPerPixel +
+            //                             this.plotMargin.leftMargin;
 
-                                    xPosStart =
-                                        xPosStart <= this.plotMargin.leftMargin
-                                            ? this.plotMargin.leftMargin
-                                            : xPosStart;
-                                    let xPosEnd =
-                                        (p.end - regionStart) * xPerPixel +
-                                        this.plotMargin.leftMargin;
+            //                         xPosStart =
+            //                             xPosStart <= this.plotMargin.leftMargin
+            //                                 ? this.plotMargin.leftMargin
+            //                                 : xPosStart;
+            //                         let xPosEnd =
+            //                             (p.end - regionStart) * xPerPixel +
+            //                             this.plotMargin.leftMargin;
 
-                                    xPosEnd =
-                                        xPosEnd >
-                                        this.plotMargin.leftMargin + plotWidth
-                                            ? this.plotMargin.leftMargin +
-                                              plotWidth
-                                            : xPosEnd;
+            //                         xPosEnd =
+            //                             xPosEnd >
+            //                             this.plotMargin.leftMargin + plotWidth
+            //                                 ? this.plotMargin.leftMargin +
+            //                                   plotWidth
+            //                                 : xPosEnd;
 
-                                    let xPosWidth = xPosEnd - xPosStart;
-                                    if (selectedTissues.indexOf(tissue) > -1) {
-                                        ctx.fillStyle = "#FF0000";
-                                    } else {
-                                        ctx.fillStyle =
-                                            this.getColorIndex(annotation);
-                                    }
+            //                         let xPosWidth = xPosEnd - xPosStart;
+            //                         if (selectedTissues.indexOf(tissue) > -1) {
+            //                             ctx.fillStyle = "#FF0000";
+            //                         } else {
+            //                             ctx.fillStyle =
+            //                                 this.getColorIndex(annotation);
+            //                         }
 
-                                    ctx.fillRect(
-                                        xPosStart,
-                                        renderHeight,
-                                        xPosWidth,
-                                        perTissue - 1
-                                    );
-                                    let xPosBtn =
-                                        xPosStart +
-                                        "_" +
-                                        (xPosStart + xPosWidth);
-                                    this.annoPosData[yPosBtn].regions[xPosBtn] =
-                                        {
-                                            start: p.start,
-                                            end: p.end,
-                                        };
-                                }
-                            });
+            //                         ctx.fillRect(
+            //                             xPosStart,
+            //                             renderHeight,
+            //                             xPosWidth,
+            //                             perTissue - 1
+            //                         );
+            //                         let xPosBtn =
+            //                             xPosStart +
+            //                             "_" +
+            //                             (xPosStart + xPosWidth);
+            //                         this.annoPosData[yPosBtn].regions[xPosBtn] =
+            //                             {
+            //                                 start: p.start,
+            //                                 end: p.end,
+            //                             };
+            //                     }
+            //                 });
 
-                            renderHeight += perTissue;
+            //                 renderHeight += perTissue;
 
-                            if (selectedTissues.indexOf(tissue) > -1) {
-                                ctx.fillStyle = "#000000";
-                                ctx.textAlign = "start";
-                                ctx.textBaseline = "middle";
-                                ctx.font = "12px Arial";
-                                ctx.fillText(tissue, 5, renderHeight - 2);
-                            }
-                        }
-                        renderHeight += btwnAnnotations;
-                    }
-                }
-            }
+            //                 if (selectedTissues.indexOf(tissue) > -1) {
+            //                     ctx.fillStyle = "#000000";
+            //                     ctx.textAlign = "start";
+            //                     ctx.textBaseline = "middle";
+            //                     ctx.font = "12px Arial";
+            //                     ctx.fillText(tissue, 5, renderHeight - 2);
+            //                 }
+            //             }
+            //             renderHeight += btwnAnnotations;
+            //         }
+            //     }
+            // }
             // get ovelapping region
             this.getOverlappingRegion();
         },

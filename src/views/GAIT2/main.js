@@ -358,7 +358,7 @@ new Vue({
 
             if (regions) {
                 console.log("regions found");
-                //console.log(JSON.stringify(regions));
+                console.log("input: ", input);
             } else {
                 console.log("no regions found");
             }
@@ -395,10 +395,45 @@ new Vue({
                 //     ]
                 // };
 
-                let input = {
+                // let input = {
+                //     chrom: liftedRegions.regions[0].chrom,
+                //     start: liftedRegions.regions[0].start,
+                //     stop: liftedRegions.regions[0].stop,
+                //     summaryStatisticDataset: 1,
+                //     genomeBuild: "GRCh38",
+                //     maskDefinitions: [
+                //         {
+                //             id: 1,
+                //             name: "My locus of interest",
+                //             description:
+                //                 "Example of specifying groups as regions",
+                //             genome_build: "GRCh38",
+                //             group_type: "REGION",
+                //             identifier_type: "COORDINATES",
+                //             groups: {
+                //                 region: {
+                //                     start: liftedRegions.regions[0].start,
+                //                     stop: liftedRegions.regions[0].stop
+                //                 }
+                //             }
+                //         }
+                //     ]
+                // };
+                let groups = {};
+
+                for (let i = 1; i <= liftedRegions.regions.length; i++) {
+                    groups["region" + i] = {
+                        start: liftedRegions.regions[i].start,
+                        stop: liftedRegions.regions[i].stop
+                    };
+                }
+                console.log("groups", groups);
+                let input2 = {
                     chrom: liftedRegions.regions[0].chrom,
                     start: liftedRegions.regions[0].start,
-                    stop: liftedRegions.regions[0].stop,
+                    stop:
+                        liftedRegions.regions[liftedRegions.regions.length - 1]
+                            .stop,
                     summaryStatisticDataset: 1,
                     genomeBuild: "GRCh38",
                     maskDefinitions: [
@@ -410,17 +445,19 @@ new Vue({
                             genome_build: "GRCh38",
                             group_type: "REGION",
                             identifier_type: "COORDINATES",
-                            groups: {
-                                region: {
-                                    start: liftedRegions.regions[0].start,
-                                    stop: liftedRegions.regions[0].stop
-                                }
-                            }
+                            // groups: {
+                            //     region: {
+                            //         start: liftedRegions.regions[0].start,
+                            //         stop: liftedRegions.regions[0].stop
+                            //     }
+                            // }
+                            groups: groups
                         }
                     ]
                 };
-                console.log("input: ", input);
-                let covariances = await this.getCovariances(input);
+
+                console.log("input: ", input2);
+                let covariances = await this.getCovariances(input2);
                 //console.log("covariances: ", covariances.data);
                 console.log("covariances: ", covariances);
                 this.pageCovariances = covariances.data;
