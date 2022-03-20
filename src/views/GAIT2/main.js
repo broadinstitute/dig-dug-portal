@@ -217,7 +217,12 @@ new Vue({
                 start: "",
                 stop: ""
             },
-            show: false
+            show: false,
+            samples: [
+                { chrom: "22", start: 37888528, stop: 37889311 },
+                { chrom: "22", start: 37892802, stop: 37892979 },
+                { chrom: "22", start: 37913600, stop: 37916243 }
+            ]
         };
     },
     created() {
@@ -342,26 +347,28 @@ new Vue({
             //parse the region string
             this.show = false;
             console.log("searching regions");
-            let regions = this.$store.state.pkgData["overlappingRegions"][
-                this.selectedRegionType
-            ].map(region => {
-                return {
-                    chrom: this.searchRegion.chrom,
-                    start: region.start,
-                    stop: region.end
-                };
-            });
+            // let regions = this.$store.state.pkgData["overlappingRegions"][
+            //     this.selectedRegionType
+            // ].map(region => {
+            //     return {
+            //         chrom: this.searchRegion.chrom,
+            //         start: region.start,
+            //         stop: region.end
+            //     };
+            // });
 
+            //using hardcoded test samples
             let input = {
-                regions: regions
+                //regions: regions
+                regions: this.samples
             };
 
-            if (regions) {
-                console.log("regions found");
-                console.log("input: ", input);
-            } else {
-                console.log("no regions found");
-            }
+            // if (regions) {
+            //     console.log("regions found");
+            //     console.log("input: ", input);
+            // } else {
+            //     console.log("no regions found");
+            // }
             let liftedRegions = await this.liftOver(input);
             if (liftedRegions) {
                 console.log("liftedRegion: ", liftedRegions);
@@ -421,13 +428,15 @@ new Vue({
                 // };
                 let groups = {};
 
-                for (let i = 1; i <= liftedRegions.regions.length; i++) {
-                    groups["region" + i] = {
+                for (let i = 0; i < liftedRegions.regions.length; i++) {
+                    groups["region" + (i + 1)] = {
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop
                     };
+                    console.log("i", i);
                 }
-                console.log("groups", groups);
+                //console.log("groups", JSON.stringify(groups, null, 2));
+                console.log("here");
                 let input2 = {
                     chrom: liftedRegions.regions[0].chrom,
                     start: liftedRegions.regions[0].start,
