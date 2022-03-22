@@ -386,18 +386,14 @@ export default Vue.component("research-annotations-plot", {
 	},
 	computed: {
 		searchingParameters() {
-			let returnObj = {};
-			let regionArr = this.region.split(":");
-			returnObj["chr"] = regionArr[0];
-			returnObj["start"] = regionArr[1].split("-")[0];
-			returnObj["end"] = regionArr[1].split("-")[1];
-
-			let returnPhenotype = !!this.renderConfig["phenotype match"]
-				? this.renderConfig["phenotype match"][this.phenotype]
-				: this.phenotype;
-
-			if (returnObj != null && returnPhenotype != null) {
-				return [returnObj, returnPhenotype];
+			if (
+				this.searchingRegion != null &&
+				this.searchingPhenotype != null
+			) {
+				return {
+					region: this.searchingRegion,
+					phenotype: this.searchingPhenotype,
+				};
 			}
 		},
 		searchingRegion() {
@@ -469,12 +465,9 @@ export default Vue.component("research-annotations-plot", {
 	},
 	watch: {
 		searchingRegion(REGION) {
+			console.log("searchingParameters", PARAMS);
 			this.getAnnotations(REGION);
-		} /*
-		searchingParameters(CONTENT) {
-			console.log("searchingParameters", CONTENT);
-			this.getAnnotations(this.searchingRegion);
-		},*/,
+		},
 		pkgDataSelected: {
 			handler: function (n, o) {
 				this.renderByAnnotations();
