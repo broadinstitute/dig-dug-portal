@@ -118,6 +118,7 @@
 					<span>No data</span>
 				</div>
 			</div>
+
 			<div
 				:id="'assoPlotsWrapper' + item.replaceAll(' ', '_')"
 				class="col-md-9 asso-plots-wrapper"
@@ -150,6 +151,7 @@
 					class="asso-info-box hidden"
 				></div>
 			</div>
+
 			<div
 				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_')"
 				class="col-md-3 ld-plots-wrapper reference-area"
@@ -592,7 +594,7 @@ export default Vue.component("research-region-plot", {
 			var rect = e.target.getBoundingClientRect();
 			var x = Math.floor(e.clientX - rect.left);
 			var y = Math.floor(e.clientY - rect.top);
-			let rawX = e.clientX + rect.left;
+			let rawX = e.clientX;
 
 			if (TYPE == "asso") {
 				this.$store.dispatch("sharedPlotXpos", rawX);
