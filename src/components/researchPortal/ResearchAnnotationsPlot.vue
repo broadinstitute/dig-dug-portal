@@ -386,10 +386,17 @@ export default Vue.component("research-annotations-plot", {
 	},
 	computed: {
 		searchingParameters() {
-			if (
-				this.searchingRegion != null &&
-				this.searchingPhenotype != null
-			) {
+			let returnObj = {};
+			let regionArr = this.region.split(":");
+			returnObj["chr"] = regionArr[0];
+			returnObj["start"] = regionArr[1].split("-")[0];
+			returnObj["end"] = regionArr[1].split("-")[1];
+
+			let returnPhenotype = !!this.renderConfig["phenotype match"]
+				? this.renderConfig["phenotype match"][this.phenotype]
+				: this.phenotype;
+
+			if (returnObj != null && returnPhenotype != null) {
 				return [this.searchingRegion, this.searchingPhenotype];
 			}
 		},
