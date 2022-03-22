@@ -263,14 +263,14 @@
 						width=""
 						height=""
 					></canvas>
-					<span
+					<!--<span
 						v-if="sharedPlotXpos != null"
 						:style="
 							'position:absolute;width: 1px; height:100%;top:0;left: ' +
 							sharedPlotXpos +
 							'px;border-left: solid 1px #000;'
 						"
-					></span>
+					></span>-->
 					<div
 						id="annoInitialMessage"
 						:class="
@@ -356,7 +356,6 @@ export default Vue.component("research-annotations-plot", {
 		"pkgDataSelected",
 		"regionZoom",
 		"regionViewArea",
-		"sharedPlotXpos",
 	],
 	data() {
 		return {
@@ -390,10 +389,7 @@ export default Vue.component("research-annotations-plot", {
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
-				return {
-					region: this.searchingRegion,
-					phenotype: this.searchingPhenotype,
-				};
+				return this.searchingRegion + "," + this.searchingPhenotype;
 			}
 		},
 		searchingRegion() {
@@ -464,9 +460,8 @@ export default Vue.component("research-annotations-plot", {
 		},
 	},
 	watch: {
-		searchingRegion(REGION) {
-			console.log("searchingParameters", PARAMS);
-			this.getAnnotations(REGION);
+		searchingParameters(PARAM) {
+			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
 			handler: function (n, o) {
@@ -1247,7 +1242,7 @@ export default Vue.component("research-annotations-plot", {
 				x <= rect.width - this.plotMargin.leftMargin
 			) {
 				if (!!this.annoPosData[y]) {
-					this.$store.dispatch("sharedPlotXpos", rawX);
+					//this.$store.dispatch("sharedPlotXpos", rawX);
 					infoContent += this.annoPosData[y].tissue;
 					for (const [region, regionValue] of Object.entries(
 						this.annoPosData[y].regions
