@@ -397,7 +397,7 @@ export default Vue.component("research-annotations-plot", {
 				: this.phenotype;
 
 			if (returnObj != null && returnPhenotype != null) {
-				return [this.searchingRegion, this.searchingPhenotype];
+				return [returnObj, returnPhenotype];
 			}
 		},
 		searchingRegion() {
@@ -468,10 +468,13 @@ export default Vue.component("research-annotations-plot", {
 		},
 	},
 	watch: {
+		searchingRegion(REGION) {
+			this.getAnnotations(REGION);
+		} /*
 		searchingParameters(CONTENT) {
 			console.log("searchingParameters", CONTENT);
 			this.getAnnotations(this.searchingRegion);
-		},
+		},*/,
 		pkgDataSelected: {
 			handler: function (n, o) {
 				this.renderByAnnotations();
