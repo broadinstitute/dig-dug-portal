@@ -37,8 +37,8 @@
 								'#d4d4d475',
 							]"
 							:dataComparison="null"
-							:pkgData="$store.state.pkgData"
-							:pkgDataSelected="$store.state.pkgDataSelected"
+							:pkgData="$parent.pkgData"
+							:pkgDataSelected="$parent.pkgDataSelected"
 							:regionZoom="0"
 							:regionViewArea="0"
 						></research-annotations-plot>

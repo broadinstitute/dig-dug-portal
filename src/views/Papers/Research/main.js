@@ -36,4 +36,12 @@ new Vue({
         closeAlert,
 
     },
+    computed: {
+        pkgData() {
+            return this.$store.state.pkgData;
+        },
+        pkgData() {
+            return this.$store.state.pkgDataSelected;
+        }
+    }
 }).$mount("#app");
