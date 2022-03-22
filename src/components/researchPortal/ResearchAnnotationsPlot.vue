@@ -4,48 +4,113 @@
 			class="col-md-12 annotations-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
-			<div id="annotationsUIWrapper">
-				<div
-					class="filtering-ui-wrapper add-content"
-					style="width: calc(100% - 30px); margin-left: 15px"
-				>
-					<div class="filtering-ui-content">
-						<div class="col">
-							<div
-								class="label"
-								style="
-									display: inline-block;
-									margin-right: 10px;
-								"
-							>
-								Select Annotation
+			<div class="col-md-9 anno-plot-wrapper">
+				<div id="annotationsUIWrapper">
+					<div
+						class="filtering-ui-wrapper add-content"
+						style="width: 100%; padding: 0 10px; text-align: left"
+					>
+						<div class="filtering-ui-content">
+							<div class="col" style="padding: 2px">
+								<div
+									class="label"
+									style="
+										display: inline-block;
+										margin-right: 10px;
+									"
+								>
+									Select Annotation
+								</div>
+								<select
+									class="custom-select"
+									@change="addAnnoTrack($event)"
+								>
+									<option value="">
+										{{ "Select annotation" }}
+									</option>
+									<option
+										v-for="(annoValue, annoKey) in annoData"
+										:key="annoKey"
+										:value="annoKey"
+										v-html="annoKey"
+									></option>
+								</select>
 							</div>
-							<select
-								class="custom-select"
-								@change="addAnnoTrack($event)"
+						</div>
+
+						<div
+							class=""
+							v-if="
+								pkgDataSelected.filter(
+									(s) => s.type == 'Annotation'
+								).length > 0
+							"
+							style="position: absolute; right: 10px; top: 7px"
+						>
+							<template
+								v-for="a in pkgDataSelected.filter(
+									(s) => s.type == 'Annotation'
+								)"
 							>
-								<option value="">
-									{{ "Select annotation" }}
-								</option>
-								<option
-									v-for="(annoValue, annoKey) in annoData"
-									:key="annoKey"
-									:value="annoKey"
-									v-html="annoKey"
-								></option>
-							</select>
+								<span
+									:key="a.id"
+									:class="'btn search-bubble '"
+									:style="
+										'background-color:' +
+										getColorIndex(a.id)
+									"
+									v-html="
+										a.id +
+										'&nbsp;<span class=\'remove\'>X</span>'
+									"
+									@click="removeAnnoTrack(a.id)"
+								></span>
+							</template>
 						</div>
 					</div>
 				</div>
-			</div>
-			<div class="col-md-9 anno-plot-wrapper">
 				<!-- selected annotations table -->
-				<div v-if="selectedAnnos.length > 0">
+				<div
+					v-if="
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length > 0
+					"
+				>
+					<div style="padding: 5px">
+						<strong>Select Tissues</strong>
+						<div
+							class=""
+							v-if="
+								pkgDataSelected.filter(
+									(s) => s.type == 'Tissue'
+								).length > 0
+							"
+							style="float: right"
+						>
+							<template
+								v-for="a in pkgDataSelected.filter(
+									(s) => s.type == 'Tissue'
+								)"
+							>
+								<span
+									:key="a.id"
+									:class="'btn search-bubble '"
+									:style="'background-color:#999999'"
+									v-html="
+										a.id +
+										'&nbsp;<span class=\'remove\'>X</span>'
+									"
+									@click="addRemoveTissueTrack(null, a.id)"
+								></span>
+							</template>
+						</div>
+					</div>
 					<div class="annotations-table-wrapper">
 						<span
 							>Table is sort by fold (SNPs/expectedSNPs) across
 							annotations.</span
 						>
+
 						<table
 							class="table table-sm ge-data-table"
 							cellpadding="0"
@@ -84,9 +149,19 @@
 													<th></th>
 													<th>Tissues</th>
 													<th
-														v-for="annotation in selectedAnnos"
-														:key="annotation"
-														v-html="annotation"
+														v-for="annotation in pkgDataSelected.filter(
+															(s) =>
+																s.type ==
+																'Annotation'
+														)"
+														:key="annotation.id"
+														v-html="annotation.id"
+														:style="
+															'background-color:' +
+															getColorIndex(
+																annotation.id
+															)
+														"
 													></th>
 												</tr>
 											</thead>
@@ -113,70 +188,103 @@
 															:value="tissueKey"
 															@click="
 																addRemoveTissueTrack(
-																	$event
+																	$event,
+																	null
 																)
+															"
+															:checked="
+																pkgDataSelected
+																	.filter(
+																		(s) =>
+																			s.type ==
+																			'Tissue'
+																	)
+																	.map(
+																		(s) =>
+																			s.id
+																	)
+																	.includes(
+																		tissueKey
+																	)
 															"
 														/>
 													</td>
 													<td v-html="tissueKey"></td>
 													<td
-														v-for="annotation in selectedAnnos"
-														:key="annotation"
-														v-html="
-															!!tissueValue[
-																annotation
-															]
-																? tissueValue[
-																		annotation
-																  ].pValue +
-																  ' / ' +
-																  tissueValue[
-																		annotation
-																  ].fold
-																: ''
-														"
-													></td>
+														v-for="annotation in pkgDataSelected.filter(
+															(s) =>
+																s.type ==
+																'Annotation'
+														)"
+														:key="annotation.id"
+													>
+														<span
+															v-if="
+																!!annoData[
+																	annotation
+																		.id
+																][tissueKey]
+															"
+															v-html="
+																!!tissueValue[
+																	annotation
+																		.id
+																]
+																	? tissueValue[
+																			annotation
+																				.id
+																	  ].pValue +
+																	  ' / ' +
+																	  tissueValue[
+																			annotation
+																				.id
+																	  ].fold
+																	: ''
+															"
+														></span>
+													</td>
 												</tr>
 											</tbody>
 										</table>
 									</td>
 								</tr>
-								<!--
-							<tr
-								v-for="annotation in selectedAnnos"
-								:key="annotation"
-							>
-								<td v-html="annotation"></td>
-								<td
-									v-for="(pValue, pKey, pIndex) in GEData"
-									:key="pKey"
-									v-html="getAnnoContent(pKey, annotation)"
-								></td>
-							</tr>
-							-->
 							</tbody>
 						</table>
 					</div>
 				</div>
 				<div id="annotationsPlotWrapper">
 					<div id="tissueInfoBox" class="hidden"></div>
+
 					<canvas
 						id="annotationsPlot"
 						@resize="onResize"
 						@mousemove="checkPosition($event)"
 						@mouseout="onMouseOut('tissueInfoBox')"
-						@click="removeAnnoTrack($event)"
 						width=""
 						height=""
 					></canvas>
+					<span
+						v-if="sharedPlotXpos != null"
+						:style="
+							'position:absolute;width: 1px; height:100%;top:0;left: ' +
+							sharedPlotXpos +
+							'px;border-left: solid 1px #000;'
+						"
+					></span>
 					<div
 						id="annoInitialMessage"
-						:class="selectedAnnos.length > 0 ? 'hidden' : ''"
-						v-html="'Please select annotation to render.'"
+						:class="
+							pkgDataSelected.filter(
+								(s) => s.type == 'Annotation'
+							).length > 0
+								? 'hidden'
+								: ''
+						"
+						v-html="'Please select annotation.'"
 					></div>
 				</div>
 
-				<div id="tissuesPlotWrapper">
+				<!--<div id="tissuesPlotWrapper">
 					<div id="selectedTissueInfoBox" class="hidden"></div>
 					<canvas
 						id="tissuesPlot"
@@ -187,120 +295,10 @@
 						width="0"
 						height="0"
 					></canvas>
-					<div
-						id="tissueInitialMessage"
-						:class="selectedTissues.length > 0 ? 'hidden' : ''"
-						v-html="
-							'Please select tissue to render. At leaset 1 selected annotation required.'
-						"
-					></div>
-				</div>
-				<!--
-				<div
-					v-if="
-						selectedTissues.length > 0 && selectedAnnos.length > 0
-					"
-				>
-					
-					<table
-						class="table table-sm ge-data-table"
-						cellpadding="0"
-						cellspacing="0"
-					>
-						<thead>
-							<tr>
-								<th>Selected Tissues</th>
-								<th
-									v-for="(pValue, pKey, pIndex) in GEData"
-									:key="pKey"
-									v-html="
-										pKey + ': Annotation(P-Value / Fold)'
-									"
-								></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="tissue in selectedTissues" :key="tissue">
-								<td v-html="tissue"></td>
-								<td
-									v-for="(pValue, pKey, pIndex) in GEData"
-									:key="pKey"
-									v-html="getGEContent(pKey, tissue)"
-								></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				-->
-			</div>
-			<div class="col-md-3 anno-plot-ui-wrapper">
-				<!--<h6>Add Tissue Track</h6>
-				<div id="annotationsUIWrapper">
-					<div class="filtering-ui-wrapper add-content">
-						<div class="filtering-ui-content">
-							<div class="col">
-								<select
-									class="custom-select"
-									@change="addTissueTrack($event)"
-								>
-									<option value="">
-										{{ "Select tissue" }}
-									</option>
-									<option
-										v-for="(
-											tissueValue, tissueKey
-										) in tissuesData"
-										:key="tissueKey"
-										:value="tissueKey"
-									>
-										<span
-											v-html="tissueKey + '&nbsp;'"
-										></span>
-										<span
-											v-for="(
-												annoValue, annoKey
-											) in tissueValue"
-											:key="annoKey"
-											:style="
-												'background-color:' +
-												compareGroupColors[
-													getColorIndex(annoKey)
-												] +
-												';'
-											"
-											v-html="'(' + annoKey[0] + ')'"
-										></span>
-									</option>
-								</select>
-							</div>
-						</div>
-					</div>
-				</div>
-				<h6>Add Annotation Track</h6>
-				<div id="annotationsUIWrapper">
-					<div class="filtering-ui-wrapper add-content">
-						<div class="filtering-ui-content">
-							<div class="col">
-								<select
-									class="custom-select"
-									@change="addAnnoTrack($event)"
-								>
-									<option value="">
-										{{ "Select annotation" }}
-									</option>
-									<option
-										v-for="(annoValue, annoKey) in annoData"
-										:key="annoKey"
-										:value="annoKey"
-										v-html="annoKey"
-									></option>
-								</select>
-							</div>
-						</div>
-					</div>
 				</div>-->
-
-				<h6>Global Enrichment</h6>
+			</div>
+			<div class="col-md-3 anno-plot-ui-wrapper reference-area">
+				<h6><strong>Global Enrichment</strong></h6>
 				<div>
 					<div
 						v-for="(annoValue, annoKey, annoIndex) in annoData"
@@ -325,6 +323,7 @@
 						id="GEPlot"
 						width=""
 						height=""
+						style="background-color: #ffffff"
 						@mousemove="checkGEPosition($event)"
 						@mouseout="onMouseOut('GEInfoBox')"
 					></canvas>
@@ -338,6 +337,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 import keyParams from "@/utils/keyParams";
@@ -356,6 +356,7 @@ export default Vue.component("research-annotations-plot", {
 		"pkgDataSelected",
 		"regionZoom",
 		"regionViewArea",
+		"sharedPlotXpos",
 	],
 	data() {
 		return {
@@ -378,12 +379,22 @@ export default Vue.component("research-annotations-plot", {
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
+		this.getAnnotations(this.searchingRegion);
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		searchingParameters() {
+			if (
+				this.searchingRegion != null &&
+				this.searchingPhenotype != null
+			) {
+				return [this.searchingRegion, this.searchingPhenotype];
+			}
+		},
 		searchingRegion() {
+			console.log("this.region", this.region);
 			let returnObj = {};
 			let regionArr = this.region.split(":");
 			returnObj["chr"] = regionArr[0];
@@ -392,7 +403,7 @@ export default Vue.component("research-annotations-plot", {
 
 			uiUtils.showElement("annotationsPlotWrapper");
 
-			this.getAnnotations(returnObj);
+			//this.getAnnotations(returnObj);
 
 			return returnObj;
 		},
@@ -431,7 +442,7 @@ export default Vue.component("research-annotations-plot", {
 		searchingPhenotype() {
 			if (this.phenotype != null) {
 				uiUtils.showElement("annotationsPlotWrapper");
-				this.getAnnotations(this.searchingRegion);
+				//this.getAnnotations(this.searchingRegion);
 
 				let returnPhenotype = !!this.renderConfig["phenotype match"]
 					? this.renderConfig["phenotype match"][this.phenotype]
@@ -441,7 +452,7 @@ export default Vue.component("research-annotations-plot", {
 			} else if (this.phenotype == null) {
 				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
 					uiUtils.showElement("annotationsPlotWrapper");
-					this.getAnnotations(this.searchingRegion);
+					//this.getAnnotations(this.searchingRegion);
 					return keyParams[this.renderConfig["phenotype parameter"]];
 				} else {
 					return null;
@@ -450,22 +461,20 @@ export default Vue.component("research-annotations-plot", {
 		},
 	},
 	watch: {
+		searchingParameters(CONTENT) {
+			console.log("searchingParameters", CONTENT);
+			this.getAnnotations(this.searchingRegion);
+		},
 		pkgDataSelected: {
 			handler: function (n, o) {
-				//if (n.length > 0) {
 				this.renderByAnnotations();
-				//this.renderTissuesTracks();
-				//}
 			},
 			deep: true,
 			immediate: true,
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				//if (n.length > 0) {
 				this.renderByAnnotations();
-				//this.renderTissuesTracks();
-				//}
 			},
 			deep: true,
 			immediate: true,
@@ -474,108 +483,123 @@ export default Vue.component("research-annotations-plot", {
 	methods: {
 		...uiUtils,
 		getOverlappingRegion() {
-			var selectedBy = {};
-			if (this.pkgDataSelected.length > 0) {
-				this.pkgDataSelected.map((p) => {
-					if (!selectedBy[p.type]) {
-						selectedBy[p.type] = [];
-					}
-					selectedBy[p.type].push(p.id);
-				});
-			}
+			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
-				!!selectedBy["Tissue"] &&
-				selectedBy["Tissue"].length > 0 &&
-				!!selectedBy["Annotation"] &&
-				selectedBy["Annotation"].length > 0
+				!!this.renderConfig["overlapping regions"] &&
+				this.renderConfig["overlapping regions"] != "false"
 			) {
-				var enrichedPosition = { and: null, or: null };
-
-				selectedBy["Annotation"].map((a) => {
-					selectedBy["Tissue"].map((t) => {
-						if (
-							!!this.pkgData.annoData[a] &&
-							!!this.pkgData.annoData[a][t]
-						) {
-							for (const [key, arr] of Object.entries(
-								enrichedPosition
-							)) {
-								let tempArr = [];
-								this.pkgData.annoData[a][t].region.map((r) => {
-									for (let i = r.start; i <= r.end; i++) {
-										tempArr.push(i);
-									}
-								});
-
-								if (arr == null) {
-									enrichedPosition[key] = tempArr;
-								} else {
-									enrichedPosition[key] =
-										key == "and"
-											? this.getArraysIntersection(
-													enrichedPosition[key],
-													tempArr
-											  )
-											: enrichedPosition[key].concat(
-													tempArr
-											  ); // getting only intersecting positions
-								}
-							}
+				let selectedBy = {};
+				if (this.pkgDataSelected.length > 0) {
+					this.pkgDataSelected.map((p) => {
+						if (!selectedBy[p.type]) {
+							selectedBy[p.type] = [];
 						}
-					});
-				});
-				//console.log("enrichedPosition", enrichedPosition);
-				//sort enriched position so I can remove position between start and end positions
-				for (const [key, arr] of Object.entries(enrichedPosition)) {
-					enrichedPosition[key].sort(function (a, b) {
-						return a - b;
+						selectedBy[p.type].push(p.id);
 					});
 				}
+				if (
+					!!selectedBy["Tissue"] &&
+					selectedBy["Tissue"].length > 0 &&
+					!!selectedBy["Annotation"] &&
+					selectedBy["Annotation"].length > 0
+				) {
+					let enrichedPosition = { and: null, or: null };
 
-				//leave only start and end of overlapping regions
-				var enrichedRegion = { and: [], or: [] };
-				for (const [key, arr] of Object.entries(enrichedRegion)) {
-					for (let i = 0; i < enrichedPosition[key].length; i++) {
-						if (i == 0 || i == enrichedPosition[key].length - 1) {
-							enrichedRegion[key].push(enrichedPosition[key][i]);
-						} else {
-							let pos1 = enrichedPosition[key][i - 1] + 1;
-							let pos2 = enrichedPosition[key][i];
+					selectedBy["Annotation"].map((a) => {
+						selectedBy["Tissue"].map((t) => {
+							if (
+								!!this.pkgData.annoData[a] &&
+								!!this.pkgData.annoData[a][t]
+							) {
+								for (const [key, arr] of Object.entries(
+									enrichedPosition
+								)) {
+									let tempArr = [];
+									this.pkgData.annoData[a][t].region.map(
+										(r) => {
+											for (
+												let i = r.start;
+												i <= r.end;
+												i++
+											) {
+												tempArr.push(i);
+											}
+										}
+									);
 
-							if (pos2 > pos1) {
-								enrichedRegion[key].push(
-									enrichedPosition[key][i - 1]
-								);
+									if (arr == null) {
+										enrichedPosition[key] = tempArr;
+									} else {
+										enrichedPosition[key] =
+											key == "and"
+												? this.getArraysIntersection(
+														enrichedPosition[key],
+														tempArr
+												  )
+												: enrichedPosition[key].concat(
+														tempArr
+												  ); // getting only intersecting positions
+									}
+								}
+							}
+						});
+					});
+
+					//sort enriched position so I can remove position between start and end positions
+					for (const [key, arr] of Object.entries(enrichedPosition)) {
+						enrichedPosition[key].sort(function (a, b) {
+							return a - b;
+						});
+					}
+
+					//leave only start and end of overlapping regions
+					let enrichedRegion = { and: [], or: [] };
+					for (const [key, arr] of Object.entries(enrichedRegion)) {
+						for (let i = 0; i < enrichedPosition[key].length; i++) {
+							if (
+								i == 0 ||
+								i == enrichedPosition[key].length - 1
+							) {
 								enrichedRegion[key].push(
 									enrichedPosition[key][i]
 								);
+							} else {
+								let pos1 = enrichedPosition[key][i - 1] + 1;
+								let pos2 = enrichedPosition[key][i];
+
+								if (pos2 > pos1) {
+									enrichedRegion[key].push(
+										enrichedPosition[key][i - 1]
+									);
+									enrichedRegion[key].push(
+										enrichedPosition[key][i]
+									);
+								}
 							}
 						}
 					}
-				}
 
-				//console.log("enrichedRegion", enrichedRegion);
-
-				///build object of overlapping regions
-				var overlappingRegions = { and: [], or: [] };
-				for (const [key, arr] of Object.entries(enrichedRegion)) {
-					for (
-						let i = 0;
-						i < enrichedRegion[key].length - 1;
-						i += 2
-					) {
-						let tempObj = {};
-						tempObj["start"] = enrichedRegion[key][i];
-						tempObj["end"] = enrichedRegion[key][i + 1];
-						overlappingRegions[key].push(tempObj);
+					///build object of overlapping regions
+					let overlappingRegions = { and: [], or: [] };
+					for (const [key, arr] of Object.entries(enrichedRegion)) {
+						for (
+							let i = 0;
+							i < enrichedRegion[key].length - 1;
+							i += 2
+						) {
+							let tempObj = {};
+							tempObj["start"] = enrichedRegion[key][i];
+							tempObj["end"] = enrichedRegion[key][i + 1];
+							overlappingRegions[key].push(tempObj);
+						}
 					}
-				}
 
-				this.pkgData["overlappingRegions"] = overlappingRegions;
-				console.log(
-					'this.pkgData["overlappingRegions"]',
-					this.pkgData["overlappingRegions"]
-				);
+					Vue.set(
+						this.pkgData,
+						"overlappingRegions",
+						overlappingRegions
+					);
+				}
 			}
 		},
 		getArraysIntersection(a1, a2) {
@@ -596,38 +620,40 @@ export default Vue.component("research-annotations-plot", {
 			uiUtils.showHideElement("annotationsPlotWrapper");
 		},
 		getGEContent(PKEY, TISSUE) {
-			var content = "";
-			/*console.log(
-				"this.pkgData.GEByTissueData",
-				this.pkgData.GEByTissueData
-			);*/
-			this.selectedAnnos.map((a) => {
-				if (this.pkgData.GEByTissueData[PKEY][TISSUE]) {
-					if (this.pkgData.GEByTissueData[PKEY][TISSUE][a]) {
-						let data = this.pkgData.GEByTissueData[PKEY][TISSUE][a];
-						content +=
-							"<strong>" +
-							a +
-							"</strong> (" +
-							Formatters.pValueFormatter(data.pValue) +
-							" / " +
-							Formatters.pValueFormatter(data.fold) +
-							")<br />";
+			let content = "";
+
+			this.pkgDataSelected
+				.filter((s) => s.type == "Annotation")
+				.map((a) => {
+					if (this.pkgData.GEByTissueData[PKEY][TISSUE]) {
+						if (this.pkgData.GEByTissueData[PKEY][TISSUE][a.id]) {
+							let data =
+								this.pkgData.GEByTissueData[PKEY][TISSUE][a.id];
+							content +=
+								"<strong>" +
+								a.id +
+								"</strong> (" +
+								Formatters.pValueFormatter(data.pValue) +
+								" / " +
+								Formatters.pValueFormatter(data.fold) +
+								")<br />";
+						}
 					}
-				}
-			});
+				});
 			return content;
 		},
 		getSortByAnno(DATA) {
-			var contentObj = {};
+			let contentObj = {};
 
-			var sortedData = [];
+			let sortedData = [];
 			for (const [tissue, annotations] of Object.entries(DATA)) {
 				for (const [annotation, annoParams] of Object.entries(
 					annotations
 				)) {
 					if (
-						this.selectedAnnos.includes(annotation) == true &&
+						this.pkgDataSelected
+							.map((s) => s.id)
+							.includes(annotation) == true &&
 						!!this.annoData[annotation][tissue]
 					) {
 						let tempObj = {
@@ -657,95 +683,86 @@ export default Vue.component("research-annotations-plot", {
 				}
 			});
 
-			//console.log("contentObj", contentObj);
 			return contentObj;
 		},
-		/*getAnnoContent(PKEY, ANNOTATION) {
-			var content = "";
 
-			let tempArr = [];
-			let phenotypeAnnoData = this.pkgData.GEByTissueData[PKEY];
-
-			for (const [tissue, tissueAnno] of Object.entries(
-				phenotypeAnnoData
-			)) {
-				if (!!tissueAnno[ANNOTATION]) {
-					let tempObj = {};
-					tempObj["tissue"] = tissue;
-					tempObj["gregor"] = tissueAnno[ANNOTATION].gregor;
-
-					tempArr.push(tempObj);
-				}
-			}
-
-			let sortedData = tempArr.sort((a, b) =>
-				a.gregor < b.gregor ? 1 : -1
-			);
-
-			//console.log("sortedData", sortedData);
-
-			sortedData.map((d) => {
-				let tissueData = phenotypeAnnoData[d.tissue][ANNOTATION];
-				content +=
-					"<strong>" +
-					d.tissue +
-					"</strong> (P-Value:" +
-					Formatters.pValueFormatter(tissueData.pValue) +
-					", Fold:" +
-					Formatters.pValueFormatter(tissueData.fold) +
-					", Gregor:" +
-					Formatters.pValueFormatter(tissueData.gregor) +
-					")<br />";
-			});
-
-			return content;
-		},*/
 		addAnnoTrack(event) {
 			if (event.target.value != "") {
-				//console.log(this.selectedAnnos.indexOf(event.target.value));
-				if (this.selectedAnnos.indexOf(event.target.value) < 0) {
-					this.selectedAnnos.push(event.target.value);
+				let selectedAnnotations = this.pkgDataSelected
+					.filter((s) => s.type == "Annotation")
+					.map((s) => s.id);
+
+				if (selectedAnnotations.indexOf(event.target.value) < 0) {
+					selectedAnnotations.push(event.target.value);
 
 					if (this.pkgData != null) {
-						this.pkgData["selectedAnnos"] = this.selectedAnnos;
 						this.$store.dispatch("pkgDataSelected", {
 							type: "Annotation",
 							id: event.target.value,
 							action: "add",
 						});
+
+						Vue.set(
+							this.pkgData,
+							"selectedAnnos",
+							selectedAnnotations
+						);
 					}
 				}
 			}
 		},
-		addRemoveTissueTrack(event) {
-			var tissue = event.target.value;
-			var tClass = tissue.replace(/ /g, "_");
+		addRemoveTissueTrack(event, TISSUE) {
+			let tissue = TISSUE != null ? TISSUE : event.target.value;
+			let tClass = tissue.replace(/ /g, "_");
 
 			const chkBoxes = document.querySelectorAll("input." + tClass);
-			//console.log(chkBoxes);
-			if (event.target.checked == true) {
-				chkBoxes.forEach(function (c) {
-					c.checked = true;
-				});
 
-				this.selectedTissues.push(tissue);
+			let selectedTissues = this.pkgDataSelected
+				.filter((s) => s.type == "Tissue")
+				.map((s) => s.id);
 
-				if (this.pkgData != null) {
-					this.pkgData["selectedTissues"] = this.selectedTissues;
-
-					this.$store.dispatch("pkgDataSelected", {
-						type: "Tissue",
-						id: tissue,
-						action: "add",
+			if (event != null) {
+				if (event.target.checked == true) {
+					chkBoxes.forEach(function (c) {
+						c.checked = true;
 					});
+
+					selectedTissues.push(tissue);
+
+					if (this.pkgData != null) {
+						this.$store.dispatch("pkgDataSelected", {
+							type: "Tissue",
+							id: tissue,
+							action: "add",
+						});
+
+						Vue.set(
+							this.pkgData,
+							"selectedTissues",
+							selectedTissues
+						);
+					}
+				} else {
+					chkBoxes.forEach(function (c) {
+						c.checked = false;
+					});
+					const tIndex = selectedTissues.indexOf(tissue);
+					if (tIndex > -1) {
+						if (this.pkgData != null) {
+							this.$store.dispatch("pkgDataSelected", {
+								type: "Tissue",
+								id: tissue,
+								action: "remove",
+							});
+						}
+					}
 				}
-			} else {
+			} else if (event == null) {
 				chkBoxes.forEach(function (c) {
 					c.checked = false;
 				});
-				const tIndex = this.selectedTissues.indexOf(tissue);
+				const tIndex = selectedTissues.indexOf(tissue);
 				if (tIndex > -1) {
-					this.selectedTissues.splice(tIndex, 1);
 					if (this.pkgData != null) {
 						this.$store.dispatch("pkgDataSelected", {
 							type: "Tissue",
@@ -757,26 +774,28 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		addTissueTrack(event) {
+			let selectedTissues = this.pkgDataSelected
+				.filter((s) => s.type == "Tissue")
+				.map((s) => s.id);
 			if (event.target.value != "") {
-				this.selectedTissues.push(event.target.value);
+				selectedTissues.push(event.target.value);
 
 				if (this.pkgData != null) {
-					this.pkgData["selectedTissues"] = this.selectedTissues;
-
 					this.$store.dispatch("pkgDataSelected", {
 						type: "Tissue",
 						id: event.target.value,
 						action: "add",
 					});
+
+					Vue.set(this.pkgData, "selectedTissues", selectedTissues);
 				}
-				//this.renderTissuesTracks();
 			}
 		},
 		renderTissuesTracks() {
 			let canvas = document.querySelector("#tissuesPlot");
 			let wrapper = document.querySelector("#tissuesPlotWrapper");
 			if (!!canvas && !!wrapper) {
-				var tempHeight = 0;
+				let tempHeight = 0;
 				let tissueTitleH = this.spaceBy * 2;
 				let btwnTissues = this.spaceBy * 3;
 				let perAnnotation = this.spaceBy;
@@ -792,12 +811,20 @@ export default Vue.component("research-annotations-plot", {
 				let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
 				let xPerPixel = plotWidth / (regionEnd - regionStart);
 
-				this.selectedTissues.map((t) => {
+				let selectedAnnotations = this.pkgDataSelected
+					.filter((s) => s.type == "Annotation")
+					.map((s) => s.id);
+
+				let selectedTissues = this.pkgDataSelected
+					.filter((s) => s.type == "Tissue")
+					.map((s) => s.id);
+
+				selectedTissues.map((t) => {
 					let selectedAnnosNum = 0;
 					for (const [annoKey, annoValue] of Object.entries(
 						this.tissuesData[t]
 					)) {
-						if (this.selectedAnnos.includes(annoKey) == true) {
+						if (selectedAnnotations.includes(annoKey) == true) {
 							selectedAnnosNum++;
 						}
 					}
@@ -818,12 +845,12 @@ export default Vue.component("research-annotations-plot", {
 
 				let renderHeight = this.plotMargin.topMargin;
 
-				this.selectedTissues.map((t, tIndex) => {
+				selectedTissues.map((t, tIndex) => {
 					let selectedAnnosNum = 0;
 					for (const [annoKey, annoValue] of Object.entries(
 						this.tissuesData[t]
 					)) {
-						if (this.selectedAnnos.includes(annoKey) == true) {
+						if (selectedAnnotations.includes(annoKey) == true) {
 							selectedAnnosNum++;
 						}
 					}
@@ -909,7 +936,7 @@ export default Vue.component("research-annotations-plot", {
 					);
 					ctx.stroke();
 
-					if (tIndex + 1 == this.selectedTissues.length) {
+					if (tIndex + 1 == selectedTissues.length) {
 						let xStep = (regionEnd - regionStart) / 5;
 						let xTickDistance = plotWidth / 5;
 
@@ -956,7 +983,7 @@ export default Vue.component("research-annotations-plot", {
 					for (const [a, aValue] of Object.entries(
 						this.tissuesData[t]
 					)) {
-						if (this.selectedAnnos.includes(a) == true) {
+						if (selectedAnnotations.includes(a) == true) {
 							let region = aValue.region;
 
 							if (aIndex % 2 == 0) {
@@ -1037,11 +1064,15 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		removeTissueTrack(event) {
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var rawX = e.clientX - rect.left;
-			var y = Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy);
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let rawX = e.clientX - rect.left;
+			let y = Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy);
+
+			let selectedTissues = this.pkgDataSelected
+				.filter((s) => s.type == "Tissue")
+				.map((s) => s.id);
 
 			if (
 				x > rect.width - this.plotMargin.leftMargin &&
@@ -1055,9 +1086,8 @@ export default Vue.component("research-annotations-plot", {
 					let end = hPosition[1];
 					if (x >= start && x <= end) {
 						let tissue = this.tissuesPosData[y].tissue;
-						const tIndex = this.selectedTissues.indexOf(tissue);
+						const tIndex = selectedTissues.indexOf(tissue);
 						if (tIndex > -1) {
-							this.selectedTissues.splice(tIndex, 1);
 							if (this.pkgData != null) {
 								this.$store.dispatch("pkgDataSelected", {
 									type: "Tissue",
@@ -1065,18 +1095,17 @@ export default Vue.component("research-annotations-plot", {
 									action: "remove",
 								});
 							}
-							//this.renderTissuesTracks();
 						}
 					}
 				}
 			}
 		},
 		checkTissuesPosition(event) {
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var rawX = e.clientX - rect.left;
-			var y = Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy);
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let rawX = e.clientX - rect.left;
+			let y = Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy);
 
 			let rawY = e.clientY - rect.top;
 
@@ -1134,14 +1163,14 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		checkGEPosition(event) {
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let y = Math.floor(e.clientY - rect.top);
 
 			const infoBox = document.querySelector("#GEInfoBox");
 
-			var infoBoxContent = "";
+			let infoBoxContent = "";
 			for (let v = -5; v <= 5; v++) {
 				for (let h = -5; h <= 5; h++) {
 					if (this.GEPosData[y + v] != undefined) {
@@ -1179,64 +1208,32 @@ export default Vue.component("research-annotations-plot", {
 				infoBox.setAttribute("class", "hidden");
 			}
 		},
-		removeAnnoTrack(event) {
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var rawX = e.clientX - rect.left;
-			let rawY = e.clientY - rect.top;
-
-			if (
-				x >= rect.width - this.plotMargin.leftMargin &&
-				x <= rect.width
-			) {
-				let floorY = Math.floor(rawY);
-				let yStart = floorY - 4;
-				let yEnd = floorY + 4;
-				for (let i = yStart; i <= yEnd; i++) {
-					if (
-						!!this.annoPosData[i] &&
-						!!this.annoPosData[i].annotation
-					) {
-						for (const [region, regionValue] of Object.entries(
-							this.annoPosData[i].regions
-						)) {
-							let hPosition = region.split("_");
-							let start = hPosition[0];
-							let end = hPosition[1];
-							if (x >= start && x <= end) {
-								let annotation = this.annoPosData[i].annotation;
-								const aIndex =
-									this.selectedAnnos.indexOf(annotation);
-								if (aIndex > -1) {
-									this.selectedAnnos.splice(aIndex, 1);
-									if (this.pkgData != null) {
-										this.$store.dispatch(
-											"pkgDataSelected",
-											{
-												type: "Annotation",
-												id: annotation,
-												action: "remove",
-											}
-										);
-									}
-
-									//this.renderByAnnotations();
-								}
-							}
-						}
-					}
+		removeAnnoTrack(ANNO) {
+			//console.log("called", ANNO);
+			let selectedAnnotations = this.pkgDataSelected
+				.filter((s) => s.type == "Annotation")
+				.map((s) => s.id);
+			const aIndex = selectedAnnotations.indexOf(ANNO);
+			//console.log("called2", aIndex, selectedAnnotations);
+			if (aIndex > -1) {
+				//this.selectedAnnos.splice(aIndex, 1);
+				if (this.pkgData != null) {
+					this.$store.dispatch("pkgDataSelected", {
+						type: "Annotation",
+						id: ANNO,
+						action: "remove",
+					});
 				}
 			}
 		},
 		checkPosition(event, TYPE) {
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var rawX = e.clientX - rect.left;
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let rawX = e.clientX - rect.left;
 			let rawY = e.clientY - rect.top;
 
-			var y =
+			let y =
 				Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy) - 1;
 
 			const infoBox = document.querySelector("#tissueInfoBox");
@@ -1247,6 +1244,7 @@ export default Vue.component("research-annotations-plot", {
 				x <= rect.width - this.plotMargin.leftMargin
 			) {
 				if (!!this.annoPosData[y]) {
+					this.$store.dispatch("sharedPlotXpos", rawX);
 					infoContent += this.annoPosData[y].tissue;
 					for (const [region, regionValue] of Object.entries(
 						this.annoPosData[y].regions
@@ -1305,6 +1303,7 @@ export default Vue.component("research-annotations-plot", {
 			return this.compareGroupColors[i];
 		},
 		async getGlobalEnrichment() {
+			console.log("calling GE");
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
 					? "https://bioindex.hugeamp.org/api/bio"
@@ -1312,9 +1311,9 @@ export default Vue.component("research-annotations-plot", {
 
 			let phenotype = this.searchingPhenotype;
 
-			var GEURL = annoServer + "/query/global-enrichment?q=" + phenotype;
+			let GEURL = annoServer + "/query/global-enrichment?q=" + phenotype;
 
-			var GEJson = await fetch(GEURL).then((resp) => resp.json());
+			let GEJson = await fetch(GEURL).then((resp) => resp.json());
 
 			if (GEJson.error == null) {
 				if (this.dataComparison == "newSearch") {
@@ -1374,23 +1373,24 @@ export default Vue.component("research-annotations-plot", {
 					Object.entries(this.tissuesData).sort()
 				);
 
-				var GEByTissue = this.getGEByTissue();
+				let GEByTissue = this.getGEByTissue();
 
 				if (this.pkgData != null) {
-					this.pkgData["GEByTissueData"] = GEByTissue;
-					this.pkgData["GEData"] = this.GEData;
-					this.pkgData["annoData"] = this.annoData;
-					this.pkgData["tissuesData"] = this.tissuesData;
+					Vue.set(this.pkgData, "GEByTissueData", GEByTissue);
+					Vue.set(this.pkgData, "GEData", this.GEData);
+					Vue.set(this.pkgData, "annoData", this.annoData);
+					Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 				}
 
 				this.renderByAnnotations();
 				this.renderGE();
 			}
+			this.$forceUpdate();
 		},
 
 		getGEByTissue() {
 			/// put lowest pValue and fold across ancestries
-			var GEByTissue = {};
+			let GEByTissue = {};
 			for (const [phenotype, phenotypeGE] of Object.entries(
 				this.GEData
 			)) {
@@ -1416,19 +1416,11 @@ export default Vue.component("research-annotations-plot", {
 							Formatters.pValueFormatter(g.pValue);
 						GEByTissue[phenotype][g.tissue][g.annotation].fold =
 							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
-						/*GEByTissue[phenotype][g.tissue][g.annotation].gregor =
-							GEByTissue[phenotype][g.tissue][g.annotation].fold /
-							GEByTissue[phenotype][g.tissue][g.annotation]
-								.pValue;*/
 					} else if (g.pValue < pPerTissue) {
 						GEByTissue[phenotype][g.tissue][g.annotation].pValue =
 							Formatters.pValueFormatter(g.pValue);
 						GEByTissue[phenotype][g.tissue][g.annotation].fold =
 							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
-						/*GEByTissue[phenotype][g.tissue][g.annotation].gregor =
-							GEByTissue[phenotype][g.tissue][g.annotation].fold /
-							GEByTissue[phenotype][g.tissue][g.annotation]
-								.pValue;*/
 					}
 				});
 			}
@@ -1443,12 +1435,13 @@ export default Vue.component("research-annotations-plot", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
+				console.log("calling annotations");
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"
 						: this.renderConfig["annotations server"];
 
-				var annotationsURL =
+				let annotationsURL =
 					annoServer +
 					"/query/regions?q=" +
 					REGION_OBJ.chr +
@@ -1457,7 +1450,7 @@ export default Vue.component("research-annotations-plot", {
 					"-" +
 					REGION_OBJ.end;
 
-				var annotationsJson = await fetch(annotationsURL).then((resp) =>
+				let annotationsJson = await fetch(annotationsURL).then((resp) =>
 					resp.json()
 				);
 
@@ -1494,8 +1487,8 @@ export default Vue.component("research-annotations-plot", {
 					});
 
 					if (this.pkgData != null) {
-						this.pkgData["annoData"] = this.annoData;
-						this.pkgData["tissuesData"] = this.tissuesData;
+						Vue.set(this.pkgData, "annoData", this.annoData);
+						Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 					}
 
 					this.getGlobalEnrichment();
@@ -1834,7 +1827,7 @@ export default Vue.component("research-annotations-plot", {
 		},
 		renderByAnnotations() {
 			//console.log("selectedTissues in render by", this.selectedTissues);
-			var tempHeight = 0;
+			let tempHeight = 0;
 			let annotationTitleH = this.spaceBy * 2;
 			let btwnAnnotations = this.spaceBy * 7;
 			let perTissue = this.spaceBy;
@@ -1843,8 +1836,16 @@ export default Vue.component("research-annotations-plot", {
 			let regionStart = this.viewingRegion.start;
 			let regionEnd = this.viewingRegion.end;
 
+			let selectedAnnotations = this.pkgDataSelected
+				.filter((s) => s.type == "Annotation")
+				.map((s) => s.id);
+
+			let selectedTissues = this.pkgDataSelected
+				.filter((s) => s.type == "Tissue")
+				.map((s) => s.id);
+
 			for (const [annotation, tissues] of Object.entries(this.annoData)) {
-				if (this.selectedAnnos.includes(annotation)) {
+				if (selectedAnnotations.includes(annotation)) {
 					tempHeight += annotationTitleH;
 					tempHeight += Object.keys(tissues).length * perTissue;
 					tempHeight += btwnAnnotations;
@@ -1876,56 +1877,15 @@ export default Vue.component("research-annotations-plot", {
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
 				let renderHeight = annotationTitleH;
-
+				//console.log("this.annoData", this.annoData);
 				for (const [annotation, tissues] of Object.entries(
 					this.annoData
 				)) {
-					if (this.selectedAnnos.includes(annotation)) {
+					if (selectedAnnotations.includes(annotation)) {
 						ctx.font = "14px Arial";
 						ctx.textAlign = "left";
-						ctx.fillStyle = "#000000";
+						ctx.fillStyle = "#00000050";
 						ctx.fillText(annotation, bump, renderHeight);
-
-						/// Render delete track icon
-						ctx.beginPath();
-						ctx.fillStyle = "#666666";
-						ctx.lineWidth = 0;
-						ctx.arc(
-							this.plotMargin.leftMargin + plotWidth + bump * 3,
-							renderHeight + bump * 2,
-							7,
-							0,
-							2 * Math.PI
-						);
-						ctx.fill();
-
-						ctx.font = "12px Arial";
-						ctx.textAlign = "center";
-						ctx.fillStyle = "#ffffff";
-
-						ctx.fillText(
-							"\u{2715}",
-							this.plotMargin.leftMargin + plotWidth + bump * 3,
-							renderHeight + bump * 2 + 3.5
-						);
-
-						//feed close button position
-						let yPosBtwn = Math.floor(renderHeight + bump * 2);
-						let xPos =
-							this.plotMargin.leftMargin + plotWidth + bump * 3;
-						let xPosStart = xPos - 3.5,
-							xPosEnd = xPos + 3.5;
-						let xPosBtwn = xPosStart + "_" + xPosEnd;
-
-						this.annoPosData[yPosBtwn] = {
-							annotation: annotation,
-							regions: {},
-						};
-
-						this.annoPosData[yPosBtwn].regions[xPosBtwn] =
-							"Remove track";
-
-						/////
 
 						let blockHeight =
 							Object.keys(tissues).length * perTissue;
@@ -1958,7 +1918,7 @@ export default Vue.component("research-annotations-plot", {
 							}
 
 							if (tissueIndex % 2 == 0) {
-								ctx.fillStyle = "#eeeeee";
+								ctx.fillStyle = "#00000010";
 								ctx.fillRect(
 									this.plotMargin.leftMargin,
 									renderHeight,
@@ -1994,11 +1954,8 @@ export default Vue.component("research-annotations-plot", {
 											: xPosEnd;
 
 									let xPosWidth = xPosEnd - xPosStart;
-									if (
-										this.selectedTissues.indexOf(tissue) >
-										-1
-									) {
-										ctx.fillStyle = "#000000";
+									if (selectedTissues.indexOf(tissue) > -1) {
+										ctx.fillStyle = "#FF0000";
 									} else {
 										ctx.fillStyle =
 											this.getColorIndex(annotation);
@@ -2023,6 +1980,14 @@ export default Vue.component("research-annotations-plot", {
 							});
 
 							renderHeight += perTissue;
+
+							if (selectedTissues.indexOf(tissue) > -1) {
+								ctx.fillStyle = "#000000";
+								ctx.textAlign = "start";
+								ctx.textBaseline = "middle";
+								ctx.font = "12px Arial";
+								ctx.fillText(tissue, 5, renderHeight - 2);
+							}
 						}
 						renderHeight += btwnAnnotations;
 					}
@@ -2085,6 +2050,29 @@ $(function () {});
 </script>
 
 <style>
+.search-bubble {
+	font-size: 12px;
+	margin-right: 5px;
+	border-radius: 5px;
+	margin-bottom: 3px;
+	color: #fff;
+	float: left;
+	font-weight: 400;
+	line-height: 1;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	user-select: none;
+	border: 1px solid transparent;
+	padding: 0.25em 0.4em;
+	padding-right: 0.6em;
+	padding-left: 0.6em;
+	border-radius: 10rem;
+}
+
+.search-bubble.hidden {
+	display: none !important;
+}
 .phenotype-tissue-td {
 	vertical-align: top !important;
 }
