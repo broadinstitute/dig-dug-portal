@@ -12,6 +12,7 @@
 				:compareGroupColors="colors.moderate"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
+				:sharedPlotXpos="sharedPlotXpos"
 			></research-region-plot>
 			<research-genes-track
 				v-if="
@@ -85,6 +86,7 @@
 				:pkgDataSelected="pkgDataSelected"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
+				:sharedPlotXpos="sharedPlotXpos"
 			></research-annotations-plot>
 		</div>
 	</div>
@@ -113,6 +115,7 @@ export default Vue.component("kp-gem-pkg", {
 		"pkgDataSelected",
 		"regionZoom",
 		"regionViewArea",
+		"sharedPlotXpos",
 	],
 	data() {
 		return {};

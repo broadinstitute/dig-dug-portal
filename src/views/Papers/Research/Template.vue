@@ -385,12 +385,13 @@
 								"
 								:pkgConfig="$parent.plotConfig"
 								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
+								:sharedPlotXpos="$store.state.sharedPlotXpos"
 								:plotMargin="$parent.plotMargin"
 								:dataComparisonConfig="
 									$parent.dataComparisonConfig
 								"
 								:colors="$parent.colors"
-								:pkgDataSelected="$store.state.pkgDataSelected"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
 							></kp-gem-pkg>

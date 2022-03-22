@@ -137,6 +137,14 @@
 					@mousemove="checkPosition($event, item, 'asso', 'move')"
 					@mouseout="onMouseOut('assoInfoBox' + item)"
 				></canvas>
+				<span
+					v-if="sharedPlotXpos != null"
+					:style="
+						'position:absolute;width: 1px; height:100%;top:0;left: ' +
+						sharedPlotXpos +
+						'px;border-left: solid 1px #000;'
+					"
+				></span>
 				<div
 					:id="'assoInfoBox' + item.replaceAll(' ', '_')"
 					class="asso-info-box hidden"
@@ -196,6 +204,7 @@ export default Vue.component("research-region-plot", {
 		"compareGroupColors",
 		"regionZoom",
 		"regionViewArea",
+		"sharedPlotXpos",
 	],
 	data() {
 		return {
@@ -583,6 +592,11 @@ export default Vue.component("research-region-plot", {
 			var rect = e.target.getBoundingClientRect();
 			var x = Math.floor(e.clientX - rect.left);
 			var y = Math.floor(e.clientY - rect.top);
+			let rawX = e.clientX + rect.left;
+
+			if (TYPE == "asso") {
+				this.$store.dispatch("sharedPlotXpos", rawX);
+			}
 
 			var dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
 			dotsOnPosition = [...new Set(dotsOnPosition)];
