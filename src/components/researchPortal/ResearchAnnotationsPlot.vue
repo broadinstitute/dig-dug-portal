@@ -379,7 +379,7 @@ export default Vue.component("research-annotations-plot", {
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		//this.getAnnotations(this.searchingRegion);
+		this.getAnnotations(this.searchingRegion);
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -390,10 +390,7 @@ export default Vue.component("research-annotations-plot", {
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
-				return {
-					region: this.searchingRegion,
-					phenotype: this.searchingPhenotype,
-				};
+				return this.searchingRegion + "," + this.searchingPhenotype;
 			}
 		},
 		searchingRegion() {
@@ -464,13 +461,8 @@ export default Vue.component("research-annotations-plot", {
 		},
 	},
 	watch: {
-		searchingParameters: {
-			handler: function (PARAMS) {
-				console.log("searchingParameters", PARAMS);
-				this.getAnnotations(PARAMS.region);
-			},
-			deep: true,
-			immediate: true,
+		searchingParameters(PARAM) {
+			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
 			handler: function (n, o) {
