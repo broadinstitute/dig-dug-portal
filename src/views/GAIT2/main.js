@@ -347,20 +347,20 @@ new Vue({
             //parse the region string
             this.show = false;
             console.log("searching regions");
-            // let regions = this.$store.state.pkgData["overlappingRegions"][
-            //     this.selectedRegionType
-            // ].map(region => {
-            //     return {
-            //         chrom: this.searchRegion.chrom,
-            //         start: region.start,
-            //         stop: region.end
-            //     };
-            // });
+            let regions = this.$store.state.pkgData["overlappingRegions"][
+                this.selectedRegionType
+            ].map(region => {
+                return {
+                    chrom: this.searchRegion.chrom,
+                    start: region.start,
+                    stop: region.end
+                };
+            });
 
             //using hardcoded test samples
             let input = {
-                //regions: regions
-                regions: this.samples
+                regions: regions
+                //regions: this.samples
             };
 
             // if (regions) {
