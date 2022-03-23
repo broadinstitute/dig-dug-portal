@@ -106,6 +106,40 @@
                                         >
                                             <div class="label">Gene</div>
                                         </filter-enumeration-control>
+                                        <b-col class="divider"></b-col>
+                                        <filter-enumeration-control
+                                            ref="phenotype"
+                                            :field="'phenotype'"
+                                            placeholder="Select one or more phenotypes ..."
+                                            :disableSort="true"
+                                            :disabled="
+                                                $parent.selectedDataset
+                                                    .length == 0 ||
+                                                $parent.selectedDataset[0] ===
+                                                    undefined
+                                            "
+                                            :multiple="true"
+                                            :options="
+                                                $parent.selectedDataset == '52k'
+                                                    ? $store.state.ldServer.phenotypes.map(
+                                                          (phenotype) =>
+                                                              phenotype.name
+                                                      )
+                                                    : $parent.topmedDatasets
+                                            "
+                                            :labelFormatter="
+                                                (phenotype) =>
+                                                    !!$store.state.bioPortal
+                                                        .phenotypeMap[phenotype]
+                                                        ? $store.state.bioPortal
+                                                              .phenotypeMap[
+                                                              phenotype
+                                                          ].description
+                                                        : phenotype
+                                            "
+                                        >
+                                            <div class="label">Phenotypes</div>
+                                        </filter-enumeration-control>
                                     </criterion-list-group>
 
                                     <div class="function">
@@ -460,48 +494,6 @@
                                                         Dataset
                                                     </div></filter-enumeration-control
                                                 >
-
-                                                <filter-enumeration-control
-                                                    ref="phenotype"
-                                                    :field="'phenotype'"
-                                                    placeholder="Select one or more phenotypes ..."
-                                                    :disableSort="true"
-                                                    :disabled="
-                                                        $parent.selectedDataset
-                                                            .length == 0 ||
-                                                        $parent
-                                                            .selectedDataset[0] ===
-                                                            undefined
-                                                    "
-                                                    :multiple="true"
-                                                    :options="
-                                                        $parent.selectedDataset ==
-                                                        '52k'
-                                                            ? $store.state.ldServer.phenotypes.map(
-                                                                  (phenotype) =>
-                                                                      phenotype.name
-                                                              )
-                                                            : $parent.topmedDatasets
-                                                    "
-                                                    :labelFormatter="
-                                                        (phenotype) =>
-                                                            !!$store.state
-                                                                .bioPortal
-                                                                .phenotypeMap[
-                                                                phenotype
-                                                            ]
-                                                                ? $store.state
-                                                                      .bioPortal
-                                                                      .phenotypeMap[
-                                                                      phenotype
-                                                                  ].description
-                                                                : phenotype
-                                                    "
-                                                >
-                                                    <div class="label">
-                                                        Phenotypes
-                                                    </div>
-                                                </filter-enumeration-control>
 
                                                 <filter-enumeration-control
                                                     ref="test"
