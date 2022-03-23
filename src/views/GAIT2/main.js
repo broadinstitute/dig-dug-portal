@@ -286,7 +286,7 @@ new Vue({
                 .map(v => v.threshold);
         },
         selectedPhenotypes() {
-            return this.selectedMethods
+            return this.searchCriteria
                 .filter(v => {
                     return v.field === "phenotype";
                 })
