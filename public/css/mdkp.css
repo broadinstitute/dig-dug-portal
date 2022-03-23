@@ -96,9 +96,8 @@ a:hover {
 }
 
 .front-top-banner-nagekp {
-    background-image: url(//kp4cd.org/sites/default/files/vueportal/nagekp_front_bg.png),
-        linear-gradient(#751dc7, #9928c5);
-    background-position: 120% 100px, top left;
+    background-image: linear-gradient(#751dc7, #9928c5);
+    background-position: 120% 0px, top left;
 }
 
 .front-top-banner {
