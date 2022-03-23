@@ -148,155 +148,6 @@
                                             >Search Annotations</b-button
                                         >
                                     </div>
-
-                                    <div
-                                        id="annotation-plot-container"
-                                        v-if="$parent.show"
-                                    >
-                                        <research-annotations-plot
-                                            :region="$parent.searchRegionString"
-                                            :phenotype="'T2D'"
-                                            :renderConfig="{
-                                                'annotations server':
-                                                    'KP BioIndex',
-                                                'phenotype parameter':
-                                                    'phenotype',
-                                                'overlapping regions': 'true',
-                                            }"
-                                            :plotMargin="{
-                                                leftMargin: 75,
-                                                rightMargin: 20,
-                                                topMargin: 10,
-                                                bottomMargin: 50,
-                                                bump: 5.5,
-                                            }"
-                                            :compareGroupColors="[
-                                                '#007bff75',
-                                                '#04884575',
-                                                '#8490C875',
-                                                '#BF61A575',
-                                                '#EE312475',
-                                                '#FCD70075',
-                                                '#5555FF75',
-                                                '#7aaa1c75',
-                                                '#9F78AC75',
-                                                '#F8808475',
-                                                '#F5A4C775',
-                                                '#CEE6C175',
-                                                '#cccc0075',
-                                                '#6FC7B675',
-                                                '#D5A76875',
-                                                '#d4d4d475',
-                                            ]"
-                                            :dataComparison="null"
-                                            :pkgData="$store.state.pkgData"
-                                            :pkgDataSelected="
-                                                $store.state.pkgDataSelected
-                                            "
-                                            :regionZoom="0"
-                                            :regionViewArea="0"
-                                        ></research-annotations-plot>
-                                        {{
-                                            $store.state.pkgData[
-                                                "overlappingRegions"
-                                            ]
-                                        }}
-                                        <div
-                                            v-if="
-                                                $store.state.pkgData[
-                                                    'overlappingRegions'
-                                                ] &&
-                                                Object.keys(
-                                                    $store.state.pkgData[
-                                                        'overlappingRegions'
-                                                    ]
-                                                ).length !== 0
-                                            "
-                                            class="
-                                                filtering-ui-wrapper
-                                                add-content
-                                            "
-                                            style="
-                                                width: 100%;
-                                                padding: 0 10px;
-                                                text-align: left;
-                                            "
-                                        >
-                                            <div class="filtering-ui-content">
-                                                <div
-                                                    class="col"
-                                                    style="padding: 2px"
-                                                >
-                                                    <div
-                                                        class="label"
-                                                        style="
-                                                            display: inline-block;
-                                                            margin-right: 10px;
-                                                        "
-                                                    >
-                                                        Show overlapping regions
-                                                        by
-                                                    </div>
-                                                    <select
-                                                        v-model="
-                                                            $parent.selectedRegionType
-                                                        "
-                                                        class="custom-select"
-                                                    >
-                                                        <option value="or">
-                                                            Union (OR)
-                                                        </option>
-                                                        <option value="and">
-                                                            Intersection (AND)
-                                                        </option>
-                                                    </select>
-                                                    <template
-                                                        v-if="
-                                                            $store.state
-                                                                .pkgData[
-                                                                'overlappingRegions'
-                                                            ] &&
-                                                            $store.state
-                                                                .pkgData[
-                                                                'overlappingRegions'
-                                                            ].length !== 0
-                                                        "
-                                                        ><div
-                                                            v-if="
-                                                                $parent.selectedRegionType ===
-                                                                'or'
-                                                            "
-                                                        >
-                                                            {{
-                                                                $store.state
-                                                                    .pkgData[
-                                                                    "overlappingRegions"
-                                                                ]["or"]
-                                                            }}
-                                                        </div>
-                                                        <div v-else>
-                                                            {{
-                                                                $store.state
-                                                                    .pkgData[
-                                                                    "overlappingRegions"
-                                                                ]["and"]
-                                                            }}
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="function">
-                                        <b-button
-                                            variant="primary"
-                                            @click="$parent.searchRegions"
-                                            :disabled="
-                                                $parent.selectedGene.length == 0
-                                            "
-                                            >Search Regions</b-button
-                                        >
-                                    </div>
                                 </b-card-body>
                             </b-collapse>
                         </b-card>
@@ -318,45 +169,19 @@
                                     "
                                     >Annotations and Tissues
                                     <div class="criteria">
-                                        <b-badge
-                                            class="filter-pill-dataset"
-                                            v-if="
-                                                $parent.selectedDataset.length >
-                                                0
-                                            "
-                                        >
-                                            {{ $parent.selectedDataset[0] }}
-                                        </b-badge>
-
-                                        <template
-                                            v-if="
-                                                $parent.selectedTests.length > 0
-                                            "
-                                        >
-                                            <b-badge
-                                                class="filter-pill-test"
-                                                v-for="test in $parent.selectedTests"
-                                                :key="test"
-                                            >
-                                                {{
-                                                    $parent.testMethods.find(
-                                                        (o) => o.value === test
-                                                    ).text
-                                                }}
-                                            </b-badge>
-                                        </template>
-                                    </div></b-button
-                                >
+                                        <b-badge class="filter-pill-dataset">
+                                        </b-badge></div
+                                ></b-button>
                             </b-card-header>
                             <b-collapse
                                 id="accordion-2"
-                                v-model="$parent.showVariants"
+                                v-model="$parent.showAnnotations"
                                 accordion="my-accordion"
                                 role="tabpanel"
                             >
                                 <b-card-body>
                                     <b-skeleton-wrapper
-                                        :loading="$parent.loadingVariants"
+                                        :loading="$parent.loadingAnnotations"
                                     >
                                         <template #loading>
                                             <b-skeleton-table
@@ -368,251 +193,180 @@
                                                 }"
                                             ></b-skeleton-table>
                                         </template>
-                                        <b-alert
-                                            show
-                                            variant="warning"
-                                            v-if="
-                                                $parent.tableData.length === 0
-                                            "
-                                            ><b-icon
-                                                icon="exclamation-triangle"
-                                            ></b-icon>
-                                            There is no variant found with
-                                            selected criteria.
-                                            <a
-                                                v-b-toggle
-                                                href="#accordion-1"
-                                                @click.prevent
-                                                >Try another gene?</a
-                                            >
-                                        </b-alert>
-                                        <b-alert
-                                            show
-                                            variant="warning"
-                                            v-if="
-                                                $parent.tableData.length > 0 &&
-                                                $parent.criteriaChanged
-                                            "
-                                            ><b-icon
-                                                icon="exclamation-triangle"
-                                            ></b-icon>
-                                            Search criteria changed. Run
-                                            <b-button
-                                                variant="outline-primary"
-                                                size="sm"
-                                                v-b-toggle.accordion-1
-                                                >Search Variants</b-button
-                                            >
 
-                                            again to update variant
-                                            list.</b-alert
-                                        >
-                                        <transition
-                                            name="fade"
-                                            v-if="$parent.tableData.length > 0"
-                                        >
-                                            <b-alert
-                                                show
-                                                v-if="
-                                                    $parent.selectedDataset
-                                                        .length == 0
-                                                "
-                                                >Please select a
-                                                dataset.</b-alert
-                                            >
-                                            <b-alert
-                                                show
-                                                v-else-if="
-                                                    $parent.selectedPhenotypes
-                                                        .length == 0
-                                                "
-                                                >Please select one or more
-                                                phenotypes.</b-alert
-                                            >
-                                            <b-alert
-                                                show
-                                                v-else-if="
-                                                    $parent.selectedTests
-                                                        .length == 0 ||
-                                                    $parent.selectedTests[0] ===
-                                                        undefined
-                                                "
-                                                >Please select one or more tests
-                                                to run.</b-alert
-                                            ></transition
-                                        >
                                         <b-card
                                             class="text-center filter-tests"
-                                            v-if="$parent.tableData.length > 0"
                                         >
-                                            <criterion-list-group
-                                                v-model="
-                                                    $parent.selectedMethods
-                                                "
-                                                :header="'Test(s) Selected'"
-                                            >
-                                                <filter-enumeration-control
-                                                    ref="dataset"
-                                                    :field="'dataset'"
-                                                    placeholder="Select a dataset ..."
-                                                    :options="
-                                                        $parent.datasets.map(
-                                                            (v) => v.value
-                                                        )
+                                            <div id="annotation-plot-container">
+                                                <research-annotations-plot
+                                                    :region="
+                                                        $parent.searchRegionString
                                                     "
-                                                    :labelFormatter="
-                                                        (v) =>
-                                                            $parent.datasets.find(
-                                                                (o) =>
-                                                                    o.value ===
-                                                                    v
-                                                            ).text
+                                                    :phenotype="'T2D'"
+                                                    :renderConfig="{
+                                                        'annotations server':
+                                                            'KP BioIndex',
+                                                        'phenotype parameter':
+                                                            'phenotype',
+                                                        'overlapping regions':
+                                                            'true',
+                                                    }"
+                                                    :plotMargin="{
+                                                        leftMargin: 75,
+                                                        rightMargin: 20,
+                                                        topMargin: 10,
+                                                        bottomMargin: 50,
+                                                        bump: 5.5,
+                                                    }"
+                                                    :compareGroupColors="[
+                                                        '#007bff75',
+                                                        '#04884575',
+                                                        '#8490C875',
+                                                        '#BF61A575',
+                                                        '#EE312475',
+                                                        '#FCD70075',
+                                                        '#5555FF75',
+                                                        '#7aaa1c75',
+                                                        '#9F78AC75',
+                                                        '#F8808475',
+                                                        '#F5A4C775',
+                                                        '#CEE6C175',
+                                                        '#cccc0075',
+                                                        '#6FC7B675',
+                                                        '#D5A76875',
+                                                        '#d4d4d475',
+                                                    ]"
+                                                    :dataComparison="null"
+                                                    :pkgData="
+                                                        $store.state.pkgData
                                                     "
-                                                    ><div class="label">
-                                                        Dataset
-                                                    </div></filter-enumeration-control
+                                                    :pkgDataSelected="
+                                                        $store.state
+                                                            .pkgDataSelected
+                                                    "
+                                                    :regionZoom="0"
+                                                    :regionViewArea="0"
+                                                ></research-annotations-plot>
+                                                {{
+                                                    $store.state.pkgData[
+                                                        "overlappingRegions"
+                                                    ]
+                                                }}
+                                                <div
+                                                    v-if="
+                                                        $store.state.pkgData[
+                                                            'overlappingRegions'
+                                                        ] &&
+                                                        Object.keys(
+                                                            $store.state
+                                                                .pkgData[
+                                                                'overlappingRegions'
+                                                            ]
+                                                        ).length !== 0
+                                                    "
+                                                    class="
+                                                        filtering-ui-wrapper
+                                                        add-content
+                                                    "
+                                                    style="
+                                                        width: 100%;
+                                                        padding: 0 10px;
+                                                        text-align: left;
+                                                    "
                                                 >
-
-                                                <filter-enumeration-control
-                                                    ref="test"
-                                                    :field="'test'"
-                                                    placeholder="Select one or more methods ..."
-                                                    :multiple="true"
-                                                    :disableSort="true"
-                                                    :options="
-                                                        $parent.testMethods.map(
-                                                            (v) => v.value
-                                                        )
-                                                    "
-                                                    :labelFormatter="
-                                                        (v) =>
-                                                            $parent.testMethods.find(
-                                                                (o) =>
-                                                                    o.value ===
-                                                                    v
-                                                            ).text
-                                                    "
-                                                    ><div class="label">
-                                                        Test Methods
-                                                    </div></filter-enumeration-control
-                                                >
-                                            </criterion-list-group>
-
-                                            <div
-                                                class="function"
-                                                v-if="
-                                                    $parent.tableData.length > 0
-                                                "
-                                            >
+                                                    <div
+                                                        class="
+                                                            filtering-ui-content
+                                                        "
+                                                    >
+                                                        <div
+                                                            class="col"
+                                                            style="padding: 2px"
+                                                        >
+                                                            <div
+                                                                class="label"
+                                                                style="
+                                                                    display: inline-block;
+                                                                    margin-right: 10px;
+                                                                "
+                                                            >
+                                                                Show overlapping
+                                                                regions by
+                                                            </div>
+                                                            <select
+                                                                v-model="
+                                                                    $parent.selectedRegionType
+                                                                "
+                                                                class="
+                                                                    custom-select
+                                                                "
+                                                            >
+                                                                <option
+                                                                    value="or"
+                                                                >
+                                                                    Union (OR)
+                                                                </option>
+                                                                <option
+                                                                    value="and"
+                                                                >
+                                                                    Intersection
+                                                                    (AND)
+                                                                </option>
+                                                            </select>
+                                                            <template
+                                                                v-if="
+                                                                    $store.state
+                                                                        .pkgData[
+                                                                        'overlappingRegions'
+                                                                    ] &&
+                                                                    $store.state
+                                                                        .pkgData[
+                                                                        'overlappingRegions'
+                                                                    ].length !==
+                                                                        0
+                                                                "
+                                                                ><div
+                                                                    v-if="
+                                                                        $parent.selectedRegionType ===
+                                                                        'or'
+                                                                    "
+                                                                >
+                                                                    {{
+                                                                        $store
+                                                                            .state
+                                                                            .pkgData[
+                                                                            "overlappingRegions"
+                                                                        ]["or"]
+                                                                    }}
+                                                                </div>
+                                                                <div v-else>
+                                                                    {{
+                                                                        $store
+                                                                            .state
+                                                                            .pkgData[
+                                                                            "overlappingRegions"
+                                                                        ]["and"]
+                                                                    }}
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="function">
                                                 <b-button
-                                                    :disabled="
-                                                        $parent.selectedVariants
-                                                            .length == 0 ||
-                                                        $parent
-                                                            .selectedPhenotypes
-                                                            .length == 0 ||
-                                                        $parent.selectedDataset
-                                                            .length == 0 ||
-                                                        $parent.selectedTests
-                                                            .length == 0
-                                                    "
                                                     variant="primary"
                                                     @click="
-                                                        $parent.runRaremetal()
+                                                        $parent.searchVariants
                                                     "
-                                                    >Run Analysis</b-button
+                                                    :disabled="
+                                                        $parent.selectedGene
+                                                            .length == 0
+                                                    "
+                                                    >Search Variants</b-button
                                                 >
                                             </div>
                                         </b-card>
-
-                                        <div
-                                            class="variants"
-                                            v-if="$parent.tableData.length > 0"
-                                        >
-                                            <div class="my-2">
-                                                <b-button
-                                                    size="sm"
-                                                    variant="outline-secondary"
-                                                    @click="
-                                                        $parent.selectAllVariants()
-                                                    "
-                                                    title="Select all variants in the table below."
-                                                    ><b-icon
-                                                        icon="check2-all"
-                                                        aria-hidden="true"
-                                                    ></b-icon>
-                                                    Select all
-                                                    variants</b-button
-                                                >
-                                                <b-button
-                                                    size="sm"
-                                                    variant="outline-secondary"
-                                                    class="ml-2"
-                                                    @click="
-                                                        $parent.deselectAllVariants()
-                                                    "
-                                                    title="Deselect all variants in the table below."
-                                                    ><b-icon
-                                                        icon="dash"
-                                                        aria-hidden="true"
-                                                    ></b-icon>
-                                                    Deselect all
-                                                    variants</b-button
-                                                >
-                                            </div>
-
-                                            <b-table
-                                                striped
-                                                hover
-                                                small
-                                                sort-icon-left
-                                                responsive="sm"
-                                                sticky-header="400px"
-                                                :items="$parent.tableData"
-                                                :fields="$parent.visibleFields"
-                                            >
-                                                <template
-                                                    #cell(selected)="data"
-                                                >
-                                                    <b-form-group>
-                                                        <input
-                                                            type="checkbox"
-                                                            v-model="
-                                                                data.item
-                                                                    .selected
-                                                            "
-                                                            @change="
-                                                                $parent.updateSelectedVariants()
-                                                            "
-                                                        />
-                                                    </b-form-group>
-                                                </template>
-                                                <template
-                                                    #cell(burdenBinId)="data"
-                                                >
-                                                    {{
-                                                        $parent.masks.find(
-                                                            (o) =>
-                                                                o.value ===
-                                                                data.value
-                                                        ).text
-                                                    }}
-                                                </template>
-                                                <template #cell(varId)="data">
-                                                    <a
-                                                        :href="`/variant.html?variant=${data.value}`"
-                                                        >{{ data.value }}</a
-                                                    >
-                                                </template>
-                                                <template #cell(maf)="data">
-                                                    {{
-                                                        $parent.zScoreFormatter(
-                                                            data.value
-                                                        )
-                                                    }}
-                                                </template>
-                                            </b-table>
-                                        </div>
                                     </b-skeleton-wrapper>
                                 </b-card-body>
                             </b-collapse>
@@ -644,28 +398,7 @@
                                         >
                                             {{ $parent.selectedDataset[0] }}
                                         </b-badge>
-                                        <template
-                                            v-if="
-                                                $parent.selectedPhenotypes
-                                                    .length > 0
-                                            "
-                                        >
-                                            <b-badge
-                                                class="filter-pill-phenotype"
-                                                v-for="phenotype in $parent.selectedPhenotypes"
-                                                :key="phenotype"
-                                            >
-                                                {{
-                                                    !!$store.state.bioPortal
-                                                        .phenotypeMap[phenotype]
-                                                        ? $store.state.bioPortal
-                                                              .phenotypeMap[
-                                                              phenotype
-                                                          ].description
-                                                        : phenotype
-                                                }}
-                                            </b-badge>
-                                        </template>
+
                                         <template
                                             v-if="
                                                 $parent.selectedTests.length > 0

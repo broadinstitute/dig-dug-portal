@@ -62,8 +62,10 @@ new Vue({
             topmedDatasets: ["T2D"],
             selectedMethods: [],
             matchingGenes: [],
+            showAnnotations: false,
             showVariants: false,
             showCovariances: false,
+            loadingAnnotations: false,
             loadingVariants: false,
             loadingCovariances: false,
             criteriaChanged: false,
@@ -313,7 +315,7 @@ new Vue({
             }
             return Number.parseFloat(value).toFixed(7);
         },
-        searchVariants() {
+        searchVariantsCoding() {
             this.showVariants = true;
             this.loadingVariants = true;
             this.$store.dispatch("queryBurden", {
@@ -329,6 +331,8 @@ new Vue({
 
         //for NC GAIT
         async searchAnnotations() {
+            this.showAnnotations = true;
+            this.loadingAnnotations = true;
             let locus = await regionUtils.parseRegion(this.selectedGene[0]);
             if (locus) {
                 console.log("locus found: ", locus);
@@ -339,13 +343,14 @@ new Vue({
                 };
             }
             console.log("searching annotations");
-            this.show = true;
+            this.loadingAnnotations = false;
         },
 
-        async searchRegions() {
+        async searchVariants() {
             //if (this.searchRegionString) {
             //parse the region string
-            this.show = false;
+            this.loadingVariants = true;
+            this.showVariants = true;
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
@@ -475,6 +480,7 @@ new Vue({
             } else {
                 console.log("no lifted region", liftedRegions);
             }
+            this.loadingVariants = false;
         },
 
         async liftOver(regions) {
@@ -517,6 +523,8 @@ new Vue({
 
         //return a promise
         async runRaremetal() {
+            this.showCovariances = true;
+            this.loadingCovariances = true;
             let data = this.pageCovariances;
             console.log("waiting for raremetal");
             console.log("data: ", data);
@@ -539,6 +547,7 @@ new Vue({
             //hardcoded phenotype for now
             //return { phenotype: "T2D", samples, data: runResult };
             console.log("runResults: ", this.runResults);
+            this.loadingCovariances = false;
         },
         regionSelectionType(value) {
             console.log("regionSelectionType: ", value);
@@ -634,7 +643,7 @@ new Vue({
             if (keyParams.phenotypes) {
                 let phenotypes = keyParams.phenotypes.split(",");
                 phenotypes.forEach(p =>
-                    this.selectedMethods.push({
+                    this.searchCriteria.push({
                         field: "phenotype",
                         threshold: p
                     })
