@@ -11,6 +11,11 @@
 				<div v-for="(d, dIndex) in dotsClicked">
 					<div><strong v-html="d"></strong></div>
 					<div>
+						<strong
+							class="group-bubble"
+							v-html="'Star this variant'"
+							@click="setStarVariant(d)"
+						></strong>
 						<strong v-html="'Set this LD reference for: '"></strong>
 						<template v-for="(i, iIndex) in plotsList">
 							<strong
@@ -119,39 +124,37 @@
 				</div>
 			</div>
 
-			<div
-				:id="'assoPlotsWrapper' + item.replaceAll(' ', '_')"
-				class="col-md-9 asso-plots-wrapper"
-			>
-				<h6
-					v-if="item != 'default'"
-					v-html="item"
-					:class="'text color-' + itemIndex"
-				></h6>
-				<canvas
-					:id="'asso_plot_' + item.replaceAll(' ', '_')"
-					class="asso-plot"
-					width=""
-					height=""
-					@resize="onResize"
-					@click="checkPosition($event, item, 'asso', 'click')"
-					@mousemove="checkPosition($event, item, 'asso', 'move')"
-					@mouseout="onMouseOut('assoInfoBox' + item)"
-				></canvas>
-				<span
-					v-if="sharedPlotXpos != null"
-					:style="
-						'position:absolute;width: 1px; height:100%;top:0;left: ' +
-						sharedPlotXpos +
-						'px;border-left: solid 1px #000;'
-					"
-				></span>
-				<div
-					:id="'assoInfoBox' + item.replaceAll(' ', '_')"
-					class="asso-info-box hidden"
-				></div>
+			<div class="col-md-9 asso-plots-wrapper">
+				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_')">
+					<h6
+						v-if="item != 'default'"
+						v-html="item"
+						:class="'text color-' + itemIndex"
+					></h6>
+					<canvas
+						:id="'asso_plot_' + item.replaceAll(' ', '_')"
+						class="asso-plot"
+						width=""
+						height=""
+						@resize="onResize"
+						@click="checkPosition($event, item, 'asso', 'click')"
+						@mousemove="checkPosition($event, item, 'asso', 'move')"
+						@mouseout="onMouseOut('assoInfoBox' + item)"
+					></canvas>
+					<!--<span
+						v-if="sharedPlotXpos != null"
+						:style="
+							'position:absolute;width: 1px; height:100%;top:0;left: ' +
+							sharedPlotXpos +
+							'px;border-left: solid 1px #000;'
+						"
+					></span>-->
+					<div
+						:id="'assoInfoBox' + item.replaceAll(' ', '_')"
+						class="asso-info-box hidden"
+					></div>
+				</div>
 			</div>
-
 			<div
 				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_')"
 				class="col-md-3 ld-plots-wrapper reference-area"
@@ -206,7 +209,8 @@ export default Vue.component("research-region-plot", {
 		"compareGroupColors",
 		"regionZoom",
 		"regionViewArea",
-		"sharedPlotXpos",
+		"pkgData",
+		"pkgDataSelected",
 	],
 	data() {
 		return {
@@ -534,6 +538,14 @@ export default Vue.component("research-region-plot", {
 		onResize(e) {
 			this.renderPlots();
 		},
+		setStarVariant(VARIANT) {
+			console.log(VARIANT);
+			this.$store.dispatch("pkgDataSelected", {
+				type: "Variant",
+				id: VARIANT,
+				action: "add",
+			});
+		},
 		resetLdReference(GROUP, VARIANT) {
 			this.showHidePanel("#fixedInfoBox");
 			if (GROUP != "All") {
@@ -595,10 +607,6 @@ export default Vue.component("research-region-plot", {
 			var x = Math.floor(e.clientX - rect.left);
 			var y = Math.floor(e.clientY - rect.top);
 			let rawX = e.clientX;
-
-			if (TYPE == "asso") {
-				this.$store.dispatch("sharedPlotXpos", rawX);
-			}
 
 			var dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
 			dotsOnPosition = [...new Set(dotsOnPosition)];

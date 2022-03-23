@@ -13,6 +13,8 @@
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
 				:sharedPlotXpos="sharedPlotXpos"
+				:pkgData="pkgData"
+				:pkgDataSelected="pkgDataSelected"
 			></research-region-plot>
 			<research-genes-track
 				v-if="

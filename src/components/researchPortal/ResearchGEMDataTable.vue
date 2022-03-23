@@ -79,6 +79,12 @@
 								: value
 						"
 					></th>-->
+					<th>
+						<b-icon
+							icon="star-fill"
+							style="color: #ffcc00"
+						></b-icon>
+					</th>
 					<th
 						v-for="(value, index) in topRows"
 						:key="index"
@@ -107,6 +113,14 @@
 
 			<tbody v-for="(value, index) in pagedData" :key="index" class="">
 				<tr>
+					<td>
+						<span v-if="checkStared(value) == true"
+							><b-icon
+								icon="star-fill"
+								style="color: #ffcc00"
+							></b-icon
+						></span>
+					</td>
 					<template
 						v-for="(tdValue, tdKey) in value"
 						v-if="topRows.includes(tdKey)"
@@ -849,6 +863,16 @@ export default Vue.component("research-gem-data-table", {
 	},
 	methods: {
 		...Formatters,
+		checkStared(value) {
+			let selectedVariants = this.pkgDataSelected
+				.filter((s) => s.type == "Variant")
+				.map((s) => s.id);
+			let variantKey = this.tableFormat["variant field"];
+
+			if (!!selectedVariants.includes(value[variantKey])) {
+				return true;
+			}
+		},
 		getArraysIntersection(a1, a2) {
 			return a1.filter(function (n) {
 				return a2.indexOf(n) !== -1;
