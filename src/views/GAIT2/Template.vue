@@ -197,171 +197,163 @@
                                         <b-card
                                             class="text-center filter-tests"
                                         >
-                                            <div id="annotation-plot-container">
-                                                <research-annotations-plot
-                                                    :region="
-                                                        $parent.searchRegionString
-                                                    "
-                                                    :phenotype="'T2D'"
-                                                    :renderConfig="{
-                                                        'annotations server':
-                                                            'KP BioIndex',
-                                                        'phenotype parameter':
-                                                            'phenotype',
-                                                        'overlapping regions':
-                                                            'true',
-                                                    }"
-                                                    :plotMargin="{
-                                                        leftMargin: 75,
-                                                        rightMargin: 20,
-                                                        topMargin: 10,
-                                                        bottomMargin: 50,
-                                                        bump: 5.5,
-                                                    }"
-                                                    :compareGroupColors="[
-                                                        '#007bff75',
-                                                        '#04884575',
-                                                        '#8490C875',
-                                                        '#BF61A575',
-                                                        '#EE312475',
-                                                        '#FCD70075',
-                                                        '#5555FF75',
-                                                        '#7aaa1c75',
-                                                        '#9F78AC75',
-                                                        '#F8808475',
-                                                        '#F5A4C775',
-                                                        '#CEE6C175',
-                                                        '#cccc0075',
-                                                        '#6FC7B675',
-                                                        '#D5A76875',
-                                                        '#d4d4d475',
-                                                    ]"
-                                                    :dataComparison="null"
-                                                    :pkgData="
-                                                        $store.state.pkgData
-                                                    "
-                                                    :pkgDataSelected="
-                                                        $store.state
-                                                            .pkgDataSelected
-                                                    "
-                                                    :regionZoom="0"
-                                                    :regionViewArea="0"
-                                                ></research-annotations-plot>
-                                                {{
+                                            <research-annotations-plot
+                                                :region="
+                                                    $parent.searchRegionString
+                                                "
+                                                :phenotype="
+                                                    $parent.selectedPhenotypes
+                                                "
+                                                :renderConfig="{
+                                                    'annotations server':
+                                                        'KP BioIndex',
+                                                    'phenotype parameter':
+                                                        'phenotype',
+                                                    'overlapping regions':
+                                                        'true',
+                                                }"
+                                                :plotMargin="{
+                                                    leftMargin: 75,
+                                                    rightMargin: 20,
+                                                    topMargin: 10,
+                                                    bottomMargin: 50,
+                                                    bump: 5.5,
+                                                }"
+                                                :compareGroupColors="[
+                                                    '#007bff75',
+                                                    '#04884575',
+                                                    '#8490C875',
+                                                    '#BF61A575',
+                                                    '#EE312475',
+                                                    '#FCD70075',
+                                                    '#5555FF75',
+                                                    '#7aaa1c75',
+                                                    '#9F78AC75',
+                                                    '#F8808475',
+                                                    '#F5A4C775',
+                                                    '#CEE6C175',
+                                                    '#cccc0075',
+                                                    '#6FC7B675',
+                                                    '#D5A76875',
+                                                    '#d4d4d475',
+                                                ]"
+                                                :dataComparison="null"
+                                                :pkgData="$store.state.pkgData"
+                                                :pkgDataSelected="
+                                                    $store.state.pkgDataSelected
+                                                "
+                                                :regionZoom="0"
+                                                :regionViewArea="0"
+                                            ></research-annotations-plot>
+                                            <!-- {{
+                                                $store.state.pkgData[
+                                                    "overlappingRegions"
+                                                ]
+                                            }} -->
+                                            <div
+                                                v-if="
                                                     $store.state.pkgData[
-                                                        "overlappingRegions"
-                                                    ]
-                                                }}
-                                                <div
-                                                    v-if="
+                                                        'overlappingRegions'
+                                                    ] &&
+                                                    Object.keys(
                                                         $store.state.pkgData[
                                                             'overlappingRegions'
-                                                        ] &&
-                                                        Object.keys(
-                                                            $store.state
-                                                                .pkgData[
-                                                                'overlappingRegions'
-                                                            ]
-                                                        ).length !== 0
-                                                    "
-                                                    class="
-                                                        filtering-ui-wrapper
-                                                        add-content
-                                                    "
-                                                    style="
-                                                        width: 100%;
-                                                        padding: 0 10px;
-                                                        text-align: left;
-                                                    "
+                                                        ]
+                                                    ).length !== 0
+                                                "
+                                                class="
+                                                    filtering-ui-wrapper
+                                                    add-content
+                                                "
+                                                style="
+                                                    width: 100%;
+                                                    padding: 0 10px;
+                                                    text-align: left;
+                                                "
+                                            >
+                                                <div
+                                                    class="filtering-ui-content"
                                                 >
                                                     <div
-                                                        class="
-                                                            filtering-ui-content
-                                                        "
+                                                        class="col"
+                                                        style="padding: 2px"
                                                     >
                                                         <div
-                                                            class="col"
-                                                            style="padding: 2px"
+                                                            class="label"
+                                                            style="
+                                                                display: inline-block;
+                                                                margin-right: 10px;
+                                                            "
                                                         >
-                                                            <div
-                                                                class="label"
-                                                                style="
-                                                                    display: inline-block;
-                                                                    margin-right: 10px;
-                                                                "
-                                                            >
-                                                                Show overlapping
-                                                                regions by
-                                                            </div>
-                                                            <select
-                                                                v-model="
-                                                                    $parent.selectedRegionType
-                                                                "
-                                                                class="
-                                                                    custom-select
-                                                                "
-                                                            >
-                                                                <option
-                                                                    value="or"
-                                                                >
-                                                                    Union (OR)
-                                                                </option>
-                                                                <option
-                                                                    value="and"
-                                                                >
-                                                                    Intersection
-                                                                    (AND)
-                                                                </option>
-                                                            </select>
-                                                            <template
-                                                                v-if="
-                                                                    $store.state
-                                                                        .pkgData[
-                                                                        'overlappingRegions'
-                                                                    ] &&
-                                                                    $store.state
-                                                                        .pkgData[
-                                                                        'overlappingRegions'
-                                                                    ].length !==
-                                                                        0
-                                                                "
-                                                                ><div
-                                                                    v-if="
-                                                                        $parent.selectedRegionType ===
-                                                                        'or'
-                                                                    "
-                                                                >
-                                                                    {{
-                                                                        $store
-                                                                            .state
-                                                                            .pkgData[
-                                                                            "overlappingRegions"
-                                                                        ]["or"]
-                                                                    }}
-                                                                </div>
-                                                                <div v-else>
-                                                                    {{
-                                                                        $store
-                                                                            .state
-                                                                            .pkgData[
-                                                                            "overlappingRegions"
-                                                                        ]["and"]
-                                                                    }}
-                                                                </div>
-                                                            </template>
+                                                            Show overlapping
+                                                            regions by
                                                         </div>
+                                                        <select
+                                                            v-model="
+                                                                $parent.selectedRegionType
+                                                            "
+                                                            class="
+                                                                custom-select
+                                                            "
+                                                        >
+                                                            <option value="or">
+                                                                Union (OR)
+                                                            </option>
+                                                            <option value="and">
+                                                                Intersection
+                                                                (AND)
+                                                            </option>
+                                                        </select>
+                                                        <template
+                                                            v-if="
+                                                                $store.state
+                                                                    .pkgData[
+                                                                    'overlappingRegions'
+                                                                ] &&
+                                                                $store.state
+                                                                    .pkgData[
+                                                                    'overlappingRegions'
+                                                                ].length !== 0
+                                                            "
+                                                            ><div
+                                                                v-if="
+                                                                    $parent.selectedRegionType ===
+                                                                    'or'
+                                                                "
+                                                            >
+                                                                {{
+                                                                    $store.state
+                                                                        .pkgData[
+                                                                        "overlappingRegions"
+                                                                    ]["or"]
+                                                                }}
+                                                            </div>
+                                                            <div v-else>
+                                                                {{
+                                                                    $store.state
+                                                                        .pkgData[
+                                                                        "overlappingRegions"
+                                                                    ]["and"]
+                                                                }}
+                                                            </div>
+                                                        </template>
                                                     </div>
                                                 </div>
                                             </div>
+
                                             <div class="function">
                                                 <b-button
                                                     variant="primary"
+                                                    :disabled="
+                                                        !$store.state.pkgData.hasOwnProperty(
+                                                            'overlappingRegions'
+                                                        ) ||
+                                                        $store.state.pkgData[
+                                                            'overlappingRegions'
+                                                        ].length === 0
+                                                    "
                                                     @click="
                                                         $parent.searchVariants
-                                                    "
-                                                    :disabled="
-                                                        $parent.selectedGene
-                                                            .length == 0
                                                     "
                                                     >Search Variants</b-button
                                                 >
