@@ -443,7 +443,11 @@ new Vue({
                 let groups = {};
 
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
-                    groups["region" + (i + 1)] = {
+                    groups[
+                        liftedRegions.regions[i].start +
+                            " - " +
+                            liftedRegions.regions[i].stop
+                    ] = {
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop
                     };
@@ -617,6 +621,7 @@ new Vue({
             data.map(test => {
                 formatted.push({
                     test: test.test,
+                    region: test.group,
                     variants: test.variants.length,
                     zscore: test.stat,
                     pvalue: test.pvalue,
