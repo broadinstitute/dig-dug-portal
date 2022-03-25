@@ -408,7 +408,21 @@
 							></lz-catalog-annotations-panel>
 						</p>
 					</locuszoom>
-
+					<a
+						:href="
+							'/research.html?pageid=kp_variant_sifter&phenotype=' +
+							$parent.selectedPhenotypes[0].name +
+							'&region=' +
+							$store.state.chr +
+							':' +
+							$store.state.start +
+							'-' +
+							$store.state.end
+						"
+						class="btn btn-primary link-to-vs"
+						style=""
+						>Prioritize variants in this region&nbsp;&nbsp;</a
+					>
 					<template
 						v-if="
 							$parent.selectedPhenotypes.length > 0 &&
@@ -443,6 +457,19 @@
 	</div>
 </template>
 <style>
+.link-to-vs {
+	color: #ffffff !important;
+	float: right;
+	margin-top: -5px;
+	background-image: url(/images/icons/new.svg);
+	background-repeat: no-repeat;
+	background-position: top right;
+}
+
+.link-to-vs:hover {
+	color: #ffffff !important;
+}
+
 ul.nav-tabs {
 	border-bottom: unset;
 	margin-left: 5px;
