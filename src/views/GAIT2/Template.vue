@@ -104,6 +104,25 @@
                                             "
                                             >Please select a gene.</b-alert
                                         >
+                                        <b-alert
+                                            show
+                                            v-else-if="
+                                                $parent.selectedDataset
+                                                    .length == 0 ||
+                                                $parent.selectedDataset[0] ===
+                                                    undefined
+                                            "
+                                            >Please select a dataset.</b-alert
+                                        >
+                                        <b-alert
+                                            show
+                                            v-else-if="
+                                                $parent.selectedPhenotypes
+                                                    .length == 0
+                                            "
+                                            >Please select one or more
+                                            phenotypes.</b-alert
+                                        >
                                     </transition>
                                     <criterion-list-group
                                         v-model="$parent.searchCriteria"
@@ -172,6 +191,14 @@
                                     <div class="function">
                                         <b-button
                                             variant="primary"
+                                            :disabled="
+                                                $parent.selectedGene.length ==
+                                                    0 ||
+                                                $parent.selectedDataset
+                                                    .length == 0 ||
+                                                $parent.selectedPhenotypes
+                                                    .length == 0
+                                            "
                                             @click="$parent.searchAnnotations"
                                             >Search Annotations</b-button
                                         >
@@ -477,11 +504,11 @@
                                                 variant="outline-primary"
                                                 size="sm"
                                                 v-b-toggle.accordion-1
-                                                >Search Variants</b-button
+                                                >Search Annotations</b-button
                                             >
 
-                                            again to update variant
-                                            list.</b-alert
+                                            again to update annotation
+                                            plots.</b-alert
                                         >
                                         <transition
                                             name="fade"
@@ -496,15 +523,7 @@
                                                 >Please select a
                                                 dataset.</b-alert
                                             >
-                                            <b-alert
-                                                show
-                                                v-else-if="
-                                                    $parent.selectedPhenotypes
-                                                        .length == 0
-                                                "
-                                                >Please select one or more
-                                                phenotypes.</b-alert
-                                            >
+
                                             <b-alert
                                                 show
                                                 v-else-if="
@@ -755,10 +774,10 @@
                                                         size="sm"
                                                         v-b-toggle.accordion-1
                                                         >Search
-                                                        Variants</b-button
+                                                        Annotations</b-button
                                                     >
-                                                    again to update variant
-                                                    list.</b-alert
+                                                    again to update annotation
+                                                    plots.</b-alert
                                                 >
 
                                                 <b-alert
@@ -775,7 +794,7 @@
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        v-b-toggle.accordion-2
+                                                        v-b-toggle.accordion-3
                                                         >Run Analysis</b-button
                                                     >
                                                     again to update the
@@ -801,7 +820,7 @@
                                                         v-slot:thead-top="data"
                                                     >
                                                         <b-th
-                                                            colspan="7"
+                                                            colspan="8"
                                                             class="reference"
                                                             :class="
                                                                 'color-' +

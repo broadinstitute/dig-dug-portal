@@ -340,6 +340,7 @@ new Vue({
         async searchAnnotations() {
             this.showAnnotations = true;
             this.loadingAnnotations = true;
+            this.criteriaChanged = false; //reset criteria
             let locus = await regionUtils.parseRegion(this.selectedGene[0]);
             if (locus) {
                 console.log("locus found: ", locus);
@@ -535,6 +536,7 @@ new Vue({
         async runRaremetal() {
             this.showCovariances = true;
             this.loadingCovariances = true;
+            this.testChanged = false;
             let data = this.pageCovariances;
             console.log("waiting for raremetal");
             console.log("data: ", data);
