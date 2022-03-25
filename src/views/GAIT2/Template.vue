@@ -204,7 +204,7 @@
                                             "
                                         >
                                             <b-badge
-                                                class="filter-pill-annotations"
+                                                class="filter-pill-annotation"
                                                 v-for="test in $parent.selectedAnnotations"
                                                 :key="test"
                                             >
@@ -218,7 +218,7 @@
                                             "
                                         >
                                             <b-badge
-                                                class="filter-pill-tissues"
+                                                class="filter-pill-tissue"
                                                 v-for="test in $parent.selectedTissues"
                                                 :key="test"
                                             >
@@ -340,8 +340,9 @@
                                                                 margin-right: 10px;
                                                             "
                                                         >
-                                                            Show overlapping
-                                                            regions by
+                                                            Search selected
+                                                            overlapping regions
+                                                            by
                                                         </div>
                                                         <select
                                                             v-model="
@@ -359,39 +360,6 @@
                                                                 (AND)
                                                             </option>
                                                         </select>
-                                                        <template
-                                                            v-if="
-                                                                $store.state
-                                                                    .pkgData[
-                                                                    'overlappingRegions'
-                                                                ] &&
-                                                                $store.state
-                                                                    .pkgData[
-                                                                    'overlappingRegions'
-                                                                ].length !== 0
-                                                            "
-                                                            ><div
-                                                                v-if="
-                                                                    $parent.selectedRegionType ===
-                                                                    'or'
-                                                                "
-                                                            >
-                                                                {{
-                                                                    $store.state
-                                                                        .pkgData[
-                                                                        "overlappingRegions"
-                                                                    ]["or"]
-                                                                }}
-                                                            </div>
-                                                            <div v-else>
-                                                                {{
-                                                                    $store.state
-                                                                        .pkgData[
-                                                                        "overlappingRegions"
-                                                                    ]["and"]
-                                                                }}
-                                                            </div>
-                                                        </template>
                                                     </div>
                                                 </div>
                                             </div>
