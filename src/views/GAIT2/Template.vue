@@ -52,6 +52,15 @@
                                         >
                                             {{ $parent.selectedGene[0] }}
                                         </b-badge>
+                                        <b-badge
+                                            class="filter-pill-dataset"
+                                            v-if="
+                                                $parent.selectedDataset.length >
+                                                0
+                                            "
+                                        >
+                                            {{ $parent.selectedDataset[0] }}
+                                        </b-badge>
                                         <template
                                             v-if="
                                                 $parent.selectedPhenotypes
@@ -113,6 +122,25 @@
                                         </filter-enumeration-control>
                                         <b-col class="divider"></b-col>
                                         <filter-enumeration-control
+                                            ref="dataset"
+                                            :field="'dataset'"
+                                            placeholder="Select a dataset ..."
+                                            :options="
+                                                $parent.datasets.map(
+                                                    (v) => v.value
+                                                )
+                                            "
+                                            :labelFormatter="
+                                                (v) =>
+                                                    $parent.datasets.find(
+                                                        (o) => o.value === v
+                                                    ).text
+                                            "
+                                            ><div class="label">
+                                                Dataset
+                                            </div></filter-enumeration-control
+                                        >
+                                        <filter-enumeration-control
                                             ref="phenotype"
                                             :field="'phenotype'"
                                             placeholder="Select one or more phenotypes ..."
@@ -169,9 +197,36 @@
                                     "
                                     >Annotations and Tissues
                                     <div class="criteria">
-                                        <b-badge class="filter-pill-dataset">
-                                        </b-badge></div
-                                ></b-button>
+                                        <template
+                                            v-if="
+                                                $parent.selectedAnnotations
+                                                    .length > 0
+                                            "
+                                        >
+                                            <b-badge
+                                                class="filter-pill-annotations"
+                                                v-for="test in $parent.selectedAnnotations"
+                                                :key="test"
+                                            >
+                                                {{ test }}
+                                            </b-badge>
+                                        </template>
+                                        <template
+                                            v-if="
+                                                $parent.selectedTissues.length >
+                                                0
+                                            "
+                                        >
+                                            <b-badge
+                                                class="filter-pill-tissues"
+                                                v-for="test in $parent.selectedTissues"
+                                                :key="test"
+                                            >
+                                                {{ test }}
+                                            </b-badge>
+                                        </template>
+                                    </div></b-button
+                                >
                             </b-card-header>
                             <b-collapse
                                 id="accordion-2"
@@ -381,16 +436,6 @@
                                     "
                                     >Variants
                                     <div class="criteria">
-                                        <b-badge
-                                            class="filter-pill-dataset"
-                                            v-if="
-                                                $parent.selectedDataset.length >
-                                                0
-                                            "
-                                        >
-                                            {{ $parent.selectedDataset[0] }}
-                                        </b-badge>
-
                                         <template
                                             v-if="
                                                 $parent.selectedTests.length > 0
@@ -514,28 +559,6 @@
                                                 "
                                                 :header="'Test(s) Selected'"
                                             >
-                                                <filter-enumeration-control
-                                                    ref="dataset"
-                                                    :field="'dataset'"
-                                                    placeholder="Select a dataset ..."
-                                                    :options="
-                                                        $parent.datasets.map(
-                                                            (v) => v.value
-                                                        )
-                                                    "
-                                                    :labelFormatter="
-                                                        (v) =>
-                                                            $parent.datasets.find(
-                                                                (o) =>
-                                                                    o.value ===
-                                                                    v
-                                                            ).text
-                                                    "
-                                                    ><div class="label">
-                                                        Dataset
-                                                    </div></filter-enumeration-control
-                                                >
-
                                                 <filter-enumeration-control
                                                     ref="test"
                                                     :field="'test'"

@@ -282,7 +282,7 @@ new Vue({
                 .map(v => v.threshold);
         },
         selectedDataset() {
-            return this.selectedMethods
+            return this.searchCriteria
                 .filter(v => {
                     return v.field === "dataset";
                 })
@@ -304,6 +304,12 @@ new Vue({
         },
         searchRegionString() {
             return `${this.searchRegion.chrom}:${this.searchRegion.start}-${this.searchRegion.stop}`;
+        },
+        selectedAnnotations() {
+            return this.$store.state.pkgData.selectedAnnos || [];
+        },
+        selectedTissues() {
+            return this.$store.state.pkgData.selectedTissues || [];
         }
     },
     methods: {
@@ -643,7 +649,7 @@ new Vue({
                 );
             }
             if (keyParams.dataset) {
-                this.selectedMethods.push({
+                this.searchCriteria.push({
                     field: "dataset",
                     threshold: keyParams.dataset
                 });
