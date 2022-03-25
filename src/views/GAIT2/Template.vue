@@ -723,28 +723,30 @@
                                                 }"
                                             ></b-skeleton-table>
                                         </template>
-                                        <b-table
+                                        <!-- <b-table
                                             striped
                                             hover
                                             small
                                             responsive="sm"
-                                            :items="$parent.runResults"
+                                            :items="
+                                                $parent.formatTestData(
+                                                    $parent.runResults
+                                                )
+                                            "
                                         ></b-table>
                                         {{ $parent.runResults }}
-
+-->
                                         <div
                                             id="covariances"
                                             v-if="
-                                                $store.state.ldServer
-                                                    .covariances &&
-                                                !$store.state.ldServer
-                                                    .runTestsError
+                                                $parent.runResults &&
+                                                $parent.runResults.length > 0
                                             "
                                         >
                                             <template
                                                 v-if="
-                                                    $store.state.ldServer
-                                                        .covariances.length > 0
+                                                    $parent.runResults.length >
+                                                    0
                                                 "
                                             >
                                                 <b-alert

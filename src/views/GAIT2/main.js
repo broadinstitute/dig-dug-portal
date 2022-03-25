@@ -213,6 +213,7 @@ new Vue({
             selectedVariants: [],
             pageCovariances: null,
             runResults: null,
+            runSamples: 0,
             selectedRegionType: "and",
             searchRegion: {
                 chrom: "",
@@ -440,10 +441,9 @@ new Vue({
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop
                     };
-                    console.log("i", i);
                 }
                 //console.log("groups", JSON.stringify(groups, null, 2));
-                console.log("here");
+
                 let input2 = {
                     chrom: liftedRegions.regions[0].chrom,
                     start: liftedRegions.regions[0].start,
@@ -528,7 +528,7 @@ new Vue({
             let data = this.pageCovariances;
             console.log("waiting for raremetal");
             console.log("data: ", data);
-            let samples = data.nSamples || 0;
+            this.runSamples = data.nSamples || 0;
             // Use the returned covariance data to run aggregation tests and return results (note that runner.run() returns a Promise)
             const [groups, variants] = raremetal.helpers.parsePortalJSON(data);
             const runner = new raremetal.helpers.PortalTestRunner(
@@ -543,7 +543,13 @@ new Vue({
             console.log("runner: running ");
             let runResult = await runner.run();
             console.log("runner: done", runResult);
-            this.runResults = runResult;
+            this.runResults = [
+                {
+                    phenotype: this.selectedPhenotypes[0], //selecting only one phenotype for now
+                    samples: data.nSamples,
+                    data: runResult
+                }
+            ];
             //hardcoded phenotype for now
             //return { phenotype: "T2D", samples, data: runResult };
             console.log("runResults: ", this.runResults);
@@ -599,6 +605,8 @@ new Vue({
             this.fields = this.baseFields.concat(this.optionalFields);
         },
         formatTestData(samples, data) {
+            // console.log("inside format function");
+            if (!data) return [];
             let formatted = [];
             data.map(test => {
                 formatted.push({
