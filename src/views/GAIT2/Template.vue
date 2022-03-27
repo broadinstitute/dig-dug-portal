@@ -275,7 +275,26 @@
                                                 }"
                                             ></b-skeleton-table>
                                         </template>
+                                        <b-alert
+                                            show
+                                            variant="warning"
+                                            v-if="
+                                                $parent.tableData.length > 0 &&
+                                                $parent.criteriaChanged
+                                            "
+                                            ><b-icon
+                                                icon="exclamation-triangle"
+                                            ></b-icon>
+                                            Search criteria changed. Run
+                                            <b-button
+                                                variant="outline-primary"
+                                                size="sm"
+                                                v-b-toggle.accordion-1
+                                                >Search Annotations</b-button
+                                            >
 
+                                            again to update annotations.
+                                        </b-alert>
                                         <b-card
                                             class="text-center filter-tests"
                                         >
@@ -507,9 +526,8 @@
                                                 >Search Annotations</b-button
                                             >
 
-                                            again to update annotation
-                                            plots.</b-alert
-                                        >
+                                            again to update annotations.
+                                        </b-alert>
                                         <transition
                                             name="fade"
                                             v-if="$parent.tableData.length > 0"
@@ -776,8 +794,8 @@
                                                         >Search
                                                         Annotations</b-button
                                                     >
-                                                    again to update annotation
-                                                    plots.</b-alert
+                                                    again to update annotations
+                                                    .</b-alert
                                                 >
 
                                                 <b-alert

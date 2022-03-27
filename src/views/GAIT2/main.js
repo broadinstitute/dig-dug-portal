@@ -214,7 +214,7 @@ new Vue({
             pageCovariances: null,
             runResults: null,
             runSamples: 0,
-            selectedRegionType: "and",
+            selectedRegionType: "or",
             searchRegion: {
                 chrom: "",
                 start: "",
