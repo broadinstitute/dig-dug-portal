@@ -4,7 +4,7 @@
 
 let pages = {
     index: {
-        entry: "src/views/Index/main.js",
+        entry: "src/views/RPIndex/main.js",
         template: "public/index.html",
         filename: "index.html",
         title: "Home",
