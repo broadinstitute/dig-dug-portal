@@ -518,7 +518,7 @@ export default Vue.component("research-credible-sets-plot", {
 					infoBox.classList.remove("hidden");
 					if (x < rect.width * 0.75) {
 						infoBox.style.width = "auto";
-						infoBox.style.left = x + 15 + "px";
+						infoBox.style.left = x + 25 + "px";
 						infoBox.style.top = y + this.spaceBy + "px";
 					} else {
 						infoBox.style.width = "200px";

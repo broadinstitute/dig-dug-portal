@@ -1242,6 +1242,7 @@ export default Vue.component("research-annotations-plot", {
 				x <= rect.width - this.plotMargin.leftMargin
 			) {
 				if (!!this.annoPosData[y]) {
+					//this.$store.dispatch("sharedPlotXpos", rawX);
 					infoContent += this.annoPosData[y].tissue;
 					for (const [region, regionValue] of Object.entries(
 						this.annoPosData[y].regions

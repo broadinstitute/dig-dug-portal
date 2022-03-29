@@ -53,7 +53,8 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
-.front-top-banner-v2fkp,.front-top-banner-a2fkp {
+.front-top-banner-v2fkp,
+.front-top-banner-a2fkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/a2fkp_front_bg.png),
         linear-gradient(#f7835c, #bd516f);
     background-position: 120% 100px, top left;
@@ -79,26 +80,25 @@ a:hover {
 
 .front-top-banner-alskp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/alskp_front_bg.png),
-        linear-gradient(#5EB9E9, #4967B0);
+        linear-gradient(#5eb9e9, #4967b0);
     background-position: 120% 100px, top left;
 }
 
 .front-top-banner-nephkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/nephkp_front_bg.png),
-        linear-gradient(#39BBED, #59BE86);
+        linear-gradient(#39bbed, #59be86);
     background-position: 120% 100px, top left;
 }
 
 .front-top-banner-ndkpkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/ndkpkp_front_bg.png),
-        linear-gradient(#5698D2, #70A4D8);
+        linear-gradient(#5698d2, #70a4d8);
     background-position: 120% 100px, top left;
 }
 
 .front-top-banner-nagekp {
-    background-image: url(//kp4cd.org/sites/default/files/vueportal/nagekp_front_bg.png),
-        linear-gradient(#751dc7, #9928c5);
-    background-position: 120% 100px, top left;
+    background-image: linear-gradient(#751dc7, #9928c5);
+    background-position: 120% 0px, top left;
 }
 
 .front-top-banner {
@@ -138,7 +138,8 @@ a:hover {
     width: 430px;
 }
 
-.front-top-banner-v2fkp .front-logo-img, .front-top-banner-a2fkp .front-logo-img {
+.front-top-banner-v2fkp .front-logo-img,
+.front-top-banner-a2fkp .front-logo-img {
     width: 430px;
 }
 
@@ -202,7 +203,8 @@ a:hover {
     transform: translate(0%, 35%);
 }
 
-.front-logo-tagline-v2fkp, .front-logo-tagline-a2fkp {
+.front-logo-tagline-v2fkp,
+.front-logo-tagline-a2fkp {
     transform: translate(0%, 42%);
 }
 
@@ -302,7 +304,8 @@ a:hover {
     height: 50px;
 }
 
-.v2fkp-logo, .a2fkp-logo {
+.v2fkp-logo,
+.a2fkp-logo {
     height: 50px;
 }
 
@@ -400,19 +403,19 @@ a:hover {
 
 .alskp-header,
 .alskp-footer {
-    background-color: #5EB9E9;
+    background-color: #5eb9e9;
     height: 50px;
 }
 
 .nephkp-header,
 .nephkp-footer {
-    background-color: #39BBED;
+    background-color: #39bbed;
     height: 50px;
 }
 
 .ndkpkp-header,
 .ndkpkp-footer {
-    background-color: #5698D2;
+    background-color: #5698d2;
     height: 50px;
 }
 
@@ -516,7 +519,7 @@ a:hover {
 .alskp-footer,
 .nephkp-footer,
 .ndkpkp-footer,
-.nagekp-footer  {
+.nagekp-footer {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -1729,7 +1732,7 @@ a.to-previous-page:hover {
 }
 
 .filter-pill-annotation {
-    background-color: #28a745 !important;
+    background-color: hsl(211deg 100% 50% / 80%) !important;
 }
 
 .filter-pill-source {
@@ -1749,7 +1752,7 @@ a.to-previous-page:hover {
 }
 
 .filter-pill-tissue {
-    background-color: #28a745 !important;
+    background-color: rgb(231 31 175 / 74%) !important;
 }
 
 .filter-pill-ancestry {
@@ -1961,8 +1964,8 @@ span.volcano-score-2 {
     display: inline-block;
     text-align: left;
     padding-left: 30px;
-    padding-bottom:20px;
-    padding-top:10px;
+    padding-bottom: 20px;
+    padding-top: 10px;
 }
 
 .top-associations-section-phenotype-filter span.filter-pill-collection {
@@ -1985,13 +1988,12 @@ span.volcano-score-2 {
     margin-right: 10px;
 }
 
-
 .svg-wrapper {
-    visibility:visible;
+    visibility: visible;
     height: auto;
 }
 .svg-wrapper.hidden-svg {
-    visibility:hidden;
+    visibility: hidden;
     height: 5px;
 }
 
@@ -2009,21 +2011,21 @@ span.volcano-score-2 {
 }
 
 .kp-tabs li {
-	display: inline-block;
-	background-color: #eee;
-	border: solid 1px #ddd;
-	border-top-left-radius: 5px;
-	border-top-right-radius: 5px;
+    display: inline-block;
+    background-color: #eee;
+    border: solid 1px #ddd;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
 }
 .kp-tabs li.active {
     border-bottom: solid 1px #fff;
-	background-color: #fff;
+    background-color: #fff;
 }
 
 .kp-tabs li > a {
-	display: block;
-	padding: 10px 15px 5px 15px;
-    cursor:pointer;
+    display: block;
+    padding: 10px 15px 5px 15px;
+    cursor: pointer;
 }
 
 .kp-tabs-contents {
@@ -2035,17 +2037,18 @@ span.volcano-score-2 {
 }
 
 .kp-tab-content {
-	visibility: hidden;
-	height: 0px !important;
+    visibility: hidden;
+    height: 0px !important;
     margin: 0 !important;
 }
 
 .kp-tab-content.active {
-	visibility: visible;
-	height: auto !important;
+    visibility: visible;
+    height: auto !important;
 }
 
-span[class^="spacer-"], span[class^=" spacer-"] {
+span[class^="spacer-"],
+span[class^=" spacer-"] {
     display: inline-block;
 }
 
