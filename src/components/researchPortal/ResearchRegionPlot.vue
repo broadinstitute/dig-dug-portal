@@ -12,6 +12,7 @@
 					<div>
 						<strong v-html="d"></strong
 						><b-icon
+							v-if="!!renderConfig['star key']"
 							:icon="
 								checkStared(d) == true ? 'star-fill' : 'star'
 							"
@@ -20,7 +21,7 @@
 								cursor: pointer;
 								margin-left: 4px;
 							"
-							@click="setStarVariant(d)"
+							@click="setStarItem(d)"
 						></b-icon>
 					</div>
 					<div>
@@ -260,6 +261,20 @@ export default Vue.component("research-region-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		staredVariants() {
+			if (!!this.renderConfig["star key"]) {
+				let stared = "";
+				this.pkgDataSelected
+					.filter((s) => s.type == this.renderConfig["star key"])
+					.map((s) => {
+						stared += s.id;
+					});
+
+				return stared;
+			} else {
+				return null;
+			}
+		},
 		plotsList() {
 			//used rebuild
 			if (this.plotData != null) {
@@ -540,27 +555,30 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 	},
-	watch: {},
+	watch: {
+		staredVariants(CONTENT) {
+			this.renderPlots();
+		},
+	},
 	methods: {
 		...uiUtils,
 		onResize(e) {
 			this.renderPlots();
 		},
-		checkStared(VARIANT) {
-			let selectedVariants = this.pkgDataSelected
-				.filter((s) => s.type == "Variant")
+		checkStared(ITEM) {
+			let selectedItems = this.pkgDataSelected
+				.filter((s) => s.type == this.renderConfig["star key"])
 				.map((s) => s.id);
-			let variantKey = this.renderConfig["render by"];
 
-			if (!!selectedVariants.includes(VARIANT)) {
+			if (!!selectedItems.includes(ITEM)) {
 				return true;
 			}
 		},
-		setStarVariant(VARIANT) {
-			console.log(VARIANT);
+		setStarItem(ITEM) {
+			console.log(ITEM);
 			this.$store.dispatch("pkgDataSelected", {
-				type: "Variant",
-				id: VARIANT,
+				type: this.renderConfig["star key"],
+				id: ITEM,
 				action: "add",
 			});
 		},
@@ -663,10 +681,12 @@ export default Vue.component("research-region-plot", {
 						if (dIndex < 5) {
 							infoContent += "<strong>" + d + "</strong>";
 
-							infoContent +=
-								this.checkStared(d) == true
-									? "&nbsp;<span style='color:#ffcc00'>&#9733;</span>"
-									: "&nbsp;<span style='color:#ffcc00'>&#9734;</span>";
+							if (!!this.renderConfig["star key"]) {
+								infoContent +=
+									this.checkStared(d) == true
+										? "&nbsp;<span style='color:#ffcc00'>&#9733;</span>"
+										: "&nbsp;<span style='color:#ffcc00'>&#9734;</span>";
+							}
 
 							infoContent += "<br />";
 
@@ -942,9 +962,40 @@ export default Vue.component("research-region-plot", {
 								this.ldData[GROUP].data[key]
 							);
 							if (key == this.ldData[GROUP].refVariant) {
-								this.renderDiamond(CTX, xPos, yPos, dotColor);
+								if (this.checkStared(key) == true) {
+									PlotUtils.renderStar(
+										CTX,
+										xPos,
+										yPos,
+										5,
+										6,
+										3,
+										dotColor,
+										dotColor
+									);
+								} else {
+									this.renderDiamond(
+										CTX,
+										xPos,
+										yPos,
+										dotColor
+									);
+								}
 							} else {
-								this.renderDot(CTX, xPos, yPos, dotColor);
+								if (this.checkStared(key) == true) {
+									PlotUtils.renderStar(
+										CTX,
+										xPos,
+										yPos,
+										5,
+										6,
+										3,
+										dotColor,
+										dotColor
+									);
+								} else {
+									this.renderDot(CTX, xPos, yPos, dotColor);
+								}
 							}
 						}
 					}
@@ -996,19 +1047,45 @@ export default Vue.component("research-region-plot", {
 									let dotColor =
 										this.compareGroupColors[pIndex];
 									if (key == this.ldData[pGroup].refVariant) {
-										this.renderDiamond(
-											CTX,
-											xPos,
-											yPos,
-											dotColor
-										);
+										if (this.checkStared(key) == true) {
+											PlotUtils.renderStar(
+												CTX,
+												xPos,
+												yPos,
+												5,
+												6,
+												3,
+												dotColor,
+												dotColor
+											);
+										} else {
+											this.renderDiamond(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										}
 									} else {
-										this.renderDot(
-											CTX,
-											xPos,
-											yPos,
-											dotColor
-										);
+										if (this.checkStared(key) == true) {
+											PlotUtils.renderStar(
+												CTX,
+												xPos,
+												yPos,
+												5,
+												6,
+												3,
+												dotColor,
+												dotColor
+											);
+										} else {
+											this.renderDot(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										}
 									}
 								}
 							}
@@ -1063,14 +1140,45 @@ export default Vue.component("research-region-plot", {
 
 								let dotColor = this.getDotColor(value);
 								if (key == this.ldData[GROUP].refVariant) {
-									this.renderDiamond(
-										CTX,
-										xPos,
-										yPos,
-										dotColor
-									);
+									if (this.checkStared(key) == true) {
+										PlotUtils.renderStar(
+											CTX,
+											xPos,
+											yPos,
+											5,
+											6,
+											3,
+											dotColor,
+											dotColor
+										);
+									} else {
+										this.renderDiamond(
+											CTX,
+											xPos,
+											yPos,
+											dotColor
+										);
+									}
 								} else {
-									this.renderDot(CTX, xPos, yPos, dotColor);
+									if (this.checkStared(key) == true) {
+										PlotUtils.renderStar(
+											CTX,
+											xPos,
+											yPos,
+											5,
+											6,
+											3,
+											dotColor,
+											dotColor
+										);
+									} else {
+										this.renderDot(
+											CTX,
+											xPos,
+											yPos,
+											dotColor
+										);
+									}
 								}
 							}
 						}
@@ -1132,19 +1240,45 @@ export default Vue.component("research-region-plot", {
 											key ==
 											this.ldData[pGroup].refVariant
 										) {
-											this.renderDiamond(
-												CTX,
-												xPos,
-												yPos,
-												dotColor
-											);
+											if (this.checkStared(key) == true) {
+												PlotUtils.renderStar(
+													CTX,
+													xPos,
+													yPos,
+													5,
+													6,
+													3,
+													dotColor,
+													dotColor
+												);
+											} else {
+												this.renderDiamond(
+													CTX,
+													xPos,
+													yPos,
+													dotColor
+												);
+											}
 										} else {
-											this.renderDot(
-												CTX,
-												xPos,
-												yPos,
-												dotColor
-											);
+											if (this.checkStared(key) == true) {
+												PlotUtils.renderStar(
+													CTX,
+													xPos,
+													yPos,
+													5,
+													6,
+													3,
+													dotColor,
+													dotColor
+												);
+											} else {
+												this.renderDot(
+													CTX,
+													xPos,
+													yPos,
+													dotColor
+												);
+											}
 										}
 									}
 								}

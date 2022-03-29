@@ -79,7 +79,7 @@
 								: value
 						"
 					></th>-->
-					<th>
+					<th v-if="!!newTableFormat['star column']">
 						<b-icon
 							:icon="!!stared ? 'star-fill' : 'star'"
 							style="color: #ffcc00; cursor: pointer"
@@ -114,7 +114,7 @@
 
 			<tbody v-for="(value, index) in pagedData" :key="index" class="">
 				<tr>
-					<td>
+					<td v-if="!!newTableFormat['star column']">
 						<span v-if="checkStared(value) == false"
 							><b-icon
 								icon="star"
@@ -125,7 +125,7 @@
 						<span v-if="checkStared(value) == true"
 							><b-icon
 								icon="star-fill"
-								style="color: #ffcc00"
+								style="color: #ffcc00; cursor: pointer"
 								@click="removeStar(value)"
 							></b-icon
 						></span>
@@ -753,7 +753,7 @@ export default Vue.component("research-gem-data-table", {
 			}
 
 			///check if table shows only stared
-			//this.checkStared(value) == true
+
 			if (this.stared == true) {
 				let tempData = {};
 				for (const [dKey, dValue] of Object.entries(updatedData)) {
@@ -887,31 +887,33 @@ export default Vue.component("research-gem-data-table", {
 	},
 	methods: {
 		...Formatters,
-		addStar(value) {
-			let variantKey = value[this.tableFormat["variant field"]];
-
+		addStar(ITEM) {
+			let value = ITEM[this.tableFormat["star column"]];
 			this.$store.dispatch("pkgDataSelected", {
-				type: "Variant",
-				id: variantKey,
+				type: this.tableFormat["star column"],
+				id: value,
 				action: "add",
 			});
+			console.log("pkgDataSelected", this.pkgDataSelected);
 		},
-		removeStar(value) {
-			let variantKey = value[this.tableFormat["variant field"]];
-
+		removeStar(ITEM) {
+			let value = ITEM[this.tableFormat["star column"]];
 			this.$store.dispatch("pkgDataSelected", {
-				type: "Variant",
-				id: variantKey,
+				type: this.tableFormat["star column"],
+				id: value,
 				action: "remove",
 			});
-		},
-		checkStared(value) {
-			let selectedVariants = this.pkgDataSelected
-				.filter((s) => s.type == "Variant")
-				.map((s) => s.id);
-			let variantKey = this.tableFormat["variant field"];
 
-			if (!!selectedVariants.includes(value[variantKey])) {
+			console.log("pkgDataSelected", this.pkgDataSelected);
+		},
+		checkStared(ITEM) {
+			let selectedItems = this.pkgDataSelected
+				.filter((s) => s.type == this.tableFormat["star column"])
+				.map((s) => s.id);
+
+			let value = ITEM[this.tableFormat["star column"]];
+
+			if (!!selectedItems.includes(value)) {
 				return true;
 			} else {
 				return false;

@@ -437,6 +437,34 @@ const renderGuideLine = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
 };
 
+const renderStar = function (CTX, CX, CY, SPIKES, OR, IR, SCOLOR, FCOLOR) {
+    var rot = Math.PI / 2 * 3;
+    var x = CX;
+    var y = CY;
+    var step = Math.PI / SPIKES;
+
+    CTX.beginPath();
+    CTX.moveTo(CX, CY - OR)
+    for (let i = 0; i < SPIKES; i++) {
+        x = CX + Math.cos(rot) * OR;
+        y = CY + Math.sin(rot) * OR;
+        CTX.lineTo(x, y)
+        rot += step
+
+        x = CX + Math.cos(rot) * IR;
+        y = CY + Math.sin(rot) * IR;
+        CTX.lineTo(x, y)
+        rot += step
+    }
+    CTX.lineTo(CX, CY - OR);
+    CTX.closePath();
+    CTX.lineWidth = 1;
+    CTX.strokeStyle = SCOLOR;
+    CTX.stroke();
+    CTX.fillStyle = FCOLOR;
+    CTX.fill();
+}
+
 
 
 export default {
@@ -445,5 +473,6 @@ export default {
     renderBars,
     renderPie,
     renderGuideLine,
-    renderLine
+    renderLine,
+    renderStar
 };
