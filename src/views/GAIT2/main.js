@@ -16,7 +16,7 @@ import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
-import { isEqual, startCase } from "lodash";
+import { isEqual, startCase, groupBy } from "lodash";
 import regionUtils from "@/utils/regionUtils";
 import * as raremetal from "raremetal.js";
 
@@ -617,22 +617,62 @@ new Vue({
             this.fields = this.baseFields.concat(this.optionalFields);
         },
         formatTestData(samples, data) {
-            // console.log("inside format function");
             if (!data) return [];
-            let formatted = [];
-            data.map(test => {
-                formatted.push({
-                    test: test.test,
-                    region: test.group,
-                    variants: test.variants.length,
-                    zscore: test.stat,
-                    pvalue: test.pvalue,
-                    effect: test.effect,
-                    se: test.se,
-                    samples
-                });
-            });
-            return formatted;
+
+            let formattedData = {};
+
+            for (let i in data) {
+                let row = data[i];
+
+                if (!formattedData.hasOwnProperty(row.test)) {
+                    formattedData[row.test] = {
+                        top: row,
+                        data: [
+                            {
+                                test: row.test,
+                                region: row.group,
+                                variants: row.variants.length,
+                                stat: row.stat,
+                                pvalue: row.pvalue,
+                                effect: row.effect,
+                                se: row.se,
+                                samples
+                            }
+                        ]
+                    }; //save whole row with lower p-value
+                } else {
+                    if (formattedData[row.test].top.pvalue > row.pvalue) {
+                        formattedData[row.test].top = row;
+                    }
+
+                    //if same test, add to the array
+                    formattedData[row.test].data.push({
+                        test: row.test,
+                        region: row.group,
+                        variants: row.variants.length,
+                        stat: row.stat,
+                        pvalue: row.pvalue,
+                        effect: row.effect,
+                        se: row.se,
+                        samples
+                    });
+                }
+            }
+
+            // data.map(test => {
+            //     formatted.push({
+            //         test: test.test,
+            //         region: test.group,
+            //         variants: test.variants.length,
+            //         zscore: test.stat,
+            //         pvalue: test.pvalue,
+            //         effect: test.effect,
+            //         se: test.se,
+            //         samples
+            //     });
+            // });
+
+            return [formattedData];
         },
         async lookupGenes(input) {
             if (!!input) {
