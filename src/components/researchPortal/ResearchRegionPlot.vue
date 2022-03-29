@@ -9,13 +9,21 @@
 			</div>
 			<div class="fixed-info-box-content">
 				<div v-for="(d, dIndex) in dotsClicked">
-					<div><strong v-html="d"></strong></div>
 					<div>
-						<strong
-							class="group-bubble"
-							v-html="'Star this variant'"
+						<strong v-html="d"></strong
+						><b-icon
+							:icon="
+								checkStared(d) == true ? 'star-fill' : 'star'
+							"
+							style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							"
 							@click="setStarVariant(d)"
-						></strong>
+						></b-icon>
+					</div>
+					<div>
 						<strong v-html="'Set this LD reference for: '"></strong>
 						<template v-for="(i, iIndex) in plotsList">
 							<strong
@@ -538,6 +546,16 @@ export default Vue.component("research-region-plot", {
 		onResize(e) {
 			this.renderPlots();
 		},
+		checkStared(VARIANT) {
+			let selectedVariants = this.pkgDataSelected
+				.filter((s) => s.type == "Variant")
+				.map((s) => s.id);
+			let variantKey = this.renderConfig["render by"];
+
+			if (!!selectedVariants.includes(VARIANT)) {
+				return true;
+			}
+		},
 		setStarVariant(VARIANT) {
 			console.log(VARIANT);
 			this.$store.dispatch("pkgDataSelected", {
@@ -643,7 +661,15 @@ export default Vue.component("research-region-plot", {
 
 					dotsOnPosition.map((d, dIndex) => {
 						if (dIndex < 5) {
-							infoContent += "<strong>" + d + "</strong><br />";
+							infoContent += "<strong>" + d + "</strong>";
+
+							infoContent +=
+								this.checkStared(d) == true
+									? "&nbsp;<span style='color:#ffcc00'>&#9733;</span>"
+									: "&nbsp;<span style='color:#ffcc00'>&#9734;</span>";
+
+							infoContent += "<br />";
+
 							this.renderConfig["hover content"].map((h) => {
 								if (GROUP != "Combined") {
 									infoContent +=

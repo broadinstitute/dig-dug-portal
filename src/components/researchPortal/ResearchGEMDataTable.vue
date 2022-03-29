@@ -115,10 +115,18 @@
 			<tbody v-for="(value, index) in pagedData" :key="index" class="">
 				<tr>
 					<td>
+						<span v-if="checkStared(value) == false"
+							><b-icon
+								icon="star"
+								style="color: #aaaaaa; cursor: pointer"
+								@click="addStar(value)"
+							></b-icon
+						></span>
 						<span v-if="checkStared(value) == true"
 							><b-icon
 								icon="star-fill"
 								style="color: #ffcc00"
+								@click="removeStar(value)"
 							></b-icon
 						></span>
 					</td>
@@ -879,6 +887,24 @@ export default Vue.component("research-gem-data-table", {
 	},
 	methods: {
 		...Formatters,
+		addStar(value) {
+			let variantKey = value[this.tableFormat["variant field"]];
+
+			this.$store.dispatch("pkgDataSelected", {
+				type: "Variant",
+				id: variantKey,
+				action: "add",
+			});
+		},
+		removeStar(value) {
+			let variantKey = value[this.tableFormat["variant field"]];
+
+			this.$store.dispatch("pkgDataSelected", {
+				type: "Variant",
+				id: variantKey,
+				action: "remove",
+			});
+		},
 		checkStared(value) {
 			let selectedVariants = this.pkgDataSelected
 				.filter((s) => s.type == "Variant")
@@ -887,6 +913,8 @@ export default Vue.component("research-gem-data-table", {
 
 			if (!!selectedVariants.includes(value[variantKey])) {
 				return true;
+			} else {
+				return false;
 			}
 		},
 		getArraysIntersection(a1, a2) {
