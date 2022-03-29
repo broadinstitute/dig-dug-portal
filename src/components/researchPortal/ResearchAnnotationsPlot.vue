@@ -43,7 +43,8 @@
 							v-if="
 								pkgDataSelected.filter(
 									(s) => s.type == 'Annotation'
-								).length > 0
+								).length > 0 &&
+								!renderConfig['no search key bubbles']
 							"
 							style="position: absolute; right: 10px; top: 7px"
 						>
@@ -76,14 +77,15 @@
 							.length > 0
 					"
 				>
-					<div style="padding: 5px">
+					<div style="padding: 5px; text-align: left">
 						<strong>Select Tissues</strong>
 						<div
 							class=""
 							v-if="
 								pkgDataSelected.filter(
 									(s) => s.type == 'Tissue'
-								).length > 0
+								).length > 0 &&
+								!renderConfig['no search key bubbles']
 							"
 							style="float: right"
 						>
@@ -1207,7 +1209,7 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		removeAnnoTrack(ANNO) {
-			//console.log("called", ANNO);
+			console.log("called", ANNO);
 			let selectedAnnotations = this.pkgDataSelected
 				.filter((s) => s.type == "Annotation")
 				.map((s) => s.id);

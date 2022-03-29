@@ -81,8 +81,9 @@
 					></th>-->
 					<th>
 						<b-icon
-							icon="star-fill"
-							style="color: #ffcc00"
+							:icon="!!stared ? 'star-fill' : 'star'"
+							style="color: #ffcc00; cursor: pointer"
+							@click="showHideStared()"
 						></b-icon>
 					</th>
 					<th
@@ -221,6 +222,7 @@ export default Vue.component("research-gem-data-table", {
 			compareGroups: [],
 			sortByCredibleSet: false,
 			sortDirection: "asc",
+			stared: false,
 		};
 	},
 	modules: {},
@@ -742,6 +744,20 @@ export default Vue.component("research-gem-data-table", {
 				updatedData = uDataNoCompare;
 			}
 
+			///check if table shows only stared
+			//this.checkStared(value) == true
+			if (this.stared == true) {
+				let tempData = {};
+				for (const [dKey, dValue] of Object.entries(updatedData)) {
+					if (this.checkStared(dValue) == true) {
+						tempData[dKey] = dValue;
+					}
+				}
+				updatedData = tempData;
+			} else {
+				updatedData = updatedData;
+			}
+
 			return updatedData;
 		},
 
@@ -900,6 +916,13 @@ export default Vue.component("research-gem-data-table", {
 				return true;
 			} else {
 				return false;
+			}
+		},
+		showHideStared() {
+			if (this.stared == false) {
+				this.stared = true;
+			} else {
+				this.stared = false;
 			}
 		},
 		showHideFeature(ELEMENT) {
