@@ -151,6 +151,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
 import dataConvert from "@/utils/dataConvert";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
@@ -182,6 +183,7 @@ export default Vue.component("research-credible-sets-plot", {
 	},
 	modules: {
 		uiUtils,
+		plotUtils,
 		Formatters,
 		keyParams,
 		dataConvert,
@@ -302,6 +304,31 @@ export default Vue.component("research-credible-sets-plot", {
 	},
 	methods: {
 		...uiUtils,
+		checkStared(ITEM) {
+			let selectedItems = this.pkgDataSelected
+				.filter((s) => s.type == this.renderConfig["star key"])
+				.map((s) => s.id);
+
+			if (!!selectedItems.includes(ITEM)) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		addStarItem(ITEM) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.renderConfig["star key"],
+				id: ITEM,
+				action: "add",
+			});
+		},
+		removeStarItem(ITEM) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.renderConfig["star key"],
+				id: ITEM,
+				action: "remove",
+			});
+		},
 		showHidePanel(PANEL, CLOSEBTN) {
 			let wrapper = document.querySelector(PANEL);
 			var e = event;
@@ -400,7 +427,15 @@ export default Vue.component("research-credible-sets-plot", {
 									this.CSPosData[y + v][x + h]
 								)) {
 									infoBoxContent +=
-										"<strong>" + key + "</strong><br />";
+										"<strong>" + key + "</strong>";
+									if (!!this.renderConfig["star key"]) {
+										infoBoxContent +=
+											this.checkStared(value) == true
+												? "&nbsp;<span style='color:#ffcc00'>&#9733;</span>"
+												: "&nbsp;<span style='color:#ffcc00'>&#9734;</span>";
+									}
+
+									infoBoxContent += "<br />";
 									this.renderConfig["hover content"].map(
 										(h) => {
 											infoBoxContent +=
@@ -655,12 +690,29 @@ export default Vue.component("research-credible-sets-plot", {
 										let dotColor =
 											this.getColorIndex(colorID);
 
-										this.renderDot(
-											ctx,
-											xPos,
-											yPos,
-											dotColor
-										);
+										if (
+											this.checkStared(
+												v[this.renderConfig["star key"]]
+											) == true
+										) {
+											plotUtils.renderStar(
+												ctx,
+												xPos,
+												yPos,
+												5,
+												6,
+												3,
+												dotColor,
+												dotColor
+											);
+										} else {
+											this.renderDot(
+												ctx,
+												xPos,
+												yPos,
+												dotColor
+											);
+										}
 
 										if (!this.CSPosData[Math.round(yPos)]) {
 											this.CSPosData[Math.round(yPos)] =

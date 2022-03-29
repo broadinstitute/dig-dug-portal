@@ -10,18 +10,32 @@
 			<div class="fixed-info-box-content">
 				<div v-for="(d, dIndex) in dotsClicked">
 					<div>
-						<strong v-html="d"></strong
-						><b-icon
-							v-if="!!renderConfig['star key']"
-							:icon="
-								checkStared(d) == true ? 'star-fill' : 'star'
+						<strong v-html="d"></strong>
+						<b-icon
+							v-if="
+								!!renderConfig['star key'] &&
+								checkStared(d) == true
 							"
+							icon="star-fill"
 							style="
 								color: #ffcc00;
 								cursor: pointer;
 								margin-left: 4px;
 							"
-							@click="setStarItem(d)"
+							@click="removeStarItem(d)"
+						></b-icon>
+						<b-icon
+							v-if="
+								!!renderConfig['star key'] &&
+								checkStared(d) == false
+							"
+							icon="star"
+							style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							"
+							@click="addStarItem(d)"
 						></b-icon>
 					</div>
 					<div>
@@ -572,14 +586,22 @@ export default Vue.component("research-region-plot", {
 
 			if (!!selectedItems.includes(ITEM)) {
 				return true;
+			} else {
+				return false;
 			}
 		},
-		setStarItem(ITEM) {
-			console.log(ITEM);
+		addStarItem(ITEM) {
 			this.$store.dispatch("pkgDataSelected", {
 				type: this.renderConfig["star key"],
 				id: ITEM,
 				action: "add",
+			});
+		},
+		removeStarItem(ITEM) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.renderConfig["star key"],
+				id: ITEM,
+				action: "remove",
 			});
 		},
 		resetLdReference(GROUP, VARIANT) {
