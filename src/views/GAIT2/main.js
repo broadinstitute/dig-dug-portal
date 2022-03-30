@@ -16,7 +16,7 @@ import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
-import { isEqual, startCase, groupBy } from "lodash";
+import { isEqual, startCase, groupBy, sumBy } from "lodash";
 import regionUtils from "@/utils/regionUtils";
 import * as raremetal from "raremetal.js";
 
@@ -626,36 +626,18 @@ new Vue({
 
                 if (!formattedData.hasOwnProperty(row.test)) {
                     formattedData[row.test] = {
-                        top: row,
-                        data: [
-                            {
-                                test: row.test,
-                                region: row.group,
-                                variants: row.variants.length,
-                                stat: row.stat,
-                                pvalue: row.pvalue,
-                                effect: row.effect,
-                                se: row.se,
-                                samples
-                            }
-                        ]
-                    }; //save whole row with lower p-value
+                        top: this.formatTableRow(row),
+                        data: [this.formatTableRow(row)]
+                    };
+
+                    //formattedData[row.test].top.samples = samples; //keep samples in top row
                 } else {
                     if (formattedData[row.test].top.pvalue > row.pvalue) {
-                        formattedData[row.test].top = row;
+                        formattedData[row.test].top = this.formatTableRow(row);
                     }
 
                     //if same test, add to the array
-                    formattedData[row.test].data.push({
-                        test: row.test,
-                        region: row.group,
-                        variants: row.variants.length,
-                        stat: row.stat,
-                        pvalue: row.pvalue,
-                        effect: row.effect,
-                        se: row.se,
-                        samples
-                    });
+                    formattedData[row.test].data.push(this.formatTableRow(row));
                 }
             }
 
@@ -671,9 +653,40 @@ new Vue({
             //         samples
             //     });
             // });
-
-            return [formattedData];
+            console.log("formattedData", formattedData);
+            let returnData = [];
+            Object.values(formattedData).forEach(test => {
+                returnData.push({
+                    ...test.top,
+                    variants: sumBy(test.data, "variants"),
+                    data: test.data
+                });
+            });
+            console.log("returnData", returnData);
+            //return [formattedData];
+            return returnData;
         },
+        formatTableRow(row) {
+            if (!row) return;
+            else {
+                let data = {
+                    test: row.test,
+                    region: row.group,
+                    variants: row.variants.length,
+                    pvalue: row.pvalue,
+                    effect: row.effect,
+                    se: row.se
+                };
+                if (row.test.includes("skat")) {
+                    data.qscore = row.stat;
+                } else {
+                    data.zscore = row.stat;
+                }
+
+                return data;
+            }
+        },
+
         async lookupGenes(input) {
             if (!!input) {
                 let matches = await match("gene", input, { limit: 10 });
