@@ -322,6 +322,8 @@
 								:compareGroupColors="$parent.colors.moderate"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
 							></research-region-plot>
 							<!--v-if="$parent.plotType == 'score_plot'"-->
 							<research-score-plot
@@ -416,6 +418,8 @@
 								:searchParameters="
 									$store.state.searchParameters
 								"
+								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
 							>
 							</research-data-table>
 							<research-gem-data-table
