@@ -655,8 +655,9 @@ new Vue({
         },
         displayOnKP() {
             let contents = this.$store.state.hugeampkpncms.researchMode;
+            let hostname = window.location.hostname
 
-            if (contents.length === 0 || contents[0].field_display_on_kp == false) {
+            if (contents.length === 0 || contents[0].field_display_on_kp == false || hostname == "hugeampkpn.org") {
                 return null;
             } else {
                 return true;

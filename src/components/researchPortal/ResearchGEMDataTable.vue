@@ -79,6 +79,13 @@
 								: value
 						"
 					></th>-->
+					<th v-if="!!newTableFormat['star column']">
+						<b-icon
+							:icon="!!stared ? 'star-fill' : 'star'"
+							style="color: #ffcc00; cursor: pointer"
+							@click="showHideStared()"
+						></b-icon>
+					</th>
 					<th
 						v-for="(value, index) in topRows"
 						:key="index"
@@ -107,6 +114,22 @@
 
 			<tbody v-for="(value, index) in pagedData" :key="index" class="">
 				<tr>
+					<td v-if="!!newTableFormat['star column']">
+						<span v-if="checkStared(value) == false"
+							><b-icon
+								icon="star"
+								style="color: #aaaaaa; cursor: pointer"
+								@click="addStar(value)"
+							></b-icon
+						></span>
+						<span v-if="checkStared(value) == true"
+							><b-icon
+								icon="star-fill"
+								style="color: #ffcc00; cursor: pointer"
+								@click="removeStar(value)"
+							></b-icon
+						></span>
+					</td>
 					<template
 						v-for="(tdValue, tdKey) in value"
 						v-if="topRows.includes(tdKey)"
@@ -207,6 +230,7 @@ export default Vue.component("research-gem-data-table", {
 			compareGroups: [],
 			sortByCredibleSet: false,
 			sortDirection: "asc",
+			stared: false,
 		};
 	},
 	modules: {},
@@ -728,6 +752,20 @@ export default Vue.component("research-gem-data-table", {
 				updatedData = uDataNoCompare;
 			}
 
+			///check if table shows only stared
+
+			if (this.stared == true) {
+				let tempData = {};
+				for (const [dKey, dValue] of Object.entries(updatedData)) {
+					if (this.checkStared(dValue) == true) {
+						tempData[dKey] = dValue;
+					}
+				}
+				updatedData = tempData;
+			} else {
+				updatedData = updatedData;
+			}
+
 			return updatedData;
 		},
 
@@ -849,6 +887,38 @@ export default Vue.component("research-gem-data-table", {
 	},
 	methods: {
 		...Formatters,
+		addStar(ITEM) {
+			let value = ITEM[this.tableFormat["star column"]];
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.tableFormat["star column"],
+				id: value,
+				action: "add",
+			});
+			console.log("pkgDataSelected", this.pkgDataSelected);
+		},
+		removeStar(ITEM) {
+			let value = ITEM[this.tableFormat["star column"]];
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.tableFormat["star column"],
+				id: value,
+				action: "remove",
+			});
+
+			console.log("pkgDataSelected", this.pkgDataSelected);
+		},
+		checkStared(ITEM) {
+			let selectedItems = this.pkgDataSelected
+				.filter((s) => s.type == this.tableFormat["star column"])
+				.map((s) => s.id);
+
+			let value = ITEM[this.tableFormat["star column"]];
+
+			if (!!selectedItems.includes(value)) {
+				return true;
+			} else {
+				return false;
+			}
+		},
 		getArraysIntersection(a1, a2) {
 			return a1.filter(function (n) {
 				return a2.indexOf(n) !== -1;
@@ -876,6 +946,13 @@ export default Vue.component("research-gem-data-table", {
 				return true;
 			} else {
 				return false;
+			}
+		},
+		showHideStared() {
+			if (this.stared == false) {
+				this.stared = true;
+			} else {
+				this.stared = false;
 			}
 		},
 		showHideFeature(ELEMENT) {
@@ -910,7 +987,7 @@ export default Vue.component("research-gem-data-table", {
 						cellValue = cellValue == "-" ? 0 : cellValue;
 					}
 
-					if (type == "link") {
+					/*if (type == "link") {
 						let linkString =
 							"<a href='" +
 							this.newTableFormat["column formatting"][tdKey][
@@ -922,6 +999,39 @@ export default Vue.component("research-gem-data-table", {
 							linkToNewTab == "true"
 								? "' target='_blank'>" + cellValue + "</a>"
 								: "'>" + cellValue + "</a>";
+
+						cellValue = linkString;
+					}*/
+					if (type == "link") {
+						let linkString =
+							"<a href='" +
+							this.tableFormat["column formatting"][tdKey][
+								"link to"
+							] +
+							cellValue;
+
+						linkString +=
+							!!this.tableFormat["column formatting"][tdKey][
+								"link type"
+							] &&
+							this.tableFormat["column formatting"][tdKey][
+								"link type"
+							] == "button"
+								? "' class='btn btn-sm btn-outline-secondary link-button"
+								: "";
+
+						let linkLabel = !!this.tableFormat["column formatting"][
+							tdKey
+						]["link label"]
+							? this.tableFormat["column formatting"][tdKey][
+									"link label"
+							  ]
+							: cellValue;
+
+						linkString +=
+							linkToNewTab == "true"
+								? "' target='_blank'>" + linkLabel + "</a>"
+								: "'>" + linkLabel + "</a>";
 
 						cellValue = linkString;
 					}
