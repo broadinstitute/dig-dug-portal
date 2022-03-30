@@ -209,6 +209,24 @@ new Vue({
                     sortable: true
                 }
             ],
+            ncbtFields: [
+                "test",
+                "variants",
+                "pvalue",
+                "zscore",
+                "qscore",
+                "effect",
+                "se",
+                "details"
+            ],
+            ncbtSubFields: [
+                "region",
+                "variants",
+                "pvalue",
+                "stat",
+                "effect",
+                "se"
+            ],
             searchCriteria: [],
             selectedVariants: [],
             pageCovariances: null,
