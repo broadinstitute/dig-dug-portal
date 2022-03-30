@@ -316,7 +316,7 @@
 													'overlapping regions':
 														'true',
 													'no search key bubbles':
-														'true',
+														'false',
 												}"
 												:plotMargin="{
 													leftMargin: 75,
