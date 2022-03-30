@@ -300,7 +300,9 @@
 												"
 											>
 												remove pancreas
-											</button>-->
+											</button>
+                                            //// add 'no search key bubbles':'true' to config to hide bubbles ////
+                                            -->
 											<research-annotations-plot
 												:region="
 													$parent.searchRegionString
@@ -315,8 +317,6 @@
 														'phenotype',
 													'overlapping regions':
 														'true',
-													'no search key bubbles':
-														'false',
 												}"
 												:plotMargin="{
 													leftMargin: 75,
