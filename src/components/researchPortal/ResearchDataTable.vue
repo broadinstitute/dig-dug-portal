@@ -403,9 +403,27 @@ export default Vue.component("research-data-table", {
 							cellValue;
 
 						linkString +=
+							!!this.tableFormat["column formatting"][tdKey][
+								"link type"
+							] &&
+							this.tableFormat["column formatting"][tdKey][
+								"link type"
+							] == "button"
+								? "' class='btn btn-sm btn-outline-secondary link-button"
+								: "";
+
+						let linkLabel = !!this.tableFormat["column formatting"][
+							tdKey
+						]["link label"]
+							? this.tableFormat["column formatting"][tdKey][
+									"link label"
+							  ]
+							: cellValue;
+
+						linkString +=
 							linkToNewTab == "true"
-								? "' target='_blank'>" + cellValue + "</a>"
-								: "'>" + cellValue + "</a>";
+								? "' target='_blank'>" + linkLabel + "</a>"
+								: "'>" + linkLabel + "</a>";
 
 						cellValue = linkString;
 					}
