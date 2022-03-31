@@ -1214,6 +1214,7 @@ table.research-data-table {
 	border-right: solid 1px #ddd;
 	border-collapse: inherit;
 	text-align: center;
+	clear: both;
 }
 
 .research-data-table > thead > tr > th {

@@ -121,7 +121,7 @@ export default Vue.component("research-genes-track", {
 			//console.log("GENES", GENES);
 			let genesArray = GENES;
 			let canvasRenderWidth, canvasRenderHeight;
-			let eachGeneTrackHeight = 10; //15: gene name, 10: gene track, 5: space between tracks
+			let eachGeneTrackHeight = 30; //15: gene name, 10: gene track, 5: space between tracks
 
 			canvasRenderWidth = !!this.plotConfig.width
 				? this.plotConfig.width +
@@ -131,8 +131,7 @@ export default Vue.component("research-genes-track", {
 
 			canvasRenderHeight =
 				this.plotMargin.topMargin +
-				this.plotMargin.bottomMargin +
-				eachGeneTrackHeight * genesArray.length;
+				eachGeneTrackHeight * genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
 
 			let bump = this.plotMargin.bump;
 
