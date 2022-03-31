@@ -252,78 +252,83 @@ export default Vue.component("research-data-table", {
 		rows() {
 			if (!!this.dataset) {
 				if (this.dataComparisonConfig == null) {
-					return this.dataset.length;
+					return this.rawData.length;
 				} else {
-					return Object.keys(this.dataset).length;
+					return Object.keys(this.rawData).length;
 				}
 			}
 		},
+		rawData() {
+			let rawData = this.dataset;
+
+			let formattedData = [];
+
+			if (this.dataComparisonConfig == null) {
+				rawData.map((d) => {
+					let tempObj = {};
+
+					this.tableFormat["top rows"].map((t) => {
+						tempObj[t] = d[t];
+					});
+
+					if (this.tableFormat["features"] != undefined) {
+						tempObj["features"] = {};
+						this.tableFormat["features"].map((f) => {
+							tempObj["features"][f] = [];
+
+							let fTempObj = {};
+							this.tableFormat[f].map((fItem) => {
+								fTempObj[fItem] = d[fItem];
+							});
+
+							tempObj["features"][f].push(fTempObj);
+						});
+					}
+					formattedData.push(tempObj);
+				});
+			} else {
+				for (const [key, value] of Object.entries(rawData)) {
+					let tempObj = {};
+
+					this.tableFormat["top rows"].map((t) => {
+						tempObj[t] = value[t];
+					});
+
+					if (this.tableFormat["features"] != undefined) {
+						tempObj["features"] = {};
+						this.tableFormat["features"].map((f) => {
+							tempObj["features"][f] = [];
+
+							let fTempObj = {};
+							this.tableFormat[f].map((fItem) => {
+								fTempObj[fItem] = value[fItem];
+							});
+
+							tempObj["features"][f].push(fTempObj);
+						});
+					}
+					formattedData.push(tempObj);
+				}
+			}
+
+			if (this.stared == true) {
+				let tempData = [];
+
+				formattedData.map((r) => {
+					if (this.checkStared("3", r) == true) {
+						tempData.push(r);
+					}
+				});
+				formattedData = tempData;
+			} else {
+				formattedData = formattedData;
+			}
+
+			return formattedData;
+		},
 		pagedData() {
 			if (!!this.perPageNumber && this.perPageNumber != null) {
-				let rawData = this.dataset;
-
-				let formattedData = [];
-
-				if (this.dataComparisonConfig == null) {
-					rawData.map((d) => {
-						let tempObj = {};
-
-						this.tableFormat["top rows"].map((t) => {
-							tempObj[t] = d[t];
-						});
-
-						if (this.tableFormat["features"] != undefined) {
-							tempObj["features"] = {};
-							this.tableFormat["features"].map((f) => {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
-									fTempObj[fItem] = d[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
-							});
-						}
-						formattedData.push(tempObj);
-					});
-				} else {
-					for (const [key, value] of Object.entries(rawData)) {
-						let tempObj = {};
-
-						this.tableFormat["top rows"].map((t) => {
-							tempObj[t] = value[t];
-						});
-
-						if (this.tableFormat["features"] != undefined) {
-							tempObj["features"] = {};
-							this.tableFormat["features"].map((f) => {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
-									fTempObj[fItem] = value[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
-							});
-						}
-						formattedData.push(tempObj);
-					}
-				}
-
-				if (this.stared == true) {
-					let tempData = [];
-
-					formattedData.map((r) => {
-						if (this.checkStared("3", r) == true) {
-							tempData.push(r);
-						}
-					});
-					formattedData = tempData;
-				} else {
-					formattedData = formattedData;
-				}
+				let formattedData = this.rawData;
 
 				//let filtered = this.dataset;
 				let paged = [];
@@ -346,7 +351,7 @@ export default Vue.component("research-data-table", {
 
 				return paged;
 			} else {
-				let rawData = this.dataset;
+				let rawData = this.rawData;
 				if (this.stared == true) {
 					let tempData = [];
 
