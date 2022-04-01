@@ -853,6 +853,8 @@ export default Vue.component("research-gem-data-table", {
 				this.newTableFormat["features"] != undefined
 					? this.topRows.length + 1
 					: this.topRows.length;
+
+			topRows += !!this.newTableFormat["star column"] ? 1 : 0;
 			return topRows;
 		},
 	},

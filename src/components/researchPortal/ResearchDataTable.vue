@@ -376,6 +376,9 @@ export default Vue.component("research-data-table", {
 				this.tableFormat["features"] != undefined
 					? this.tableFormat["top rows"].length + 1
 					: this.tableFormat["top rows"].length;
+
+			topRows += !!this.tableFormat["star column"] ? 1 : 0;
+
 			return topRows;
 		},
 	},
