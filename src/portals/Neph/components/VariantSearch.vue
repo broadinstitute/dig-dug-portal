@@ -192,8 +192,8 @@
 				<template #cell(allelefrequency)="data">
 					<div align="right">{{ data.item.allelefrequency }}</div>
 				</template>
-				<template #cell(TWO_ALT_GENO_CTS)="data">
-					<div align="right">{{ data.item.TWO_ALT_GENO_CTS }}</div>
+				<template #cell(homozygouscount)="data">
+					<div align="right">{{ data.item.homozygouscount }}</div>
 				</template>
 				<template #cell(gnomAD_exomes_AC)="row">
 					<div align="right">
@@ -498,7 +498,7 @@ export default Vue.component("variant-search", {
 					sortable: true,
 				},
 				{
-					key: "TWO_ALT_GENO_CTS",
+					key: "homozygouscount",
 					label: "Count",
 					sortable: true,
 				},
@@ -647,15 +647,11 @@ export default Vue.component("variant-search", {
 						2 * parseInt(this.variants[i].TWO_ALT_GENO_CTS) +
 						parseInt(this.variants[i].GHET_REF_ALT_CTS);
 					this.variants[i].allelnumber =
-						2 *
-						(parseInt(this.variants[i].HOM_REF_CT) +
+						2 *(parseInt(this.variants[i].HOM_REF_CT) +
 							parseInt(this.variants[i].GHET_REF_ALT_CTS) +
 							parseInt(this.variants[i].TWO_ALT_GENO_CTS));
-					this.variants[i].allelefrequency =
-						this.variants[i].allelecount /
-						this.variants[i].allelnumber;
-					this.variants[i].allelefrequency =
-						this.variants[i].allelefrequency.toExponential(2);
+					//this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
+					//this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
 					if (this.variants[i].gnomAD_info) {
 						this.variants[i].gnomAD_exomes_AC = this.variants[i].gnomAD_info.gnomAD_exomes_AC;
 						this.variants[i].gnomAD_exomes_AN = this.variants[i].gnomAD_info.gnomAD_exomes_AN;
@@ -670,25 +666,16 @@ export default Vue.component("variant-search", {
 					) {
 						let hp = this.variants[i].hprecords[m];
 						if (hp.HP == "AllControl") {
-							this.variants[i].c_allelecount =
-								2 * parseInt(hp.TWO_ALT_GENO_CTS) +
-								parseInt(hp.HET_REF_ALT_CTS);
-							this.variants[i].c_allelnumber =
-								2 *
-								(parseInt(hp.HOM_REF_CT) +
-									parseInt(hp.HET_REF_ALT_CTS) +
-									parseInt(
-										this.variants[i].TWO_ALT_GENO_CTS
-									));
-							this.variants[i].c_allelefrequency =
-								this.variants[i].c_allelecount /
-								this.variants[i].c_allelnumber;
-							this.variants[i].c_allelefrequency =
-								this.variants[
-									i
-								].c_allelefrequency.toExponential(2);
-							this.variants[i].c_TWO_ALT_GENO_CTS =
-								hp.TWO_ALT_GENO_CTS;
+							this.variants[i].c_allelecount =(2 * parseInt(hp.TWO_ALT_GENO_CTS)+parseInt(hp.HET_REF_ALT_CTS));
+							this.variants[i].allelecount += this.variants[i].c_allelecount;
+							this.variants[i].c_allelnumber =2 *(parseInt(hp.HOM_REF_CT) +parseInt(hp.HET_REF_ALT_CTS) +parseInt(hp.TWO_ALT_GENO_CTS));
+							this.variants[i].allelnumber += this.variants[i].c_allelnumber;
+							this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
+							this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
+							//this.variants[i].c_allelefrequency =this.variants[i].c_allelecount / this.variants[i].c_allelnumber;
+							//this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
+							//this.variants[i].c_TWO_ALT_GENO_CTS =hp.TWO_ALT_GENO_CTS;
+							this.variants[i].homozygouscount = parseInt(this.variants[i].TWO_ALT_GENO_CTS) + parseInt(hp.TWO_ALT_GENO_CTS);
 						}
 					}
 					//do we need vep count?
