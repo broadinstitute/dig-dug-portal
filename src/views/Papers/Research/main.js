@@ -840,6 +840,7 @@ new Vue({
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
+            console.log("contents", contents)
 
             if (contents.length === 0) {
                 return null;
@@ -887,9 +888,7 @@ new Vue({
                         return processedData;
                     }
                 } else {
-                    let returnData = (this.dataType == 'json') ? JSON.parse(convertedData).data : convertedData;
-
-
+                    let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
@@ -1094,6 +1093,7 @@ new Vue({
         },
         researchData(content) {
             // reset searching region if applicable
+
 
             if (this.plotConfig != null &&
                 !!this.plotConfig["genes track"]) {
