@@ -55,7 +55,7 @@
                             :isHover="true"
                         ></tooltip-documentation>
                     </div>
-                    <div class="col-md-3 gene-page-header-title">Navigate</div>
+                   <!--  <div class="col-md-3 gene-page-header-title">Navigate</div> -->
 
                     <div class="col-md-9 gene-page-header-body">
                         <span>
@@ -66,17 +66,36 @@
                             </span>
                         </span>
                     </div>
-                    <div class="col-md-3 gene-page-header-body">
+                    <!-- <div class="col-md-3 gene-page-header-body">
                         <button
                             class="btn btn-primary explore-region-btn"
                             @click="$parent.exploreRegion()"
                         >
                             Explore region
                         </button>
-                    </div>
+                    </div> -->
                 </div>
             </div>
-
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div
+                        v-if="
+                            $store.state.transcriptConsequences.data.length > 0
+                        "
+                    >
+                        <h4 class="card-title">
+                            gnomAD Information
+                        </h4>
+                        <gnominfo-card
+                            v-bind:variantId="
+                                $store.state.variant.varId
+                            ">
+                        </gnominfo-card>
+                        
+                    </div>
+                    
+                </div>
+            </div>
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
                     <documentation
@@ -174,7 +193,9 @@
                 </div>
             </div>
 
-            <div class="card mdkp-card">
+            
+
+            <!-- <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
                         {{ $parent.varId }}
@@ -237,7 +258,7 @@
                         </filter-effect-direction-control>
 
                         <template slot="filtered" slot-scope="{ filter }">
-                            <!--<h4 class="card-title">Visualization</h4>-->
+                            
                             <b-tabs content-class="mt-3" align="center">
                                 <b-tab title="LocusZoom" active>
                                     <locuszoom
@@ -394,8 +415,8 @@
                         </template>
                     </criterion-function-group>
                 </div>
-            </div>
-        </div>
+            </div> -->
+        </div> 
 
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
