@@ -20,7 +20,8 @@
                     :fields="fields"
                     :per-page="perPage"
                     :tbody-tr-class="rowPickClass"
-                    ><template #cell(varId)="data">
+                    >
+                    <template #cell(varId)="data">
                         <a :href="`/variant.html?variant=${data.item.varId}`">{{
                             data.item.varId
                         }}</a>
@@ -70,7 +71,7 @@
                     >
                     <template #cell(siftPrediction)="data">
                         {{ siftFormatter(data.item.siftPrediction) }}
-                    </template>
+                    </template> 
                 </b-table>
                 <b-pagination
                     class="pagination-sm justify-content-center"
@@ -122,7 +123,7 @@ export default Vue.component("variant-phenotype-table", {
 				"HP-0033127": "Abnormality of the musculoskeletal system",
 				"HP-0040064": "Abnormality of limbs",
 				"HP-0045027": "Abnormality of the thoracic cavity",
-				AllControl: "Controls",
+				"AllControl": "Controls",
 			},
             fields: [
                 {
@@ -200,7 +201,7 @@ export default Vue.component("variant-phenotype-table", {
                 k++
             ) {
                 let hp = this.variant[0].hprecords[k];
-                if (hp.HP != "AllControl") {
+                //if (hp.HP != "AllControl") {
                     hpdisplay[j] = {};
                     //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
                     hpdisplay[j].hp = hp.HP;
@@ -208,14 +209,8 @@ export default Vue.component("variant-phenotype-table", {
                         Formatters.snakeFormatter(
                             this.HPOTerms[hp.HP]
                         );
-                    hpdisplay[j].allelecount =
-                        2 * hp.TWO_ALT_GENO_CTS +
-                        hp.HET_REF_ALT_CTS;
-                    hpdisplay[j].allelnumber =
-                        2 *
-                        (hp.HOM_REF_CT +
-                            hp.HET_REF_ALT_CTS +
-                            hp.TWO_ALT_GENO_CTS);
+                    hpdisplay[j].allelecount =2 * hp.TWO_ALT_GENO_CTS +hp.HET_REF_ALT_CTS;
+                    hpdisplay[j].allelnumber =2 *(hp.HOM_REF_CT +hp.HET_REF_ALT_CTS +hp.TWO_ALT_GENO_CTS);
                     hpdisplay[j].allelefrequency =
                         this.formatAlleleFrequency(
                             hpdisplay[j].allelecount,
@@ -225,7 +220,7 @@ export default Vue.component("variant-phenotype-table", {
                     hpdisplay[j].TWO_ALT_GENO_CTS =
                         hp.TWO_ALT_GENO_CTS;
                     j++;
-                }
+                //}
             }
             hpdisplay = hpdisplay.sort(function (a, b) {
                 //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
