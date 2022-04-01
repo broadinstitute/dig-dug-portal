@@ -11,6 +11,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import VariantPhenotypeTable from "@/portals/Neph/components/VariantPhenotypeTable.vue";
+import GnomInfoCard from "@/portals/Neph/components/GnomInfoCard.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
 import RegionsTable from "@/components/RegionsTable.vue";
@@ -49,6 +50,7 @@ new Vue({
         PhenotypeSelectPicker,
         TranscriptConsequenceTable,
         VariantPhenotypeTable,
+        GnomInfoCard,
         TranscriptionFactorsTable,
         PheWASTable,
         PheWASDatasets,
