@@ -19,7 +19,6 @@
                     :items="tableData"
                     :fields="fields"
                     :per-page="perPage"
-                    :tbody-tr-class="rowPickClass"
                     >
                     
                 </b-table>
@@ -49,7 +48,11 @@ export default Vue.component("gnominfo-card", {
     props: ["variantId"],
     data() {
         return {
-            
+            InfoFields: {
+				"gnomAD_exomes_AN": "Allele Number",
+				"gnomAD_exomes_AC": "Allele Count",
+				"gnomAD_exomes_AF": "Allele Frequency",
+			},
             fields: [
                 {
 					key: "name",
@@ -60,12 +63,14 @@ export default Vue.component("gnominfo-card", {
 					label: "Value",
 				},
             ],
-            gnomAd_info: [],
-            
+            gnomAD_info: [],
+            perPage: 10,
+            currentPage: 1,
         };
     },
     created() {
 		if (this.variantId) {
+            //alert(this.variantId);
 			this.searchVariants();
 		}
 	},
@@ -75,7 +80,6 @@ export default Vue.component("gnominfo-card", {
         },
         tableData() {
             if (this.gnomAD_info && this.gnomAD_info.length) {
-                console.log("here:"+this.gnomAD_info);
 				return this.gnomAD_info;
 			} else {
 				return [];
@@ -91,24 +95,30 @@ export default Vue.component("gnominfo-card", {
     },
     methods: {
         async searchVariants() {
+            //alert("variant id:" + this.variantId);
             //console.log("variant id:" + this.variantId);
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0]+":"+varinfo[1];
             this.variant = await query("variant-phenotype",searchquery,{},true);
             let gnomdisplay = [];
             let j = 0;
-
-            for (k in gnomAD_info) {
-                gnomdisplay[j]={};
-                gnomdisplay[j].name = k;
-                gnomdisplay[j].value = gnomAD_info[k];
-                j++
+            //console.log("gnomAD_info:"+this.variant[0].gnomAD_info);
+            for (var k in this.variant[0].gnomAD_info) {
+                console.log(k);
+                if (this.InfoFields[k] != undefined){
+                    gnomdisplay[j]={};
+                    gnomdisplay[j].name = this.InfoFields[k];
+                    gnomdisplay[j].value = this.variant[0].gnomAD_info[k];
+                    j++
+                }
+                
             }
             
             this.gnomAD_info = gnomdisplay;
 
             //console.log("results:"+JSON.stringify(this.variant[0].hprecords));
         },
+        
     },
 })
 
