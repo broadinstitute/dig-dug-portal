@@ -32,8 +32,7 @@
         </div>
         <div v-else>
             <b-alert show variant="warning" class="text-center">
-                <b-icon icon="exclamation-triangle"></b-icon> No predicted
-                transcript consequences found.</b-alert
+                <b-icon icon="exclamation-triangle"></b-icon> No gnomAD information found.</b-alert
             >
         </div>
     </div>
