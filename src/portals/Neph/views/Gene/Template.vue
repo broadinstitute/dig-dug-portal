@@ -40,7 +40,7 @@
                     ></variant-search>
                 </div>
             </div>
-            <div class="card mdkp-card">
+            <!-- <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
@@ -116,7 +116,7 @@
                         </criterion-function-group>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <div class="card mdkp-card">
                 <!-- <div class="card-body">
