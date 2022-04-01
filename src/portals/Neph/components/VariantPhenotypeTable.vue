@@ -168,7 +168,7 @@ export default Vue.component("variant-phenotype-table", {
         },
         tableData() {
             if (this.hprecords && this.hprecords.length) {
-                console.log("here:"+this.hprecords);
+                //console.log("here:"+this.hprecords);
 				return this.hprecords;
 			} else {
 				return [];
