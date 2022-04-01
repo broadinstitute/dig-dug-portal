@@ -153,7 +153,7 @@ export default Vue.component("variant-phenotype-table", {
 				},
             ],
             hprecords: [],
-            perPage: 23,
+            perPage: 24,
             currentPage: 1,
         };
     },
