@@ -354,6 +354,7 @@ export default Vue.component("research-annotations-plot", {
 		"plotMargin",
 		"compareGroupColors",
 		"dataComparison",
+		"plotData",
 		"pkgData",
 		"pkgDataSelected",
 		"regionZoom",
@@ -1827,6 +1828,21 @@ export default Vue.component("research-annotations-plot", {
 		},
 		renderByAnnotations() {
 			//console.log("selectedTissues in render by", this.selectedTissues);
+			console.log("plotData", this.plotData);
+			let starKey = this.renderConfig["star key"]["key"];
+			let starPosition = this.renderConfig["star key"]["position"];
+
+			let staredPositions = [];
+
+			this.pkgDataSelected
+				.filter((s) => s.type == starKey)
+				.map((s) => s.id)
+				.map((s) => {
+					staredPositions.push(this.plotData[s][starPosition]);
+				});
+
+			console.log("staredPositions", staredPositions);
+
 			let tempHeight = 0;
 			let annotationTitleH = this.spaceBy * 2;
 			let btwnAnnotations = this.spaceBy * 7;
@@ -1900,6 +1916,19 @@ export default Vue.component("research-annotations-plot", {
 							renderHeight,
 							bump
 						);
+
+						this.renderStaredPositions(
+							ctx,
+							plotWidth,
+							blockHeight,
+							staredPositions,
+							xPerPixel,
+							Number(regionEnd),
+							Number(regionStart),
+							renderHeight,
+							bump
+						);
+
 						let tissueIndex = 0;
 						for (const [tissue, regions] of Object.entries(
 							tissues
@@ -2042,6 +2071,31 @@ export default Vue.component("research-annotations-plot", {
 					yPos + HEIGHT + bump * 4
 				);
 			}
+		},
+		renderStaredPositions(
+			CTX,
+			WIDTH,
+			HEIGHT,
+			STARED,
+			XPERPIXEL,
+			xMax,
+			xMin,
+			yPos,
+			bump
+		) {
+			console.log("called");
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#FFAA00";
+			CTX.setLineDash([3, 3]); // cancel dashed line incase dashed lines rendered some where
+
+			// render dased lines
+			STARED.map((s) => {
+				let xPos = (s - xMin) * XPERPIXEL + this.plotMargin.leftMargin;
+				CTX.moveTo(xPos, yPos - bump);
+				CTX.lineTo(xPos, yPos + HEIGHT + bump);
+				CTX.stroke();
+			});
 		},
 	},
 });

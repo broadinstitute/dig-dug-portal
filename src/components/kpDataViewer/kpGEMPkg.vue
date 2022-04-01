@@ -100,6 +100,7 @@
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
 				:dataComparison="this.$store.state.dataComparison"
+				:plotData="$store.state.filteredData"
 				:pkgData="pkgData"
 				:pkgDataSelected="pkgDataSelected"
 				:regionZoom="regionZoom"
