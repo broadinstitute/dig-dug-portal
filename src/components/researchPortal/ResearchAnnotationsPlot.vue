@@ -1769,10 +1769,13 @@ export default Vue.component("research-annotations-plot", {
 			}
 
 			//Render y axis label
+			let yLabel = !!this.renderConfig["global enrichment y axis label"]
+				? this.renderConfig["global enrichment y axis label"]
+				: "Fold(SNPs/expectedSNPs)";
 			CTX.textAlign = "center";
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
-				"Fold(SNPs/expectedSNPs)",
+				yLabel,
 				-(this.plotMargin.topMargin + HEIGHT / 2) - YPOS,
 				BUMP + 12
 			);
