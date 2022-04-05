@@ -124,7 +124,13 @@
 									v-html="gene"
 									:key="gene"
 									@click="
-										getRegion(gene, parameter.parameter)
+										parameter['convert to region'] &&
+										parameter['convert to region'] == 'true'
+											? getRegion(
+													gene,
+													parameter.parameter
+											  )
+											: setGene(gene)
 									"
 									class="custom-select-a-option"
 								></a>
@@ -454,6 +460,11 @@ export default Vue.component("research-page-filters", {
 			numOfVisible = numOfVisible == 0 ? "hidden" : "";
 			return numOfVisible;
 		},
+		setGene(GENE) {
+			this.geneSearch = GENE;
+			this.kpGenes = [];
+		},
+
 		async getRegion(KEY, PARAM) {
 			let searchPoint =
 				"https://bioindex.hugeamp.org/api/bio/query/gene?q=" + KEY;

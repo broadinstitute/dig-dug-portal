@@ -396,7 +396,7 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		searchingRegion() {
-			console.log("this.region", this.region);
+			//console.log("this.region", this.region);
 			let returnObj = {};
 			let regionArr = this.region.split(":");
 			returnObj["chr"] = regionArr[0];
@@ -1210,7 +1210,7 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		removeAnnoTrack(ANNO) {
-			console.log("called", ANNO);
+			//console.log("called", ANNO);
 			let selectedAnnotations = this.pkgDataSelected
 				.filter((s) => s.type == "Annotation")
 				.map((s) => s.id);
@@ -1304,7 +1304,7 @@ export default Vue.component("research-annotations-plot", {
 			return this.compareGroupColors[i];
 		},
 		async getGlobalEnrichment() {
-			console.log("calling GE");
+			//console.log("calling GE");
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
 					? "https://bioindex.hugeamp.org/api/bio"
@@ -1436,7 +1436,7 @@ export default Vue.component("research-annotations-plot", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
-				console.log("calling annotations");
+				//console.log("calling annotations");
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"
@@ -1837,6 +1837,8 @@ export default Vue.component("research-annotations-plot", {
 		object2Array() {},
 
 		renderByAnnotations() {
+			let staredPositions = [];
+
 			if (!!this.renderConfig["star key"]) {
 				let plotData = !!Array.isArray(this.plotData)
 					? this.array2Object(
@@ -1847,8 +1849,6 @@ export default Vue.component("research-annotations-plot", {
 
 				let starKey = this.renderConfig["star key"]["key"];
 				let starPosition = this.renderConfig["star key"]["position"];
-
-				let staredPositions = [];
 
 				this.pkgDataSelected
 					.filter((s) => s.type == starKey)
@@ -1933,7 +1933,10 @@ export default Vue.component("research-annotations-plot", {
 							bump
 						);
 
-						if (!!this.renderConfig["star key"]) {
+						if (
+							!!this.renderConfig["star key"] &&
+							staredPositions.length > 0
+						) {
 							this.renderStaredPositions(
 								ctx,
 								plotWidth,
@@ -2101,7 +2104,7 @@ export default Vue.component("research-annotations-plot", {
 			yPos,
 			bump
 		) {
-			console.log("called");
+			//console.log("called");
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#FFAA00";

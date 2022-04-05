@@ -306,10 +306,10 @@ new Vue({
             return `${this.searchRegion.chrom}:${this.searchRegion.start}-${this.searchRegion.stop}`;
         },
         selectedAnnotations() {
-            return this.$store.state.pkgData.selectedAnnos || [];
+            return this.$store.state.pkgDataSelected.filter(s => s.type == "Annotation").map(s => s.id);
         },
         selectedTissues() {
-            return this.$store.state.pkgData.selectedTissues || [];
+            return this.$store.state.pkgDataSelected.filter(s => s.type == "Tissue").map(s => s.id);
         }
     },
     methods: {
@@ -362,14 +362,14 @@ new Vue({
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
-                      this.selectedRegionType
-                  ].map(region => {
-                      return {
-                          chrom: this.searchRegion.chrom,
-                          start: region.start,
-                          stop: region.end
-                      };
-                  })
+                    this.selectedRegionType
+                ].map(region => {
+                    return {
+                        chrom: this.searchRegion.chrom,
+                        start: region.start,
+                        stop: region.end
+                    };
+                })
                 : [];
 
             //using hardcoded test samples
@@ -446,8 +446,8 @@ new Vue({
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
                     groups[
                         liftedRegions.regions[i].start +
-                            " - " +
-                            liftedRegions.regions[i].stop
+                        " - " +
+                        liftedRegions.regions[i].stop
                     ] = {
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop
@@ -755,7 +755,7 @@ new Vue({
                 });
             }
         },
-        "$store.state.variants": function() {
+        "$store.state.variants": function () {
             this.loadingVariants = false;
             if (
                 this.$store.state.variants &&
@@ -764,10 +764,10 @@ new Vue({
                 this.updateFields();
             }
         },
-        "$store.state.ldServer.covariances": function() {
+        "$store.state.ldServer.covariances": function () {
             this.loadingCovariances = false;
         },
-        "$store.state.ldServer.runTestsError": function() {
+        "$store.state.ldServer.runTestsError": function () {
             this.loadingCovariances = false;
         },
         //check for table data update
