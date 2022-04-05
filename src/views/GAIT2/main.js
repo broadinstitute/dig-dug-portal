@@ -671,7 +671,6 @@ new Vue({
             //         samples
             //     });
             // });
-            console.log("formattedData", formattedData);
             let returnData = [];
             Object.values(formattedData).forEach(test => {
                 returnData.push({
@@ -680,7 +679,6 @@ new Vue({
                     data: test.data
                 });
             });
-            console.log("returnData", returnData);
             //return [formattedData];
             return returnData;
         },

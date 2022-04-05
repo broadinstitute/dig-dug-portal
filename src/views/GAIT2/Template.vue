@@ -1036,161 +1036,175 @@
                                                         </b-button>
                                                     </template>
 
-                                                    <template
-                                                        #row-details="row"
-                                                    >
-                                                        <b-table
-                                                            :items="
-                                                                row.item.data
+                                                    <template #row-details="row"
+                                                        ><div
+                                                            style="
+                                                                margin-left: 15px;
+                                                                border-left: 4px
+                                                                    solid
+                                                                    #e0e0e0;
+                                                                width: calc(
+                                                                    100% - 15px
+                                                                );
                                                             "
-                                                            :fields="
-                                                                $parent.ncbtSubFields
-                                                            "
-                                                            ><template
-                                                                #head(pvalue)
-                                                            >
-                                                                P-Value
-                                                            </template>
-                                                            <template
-                                                                #cell(pvalue)="data"
-                                                            >
-                                                                {{
-                                                                    $parent.pValueFormatter(
-                                                                        data.value
-                                                                    )
-                                                                }}
-                                                            </template>
-
-                                                            <template
-                                                                #head(stat)
-                                                            >
-                                                                {{
-                                                                    row.item.test.includes(
-                                                                        "skat"
-                                                                    )
-                                                                        ? "Q-Score"
-                                                                        : "Z-score"
-                                                                }}
-                                                            </template>
-                                                            <template
-                                                                #cell(stat)="row"
-                                                            >
-                                                                {{
-                                                                    row.item.test.includes(
-                                                                        "skat"
-                                                                    )
-                                                                        ? $parent.zScoreFormatter(
-                                                                              row
-                                                                                  .item
-                                                                                  .qscore
-                                                                          )
-                                                                        : $parent.zScoreFormatter(
-                                                                              row
-                                                                                  .item
-                                                                                  .zscore
-                                                                          )
-                                                                }}
-                                                            </template>
-
-                                                            <template
-                                                                #head(effect)
-                                                            >
-                                                                {{
-                                                                    !!$parent
-                                                                        .phenotypeMap[
-                                                                        p
-                                                                            .phenotype
-                                                                    ]
-                                                                        .dichotomous
-                                                                        ? "Odds Ratio"
-                                                                        : "Beta"
-                                                                }}
-                                                            </template>
-                                                            <template
-                                                                #cell(effect)="data"
-                                                            >
-                                                                <template
-                                                                    v-if="
-                                                                        !!data.value
-                                                                    "
+                                                        >
+                                                            <b-table
+                                                                :items="
+                                                                    row.item
+                                                                        .data
+                                                                "
+                                                                :fields="
+                                                                    $parent.ncbtSubFields
+                                                                "
+                                                                ><template
+                                                                    #head(pvalue)
                                                                 >
-                                                                    <span
-                                                                        v-if="
-                                                                            !!$parent
-                                                                                .phenotypeMap[
-                                                                                p
-                                                                                    .phenotype
-                                                                            ]
-                                                                                .dichotomous
-                                                                        "
-                                                                        :class="`effect ${
-                                                                            Math.exp(
-                                                                                data.value
-                                                                            ) <
-                                                                            1
-                                                                                ? 'negative'
-                                                                                : 'positive'
-                                                                        }`"
-                                                                        >{{
-                                                                            Math.exp(
-                                                                                data.value
-                                                                            ) <
-                                                                            1
-                                                                                ? "&#9660;"
-                                                                                : "&#9650;"
-                                                                        }}</span
-                                                                    >
-                                                                    <span
-                                                                        v-else
-                                                                        :class="`effect ${
-                                                                            !!data.value &&
-                                                                            data.value <
-                                                                                0
-                                                                                ? 'negative'
-                                                                                : 'positive'
-                                                                        }`"
-                                                                        >{{
-                                                                            !!data.value &&
-                                                                            data.value <
-                                                                                0
-                                                                                ? "&#9660;"
-                                                                                : "&#9650;"
-                                                                        }}</span
-                                                                    >
+                                                                    P-Value
+                                                                </template>
+                                                                <template
+                                                                    #cell(pvalue)="data"
+                                                                >
+                                                                    {{
+                                                                        $parent.pValueFormatter(
+                                                                            data.value
+                                                                        )
+                                                                    }}
                                                                 </template>
 
-                                                                {{
-                                                                    !!$parent
-                                                                        .phenotypeMap[
-                                                                        p
-                                                                            .phenotype
-                                                                    ]
-                                                                        .dichotomous &&
-                                                                    !!data.value
-                                                                        ? $parent.effectFormatter(
-                                                                              Math.exp(
+                                                                <template
+                                                                    #head(stat)
+                                                                >
+                                                                    {{
+                                                                        row.item.test.includes(
+                                                                            "skat"
+                                                                        )
+                                                                            ? "Q-Score"
+                                                                            : "Z-score"
+                                                                    }}
+                                                                </template>
+                                                                <template
+                                                                    #cell(stat)="row"
+                                                                >
+                                                                    {{
+                                                                        row.item.test.includes(
+                                                                            "skat"
+                                                                        )
+                                                                            ? $parent.zScoreFormatter(
+                                                                                  row
+                                                                                      .item
+                                                                                      .qscore
+                                                                              )
+                                                                            : $parent.zScoreFormatter(
+                                                                                  row
+                                                                                      .item
+                                                                                      .zscore
+                                                                              )
+                                                                    }}
+                                                                </template>
+
+                                                                <template
+                                                                    #head(effect)
+                                                                >
+                                                                    {{
+                                                                        !!$parent
+                                                                            .phenotypeMap[
+                                                                            p
+                                                                                .phenotype
+                                                                        ]
+                                                                            .dichotomous
+                                                                            ? "Odds Ratio"
+                                                                            : "Beta"
+                                                                    }}
+                                                                </template>
+                                                                <template
+                                                                    #cell(effect)="data"
+                                                                >
+                                                                    <template
+                                                                        v-if="
+                                                                            !!data.value
+                                                                        "
+                                                                    >
+                                                                        <span
+                                                                            v-if="
+                                                                                !!$parent
+                                                                                    .phenotypeMap[
+                                                                                    p
+                                                                                        .phenotype
+                                                                                ]
+                                                                                    .dichotomous
+                                                                            "
+                                                                            :class="`effect ${
+                                                                                Math.exp(
+                                                                                    data.value
+                                                                                ) <
+                                                                                1
+                                                                                    ? 'negative'
+                                                                                    : 'positive'
+                                                                            }`"
+                                                                            >{{
+                                                                                Math.exp(
+                                                                                    data.value
+                                                                                ) <
+                                                                                1
+                                                                                    ? "&#9660;"
+                                                                                    : "&#9650;"
+                                                                            }}</span
+                                                                        >
+                                                                        <span
+                                                                            v-else
+                                                                            :class="`effect ${
+                                                                                !!data.value &&
+                                                                                data.value <
+                                                                                    0
+                                                                                    ? 'negative'
+                                                                                    : 'positive'
+                                                                            }`"
+                                                                            >{{
+                                                                                !!data.value &&
+                                                                                data.value <
+                                                                                    0
+                                                                                    ? "&#9660;"
+                                                                                    : "&#9650;"
+                                                                            }}</span
+                                                                        >
+                                                                    </template>
+
+                                                                    {{
+                                                                        !!$parent
+                                                                            .phenotypeMap[
+                                                                            p
+                                                                                .phenotype
+                                                                        ]
+                                                                            .dichotomous &&
+                                                                        !!data.value
+                                                                            ? $parent.effectFormatter(
+                                                                                  Math.exp(
+                                                                                      data.value
+                                                                                  )
+                                                                              )
+                                                                            : $parent.effectFormatter(
                                                                                   data.value
                                                                               )
-                                                                          )
-                                                                        : $parent.effectFormatter(
-                                                                              data.value
-                                                                          )
-                                                                }}
-                                                            </template>
+                                                                    }}
+                                                                </template>
 
-                                                            <template #head(se)>
-                                                                Standard Error
-                                                            </template>
-                                                            <template
-                                                                #cell(se)="data"
-                                                            >
-                                                                {{
-                                                                    $parent.zScoreFormatter(
-                                                                        data.value
-                                                                    )
-                                                                }}
-                                                            </template>
-                                                        </b-table>
+                                                                <template
+                                                                    #head(se)
+                                                                >
+                                                                    Standard
+                                                                    Error
+                                                                </template>
+                                                                <template
+                                                                    #cell(se)="data"
+                                                                >
+                                                                    {{
+                                                                        $parent.zScoreFormatter(
+                                                                            data.value
+                                                                        )
+                                                                    }}
+                                                                </template>
+                                                            </b-table>
+                                                        </div>
                                                     </template>
                                                 </b-table>
                                             </template>
