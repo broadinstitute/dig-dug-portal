@@ -37,8 +37,12 @@ export default new Vuex.Store({
         initialSearch: 1,
         pkgData: {},
         pkgDataSelected: [],
+        sharedPlotXpos: null,
     },
     mutations: {
+        setSharedPlotXpos(state, XPOS) {
+            state.sharedPlotXpos = XPOS;
+        },
         setFilteredData(state, data) {
             state.filteredData = data;
         },
@@ -99,6 +103,9 @@ export default new Vuex.Store({
     },
     getters: {},
     actions: {
+        sharedPlotXpos(context, XPOS) {
+            context.commit("setSharedPlotXpos", XPOS);
+        },
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);
         },

@@ -57,6 +57,13 @@
 		>
 			<thead class="">
 				<tr>
+					<th v-if="!!tableFormat['star column']">
+						<b-icon
+							:icon="!!stared ? 'star-fill' : 'star'"
+							style="color: #ffcc00; cursor: pointer"
+							@click="showHideStared()"
+						></b-icon>
+					</th>
 					<th
 						v-for="(value, index) in topRows"
 						:key="index"
@@ -75,6 +82,22 @@
 
 			<tbody v-for="(value, index) in pagedData" :key="index" class="">
 				<tr>
+					<td v-if="!!tableFormat['star column']">
+						<span v-if="checkStared('1', value) == false"
+							><b-icon
+								icon="star"
+								style="color: #aaaaaa; cursor: pointer"
+								@click="addStar(value)"
+							></b-icon
+						></span>
+						<span v-if="checkStared('2', value) == true"
+							><b-icon
+								icon="star-fill"
+								style="color: #ffcc00; cursor: pointer"
+								@click="removeStar(value)"
+							></b-icon
+						></span>
+					</td>
 					<template
 						v-for="(tdValue, tdKey) in value"
 						v-if="topRows.includes(tdKey)"
@@ -158,9 +181,16 @@ export default Vue.component("research-data-table", {
 		"tableLegend",
 		"dataComparisonConfig",
 		"searchParameters",
+		"pkgData",
+		"pkgDataSelected",
 	],
 	data() {
-		return { currentPage: 1, perPageNumber: null, compareGroups: [] };
+		return {
+			currentPage: 1,
+			perPageNumber: null,
+			compareGroups: [],
+			stared: false,
+		};
 	},
 	modules: {},
 	components: { ResearchDataTableFeatures },
@@ -222,65 +252,83 @@ export default Vue.component("research-data-table", {
 		rows() {
 			if (!!this.dataset) {
 				if (this.dataComparisonConfig == null) {
-					return this.dataset.length;
+					return this.rawData.length;
 				} else {
-					return Object.keys(this.dataset).length;
+					return Object.keys(this.rawData).length;
 				}
 			}
 		},
-		pagedData() {
-			//console.log(this.tableFormat["features"]);
-			if (!!this.perPageNumber && this.perPageNumber != null) {
-				let rawData = this.dataset;
-				let formattedData = [];
+		rawData() {
+			let rawData = this.dataset;
 
-				if (this.dataComparisonConfig == null) {
-					rawData.map((d) => {
-						let tempObj = {};
+			let formattedData = [];
 
-						this.tableFormat["top rows"].map((t) => {
-							tempObj[t] = d[t];
-						});
+			if (this.dataComparisonConfig == null) {
+				rawData.map((d) => {
+					let tempObj = {};
 
-						if (this.tableFormat["features"] != undefined) {
-							tempObj["features"] = {};
-							this.tableFormat["features"].map((f) => {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
-									fTempObj[fItem] = d[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
-							});
-						}
-						formattedData.push(tempObj);
+					this.tableFormat["top rows"].map((t) => {
+						tempObj[t] = d[t];
 					});
-				} else {
-					for (const [key, value] of Object.entries(rawData)) {
-						let tempObj = {};
 
-						this.tableFormat["top rows"].map((t) => {
-							tempObj[t] = value[t];
-						});
+					if (this.tableFormat["features"] != undefined) {
+						tempObj["features"] = {};
+						this.tableFormat["features"].map((f) => {
+							tempObj["features"][f] = [];
 
-						if (this.tableFormat["features"] != undefined) {
-							tempObj["features"] = {};
-							this.tableFormat["features"].map((f) => {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
-									fTempObj[fItem] = value[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
+							let fTempObj = {};
+							this.tableFormat[f].map((fItem) => {
+								fTempObj[fItem] = d[fItem];
 							});
-						}
-						formattedData.push(tempObj);
+
+							tempObj["features"][f].push(fTempObj);
+						});
 					}
+					formattedData.push(tempObj);
+				});
+			} else {
+				for (const [key, value] of Object.entries(rawData)) {
+					let tempObj = {};
+
+					this.tableFormat["top rows"].map((t) => {
+						tempObj[t] = value[t];
+					});
+
+					if (this.tableFormat["features"] != undefined) {
+						tempObj["features"] = {};
+						this.tableFormat["features"].map((f) => {
+							tempObj["features"][f] = [];
+
+							let fTempObj = {};
+							this.tableFormat[f].map((fItem) => {
+								fTempObj[fItem] = value[fItem];
+							});
+
+							tempObj["features"][f].push(fTempObj);
+						});
+					}
+					formattedData.push(tempObj);
 				}
+			}
+
+			if (this.stared == true) {
+				let tempData = [];
+
+				formattedData.map((r) => {
+					if (this.checkStared("3", r) == true) {
+						tempData.push(r);
+					}
+				});
+				formattedData = tempData;
+			} else {
+				formattedData = formattedData;
+			}
+
+			return formattedData;
+		},
+		pagedData() {
+			if (!!this.perPageNumber && this.perPageNumber != null) {
+				let formattedData = this.rawData;
 
 				//let filtered = this.dataset;
 				let paged = [];
@@ -296,12 +344,28 @@ export default Vue.component("research-data-table", {
 						: this.rows;
 
 				for (let i = startIndex; i < endIndex; i++) {
-					paged.push(formattedData[i]);
+					if (!!formattedData[i]) {
+						paged.push(formattedData[i]);
+					}
 				}
 
 				return paged;
 			} else {
-				return this.dataset;
+				let rawData = this.rawData;
+				if (this.stared == true) {
+					let tempData = [];
+
+					rawData.map((r) => {
+						if (this.checkStared("4", r) == true) {
+							tempData.push(r);
+						}
+					});
+					rawData = tempData;
+				} else {
+					rawData = rawData;
+				}
+
+				return rawData;
 			}
 		},
 		topRows() {
@@ -338,6 +402,50 @@ export default Vue.component("research-data-table", {
 	},
 	methods: {
 		...Formatters,
+		addStar(ITEM) {
+			let value = ITEM[this.tableFormat["star column"]];
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.tableFormat["star column"],
+				id: value,
+				action: "add",
+			});
+			//console.log("pkgDataSelected", this.pkgDataSelected);
+		},
+		removeStar(ITEM) {
+			let value = ITEM[this.tableFormat["star column"]];
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.tableFormat["star column"],
+				id: value,
+				action: "remove",
+			});
+
+			//console.log("pkgDataSelected", this.pkgDataSelected);
+		},
+		checkStared(WHERE, ITEM) {
+			//console.log("WHERE", WHERE, ITEM);
+			if (!!ITEM) {
+				let selectedItems = this.pkgDataSelected
+					.filter((s) => s.type == this.tableFormat["star column"])
+					.map((s) => s.id);
+
+				let value = ITEM[this.tableFormat["star column"]];
+
+				if (!!selectedItems.includes(value)) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		},
+		showHideStared() {
+			if (this.stared == false) {
+				this.stared = true;
+			} else {
+				this.stared = false;
+			}
+		},
 		getColorIndex(SKEY) {
 			let colorIndex = "";
 			let compareGroups = this.compareGroups;
@@ -403,9 +511,27 @@ export default Vue.component("research-data-table", {
 							cellValue;
 
 						linkString +=
+							!!this.tableFormat["column formatting"][tdKey][
+								"link type"
+							] &&
+							this.tableFormat["column formatting"][tdKey][
+								"link type"
+							] == "button"
+								? "' class='btn btn-sm btn-outline-secondary link-button"
+								: "";
+
+						let linkLabel = !!this.tableFormat["column formatting"][
+							tdKey
+						]["link label"]
+							? this.tableFormat["column formatting"][tdKey][
+									"link label"
+							  ]
+							: cellValue;
+
+						linkString +=
 							linkToNewTab == "true"
-								? "' target='_blank'>" + cellValue + "</a>"
-								: "'>" + cellValue + "</a>";
+								? "' target='_blank'>" + linkLabel + "</a>"
+								: "'>" + linkLabel + "</a>";
 
 						cellValue = linkString;
 					}
@@ -579,6 +705,7 @@ table.research-data-table {
 	border-right: solid 1px #ddd;
 	border-collapse: inherit;
 	text-align: center;
+	clear: both;
 }
 
 .research-data-table > thead > tr > th {

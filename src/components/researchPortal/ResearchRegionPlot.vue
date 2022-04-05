@@ -9,7 +9,35 @@
 			</div>
 			<div class="fixed-info-box-content">
 				<div v-for="(d, dIndex) in dotsClicked">
-					<div><strong v-html="d"></strong></div>
+					<div>
+						<strong v-html="d"></strong>
+						<b-icon
+							v-if="
+								!!renderConfig['star key'] &&
+								checkStared(d) == true
+							"
+							icon="star-fill"
+							style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							"
+							@click="removeStarItem(d)"
+						></b-icon>
+						<b-icon
+							v-if="
+								!!renderConfig['star key'] &&
+								checkStared(d) == false
+							"
+							icon="star"
+							style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							"
+							@click="addStarItem(d)"
+						></b-icon>
+					</div>
 					<div>
 						<strong v-html="'Set this LD reference for: '"></strong>
 						<template v-for="(i, iIndex) in plotsList">
@@ -118,29 +146,37 @@
 					<span>No data</span>
 				</div>
 			</div>
-			<div
-				:id="'assoPlotsWrapper' + item.replaceAll(' ', '_')"
-				class="col-md-9 asso-plots-wrapper"
-			>
-				<h6
-					v-if="item != 'default'"
-					v-html="item"
-					:class="'text color-' + itemIndex"
-				></h6>
-				<canvas
-					:id="'asso_plot_' + item.replaceAll(' ', '_')"
-					class="asso-plot"
-					width=""
-					height=""
-					@resize="onResize"
-					@click="checkPosition($event, item, 'asso', 'click')"
-					@mousemove="checkPosition($event, item, 'asso', 'move')"
-					@mouseout="onMouseOut('assoInfoBox' + item)"
-				></canvas>
-				<div
-					:id="'assoInfoBox' + item.replaceAll(' ', '_')"
-					class="asso-info-box hidden"
-				></div>
+
+			<div class="col-md-9 asso-plots-wrapper">
+				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_')">
+					<h6
+						v-if="item != 'default'"
+						v-html="item"
+						:class="'text color-' + itemIndex"
+					></h6>
+					<canvas
+						:id="'asso_plot_' + item.replaceAll(' ', '_')"
+						class="asso-plot"
+						width=""
+						height=""
+						@resize="onResize"
+						@click="checkPosition($event, item, 'asso', 'click')"
+						@mousemove="checkPosition($event, item, 'asso', 'move')"
+						@mouseout="onMouseOut('assoInfoBox' + item)"
+					></canvas>
+					<!--<span
+						v-if="sharedPlotXpos != null"
+						:style="
+							'position:absolute;width: 1px; height:100%;top:0;left: ' +
+							sharedPlotXpos +
+							'px;border-left: solid 1px #000;'
+						"
+					></span>-->
+					<div
+						:id="'assoInfoBox' + item.replaceAll(' ', '_')"
+						class="asso-info-box hidden"
+					></div>
+				</div>
 			</div>
 			<div
 				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_')"
@@ -196,6 +232,8 @@ export default Vue.component("research-region-plot", {
 		"compareGroupColors",
 		"regionZoom",
 		"regionViewArea",
+		"pkgData",
+		"pkgDataSelected",
 	],
 	data() {
 		return {
@@ -237,6 +275,20 @@ export default Vue.component("research-region-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		staredVariants() {
+			if (!!this.renderConfig["star key"]) {
+				let stared = "";
+				this.pkgDataSelected
+					.filter((s) => s.type == this.renderConfig["star key"])
+					.map((s) => {
+						stared += s.id;
+					});
+
+				return stared;
+			} else {
+				return null;
+			}
+		},
 		plotsList() {
 			//used rebuild
 			if (this.plotData != null) {
@@ -517,11 +569,40 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 	},
-	watch: {},
+	watch: {
+		staredVariants(CONTENT) {
+			this.renderPlots();
+		},
+	},
 	methods: {
 		...uiUtils,
 		onResize(e) {
 			this.renderPlots();
+		},
+		checkStared(ITEM) {
+			let selectedItems = this.pkgDataSelected
+				.filter((s) => s.type == this.renderConfig["star key"])
+				.map((s) => s.id);
+
+			if (!!selectedItems.includes(ITEM)) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		addStarItem(ITEM) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.renderConfig["star key"],
+				id: ITEM,
+				action: "add",
+			});
+		},
+		removeStarItem(ITEM) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.renderConfig["star key"],
+				id: ITEM,
+				action: "remove",
+			});
 		},
 		resetLdReference(GROUP, VARIANT) {
 			this.showHidePanel("#fixedInfoBox");
@@ -583,6 +664,7 @@ export default Vue.component("research-region-plot", {
 			var rect = e.target.getBoundingClientRect();
 			var x = Math.floor(e.clientX - rect.left);
 			var y = Math.floor(e.clientY - rect.top);
+			let rawX = e.clientX;
 
 			var dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
 			dotsOnPosition = [...new Set(dotsOnPosition)];
@@ -619,7 +701,17 @@ export default Vue.component("research-region-plot", {
 
 					dotsOnPosition.map((d, dIndex) => {
 						if (dIndex < 5) {
-							infoContent += "<strong>" + d + "</strong><br />";
+							infoContent += "<strong>" + d + "</strong>";
+
+							if (!!this.renderConfig["star key"]) {
+								infoContent +=
+									this.checkStared(d) == true
+										? "&nbsp;<span style='color:#ffcc00'>&#9733;</span>"
+										: "&nbsp;<span style='color:#ffcc00'>&#9734;</span>";
+							}
+
+							infoContent += "<br />";
+
 							this.renderConfig["hover content"].map((h) => {
 								if (GROUP != "Combined") {
 									infoContent +=
@@ -701,6 +793,7 @@ export default Vue.component("research-region-plot", {
 					break;
 				}
 			}
+
 			if (plotID != null) {
 				let ldURL =
 					"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
@@ -891,9 +984,40 @@ export default Vue.component("research-region-plot", {
 								this.ldData[GROUP].data[key]
 							);
 							if (key == this.ldData[GROUP].refVariant) {
-								this.renderDiamond(CTX, xPos, yPos, dotColor);
+								if (this.checkStared(key) == true) {
+									PlotUtils.renderStar(
+										CTX,
+										xPos,
+										yPos,
+										5,
+										6,
+										3,
+										dotColor,
+										dotColor
+									);
+								} else {
+									this.renderDiamond(
+										CTX,
+										xPos,
+										yPos,
+										dotColor
+									);
+								}
 							} else {
-								this.renderDot(CTX, xPos, yPos, dotColor);
+								if (this.checkStared(key) == true) {
+									PlotUtils.renderStar(
+										CTX,
+										xPos,
+										yPos,
+										5,
+										6,
+										3,
+										dotColor,
+										dotColor
+									);
+								} else {
+									this.renderDot(CTX, xPos, yPos, dotColor);
+								}
 							}
 						}
 					}
@@ -945,19 +1069,45 @@ export default Vue.component("research-region-plot", {
 									let dotColor =
 										this.compareGroupColors[pIndex];
 									if (key == this.ldData[pGroup].refVariant) {
-										this.renderDiamond(
-											CTX,
-											xPos,
-											yPos,
-											dotColor
-										);
+										if (this.checkStared(key) == true) {
+											PlotUtils.renderStar(
+												CTX,
+												xPos,
+												yPos,
+												5,
+												6,
+												3,
+												dotColor,
+												dotColor
+											);
+										} else {
+											this.renderDiamond(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										}
 									} else {
-										this.renderDot(
-											CTX,
-											xPos,
-											yPos,
-											dotColor
-										);
+										if (this.checkStared(key) == true) {
+											PlotUtils.renderStar(
+												CTX,
+												xPos,
+												yPos,
+												5,
+												6,
+												3,
+												dotColor,
+												dotColor
+											);
+										} else {
+											this.renderDot(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										}
 									}
 								}
 							}
@@ -1012,14 +1162,45 @@ export default Vue.component("research-region-plot", {
 
 								let dotColor = this.getDotColor(value);
 								if (key == this.ldData[GROUP].refVariant) {
-									this.renderDiamond(
-										CTX,
-										xPos,
-										yPos,
-										dotColor
-									);
+									if (this.checkStared(key) == true) {
+										PlotUtils.renderStar(
+											CTX,
+											xPos,
+											yPos,
+											5,
+											6,
+											3,
+											dotColor,
+											dotColor
+										);
+									} else {
+										this.renderDiamond(
+											CTX,
+											xPos,
+											yPos,
+											dotColor
+										);
+									}
 								} else {
-									this.renderDot(CTX, xPos, yPos, dotColor);
+									if (this.checkStared(key) == true) {
+										PlotUtils.renderStar(
+											CTX,
+											xPos,
+											yPos,
+											5,
+											6,
+											3,
+											dotColor,
+											dotColor
+										);
+									} else {
+										this.renderDot(
+											CTX,
+											xPos,
+											yPos,
+											dotColor
+										);
+									}
 								}
 							}
 						}
@@ -1081,19 +1262,45 @@ export default Vue.component("research-region-plot", {
 											key ==
 											this.ldData[pGroup].refVariant
 										) {
-											this.renderDiamond(
-												CTX,
-												xPos,
-												yPos,
-												dotColor
-											);
+											if (this.checkStared(key) == true) {
+												PlotUtils.renderStar(
+													CTX,
+													xPos,
+													yPos,
+													5,
+													6,
+													3,
+													dotColor,
+													dotColor
+												);
+											} else {
+												this.renderDiamond(
+													CTX,
+													xPos,
+													yPos,
+													dotColor
+												);
+											}
 										} else {
-											this.renderDot(
-												CTX,
-												xPos,
-												yPos,
-												dotColor
-											);
+											if (this.checkStared(key) == true) {
+												PlotUtils.renderStar(
+													CTX,
+													xPos,
+													yPos,
+													5,
+													6,
+													3,
+													dotColor,
+													dotColor
+												);
+											} else {
+												this.renderDot(
+													CTX,
+													xPos,
+													yPos,
+													dotColor
+												);
+											}
 										}
 									}
 								}

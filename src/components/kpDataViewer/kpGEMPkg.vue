@@ -12,6 +12,9 @@
 				:compareGroupColors="colors.moderate"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
+				:sharedPlotXpos="sharedPlotXpos"
+				:pkgData="pkgData"
+				:pkgDataSelected="pkgDataSelected"
 			></research-region-plot>
 			<research-genes-track
 				v-if="
@@ -71,6 +74,22 @@
 			>
 				Filter associated variants by tissues and annotations
 			</div>
+			<!--<button
+				id="external-button"
+				@click="$refs.annotationsRef.removeAnnoTrack('binding_sites')"
+			>
+				remove binding_sites
+			</button>
+
+			<button
+				id="external-button"
+				@click="
+					$refs.annotationsRef.addRemoveTissueTrack(null, 'pancreas')
+				"
+			>
+				remove pancreas
+			</button>-->
+
 			<research-annotations-plot
 				id="annotationSection"
 				class="svg-wrapper hidden-svg"
@@ -81,10 +100,13 @@
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
 				:dataComparison="this.$store.state.dataComparison"
+				:plotData="$store.state.filteredData"
 				:pkgData="pkgData"
 				:pkgDataSelected="pkgDataSelected"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
+				:sharedPlotXpos="sharedPlotXpos"
+				ref="annotationsRef"
 			></research-annotations-plot>
 		</div>
 	</div>
@@ -113,6 +135,7 @@ export default Vue.component("kp-gem-pkg", {
 		"pkgDataSelected",
 		"regionZoom",
 		"regionViewArea",
+		"sharedPlotXpos",
 	],
 	data() {
 		return {};
