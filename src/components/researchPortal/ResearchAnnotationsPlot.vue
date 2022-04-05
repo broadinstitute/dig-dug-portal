@@ -1828,36 +1828,36 @@ export default Vue.component("research-annotations-plot", {
 		},
 		array2Object(KEY, ARRAY) {
 			var convertedObj = {};
-			ARRAY.forEach((KEY) => (target[KEY] = ""));
+			ARRAY.map((a) => {
+				let key = a[KEY];
+				convertedObj[key] = a;
+			});
 			return convertedObj;
 		},
 		object2Array() {},
 
 		renderByAnnotations() {
-			//console.log("selectedTissues in render by", this.selectedTissues);
+			if (!!this.renderConfig["star key"]) {
+				let plotData = !!Array.isArray(this.plotData)
+					? this.array2Object(
+							this.renderConfig["star key"]["key"],
+							this.plotData
+					  )
+					: this.plotData;
 
-			let plotData = this.plotData;
+				let starKey = this.renderConfig["star key"]["key"];
+				let starPosition = this.renderConfig["star key"]["position"];
 
-			console.log("plotData", this.plotData);
+				let staredPositions = [];
 
-			let starKey = this.renderConfig["star key"]["key"];
-			let starPosition = this.renderConfig["star key"]["position"];
-
-			let staredPositions = [];
-
-			console.log("plotData", plotData);
-
-			console.log("this.pkgDataSelected", this.pkgDataSelected);
-
-			this.pkgDataSelected
-				.filter((s) => s.type == starKey)
-				.map((s) => s.id)
-				.map((s) => {
-					console.log("this.plotData[s]", plotData[s]);
-					staredPositions.push(plotData[s][starPosition]);
-				});
-
-			console.log("staredPositions", staredPositions);
+				this.pkgDataSelected
+					.filter((s) => s.type == starKey)
+					.map((s) => s.id)
+					.map((s) => {
+						console.log("this.plotData[s]", plotData[s]);
+						staredPositions.push(plotData[s][starPosition]);
+					});
+			}
 
 			let tempHeight = 0;
 			let annotationTitleH = this.spaceBy * 2;
@@ -1933,17 +1933,19 @@ export default Vue.component("research-annotations-plot", {
 							bump
 						);
 
-						this.renderStaredPositions(
-							ctx,
-							plotWidth,
-							blockHeight,
-							staredPositions,
-							xPerPixel,
-							Number(regionEnd),
-							Number(regionStart),
-							renderHeight,
-							bump
-						);
+						if (!!this.renderConfig["star key"]) {
+							this.renderStaredPositions(
+								ctx,
+								plotWidth,
+								blockHeight,
+								staredPositions,
+								xPerPixel,
+								Number(regionEnd),
+								Number(regionStart),
+								renderHeight,
+								bump
+							);
+						}
 
 						let tissueIndex = 0;
 						for (const [tissue, regions] of Object.entries(
