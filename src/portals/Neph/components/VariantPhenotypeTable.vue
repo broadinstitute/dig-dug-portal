@@ -6,7 +6,7 @@
                     <csv-download
                         v-if="tableData.length"
                         :data="tableData"
-                        filename="variant-phenotypes"
+                        filename="phenotypes-table"
                     ></csv-download
                 ></b-col>
             </b-row>
