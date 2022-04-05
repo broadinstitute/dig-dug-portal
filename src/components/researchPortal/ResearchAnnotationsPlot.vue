@@ -396,7 +396,7 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		searchingRegion() {
-			console.log("this.region", this.region);
+			//console.log("this.region", this.region);
 			let returnObj = {};
 			let regionArr = this.region.split(":");
 			returnObj["chr"] = regionArr[0];
@@ -1210,7 +1210,7 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		removeAnnoTrack(ANNO) {
-			console.log("called", ANNO);
+			//console.log("called", ANNO);
 			let selectedAnnotations = this.pkgDataSelected
 				.filter((s) => s.type == "Annotation")
 				.map((s) => s.id);
@@ -1304,7 +1304,7 @@ export default Vue.component("research-annotations-plot", {
 			return this.compareGroupColors[i];
 		},
 		async getGlobalEnrichment() {
-			console.log("calling GE");
+			//console.log("calling GE");
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
 					? "https://bioindex.hugeamp.org/api/bio"
@@ -1436,7 +1436,7 @@ export default Vue.component("research-annotations-plot", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
-				console.log("calling annotations");
+				//console.log("calling annotations");
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"
@@ -1769,10 +1769,13 @@ export default Vue.component("research-annotations-plot", {
 			}
 
 			//Render y axis label
+			let yLabel = !!this.renderConfig["global enrichment y axis label"]
+				? this.renderConfig["global enrichment y axis label"]
+				: "Fold(SNPs/expectedSNPs)";
 			CTX.textAlign = "center";
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
-				"Fold(SNPs/expectedSNPs)",
+				yLabel,
 				-(this.plotMargin.topMargin + HEIGHT / 2) - YPOS,
 				BUMP + 12
 			);
@@ -1826,22 +1829,38 @@ export default Vue.component("research-annotations-plot", {
 				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
 			);
 		},
-		renderByAnnotations() {
-			//console.log("selectedTissues in render by", this.selectedTissues);
-			console.log("plotData", this.plotData);
-			let starKey = this.renderConfig["star key"]["key"];
-			let starPosition = this.renderConfig["star key"]["position"];
+		array2Object(KEY, ARRAY) {
+			var convertedObj = {};
+			ARRAY.map((a) => {
+				let key = a[KEY];
+				convertedObj[key] = a;
+			});
+			return convertedObj;
+		},
+		object2Array() {},
 
+		renderByAnnotations() {
 			let staredPositions = [];
 
-			this.pkgDataSelected
-				.filter((s) => s.type == starKey)
-				.map((s) => s.id)
-				.map((s) => {
-					staredPositions.push(this.plotData[s][starPosition]);
-				});
+			if (!!this.renderConfig["star key"]) {
+				let plotData = !!Array.isArray(this.plotData)
+					? this.array2Object(
+							this.renderConfig["star key"]["key"],
+							this.plotData
+					  )
+					: this.plotData;
 
-			console.log("staredPositions", staredPositions);
+				let starKey = this.renderConfig["star key"]["key"];
+				let starPosition = this.renderConfig["star key"]["position"];
+
+				this.pkgDataSelected
+					.filter((s) => s.type == starKey)
+					.map((s) => s.id)
+					.map((s) => {
+						console.log("this.plotData[s]", plotData[s]);
+						staredPositions.push(plotData[s][starPosition]);
+					});
+			}
 
 			let tempHeight = 0;
 			let annotationTitleH = this.spaceBy * 2;
@@ -1917,17 +1936,22 @@ export default Vue.component("research-annotations-plot", {
 							bump
 						);
 
-						this.renderStaredPositions(
-							ctx,
-							plotWidth,
-							blockHeight,
-							staredPositions,
-							xPerPixel,
-							Number(regionEnd),
-							Number(regionStart),
-							renderHeight,
-							bump
-						);
+						if (
+							!!this.renderConfig["star key"] &&
+							staredPositions.length > 0
+						) {
+							this.renderStaredPositions(
+								ctx,
+								plotWidth,
+								blockHeight,
+								staredPositions,
+								xPerPixel,
+								Number(regionEnd),
+								Number(regionStart),
+								renderHeight,
+								bump
+							);
+						}
 
 						let tissueIndex = 0;
 						for (const [tissue, regions] of Object.entries(
@@ -2083,7 +2107,7 @@ export default Vue.component("research-annotations-plot", {
 			yPos,
 			bump
 		) {
-			console.log("called");
+			//console.log("called");
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#FFAA00";

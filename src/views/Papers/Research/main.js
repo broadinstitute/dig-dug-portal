@@ -840,7 +840,7 @@ new Vue({
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
-            console.log("contents", contents)
+            //console.log("contents", contents)
 
             if (contents.length === 0) {
                 return null;
