@@ -6,7 +6,7 @@
                     <csv-download
                         v-if="tableData.length"
                         :data="tableData"
-                        filename="variant-phenotypes"
+                        filename="gnomAD-info"
                     ></csv-download
                 ></b-col>
             </b-row>
@@ -48,9 +48,33 @@ export default Vue.component("gnominfo-card", {
     data() {
         return {
             InfoFields: {
-				"gnomAD_exomes_AN": "Allele Number",
-				"gnomAD_exomes_AC": "Allele Count",
-				"gnomAD_exomes_AF": "Allele Frequency",
+				"gnomAD_exomes_AC": "Total Allele Count",
+				"gnomAD_exomes_AF": "Total Allele Frequency",
+                "gnomAD_exomes_AN": "Total Allele Number",
+				"gnomAD_exomes_AFR_AC": "African Allele Count",
+                "gnomAD_exomes_AFR_AF": "African Allele Frequency",
+                "gnomAD_exomes_AFR_AN": "African Allele Number",
+                "gnomAD_exomes_AMR_AC": "Amerindian Allele Count",
+                "gnomAD_exomes_AMR_AF": "Amerindian Allele Frequency",
+                "gnomAD_exomes_AMR_AN": "Amerindian Allele Number",
+                "gnomAD_exomes_ASJ_AC": "Ashkenazi Jewish Allele Count",
+                "gnomAD_exomes_ASJ_AF": "Ashkenazi Jewish Allele Frequency",
+                "gnomAD_exomes_ASJ_AN": "Ashkenazi Jewish Allele Number",
+                "gnomAD_exomes_EAS_AC": "East Asian Allele Count",
+                "gnomAD_exomes_EAS_AF": "East Asian Allele Frequency",
+                "gnomAD_exomes_EAS_AN": "East Asian Allele Number",
+                "gnomAD_exomes_FIN_AC": "Finnish Allele Count",
+                "gnomAD_exomes_FIN_AF": "Finnish Allele Frequency",
+                "gnomAD_exomes_FIN_AN": "Finnish Allele Number",
+                "gnomAD_exomes_NFE_AC": "Non-Finnish European Allele Count",
+                "gnomAD_exomes_NFE_AF": "Non-Finnish European Allele Frequency",
+                "gnomAD_exomes_NFE_AN": "Non-Finnish European Allele Number",
+                "gnomAD_exomes_SAS_AC": "South AsianAllele Count",
+                "gnomAD_exomes_SAS_AF": "South AsianAllele Frequency",
+                "gnomAD_exomes_SAS_AN": "South Asian Allele Number",
+                "gnomAD_exomes_OTH_AC": "Other Allele Count",
+                "gnomAD_exomes_OTH_AF": "Other Allele Frequency",
+                "gnomAD_exomes_OTH_AN": "Other Allele Number",
 			},
             fields: [
                 {
@@ -102,7 +126,8 @@ export default Vue.component("gnominfo-card", {
             let gnomdisplay = [];
             let j = 0;
             //console.log("gnomAD_info:"+this.variant[0].gnomAD_info);
-            for (var k in this.variant[0].gnomAD_info) {
+            //for (var k in this.variant[0].gnomAD_info) {
+            for (var k in this.InfoFields) {
                 console.log(k);
                 if (this.InfoFields[k] != undefined){
                     gnomdisplay[j]={};
