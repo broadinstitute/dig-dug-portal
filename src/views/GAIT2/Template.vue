@@ -1074,14 +1074,8 @@
 
                                                     <template #row-details="row"
                                                         ><div
-                                                            style="
-                                                                margin-left: 15px;
-                                                                border-left: 4px
-                                                                    solid
-                                                                    #e0e0e0;
-                                                                width: calc(
-                                                                    100% - 15px
-                                                                );
+                                                            class="
+                                                                row-details-table
                                                             "
                                                         >
                                                             <b-table
