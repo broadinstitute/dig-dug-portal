@@ -5,7 +5,14 @@
 			:key="index"
 			class="research-data-table-features"
 		>
-			<table class="table table-sm feature-table">
+			<table
+				class="table table-sm feature-table"
+				v-if="
+					!!featuresData &&
+					!!featuresData[value] &&
+					!!featuresFormat[value]
+				"
+			>
 				<tr>
 					<th
 						:rowspan="featuresData[value].length + 1"

@@ -376,27 +376,32 @@ export default Vue.component("research-data-table", {
 				this.tableFormat["features"] != undefined
 					? this.tableFormat["top rows"].length + 1
 					: this.tableFormat["top rows"].length;
+
+			topRows += !!this.tableFormat["star column"] ? 1 : 0;
+
 			return topRows;
 		},
 	},
 	watch: {
 		dataset(DATA) {
-			this.compareGroups = [];
-			let loopNum =
-				this.searchParameters[
-					this.dataComparisonConfig["fields group data key"][0]
-				].search.length;
+			if (this.dataComparisonConfig != null) {
+				this.compareGroups = [];
+				let loopNum =
+					this.searchParameters[
+						this.dataComparisonConfig["fields group data key"][0]
+					].search.length;
 
-			for (let i = 0; i < loopNum; i++) {
-				let groupString = "";
-				this.dataComparisonConfig["fields group data key"].map(
-					(gKey) => {
-						groupString +=
-							this.searchParameters[gKey].search[i] + " ";
-					}
-				);
+				for (let i = 0; i < loopNum; i++) {
+					let groupString = "";
+					this.dataComparisonConfig["fields group data key"].map(
+						(gKey) => {
+							groupString +=
+								this.searchParameters[gKey].search[i] + " ";
+						}
+					);
 
-				this.compareGroups.push(groupString.slice(0, -1));
+					this.compareGroups.push(groupString.slice(0, -1));
+				}
 			}
 		},
 	},
