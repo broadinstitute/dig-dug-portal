@@ -1826,19 +1826,35 @@ export default Vue.component("research-annotations-plot", {
 				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
 			);
 		},
+		array2Object(KEY, ARRAY) {
+			var convertedObj = {};
+			ARRAY.forEach((KEY) => (target[KEY] = ""));
+			return convertedObj;
+		},
+		object2Array() {},
+
 		renderByAnnotations() {
 			//console.log("selectedTissues in render by", this.selectedTissues);
+
+			let plotData = this.plotData;
+
 			console.log("plotData", this.plotData);
+
 			let starKey = this.renderConfig["star key"]["key"];
 			let starPosition = this.renderConfig["star key"]["position"];
 
 			let staredPositions = [];
 
+			console.log("plotData", plotData);
+
+			console.log("this.pkgDataSelected", this.pkgDataSelected);
+
 			this.pkgDataSelected
 				.filter((s) => s.type == starKey)
 				.map((s) => s.id)
 				.map((s) => {
-					staredPositions.push(this.plotData[s][starPosition]);
+					console.log("this.plotData[s]", plotData[s]);
+					staredPositions.push(plotData[s][starPosition]);
 				});
 
 			console.log("staredPositions", staredPositions);

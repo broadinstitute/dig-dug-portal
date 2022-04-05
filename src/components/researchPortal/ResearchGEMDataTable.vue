@@ -107,7 +107,7 @@
 						class="th-evidence"
 						v-if="newTableFormat['features'] != undefined"
 					>
-						Credible Sets
+						Evidence
 					</th>
 				</tr>
 			</thead>
@@ -755,10 +755,14 @@ export default Vue.component("research-gem-data-table", {
 			///check if table shows only stared
 
 			if (this.stared == true) {
-				let tempData = {};
+				let tempData = this.dataComparisonConfig == null ? [] : {};
 				for (const [dKey, dValue] of Object.entries(updatedData)) {
 					if (this.checkStared(dValue) == true) {
-						tempData[dKey] = dValue;
+						if (this.dataComparisonConfig == null) {
+							tempData.push(dValue);
+						} else {
+							tempData[dKey] = dValue;
+						}
 					}
 				}
 				updatedData = tempData;
@@ -770,7 +774,6 @@ export default Vue.component("research-gem-data-table", {
 		},
 
 		pagedData() {
-			//console.log("rawData", this.rawData);
 			if (!!this.perPageNumber && this.perPageNumber != null) {
 				let rawData = this.rawData;
 
