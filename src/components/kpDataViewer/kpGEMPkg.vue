@@ -68,7 +68,7 @@
 						$event,
 						'annotationSection',
 						'annotationSectionOpener',
-						'Filter associated variants and annotations'
+						'Filter associated variants by annotations'
 					)
 				"
 			>
