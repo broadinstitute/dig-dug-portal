@@ -483,8 +483,8 @@
                                                 Searching for variants. Please
                                                 wait.
                                                 <b-icon
-                                                    icon="three-dots"
-                                                    animation="cylon"
+                                                    icon="arrow-repeat"
+                                                    animation="spin"
                                                 ></b-icon
                                             ></b-alert>
                                         </template>
