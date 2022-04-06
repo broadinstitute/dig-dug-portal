@@ -481,7 +481,7 @@
                                         <template #overlay>
                                             <b-alert show>
                                                 Searching for variants. Please
-                                                wait.
+                                                wait ...
                                                 <b-icon
                                                     icon="arrow-repeat"
                                                     animation="spin"
@@ -674,6 +674,17 @@
                                                         ></b-icon>
                                                         Deselect all
                                                         variants</b-button
+                                                    >
+                                                    <span
+                                                        class="float-right mt-2"
+                                                        ><strong
+                                                            >Total
+                                                            variants:</strong
+                                                        >
+                                                        {{
+                                                            $parent.tableData
+                                                                .length
+                                                        }}</span
                                                     >
                                                 </div>
 
