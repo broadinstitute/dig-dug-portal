@@ -68,11 +68,11 @@
 						$event,
 						'annotationSection',
 						'annotationSectionOpener',
-						'Filter associated variants by tissues and annotations'
+						'Filter associated variants and annotations'
 					)
 				"
 			>
-				Filter associated variants by tissues and annotations
+				Filter associated variants by annotations
 			</div>
 			<!--<button
 				id="external-button"
