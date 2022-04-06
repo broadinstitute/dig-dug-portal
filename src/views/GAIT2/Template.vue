@@ -20,7 +20,7 @@
 
                         <documentation
                             style="margin-top: 20px"
-                            name="tools.gait.subheader"
+                            name="tools.ncgait.subheader"
                         ></documentation>
                     </div>
                 </div>
@@ -477,269 +477,305 @@
                                 role="tabpanel"
                             >
                                 <b-card-body>
-                                    <b-skeleton-wrapper
-                                        :loading="$parent.loadingVariants"
-                                    >
-                                        <template #loading>
-                                            <b-skeleton-table
-                                                :rows="3"
-                                                :columns="5"
-                                                :table-props="{
-                                                    bordered: true,
-                                                    striped: true,
-                                                }"
-                                            ></b-skeleton-table>
+                                    <b-overlay :show="$parent.loadingVariants">
+                                        <template #overlay>
+                                            <b-alert show>
+                                                Searching for variants. Please
+                                                wait
+                                                <b-icon
+                                                    icon="three-dots"
+                                                    animation="cylon"
+                                                ></b-icon
+                                            ></b-alert>
                                         </template>
-                                        <b-alert
-                                            show
-                                            variant="warning"
-                                            v-if="
-                                                $parent.tableData.length === 0
-                                            "
-                                            ><b-icon
-                                                icon="exclamation-triangle"
-                                            ></b-icon>
-                                            There is no variant found with
-                                            selected criteria.
-                                            <a
-                                                v-b-toggle
-                                                href="#accordion-1"
-                                                @click.prevent
-                                                >Try another gene?</a
-                                            >
-                                        </b-alert>
-                                        <b-alert
-                                            show
-                                            variant="warning"
-                                            v-if="
-                                                $parent.tableData.length > 0 &&
-                                                $parent.criteriaChanged
-                                            "
-                                            ><b-icon
-                                                icon="exclamation-triangle"
-                                            ></b-icon>
-                                            Search criteria changed. Run
-                                            <b-button
-                                                variant="outline-primary"
-                                                size="sm"
-                                                v-b-toggle.accordion-1
-                                                >Search Annotations</b-button
-                                            >
-
-                                            again to update annotations.
-                                        </b-alert>
-                                        <transition
-                                            name="fade"
-                                            v-if="$parent.tableData.length > 0"
+                                        <b-skeleton-wrapper
+                                            :loading="$parent.loadingVariants"
                                         >
+                                            <template #loading>
+                                                <b-skeleton-table
+                                                    :rows="3"
+                                                    :columns="5"
+                                                    :table-props="{
+                                                        bordered: true,
+                                                        striped: true,
+                                                    }"
+                                                ></b-skeleton-table>
+                                            </template>
                                             <b-alert
                                                 show
+                                                variant="warning"
                                                 v-if="
-                                                    $parent.selectedDataset
-                                                        .length == 0
+                                                    $parent.tableData.length ===
+                                                    0
                                                 "
-                                                >Please select a
-                                                dataset.</b-alert
-                                            >
-
+                                                ><b-icon
+                                                    icon="exclamation-triangle"
+                                                ></b-icon>
+                                                There is no variant found with
+                                                selected criteria.
+                                                <a
+                                                    v-b-toggle
+                                                    href="#accordion-1"
+                                                    @click.prevent
+                                                    >Try another gene?</a
+                                                >
+                                            </b-alert>
                                             <b-alert
                                                 show
-                                                v-else-if="
-                                                    $parent.selectedTests
-                                                        .length == 0 ||
-                                                    $parent.selectedTests[0] ===
-                                                        undefined
+                                                variant="warning"
+                                                v-if="
+                                                    $parent.tableData.length >
+                                                        0 &&
+                                                    $parent.criteriaChanged
                                                 "
-                                                >Please select one or more tests
-                                                to run.</b-alert
-                                            ></transition
-                                        >
-                                        <b-card
-                                            class="text-center filter-tests"
-                                            v-if="$parent.tableData.length > 0"
-                                        >
-                                            <criterion-list-group
-                                                v-model="
-                                                    $parent.selectedMethods
-                                                "
-                                                :header="'Test(s) Selected'"
-                                            >
-                                                <filter-enumeration-control
-                                                    ref="test"
-                                                    :field="'test'"
-                                                    placeholder="Select one or more methods ..."
-                                                    :multiple="true"
-                                                    :disableSort="true"
-                                                    :options="
-                                                        $parent.testMethods.map(
-                                                            (v) => v.value
-                                                        )
-                                                    "
-                                                    :labelFormatter="
-                                                        (v) =>
-                                                            $parent.testMethods.find(
-                                                                (o) =>
-                                                                    o.value ===
-                                                                    v
-                                                            ).text
-                                                    "
-                                                    ><div class="label">
-                                                        Test Methods
-                                                    </div></filter-enumeration-control
+                                                ><b-icon
+                                                    icon="exclamation-triangle"
+                                                ></b-icon>
+                                                Search criteria changed. Run
+                                                <b-button
+                                                    variant="outline-primary"
+                                                    size="sm"
+                                                    v-b-toggle.accordion-1
+                                                    >Search
+                                                    Annotations</b-button
                                                 >
-                                            </criterion-list-group>
 
-                                            <div
-                                                class="function"
+                                                again to update annotations.
+                                            </b-alert>
+                                            <transition
+                                                name="fade"
                                                 v-if="
                                                     $parent.tableData.length > 0
                                                 "
                                             >
-                                                <b-button
-                                                    :disabled="
-                                                        $parent.selectedVariants
-                                                            .length == 0 ||
-                                                        $parent
-                                                            .selectedPhenotypes
-                                                            .length == 0 ||
+                                                <b-alert
+                                                    show
+                                                    v-if="
                                                         $parent.selectedDataset
-                                                            .length == 0 ||
-                                                        $parent.selectedTests
                                                             .length == 0
                                                     "
-                                                    variant="primary"
-                                                    @click="
-                                                        $parent.runRaremetal()
-                                                    "
-                                                    >Run Analysis</b-button
+                                                    >Please select a
+                                                    dataset.</b-alert
                                                 >
-                                            </div>
-                                        </b-card>
 
-                                        <div
-                                            class="variants"
-                                            v-if="$parent.tableData.length > 0"
-                                        >
-                                            <div class="my-2">
-                                                <b-button
-                                                    size="sm"
-                                                    variant="outline-secondary"
-                                                    @click="
-                                                        $parent.selectAllVariants()
+                                                <b-alert
+                                                    show
+                                                    v-else-if="
+                                                        $parent.selectedTests
+                                                            .length == 0 ||
+                                                        $parent
+                                                            .selectedTests[0] ===
+                                                            undefined
                                                     "
-                                                    title="Select all variants in the table below."
-                                                    ><b-icon
-                                                        icon="check2-all"
-                                                        aria-hidden="true"
-                                                    ></b-icon>
-                                                    Select all
-                                                    variants</b-button
-                                                >
-                                                <b-button
-                                                    size="sm"
-                                                    variant="outline-secondary"
-                                                    class="ml-2"
-                                                    @click="
-                                                        $parent.deselectAllVariants()
-                                                    "
-                                                    title="Deselect all variants in the table below."
-                                                    ><b-icon
-                                                        icon="dash"
-                                                        aria-hidden="true"
-                                                    ></b-icon>
-                                                    Deselect all
-                                                    variants</b-button
-                                                >
-                                            </div>
-
-                                            <b-table
-                                                striped
-                                                hover
-                                                small
-                                                sort-icon-left
-                                                responsive="sm"
-                                                sticky-header="400px"
-                                                :items="$parent.tableData"
-                                                :fields="$parent.visibleFields"
+                                                    >Please select one or more
+                                                    tests to run.</b-alert
+                                                ></transition
                                             >
-                                                <template
-                                                    #cell(selected)="data"
+                                            <b-card
+                                                class="text-center filter-tests"
+                                                v-if="
+                                                    $parent.tableData.length > 0
+                                                "
+                                            >
+                                                <criterion-list-group
+                                                    v-model="
+                                                        $parent.selectedMethods
+                                                    "
+                                                    :header="'Test(s) Selected'"
                                                 >
-                                                    <b-form-group>
-                                                        <input
-                                                            type="checkbox"
-                                                            v-model="
-                                                                data.item
-                                                                    .selected
-                                                            "
-                                                            @change="
-                                                                $parent.updateSelectedVariants()
-                                                            "
-                                                        />
-                                                    </b-form-group>
-                                                </template>
-                                                <template
-                                                    #cell(burdenBinId)="data"
-                                                >
-                                                    {{
-                                                        $parent.masks.find(
-                                                            (o) =>
-                                                                o.value ===
-                                                                data.value
-                                                        ).text
-                                                    }}
-                                                </template>
-                                                <template #cell(varId)="data">
-                                                    <a
-                                                        :href="`/variant.html?variant=${data.value}`"
-                                                        >{{ data.value }}</a
+                                                    <filter-enumeration-control
+                                                        ref="test"
+                                                        :field="'test'"
+                                                        placeholder="Select one or more methods ..."
+                                                        :multiple="true"
+                                                        :disableSort="true"
+                                                        :options="
+                                                            $parent.testMethods.map(
+                                                                (v) => v.value
+                                                            )
+                                                        "
+                                                        :labelFormatter="
+                                                            (v) =>
+                                                                $parent.testMethods.find(
+                                                                    (o) =>
+                                                                        o.value ===
+                                                                        v
+                                                                ).text
+                                                        "
+                                                        ><div class="label">
+                                                            Test Methods
+                                                        </div></filter-enumeration-control
                                                     >
-                                                </template>
-                                                <template #cell(maf)="data">
-                                                    {{
-                                                        $parent.zScoreFormatter(
-                                                            data.value
-                                                        )
-                                                    }}
-                                                </template>
+                                                </criterion-list-group>
 
-                                                <template #head(altFreq)>
-                                                    Alt. Frequency
-                                                </template>
-                                                <template #cell(altFreq)="data">
-                                                    {{
-                                                        !!data.value
-                                                            ? data.value.toExponential(
-                                                                  3
-                                                              )
-                                                            : ""
-                                                    }}
-                                                </template>
+                                                <div
+                                                    class="function"
+                                                    v-if="
+                                                        $parent.tableData
+                                                            .length > 0
+                                                    "
+                                                >
+                                                    <b-button
+                                                        :disabled="
+                                                            $parent
+                                                                .selectedVariants
+                                                                .length == 0 ||
+                                                            $parent
+                                                                .selectedPhenotypes
+                                                                .length == 0 ||
+                                                            $parent
+                                                                .selectedDataset
+                                                                .length == 0 ||
+                                                            $parent
+                                                                .selectedTests
+                                                                .length == 0
+                                                        "
+                                                        variant="primary"
+                                                        @click="
+                                                            $parent.runRaremetal()
+                                                        "
+                                                        >Run Analysis</b-button
+                                                    >
+                                                </div>
+                                            </b-card>
 
-                                                <template #head(pvalue)>
-                                                    P-Value
-                                                </template>
-                                                <template #cell(pvalue)="data">
-                                                    {{
-                                                        $parent.pValueFormatter(
-                                                            data.value
-                                                        )
-                                                    }}
-                                                </template>
+                                            <div
+                                                class="variants"
+                                                v-if="
+                                                    $parent.tableData.length > 0
+                                                "
+                                            >
+                                                <div class="my-2">
+                                                    <b-button
+                                                        size="sm"
+                                                        variant="outline-secondary"
+                                                        @click="
+                                                            $parent.selectAllVariants()
+                                                        "
+                                                        title="Select all variants in the table below."
+                                                        ><b-icon
+                                                            icon="check2-all"
+                                                            aria-hidden="true"
+                                                        ></b-icon>
+                                                        Select all
+                                                        variants</b-button
+                                                    >
+                                                    <b-button
+                                                        size="sm"
+                                                        variant="outline-secondary"
+                                                        class="ml-2"
+                                                        @click="
+                                                            $parent.deselectAllVariants()
+                                                        "
+                                                        title="Deselect all variants in the table below."
+                                                        ><b-icon
+                                                            icon="dash"
+                                                            aria-hidden="true"
+                                                        ></b-icon>
+                                                        Deselect all
+                                                        variants</b-button
+                                                    >
+                                                </div>
 
-                                                <template #head(score)>
-                                                    Score
-                                                </template>
-                                                <template #cell(score)="data">
-                                                    {{
-                                                        $parent.zScoreFormatter(
-                                                            data.value
-                                                        )
-                                                    }}
-                                                </template>
-                                            </b-table>
-                                        </div>
-                                    </b-skeleton-wrapper>
+                                                <b-table
+                                                    striped
+                                                    hover
+                                                    small
+                                                    sort-icon-left
+                                                    responsive="sm"
+                                                    sticky-header="400px"
+                                                    :items="$parent.tableData"
+                                                    :fields="
+                                                        $parent.visibleFields
+                                                    "
+                                                >
+                                                    <template
+                                                        #cell(selected)="data"
+                                                    >
+                                                        <b-form-group>
+                                                            <input
+                                                                type="checkbox"
+                                                                v-model="
+                                                                    data.item
+                                                                        .selected
+                                                                "
+                                                                @change="
+                                                                    $parent.updateSelectedVariants()
+                                                                "
+                                                            />
+                                                        </b-form-group>
+                                                    </template>
+                                                    <template
+                                                        #cell(burdenBinId)="data"
+                                                    >
+                                                        {{
+                                                            $parent.masks.find(
+                                                                (o) =>
+                                                                    o.value ===
+                                                                    data.value
+                                                            ).text
+                                                        }}
+                                                    </template>
+                                                    <template
+                                                        #cell(varId)="data"
+                                                    >
+                                                        <a
+                                                            :href="`/variant.html?variant=${data.value}`"
+                                                            >{{ data.value }}</a
+                                                        >
+                                                    </template>
+                                                    <template #cell(maf)="data">
+                                                        {{
+                                                            $parent.zScoreFormatter(
+                                                                data.value
+                                                            )
+                                                        }}
+                                                    </template>
+
+                                                    <template #head(altFreq)>
+                                                        Alt. Frequency
+                                                    </template>
+                                                    <template
+                                                        #cell(altFreq)="data"
+                                                    >
+                                                        {{
+                                                            !!data.value
+                                                                ? data.value.toExponential(
+                                                                      3
+                                                                  )
+                                                                : ""
+                                                        }}
+                                                    </template>
+
+                                                    <template #head(pvalue)>
+                                                        P-Value
+                                                    </template>
+                                                    <template
+                                                        #cell(pvalue)="data"
+                                                    >
+                                                        {{
+                                                            $parent.pValueFormatter(
+                                                                data.value
+                                                            )
+                                                        }}
+                                                    </template>
+
+                                                    <template #head(score)>
+                                                        Score
+                                                    </template>
+                                                    <template
+                                                        #cell(score)="data"
+                                                    >
+                                                        {{
+                                                            $parent.zScoreFormatter(
+                                                                data.value
+                                                            )
+                                                        }}
+                                                    </template>
+                                                </b-table>
+                                            </div>
+                                        </b-skeleton-wrapper></b-overlay
+                                    >
                                 </b-card-body>
                             </b-collapse>
                         </b-card>
