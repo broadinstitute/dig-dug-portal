@@ -676,7 +676,7 @@
                                                         variants</b-button
                                                     >
                                                     <span
-                                                        class="float-right mt-2"
+                                                        class="float-right mt-1"
                                                         ><strong
                                                             >Total
                                                             variants:</strong
