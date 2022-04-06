@@ -481,7 +481,7 @@
                                         <template #overlay>
                                             <b-alert show>
                                                 Searching for variants. Please
-                                                wait
+                                                wait.
                                                 <b-icon
                                                     icon="three-dots"
                                                     animation="cylon"
@@ -684,6 +684,10 @@
                                                     sort-icon-left
                                                     responsive="sm"
                                                     sticky-header="400px"
+                                                    :per-page="$parent.perPage"
+                                                    :current-page="
+                                                        $parent.currentPage
+                                                    "
                                                     :items="$parent.tableData"
                                                     :fields="
                                                         $parent.visibleFields
@@ -773,9 +777,21 @@
                                                         }}
                                                     </template>
                                                 </b-table>
-                                            </div>
-                                        </b-skeleton-wrapper></b-overlay
-                                    >
+                                                <b-pagination
+                                                    class="
+                                                        pagination-sm
+                                                        justify-content-center
+                                                    "
+                                                    v-model="
+                                                        $parent.currentPage
+                                                    "
+                                                    :total-rows="
+                                                        $parent.tableData.length
+                                                    "
+                                                    :per-page="$parent.perPage"
+                                                ></b-pagination>
+                                            </div> </b-skeleton-wrapper
+                                    ></b-overlay>
                                 </b-card-body>
                             </b-collapse>
                         </b-card>
