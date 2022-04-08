@@ -108,6 +108,38 @@
 				:sharedPlotXpos="sharedPlotXpos"
 				ref="annotationsRef"
 			></research-annotations-plot>
+
+			<div
+				v-if="pkgConfig.viewers.includes('gene links plot') == true"
+				class="section-opener"
+				id="geneLinksSectionOpener"
+				@click="
+					showHideSection(
+						$event,
+						'geneLinksSection',
+						'geneLinksSectionOpener',
+						'Filter associated variants by linked genes'
+					)
+				"
+			>
+				Filter associated variants by linked genes
+			</div>
+
+			<research-gene-links-plot
+				id="geneLinksSection"
+				class="svg-wrapper hidden-svg"
+				v-if="pkgConfig.viewers.includes('gene links plot') == true"
+				:region="$store.state.searchingRegion"
+				:phenotype="$store.state.searchingPhenotype"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.bold"
+				:renderConfig="pkgConfig['gene links viewer']"
+				:dataComparison="this.$store.state.dataComparison"
+				:pkgData="pkgData"
+				:pkgDataSelected="pkgDataSelected"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
+			></research-gene-links-plot>
 		</div>
 	</div>
 </template>
@@ -122,6 +154,7 @@ import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.v
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchCredibleSets from "@/components/researchPortal/ResearchCredibleSets.vue";
+import ResearchGeneLinks from "@/components/researchPortal/ResearchGeneLinks.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -148,6 +181,7 @@ export default Vue.component("kp-gem-pkg", {
 		ResearchGenesTrack,
 		ResearchAnnotationsPlot,
 		ResearchCredibleSets,
+		ResearchGeneLinks,
 	},
 	mounted: function () {
 		if (this.pkgConfig != null) {
