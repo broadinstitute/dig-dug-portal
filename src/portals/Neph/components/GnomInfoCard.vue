@@ -18,7 +18,8 @@
                     responsive="sm"
                     :items="tableData"
                     :fields="fields"
-                    :per-page="perPage"
+                    :current-page="currentPage"
+				    :per-page="perPage"
                     >
                     
                 </b-table>
