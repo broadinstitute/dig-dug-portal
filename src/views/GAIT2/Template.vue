@@ -980,24 +980,34 @@
                                                         Z-Score
                                                     </template>
                                                     <template
-                                                        #cell(zscore)="data"
+                                                        #cell(zscore)="row"
                                                     >
                                                         {{
-                                                            $parent.zScoreFormatter(
-                                                                data.value
+                                                            row.item.test.includes(
+                                                                "skat"
                                                             )
+                                                                ? "-"
+                                                                : $parent.zScoreFormatter(
+                                                                      row.item
+                                                                          .stat
+                                                                  )
                                                         }}
                                                     </template>
                                                     <template #head(qscore)>
                                                         Q-Score
                                                     </template>
                                                     <template
-                                                        #cell(qscore)="data"
+                                                        #cell(qscore)="row"
                                                     >
                                                         {{
-                                                            $parent.zScoreFormatter(
-                                                                data.value
+                                                            row.item.test.includes(
+                                                                "skat"
                                                             )
+                                                                ? $parent.zScoreFormatter(
+                                                                      row.item
+                                                                          .stat
+                                                                  )
+                                                                : "-"
                                                         }}
                                                     </template>
 

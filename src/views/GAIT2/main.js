@@ -232,8 +232,7 @@ new Vue({
                 {
                     key: "variant",
                     label: "Variant",
-                    visible: true,
-                    sortable: true
+                    visible: true
                 },
                 {
                     key: "altFreq",
@@ -261,7 +260,7 @@ new Vue({
             ],
             ncbtSubFields: [
                 { key: "region" },
-                { key: "variants" },
+                { key: "variants", sortable: true },
                 { key: "pvalue", sortable: true },
                 { key: "stat", sortable: true },
                 { key: "effect", sortable: true },
