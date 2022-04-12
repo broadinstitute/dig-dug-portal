@@ -925,6 +925,7 @@
                                                     hover
                                                     small
                                                     responsive="sm"
+                                                    sort-icon-left
                                                     :items="
                                                         $parent.formatTestData(
                                                             p.samples,
@@ -932,7 +933,6 @@
                                                         )
                                                     "
                                                     :fields="$parent.ncbtFields"
-                                                    :sort-icon-left="true"
                                                 >
                                                     <template
                                                         v-slot:thead-top="data"
@@ -1142,15 +1142,13 @@
                                                             "
                                                         >
                                                             <b-table
+                                                                sort-icon-left
                                                                 :items="
                                                                     row.item
                                                                         .data
                                                                 "
                                                                 :fields="
                                                                     $parent.ncbtSubFields
-                                                                "
-                                                                :sort-icon-left="
-                                                                    true
                                                                 "
                                                                 ><template
                                                                     #head(pvalue)
