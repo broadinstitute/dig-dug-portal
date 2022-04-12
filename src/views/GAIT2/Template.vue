@@ -932,6 +932,7 @@
                                                         )
                                                     "
                                                     :fields="$parent.ncbtFields"
+                                                    :sort-icon-left="true"
                                                 >
                                                     <template
                                                         v-slot:thead-top="data"
@@ -1148,6 +1149,9 @@
                                                                 :fields="
                                                                     $parent.ncbtSubFields
                                                                 "
+                                                                :sort-icon-left="
+                                                                    true
+                                                                "
                                                                 ><template
                                                                     #head(pvalue)
                                                                 >
@@ -1178,19 +1182,11 @@
                                                                     #cell(stat)="row"
                                                                 >
                                                                     {{
-                                                                        row.item.test.includes(
-                                                                            "skat"
+                                                                        $parent.zScoreFormatter(
+                                                                            row
+                                                                                .item
+                                                                                .stat
                                                                         )
-                                                                            ? $parent.zScoreFormatter(
-                                                                                  row
-                                                                                      .item
-                                                                                      .qscore
-                                                                              )
-                                                                            : $parent.zScoreFormatter(
-                                                                                  row
-                                                                                      .item
-                                                                                      .zscore
-                                                                              )
                                                                     }}
                                                                 </template>
 
