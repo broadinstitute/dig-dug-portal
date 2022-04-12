@@ -38,6 +38,34 @@
 								</select>
 							</div>
 						</div>
+						<div
+							class=""
+							v-if="
+								!!this.pkgData.GLData &&
+								Object.keys(this.pkgData.GLData).length > 0 &&
+								!renderConfig['no search key bubbles']
+							"
+							style="position: absolute; right: 10px; top: 7px"
+						>
+							<template
+								v-for="tissue in Object.keys(
+									this.pkgData.GLData
+								)"
+							>
+								<span
+									:key="tissue"
+									:class="'btn GL-search-bubble '"
+									style="
+										'background-color:#aaaaaa'
+									"
+									v-html="
+										tissue +
+										'&nbsp;<span class=\'remove\'>X</span>'
+									"
+									@click="removeGLTissue(tissue)"
+								></span>
+							</template>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -51,6 +79,7 @@ import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
+import alertUtils from "@/utils/alertUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 import keyParams from "@/utils/keyParams";
@@ -76,7 +105,6 @@ export default Vue.component("research-gene-links-plot", {
 			spaceBy: 7,
 			GEData: {},
 			trigger: 0,
-			GLData: null,
 		};
 	},
 	modules: {
@@ -165,9 +193,24 @@ export default Vue.component("research-gene-links-plot", {
 	},
 	methods: {
 		...uiUtils,
+		removeGLTissue(TISSUE) {
+			//delete this.GLData[TISSUE];
+			delete this.pkgData["GLData"][TISSUE];
+			//this.pkgData["GLData"] = this.GLData;
+			if (Object.keys(this.pkgData["GLData"]).length == 0) {
+				delete this.pkgData["GLData"];
+			}
+			this.$store.dispatch("pkgDataSelected", {
+				type: "GLTissue",
+				id: TISSUE,
+				action: "remove",
+			});
+			this.trigger--;
+		},
 		getTissueLabel(TISSUE) {
 			return TISSUE.tissue + " (" + TISSUE.phenotypes.join() + ")";
 		},
+
 		async getGeneLinks(event) {
 			if (event.target.value != "") {
 				let geneLinksServer =
@@ -189,14 +232,23 @@ export default Vue.component("research-gene-links-plot", {
 					"-" +
 					region.end;
 
-				console.log("got GL Data", GLURL);
-
 				let GLJson = await fetch(GLURL).then((resp) => resp.json());
 
 				if (GLJson.error == null) {
-					this.GLData = GLJson.data;
-
-					console.log("got GL Data", this.GLData);
+					if (GLJson.data.length == 0) {
+						alertUtils.popAlert(tissue + " has no linked genes.");
+					} else {
+						//this.GLData[tissue] = GLJson.data;
+						this.$store.dispatch("pkgDataSelected", {
+							type: "GLTissue",
+							id: tissue,
+							action: "add",
+						});
+						if (!this.pkgData["GLData"]) {
+							this.pkgData["GLData"] = {};
+						}
+						this.pkgData["GLData"][tissue] = GLJson.data;
+					}
 
 					this.trigger++;
 				}
@@ -222,7 +274,6 @@ export default Vue.component("research-gene-links-plot", {
 				let GEJson = await fetch(GEURL).then((resp) => resp.json());
 
 				if (GEJson.error == null) {
-					console.log("got GE Data");
 					if (this.dataComparison == "newSearch") {
 						this.GEData = {};
 					}
@@ -239,7 +290,8 @@ $(function () {});
 </script>
 
 <style>
-.search-bubble {
+.GL-search-bubble {
+	background-color: #999999;
 	font-size: 12px;
 	margin-right: 5px;
 	border-radius: 5px;
@@ -259,7 +311,7 @@ $(function () {});
 	border-radius: 10rem;
 }
 
-.search-bubble.hidden {
+.GL-search-bubble.hidden {
 	display: none !important;
 }
 .phenotype-tissue-td {

@@ -493,6 +493,18 @@
 html {
 	font-size: 14px !important;
 }
+#alert_pop_up {
+	position: fixed;
+	width: 400px;
+	top: 50%;
+	left: calc(50% - 200px);
+	background-color: #ffefef;
+	padding: 15px 30px;
+	border: solid 1px #ff8888;
+	border-radius: 5px;
+	font-size: 1.15em;
+	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
 .zoom-ui-wrapper {
 	font-size: 13px;
 	font-weight: 700;

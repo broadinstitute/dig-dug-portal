@@ -313,7 +313,7 @@ export default Vue.component("research-gem-data-table", {
 					rawData[d[keyField]] = d;
 				});
 			} else {
-				rawData = { ...this.dataset };
+				rawData = { ...this.dataset }; //create copy of original data to avoid modifying original data which is shared with other components.
 			}
 
 			// Add original index to each items in the rawData, so it can be sorted back to original order after processing;
@@ -349,7 +349,7 @@ export default Vue.component("research-gem-data-table", {
 				//Replace "Tissue" with "Overlapping Region"
 				const tissueIndex = newRows.indexOf("Tissue");
 				if (tissueIndex > -1) {
-					newRows[tissueIndex] = "Overlapping Region";
+					newRows[tissueIndex] = "OR by annotations";
 				}
 
 				this.pkgDataSelected.map((p) => {
@@ -363,9 +363,16 @@ export default Vue.component("research-gem-data-table", {
 				var newTopRows = oldRows.concat(newRows);
 				newTableFormat["top rows"] = newTopRows;
 
-				// add "features" to table format
+				// add "features" to table format if there isn't one. Then add "Credible Set"
 				if (!!newTopRows.includes("Credible Set")) {
-					newTableFormat["features"] = ["Credible Set"];
+					if (!this.tableFormat["features"]) {
+						newTableFormat["features"] = [];
+					}
+
+					if (!newTableFormat["features"].includes("Credible Set")) {
+						newTableFormat["features"].push("Credible Set");
+					}
+
 					newTableFormat["Credible Set"] = [];
 				}
 
@@ -683,11 +690,53 @@ export default Vue.component("research-gem-data-table", {
 							}
 						}
 
-						updatedData[vKey]["Overlapping Region"] =
+						updatedData[vKey]["OR by annotations"] =
 							updatedData[vKey].overStart +
 							"-" +
 							updatedData[vKey].overEnd;
 					}
+				}
+			}
+
+			///Let's filter data by linked genes
+			console.log('this.pkgData["GLData"]', this.pkgData["GLData"]);
+			if (
+				!!this.pkgData["GLData"] &&
+				Object.keys(this.pkgData["GLData"]).length > 0
+			) {
+				console.log(this.pkgData["GLData"]);
+				// add "features" to table format if there isn't one. Then add "GENES"
+				newTopRows.push("Linked Genes");
+
+				if (!this.tableFormat["features"]) {
+					if (!newTableFormat["features"]) {
+						newTableFormat["features"] = [];
+					}
+				}
+				if (!newTableFormat["features"].includes("GENES")) {
+					newTableFormat["features"].push("GENES");
+					newTableFormat["GENES"] = [
+						"Region",
+						"Genes Region",
+						"Source",
+						"Assay",
+						"Biosample",
+					];
+				}
+
+				for (const [vKey, vValue] of Object.entries(updatedData)) {
+					vValue["Linked Genes"] = "genes";
+					vValue["Region"] = "genes";
+					vValue["Genes Region"] = "genes";
+					vValue["Source"] = "genes";
+					vValue["Assay"] = "genes";
+					vValue["Biosample"] = "genes";
+				}
+			} else {
+				const index = newTableFormat["features"].indexOf("GENES");
+
+				if (index > -1) {
+					newTableFormat["features"].splice(index, 1);
 				}
 			}
 
@@ -774,6 +823,10 @@ export default Vue.component("research-gem-data-table", {
 		},
 
 		pagedData() {
+			console.log(
+				'this.newTableFormat["features"]',
+				this.newTableFormat["features"]
+			);
 			if (!!this.perPageNumber && this.perPageNumber != null) {
 				let rawData = this.rawData;
 
