@@ -222,6 +222,33 @@ new Vue({
                     sortable: true
                 }
             ],
+            ncbtVariantFields: [
+                {
+                    key: "selected",
+                    label: "Selected",
+                    visible: true,
+                    stickyColumn: true
+                },
+                {
+                    key: "variant",
+                    label: "Variant",
+                    visible: true,
+                    sortable: true
+                },
+                {
+                    key: "altFreq",
+                    label: "Alt. Freq.",
+                    visible: true,
+                    sortable: true
+                },
+                {
+                    key: "pvalue",
+                    label: "P-Value",
+                    visible: true,
+                    sortable: true
+                },
+                { key: "score", label: "Score", visible: true, sortable: true }
+            ],
             ncbtFields: [
                 "test",
                 "variants",

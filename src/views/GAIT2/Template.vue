@@ -701,7 +701,7 @@
                                                     "
                                                     :items="$parent.tableData"
                                                     :fields="
-                                                        $parent.visibleFields
+                                                        $parent.ncbtVariantFields
                                                     "
                                                 >
                                                     <template
