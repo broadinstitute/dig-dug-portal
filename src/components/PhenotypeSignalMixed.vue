@@ -3,8 +3,17 @@
         <div class="pws-merged-view">
             <template v-if="topAssociationsHighest <= 5e-8">
                 <div v-if="legends" class="pws-group-legend-wrapper">
-                    <div v-for="(row, i) in topAssociatedGroups" class="pws-group-legend" :key="i">
-                        <div class="pws-group-legend-box phenotype-group" :class="row">&nbsp;</div>
+                    <div
+                        v-for="(row, i) in topAssociatedGroups"
+                        class="pws-group-legend"
+                        :key="i"
+                    >
+                        <div
+                            class="pws-group-legend-box phenotype-group"
+                            :class="row"
+                        >
+                            &nbsp;
+                        </div>
                         {{ row }}
                     </div>
                 </div>
@@ -22,7 +31,11 @@
                             :key="row.phenotype"
                             class="pws-top-each-phenotype-wrapper"
                         >
-                            <div v-if="i == 0" class="pws-top-phenotypes-yaxis-wrapper" style>
+                            <div
+                                v-if="i == 0"
+                                class="pws-top-phenotypes-yaxis-wrapper"
+                                style
+                            >
                                 <div
                                     style="
                                         position: absolute;
@@ -30,7 +43,9 @@
                                         font-size: 10px;
                                         right: 10px;
                                     "
-                                >{{ getEvalue(row.pValue) }}</div>
+                                >
+                                    {{ getEvalue(row.pValue) }}
+                                </div>
                                 <div
                                     style="
                                         position: absolute;
@@ -39,7 +54,9 @@
                                         right: 10px;
                                         white-space: nowrap;
                                     "
-                                >-log10(p)</div>
+                                >
+                                    -log10(p)
+                                </div>
                                 <div
                                     style="
                                         position: absolute;
@@ -47,20 +64,29 @@
                                         font-size: 10px;
                                         right: 10px;
                                     "
-                                >0</div>
+                                >
+                                    0
+                                </div>
                             </div>
                             <div class="pws-top-each-phenotype">
                                 <div
-                                    class="btn btn-sm btn-link pws-top-each-phenotype-name"
+                                    class="
+                                        btn btn-sm btn-link
+                                        pws-top-each-phenotype-name
+                                    "
                                     :style="{
                                         top: 80 - pValueCss(row.pValue) + '%',
                                     }"
                                 >
-                                    <div class="name-wrapper">{{ row.description }}</div>
+                                    <div class="name-wrapper">
+                                        {{ row.description }}
+                                    </div>
                                     <div class="options-4-actions">
                                         <div
                                             @click="addPhenotype(row.phenotype)"
-                                        >Add this phenotype below</div>
+                                        >
+                                            Add this phenotype below
+                                        </div>
 
                                         <div
                                             v-on:click="
@@ -68,18 +94,28 @@
                                                     phenotype: row.phenotype,
                                                 })
                                             "
-                                        >Go to phenotype page</div>
+                                        >
+                                            Go to phenotype page
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div
-                                    class="bubble phenotype-group pws-top-each-phenotype-bar"
+                                    class="
+                                        bubble
+                                        phenotype-group
+                                        pws-top-each-phenotype-bar
+                                    "
                                     :class="row.group"
                                     :style="{
                                         height: +pValueCss(row.pValue) + '%',
                                     }"
-                                >&nbsp;</div>
-                                <div class="pws-top-each-phenotype-pvalue">{{ row.pValue }}</div>
+                                >
+                                    &nbsp;
+                                </div>
+                                <div class="pws-top-each-phenotype-pvalue">
+                                    {{ pValueFormatter(row.pValue) }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -113,7 +149,8 @@
                         </span>
                         <span
                             v-if="!limit && topAssociationsFiltered.length > 10"
-                        >Show Only Top Phenotypes</span>
+                            >Show Only Top Phenotypes</span
+                        >
                     </b-button>
                 </div>
             </template>
@@ -130,7 +167,8 @@
                 href="javascript:;"
                 v-on:click="popOutElement('pws-bar-view')"
                 class="pop-out-icon"
-            >&nbsp;</a>
+                >&nbsp;</a
+            >
             <div class="p-bellow-section-header">
                 <sup>*</sup> Colored bars summarize bottom-line meta-analyzed
                 associations for phenotypes in a group. Hover over bar or expand
@@ -139,15 +177,15 @@
 
             <div class="pws-phenotype-group-container">
                 <div class="pws-phenotype-group-row">
-                    <div class="pws-phenotype-group-header">Phenotype group</div>
+                    <div class="pws-phenotype-group-header">
+                        Phenotype group
+                    </div>
                     <div class="pws-phenotype-group-wrapper">
                         <div class="legend-scale">
                             <span class="legend-left">0</span>
                             <span class="legend-center">-log10(p)</span>
                             <span class="legend-right" v-if="phenotypes[0]">
-                                {{
-                                getEvalue(phenotypes[0]["pValue"])
-                                }}
+                                {{ getEvalue(phenotypes[0]["pValue"]) }}
                             </span>
                         </div>
                         <div class="legend"></div>
@@ -171,7 +209,9 @@
                         <b-icon-arrows-expand></b-icon-arrows-expand>
                     </div>
                     <div class="pws-phenotype-group-wrapper">
-                        <template v-for="(item, i) in topAssociationsGrouped[key]">
+                        <template
+                            v-for="(item, i) in topAssociationsGrouped[key]"
+                        >
                             <template v-if="i != 0">
                                 <div
                                     v-if="item.pValue <= 5e-3"
@@ -186,14 +226,17 @@
                                     "
                                     :key="item.phenotype"
                                 >
-                                    <div class="pws-progress-bar" style="width: 100%"></div>
+                                    <div
+                                        class="pws-progress-bar"
+                                        style="width: 100%"
+                                    ></div>
 
                                     <span class="tool-tip">
                                         {{
-                                        item.description +
-                                        " (" +
-                                        item.pValue +
-                                        ")"
+                                            item.description +
+                                            " (" +
+                                            pValueFormatter(item.pValue) +
+                                            ")"
                                         }}
                                     </span>
                                 </div>
@@ -229,14 +272,16 @@
                                         }"
                                     >
                                         {{ item.description }} ({{
-                                        item.pValue
+                                            pValueFormatter(item.pValue)
                                         }})
                                         <div class="options-4-actions">
                                             <div
                                                 @click="
                                                     addPhenotype(item.phenotype)
                                                 "
-                                            >Add this phenotype below</div>
+                                            >
+                                                Add this phenotype below
+                                            </div>
 
                                             <div
                                                 v-on:click="
@@ -245,7 +290,9 @@
                                                             item.phenotype,
                                                     })
                                                 "
-                                            >Go to phenotype page</div>
+                                            >
+                                                Go to phenotype page
+                                            </div>
                                         </div>
                                     </span>
                                 </div>
@@ -274,30 +321,30 @@ Vue.use(BootstrapVueIcons);
 
 export default Vue.component("phenotype-signal-mixed", {
     modules: {
-        uiUtils
+        uiUtils,
     },
     components: {},
     props: {
         phenotypes: Array,
-        legends: Boolean
+        legends: Boolean,
     },
 
     data() {
         return {
             isActive: false,
-            limit: 10
+            limit: 10,
         };
     },
 
     computed: {
-        topAssociationsHighest: function() {
+        topAssociationsHighest: function () {
             return this.phenotypes[0]["pValue"];
         },
-        topAssociationsGrouped: function() {
+        topAssociationsGrouped: function () {
             let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
-            data.forEach(element => {
+            data.forEach((element) => {
                 let phenotype = phenotypeMap[element.phenotype];
 
                 element["group"] = phenotype.group;
@@ -306,11 +353,11 @@ export default Vue.component("phenotype-signal-mixed", {
 
             return groupBy(data, "group");
         },
-        topAssociations: function() {
+        topAssociations: function () {
             let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
-            data.forEach(element => {
+            data.forEach((element) => {
                 let phenotype = phenotypeMap[element.phenotype];
 
                 element["group"] = phenotype.group.toUpperCase();
@@ -324,7 +371,7 @@ export default Vue.component("phenotype-signal-mixed", {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             let filteredData = [];
 
-            data.forEach(element => {
+            data.forEach((element) => {
                 let phenotype = phenotypeMap[element.phenotype];
 
                 element["group"] = phenotype.group.toUpperCase();
@@ -339,12 +386,12 @@ export default Vue.component("phenotype-signal-mixed", {
                 ? this.topAssociationsFiltered.slice(0, this.limit)
                 : this.topAssociationsFiltered;
         },
-        topAssociatedGroups: function() {
+        topAssociatedGroups: function () {
             let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             let topGroups = [];
 
-            data.forEach(element => {
+            data.forEach((element) => {
                 let phenotype = phenotypeMap[element.phenotype];
 
                 if (element["pValue"] <= 2.5e-6) {
@@ -352,12 +399,12 @@ export default Vue.component("phenotype-signal-mixed", {
                 }
             });
 
-            topGroups = topGroups.filter(function(value, index, self) {
+            topGroups = topGroups.filter(function (value, index, self) {
                 return self.indexOf(value) === index;
             });
 
             return topGroups;
-        }
+        },
     },
     methods: {
         log2css(value) {
@@ -369,10 +416,7 @@ export default Vue.component("phenotype-signal-mixed", {
             return calculated > 100 ? 100 : calculated;
         },
         key2id(key) {
-            return key
-                .toLowerCase()
-                .split(" ")
-                .join("_");
+            return key.toLowerCase().split(" ").join("_");
         },
         getEvalue(number) {
             return -Math.floor(Math.log10(number));
@@ -392,6 +436,9 @@ export default Vue.component("phenotype-signal-mixed", {
         pValueCss(value) {
             return Formatters.pValueCss(value, this.topAssociationsHighest);
         },
+        pValueFormatter(pValue) {
+            return Formatters.pValueFormatter(pValue);
+        },
         addPhenotype(phenotype) {
             this.$parent.$parent.pushCriterionPhenotype(phenotype);
             window.location.href = "#associations-table";
@@ -399,8 +446,8 @@ export default Vue.component("phenotype-signal-mixed", {
         setPhenotype(phenotype) {
             this.$parent.$parent.setCriterionPhenotypes([phenotype]);
             window.location.href = "#associations-table";
-        }
-    }
+        },
+    },
 });
 </script>
 
