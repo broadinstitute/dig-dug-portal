@@ -18,8 +18,8 @@
                     responsive="sm"
                     :items="tableData"
                     :fields="fields"
-                    :per-page="perPage"
-                    :tbody-tr-class="rowPickClass"
+                    :current-page="currentPage"
+				    :per-page="perPage"
                     >
                     <template #cell(varId)="data">
                         <a :href="`/variant.html?variant=${data.item.varId}`">{{
@@ -153,7 +153,7 @@ export default Vue.component("variant-phenotype-table", {
 				},
             ],
             hprecords: [],
-            perPage: 24,
+            perPage: 10,
             currentPage: 1,
         };
     },
@@ -192,6 +192,7 @@ export default Vue.component("variant-phenotype-table", {
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0]+":"+varinfo[1];
             this.variant = await query("variant-phenotype",searchquery,{},true);
+            console.log(JSON.stringify(this.variant))
             let hpdisplay = [];
             let j = 0;
 
