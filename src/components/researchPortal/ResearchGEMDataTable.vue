@@ -301,7 +301,7 @@ export default Vue.component("research-gem-data-table", {
 		},
 
 		rawData() {
-			var newTableFormat = { ...this.tableFormat };
+			let newTableFormat = Object.assign({}, this.tableFormat);
 			var updatedData = {};
 			var rawData = {};
 
@@ -698,48 +698,6 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			///Let's filter data by linked genes
-			console.log('this.pkgData["GLData"]', this.pkgData["GLData"]);
-			if (
-				!!this.pkgData["GLData"] &&
-				Object.keys(this.pkgData["GLData"]).length > 0
-			) {
-				console.log(this.pkgData["GLData"]);
-				// add "features" to table format if there isn't one. Then add "GENES"
-				newTopRows.push("Linked Genes");
-
-				if (!this.tableFormat["features"]) {
-					if (!newTableFormat["features"]) {
-						newTableFormat["features"] = [];
-					}
-				}
-				if (!newTableFormat["features"].includes("GENES")) {
-					newTableFormat["features"].push("GENES");
-					newTableFormat["GENES"] = [
-						"Region",
-						"Genes Region",
-						"Source",
-						"Assay",
-						"Biosample",
-					];
-				}
-
-				for (const [vKey, vValue] of Object.entries(updatedData)) {
-					vValue["Linked Genes"] = "genes";
-					vValue["Region"] = "genes";
-					vValue["Genes Region"] = "genes";
-					vValue["Source"] = "genes";
-					vValue["Assay"] = "genes";
-					vValue["Biosample"] = "genes";
-				}
-			} else {
-				const index = newTableFormat["features"].indexOf("GENES");
-
-				if (index > -1) {
-					newTableFormat["features"].splice(index, 1);
-				}
-			}
-
 			//usually data sorting happens with applySorting() function.
 			//but for credible sets case it happens here to avoide destroying original data
 			//if data is not sorted by PPA, sort is by original index
@@ -788,9 +746,6 @@ export default Vue.component("research-gem-data-table", {
 				updatedData[s["Variant ID"]] = s;
 			});
 
-			// replace global tableFormat with newTableFormat
-			this.newTableFormat = newTableFormat;
-
 			//convert data back to array if data is not compared
 			if (this.dataComparisonConfig == null) {
 				let uDataNoCompare = [];
@@ -819,66 +774,138 @@ export default Vue.component("research-gem-data-table", {
 				updatedData = updatedData;
 			}
 
-			return updatedData;
+			/** somehow newTableFormat doesn't reset  */
+			if (!!newTableFormat["features"]) {
+				const index = newTableFormat["features"].indexOf("GENES");
+
+				if (index > -1) {
+					newTableFormat["features"].splice(index, 1);
+				}
+			}
+
+			// replace global tableFormat with newTableFormat
+
+			this.newTableFormat = newTableFormat;
+
+			/// format data before adding linked genes
+
+			let formattedData = this.formattedData(updatedData);
+
+			///Let's filter data by linked genes
+			///This is a messy solution but easier to understand
+
+			if (
+				!!this.pkgData["GLData"] &&
+				Object.keys(this.pkgData["GLData"]).length > 0
+			) {
+				// add "features" to table format if there isn't one. Then add "GENES"
+				newTopRows.push("Linked Genes");
+
+				if (!this.tableFormat["features"]) {
+					if (!newTableFormat["features"]) {
+						newTableFormat["features"] = [];
+					}
+				}
+				if (!newTableFormat["features"].includes("GENES")) {
+					newTableFormat["features"].push("GENES");
+				}
+
+				if (!!newTableFormat["features"].includes("GENES")) {
+					newTableFormat["GENES"] = [
+						"Target Gene",
+						"Gene Region",
+						"Source",
+						"Assay",
+						"Biosample",
+					];
+				}
+
+				let tempData = {};
+
+				for (const [vKey, vValue] of Object.entries(updatedData)) {
+					let position = vValue["Position"];
+
+					let linkedGenes = "";
+					let featureArr = [];
+
+					for (const [tissue, region] of Object.entries(
+						this.pkgData["GLData"]
+					)) {
+						let overlappingOnes = region.filter(
+							(r) => r.start <= position && r.end >= position
+						);
+
+						if (overlappingOnes.length > 0) {
+							overlappingOnes.map((o) => {
+								linkedGenes += o["targetGene"] + ",";
+								let tempObj = {
+									"Target Gene": o["targetGene"],
+									"Gene Region":
+										o["targetGeneStart"] +
+										"-" +
+										o["targetGeneEnd"],
+									Source: o["source"],
+									Assay: o["assay"],
+									Biosample: o["biosample"],
+								};
+								featureArr.push(tempObj);
+							});
+						}
+
+						if (linkedGenes.length > 0) {
+							let linkedGenesArr = linkedGenes.split(",");
+							linkedGenesArr = [...new Set(linkedGenesArr)]
+								.filter((g) => g != "")
+								.sort()
+								.join(", ");
+
+							let tempObj = {};
+							tempObj["Linked Genes"] = linkedGenesArr;
+							tempObj["GENES"] = featureArr;
+
+							tempData[vKey] = tempObj;
+						}
+					}
+				}
+
+				let dataWGL = [];
+				for (const [vKey, vValue] of Object.entries(tempData)) {
+					formattedData.map((v) => {
+						if (v["Variant ID"] == vKey) {
+							v["Linked Genes"] = vValue["Linked Genes"];
+
+							if (!v["features"]) {
+								v["features"] = {};
+							}
+							v["features"]["GENES"] = vValue["GENES"].sort(
+								(a, b) =>
+									a["Target Gene"] > b["Target Gene"] ? 1 : -1
+							);
+							dataWGL.push(v);
+						}
+					});
+				}
+
+				formattedData = dataWGL;
+			} else {
+				if (!!newTableFormat["features"]) {
+					const index = newTableFormat["features"].indexOf("GENES");
+
+					if (index > -1) {
+						newTableFormat["features"].splice(index, 1);
+					}
+				}
+			}
+
+			return formattedData;
 		},
 
 		pagedData() {
-			console.log(
-				'this.newTableFormat["features"]',
-				this.newTableFormat["features"]
-			);
+			//console.log("formattedData", this.rawData);
+			//console.log("newTableFormat", this.newTableFormat);
+
 			if (!!this.perPageNumber && this.perPageNumber != null) {
-				let rawData = this.rawData;
-
-				let formattedData = [];
-
-				if (this.dataComparisonConfig == null) {
-					rawData.map((d) => {
-						let tempObj = {};
-
-						this.newTableFormat["top rows"].map((t) => {
-							tempObj[t] = d[t];
-						});
-
-						if (this.newTableFormat["features"] != undefined) {
-							tempObj["features"] = {};
-							this.newTableFormat["features"].map((f) => {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.newTableFormat[f].map((fItem) => {
-									fTempObj[fItem] = d[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
-							});
-						}
-						formattedData.push(tempObj);
-					});
-				} else {
-					for (const [key, value] of Object.entries(rawData)) {
-						let tempObj = {};
-
-						this.newTableFormat["top rows"].map((t) => {
-							tempObj[t] = value[t];
-						});
-
-						if (this.newTableFormat["features"] != undefined) {
-							tempObj["features"] = {};
-							this.newTableFormat["features"].map((f) => {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.newTableFormat[f].map((fItem) => {
-									fTempObj[fItem] = value[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
-							});
-						}
-						formattedData.push(tempObj);
-					}
-				}
+				let formattedData = this.rawData;
 
 				let paged = [];
 				let perPage =
@@ -895,6 +922,8 @@ export default Vue.component("research-gem-data-table", {
 				for (let i = startIndex; i < endIndex; i++) {
 					paged.push(formattedData[i]);
 				}
+
+				//console.log("paged", paged);
 
 				return paged;
 			} else {
@@ -945,6 +974,62 @@ export default Vue.component("research-gem-data-table", {
 	},
 	methods: {
 		...Formatters,
+		formattedData(DATA) {
+			let rawData = DATA;
+
+			let formattedData = [];
+
+			if (this.dataComparisonConfig == null) {
+				rawData.map((d) => {
+					let tempObj = {};
+
+					this.newTableFormat["top rows"].map((t) => {
+						tempObj[t] = d[t];
+					});
+
+					if (this.newTableFormat["features"] != undefined) {
+						tempObj["features"] = {};
+						this.newTableFormat["features"].map((f) => {
+							tempObj["features"][f] = [];
+
+							let fTempObj = {};
+							this.newTableFormat[f].map((fItem) => {
+								fTempObj[fItem] = d[fItem];
+							});
+
+							tempObj["features"][f].push(fTempObj);
+						});
+					}
+					formattedData.push(tempObj);
+				});
+			} else {
+				for (const [key, value] of Object.entries(rawData)) {
+					let tempObj = {};
+
+					this.newTableFormat["top rows"].map((t) => {
+						tempObj[t] = value[t];
+					});
+
+					if (this.newTableFormat["features"] != undefined) {
+						tempObj["features"] = {};
+						this.newTableFormat["features"].map((f) => {
+							tempObj["features"][f] = [];
+
+							let fTempObj = {};
+							//console.log("f", f);
+							this.newTableFormat[f].map((fItem) => {
+								fTempObj[fItem] = value[fItem];
+							});
+
+							tempObj["features"][f].push(fTempObj);
+						});
+					}
+					formattedData.push(tempObj);
+				}
+			}
+
+			return formattedData;
+		},
 		addStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
 			this.$store.dispatch("pkgDataSelected", {
@@ -952,7 +1037,7 @@ export default Vue.component("research-gem-data-table", {
 				id: value,
 				action: "add",
 			});
-			console.log("pkgDataSelected", this.pkgDataSelected);
+			//console.log("pkgDataSelected", this.pkgDataSelected);
 		},
 		removeStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
@@ -962,7 +1047,7 @@ export default Vue.component("research-gem-data-table", {
 				action: "remove",
 			});
 
-			console.log("pkgDataSelected", this.pkgDataSelected);
+			//console.log("pkgDataSelected", this.pkgDataSelected);
 		},
 		checkStared(ITEM) {
 			let selectedItems = this.pkgDataSelected

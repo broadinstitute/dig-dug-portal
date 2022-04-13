@@ -1,11 +1,11 @@
 <template>
 	<div class="mbm-plot-content row">
 		<div
-			class="col-md-12 annotations-plot-wrapper"
+			class="col-md-12 gene-links-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
-			<div class="col-md-9 anno-plot-wrapper">
-				<div id="annotationsUIWrapper">
+			<div class="col-md-9 gene-link-plot-wrapper">
+				<div id="geneLinksUIWrapper">
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -67,6 +67,16 @@
 							</template>
 						</div>
 					</div>
+				</div>
+				<div id="geneLinksPlotWrapper">
+					<div id="GLInfoBox" class="hidden"></div>
+
+					<canvas
+						id="geneLinksPlot"
+						@resize="onResize"
+						width=""
+						height=""
+					></canvas>
 				</div>
 			</div>
 			<div class="col-md-3 anno-plot-ui-wrapper reference-area"></div>
@@ -152,6 +162,62 @@ export default Vue.component("research-gene-links-plot", {
 				return tempArray;
 			}
 		},
+		renderData() {
+			console.log(this.trigger);
+			let renderObj = {};
+			for (const [tKey, tValue] of Object.entries(this.pkgData.GLData)) {
+				if (!renderObj[tKey]) {
+					renderObj[tKey] = {};
+				}
+
+				tValue.map((t) => {
+					if (!renderObj[tKey][t.targetGene]) {
+						renderObj[tKey][t.targetGene] = {};
+					}
+					if (!renderObj[tKey][t.targetGene][t.method]) {
+						renderObj[tKey][t.targetGene][t.method] = [];
+					}
+					renderObj[tKey][t.targetGene][t.method].push({
+						start: t.start,
+						end: t.end,
+					});
+				});
+			}
+
+			return renderObj;
+		},
+		viewingRegion() {
+			if (this.region == null) {
+				return null;
+			} else {
+				let returnObj = {};
+
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
+
+				let regionArr = this.region.split(":")[1].split("-");
+				let chr = this.region.split(":")[0];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+					returnObj["chr"] = chr;
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["chr"] = chr;
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
+
+				return returnObj;
+			}
+		},
 		searchingParameters() {
 			if (
 				this.searchingRegion != null &&
@@ -190,9 +256,239 @@ export default Vue.component("research-gene-links-plot", {
 			console.log("searchingParameters called");
 			this.getGlobalEnrichment(this.searchingRegion);
 		},
+		viewingRegion: {
+			handler: function (n, o) {
+				this.renderGLPlot();
+			},
+			deep: true,
+			immediate: true,
+		},
 	},
 	methods: {
 		...uiUtils,
+		onResize(e) {
+			uiUtils.showElement("geneLinksPlotWrapper");
+			this.renderGLPlot();
+		},
+		renderGLPlot() {
+			if (
+				!!this.pkgData.GLData &&
+				Object.keys(this.pkgData.GLData).length > 0
+			) {
+				let staredPositions = [];
+
+				if (!!this.renderConfig["star key"]) {
+					let plotData = !!Array.isArray(this.plotData)
+						? this.array2Object(
+								this.renderConfig["star key"]["key"],
+								this.plotData
+						  )
+						: this.plotData;
+
+					let starKey = this.renderConfig["star key"]["key"];
+					let starPosition =
+						this.renderConfig["star key"]["position"];
+
+					this.pkgDataSelected
+						.filter((s) => s.type == starKey)
+						.map((s) => s.id)
+						.map((s) => {
+							staredPositions.push(plotData[s][starPosition]);
+						});
+				}
+
+				let tempHeight = 0;
+				let tissueTitleH = this.spaceBy * 2;
+				let btwnTissues = this.spaceBy * 7;
+				let perMethod = this.spaceBy;
+				let btwnGenes = this.spaceBy;
+				let topMargin = this.spaceBy * 2;
+				let bottomMargin = this.spaceBy * 2;
+				let regionStart = this.viewingRegion.start;
+				let regionEnd = this.viewingRegion.end;
+
+				for (const [tKey, tValue] of Object.entries(this.renderData)) {
+					tempHeight += tissueTitleH;
+					for (const [gKey, gValue] of Object.entries(tValue)) {
+						tempHeight +=
+							btwnGenes + Object.keys(gValue).length * perMethod;
+					}
+					tempHeight += btwnTissues;
+				}
+
+				let wrapper = document.querySelector("#geneLinksPlotWrapper");
+				let canvas = document.querySelector("#geneLinksPlot");
+
+				if (!!canvas && !!wrapper) {
+					let canvasWidth = document.querySelector(
+						"#geneLinksPlotWrapper"
+					).clientWidth;
+
+					let canvasHeight = tempHeight + topMargin + bottomMargin;
+
+					let plotWidth =
+						canvasWidth - this.plotMargin.leftMargin * 2;
+
+					let plotHeight = tempHeight;
+					let bump = 5.5;
+
+					let xPerPixel = plotWidth / (regionEnd - regionStart);
+
+					let c, ctx;
+					c = document.querySelector("#geneLinksPlot");
+					c.setAttribute("width", canvasWidth);
+					c.setAttribute("height", canvasHeight);
+					ctx = c.getContext("2d");
+
+					ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+					let renderHeight = tissueTitleH;
+
+					for (const [tKey, tValue] of Object.entries(
+						this.renderData
+					)) {
+						ctx.font = "14px Arial";
+						ctx.textAlign = "left";
+						ctx.fillStyle = "#00000075";
+						ctx.fillText(tKey, bump, renderHeight);
+
+						let blockHeight = 0;
+						let yAxisTop = renderHeight + perMethod;
+						renderHeight += tissueTitleH;
+						for (const [gKey, gValue] of Object.entries(tValue)) {
+							ctx.font = "12px Arial";
+							ctx.textAlign = "left";
+							ctx.fillStyle = "#000000";
+							ctx.fillText(gKey, bump, renderHeight + perMethod);
+
+							for (const [mKey, mValue] of Object.entries(
+								gValue
+							)) {
+								//renderHeight -= tissueTitleH;
+
+								mValue.map((m) => {
+									if (
+										m.start <= regionEnd &&
+										m.end >= regionStart
+									) {
+										let xPosStart =
+											(m.start - regionStart) *
+												xPerPixel +
+											this.plotMargin.leftMargin;
+
+										xPosStart =
+											xPosStart <=
+											this.plotMargin.leftMargin
+												? this.plotMargin.leftMargin
+												: xPosStart;
+										let xPosEnd =
+											(m.end - regionStart) * xPerPixel +
+											this.plotMargin.leftMargin;
+
+										xPosEnd =
+											xPosEnd >
+											this.plotMargin.leftMargin +
+												plotWidth
+												? this.plotMargin.leftMargin +
+												  plotWidth
+												: xPosEnd;
+
+										let xPosWidth = xPosEnd - xPosStart;
+
+										ctx.fillStyle = "#666666";
+
+										ctx.fillRect(
+											xPosStart,
+											renderHeight,
+											xPosWidth,
+											perMethod - 1
+										);
+										/*let xPosBtn =
+											xPosStart +
+											"_" +
+											(xPosStart + xPosWidth);
+										this.annoPosData[yPosBtn].regions[
+											xPosBtn
+										] = {
+											start: p.start,
+											end: p.end,
+										};*/
+									}
+								});
+
+								renderHeight += perMethod;
+							}
+
+							blockHeight +=
+								btwnGenes +
+								Object.keys(gValue).length * perMethod;
+							renderHeight += btwnGenes;
+						}
+
+						this.renderGLAxis(
+							ctx,
+							plotWidth,
+							blockHeight,
+							Number(regionEnd),
+							Number(regionStart),
+							yAxisTop,
+							bump
+						);
+
+						renderHeight += btwnTissues;
+					}
+				}
+
+				console.log("renderObj", this.renderData);
+			}
+		},
+		renderGLAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#999999";
+			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+			// render y axis
+			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos);
+			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
+			CTX.stroke();
+
+			// render recombination Rate y axis
+			let recomXpos =
+				Math.round(this.plotMargin.leftMargin + WIDTH + bump) + 0.5;
+
+			CTX.moveTo(recomXpos, yPos);
+			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
+			CTX.stroke();
+
+			//render x axis
+			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
+			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
+			CTX.stroke();
+
+			// X ticks
+
+			let xStep = Math.ceil((xMax - xMin) / 5);
+			let xTickDistance = WIDTH / 5;
+
+			for (let i = 0; i < 6; i++) {
+				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
+				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				CTX.moveTo(adjTickXPos, yPos + HEIGHT + bump);
+				CTX.lineTo(adjTickXPos, yPos + HEIGHT + bump * 2);
+				CTX.stroke();
+
+				CTX.textAlign = "center";
+				let positionLabel = i < 5 ? xMin + i * xStep : xMax;
+				CTX.font = "12px Arial";
+				CTX.fillStyle = "#999999";
+				CTX.fillText(
+					positionLabel,
+					adjTickXPos,
+					yPos + HEIGHT + bump * 4
+				);
+			}
+		},
 		removeGLTissue(TISSUE) {
 			//delete this.GLData[TISSUE];
 			delete this.pkgData["GLData"][TISSUE];
@@ -205,7 +501,9 @@ export default Vue.component("research-gene-links-plot", {
 				id: TISSUE,
 				action: "remove",
 			});
+
 			this.trigger--;
+			renderGLPlot();
 		},
 		getTissueLabel(TISSUE) {
 			return TISSUE.tissue + " (" + TISSUE.phenotypes.join() + ")";
@@ -251,6 +549,7 @@ export default Vue.component("research-gene-links-plot", {
 					}
 
 					this.trigger++;
+					this.renderGLPlot();
 				}
 			}
 		},
@@ -331,10 +630,10 @@ $(function () {});
 	padding: 0 !important;
 }
 
-.annotations-plot-wrapper {
+.gene-links-plot-wrapper {
 	padding: 0 !important;
 }
-.anno-plot-wrapper,
+.gene-link-plot-wrapper,
 .anno-plot-ui-wrapper {
 	display: inline-block;
 	vertical-align: top;

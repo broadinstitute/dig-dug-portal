@@ -110,7 +110,7 @@
 			></research-annotations-plot>
 
 			<div
-				v-if="pkgConfig.viewers.includes('gene links plot') == true"
+				v-if="pkgConfig.viewers.includes('gene-links plot') == true"
 				class="section-opener"
 				id="geneLinksSectionOpener"
 				@click="
@@ -128,13 +128,14 @@
 			<research-gene-links-plot
 				id="geneLinksSection"
 				class="svg-wrapper hidden-svg"
-				v-if="pkgConfig.viewers.includes('gene links plot') == true"
+				v-if="pkgConfig.viewers.includes('gene-links plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
-				:renderConfig="pkgConfig['gene links viewer']"
+				:renderConfig="pkgConfig['gene-links viewer']"
 				:dataComparison="this.$store.state.dataComparison"
+				:plotData="$store.state.filteredData"
 				:pkgData="pkgData"
 				:pkgDataSelected="pkgDataSelected"
 				:regionZoom="regionZoom"
