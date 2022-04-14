@@ -79,7 +79,52 @@
 					></canvas>
 				</div>
 			</div>
-			<div class="col-md-3 anno-plot-ui-wrapper reference-area"></div>
+			<div class="col-md-3 anno-plot-ui-wrapper reference-area">
+				<div
+					v-if="
+						!!this.pkgData.GLData &&
+						Object.keys(this.pkgData.GLData).length > 0
+					"
+				>
+					<h6><strong>Methods</strong></h6>
+
+					<div
+						v-for="(m, mIndex) in methodsArr"
+						:key="m"
+						style="display: inline-block"
+					>
+						<label
+							:style="
+								'padding-right: 5px; margin-right: 5px; border-bottom: solid 3px ' +
+								methodsColors[mIndex] +
+								';'
+							"
+							><input
+								type="checkbox"
+								:class="m.replace(/ /g, '_')"
+								:value="m"
+								checked
+							/>{{ " " + m + " " }}
+						</label>
+					</div>
+
+					<h6><strong>Genes</strong></h6>
+					<div
+						v-for="g in genesArr"
+						:key="g"
+						style="display: inline-block"
+					>
+						<label style="padding-right: 10px"
+							><input
+								type="checkbox"
+								:class="g.replace(/ /g, '_')"
+								:value="g"
+								checked
+							/>{{ " " + g + " " }}
+						</label>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -102,7 +147,7 @@ export default Vue.component("research-gene-links-plot", {
 		"phenotype",
 		"renderConfig",
 		"plotMargin",
-		"compareGroupColors",
+		"methodsColors",
 		"dataComparison",
 		"plotData",
 		"pkgData",
@@ -112,7 +157,7 @@ export default Vue.component("research-gene-links-plot", {
 	],
 	data() {
 		return {
-			spaceBy: 7,
+			spaceBy: 10,
 			GEData: {},
 			trigger: 0,
 		};
@@ -185,6 +230,32 @@ export default Vue.component("research-gene-links-plot", {
 			}
 
 			return renderObj;
+		},
+		methodsArr() {
+			let methodIndex = [];
+
+			for (const [tKey, tValue] of Object.entries(this.renderData)) {
+				for (const [gKey, gValue] of Object.entries(tValue)) {
+					for (const [mKey, mValue] of Object.entries(gValue)) {
+						methodIndex.push(mKey);
+					}
+				}
+			}
+			methodIndex = [...new Set(methodIndex)].sort();
+
+			return methodIndex;
+		},
+		genesArr() {
+			let genes = [];
+
+			for (const [tKey, tValue] of Object.entries(this.renderData)) {
+				for (const [gKey, gValue] of Object.entries(tValue)) {
+					genes.push(gKey);
+				}
+			}
+			genes = [...new Set(genes)].sort();
+
+			return genes;
 		},
 		viewingRegion() {
 			if (this.region == null) {
@@ -299,9 +370,9 @@ export default Vue.component("research-gene-links-plot", {
 
 				let tempHeight = 0;
 				let tissueTitleH = this.spaceBy * 2;
-				let btwnTissues = this.spaceBy * 7;
+				let btwnTissues = this.spaceBy * 5;
 				let perMethod = this.spaceBy;
-				let btwnGenes = this.spaceBy;
+				let btwnGenes = this.spaceBy * 0;
 				let topMargin = this.spaceBy * 2;
 				let bottomMargin = this.spaceBy * 2;
 				let regionStart = this.viewingRegion.start;
@@ -315,6 +386,7 @@ export default Vue.component("research-gene-links-plot", {
 					}
 					tempHeight += btwnTissues;
 				}
+				tempHeight -= btwnTissues;
 
 				let wrapper = document.querySelector("#geneLinksPlotWrapper");
 				let canvas = document.querySelector("#geneLinksPlot");
@@ -354,17 +426,35 @@ export default Vue.component("research-gene-links-plot", {
 
 						let blockHeight = 0;
 						let yAxisTop = renderHeight + perMethod;
-						renderHeight += tissueTitleH;
+						renderHeight = yAxisTop;
+						let geneIndex = 0;
+
 						for (const [gKey, gValue] of Object.entries(tValue)) {
 							ctx.font = "12px Arial";
 							ctx.textAlign = "left";
 							ctx.fillStyle = "#000000";
 							ctx.fillText(gKey, bump, renderHeight + perMethod);
 
+							if (geneIndex % 2 == 0) {
+								ctx.fillStyle = "#00000010";
+								ctx.fillRect(
+									this.plotMargin.leftMargin,
+									renderHeight,
+									plotWidth,
+									perMethod * Object.keys(gValue).length
+								);
+							}
+
 							for (const [mKey, mValue] of Object.entries(
 								gValue
 							)) {
 								//renderHeight -= tissueTitleH;
+
+								console.log("this.methodsArr", this.methodsArr);
+
+								let colorIndex = this.methodsArr.indexOf(mKey);
+								let methodColor =
+									this.methodsColors[colorIndex];
 
 								mValue.map((m) => {
 									if (
@@ -393,9 +483,12 @@ export default Vue.component("research-gene-links-plot", {
 												  plotWidth
 												: xPosEnd;
 
-										let xPosWidth = xPosEnd - xPosStart;
+										let xPosWidth =
+											xPosEnd - xPosStart < 1
+												? 1
+												: xPosEnd - xPosStart;
 
-										ctx.fillStyle = "#666666";
+										ctx.fillStyle = methodColor;
 
 										ctx.fillRect(
 											xPosStart,
@@ -423,6 +516,7 @@ export default Vue.component("research-gene-links-plot", {
 								btwnGenes +
 								Object.keys(gValue).length * perMethod;
 							renderHeight += btwnGenes;
+							geneIndex++;
 						}
 
 						this.renderGLAxis(
@@ -438,8 +532,16 @@ export default Vue.component("research-gene-links-plot", {
 						renderHeight += btwnTissues;
 					}
 				}
+			} else {
+				if (!!document.querySelector("#geneLinksPlot")) {
+					let c, ctx;
+					c = document.querySelector("#geneLinksPlot");
+					c.setAttribute("width", 1);
+					c.setAttribute("height", 1);
+					ctx = c.getContext("2d");
 
-				console.log("renderObj", this.renderData);
+					ctx.clearRect(0, 0, 1, 1);
+				}
 			}
 		},
 		renderGLAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
@@ -503,7 +605,7 @@ export default Vue.component("research-gene-links-plot", {
 			});
 
 			this.trigger--;
-			renderGLPlot();
+			this.renderGLPlot();
 		},
 		getTissueLabel(TISSUE) {
 			return TISSUE.tissue + " (" + TISSUE.phenotypes.join() + ")";

@@ -812,10 +812,13 @@ export default Vue.component("research-gem-data-table", {
 
 				if (!!newTableFormat["features"].includes("GENES")) {
 					newTableFormat["GENES"] = [
+						"Region",
 						"Target Gene",
-						"Gene Region",
+						"Target Region in Gene",
+						"Method",
 						"Source",
 						"Assay",
+						"Tissue",
 						"Biosample",
 					];
 				}
@@ -839,13 +842,16 @@ export default Vue.component("research-gem-data-table", {
 							overlappingOnes.map((o) => {
 								linkedGenes += o["targetGene"] + ",";
 								let tempObj = {
+									Region: o["start"] + "-" + o["end"],
 									"Target Gene": o["targetGene"],
-									"Gene Region":
+									"Target Region in Gene":
 										o["targetGeneStart"] +
 										"-" +
 										o["targetGeneEnd"],
+									Method: o["method"],
 									Source: o["source"],
 									Assay: o["assay"],
+									Tissue: o["tissue"],
 									Biosample: o["biosample"],
 								};
 								featureArr.push(tempObj);

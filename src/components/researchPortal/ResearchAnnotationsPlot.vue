@@ -793,6 +793,7 @@ export default Vue.component("research-annotations-plot", {
 			}
 		},
 		renderTissuesTracks() {
+			/// this method is not used but kept in case
 			let canvas = document.querySelector("#tissuesPlot");
 			let wrapper = document.querySelector("#tissuesPlotWrapper");
 			if (!!canvas && !!wrapper) {
@@ -1036,7 +1037,11 @@ export default Vue.component("research-annotations-plot", {
 											  plotWidth
 											: xPosEnd;
 
-									let xPosWidth = xPosEnd - xPosStart;
+									//let xPosWidth = xPosEnd - xPosStart;
+									let xPosWidth =
+										xPosEnd - xPosStart < 1
+											? 1
+											: xPosEnd - xPosStart;
 									ctx.fillRect(
 										xPosStart,
 										renderHeight,
@@ -2006,7 +2011,12 @@ export default Vue.component("research-annotations-plot", {
 											  plotWidth
 											: xPosEnd;
 
-									let xPosWidth = xPosEnd - xPosStart;
+									//let xPosWidth = xPosEnd - xPosStart;
+									let xPosWidth =
+										xPosEnd - xPosStart < 1
+											? 1
+											: xPosEnd - xPosStart;
+
 									if (selectedTissues.indexOf(tissue) > -1) {
 										ctx.fillStyle = "#FF0000";
 									} else {

@@ -132,7 +132,7 @@
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
 				:plotMargin="plotMargin"
-				:compareGroupColors="colors.bold"
+				:methodsColors="colors.bold"
 				:renderConfig="pkgConfig['gene-links viewer']"
 				:dataComparison="this.$store.state.dataComparison"
 				:plotData="$store.state.filteredData"
