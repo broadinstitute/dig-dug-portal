@@ -103,7 +103,13 @@
 								type="checkbox"
 								:class="m.replace(/ /g, '_')"
 								:value="m"
-								checked
+								@click="addRemoveParameter(m, 'Method')"
+								:checked="
+									!pkgDataSelected
+										.filter((s) => s.type == 'Method')
+										.map((s) => s.id)
+										.includes(m)
+								"
 							/>{{ " " + m + " " }}
 						</label>
 					</div>
@@ -119,7 +125,13 @@
 								type="checkbox"
 								:class="g.replace(/ /g, '_')"
 								:value="g"
-								checked
+								@click="addRemoveParameter(g, 'GL-Gene')"
+								:checked="
+									!pkgDataSelected
+										.filter((s) => s.type == 'GL-Gene')
+										.map((s) => s.id)
+										.includes(g)
+								"
 							/>{{ " " + g + " " }}
 						</label>
 					</div>
@@ -327,6 +339,13 @@ export default Vue.component("research-gene-links-plot", {
 			console.log("searchingParameters called");
 			this.getGlobalEnrichment(this.searchingRegion);
 		},
+		pkgDataSelected: {
+			handler: function (n, o) {
+				this.renderGLPlot();
+			},
+			deep: true,
+			immediate: true,
+		},
 		viewingRegion: {
 			handler: function (n, o) {
 				this.renderGLPlot();
@@ -337,9 +356,60 @@ export default Vue.component("research-gene-links-plot", {
 	},
 	methods: {
 		...uiUtils,
+		addRemoveParameter(ID, TYPE) {
+			if (
+				this.pkgDataSelected.filter((p) => p.id == ID && p.type == TYPE)
+					.length > 0
+			) {
+				console.log("remove", ID, TYPE);
+				this.$store.dispatch("pkgDataSelected", {
+					type: TYPE,
+					id: ID,
+					action: "remove",
+				});
+				this.trigger--;
+				console.log("this.pkgDataSelected", this.pkgDataSelected);
+			} else {
+				console.log("add", ID, TYPE);
+				this.$store.dispatch("pkgDataSelected", {
+					type: TYPE,
+					id: ID,
+					action: "add",
+				});
+				this.trigger++;
+				console.log("this.pkgDataSelected", this.pkgDataSelected);
+			}
+
+			this.renderGLPlot();
+		},
 		onResize(e) {
 			uiUtils.showElement("geneLinksPlotWrapper");
 			this.renderGLPlot();
+		},
+		renderStaredPositions(
+			CTX,
+			WIDTH,
+			HEIGHT,
+			STARED,
+			XPERPIXEL,
+			xMax,
+			xMin,
+			yPos,
+			bump
+		) {
+			//console.log("called");
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#FFAA00";
+			CTX.setLineDash([3, 3]); // cancel dashed line incase dashed lines rendered some where
+
+			// render dased lines
+			STARED.map((s) => {
+				let xPos = (s - xMin) * XPERPIXEL + this.plotMargin.leftMargin;
+				CTX.moveTo(xPos, yPos - bump);
+				CTX.lineTo(xPos, yPos + HEIGHT + bump);
+				CTX.stroke();
+			});
 		},
 		renderGLPlot() {
 			if (
@@ -450,7 +520,7 @@ export default Vue.component("research-gene-links-plot", {
 							)) {
 								//renderHeight -= tissueTitleH;
 
-								console.log("this.methodsArr", this.methodsArr);
+								//console.log("this.methodsArr", this.methodsArr);
 
 								let colorIndex = this.methodsArr.indexOf(mKey);
 								let methodColor =
@@ -517,6 +587,22 @@ export default Vue.component("research-gene-links-plot", {
 								Object.keys(gValue).length * perMethod;
 							renderHeight += btwnGenes;
 							geneIndex++;
+						}
+						if (
+							!!this.renderConfig["star key"] &&
+							staredPositions.length > 0
+						) {
+							this.renderStaredPositions(
+								ctx,
+								plotWidth,
+								blockHeight,
+								staredPositions,
+								xPerPixel,
+								Number(regionEnd),
+								Number(regionStart),
+								yAxisTop,
+								bump
+							);
 						}
 
 						this.renderGLAxis(
