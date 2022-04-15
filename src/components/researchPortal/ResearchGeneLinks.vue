@@ -429,15 +429,15 @@ export default Vue.component("research-gene-links-plot", {
 							if (x >= hLoc[0] && x <= hLoc[1]) {
 								rValue.map((r) => {
 									infoContent +=
-										"<br /><strong>Biosample</strong>: " +
+										"<br /><strong>Biosample</strong> <br />" +
 										r.biosample;
 									infoContent +=
-										"<br /><strong>Regulatory element</strong>: " +
+										"<br /><strong>Regulatory element</strong> <br />" +
 										r.start +
 										"-" +
 										r.end;
 									infoContent +=
-										"<br /><strong>Promoter</strong>: " +
+										"<br /><strong>Promoter</strong><br /> " +
 										r.targetGeneStart +
 										"-" +
 										r.targetGeneEnd +
