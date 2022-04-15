@@ -825,6 +825,19 @@ export default Vue.component("research-gem-data-table", {
 
 				let tempData = {};
 
+				let removedGenes = this.$store.state.pkgDataSelected
+					.filter((s) => s.type == "GL-Gene")
+					.map((s) => s.id);
+
+				let removedMethods = this.$store.state.pkgDataSelected
+					.filter((s) => s.type == "GL-Method")
+					.map((s) => s.id);
+
+				/*if (
+						removedGenes.indexOf(t.targetGene) == -1 &&
+						removedMethods.indexOf(t.method) == -1
+					) {*/
+
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let position = vValue["Position"];
 
@@ -835,7 +848,11 @@ export default Vue.component("research-gem-data-table", {
 						this.pkgData["GLData"]
 					)) {
 						let overlappingOnes = region.filter(
-							(r) => r.start <= position && r.end >= position
+							(r) =>
+								r.start <= position &&
+								r.end >= position &&
+								removedGenes.indexOf(r.targetGene) == -1 &&
+								removedMethods.indexOf(r.method) == -1
 						);
 
 						if (overlappingOnes.length > 0) {

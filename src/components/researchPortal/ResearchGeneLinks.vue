@@ -103,10 +103,10 @@
 								type="checkbox"
 								:class="m.replace(/ /g, '_')"
 								:value="m"
-								@click="addRemoveParameter(m, 'Method')"
+								@click="addRemoveParameter(m, 'GL-Method')"
 								:checked="
 									!pkgDataSelected
-										.filter((s) => s.type == 'Method')
+										.filter((s) => s.type == 'GL-Method')
 										.map((s) => s.id)
 										.includes(m)
 								"
@@ -228,16 +228,30 @@ export default Vue.component("research-gene-links-plot", {
 				}
 
 				tValue.map((t) => {
-					if (!renderObj[tKey][t.targetGene]) {
-						renderObj[tKey][t.targetGene] = {};
+					let removedGenes = this.$store.state.pkgDataSelected
+						.filter((s) => s.type == "GL-Gene")
+						.map((s) => s.id);
+
+					let removedMethods = this.$store.state.pkgDataSelected
+						.filter((s) => s.type == "GL-Method")
+						.map((s) => s.id);
+
+					if (
+						removedGenes.indexOf(t.targetGene) == -1 &&
+						removedMethods.indexOf(t.method) == -1
+					) {
+						if (!renderObj[tKey][t.targetGene]) {
+							renderObj[tKey][t.targetGene] = {};
+						}
+
+						if (!renderObj[tKey][t.targetGene][t.method]) {
+							renderObj[tKey][t.targetGene][t.method] = [];
+						}
+						renderObj[tKey][t.targetGene][t.method].push({
+							start: t.start,
+							end: t.end,
+						});
 					}
-					if (!renderObj[tKey][t.targetGene][t.method]) {
-						renderObj[tKey][t.targetGene][t.method] = [];
-					}
-					renderObj[tKey][t.targetGene][t.method].push({
-						start: t.start,
-						end: t.end,
-					});
 				});
 			}
 
@@ -246,26 +260,39 @@ export default Vue.component("research-gene-links-plot", {
 		methodsArr() {
 			let methodIndex = [];
 
-			for (const [tKey, tValue] of Object.entries(this.renderData)) {
-				for (const [gKey, gValue] of Object.entries(tValue)) {
-					for (const [mKey, mValue] of Object.entries(gValue)) {
-						methodIndex.push(mKey);
-					}
+			if (!!this.pkgData.GLData) {
+				for (const [tKey, tValue] of Object.entries(
+					this.pkgData.GLData
+				)) {
+					tValue.map((t) => {
+						methodIndex.push(t.method);
+					});
+					/*for (const [gKey, gValue] of Object.entries(tValue)) {
+						for (const [mKey, mValue] of Object.entries(gValue)) {
+							methodIndex.push(mKey);
+						}
+					}*/
 				}
+				methodIndex = [...new Set(methodIndex)].sort();
 			}
-			methodIndex = [...new Set(methodIndex)].sort();
 
 			return methodIndex;
 		},
 		genesArr() {
 			let genes = [];
-
-			for (const [tKey, tValue] of Object.entries(this.renderData)) {
-				for (const [gKey, gValue] of Object.entries(tValue)) {
-					genes.push(gKey);
+			if (!!this.pkgData.GLData) {
+				for (const [tKey, tValue] of Object.entries(
+					this.pkgData.GLData
+				)) {
+					tValue.map((t) => {
+						genes.push(t.targetGene);
+					});
+					/*for (const [gKey, gValue] of Object.entries(tValue)) {
+						genes.push(gKey);
+					}*/
 				}
+				genes = [...new Set(genes)].sort();
 			}
-			genes = [...new Set(genes)].sort();
 
 			return genes;
 		},
@@ -361,24 +388,20 @@ export default Vue.component("research-gene-links-plot", {
 				this.pkgDataSelected.filter((p) => p.id == ID && p.type == TYPE)
 					.length > 0
 			) {
-				console.log("remove", ID, TYPE);
 				this.$store.dispatch("pkgDataSelected", {
 					type: TYPE,
 					id: ID,
 					action: "remove",
 				});
-				this.trigger--;
-				console.log("this.pkgDataSelected", this.pkgDataSelected);
 			} else {
-				console.log("add", ID, TYPE);
 				this.$store.dispatch("pkgDataSelected", {
 					type: TYPE,
 					id: ID,
 					action: "add",
 				});
-				this.trigger++;
-				console.log("this.pkgDataSelected", this.pkgDataSelected);
 			}
+
+			this.trigger++;
 
 			this.renderGLPlot();
 		},
