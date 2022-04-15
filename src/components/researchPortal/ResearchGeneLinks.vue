@@ -55,9 +55,6 @@
 								<span
 									:key="tissue"
 									:class="'btn GL-search-bubble '"
-									style="
-										'background-color:#aaaaaa'
-									"
 									v-html="
 										tissue +
 										'&nbsp;<span class=\'remove\'>X</span>'
@@ -74,12 +71,14 @@
 					<canvas
 						id="geneLinksPlot"
 						@resize="onResize"
+						@mousemove="checkPosition($event)"
+						@mouseout="onMouseOut()"
 						width=""
 						height=""
 					></canvas>
 				</div>
 			</div>
-			<div class="col-md-3 anno-plot-ui-wrapper reference-area">
+			<div class="col-md-3 GL-plot-ui-wrapper reference-area">
 				<div
 					v-if="
 						!!this.pkgData.GLData &&
@@ -172,6 +171,7 @@ export default Vue.component("research-gene-links-plot", {
 			spaceBy: 10,
 			GEData: {},
 			trigger: 0,
+			GLPosData: {},
 		};
 	},
 	modules: {
@@ -250,6 +250,11 @@ export default Vue.component("research-gene-links-plot", {
 						renderObj[tKey][t.targetGene][t.method].push({
 							start: t.start,
 							end: t.end,
+							method: t.method,
+							biosample: t.biosample,
+							targetGene: t.targetGene,
+							targetGeneStart: t.targetGeneStart,
+							targetGeneEnd: t.targetGeneEnd,
 						});
 					}
 				});
@@ -383,6 +388,77 @@ export default Vue.component("research-gene-links-plot", {
 	},
 	methods: {
 		...uiUtils,
+		onMouseOut() {
+			uiUtils.removeOnMouseOut("GLInfoBox");
+		},
+		checkPosition(event) {
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.ceil(e.clientX - rect.left);
+			let rawX = e.clientX - rect.left;
+			let rawY = e.clientY - rect.top;
+
+			let y = Math.ceil(e.clientY - rect.top);
+			/*Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy) - 1;*/
+
+			const infoBox = document.querySelector("#GLInfoBox");
+			let infoContent = "";
+
+			if (
+				x >= this.plotMargin.leftMargin &&
+				x <= rect.width - this.plotMargin.leftMargin
+			) {
+				for (const [vKey, vValue] of Object.entries(this.GLPosData)) {
+					let vLoc = vKey.split("-");
+
+					if (y >= vLoc[0] && y <= vLoc[1]) {
+						//infoContent += vKey;
+						infoContent +=
+							"<strong>" +
+							vValue.targetGene +
+							" / " +
+							vValue.method +
+							"</strong>";
+						//console.log(infoContent);
+
+						for (const [rKey, rValue] of Object.entries(
+							this.GLPosData[vKey].region
+						)) {
+							let hLoc = rKey.split("-");
+
+							if (x >= hLoc[0] && x <= hLoc[1]) {
+								rValue.map((r) => {
+									infoContent +=
+										"<br /><strong>Biosample</strong>: " +
+										r.biosample;
+									infoContent +=
+										"<br /><strong>Regulatory element</strong>: " +
+										r.start +
+										"-" +
+										r.end;
+									infoContent +=
+										"<br /><strong>Promoter</strong>: " +
+										r.targetGeneStart +
+										"-" +
+										r.targetGeneEnd +
+										"<br />";
+								});
+							}
+						}
+					}
+				}
+			}
+
+			if (infoContent == "") {
+				infoBox.innerHTML = "";
+				infoBox.setAttribute("class", "hidden");
+			} else {
+				infoBox.innerHTML = infoContent;
+				infoBox.setAttribute("class", "");
+				infoBox.style.left = rawX + 25 + "px";
+				infoBox.style.top = rawY + this.spaceBy + "px";
+			}
+		},
 		addRemoveParameter(ID, TYPE) {
 			if (
 				this.pkgDataSelected.filter((p) => p.id == ID && p.type == TYPE)
@@ -440,6 +516,7 @@ export default Vue.component("research-gene-links-plot", {
 				Object.keys(this.pkgData.GLData).length > 0
 			) {
 				let staredPositions = [];
+				this.GLPosData = {};
 
 				if (!!this.renderConfig["star key"]) {
 					let plotData = !!Array.isArray(this.plotData)
@@ -509,9 +586,14 @@ export default Vue.component("research-gene-links-plot", {
 
 					let renderHeight = tissueTitleH;
 
-					for (const [tKey, tValue] of Object.entries(
+					let tissues = Object.keys(this.renderData).sort();
+
+					/*for (const [tKey, tValue] of Object.entries(
 						this.renderData
-					)) {
+					)) {*/
+					tissues.map((tKey) => {
+						let tValue = this.renderData[tKey];
+
 						ctx.font = "14px Arial";
 						ctx.textAlign = "left";
 						ctx.fillStyle = "#00000075";
@@ -522,95 +604,148 @@ export default Vue.component("research-gene-links-plot", {
 						renderHeight = yAxisTop;
 						let geneIndex = 0;
 
-						for (const [gKey, gValue] of Object.entries(tValue)) {
-							ctx.font = "12px Arial";
-							ctx.textAlign = "left";
-							ctx.fillStyle = "#000000";
-							ctx.fillText(gKey, bump, renderHeight + perMethod);
-
-							if (geneIndex % 2 == 0) {
-								ctx.fillStyle = "#00000010";
-								ctx.fillRect(
-									this.plotMargin.leftMargin,
-									renderHeight,
-									plotWidth,
-									perMethod * Object.keys(gValue).length
+						//for (const [gKey, gValue] of Object.entries(tValue)) {
+						this.genesArr.map((gKey) => {
+							if (!!tValue[gKey]) {
+								let gValue = tValue[gKey];
+								ctx.font = "12px Arial";
+								ctx.textAlign = "left";
+								ctx.fillStyle = "#000000";
+								ctx.fillText(
+									gKey,
+									bump,
+									renderHeight + perMethod
 								);
-							}
 
-							for (const [mKey, mValue] of Object.entries(
-								gValue
-							)) {
-								//renderHeight -= tissueTitleH;
+								if (geneIndex % 2 == 0) {
+									ctx.fillStyle = "#00000010";
+									ctx.fillRect(
+										this.plotMargin.leftMargin,
+										renderHeight,
+										plotWidth,
+										perMethod * Object.keys(gValue).length
+									);
+								}
 
-								//console.log("this.methodsArr", this.methodsArr);
+								/*for (const [mKey, mValue] of Object.entries(
+									gValue
+								)) {*/
+								this.methodsArr.map((mKey) => {
+									if (!!gValue[mKey]) {
+										let mValue = gValue[mKey];
+										let colorIndex =
+											this.methodsArr.indexOf(mKey);
+										let methodColor =
+											this.methodsColors[colorIndex];
 
-								let colorIndex = this.methodsArr.indexOf(mKey);
-								let methodColor =
-									this.methodsColors[colorIndex];
+										mValue.map((m) => {
+											/// add vertical locations of each method tracks to GLPosdata to check back on hover
+											let yPosBtn =
+												Math.ceil(renderHeight) +
+												"-" +
+												Math.ceil(
+													renderHeight + perMethod
+												);
 
-								mValue.map((m) => {
-									if (
-										m.start <= regionEnd &&
-										m.end >= regionStart
-									) {
-										let xPosStart =
-											(m.start - regionStart) *
-												xPerPixel +
-											this.plotMargin.leftMargin;
+											if (!this.GLPosData[yPosBtn]) {
+												this.GLPosData[yPosBtn] = {
+													region: {},
+												};
+											}
 
-										xPosStart =
-											xPosStart <=
-											this.plotMargin.leftMargin
-												? this.plotMargin.leftMargin
-												: xPosStart;
-										let xPosEnd =
-											(m.end - regionStart) * xPerPixel +
-											this.plotMargin.leftMargin;
+											this.GLPosData[yPosBtn][
+												"targetGene"
+											] = m.targetGene;
+											this.GLPosData[yPosBtn]["method"] =
+												m.method;
 
-										xPosEnd =
-											xPosEnd >
-											this.plotMargin.leftMargin +
-												plotWidth
-												? this.plotMargin.leftMargin +
-												  plotWidth
-												: xPosEnd;
+											///
 
-										let xPosWidth =
-											xPosEnd - xPosStart < 1
-												? 1
-												: xPosEnd - xPosStart;
+											if (
+												m.start <= regionEnd &&
+												m.end >= regionStart
+											) {
+												let xPosStart =
+													(m.start - regionStart) *
+														xPerPixel +
+													this.plotMargin.leftMargin;
 
-										ctx.fillStyle = methodColor;
+												xPosStart =
+													xPosStart <=
+													this.plotMargin.leftMargin
+														? this.plotMargin
+																.leftMargin
+														: xPosStart;
+												let xPosEnd =
+													(m.end - regionStart) *
+														xPerPixel +
+													this.plotMargin.leftMargin;
 
-										ctx.fillRect(
-											xPosStart,
-											renderHeight,
-											xPosWidth,
-											perMethod - 1
-										);
-										/*let xPosBtn =
-											xPosStart +
-											"_" +
-											(xPosStart + xPosWidth);
-										this.annoPosData[yPosBtn].regions[
-											xPosBtn
-										] = {
-											start: p.start,
-											end: p.end,
-										};*/
+												xPosEnd =
+													xPosEnd >
+													this.plotMargin.leftMargin +
+														plotWidth
+														? this.plotMargin
+																.leftMargin +
+														  plotWidth
+														: xPosEnd;
+
+												let xPosWidth =
+													xPosEnd - xPosStart < 1
+														? 1
+														: xPosEnd - xPosStart;
+
+												ctx.fillStyle = methodColor;
+
+												ctx.fillRect(
+													xPosStart,
+													renderHeight,
+													xPosWidth,
+													perMethod - 1
+												);
+
+												/// add vertical locations of each method tracks to GLPosdata to check back on hover
+
+												let xPosBtn =
+													Math.ceil(xPosStart) +
+													"-" +
+													Math.ceil(
+														xPosStart + xPosWidth
+													);
+												if (
+													!this.GLPosData[yPosBtn]
+														.region[xPosBtn]
+												) {
+													this.GLPosData[
+														yPosBtn
+													].region[xPosBtn] = [];
+												}
+
+												this.GLPosData[yPosBtn].region[
+													xPosBtn
+												].push({
+													start: m.start,
+													end: m.end,
+													biosample: m.biosample,
+													targetGene: m.targetGene,
+													targetGeneStart:
+														m.targetGeneStart,
+													targetGeneEnd:
+														m.targetGeneEnd,
+												});
+											}
+										});
+
+										renderHeight += perMethod;
+
+										blockHeight += perMethod;
 									}
 								});
-
-								renderHeight += perMethod;
+								blockHeight += btwnGenes;
+								renderHeight += btwnGenes;
+								geneIndex++;
 							}
-
-							blockHeight +=
-								btwnGenes +
-								Object.keys(gValue).length * perMethod;
-							renderHeight += btwnGenes;
-							geneIndex++;
-						}
+						});
 						if (
 							!!this.renderConfig["star key"] &&
 							staredPositions.length > 0
@@ -639,8 +774,10 @@ export default Vue.component("research-gene-links-plot", {
 						);
 
 						renderHeight += btwnTissues;
-					}
+					});
 				}
+
+				console.log("this.GLPosData", this.GLPosData);
 			} else {
 				if (!!document.querySelector("#geneLinksPlot")) {
 					let c, ctx;
@@ -824,28 +961,12 @@ $(function () {});
 .GL-search-bubble.hidden {
 	display: none !important;
 }
-.phenotype-tissue-td {
-	vertical-align: top !important;
-}
-
-.annotations-table-wrapper {
-	max-height: 300px;
-	overflow: auto;
-	padding: 15px;
-	background-color: #eee;
-	border: solid 1px #ddd;
-	border-radius: 5px;
-	margin-bottom: 15px;
-}
-.annotations-plots-wrapper {
-	padding: 0 !important;
-}
 
 .gene-links-plot-wrapper {
 	padding: 0 !important;
 }
 .gene-link-plot-wrapper,
-.anno-plot-ui-wrapper {
+.GL-plot-ui-wrapper {
 	display: inline-block;
 	vertical-align: top;
 }
@@ -870,59 +991,19 @@ $(function () {});
 
 #GEPlotWrapper,
 #tissuesPlotWrapper,
-#annotationsPlotWrapper {
+#GLPlotWrapper {
 	position: relative;
 }
 
-#tissueInfoBox,
-#selectedTissueInfoBox,
-#GEInfoBox {
+#GLInfoBox {
 	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;
 	border-radius: 5px;
 	padding: 5px 15px;
 	z-index: 11;
-	font-size: 14px;
-}
-#annoInitialMessage,
-#tissueInitialMessage {
-	width: 300px;
-	border: solid 1px #ddd;
-	color: #666;
-	margin: 0 auto;
-	border-radius: 25px;
-	text-align: center;
 	font-size: 13px;
-}
-
-table.ge-data-table {
-	border-top: solid 1px #ddd;
-	border-right: solid 1px #ddd;
-	border-collapse: inherit;
-	text-align: center;
-	background-color: #fff;
-}
-
-.ge-data-table table {
-	border: none;
-}
-
-.ge-data-table th {
-	background-color: #cccccc;
-	color: #333333;
-	border: none !important;
-	border-left: solid 1px #ddd !important;
-	border-bottom: solid 1px #ddd !important;
-	font-size: 13px;
-}
-
-.ge-data-table td {
-	border: none !important;
-	border-left: solid 1px #eee !important;
-	border-bottom: solid 1px #ddd !important;
-	vertical-align: middle;
-	font-size: 14px;
+	min-width: 200px !important;
 }
 </style>
 

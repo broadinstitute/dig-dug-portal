@@ -833,11 +833,6 @@ export default Vue.component("research-gem-data-table", {
 					.filter((s) => s.type == "GL-Method")
 					.map((s) => s.id);
 
-				/*if (
-						removedGenes.indexOf(t.targetGene) == -1 &&
-						removedMethods.indexOf(t.method) == -1
-					) {*/
-
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let position = vValue["Position"];
 
