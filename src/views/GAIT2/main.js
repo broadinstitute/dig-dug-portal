@@ -102,7 +102,20 @@ new Vue({
                     label: "Minor Allele Frequency",
                     visible: true,
                     sortable: true
-                }
+                },
+                {
+                    key: "altFreq",
+                    label: "Alt. Frequency.",
+                    visible: true,
+                    sortable: true
+                },
+                {
+                    key: "pValue",
+                    label: "P-Value",
+                    visible: true,
+                    sortable: true
+                },
+                { key: "score", label: "Score", visible: true, sortable: true }
             ],
             defaultFields: [
                 //custom predefined and hidden fields
@@ -209,6 +222,32 @@ new Vue({
                     sortable: true
                 }
             ],
+            ncbtVariantFields: [
+                {
+                    key: "selected",
+                    label: "Selected",
+                    visible: true,
+                    stickyColumn: true
+                },
+                {
+                    key: "variant",
+                    label: "Variant",
+                    visible: true
+                },
+                {
+                    key: "altFreq",
+                    label: "Alt. Freq.",
+                    visible: true,
+                    sortable: true
+                },
+                {
+                    key: "pvalue",
+                    label: "P-Value",
+                    visible: true,
+                    sortable: true
+                },
+                { key: "score", label: "Score", visible: true, sortable: true }
+            ],
             ncbtFields: [
                 "test",
                 "variants",
@@ -220,12 +259,12 @@ new Vue({
                 "details"
             ],
             ncbtSubFields: [
-                "region",
-                "variants",
-                "pvalue",
-                "stat",
-                "effect",
-                "se"
+                { key: "region" },
+                { key: "variants", sortable: true },
+                { key: "pvalue", sortable: true },
+                { key: "stat", sortable: true },
+                { key: "effect", sortable: true },
+                { key: "se", sortable: true }
             ],
             searchCriteria: [],
             selectedVariants: [],
@@ -324,10 +363,14 @@ new Vue({
             return `${this.searchRegion.chrom}:${this.searchRegion.start}-${this.searchRegion.stop}`;
         },
         selectedAnnotations() {
-            return this.$store.state.pkgDataSelected.filter(s => s.type == "Annotation").map(s => s.id);
+            return this.$store.state.pkgDataSelected
+                .filter(s => s.type == "Annotation")
+                .map(s => s.id);
         },
         selectedTissues() {
-            return this.$store.state.pkgDataSelected.filter(s => s.type == "Tissue").map(s => s.id);
+            return this.$store.state.pkgDataSelected
+                .filter(s => s.type == "Tissue")
+                .map(s => s.id);
         }
     },
     methods: {
@@ -380,14 +423,14 @@ new Vue({
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
-                    this.selectedRegionType
-                ].map(region => {
-                    return {
-                        chrom: this.searchRegion.chrom,
-                        start: region.start,
-                        stop: region.end
-                    };
-                })
+                      this.selectedRegionType
+                  ].map(region => {
+                      return {
+                          chrom: this.searchRegion.chrom,
+                          start: region.start,
+                          stop: region.end
+                      };
+                  })
                 : [];
 
             //using hardcoded test samples
@@ -464,8 +507,8 @@ new Vue({
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
                     groups[
                         liftedRegions.regions[i].start +
-                        " - " +
-                        liftedRegions.regions[i].stop
+                            " - " +
+                            liftedRegions.regions[i].stop
                     ] = {
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop
@@ -690,14 +733,15 @@ new Vue({
                     region: row.group,
                     variants: row.variants.length,
                     pvalue: row.pvalue,
+                    stat: row.stat,
                     effect: row.effect,
                     se: row.se
                 };
-                if (row.test.includes("skat")) {
-                    data.qscore = row.stat;
-                } else {
-                    data.zscore = row.stat;
-                }
+                // if (row.test.includes("skat")) {
+                //     data.qscore = row.stat;
+                // } else {
+                //     data.zscore = row.stat;
+                // }
 
                 return data;
             }
@@ -824,7 +868,7 @@ new Vue({
                 });
             }
         },
-        "$store.state.variants": function () {
+        "$store.state.variants": function() {
             this.loadingVariants = false;
             if (
                 this.$store.state.variants &&
@@ -833,10 +877,10 @@ new Vue({
                 this.updateFields();
             }
         },
-        "$store.state.ldServer.covariances": function () {
+        "$store.state.ldServer.covariances": function() {
             this.loadingCovariances = false;
         },
-        "$store.state.ldServer.runTestsError": function () {
+        "$store.state.ldServer.runTestsError": function() {
             this.loadingCovariances = false;
         },
         //check for table data update

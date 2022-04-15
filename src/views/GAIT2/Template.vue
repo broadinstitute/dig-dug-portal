@@ -676,7 +676,7 @@
                                                         variants</b-button
                                                     >
                                                     <span
-                                                        class="float-right mt-2"
+                                                        class="float-right mt-1"
                                                         ><strong
                                                             >Total
                                                             variants:</strong
@@ -701,7 +701,7 @@
                                                     "
                                                     :items="$parent.tableData"
                                                     :fields="
-                                                        $parent.visibleFields
+                                                        $parent.ncbtVariantFields
                                                     "
                                                 >
                                                     <template
@@ -925,6 +925,7 @@
                                                     hover
                                                     small
                                                     responsive="sm"
+                                                    sort-icon-left
                                                     :items="
                                                         $parent.formatTestData(
                                                             p.samples,
@@ -979,24 +980,34 @@
                                                         Z-Score
                                                     </template>
                                                     <template
-                                                        #cell(zscore)="data"
+                                                        #cell(zscore)="row"
                                                     >
                                                         {{
-                                                            $parent.zScoreFormatter(
-                                                                data.value
+                                                            row.item.test.includes(
+                                                                "skat"
                                                             )
+                                                                ? "-"
+                                                                : $parent.zScoreFormatter(
+                                                                      row.item
+                                                                          .stat
+                                                                  )
                                                         }}
                                                     </template>
                                                     <template #head(qscore)>
                                                         Q-Score
                                                     </template>
                                                     <template
-                                                        #cell(qscore)="data"
+                                                        #cell(qscore)="row"
                                                     >
                                                         {{
-                                                            $parent.zScoreFormatter(
-                                                                data.value
+                                                            row.item.test.includes(
+                                                                "skat"
                                                             )
+                                                                ? $parent.zScoreFormatter(
+                                                                      row.item
+                                                                          .stat
+                                                                  )
+                                                                : "-"
                                                         }}
                                                     </template>
 
@@ -1141,6 +1152,7 @@
                                                             "
                                                         >
                                                             <b-table
+                                                                sort-icon-left
                                                                 :items="
                                                                     row.item
                                                                         .data
@@ -1178,19 +1190,11 @@
                                                                     #cell(stat)="row"
                                                                 >
                                                                     {{
-                                                                        row.item.test.includes(
-                                                                            "skat"
+                                                                        $parent.zScoreFormatter(
+                                                                            row
+                                                                                .item
+                                                                                .stat
                                                                         )
-                                                                            ? $parent.zScoreFormatter(
-                                                                                  row
-                                                                                      .item
-                                                                                      .qscore
-                                                                              )
-                                                                            : $parent.zScoreFormatter(
-                                                                                  row
-                                                                                      .item
-                                                                                      .zscore
-                                                                              )
                                                                     }}
                                                                 </template>
 
