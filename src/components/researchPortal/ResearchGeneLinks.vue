@@ -66,13 +66,26 @@
 					</div>
 				</div>
 				<div id="geneLinksPlotWrapper">
-					<div id="GLInfoBox" class="hidden"></div>
+					<div id="GLInfoBox" class="hidden">
+						<div
+							class="fixed-info-box-close"
+							@click="removeOnMouseOut('GLInfoBox', 100)"
+						>
+							<b-icon icon="x-circle-fill"></b-icon>
+						</div>
+						<span id="GLInfoBoxContent"></span>
+					</div>
 
 					<canvas
 						id="geneLinksPlot"
 						@resize="onResize"
-						@mousemove="checkPosition($event)"
-						@mouseout="onMouseOut()"
+						@mousemove="checkPosition($event, 'hover')"
+						@click="checkPosition($event, 'click')"
+						@mouseout="
+							!isIdFixed('#GLInfoBox')
+								? removeOnMouseOut('GLInfoBox', 1000)
+								: ''
+						"
 						width=""
 						height=""
 					></canvas>
@@ -387,11 +400,9 @@ export default Vue.component("research-gene-links-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
-		onMouseOut() {
-			uiUtils.removeOnMouseOut("GLInfoBox");
-		},
-		checkPosition(event) {
+		isIdFixed: uiUtils.isIdFixed,
+		removeOnMouseOut: uiUtils.removeOnMouseOut,
+		checkPosition(event, TYPE) {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
 			let x = Math.ceil(e.clientX - rect.left);
@@ -402,6 +413,7 @@ export default Vue.component("research-gene-links-plot", {
 			/*Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy) - 1;*/
 
 			const infoBox = document.querySelector("#GLInfoBox");
+			const infoBoxContent = document.querySelector("#GLInfoBoxContent");
 			let infoContent = "";
 
 			if (
@@ -449,14 +461,32 @@ export default Vue.component("research-gene-links-plot", {
 				}
 			}
 
-			if (infoContent == "") {
-				infoBox.innerHTML = "";
-				infoBox.setAttribute("class", "hidden");
-			} else {
-				infoBox.innerHTML = infoContent;
-				infoBox.setAttribute("class", "");
-				infoBox.style.left = rawX + 25 + "px";
-				infoBox.style.top = rawY + this.spaceBy + "px";
+			if (TYPE == "hover") {
+				if (infoContent == "") {
+					if (infoBox.getAttribute("class") != "fixed") {
+						infoBoxContent.innerHTML = "";
+						infoBox.setAttribute("class", "hidden");
+					}
+				} else {
+					if (infoBox.getAttribute("class") != "fixed") {
+						infoBoxContent.innerHTML = infoContent;
+						infoBox.setAttribute("class", "");
+						infoBox.style.left = rawX + 25 + "px";
+						infoBox.style.top = rawY + this.spaceBy + "px";
+					}
+				}
+			}
+
+			if (TYPE == "click") {
+				if (infoContent == "") {
+					infoBoxContent.innerHTML = "";
+					infoBox.setAttribute("class", "hidden");
+				} else {
+					infoBoxContent.innerHTML = infoContent;
+					infoBox.setAttribute("class", "fixed");
+					infoBox.style.left = rawX + 25 + "px";
+					infoBox.style.top = rawY + this.spaceBy + "px";
+				}
 			}
 		},
 		addRemoveParameter(ID, TYPE) {
