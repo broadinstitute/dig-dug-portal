@@ -68,6 +68,7 @@
 				<div id="geneLinksPlotWrapper">
 					<div id="GLInfoBox" class="hidden">
 						<div
+							id="info_box_close"
 							class="fixed-info-box-close"
 							@click="removeOnMouseOut('GLInfoBox', 100)"
 						>
@@ -414,6 +415,7 @@ export default Vue.component("research-gene-links-plot", {
 
 			const infoBox = document.querySelector("#GLInfoBox");
 			const infoBoxContent = document.querySelector("#GLInfoBoxContent");
+			const infoBoxClose = document.querySelector("#info_box_close");
 			let infoContent = "";
 
 			if (
@@ -466,6 +468,7 @@ export default Vue.component("research-gene-links-plot", {
 					if (infoBox.getAttribute("class") != "fixed") {
 						infoBoxContent.innerHTML = "";
 						infoBox.setAttribute("class", "hidden");
+						infoBoxClose.setAttribute("class", "hidden");
 					}
 				} else {
 					if (infoBox.getAttribute("class") != "fixed") {
@@ -473,11 +476,13 @@ export default Vue.component("research-gene-links-plot", {
 						infoBox.setAttribute("class", "");
 						infoBox.style.left = rawX + 25 + "px";
 						infoBox.style.top = rawY + this.spaceBy + "px";
+						infoBoxClose.setAttribute("class", "hidden");
 					}
 				}
 			}
 
 			if (TYPE == "click") {
+				infoBoxClose.setAttribute("class", "fixed-info-box-close");
 				if (infoContent == "") {
 					infoBoxContent.innerHTML = "";
 					infoBox.setAttribute("class", "hidden");
