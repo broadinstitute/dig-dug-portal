@@ -239,12 +239,21 @@ let showTabContent = function (TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
     document.getElementById(CONTENT).classList.add("active");
 };
 
-let removeOnMouseOut = function (BOXID) {
+let removeOnMouseOut = function (BOXID, TIME) {
     let wrapper = document.getElementById(BOXID);
     setTimeout(function () {
         wrapper.classList.add("hidden");
-    }, 1000);
+    }, TIME);
 };
+
+let isIdFixed = function (ID) {
+    let element = document.querySelector(ID);
+
+    let isFixed = !!element && element.getAttribute(
+        'class'
+    ) == 'fixed' ? true : false;
+    return isFixed;
+}
 
 export default {
     popOutElement,
@@ -262,5 +271,6 @@ export default {
     saveJson,
     getAxisTicks,
     showTabContent,
-    removeOnMouseOut
+    removeOnMouseOut,
+    isIdFixed
 };

@@ -750,7 +750,7 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		onMouseOut(BOXID) {
-			uiUtils.removeOnMouseOut(BOXID.replaceAll(" ", "_"));
+			uiUtils.removeOnMouseOut(BOXID.replaceAll(" ", "_"), 1000);
 		},
 		setUpWrappers() {
 			this.callForRecombData();

@@ -357,7 +357,7 @@ export default Vue.component("research-credible-sets-plot", {
 			}
 		},
 		onMouseOut(BOXID) {
-			uiUtils.removeOnMouseOut(BOXID);
+			uiUtils.removeOnMouseOut(BOXID, 1000);
 		},
 		onResize(e) {
 			this.renderCSPlot();
