@@ -97,7 +97,7 @@
 					<h6><strong>Methods</strong></h6>
 
 					<div
-						v-for="(m, mIndex) in methodsArr"
+						v-for="(m, mIndex) in getMethodsArr(pkgData.GLData)"
 						:key="m"
 						style="display: inline-block"
 					>
@@ -124,7 +124,7 @@
 
 					<h6><strong>Genes</strong></h6>
 					<div
-						v-for="g in genesArr"
+						v-for="g in getGenesArr(pkgData.GLData)"
 						:key="g"
 						style="display: inline-block"
 					>
@@ -281,11 +281,6 @@ export default Vue.component("research-gene-links-plot", {
 					tValue.map((t) => {
 						methodIndex.push(t.method);
 					});
-					/*for (const [gKey, gValue] of Object.entries(tValue)) {
-						for (const [mKey, mValue] of Object.entries(gValue)) {
-							methodIndex.push(mKey);
-						}
-					}*/
 				}
 				methodIndex = [...new Set(methodIndex)].sort();
 			}
@@ -301,9 +296,6 @@ export default Vue.component("research-gene-links-plot", {
 					tValue.map((t) => {
 						genes.push(t.targetGene);
 					});
-					/*for (const [gKey, gValue] of Object.entries(tValue)) {
-						genes.push(gKey);
-					}*/
 				}
 				genes = [...new Set(genes)].sort();
 			}
@@ -398,6 +390,30 @@ export default Vue.component("research-gene-links-plot", {
 	methods: {
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
+		getMethodsArr(DATA) {
+			let methodIndex = [];
+
+			for (const [tKey, tValue] of Object.entries(DATA)) {
+				tValue.map((t) => {
+					methodIndex.push(t.method);
+				});
+			}
+			methodIndex = [...new Set(methodIndex)].sort();
+
+			return methodIndex;
+		},
+		getGenesArr(DATA) {
+			let genes = [];
+
+			for (const [tKey, tValue] of Object.entries(DATA)) {
+				tValue.map((t) => {
+					genes.push(t.targetGene);
+				});
+			}
+			genes = [...new Set(genes)].sort();
+
+			return genes;
+		},
 		checkPosition(event, TYPE) {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
