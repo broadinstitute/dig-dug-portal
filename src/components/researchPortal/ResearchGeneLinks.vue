@@ -94,7 +94,7 @@
 			</div>
 			<div class="col-md-3 GL-plot-ui-wrapper reference-area">
 				<div v-if="!!pkgData.GLData">
-					<h6><strong>Filter</strong></h6>
+					<h6><strong>Methods</strong></h6>
 
 					<div
 						v-for="(m, mIndex) in getMethodsArr(pkgData.GLData)"
