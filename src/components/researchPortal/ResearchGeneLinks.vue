@@ -41,17 +41,12 @@
 						<div
 							class=""
 							v-if="
-								!!this.pkgData.GLData &&
-								Object.keys(this.pkgData.GLData).length > 0 &&
+								GLData != null &&
 								!renderConfig['no search key bubbles']
 							"
 							style="position: absolute; right: 10px; top: 7px"
 						>
-							<template
-								v-for="tissue in Object.keys(
-									this.pkgData.GLData
-								)"
-							>
+							<template v-for="tissue in Object.keys(GLData)">
 								<span
 									:key="tissue"
 									:class="'btn GL-search-bubble '"
@@ -93,16 +88,11 @@
 				</div>
 			</div>
 			<div class="col-md-3 GL-plot-ui-wrapper reference-area">
-				<div
-					v-if="
-						!!this.pkgData.GLData &&
-						Object.keys(this.pkgData.GLData).length > 0
-					"
-				>
+				<div v-if="GLData != null">
 					<h6><strong>Methods</strong></h6>
 
 					<div
-						v-for="(m, mIndex) in getMethodsArr(pkgData.GLData)"
+						v-for="(m, mIndex) in getMethodsArr(GLData)"
 						:key="m"
 						style="display: inline-block"
 					>
@@ -129,7 +119,7 @@
 
 					<h6><strong>Genes</strong></h6>
 					<div
-						v-for="g in getGenesArr(pkgData.GLData)"
+						v-for="g in getGenesArr(GLData)"
 						:key="g"
 						style="display: inline-block"
 					>
@@ -186,6 +176,7 @@ export default Vue.component("research-gene-links-plot", {
 			GEData: {},
 			trigger: 0,
 			GLPosData: {},
+			GLData: null,
 		};
 	},
 	modules: {
@@ -203,7 +194,8 @@ export default Vue.component("research-gene-links-plot", {
 	},
 	computed: {
 		GLTissues() {
-			console.log(this.trigger);
+			//console.log(this.trigger);
+			this.trigger--;
 			if (Object.keys(this.GEData).length == 0) {
 				return null;
 			} else {
@@ -234,7 +226,9 @@ export default Vue.component("research-gene-links-plot", {
 			}
 		},
 		renderData() {
-			console.log(this.trigger);
+			//console.log(this.trigger);
+			this.trigger--;
+
 			let renderObj = {};
 			for (const [tKey, tValue] of Object.entries(this.pkgData.GLData)) {
 				if (!renderObj[tKey]) {
@@ -277,9 +271,10 @@ export default Vue.component("research-gene-links-plot", {
 			return renderObj;
 		},
 		methodsArr() {
-			let methodIndex = [];
+			this.trigger--;
 
 			if (!!this.pkgData.GLData) {
+				let methodIndex = [];
 				for (const [tKey, tValue] of Object.entries(
 					this.pkgData.GLData
 				)) {
@@ -288,13 +283,16 @@ export default Vue.component("research-gene-links-plot", {
 					});
 				}
 				methodIndex = [...new Set(methodIndex)].sort();
+				return methodIndex;
+			} else {
+				return null;
 			}
-
-			return methodIndex;
 		},
 		genesArr() {
-			let genes = [];
+			this.trigger--;
+
 			if (!!this.pkgData.GLData) {
+				let genes = [];
 				for (const [tKey, tValue] of Object.entries(
 					this.pkgData.GLData
 				)) {
@@ -303,9 +301,10 @@ export default Vue.component("research-gene-links-plot", {
 					});
 				}
 				genes = [...new Set(genes)].sort();
+				return genes;
+			} else {
+				return null;
 			}
-
-			return genes;
 		},
 		viewingRegion() {
 			if (this.region == null) {
@@ -889,11 +888,12 @@ export default Vue.component("research-gene-links-plot", {
 			}
 		},
 		removeGLTissue(TISSUE) {
-			//delete this.GLData[TISSUE];
 			delete this.pkgData["GLData"][TISSUE];
-			//this.pkgData["GLData"] = this.GLData;
+			delete this.GLData[TISSUE];
+
 			if (Object.keys(this.pkgData["GLData"]).length == 0) {
 				delete this.pkgData["GLData"];
+				this.GLData = null;
 			}
 			this.$store.dispatch("pkgDataSelected", {
 				type: "GLTissue",
@@ -935,7 +935,6 @@ export default Vue.component("research-gene-links-plot", {
 					if (GLJson.data.length == 0) {
 						alertUtils.popAlert(tissue + " has no linked genes.");
 					} else {
-						//this.GLData[tissue] = GLJson.data;
 						this.$store.dispatch("pkgDataSelected", {
 							type: "GLTissue",
 							id: tissue,
@@ -943,8 +942,10 @@ export default Vue.component("research-gene-links-plot", {
 						});
 						if (!this.pkgData["GLData"]) {
 							this.pkgData["GLData"] = {};
+							this.GLData = {};
 						}
 						this.pkgData["GLData"][tissue] = GLJson.data;
+						this.GLData[tissue] = GLJson.data;
 					}
 
 					this.trigger++;
