@@ -93,12 +93,7 @@
 				</div>
 			</div>
 			<div class="col-md-3 GL-plot-ui-wrapper reference-area">
-				<div
-					v-if="
-						!!this.pkgData.GLData &&
-						Object.keys(this.pkgData.GLData).length > 0
-					"
-				>
+				<div v-if="!!pkgData.GLData">
 					<h6><strong>Methods</strong></h6>
 
 					<div
