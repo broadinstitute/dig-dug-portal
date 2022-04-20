@@ -93,7 +93,7 @@
 				</div>
 			</div>
 			<div class="col-md-3 GL-plot-ui-wrapper reference-area">
-				<div v-if="!!pkgData.GLData">
+				<div>
 					<h6><strong>Methods</strong></h6>
 
 					<div
