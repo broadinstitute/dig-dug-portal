@@ -220,7 +220,7 @@
 							<!--<h4 class="card-title">Visualization</h4>-->
 							<b-tabs content-class="mt-3" align="center">
 								<b-tab title="LocusZoom" active>
-									<locuszoom
+									<!--<locuszoom
 										ref="locuszoom"
 										:chr="$store.state.chr"
 										:start="$store.state.start"
@@ -238,7 +238,57 @@
 													.phenotypeMap
 											"
 										></lz-phewas-panel>
-									</locuszoom>
+									</locuszoom>-->
+
+									<research-phewas-plot
+										v-if="
+											$store.state.phewas.data.length > 0
+										"
+										:phenotypesData="
+											$store.state.phewas.data
+										"
+										:phenotypeMap="
+											$store.state.bioPortal.phenotypeMap
+										"
+										:colors="[
+											'#007bff',
+											'#048845',
+											'#8490C8',
+											'#BF61A5',
+											'#EE3124',
+											'#FCD700',
+											'#5555FF',
+											'#7aaa1c',
+											'#9F78AC',
+											'#F88084',
+											'#F5A4C7',
+											'#CEE6C1',
+											'#cccc00',
+											'#6FC7B6',
+											'#D5A768',
+											'#d4d4d4',
+										]"
+										:plotMargin="{
+											leftMargin: 75,
+											rightMargin: 20,
+											topMargin: 10,
+											bottomMargin: 50,
+											bump: 5.5,
+										}"
+										:renderConfig="{
+											type: 'phewas plot',
+											'group by': 'phenotype group',
+											'y axis field': 'pValue',
+											'render by': 'phenotype',
+											'y axis label': '-Log10(p-value)',
+											'x axis label': 'beta',
+											'hover content': ['pValue', 'beta'],
+											height: 500,
+											'star key': 'phenotype',
+										}"
+										:pkgData="null"
+										:pkgDataSelected="null"
+									></research-phewas-plot>
 								</b-tab>
 								<b-tab title="Forest plot">
 									<forest-plot-html

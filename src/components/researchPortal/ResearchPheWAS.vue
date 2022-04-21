@@ -150,8 +150,6 @@ export default Vue.component("research-phewas-plot", {
 					bump: 5,
 				};
 
-				console.log(plotMargin);
-
 				plotUtils.renderAxisWBump(
 					ctx,
 					canvasWidth,
@@ -207,12 +205,10 @@ export default Vue.component("research-phewas-plot", {
 				let groupsArr = Object.keys(groups).sort();
 				let dotIndex = 0;
 
-				console.log(this.renderData);
-
 				for (const [key, value] of Object.entries(this.renderData)) {
 					let keyIndex = groupsArr.indexOf(key) % this.colors.length;
-					let fillColor = this.colors[keyIndex] + "50";
-					let strokeColor = "#00000050"; //this.colors[keyIndex];
+					let fillColor = this.colors[keyIndex];
+					let strokeColor = "#00000075"; //this.colors[keyIndex];
 
 					value.map((p) => {
 						let xPos = plotMargin.left + xStep * dotIndex;
@@ -229,12 +225,40 @@ export default Vue.component("research-phewas-plot", {
 							Math.sign(p.beta),
 							this.phenotypeMap[p.phenotype]["description"]
 						);
+						if (p.pValue <= 2.5e-6) {
+							let pName =
+								this.phenotypeMap[p.phenotype]["description"];
+							ctx.font = "11px Arial";
+							ctx.fillStyle = "#000000";
+
+							ctx.save();
+							ctx.translate(xPos, yPos - 5);
+							ctx.rotate((45 * -Math.PI) / 180);
+							ctx.textAlign = "start";
+							ctx.fillText(pName, 0, 0);
+							ctx.restore();
+						}
 						dotIndex++;
 					});
 					keyIndex++;
 				}
+				/// render guide line
+				let guidelineYpos =
+					canvasHeight -
+					plotMargin.bottom +
+					Math.round(-Math.log10(2.5e-6)) * yStep;
+				ctx.setLineDash([10, 5]);
+				ctx.moveTo(plotMargin.left - plotMargin.bump, guidelineYpos);
+				ctx.lineTo(
+					canvasWidth + plotMargin.bump - plotMargin.right,
+					guidelineYpos
+				);
+				ctx.strokeStyle = "#00000050";
+				ctx.stroke();
 			}
 		},
+
+		renderGiudeLine() {},
 
 		renderDot(CTX, XPOS, YPOS, DOT_COLOR, STROKE_COLOR) {
 			CTX.beginPath();
@@ -269,6 +293,7 @@ export default Vue.component("research-phewas-plot", {
 				CTX.lineTo(XPOS, YPOS + 5);
 				CTX.lineTo(XPOS + 5, YPOS - 5);
 			}
+			CTX.closePath();
 
 			CTX.fillStyle = DOT_COLOR;
 			CTX.fill();
