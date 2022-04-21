@@ -376,6 +376,32 @@
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 							></research-heatmap>
+							<!--v-if="$parent.plotType == 'h_map'"-->
+							<research-phewas-plot
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'phewas plot'
+								"
+								:phenotypesData="
+									!!$parent.plotConfig['data self load']
+										? $parent.plotConfig['data self load']
+										: $store.state.filteredData
+								"
+								:phenotypeMap="
+									!!$parent.plotConfig[
+										'phenotype map self load'
+									]
+										? $parent.plotConfig[
+												'phenotype map self load'
+										  ]
+										: $store.state.bioPortal.phenotypeMap
+								"
+								:colors="$parent.colors.extraBold"
+								:plotMargin="$parent.plotMargin"
+								:renderConfig="$parent.plotConfig"
+								:pkgData="null"
+								:pkgDataSelected="null"
+							></research-phewas-plot>
 							<!--v-if="
 									$parent.plotType == 'custom_pkg' &&
 									$parent.customPlotType == 'gem package'

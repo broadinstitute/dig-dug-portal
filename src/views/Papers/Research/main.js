@@ -30,6 +30,7 @@ import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import uiUtils from "@/utils/uiUtils";
 import $ from "jquery";
@@ -60,6 +61,7 @@ new Vue({
         ResearchMPlot,
         ResearchVolcanoPlot,
         ResearchHeatmap,
+        ResearchPheWAS,
         kpGEMPkg,
         Documentation
     },
