@@ -58,39 +58,9 @@
 						-1 or beta &nbsp;&gt;&nbsp; 1
 					</li>
 				</ul>
-
-				<!--<ul v-if="!!labelMap">
-                    <li>{{'Group:'}}</li>
-                    <template>
-                        <li v-for="group in plotData.label_group">
-                            <span :class="'legend-phenotype-group-dot '+group">&nbsp;</span>
-                            <span class="label">{{group}}</span>
-                        </li>
-                    </template>
-                </ul>-->
 			</div>
 		</div>
-		<div class="forest-plot-html-wrapper row">
-			<!--<div class="forest-plot-ui-options">
-                <div class="show-groups-wrapper">
-                    <input
-                        type="checkbox"
-                        v-model="groupsShown"
-                        id="show_groups"
-                        @change="showGroups()"
-                    />
-                    <label for="show_groups">Show groups</label>
-                </div>
-                <div class="sort-groups-wrapper">
-                    <input
-                        type="checkbox"
-                        v-model="groupsSort"
-                        id="sort_groups"
-                        @change="sortByGroup()"
-                    />
-                    <label for="sort_groups">Sort by group</label>
-                </div>
-            </div>-->
+		<div class="forest-plot-html-wrapper row" v-if="plotData != null">
 			<div class="min-value">{{ plotData.min_value }}</div>
 			<div class="start-min">{{ plotData.low_min }}</div>
 			<div class="beta--1">
@@ -122,9 +92,7 @@
 								: ''
 						"
 						:style="
-							(value[bulletBy].toFixed(3) > -1
-								? 'display:none; '
-								: '') +
+							(value[bulletBy] > -1 ? 'display:none; ' : '') +
 							'right:calc(' +
 							value.left_beta_position +
 							'% - 6px);'
@@ -166,9 +134,7 @@
 								: ''
 						"
 						:style="
-							(value[bulletBy].toFixed(3) < 1
-								? 'display:none; '
-								: '') +
+							(value[bulletBy] < 1 ? 'display:none; ' : '') +
 							'left:calc(' +
 							value.right_beta_position +
 							'% - 6px);'
@@ -240,15 +206,16 @@
 								}}{{ formatPvalue(value[sortBy]) }}
 							</li>
 							<li>
-								{{ "Beta: " }}{{ value[bulletBy].toFixed(3) }}
+								{{ "Beta: "
+								}}{{ convertToFixed(value[bulletBy], 3) }}
 							</li>
 							<li>
 								{{ "95% confidence interval low: "
-								}}{{ value.low.toFixed(3) }}
+								}}{{ convertToFixed(value.low, 3) }}
 							</li>
 							<li>
 								{{ "95% confidence interval high: "
-								}}{{ value.high.toFixed(3) }}
+								}}{{ convertToFixed(value.high, 3) }}
 							</li>
 						</ul>
 					</div>
@@ -350,10 +317,6 @@ export default Vue.component("forest-plot-html", {
 				let labelGroup = [];
 
 				content["data"].map((d) => {
-					// console.log(
-					//     this.labelMap[d[this.labelBy]].description,
-					//     d[this.stdErr]
-					// );
 					let dichotomous =
 						this.countDichotomous == 1
 							? this.labelMap[d[this.labelBy]].dichotomous
@@ -459,14 +422,24 @@ export default Vue.component("forest-plot-html", {
 			if (!!this.filter) {
 				content.data = content.data.filter(this.filter);
 			}
-			return content;
+
+			if (!!content.data && content.data.length > 0) {
+				return content;
+			} else {
+				return null;
+			}
 		},
 		rows() {
-			return this.plotData.data.length;
+			if (this.plotData != null) {
+				return this.plotData.data.length;
+			}
 		},
 	},
 	watch: {},
 	methods: {
+		convertToFixed(VALUE, AFTER_DECIMAL) {
+			return Number(VALUE).toFixed(AFTER_DECIMAL);
+		},
 		showLegends(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
