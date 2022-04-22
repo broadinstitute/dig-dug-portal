@@ -210,8 +210,11 @@ export default Vue.component("research-phewas-plot", {
 					let fillColor = this.colors[keyIndex];
 					let strokeColor = "#00000075"; //this.colors[keyIndex];
 
+					let labelIndex = 0;
+					let labelOrigin = 0;
 					value.map((p) => {
 						let xPos = plotMargin.left + xStep * dotIndex;
+
 						let yPos =
 							canvasHeight -
 							plotMargin.bottom +
@@ -225,18 +228,32 @@ export default Vue.component("research-phewas-plot", {
 							Math.sign(p.beta),
 							this.phenotypeMap[p.phenotype]["description"]
 						);
+						if (labelIndex == 0) {
+							labelOrigin = xPos;
+						}
+
 						if (p.pValue <= 2.5e-6) {
+							let labelXpos = labelOrigin + 12 * labelIndex;
 							let pName =
 								this.phenotypeMap[p.phenotype]["description"];
 							ctx.font = "11px Arial";
 							ctx.fillStyle = "#000000";
 
-							ctx.save();
-							ctx.translate(xPos, yPos - 5);
-							ctx.rotate((45 * -Math.PI) / 180);
-							ctx.textAlign = "start";
-							ctx.fillText(pName, 0, 0);
-							ctx.restore();
+							if (labelIndex < 5) {
+								ctx.save();
+								ctx.translate(labelXpos + 5, yPos - 12);
+								ctx.rotate((90 * -Math.PI) / 180);
+								ctx.textAlign = "start";
+								ctx.fillText(pName, 0, 0);
+								ctx.restore();
+
+								ctx.moveTo(xPos, yPos);
+								ctx.lineTo(labelXpos, yPos - 10);
+								ctx.strokeStyle = "#00000050";
+								ctx.stroke();
+							}
+
+							labelIndex++;
 						}
 						dotIndex++;
 					});
