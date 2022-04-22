@@ -303,8 +303,6 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
 const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
-
-    console.log(CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX);
     CTX.beginPath();
     CTX.lineWidth = 0.5;
     CTX.strokeStyle = "#000000";
@@ -399,7 +397,6 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
 
-    console.log(CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX);
     CTX.beginPath();
     CTX.lineWidth = 0.5;
     CTX.strokeStyle = "#000000";
@@ -454,13 +451,8 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
             if (WITH_TICKS != null) {
 
-
-
                 let max = Math.round(MAX);
                 let min = Math.round(MIN);
-
-                console.log("max", max)
-                console.log("min", min)
 
                 // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;

@@ -219,7 +219,7 @@
 						<template slot="filtered" slot-scope="{ filter }">
 							<!--<h4 class="card-title">Visualization</h4>-->
 							<b-tabs content-class="mt-3" align="center">
-								<b-tab title="LocusZoom" active>
+								<b-tab title="PheWAS plot" active>
 									<!--<locuszoom
 										ref="locuszoom"
 										:chr="$store.state.chr"
@@ -239,6 +239,19 @@
 											"
 										></lz-phewas-panel>
 									</locuszoom>-->
+									<b-button
+										size="sm"
+										variant="outline-secondary"
+										@click="
+											$refs.rpPheWASPlot.renderPheWas()
+										"
+										style="
+											position: absolute;
+											right: 25px;
+											z-index: 10;
+										"
+										>Re-render PheWAS plot</b-button
+									>
 
 									<research-phewas-plot
 										v-if="
@@ -284,10 +297,11 @@
 											'x axis label': 'beta',
 											'hover content': ['pValue', 'beta'],
 											height: 500,
-											'star key': 'phenotype',
 										}"
 										:pkgData="null"
 										:pkgDataSelected="null"
+										:filter="filter"
+										ref="rpPheWASPlot"
 									></research-phewas-plot>
 								</b-tab>
 								<b-tab title="Forest plot">
