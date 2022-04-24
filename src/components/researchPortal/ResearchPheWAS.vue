@@ -360,6 +360,12 @@ export default Vue.component("research-phewas-plot", {
 
 						let labelIndex = 0;
 						let labelOrigin = 0;
+						let maxWidthPerGroup =
+							plotMargin.left +
+							xStep * dotIndex +
+							xStep * value.length -
+							12;
+
 						value.map((p) => {
 							let xPos = plotMargin.left + xStep * dotIndex;
 
@@ -410,22 +416,25 @@ export default Vue.component("research-phewas-plot", {
 
 								labelXpos = xPos > labelXpos ? xPos : labelXpos;
 
-								ctx.font = "11px Arial";
-								ctx.fillStyle = "#000000";
+								if (
+									labelIndex == 0 ||
+									labelXpos < maxWidthPerGroup
+								) {
+									ctx.font = "11px Arial";
+									ctx.fillStyle = "#000000";
 
-								//if (labelIndex < 5) {
-								ctx.save();
-								ctx.translate(labelXpos + 5, yPos - 12);
-								ctx.rotate((90 * -Math.PI) / 180);
-								ctx.textAlign = "start";
-								ctx.fillText(pName, 0, 0);
-								ctx.restore();
+									ctx.save();
+									ctx.translate(labelXpos + 5, yPos - 12);
+									ctx.rotate((90 * -Math.PI) / 180);
+									ctx.textAlign = "start";
+									ctx.fillText(pName, 0, 0);
+									ctx.restore();
 
-								ctx.moveTo(xPos, yPos);
-								ctx.lineTo(labelXpos, yPos - 10);
-								ctx.strokeStyle = "#00000050";
-								ctx.stroke();
-								//}
+									ctx.moveTo(xPos, yPos);
+									ctx.lineTo(labelXpos, yPos - 10);
+									ctx.strokeStyle = "#00000050";
+									ctx.stroke();
+								}
 
 								labelIndex++;
 							}
