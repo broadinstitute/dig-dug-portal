@@ -257,6 +257,7 @@
 										v-if="
 											$store.state.phewas.data.length > 0
 										"
+										canvasId=""
 										:phenotypesData="
 											$store.state.phewas.data
 										"
