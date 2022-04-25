@@ -322,7 +322,7 @@
 											$store.state.bioPortal.phenotypeMap
 										"
 									></lz-phewas-panel>
-								</locuszoom>-->
+								</locuszoom>
 								<b-button
 									size="sm"
 									variant="outline-secondary"
@@ -333,13 +333,14 @@
 										z-index: 10;
 									"
 									>Re-render PheWAS plot</b-button
-								>
+								>-->
 
 								<research-phewas-plot
 									v-if="
 										$store.state.geneassociations.data
 											.length > 0
 									"
+									canvasId="commonVariantPlot"
 									:phenotypesData="
 										$store.state.geneassociations.data
 									"
@@ -421,6 +422,51 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
+						<research-phewas-plot
+							v-if="$store.state.associations52k.data.length > 0"
+							canvasId="rareVariantPlot"
+							:phenotypesData="$store.state.associations52k.data"
+							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+							:colors="[
+								'#007bff',
+								'#048845',
+								'#8490C8',
+								'#BF61A5',
+								'#EE3124',
+								'#FCD700',
+								'#5555FF',
+								'#7aaa1c',
+								'#9F78AC',
+								'#F88084',
+								'#F5A4C7',
+								'#CEE6C1',
+								'#cccc00',
+								'#6FC7B6',
+								'#D5A768',
+								'#d4d4d4',
+							]"
+							:plotMargin="{
+								leftMargin: 75,
+								rightMargin: 20,
+								topMargin: 10,
+								bottomMargin: 50,
+								bump: 5.5,
+							}"
+							:renderConfig="{
+								type: 'phewas plot',
+								'group by': 'phenotype group',
+								'y axis field': 'pValue',
+								'render by': 'phenotype',
+								'y axis label': '-Log10(p-value)',
+								'x axis label': 'beta',
+								'beta field': 'beta',
+								'hover content': ['pValue', 'beta'],
+								height: '500',
+							}"
+							:pkgData="null"
+							:pkgDataSelected="null"
+							ref="rareVariantPheWASPlot"
+						></research-phewas-plot>
 						<unauthorized-message
 							:restricted="
 								$store.state.associations52k.restricted

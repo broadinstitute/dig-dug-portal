@@ -3,29 +3,34 @@
 		<div class="col-md-12 phewas-plot-wrapper">
 			<div
 				class="col-md-12"
-				id="pheWasPlotWrapper"
+				:id="canvasId + 'pheWasPlotWrapper'"
 				style="display: inline-block"
 			>
-				<div id="pheWasInfoBox" class="hidden">
+				<div
+					:id="canvasId + 'pheWasInfoBox'"
+					class="phe-was-info-box hidden"
+				>
 					<div
-						id="info_box_close"
+						:id="canvasId + 'info_box_close'"
 						class="fixed-info-box-close"
-						@click="removeOnMouseOut('pheWasInfoBox', 100)"
+						@click="
+							removeOnMouseOut(canvasId + 'pheWasInfoBox', 100)
+						"
 					>
 						<b-icon icon="x-circle-fill"></b-icon>
 					</div>
-					<span id="pheWasInfoBoxContent"></span>
+					<span :id="canvasId + 'pheWasInfoBoxContent'"></span>
 				</div>
 
 				<canvas
-					id="pheWasPlot"
+					:id="canvasId + 'pheWasPlot'"
 					width=""
 					height=""
 					@mousemove="checkPosition($event, 'hover')"
 					@click="checkPosition($event, 'click')"
 					@mouseout="
-						!isIdFixed('#pheWasInfoBox')
-							? removeOnMouseOut('pheWasInfoBox', 1000)
+						!isIdFixed('#' + canvasId + 'pheWasInfoBox')
+							? removeOnMouseOut(canvasId + 'pheWasInfoBox', 1000)
 							: ''
 					"
 				></canvas>
@@ -49,6 +54,7 @@ Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-phewas-plot", {
 	props: [
+		"canvasId",
 		"phenotypeMap",
 		"phenotypesData",
 		"renderConfig",
@@ -170,11 +176,15 @@ export default Vue.component("research-phewas-plot", {
 			let y = Math.ceil(e.clientY - rect.top);
 			let x = Math.ceil(e.clientX - rect.left);
 
-			const infoBox = document.querySelector("#pheWasInfoBox");
-			const infoBoxContent = document.querySelector(
-				"#pheWasInfoBoxContent"
+			const infoBox = document.querySelector(
+				"#" + this.canvasId + "pheWasInfoBox"
 			);
-			const infoBoxClose = document.querySelector("#info_box_close");
+			const infoBoxContent = document.querySelector(
+				"#" + this.canvasId + "pheWasInfoBoxContent"
+			);
+			const infoBoxClose = document.querySelector(
+				"#" + this.canvasId + "info_box_close"
+			);
 			let infoContent = "";
 
 			if (x >= plotMargin.left && x <= rect.width - plotMargin.right) {
@@ -201,15 +211,19 @@ export default Vue.component("research-phewas-plot", {
 
 			if (TYPE == "hover") {
 				if (infoContent == "") {
-					if (infoBox.getAttribute("class") != "fixed") {
+					if (
+						infoBox.getAttribute("class").includes("fixed") == false
+					) {
 						infoBoxContent.innerHTML = "";
 						infoBox.setAttribute("class", "hidden");
 						infoBoxClose.setAttribute("class", "hidden");
 					}
 				} else {
-					if (infoBox.getAttribute("class") != "fixed") {
+					if (
+						infoBox.getAttribute("class").includes("fixed") == false
+					) {
 						infoBoxContent.innerHTML = infoContent;
-						infoBox.setAttribute("class", "");
+						infoBox.setAttribute("class", "phe-was-info-box");
 						infoBoxClose.setAttribute("class", "hidden");
 						if (x < rect.width - 300) {
 							infoBox.style.left = rawX + 25 + "px";
@@ -230,7 +244,7 @@ export default Vue.component("research-phewas-plot", {
 					infoBox.setAttribute("class", "hidden");
 				} else {
 					infoBoxContent.innerHTML = infoContent;
-					infoBox.setAttribute("class", "fixed");
+					infoBox.setAttribute("class", "phe-was-info-box fixed");
 					if (x < rect.width - 300) {
 						infoBox.style.left = rawX + 25 + "px";
 						infoBox.style.top = rawY + this.spaceBy + "px";
@@ -243,8 +257,12 @@ export default Vue.component("research-phewas-plot", {
 			}
 		},
 		renderPheWas() {
-			let wrapper = document.querySelector("#pheWasPlotWrapper");
-			let canvas = document.querySelector("#pheWasPlot");
+			let wrapper = document.querySelector(
+				"#" + this.canvasId + "pheWasPlotWrapper"
+			);
+			let canvas = document.querySelector(
+				"#" + this.canvasId + "pheWasPlot"
+			);
 
 			if (!!canvas && !!wrapper) {
 				let canvasWidth = wrapper.clientWidth;
@@ -262,7 +280,7 @@ export default Vue.component("research-phewas-plot", {
 				let bump = 5.5;
 
 				let c, ctx;
-				c = document.querySelector("#pheWasPlot");
+				c = document.querySelector("#" + this.canvasId + "pheWasPlot");
 				c.setAttribute("width", canvasWidth);
 				c.setAttribute("height", canvasHeight);
 				ctx = c.getContext("2d");
@@ -700,7 +718,7 @@ $(function () {});
 	font-size: 14px;
 	color: #69f;
 }
-#pheWasInfoBox {
+.phe-was-info-box {
 	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;
