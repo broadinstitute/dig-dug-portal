@@ -411,33 +411,36 @@ export default Vue.component("research-phewas-plot", {
 								labelOrigin = xPos;
 							}
 
-							if (p.pValue <= 2.5e-6) {
-								let labelXpos = labelOrigin + 12 * labelIndex;
+							//if (labelIndex == 0 || p.pValue <= 2.5e-6) {
+							let labelXpos = labelOrigin + 12 * labelIndex;
 
-								labelXpos = xPos > labelXpos ? xPos : labelXpos;
+							labelXpos = xPos > labelXpos ? xPos : labelXpos;
 
-								if (
-									labelIndex == 0 ||
-									labelXpos < maxWidthPerGroup
-								) {
-									ctx.font = "11px Arial";
-									ctx.fillStyle = "#000000";
+							if (
+								labelIndex == 0 ||
+								labelXpos < maxWidthPerGroup
+							) {
+								ctx.font = "11px Arial";
+								ctx.fillStyle =
+									p.pValue <= 2.5e-6
+										? "#000000"
+										: "#00000050";
 
-									ctx.save();
-									ctx.translate(labelXpos + 5, yPos - 12);
-									ctx.rotate((90 * -Math.PI) / 180);
-									ctx.textAlign = "start";
-									ctx.fillText(pName, 0, 0);
-									ctx.restore();
+								ctx.save();
+								ctx.translate(labelXpos + 5, yPos - 12);
+								ctx.rotate((90 * -Math.PI) / 180);
+								ctx.textAlign = "start";
+								ctx.fillText(pName, 0, 0);
+								ctx.restore();
 
-									ctx.moveTo(xPos, yPos);
-									ctx.lineTo(labelXpos, yPos - 10);
-									ctx.strokeStyle = "#00000050";
-									ctx.stroke();
-								}
-
-								labelIndex++;
+								ctx.moveTo(xPos, yPos);
+								ctx.lineTo(labelXpos, yPos - 10);
+								ctx.strokeStyle = "#00000050";
+								ctx.stroke();
 							}
+
+							labelIndex++;
+							//}
 							dotIndex++;
 						});
 						keyIndex++;
