@@ -248,7 +248,7 @@ export default Vue.component("research-phewas-plot", {
 
 			if (!!canvas && !!wrapper) {
 				let canvasWidth = wrapper.clientWidth;
-				let canvasHeight = this.renderConfig["height"];
+				let canvasHeight = Number(this.renderConfig["height"]);
 
 				let plotWidth =
 					canvasWidth -
@@ -373,15 +373,30 @@ export default Vue.component("research-phewas-plot", {
 								canvasHeight -
 								plotMargin.bottom +
 								Math.round(-Math.log10(p.pValue)) * yStep;
-							this.renderTriangle(
-								ctx,
-								xPos,
-								yPos,
-								fillColor,
-								strokeColor,
-								Math.sign(p.beta),
-								this.phenotypeMap[p.phenotype]["description"]
-							);
+
+							if (this.renderConfig["beta field"] != "null") {
+								this.renderTriangle(
+									ctx,
+									xPos,
+									yPos,
+									fillColor,
+									strokeColor,
+									Math.sign(
+										p[this.renderConfig["beta field"]]
+									),
+									this.phenotypeMap[p.phenotype][
+										"description"
+									]
+								);
+							} else {
+								this.renderDot(
+									ctx,
+									xPos,
+									yPos,
+									fillColor,
+									strokeColor
+								);
+							}
 
 							let pName =
 								this.phenotypeMap[p.phenotype]["description"];
@@ -471,15 +486,35 @@ export default Vue.component("research-phewas-plot", {
 							let xPos = canvasWidth / 2;
 
 							let yPos = canvasHeight / 2;
-							this.renderTriangle(
-								ctx,
-								xPos,
-								yPos,
-								fillColor,
-								strokeColor,
-								Math.sign(p.beta),
-								this.phenotypeMap[p.phenotype]["description"]
+
+							console.log(
+								"beta field: ",
+								this.renderConfig["beta field"]
 							);
+
+							if (this.renderConfig["beta field"] != "null") {
+								this.renderTriangle(
+									ctx,
+									xPos,
+									yPos,
+									fillColor,
+									strokeColor,
+									Math.sign(
+										p[this.renderConfig["beta field"]]
+									),
+									this.phenotypeMap[p.phenotype][
+										"description"
+									]
+								);
+							} else {
+								this.renderDot(
+									ctx,
+									xPos,
+									yPos,
+									fillColor,
+									strokeColor
+								);
+							}
 
 							let pName =
 								this.phenotypeMap[p.phenotype]["description"];

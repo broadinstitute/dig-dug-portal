@@ -21,6 +21,7 @@ import VariantSearch from "@/components/VariantSearch";
 import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -66,6 +67,7 @@ new Vue({
         FilterGreaterThan,
         LocusZoom,
         LocusZoomPhewasPanel,
+        ResearchPheWAS,
         SearchHeaderWrapper,
         ResultsDashboard,
         NCATSPredicateTable,
@@ -216,8 +218,7 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
+                window.location.href = `./region.html?chr=${r.chromosome
                     }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
