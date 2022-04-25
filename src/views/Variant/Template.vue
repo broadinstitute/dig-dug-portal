@@ -295,8 +295,9 @@
 											'render by': 'phenotype',
 											'y axis label': '-Log10(p-value)',
 											'x axis label': 'beta',
+											'beta field': 'beta',
 											'hover content': ['pValue', 'beta'],
-											height: 500,
+											height: '500',
 										}"
 										:pkgData="null"
 										:pkgDataSelected="null"
