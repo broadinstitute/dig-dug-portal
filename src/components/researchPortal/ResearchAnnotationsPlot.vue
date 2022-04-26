@@ -1827,9 +1827,12 @@ export default Vue.component("research-annotations-plot", {
 			}
 
 			//Render x axis label
+			let xLabel = !!this.renderConfig["global enrichment x axis label"]
+				? this.renderConfig["global enrichment x axis label"]
+				: "-Log10(p-value)";
 			CTX.textAlign = "center";
 			CTX.fillText(
-				"-Log10(p-value)",
+				xLabel,
 				this.plotMargin.leftMargin + WIDTH / 2,
 				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
 			);
