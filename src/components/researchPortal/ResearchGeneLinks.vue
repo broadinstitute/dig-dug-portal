@@ -373,7 +373,6 @@ export default Vue.component("research-gene-links-plot", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
-			console.log("searchingParameters called");
 			this.getGlobalEnrichment(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -826,8 +825,6 @@ export default Vue.component("research-gene-links-plot", {
 						renderHeight += btwnTissues;
 					});
 				}
-
-				console.log("this.GLPosData", this.GLPosData);
 			} else {
 				if (!!document.querySelector("#geneLinksPlot")) {
 					let c, ctx;
@@ -915,7 +912,7 @@ export default Vue.component("research-gene-links-plot", {
 						? "https://bioindex.hugeamp.org/api/bio"
 						: this.renderConfig["gene links server"];
 
-				let tissue = event.target.value;
+				let tissue = event.target.value.replaceAll(" ", "_");
 				let region = this.searchingRegion;
 
 				let GLURL =
