@@ -381,6 +381,7 @@
 										'x axis label': 'beta',
 										'beta field': 'null',
 										'hover content': ['pValue', 'beta'],
+										thresholds: ['2.5e-6'],
 										height: '500',
 									}"
 									:pkgData="null"
@@ -461,6 +462,7 @@
 								'x axis label': 'beta',
 								'beta field': 'beta',
 								'hover content': ['pValue', 'beta'],
+								thresholds: ['2.5e-6', '0.05'],
 								height: '500',
 							}"
 							:pkgData="null"

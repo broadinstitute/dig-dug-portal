@@ -393,7 +393,7 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
 };
 
-const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
+const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, LABEL) {
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
 
@@ -479,6 +479,19 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                         adjTickYPos + 3
                     );
                 }
+            }
+
+            if (LABEL != null) {
+                let labelXPos = 15;
+                let labelYPos = MARGIN.top + ((HEIGHT - MARGIN.top - MARGIN.bottom) / 2);
+                CTX.font = "12px Arial";
+                CTX.fillStyle = "#000000";
+                CTX.save();
+                CTX.translate(labelXPos, labelYPos);
+                CTX.rotate((90 * -Math.PI) / 180);
+                CTX.textAlign = "center";
+                CTX.fillText(LABEL, 0, 0);
+                CTX.restore();
             }
             break;
     }

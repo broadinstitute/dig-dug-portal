@@ -332,7 +332,8 @@ export default Vue.component("research-phewas-plot", {
 					"y",
 					5,
 					-Math.log10(maxY),
-					-Math.log10(minY)
+					-Math.log10(minY),
+					this.renderConfig["y axis label"]
 				);
 
 				plotUtils.renderAxisWBump(
@@ -479,21 +480,23 @@ export default Vue.component("research-phewas-plot", {
 						keyIndex++;
 					}
 					/// render guide line
-					let guidelineYpos =
-						canvasHeight -
-						plotMargin.bottom +
-						Math.round(-Math.log10(2.5e-6)) * yStep;
-					ctx.setLineDash([10, 5]);
-					ctx.moveTo(
-						plotMargin.left - plotMargin.bump,
-						guidelineYpos
-					);
-					ctx.lineTo(
-						canvasWidth + plotMargin.bump - plotMargin.right,
-						guidelineYpos
-					);
-					ctx.strokeStyle = "#00000050";
-					ctx.stroke();
+					this.renderConfig["thresholds"].map((t) => {
+						let guidelineYpos =
+							canvasHeight -
+							plotMargin.bottom +
+							Math.round(-Math.log10(Number(t))) * yStep;
+						ctx.setLineDash([10, 5]);
+						ctx.moveTo(
+							plotMargin.left - plotMargin.bump,
+							guidelineYpos
+						);
+						ctx.lineTo(
+							canvasWidth + plotMargin.bump - plotMargin.right,
+							guidelineYpos
+						);
+						ctx.strokeStyle = "#00000050";
+						ctx.stroke();
+					});
 				} else {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
