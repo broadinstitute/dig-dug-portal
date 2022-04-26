@@ -298,6 +298,7 @@
 											'x axis label': 'beta',
 											'beta field': 'beta',
 											'hover content': ['pValue', 'beta'],
+											thresholds: ['2.5e-6'],
 											height: '500',
 										}"
 										:pkgData="null"
