@@ -1317,7 +1317,11 @@ export default Vue.component("research-annotations-plot", {
 
 			let phenotype = this.searchingPhenotype;
 
-			let GEURL = annoServer + "/query/global-enrichment?q=" + phenotype;
+			let GEIndex = !!this.renderConfig["global enrichment index"]
+				? this.renderConfig["global enrichment index"]
+				: "global-enrichment";
+
+			let GEURL = annoServer + "/query/" + GEIndex + "?q=" + phenotype;
 
 			let GEJson = await fetch(GEURL).then((resp) => resp.json());
 
@@ -1447,9 +1451,15 @@ export default Vue.component("research-annotations-plot", {
 						? "https://bioindex.hugeamp.org/api/bio"
 						: this.renderConfig["annotations server"];
 
+				let annoIndex = !!this.renderConfig["annotations index"]
+					? this.renderConfig["annotations index"]
+					: "regions";
+
 				let annotationsURL =
 					annoServer +
-					"/query/regions?q=" +
+					"/query/" +
+					annoIndex +
+					"?q=" +
 					REGION_OBJ.chr +
 					":" +
 					REGION_OBJ.start +
