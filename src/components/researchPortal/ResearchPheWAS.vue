@@ -386,12 +386,13 @@ export default Vue.component("research-phewas-plot", {
 							12;
 
 						value.map((p) => {
+							//console.log("p-Value":p.pValue, "")
 							let xPos = plotMargin.left + xStep * dotIndex;
 
 							let yPos =
 								canvasHeight -
 								plotMargin.bottom +
-								Math.round(-Math.log10(p.pValue)) * yStep;
+								-Math.log10(p.pValue) * yStep;
 
 							if (this.renderConfig["beta field"] != "null") {
 								this.renderTriangle(
