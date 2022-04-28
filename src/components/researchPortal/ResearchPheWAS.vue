@@ -359,8 +359,8 @@ export default Vue.component("research-phewas-plot", {
 				let xStep =
 					(canvasWidth - plotMargin.left - plotMargin.right) /
 					totalNum;
-				let yMax = Math.round(-Math.log10(maxY));
-				let yMin = Math.round(-Math.log10(minY));
+				let yMax = -Math.log10(maxY);
+				let yMin = -Math.log10(minY);
 
 				// render Y ticks
 				let yStep =
@@ -391,7 +391,7 @@ export default Vue.component("research-phewas-plot", {
 							let yPos =
 								canvasHeight -
 								plotMargin.bottom +
-								Math.round(-Math.log10(p.pValue)) * yStep;
+								-Math.log10(p.pValue) * yStep;
 
 							if (this.renderConfig["beta field"] != "null") {
 								this.renderTriangle(
@@ -484,7 +484,7 @@ export default Vue.component("research-phewas-plot", {
 						let guidelineYpos =
 							canvasHeight -
 							plotMargin.bottom +
-							Math.round(-Math.log10(Number(t))) * yStep;
+							-Math.log10(Number(t)) * yStep;
 						ctx.setLineDash([10, 5]);
 						ctx.moveTo(
 							plotMargin.left - plotMargin.bump,
