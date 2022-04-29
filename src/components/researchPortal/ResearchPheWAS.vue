@@ -20,6 +20,50 @@
 						<b-icon icon="x-circle-fill"></b-icon>
 					</div>
 					<span :id="canvasId + 'pheWasInfoBoxContent'"></span>
+
+					<span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
+						<strong>{{ ptKey }}</strong
+						><br />
+						<span v-for="(dValue, dKey) in ptValue.data">
+							<span>{{ dKey + ": " }}</span
+							><span>{{ dValue }}</span> <br
+						/></span>
+						<template
+							v-if="
+								options != null &&
+								isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
+									true
+							"
+						>
+							<button
+								class="option-button"
+								v-if="!!options.includes('add phenotype')"
+								@click="addPhenotype(ptValue.id)"
+							>
+								Add this phenotype below
+							</button>
+
+							<button
+								class="option-button"
+								v-if="!!options.includes('open phenotype page')"
+								v-on:click="
+									openPage('phenotype.html', {
+										phenotype: ptValue.id,
+									})
+								"
+							>
+								Go to phenotype page
+							</button>
+						</template>
+						<span
+							v-if="
+								options != null &&
+								isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
+									false
+							"
+							>Click for options</span
+						>
+					</span>
 				</div>
 
 				<canvas
@@ -63,6 +107,7 @@ export default Vue.component("research-phewas-plot", {
 		"colors",
 		"plotMargin",
 		"filter",
+		"options",
 	],
 	data() {
 		return {
@@ -70,6 +115,7 @@ export default Vue.component("research-phewas-plot", {
 			pheWasPosData: {},
 			spaceBy: 7,
 			trigger: 0,
+			hoverItems: {},
 		};
 	},
 	modules: {
@@ -126,6 +172,13 @@ export default Vue.component("research-phewas-plot", {
 		...uiUtils,
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
+		openPage(PAGE, PARAMETER) {
+			uiUtils.openPage(PAGE, PARAMETER);
+		},
+		addPhenotype(PHENOTYPE) {
+			this.$parent.$parent.pushCriterionPhenotype(PHENOTYPE);
+			window.location.href = "#associations-table";
+		},
 		groupData(DATA) {
 			let phenotypeGroups = [];
 			for (const [key, value] of Object.entries(this.phenotypeMap)) {
@@ -185,46 +238,83 @@ export default Vue.component("research-phewas-plot", {
 			const infoBoxClose = document.querySelector(
 				"#" + this.canvasId + "info_box_close"
 			);
-			let infoContent = "";
+			if (infoBox.getAttribute("class").includes("fixed") == false) {
+				let infoContent = "";
+				this.hoverItems = {};
 
-			if (x >= plotMargin.left && x <= rect.width - plotMargin.right) {
-				for (const [yKey, yValue] of Object.entries(
-					this.pheWasPosData
-				)) {
-					let yLoc = yKey.split("-");
+				if (
+					x >= plotMargin.left &&
+					x <= rect.width - plotMargin.right
+				) {
+					for (const [yKey, yValue] of Object.entries(
+						this.pheWasPosData
+					)) {
+						let yLoc = yKey.split("-");
 
-					if (y >= yLoc[0] && y <= yLoc[1]) {
-						yValue.map((xPos) => {
-							if (x >= xPos.start && x <= xPos.end) {
-								infoContent +=
-									"<strong>" + xPos.name + "</strong><br />";
-
-								this.renderConfig["hover content"].map((h) => {
+						if (y >= yLoc[0] && y <= yLoc[1]) {
+							yValue.map((xPos) => {
+								if (x >= xPos.start && x <= xPos.end) {
+									this.hoverItems[xPos.name] = xPos;
 									infoContent +=
-										h + ":" + xPos.data[h] + "<br />";
-								});
-							}
-						});
+										"<strong>" +
+										xPos.name +
+										"</strong><br />";
+
+									this.renderConfig["hover content"].map(
+										(h) => {
+											infoContent +=
+												h +
+												":" +
+												xPos.data[h] +
+												"<br />";
+										}
+									);
+								}
+							});
+						}
 					}
 				}
-			}
 
-			if (TYPE == "hover") {
-				if (infoContent == "") {
-					if (
-						infoBox.getAttribute("class").includes("fixed") == false
-					) {
-						infoBoxContent.innerHTML = "";
-						infoBox.setAttribute("class", "hidden");
-						infoBoxClose.setAttribute("class", "hidden");
+				//console.log("this.hoverItems", this.hoverItems);
+
+				if (TYPE == "hover") {
+					if (infoContent == "") {
+						if (
+							infoBox.getAttribute("class").includes("fixed") ==
+							false
+						) {
+							//infoBoxContent.innerHTML = "";
+							infoBox.setAttribute("class", "hidden");
+							infoBoxClose.setAttribute("class", "hidden");
+						}
+					} else {
+						if (
+							infoBox.getAttribute("class").includes("fixed") ==
+							false
+						) {
+							//infoBoxContent.innerHTML = infoContent;
+							infoBox.setAttribute("class", "phe-was-info-box");
+							infoBoxClose.setAttribute("class", "hidden");
+							if (x < rect.width - 300) {
+								infoBox.style.left = rawX + 25 + "px";
+								infoBox.style.top = rawY + this.spaceBy + "px";
+							} else {
+								infoBox.style.left = rawX - 325 + "px";
+								infoBox.style.width = "300px !important";
+								infoBox.style.top = rawY + this.spaceBy + "px";
+							}
+						}
 					}
-				} else {
-					if (
-						infoBox.getAttribute("class").includes("fixed") == false
-					) {
-						infoBoxContent.innerHTML = infoContent;
-						infoBox.setAttribute("class", "phe-was-info-box");
-						infoBoxClose.setAttribute("class", "hidden");
+				}
+
+				if (TYPE == "click") {
+					infoBoxClose.setAttribute("class", "fixed-info-box-close");
+					if (infoContent == "") {
+						//infoBoxContent.innerHTML = "";
+						infoBox.setAttribute("class", "hidden");
+					} else {
+						//infoBoxContent.innerHTML = infoContent;
+						infoBox.setAttribute("class", "phe-was-info-box fixed");
 						if (x < rect.width - 300) {
 							infoBox.style.left = rawX + 25 + "px";
 							infoBox.style.top = rawY + this.spaceBy + "px";
@@ -233,25 +323,6 @@ export default Vue.component("research-phewas-plot", {
 							infoBox.style.width = "300px !important";
 							infoBox.style.top = rawY + this.spaceBy + "px";
 						}
-					}
-				}
-			}
-
-			if (TYPE == "click") {
-				infoBoxClose.setAttribute("class", "fixed-info-box-close");
-				if (infoContent == "") {
-					infoBoxContent.innerHTML = "";
-					infoBox.setAttribute("class", "hidden");
-				} else {
-					infoBoxContent.innerHTML = infoContent;
-					infoBox.setAttribute("class", "phe-was-info-box fixed");
-					if (x < rect.width - 300) {
-						infoBox.style.left = rawX + 25 + "px";
-						infoBox.style.top = rawY + this.spaceBy + "px";
-					} else {
-						infoBox.style.left = rawX - 325 + "px";
-						infoBox.style.width = "300px !important";
-						infoBox.style.top = rawY + this.spaceBy + "px";
 					}
 				}
 			}
@@ -368,6 +439,7 @@ export default Vue.component("research-phewas-plot", {
 					(yMax - yMin);
 
 				let groupsArr = Object.keys(groups).sort();
+
 				let dotIndex = 0;
 
 				if (totalNum > 1) {
@@ -386,6 +458,7 @@ export default Vue.component("research-phewas-plot", {
 							12;
 
 						value.map((p) => {
+							//console.log("p-Value":p.pValue, "")
 							let xPos = plotMargin.left + xStep * dotIndex;
 
 							let yPos =
@@ -433,6 +506,7 @@ export default Vue.component("research-phewas-plot", {
 								end: Math.round(xPos) + 5,
 								data: tempObj,
 								name: pName,
+								id: p.phenotype,
 							};
 
 							if (!this.pheWasPosData[yRange]) {
@@ -731,6 +805,14 @@ $(function () {});
 	font-size: 13px;
 	min-width: 200px !important;
 	max-width: 400px !important;
+}
+.option-button {
+	font-size: 12px;
+	border: solid 1px #aaaaaa;
+	border-radius: 10px;
+	display: block;
+	/* padding: 1px 5px; */
+	margin-bottom: 3px;
 }
 </style>
 
