@@ -259,6 +259,7 @@ let showTabContent = function (TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
 let removeOnMouseOut = function (BOXID, TIME) {
     let wrapper = document.getElementById(BOXID);
     setTimeout(function () {
+        wrapper.classList.remove("fixed");
         wrapper.classList.add("hidden");
     }, TIME);
 };
@@ -268,7 +269,7 @@ let isIdFixed = function (ID) {
 
     let isFixed = !!element && element.getAttribute(
         'class'
-    ) == 'fixed' ? true : false;
+    ).includes('fixed') == true ? true : false;
     return isFixed;
 }
 

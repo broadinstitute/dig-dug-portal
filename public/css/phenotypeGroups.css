@@ -328,7 +328,7 @@
 
 .new-phenotypes-with-signal-wrapper {
     height: auto;
-    max-height: 350px;
+    max-height: 100%;
     border: solid 1px #ccc;
     border-left: none;
     border-right: none;

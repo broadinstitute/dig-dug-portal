@@ -380,7 +380,7 @@
 										'y axis label': '-Log10(p-value)',
 										'x axis label': 'beta',
 										'beta field': 'null',
-										'hover content': ['pValue', 'beta'],
+										'hover content': ['pValue'],
 										thresholds: ['2.5e-6'],
 										height: '500',
 									}"

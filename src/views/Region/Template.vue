@@ -211,6 +211,10 @@
 									:pkgData="null"
 									:pkgDataSelected="null"
 									:filter="null"
+									:options="[
+										'add phenotype',
+										'open phenotype page',
+									]"
 									ref="rpPheWASPlot"
 								></research-phewas-plot>
 							</div>
