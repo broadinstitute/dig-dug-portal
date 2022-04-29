@@ -368,6 +368,7 @@ export default Vue.component("research-phewas-plot", {
 					(yMax - yMin);
 
 				let groupsArr = Object.keys(groups).sort();
+
 				let dotIndex = 0;
 
 				if (totalNum > 1) {

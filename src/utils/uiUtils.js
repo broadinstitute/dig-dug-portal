@@ -122,6 +122,23 @@ let switchViews = function (VIEWS, BUTTONTEXT) {
     celement.classList.remove("hidden");
 };
 
+let switchPlotViews = function (VIEWS, BUTTONTEXT) {
+    let x = VIEWS.length;
+    var currentElement;
+
+    for (let i = 0; i < x; i++) {
+        let element = checkExist(VIEWS[i]);
+        if (element.classList.contains("hidden-svg") == false) {
+            element.classList.add("hidden-svg");
+            currentElement = i + 1 == x ? 0 : i + 1;
+        }
+    }
+
+    let celement = checkExist(VIEWS[currentElement]);
+    event.target.innerHTML = BUTTONTEXT[currentElement];
+    celement.classList.remove("hidden-svg");
+};
+
 let openPage = function (PAGE, PARAMETERS) {
     let redirectURL = "./" + PAGE + "?";
 
@@ -265,6 +282,7 @@ export default {
     openPage,
     showHideByClass,
     switchViews,
+    switchPlotViews,
     getToolTipPosition,
     onScroll,
     convertJson2Csv,

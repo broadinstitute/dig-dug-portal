@@ -11,12 +11,14 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
+import PhenotypeSignalInGroup from "@/components/PhenotypeSignalInGroup";
 import Documentation from "@/components/Documentation";
 
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomCoaccessibilityPanel from "@/components/lz/panels/LocusZoomCoaccessibilityPanel";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
@@ -54,6 +56,8 @@ Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
 Vue.use(BootstrapVueIcons);
 
+
+
 new Vue({
     store,
     components: {
@@ -66,8 +70,10 @@ new Vue({
         LocusZoomAssociationsPanel,
         LocusZoomCatalogAnnotationsPanel,
         LocusZoomCoaccessibilityPanel,
+        ResearchPheWAS,
         AssociationsTable,
         PhenotypeSignalMixed,
+        PhenotypeSignalInGroup,
         CredibleSetSelectPicker,
         AnnotationSelectPicker,
         TissueSelectPicker,
@@ -109,7 +115,25 @@ new Vue({
             pageAssociationsMap: {},
             pageAssociations: [],
             regionPageSearchCriterion: [],
-            pillList: []
+            pillList: [],
+            colors: [
+                '#007bff',
+                '#048845',
+                '#8490C8',
+                '#BF61A5',
+                '#EE3124',
+                '#FCD700',
+                '#5555FF',
+                '#7aaa1c',
+                '#9F78AC',
+                '#F88084',
+                '#F5A4C7',
+                '#CEE6C1',
+                '#cccc00',
+                '#6FC7B6',
+                '#D5A768',
+                '#d4d4d4',
+            ]
         };
     },
     mounted() {
