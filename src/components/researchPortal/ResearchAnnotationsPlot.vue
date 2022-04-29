@@ -1317,7 +1317,11 @@ export default Vue.component("research-annotations-plot", {
 
 			let phenotype = this.searchingPhenotype;
 
-			let GEURL = annoServer + "/query/global-enrichment?q=" + phenotype;
+			let GEIndex = !!this.renderConfig["global enrichment index"]
+				? this.renderConfig["global enrichment index"]
+				: "global-enrichment";
+
+			let GEURL = annoServer + "/query/" + GEIndex + "?q=" + phenotype;
 
 			let GEJson = await fetch(GEURL).then((resp) => resp.json());
 
@@ -1447,9 +1451,15 @@ export default Vue.component("research-annotations-plot", {
 						? "https://bioindex.hugeamp.org/api/bio"
 						: this.renderConfig["annotations server"];
 
+				let annoIndex = !!this.renderConfig["annotations index"]
+					? this.renderConfig["annotations index"]
+					: "regions";
+
 				let annotationsURL =
 					annoServer +
-					"/query/regions?q=" +
+					"/query/" +
+					annoIndex +
+					"?q=" +
 					REGION_OBJ.chr +
 					":" +
 					REGION_OBJ.start +
@@ -1827,9 +1837,12 @@ export default Vue.component("research-annotations-plot", {
 			}
 
 			//Render x axis label
+			let xLabel = !!this.renderConfig["global enrichment x axis label"]
+				? this.renderConfig["global enrichment x axis label"]
+				: "-Log10(p-value)";
 			CTX.textAlign = "center";
 			CTX.fillText(
-				"-Log10(p-value)",
+				xLabel,
 				this.plotMargin.leftMargin + WIDTH / 2,
 				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
 			);
