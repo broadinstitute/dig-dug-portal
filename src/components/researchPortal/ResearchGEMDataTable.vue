@@ -1234,7 +1234,6 @@ export default Vue.component("research-gem-data-table", {
 		object2Array(DATASET, KEY, SORT_DIRECTION) {
 			let arrayedObject = [];
 
-			let firstItem = DATASET[Object.keys(DATASET)[0]];
 			let isObjct = !!this.dataComparisonConfig[
 				"fields to compare"
 			].includes(KEY)
@@ -1247,10 +1246,15 @@ export default Vue.component("research-gem-data-table", {
 					for (const [iKey, iValue] of Object.entries(dValue)) {
 						if (iKey == KEY) {
 							let arr = Object.values(iValue);
-							if (SORT_DIRECTION == false) {
-								tempObj[iKey] = Math.min(...arr);
+
+							if (arr.length == 1) {
+								tempObj[iKey] = arr[0];
 							} else {
-								tempObj[iKey] = Math.max(...arr);
+								if (SORT_DIRECTION == false) {
+									tempObj[iKey] = Math.min(...arr);
+								} else {
+									tempObj[iKey] = Math.max(...arr);
+								}
 							}
 						} else {
 							tempObj[iKey] = iValue;
@@ -1286,19 +1290,35 @@ export default Vue.component("research-gem-data-table", {
 						? this.dataset
 						: this.object2Array(this.dataset, key, sortDirection);
 
-				let keyData = filtered[0][key];
+				// In case of the data with null values mixed, we separate it to withValues and WO values.
+				let filteredWValues = [];
+				let filteredWNull = [];
+
+				filtered.map((v) => {
+					if (!!v[key]) {
+						filteredWValues.push(v);
+					} else {
+						filteredWNull.push(v);
+					}
+				});
+
+				let keyData = filteredWValues[0][key];
 				let isNumeric = typeof keyData != "number" ? false : true;
 
-				sortUtils.sortEGLTableData(
-					filtered,
-					key,
-					isNumeric,
-					sortDirection
-				);
+				//sort the data with values, then merge the data WO values to the sorted.
+				let sortedValues = sortUtils
+					.sortEGLTableData(
+						filteredWValues,
+						key,
+						isNumeric,
+						sortDirection
+					)
+					.concat(filteredWNull);
+
 				let returnData =
 					this.dataComparisonConfig == null
-						? filtered
-						: this.array2Object(filtered, this.dataset, key);
+						? sortedValues
+						: this.array2Object(sortedValues, this.dataset, key);
 				this.$store.dispatch("filteredData", returnData);
 			} else if (key == this.newTableFormat["locus field"]) {
 				let sortKey = this.newTableFormat["locus field"];

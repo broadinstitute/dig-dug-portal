@@ -899,6 +899,9 @@ export default Vue.component("research-page-filters", {
 												searchIndex.field
 											]) {
 												if (
+													!!row[searchIndex.field][
+														cellNum
+													] &&
 													row[searchIndex.field][
 														cellNum
 													]
@@ -921,6 +924,7 @@ export default Vue.component("research-page-filters", {
 											}
 										} else {
 											if (
+												!!row[searchIndex.field] &&
 												row[searchIndex.field]
 													.toLowerCase()
 													.includes(
