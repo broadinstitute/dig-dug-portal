@@ -641,6 +641,7 @@ export default Vue.component("variant-search", {
 				{},
 				true
 			);
+			//console.log(JSON.stringify(this.variants))
 			if (this.variants && this.variants.length) {
 				for (let i = 0; i < this.variants.length; i++) {
 					this.variants[i].allelecount =
@@ -840,8 +841,6 @@ export default Vue.component("variant-search", {
 			return this.tableData;
 		},
 		sort: function (s) {
-			//if s == current sort, reverse
-			console.log("sort", this.currentSort);
 			if (s === this.currentSort) {
 				this.currentSortDir =
 					this.currentSortDir === "asc" ? "desc" : "asc";
