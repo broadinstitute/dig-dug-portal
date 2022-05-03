@@ -31,3 +31,4 @@ pnpm-lock.yaml
 
 public/data/
 .vs/
+configs/vue.config.Neph.js
