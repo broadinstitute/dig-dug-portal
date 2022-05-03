@@ -331,12 +331,12 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 		showHidePanel(PANEL, CLOSEBTN) {
 			let wrapper = document.querySelector(PANEL);
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let y = Math.floor(e.clientY - rect.top);
 
-			var isData = null;
+			let isData = null;
 
 			for (let v = -5; v <= 5; v++) {
 				for (let h = -5; h <= 5; h++) {
@@ -371,13 +371,13 @@ export default Vue.component("research-credible-sets-plot", {
 			return this.compareGroupColors[i];
 		},
 		getBubbleId(CSID, PTYPE) {
-			var idString = CSID + PTYPE;
+			let idString = CSID + PTYPE;
 			idString = idString.replace(/[^a-zA-Z0-9 ]/g, "");
 
 			return idString;
 		},
 		removeCSData(CSID, PTYPE) {
-			var idString = CSID + PTYPE;
+			let idString = CSID + PTYPE;
 			idString = idString.replace(/[^a-zA-Z0-9 ]/g, "");
 
 			let bubble = document.getElementById(idString);
@@ -403,22 +403,20 @@ export default Vue.component("research-credible-sets-plot", {
 				id: CSID,
 				action: "remove",
 			});
-
-			//this.renderCSPlot();
 		},
 
 		checkCSPosition(event) {
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let y = Math.floor(e.clientY - rect.top);
 
 			const infoBox = document.querySelector("#CSInfoBox");
 			const infoBoxContentDiv =
 				document.querySelector("#CSInfoBoxContent");
 
 			if (!infoBox.classList.contains("fixed")) {
-				var infoBoxContent = "";
+				let infoBoxContent = "";
 				for (let v = -5; v <= 5; v++) {
 					for (let h = -5; h <= 5; h++) {
 						if (this.CSPosData[y + v] != undefined) {
@@ -581,7 +579,7 @@ export default Vue.component("research-credible-sets-plot", {
 			return content;
 		},
 		renderCSPlot() {
-			var selectedCS = this.pkgDataSelected
+			let selectedCS = this.pkgDataSelected
 				.filter((s) => s.type == "Credible Set")
 				.map((s) => s.id);
 			//console.log("selectedCS.length", selectedCS.length);
@@ -915,14 +913,20 @@ export default Vue.component("research-credible-sets-plot", {
 						? "https://bioindex.hugeamp.org/api/bio"
 						: this.renderConfig["credible sets server"];
 
-				var CSURL =
+				let CSIndex = !!this.renderConfig["credible variants index"]
+					? this.renderConfig["credible variants index"]
+					: "credible-variants";
+
+				let CSURL =
 					CSServer +
-					"/query/credible-variants?q=" +
+					"/query/" +
+					CSIndex +
+					"?q=" +
 					phenotype +
 					"," +
 					CSID;
 
-				var CSJson = await fetch(CSURL).then((resp) => resp.json());
+				let CSJson = await fetch(CSURL).then((resp) => resp.json());
 
 				if (CSJson.error == null) {
 					if (!this.CSData[phenotype]) {
@@ -956,11 +960,6 @@ export default Vue.component("research-credible-sets-plot", {
 						/[^a-zA-Z0-9 ]/g,
 						""
 					);
-					/*let bubble = document.getElementById(bubbleId);
-
-					bubble.classList.remove("hidden");*/
-
-					//this.renderCSPlot();
 				}
 			}
 		},
@@ -970,9 +969,15 @@ export default Vue.component("research-credible-sets-plot", {
 					? "https://bioindex.hugeamp.org/api/bio"
 					: this.renderConfig["credible sets server"];
 
-			var CSURL =
+			let CSIndex = !!this.renderConfig["credible sets index"]
+				? this.renderConfig["credible sets index"]
+				: "credible-sets";
+
+			let CSURL =
 				CSServer +
-				"/query/credible-sets?q=" +
+				"/query/" +
+				CSIndex +
+				"?q=" +
 				PHENOTYPE +
 				"," +
 				REGION.chr +
@@ -981,7 +986,7 @@ export default Vue.component("research-credible-sets-plot", {
 				"-" +
 				REGION.end;
 
-			var CSJson = await fetch(CSURL).then((resp) => resp.json());
+			let CSJson = await fetch(CSURL).then((resp) => resp.json());
 
 			if (CSJson.error == null) {
 				if (this.dataComparison == "newSearch") {

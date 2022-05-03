@@ -109,9 +109,12 @@
 					</div>
 					<div class="annotations-table-wrapper">
 						<span
-							>Table is sort by fold (SNPs/expectedSNPs) across
-							annotations.</span
-						>
+							v-html="
+								!!renderConfig['ui table legend']
+									? renderConfig['ui table legend']
+									: 'Table is sort by fold (SNPs/expectedSNPs) across annotations. Tissue columns show P-Value / Fold.'
+							"
+						></span>
 
 						<table
 							class="table table-sm ge-data-table"
@@ -123,10 +126,7 @@
 									<th
 										v-for="(pValue, pKey, pIndex) in GEData"
 										:key="pKey"
-										v-html="
-											pKey +
-											'(Tissue/Annotation(P-Value/Fold))'
-										"
+										v-html="pKey"
 									></th>
 								</tr>
 							</thead>
@@ -157,6 +157,7 @@
 																'Annotation'
 														)"
 														:key="annotation.id"
+														:class="annotation.id"
 														v-html="annotation.id"
 														:style="
 															'background-color:' +
@@ -219,6 +220,7 @@
 																'Annotation'
 														)"
 														:key="annotation.id"
+														:class="annotation.id"
 													>
 														<span
 															v-if="
