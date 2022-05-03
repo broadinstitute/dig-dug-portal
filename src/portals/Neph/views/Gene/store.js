@@ -18,13 +18,39 @@ export default new Vuex.Store({
         genes: bioIndex("genes"),
         geneassociations: bioIndex("gene-associations"),
         varassociations: bioIndex("associations"),
-        associations52k: bioIndex("gene-associations-52k"),
-        uniprot
+        associations52k: bioIndex("gene-associations-52k",{query_private:true}),
+        uniprot        
     },
     state: {
         geneName: keyParams.gene,
         aliasName: null,
-        prior: 0.3696
+        prior: 0.3696,
+        HPOTerms: {
+            "HP-0000119": "Abnormality of the genitourinary system",
+            "HP-0000152": "Abnormality of head or neck",
+            "HP-0000478": "Abnormality of the eye",
+            "HP-0000598": "Abnormality of the ear",
+            "HP-0000707": "Abnormality of the nervous system",
+            "HP-0000769": "Abnormality of the breast",
+            "HP-0000818": "Abnormality of the endocrine system",
+            "HP-0001197": "Abnormality of prenatal development or birth",
+            "HP-0001507": "Growth abnormality",
+            "HP-0001574": "Abnormality of the integument",
+            "HP-0001608": "Abnormality of the voice",
+            "HP-0001626": "Abnormality of the cardiovascular system",
+            "HP-0001871": "Abnormality of blood and blood-forming tissues",
+            "HP-0001939": "Abnormality of metabolism/homeostasis",
+            "HP-0002086": "Abnormality of the respiratory system",
+            "HP-0002664": "Neoplasm",
+            "HP-0002715": "Abnormality of the immune system",
+            "HP-0025031": "Abnormality of the digestive system",
+            "HP-0025142": "Constitutional symptom",
+            "HP-0025354": "Abnormal cellular phenotype",
+            "HP-0033127": "Abnormality of the musculoskeletal system",
+            "HP-0040064": "Abnormality of limbs",
+            "HP-0045027": "Abnormality of the thoracic cavity",
+            "AllControl": "Controls",
+        }
     },
 
     mutations: {
@@ -111,7 +137,7 @@ export default new Vuex.Store({
         },
 
         async queryAssociations(context) {
-            let query = { q: context.state.geneName };
+            let query = { q: context.state.geneName,query_private:true };
             context.dispatch("associations52k/query", query);
             context.dispatch("geneassociations/query", query);
         },
@@ -136,7 +162,7 @@ export default new Vuex.Store({
         },
         async get52KAssociationData(context) {
             let name = context.state.geneName;
-            context.dispatch("associations52k/query", { q: name });
+            context.dispatch("associations52k/query", { q: name, query_private:true });
         }
     }
 });
