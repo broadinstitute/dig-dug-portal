@@ -48,11 +48,12 @@
 							parameter.values.length > 10
 						"
 					>
-						<input
+						<!--<input
 							v-model="paramSearch"
-							placeholder=""
+							:placeholder="getPlaceHolder(parameter.parameter)"
 							class="form-control"
-						/>
+						/>-->
+						<input v-model="paramSearch" class="form-control" />
 
 						<select
 							:id="'search_param_' + parameter.parameter"
@@ -74,7 +75,7 @@
 									: ''
 							"
 							v-if="parameter.type == 'list'"
-							@change="updateSearchInput($event)"
+							@change="updateSearchInputByEvent($event)"
 						>
 							<option
 								v-for="param in parameter.values"
@@ -101,9 +102,16 @@
 						"
 						id="kp_gene_search_wrapper"
 					>
+						<!--<input
+							v-model="geneSearch"
+							:placeholder="getPlaceHolder(parameter.parameter)"
+							class="form-control"
+							@keyup="getGenes($event)"
+							:id="'search_param_' + parameter.parameter"
+						/>-->
+
 						<input
 							v-model="geneSearch"
-							placeholder=""
 							class="form-control"
 							@keyup="getGenes($event)"
 							:id="'search_param_' + parameter.parameter"
@@ -137,6 +145,16 @@
 							</template>
 						</div>
 					</div>
+					<!--<input
+						v-if="
+							parameter.type == 'input' &&
+							parameter.values != 'kp genes'
+						"
+						type="text"
+						:placeholder="getPlaceHolder(parameter.parameter)"
+						class="form-control"
+						:id="'search_param_' + parameter.parameter"
+					/>-->
 					<input
 						v-if="
 							parameter.type == 'input' &&
@@ -417,6 +435,7 @@ export default Vue.component("research-page-filters", {
 		this.$store.dispatch("searchParameters", this.searchParamsIndex);
 	},
 	mounted() {
+		console.log("this.apiParameters", this.apiParameters);
 		if (
 			this.apiParameters != null &&
 			this.apiParameters.query.type == "array"
@@ -425,8 +444,52 @@ export default Vue.component("research-page-filters", {
 
 			parametersArr.map((param, index) => {
 				if (keyParams[param] != undefined) {
-					document.getElementById("search_param_" + param).value =
-						keyParams[param];
+					let pType = this.apiParameters.parameters.filter(
+						(p) => p.parameter == param
+					)[0].type;
+
+					let valuesExist =
+						!!this.apiParameters.rawConfig.parameters.filter(
+							(p) => p.parameter == param
+						)[0].values
+							? true
+							: false;
+
+					let ifValuesFromKP = !!valuesExist
+						? this.apiParameters.rawConfig.parameters
+								.filter((p) => p.parameter == param)[0]
+								.values.includes("kp")
+						: null;
+
+					if (pType != "list" && !!ifValuesFromKP) {
+						console.log(
+							"pType",
+							pType,
+							": ",
+							keyParams[param],
+							ifValuesFromKP
+						);
+						this.geneSearch = keyParams[param];
+						/*document.getElementById("search_param_" + param).value =
+							keyParams[param];*/
+					} else if (pType == "list" && !!ifValuesFromKP) {
+						console.log(
+							"pType",
+							pType,
+							": ",
+							keyParams[param],
+							ifValuesFromKP
+						);
+
+						let label = this.getFileLabel(keyParams[param].trim());
+
+						let content = label + "(" + keyParams[param] + ")";
+
+						this.paramSearch = content;
+					} else {
+						document.getElementById("search_param_" + param).value =
+							keyParams[param];
+					}
 
 					this.searchParamsIndex[param].search.push(keyParams[param]);
 					this.$store.dispatch(
@@ -437,12 +500,32 @@ export default Vue.component("research-page-filters", {
 			});
 		}
 	},
-	comuted: {},
+	computed: {},
 	watch: {},
 	methods: {
 		...uiUtils,
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
+		},
+		getPlaceHolder(PARAM) {
+			let content = "";
+			if (keyParams[PARAM] != undefined) {
+				let paramType = this.apiParameters.parameters.filter(
+					(v) => v.parameter == PARAM
+				)[0].type;
+
+				if (paramType == "list") {
+					let label = this.getFileLabel(keyParams[PARAM].trim());
+
+					content = label + "(" + keyParams[PARAM] + ")";
+				} else {
+					content = keyParams[PARAM];
+				}
+
+				return content;
+			} else {
+				return "";
+			}
 		},
 		getVisibleValues(VALUES, SEARCH) {
 			var numOfVisible = 0;
@@ -478,11 +561,9 @@ export default Vue.component("research-page-filters", {
 					geneJson.data[0].start +
 					"-" +
 					geneJson.data[0].end;
-				//document.getElementById("search_param_" + PARAM).value = region;
-				//document.getElementById("kp_gene_search").value = region;
+
 				this.geneSearch = region;
 				this.kpGenes = [];
-				//uiUtils.hideElement("kp_gene_search_wrapper");
 			}
 		},
 		async getGenes(EVENT) {
@@ -566,6 +647,8 @@ export default Vue.component("research-page-filters", {
 			let queryParams = "";
 			if (this.apiParameters.query.type == "array") {
 				let parametersArr = this.apiParameters.query.format;
+				// key2Update to update the url in case of new search
+				let key2Update = {};
 
 				parametersArr.map((param, index) => {
 					queryParams += document.getElementById(
@@ -578,10 +661,11 @@ export default Vue.component("research-page-filters", {
 					// add to search parameters index
 					if (this.$store.state.dataComparison == "newSearch") {
 						this.searchParamsIndex[param].search = [];
-						this.searchParamsIndex[param].search.push(
-							document.getElementById("search_param_" + param)
-								.value
-						);
+						let sValue = document.getElementById(
+							"search_param_" + param
+						).value;
+						this.searchParamsIndex[param].search.push(sValue);
+						key2Update[param] = sValue;
 						if (!!this.$store.state.pkgDataSelected.length > 0) {
 							this.$store.state.pkgDataSelected = [];
 							this.$store.state.pkgData = {};
@@ -598,6 +682,15 @@ export default Vue.component("research-page-filters", {
 						this.searchParamsIndex
 					);
 				});
+
+				if (Object.keys(key2Update).length > 0) {
+					const url = new URL(window.location);
+					for (const [key, value] of Object.entries(key2Update)) {
+						url.searchParams.set(key, value);
+					}
+
+					window.history.pushState(null, "", url.toString());
+				}
 			}
 
 			let APIPoint = this.dataFiles[0];
@@ -612,14 +705,17 @@ export default Vue.component("research-page-filters", {
 			let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
 			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
-
-			//this.paramSearch = "";
 		},
-		updateSearchInput(event) {
+		updateSearchInputByEvent(event) {
 			var label = this.getFileLabel(event.target.value.trim());
-			//console.log(event.target.value);
-			//console.log(label);
+
 			this.paramSearch = label + "(" + event.target.value + ")";
+		},
+		updateSearchInput(VALUE) {
+			console.log("called", VALUE);
+			var label = this.getFileLabel(VALUE.trim());
+
+			this.paramSearch = label + "(" + VALUE + ")";
 		},
 		switchData(event) {
 			uiUtils.showElement("data-loading-indicator");
