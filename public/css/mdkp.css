@@ -101,6 +101,12 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
+.front-top-banner-aggregatorkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/bchkp_bg.png),
+    linear-gradient(#002f87, #002f8798);
+    background-position: 110% 100px, top left;
+}
+
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
@@ -163,6 +169,10 @@ a:hover {
 }
 
 .front-top-banner-nagekp .front-logo-img {
+    width: 470px;
+}
+
+.front-top-banner-aggregatorkp .front-logo-img {
     width: 470px;
 }
 
@@ -232,6 +242,10 @@ a:hover {
 
 .front-logo-tagline-nagekp {
     transform: translate(0%, 25%);
+}
+
+.front-logo-tagline-aggregatorkp {
+    transform: translate(0%, 95%);
 }
 
 .front-banner-ui-tabs {
@@ -334,6 +348,10 @@ a:hover {
     height: 50px;
 }
 
+.aggregatorkp-logo {
+    height: 50px;
+}
+
 .registered-mark {
     display: none;
 }
@@ -417,6 +435,12 @@ a:hover {
 .nagekp-header,
 .nagekp-footer {
     background-color: #751dc7;
+    height: 50px;
+}
+
+.aggregatorkp-header,
+.aggregatorkp-footer {
+    background-color: #002f87;
     height: 50px;
 }
 
@@ -513,7 +537,8 @@ a:hover {
 .alskp-footer,
 .nephkp-footer,
 .ndkpkp-footer,
-.nagekp-footer  {
+.nagekp-footer,
+.aggregatorkp-footer {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -533,7 +558,8 @@ a:hover {
 .alskp-body,
 .nephkp-body,
 .ndkpkp-body,
-.nagekp-body {
+.nagekp-body,
+.aggregatorkp-body {
     background-color: #eee;
     min-height: 400px;
     padding-top: 10px;
@@ -551,7 +577,8 @@ a:hover {
 .alskp-card,
 .nephkp-card,
 .ndkpkp-card,
-.nagekp-card {
+.nagekp-card,
+.aggregatorkp-card {
     margin-top: 10px;
     margin-bottom: 10px;
     min-width: 1024px !important;
