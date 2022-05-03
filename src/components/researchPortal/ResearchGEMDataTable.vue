@@ -530,10 +530,12 @@ export default Vue.component("research-gem-data-table", {
 				}
 			} else {
 				updatedData = rawData;
-				let CSIndex =
-					newTableFormat["features"].indexOf("Credible Set");
-				if (CSIndex > -1) {
-					newTableFormat["features"].splice(CSIndex, 1);
+				if (!!newTableFormat["features"]) {
+					let CSIndex =
+						newTableFormat["features"].indexOf("Credible Set");
+					if (CSIndex > -1) {
+						newTableFormat["features"].splice(CSIndex, 1);
+					}
 				}
 			}
 
