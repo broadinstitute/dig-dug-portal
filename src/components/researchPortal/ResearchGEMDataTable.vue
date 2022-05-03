@@ -326,14 +326,12 @@ export default Vue.component("research-gem-data-table", {
 			var newRows = [];
 			var selectedBy = {};
 
-			console.log("this.pkgDataSelected", this.pkgDataSelected);
-
 			// Add "Credible sets" and selected tissues to the top rows
 
 			if (this.pkgDataSelected.length > 0) {
 				// get the list of the types of filtering credible sets, and tissues X annotations
 				var selectedTypes = this.pkgDataSelected.map((p) => p.type);
-				//console.log("selectedTypes", selectedTypes);
+
 				//newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
 				if (selectedTypes.indexOf("Credible Set") > -1) {
 					newRows.push("Credible Set");
@@ -532,6 +530,11 @@ export default Vue.component("research-gem-data-table", {
 				}
 			} else {
 				updatedData = rawData;
+				let CSIndex =
+					newTableFormat["features"].indexOf("Credible Set");
+				if (CSIndex > -1) {
+					newTableFormat["features"].splice(CSIndex, 1);
+				}
 			}
 
 			///Filter data if tissues and annotations selected
@@ -921,9 +924,6 @@ export default Vue.component("research-gem-data-table", {
 		},
 
 		pagedData() {
-			//console.log("formattedData", this.rawData);
-			//console.log("newTableFormat", this.newTableFormat);
-
 			if (!!this.perPageNumber && this.perPageNumber != null) {
 				let formattedData = this.rawData;
 
@@ -942,8 +942,6 @@ export default Vue.component("research-gem-data-table", {
 				for (let i = startIndex; i < endIndex; i++) {
 					paged.push(formattedData[i]);
 				}
-
-				//console.log("paged", paged);
 
 				return paged;
 			} else {
@@ -1038,7 +1036,7 @@ export default Vue.component("research-gem-data-table", {
 							tempObj["features"][f] = [];
 
 							let fTempObj = {};
-							//console.log("f", f);
+
 							this.newTableFormat[f].map((fItem) => {
 								fTempObj[fItem] = value[fItem];
 							});
@@ -1059,7 +1057,6 @@ export default Vue.component("research-gem-data-table", {
 				id: value,
 				action: "add",
 			});
-			//console.log("pkgDataSelected", this.pkgDataSelected);
 		},
 		removeStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
@@ -1068,8 +1065,6 @@ export default Vue.component("research-gem-data-table", {
 				id: value,
 				action: "remove",
 			});
-
-			//console.log("pkgDataSelected", this.pkgDataSelected);
 		},
 		checkStared(ITEM) {
 			let selectedItems = this.pkgDataSelected
@@ -1281,7 +1276,6 @@ export default Vue.component("research-gem-data-table", {
 			return objectedArray;
 		},
 		applySorting(key) {
-			//console.log(key);
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
 			this.sortByCredibleSet = false;
