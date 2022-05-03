@@ -403,8 +403,6 @@ export default Vue.component("research-credible-sets-plot", {
 				id: CSID,
 				action: "remove",
 			});
-
-			//this.renderCSPlot();
 		},
 
 		checkCSPosition(event) {

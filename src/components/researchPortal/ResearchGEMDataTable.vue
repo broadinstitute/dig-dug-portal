@@ -326,6 +326,8 @@ export default Vue.component("research-gem-data-table", {
 			var newRows = [];
 			var selectedBy = {};
 
+			console.log("this.pkgDataSelected", this.pkgDataSelected);
+
 			// Add "Credible sets" and selected tissues to the top rows
 
 			if (this.pkgDataSelected.length > 0) {
@@ -998,6 +1000,8 @@ export default Vue.component("research-gem-data-table", {
 			let formattedData = [];
 
 			if (this.dataComparisonConfig == null) {
+				console.log("this.newTableFormat", this.newTableFormat);
+
 				rawData.map((d) => {
 					let tempObj = {};
 
