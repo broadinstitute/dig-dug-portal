@@ -605,6 +605,9 @@ new Vue({
                 return null;
             } else {
                 let apiConfig = JSON.parse(contents[0]["field_api_parameters"]);
+
+                apiConfig["rawConfig"] = JSON.parse(contents[0]["field_api_parameters"]);
+
                 let parameters = apiConfig.parameters;
 
                 parameters.map(pr => {
@@ -613,6 +616,8 @@ new Vue({
                         pr.values = values;
                     }
                 });
+
+
 
                 return apiConfig;
             }
