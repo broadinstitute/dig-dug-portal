@@ -10,7 +10,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
-import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
+import GeneAssociationsMasks from "@/portals/Neph/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
@@ -40,6 +40,11 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+
+//Vue.http.headers.common['Access-Control-Allow-Origin'] = '*';
+//Vue.http.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+//Vue.http.headers.common['Accept'] = 'application/json, text/plain, */*';
+//Vue.http.headers.common['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, Authorization, Access-Control-Allow-Origin';
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
