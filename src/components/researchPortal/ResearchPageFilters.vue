@@ -449,7 +449,6 @@ export default Vue.component("research-page-filters", {
 		this.$store.dispatch("searchParameters", this.searchParamsIndex);
 	},
 	mounted() {
-		console.log("this.apiParameters", this.apiParameters);
 		if (
 			this.apiParameters != null &&
 			this.apiParameters.query.type == "array"
@@ -476,25 +475,10 @@ export default Vue.component("research-page-filters", {
 						: null;
 
 					if (pType != "list" && !!ifValuesFromKP) {
-						console.log(
-							"pType",
-							pType,
-							": ",
-							keyParams[param],
-							ifValuesFromKP
-						);
 						this.geneSearch = keyParams[param];
 						/*document.getElementById("search_param_" + param).value =
 							keyParams[param];*/
 					} else if (pType == "list" && !!ifValuesFromKP) {
-						console.log(
-							"pType",
-							pType,
-							": ",
-							keyParams[param],
-							ifValuesFromKP
-						);
-
 						let label = this.getFileLabel(keyParams[param].trim());
 
 						let content = label + "(" + keyParams[param] + ")";
@@ -726,7 +710,6 @@ export default Vue.component("research-page-filters", {
 			this.paramSearch = label + "(" + event.target.value + ")";
 		},
 		updateSearchInput(VALUE) {
-			console.log("called", VALUE);
 			var label = this.getFileLabel(VALUE.trim());
 
 			this.paramSearch = label + "(" + VALUE + ")";
