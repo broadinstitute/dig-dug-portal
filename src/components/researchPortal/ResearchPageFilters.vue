@@ -164,7 +164,21 @@
 						class="form-control"
 						:id="'search_param_' + parameter.parameter"
 					/>
+					<div v-if="!!parameter['expand region']">
+						<select
+							id="region_expander"
+							class="expand-region-select"
+						>
+							<option selected="selected" value="null">
+								Expand region by:
+							</option>
+							<option value="50000">± 50 kb</option>
+							<option value="100000">± 100 kb</option>
+							<option value="150000">± 150 kb</option>
+						</select>
+					</div>
 				</div>
+
 				<div
 					class="col"
 					v-if="!!this.dataset && dataComparisonConfig != null"
