@@ -476,14 +476,23 @@ export default Vue.component("research-page-filters", {
 
 					if (pType != "list" && !!ifValuesFromKP) {
 						this.geneSearch = keyParams[param];
-						/*document.getElementById("search_param_" + param).value =
-							keyParams[param];*/
 					} else if (pType == "list" && !!ifValuesFromKP) {
 						let label = this.getFileLabel(keyParams[param].trim());
 
-						let content = label + "(" + keyParams[param] + ")";
+						let labelContent = label + "(" + keyParams[param] + ")";
 
-						this.paramSearch = content;
+						console.log(
+							"pType",
+							pType,
+							": ",
+							keyParams[param],
+							ifValuesFromKP,
+							labelContent
+						);
+
+						this.paramSearch = labelContent;
+						document.getElementById("search_param_" + param).value =
+							keyParams[param];
 					} else {
 						document.getElementById("search_param_" + param).value =
 							keyParams[param];
