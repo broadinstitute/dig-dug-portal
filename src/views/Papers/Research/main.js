@@ -442,7 +442,9 @@ new Vue({
                     let queryParams = "";
                     parametersArr.map((param, index) => {
 
-                        queryParams += keyParams[param].trim();
+                        let paramValue = (typeof keyParams[param] === 'number') ? keyParams[param] : keyParams[param].trim();
+
+                        queryParams += paramValue;
                         if (index + 1 < parametersArr.length) {
                             queryParams += ",";
                         }

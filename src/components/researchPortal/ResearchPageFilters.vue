@@ -504,9 +504,32 @@ export default Vue.component("research-page-filters", {
 	methods: {
 		...uiUtils,
 		expandRegion(EVENT, PARAM) {
-			console.log(EVENT.target.value);
-			console.log(PARAM);
-			this.queryAPI();
+			let expandNumber = EVENT.target.value;
+
+			if (EVENT.target.value != "null") {
+				let currentRegion = document
+					.getElementById("search_param_" + PARAM.parameter)
+					.value.split(":");
+				let chr = currentRegion[0];
+				let region = currentRegion[1].split("-");
+
+				let newRegion =
+					chr +
+					":" +
+					(Number(region[0]) - Number(expandNumber)) +
+					"-" +
+					(Number(region[1]) + Number(expandNumber));
+
+				document.getElementById(
+					"search_param_" + PARAM.parameter
+				).value = newRegion;
+				this.geneSearch = newRegion;
+
+				if (!!this.dataComparisonConfig) {
+					document.getElementById("ifMergeData").value = "newSearch";
+				}
+				this.queryAPI();
+			}
 		},
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
@@ -622,6 +645,7 @@ export default Vue.component("research-page-filters", {
 			this.$store.dispatch("dataComparison", ifCompareData);
 		},
 		queryAPI() {
+			console.log("called");
 			this.showHideSearch();
 			uiUtils.showElement("data-loading-indicator");
 
