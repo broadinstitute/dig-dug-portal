@@ -167,7 +167,8 @@
 					<div v-if="!!parameter['expand region']">
 						<select
 							id="region_expander"
-							class="expand-region-select"
+							class="expand-region-select-byor"
+							@change="expandRegion($event, parameter)"
 						>
 							<option selected="selected" value="null">
 								Expand region by:
@@ -481,15 +482,6 @@ export default Vue.component("research-page-filters", {
 
 						let labelContent = label + "(" + keyParams[param] + ")";
 
-						console.log(
-							"pType",
-							pType,
-							": ",
-							keyParams[param],
-							ifValuesFromKP,
-							labelContent
-						);
-
 						this.paramSearch = labelContent;
 						document.getElementById("search_param_" + param).value =
 							keyParams[param];
@@ -511,6 +503,11 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		expandRegion(EVENT, PARAM) {
+			console.log(EVENT.target.value);
+			console.log(PARAM);
+			this.queryAPI();
+		},
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
@@ -1369,6 +1366,16 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
+.expand-region-select-byor {
+	background-color: #66bbff !important;
+	border: solid 1px #3399ff !important;
+	color: #fff;
+	border-radius: 3px;
+	padding: 0 5px;
+	float: left;
+	margin-top: 5px;
+}
+
 #kp_gene_search_wrapper {
 	/*position: absolute;
 	background-color: #efefef;
