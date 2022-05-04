@@ -292,6 +292,7 @@ export default Vue.component("research-region-plot", {
 		plotsList() {
 			//used rebuild
 			if (this.plotData != null) {
+				console.log("this.plotData", this.plotData);
 				var plotsKeys = [];
 				if (this.dataComparisonConfig != null) {
 					var field =
