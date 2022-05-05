@@ -520,17 +520,29 @@ export default Vue.component("research-page-filters", {
 					"-" +
 					(Number(region[1]) + Number(expandNumber));
 
-				document.getElementById(
+				/*document.getElementById(
 					"search_param_" + PARAM.parameter
 				).value = newRegion;
-				this.geneSearch = newRegion;
+				this.geneSearch = newRegion;*/
 
-				if (!!this.dataComparisonConfig) {
+				let url = new URL(window.location);
+				//for (const [key, value] of Object.entries(key2Update)) {
+				url.searchParams.set(PARAM.parameter, newRegion);
+				//}
+
+				window.history.pushState(null, "", url.toString());
+
+				let newUrl = new URL(window.location);
+
+				window.location.href = newUrl;
+
+				/*if (!!this.dataComparisonConfig) {
 					document.getElementById("ifMergeData").value = "newSearch";
-				}
-				this.queryAPI();
+				}*/
+				//this.queryAPI();
 			}
 		},
+
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
