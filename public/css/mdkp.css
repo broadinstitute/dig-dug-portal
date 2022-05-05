@@ -2078,3 +2078,40 @@ span.spacer-5 {
     padding-top: 15px;
     padding-bottom: 15px;
 }
+
+
+/* for tool tip UI. */
+
+.tip-wrapper {
+	vertical-align: -13px;
+	margin-left: 5px;
+	position: relative;
+}
+
+.tip-wrapper > .tip-content {
+	display: none;
+	position: absolute;
+	width: auto;
+	z-index: 10;
+	top: 0;
+	left: 18px;
+    min-width: 300px;
+    background-color: #000000;
+	color: #ffffff;
+	padding: 5px 10px;
+	border-radius: 3px;
+    font-size: 13px;
+}
+
+.tip-wrapper:hover > .tip-content {
+	display: block;
+	
+}
+
+.tip-bigger {
+    font-size: 1.25em;
+}
+
+.warning {
+	color: #ff0000;
+}

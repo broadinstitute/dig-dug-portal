@@ -177,6 +177,19 @@
 							<option value="100000">± 100 kb</option>
 							<option value="150000">± 150 kb</option>
 						</select>
+						<span class="tip-wrapper">
+							<b-icon
+								class="tip-bigger warning"
+								icon="exclamation-circle-fill"
+							></b-icon>
+							<div class="tip-content">
+								This feature is in test! Expanding region will
+								refresh the page as a new search with the last
+								search parameters and the expanded region. All
+								filters and previously loaded data will be
+								removed.
+							</div>
+						</span>
 					</div>
 				</div>
 
@@ -512,14 +525,16 @@ export default Vue.component("research-page-filters", {
 					.value.split(":");
 				let chr = currentRegion[0];
 				let region = currentRegion[1].split("-");
+				let regionStart =
+					Number(region[0]) - Number(expandNumber) <= 0
+						? 0
+						: Number(region[0]) - Number(expandNumber);
 
-				let newRegion =
-					chr +
-					":" +
-					(Number(region[0]) - Number(expandNumber)) +
-					"-" +
-					(Number(region[1]) + Number(expandNumber));
+				let regionEnd = Number(region[1]) + Number(expandNumber);
 
+				let newRegion = chr + ":" + regionStart + "-" + regionEnd;
+
+				///!!! Leave commented alone. This part has to be revisited to fully support region expand.
 				/*document.getElementById(
 					"search_param_" + PARAM.parameter
 				).value = newRegion;
@@ -1410,6 +1425,7 @@ export default Vue.component("research-page-filters", {
 	padding: 0 5px;
 	float: left;
 	margin-top: 5px;
+	width: calc(100% - 25px) !important;
 }
 
 #kp_gene_search_wrapper {
