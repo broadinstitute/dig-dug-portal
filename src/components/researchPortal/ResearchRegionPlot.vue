@@ -292,7 +292,6 @@ export default Vue.component("research-region-plot", {
 		plotsList() {
 			//used rebuild
 			if (this.plotData != null) {
-				console.log("this.plotData", this.plotData);
 				var plotsKeys = [];
 				if (this.dataComparisonConfig != null) {
 					var field =
@@ -757,7 +756,6 @@ export default Vue.component("research-region-plot", {
 			this.callForRecombData();
 		},
 		async callForRecombData() {
-			//console.log("this.searchingRegion", this.searchingRegion);
 			var signalURL =
 				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
 				this.searchingRegion.chr +

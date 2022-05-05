@@ -89,6 +89,20 @@
 			</div>
 			<div class="col-md-3 GL-plot-ui-wrapper reference-area">
 				<div v-if="GLData != null">
+					<button
+						class="btn btn-sm btn-outline-secondary"
+						style="margin-right: 5px; margin-bottom: 10px"
+						@click="checkUncheckAll('check')"
+					>
+						Select all
+					</button>
+					<button
+						class="btn btn-sm btn-outline-secondary"
+						style="margin-bottom: 10px"
+						@click="checkUncheckAll('uncheck')"
+					>
+						Unselect all
+					</button>
 					<h6><strong>Methods</strong></h6>
 
 					<div
@@ -194,7 +208,6 @@ export default Vue.component("research-gene-links-plot", {
 	},
 	computed: {
 		GLTissues() {
-			//console.log(this.trigger);
 			this.trigger--;
 			if (Object.keys(this.GEData).length == 0) {
 				return null;
@@ -226,7 +239,6 @@ export default Vue.component("research-gene-links-plot", {
 			}
 		},
 		renderData() {
-			//console.log(this.trigger);
 			this.trigger--;
 
 			let renderObj = {};
@@ -393,6 +405,45 @@ export default Vue.component("research-gene-links-plot", {
 	methods: {
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
+		checkUncheckAll(CHECK) {
+			switch (CHECK) {
+				case "check":
+					[
+						{
+							type: "GL-Method",
+							items: this.getMethodsArr(this.GLData),
+						},
+						{
+							type: "GL-Gene",
+							items: this.getGenesArr(this.GLData),
+						},
+					].map((o) => {
+						o.items.map((g) => {
+							this.removeParameter(g, o.type);
+						});
+					});
+
+					break;
+				case "uncheck":
+					[
+						{
+							type: "GL-Method",
+							items: this.getMethodsArr(this.GLData),
+						},
+						{
+							type: "GL-Gene",
+							items: this.getGenesArr(this.GLData),
+						},
+					].map((o) => {
+						o.items.map((g) => {
+							this.addParameter(g, o.type);
+						});
+					});
+					break;
+			}
+
+			this.trigger++;
+		},
 		getMethodsArr(DATA) {
 			let methodIndex = [];
 
@@ -440,14 +491,12 @@ export default Vue.component("research-gene-links-plot", {
 					let vLoc = vKey.split("-");
 
 					if (y >= vLoc[0] && y <= vLoc[1]) {
-						//infoContent += vKey;
 						infoContent +=
 							"<strong>" +
 							vValue.targetGene +
 							" / " +
 							vValue.method +
 							"</strong>";
-						//console.log(infoContent);
 
 						for (const [rKey, rValue] of Object.entries(
 							this.GLPosData[vKey].region
@@ -508,6 +557,38 @@ export default Vue.component("research-gene-links-plot", {
 				}
 			}
 		},
+		addParameter(ID, TYPE) {
+			if (
+				this.pkgDataSelected.filter((p) => p.id == ID && p.type == TYPE)
+					.length == 0
+			) {
+				this.$store.dispatch("pkgDataSelected", {
+					type: TYPE,
+					id: ID,
+					action: "add",
+				});
+			}
+
+			this.trigger++;
+
+			this.renderGLPlot();
+		},
+		removeParameter(ID, TYPE) {
+			if (
+				this.pkgDataSelected.filter((p) => p.id == ID && p.type == TYPE)
+					.length > 0
+			) {
+				this.$store.dispatch("pkgDataSelected", {
+					type: TYPE,
+					id: ID,
+					action: "remove",
+				});
+			}
+
+			this.trigger++;
+
+			this.renderGLPlot();
+		},
 		addRemoveParameter(ID, TYPE) {
 			if (
 				this.pkgDataSelected.filter((p) => p.id == ID && p.type == TYPE)
@@ -545,7 +626,6 @@ export default Vue.component("research-gene-links-plot", {
 			yPos,
 			bump
 		) {
-			//console.log("called");
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#FFAA00";

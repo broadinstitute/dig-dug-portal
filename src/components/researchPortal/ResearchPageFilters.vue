@@ -164,7 +164,35 @@
 						class="form-control"
 						:id="'search_param_' + parameter.parameter"
 					/>
+					<div v-if="!!parameter['expand region']">
+						<select
+							id="region_expander"
+							class="expand-region-select-byor"
+							@change="expandRegion($event, parameter)"
+						>
+							<option selected="selected" value="null">
+								Expand region by:
+							</option>
+							<option value="50000">± 50 kb</option>
+							<option value="100000">± 100 kb</option>
+							<option value="150000">± 150 kb</option>
+						</select>
+						<span class="tip-wrapper">
+							<b-icon
+								class="tip-bigger warning"
+								icon="exclamation-circle-fill"
+							></b-icon>
+							<div class="tip-content">
+								This feature is in test! Expanding region will
+								refresh the page as a new search with the last
+								search parameters and the expanded region. All
+								filters and previously loaded data will be
+								removed.
+							</div>
+						</span>
+					</div>
 				</div>
+
 				<div
 					class="col"
 					v-if="!!this.dataset && dataComparisonConfig != null"
@@ -435,7 +463,6 @@ export default Vue.component("research-page-filters", {
 		this.$store.dispatch("searchParameters", this.searchParamsIndex);
 	},
 	mounted() {
-		console.log("this.apiParameters", this.apiParameters);
 		if (
 			this.apiParameters != null &&
 			this.apiParameters.query.type == "array"
@@ -462,27 +489,11 @@ export default Vue.component("research-page-filters", {
 						: null;
 
 					if (pType != "list" && !!ifValuesFromKP) {
-						console.log(
-							"pType",
-							pType,
-							": ",
-							keyParams[param],
-							ifValuesFromKP
-						);
 						this.geneSearch = keyParams[param];
 					} else if (pType == "list" && !!ifValuesFromKP) {
 						let label = this.getFileLabel(keyParams[param].trim());
 
 						let labelContent = label + "(" + keyParams[param] + ")";
-
-						console.log(
-							"pType",
-							pType,
-							": ",
-							keyParams[param],
-							ifValuesFromKP,
-							labelContent
-						);
 
 						this.paramSearch = labelContent;
 						document.getElementById("search_param_" + param).value =
@@ -505,6 +516,48 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		expandRegion(EVENT, PARAM) {
+			let expandNumber = EVENT.target.value;
+
+			if (EVENT.target.value != "null") {
+				let currentRegion = document
+					.getElementById("search_param_" + PARAM.parameter)
+					.value.split(":");
+				let chr = currentRegion[0];
+				let region = currentRegion[1].split("-");
+				let regionStart =
+					Number(region[0]) - Number(expandNumber) <= 0
+						? 0
+						: Number(region[0]) - Number(expandNumber);
+
+				let regionEnd = Number(region[1]) + Number(expandNumber);
+
+				let newRegion = chr + ":" + regionStart + "-" + regionEnd;
+
+				///!!! Leave commented alone. This part has to be revisited to fully support region expand.
+				/*document.getElementById(
+					"search_param_" + PARAM.parameter
+				).value = newRegion;
+				this.geneSearch = newRegion;*/
+
+				let url = new URL(window.location);
+				//for (const [key, value] of Object.entries(key2Update)) {
+				url.searchParams.set(PARAM.parameter, newRegion);
+				//}
+
+				window.history.pushState(null, "", url.toString());
+
+				let newUrl = new URL(window.location);
+
+				window.location.href = newUrl;
+
+				/*if (!!this.dataComparisonConfig) {
+					document.getElementById("ifMergeData").value = "newSearch";
+				}*/
+				//this.queryAPI();
+			}
+		},
+
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
@@ -619,6 +672,7 @@ export default Vue.component("research-page-filters", {
 			this.$store.dispatch("dataComparison", ifCompareData);
 		},
 		queryAPI() {
+			console.log("called");
 			this.showHideSearch();
 			uiUtils.showElement("data-loading-indicator");
 
@@ -713,7 +767,6 @@ export default Vue.component("research-page-filters", {
 			this.paramSearch = label + "(" + event.target.value + ")";
 		},
 		updateSearchInput(VALUE) {
-			console.log("called", VALUE);
 			var label = this.getFileLabel(VALUE.trim());
 
 			this.paramSearch = label + "(" + VALUE + ")";
@@ -1364,6 +1417,17 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
+.expand-region-select-byor {
+	background-color: #66bbff !important;
+	border: solid 1px #3399ff !important;
+	color: #fff;
+	border-radius: 3px;
+	padding: 0 5px;
+	float: left;
+	margin-top: 5px;
+	width: calc(100% - 25px) !important;
+}
+
 #kp_gene_search_wrapper {
 	/*position: absolute;
 	background-color: #efefef;
