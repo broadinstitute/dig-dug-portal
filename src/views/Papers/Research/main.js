@@ -1103,24 +1103,47 @@ new Vue({
         researchData(content) {
             // reset searching region if applicable
 
+            if (content != null && content.length > 0) {
+                if (this.plotConfig != null &&
+                    !!this.plotConfig["genes track"]) {
+                    let region;
+                    switch (this.plotConfig["genes track"]["input type"]) {
+                        case "static":
 
-            if (this.plotConfig != null &&
-                !!this.plotConfig["genes track"]) {
-                let region;
-                switch (this.plotConfig["genes track"]["input type"]) {
-                    case "static":
-                        region = this.plotConfig["genes track"].region;
-                        break;
-                    case "dynamic":
-                        let regionParam = this.plotConfig["genes track"]["dynamic parameter"];
-                        let searchLength = this.$store.state.searchParameters[regionParam].search.length
-                        region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
+                            region = this.plotConfig["genes track"].region;
 
-                        break;
+                            break;
+                        case "dynamic":
+                            let regionParam = this.plotConfig["genes track"]["dynamic parameter"];
+                            let searchLength = this.$store.state.searchParameters[regionParam].search.length
+                            region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
+
+                            break;
+                        case "from data":
+
+                            let chrField = this.plotConfig["genes track"]["region fields"].chromosome;
+                            let posField = this.plotConfig["genes track"]["region fields"].position;
+                            let chr = null;
+                            let posStart = null
+                            let posEnd = null;
+
+                            content.map(c => {
+                                chr = c[chrField]
+
+
+                                posStart = (posStart == null) ? c[posField] : (c[posField] < posStart) ? c[posField] : posStart;
+                                posEnd = (posEnd == null) ? c[posField] : (c[posField] > posEnd) ? c[posField] : posEnd;;
+
+                            })
+
+                            region = chr + ":" + posStart + "-" + posEnd;
+
+                            break
+                    }
+
+                    this.$store.dispatch("searchingRegion", region);
+                    this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
                 }
-
-                this.$store.dispatch("searchingRegion", region);
-                this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
             }
 
             if (content != null && content.length > 0) {
