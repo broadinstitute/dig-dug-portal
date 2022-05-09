@@ -184,6 +184,7 @@
 										$parent.topAssociations.length <= 5
 									"
 									:phenotypes="$parent.topAssociations"
+									:colors="$parent.colors"
 									:limit="10"
 								></phenotype-signal-bar-chart>
 								<research-phewas-plot
