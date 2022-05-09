@@ -104,6 +104,20 @@
 									phenotype-group
 									pws-top-each-phenotype-bar
 								"
+								:style="{
+									height: +pValueCss(row.pValue) + '%',
+									backgroundColor: getColor(row.group),
+								}"
+							>
+								&nbsp;
+							</div>
+							<!--
+								<div
+								class="
+									bubble
+									phenotype-group
+									pws-top-each-phenotype-bar
+								"
 								:class="row.group"
 								:style="{
 									height: +pValueCss(row.pValue) + '%',
@@ -111,6 +125,7 @@
 							>
 								&nbsp;
 							</div>
+								-->
 							<div class="pws-top-each-phenotype-pvalue">
 								{{ pValueFormatter(row.pValue) }}
 							</div>
@@ -316,6 +331,7 @@ export default Vue.component("phenotype-signal-bar-chart", {
 	},
 	components: {},
 	props: {
+		colors: Array,
 		phenotypes: Array,
 		legends: Boolean,
 	},
@@ -396,8 +412,29 @@ export default Vue.component("phenotype-signal-bar-chart", {
 
 			return topGroups;
 		},
+		phenotypeGroups: function () {
+			let groups = [];
+
+			let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+
+			for (const [pKey, pValue] of Object.entries(phenotypeMap)) {
+				groups.push(pValue.group);
+			}
+
+			groups = groups
+				.filter(function (value, index, self) {
+					return self.indexOf(value) === index;
+				})
+				.sort();
+
+			return groups;
+		},
 	},
 	methods: {
+		getColor(PGROUP) {
+			let colorIndex = this.phenotypeGroups.indexOf(PGROUP);
+			return this.colors[colorIndex];
+		},
 		log2css(value) {
 			const maxWidth = Math.log10(this.topAssociationsHighest);
 			const barWidth = Math.log10(value);
