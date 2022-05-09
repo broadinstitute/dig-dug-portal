@@ -1,7 +1,8 @@
 <template>
 	<div id="clump-data">
 		<b-row>
-			<b-col v-if="legends" cols="9">
+			<b-col v-if="legends && groups != null" cols="9">
+				{{ groups }}
 				<div
 					v-for="group in groups"
 					:key="group"
@@ -21,7 +22,6 @@
 					>-->
 						&nbsp;
 					</div>
-					{{ group }}
 				</div>
 			</b-col>
 			<b-col class="text-right">

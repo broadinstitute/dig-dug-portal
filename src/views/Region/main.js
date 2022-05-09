@@ -10,7 +10,7 @@ import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
-import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
+import PhenotypeSignalBarChart from "@/components/PhenotypeSignalBarChart";
 import PhenotypeSignalInGroup from "@/components/PhenotypeSignalInGroup";
 import Documentation from "@/components/Documentation";
 
@@ -72,7 +72,7 @@ new Vue({
         LocusZoomCoaccessibilityPanel,
         ResearchPheWAS,
         AssociationsTable,
-        PhenotypeSignalMixed,
+        PhenotypeSignalBarChart,
         PhenotypeSignalInGroup,
         CredibleSetSelectPicker,
         AnnotationSelectPicker,

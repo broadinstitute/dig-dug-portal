@@ -155,7 +155,7 @@
 					></documentation>
 
 					<template v-if="$parent.topAssociations.length > 0">
-						<div>
+						<div v-if="$parent.topAssociations.length > 1">
 							<div
 								style="text-align: right; padding-bottom: 5px"
 								v-if="$parent.topAssociations[0].pValue <= 5e-8"
@@ -176,13 +176,18 @@
 									View associations by phenotype group
 								</div>
 							</div>
-							<!--<phenotype-signal-mixed
-								:phenotypes="$parent.topAssociations"
-								:limit="10"
-							></phenotype-signal-mixed>-->
+
 							<div class="pws-merged-view svg-wrapper">
+								<phenotype-signal-bar-chart
+									v-if="
+										$parent.topAssociations.length > 0 &&
+										$parent.topAssociations.length <= 5
+									"
+									:phenotypes="$parent.topAssociations"
+									:limit="10"
+								></phenotype-signal-bar-chart>
 								<research-phewas-plot
-									v-if="$parent.topAssociations.length > 0"
+									v-if="$parent.topAssociations.length > 5"
 									canvasId=""
 									:phenotypesData="$parent.topAssociations"
 									:phenotypeMap="
@@ -218,7 +223,10 @@
 									ref="rpPheWASPlot"
 								></research-phewas-plot>
 							</div>
-							<div class="pws-bar-view svg-wrapper hidden-svg">
+							<div
+								class="pws-bar-view svg-wrapper hidden-svg"
+								v-if="$parent.topAssociations.length > 1"
+							>
 								<phenotype-signal-in-group
 									:phenotypes="$parent.topAssociations"
 									:colors="$parent.colors"
