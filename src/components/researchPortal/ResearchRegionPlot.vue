@@ -1,5 +1,35 @@
 <template>
 	<div class="mbm-plot-content row" id="rp_region_plot">
+		<template v-if="plotsList.length > 1">
+			<strong>Show/hide plots</strong>
+			<div v-for="(item, itemIndex) in plotsList" :key="item">
+				<span
+					:key="item"
+					v-if="item != 'Combined'"
+					class="group-bubble"
+					v-html="item"
+					:style="
+						'background-color:' +
+						compareGroupColors[itemIndex] +
+						';'
+					"
+					@click="
+						showHideElement(
+							'plotsWrapper' + item.replaceAll(' ', '_')
+						)
+					"
+				></span>
+				<button
+					type="button"
+					v-if="item == 'Combined'"
+					class="group-bubble reference"
+					style="background-color: #ffffff; border: solid 1px #666666"
+					@click="showHideElement('plotsWrapperCombined')"
+				>
+					Show/hide Individual plots
+				</button>
+			</div>
+		</template>
 		<div id="fixedInfoBox" class="fixed-info-box hidden">
 			<div
 				class="fixed-info-box-close"
@@ -576,6 +606,8 @@ export default Vue.component("research-region-plot", {
 	},
 	methods: {
 		...uiUtils,
+		showHideElement: uiUtils.showHideElement,
+
 		onResize(e) {
 			this.renderPlots();
 		},
