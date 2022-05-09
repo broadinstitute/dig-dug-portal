@@ -1,8 +1,8 @@
 <template>
 	<div class="mbm-plot-content row" id="rp_region_plot">
-		<template v-if="plotsList.length > 1">
-			<strong>Show/hide plots</strong>
-			<div v-for="(item, itemIndex) in plotsList" :key="item">
+		<div v-if="plotsList.length > 1" class="show-hide-plots col-md-12">
+			<strong>Show/hide region plots</strong>
+			<template v-for="(item, itemIndex) in plotsList">
 				<span
 					:key="item"
 					v-if="item != 'Combined'"
@@ -19,17 +19,17 @@
 						)
 					"
 				></span>
-				<button
+				<span
 					type="button"
 					v-if="item == 'Combined'"
 					class="group-bubble reference"
 					style="background-color: #ffffff; border: solid 1px #666666"
 					@click="showHideElement('plotsWrapperCombined')"
 				>
-					Show/hide Individual plots
-				</button>
-			</div>
-		</template>
+					Combined
+				</span>
+			</template>
+		</div>
 		<div id="fixedInfoBox" class="fixed-info-box hidden">
 			<div
 				class="fixed-info-box-close"
@@ -119,7 +119,7 @@
 			v-for="(item, itemIndex) in plotsList"
 		>
 			<div class="col-md-9 region-plot-default-legend">
-				<span
+				<!--<span
 					v-for="(g, gIndex) in plotsList"
 					v-if="item == 'Combined' && g != 'Combined'"
 					class="group-bubble"
@@ -136,7 +136,7 @@
 					@click="showHideSplitPlots()"
 				>
 					Show/hide Individual plots
-				</button>
+				</button>-->
 				<div v-if="item != 'Combined'">
 					<span
 						class="plot-legend-dot"
@@ -1663,6 +1663,18 @@ $(function () {});
 </script>
 
 <style>
+.show-hide-plots {
+	text-align: left;
+	padding-bottom: 25px;
+}
+.show-hide-plots span {
+	display: inline-block;
+}
+
+.show-hide-plots span:hover {
+	cursor: pointer;
+}
+
 .region-plots-wrapper {
 	padding: 0 !important;
 }
