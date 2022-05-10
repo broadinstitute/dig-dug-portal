@@ -361,6 +361,15 @@ new Vue({
                 return locus;
             }
 
+            let array2String = function (CONTENT, SEPARATOR) {
+                let string = "";
+                CONTENT.map(c => {
+                    string += c + SEPARATOR;
+                })
+
+                return string.slice(0, -1)
+            }
+
             if (CONVERT != "no convert") {
                 DATA.map(d => {
                     let tempObj = {};
@@ -399,6 +408,10 @@ new Vue({
 
                             case "score columns":
                                 tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], d);
+                                break;
+
+                            case "array to string":
+                                tempObj[c["field name"]] = array2String(d[c["raw field"]], c["separate by"]);
                                 break;
                         }
                     })
@@ -1104,33 +1117,35 @@ new Vue({
             // reset searching region if applicable
 
             if (content != null && content.length > 0) {
-                if (this.plotConfig != null &&
-                    !!this.plotConfig["genes track"]) {
-                    let region;
-                    switch (this.plotConfig["genes track"]["input type"]) {
+                let region, targetPlotConfig;
+
+                if (this.plotConfig != null
+                ) {
+
+                    targetPlotConfig = !!this.plotConfig["genes track"] ? this.plotConfig["genes track"] : this.plotConfig;
+
+                    switch (targetPlotConfig["input type"]) {
                         case "static":
 
-                            region = this.plotConfig["genes track"].region;
+                            region = targetPlotConfig.region;
 
                             break;
                         case "dynamic":
-                            let regionParam = this.plotConfig["genes track"]["dynamic parameter"];
+                            let regionParam = targetPlotConfig["dynamic parameter"];
                             let searchLength = this.$store.state.searchParameters[regionParam].search.length
                             region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
 
                             break;
                         case "from data":
 
-                            let chrField = this.plotConfig["genes track"]["region fields"].chromosome;
-                            let posField = this.plotConfig["genes track"]["region fields"].position;
+                            let chrField = targetPlotConfig["region fields"].chromosome;
+                            let posField = targetPlotConfig["region fields"].position;
                             let chr = null;
                             let posStart = null
                             let posEnd = null;
 
                             content.map(c => {
-                                chr = c[chrField]
-
-
+                                chr = c[chrField];
                                 posStart = (posStart == null) ? c[posField] : (c[posField] < posStart) ? c[posField] : posStart;
                                 posEnd = (posEnd == null) ? c[posField] : (c[posField] > posEnd) ? c[posField] : posEnd;;
 
@@ -1144,6 +1159,7 @@ new Vue({
                     this.$store.dispatch("searchingRegion", region);
                     this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
                 }
+
             }
 
             if (content != null && content.length > 0) {
