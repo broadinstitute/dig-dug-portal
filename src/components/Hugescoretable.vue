@@ -74,6 +74,9 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import $ from "jquery";
+
+import uiUtils from "@/utils/uiUtils";
+
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
@@ -102,6 +105,10 @@ export default Vue.component("hugescore-table", {
             required: true,
             default: false
         }
+    },
+    modules: {
+        uiUtils,
+        Formatters
     },
 
     data() {

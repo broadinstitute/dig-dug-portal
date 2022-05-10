@@ -16,7 +16,9 @@
                 <b-col class="top-level-header-item">P-Value</b-col>
                 <b-col class="top-level-header-item">Beta</b-col>
                 <b-col class="top-level-header-item">Odds Ratio</b-col>
-                <b-col class="top-level-header-item">Sample Size</b-col>
+                <b-col class="top-level-header-item"
+                    >Effective Sample Size</b-col
+                >
                 <b-col class="top-level-header-item">View</b-col>
             </b-row>
             <template v-for="(item, index) in tableData">
@@ -108,7 +110,9 @@
                             v-if="!!item.phenotype.dichotomous"
                             >Odds Ratio</b-col
                         >
-                        <b-col class="feature-header-item">Sample Size</b-col>
+                        <b-col class="feature-header-item"
+                            >Effective Sample Size</b-col
+                        >
                     </b-row>
                     <template v-for="(dataset, j) in item.datasets">
                         <b-row

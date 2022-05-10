@@ -123,3 +123,12 @@ td.border-color > div {
 .table.b-table > thead > tr > [aria-sort=none] {
     background-image: none;
 }
+#covariances tr.b-table-details table td:first-child {
+    padding-left: 0.3rem;
+}
+
+#covariances div.row-details-table {
+    margin-left: 15px;
+    border-left: 4px solid lightgray;
+    width: calc(100% - 15px);
+}

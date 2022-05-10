@@ -1,7 +1,7 @@
 let sort = function (data, key, isNumeric, isAscending) {
     return data.sort(function (a, b) {
-        var x = a[key].toLowerCase();
-        var y = b[key].toLowerCase();
+        let x = a[key].toLowerCase();
+        let y = b[key].toLowerCase();
 
         if (isNumeric) {
             x = Number(x.replace(/\,/g, ""));

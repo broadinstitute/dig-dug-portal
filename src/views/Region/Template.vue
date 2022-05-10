@@ -153,8 +153,9 @@
 					<documentation
 						name="region.phenos_w_signal.subheader"
 					></documentation>
+
 					<template v-if="$parent.topAssociations.length > 0">
-						<div>
+						<div v-if="$parent.topAssociations.length > 1">
 							<div
 								style="text-align: right; padding-bottom: 5px"
 								v-if="$parent.topAssociations[0].pValue <= 5e-8"
@@ -162,7 +163,7 @@
 								<div
 									href="javascript:;"
 									v-on:click="
-										$parent.switchViews(
+										$parent.switchPlotViews(
 											['pws-merged-view', 'pws-bar-view'],
 											[
 												'View associations by phenotype group',
@@ -175,16 +176,71 @@
 									View associations by phenotype group
 								</div>
 							</div>
-							<phenotype-signal-mixed
-								:phenotypes="$parent.topAssociations"
-								:limit="10"
-							></phenotype-signal-mixed>
+
+							<div class="pws-merged-view svg-wrapper">
+								<phenotype-signal-bar-chart
+									v-if="
+										$parent.topAssociations.length > 0 &&
+										$parent.topAssociations.length <= 5
+									"
+									:phenotypes="$parent.topAssociations"
+									:colors="$parent.colors"
+									:limit="10"
+								></phenotype-signal-bar-chart>
+								<research-phewas-plot
+									v-if="$parent.topAssociations.length > 5"
+									canvasId=""
+									:phenotypesData="$parent.topAssociations"
+									:phenotypeMap="
+										$store.state.bioPortal.phenotypeMap
+									"
+									:colors="$parent.colors"
+									:plotMargin="{
+										leftMargin: 75,
+										rightMargin: 20,
+										topMargin: 10,
+										bottomMargin: 50,
+										bump: 5.5,
+									}"
+									:renderConfig="{
+										type: 'phewas plot',
+										'group by': 'phenotype group',
+										'y axis field': 'pValue',
+										'render by': 'phenotype',
+										'y axis label': '-Log10(p-value)',
+										'x axis label': 'beta',
+										'beta field': 'beta',
+										'hover content': ['pValue', 'beta'],
+										thresholds: ['2.5e-6'],
+										height: '500',
+									}"
+									:pkgData="null"
+									:pkgDataSelected="null"
+									:filter="null"
+									:options="[
+										'add phenotype',
+										'open phenotype page',
+									]"
+									ref="rpPheWASPlot"
+								></research-phewas-plot>
+							</div>
+							<div
+								class="pws-bar-view svg-wrapper hidden-svg"
+								v-if="$parent.topAssociations.length > 1"
+							>
+								<phenotype-signal-in-group
+									:phenotypes="$parent.topAssociations"
+									:colors="$parent.colors"
+									:limit="10"
+								></phenotype-signal-in-group>
+							</div>
 						</div>
 						<div class="mt-3">
 							<clumped-variants-table
 								legends
 								:variants="$parent.topAssociations"
 								:phenotypeMap="$parent.phenotypeMap"
+								:colors="$parent.colors"
 							></clumped-variants-table>
 						</div>
 					</template>
@@ -408,7 +464,22 @@
 							></lz-catalog-annotations-panel>
 						</p>
 					</locuszoom>
-
+					<a
+						v-if="$parent.selectedPhenotypes.length > 0"
+						:href="
+							'/research.html?pageid=kp_variant_sifter&phenotype=' +
+							$parent.selectedPhenotypes[0].name +
+							'&region=' +
+							$store.state.chr +
+							':' +
+							$store.state.start +
+							'-' +
+							$store.state.end
+						"
+						class="btn btn-primary link-to-vs"
+						style=""
+						>Prioritize variants in this region&nbsp;&nbsp;</a
+					>
 					<template
 						v-if="
 							$parent.selectedPhenotypes.length > 0 &&
@@ -443,6 +514,19 @@
 	</div>
 </template>
 <style>
+.link-to-vs {
+	color: #ffffff !important;
+	float: right;
+	margin-top: -5px;
+	background-image: url(/images/icons/new.svg);
+	background-repeat: no-repeat;
+	background-position: top right;
+}
+
+.link-to-vs:hover {
+	color: #ffffff !important;
+}
+
 ul.nav-tabs {
 	border-bottom: unset;
 	margin-left: 5px;

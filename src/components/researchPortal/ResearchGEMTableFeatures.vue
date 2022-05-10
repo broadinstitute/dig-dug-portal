@@ -4,9 +4,15 @@
 			v-for="(value, index) in featuresFormat['features']"
 			:key="index"
 			class="research-data-table-features"
-			:v-if="!!featuresData && !!featuresFormat['features']"
 		>
-			<table class="table table-sm feature-table">
+			<table
+				class="table table-sm feature-table"
+				v-if="
+					!!featuresData &&
+					!!featuresData[value] &&
+					!!featuresFormat[value]
+				"
+			>
 				<tr>
 					<th
 						:rowspan="featuresData[value].length + 1"
@@ -28,9 +34,11 @@
 					:key="featureIndex"
 				>
 					<td
-						v-for="(contentValue, contentKey) in featureValue"
-						:key="contentKey"
-						v-html="contentValue"
+						v-for="(headerValue, headerIndex) in featuresFormat[
+							value
+						]"
+						:key="headerIndex"
+						v-html="featureValue[headerValue]"
 					></td>
 				</tr>
 			</table>
@@ -41,7 +49,7 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("research-data-table-features", {
+export default Vue.component("research-gem-table-features", {
 	props: ["featuresData", "featuresFormat"],
 	data() {
 		return {};
@@ -54,13 +62,13 @@ export default Vue.component("research-data-table-features", {
 	mounted() {},
 	updated() {},
 	computed: {
-		/*topRowNumber() {
+		topRowNumber() {
 			let topRows =
 				this.tableFormat["features"] != undefined
 					? this.tableFormat["top rows"].length + 1
 					: this.tableFormat["top rows"].length;
 			return topRows;
-		},*/
+		},
 	},
 	watch: {},
 	methods: {},
