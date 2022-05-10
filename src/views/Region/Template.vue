@@ -155,7 +155,13 @@
 					></documentation>
 
 					<template v-if="$parent.topAssociations.length > 0">
-						<div v-if="$parent.topAssociations.length > 1">
+						<div
+							:class="
+								$parent.topAssociations.length < 2
+									? 'hidden'
+									: ''
+							"
+						>
 							<div
 								style="text-align: right; padding-bottom: 5px"
 								v-if="$parent.topAssociations[0].pValue <= 5e-8"
