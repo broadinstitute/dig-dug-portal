@@ -302,6 +302,10 @@
 								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:compareGroupColors="$parent.colors.moderate"
 							></research-m-bitmap-plot>
 							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot

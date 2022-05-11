@@ -989,7 +989,7 @@ new Vue({
 
             let genesData = CONTENTS["data"];
             let codingGenes = "";
-            let genesLength = CONTENTS["data"].length;
+            let genesLength = !!!!CONTENTS["data"] ? CONTENTS["data"].length : 0;
             if (genesLength > 1) {
                 genesData.map(gene => {
                     if (gene.type = "protein_coding") {
@@ -1123,41 +1123,44 @@ new Vue({
                 ) {
 
                     targetPlotConfig = !!this.plotConfig["genes track"] ? this.plotConfig["genes track"] : this.plotConfig;
+                    //["input type"] is required only for the plots that need 'region' value
+                    if (!!targetPlotConfig["input type"]) {
+                        switch (targetPlotConfig["input type"]) {
+                            case "static":
 
-                    switch (targetPlotConfig["input type"]) {
-                        case "static":
+                                region = targetPlotConfig.region;
 
-                            region = targetPlotConfig.region;
+                                break;
+                            case "dynamic":
+                                let regionParam = targetPlotConfig["dynamic parameter"];
+                                let searchLength = this.$store.state.searchParameters[regionParam].search.length
+                                region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
 
-                            break;
-                        case "dynamic":
-                            let regionParam = targetPlotConfig["dynamic parameter"];
-                            let searchLength = this.$store.state.searchParameters[regionParam].search.length
-                            region = this.$store.state.searchParameters[regionParam].search[searchLength - 1];
+                                break;
+                            case "from data":
 
-                            break;
-                        case "from data":
+                                let chrField = targetPlotConfig["region fields"].chromosome;
+                                let posField = targetPlotConfig["region fields"].position;
+                                let chr = null;
+                                let posStart = null
+                                let posEnd = null;
 
-                            let chrField = targetPlotConfig["region fields"].chromosome;
-                            let posField = targetPlotConfig["region fields"].position;
-                            let chr = null;
-                            let posStart = null
-                            let posEnd = null;
+                                content.map(c => {
+                                    chr = c[chrField];
+                                    posStart = (posStart == null) ? c[posField] : (c[posField] < posStart) ? c[posField] : posStart;
+                                    posEnd = (posEnd == null) ? c[posField] : (c[posField] > posEnd) ? c[posField] : posEnd;;
 
-                            content.map(c => {
-                                chr = c[chrField];
-                                posStart = (posStart == null) ? c[posField] : (c[posField] < posStart) ? c[posField] : posStart;
-                                posEnd = (posEnd == null) ? c[posField] : (c[posField] > posEnd) ? c[posField] : posEnd;;
+                                })
 
-                            })
+                                region = chr + ":" + posStart + "-" + posEnd;
 
-                            region = chr + ":" + posStart + "-" + posEnd;
+                                break
+                        }
 
-                            break
+                        this.$store.dispatch("searchingRegion", region);
+                        this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
                     }
 
-                    this.$store.dispatch("searchingRegion", region);
-                    this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
                 }
 
             }

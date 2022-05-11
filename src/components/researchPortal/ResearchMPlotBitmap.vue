@@ -17,17 +17,21 @@
 			class="mbm-plot-legend"
 			v-html="renderConfig.legend"
 		></div>
-		<canvas
-			v-if="!!renderConfig"
-			id="manhattanPlot"
-			@mouseleave="hidePanel"
-			@mousemove="checkPosition"
-			@resize="onResize"
-			@click="getFullList"
-			width=""
-			height=""
-		>
-		</canvas>
+		<div v-for="item in plotsList" :key="item">
+			<h4>{{ item }}</h4>
+
+			<canvas
+				v-if="!!renderConfig"
+				:id="'manhattanPlot' + item"
+				@mouseleave="hidePanel"
+				@mousemove="checkPosition($event, item)"
+				@resize="onResize"
+				@click="getFullList($event, item)"
+				width=""
+				height=""
+			>
+			</canvas>
+		</div>
 		<div
 			v-if="!!renderConfig.label"
 			class="mbm-plot-label"
@@ -46,7 +50,12 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-m-bitmap-plot", {
-	props: ["plotData", "renderConfig"],
+	props: [
+		"plotData",
+		"renderConfig",
+		"dataComparisonConfig",
+		"compareGroupColors",
+	],
 	data() {
 		return {
 			plotRendered: 0,
@@ -91,6 +100,7 @@ export default Vue.component("research-m-bitmap-plot", {
 			topMargin: 10.5, // -0.5 to draw crisp line
 			bottomMargin: 50.5,
 			dotPosData: {},
+			compareGroups: null,
 		};
 	},
 	modules: {
@@ -99,65 +109,157 @@ export default Vue.component("research-m-bitmap-plot", {
 	},
 	components: {},
 	mounted: function () {
-		this.renderPlot();
+		this.renderPlot(this.renderData);
 		window.addEventListener("resize", this.onResize);
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
-		renderData() {
+		plotsList() {
 			let rawData = this.plotData;
-			let massagedData = { sorted: {}, unsorted: [] };
+			let compareGroups = [];
+			if (!!rawData) {
+				if (this.dataComparisonConfig != null) {
+					let compareKey =
+						this.dataComparisonConfig["fields to compare"][0];
 
-			for (const chr in this.chromosomeLength) {
-				massagedData.sorted[chr] = [];
-			}
-
-			rawData.map((r) => {
-				let region = r[this.renderConfig["x axis field"]];
-				//console.log(region);
-				if (region != undefined && region != "" && region != null) {
-					let tempObj = {};
-					tempObj[this.renderConfig["render by"]] =
-						r[this.renderConfig["render by"]];
-
-					if (!!this.renderConfig["hover content"]) {
-						let hoverContent = this.renderConfig["hover content"];
-
-						hoverContent.map((h) => {
-							tempObj[h] = r[h];
+					for (const [key, value] of Object.entries(rawData)) {
+						Object.keys(value[compareKey]).map((k) => {
+							if (compareGroups.indexOf(k) < 0) {
+								compareGroups.push(k);
+							}
 						});
 					}
-
-					let locationArr =
-						r[this.renderConfig["x axis field"]].split(":");
-
-					let chr = locationArr[0].trim();
-
-					let regionArr = locationArr[1].split("-");
-
-					tempObj["locus"] =
-						regionArr.length > 1
-							? (Number(regionArr[0].trim()) +
-									Number(regionArr[1].trim())) /
-							  2
-							: Number(regionArr[0].trim());
-
-					tempObj[this.renderConfig["y axis field"]] =
-						r[this.renderConfig["y axis field"]];
-
-					massagedData.sorted[chr].push(tempObj);
-					massagedData.unsorted.push(tempObj);
+				} else {
+					compareGroups = ["default"];
 				}
+				return compareGroups;
+			} else {
+				return null;
+			}
+		},
+		renderData() {
+			let rawData = this.plotData;
+			let compareGroups = [];
+			let massagedData = {};
+			let plotsList = [...this.plotsList];
+
+			plotsList.map((c) => {
+				let tempObj = { sorted: {}, unsorted: [] };
+				massagedData[c] = tempObj;
 			});
+
+			for (const chr in this.chromosomeLength) {
+				for (const [key, value] of Object.entries(massagedData)) {
+					value.sorted[chr] = [];
+				}
+			}
+
+			if (this.dataComparisonConfig != null) {
+				for (const [key, value] of Object.entries(rawData)) {
+					plotsList.map((c) => {
+						let region = value[this.renderConfig["x axis field"]];
+
+						if (
+							region != undefined &&
+							region != "" &&
+							region != null
+						) {
+							let tempObj = {};
+							tempObj[this.renderConfig["render by"]] =
+								value[this.renderConfig["render by"]];
+
+							if (!!this.renderConfig["hover content"]) {
+								let hoverContent =
+									this.renderConfig["hover content"];
+
+								hoverContent.map((h) => {
+									let ifInCompare =
+										this.dataComparisonConfig[
+											"fields to compare"
+										].indexOf(h);
+									tempObj[h] =
+										ifInCompare < 0
+											? value[h]
+											: value[h][c];
+								});
+							}
+
+							let locationArr =
+								value[this.renderConfig["x axis field"]].split(
+									":"
+								);
+
+							let chr = locationArr[0].trim();
+
+							let regionArr = locationArr[1].split("-");
+
+							tempObj["locus"] =
+								regionArr.length > 1
+									? (Number(regionArr[0].trim()) +
+											Number(regionArr[1].trim())) /
+									  2
+									: Number(regionArr[0].trim());
+
+							tempObj[this.renderConfig["y axis field"]] =
+								value[this.renderConfig["y axis field"]][c];
+
+							massagedData[c].sorted[chr].push(tempObj);
+							massagedData[c].unsorted.push(tempObj);
+						}
+					});
+				}
+			} else {
+				rawData.map((r) => {
+					let region = r[this.renderConfig["x axis field"]];
+
+					if (region != undefined && region != "" && region != null) {
+						let tempObj = {};
+						tempObj[this.renderConfig["render by"]] =
+							r[this.renderConfig["render by"]];
+
+						if (!!this.renderConfig["hover content"]) {
+							let hoverContent =
+								this.renderConfig["hover content"];
+
+							hoverContent.map((h) => {
+								tempObj[h] = r[h];
+							});
+						}
+
+						let locationArr =
+							r[this.renderConfig["x axis field"]].split(":");
+
+						let chr = locationArr[0].trim();
+
+						let regionArr = locationArr[1].split("-");
+
+						tempObj["locus"] =
+							regionArr.length > 1
+								? (Number(regionArr[0].trim()) +
+										Number(regionArr[1].trim())) /
+								  2
+								: Number(regionArr[0].trim());
+
+						tempObj[this.renderConfig["y axis field"]] =
+							r[this.renderConfig["y axis field"]];
+
+						massagedData["default"].sorted[chr].push(tempObj);
+						massagedData["default"].unsorted.push(tempObj);
+					}
+				});
+			}
 
 			return massagedData;
 		},
 	},
 	watch: {
-		renderData() {
-			this.renderPlot();
+		renderData(CONTENT) {
+			//when data gets updated, hold it for little until vue.js renders <canvas> for the each datasets
+			setTimeout(function () {
+				window.dispatchEvent(new Event("resize"));
+			}, 100);
 		},
 	},
 	methods: {
@@ -166,11 +268,11 @@ export default Vue.component("research-m-bitmap-plot", {
 			uiUtils.hideElement(element);
 		},
 		onResize(e) {
-			this.renderPlot();
+			this.renderPlot(this.renderData);
 		},
-		getFullList(event) {
+		getFullList(event, ID) {
 			let wrapper = document.getElementById("dot_value_full_list");
-			let canvas = document.getElementById("manhattanPlot");
+			let canvas = document.getElementById("manhattanPlot" + ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
 			var rect = e.target.getBoundingClientRect();
@@ -183,9 +285,9 @@ export default Vue.component("research-m-bitmap-plot", {
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
-					if (this.dotPosData[x + h] != undefined) {
-						if (this.dotPosData[x + h][y + v] != undefined) {
-							let dotObject = this.dotPosData[x + h][y + v];
+					if (this.dotPosData[ID][x + h] != undefined) {
+						if (this.dotPosData[ID][x + h][y + v] != undefined) {
+							let dotObject = this.dotPosData[ID][x + h][y + v];
 							clickedDotValue +=
 								'<span class="gene-on-clicked-dot-mplot"><b>' +
 								dotObject[this.renderConfig["render by"]] +
@@ -214,20 +316,22 @@ export default Vue.component("research-m-bitmap-plot", {
 
 			if (clickedDotValue != "") {
 				contentWrapper.innerHTML = clickedDotValue;
-				document.getElementById("manhattanPlot").classList.add("hover");
+				document
+					.getElementById("manhattanPlot" + ID)
+					.classList.add("hover");
 				document
 					.getElementById("clicked_dot_value")
 					.classList.add("hidden");
 			} else {
 				wrapper.classList.add("hidden");
 				document
-					.getElementById("manhattanPlot")
+					.getElementById("manhattanPlot" + ID)
 					.classList.remove("hover");
 			}
 		},
-		checkPosition(event) {
+		checkPosition(event, ID) {
 			let wrapper = document.getElementById("clicked_dot_value");
-			let canvas = document.getElementById("manhattanPlot");
+			let canvas = document.getElementById("manhattanPlot" + ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
 			var rect = e.target.getBoundingClientRect();
@@ -242,10 +346,11 @@ export default Vue.component("research-m-bitmap-plot", {
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
-					if (this.dotPosData[x + h] != undefined) {
-						if (this.dotPosData[x + h][y + v] != undefined) {
+					if (this.dotPosData[ID][x + h] != undefined) {
+						if (this.dotPosData[ID][x + h][y + v] != undefined) {
 							if (numOfValues < 6) {
-								let dotObject = this.dotPosData[x + h][y + v];
+								let dotObject =
+									this.dotPosData[ID][x + h][y + v];
 								clickedDotValue +=
 									'<span class="gene-on-clicked-dot-mplot"><b>' +
 									dotObject[this.renderConfig["render by"]] +
@@ -286,15 +391,17 @@ export default Vue.component("research-m-bitmap-plot", {
 			if (clickedDotValue != "") {
 				contentWrapper.innerHTML = clickedDotValue;
 
-				document.getElementById("manhattanPlot").classList.add("hover");
+				document
+					.getElementById("manhattanPlot" + ID)
+					.classList.add("hover");
 			} else {
 				wrapper.classList.add("hidden");
 				document
-					.getElementById("manhattanPlot")
+					.getElementById("manhattanPlot" + ID)
 					.classList.remove("hover");
 			}
 		},
-		renderPlot() {
+		renderPlot(DATA) {
 			this.dotPosData = {};
 
 			let wrapper = document.getElementById("clicked_dot_value");
@@ -310,6 +417,7 @@ export default Vue.component("research-m-bitmap-plot", {
 
 			let xBump = canvasRenderWidth * 0.02;
 			let yBump = canvasRenderHeight * 0.02;
+			let bump = 5;
 
 			let plotWidth =
 				canvasRenderWidth -
@@ -318,206 +426,224 @@ export default Vue.component("research-m-bitmap-plot", {
 				canvasRenderHeight -
 				(this.topMargin + yBump + this.bottomMargin);
 
-			let c = document.getElementById("manhattanPlot");
-			c.setAttribute("width", canvasRenderWidth);
-			c.setAttribute("height", canvasRenderHeight);
-			let ctx = c.getContext("2d");
+			for (const [dKey, dValue] of Object.entries(DATA)) {
+				console.log("renderData", dKey, dValue);
+				let c = document.getElementById("manhattanPlot" + dKey);
+				if (!!c) {
+					c.setAttribute("width", canvasRenderWidth);
+					c.setAttribute("height", canvasRenderHeight);
+					let ctx = c.getContext("2d");
 
-			ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
+					ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
 
-			ctx.beginPath();
-			ctx.lineWidth = 1;
-			ctx.strokeStyle = "#000000";
-			ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
-
-			// render y axis
-			ctx.moveTo(this.leftMargin, this.topMargin);
-			ctx.lineTo(this.leftMargin, plotHeight + this.topMargin + yBump);
-
-			//render x axis
-			ctx.moveTo(this.leftMargin, plotHeight + this.topMargin + yBump);
-			ctx.lineTo(
-				plotWidth + this.leftMargin,
-				plotHeight + this.topMargin + yBump
-			);
-
-			// render y ticker
-
-			let yMin = null;
-			let yMax = null;
-
-			this.renderData.unsorted.map((d) => {
-				//yAxisData.push(d[this.renderConfig["y axis field"]]);
-
-				let yValue = d[this.renderConfig["y axis field"]];
-
-				if (yMin == null) {
-					yMin = yValue;
-				}
-				if (yMax == null) {
-					yMax = yValue;
-				}
-
-				if (yValue < yMin) {
-					yMin = yValue;
-				}
-				if (yValue > yMax) {
-					yMax = yValue;
-				}
-			});
-
-			let yStep = (yMax - yMin) / 4;
-
-			//let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
-
-			let yTickDistance = plotHeight / 4;
-			for (let i = 0; i < 5; i++) {
-				let tickYPos = this.topMargin + i * yTickDistance;
-				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
-				ctx.moveTo(this.leftMargin - 5, adjTickYPos);
-				ctx.lineTo(this.leftMargin, adjTickYPos);
-				ctx.stroke();
-
-				ctx.font = "12px Arial";
-				ctx.textAlign = "right";
-				ctx.fillStyle = "#000000";
-
-				let yTickText = Formatters.floatFormatter(yMin + i * yStep);
-
-				yTickText = yTickText == "-" ? 0 : yTickText;
-
-				ctx.fillText(
-					yTickText,
-					this.leftMargin - 10,
-					this.topMargin + plotHeight + 5 - i * yTickDistance
-				);
-			}
-
-			ctx.stroke();
-
-			//Render y axis label
-			ctx.font = "14px Arial";
-			ctx.textAlign = "center";
-			ctx.fillStyle = "#000000";
-			ctx.rotate(-(Math.PI * 2) / 4);
-			ctx.fillText(
-				this.renderConfig["y axis label"],
-				-(this.topMargin + plotHeight / 2),
-				this.leftMargin - this.leftMargin / 2 - 14
-			);
-
-			let dnaLength = 0;
-
-			//get list of chrs with variants
-			let chrs = Object.keys(this.renderData.sorted).filter(
-				(key) => this.renderData.sorted[key].length > 0
-			);
-
-			// compare length of chromosomes in the data to the defalt
-
-			chrs.map((chr) => {
-				let chrLength = 0;
-				this.renderData.sorted[chr].map((v) => {
-					chrLength = v.locus > chrLength ? v.locus : chrLength;
-				});
-
-				this.chromosomeLength[chr] =
-					chrLength > this.chromosomeLength[chr]
-						? chrLength
-						: this.chromosomeLength[chr];
-			});
-
-			chrs.map((chr) => {
-				dnaLength += this.chromosomeLength[chr];
-			});
-
-			let chrByPixel = plotWidth / dnaLength;
-
-			let xStart = this.leftMargin;
-			ctx.textAlign = "center";
-			ctx.rotate((Math.PI * 2) / 4);
-
-			chrs.map((chr) => {
-				let chrLength = this.chromosomeLength[chr] * chrByPixel;
-				xStart += chrLength;
-				let chrPos = xStart - chrLength / 2;
-
-				ctx.fillText(
-					chr,
-					chrPos,
-					this.topMargin + plotHeight + yBump + 14
-				);
-
-				//console.log("step 2", chr);
-			});
-
-			//Render x axis label
-
-			ctx.fillText(
-				this.renderConfig["x axis label"],
-				plotWidth / 2 + this.leftMargin,
-				this.topMargin + plotHeight + yBump + 44
-			);
-
-			//Render Dots
-
-			xStart = 0;
-			let exChr = "";
-			let chrNum = 1;
-
-			chrs.map((chr) => {
-				this.renderData.sorted[chr].map((g) => {
-					let xPos =
-						(xStart + g.locus) * chrByPixel + this.leftMargin;
-
-					let yPosByPixel = plotHeight / (yMax - yMin);
-
-					let yPos =
-						this.topMargin +
-						plotHeight -
-						(g[this.renderConfig["y axis field"]] - yMin) *
-							yPosByPixel;
-
-					let dotColor =
-						this.chromosomeColors[
-							chrNum % this.chromosomeColors.length
-						];
-
-					ctx.fillStyle = dotColor + "75";
-
-					ctx.lineWidth = 0;
 					ctx.beginPath();
-					ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
-					ctx.fill();
+					ctx.lineWidth = 1;
+					ctx.strokeStyle = "#000000";
+					ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
-					let xLoc = xPos.toString().split(".")[0];
-					let yLoc = yPos.toString().split(".")[0];
+					// render y axis
+					ctx.moveTo(this.leftMargin - bump, this.topMargin);
+					ctx.lineTo(
+						this.leftMargin - bump,
+						plotHeight + this.topMargin + yBump + bump
+					);
 
-					let hoverContent;
+					//render x axis
+					ctx.moveTo(
+						this.leftMargin - bump,
+						plotHeight + this.topMargin + yBump + bump
+					);
+					ctx.lineTo(
+						plotWidth + this.leftMargin + bump,
+						plotHeight + this.topMargin + yBump + bump
+					);
 
-					if (!!this.renderConfig["hover content"]) {
-						hoverContent = this.renderConfig["hover content"];
+					// render y ticker
+
+					let yMin = null;
+					let yMax = null;
+
+					dValue.unsorted.map((d) => {
+						//yAxisData.push(d[this.renderConfig["y axis field"]]);
+
+						let yValue = d[this.renderConfig["y axis field"]];
+
+						if (yMin == null) {
+							yMin = yValue;
+						}
+						if (yMax == null) {
+							yMax = yValue;
+						}
+
+						if (yValue < yMin) {
+							yMin = yValue;
+						}
+						if (yValue > yMax) {
+							yMax = yValue;
+						}
+					});
+
+					let yStep = (yMax - yMin) / 4;
+
+					//let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
+
+					let yTickDistance = plotHeight / 4;
+
+					for (let i = 0; i < 5; i++) {
+						let tickYPos = this.topMargin + i * yTickDistance;
+						let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+						ctx.moveTo(this.leftMargin - bump * 2, adjTickYPos);
+						ctx.lineTo(this.leftMargin - bump, adjTickYPos);
+						ctx.stroke();
+
+						ctx.font = "12px Arial";
+						ctx.textAlign = "right";
+						ctx.fillStyle = "#000000";
+
+						let yTickText = Formatters.floatFormatter(
+							yMin + i * yStep
+						);
+
+						yTickText = yTickText == "-" ? 0 : yTickText;
+
+						ctx.fillText(
+							yTickText,
+							this.leftMargin - bump * 3,
+							this.topMargin + plotHeight + 5 - i * yTickDistance
+						);
 					}
 
-					if (!this.dotPosData[xLoc]) {
-						this.dotPosData[xLoc] = {};
-					}
-					this.dotPosData[xLoc][yLoc] = {};
-					this.dotPosData[xLoc][yLoc][
-						this.renderConfig["render by"]
-					] = g[this.renderConfig["render by"]];
-					if (!!this.renderConfig["hover content"]) {
-						hoverContent.map((h) => {
-							this.dotPosData[xLoc][yLoc][h] = g[h];
+					ctx.stroke();
+
+					//Render y axis label
+					ctx.font = "14px Arial";
+					ctx.textAlign = "center";
+					ctx.fillStyle = "#000000";
+					ctx.rotate(-(Math.PI * 2) / 4);
+					ctx.fillText(
+						this.renderConfig["y axis label"],
+						-(this.topMargin + plotHeight / 2),
+						this.leftMargin - this.leftMargin / 2 - 14
+					);
+
+					let dnaLength = 0;
+
+					//get list of chrs with variants
+					let chrs = Object.keys(dValue.sorted).filter(
+						(key) => dValue.sorted[key].length > 0
+					);
+
+					// compare length of chromosomes in the data to the defalt
+
+					chrs.map((chr) => {
+						let chrLength = 0;
+						dValue.sorted[chr].map((v) => {
+							chrLength =
+								v.locus > chrLength ? v.locus : chrLength;
 						});
-					}
-				});
-				//if (chr != 1) {
-				xStart += this.chromosomeLength[chr];
-				//}
-				//exChr = chr;
-				chrNum++;
-			});
+
+						this.chromosomeLength[chr] =
+							chrLength > this.chromosomeLength[chr]
+								? chrLength
+								: this.chromosomeLength[chr];
+					});
+
+					chrs.map((chr) => {
+						dnaLength += this.chromosomeLength[chr];
+					});
+
+					let chrByPixel = plotWidth / dnaLength;
+
+					let xStart = this.leftMargin;
+					ctx.textAlign = "center";
+					ctx.rotate((Math.PI * 2) / 4);
+
+					chrs.map((chr) => {
+						let chrLength = this.chromosomeLength[chr] * chrByPixel;
+						xStart += chrLength;
+						let chrPos = xStart - chrLength / 2;
+
+						ctx.fillText(
+							chr,
+							chrPos,
+							this.topMargin + plotHeight + yBump + 14 + bump
+						);
+					});
+
+					//Render x axis label
+
+					ctx.fillText(
+						this.renderConfig["x axis label"],
+						plotWidth / 2 + this.leftMargin,
+						this.topMargin + plotHeight + yBump + 44
+					);
+
+					//Render Dots
+
+					xStart = 0;
+					let exChr = "";
+					let chrNum = 1;
+
+					chrs.map((chr) => {
+						dValue.sorted[chr].map((g) => {
+							let xPos =
+								(xStart + g.locus) * chrByPixel +
+								this.leftMargin;
+
+							let yPosByPixel = plotHeight / (yMax - yMin);
+
+							let yPos =
+								this.topMargin +
+								plotHeight -
+								(g[this.renderConfig["y axis field"]] - yMin) *
+									yPosByPixel;
+
+							let dotColor =
+								this.chromosomeColors[
+									chrNum % this.chromosomeColors.length
+								];
+
+							ctx.fillStyle = dotColor + "75";
+
+							ctx.lineWidth = 0;
+							ctx.beginPath();
+							ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+							ctx.fill();
+
+							let xLoc = xPos.toString().split(".")[0];
+							let yLoc = yPos.toString().split(".")[0];
+
+							let hoverContent;
+
+							if (!!this.renderConfig["hover content"]) {
+								hoverContent =
+									this.renderConfig["hover content"];
+							}
+
+							if (!this.dotPosData[dKey]) {
+								this.dotPosData[dKey] = {};
+							}
+
+							if (!this.dotPosData[dKey][xLoc]) {
+								this.dotPosData[dKey][xLoc] = {};
+							}
+							this.dotPosData[dKey][xLoc][yLoc] = {};
+							this.dotPosData[dKey][xLoc][yLoc][
+								this.renderConfig["render by"]
+							] = g[this.renderConfig["render by"]];
+							if (!!this.renderConfig["hover content"]) {
+								hoverContent.map((h) => {
+									this.dotPosData[dKey][xLoc][yLoc][h] = g[h];
+								});
+							}
+						});
+
+						xStart += this.chromosomeLength[chr];
+
+						chrNum++;
+					});
+				}
+			}
 		},
 	},
 });
