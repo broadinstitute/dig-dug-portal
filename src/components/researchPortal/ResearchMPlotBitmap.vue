@@ -423,6 +423,7 @@ export default Vue.component("research-m-bitmap-plot", {
 
 			let xBump = canvasRenderWidth * 0.02;
 			let yBump = canvasRenderHeight * 0.02;
+			let bump = 5;
 
 			let plotWidth =
 				canvasRenderWidth -
@@ -447,20 +448,20 @@ export default Vue.component("research-m-bitmap-plot", {
 					ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 					// render y axis
-					ctx.moveTo(this.leftMargin, this.topMargin);
+					ctx.moveTo(this.leftMargin - bump, this.topMargin);
 					ctx.lineTo(
-						this.leftMargin,
-						plotHeight + this.topMargin + yBump
+						this.leftMargin - bump,
+						plotHeight + this.topMargin + yBump + bump
 					);
 
 					//render x axis
 					ctx.moveTo(
-						this.leftMargin,
-						plotHeight + this.topMargin + yBump
+						this.leftMargin - bump,
+						plotHeight + this.topMargin + yBump + bump
 					);
 					ctx.lineTo(
-						plotWidth + this.leftMargin,
-						plotHeight + this.topMargin + yBump
+						plotWidth + this.leftMargin + bump,
+						plotHeight + this.topMargin + yBump + bump
 					);
 
 					// render y ticker
@@ -497,8 +498,8 @@ export default Vue.component("research-m-bitmap-plot", {
 					for (let i = 0; i < 5; i++) {
 						let tickYPos = this.topMargin + i * yTickDistance;
 						let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
-						ctx.moveTo(this.leftMargin - 5, adjTickYPos);
-						ctx.lineTo(this.leftMargin, adjTickYPos);
+						ctx.moveTo(this.leftMargin - bump * 2, adjTickYPos);
+						ctx.lineTo(this.leftMargin - bump, adjTickYPos);
 						ctx.stroke();
 
 						ctx.font = "12px Arial";
@@ -513,7 +514,7 @@ export default Vue.component("research-m-bitmap-plot", {
 
 						ctx.fillText(
 							yTickText,
-							this.leftMargin - 10,
+							this.leftMargin - bump * 3,
 							this.topMargin + plotHeight + 5 - i * yTickDistance
 						);
 					}
@@ -571,7 +572,7 @@ export default Vue.component("research-m-bitmap-plot", {
 						ctx.fillText(
 							chr,
 							chrPos,
-							this.topMargin + plotHeight + yBump + 14
+							this.topMargin + plotHeight + yBump + 14 + bump
 						);
 
 						//console.log("step 2", chr);
