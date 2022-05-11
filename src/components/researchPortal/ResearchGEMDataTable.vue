@@ -1000,7 +1000,7 @@ export default Vue.component("research-gem-data-table", {
 			let formattedData = [];
 
 			if (this.dataComparisonConfig == null) {
-				console.log("this.newTableFormat", this.newTableFormat);
+				//console.log("this.newTableFormat", this.newTableFormat);
 
 				rawData.map((d) => {
 					let tempObj = {};

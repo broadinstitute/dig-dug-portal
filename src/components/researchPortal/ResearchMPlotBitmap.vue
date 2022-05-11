@@ -145,8 +145,6 @@ export default Vue.component("research-m-bitmap-plot", {
 			let massagedData = {};
 			let plotsList = [...this.plotsList];
 
-			console.log("plotsList", plotsList);
-
 			plotsList.map((c) => {
 				let tempObj = { sorted: {}, unsorted: [] };
 				massagedData[c] = tempObj;
@@ -161,7 +159,6 @@ export default Vue.component("research-m-bitmap-plot", {
 			if (this.dataComparisonConfig != null) {
 				for (const [key, value] of Object.entries(rawData)) {
 					plotsList.map((c) => {
-						//console.log(c, value);
 						let region = value[this.renderConfig["x axis field"]];
 
 						if (
@@ -254,10 +251,7 @@ export default Vue.component("research-m-bitmap-plot", {
 				});
 			}
 
-			//console.log("massagedData", massagedData);
-
 			return massagedData;
-			//return rawData;
 		},
 	},
 	watch: {
@@ -574,8 +568,6 @@ export default Vue.component("research-m-bitmap-plot", {
 							chrPos,
 							this.topMargin + plotHeight + yBump + 14 + bump
 						);
-
-						//console.log("step 2", chr);
 					});
 
 					//Render x axis label
