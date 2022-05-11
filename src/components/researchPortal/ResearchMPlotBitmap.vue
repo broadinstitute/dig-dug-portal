@@ -19,28 +19,18 @@
 		></div>
 		<div v-for="item in plotsList" :key="item">
 			<h4>{{ item }}</h4>
+
 			<canvas
 				v-if="!!renderConfig"
 				:id="'manhattanPlot' + item"
-				@resize="onResize"
-				@click="getFullList"
-				width=""
-				height=""
-			>
-			</canvas>
-			<!--
-				<canvas
-				v-if="!!renderConfig"
-				:id="'manhattanPlot' + item"
 				@mouseleave="hidePanel"
-				@mousemove="checkPosition"
+				@mousemove="checkPosition($event, item)"
 				@resize="onResize"
-				@click="getFullList"
+				@click="getFullList($event, item)"
 				width=""
 				height=""
 			>
 			</canvas>
-				-->
 		</div>
 		<div
 			v-if="!!renderConfig.label"
@@ -286,9 +276,9 @@ export default Vue.component("research-m-bitmap-plot", {
 		onResize(e) {
 			this.renderPlot(this.renderData);
 		},
-		getFullList(event) {
+		getFullList(event, ID) {
 			let wrapper = document.getElementById("dot_value_full_list");
-			let canvas = document.getElementById("manhattanPlot");
+			let canvas = document.getElementById("manhattanPlot" + ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
 			var rect = e.target.getBoundingClientRect();
@@ -301,9 +291,9 @@ export default Vue.component("research-m-bitmap-plot", {
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
-					if (this.dotPosData[x + h] != undefined) {
-						if (this.dotPosData[x + h][y + v] != undefined) {
-							let dotObject = this.dotPosData[x + h][y + v];
+					if (this.dotPosData[ID][x + h] != undefined) {
+						if (this.dotPosData[ID][x + h][y + v] != undefined) {
+							let dotObject = this.dotPosData[ID][x + h][y + v];
 							clickedDotValue +=
 								'<span class="gene-on-clicked-dot-mplot"><b>' +
 								dotObject[this.renderConfig["render by"]] +
@@ -332,20 +322,22 @@ export default Vue.component("research-m-bitmap-plot", {
 
 			if (clickedDotValue != "") {
 				contentWrapper.innerHTML = clickedDotValue;
-				document.getElementById("manhattanPlot").classList.add("hover");
+				document
+					.getElementById("manhattanPlot" + ID)
+					.classList.add("hover");
 				document
 					.getElementById("clicked_dot_value")
 					.classList.add("hidden");
 			} else {
 				wrapper.classList.add("hidden");
 				document
-					.getElementById("manhattanPlot")
+					.getElementById("manhattanPlot" + ID)
 					.classList.remove("hover");
 			}
 		},
-		checkPosition(event) {
+		checkPosition(event, ID) {
 			let wrapper = document.getElementById("clicked_dot_value");
-			let canvas = document.getElementById("manhattanPlot");
+			let canvas = document.getElementById("manhattanPlot" + ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
 			var rect = e.target.getBoundingClientRect();
@@ -360,10 +352,11 @@ export default Vue.component("research-m-bitmap-plot", {
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
-					if (this.dotPosData[x + h] != undefined) {
-						if (this.dotPosData[x + h][y + v] != undefined) {
+					if (this.dotPosData[ID][x + h] != undefined) {
+						if (this.dotPosData[ID][x + h][y + v] != undefined) {
 							if (numOfValues < 6) {
-								let dotObject = this.dotPosData[x + h][y + v];
+								let dotObject =
+									this.dotPosData[ID][x + h][y + v];
 								clickedDotValue +=
 									'<span class="gene-on-clicked-dot-mplot"><b>' +
 									dotObject[this.renderConfig["render by"]] +
@@ -404,11 +397,13 @@ export default Vue.component("research-m-bitmap-plot", {
 			if (clickedDotValue != "") {
 				contentWrapper.innerHTML = clickedDotValue;
 
-				document.getElementById("manhattanPlot").classList.add("hover");
+				document
+					.getElementById("manhattanPlot" + ID)
+					.classList.add("hover");
 			} else {
 				wrapper.classList.add("hidden");
 				document
-					.getElementById("manhattanPlot")
+					.getElementById("manhattanPlot" + ID)
 					.classList.remove("hover");
 			}
 		},
@@ -632,28 +627,30 @@ export default Vue.component("research-m-bitmap-plot", {
 									this.renderConfig["hover content"];
 							}
 
-							if (!this.dotPosData[xLoc]) {
-								this.dotPosData[xLoc] = {};
+							if (!this.dotPosData[dKey]) {
+								this.dotPosData[dKey] = {};
 							}
-							this.dotPosData[xLoc][yLoc] = {};
-							this.dotPosData[xLoc][yLoc][
+
+							if (!this.dotPosData[dKey][xLoc]) {
+								this.dotPosData[dKey][xLoc] = {};
+							}
+							this.dotPosData[dKey][xLoc][yLoc] = {};
+							this.dotPosData[dKey][xLoc][yLoc][
 								this.renderConfig["render by"]
 							] = g[this.renderConfig["render by"]];
 							if (!!this.renderConfig["hover content"]) {
 								hoverContent.map((h) => {
-									this.dotPosData[xLoc][yLoc][h] = g[h];
+									this.dotPosData[dKey][xLoc][yLoc][h] = g[h];
 								});
 							}
 						});
-						//if (chr != 1) {
+
 						xStart += this.chromosomeLength[chr];
-						//}
-						//exChr = chr;
+
 						chrNum++;
 					});
 				}
 			}
-			//this.$forceUpdate();
 		},
 	},
 });
