@@ -1,5 +1,32 @@
-.tooltip {
-}
+/* from https://www.w3schools.com/css/css_tooltip.asp */
+.byor-tooltip {
+    position: relative;
+    /*display: inline-block;
+    border-bottom: 1px dotted black;*/
+  }
+  
+  .byor-tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 3px;
+    padding: 5px 0;
+    position: absolute;
+    font-size: 13px;
+    font-weight: 300;
+    top: 80%;
+    left: 50%;
+    z-index: 10;
+    width: 200px;
+  }
+  
+  .byor-tooltip:hover .tooltiptext {
+    visibility: visible;
+  }
+
+  /* */
 
 .help-content {
     display: inline-block;
