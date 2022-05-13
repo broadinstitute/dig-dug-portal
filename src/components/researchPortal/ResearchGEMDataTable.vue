@@ -305,7 +305,7 @@ export default Vue.component("research-gem-data-table", {
 			var updatedData = {};
 			var rawData = {};
 
-			//If the data queried is not compared, change it from array to object
+			//If the data queried is not compared, convert it from array to object
 			if (this.dataComparisonConfig == null) {
 				let keyField =
 					newTableFormat["custom table"]["Credible Set"]["key field"];
@@ -707,7 +707,7 @@ export default Vue.component("research-gem-data-table", {
 
 			//usually data sorting happens with applySorting() function.
 			//but for credible sets case it happens here to avoide destroying original data
-			//if data is not sorted by PPA, sort is by original index
+			//if data is not sorted by PPA, sort gets done by original index
 
 			var sortedData = [];
 
@@ -723,9 +723,22 @@ export default Vue.component("research-gem-data-table", {
 				sortedData.map((s) => {
 					let CSValue = null;
 
-					for (const [cKey, cValue] of Object.entries(
-						s["Credible Set"]
-					)) {
+					if (!!this.dataComparisonConfig) {
+						for (const [cKey, cValue] of Object.entries(
+							s["Credible Set"]
+						)) {
+							if (CSValue == null) {
+								CSValue = cValue;
+							}
+
+							if (CSValue == "N/A") {
+								CSValue = 0;
+							} else {
+								CSValue = cValue > CSValue ? cValue : CSValue;
+							}
+						}
+					} else {
+						let cValue = s["Credible Set"];
 						if (CSValue == null) {
 							CSValue = cValue;
 						}
@@ -973,22 +986,24 @@ export default Vue.component("research-gem-data-table", {
 			immediate: true,
 		},
 		dataset(DATA) {
-			this.compareGroups = [];
-			let loopNum =
-				this.searchParameters[
-					this.dataComparisonConfig["fields group data key"][0]
-				].search.length;
+			if (!!this.dataComparisonConfig) {
+				this.compareGroups = [];
+				let loopNum =
+					this.searchParameters[
+						this.dataComparisonConfig["fields group data key"][0]
+					].search.length;
 
-			for (let i = 0; i < loopNum; i++) {
-				let groupString = "";
-				this.dataComparisonConfig["fields group data key"].map(
-					(gKey) => {
-						groupString +=
-							this.searchParameters[gKey].search[i] + " ";
-					}
-				);
+				for (let i = 0; i < loopNum; i++) {
+					let groupString = "";
+					this.dataComparisonConfig["fields group data key"].map(
+						(gKey) => {
+							groupString +=
+								this.searchParameters[gKey].search[i] + " ";
+						}
+					);
 
-				this.compareGroups.push(groupString.slice(0, -1));
+					this.compareGroups.push(groupString.slice(0, -1));
+				}
 			}
 		},
 	},
@@ -1278,6 +1293,7 @@ export default Vue.component("research-gem-data-table", {
 			return objectedArray;
 		},
 		applySorting(key) {
+			//console.log("key", key);
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
 			this.sortByCredibleSet = false;
