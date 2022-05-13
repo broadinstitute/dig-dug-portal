@@ -89,20 +89,32 @@
 					<th
 						v-for="(value, index) in topRows"
 						:key="index"
-						v-html="value == 'Credible Set' ? 'PPA' : value"
 						@click="
 							!!tableFormat['top rows'].includes(value) ||
 							value == 'Credible Set'
 								? applySorting(value)
 								: ''
 						"
+						class="byor-tooltip"
 						:class="
 							!!tableFormat['top rows'].includes(value) ||
 							value == 'Credible Set'
 								? 'sortable-th ' + value
 								: ''
 						"
-					></th>
+					>
+						<span
+							v-html="value == 'Credible Set' ? 'PPA' : value"
+						></span>
+						<span
+							v-if="
+								!!tableFormat['tool tips'] &&
+								!!tableFormat['tool tips'][value]
+							"
+							class="tooltiptext"
+							v-html="tableFormat['tool tips'][value]"
+						></span>
+					</th>
 					<th
 						class="th-evidence"
 						v-if="newTableFormat['features'] != undefined"
@@ -349,7 +361,7 @@ export default Vue.component("research-gem-data-table", {
 				//Replace "Tissue" with "Overlapping Region"
 				const tissueIndex = newRows.indexOf("Tissue");
 				if (tissueIndex > -1) {
-					newRows[tissueIndex] = "OR by annotations";
+					newRows[tissueIndex] = "Ovelapping Region by annotations";
 				}
 
 				this.pkgDataSelected.map((p) => {
@@ -697,7 +709,7 @@ export default Vue.component("research-gem-data-table", {
 							}
 						}
 
-						updatedData[vKey]["OR by annotations"] =
+						updatedData[vKey]["Ovelapping Region by annotations"] =
 							updatedData[vKey].overStart +
 							"-" +
 							updatedData[vKey].overEnd;

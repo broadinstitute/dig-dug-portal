@@ -520,6 +520,7 @@
 
 <style>
 @import url("/css/effectorGenes.css");
+@import url("/css/tooltipDocumentation.css");
 html {
 	font-size: 14px !important;
 }

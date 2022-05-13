@@ -64,13 +64,51 @@
 							@click="showHideStared()"
 						></b-icon>
 					</th>
+					<!--
+						<th
+						v-for="(value, index) in topRows"
+						:key="index"
+						@click="
+							!!tableFormat['top rows'].includes(value) ||
+							value == 'Credible Set'
+								? applySorting(value)
+								: ''
+						"
+						class="byor-tooltip"
+						:class="
+							!!tableFormat['top rows'].includes(value) ||
+							value == 'Credible Set'
+								? 'sortable-th ' + value
+								: ''
+						"
+					>
+						<span
+							v-html="value == 'Credible Set' ? 'PPA' : value"
+						></span>
+						<span
+							v-if="!!tableFormat['tool tips'][value]"
+							class="tooltiptext"
+							v-html="tableFormat['tool tips'][value]"
+						></span>
+					</th>
+						-->
 					<th
 						v-for="(value, index) in topRows"
 						:key="index"
-						v-html="value"
 						@click="applySorting(value)"
+						class="byor-tooltip"
 						:class="'sortable-th ' + value"
-					></th>
+					>
+						<span v-html="value"></span>
+						<span
+							v-if="
+								!!tableFormat['tool tips'] &&
+								!!tableFormat['tool tips'][value]
+							"
+							class="tooltiptext"
+							v-html="tableFormat['tool tips'][value]"
+						></span>
+					</th>
 					<th
 						class="th-evidence"
 						v-if="tableFormat['features'] != undefined"
