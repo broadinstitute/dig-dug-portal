@@ -361,7 +361,7 @@ export default Vue.component("research-gem-data-table", {
 				//Replace "Tissue" with "Overlapping Region"
 				const tissueIndex = newRows.indexOf("Tissue");
 				if (tissueIndex > -1) {
-					newRows[tissueIndex] = "Annotation overlap";
+					newRows[tissueIndex] = "Annotation Overlap";
 				}
 
 				this.pkgDataSelected.map((p) => {
@@ -709,7 +709,7 @@ export default Vue.component("research-gem-data-table", {
 							}
 						}
 
-						updatedData[vKey]["Annotation overlap"] =
+						updatedData[vKey]["Annotation Overlap"] =
 							updatedData[vKey].overStart +
 							"-" +
 							updatedData[vKey].overEnd;
