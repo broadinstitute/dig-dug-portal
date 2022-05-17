@@ -650,12 +650,7 @@ export default Vue.component("variant-search", {
             //Helen 2022-01-09
             //this.variants = await query("variants", this.gene, {}, true);
             //alert("variant-phenotype"+this.gene);
-            this.variants = await query(
-                "variant-phenotype",
-                this.gene,
-                {},
-                true
-            );
+            this.variants = await query("variants", this.gene, {}, true);
             if (this.variants && this.variants.length) {
                 for (let i = 0; i < this.variants.length; i++) {
                     this.variants[i].allelecount =
