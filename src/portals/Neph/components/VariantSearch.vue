@@ -182,13 +182,15 @@
                             >Homozygous</b-th
                         >
                         <b-th
-                            colspan="1"
+                            colspan="3"
                             class="text-center"
                             variant="secondary"
                             style="border-left: 1px solid #dee2e6"
                             >gnomAD Information</b-th
                         >
-                        <b-th><span class="sr-only">View VEP Data</span></b-th>
+                        <b-th colspan="1"
+                            ><span class="sr-only">View VEP Data</span></b-th
+                        >
                     </b-tr>
                 </template>
                 <template #cell(varID)="data">
