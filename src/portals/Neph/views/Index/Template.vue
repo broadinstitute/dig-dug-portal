@@ -93,7 +93,7 @@
                     </div>
                 </div>
             </div>
-            <!-- <div class="container static-content-section">
+            <div class="container static-content-section">
                 <div class="row">
                     <div class="col-md-7">
                         <about-portal-section
@@ -120,8 +120,8 @@
                         ></about-project-section>
                     </div>
                 </div>
-            </div>-->
-        </div> 
+            </div>
+        </div>
 
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
