@@ -23,7 +23,7 @@
 		</div>
 		<div class="table-ui-wrapper">
 			<label
-				>Filter by tissue type:
+				>Compare annotated regions:
 				<select v-model="filterTissueType" class="number-per-page">
 					<option value="or">Or</option>
 					<option value="and">And</option>
@@ -361,7 +361,7 @@ export default Vue.component("research-gem-data-table", {
 				//Replace "Tissue" with "Overlapping Region"
 				const tissueIndex = newRows.indexOf("Tissue");
 				if (tissueIndex > -1) {
-					newRows[tissueIndex] = "Ovelapping Region by annotations";
+					newRows[tissueIndex] = "Annotation Overlap";
 				}
 
 				this.pkgDataSelected.map((p) => {
@@ -622,7 +622,7 @@ export default Vue.component("research-gem-data-table", {
 					overlappingRegions.push(tempObj);
 				}
 
-				//filter out unovelapping variants and add overlapping region info to each variants
+				//filter out unoverlapping variants and add overlapping region info to each variants
 				var overlappingVariants = {};
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let position = vValue.Position;
@@ -709,7 +709,7 @@ export default Vue.component("research-gem-data-table", {
 							}
 						}
 
-						updatedData[vKey]["Ovelapping Region by annotations"] =
+						updatedData[vKey]["Annotation Overlap"] =
 							updatedData[vKey].overStart +
 							"-" +
 							updatedData[vKey].overEnd;
