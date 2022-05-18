@@ -165,7 +165,7 @@
 							>Homozygous</b-th
 						>
 						<b-th
-							colspan="1"
+							colspan="3"
 							class="text-center"
 							variant="secondary"
 							style="border-left: 1px solid #dee2e6"
@@ -587,6 +587,7 @@ export default Vue.component("variant-search", {
 	},
 	created() {
 		if (this.gene) {
+			//alert(this.gene);
 			this.searchVariants();
 		}
 	},
@@ -613,6 +614,7 @@ export default Vue.component("variant-search", {
 	methods: {
 		...uiUtils,
 		showHideElement(ELEMENT) {
+			//alert(this.filters["impacts"]);
 			uiUtils.showHideElement(ELEMENT);
 		},
 		selectAllElements(name, flag) {
@@ -631,10 +633,13 @@ export default Vue.component("variant-search", {
 			}
 		},
 		async searchVariants() {
+			//alert(this.gene);
 			this.currentPage = 1; //reset on new search
 			//Helen 2022-01-09
 			//this.variants = await query("variants", this.gene, {}, true);
 			//alert("variant-phenotype"+this.gene);
+			this.filters.impacts=[];
+			this.filters.phenotypes=[];
 			this.variants = await query(
 				"variant-phenotype",
 				this.gene,
