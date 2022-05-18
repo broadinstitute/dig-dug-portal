@@ -10,6 +10,8 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
+import ResearchByorProjects from "@/components/researchPortal/ResearchByorProjects.vue";
+
 
 new Vue({
     store,
@@ -19,7 +21,7 @@ new Vue({
     },
 
     components: {
-
+        ResearchByorProjects,
     },
 
     created() {
