@@ -19,6 +19,8 @@
                     :items="tableData"
                     :fields="fields"
                     :per-page="perPage"
+                    :current-page="currentPage"
+                    id="gnomad"
                 >
                 </b-table>
                 <b-pagination
@@ -26,6 +28,7 @@
                     v-model="currentPage"
                     :total-rows="rows"
                     :per-page="perPage"
+                    aria-controls="gnomad"
                 ></b-pagination>
             </div>
         </div>
