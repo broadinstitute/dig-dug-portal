@@ -48,9 +48,10 @@
 					The BYOR (Bring Your Own Results) platform lets you easily
 					and rapidly create web pages or portals to share your
 					results with reviewers, collaborators, or the world. It
-					comes with auto generated sortable datatable, data filters
-					and visualizers, that you can add to your pages with no or
-					simple configurations.
+					offers automatically generated interactive data tables and
+					visualizers that can be created and configured without
+					coding expertise and are applicable to a wide variety of
+					scientific data types.
 					<br />
 					<a
 						href="https://hugeampkpncms.org/tutorial"
