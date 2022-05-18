@@ -100,6 +100,13 @@ let pages = {
         filename: "contacts.html",
         title: "Contacts",
         chunks: ["chunk-vendors", "chunk-common", "contacts"]
+    },
+    research: {
+        entry: "src/views/Papers/Research/main.js",
+        template: "public/index.html",
+        filename: "research.html",
+        title: "Research",
+        chunks: ["chunk-vendors", "chunk-common", "research"]
     }
 };
 
