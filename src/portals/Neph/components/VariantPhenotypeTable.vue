@@ -101,10 +101,12 @@ export default Vue.component("variant-phenotype-table", {
         return {
             HPOTerms: {
                 Healthy: "Healthy",
-                NephSyndSteroidSensitive: "Steroid Sensitive NephSynd",
-                NephSyndUncategorized: "Uncategorized NephSynd",
-                NephSyndSteroidResistant: "Steroid Resistant NephSynd",
-                AllNyphroticSyndCases: "All Cases NephSynd",
+                NephSyndSteroidSensitive:
+                    "Steroid Sensitive Nephrotic Syndrome",
+                NephSyndUncategorized: "Uncategorized Nephrotic Syndrome",
+                NephSyndSteroidResistant:
+                    "Steroid Resistant Nephrotic Syndrome",
+                AllNyphroticSyndCases: "All Cases Nephrotic Syndrome",
             },
             fields: [
                 {
