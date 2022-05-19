@@ -18,7 +18,7 @@
 			v-html="renderConfig.legend"
 		></div>
 		<div v-for="item in plotsList" :key="item">
-			<h4>{{ item }}</h4>
+			<h4 v-if="item != 'default'">{{ item }}</h4>
 
 			<canvas
 				v-if="!!renderConfig"
