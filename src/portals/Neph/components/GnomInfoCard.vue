@@ -18,22 +18,24 @@
                     responsive="sm"
                     :items="tableData"
                     :fields="fields"
+                    :per-page="perPage"
                     :current-page="currentPage"
-				    :per-page="perPage"
-                    >
-                    
+                    id="gnomad"
+                >
                 </b-table>
                 <b-pagination
                     class="pagination-sm justify-content-center"
                     v-model="currentPage"
                     :total-rows="rows"
                     :per-page="perPage"
+                    aria-controls="gnomad"
                 ></b-pagination>
             </div>
         </div>
         <div v-else>
             <b-alert show variant="warning" class="text-center">
-                <b-icon icon="exclamation-triangle"></b-icon> No gnomAD information found.</b-alert
+                <b-icon icon="exclamation-triangle"></b-icon> No gnomAD
+                information found.</b-alert
             >
         </div>
     </div>
@@ -79,13 +81,13 @@ export default Vue.component("gnominfo-card", {
 			},
             fields: [
                 {
-					key: "name",
-					label: "Field Name",
-				},
-				{
-					key: "value",
-					label: "Value",
-				},
+                    key: "name",
+                    label: "Field Name",
+                },
+                {
+                    key: "value",
+                    label: "Value",
+                },
             ],
             gnomAD_info: [],
             perPage: 10,
@@ -93,21 +95,21 @@ export default Vue.component("gnominfo-card", {
         };
     },
     created() {
-		if (this.variantId) {
+        if (this.variantId) {
             //alert(this.variantId);
-			this.searchVariants();
-		}
-	},
+            this.searchVariants();
+        }
+    },
     computed: {
         rows() {
             return this.tableData.length;
         },
         tableData() {
             if (this.gnomAD_info && this.gnomAD_info.length) {
-				return this.gnomAD_info;
-			} else {
-				return [];
-			}
+                return this.gnomAD_info;
+            } else {
+                return [];
+            }
             /*let dataRows = this.variant.hprecords;
             if (!!this.filter) {
                 dataRows = dataRows.filter((association) => {
@@ -122,29 +124,26 @@ export default Vue.component("gnominfo-card", {
             //alert("variant id:" + this.variantId);
             //console.log("variant id:" + this.variantId);
             let varinfo = this.variantId.split(":");
-            let searchquery = varinfo[0]+":"+varinfo[1];
-            this.variant = await query("variant-phenotype",searchquery,{},true);
+            let searchquery = varinfo[0] + ":" + varinfo[1];
+            this.variant = await query("variants", searchquery, {}, true);
             let gnomdisplay = [];
             let j = 0;
             //console.log("gnomAD_info:"+this.variant[0].gnomAD_info);
             //for (var k in this.variant[0].gnomAD_info) {
             for (var k in this.InfoFields) {
                 console.log(k);
-                if (this.InfoFields[k] != undefined){
-                    gnomdisplay[j]={};
+                if (this.InfoFields[k] != undefined) {
+                    gnomdisplay[j] = {};
                     gnomdisplay[j].name = this.InfoFields[k];
                     gnomdisplay[j].value = this.variant[0].gnomAD_info[k];
-                    j++
+                    j++;
                 }
-                
             }
-            
+
             this.gnomAD_info = gnomdisplay;
 
             //console.log("results:"+JSON.stringify(this.variant[0].hprecords));
         },
-        
     },
-})
-
+});
 </script>

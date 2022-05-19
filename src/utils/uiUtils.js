@@ -122,6 +122,23 @@ let switchViews = function (VIEWS, BUTTONTEXT) {
     celement.classList.remove("hidden");
 };
 
+let switchPlotViews = function (VIEWS, BUTTONTEXT) {
+    let x = VIEWS.length;
+    var currentElement;
+
+    for (let i = 0; i < x; i++) {
+        let element = checkExist(VIEWS[i]);
+        if (element.classList.contains("hidden-svg") == false) {
+            element.classList.add("hidden-svg");
+            currentElement = i + 1 == x ? 0 : i + 1;
+        }
+    }
+
+    let celement = checkExist(VIEWS[currentElement]);
+    event.target.innerHTML = BUTTONTEXT[currentElement];
+    celement.classList.remove("hidden-svg");
+};
+
 let openPage = function (PAGE, PARAMETERS) {
     let redirectURL = "./" + PAGE + "?";
 
@@ -237,6 +254,23 @@ let showTabContent = function (TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
 
     document.getElementById(TAB).classList.add("active");
     document.getElementById(CONTENT).classList.add("active");
+};
+
+let removeOnMouseOut = function (BOXID, TIME) {
+    let wrapper = document.getElementById(BOXID);
+    setTimeout(function () {
+        wrapper.classList.remove("fixed");
+        wrapper.classList.add("hidden");
+    }, TIME);
+};
+
+let isIdFixed = function (ID) {
+    let element = document.querySelector(ID);
+
+    let isFixed = !!element && element.getAttribute(
+        'class'
+    ).includes('fixed') == true ? true : false;
+    return isFixed;
 }
 
 export default {
@@ -249,10 +283,13 @@ export default {
     openPage,
     showHideByClass,
     switchViews,
+    switchPlotViews,
     getToolTipPosition,
     onScroll,
     convertJson2Csv,
     saveJson,
     getAxisTicks,
-    showTabContent
+    showTabContent,
+    removeOnMouseOut,
+    isIdFixed
 };

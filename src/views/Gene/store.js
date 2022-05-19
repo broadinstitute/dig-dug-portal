@@ -127,6 +127,7 @@ export default new Vuex.Store({
 
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
             context.dispatch('varassociations/query', { q: phenoRegionQuery });
+
         },
         async getEGLData(context) {
             let dataset = "mccarthy";

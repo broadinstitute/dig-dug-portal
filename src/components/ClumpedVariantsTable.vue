@@ -1,7 +1,7 @@
 <template>
 	<div id="clump-data">
 		<b-row>
-			<b-col v-if="legends" cols="9">
+			<b-col v-if="legends && groups != null" cols="9">
 				<div
 					v-for="group in groups"
 					:key="group"
@@ -9,8 +9,16 @@
 				>
 					<div
 						class="pws-group-legend-box phenotype-group"
-						:class="group"
+						:style="
+							'background-color: ' +
+							getColor(group) +
+							' !important;'
+						"
 					>
+						<!--<div
+						class="pws-group-legend-box phenotype-group"
+						:class="group"
+					>-->
 						&nbsp;
 					</div>
 					{{ group }}
@@ -68,9 +76,19 @@
 					</b-popover>
 				</template>
 				<template #cell(group)="data">
-					<div class="border-color" :class="data.item.group">
+					<div
+						class="border-color"
+						:style="
+							'border-color: ' +
+							getColor(data.item.group) +
+							' !important;'
+						"
+					>
 						{{ data.item.group }}
 					</div>
+					<!--<div class="border-color" :class="data.item.group">
+						{{ data.item.group }}
+					</div>-->
 				</template>
 				<template #cell(pValue)="data">
 					<div
@@ -79,7 +97,7 @@
 							data.item.pValue
 						)}% 100%`"
 					>
-						{{ data.item.pValue }}
+						{{ pValueFormatter(data.item.pValue) }}
 					</div>
 				</template>
 				<template #cell(view)="data">
@@ -222,7 +240,12 @@ import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 
 export default Vue.component("clumped-variants-table", {
-	props: { variants: Array, phenotypeMap: Object, legends: Boolean },
+	props: {
+		variants: Array,
+		phenotypeMap: Object,
+		legends: Boolean,
+		colors: Array,
+	},
 	data() {
 		return {
 			perPage: 10,
@@ -292,9 +315,28 @@ export default Vue.component("clumped-variants-table", {
 		groups() {
 			return [...new Set(this.variants.map((v) => v.group))];
 		},
+		phenotypeGroups: function () {
+			let groups = [];
+
+			for (const [pKey, pValue] of Object.entries(this.phenotypeMap)) {
+				groups.push(pValue.group);
+			}
+
+			groups = groups
+				.filter(function (value, index, self) {
+					return self.indexOf(value) === index;
+				})
+				.sort();
+
+			return groups;
+		},
 	},
 
 	methods: {
+		getColor(PGROUP) {
+			let colorIndex = this.phenotypeGroups.indexOf(PGROUP);
+			return this.colors[colorIndex];
+		},
 		async showClumpData(phenotype, clump) {
 			if (this.clumpData[phenotype] === undefined) {
 				this.loadingData[phenotype] = true;
@@ -320,6 +362,9 @@ export default Vue.component("clumped-variants-table", {
 		},
 		effectFormatter(effect) {
 			return Formatters.effectFormatter(effect);
+		},
+		pValueFormatter(pValue) {
+			return Formatters.pValueFormatter(pValue);
 		},
 		pValueCss(value) {
 			return Formatters.pValueCss(value, this.maxPValue);

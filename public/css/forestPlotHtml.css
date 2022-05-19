@@ -4,12 +4,12 @@
 
 .forest-plot-html-wrapper {
     margin: 30px 40px;
-    padding: 10px 0 10px 0;
+    padding: 10px 100px 10px 100px;
     border: solid 1px #ddd;
     position: relative;
 }
 
-.start-min, .end-max, .beta-0 {
+.start-min, .end-max, .beta-0, .min-value, .max-value {
     font-size: 14px;
     position: absolute;
     top: -20px;
@@ -26,10 +26,42 @@
 }
 
 .start-min {
+    left: 100px;
+}
+
+.beta--1 {
+    position: absolute;
     left: 0;
+    width: 100px;
+    background-color: #00000010;
+    height: 100%;
+    top: 0;
+    border-right: dashed 2px #dfdfdf;
+    border-left: none;
+    padding: 10px 0 10px 0;
 }
 
 .end-max {
+    right: 100px;
+}
+
+.beta-1 {
+    position: absolute;
+    right: 0%;
+    width: 100px;
+    background-color: #00000010;
+    height: 100%;
+    top: 0;
+    border-left: dashed 2px #dfdfdf;
+    border-right: none;
+    padding: 10px 0 10px 0;
+}
+
+.min-value {
+    left: 0;
+}
+
+.max-value {
     right: 0;
 }
 
