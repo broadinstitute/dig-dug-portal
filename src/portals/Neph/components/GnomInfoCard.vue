@@ -22,14 +22,15 @@
                     :current-page="currentPage"
                     id="gnomad"
                 >
+                
                 </b-table>
-                <b-pagination
+                <!--<b-pagination
                     class="pagination-sm justify-content-center"
                     v-model="currentPage"
                     :total-rows="rows"
                     :per-page="perPage"
                     aria-controls="gnomad"
-                ></b-pagination>
+                ></b-pagination> -->
             </div>
         </div>
         <div v-else>
@@ -50,7 +51,7 @@ export default Vue.component("gnominfo-card", {
     props: ["variantId"],
     data() {
         return {
-            InfoFields: {
+            /*InfoFields: {
 				"gnomAD_exomes_AC": "Total Allele Count",
 				"gnomAD_exomes_AF": "Total Allele Frequency",
                 "gnomAD_exomes_AN": "Total Allele Number",
@@ -72,26 +73,44 @@ export default Vue.component("gnominfo-card", {
                 "gnomAD_exomes_NFE_AC": "Non-Finnish European Allele Count",
                 "gnomAD_exomes_NFE_AF": "Non-Finnish European Allele Frequency",
                 "gnomAD_exomes_NFE_AN": "Non-Finnish European Allele Number",
-                "gnomAD_exomes_SAS_AC": "South AsianAllele Count",
-                "gnomAD_exomes_SAS_AF": "South AsianAllele Frequency",
+                "gnomAD_exomes_SAS_AC": "South Asian Allele Count",
+                "gnomAD_exomes_SAS_AF": "South Asian Allele Frequency",
                 "gnomAD_exomes_SAS_AN": "South Asian Allele Number",
                 "gnomAD_exomes_OTH_AC": "Other Allele Count",
                 "gnomAD_exomes_OTH_AF": "Other Allele Frequency",
                 "gnomAD_exomes_OTH_AN": "Other Allele Number",
-			},
+			},*/
+            InfoFields: {
+				"AFR": "African",
+                "AMR": "Amerindian",
+                "ASJ": "Ashkenazi Jewish",
+                "EAS": "East Asian",
+                "FIN": "Finnish",
+                "NFE": "Non-Finnish European",
+                "SAS": "South Asian",
+                "OTH": "Other",
+            },
             fields: [
                 {
                     key: "name",
-                    label: "Field Name",
+                    label: "Cohort",
                 },
                 {
-                    key: "value",
-                    label: "Value",
+                    key: "AC",
+                    label: "Allele Count",
+                },
+                {
+                    key: "AF",
+                    label: "Allele Frequency",
+                },
+                {
+                    key: "AN",
+                    label: "Allele Number",
                 },
             ],
             gnomAD_info: [],
-            perPage: 10,
-            currentPage: 1,
+            //perPage: 10,
+            //currentPage: 1,
         };
     },
     created() {
@@ -125,17 +144,25 @@ export default Vue.component("gnominfo-card", {
             //console.log("variant id:" + this.variantId);
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0] + ":" + varinfo[1];
-            this.variant = await query("variants", searchquery, {}, true);
+            this.variant = await query("variant-phenotype", searchquery, {}, true);
             let gnomdisplay = [];
-            let j = 0;
-            //console.log("gnomAD_info:"+this.variant[0].gnomAD_info);
+            //alert("gnomAD_info:"+this.variant.length);
             //for (var k in this.variant[0].gnomAD_info) {
+            gnomdisplay[0] = {};
+            gnomdisplay[0].name = "Total";
+            gnomdisplay[0].AC = this.variant[0].gnomAD_info["gnomAD_exomes_AC"];
+            gnomdisplay[0].AF = this.variant[0].gnomAD_info["gnomAD_exomes_AF"];
+            gnomdisplay[0].AN = this.variant[0].gnomAD_info["gnomAD_exomes_AN"];
+            let j = 1;
+            
             for (var k in this.InfoFields) {
-                console.log(k);
+                //console.log(k);
                 if (this.InfoFields[k] != undefined) {
                     gnomdisplay[j] = {};
                     gnomdisplay[j].name = this.InfoFields[k];
-                    gnomdisplay[j].value = this.variant[0].gnomAD_info[k];
+                    gnomdisplay[j].AC = this.variant[0].gnomAD_info["gnomAD_exomes_"+k+"_AC"];
+                    gnomdisplay[j].AF = this.variant[0].gnomAD_info["gnomAD_exomes_"+k+"_AF"];
+                    gnomdisplay[j].AN = this.variant[0].gnomAD_info["gnomAD_exomes_"+k+"_AN"];
                     j++;
                 }
             }
