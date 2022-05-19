@@ -23,7 +23,7 @@
 			<canvas
 				v-if="!!renderConfig"
 				:id="'manhattanPlot' + item"
-				@mouseleave="hidePanel"
+				@mouseleave="onMouseOut('clicked_dot_value')"
 				@mousemove="checkPosition($event, item)"
 				@resize="onResize"
 				@click="getFullList($event, item)"
@@ -266,6 +266,9 @@ export default Vue.component("research-m-bitmap-plot", {
 		...uiUtils,
 		hidePanel(element) {
 			uiUtils.hideElement(element);
+		},
+		onMouseOut(BOXID) {
+			uiUtils.removeOnMouseOut(BOXID, 1000);
 		},
 		onResize(e) {
 			this.renderPlot(this.renderData);
