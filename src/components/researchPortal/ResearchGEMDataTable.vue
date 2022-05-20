@@ -23,7 +23,7 @@
 		</div>
 		<div class="table-ui-wrapper">
 			<label
-				>Filter by tissue type:
+				>Compare annotated regions:
 				<select v-model="filterTissueType" class="number-per-page">
 					<option value="or">Or</option>
 					<option value="and">And</option>
@@ -89,20 +89,32 @@
 					<th
 						v-for="(value, index) in topRows"
 						:key="index"
-						v-html="value == 'Credible Set' ? 'PPA' : value"
 						@click="
 							!!tableFormat['top rows'].includes(value) ||
 							value == 'Credible Set'
 								? applySorting(value)
 								: ''
 						"
+						class="byor-tooltip"
 						:class="
 							!!tableFormat['top rows'].includes(value) ||
 							value == 'Credible Set'
 								? 'sortable-th ' + value
 								: ''
 						"
-					></th>
+					>
+						<span
+							v-html="value == 'Credible Set' ? 'PPA' : value"
+						></span>
+						<span
+							v-if="
+								!!tableFormat['tool tips'] &&
+								!!tableFormat['tool tips'][value]
+							"
+							class="tooltiptext"
+							v-html="tableFormat['tool tips'][value]"
+						></span>
+					</th>
 					<th
 						class="th-evidence"
 						v-if="newTableFormat['features'] != undefined"
@@ -305,7 +317,7 @@ export default Vue.component("research-gem-data-table", {
 			var updatedData = {};
 			var rawData = {};
 
-			//If the data queried is not compared, change it from array to object
+			//If the data queried is not compared, convert it from array to object
 			if (this.dataComparisonConfig == null) {
 				let keyField =
 					newTableFormat["custom table"]["Credible Set"]["key field"];
@@ -349,7 +361,7 @@ export default Vue.component("research-gem-data-table", {
 				//Replace "Tissue" with "Overlapping Region"
 				const tissueIndex = newRows.indexOf("Tissue");
 				if (tissueIndex > -1) {
-					newRows[tissueIndex] = "OR by annotations";
+					newRows[tissueIndex] = "Annotation Overlap";
 				}
 
 				this.pkgDataSelected.map((p) => {
@@ -610,7 +622,7 @@ export default Vue.component("research-gem-data-table", {
 					overlappingRegions.push(tempObj);
 				}
 
-				//filter out unovelapping variants and add overlapping region info to each variants
+				//filter out unoverlapping variants and add overlapping region info to each variants
 				var overlappingVariants = {};
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let position = vValue.Position;
@@ -697,7 +709,7 @@ export default Vue.component("research-gem-data-table", {
 							}
 						}
 
-						updatedData[vKey]["OR by annotations"] =
+						updatedData[vKey]["Annotation Overlap"] =
 							updatedData[vKey].overStart +
 							"-" +
 							updatedData[vKey].overEnd;
@@ -707,7 +719,7 @@ export default Vue.component("research-gem-data-table", {
 
 			//usually data sorting happens with applySorting() function.
 			//but for credible sets case it happens here to avoide destroying original data
-			//if data is not sorted by PPA, sort is by original index
+			//if data is not sorted by PPA, sort gets done by original index
 
 			var sortedData = [];
 
@@ -723,9 +735,22 @@ export default Vue.component("research-gem-data-table", {
 				sortedData.map((s) => {
 					let CSValue = null;
 
-					for (const [cKey, cValue] of Object.entries(
-						s["Credible Set"]
-					)) {
+					if (!!this.dataComparisonConfig) {
+						for (const [cKey, cValue] of Object.entries(
+							s["Credible Set"]
+						)) {
+							if (CSValue == null) {
+								CSValue = cValue;
+							}
+
+							if (CSValue == "N/A") {
+								CSValue = 0;
+							} else {
+								CSValue = cValue > CSValue ? cValue : CSValue;
+							}
+						}
+					} else {
+						let cValue = s["Credible Set"];
 						if (CSValue == null) {
 							CSValue = cValue;
 						}
@@ -973,22 +998,24 @@ export default Vue.component("research-gem-data-table", {
 			immediate: true,
 		},
 		dataset(DATA) {
-			this.compareGroups = [];
-			let loopNum =
-				this.searchParameters[
-					this.dataComparisonConfig["fields group data key"][0]
-				].search.length;
+			if (!!this.dataComparisonConfig) {
+				this.compareGroups = [];
+				let loopNum =
+					this.searchParameters[
+						this.dataComparisonConfig["fields group data key"][0]
+					].search.length;
 
-			for (let i = 0; i < loopNum; i++) {
-				let groupString = "";
-				this.dataComparisonConfig["fields group data key"].map(
-					(gKey) => {
-						groupString +=
-							this.searchParameters[gKey].search[i] + " ";
-					}
-				);
+				for (let i = 0; i < loopNum; i++) {
+					let groupString = "";
+					this.dataComparisonConfig["fields group data key"].map(
+						(gKey) => {
+							groupString +=
+								this.searchParameters[gKey].search[i] + " ";
+						}
+					);
 
-				this.compareGroups.push(groupString.slice(0, -1));
+					this.compareGroups.push(groupString.slice(0, -1));
+				}
 			}
 		},
 	},
@@ -1000,7 +1027,7 @@ export default Vue.component("research-gem-data-table", {
 			let formattedData = [];
 
 			if (this.dataComparisonConfig == null) {
-				console.log("this.newTableFormat", this.newTableFormat);
+				//console.log("this.newTableFormat", this.newTableFormat);
 
 				rawData.map((d) => {
 					let tempObj = {};
@@ -1278,6 +1305,7 @@ export default Vue.component("research-gem-data-table", {
 			return objectedArray;
 		},
 		applySorting(key) {
+			//console.log("key", key);
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
 			this.sortByCredibleSet = false;
