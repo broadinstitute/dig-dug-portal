@@ -100,13 +100,14 @@ export default Vue.component("gnominfo-card", {
                     label: "Allele Count",
                 },
                 {
-                    key: "AF",
-                    label: "Allele Frequency",
-                },
-                {
                     key: "AN",
                     label: "Allele Number",
                 },
+                {
+                    key: "AF",
+                    label: "Allele Frequency",
+                },
+                
             ],
             gnomAD_info: [],
             //perPage: 10,
@@ -151,7 +152,7 @@ export default Vue.component("gnominfo-card", {
             gnomdisplay[0] = {};
             gnomdisplay[0].name = "Total";
             gnomdisplay[0].AC = this.variant[0].gnomAD_info["gnomAD_exomes_AC"];
-            gnomdisplay[0].AF = this.variant[0].gnomAD_info["gnomAD_exomes_AF"];
+            gnomdisplay[0].AF = this.variant[0].gnomAD_info["gnomAD_exomes_AF"].toExponential(2);
             gnomdisplay[0].AN = this.variant[0].gnomAD_info["gnomAD_exomes_AN"];
             let j = 1;
             
@@ -161,7 +162,7 @@ export default Vue.component("gnominfo-card", {
                     gnomdisplay[j] = {};
                     gnomdisplay[j].name = this.InfoFields[k];
                     gnomdisplay[j].AC = this.variant[0].gnomAD_info["gnomAD_exomes_"+k+"_AC"];
-                    gnomdisplay[j].AF = this.variant[0].gnomAD_info["gnomAD_exomes_"+k+"_AF"];
+                    gnomdisplay[j].AF = this.variant[0].gnomAD_info["gnomAD_exomes_"+k+"_AF"].toExponential(2);
                     gnomdisplay[j].AN = this.variant[0].gnomAD_info["gnomAD_exomes_"+k+"_AN"];
                     j++;
                 }
@@ -171,6 +172,11 @@ export default Vue.component("gnominfo-card", {
 
             //console.log("results:"+JSON.stringify(this.variant[0].hprecords));
         },
+        formatAlleleFrequency(count, number) {
+			if (count === 0 || number === 0) return 0;
+			else return Number.parseFloat(count / number).toExponential(2);
+		},
+		
     },
 });
 </script>
