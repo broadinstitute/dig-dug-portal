@@ -299,6 +299,8 @@ export default Vue.component("research-data-table", {
 		rawData() {
 			let rawData = this.dataset;
 
+			console.log(rawData);
+
 			let formattedData = [];
 
 			if (this.dataComparisonConfig == null) {

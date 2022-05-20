@@ -910,6 +910,10 @@ export default Vue.component("research-page-filters", {
 								) {
 									targetData.filter((row) => {
 										if (
+											row[searchIndex.field] != null &&
+											row[searchIndex.field] !=
+												undefined &&
+											row[searchIndex.field] != "" &&
 											row[searchIndex.field]
 												.toLowerCase()
 												.includes(search.toLowerCase())
@@ -921,7 +925,13 @@ export default Vue.component("research-page-filters", {
 									searchIndex.type == "search greater than"
 								) {
 									targetData.filter((row) => {
-										if (row[searchIndex.field] >= search) {
+										if (
+											row[searchIndex.field] != null &&
+											row[searchIndex.field] !=
+												undefined &&
+											row[searchIndex.field] != "" &&
+											row[searchIndex.field] >= search
+										) {
 											tempFiltered.push(row);
 										}
 									});
@@ -929,7 +939,13 @@ export default Vue.component("research-page-filters", {
 									searchIndex.type == "search lower than"
 								) {
 									targetData.filter((row) => {
-										if (row[searchIndex.field] <= search) {
+										if (
+											row[searchIndex.field] != null &&
+											row[searchIndex.field] !=
+												undefined &&
+											row[searchIndex.field] != "" &&
+											row[searchIndex.field] <= search
+										) {
 											tempFiltered.push(row);
 										}
 									});
@@ -937,8 +953,12 @@ export default Vue.component("research-page-filters", {
 									let searchVals = search.split(",");
 									targetData.filter((row) => {
 										if (
-											row[searchIndex.field] <=
-												searchVals[0].trim() ||
+											(row[searchIndex.field] != null &&
+												row[searchIndex.field] !=
+													undefined &&
+												row[searchIndex.field] != "" &&
+												row[searchIndex.field] <=
+													searchVals[0].trim()) ||
 											row[searchIndex.field] >=
 												searchVals[1].trim()
 										) {
@@ -978,6 +998,10 @@ export default Vue.component("research-page-filters", {
 									let searchVals = search.split(",");
 									targetData.filter((row) => {
 										if (
+											row[searchIndex.field] != null &&
+											row[searchIndex.field] !=
+												undefined &&
+											row[searchIndex.field] != "" &&
 											row[searchIndex.field] >=
 												searchVals[0].trim() &&
 											row[searchIndex.field] <=

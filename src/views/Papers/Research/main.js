@@ -862,8 +862,6 @@ new Vue({
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
-            //console.log("contents", contents)
-
             if (contents.length === 0) {
                 return null;
             } else {
@@ -1115,6 +1113,7 @@ new Vue({
         },
         researchData(content) {
             // reset searching region if applicable
+
 
             if (content != null && content.length > 0) {
                 let region, targetPlotConfig;
