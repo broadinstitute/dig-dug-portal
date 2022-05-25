@@ -236,7 +236,7 @@ let pages = {
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"]
     },
-    eggserver: {
+    egggenerator: {
         entry: "src/views/EggGenerator/main.js",
         template: "public/index.html",
         filename: "egggenerator.html",
