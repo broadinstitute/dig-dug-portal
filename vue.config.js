@@ -235,6 +235,13 @@ let pages = {
         filename: "research.html",
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"]
+    },
+    eggserver: {
+        entry: "src/views/EggGenerator/main.js",
+        template: "public/index.html",
+        filename: "egggenerator.html",
+        title: "Exome Gene-Level Group-file Generator",
+        chunks: ["chunk-vendors", "chunk-common", "egggenerator"]
     }
 };
 

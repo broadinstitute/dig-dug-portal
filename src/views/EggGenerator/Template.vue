@@ -1,0 +1,710 @@
+<template>
+	<div>
+		<!-- Header -->
+		<page-header
+			:disease-group="$parent.diseaseGroup"
+			:front-contents="$parent.frontContents"
+		></page-header>
+
+		<!-- Body -->
+		<div class="container-fluid mdkp-body">
+			<search-header-wrapper>
+				<!-- Wrap page level searchs with "pageSearchParameters" div -->
+
+				<div class="col filter-col-md">
+					<gene-selectpicker
+						@onGeneChange="$store.dispatch('queryGeneName', $event)"
+					></gene-selectpicker>
+				</div>
+			</search-header-wrapper>
+
+			<div class="gene-page-header card mdkp-card">
+				<div class="row card-body">
+					<div class="col-md-8 gene-page-header-title">Gene</div>
+					<div class="col-md-4 gene-page-header-title">Navigate</div>
+
+					<div class="col-md-8 gene-page-header-body">
+						<div>
+							<span>{{ $store.state.geneName }}</span>
+						</div>
+					</div>
+					<div class="col-md-4 gene-page-header-body">
+						<div v-if="$parent.symbolName" class="input-group">
+							<button
+								class="
+									btn btn-primary
+									input-group-prepend
+									explore-region-btn
+								"
+								style="margin-right: 20px"
+								:title="$parent.regionText"
+								@click="$parent.exploreRegion()"
+							>
+								Explore Region
+							</button>
+							<button
+								class="
+									btn btn-primary
+									input-group-append
+									explore-region-btn
+								"
+								:title="$parent.regionTextExpanded"
+								@click="$parent.exploreRegion(50000)"
+							>
+								Explore &plusmn; 50 kb
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mdkp-card">
+				<div class="card-body temporary-card">
+					<documentation
+						name="gene.explore.subheader"
+						:content-fill="$parent.documentationMap"
+					></documentation>
+				</div>
+			</div>
+
+			<div class="card mdkp-card">
+				<!-- <div class="card-body">
+                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
+                    <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
+                    <documentation name="gene.translator.dashboard"></documentation>
+                    <translator-results-dashboard
+                        :queries="$parent.queries"
+                    ></translator-results-dashboard>
+                </div>-->
+				<div class="card-body">
+					<h4>
+						{{
+							`Functional associations for ${$store.state.geneName}`
+						}}
+						<tooltip-documentation
+							name="gene.translator.tooltip.hover"
+							:content-fill="$parent.documentationMap"
+							:isHover="true"
+							:noIcon="false"
+						></tooltip-documentation>
+					</h4>
+
+					<documentation
+						name="gene.translator.dashboard"
+						:content-fill="$parent.documentationMap"
+					></documentation>
+					<b-tabs>
+						<b-tab title="Function">
+							<div class="card-body row">
+								<div class="col-md-8">
+									<div v-if="$parent.geneFunction">
+										<h4>
+											Function
+											<tooltip-documentation
+												name="gene.function.tooltip.hover"
+												:content-fill="
+													$parent.documentationMap
+												"
+												:isHover="true"
+												:noIcon="false"
+											></tooltip-documentation>
+										</h4>
+
+										<div>{{ $parent.geneFunction }}</div>
+									</div>
+									<div v-else>
+										<h5>Gene function not found</h5>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<h4>Info</h4>
+									<div
+										v-if="$parent.geneNames"
+										class="alternative-names"
+									>
+										<strong
+											>Alternative names:&nbsp;</strong
+										>
+										<span
+											v-for="gene in $parent.alternateNames"
+											v-if="gene.source == 'alias'"
+											:key="gene.name"
+											>{{ gene.name }}</span
+										>&nbsp;
+									</div>
+									<div v-if="$parent.regionText">
+										<strong>Coding sequence:</strong>
+										{{ $parent.regionText }}
+									</div>
+									<div v-if="$parent.region">
+										<strong>Length:</strong>
+										{{
+											" " +
+											(
+												$parent.region.end -
+												$parent.region.start
+											).toLocaleString()
+										}}
+										bp
+									</div>
+									<div><strong>Assembly:</strong> GRCh37</div>
+									<div>
+										<strong>Gene sources:</strong>
+										<span
+											>&nbsp;Ensembl, HGNC, UCSC, RGD,
+											MGD</span
+										>
+									</div>
+								</div>
+							</div>
+						</b-tab>
+						<b-tab title="Gene Ontology">
+							<translator-predicate-table
+								title="Gene Ontology (GO) Annotations"
+								:geneSymbol="$store.state.geneName"
+								:field="'go'"
+							></translator-predicate-table>
+						</b-tab>
+						<b-tab title="Pathways">
+							<translator-predicate-table
+								title="Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)"
+								:geneSymbol="$store.state.geneName"
+								:field="'pathway'"
+							></translator-predicate-table>
+						</b-tab>
+					</b-tabs>
+				</div>
+			</div>
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<h4 style="font-weight: bold" class="card-title">
+						HuGE Score
+					</h4>
+
+					<span>
+						<documentation
+							name="gene.hugecal.subheader"
+							:content-fill="$parent.documentationMap"
+						></documentation>
+					</span>
+					<!-- Phenotype Selector -->
+					<criterion-list-group
+						v-model="$parent.genePageSearchCriterion"
+						:header="''"
+						class="top-associations-section-phenotype-filter"
+					>
+						<!-- Phenotype Selector -->
+						<filter-enumeration-control
+							:field="'phenotype'"
+							:options="$parent.phenotypeOptions"
+							:multiple="false"
+							:pillFormatter="
+								(filter) =>
+									!!$store.state.bioPortal.phenotypeMap[
+										filter.threshold
+									]
+										? $store.state.bioPortal.phenotypeMap[
+												filter.threshold
+										  ].description
+										: filter.threshold
+							"
+							:labelFormatter="
+								(phenotype) =>
+									!!$store.state.bioPortal.phenotypeMap[
+										phenotype
+									]
+										? $store.state.bioPortal.phenotypeMap[
+												phenotype
+										  ].description
+										: phenotype
+							"
+						>
+							<div class="label">Change Phenotype:</div>
+						</filter-enumeration-control>
+					</criterion-list-group>
+					<div>
+						<br />
+
+						<genepage-combinedevidence-table
+							:commonBF="
+								parseFloat($parent.bayesFactorCommonVariation)
+							"
+							:combinedBF="parseFloat($parent.combinedScore)"
+							:rareBF="
+								parseFloat($parent.bayesFactorRareVariation)
+							"
+						></genepage-combinedevidence-table>
+					</div>
+					<div style="margin-bottom: 25px" class="container">
+						<ul class="legend center" style="white-space: nowrap">
+							<li>
+								<span class="superawesome"></span> Common
+								Variation Bayes Factor
+							</li>
+							<li>
+								<span class="awesome"></span> Rare Variation
+								Bayes Factor
+							</li>
+							<li>
+								<a
+									:href="`/hugecalculator.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
+									>View evidence in HuGE calculator >></a
+								>
+							</li>
+						</ul>
+						<br />
+					</div>
+
+					<div class="container">
+						<color-bar-plot
+							:category="
+								$parent.determineCategory($parent.combinedScore)
+							"
+							:elementid="'combinedVariation'"
+							:score="$parent.combinedScore"
+						></color-bar-plot>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<div v-if="$parent.dbReference">
+						<h4 class="card-title">
+							Common variant gene-level associations for
+							{{ $store.state.geneName }}
+							<tooltip-documentation
+								name="gene.associations.tooltip.hover"
+								:content-fill="$parent.documentationMap"
+								:isHover="true"
+								:noIcon="false"
+							></tooltip-documentation>
+						</h4>
+
+						<criterion-function-group>
+							<filter-enumeration-control
+								:field="'phenotype'"
+								:options="
+									$store.state.geneassociations.data.map(
+										(association) => association.phenotype
+									)
+								"
+								:labelFormatter="
+									(phenotype) =>
+										!!$store.state.bioPortal.phenotypeMap[
+											phenotype
+										]
+											? $store.state.bioPortal
+													.phenotypeMap[phenotype]
+													.description
+											: phenotype
+								"
+							>
+								<div class="label">Phenotypes</div>
+							</filter-enumeration-control>
+							<filter-pvalue-control :field="'pValue'">
+								<div class="label">P-Value (&le;)</div>
+							</filter-pvalue-control>
+
+							<template slot="filtered" slot-scope="{ filter }">
+								<!--<locuszoom
+									v-if="$store.state.gene"
+									ref="locuszoom"
+									:filter="filter"
+									:refSeq="false"
+									:loglog="true"
+								>
+									<lz-phewas-panel
+										v-if="$store.state.geneName"
+										:id="$store.state.geneName"
+										:type="'gene'"
+										:phenotypeMap="
+											$store.state.bioPortal.phenotypeMap
+										"
+									></lz-phewas-panel>
+								</locuszoom>
+								<b-button
+									size="sm"
+									variant="outline-secondary"
+									@click="$refs.rpPheWASPlot.renderPheWas()"
+									style="
+										position: absolute;
+										right: 25px;
+										z-index: 10;
+									"
+									>Re-render PheWAS plot</b-button
+								>-->
+
+								<research-phewas-plot
+									v-if="
+										$store.state.geneassociations.data
+											.length > 0
+									"
+									canvasId="commonVariantPlot"
+									:phenotypesData="
+										$store.state.geneassociations.data
+									"
+									:phenotypeMap="
+										$store.state.bioPortal.phenotypeMap
+									"
+									:colors="[
+										'#007bff',
+										'#048845',
+										'#8490C8',
+										'#BF61A5',
+										'#EE3124',
+										'#FCD700',
+										'#5555FF',
+										'#7aaa1c',
+										'#9F78AC',
+										'#F88084',
+										'#F5A4C7',
+										'#CEE6C1',
+										'#cccc00',
+										'#6FC7B6',
+										'#D5A768',
+										'#d4d4d4',
+									]"
+									:plotMargin="{
+										leftMargin: 75,
+										rightMargin: 20,
+										topMargin: 10,
+										bottomMargin: 50,
+										bump: 5.5,
+									}"
+									:renderConfig="{
+										type: 'phewas plot',
+										'group by': 'phenotype group',
+										'y axis field': 'pValue',
+										'render by': 'phenotype',
+										'y axis label': '-Log10(p-value)',
+										'x axis label': 'beta',
+										'beta field': 'null',
+										'hover content': ['pValue'],
+										thresholds: ['2.5e-6'],
+										height: '500',
+									}"
+									:pkgData="null"
+									:pkgDataSelected="null"
+									:filter="filter"
+									ref="rpPheWASPlot"
+								></research-phewas-plot>
+								<unauthorized-message
+									:restricted="
+										$store.state.varassociations.restricted
+									"
+								></unauthorized-message>
+								<gene-associations-table
+									v-if="$store.state.gene.data.length > 0"
+									:gene="$store.state.gene.data[0]"
+									:associations="
+										$store.state.geneassociations.data
+									"
+									:phenotypeMap="
+										$store.state.bioPortal.phenotypeMap
+									"
+									:filter="filter"
+								></gene-associations-table>
+							</template>
+						</criterion-function-group>
+					</div>
+				</div>
+			</div>
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<div v-if="$parent.dbReference">
+						<h4 class="card-title">
+							Rare variant gene-level associations for
+							{{ $store.state.geneName }}
+							<tooltip-documentation
+								name="gene.52k.tooltip.hover"
+								:content-fill="$parent.documentationMap"
+								:isHover="true"
+								:noIcon="false"
+							></tooltip-documentation>
+						</h4>
+						<research-phewas-plot
+							v-if="$store.state.associations52k.data.length > 0"
+							canvasId="rareVariantPlot"
+							:phenotypesData="$store.state.associations52k.data"
+							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+							:colors="[
+								'#007bff',
+								'#048845',
+								'#8490C8',
+								'#BF61A5',
+								'#EE3124',
+								'#FCD700',
+								'#5555FF',
+								'#7aaa1c',
+								'#9F78AC',
+								'#F88084',
+								'#F5A4C7',
+								'#CEE6C1',
+								'#cccc00',
+								'#6FC7B6',
+								'#D5A768',
+								'#d4d4d4',
+							]"
+							:plotMargin="{
+								leftMargin: 75,
+								rightMargin: 20,
+								topMargin: 10,
+								bottomMargin: 50,
+								bump: 5.5,
+							}"
+							:renderConfig="{
+								type: 'phewas plot',
+								'group by': 'phenotype group',
+								'y axis field': 'pValue',
+								'render by': 'phenotype',
+								'y axis label': '-Log10(p-value)',
+								'x axis label': 'beta',
+								'beta field': 'beta',
+								'hover content': ['pValue', 'beta'],
+								thresholds: ['2.5e-6', '0.05'],
+								height: '500',
+							}"
+							:pkgData="null"
+							:pkgDataSelected="null"
+							ref="rareVariantPheWASPlot"
+						></research-phewas-plot>
+						<unauthorized-message
+							:restricted="
+								$store.state.associations52k.restricted
+							"
+						></unauthorized-message>
+						<gene-associations-masks
+							:associations="$store.state.associations52k.data"
+							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+						></gene-associations-masks>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<div v-if="$parent.dbReference">
+						<h4 class="card-title">
+							UniProt cross-references
+							<tooltip-documentation
+								name="gene.xref.tooltip.hover"
+								:content-fill="$parent.documentationMap"
+								:isHover="true"
+								:noIcon="false"
+							></tooltip-documentation>
+						</h4>
+
+						<criterion-function-group :inclusive="true">
+							<filter-enumeration-control
+								:field="'source'"
+								:options="
+									$parent.dbReference.map(
+										(reference) => reference.source
+									)
+								"
+								:inclusive="false"
+							>
+								<div class="label">Sources</div>
+							</filter-enumeration-control>
+							<filter-enumeration-control
+								:field="'moleculeType'"
+								:options="
+									$parent.dbReference.map(
+										(reference) => reference.moleculeType
+									)
+								"
+								:inclusive="true"
+							>
+								<div class="label">Molecule Type</div>
+							</filter-enumeration-control>
+
+							<template slot="filtered" slot-scope="{ filter }">
+								<uniprot-references-table
+									:references="$parent.dbReference"
+									:filter="filter"
+								></uniprot-references-table>
+							</template>
+						</criterion-function-group>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<div v-if="$parent.geneNames">
+						<h4 class="card-title">External resources</h4>
+						<div
+							v-if="$parent.accession.length > 0"
+							class="gene-with-signal none"
+						>
+							<a
+								:href="
+									$parent.externalResources['uniprot'].link +
+									$parent.accession[0]
+								"
+								target="_blank"
+								:title="
+									$parent.externalResources['uniprot'].title
+								"
+								>UNIPROT</a
+							>
+						</div>
+						<div
+							v-for="gene in $parent.alternateNames"
+							v-if="gene.source != 'alias'"
+							class="gene-with-signal none"
+							:key="gene.name"
+						>
+							<a
+								v-if="gene.source != 'ucsc'"
+								:href="
+									$parent.externalResources[gene.source]
+										.link + gene.name
+								"
+								target="_blank"
+								:title="
+									$parent.externalResources[gene.source].title
+								"
+								>{{ gene.source.toUpperCase() }}</a
+							>
+							<a
+								v-else
+								:href="
+									$parent.externalResources[gene.source]
+										.link + $parent.symbolName
+								"
+								target="_blank"
+								:title="
+									$parent.externalResources[gene.source].title
+								"
+								>{{ gene.source.toUpperCase() }}</a
+							>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Footer-->
+		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
+	</div>
+</template>
+
+<style>
+.color-bar-plot-wrapper {
+	width: calc(100% - 32px);
+	margin-left: 16px;
+}
+
+.color-bars-wrapper {
+	background-color: #eee;
+	font-weight: 500;
+	font-size: 13px;
+}
+
+.color-bar-plot-wrapper .each-bar-section {
+	width: calc(100% / 7);
+	text-align: center;
+}
+
+* {
+	box-sizing: border-box;
+}
+.container {
+	display: flex;
+	justify-content: center;
+}
+.center {
+	padding: 10px;
+}
+/* color bar plot */
+.arrow-up {
+	width: 0;
+	/*height: 40px;*/
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-bottom: 10px solid #de202c;
+	animation: moveright 1s alternate 1s;
+	margin-left: auto;
+	margin-right: auto;
+}
+.arrow-side {
+	width: 0;
+	/*height: 40px;*/
+	border-left: 10px solid transparent;
+	border-bottom: 0px solid transparent;
+	border-top: 10px solid black;
+	animation: moveright 1s alternate 1s;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.arrow {
+	border: solid black;
+	border-width: 0 3px 3px 0;
+	display: inline-block;
+	padding: 3px;
+}
+
+.right {
+	transform: rotate(-45deg);
+	-webkit-transform: rotate(-45deg);
+}
+
+#combinedVariation .variationCausal {
+	background-color: #3fb54a;
+	font-weight: bold;
+}
+#combinedVariation .variationStrong {
+	background-color: #4ebf59;
+	font-weight: bold;
+}
+#combinedVariation .variationModerate {
+	background-color: #5ecc69;
+	font-weight: bold;
+}
+#combinedVariation .variationPossible {
+	background-color: #71d97b;
+	font-weight: bold;
+}
+#combinedVariation .variationPotential {
+	background-color: #7ee087;
+	font-weight: bold;
+}
+#combinedVariation .variationWeak {
+	background-color: #91eb9a;
+	font-weight: bold;
+}
+#combinedVariation .variationEquivocal {
+	background-color: #a1f0a9;
+	font-weight: bold;
+}
+
+#combinedVariation .variationNoEvidence {
+	background-color: #c4edc8;
+	font-weight: bold;
+}
+/* basic positioning */
+.legend {
+	list-style: none;
+}
+.legend li {
+	float: left;
+	margin-right: 10px;
+}
+.legend span {
+	border: 0px;
+	float: left;
+	width: 12px;
+	height: 12px;
+	margin: 2px;
+}
+/* your colors */
+.legend .superawesome {
+	background-color: #e7edf7;
+}
+.legend .awesome {
+	background-color: #fef8dc;
+}
+</style>
