@@ -1,710 +1,412 @@
 <template>
-	<div>
-		<!-- Header -->
-		<page-header
-			:disease-group="$parent.diseaseGroup"
-			:front-contents="$parent.frontContents"
-		></page-header>
-
-		<!-- Body -->
-		<div class="container-fluid mdkp-body">
-			<search-header-wrapper>
-				<!-- Wrap page level searchs with "pageSearchParameters" div -->
-
-				<div class="col filter-col-md">
-					<gene-selectpicker
-						@onGeneChange="$store.dispatch('queryGeneName', $event)"
-					></gene-selectpicker>
-				</div>
-			</search-header-wrapper>
-
-			<div class="gene-page-header card mdkp-card">
-				<div class="row card-body">
-					<div class="col-md-8 gene-page-header-title">Gene</div>
-					<div class="col-md-4 gene-page-header-title">Navigate</div>
-
-					<div class="col-md-8 gene-page-header-body">
-						<div>
-							<span>{{ $store.state.geneName }}</span>
-						</div>
-					</div>
-					<div class="col-md-4 gene-page-header-body">
-						<div v-if="$parent.symbolName" class="input-group">
-							<button
-								class="
-									btn btn-primary
-									input-group-prepend
-									explore-region-btn
-								"
-								style="margin-right: 20px"
-								:title="$parent.regionText"
-								@click="$parent.exploreRegion()"
-							>
-								Explore Region
-							</button>
-							<button
-								class="
-									btn btn-primary
-									input-group-append
-									explore-region-btn
-								"
-								:title="$parent.regionTextExpanded"
-								@click="$parent.exploreRegion(50000)"
-							>
-								Explore &plusmn; 50 kb
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="card mdkp-card">
-				<div class="card-body temporary-card">
-					<documentation
-						name="gene.explore.subheader"
-						:content-fill="$parent.documentationMap"
-					></documentation>
-				</div>
-			</div>
-
-			<div class="card mdkp-card">
-				<!-- <div class="card-body">
-                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
-                    <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
-                    <documentation name="gene.translator.dashboard"></documentation>
-                    <translator-results-dashboard
-                        :queries="$parent.queries"
-                    ></translator-results-dashboard>
-                </div>-->
-				<div class="card-body">
-					<h4>
-						{{
-							`Functional associations for ${$store.state.geneName}`
-						}}
-						<tooltip-documentation
-							name="gene.translator.tooltip.hover"
-							:content-fill="$parent.documentationMap"
-							:isHover="true"
-							:noIcon="false"
-						></tooltip-documentation>
-					</h4>
-
-					<documentation
-						name="gene.translator.dashboard"
-						:content-fill="$parent.documentationMap"
-					></documentation>
-					<b-tabs>
-						<b-tab title="Function">
-							<div class="card-body row">
-								<div class="col-md-8">
-									<div v-if="$parent.geneFunction">
-										<h4>
-											Function
-											<tooltip-documentation
-												name="gene.function.tooltip.hover"
-												:content-fill="
-													$parent.documentationMap
-												"
-												:isHover="true"
-												:noIcon="false"
-											></tooltip-documentation>
-										</h4>
-
-										<div>{{ $parent.geneFunction }}</div>
-									</div>
-									<div v-else>
-										<h5>Gene function not found</h5>
-									</div>
-								</div>
-								<div class="col-md-4">
-									<h4>Info</h4>
-									<div
-										v-if="$parent.geneNames"
-										class="alternative-names"
-									>
-										<strong
-											>Alternative names:&nbsp;</strong
-										>
-										<span
-											v-for="gene in $parent.alternateNames"
-											v-if="gene.source == 'alias'"
-											:key="gene.name"
-											>{{ gene.name }}</span
-										>&nbsp;
-									</div>
-									<div v-if="$parent.regionText">
-										<strong>Coding sequence:</strong>
-										{{ $parent.regionText }}
-									</div>
-									<div v-if="$parent.region">
-										<strong>Length:</strong>
-										{{
-											" " +
-											(
-												$parent.region.end -
-												$parent.region.start
-											).toLocaleString()
-										}}
-										bp
-									</div>
-									<div><strong>Assembly:</strong> GRCh37</div>
-									<div>
-										<strong>Gene sources:</strong>
-										<span
-											>&nbsp;Ensembl, HGNC, UCSC, RGD,
-											MGD</span
-										>
-									</div>
-								</div>
-							</div>
-						</b-tab>
-						<b-tab title="Gene Ontology">
-							<translator-predicate-table
-								title="Gene Ontology (GO) Annotations"
-								:geneSymbol="$store.state.geneName"
-								:field="'go'"
-							></translator-predicate-table>
-						</b-tab>
-						<b-tab title="Pathways">
-							<translator-predicate-table
-								title="Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)"
-								:geneSymbol="$store.state.geneName"
-								:field="'pathway'"
-							></translator-predicate-table>
-						</b-tab>
-					</b-tabs>
-				</div>
-			</div>
-			<div class="card mdkp-card">
-				<div class="card-body">
-					<h4 style="font-weight: bold" class="card-title">
-						HuGE Score
-					</h4>
-
-					<span>
-						<documentation
-							name="gene.hugecal.subheader"
-							:content-fill="$parent.documentationMap"
-						></documentation>
-					</span>
-					<!-- Phenotype Selector -->
-					<criterion-list-group
-						v-model="$parent.genePageSearchCriterion"
-						:header="''"
-						class="top-associations-section-phenotype-filter"
-					>
-						<!-- Phenotype Selector -->
-						<filter-enumeration-control
-							:field="'phenotype'"
-							:options="$parent.phenotypeOptions"
-							:multiple="false"
-							:pillFormatter="
-								(filter) =>
-									!!$store.state.bioPortal.phenotypeMap[
-										filter.threshold
-									]
-										? $store.state.bioPortal.phenotypeMap[
-												filter.threshold
-										  ].description
-										: filter.threshold
-							"
-							:labelFormatter="
-								(phenotype) =>
-									!!$store.state.bioPortal.phenotypeMap[
-										phenotype
-									]
-										? $store.state.bioPortal.phenotypeMap[
-												phenotype
-										  ].description
-										: phenotype
-							"
-						>
-							<div class="label">Change Phenotype:</div>
-						</filter-enumeration-control>
-					</criterion-list-group>
-					<div>
-						<br />
-
-						<genepage-combinedevidence-table
-							:commonBF="
-								parseFloat($parent.bayesFactorCommonVariation)
-							"
-							:combinedBF="parseFloat($parent.combinedScore)"
-							:rareBF="
-								parseFloat($parent.bayesFactorRareVariation)
-							"
-						></genepage-combinedevidence-table>
-					</div>
-					<div style="margin-bottom: 25px" class="container">
-						<ul class="legend center" style="white-space: nowrap">
-							<li>
-								<span class="superawesome"></span> Common
-								Variation Bayes Factor
-							</li>
-							<li>
-								<span class="awesome"></span> Rare Variation
-								Bayes Factor
-							</li>
-							<li>
-								<a
-									:href="`/hugecalculator.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
-									>View evidence in HuGE calculator >></a
-								>
-							</li>
-						</ul>
-						<br />
-					</div>
-
-					<div class="container">
-						<color-bar-plot
-							:category="
-								$parent.determineCategory($parent.combinedScore)
-							"
-							:elementid="'combinedVariation'"
-							:score="$parent.combinedScore"
-						></color-bar-plot>
-					</div>
-				</div>
-			</div>
-
-			<div class="card mdkp-card">
-				<div class="card-body">
-					<div v-if="$parent.dbReference">
-						<h4 class="card-title">
-							Common variant gene-level associations for
-							{{ $store.state.geneName }}
-							<tooltip-documentation
-								name="gene.associations.tooltip.hover"
-								:content-fill="$parent.documentationMap"
-								:isHover="true"
-								:noIcon="false"
-							></tooltip-documentation>
-						</h4>
-
-						<criterion-function-group>
-							<filter-enumeration-control
-								:field="'phenotype'"
-								:options="
-									$store.state.geneassociations.data.map(
-										(association) => association.phenotype
-									)
-								"
-								:labelFormatter="
-									(phenotype) =>
-										!!$store.state.bioPortal.phenotypeMap[
-											phenotype
-										]
-											? $store.state.bioPortal
-													.phenotypeMap[phenotype]
-													.description
-											: phenotype
-								"
-							>
-								<div class="label">Phenotypes</div>
-							</filter-enumeration-control>
-							<filter-pvalue-control :field="'pValue'">
-								<div class="label">P-Value (&le;)</div>
-							</filter-pvalue-control>
-
-							<template slot="filtered" slot-scope="{ filter }">
-								<!--<locuszoom
-									v-if="$store.state.gene"
-									ref="locuszoom"
-									:filter="filter"
-									:refSeq="false"
-									:loglog="true"
-								>
-									<lz-phewas-panel
-										v-if="$store.state.geneName"
-										:id="$store.state.geneName"
-										:type="'gene'"
-										:phenotypeMap="
-											$store.state.bioPortal.phenotypeMap
-										"
-									></lz-phewas-panel>
-								</locuszoom>
-								<b-button
-									size="sm"
-									variant="outline-secondary"
-									@click="$refs.rpPheWASPlot.renderPheWas()"
-									style="
-										position: absolute;
-										right: 25px;
-										z-index: 10;
-									"
-									>Re-render PheWAS plot</b-button
-								>-->
-
-								<research-phewas-plot
-									v-if="
-										$store.state.geneassociations.data
-											.length > 0
-									"
-									canvasId="commonVariantPlot"
-									:phenotypesData="
-										$store.state.geneassociations.data
-									"
-									:phenotypeMap="
-										$store.state.bioPortal.phenotypeMap
-									"
-									:colors="[
-										'#007bff',
-										'#048845',
-										'#8490C8',
-										'#BF61A5',
-										'#EE3124',
-										'#FCD700',
-										'#5555FF',
-										'#7aaa1c',
-										'#9F78AC',
-										'#F88084',
-										'#F5A4C7',
-										'#CEE6C1',
-										'#cccc00',
-										'#6FC7B6',
-										'#D5A768',
-										'#d4d4d4',
-									]"
-									:plotMargin="{
-										leftMargin: 75,
-										rightMargin: 20,
-										topMargin: 10,
-										bottomMargin: 50,
-										bump: 5.5,
-									}"
-									:renderConfig="{
-										type: 'phewas plot',
-										'group by': 'phenotype group',
-										'y axis field': 'pValue',
-										'render by': 'phenotype',
-										'y axis label': '-Log10(p-value)',
-										'x axis label': 'beta',
-										'beta field': 'null',
-										'hover content': ['pValue'],
-										thresholds: ['2.5e-6'],
-										height: '500',
-									}"
-									:pkgData="null"
-									:pkgDataSelected="null"
-									:filter="filter"
-									ref="rpPheWASPlot"
-								></research-phewas-plot>
-								<unauthorized-message
-									:restricted="
-										$store.state.varassociations.restricted
-									"
-								></unauthorized-message>
-								<gene-associations-table
-									v-if="$store.state.gene.data.length > 0"
-									:gene="$store.state.gene.data[0]"
-									:associations="
-										$store.state.geneassociations.data
-									"
-									:phenotypeMap="
-										$store.state.bioPortal.phenotypeMap
-									"
-									:filter="filter"
-								></gene-associations-table>
-							</template>
-						</criterion-function-group>
-					</div>
-				</div>
-			</div>
-			<div class="card mdkp-card">
-				<div class="card-body">
-					<div v-if="$parent.dbReference">
-						<h4 class="card-title">
-							Rare variant gene-level associations for
-							{{ $store.state.geneName }}
-							<tooltip-documentation
-								name="gene.52k.tooltip.hover"
-								:content-fill="$parent.documentationMap"
-								:isHover="true"
-								:noIcon="false"
-							></tooltip-documentation>
-						</h4>
-						<research-phewas-plot
-							v-if="$store.state.associations52k.data.length > 0"
-							canvasId="rareVariantPlot"
-							:phenotypesData="$store.state.associations52k.data"
-							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-							:colors="[
-								'#007bff',
-								'#048845',
-								'#8490C8',
-								'#BF61A5',
-								'#EE3124',
-								'#FCD700',
-								'#5555FF',
-								'#7aaa1c',
-								'#9F78AC',
-								'#F88084',
-								'#F5A4C7',
-								'#CEE6C1',
-								'#cccc00',
-								'#6FC7B6',
-								'#D5A768',
-								'#d4d4d4',
-							]"
-							:plotMargin="{
-								leftMargin: 75,
-								rightMargin: 20,
-								topMargin: 10,
-								bottomMargin: 50,
-								bump: 5.5,
-							}"
-							:renderConfig="{
-								type: 'phewas plot',
-								'group by': 'phenotype group',
-								'y axis field': 'pValue',
-								'render by': 'phenotype',
-								'y axis label': '-Log10(p-value)',
-								'x axis label': 'beta',
-								'beta field': 'beta',
-								'hover content': ['pValue', 'beta'],
-								thresholds: ['2.5e-6', '0.05'],
-								height: '500',
-							}"
-							:pkgData="null"
-							:pkgDataSelected="null"
-							ref="rareVariantPheWASPlot"
-						></research-phewas-plot>
-						<unauthorized-message
-							:restricted="
-								$store.state.associations52k.restricted
-							"
-						></unauthorized-message>
-						<gene-associations-masks
-							:associations="$store.state.associations52k.data"
-							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-						></gene-associations-masks>
-					</div>
-				</div>
-			</div>
-
-			<div class="card mdkp-card">
-				<div class="card-body">
-					<div v-if="$parent.dbReference">
-						<h4 class="card-title">
-							UniProt cross-references
-							<tooltip-documentation
-								name="gene.xref.tooltip.hover"
-								:content-fill="$parent.documentationMap"
-								:isHover="true"
-								:noIcon="false"
-							></tooltip-documentation>
-						</h4>
-
-						<criterion-function-group :inclusive="true">
-							<filter-enumeration-control
-								:field="'source'"
-								:options="
-									$parent.dbReference.map(
-										(reference) => reference.source
-									)
-								"
-								:inclusive="false"
-							>
-								<div class="label">Sources</div>
-							</filter-enumeration-control>
-							<filter-enumeration-control
-								:field="'moleculeType'"
-								:options="
-									$parent.dbReference.map(
-										(reference) => reference.moleculeType
-									)
-								"
-								:inclusive="true"
-							>
-								<div class="label">Molecule Type</div>
-							</filter-enumeration-control>
-
-							<template slot="filtered" slot-scope="{ filter }">
-								<uniprot-references-table
-									:references="$parent.dbReference"
-									:filter="filter"
-								></uniprot-references-table>
-							</template>
-						</criterion-function-group>
-					</div>
-				</div>
-			</div>
-
-			<div class="card mdkp-card">
-				<div class="card-body">
-					<div v-if="$parent.geneNames">
-						<h4 class="card-title">External resources</h4>
-						<div
-							v-if="$parent.accession.length > 0"
-							class="gene-with-signal none"
-						>
-							<a
-								:href="
-									$parent.externalResources['uniprot'].link +
-									$parent.accession[0]
-								"
-								target="_blank"
-								:title="
-									$parent.externalResources['uniprot'].title
-								"
-								>UNIPROT</a
-							>
-						</div>
-						<div
-							v-for="gene in $parent.alternateNames"
-							v-if="gene.source != 'alias'"
-							class="gene-with-signal none"
-							:key="gene.name"
-						>
-							<a
-								v-if="gene.source != 'ucsc'"
-								:href="
-									$parent.externalResources[gene.source]
-										.link + gene.name
-								"
-								target="_blank"
-								:title="
-									$parent.externalResources[gene.source].title
-								"
-								>{{ gene.source.toUpperCase() }}</a
-							>
-							<a
-								v-else
-								:href="
-									$parent.externalResources[gene.source]
-										.link + $parent.symbolName
-								"
-								target="_blank"
-								:title="
-									$parent.externalResources[gene.source].title
-								"
-								>{{ gene.source.toUpperCase() }}</a
-							>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Footer-->
-		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
-	</div>
+	<body onload="init()" class="kp-default">
+    <header>
+        <img class="mdkp-logo" id="eggserverLogo" src="images/egg_server_logo.svg" alt="EGG Server logo"/>
+        <h1>
+            <!--Bolded initials to emphasize "EGG."-->
+            <strong>E</strong>xome <strong>G</strong>ene-level <strong>G</strong>roup-file Server
+        </h1>
+        <div id="lunarisBranding">
+            <div id="lunarisHeader"><span>Powered by</span> <span>Lunaris</span></div>
+            <img id="lunarisLogo" src="images/lunaris_logo_white.svg" alt="Lunaris logo"/>
+        </div>
+    </header>
+    
+<div id="gait">
+    <!-- This is for eggserver, but uses same styling as GAIT-->
+    <div class="container-fluid mdkp-body">
+        <div class="card mdkp-card">
+            <div class="row card-body">
+                <div class="col-md-9">
+                    <p>The <strong>Exome Gene-Level Group-File Generator</strong> is designed to, based on a user-provided location-sorted list of exome variants, annotate variants using the 
+                        <a href="https://www.ensembl.org/info/docs/tools/vep/index.html" target="_blank" rel="noopener noreferrer"> Ensembl Variant Effect Predictor (VEP)</a> 
+                        and generate group files to run gene-level association tests using rareMETALS or EPACTS format. Users can define masks based on annotations, or use one of the <a href="https://www.nature.com/articles/s41586-019-1231-2" target="_blank" rel="noopener noreferrer">published masks provided</a>.
+                    </p>
+                    <p> To download group files for UK BioBank 50k Exome release (2019), click
+                        <a href="https://storage.googleapis.com/eggserver-data/examples/output/UKBBw1.ALL.variant.groupfiles.raremetals.tar" download="UKBBw1.ALL.variant.groupfiles.raremetals.tar">here</a> for rareMETALS and
+                        <a href="https://storage.googleapis.com/eggserver-data/examples/output/UKBBw1.ALL.variant.groupfiles.epacts.tar" download="UKBBw1.ALL.variant.groupfiles.epacts.tar">here</a> for EPACTS format.
+                    </p>
+                </div>
+                <!--div class="divider col"></div-->
+                <div class="col-md-3" id="statuschecker">
+                    <h4>Check status</h4>
+                    <label for="sessioninput">Session ID</label>
+                    <div class="centering">
+                        <div class="placeholder"></div>
+                        <input type="text" class="form-control" id="sessioninput" name="sessioninput" size="8">
+                        <div class="placeholder"></div>
+                    </div>
+                    <div class="centering">
+                        <div class="placeholder"></div>
+                        <div class="message-area" id="session-invalid"></div>
+                        <div class="placeholder"></div>
+                    </div>
+                    <div class="centering">
+                        <div class="placeholder"></div>
+                        <button class="btn btn-primary" onclick="getIdAndLoadSession()">Load</button>
+                        <div class="placeholder"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mdkp-card">
+            <div class="card-body">
+                <h4 class="card-title">Create job</h4>
+                <div role="tablist" class="accordion">
+                    <div class="card mb-1">
+                        <header role="tab" class="card-header p-1">
+                            <button type="button" class="btn btn-outline-primary btn-block not-collapsed" aria-expanded="true" aria-controls="accordion-1">Source file 
+                                <div class="criteria">
+                                    <span class="badge filter-pill-mask" id="inputfile-badge"></span>
+                                    <span class="badge filter-pill-mask" id="hg-badge"></span>
+                                </div>
+                            </button>
+                        </header>
+                        <div id="accordion-1" role="tabpanel" class="collapse show">
+                            <div class="card-body">
+                                <div role="alert" aria-live="polite" aria-atomic="true" class="alert alert-info">
+                                    Please upload a data file and select a reference genome to be used
+                                </div>
+                                <span>
+                                    <div>
+                                        <div class="filtering-ui-wrapper container-fluid">
+                                            <div class="row filtering-ui-content">
+                                                <div class="col filter-col-md" style="padding: 5px 7px;">
+                                                    <div class="label">Upload a file</div>
+                                                    <div data-v-06e3dc2f="">
+                                                        <div data-v-06e3dc2f="" class="input-group">
+                                                            <label class="form-control">Choose File
+                                                                <input class="form-control has-badge" type="file" id="inputfile" name="myfile" accept=".vcf">
+                                                            </label>
+                                                        </div>
+                                                        <div data-v-06e3dc2f="" class="list-group shadow vbt-autcomplete-list" style="width: 220px; display: none;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col filter-col-md" style="padding: 5px 7px;">
+                                                    <div class="label">Reference Genome</div>
+                                                    <div data-v-06e3dc2f="">
+                                                        <div data-v-06e3dc2f="" class="input-group">
+                                                            <select class="form-control has-badge" name="hg" id="hg" placeholder="Choose Genome">
+                                                                <option>-- Choose genome --</option>
+                                                                <option>hg19</option>
+                                                                <option>hg38</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </span>
+                                <strong>Requirements</strong>
+                                <ul>
+                                    <li>File must be formatted in VCF format</li>
+                                    <li>Data must be sorted by location</li>
+                                    <li>At least first five columns of what(?)</li>
+                                    <li>Download example input file: <a href="predictor/sample_input.vcf" download="sample_input.vcf">sample_input.vcf</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-1">
+                        <header role="tab" class="card-header p-1">
+                            <button type="button" class="btn btn-outline-primary btn-block not-collapsed" aria-expanded="true" aria-controls="accordion-1">Mask
+                                <div class="criteria">
+                                    <span class="badge filter-pill-mask" id="formats-badge"></span>
+                                </div>
+                            </button>
+                        </header>
+                        <div class="card-body">
+                        <ul>
+                            <li>Enclose field names in backticks.</li>
+                            <li>Backticks may be omitted if field name contains no whitespace; starts with letter or underscore; and contains only letters, digits and underscores.</li>
+                            <li>Enclose string values in double-quotes.</li>
+                            <li>Using field tests written as name-operator-value (e.g. REF == "A"), build Boolean expressions using AND, OR and parentheses.</li>
+                        </ul>
+                        <p>You can:</p>
+                        <ol>
+                            <li>Use a pre-defined mask.</li>
+                            <li>Start with a pre-defined mask as a template and edit it.</li>
+                            <li>Start building from scratch by typing in the editor.</li>
+                        </ol>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="tabs filtering-ui-wrapper" id="__BVID__12">
+                                    <div id="mask-subtabs">
+                                        <ul role="tablist" class="nav nav-tabs" id="__BVID__12__BV_tab_controls_">
+                                            <li role="presentation" class="nav-item">
+                                                <a role="tab" aria-selected="true" aria-setsize="2" aria-posinset="1" aria-controls="__BVID__13" href="#" target="_self" class="nav-link active">Load predefined mask</a>
+                                            </li>
+                                            <li role="presentation" class="nav-item">
+                                                <a role="tab" tabindex="-1" aria-selected="false" aria-setsize="2" aria-posinset="2" href="#" target="_self" class="nav-link" id="__BVID__16___BV_tab_button__" aria-controls="__BVID__16">Fields & operators</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="tab-content mt-3" id="__BVID__12__BV_tab_container_">
+                                        <div role="tabpanel" class="centering tabpane" id="__BVID__13">
+                                            <div class="placeholder"></div>
+                                            <label for="masks">Mask
+                                                <select class="form-control" name="masks" id="masks">
+                                                    <option value="">-- Choose mask --</option>
+                                                </select>
+                                            </label>
+                                            <div class="placeholder"></div>
+                                        </div>
+                                        Check out predefined masks as examples.
+                                        <div role="tabpanel" class="tabpane centering" id="__BVID__16">
+                                            <div class="placeholder"></div>
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <td colspan="2"><h6>Available fields</h6></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Field</td>
+                                                        <td>Possible values</td>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>MAF</td>
+                                                        <td>0-1</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>LoF</td>
+                                                        <td>HC, LC</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>VEST3_rankscore</td>
+                                                        <td>0-1</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>CADD_raw_rankscore</td>
+                                                        <td>0-1</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>DANN_rankscore</td>
+                                                        <td>0-1</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Eigen-PC-raw_rankscore</td>
+                                                        <td>0-1</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>FATHMM_pred</td>
+                                                        <td>D, T</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>fathmm-MKL_coding_pred</td>
+                                                        <td>D, T</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>PROVEAN_pred</td>
+                                                        <td>D, N</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>MetaSVM_pred</td>
+                                                        <td>D, T</td>
+                                                    </tr><tr>
+                                                        <td>MetaLR_pred</td>
+                                                        <td>D, T</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>M-CAP_score</td>
+                                                        <td>0-1</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Polyphen2_HDIV_pred</td>
+                                                        <td>D, P, B</td>
+                                                    </tr><tr>
+                                                        <td>Polyphen2_HVAR_pred</td>
+                                                        <td>D, P, B</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>SIFT_pred</td>
+                                                        <td>D, T</td>
+                                                    </tr><tr>
+                                                        <td>LRT_pred</td>
+                                                        <td>D, N, U</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>MutationTaster_pred</td>
+                                                        <td>A, D, N, P</td>
+                                                    </tr><tr>
+                                                        <td>IMPACT</td>
+                                                        <td>HIGH, MODERATE, LOW</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <table>
+                                                <thead>
+                                                <tr>
+                                                    <td colspan="2"><h6>Available operators</h6></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Operator</td>
+                                                    <td>Definition</td>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>==</td>
+                                                        <td>equals</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>!=</td>
+                                                        <td>does not equal</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>~</td>
+                                                        <td>contains regex</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>!~</td>
+                                                        <td>does not contain regex</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>~=</td>
+                                                        <td>matches regex</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>!~=</td>
+                                                        <td>does not match regex</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>&lt;</td>
+                                                        <td>less than</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>&le;</td>
+                                                        <td>less or equal</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>&gt;</td>
+                                                        <td>greater than</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>&ge;</td>
+                                                        <td>greater or equal</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <div class="placeholder"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="clear-mask-div">
+                            <label>
+                                <button class="form-control" onclick="resetFilters()">Clear Mask</button>
+                            </label>
+                        </div>
+                        <p id="code_mirror_parent"></p>
+                        <div class="centering">
+                            <div class="placeholder"></div>
+                            <label id="output-format">Output format
+                                <select class="form-control has-badge" name="formats" id="formats">
+                                    <option>-- Choose format --</option>
+                                    <option value="rareMETALS">list/rareMETALS</option>
+                                    <option value="EPACTS">EPACTS</option>
+                                </select>
+                            </label>
+                            <div class="placeholder"></div>
+                        </div>
+                            <div class="centering">
+                                <div class="placeholder"></div>
+                                <button class="btn btn-secondary" onclick="saveJob()">Save job</button>
+                                <button class="btn btn-primary" onclick = "saveJobAndCreateNew()">Save job and create new job</button>
+                                <div class="placeholder">
+                                </div>
+                        </div>
+                            <div class="centering">
+                                <div class="placeholder"></div>
+                                <div id="save-job-message"></div>
+                                <div class="placeholder"></div>
+                            </div>
+                    </div>
+                </div>
+                    <div class="card mb-1">
+                        <header role="tab" class="card-header p-1">
+                            <button type="button" class="btn btn-outline-primary btn-block not-collapsed" aria-expanded="true" aria-controls="accordion-1">Submit jobs 
+                                <div class="criteria">
+                                    <span class="badge filter-pill-mask" id="email-badge"></span>
+                                </div>
+                            </button>
+                        </header>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td>Input file</td>
+                                    <td>Reference genome</td>
+                                    <td>Mask</td>
+                                    <td>Output format</td>
+                                </tr>
+                            </thead>
+                            <tbody id="submit-table-body">
+                            </tbody>
+                        </table>
+                        <div class="centering submit-fields">
+                            <div class="placeholder"></div>
+                            <label for="email">E-mail to receive notification <span class="asterisk">*</span>
+                                <input class="form-control has-badge" type="email" name="email" id="email">
+                            </label>
+                            <label>Session description <span class="asterisk">*</span>
+                                <input class="form-control" type="textarea" name="session-desc" id="session-desc">
+                            </label>
+                            <div class="placeholder"></div>
+                        </div>
+                        <div class="centering">
+                            <div class="placeholder"></div>
+                            <div class="message-area" id="email-invalid"></div>
+                            <div class="placeholder"></div>
+                        </div>
+                        <div class="centering">
+                            <div class="placeholder"></div>
+                            <button class="btn btn-secondary" onclick="submitAll()">Submit jobs</button>
+                            <div class="placeholder"></div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mdkp-card">
+            <div class="card-body">
+                <h4 class="card-title">Status</h4>
+                <div class="card" id="statuscard">
+                    <p>Session id is <b><span id="session_id_area"></span></b>.</p>
+                    <p>
+                        <span id="statusUpdatesPlaceholder">Submit time & any information regarding the session</span>
+                    </p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <td>Input file</td>
+                                <td>Reference genome</td>
+                                <td>Mask</td>
+                                <td>Output format</td>
+                                <td>Output file</td>
+                                <td>Restore job</td>
+                            </tr>
+                        </thead>
+                        <tbody id="submission_area">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid mdkp-footer">
+    <a>Powered by Lunaris Version 3.7.3. Copyright 2020-22 Broad Institute</a>
+</div>
+</body>
 </template>
 
 <style>
-.color-bar-plot-wrapper {
-	width: calc(100% - 32px);
-	margin-left: 16px;
-}
-
-.color-bars-wrapper {
-	background-color: #eee;
-	font-weight: 500;
-	font-size: 13px;
-}
-
-.color-bar-plot-wrapper .each-bar-section {
-	width: calc(100% / 7);
-	text-align: center;
-}
-
-* {
-	box-sizing: border-box;
-}
-.container {
-	display: flex;
-	justify-content: center;
-}
-.center {
-	padding: 10px;
-}
-/* color bar plot */
-.arrow-up {
-	width: 0;
-	/*height: 40px;*/
-	border-left: 10px solid transparent;
-	border-right: 10px solid transparent;
-	border-bottom: 10px solid #de202c;
-	animation: moveright 1s alternate 1s;
-	margin-left: auto;
-	margin-right: auto;
-}
-.arrow-side {
-	width: 0;
-	/*height: 40px;*/
-	border-left: 10px solid transparent;
-	border-bottom: 0px solid transparent;
-	border-top: 10px solid black;
-	animation: moveright 1s alternate 1s;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-.arrow {
-	border: solid black;
-	border-width: 0 3px 3px 0;
-	display: inline-block;
-	padding: 3px;
-}
-
-.right {
-	transform: rotate(-45deg);
-	-webkit-transform: rotate(-45deg);
-}
-
-#combinedVariation .variationCausal {
-	background-color: #3fb54a;
-	font-weight: bold;
-}
-#combinedVariation .variationStrong {
-	background-color: #4ebf59;
-	font-weight: bold;
-}
-#combinedVariation .variationModerate {
-	background-color: #5ecc69;
-	font-weight: bold;
-}
-#combinedVariation .variationPossible {
-	background-color: #71d97b;
-	font-weight: bold;
-}
-#combinedVariation .variationPotential {
-	background-color: #7ee087;
-	font-weight: bold;
-}
-#combinedVariation .variationWeak {
-	background-color: #91eb9a;
-	font-weight: bold;
-}
-#combinedVariation .variationEquivocal {
-	background-color: #a1f0a9;
-	font-weight: bold;
-}
-
-#combinedVariation .variationNoEvidence {
-	background-color: #c4edc8;
-	font-weight: bold;
-}
-/* basic positioning */
-.legend {
-	list-style: none;
-}
-.legend li {
-	float: left;
-	margin-right: 10px;
-}
-.legend span {
-	border: 0px;
-	float: left;
-	width: 12px;
-	height: 12px;
-	margin: 2px;
-}
-/* your colors */
-.legend .superawesome {
-	background-color: #e7edf7;
-}
-.legend .awesome {
-	background-color: #fef8dc;
-}
+@import url("/css/eggserver.css");
+@import url("/css/codemirror.css");
+@import url("/css/liquibyte.css");
 </style>
