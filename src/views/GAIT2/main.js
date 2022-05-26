@@ -17,6 +17,7 @@ import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase, groupBy, sumBy } from "lodash";
+import { postAlertError } from "@/components/Alert.vue";
 import regionUtils from "@/utils/regionUtils";
 import * as raremetal from "raremetal.js";
 
@@ -751,6 +752,18 @@ new Vue({
             if (!!input) {
                 let matches = await match("gene", input, { limit: 10 });
                 this.matchingGenes = matches;
+            }
+        },
+        async exploreRegionOrVariant(input) {
+            let locus = await regionUtils.parseRegion(input, true, 50000);
+            let varID = await variantUtils.parseVariant(input);
+
+            if (locus) {
+                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+            } else if (varID) {
+                window.location.href = `./variant.html?variant=${varID}`;
+            } else {
+                postAlertError("Invalid gene, variant, or region");
             }
         },
         initCriteria() {

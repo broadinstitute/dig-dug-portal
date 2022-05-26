@@ -102,7 +102,8 @@
                                                 $parent.selectedGene[0] ===
                                                     undefined
                                             "
-                                            >Please select a gene.</b-alert
+                                            >Please select a gene or
+                                            region.</b-alert
                                         >
                                         <b-alert
                                             show
@@ -139,7 +140,35 @@
                                         >
                                             <div class="label">Gene</div>
                                         </filter-enumeration-control>
+                                        <div
+                                            class="col divider"
+                                            style="background: none"
+                                        >
+                                            <span class="or-text">or</span>
+                                        </div>
+                                        <filter-basic-control
+                                            ref="region"
+                                            :field="'region'"
+                                            placeholder="Select a region (chr:start-stop)"
+                                        >
+                                            <div class="label">Region</div>
+                                        </filter-basic-control>
+                                        <autocomplete
+                                            :placeholder="'Search'"
+                                            :matches="$parent.matchingGenes"
+                                            :match-key="null"
+                                            @input-change="
+                                                $parent.lookupGenes($event)
+                                            "
+                                            @keyup-enter="
+                                                $parent.exploreRegionOrVariant(
+                                                    $event
+                                                )
+                                            "
+                                        ></autocomplete>
+
                                         <b-col class="divider"></b-col>
+
                                         <filter-enumeration-control
                                             ref="dataset"
                                             :field="'dataset'"
@@ -1352,4 +1381,7 @@
 </template>
 <style>
 @import url("/css/table.css");
+#gait div.filtering-ui-content .divider.col .or-text {
+    padding: 2px 5px;
+}
 </style>
