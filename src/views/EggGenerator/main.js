@@ -42,13 +42,14 @@ new Vue({
     methods: {
         
 init() {
-    initSession();
-    getSchema();
-    initMasksSelector();
+    this.initSession();
+    this.getSchema();
+    this.initMasksSelector();
     const codeMirrorParent = document.getElementById("code_mirror_parent");
+    // TODO set this up
     codeMirror = CodeMirror(codeMirrorParent, codeMirrorConfig);
     codeMirror.setSize("100%", "7.5em");
-    setUpInputDisplays();
+    this.setUpInputDisplays();
     setInterval(updatePendingStatuses, 300);
 },
 
@@ -57,10 +58,10 @@ setUpInputDisplays(){
     let badgeInput;
     for (let i = 0; i < badgeInputs.length; i++) {
         badgeInput = badgeInputs[i];
-        badgeInput.onchange = showOnBadge;
+        badgeInput.onchange = this.showOnBadge;
     }
     let maskInput = document.getElementById("masks");
-    maskInput.onchange = setPredefinedMask;
+    maskInput.onchange = this.setPredefinedMask;
 },
 
 fourHexDigits(num) {
@@ -77,52 +78,52 @@ initSession() {
     const queryParts = window.location.search.substring(1).split("&");
     queryParts.forEach ( queryPart => {
         [key, value] = queryPart.split("=");
-        if(key === "session" && isWellFormedSessionId(value)) {
+        if(key === "session" && this.isWellFormedSessionId(value)) {
             sessionId = value;
         }
     })
     if(sessionId) {
-        loadSession(sessionId);
+        this.loadSession(sessionId);
     } else {
         sessionId =
-            fourHexDigits((new Date).getTime() % 65536) + fourHexDigits(Math.floor(Math.random() * 65537));
-        setSessionId(sessionId);
+            this.fourHexDigits((new Date).getTime() % 65536) + this.fourHexDigits(Math.floor(Math.random() * 65537));
+        this.setSessionId(sessionId);
     }
 },
 
 setSessionId(sessionId) {
     document.getElementById("session_id_area").innerText = sessionId;
-    lunarisVariantPredictor.sessionId = sessionId;
+    this.lunarisVariantPredictor.sessionId = sessionId;
 },
 
 loadSession(sessionId) {
-    fetch("/lunaris/predictor/session/" + sessionId)
+    fetch("http://eggserver.org:8080/lunaris/predictor/session/" + sessionId)
         .then((response) => response.json())
         .then((session) => {
             if(session.error) {
-                setSessionMsg("Error:\n" + session.message);
+                this.setSessionMsg("Error:\n" + session.message);
                 window.log(session.report);
             } else if(session.found) {
-                setSessionId(sessionId);
+                this.setSessionId(sessionId);
                 if(session.filter) {
-                    setMask(session.filter);
+                    this.setMask(session.filter);
                 }
                 if(session.format) {
-                    setOutputFormat(session.format);
+                    this.setOutputFormat(session.format);
                 }
-                setEmptySubmissionArea();
+                this.setEmptySubmissionArea();
                 session.jobs.forEach(job => {
                     console.log(job);
                     const id = job.id;
                     const path = job.inputFile;
                     const inputFileName = path.substring(path.lastIndexOf("/") + 1);
-                    addStatusEntry(inputFileName, id);
+                    this.addStatusEntry(inputFileName, id);
                 });
-                setSessionMsg("Loading session " + sessionId + ".");
+                this.setSessionMsg("Loading session " + sessionId + ".");
             } else {
                 const sessionMsg = "Unknown session " + sessionId +
                     ".\nNote that sessions are only saved when something is submitted.";
-                setSessionMsg(sessionMsg);
+                this.setSessionMsg(sessionMsg);
             }
         });
 },
@@ -131,10 +132,10 @@ getIdAndLoadSession(){
     const sessionInput = document.getElementById("sessioninput");
     const sessionId = sessionInput.value;
     if (sessionId){
-        if(isWellFormedSessionId(sessionId)){
-            loadSession(sessionId);
+        if(this.isWellFormedSessionId(sessionId)){
+            this.loadSession(sessionId);
         } else {
-            setSessionMsg(sessionId + " is not a valid session ID.");
+            this.setSessionMsg(sessionId + " is not a valid session ID.");
         }
     }
 },
@@ -213,45 +214,45 @@ saveJob(){
         return false;
     }
 
-    const inputFile = getInputFile();
+    const inputFile = this.getInputFile();
     if (inputFile == ""){
         setSaveJobMessage("Select an input file to proceed.");
         return false;
     }
 
-    const format = getOutputFormat();
+    const format = this.getOutputFormat();
     if (format == ""){
         setSaveJobMessage("Select an output format to proceed.");
         return false;
     }
 
-    const hg = getHg();
+    const hg = this.getHg();
     if (hg == ""){
         setSaveJobMessage("Select a genome to proceed.");
         return false;
     }
 
-    setSaveJobMessage("");
+    this.setSaveJobMessage("");
 
-    filters.push(filter);
-    filterNames.push(getMaskSelectNode().value); // TODO evaluate in case this is custom
-    inputFiles.push(inputFile);
-    outputFormats.push(format);
-    refGenomes.push(hg);
+    this.filters.push(filter);
+    this.filterNames.push(getMaskSelectNode().value); // TODO evaluate in case this is custom
+    this.inputFiles.push(inputFile);
+    this.outputFormats.push(format);
+    this.refGenomes.push(hg);
 
     const maskName = getMaskSelectNode().value;
-    showNewQueuedJob(maskName, inputFile, format, hg);
-    setEmailMsg("");
+    this.showNewQueuedJob(maskName, inputFile, format, hg);
+    this.setEmailMsg("");
     return true;
 },
 
 createJobFormData(index, email){
     const jobFormData = new FormData();
-    jobFormData.append("filter", filters[index]);
-    jobFormData.append("inputFile", inputFiles[index]);
-    jobFormData.append("format", outputFormats[index]);
-    jobFormData.append("session", lunarisVariantPredictor.sessionId);
-    jobFormData.append("hg", refGenomes[index]);
+    jobFormData.append("filter", this.filters[index]);
+    jobFormData.append("inputFile", this.inputFiles[index]);
+    jobFormData.append("format", this.outputFormats[index]);
+    jobFormData.append("session", this.lunarisVariantPredictor.sessionId);
+    jobFormData.append("hg", this.refGenomes[index]);
     jobFormData.append("email", email);
     return jobFormData;
 },
@@ -259,12 +260,12 @@ createJobFormData(index, email){
 saveJobAndCreateNew(){
     if (saveJob()){
         // We don't want to clear the mask someone may have entered if they missed a field and it didn't save.
-        clearInputs();
+        this.clearInputs();
     }
 },
 
 clearInputs(){
-    resetFilters();
+    this.resetFilters();
     document.getElementById("inputfile").value = "";
     // First options on these select boxes are placeholders. We'll restore them.
     document.getElementById("hg").value = document.querySelector("#hg option").textContent;
@@ -272,17 +273,17 @@ clearInputs(){
         document.querySelector("#formats option").textContent;
     document.getElementById("masks").value =
         document.querySelector("#masks option").textContent;
-    clearBadges();
+    this.clearBadges();
 },
 
 showNewQueuedJob(filter, inputFile, format, hg){
     const newRow = document.createElement("tr");
-    setUpRow(newRow, false);
+    this.setUpRow(newRow, false);
 
-    displayInputFile(newRow, trimFilename(inputFile));
-    displayRefGenome(newRow, hg);
-    displayFilterName(newRow, filter);
-    displayOutputFormat(newRow, format);
+    this.displayInputFile(newRow, trimFilename(inputFile));
+    this.displayRefGenome(newRow, hg);
+    this.displayFilterName(newRow, filter);
+    this.displayOutputFormat(newRow, format);
 
     const submitTableBody = document.getElementById("submit-table-body");
     submitTableBody.append(newRow);
@@ -338,17 +339,17 @@ submitAll(){
     }
     if(isValidEmail(emailInput)) {
         lunarisVariantPredictor.email = emailInput;
-        generateEmailMsg(emailInput, true);
+        this.generateEmailMsg(emailInput, true);
     } else {
-        generateEmailMsg(emailInput, false);
+        this.generateEmailMsg(emailInput, false);
         return;
     }
 
     for (let i = 0; i < inputFiles.length; i++){
-        const formData = createJobFormData(i, emailInput);
+        const formData = this.createJobFormData(i, emailInput);
         const inputFile = inputFiles[i];
         // TODO ACCOUNT for multiple fetch requests - this is a loop
-        fetch("/lunaris/predictor/upload", {method: "POST", body: formData})
+        fetch("http://eggserver.org/lunaris/predictor/upload", {method: "POST", body: formData})
             .then((response) => {
                 if (!response.ok) {
                     throw "Could not submit " + inputFile + ": " + response.statusText;
@@ -356,26 +357,26 @@ submitAll(){
                 return response.text();
             })
             .then((id) => {
-                addStatusEntry(inputFile, id, refGenomes[i], filterNames[i], outputFormats[i]);
-                getStatus(id);
-            }).catch(showCouldNotSubmit);
+                this.addStatusEntry(inputFile, id, refGenomes[i], filterNames[i], outputFormats[i]);
+                this.getStatus(id);
+            }).catch(this.showCouldNotSubmit);
     }
 },
 
 getSchema() {
-    fetch("/lunaris/predictor/schema")
+    fetch("http://eggserver.org/lunaris/predictor/schema")
         .then((response) => {
             return response.json();
         })
         .then((schema) => {
             if (schema.isError) {
-                const statusTextNode = getStatusAreaNode();
+                const statusTextNode = this.getStatusAreaNode();
                 statusTextNode.innerText = "Unable to load available fields: " + schema.message;
             }
             if (schema.col_names) {
-                lunarisVariantPredictor.fieldNames = schema.col_names;
+                this.lunarisVariantPredictor.fieldNames = schema.col_names;
                 const fieldsSelectNode = document.getElementById("fields");
-                setOptionsForSelect(fieldsSelectNode, schema.col_names);
+                this.setOptionsForSelect(fieldsSelectNode, schema.col_names);
             }
         })
 },
@@ -400,10 +401,10 @@ addStatusEntry(inputFileName, id, refGenome="genome", filterName="filter", outpu
     lunarisVariantPredictor.inputFileNames[id] = inputFileName;
     lunarisVariantPredictor.idsPending.push(id);
     const statusRow = document.createElement("tr");
-    const statusAreaNode = getSubmissionAreaNode();
+    const statusAreaNode = this.getSubmissionAreaNode();
     statusAreaNode.appendChild(statusRow);
     statusRow.setAttribute("id", id);
-    showInitialStatus(statusRow, inputFileName, refGenome, filterName, outputFormat);
+    this.showInitialStatus(statusRow, inputFileName, refGenome, filterName, outputFormat);
 },
 
 setUpRow(row, isStatus){
@@ -438,11 +439,11 @@ setUpRow(row, isStatus){
 
 showInitialStatus(statusRow, inputFileName="name", refGenome="genome", filterName="filter", outputFormat="format") {
     // Include the file name, reference genome, mask filter, output format, and restore link
-    setUpRow(statusRow, true);
-    displayInputFile(statusRow, inputFileName);
-    displayRefGenome(statusRow, refGenome);
-    displayFilterName(statusRow, filterName);
-    displayOutputFormat(statusRow, outputFormat);
+    this.setUpRow(statusRow, true);
+    this.displayInputFile(statusRow, inputFileName);
+    this.displayRefGenome(statusRow, refGenome);
+    this.displayFilterName(statusRow, filterName);
+    this.displayOutputFormat(statusRow, outputFormat);
 
     const outputFileCell = statusRow.getElementsByClassName("output-file-cell")[0];
     outputFileCell.innerText = "Processing...";
@@ -452,11 +453,11 @@ showInitialStatus(statusRow, inputFileName="name", refGenome="genome", filterNam
 },
 
 getStatus(id) {
-    fetch("/lunaris/predictor/status/" + id)
+    fetch("http://eggserver.org/lunaris/predictor/status/" + id)
         .then((response) => response.json())
         .then((status) => {
             lunarisVariantPredictor.statuses[id] = status;
-            showStatus(id);
+            this.showStatus(id);
         });
 }, 
 
@@ -508,24 +509,24 @@ showStatus(id) {
             }*/
         }
     } else {
-        showInitialStatus(statusRow, inputFileName);
+        this.showInitialStatus(statusRow, inputFileName);
     }
 },
 
 updatePendingStatuses() {
     const idsPendingNew = [];
     let i = 0;
-    const idsPending = lunarisVariantPredictor.idsPending;
+    const idsPending = this.lunarisVariantPredictor.idsPending;
     while (i < idsPending.length) {
         const id = idsPending[i];
-        getStatus(id);
-        const status = lunarisVariantPredictor.statuses[id];
+        this.getStatus(id);
+        const status = this.lunarisVariantPredictor.statuses[id];
         if (!status.completed) {
             idsPendingNew.push(id);
         }
         i++;
     }
-    lunarisVariantPredictor.idsPending = idsPendingNew;
+    this.lunarisVariantPredictor.idsPending = idsPendingNew;
 }, 
 
 setOptionsForSelect(selectNode, options) {
@@ -539,12 +540,12 @@ resetFilters() {
 },
 
 initMasksSelector() {
-    fetch("/lunaris/predictor/masks/list")
+    fetch("http://eggserver.org/lunaris/predictor/masks/list")
         .then((response) => response.json())
         .then((masksList) => {
             lunarisVariantPredictor.masksList = masksList;
-            const selectNode = getMaskSelectNode();
-            setOptionsForSelect(selectNode, lunarisVariantPredictor.masksList);
+            const selectNode = this.getMaskSelectNode();
+            this.setOptionsForSelect(selectNode, lunarisVariantPredictor.masksList);
         });
 },
 
@@ -562,7 +563,7 @@ setOutputFormat(format) {
 },
 
 getOutputFormat() {
-    const selection = getOutputFormatNode().value;
+    const selection = this.getOutputFormatNode().value;
     if (selection == "-- Choose format --"){
         return "";
     }
@@ -590,12 +591,12 @@ setMask(mask) {
 },
 
 setPredefinedMask(e) {
-    const maskSelectNode = getMaskSelectNode();
+    const maskSelectNode = this.getMaskSelectNode();
     const maskName = maskSelectNode.value;
-    fetch("/lunaris/predictor/masks/" + maskName)
+    fetch("https://eggserver.org/lunaris/predictor/masks/" + maskName)
         .then((response) => response.text())
         .then((mask) => {
-            setMask(mask);
+            this.setMask(mask);
         });
 }
     },
