@@ -43,7 +43,8 @@
                     </div>
                     <div class="centering">
                         <div class="placeholder"></div>
-                        <button class="btn btn-primary" onclick="getIdAndLoadSession()">Load</button>
+                        <!--button class="btn btn-primary" onclick="getIdAndLoadSession()">Load</button-->
+                        <button class="btn btn-primary" @click="$parent.alert">Load</button>
                         <div class="placeholder"></div>
                     </div>
                 </div>
