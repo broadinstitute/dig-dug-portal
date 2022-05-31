@@ -1,5 +1,6 @@
 <template>
-	<body onload="init()" class="kp-default">
+	<!--body onload="init()" class="kp-default"-->
+    <body class="kp-default">
     <header>
         <img class="mdkp-logo" id="eggserverLogo" src="images/egg_server_logo.svg" alt="EGG Server logo"/>
         <h1>
@@ -43,8 +44,7 @@
                     </div>
                     <div class="centering">
                         <div class="placeholder"></div>
-                        <!--button class="btn btn-primary" onclick="getIdAndLoadSession()">Load</button-->
-                        <button class="btn btn-primary" @click="$parent.alert">Load</button>
+                        <button class="btn btn-primary" @click="$parent.getIdAndLoadSession">Load</button>
                         <div class="placeholder"></div>
                     </div>
                 </div>
@@ -299,7 +299,7 @@
                         </div>
                         <div id="clear-mask-div">
                             <label>
-                                <button class="form-control" onclick="resetFilters()">Clear Mask</button>
+                                <button class="form-control" @click="$parent.resetFilters">Clear Mask</button>
                             </label>
                         </div>
                         <p id="code_mirror_parent"></p>
@@ -316,8 +316,8 @@
                         </div>
                             <div class="centering">
                                 <div class="placeholder"></div>
-                                <button class="btn btn-secondary" onclick="saveJob()">Save job</button>
-                                <button class="btn btn-primary" onclick = "saveJobAndCreateNew()">Save job and create new job</button>
+                                <button class="btn btn-secondary" @click="$parent.saveJob">Save job</button>
+                                <button class="btn btn-primary" @click = "$parent.saveJobAndCreateNew">Save job and create new job</button>
                                 <div class="placeholder">
                                 </div>
                         </div>

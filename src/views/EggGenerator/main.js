@@ -33,6 +33,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.init();
     },
 
     render(createElement, context) {
@@ -75,9 +76,13 @@ isWellFormedSessionId(id) {
 
 initSession() {
     let sessionId;
+    let key;
+    let value;
     const queryParts = window.location.search.substring(1).split("&");
     queryParts.forEach ( queryPart => {
-        [key, value] = queryPart.split("=");
+        //[key, value] = queryPart.split("=");
+        value = queryPart.split("=").pop();
+        key = queryPart;
         if(key === "session" && this.isWellFormedSessionId(value)) {
             sessionId = value;
         }
@@ -258,7 +263,7 @@ createJobFormData(index, email){
 },
 
 saveJobAndCreateNew(){
-    if (saveJob()){
+    if (this.saveJob()){
         // We don't want to clear the mask someone may have entered if they missed a field and it didn't save.
         this.clearInputs();
     }
