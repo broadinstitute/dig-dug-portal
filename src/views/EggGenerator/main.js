@@ -33,6 +33,10 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        //this.init();
+    },
+
+    mounted(){
         this.init();
     },
 
@@ -45,24 +49,13 @@ new Vue({
 init() {
     this.initSession();
     this.getSchema();
+    console.log("about to fetch masks");
     this.initMasksSelector();
     const codeMirrorParent = document.getElementById("code_mirror_parent");
     // TODO set this up
     codeMirror = CodeMirror(codeMirrorParent, codeMirrorConfig);
     codeMirror.setSize("100%", "7.5em");
-    this.setUpInputDisplays();
     setInterval(updatePendingStatuses, 300);
-},
-
-setUpInputDisplays(){
-    const badgeInputs = document.getElementsByClassName("has-badge");
-    let badgeInput;
-    for (let i = 0; i < badgeInputs.length; i++) {
-        badgeInput = badgeInputs[i];
-        badgeInput.onchange = this.showOnBadge;
-    }
-    let maskInput = document.getElementById("masks");
-    maskInput.onchange = this.setPredefinedMask;
 },
 
 fourHexDigits(num) {
@@ -80,7 +73,6 @@ initSession() {
     let value;
     const queryParts = window.location.search.substring(1).split("&");
     queryParts.forEach ( queryPart => {
-        //[key, value] = queryPart.split("=");
         value = queryPart.split("=").pop();
         key = queryPart;
         if(key === "session" && this.isWellFormedSessionId(value)) {
@@ -90,14 +82,20 @@ initSession() {
     if(sessionId) {
         this.loadSession(sessionId);
     } else {
-        sessionId =
-            this.fourHexDigits((new Date).getTime() % 65536) + this.fourHexDigits(Math.floor(Math.random() * 65537));
+        sessionId = this.generateSessionId();
+        console.log("Session ID is: " + sessionId);
         this.setSessionId(sessionId);
     }
 },
 
+generateSessionId(){
+    return this.fourHexDigits((new Date).getTime() % 65536) + this.fourHexDigits(Math.floor(Math.random() * 65537));
+},
+
 setSessionId(sessionId) {
-    document.getElementById("session_id_area").innerText = sessionId;
+    // TODO make this work
+    const sessionIdArea = document.getElementById("session-id-area");
+    sessionIdArea.innerText = sessionId;
     this.lunarisVariantPredictor.sessionId = sessionId;
 },
 
@@ -548,9 +546,9 @@ initMasksSelector() {
     fetch("http://eggserver.org/lunaris/predictor/masks/list")
         .then((response) => response.json())
         .then((masksList) => {
-            lunarisVariantPredictor.masksList = masksList;
+            this.lunarisVariantPredictor.masksList = masksList;
             const selectNode = this.getMaskSelectNode();
-            this.setOptionsForSelect(selectNode, lunarisVariantPredictor.masksList);
+            this.setOptionsForSelect(selectNode, this.lunarisVariantPredictor.masksList);
         });
 },
 

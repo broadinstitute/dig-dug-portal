@@ -39,7 +39,7 @@
                     </div>
                     <div class="centering">
                         <div class="placeholder"></div>
-                        <div class="message-area" id="session-invalid" :value="sessionInput"></div>
+                        <div class="message-area" id="session-invalid"></div>
                         <div class="placeholder"></div>
                     </div>
                     <div class="centering">
@@ -77,7 +77,7 @@
                                                     <div data-v-06e3dc2f="">
                                                         <div data-v-06e3dc2f="" class="input-group">
                                                             <label class="form-control">Choose File
-                                                                <input class="form-control has-badge" type="file" id="inputfile" name="myfile" accept=".vcf">
+                                                                <input class="form-control has-badge" type="file" id="inputfile" name="myfile" accept=".vcf" v-on:change="$parent.showOnBadge">
                                                             </label>
                                                         </div>
                                                         <div data-v-06e3dc2f="" class="list-group shadow vbt-autcomplete-list" style="width: 220px; display: none;">
@@ -88,7 +88,7 @@
                                                     <div class="label">Reference Genome</div>
                                                     <div data-v-06e3dc2f="">
                                                         <div data-v-06e3dc2f="" class="input-group">
-                                                            <select class="form-control has-badge" name="hg" id="hg" placeholder="Choose Genome">
+                                                            <select class="form-control has-badge" name="hg" id="hg" v-on:change="$parent.showOnBadge">
                                                                 <option>-- Choose genome --</option>
                                                                 <option>hg19</option>
                                                                 <option>hg38</option>
@@ -148,7 +148,7 @@
                                         <div role="tabpanel" class="centering tabpane" id="__BVID__13">
                                             <div class="placeholder"></div>
                                             <label for="masks">Mask
-                                                <select class="form-control" name="masks" id="masks">
+                                                <select class="form-control" name="masks" id="masks" v-on:change="$parent.setPredefinedMask">
                                                     <option value="">-- Choose mask --</option>
                                                 </select>
                                             </label>
@@ -306,7 +306,7 @@
                         <div class="centering">
                             <div class="placeholder"></div>
                             <label id="output-format">Output format
-                                <select class="form-control has-badge" name="formats" id="formats">
+                                <select class="form-control has-badge" name="formats" id="formats" v-on:change="$parent.showOnBadge">
                                     <option>-- Choose format --</option>
                                     <option value="rareMETALS">list/rareMETALS</option>
                                     <option value="EPACTS">EPACTS</option>
@@ -351,7 +351,7 @@
                         <div class="centering submit-fields">
                             <div class="placeholder"></div>
                             <label for="email">E-mail to receive notification <span class="asterisk">*</span>
-                                <input class="form-control has-badge" type="email" name="email" id="email">
+                                <input class="form-control has-badge" type="email" name="email" id="email" v-on:change="$parent.showOnBadge">
                             </label>
                             <label>Session description <span class="asterisk">*</span>
                                 <input class="form-control" type="textarea" name="session-desc" id="session-desc">
@@ -377,7 +377,7 @@
             <div class="card-body">
                 <h4 class="card-title">Status</h4>
                 <div class="card" id="statuscard">
-                    <p>Session id is <b><span id="session_id_area"></span></b>.</p>
+                    <p>Session id is <b><span id="session-id-area"></span></b>.</p>
                     <p>
                         <span id="statusUpdatesPlaceholder">Submit time & any information regarding the session</span>
                     </p>
