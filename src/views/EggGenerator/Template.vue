@@ -34,12 +34,12 @@
                     <label for="sessioninput">Session ID</label>
                     <div class="centering">
                         <div class="placeholder"></div>
-                        <input type="text" class="form-control" id="sessioninput" name="sessioninput" size="8">
+                        <input type="text" class="form-control" id="sessioninput" name="sessioninput" size="8" v-model="$parent.sessionInput">
                         <div class="placeholder"></div>
                     </div>
                     <div class="centering">
                         <div class="placeholder"></div>
-                        <div class="message-area" id="session-invalid"></div>
+                        <div class="message-area" id="session-invalid" :value="sessionInput"></div>
                         <div class="placeholder"></div>
                     </div>
                     <div class="centering">

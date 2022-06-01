@@ -134,8 +134,8 @@ loadSession(sessionId) {
 },
 
 getIdAndLoadSession(){
-    const sessionInput = document.getElementById("sessioninput");
-    const sessionId = sessionInput.value;
+    //TODO switch all DOM manipulation to real vue stuff
+    const sessionId = this.sessionInput;
     if (sessionId){
         if(this.isWellFormedSessionId(sessionId)){
             this.loadSession(sessionId);
@@ -634,6 +634,7 @@ setPredefinedMask(e) {
         },
         
         codeMirror: null,
+        sessionInput: null,
     }
     },
 
