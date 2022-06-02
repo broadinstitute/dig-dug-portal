@@ -19,7 +19,7 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import CodeMirror from "./codemirror.js";
+import CodeMirror from "./codemirror/codemirror.js";
 
 new Vue({
     store,
@@ -49,7 +49,6 @@ new Vue({
 init() {
     this.initSession();
     this.getSchema();
-    console.log("about to fetch masks");
     this.initMasksSelector();
     const codeMirrorParent = document.getElementById("code_mirror_parent");
     // TODO set this up
@@ -83,7 +82,6 @@ initSession() {
         this.loadSession(sessionId);
     } else {
         sessionId = this.generateSessionId();
-        console.log("Session ID is: " + sessionId);
         this.setSessionId(sessionId);
     }
 },
