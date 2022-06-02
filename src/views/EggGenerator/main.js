@@ -350,7 +350,7 @@ submitAll(){
 
     for (let i = 0; i < this.inputFiles.length; i++){
         const formData = this.createJobFormData(i, emailInput);
-        const inputFile = this.inputFiles[i];
+        const inputFile = this.inputFiles[i].name;
         // TODO ACCOUNT for multiple fetch requests - this is a loop
         fetch("http://eggserver.org/lunaris/predictor/upload", {method: "POST", body: formData})
             .then((response) => {
