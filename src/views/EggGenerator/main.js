@@ -19,6 +19,7 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import CodeMirror from "./codemirror.js";
 
 new Vue({
     store,
@@ -33,7 +34,6 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
-        //this.init();
     },
 
     mounted(){
@@ -53,9 +53,9 @@ init() {
     this.initMasksSelector();
     const codeMirrorParent = document.getElementById("code_mirror_parent");
     // TODO set this up
-    codeMirror = CodeMirror(codeMirrorParent, codeMirrorConfig);
-    codeMirror.setSize("100%", "7.5em");
-    setInterval(updatePendingStatuses, 300);
+    this.codeMirror = CodeMirror(codeMirrorParent, this.codeMirrorConfig);
+    this.codeMirror.setSize("100%", "7.5em");
+    setInterval(this.updatePendingStatuses, 300);
 },
 
 fourHexDigits(num) {
@@ -539,7 +539,7 @@ setOptionsForSelect(selectNode, options) {
 },
 
 resetFilters() {
-    codeMirror.setValue("");
+    this.codeMirror.setValue("");
 },
 
 initMasksSelector() {
@@ -590,13 +590,13 @@ setMask(mask) {
     if (mask.slice(0, 5) == "ERROR"){
         mask = "";
     }
-    codeMirror.setValue(mask);
+    this.codeMirror.setValue(mask);
 },
 
 setPredefinedMask(e) {
     const maskSelectNode = this.getMaskSelectNode();
     const maskName = maskSelectNode.value;
-    fetch("https://eggserver.org/lunaris/predictor/masks/" + maskName)
+    fetch("http://eggserver.org/lunaris/predictor/masks/" + maskName)
         .then((response) => response.text())
         .then((mask) => {
             this.setMask(mask);
