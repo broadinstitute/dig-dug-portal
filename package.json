@@ -37,6 +37,7 @@
     "vis-util": "^5.0.2",
     "vue": "^2.6.12",
     "vue-async-computed": "^3.9.0",
+    "vue-codemirror": "^4.0.0",
     "vue-cookies": "^1.7.4",
     "vue-select": "^3.10.8",
     "vue-typeahead-bootstrap": "^2.6.0",

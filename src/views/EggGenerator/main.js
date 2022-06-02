@@ -1,4 +1,5 @@
 import Vue from "vue";
+//import VueCodeMirror from "vue-codemirror";
 import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
@@ -19,7 +20,7 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import CodeMirror from "./codemirror/codemirror.js";
+import CodeMirror from "./codemirror/lib/codemirror.js";
 
 new Vue({
     store,
@@ -200,7 +201,7 @@ generateEmailMsg(email, isValid){
     } else {
         emailMsg = email + " is not a valid email. Your job has not been submitted. Please try again.";
     }
-    setEmailMsg(emailMsg);
+    this.setEmailMsg(emailMsg);
 },
 
 setSaveJobMessage(errorMessage){
@@ -209,39 +210,40 @@ setSaveJobMessage(errorMessage){
 },
 
 saveJob(){
-    const filter = codeMirror.getValue();
+    const filter = this.codeMirror.getValue();
     if (filter == ""){
-        setSaveJobMessage("Select a filter to proceed.");
+        this.setSaveJobMessage("Select a filter to proceed.");
         return false;
     }
 
     const inputFile = this.getInputFile();
     if (inputFile == ""){
-        setSaveJobMessage("Select an input file to proceed.");
+        this.setSaveJobMessage("Select an input file to proceed.");
         return false;
     }
 
     const format = this.getOutputFormat();
     if (format == ""){
-        setSaveJobMessage("Select an output format to proceed.");
+        this.setSaveJobMessage("Select an output format to proceed.");
         return false;
     }
 
     const hg = this.getHg();
     if (hg == ""){
-        setSaveJobMessage("Select a genome to proceed.");
+        this.setSaveJobMessage("Select a genome to proceed.");
         return false;
     }
 
     this.setSaveJobMessage("");
+    const maskName = this.getMaskSelectNode().value;
 
     this.filters.push(filter);
-    this.filterNames.push(getMaskSelectNode().value); // TODO evaluate in case this is custom
+    this.filterNames.push(maskName); // TODO evaluate in case this is custom
     this.inputFiles.push(inputFile);
     this.outputFormats.push(format);
     this.refGenomes.push(hg);
 
-    const maskName = getMaskSelectNode().value;
+    
     this.showNewQueuedJob(maskName, inputFile, format, hg);
     this.setEmailMsg("");
     return true;
@@ -281,7 +283,7 @@ showNewQueuedJob(filter, inputFile, format, hg){
     const newRow = document.createElement("tr");
     this.setUpRow(newRow, false);
 
-    this.displayInputFile(newRow, trimFilename(inputFile));
+    this.displayInputFile(newRow, this.trimFilename(inputFile));
     this.displayRefGenome(newRow, hg);
     this.displayFilterName(newRow, filter);
     this.displayOutputFormat(newRow, format);
@@ -324,7 +326,7 @@ submitAll(){
     const emailInput = document.getElementById("email").value;
     const descriptionInput = document.getElementById("session-desc").value;
 
-    if (inputFiles.length == 0){
+    if (this.inputFiles.length == 0){
         setEmailMsg("There are no jobs queued for submission.");
         return;
     }
@@ -338,17 +340,17 @@ submitAll(){
         setEmailMsg("Enter your email to continue.");
         return;
     }
-    if(isValidEmail(emailInput)) {
-        lunarisVariantPredictor.email = emailInput;
+    if(this.isValidEmail(emailInput)) {
+        this.lunarisVariantPredictor.email = emailInput;
         this.generateEmailMsg(emailInput, true);
     } else {
         this.generateEmailMsg(emailInput, false);
         return;
     }
 
-    for (let i = 0; i < inputFiles.length; i++){
+    for (let i = 0; i < this.inputFiles.length; i++){
         const formData = this.createJobFormData(i, emailInput);
-        const inputFile = inputFiles[i];
+        const inputFile = this.inputFiles[i];
         // TODO ACCOUNT for multiple fetch requests - this is a loop
         fetch("http://eggserver.org/lunaris/predictor/upload", {method: "POST", body: formData})
             .then((response) => {
@@ -358,7 +360,7 @@ submitAll(){
                 return response.text();
             })
             .then((id) => {
-                this.addStatusEntry(inputFile, id, refGenomes[i], filterNames[i], outputFormats[i]);
+                this.addStatusEntry(inputFile, id, this.refGenomes[i], this.filterNames[i], this.outputFormats[i]);
                 this.getStatus(id);
             }).catch(this.showCouldNotSubmit);
     }
@@ -399,8 +401,8 @@ showCouldNotSubmit(message) {
 },
 
 addStatusEntry(inputFileName, id, refGenome="genome", filterName="filter", outputFormat="format") {
-    lunarisVariantPredictor.inputFileNames[id] = inputFileName;
-    lunarisVariantPredictor.idsPending.push(id);
+    this.lunarisVariantPredictor.inputFileNames[id] = inputFileName;
+    this.lunarisVariantPredictor.idsPending.push(id);
     const statusRow = document.createElement("tr");
     const statusAreaNode = this.getSubmissionAreaNode();
     statusAreaNode.appendChild(statusRow);
@@ -457,8 +459,9 @@ getStatus(id) {
     fetch("http://eggserver.org/lunaris/predictor/status/" + id)
         .then((response) => response.json())
         .then((status) => {
-            lunarisVariantPredictor.statuses[id] = status;
+            this.lunarisVariantPredictor.statuses[id] = status;
             this.showStatus(id);
+            console.log(status);
         });
 }, 
 
@@ -475,13 +478,13 @@ soManyErrors(nSnags) {
 showStatus(id) {
     const statusRow = document.getElementById(id);
     const outputFileCell = statusRow.getElementsByClassName("output-file-cell")[0];
-    const inputFileName = lunarisVariantPredictor.inputFileNames[id];
-    const status = lunarisVariantPredictor.statuses[id];
+    const inputFileName = this.lunarisVariantPredictor.inputFileNames[id];
+    const status = this.lunarisVariantPredictor.statuses[id];
     if (status) {
         if (status.succeeded) {
             const linkNode = document.createElement("a");
             const outputFile = id + ".tsv"
-            linkNode.setAttribute("href", "/lunaris/predictor/results/" + outputFile);
+            linkNode.setAttribute("href", "http://eggserver.org/lunaris/predictor/results/" + outputFile);
             linkNode.setAttribute("download", outputFile);
             linkNode.innerText = "Click here to download";
             outputFileCell.innerHTML = "";

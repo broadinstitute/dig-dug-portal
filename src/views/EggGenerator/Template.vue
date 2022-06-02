@@ -365,7 +365,7 @@
                         </div>
                         <div class="centering">
                             <div class="placeholder"></div>
-                            <button class="btn btn-secondary" onclick="submitAll()">Submit jobs</button>
+                            <button class="btn btn-secondary" @click="$parent.submitAll">Submit jobs</button>
                             <div class="placeholder"></div>
                         </div>
                         
