@@ -96,6 +96,8 @@ setSessionId(sessionId) {
     this.lunarisVariantPredictor.sessionId = sessionId;
 },
 
+// TODO figure out what is up with loading sessions
+
 loadSession(sessionId) {
     fetch("http://eggserver.org/lunaris/predictor/session/" + sessionId)
         .then((response) => response.json())
@@ -112,7 +114,8 @@ loadSession(sessionId) {
                 if(session.format) {
                     this.setOutputFormat(session.format);
                 }
-                this.setEmptySubmissionArea();
+                this.clearSubmissions();
+                this.clearStatusArea();
                 session.jobs.forEach(job => {
                     console.log(job);
                     const id = job.id;
