@@ -73,12 +73,13 @@ initSession() {
     let value;
     const queryParts = window.location.search.substring(1).split("&");
     queryParts.forEach ( queryPart => {
-        value = queryPart.split("=").pop();
-        key = queryPart;
+        let allParts = queryPart.split("=");
+        value = allParts.pop();
+        key = allParts[0];
         if(key === "session" && this.isWellFormedSessionId(value)) {
             sessionId = value;
         }
-    })
+    });
     if(sessionId) {
         this.loadSession(sessionId);
     } else {
@@ -99,7 +100,7 @@ setSessionId(sessionId) {
 },
 
 loadSession(sessionId) {
-    fetch("http://eggserver.org:8080/lunaris/predictor/session/" + sessionId)
+    fetch("http://eggserver.org/lunaris/predictor/session/" + sessionId)
         .then((response) => response.json())
         .then((session) => {
             if(session.error) {
