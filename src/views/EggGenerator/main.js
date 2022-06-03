@@ -82,19 +82,17 @@ initSession() {
     });
     if(sessionId) {
         this.loadSession(sessionId);
-    } else {
-        sessionId = this.generateSessionId();
-        this.setSessionId(sessionId);
     }
 },
 
-generateSessionId(){
-    return this.fourHexDigits((new Date).getTime() % 65536) + this.fourHexDigits(Math.floor(Math.random() * 65537));
+generateSession(){
+    let sessionId = this.fourHexDigits((new Date).getTime() % 65536) + this.fourHexDigits(Math.floor(Math.random() * 65537));
+    this.setSessionId(sessionId);
 },
 
 setSessionId(sessionId) {
     const sessionIdArea = document.getElementById("session-id-area");
-    sessionIdArea.innerText = sessionId;
+    sessionIdArea.innerText = "Session ID is " + sessionId + ".";
     this.lunarisVariantPredictor.sessionId = sessionId;
 },
 
@@ -348,6 +346,8 @@ submitAll(){
         this.generateEmailMsg(emailInput, false);
         return;
     }
+
+    this.generateSession();
 
     for (let i = 0; i < this.inputFiles.length; i++){
         const formData = this.createJobFormData(i, emailInput);

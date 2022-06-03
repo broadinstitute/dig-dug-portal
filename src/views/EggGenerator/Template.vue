@@ -377,7 +377,7 @@
             <div class="card-body">
                 <h4 class="card-title">Status</h4>
                 <div class="card" id="statuscard">
-                    <p>Session id is <b><span id="session-id-area"></span></b>.</p>
+                    <p id="session-id-area"></p>
                     <p>
                         <span id="statusUpdatesPlaceholder">Submit time & any information regarding the session</span>
                     </p>
