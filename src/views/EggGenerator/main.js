@@ -93,7 +93,6 @@ generateSessionId(){
 },
 
 setSessionId(sessionId) {
-    // TODO make this work
     const sessionIdArea = document.getElementById("session-id-area");
     sessionIdArea.innerText = sessionId;
     this.lunarisVariantPredictor.sessionId = sessionId;
@@ -107,6 +106,7 @@ loadSession(sessionId) {
                 this.setSessionMsg("Error:\n" + session.message);
                 window.log(session.report);
             } else if(session.found) {
+                console.log("found session " + sessionId);
                 this.setSessionId(sessionId);
                 if(session.filter) {
                     this.setMask(session.filter);
@@ -352,7 +352,6 @@ submitAll(){
     for (let i = 0; i < this.inputFiles.length; i++){
         const formData = this.createJobFormData(i, emailInput);
         const inputFile = this.inputFiles[i].name;
-        // TODO ACCOUNT for multiple fetch requests - this is a loop
         fetch("http://eggserver.org/lunaris/predictor/upload", {method: "POST", body: formData})
             .then((response) => {
                 if (!response.ok) {
@@ -564,7 +563,7 @@ getOutputFormatNode() {
 },
 
 setOutputFormat(format) {
-    getOutputFormatNode().value = format;
+    this.getOutputFormatNode().value = format;
 },
 
 getOutputFormat() {
