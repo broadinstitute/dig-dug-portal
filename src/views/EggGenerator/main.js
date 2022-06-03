@@ -147,10 +147,20 @@ setSessionMsg(msg) {
 },
 
 setEmptySubmissionArea() {
-    const submissionArea = document.getElementById("submission_area");
+    console.log("emptying submission area!");
+    const submissionArea = document.getElementById("submit-table-body");
     submissionArea.innerHTML = "";
 },
 
+clearSubmissions(){
+    this.setEmptySubmissionArea();
+    this.clearInputs();
+    this.filters = [];
+    this.filterNames = []; // TODO evaluate in case this is custom
+    this.inputFiles = [];
+    this.outputFormats = [];
+    this.refGenomes = [];
+},
 
 isValidEmail(string) {
     if(!string || string.trim().length === 0) {
@@ -347,7 +357,9 @@ submitAll(){
         return;
     }
 
+    // New session - we don't append to any old one.
     this.generateSession();
+    this.clearStatusArea();
 
     for (let i = 0; i < this.inputFiles.length; i++){
         const formData = this.createJobFormData(i, emailInput);
@@ -364,6 +376,11 @@ submitAll(){
                 this.getStatus(id);
             }).catch(this.showCouldNotSubmit);
     }
+    this.clearSubmissions();
+},
+
+clearStatusArea(){
+    this.getStatusAreaNode().innerHTML = "";
 },
 
 getSchema() {
@@ -389,7 +406,7 @@ getStatusAreaNode() {
 },
 
 getSubmissionAreaNode() {
-    return document.getElementById("submission_area");
+    return document.getElementById("submit-table-body");
 },
 
 showCouldNotSubmit(message) {
@@ -404,7 +421,7 @@ addStatusEntry(inputFileName, id, refGenome="genome", filterName="filter", outpu
     this.lunarisVariantPredictor.inputFileNames[id] = inputFileName;
     this.lunarisVariantPredictor.idsPending.push(id);
     const statusRow = document.createElement("tr");
-    const statusAreaNode = this.getSubmissionAreaNode();
+    const statusAreaNode = this.getStatusAreaNode();
     statusAreaNode.appendChild(statusRow);
     statusRow.setAttribute("id", id);
     this.showInitialStatus(statusRow, inputFileName, refGenome, filterName, outputFormat);

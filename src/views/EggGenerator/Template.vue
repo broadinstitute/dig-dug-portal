@@ -392,7 +392,7 @@
                                 <td>Restore job</td>
                             </tr>
                         </thead>
-                        <tbody id="submission_area">
+                        <tbody id="status_area">
                         </tbody>
                     </table>
                 </div>
