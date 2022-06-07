@@ -4,9 +4,13 @@ import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
+import VueCodemirror from "vue-codemirror";
+import "codemirror/lib/codemirror.css";
+import "codemirror/theme/material.css";
 
+Vue.use(BootstrapVue);
+Vue.use(VueCodemirror);
+Vue.config.productionTip = false;
 
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
@@ -20,27 +24,24 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import { codemirror } from "vue-codemirror";
-import 'codemirror/lib/codemirror.css';
-
 new Vue({
     store,
 
     components: {
-        codemirror,
         StaticPageInfo,
         PageHeader,
         PageFooter,
         PortalDatasetsListTable,
-        Alert,
+        Alert
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
     },
 
-    mounted(){
+    mounted() {
         this.init();
+        // console.log("this is current codemirror object", this.codemirror);
     },
 
     render(createElement, context) {
@@ -48,480 +49,575 @@ new Vue({
     },
 
     methods: {
-        
-init() {
-    this.initSession();
-    this.getSchema();
-    this.initMasksSelector();
-    //const codeMirrorParent = document.getElementById("code_mirror_parent");
-    // TODO set this up
-    //this.codeMirror = CodeMirror(codeMirrorParent, this.codeMirrorConfig);
-    //this.codeMirror.setSize("100%", "7.5em");
-    setInterval(this.updatePendingStatuses, 300);
-},
+        // onCmCursorActivity(codemirror) {
+        //     console.debug("onCmCursorActivity", codemirror);
+        // },
+        // onCmReady(codemirror) {
+        //     console.debug("onCmReady", codemirror);
+        // },
+        // onCmFocus(codemirror) {
+        //     console.debug("onCmFocus", codemirror);
+        // },
+        // onCmBlur(codemirror) {
+        //     console.debug("onCmBlur", codemirror);
+        // },
+        init() {
+            this.initSession();
+            this.getSchema();
+            this.initMasksSelector();
+            //const codeMirrorParent = document.getElementById("code_mirror_parent");
+            // TODO set this up
+            //this.codeMirror = CodeMirror(codeMirrorParent, this.codeMirrorConfig);
+            //this.codeMirror.setSize("100%", "7.5em");
+            setInterval(this.updatePendingStatuses, 300);
+        },
 
-fourHexDigits(num) {
-    return ("000" + num.toString(16)).substr(-4);
-},
+        fourHexDigits(num) {
+            return ("000" + num.toString(16)).substr(-4);
+        },
 
-isWellFormedSessionId(id) {
-    const sessionIdRegex = /^[0-9a-f]{8}$/;
-    return id.match(sessionIdRegex);
-},
+        isWellFormedSessionId(id) {
+            const sessionIdRegex = /^[0-9a-f]{8}$/;
+            return id.match(sessionIdRegex);
+        },
 
-initSession() {
-    let sessionId;
-    let key;
-    let value;
-    const queryParts = window.location.search.substring(1).split("&");
-    queryParts.forEach ( queryPart => {
-        let allParts = queryPart.split("=");
-        value = allParts.pop();
-        key = allParts[0];
-        if(key === "session" && this.isWellFormedSessionId(value)) {
-            sessionId = value;
-        }
-    });
-    if(sessionId) {
-        this.loadSession(sessionId);
-    }
-},
-
-generateSession(){
-    let sessionId = this.fourHexDigits((new Date).getTime() % 65536) + this.fourHexDigits(Math.floor(Math.random() * 65537));
-    this.setSessionId(sessionId);
-},
-
-setSessionId(sessionId) {
-    const sessionIdArea = document.getElementById("session-id-area");
-    sessionIdArea.innerText = "Session ID is " + sessionId + ".";
-    this.lunarisVariantPredictor.sessionId = sessionId;
-},
-
-// TODO figure out why actual session job list length is less than submitted
-
-loadSession(sessionId) {
-    fetch("http://eggserver.org/lunaris/predictor/session/" + sessionId)
-        .then((response) => response.json())
-        .then((session) => {
-            if(session.error) {
-                this.setSessionMsg("Error:\n" + session.message);
-                window.log(session.report);
-            } else if(session.found) {
-                this.setSessionId(sessionId);
-                if(session.filter) {
-                    this.setMask(session.filter);
+        initSession() {
+            let sessionId;
+            let key;
+            let value;
+            const queryParts = window.location.search.substring(1).split("&");
+            queryParts.forEach(queryPart => {
+                let allParts = queryPart.split("=");
+                value = allParts.pop();
+                key = allParts[0];
+                if (key === "session" && this.isWellFormedSessionId(value)) {
+                    sessionId = value;
                 }
-                if(session.format) {
-                    this.setOutputFormat(session.format);
-                }
-                this.clearSubmissions();
-                this.clearStatusArea();
-                console.log(session.jobs.length + " jobs");
-                session.jobs.forEach(job => {
-                    const id = job.id;
-                    const path = job.inputFile;
-                    const inputFileName = path.substring(path.lastIndexOf("/") + 1);
-                    this.addStatusEntry(inputFileName, id);
+            });
+            if (sessionId) {
+                this.loadSession(sessionId);
+            }
+        },
+
+        generateSession() {
+            let sessionId =
+                this.fourHexDigits(new Date().getTime() % 65536) +
+                this.fourHexDigits(Math.floor(Math.random() * 65537));
+            this.setSessionId(sessionId);
+        },
+
+        setSessionId(sessionId) {
+            const sessionIdArea = document.getElementById("session-id-area");
+            sessionIdArea.innerText = "Session ID is " + sessionId + ".";
+            this.lunarisVariantPredictor.sessionId = sessionId;
+        },
+
+        // TODO figure out why actual session job list length is less than submitted
+
+        loadSession(sessionId) {
+            fetch("http://eggserver.org/lunaris/predictor/session/" + sessionId)
+                .then(response => response.json())
+                .then(session => {
+                    if (session.error) {
+                        this.setSessionMsg("Error:\n" + session.message);
+                        window.log(session.report);
+                    } else if (session.found) {
+                        this.setSessionId(sessionId);
+                        if (session.filter) {
+                            this.setMask(session.filter);
+                        }
+                        if (session.format) {
+                            this.setOutputFormat(session.format);
+                        }
+                        this.clearSubmissions();
+                        this.clearStatusArea();
+                        console.log(session.jobs.length + " jobs");
+                        session.jobs.forEach(job => {
+                            const id = job.id;
+                            const path = job.inputFile;
+                            const inputFileName = path.substring(
+                                path.lastIndexOf("/") + 1
+                            );
+                            this.addStatusEntry(inputFileName, id);
+                        });
+                        this.setSessionMsg(
+                            "Loading session " + sessionId + "."
+                        );
+                    } else {
+                        const sessionMsg =
+                            "Unknown session " +
+                            sessionId +
+                            ".\nNote that sessions are only saved when something is submitted.";
+                        this.setSessionMsg(sessionMsg);
+                    }
                 });
-                this.setSessionMsg("Loading session " + sessionId + ".");
-            } else {
-                const sessionMsg = "Unknown session " + sessionId +
-                    ".\nNote that sessions are only saved when something is submitted.";
-                this.setSessionMsg(sessionMsg);
-            }
-        });
-},
+        },
 
-getIdAndLoadSession(){
-    //TODO switch all DOM manipulation to real vue stuff
-    const sessionId = this.sessionInput;
-    if (sessionId){
-        if(this.isWellFormedSessionId(sessionId)){
-            this.loadSession(sessionId);
-        } else {
-            this.setSessionMsg(sessionId + " is not a valid session ID.");
-        }
-    }
-},
-
-setSessionMsg(msg) {
-    const sessionArea = document.getElementById("session-invalid");
-    sessionArea.textContent = msg;
-},
-
-setEmptySubmissionArea() {
-    const submissionArea = document.getElementById("submit-table-body");
-    submissionArea.innerHTML = "";
-},
-
-clearSubmissions(){
-    this.setEmptySubmissionArea();
-    this.clearInputs();
-    this.filters = [];
-    this.filterNames = []; // TODO evaluate in case this is custom
-    this.inputFiles = [];
-    this.outputFormats = [];
-    this.refGenomes = [];
-},
-
-isValidEmail(string) {
-    if(!string || string.trim().length === 0) {
-        return false;
-    }
-    const parts = string.split("@");
-    if(parts.length !== 2) {
-        return false;
-    }
-    const [user, domain] = parts;
-    const domainParts = domain.split("\.");
-    return user && user.trim().length > 0 && domainParts.length > 1 &&
-        domainParts.every(domainPart => domainPart.trim().length > 0);
-},
-
-showOnBadge(e){
-    // is this a good way to do this or not?
-    const inputValue = e.target.value;
-    const badgeId = e.target.getAttribute("id") + "-badge";
-    const badge = document.getElementById(badgeId);
-    if (badge){
-        badge.textContent = inputValue;
-    }
-    if (badgeId == "inputfile-badge"){
-        const retrieveText = badge.textContent;
-        badge.textContent = retrieveText.split("\\").pop();
-    }
-
-},
-
-clearBadges(){
-    const badges = document.getElementsByClassName("badge");
-    for (let i = 0; i < badges.length; i++){
-        badges[i].textContent = "";
-    }
-},
-
-setEmailMsg(msg){
-    const emailInvalidArea = document.getElementById("email-invalid");
-    emailInvalidArea.textContent = msg;
-},
-
-generateEmailMsg(email, isValid){
-    let emailMsg = "";
-    if (isValid){
-        emailMsg = "Submitting job. Notification will be sent to " + email;
-    } else {
-        emailMsg = email + " is not a valid email. Your job has not been submitted. Please try again.";
-    }
-    this.setEmailMsg(emailMsg);
-},
-
-setSaveJobMessage(errorMessage){
-    const saveJobMessage = document.getElementById("save-job-message");
-    saveJobMessage.innerText = errorMessage;
-},
-
-saveJob(){
-    const filter = this.codeMirror.getValue();
-    if (filter == ""){
-        this.setSaveJobMessage("Select a filter to proceed.");
-        return false;
-    }
-
-    const inputFile = this.getInputFile();
-    if (inputFile == ""){
-        this.setSaveJobMessage("Select an input file to proceed.");
-        return false;
-    }
-
-    const format = this.getOutputFormat();
-    if (format == ""){
-        this.setSaveJobMessage("Select an output format to proceed.");
-        return false;
-    }
-
-    const hg = this.getHg();
-    if (hg == ""){
-        this.setSaveJobMessage("Select a genome to proceed.");
-        return false;
-    }
-
-    this.setSaveJobMessage("");
-    const maskName = this.getMaskSelectNode().value;
-
-    this.filters.push(filter);
-    this.filterNames.push(maskName); // TODO evaluate in case this is custom
-    this.inputFiles.push(inputFile);
-    this.outputFormats.push(format);
-    this.refGenomes.push(hg);
-
-    
-    this.showNewQueuedJob(maskName, inputFile, format, hg);
-    this.setEmailMsg("");
-    return true;
-},
-
-createJobFormData(index, email){
-    const jobFormData = new FormData();
-    jobFormData.append("filter", this.filters[index]);
-    jobFormData.append("inputFile", this.inputFiles[index]);
-    jobFormData.append("format", this.outputFormats[index]);
-    jobFormData.append("session", this.lunarisVariantPredictor.sessionId);
-    jobFormData.append("hg", this.refGenomes[index]);
-    jobFormData.append("email", email);
-    return jobFormData;
-},
-
-saveJobAndCreateNew(){
-    if (this.saveJob()){
-        // We don't want to clear the mask someone may have entered if they missed a field and it didn't save.
-        this.clearInputs();
-    }
-},
-
-clearInputs(){
-    this.resetFilters();
-    document.getElementById("inputfile").value = "";
-    // First options on these select boxes are placeholders. We'll restore them.
-    document.getElementById("hg").value = document.querySelector("#hg option").textContent;
-    document.getElementById("formats").value =
-        document.querySelector("#formats option").textContent;
-    document.getElementById("masks").value =
-        document.querySelector("#masks option").textContent;
-    this.clearBadges();
-},
-
-showNewQueuedJob(filter, inputFile, format, hg){
-    const newRow = document.createElement("tr");
-    this.setUpRow(newRow, false);
-
-    this.displayInputFile(newRow, this.trimFilename(inputFile));
-    this.displayRefGenome(newRow, hg);
-    this.displayFilterName(newRow, filter);
-    this.displayOutputFormat(newRow, format);
-
-    const submitTableBody = document.getElementById("submit-table-body");
-    submitTableBody.append(newRow);
-
-},
-
-displayInputFile(row, inputFilename){
-    const inputFileCell = row.getElementsByClassName("input-file-cell")[0];
-    inputFileCell.innerText = inputFilename;
-},
-
-displayRefGenome(row, refGenome){
-    const refGenomeCell = row.getElementsByClassName("ref-genome-cell")[0];
-    refGenomeCell.innerText = refGenome;
-},
-
-displayFilterName(row, filterName){
-    const filterNameCell = row.getElementsByClassName("filter-name-cell")[0];
-    filterNameCell.innerText = filterName;
-},
-
-displayOutputFormat(row, outputFormat){
-    const outputFormatCell = row.getElementsByClassName("output-format-cell")[0];
-    outputFormatCell.innerText = outputFormat;
-},
-
-trimFilename(inputFile){
-    const longFilename = inputFile.name;
-    const shortFilename = longFilename.split("\\").pop();
-    if (shortFilename){
-        return shortFilename;
-    }
-    return inputFile;
-},
-
-
-// When submitted through the old site (eggserver.org) all jobs are included in a session.
-// This is reflected when the session is loaded even on the new site.
-// When submitted through the new site, only 2 jobs show up in a session.
-// This is reflected when the session is loaded even on the old site.
-// 
-submitAll(){
-    const emailInput = document.getElementById("email").value;
-    const descriptionInput = document.getElementById("session-desc").value;
-
-    if (this.inputFiles.length == 0){
-        setEmailMsg("There are no jobs queued for submission.");
-        return;
-    }
-
-    if (descriptionInput == ""){
-        setEmailMsg("Enter a description for this session in order to continue.");
-        return;
-    }
-    // As of now, must have email in order to submit.
-    if (emailInput == ""){
-        setEmailMsg("Enter your email to continue.");
-        return;
-    }
-    if(this.isValidEmail(emailInput)) {
-        this.lunarisVariantPredictor.email = emailInput;
-        this.generateEmailMsg(emailInput, true);
-    } else {
-        this.generateEmailMsg(emailInput, false);
-        return;
-    }
-
-    // New session - we don't append to any old one.
-    this.generateSession();
-    this.clearStatusArea();
-
-    for (let i = 0; i < this.inputFiles.length; i++){
-        const formData = this.createJobFormData(i, emailInput);
-        const inputFile = this.inputFiles[i].name;
-        console.log("Session: " + formData.get("session"));
-        fetch("http://eggserver.org/lunaris/predictor/upload", {method: "POST", body: formData})
-            .then((response) => {
-                if (!response.ok) {
-                    throw "Could not submit " + inputFile + ": " + response.statusText;
+        getIdAndLoadSession() {
+            //TODO switch all DOM manipulation to real vue stuff
+            const sessionId = this.sessionInput;
+            if (sessionId) {
+                if (this.isWellFormedSessionId(sessionId)) {
+                    this.loadSession(sessionId);
+                } else {
+                    this.setSessionMsg(
+                        sessionId + " is not a valid session ID."
+                    );
                 }
-                return response.text();
-            })
-            .then((id) => {
-                this.addStatusEntry(inputFile, id, this.refGenomes[i], this.filterNames[i], this.outputFormats[i]);
-                this.getStatus(id);
-            }).catch(this.showCouldNotSubmit);
-    }
-    this.clearSubmissions();
-},
-
-clearStatusArea(){
-    this.getStatusAreaNode().innerHTML = "";
-},
-
-getSchema() {
-    fetch("http://eggserver.org/lunaris/predictor/schema")
-        .then((response) => {
-            return response.json();
-        })
-        .then((schema) => {
-            if (schema.isError) {
-                const statusTextNode = this.getStatusAreaNode();
-                statusTextNode.innerText = "Unable to load available fields: " + schema.message;
             }
-            if (schema.col_names) {
-                this.lunarisVariantPredictor.fieldNames = schema.col_names;
-                const fieldsSelectNode = document.getElementById("fields");
-                this.setOptionsForSelect(fieldsSelectNode, schema.col_names);
+        },
+
+        setSessionMsg(msg) {
+            const sessionArea = document.getElementById("session-invalid");
+            sessionArea.textContent = msg;
+        },
+
+        setEmptySubmissionArea() {
+            const submissionArea = document.getElementById("submit-table-body");
+            submissionArea.innerHTML = "";
+        },
+
+        clearSubmissions() {
+            this.setEmptySubmissionArea();
+            this.clearInputs();
+            this.filters = [];
+            this.filterNames = []; // TODO evaluate in case this is custom
+            this.inputFiles = [];
+            this.outputFormats = [];
+            this.refGenomes = [];
+        },
+
+        isValidEmail(string) {
+            if (!string || string.trim().length === 0) {
+                return false;
             }
-        })
-},
+            const parts = string.split("@");
+            if (parts.length !== 2) {
+                return false;
+            }
+            const [user, domain] = parts;
+            const domainParts = domain.split(".");
+            return (
+                user &&
+                user.trim().length > 0 &&
+                domainParts.length > 1 &&
+                domainParts.every(domainPart => domainPart.trim().length > 0)
+            );
+        },
 
-getStatusAreaNode() {
-    return document.getElementById("status_area");
-},
+        showOnBadge(e) {
+            // is this a good way to do this or not?
+            const inputValue = e.target.value;
+            const badgeId = e.target.getAttribute("id") + "-badge";
+            const badge = document.getElementById(badgeId);
+            if (badge) {
+                badge.textContent = inputValue;
+            }
+            if (badgeId == "inputfile-badge") {
+                const retrieveText = badge.textContent;
+                badge.textContent = retrieveText.split("\\").pop();
+            }
+        },
 
-getSubmissionAreaNode() {
-    return document.getElementById("submit-table-body");
-},
+        clearBadges() {
+            const badges = document.getElementsByClassName("badge");
+            for (let i = 0; i < badges.length; i++) {
+                badges[i].textContent = "";
+            }
+        },
 
-showCouldNotSubmit(message) {
-    /*const pNode = document.createElement("p");
+        setEmailMsg(msg) {
+            const emailInvalidArea = document.getElementById("email-invalid");
+            emailInvalidArea.textContent = msg;
+        },
+
+        generateEmailMsg(email, isValid) {
+            let emailMsg = "";
+            if (isValid) {
+                emailMsg =
+                    "Submitting job. Notification will be sent to " + email;
+            } else {
+                emailMsg =
+                    email +
+                    " is not a valid email. Your job has not been submitted. Please try again.";
+            }
+            this.setEmailMsg(emailMsg);
+        },
+
+        setSaveJobMessage(errorMessage) {
+            const saveJobMessage = document.getElementById("save-job-message");
+            saveJobMessage.innerText = errorMessage;
+        },
+
+        saveJob() {
+            const filter = this.codeMirror.getValue();
+            if (filter == "") {
+                this.setSaveJobMessage("Select a filter to proceed.");
+                return false;
+            }
+
+            const inputFile = this.getInputFile();
+            if (inputFile == "") {
+                this.setSaveJobMessage("Select an input file to proceed.");
+                return false;
+            }
+
+            const format = this.getOutputFormat();
+            if (format == "") {
+                this.setSaveJobMessage("Select an output format to proceed.");
+                return false;
+            }
+
+            const hg = this.getHg();
+            if (hg == "") {
+                this.setSaveJobMessage("Select a genome to proceed.");
+                return false;
+            }
+
+            this.setSaveJobMessage("");
+            const maskName = this.getMaskSelectNode().value;
+
+            this.filters.push(filter);
+            this.filterNames.push(maskName); // TODO evaluate in case this is custom
+            this.inputFiles.push(inputFile);
+            this.outputFormats.push(format);
+            this.refGenomes.push(hg);
+
+            this.showNewQueuedJob(maskName, inputFile, format, hg);
+            this.setEmailMsg("");
+            return true;
+        },
+
+        createJobFormData(index, email) {
+            const jobFormData = new FormData();
+            jobFormData.append("filter", this.filters[index]);
+            jobFormData.append("inputFile", this.inputFiles[index]);
+            jobFormData.append("format", this.outputFormats[index]);
+            jobFormData.append(
+                "session",
+                this.lunarisVariantPredictor.sessionId
+            );
+            jobFormData.append("hg", this.refGenomes[index]);
+            jobFormData.append("email", email);
+            return jobFormData;
+        },
+
+        saveJobAndCreateNew() {
+            if (this.saveJob()) {
+                // We don't want to clear the mask someone may have entered if they missed a field and it didn't save.
+                this.clearInputs();
+            }
+        },
+
+        clearInputs() {
+            this.resetFilters();
+            document.getElementById("inputfile").value = "";
+            // First options on these select boxes are placeholders. We'll restore them.
+            document.getElementById("hg").value = document.querySelector(
+                "#hg option"
+            ).textContent;
+            document.getElementById("formats").value = document.querySelector(
+                "#formats option"
+            ).textContent;
+            document.getElementById("masks").value = document.querySelector(
+                "#masks option"
+            ).textContent;
+            this.clearBadges();
+        },
+
+        showNewQueuedJob(filter, inputFile, format, hg) {
+            const newRow = document.createElement("tr");
+            this.setUpRow(newRow, false);
+
+            this.displayInputFile(newRow, this.trimFilename(inputFile));
+            this.displayRefGenome(newRow, hg);
+            this.displayFilterName(newRow, filter);
+            this.displayOutputFormat(newRow, format);
+
+            const submitTableBody = document.getElementById(
+                "submit-table-body"
+            );
+            submitTableBody.append(newRow);
+        },
+
+        displayInputFile(row, inputFilename) {
+            const inputFileCell = row.getElementsByClassName(
+                "input-file-cell"
+            )[0];
+            inputFileCell.innerText = inputFilename;
+        },
+
+        displayRefGenome(row, refGenome) {
+            const refGenomeCell = row.getElementsByClassName(
+                "ref-genome-cell"
+            )[0];
+            refGenomeCell.innerText = refGenome;
+        },
+
+        displayFilterName(row, filterName) {
+            const filterNameCell = row.getElementsByClassName(
+                "filter-name-cell"
+            )[0];
+            filterNameCell.innerText = filterName;
+        },
+
+        displayOutputFormat(row, outputFormat) {
+            const outputFormatCell = row.getElementsByClassName(
+                "output-format-cell"
+            )[0];
+            outputFormatCell.innerText = outputFormat;
+        },
+
+        trimFilename(inputFile) {
+            const longFilename = inputFile.name;
+            const shortFilename = longFilename.split("\\").pop();
+            if (shortFilename) {
+                return shortFilename;
+            }
+            return inputFile;
+        },
+
+        // When submitted through the old site (eggserver.org) all jobs are included in a session.
+        // This is reflected when the session is loaded even on the new site.
+        // When submitted through the new site, only 2 jobs show up in a session.
+        // This is reflected when the session is loaded even on the old site.
+        //
+        submitAll() {
+            const emailInput = document.getElementById("email").value;
+            const descriptionInput = document.getElementById("session-desc")
+                .value;
+
+            if (this.inputFiles.length == 0) {
+                setEmailMsg("There are no jobs queued for submission.");
+                return;
+            }
+
+            if (descriptionInput == "") {
+                setEmailMsg(
+                    "Enter a description for this session in order to continue."
+                );
+                return;
+            }
+            // As of now, must have email in order to submit.
+            if (emailInput == "") {
+                setEmailMsg("Enter your email to continue.");
+                return;
+            }
+            if (this.isValidEmail(emailInput)) {
+                this.lunarisVariantPredictor.email = emailInput;
+                this.generateEmailMsg(emailInput, true);
+            } else {
+                this.generateEmailMsg(emailInput, false);
+                return;
+            }
+
+            // New session - we don't append to any old one.
+            this.generateSession();
+            this.clearStatusArea();
+
+            for (let i = 0; i < this.inputFiles.length; i++) {
+                const formData = this.createJobFormData(i, emailInput);
+                const inputFile = this.inputFiles[i].name;
+                console.log("Session: " + formData.get("session"));
+                fetch("http://eggserver.org/lunaris/predictor/upload", {
+                    method: "POST",
+                    body: formData
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw "Could not submit " +
+                                inputFile +
+                                ": " +
+                                response.statusText;
+                        }
+                        return response.text();
+                    })
+                    .then(id => {
+                        this.addStatusEntry(
+                            inputFile,
+                            id,
+                            this.refGenomes[i],
+                            this.filterNames[i],
+                            this.outputFormats[i]
+                        );
+                        this.getStatus(id);
+                    })
+                    .catch(this.showCouldNotSubmit);
+            }
+            this.clearSubmissions();
+        },
+
+        clearStatusArea() {
+            this.getStatusAreaNode().innerHTML = "";
+        },
+
+        getSchema() {
+            fetch("http://eggserver.org/lunaris/predictor/schema")
+                .then(response => {
+                    return response.json();
+                })
+                .then(schema => {
+                    if (schema.isError) {
+                        const statusTextNode = this.getStatusAreaNode();
+                        statusTextNode.innerText =
+                            "Unable to load available fields: " +
+                            schema.message;
+                    }
+                    if (schema.col_names) {
+                        this.lunarisVariantPredictor.fieldNames =
+                            schema.col_names;
+                        const fieldsSelectNode = document.getElementById(
+                            "fields"
+                        );
+                        this.setOptionsForSelect(
+                            fieldsSelectNode,
+                            schema.col_names
+                        );
+                    }
+                });
+        },
+
+        getStatusAreaNode() {
+            return document.getElementById("status_area");
+        },
+
+        getSubmissionAreaNode() {
+            return document.getElementById("submit-table-body");
+        },
+
+        showCouldNotSubmit(message) {
+            /*const pNode = document.createElement("p");
     pNode.innerText = message;
     const statusAreaNode = getSubmissionAreaNode();
     statusAreaNode.append(pNode);*/
-    console.log(message);
-},
+            console.log(message);
+        },
 
-addStatusEntry(inputFileName, id, refGenome="genome", filterName="filter", outputFormat="format") {
-    this.lunarisVariantPredictor.inputFileNames[id] = inputFileName;
-    this.lunarisVariantPredictor.idsPending.push(id);
-    const statusRow = document.createElement("tr");
-    const statusAreaNode = this.getStatusAreaNode();
-    statusAreaNode.appendChild(statusRow);
-    statusRow.setAttribute("id", id);
-    this.showInitialStatus(statusRow, inputFileName, refGenome, filterName, outputFormat);
-},
+        addStatusEntry(
+            inputFileName,
+            id,
+            refGenome = "genome",
+            filterName = "filter",
+            outputFormat = "format"
+        ) {
+            this.lunarisVariantPredictor.inputFileNames[id] = inputFileName;
+            this.lunarisVariantPredictor.idsPending.push(id);
+            const statusRow = document.createElement("tr");
+            const statusAreaNode = this.getStatusAreaNode();
+            statusAreaNode.appendChild(statusRow);
+            statusRow.setAttribute("id", id);
+            this.showInitialStatus(
+                statusRow,
+                inputFileName,
+                refGenome,
+                filterName,
+                outputFormat
+            );
+        },
 
-setUpRow(row, isStatus){
-    const inputFileCell = document.createElement("td");
-    inputFileCell.setAttribute("class", "input-file-cell");
+        setUpRow(row, isStatus) {
+            const inputFileCell = document.createElement("td");
+            inputFileCell.setAttribute("class", "input-file-cell");
 
-    const refGenomeCell = document.createElement("td");
-    refGenomeCell.setAttribute("class", "ref-genome-cell");
+            const refGenomeCell = document.createElement("td");
+            refGenomeCell.setAttribute("class", "ref-genome-cell");
 
-    const filterNameCell = document.createElement("td");
-    filterNameCell.setAttribute("class", "filter-name-cell");
+            const filterNameCell = document.createElement("td");
+            filterNameCell.setAttribute("class", "filter-name-cell");
 
-    const outputFormatCell = document.createElement("td");
-    outputFormatCell.setAttribute("class", "output-format-cell");
+            const outputFormatCell = document.createElement("td");
+            outputFormatCell.setAttribute("class", "output-format-cell");
 
-    row.appendChild(inputFileCell);
-    row.appendChild(refGenomeCell);
-    row.appendChild(filterNameCell);
-    row.appendChild(outputFormatCell);
+            row.appendChild(inputFileCell);
+            row.appendChild(refGenomeCell);
+            row.appendChild(filterNameCell);
+            row.appendChild(outputFormatCell);
 
-    if (isStatus){
-        const outputFileCell = document.createElement("td");
-        outputFileCell.setAttribute("class", "output-file-cell");
+            if (isStatus) {
+                const outputFileCell = document.createElement("td");
+                outputFileCell.setAttribute("class", "output-file-cell");
 
-        const restoreJobCell = document.createElement("td");
-        restoreJobCell.setAttribute("class", "restore-job-cell");
+                const restoreJobCell = document.createElement("td");
+                restoreJobCell.setAttribute("class", "restore-job-cell");
 
-        row.appendChild(outputFileCell);
-        row.appendChild(restoreJobCell);
-    }
-},
+                row.appendChild(outputFileCell);
+                row.appendChild(restoreJobCell);
+            }
+        },
 
-showInitialStatus(statusRow, inputFileName="name", refGenome="genome", filterName="filter", outputFormat="format") {
-    // Include the file name, reference genome, mask filter, output format, and restore link
-    this.setUpRow(statusRow, true);
-    this.displayInputFile(statusRow, inputFileName);
-    this.displayRefGenome(statusRow, refGenome);
-    this.displayFilterName(statusRow, filterName);
-    this.displayOutputFormat(statusRow, outputFormat);
+        showInitialStatus(
+            statusRow,
+            inputFileName = "name",
+            refGenome = "genome",
+            filterName = "filter",
+            outputFormat = "format"
+        ) {
+            // Include the file name, reference genome, mask filter, output format, and restore link
+            this.setUpRow(statusRow, true);
+            this.displayInputFile(statusRow, inputFileName);
+            this.displayRefGenome(statusRow, refGenome);
+            this.displayFilterName(statusRow, filterName);
+            this.displayOutputFormat(statusRow, outputFormat);
 
-    const outputFileCell = statusRow.getElementsByClassName("output-file-cell")[0];
-    outputFileCell.innerText = "Processing...";
+            const outputFileCell = statusRow.getElementsByClassName(
+                "output-file-cell"
+            )[0];
+            outputFileCell.innerText = "Processing...";
 
-    const restoreJobCell = statusRow.getElementsByClassName("restore-job-cell")[0];
-    restoreJobCell.innerHTML = "<a>Restore</a>";
-},
+            const restoreJobCell = statusRow.getElementsByClassName(
+                "restore-job-cell"
+            )[0];
+            restoreJobCell.innerHTML = "<a>Restore</a>";
+        },
 
-getStatus(id) {
-    fetch("http://eggserver.org/lunaris/predictor/status/" + id)
-        .then((response) => response.json())
-        .then((status) => {
-            this.lunarisVariantPredictor.statuses[id] = status;
-            this.showStatus(id);
-            console.log(status);
-        });
-}, 
+        getStatus(id) {
+            fetch("http://eggserver.org/lunaris/predictor/status/" + id)
+                .then(response => response.json())
+                .then(status => {
+                    this.lunarisVariantPredictor.statuses[id] = status;
+                    this.showStatus(id);
+                    console.log(status);
+                });
+        },
 
-soManyErrors(nSnags) {
-    if(nSnags === 0) {
-        return "No errors";
-    } else if(nSnags === 1) {
-        return "One error";
-    } else {
-        return `${nSnags} errors`;
-    }
-},
+        soManyErrors(nSnags) {
+            if (nSnags === 0) {
+                return "No errors";
+            } else if (nSnags === 1) {
+                return "One error";
+            } else {
+                return `${nSnags} errors`;
+            }
+        },
 
-showStatus(id) {
-    const statusRow = document.getElementById(id);
-    const outputFileCell = statusRow.getElementsByClassName("output-file-cell")[0];
-    const inputFileName = this.lunarisVariantPredictor.inputFileNames[id];
-    const status = this.lunarisVariantPredictor.statuses[id];
-    if (status) {
-        if (status.succeeded) {
-            const linkNode = document.createElement("a");
-            const outputFile = id + ".tsv"
-            linkNode.setAttribute("href", "http://eggserver.org/lunaris/predictor/results/" + outputFile);
-            linkNode.setAttribute("download", outputFile);
-            linkNode.innerText = "Click here to download";
-            outputFileCell.innerHTML = "";
-            outputFileCell.append(linkNode);
-        }
-        const snagMessages = status.snagMessages;
-        const nSnags = snagMessages.length;
-        if(nSnags) {
-            console.log(nSnags);
-            /*const snagNode = document.createTextNode(" " + soManyErrors(nSnags));
+        showStatus(id) {
+            const statusRow = document.getElementById(id);
+            const outputFileCell = statusRow.getElementsByClassName(
+                "output-file-cell"
+            )[0];
+            const inputFileName = this.lunarisVariantPredictor.inputFileNames[
+                id
+            ];
+            const status = this.lunarisVariantPredictor.statuses[id];
+            if (status) {
+                if (status.succeeded) {
+                    const linkNode = document.createElement("a");
+                    const outputFile = id + ".tsv";
+                    linkNode.setAttribute(
+                        "href",
+                        "http://eggserver.org/lunaris/predictor/results/" +
+                            outputFile
+                    );
+                    linkNode.setAttribute("download", outputFile);
+                    linkNode.innerText = "Click here to download";
+                    outputFileCell.innerHTML = "";
+                    outputFileCell.append(linkNode);
+                }
+                const snagMessages = status.snagMessages;
+                const nSnags = snagMessages.length;
+                if (nSnags) {
+                    console.log(nSnags);
+                    /*const snagNode = document.createTextNode(" " + soManyErrors(nSnags));
             const snagNodeSpan = document.createElement("span");
             snagNodeSpan.style.color = "red";
             snagNodeSpan.appendChild(snagNode)
@@ -538,98 +634,99 @@ showStatus(id) {
                 snagsDivNode.style.color = "red";
                 statusRow.appendChild(snagsDivNode);
             }*/
+                }
+            } else {
+                this.showInitialStatus(statusRow, inputFileName);
+            }
+        },
+
+        updatePendingStatuses() {
+            const idsPendingNew = [];
+            let i = 0;
+            const idsPending = this.lunarisVariantPredictor.idsPending;
+            while (i < idsPending.length) {
+                const id = idsPending[i];
+                this.getStatus(id);
+                const status = this.lunarisVariantPredictor.statuses[id];
+                if (!status.completed) {
+                    idsPendingNew.push(id);
+                }
+                i++;
+            }
+            this.lunarisVariantPredictor.idsPending = idsPendingNew;
+        },
+
+        setOptionsForSelect(selectNode, options) {
+            options.forEach(option => {
+                selectNode.options.add(new Option(option));
+            });
+        },
+
+        resetFilters() {
+            this.codeMirror.setValue("");
+        },
+
+        initMasksSelector() {
+            fetch("http://eggserver.org/lunaris/predictor/masks/list")
+                .then(response => response.json())
+                .then(masksList => {
+                    this.lunarisVariantPredictor.masksList = masksList;
+                    const selectNode = this.getMaskSelectNode();
+                    this.setOptionsForSelect(
+                        selectNode,
+                        this.lunarisVariantPredictor.masksList
+                    );
+                });
+        },
+
+        getMaskSelectNode() {
+            return document.getElementById("masks");
+        },
+
+        getOutputFormatNode() {
+            return document.getElementById("formats");
+        },
+
+        setOutputFormat(format) {
+            this.getOutputFormatNode().value = format;
+        },
+
+        getOutputFormat() {
+            const selection = this.getOutputFormatNode().value;
+            if (selection == "-- Choose format --") {
+                return "";
+            }
+            return selection;
+        },
+
+        getInputFile() {
+            return document.getElementById("inputfile").files[0];
+        },
+
+        getHg() {
+            const selection = document.getElementById("hg").value;
+            if (selection == "-- Choose genome --") {
+                return "";
+            }
+            return selection;
+        },
+
+        setMask(mask) {
+            if (mask.slice(0, 5) == "ERROR") {
+                mask = "";
+            }
+            this.codeMirror.setValue(mask);
+        },
+
+        setPredefinedMask(e) {
+            const maskSelectNode = this.getMaskSelectNode();
+            const maskName = maskSelectNode.value;
+            fetch("http://eggserver.org/lunaris/predictor/masks/" + maskName)
+                .then(response => response.text())
+                .then(mask => {
+                    this.setMask(mask);
+                });
         }
-    } else {
-        this.showInitialStatus(statusRow, inputFileName);
-    }
-},
-
-updatePendingStatuses() {
-    const idsPendingNew = [];
-    let i = 0;
-    const idsPending = this.lunarisVariantPredictor.idsPending;
-    while (i < idsPending.length) {
-        const id = idsPending[i];
-        this.getStatus(id);
-        const status = this.lunarisVariantPredictor.statuses[id];
-        if (!status.completed) {
-            idsPendingNew.push(id);
-        }
-        i++;
-    }
-    this.lunarisVariantPredictor.idsPending = idsPendingNew;
-}, 
-
-setOptionsForSelect(selectNode, options) {
-    options.forEach((option) => {
-        selectNode.options.add(new Option(option));
-    })
-},
-
-resetFilters() {
-    this.codeMirror.setValue("");
-},
-
-initMasksSelector() {
-    fetch("http://eggserver.org/lunaris/predictor/masks/list")
-        .then((response) => response.json())
-        .then((masksList) => {
-            this.lunarisVariantPredictor.masksList = masksList;
-            const selectNode = this.getMaskSelectNode();
-            this.setOptionsForSelect(selectNode, this.lunarisVariantPredictor.masksList);
-        });
-},
-
-getMaskSelectNode() {
-    return document.getElementById("masks");
-},
-
-
-getOutputFormatNode() {
-    return document.getElementById("formats");
-},
-
-setOutputFormat(format) {
-    this.getOutputFormatNode().value = format;
-},
-
-getOutputFormat() {
-    const selection = this.getOutputFormatNode().value;
-    if (selection == "-- Choose format --"){
-        return "";
-    }
-    return selection;
-},
-
-getInputFile(){
-    return document.getElementById("inputfile").files[0];
-
-},
-
-getHg() {
-    const selection = document.getElementById("hg").value;
-    if (selection == "-- Choose genome --"){
-        return "";
-    }
-    return selection;
-},
-
-setMask(mask) {
-    if (mask.slice(0, 5) == "ERROR"){
-        mask = "";
-    }
-    this.codeMirror.setValue(mask);
-},
-
-setPredefinedMask(e) {
-    const maskSelectNode = this.getMaskSelectNode();
-    const maskName = maskSelectNode.value;
-    fetch("http://eggserver.org/lunaris/predictor/masks/" + maskName)
-        .then((response) => response.text())
-        .then((mask) => {
-            this.setMask(mask);
-        });
-}
     },
 
     data() {
@@ -638,37 +735,39 @@ setPredefinedMask(e) {
                 inputFileNames: {},
                 statuses: {},
                 idsPending: [],
-            fieldNames: [],
-            stringOperators: ["==", "=~", "!=", "!=~"],
-            numericalOperators: ["<", "<=", ">", ">="],
-            operators: ["==", "=~", "!=", "!=~", "<", "<=", ">", ">="],
-            filterGroupCounter: 0,
-            filterCounter: 0,
+                fieldNames: [],
+                stringOperators: ["==", "=~", "!=", "!=~"],
+                numericalOperators: ["<", "<=", ">", ">="],
+                operators: ["==", "=~", "!=", "!=~", "<", "<=", ">", ">="],
+                filterGroupCounter: 0,
+                filterCounter: 0,
+                filters: [],
+                masksList: []
+            },
+
             filters: [],
-            masksList: []
-        },
-        
-        filters: [],
-        filterNames: [],
-        inputFiles: [],
-        refGenomes: [],
-        outputFormats: [],
-        
-        codeMirrorConfig: {
-            //theme: "liquibyte",
-            lineNumbers: true,
-        },
-        
-        codeMirror: "hello",
-        sessionInput: null,
-    }
+            filterNames: [],
+            inputFiles: [],
+            refGenomes: [],
+            outputFormats: [],
+
+            codeMirrorConfig: {
+                theme: "material",
+                lineNumbers: true
+            },
+
+            codeMirror: "hello",
+            sessionInput: null
+        };
     },
 
     computed: {
-
-        codemirror(){
-            return this.codeMirror.codemirror;
-        },
+        // codemirror(){
+        //     return this.codeMirror.codemirror;
+        // },
+        // codemirror() {
+        //     return this.$refs.myCm.codemirror;
+        // },
 
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
@@ -690,18 +789,16 @@ setPredefinedMask(e) {
                 return {};
             }
             return contents;
-        },
-
-
-
-
+        }
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getPageInfo", { "page": "about", "portal": group.name });
-        },
-
+            this.$store.dispatch("kp4cd/getPageInfo", {
+                page: "about",
+                portal: group.name
+            });
+        }
     }
 }).$mount("#app");
