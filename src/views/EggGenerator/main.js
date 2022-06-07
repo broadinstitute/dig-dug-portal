@@ -20,12 +20,14 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import CodeMirror from "./codemirror/lib/codemirror.js";
+import { codemirror } from "vue-codemirror";
+import 'codemirror/lib/codemirror.css';
 
 new Vue({
     store,
 
     components: {
+        codemirror,
         StaticPageInfo,
         PageHeader,
         PageFooter,
@@ -51,10 +53,10 @@ init() {
     this.initSession();
     this.getSchema();
     this.initMasksSelector();
-    const codeMirrorParent = document.getElementById("code_mirror_parent");
+    //const codeMirrorParent = document.getElementById("code_mirror_parent");
     // TODO set this up
-    this.codeMirror = CodeMirror(codeMirrorParent, this.codeMirrorConfig);
-    this.codeMirror.setSize("100%", "7.5em");
+    //this.codeMirror = CodeMirror(codeMirrorParent, this.codeMirrorConfig);
+    //this.codeMirror.setSize("100%", "7.5em");
     setInterval(this.updatePendingStatuses, 300);
 },
 
@@ -96,7 +98,7 @@ setSessionId(sessionId) {
     this.lunarisVariantPredictor.sessionId = sessionId;
 },
 
-// TODO figure out what is up with loading sessions
+// TODO figure out why actual session job list length is less than submitted
 
 loadSession(sessionId) {
     fetch("http://eggserver.org/lunaris/predictor/session/" + sessionId)
@@ -106,7 +108,6 @@ loadSession(sessionId) {
                 this.setSessionMsg("Error:\n" + session.message);
                 window.log(session.report);
             } else if(session.found) {
-                console.log("found session " + sessionId);
                 this.setSessionId(sessionId);
                 if(session.filter) {
                     this.setMask(session.filter);
@@ -116,8 +117,8 @@ loadSession(sessionId) {
                 }
                 this.clearSubmissions();
                 this.clearStatusArea();
+                console.log(session.jobs.length + " jobs");
                 session.jobs.forEach(job => {
-                    console.log(job);
                     const id = job.id;
                     const path = job.inputFile;
                     const inputFileName = path.substring(path.lastIndexOf("/") + 1);
@@ -150,7 +151,6 @@ setSessionMsg(msg) {
 },
 
 setEmptySubmissionArea() {
-    console.log("emptying submission area!");
     const submissionArea = document.getElementById("submit-table-body");
     submissionArea.innerHTML = "";
 },
@@ -334,6 +334,12 @@ trimFilename(inputFile){
     return inputFile;
 },
 
+
+// When submitted through the old site (eggserver.org) all jobs are included in a session.
+// This is reflected when the session is loaded even on the new site.
+// When submitted through the new site, only 2 jobs show up in a session.
+// This is reflected when the session is loaded even on the old site.
+// 
 submitAll(){
     const emailInput = document.getElementById("email").value;
     const descriptionInput = document.getElementById("session-desc").value;
@@ -367,6 +373,7 @@ submitAll(){
     for (let i = 0; i < this.inputFiles.length; i++){
         const formData = this.createJobFormData(i, emailInput);
         const inputFile = this.inputFiles[i].name;
+        console.log("Session: " + formData.get("session"));
         fetch("http://eggserver.org/lunaris/predictor/upload", {method: "POST", body: formData})
             .then((response) => {
                 if (!response.ok) {
@@ -648,16 +655,20 @@ setPredefinedMask(e) {
         outputFormats: [],
         
         codeMirrorConfig: {
-            theme: "liquibyte",
+            //theme: "liquibyte",
             lineNumbers: true,
         },
         
-        codeMirror: null,
+        codeMirror: "hello",
         sessionInput: null,
     }
     },
 
     computed: {
+
+        codemirror(){
+            return this.codeMirror.codemirror;
+        },
 
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];

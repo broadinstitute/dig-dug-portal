@@ -302,7 +302,7 @@
                                 <button class="form-control" @click="$parent.resetFilters">Clear Mask</button>
                             </label>
                         </div>
-                        <p id="code_mirror_parent"></p>
+                        <codemirror v-model="$parent.codeMirror" :options="$parent.codeMirrorConfig"></codemirror>
                         <div class="centering">
                             <div class="placeholder"></div>
                             <label id="output-format">Output format
