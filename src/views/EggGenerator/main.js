@@ -49,18 +49,6 @@ new Vue({
     },
 
     methods: {
-        // onCmCursorActivity(codemirror) {
-        //     console.debug("onCmCursorActivity", codemirror);
-        // },
-        // onCmReady(codemirror) {
-        //     console.debug("onCmReady", codemirror);
-        // },
-        // onCmFocus(codemirror) {
-        //     console.debug("onCmFocus", codemirror);
-        // },
-        // onCmBlur(codemirror) {
-        //     console.debug("onCmBlur", codemirror);
-        // },
         init() {
             this.initSession();
             this.getSchema();
@@ -762,13 +750,6 @@ new Vue({
     },
 
     computed: {
-        // codemirror(){
-        //     return this.codeMirror.codemirror;
-        // },
-        // codemirror() {
-        //     return this.$refs.myCm.codemirror;
-        // },
-
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
