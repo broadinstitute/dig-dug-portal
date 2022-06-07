@@ -238,7 +238,7 @@ new Vue({
         },
 
         saveJob() {
-            const filter = this.codeMirror.getValue();
+            const filter = this.codeMirror;
             if (filter == "") {
                 this.setSaveJobMessage("Select a filter to proceed.");
                 return false;
@@ -651,7 +651,7 @@ new Vue({
         },
 
         resetFilters() {
-            this.codeMirror.setValue("");
+            this.codeMirror = "";
         },
 
         initMasksSelector() {
@@ -703,7 +703,7 @@ new Vue({
             if (mask.slice(0, 5) == "ERROR") {
                 mask = "";
             }
-            this.codeMirror.setValue(mask);
+            this.codeMirror = mask;
         },
 
         setPredefinedMask(e) {
@@ -744,7 +744,7 @@ new Vue({
                 lineNumbers: true
             },
 
-            codeMirror: "hello",
+            codeMirror: "Select a mask from the list above, or compose a custom mask in this field.",
             sessionInput: null
         };
     },
