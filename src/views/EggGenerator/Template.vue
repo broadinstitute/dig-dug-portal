@@ -118,11 +118,7 @@
                         <div role="tablist" class="accordion">
                             <b-card no-body class="mb-1">
                                 <b-card-header header-tag="header" role="tab" class="p-1">
-                                    <b-button block v-b-toggle.accordion-1 variant="info"
-                                        type="button"
-                                        class="
-                                            btn btn-outline-primary btn-block
-                                            not-collapsed">
+                                    <b-button block v-b-toggle.accordion-1 variant="info">
                                         Source file
                                         <div class="criteria">
                                             <span

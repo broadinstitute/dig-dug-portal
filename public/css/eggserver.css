@@ -215,3 +215,7 @@ tr {
 td {
     flex: 1;
 }
+
+.btn-info{
+    background-color: #0097d6 !important;
+}
