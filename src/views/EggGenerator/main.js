@@ -407,11 +407,8 @@ new Vue({
                 const formData = this.createJobFormData(i, emailInput);
                 const inputFile = this.inputFiles[i].name;
                 console.log("Session: " + formData.get("session"));
-                fetch("http://eggserver.org/lunaris/predictor/upload", {
-                    method: "POST",
-                    body: formData
-                })
-                    .then(response => {
+                let thisJob = this.fetchJob(formData);
+                thisJob.then(response => {
                         if (!response.ok) {
                             throw "Could not submit " +
                                 inputFile +
@@ -433,6 +430,23 @@ new Vue({
                     .catch(this.showCouldNotSubmit);
             }
             this.clearSubmissions();
+        },
+
+        async fetchJob(formData) {
+            try {
+                let jobResponse = await fetch("http://eggserver.org/lunaris/predictor/upload", {
+                    method: "POST",
+                    body: formData
+                });
+                if (!jobResponse.ok){
+                    throw new Error("Error: " + jobResponse.status);
+                }
+                return jobResponse;
+            } catch (error){
+                console.error(error);
+            }
+            
+            
         },
 
         clearStatusArea() {
