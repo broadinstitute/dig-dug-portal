@@ -36,7 +36,7 @@ let pages = {
         template: "public/index.html",
         filename: "variant.html",
         title: "Variant Info",
-        chunks: ["chunk-vendors", "chunk-common", "variant"]
+        chunks: ["chunk-vendors", "chunk-common", " variant    "]
     },
     gene: {
         entry: "src/portals/Neph/views/Gene/main.js",

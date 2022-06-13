@@ -56,8 +56,6 @@ Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
 Vue.use(BootstrapVueIcons);
 
-
-
 new Vue({
     store,
     components: {
@@ -106,10 +104,10 @@ new Vue({
         return {
             enrichmentScoring: null,
 
-            associationsFilter: function (id) {
+            associationsFilter: function(id) {
                 return true;
             },
-            annotationsFilter: function (id) {
+            annotationsFilter: function(id) {
                 return true;
             },
             pageAssociationsMap: {},
@@ -117,22 +115,22 @@ new Vue({
             regionPageSearchCriterion: [],
             pillList: [],
             colors: [
-                '#007bff',
-                '#048845',
-                '#8490C8',
-                '#BF61A5',
-                '#EE3124',
-                '#FCD700',
-                '#5555FF',
-                '#7aaa1c',
-                '#9F78AC',
-                '#F88084',
-                '#F5A4C7',
-                '#CEE6C1',
-                '#cccc00',
-                '#6FC7B6',
-                '#D5A768',
-                '#d4d4d4',
+                "#007bff",
+                "#048845",
+                "#8490C8",
+                "#BF61A5",
+                "#EE3124",
+                "#FCD700",
+                "#5555FF",
+                "#7aaa1c",
+                "#9F78AC",
+                "#F88084",
+                "#F5A4C7",
+                "#CEE6C1",
+                "#cccc00",
+                "#6FC7B6",
+                "#D5A768",
+                "#d4d4d4"
             ]
         };
     },
@@ -153,8 +151,9 @@ new Vue({
                 if (this.selectedPhenotypes.length > 0) {
                     this.$store.dispatch("credibleSets/clear");
                     this.selectedPhenotypes.forEach(p => {
-                        const queryString = `${p.name},${this.$store.state.chr
-                            }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        const queryString = `${p.name},${
+                            this.$store.state.chr
+                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                         this.$store.dispatch("credibleSets/query", {
                             q: queryString,
                             append: true
@@ -297,7 +296,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function (gene) {
+            return this.$store.state.genes.data.filter(function(gene) {
                 return gene.source == "symbol";
             });
         },

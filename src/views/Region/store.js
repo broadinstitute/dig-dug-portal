@@ -64,7 +64,11 @@ export default new Vuex.Store({
             state.searchGene = null;
 
             // did the region change completely?
-            if (oldChr !== state.chr || oldEnd < state.start || oldStart > state.end) {
+            if (
+                oldChr !== state.chr ||
+                oldEnd < state.start ||
+                oldStart > state.end
+            ) {
                 state.clearPhenotypeFlag = true;
             }
 
@@ -119,7 +123,6 @@ export default new Vuex.Store({
                     end: context.state.newEnd
                 });
             }
-
 
             const newRegion = region || context.getters.region;
             if (context.state.searchGene) {
