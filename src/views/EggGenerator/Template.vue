@@ -116,17 +116,13 @@
                     <div class="card-body">
                         <h4 class="card-title">Create job</h4>
                         <div role="tablist" class="accordion">
-                            <div class="card mb-1">
-                                <header role="tab" class="card-header p-1">
-                                    <button
+                            <b-card no-body class="mb-1">
+                                <b-card-header header-tag="header" role="tab" class="p-1">
+                                    <b-button block v-b-toggle.accordion-1 variant="info"
                                         type="button"
                                         class="
                                             btn btn-outline-primary btn-block
-                                            not-collapsed
-                                        "
-                                        aria-expanded="true"
-                                        aria-controls="accordion-1"
-                                    >
+                                            not-collapsed">
                                         Source file
                                         <div class="criteria">
                                             <span
@@ -135,17 +131,15 @@
                                             ></span>
                                             <span
                                                 class="badge filter-pill-mask"
-                                                id="hg-badge"
-                                            ></span>
+                                                id="hg-badge"></span>
                                         </div>
-                                    </button>
-                                </header>
-                                <div
-                                    id="accordion-1"
+                                    </b-button>
+                                </b-card-header>
+                                <b-collapse
+                                    id="accordion-1" visible accordion="my-accordion"
                                     role="tabpanel"
-                                    class="collapse show"
                                 >
-                                    <div class="card-body">
+                                    <b-card-body class="card-body">
                                         <div
                                             role="alert"
                                             aria-live="polite"
@@ -299,20 +293,13 @@
                                                 >
                                             </li>
                                         </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card mb-1">
-                                <header role="tab" class="card-header p-1">
-                                    <button
-                                        type="button"
-                                        class="
-                                            btn btn-outline-primary btn-block
-                                            not-collapsed
-                                        "
-                                        aria-expanded="true"
-                                        aria-controls="accordion-1"
-                                    >
+                                    </b-card-body>
+                                </b-collapse>
+                            </b-card>
+                            <b-card no-body class="mb-1">
+                                <b-card-header header-tag="header" role="tab" class="p-1">
+                                    <b-button block v-b-toggle.accordion-2 variant="info"
+                                        type="button">
                                         Mask
                                         <div class="criteria">
                                             <span
@@ -320,9 +307,10 @@
                                                 id="formats-badge"
                                             ></span>
                                         </div>
-                                    </button>
-                                </header>
-                                <div class="card-body">
+                                    </b-button>
+                                </b-card-header>
+                                <b-collapse id="accordion-2" accordion="my-accordion" role="tabpanel">
+                                    <b-card-body>
                                     <ul>
                                         <li>
                                             Enclose field names in backticks.
@@ -792,19 +780,12 @@
                                         <div id="save-job-message"></div>
                                         <div class="placeholder"></div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="card mb-1">
-                                <header role="tab" class="card-header p-1">
-                                    <button
-                                        type="button"
-                                        class="
-                                            btn btn-outline-primary btn-block
-                                            not-collapsed
-                                        "
-                                        aria-expanded="true"
-                                        aria-controls="accordion-1"
-                                    >
+                                    </b-card-body>
+                                </b-collapse>
+                            </b-card>
+                            <b-card no-body class="mb-1">
+                                <b-card-header header-tag="header" role="tab" class="p-1">
+                                    <b-button block v-b-toggle.accordion-3 variant="info">
                                         Submit jobs
                                         <div class="criteria">
                                             <span
@@ -812,9 +793,11 @@
                                                 id="email-badge"
                                             ></span>
                                         </div>
-                                    </button>
-                                </header>
-                                <table>
+                                    </b-button>
+                                </b-card-header>
+                                <b-collapse id="accordion-3" accordion="my-accordion" role="tabpanel">
+                                    <b-card-body>
+                                    <table>
                                     <thead>
                                         <tr>
                                             <td>Input file</td>
@@ -868,7 +851,9 @@
                                     </button>
                                     <div class="placeholder"></div>
                                 </div>
-                            </div>
+                                    </b-card-body>
+                                </b-collapse>
+                            </b-card>
                         </div>
                     </div>
                 </div>
