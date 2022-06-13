@@ -86,6 +86,7 @@
                                                     name="home.example"
                                                     :group="
                                                         $parent.diseaseGroup
+                                                            .name
                                                     "
                                                 ></documentation>
                                             </div>
