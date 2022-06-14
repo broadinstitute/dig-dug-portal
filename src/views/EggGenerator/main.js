@@ -71,6 +71,7 @@ new Vue({
 
         initSession() {
             let sessionId;
+            let oldSessionId;
             let key;
             let value;
             const queryParts = window.location.search.substring(1).split("&");
@@ -79,11 +80,13 @@ new Vue({
                 value = allParts.pop();
                 key = allParts[0];
                 if (key === "session" && this.isWellFormedSessionId(value)) {
-                    sessionId = value;
+                    oldSessionId = value;
                 }
             });
-            if (sessionId) {
-                this.loadSession(sessionId);
+            if (oldSessionId) {
+                this.loadSession(oldSessionId);
+            } else {
+                this.generateSession();
             }
         },
 
@@ -91,26 +94,32 @@ new Vue({
             let sessionId =
                 this.fourHexDigits(new Date().getTime() % 65536) +
                 this.fourHexDigits(Math.floor(Math.random() * 65537));
-            this.setSessionId(sessionId);
+            this.setSessionId(sessionId, false);
         },
 
-        setSessionId(sessionId) {
+        setSessionId(sessionId, oldSession=false) {
             const sessionIdArea = document.getElementById("session-id-area");
             sessionIdArea.innerText = "Session ID is " + sessionId + ".";
-            this.lunarisVariantPredictor.sessionId = sessionId;
+            if (oldSession){
+                this.lunarisVariantPredictor.oldSessionId = sessionId;
+            } else {
+                this.lunarisVariantPredictor.sessionId = sessionId;
+            }
+            console.log("New session id: " + this.lunarisVariantPredictor.sessionId);
+            console.log("Old session id: " + this.lunarisVariantPredictor.oldSessionId);
         },
 
         // TODO figure out why actual session job list length is less than submitted
 
-        loadSession(sessionId) {
-            fetch("http://eggserver.org/lunaris/predictor/session/" + sessionId)
+        loadSession(idToLoad) {
+            fetch("http://eggserver.org/lunaris/predictor/session/" + idToLoad)
                 .then(response => response.json())
                 .then(session => {
                     if (session.error) {
                         this.setSessionMsg("Error:\n" + session.message);
                         window.log(session.report);
                     } else if (session.found) {
-                        this.setSessionId(sessionId);
+                        this.setSessionId(idToLoad, true);
                         if (session.filter) {
                             this.setMask(session.filter);
                         }
@@ -129,12 +138,12 @@ new Vue({
                             this.addStatusEntry(inputFileName, id);
                         });
                         this.setSessionMsg(
-                            "Loading session " + sessionId + "."
+                            "Loading session " + idToLoad + "."
                         );
                     } else {
                         const sessionMsg =
                             "Unknown session " +
-                            sessionId +
+                            idToLoad +
                             ".\nNote that sessions are only saved when something is submitted.";
                         this.setSessionMsg(sessionMsg);
                     }
@@ -400,8 +409,9 @@ new Vue({
             }
 
             // New session - we don't append to any old one.
-            this.generateSession();
+            //this.generateSession();
             this.clearStatusArea();
+            this.setSessionId(this.lunarisVariantPredictor.sessionId, false);
 
             for (let i = 0; i < this.inputFiles.length; i++) {
                 const formData = this.createJobFormData(i, emailInput);
