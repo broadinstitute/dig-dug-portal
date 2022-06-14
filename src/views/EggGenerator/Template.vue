@@ -343,393 +343,80 @@
                                     </ol>
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <div
-                                                class="
-                                                    tabs
-                                                    filtering-ui-wrapper
-                                                "
-                                                id="__BVID__12"
-                                            >
-                                                <div id="mask-subtabs">
-                                                    <ul
-                                                        role="tablist"
-                                                        class="nav nav-tabs"
-                                                        id="__BVID__12__BV_tab_controls_"
-                                                    >
-                                                        <li
-                                                            role="presentation"
-                                                            class="nav-item"
-                                                        >
-                                                            <a
-                                                                role="tab"
-                                                                aria-selected="true"
-                                                                aria-setsize="2"
-                                                                aria-posinset="1"
-                                                                aria-controls="__BVID__13"
-                                                                href="#"
-                                                                target="_self"
-                                                                class="
-                                                                    nav-link
-                                                                    active
-                                                                "
-                                                                >Load predefined
-                                                                mask</a
-                                                            >
-                                                        </li>
-                                                        <li
-                                                            role="presentation"
-                                                            class="nav-item"
-                                                        >
-                                                            <a
-                                                                role="tab"
-                                                                tabindex="-1"
-                                                                aria-selected="false"
-                                                                aria-setsize="2"
-                                                                aria-posinset="2"
-                                                                href="#"
-                                                                target="_self"
-                                                                class="nav-link"
-                                                                id="__BVID__16___BV_tab_button__"
-                                                                aria-controls="__BVID__16"
-                                                                >Fields &
-                                                                operators</a
-                                                            >
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <div
-                                                    class="tab-content mt-3"
-                                                    id="__BVID__12__BV_tab_container_"
-                                                >
-                                                    <div
-                                                        role="tabpanel"
-                                                        class="
-                                                            centering
-                                                            tabpane
-                                                        "
-                                                        id="__BVID__13"
-                                                    >
-                                                        <div
-                                                            class="placeholder"
-                                                        ></div>
-                                                        <label for="masks"
-                                                            >Mask
-                                                            <select
-                                                                class="
-                                                                    form-control
-                                                                "
-                                                                name="masks"
-                                                                id="masks"
-                                                                v-on:change="
-                                                                    $parent.setPredefinedMask
-                                                                "
-                                                            >
-                                                                <option
-                                                                    value=""
-                                                                >
-                                                                    -- Choose
-                                                                    mask --
-                                                                </option>
+                                            <b-card no-body>
+                                                <b-tabs card content-class="mt-3" id="mask-tabs">
+                                                <b-tab title="Load predefined mask">
+                                                    <div class="centering">
+                                                        <div class="placeholder"></div>
+                                                        <label for="masks">Mask
+                                                            <select class="form-control" name="masks" id="masks"
+                                                                v-on:change="$parent.setPredefinedMask">
+                                                                <option value=""> -- Choose mask -- </option>
                                                             </select>
                                                         </label>
-                                                        <div
-                                                            class="placeholder"
-                                                        ></div>
+                                                        <div class="placeholder"></div>
                                                     </div>
-                                                    Check out predefined masks
-                                                    as examples.
-                                                    <div
-                                                        role="tabpanel"
-                                                        class="
-                                                            tabpane
-                                                            centering
-                                                        "
-                                                        id="__BVID__16"
-                                                    >
-                                                        <div
-                                                            class="placeholder"
-                                                        ></div>
+                                                </b-tab>
+                                                <b-tab title="Fields and operators" id="field-tables">
+                                                    <div class="centering">
+                                                        <div class="placeholder"></div>
                                                         <table>
                                                             <thead>
-                                                                <tr>
-                                                                    <td
-                                                                        colspan="2"
-                                                                    >
-                                                                        <h6>
-                                                                            Available
-                                                                            fields
-                                                                        </h6>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        Field
-                                                                    </td>
-                                                                    <td>
-                                                                        Possible
-                                                                        values
-                                                                    </td>
-                                                                </tr>
+                                                                <tr><td colspan="2"> <h6>Available fields</h6></td></tr>
+                                                                <tr><td>Field</td><td>Possible values</td></tr>
                                                             </thead>
                                                             <tbody>
-                                                                <tr>
-                                                                    <td>MAF</td>
-                                                                    <td>0-1</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>LoF</td>
-                                                                    <td>
-                                                                        HC, LC
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        VEST3_rankscore
-                                                                    </td>
-                                                                    <td>0-1</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        CADD_raw_rankscore
-                                                                    </td>
-                                                                    <td>0-1</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        DANN_rankscore
-                                                                    </td>
-                                                                    <td>0-1</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        Eigen-PC-raw_rankscore
-                                                                    </td>
-                                                                    <td>0-1</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        FATHMM_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        D, T
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        fathmm-MKL_coding_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        D, T
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        PROVEAN_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        D, N
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        MetaSVM_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        D, T
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        MetaLR_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        D, T
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        M-CAP_score
-                                                                    </td>
-                                                                    <td>0-1</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        Polyphen2_HDIV_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        D, P, B
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        Polyphen2_HVAR_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        D, P, B
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        SIFT_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        D, T
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        LRT_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        D, N, U
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        MutationTaster_pred
-                                                                    </td>
-                                                                    <td>
-                                                                        A, D, N,
-                                                                        P
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        IMPACT
-                                                                    </td>
-                                                                    <td>
-                                                                        HIGH,
-                                                                        MODERATE,
-                                                                        LOW
-                                                                    </td>
-                                                                </tr>
+                                                                <tr><td>MAF</td><td>0-1</td></tr>
+                                                                <tr><td>LoF</td><td>HC, LC</td></tr>
+                                                                <tr><td>VEST3_rankscore</td><td>0-1</td></tr>
+                                                                <tr><td>CADD_raw_rankscore</td><td>0-1</td></tr>
+                                                                <tr><td>DANN_rankscore</td><td>0-1</td></tr>
+                                                                <tr><td>Eigen-PC-raw_rankscore</td><td>0-1</td></tr>
+                                                                <tr><td>FATHMM_pred</td><td>D, T</td></tr>
+                                                                <tr><td>fathmm-MKL_coding_pred</td><td>D, T</td></tr>
+                                                                <tr><td>PROVEAN_pred</td><td>D, N</td></tr>
+                                                                <tr><td>MetaSVM_pred</td><td>D, T</td></tr>
+                                                                <tr><td>MetaLR_pred</td><td>D, T</td></tr>
+                                                                <tr><td>M-CAP_score</td><td>0-1</td></tr>
+                                                                <tr><td>Polyphen2_HDIV_pred</td><td>D, P, B</td></tr>
+                                                                <tr><td>Polyphen2_HVAR_pred</td><td>D, P, B</td></tr>
+                                                                <tr><td>SIFT_pred</td><td>D, T</td></tr>
+                                                                <tr><td>LRT_pred</td><td>D, N, U</td></tr>
+                                                                <tr><td>MutationTaster_pred</td><td>A, D, N, P</td></tr>
+                                                                <tr><td>IMPACT</td><td>HIGH, MODERATE, LOW</td></tr>
                                                             </tbody>
                                                         </table>
                                                         <table>
                                                             <thead>
-                                                                <tr>
-                                                                    <td
-                                                                        colspan="2"
-                                                                    >
-                                                                        <h6>
-                                                                            Available
-                                                                            operators
-                                                                        </h6>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        Operator
-                                                                    </td>
-                                                                    <td>
-                                                                        Definition
-                                                                    </td>
-                                                                </tr>
+                                                                <tr><td colspan="2"><h6>Available operators</h6></td></tr>
+                                                                <tr><td>Operator</td><td>Definition</td></tr>
                                                             </thead>
                                                             <tbody>
-                                                                <tr>
-                                                                    <td>==</td>
-                                                                    <td>
-                                                                        equals
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>!=</td>
-                                                                    <td>
-                                                                        does not
-                                                                        equal
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>~</td>
-                                                                    <td>
-                                                                        contains
-                                                                        regex
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>!~</td>
-                                                                    <td>
-                                                                        does not
-                                                                        contain
-                                                                        regex
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>~=</td>
-                                                                    <td>
-                                                                        matches
-                                                                        regex
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>!~=</td>
-                                                                    <td>
-                                                                        does not
-                                                                        match
-                                                                        regex
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        &lt;
-                                                                    </td>
-                                                                    <td>
-                                                                        less
-                                                                        than
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        &le;
-                                                                    </td>
-                                                                    <td>
-                                                                        less or
-                                                                        equal
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        &gt;
-                                                                    </td>
-                                                                    <td>
-                                                                        greater
-                                                                        than
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        &ge;
-                                                                    </td>
-                                                                    <td>
-                                                                        greater
-                                                                        or equal
-                                                                    </td>
-                                                                </tr>
+                                                                <tr><td>==</td><td>equals</td></tr>
+                                                                <tr><td>!=</td><td>does not equal</td></tr>
+                                                                <tr><td>~</td><td>contains regex</td></tr>
+                                                                <tr><td>!~</td><td>does not contain regex</td></tr>
+                                                                <tr><td>~=</td><td>matches regex</td></tr>
+                                                                <tr><td>!~=</td><td>does not match regex</td></tr>
+                                                                <tr><td>&lt;</td><td>less than</td></tr>
+                                                                <tr><td>&le;</td><td>less or equal</td></tr>
+                                                                <tr><td>&gt;</td><td>greater than</td></tr>
+                                                                <tr><td>&ge;</td><td>greater or equal</td></tr>
                                                             </tbody>
                                                         </table>
-                                                        <div
-                                                            class="placeholder"
-                                                        ></div>
+                                                        <div class="placeholder"></div>
                                                     </div>
-                                                </div>
-                                            </div>
+                                                </b-tab>
+                                            </b-tabs>
+                                            </b-card>
                                         </div>
                                     </div>
                                     <div id="clear-mask-div">
                                         <label>
-                                            <button
-                                                class="form-control"
-                                                @click="$parent.resetFilters"
-                                            >
-                                                Clear Mask
-                                            </button>
+                                            <button class="form-control" @click="$parent.resetFilters">Clear Mask</button>
                                         </label>
                                     </div>
-                                    <codemirror
-                                        v-model="$parent.codeMirror"
-                                        :options="$parent.codeMirrorConfig"
-                                    ></codemirror>
+                                    <codemirror v-model="$parent.codeMirror" :options="$parent.codeMirrorConfig"></codemirror>
                                     <div class="centering">
                                         <div class="placeholder"></div>
                                         <label id="output-format"

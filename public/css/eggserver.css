@@ -220,3 +220,11 @@ td {
 .btn-info{
     background-color: #0097d6 !important;
 }
+
+#field-tables{
+    font-size: smaller;
+}
+
+#mask-tabs{
+    background-color: rgba(0,0,0,0.03);
+}
