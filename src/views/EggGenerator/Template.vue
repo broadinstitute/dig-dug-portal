@@ -580,6 +580,5 @@
 
 <style>
 @import url("/css/eggserver.css");
-@import url("/css/codemirror.css");
 @import url("/css/liquibyte.css");
 </style>
