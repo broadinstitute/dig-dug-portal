@@ -53,10 +53,6 @@ new Vue({
             this.initSession();
             this.getSchema();
             this.initMasksSelector();
-            //const codeMirrorParent = document.getElementById("code_mirror_parent");
-            // TODO set this up
-            //this.codeMirror = CodeMirror(codeMirrorParent, this.codeMirrorConfig);
-            //this.codeMirror.setSize("100%", "7.5em");
             setInterval(this.updatePendingStatuses, 300);
         },
 
@@ -313,17 +309,12 @@ new Vue({
 
         clearInputs() {
             this.resetFilters();
+            // Can't be done with a v-model.
             document.getElementById("inputfile").value = "";
-            // First options on these select boxes are placeholders. We'll restore them.
-            document.getElementById("hg").value = document.querySelector(
-                "#hg option"
-            ).textContent;
-            document.getElementById("formats").value = document.querySelector(
-                "#formats option"
-            ).textContent;
-            document.getElementById("masks").value = document.querySelector(
-                "#masks option"
-            ).textContent;
+            
+            this.hgSelect = "-- Choose genome --";
+            this.formatSelect = "-- Choose format --";
+            this.maskSelect = "-- Choose mask --";
             this.clearBadges();
         },
 
@@ -386,9 +377,7 @@ new Vue({
         //
         submitAll() {
             const emailInput = document.getElementById("email").value;
-            const descriptionInput = document.getElementById("session-desc")
-                .value;
-
+            const descriptionInput = document.getElementById("session-desc").value;
             if (this.inputFiles.length == 0) {
                 setEmailMsg("There are no jobs queued for submission.");
                 return;
@@ -483,9 +472,7 @@ new Vue({
                     if (schema.col_names) {
                         this.lunarisVariantPredictor.fieldNames =
                             schema.col_names;
-                        const fieldsSelectNode = document.getElementById(
-                            "fields"
-                        );
+                        const fieldsSelectNode = document.getElementById("fields");
                         this.setOptionsForSelect(
                             fieldsSelectNode,
                             schema.col_names
@@ -774,6 +761,9 @@ new Vue({
             },
 
             codeMirror: "Select a mask from the list above, or compose a custom mask in this field.",
+            hgSelect: "-- Choose genome --",
+            maskSelect: "-- Choose mask --",
+            formatSelect: "-- Choose format --",
             sessionInput: null
         };
     },

@@ -236,29 +236,12 @@
                                                                         input-group
                                                                     "
                                                                 >
-                                                                    <select
-                                                                        class="
-                                                                            form-control
-                                                                            has-badge
-                                                                        "
-                                                                        name="hg"
-                                                                        id="hg"
-                                                                        v-on:change="
-                                                                            $parent.showOnBadge
-                                                                        "
-                                                                    >
-                                                                        <option>
-                                                                            --
-                                                                            Choose
-                                                                            genome
-                                                                            --
-                                                                        </option>
-                                                                        <option>
-                                                                            hg19
-                                                                        </option>
-                                                                        <option>
-                                                                            hg38
-                                                                        </option>
+                                                                    <select class="form-control has-badge"
+                                                                        name="hg" v-model="$parent.hgSelect" id="hg"
+                                                                        v-on:change="$parent.showOnBadge">
+                                                                        <option>-- Choose genome --</option>
+                                                                        <option>hg19</option>
+                                                                        <option>hg38</option>
                                                                     </select>
                                                                 </div>
                                                             </div>
@@ -298,10 +281,7 @@
                                         type="button">
                                         Mask
                                         <div class="criteria">
-                                            <span
-                                                class="badge filter-pill-mask"
-                                                id="formats-badge"
-                                            ></span>
+                                            <span class="badge filter-pill-mask" id="formats-badge"></span>
                                         </div>
                                     </b-button>
                                 </b-card-header>
@@ -350,8 +330,9 @@
                                                         <div class="placeholder"></div>
                                                         <label for="masks">Mask
                                                             <select class="form-control" name="masks" id="masks"
-                                                                v-on:change="$parent.setPredefinedMask">
-                                                                <option value=""> -- Choose mask -- </option>
+                                                                v-on:change="$parent.setPredefinedMask"
+                                                                v-model="$parent.maskSelect">
+                                                                <option>-- Choose mask --</option>
                                                             </select>
                                                         </label>
                                                         <div class="placeholder"></div>
@@ -421,23 +402,11 @@
                                         <div class="placeholder"></div>
                                         <label id="output-format"
                                             >Output format
-                                            <select
-                                                class="form-control has-badge"
-                                                name="formats"
-                                                id="formats"
-                                                v-on:change="
-                                                    $parent.showOnBadge
-                                                "
-                                            >
-                                                <option>
-                                                    -- Choose format --
-                                                </option>
-                                                <option value="rareMETALS">
-                                                    list/rareMETALS
-                                                </option>
-                                                <option value="EPACTS">
-                                                    EPACTS
-                                                </option>
+                                            <select class="form-control has-badge" name="formats" id="formats"
+                                                v-on:change="$parent.showOnBadge" v-model="$parent.formatSelect">
+                                                <option>-- Choose format --</option>
+                                                <option value="rareMETALS">list/rareMETALS</option>
+                                                <option value="EPACTS">EPACTS</option>
                                             </select>
                                         </label>
                                         <div class="placeholder"></div>
