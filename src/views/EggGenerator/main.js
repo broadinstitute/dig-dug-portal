@@ -223,7 +223,7 @@ new Vue({
             let emailMsg = "";
             if (isValid) {
                 emailMsg =
-                    "Submitting job. Notification will be sent to " + email;
+                    "Submitting jobs. Notification will be sent to " + email;
             } else {
                 emailMsg =
                     email +
@@ -260,17 +260,22 @@ new Vue({
             if (hg == "") {
                 this.setSaveJobMessage("Select a genome to proceed.");
                 return false;
-            }
-
-            this.setSaveJobMessage("");
+            }            
             const maskName = this.getMaskSelectNode().value;
-
             this.filters.push(filter);
             this.filterNames.push(maskName); // TODO evaluate in case this is custom
             this.inputFiles.push(inputFile);
             this.outputFormats.push(format);
             this.refGenomes.push(hg);
 
+            let successMessage = "";
+            if (this.inputFiles.length == 1){
+                successMessage = "Saving job. 1 job queued.";
+            } else {
+                successMessage = `Saving job. ${this.inputFiles.length} jobs queued.`;
+            }
+
+            this.setSaveJobMessage(successMessage);
             this.showNewQueuedJob(maskName, inputFile, format, hg);
             this.setEmailMsg("");
             return true;
