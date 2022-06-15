@@ -233,9 +233,14 @@ new Vue({
             this.setEmailMsg(emailMsg);
         },
 
-        setSaveJobMessage(errorMessage) {
+        setSaveJobMessage(message, isError = true) {
             const saveJobMessage = document.getElementById("save-job-message");
-            saveJobMessage.innerText = errorMessage;
+            //saveJobMessage.innerText = errorMessage;
+            if (isError) {
+                saveJobMessage.innerHTML = `<span class="save-job-message">${message}</span>`;
+            } else {
+                saveJobMessage.innerHTML = message;
+            }
         },
 
         saveJob() {
@@ -279,7 +284,7 @@ new Vue({
                 successMessage = `Saving job. ${this.inputFiles.length} jobs queued.`;
             }
 
-            this.setSaveJobMessage(successMessage);
+            this.setSaveJobMessage(successMessage, false);
             this.showNewQueuedJob(maskName, inputFile, format, hg);
             this.setEmailMsg("");
             return true;

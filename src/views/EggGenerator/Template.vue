@@ -93,20 +93,12 @@
                             </div>
                             <div class="centering">
                                 <div class="placeholder"></div>
-                                <div
-                                    class="message-area"
-                                    id="session-invalid"
-                                ></div>
+                                <div class="message-area" id="session-invalid"></div>
                                 <div class="placeholder"></div>
                             </div>
                             <div class="centering">
                                 <div class="placeholder"></div>
-                                <button
-                                    class="btn btn-primary"
-                                    @click="$parent.getIdAndLoadSession"
-                                >
-                                    Load
-                                </button>
+                                <button class="btn btn-primary" @click="$parent.getIdAndLoadSession">Load</button>
                                 <div class="placeholder"></div>
                             </div>
                         </div>
@@ -121,27 +113,14 @@
                                     <b-button block v-b-toggle.accordion-1 variant="info">
                                         1. Source file
                                         <div class="criteria">
-                                            <span
-                                                class="badge filter-pill-mask"
-                                                id="inputfile-badge"
-                                            ></span>
-                                            <span
-                                                class="badge filter-pill-mask"
-                                                id="hg-badge"></span>
+                                            <span class="badge filter-pill-mask" id="inputfile-badge"></span>
+                                            <span class="badge filter-pill-mask" id="hg-badge"></span>
                                         </div>
                                     </b-button>
                                 </b-card-header>
-                                <b-collapse
-                                    id="accordion-1" visible accordion="my-accordion"
-                                    role="tabpanel"
-                                >
+                                <b-collapse id="accordion-1" visible accordion="my-accordion" role="tabpanel">
                                     <b-card-body class="card-body">
-                                        <div
-                                            role="alert"
-                                            aria-live="polite"
-                                            aria-atomic="true"
-                                            class="alert alert-info"
-                                        >
+                                        <div role="alert" class="alert alert-info">
                                             Please upload a data file and select
                                             a reference genome to be used
                                         </div>
@@ -181,24 +160,11 @@
                                         </span>
                                         <strong>Requirements</strong>
                                         <ul>
-                                            <li>
-                                                File must be formatted in VCF
-                                                format
-                                            </li>
-                                            <li>
-                                                Data must be sorted by location
-                                            </li>
-                                            <li>
-                                                At least first five columns of
-                                                what(?)
-                                            </li>
-                                            <li>
-                                                Download example input file:
-                                                <a
-                                                    href="predictor/sample_input.vcf"
-                                                    download="sample_input.vcf"
-                                                    >sample_input.vcf</a
-                                                >
+                                            <li>File must be formatted in VCF format</li>
+                                            <li>Data must be sorted by location</li>
+                                            <li> At least first five columns of what(?)</li>
+                                            <li> Download example input file:
+                                                <a href="predictor/sample_input.vcf" download="sample_input.vcf">sample_input.vcf</a>
                                             </li>
                                         </ul>
                                     </b-card-body>
@@ -383,13 +349,12 @@
                                 </table>
                                 <div class="centering submit-fields">
                                     <div class="placeholder"></div>
-                                    <label for="email"
-                                        >E-mail to receive notification
+                                    <label for="email">E-mail to receive notification
                                         <span class="asterisk">*</span>
                                         <input class="form-control" type="email" name="email" id="email"
                                             v-on:change="$parent.showOnBadge"/>
                                     </label>
-                                    <label >Session description
+                                    <label>Session description
                                         <span class="asterisk">*</span>
                                         <input class="form-control" type="textarea" name="session-desc" id="session-desc"/>
                                     </label>
@@ -397,18 +362,12 @@
                                 </div>
                                 <div class="centering">
                                     <div class="placeholder"></div>
-                                    <div
-                                        class="message-area"
-                                        id="email-invalid"
-                                    ></div>
+                                    <div class="message-area" id="email-invalid"></div>
                                     <div class="placeholder"></div>
                                 </div>
                                 <div class="centering">
                                     <div class="placeholder"></div>
-                                    <button
-                                        class="btn btn-secondary"
-                                        @click="$parent.submitAll"
-                                    >
+                                    <button class="btn btn-secondary" @click="$parent.submitAll">
                                         Submit jobs
                                     </button>
                                     <div class="placeholder"></div>
@@ -425,10 +384,9 @@
                         <div class="card" id="statuscard">
                             <p id="session-id-area"></p>
                             <p>
-                                <span id="statusUpdatesPlaceholder"
-                                    >Submit time & any information regarding the
-                                    session</span
-                                >
+                                <span id="statusUpdatesPlaceholder">
+                                    Submit time & any information regarding the session
+                                </span>
                             </p>
                             <table>
                                 <thead>
@@ -449,14 +407,10 @@
             </div>
         </div>
         <div class="container-fluid mdkp-footer">
-            <a
-                >Powered by Lunaris Version 3.7.3. Copyright 2020-22 Broad
-                Institute</a
-            >
+            <a>Powered by Lunaris Version 3.7.3. Copyright 2020-22 Broad Institute</a>
         </div>
     </body>
 </template>
-
 <style>
 @import url("/css/eggserver.css");
 @import url("/css/liquibyte.css");
