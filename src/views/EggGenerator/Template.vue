@@ -119,7 +119,7 @@
                             <b-card no-body class="mb-1">
                                 <b-card-header header-tag="header" role="tab" class="p-1">
                                     <b-button block v-b-toggle.accordion-1 variant="info">
-                                        Source file
+                                        1. Source file
                                         <div class="criteria">
                                             <span
                                                 class="badge filter-pill-mask"
@@ -147,96 +147,25 @@
                                         </div>
                                         <span>
                                             <div>
-                                                <div
-                                                    class="
-                                                        filtering-ui-wrapper
-                                                        container-fluid
-                                                    "
-                                                >
-                                                    <div
-                                                        class="
-                                                            row
-                                                            filtering-ui-content
-                                                        "
-                                                    >
-                                                        <div
-                                                            class="
-                                                                col
-                                                                filter-col-md
-                                                            "
-                                                            style="
-                                                                padding: 5px 7px;
-                                                            "
-                                                        >
-                                                            <div class="label">
-                                                                Upload a file
-                                                            </div>
-                                                            <div
-                                                                data-v-06e3dc2f=""
-                                                            >
-                                                                <div
-                                                                    data-v-06e3dc2f=""
-                                                                    class="
-                                                                        input-group
-                                                                    "
-                                                                >
-                                                                    <label
-                                                                        class="
-                                                                            form-control
-                                                                        "
-                                                                        >Choose
-                                                                        File
-                                                                        <input
-                                                                            class="
-                                                                                form-control
-                                                                                has-badge
-                                                                            "
-                                                                            type="file"
-                                                                            id="inputfile"
-                                                                            name="myfile"
-                                                                            accept=".vcf"
-                                                                            v-on:change="
-                                                                                $parent.showOnBadge
-                                                                            "
-                                                                        />
+                                                <div class="filtering-ui-wrapper container-fluid">
+                                                    <div class="row filtering-ui-content">
+                                                        <div class="col filter-col-md" style="padding: 5px 7px;">
+                                                            <div class="label">Upload a file</div>
+                                                            <div>
+                                                                <div class="input-group">
+                                                                    <label class="form-control">Choose File
+                                                                        <input class="form-control" type="file" id="inputfile"
+                                                                            name="myfile" accept=".vcf" 
+                                                                            v-on:change="$parent.showOnBadge"/>
                                                                     </label>
                                                                 </div>
-                                                                <div
-                                                                    data-v-06e3dc2f=""
-                                                                    class="
-                                                                        list-group
-                                                                        shadow
-                                                                        vbt-autcomplete-list
-                                                                    "
-                                                                    style="
-                                                                        width: 220px;
-                                                                        display: none;
-                                                                    "
-                                                                ></div>
                                                             </div>
                                                         </div>
-                                                        <div
-                                                            class="
-                                                                col
-                                                                filter-col-md
-                                                            "
-                                                            style="
-                                                                padding: 5px 7px;
-                                                            "
-                                                        >
-                                                            <div class="label">
-                                                                Reference Genome
-                                                            </div>
-                                                            <div
-                                                                data-v-06e3dc2f=""
-                                                            >
-                                                                <div
-                                                                    data-v-06e3dc2f=""
-                                                                    class="
-                                                                        input-group
-                                                                    "
-                                                                >
-                                                                    <select class="form-control has-badge"
+                                                        <div class="col filter-col-md" style="padding: 5px 7px;">
+                                                            <div class="label">Reference Genome</div>
+                                                            <div>
+                                                                <div class="input-group">
+                                                                    <select class="form-control"
                                                                         name="hg" v-model="$parent.hgSelect" id="hg"
                                                                         v-on:change="$parent.showOnBadge">
                                                                         <option>-- Choose genome --</option>
@@ -279,7 +208,7 @@
                                 <b-card-header header-tag="header" role="tab" class="p-1">
                                     <b-button block v-b-toggle.accordion-2 variant="info"
                                         type="button">
-                                        Mask
+                                        2. Mask
                                         <div class="criteria">
                                             <span class="badge filter-pill-mask" id="formats-badge"></span>
                                         </div>
@@ -402,7 +331,7 @@
                                         <div class="placeholder"></div>
                                         <label id="output-format"
                                             >Output format
-                                            <select class="form-control has-badge" name="formats" id="formats"
+                                            <select class="form-control" name="formats" id="formats"
                                                 v-on:change="$parent.showOnBadge" v-model="$parent.formatSelect">
                                                 <option>-- Choose format --</option>
                                                 <option value="rareMETALS">list/rareMETALS</option>
@@ -413,16 +342,8 @@
                                     </div>
                                     <div class="centering">
                                         <div class="placeholder"></div>
-                                        <button
-                                            class="btn btn-secondary"
-                                            @click="$parent.saveJob"
-                                        >
-                                            Save job
-                                        </button>
-                                        <button
-                                            class="btn btn-primary"
-                                            @click="$parent.saveJobAndCreateNew"
-                                        >
+                                        <button class="btn btn-secondary" @click="$parent.saveJob">Save job</button>
+                                        <button class="btn btn-primary" @click="$parent.saveJobAndCreateNew">
                                             Save job and create new job
                                         </button>
                                         <div class="placeholder"></div>
@@ -438,7 +359,7 @@
                             <b-card no-body class="mb-1">
                                 <b-card-header header-tag="header" role="tab" class="p-1">
                                     <b-button block v-b-toggle.accordion-3 variant="info">
-                                        Submit jobs
+                                        3. Submit jobs
                                         <div class="criteria">
                                             <span
                                                 class="badge filter-pill-mask"
@@ -465,23 +386,12 @@
                                     <label for="email"
                                         >E-mail to receive notification
                                         <span class="asterisk">*</span>
-                                        <input
-                                            class="form-control has-badge"
-                                            type="email"
-                                            name="email"
-                                            id="email"
-                                            v-on:change="$parent.showOnBadge"
-                                        />
+                                        <input class="form-control" type="email" name="email" id="email"
+                                            v-on:change="$parent.showOnBadge"/>
                                     </label>
-                                    <label
-                                        >Session description
+                                    <label >Session description
                                         <span class="asterisk">*</span>
-                                        <input
-                                            class="form-control"
-                                            type="textarea"
-                                            name="session-desc"
-                                            id="session-desc"
-                                        />
+                                        <input class="form-control" type="textarea" name="session-desc" id="session-desc"/>
                                     </label>
                                     <div class="placeholder"></div>
                                 </div>

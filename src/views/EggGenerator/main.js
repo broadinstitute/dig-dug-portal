@@ -41,7 +41,6 @@ new Vue({
 
     mounted() {
         this.init();
-        // console.log("this is current codemirror object", this.codemirror);
     },
 
     render(createElement, context) {
@@ -101,8 +100,6 @@ new Vue({
             } else {
                 this.lunarisVariantPredictor.sessionId = sessionId;
             }
-            console.log("New session id: " + this.lunarisVariantPredictor.sessionId);
-            console.log("Old session id: " + this.lunarisVariantPredictor.oldSessionId);
         },
 
         // TODO figure out why actual session job list length is less than submitted
@@ -124,7 +121,6 @@ new Vue({
                         }
                         this.clearSubmissions();
                         this.clearStatusArea();
-                        console.log(session.jobs.length + " jobs");
                         session.jobs.forEach(job => {
                             const id = job.id;
                             const path = job.inputFile;
@@ -244,7 +240,7 @@ new Vue({
 
         saveJob() {
             const filter = this.codeMirror;
-            if (filter == "") {
+            if (filter == "" || filter == this.codeMirrorDefault) {
                 this.setSaveJobMessage("Select a filter to proceed.");
                 return false;
             }
@@ -255,18 +251,21 @@ new Vue({
                 return false;
             }
 
-            const format = this.getOutputFormat();
-            if (format == "") {
+            const format = this.formatSelect;
+            if (format == this.formatSelectDefault) {
                 this.setSaveJobMessage("Select an output format to proceed.");
                 return false;
             }
 
-            const hg = this.getHg();
-            if (hg == "") {
+            const hg = this.hgSelect;
+            if (hg == this.hgSelectDefault) {
                 this.setSaveJobMessage("Select a genome to proceed.");
                 return false;
             }            
-            const maskName = this.getMaskSelectNode().value;
+            let maskName = this.maskSelect;
+            if (maskName == this.maskSelectDefault){
+                maskName = "Custom";
+            }
             this.filters.push(filter);
             this.filterNames.push(maskName); // TODO evaluate in case this is custom
             this.inputFiles.push(inputFile);
@@ -312,9 +311,9 @@ new Vue({
             // Can't be done with a v-model.
             document.getElementById("inputfile").value = "";
             
-            this.hgSelect = "-- Choose genome --";
-            this.formatSelect = "-- Choose format --";
-            this.maskSelect = "-- Choose mask --";
+            this.hgSelect = this.hgSelectDefault;
+            this.formatSelect = this.formatSelectDefault;
+            this.maskSelect = this.maskSelectDefault;
             this.clearBadges();
         },
 
@@ -327,23 +326,17 @@ new Vue({
             this.displayFilterName(newRow, filter);
             this.displayOutputFormat(newRow, format);
 
-            const submitTableBody = document.getElementById(
-                "submit-table-body"
-            );
+            const submitTableBody = document.getElementById("submit-table-body");
             submitTableBody.append(newRow);
         },
 
         displayInputFile(row, inputFilename) {
-            const inputFileCell = row.getElementsByClassName(
-                "input-file-cell"
-            )[0];
+            const inputFileCell = row.getElementsByClassName("input-file-cell" )[0];
             inputFileCell.innerText = inputFilename;
         },
 
         displayRefGenome(row, refGenome) {
-            const refGenomeCell = row.getElementsByClassName(
-                "ref-genome-cell"
-            )[0];
+            const refGenomeCell = row.getElementsByClassName("ref-genome-cell")[0];
             refGenomeCell.innerText = refGenome;
         },
 
@@ -384,9 +377,7 @@ new Vue({
             }
 
             if (descriptionInput == "") {
-                setEmailMsg(
-                    "Enter a description for this session in order to continue."
-                );
+                setEmailMsg("Enter a description for this session in order to continue.");
                 return;
             }
             // As of now, must have email in order to submit.
@@ -410,7 +401,6 @@ new Vue({
             for (let i = 0; i < this.inputFiles.length; i++) {
                 const formData = this.createJobFormData(i, emailInput);
                 const inputFile = this.inputFiles[i].name;
-                console.log("Session: " + formData.get("session"));
                 let thisJob = this.fetchJob(formData);
                 thisJob.then(response => {
                         if (!response.ok) {
@@ -490,11 +480,7 @@ new Vue({
         },
 
         showCouldNotSubmit(message) {
-            /*const pNode = document.createElement("p");
-    pNode.innerText = message;
-    const statusAreaNode = getSubmissionAreaNode();
-    statusAreaNode.append(pNode);*/
-            console.log(message);
+            console.error("Error: " + message);
         },
 
         addStatusEntry(
@@ -580,7 +566,6 @@ new Vue({
                 .then(status => {
                     this.lunarisVariantPredictor.statuses[id] = status;
                     this.showStatus(id);
-                    console.log(status);
                 });
         },
 
@@ -620,24 +605,7 @@ new Vue({
                 const snagMessages = status.snagMessages;
                 const nSnags = snagMessages.length;
                 if (nSnags) {
-                    console.log(nSnags);
-                    /*const snagNode = document.createTextNode(" " + soManyErrors(nSnags));
-            const snagNodeSpan = document.createElement("span");
-            snagNodeSpan.style.color = "red";
-            snagNodeSpan.appendChild(snagNode)
-            outputFileCell.append(snagNodeSpan);
-            const snagMessagesClass = "snagMessages";
-            if(!statusRow.getElementsByClassName(snagMessagesClass).length) {
-                const snagsDivNode = document.createElement("div");
-                snagsDivNode.innerText = snagMessages.join("\n");
-                snagsDivNode.classList.add(snagMessagesClass);
-                snagsDivNode.style.height = "5em";
-                snagsDivNode.style.width = "95%"
-                snagsDivNode.style.margin = "auto";
-                snagsDivNode.style.overflowY = "scroll";
-                snagsDivNode.style.color = "red";
-                statusRow.appendChild(snagsDivNode);
-            }*/
+                    console.error(nSnags);
                 }
             } else {
                 this.showInitialStatus(statusRow, inputFileName);
@@ -687,32 +655,18 @@ new Vue({
             return document.getElementById("masks");
         },
 
-        getOutputFormatNode() {
-            return document.getElementById("formats");
-        },
-
         setOutputFormat(format) {
-            this.getOutputFormatNode().value = format;
-        },
-
-        getOutputFormat() {
-            const selection = this.getOutputFormatNode().value;
-            if (selection == "-- Choose format --") {
-                return "";
-            }
-            return selection;
+            this.formatSelect = format;
         },
 
         getInputFile() {
-            return document.getElementById("inputfile").files[0];
-        },
-
-        getHg() {
-            const selection = document.getElementById("hg").value;
-            if (selection == "-- Choose genome --") {
+            let files = document.getElementById("inputfile").files;
+            if (files.length == 0){
                 return "";
+            } else {
+                return files[0];
             }
-            return selection;
+
         },
 
         setMask(mask) {
@@ -761,8 +715,12 @@ new Vue({
             },
 
             codeMirror: "Select a mask from the list above, or compose a custom mask in this field.",
+            codeMirrorDefault: "Select a mask from the list above, or compose a custom mask in this field.",
+            hgSelectDefault: "-- Choose genome --",
             hgSelect: "-- Choose genome --",
+            maskSelectDefault: "-- Choose mask --",
             maskSelect: "-- Choose mask --",
+            formatSelectDefault: "-- Choose format --",
             formatSelect: "-- Choose format --",
             sessionInput: null
         };

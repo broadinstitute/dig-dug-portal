@@ -228,3 +228,7 @@ td {
 #mask-tabs{
     background-color: rgba(0,0,0,0.03);
 }
+
+.col-md-12 .card {
+    margin-bottom: 25px;
+}
