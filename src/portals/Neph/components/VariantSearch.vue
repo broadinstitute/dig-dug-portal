@@ -454,7 +454,7 @@ export default Vue.component("variant-search", {
                 NephSyndUncategorized: "Uncategorized Nephrotic Syndrome",
                 NephSyndSteroidResistant:
                     "Steroid Resistant Nephrotic Syndrome",
-                AllNyphroticSyndCases: "All Cases Nephrotic Syndrome",
+                AllNephroticSyndCases: "All Cases Nephrotic Syndrome",
             },
 
             perPage: 10,
@@ -557,7 +557,7 @@ export default Vue.component("variant-search", {
             ],
             hprecordFields: [
                 {
-                    key: "hpoterms",
+                    key: "HP",
                     label: "Phenotype",
                 },
                 {
@@ -636,6 +636,8 @@ export default Vue.component("variant-search", {
             //this.variants = await query("variants", this.gene, {}, true);
             //alert("variant-phenotype"+this.gene);
             this.variants = await query("variants", this.gene, {}, true);
+            this.variantData = this.variants; //copy data
+
             if (this.variants && this.variants.length) {
                 for (let i = 0; i < this.variants.length; i++) {
                     this.variants[i].allelecount =
@@ -736,7 +738,7 @@ export default Vue.component("variant-search", {
                             hpdisplay[j] = {};
                             //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
                             hpdisplay[j].hp = hp.HP;
-                            hpdisplay[j].hpoterms = Formatters.snakeFormatter(
+                            hpdisplay[j].HP = Formatters.snakeFormatter(
                                 this.HPOTerms[hp.HP]
                             );
                             hpdisplay[j].allelecount =
@@ -766,7 +768,7 @@ export default Vue.component("variant-search", {
                         this.variants[i].hpdisplay = hpdisplay;
                     }
                 }
-                this.variantData = this.variants;
+                // this.variantData = this.variants;
             }
         },
         async getTranscriptConsequences(varid) {
