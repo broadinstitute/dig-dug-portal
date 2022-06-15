@@ -389,6 +389,7 @@
 									:filter="filter"
 									ref="rpPheWASPlot"
 								></research-phewas-plot>
+
 								<unauthorized-message
 									:restricted="
 										$store.state.varassociations.restricted

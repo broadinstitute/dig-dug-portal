@@ -413,6 +413,23 @@ new Vue({
                             case "array to string":
                                 tempObj[c["field name"]] = array2String(d[c["raw field"]], c["separate by"]);
                                 break;
+
+                            case "replace characters":
+                                let replaceArr = c["replace"]
+                                let rawString = d[c["raw field"]];
+                                let newString = "";
+                                let sIndex = 0;
+
+                                replaceArr.map(r => {
+                                    newString = (sIndex == 0) ? rawString : newString;
+                                    if (!!rawString) {
+                                        newString = newString.replaceAll(r.from, r.to);
+                                    }
+                                    sIndex++;
+                                })
+
+                                tempObj[c["field name"]] = newString;
+                                break;
                         }
                     })
 
