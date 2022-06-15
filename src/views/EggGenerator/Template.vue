@@ -1,6 +1,11 @@
 <template>
     <!--body onload="init()" class="kp-default"-->
     <body class="kp-default">
+        <!-- Header -->
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
         <header>
             <img
                 class="mdkp-logo"
@@ -406,9 +411,7 @@
                 </div>
             </div>
         </div>
-        <div class="container-fluid mdkp-footer">
-            <a>Powered by Lunaris Version 3.7.3. Copyright 2020-22 Broad Institute</a>
-        </div>
+        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </body>
 </template>
 <style>
