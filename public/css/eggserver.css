@@ -236,3 +236,13 @@ td {
 .save-job-message {
     color: red;
 }
+
+.egg-generator-header {
+	background-color: #cccccc;
+	color: #ffffff;
+	padding: 20px;
+}
+
+.egg-generator-header > h1 {
+	color: #000000;
+}
