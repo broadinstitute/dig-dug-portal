@@ -7,33 +7,41 @@
     border-bottom: 15px solid #eeeeee;
     background-color: #fafafa;
 }
+
 .b-table-details div.details ul {
     margin: 0 3rem 0 auto;
 }
+
 .b-table-details div.details .page-link {
     border: transparent !important;
     height: auto;
 }
+
 .b-table-details div.details .page-item.disabled,
 .b-table-details div.details .page-link {
     background-color: transparent;
 }
+
 .b-table-details div.details .page-item:not(.active) .page-link:hover {
     background-color: #eee;
 }
+
 div.details .sub-details {
     border: unset;
     border-radius: unset;
     border-bottom: 3px solid #eee;
 }
+
 .b-popover {
     background-color: #000;
 }
+
 .b-popover .popover-body a.list-group-item {
     padding: 0.125rem 0.5rem;
     background-color: #000000;
     color: #ffffff !important;
 }
+
 .b-popover .popover-body a.list-group-item:hover {
     /*background-color: #fcfcfc;
     color: blue !important;*/
@@ -42,8 +50,9 @@ div.details .sub-details {
     border-top: solid 1px #ddd;
     border-bottom: solid 1px #ddd;
 }
-.bs-popover-top > .arrow::after,
-.bs-popover-auto[x-placement^="top"] > .arrow::after {
+
+.bs-popover-top>.arrow::after,
+.bs-popover-auto[x-placement^="top"]>.arrow::after {
     border-top-color: #000000;
 }
 
@@ -53,11 +62,13 @@ div.details .sub-details {
     font-size: 0.75rem;
     color: #52a549;
 }
+
 .sub-details .page-item.active .page-link {
     background-color: #4b9742;
     color: #fff;
     border-color: transparent;
 }
+
 .b-table div.pValue {
     width: 100%;
     height: 100%;
@@ -66,63 +77,80 @@ div.details .sub-details {
     background-size: 100% 100%;
     background-position: left;
 }
+
 .table-sm td.border-color {
     padding: 0;
     /* height: auto;
     min-height: 1px; */
-    height: 1px; /* for child to take full height */
+    height: 1px;
+    /* for child to take full height */
     vertical-align: middle;
 }
-td.border-color > div {
+
+td.border-color>div {
     border-left-width: 5px;
     border-left-style: solid;
     border-color: #eeeeee;
-    height: 100%;
+    height: auto;
     padding: 0.3rem;
 }
+
 #variant-search thead tr:hover,
 #variant-search tr.b-table-details:hover {
     background-color: inherit;
 }
+
 .row-pick {
     background-color: lightcyan;
 }
+
 .table thead th {
     vertical-align: top;
 }
+
 .external_source {
     white-space: nowrap;
 }
+
 .external_source .badge {
     vertical-align: middle;
     font-size: 0.5rem;
     cursor: help;
 }
+
 .border-color.MODIFIER {
     border-color: rgb(161, 166, 171);
 }
+
 .border-color.LOW {
     border-color: rgb(135, 196, 137);
 }
+
 .border-color.MODERATE {
     border-color: rgb(247, 217, 102);
 }
+
 .border-color.HIGH {
     border-color: rgb(217, 130, 135);
 }
+
 .border-color.NONE {
     border-color: transparent;
 }
+
 .legends .btn-mini {
     border-left-width: thick;
 }
+
 .nowrap {
     white-space: nowrap;
 }
-.table.b-table > thead > tr > [aria-sort="none"],
-.table.b-table > thead > tr > [aria-sort=none] {
+
+.table.b-table>thead>tr>[aria-sort="none"],
+.table.b-table>thead>tr>[aria-sort=none] {
     background-image: none;
 }
+
 #covariances tr.b-table-details table td:first-child {
     padding-left: 0.3rem;
 }
