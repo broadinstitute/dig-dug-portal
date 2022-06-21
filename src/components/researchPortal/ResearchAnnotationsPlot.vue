@@ -1,10 +1,42 @@
 <template>
 	<div class="mbm-plot-content row">
+		<div class="col-md-12 anno-plot-ui-wrapper reference-area">
+			<h6><strong>Global Enrichment</strong></h6>
+			<div>
+				<div
+					v-for="(annoValue, annoKey, annoIndex) in annoData"
+					:key="annoKey"
+					class="anno-bubble-wrapper"
+				>
+					<span
+						class="anno-bubble"
+						v-html="'&nbsp;'"
+						:style="
+							'background-color:' +
+							compareGroupColors[annoIndex] +
+							';'
+						"
+					></span
+					><span v-html="annoKey"></span>
+				</div>
+			</div>
+			<div id="GEPlotWrapper" v-if="searchingPhenotype != null">
+				<div id="GEInfoBox" class="hidden"></div>
+				<canvas
+					id="GEPlot"
+					width=""
+					height=""
+					style="background-color: #ffffff"
+					@mousemove="checkGEPosition($event)"
+					@mouseout="onMouseOut('GEInfoBox')"
+				></canvas>
+			</div>
+		</div>
 		<div
 			class="col-md-12 annotations-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
-			<div class="col-md-9 anno-plot-wrapper">
+			<div class="col-md-12 anno-plot-wrapper">
 				<div id="annotationsUIWrapper">
 					<div
 						class="filtering-ui-wrapper add-content"
@@ -107,7 +139,7 @@
 							</template>
 						</div>
 					</div>
-					<div class="annotations-table-wrapper">
+					<!--<div class="annotations-table-wrapper">
 						<span
 							v-html="
 								!!renderConfig['ui table legend']
@@ -254,7 +286,7 @@
 								</tr>
 							</tbody>
 						</table>
-					</div>
+					</div>-->
 				</div>
 				<div id="annotationsPlotWrapper">
 					<div id="tissueInfoBox" class="hidden"></div>
@@ -287,21 +319,8 @@
 						v-html="'Please select annotation.'"
 					></div>
 				</div>
-
-				<!--<div id="tissuesPlotWrapper">
-					<div id="selectedTissueInfoBox" class="hidden"></div>
-					<canvas
-						id="tissuesPlot"
-						@resize="onResize"
-						@mousemove="checkTissuesPosition($event)"
-						@mouseout="onMouseOut('selectedTissueInfoBox')"
-						@click="removeTissueTrack($event)"
-						width="0"
-						height="0"
-					></canvas>
-				</div>-->
 			</div>
-			<div class="col-md-3 anno-plot-ui-wrapper reference-area">
+			<!--<div class="col-md-3 anno-plot-ui-wrapper reference-area">
 				<h6><strong>Global Enrichment</strong></h6>
 				<div>
 					<div
@@ -332,7 +351,7 @@
 						@mouseout="onMouseOut('GEInfoBox')"
 					></canvas>
 				</div>
-			</div>
+			</div>-->
 		</div>
 	</div>
 </template>
@@ -372,7 +391,7 @@ export default Vue.component("research-annotations-plot", {
 			selectedAnnos: [],
 			selectedTissues: [],
 			annoPosData: {},
-			spaceBy: 7,
+			spaceBy: 12,
 		};
 	},
 	modules: {
@@ -1596,18 +1615,20 @@ export default Vue.component("research-annotations-plot", {
 				});
 			}
 
-			let canvasWidth =
-				document.querySelector("#GEPlotWrapper").clientWidth;
-
 			let numOfPhenotypes = Object.keys(sortedGEData).length;
+
+			let canvasWidth =
+				document.querySelector("#GEPlotWrapper").clientWidth * 0.25;
+
+			let allCanvasWidth = canvasWidth * numOfPhenotypes;
+
 			let plotHeight = 130;
 			let titleSize = this.spaceBy * 2;
 			let canvasHeight =
-				(this.plotMargin.topMargin +
-					this.plotMargin.bottomMargin +
-					plotHeight +
-					titleSize) *
-				numOfPhenotypes;
+				this.plotMargin.topMargin +
+				this.plotMargin.bottomMargin +
+				plotHeight +
+				titleSize;
 
 			let plotWidth =
 				canvasWidth -
@@ -1617,24 +1638,22 @@ export default Vue.component("research-annotations-plot", {
 
 			let c, ctx;
 			c = document.querySelector("#GEPlot");
-			c.setAttribute("width", canvasWidth);
+			c.setAttribute("width", allCanvasWidth);
 			c.setAttribute("height", canvasHeight);
 			ctx = c.getContext("2d");
 
 			let pIndex = 0;
 			for (const [phenotype, GE] of Object.entries(sortedGEData)) {
-				let titleYPos =
-					titleSize +
-					(this.plotMargin.topMargin +
-						this.plotMargin.bottomMargin +
-						plotHeight +
-						titleSize) *
-						pIndex;
+				let titleYPos = titleSize;
+
+				let canvasLeft = bump + canvasWidth * pIndex;
+
+				console.log("canvasLeft", canvasLeft);
 
 				ctx.font = "14px Arial";
 				ctx.textAlign = "left";
 				ctx.fillStyle = "#000000";
-				ctx.fillText(phenotype, bump, titleYPos);
+				ctx.fillText(phenotype, canvasLeft, titleYPos);
 
 				this.renderGEAxis(
 					ctx,
@@ -1644,6 +1663,7 @@ export default Vue.component("research-annotations-plot", {
 					GE.xMin,
 					GE.yMax,
 					GE.yMin,
+					canvasLeft,
 					titleYPos,
 					bump
 				);
@@ -1677,6 +1697,7 @@ export default Vue.component("research-annotations-plot", {
 						GE[annotation]
 					)) {
 						let xPos =
+							canvasLeft +
 							this.plotMargin.leftMargin +
 							(tValue.pValue - GE.xMin) * xPosByPixel;
 
@@ -1741,19 +1762,29 @@ export default Vue.component("research-annotations-plot", {
 				pIndex++;
 			}
 		},
-		renderGEAxis(CTX, WIDTH, HEIGHT, XMAX, XMIN, YMAX, YMIN, YPOS, BUMP) {
+		renderGEAxis(
+			CTX,
+			WIDTH,
+			HEIGHT,
+			XMAX,
+			XMIN,
+			YMAX,
+			YMIN,
+			XPOS,
+			YPOS,
+			BUMP
+		) {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
-			CTX.moveTo(
-				this.plotMargin.leftMargin - BUMP,
-				YPOS + this.plotMargin.topMargin
-			);
+			let yAxisXPos =
+				Math.round(XPOS + this.plotMargin.leftMargin - BUMP) - 0.5;
+			CTX.moveTo(yAxisXPos, YPOS + this.plotMargin.topMargin);
 			CTX.lineTo(
-				this.plotMargin.leftMargin - BUMP,
+				yAxisXPos,
 				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
 			);
 
@@ -1767,8 +1798,14 @@ export default Vue.component("research-annotations-plot", {
 
 				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
 
-				CTX.moveTo(this.plotMargin.leftMargin - BUMP * 2, adjTickYPos);
-				CTX.lineTo(this.plotMargin.leftMargin - BUMP, adjTickYPos);
+				CTX.moveTo(
+					XPOS + this.plotMargin.leftMargin - BUMP * 2,
+					adjTickYPos
+				);
+				CTX.lineTo(
+					XPOS + this.plotMargin.leftMargin - BUMP,
+					adjTickYPos
+				);
 				CTX.stroke();
 
 				CTX.textAlign = "right";
@@ -1776,7 +1813,7 @@ export default Vue.component("research-annotations-plot", {
 
 				CTX.fillText(
 					Formatters.floatFormatter(YMIN + i * yStep),
-					this.plotMargin.leftMargin - BUMP * 3,
+					XPOS + this.plotMargin.leftMargin - BUMP * 3,
 					YPOS +
 						this.plotMargin.topMargin +
 						HEIGHT +
@@ -1794,17 +1831,17 @@ export default Vue.component("research-annotations-plot", {
 			CTX.fillText(
 				yLabel,
 				-(this.plotMargin.topMargin + HEIGHT / 2) - YPOS,
-				BUMP + 12
+				XPOS + BUMP + 12
 			);
 
 			// render x axis
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 			CTX.moveTo(
-				this.plotMargin.leftMargin - BUMP,
+				XPOS + this.plotMargin.leftMargin - BUMP,
 				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
 			);
 			CTX.lineTo(
-				this.plotMargin.leftMargin + WIDTH,
+				XPOS + this.plotMargin.leftMargin + WIDTH,
 				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
 			);
 			CTX.stroke();
@@ -1814,7 +1851,8 @@ export default Vue.component("research-annotations-plot", {
 			let xTickDistance = WIDTH / 5;
 
 			for (let i = 0; i < 6; i++) {
-				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
+				let tickXPos =
+					XPOS + this.plotMargin.leftMargin + i * xTickDistance;
 
 				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
 
@@ -1845,7 +1883,7 @@ export default Vue.component("research-annotations-plot", {
 			CTX.textAlign = "center";
 			CTX.fillText(
 				xLabel,
-				this.plotMargin.leftMargin + WIDTH / 2,
+				XPOS + this.plotMargin.leftMargin + WIDTH / 2,
 				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
 			);
 		},
@@ -1911,9 +1949,9 @@ export default Vue.component("research-annotations-plot", {
 			let canvas = document.querySelector("#annotationsPlot");
 
 			if (!!canvas && !!wrapper) {
-				let canvasWidth = document.querySelector(
-					"#annotationsPlotWrapper"
-				).clientWidth;
+				let canvasWidth =
+					document.querySelector("#annotationsPlotWrapper")
+						.clientWidth * 0.75;
 
 				let canvasHeight = tempHeight + topMargin + bottomMargin;
 
