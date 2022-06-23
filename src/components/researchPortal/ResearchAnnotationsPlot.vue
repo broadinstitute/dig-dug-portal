@@ -1373,7 +1373,9 @@ export default Vue.component("research-annotations-plot", {
 			}
 
 			if (TYPE == "click") {
-				this.addRemoveTissueTrack(infoContent);
+				if (infoContent != "") {
+					this.addRemoveTissueTrack(infoContent);
+				}
 			}
 		},
 		getColorIndex(anno) {
@@ -2231,6 +2233,9 @@ export default Vue.component("research-annotations-plot", {
 								this.pkgData.GEByTissueData
 							)) {
 								if (
+									!!this.pkgData.GEByTissueData[pKey][
+										tissue
+									] &&
 									!!this.pkgData.GEByTissueData[pKey][tissue][
 										annotation
 									]
