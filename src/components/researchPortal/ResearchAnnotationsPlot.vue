@@ -1473,6 +1473,16 @@ export default Vue.component("research-annotations-plot", {
 
 		getGEByTissue() {
 			/// put lowest pValue and fold across ancestries
+
+			let annotations = {};
+
+			Object.keys(this.GEData).map((pKey) => {
+				annotations[pKey] = {};
+				Object.keys(this.annoData).map((aKey) => {
+					annotations[pKey][aKey] = [];
+				});
+			});
+
 			let GEByTissue = {};
 			for (const [phenotype, phenotypeGE] of Object.entries(
 				this.GEData
@@ -1488,6 +1498,7 @@ export default Vue.component("research-annotations-plot", {
 							pValue: null,
 							fold: null,
 							gregor: null,
+							rank: null,
 						};
 					}
 
@@ -1505,8 +1516,47 @@ export default Vue.component("research-annotations-plot", {
 						GEByTissue[phenotype][g.tissue][g.annotation].fold =
 							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
 					}
+
+					annotations[phenotype][g.annotation].push({
+						tissue: g.tissue,
+						fold: GEByTissue[phenotype][g.tissue][g.annotation]
+							.fold,
+					});
+
+					/*annotations[phenotype][g.annotation].sort(
+						(a, b) => b.fold - a.fold
+					);*/
 				});
 			}
+
+			/// get the ranks of tissues by fold
+			Object.keys(annotations).map((pKey) => {
+				Object.keys(annotations[pKey]).map((aKey) => {
+					annotations[pKey][aKey] = [
+						...new Map(
+							annotations[pKey][aKey].map((item) => [
+								item["tissue"],
+								item,
+							])
+						).values(),
+					];
+
+					annotations[pKey][aKey].sort((a, b) => b.fold - a.fold);
+
+					//console.log(aKey);
+					let tIndex = 0;
+					annotations[pKey][aKey].map((tValue) => {
+						console.log(tValue.tissue, tIndex);
+						if (
+							!!this.tissuesData[tValue.tissue] &&
+							!!this.tissuesData[tValue.tissue][aKey]
+						) {
+							GEByTissue[pKey][tValue.tissue][aKey].rank = tIndex;
+							tIndex++;
+						}
+					});
+				});
+			});
 
 			return GEByTissue;
 		},
@@ -1978,6 +2028,7 @@ export default Vue.component("research-annotations-plot", {
 			let bottomMargin = this.spaceBy * 2;
 			let regionStart = this.viewingRegion.start;
 			let regionEnd = this.viewingRegion.end;
+			let pvalueFoldWidth = 120;
 
 			let selectedAnnotations = this.pkgDataSelected
 				.filter((s) => s.type == "Annotation")
@@ -1999,12 +2050,14 @@ export default Vue.component("research-annotations-plot", {
 			let canvas = document.querySelector("#annotationsPlot");
 
 			if (!!canvas && !!wrapper) {
-				let wrapperWidth = document.querySelector(
-					"#annotationsPlotWrapper"
-				).clientWidth;
 				let canvasWidth =
 					document.querySelector("#annotationsPlotWrapper")
 						.clientWidth * 0.75;
+
+				let wrapperWidth =
+					canvasWidth +
+					Object.keys(this.pkgData.GEByTissueData).length *
+						pvalueFoldWidth;
 
 				let canvasHeight = tempHeight + topMargin + bottomMargin;
 
@@ -2030,8 +2083,23 @@ export default Vue.component("research-annotations-plot", {
 					if (selectedAnnotations.includes(annotation)) {
 						ctx.font = "14px Arial";
 						ctx.textAlign = "left";
-						ctx.fillStyle = "#00000050";
+						ctx.fillStyle = "#000000";
 						ctx.fillText(annotation, bump, renderHeight);
+
+						Object.keys(this.pkgData.GEByTissueData).map(
+							(pKey, pIndex) => {
+								ctx.fillStyle = "#000000";
+								ctx.textAlign = "start";
+								ctx.textBaseline = "middle";
+								ctx.font = "14px Arial";
+
+								ctx.fillText(
+									pKey,
+									canvasWidth + pvalueFoldWidth * pIndex,
+									renderHeight
+								);
+							}
+						);
 
 						let blockHeight =
 							Object.keys(tissues).length * perTissue;
@@ -2157,26 +2225,61 @@ export default Vue.component("research-annotations-plot", {
 							ctx.font = "12px Arial";
 							ctx.fillText(tissue, 5, renderHeight - 4);
 							//}
+
+							let pIndex = 0;
 							for (const [pKey, tissues] of Object.entries(
 								this.pkgData.GEByTissueData
 							)) {
-								ctx.fillStyle = "#000000";
-								ctx.textAlign = "start";
-								ctx.textBaseline = "middle";
-								ctx.font = "12px Arial";
-								let pvalueFold =
-									this.pkgData.GEByTissueData[pKey][tissue][
+								if (
+									!!this.pkgData.GEByTissueData[pKey][tissue][
 										annotation
-									]["pValue"] +
-									"/" +
-									this.pkgData.GEByTissueData[pKey][tissue][
-										annotation
-									]["fold"];
-								ctx.fillText(
-									pvalueFold,
-									canvasWidth,
-									renderHeight - 4
-								);
+									]
+								) {
+									let pvalueFold =
+										this.pkgData.GEByTissueData[pKey][
+											tissue
+										][annotation]["pValue"] +
+										" / " +
+										Number(
+											this.pkgData.GEByTissueData[pKey][
+												tissue
+											][annotation]["fold"]
+										).toFixed(3);
+
+									if (
+										this.pkgData.GEByTissueData[pKey][
+											tissue
+										][annotation]["rank"] < 5
+									) {
+										ctx.fillStyle =
+											this.getColorIndex(annotation);
+										ctx.lineWidth = 0;
+										ctx.beginPath();
+										ctx.arc(
+											canvasWidth +
+												pvalueFoldWidth * pIndex -
+												5,
+											renderHeight - 4,
+											3,
+											0,
+											2 * Math.PI
+										);
+										ctx.fill();
+									}
+
+									ctx.fillStyle = "#000000";
+									ctx.textAlign = "start";
+									ctx.textBaseline = "middle";
+									ctx.font = "11px Arial";
+
+									ctx.fillText(
+										pvalueFold,
+										canvasWidth + pvalueFoldWidth * pIndex,
+										renderHeight - 4
+									);
+								}
+
+								pIndex++;
 							}
 						}
 						renderHeight += btwnAnnotations;
