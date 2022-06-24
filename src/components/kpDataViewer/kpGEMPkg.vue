@@ -90,7 +90,7 @@
 				remove pancreas
 			</button>-->
 
-			<research-annotations-plot
+			<research-annotations-plot-v2
 				id="annotationSection"
 				class="svg-wrapper hidden-svg"
 				v-if="pkgConfig.viewers.includes('annotations plot') == true"
@@ -107,7 +107,7 @@
 				:regionViewArea="regionViewArea"
 				:sharedPlotXpos="sharedPlotXpos"
 				ref="annotationsRef"
-			></research-annotations-plot>
+			></research-annotations-plot-v2>
 
 			<div
 				v-if="pkgConfig.viewers.includes('gene-links plot') == true"
@@ -153,7 +153,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
-import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
+import ResearchAnnotationsPlotV2 from "@/components/researchPortal/ResearchAnnotationsPlotV2.vue";
 import ResearchCredibleSets from "@/components/researchPortal/ResearchCredibleSets.vue";
 import ResearchGeneLinks from "@/components/researchPortal/ResearchGeneLinks.vue";
 
@@ -180,7 +180,7 @@ export default Vue.component("kp-gem-pkg", {
 	components: {
 		ResearchRegionPlot,
 		ResearchGenesTrack,
-		ResearchAnnotationsPlot,
+		ResearchAnnotationsPlotV2,
 		ResearchCredibleSets,
 		ResearchGeneLinks,
 	},
