@@ -4,7 +4,7 @@
 			class="col-md-12 annotations-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
-			<div class="col-md-12 anno-plot-wrapper">
+			<div class="col-md-9 anno-plot-wrapper">
 				<div id="annotationsUIWrapper">
 					<div
 						class="filtering-ui-wrapper add-content"
@@ -70,55 +70,211 @@
 						</div>
 					</div>
 				</div>
+				<!-- selected annotations table -->
 				<div
-					class="col-md-12 anno-plot-ui-wrapper"
-					style="border-bottom: solid 1px #dddddd"
+					v-if="
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length > 0
+					"
 				>
-					<h6><strong>Global Enrichment</strong></h6>
-					<div>
+					<div style="padding: 5px; text-align: left">
+						<strong>Select Tissues</strong>
 						<div
-							v-for="(annoValue, annoKey, annoIndex) in annoData"
-							:key="annoKey"
-							class="anno-bubble-wrapper"
+							class=""
+							v-if="
+								pkgDataSelected.filter(
+									(s) => s.type == 'Tissue'
+								).length > 0 &&
+								!renderConfig['no search key bubbles']
+							"
+							style="float: right"
 						>
-							<span
-								class="anno-bubble"
-								v-html="'&nbsp;'"
-								:style="
-									'background-color:' +
-									compareGroupColors[annoIndex] +
-									';'
-								"
-							></span
-							><span v-html="annoKey"></span>
+							<template
+								v-for="a in pkgDataSelected.filter(
+									(s) => s.type == 'Tissue'
+								)"
+							>
+								<span
+									:key="a.id"
+									:class="'btn search-bubble '"
+									:style="'background-color:#999999'"
+									v-html="
+										a.id +
+										'&nbsp;<span class=\'remove\'>X</span>'
+									"
+									@click="addRemoveTissueTrack(null, a.id)"
+								></span>
+							</template>
 						</div>
 					</div>
-					<div id="GEPlotWrapper" v-if="searchingPhenotype != null">
-						<div id="GEInfoBox" class="hidden"></div>
-						<canvas
-							id="GEPlot"
-							width=""
-							height=""
-							style="background-color: #ffffff"
-							@mousemove="checkGEPosition($event)"
-							@mouseout="onMouseOut('GEInfoBox')"
-						></canvas>
+					<div class="annotations-table-wrapper">
+						<span
+							v-html="
+								!!renderConfig['ui table legend']
+									? renderConfig['ui table legend']
+									: 'Table is sort by fold (SNPs/expectedSNPs) across annotations. Tissue columns show P-Value / Fold.'
+							"
+						></span>
+
+						<table
+							class="table table-sm ge-data-table"
+							cellpadding="0"
+							cellspacing="0"
+						>
+							<thead>
+								<tr>
+									<th
+										v-for="(pValue, pKey, pIndex) in GEData"
+										:key="pKey"
+										v-html="pKey"
+									></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td
+										v-for="(pValue, pKey, pIndex) in GEData"
+										:key="pKey"
+										class="phenotype-tissue-td"
+										style="
+											padding: 0;
+											border: none !important;
+										"
+									>
+										<table
+											class="table table-sm ge-data-table"
+											cellpadding="0"
+											cellspacing="0"
+										>
+											<thead>
+												<tr>
+													<th></th>
+													<th>Tissues</th>
+													<th
+														v-for="annotation in pkgDataSelected.filter(
+															(s) =>
+																s.type ==
+																'Annotation'
+														)"
+														:key="annotation.id"
+														:class="annotation.id"
+														v-html="annotation.id"
+														:style="
+															'background-color:' +
+															getColorIndex(
+																annotation.id
+															)
+														"
+													></th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr
+													v-for="(
+														tissueValue, tissueKey
+													) in getSortByAnno(
+														pkgData.GEByTissueData[
+															pKey
+														]
+													)"
+													:key="tissueKey + pKey"
+												>
+													<td>
+														<input
+															type="checkbox"
+															:class="
+																tissueKey.replace(
+																	/ /g,
+																	'_'
+																)
+															"
+															:value="tissueKey"
+															@click="
+																addRemoveTissueTrack(
+																	$event,
+																	null
+																)
+															"
+															:checked="
+																pkgDataSelected
+																	.filter(
+																		(s) =>
+																			s.type ==
+																			'Tissue'
+																	)
+																	.map(
+																		(s) =>
+																			s.id
+																	)
+																	.includes(
+																		tissueKey
+																	)
+															"
+														/>
+													</td>
+													<td v-html="tissueKey"></td>
+													<td
+														v-for="annotation in pkgDataSelected.filter(
+															(s) =>
+																s.type ==
+																'Annotation'
+														)"
+														:key="annotation.id"
+														:class="annotation.id"
+													>
+														<span
+															v-if="
+																!!annoData[
+																	annotation
+																		.id
+																][tissueKey]
+															"
+															v-html="
+																!!tissueValue[
+																	annotation
+																		.id
+																]
+																	? tissueValue[
+																			annotation
+																				.id
+																	  ].pValue +
+																	  ' / ' +
+																	  tissueValue[
+																			annotation
+																				.id
+																	  ].fold
+																	: ''
+															"
+														></span>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
 				</div>
-
 				<div id="annotationsPlotWrapper">
 					<div id="tissueInfoBox" class="hidden"></div>
 
 					<canvas
 						id="annotationsPlot"
 						@resize="onResize"
-						@mousemove="checkPosition($event, 'hover')"
-						@click="checkPosition($event, 'click')"
+						@mousemove="checkPosition($event)"
 						@mouseout="onMouseOut('tissueInfoBox')"
 						width=""
 						height=""
 					></canvas>
-
+					<!--<span
+						v-if="sharedPlotXpos != null"
+						:style="
+							'position:absolute;width: 1px; height:100%;top:0;left: ' +
+							sharedPlotXpos +
+							'px;border-left: solid 1px #000;'
+						"
+					></span>-->
 					<div
 						id="annoInitialMessage"
 						:class="
@@ -130,6 +286,51 @@
 						"
 						v-html="'Please select annotation.'"
 					></div>
+				</div>
+
+				<!--<div id="tissuesPlotWrapper">
+					<div id="selectedTissueInfoBox" class="hidden"></div>
+					<canvas
+						id="tissuesPlot"
+						@resize="onResize"
+						@mousemove="checkTissuesPosition($event)"
+						@mouseout="onMouseOut('selectedTissueInfoBox')"
+						@click="removeTissueTrack($event)"
+						width="0"
+						height="0"
+					></canvas>
+				</div>-->
+			</div>
+			<div class="col-md-3 anno-plot-ui-wrapper reference-area">
+				<h6><strong>Global Enrichment</strong></h6>
+				<div>
+					<div
+						v-for="(annoValue, annoKey, annoIndex) in annoData"
+						:key="annoKey"
+						class="anno-bubble-wrapper"
+					>
+						<span
+							class="anno-bubble"
+							v-html="'&nbsp;'"
+							:style="
+								'background-color:' +
+								compareGroupColors[annoIndex] +
+								';'
+							"
+						></span
+						><span v-html="annoKey"></span>
+					</div>
+				</div>
+				<div id="GEPlotWrapper" v-if="searchingPhenotype != null">
+					<div id="GEInfoBox" class="hidden"></div>
+					<canvas
+						id="GEPlot"
+						width=""
+						height=""
+						style="background-color: #ffffff"
+						@mousemove="checkGEPosition($event)"
+						@mouseout="onMouseOut('GEInfoBox')"
+					></canvas>
 				</div>
 			</div>
 		</div>
@@ -147,7 +348,7 @@ import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-annotations-plot-v2", {
+export default Vue.component("research-annotations-plot", {
 	props: [
 		"region",
 		"phenotype",
@@ -171,7 +372,7 @@ export default Vue.component("research-annotations-plot-v2", {
 			selectedAnnos: [],
 			selectedTissues: [],
 			annoPosData: {},
-			spaceBy: 12,
+			spaceBy: 7,
 		};
 	},
 	modules: {
@@ -509,58 +710,69 @@ export default Vue.component("research-annotations-plot-v2", {
 							"selectedAnnos",
 							selectedAnnotations
 						);
-
-						this.renderGE();
 					}
 				}
 			}
 		},
-		removeAnnoTrack(ANNO) {
-			//console.log("called", ANNO);
-			let selectedAnnotations = this.pkgDataSelected
-				.filter((s) => s.type == "Annotation")
-				.map((s) => s.id);
-			const aIndex = selectedAnnotations.indexOf(ANNO);
-			//console.log("called2", aIndex, selectedAnnotations);
-			if (aIndex > -1) {
-				selectedAnnotations.splice(aIndex, 1);
-				if (this.pkgData != null) {
-					this.$store.dispatch("pkgDataSelected", {
-						type: "Annotation",
-						id: ANNO,
-						action: "remove",
-					});
-
-					Vue.set(this.pkgData, "selectedAnnos", selectedAnnotations);
-				}
-				this.renderGE();
-			}
-		},
-		addRemoveTissueTrack(TISSUE) {
-			let tissue = TISSUE;
+		addRemoveTissueTrack(event, TISSUE) {
+			let tissue = TISSUE != null ? TISSUE : event.target.value;
 			let tClass = tissue.replace(/ /g, "_");
+
+			const chkBoxes = document.querySelectorAll("input." + tClass);
 
 			let selectedTissues = this.pkgDataSelected
 				.filter((s) => s.type == "Tissue")
 				.map((s) => s.id);
 
-			const tIndex = selectedTissues.indexOf(tissue);
+			if (event != null) {
+				if (event.target.checked == true) {
+					chkBoxes.forEach(function (c) {
+						c.checked = true;
+					});
 
-			if (tIndex > -1) {
-				if (this.pkgData != null) {
-					this.$store.dispatch("pkgDataSelected", {
-						type: "Tissue",
-						id: tissue,
-						action: "remove",
+					selectedTissues.push(tissue);
+
+					if (this.pkgData != null) {
+						this.$store.dispatch("pkgDataSelected", {
+							type: "Tissue",
+							id: tissue,
+							action: "add",
+						});
+
+						Vue.set(
+							this.pkgData,
+							"selectedTissues",
+							selectedTissues
+						);
+					}
+				} else {
+					chkBoxes.forEach(function (c) {
+						c.checked = false;
 					});
+					const tIndex = selectedTissues.indexOf(tissue);
+					if (tIndex > -1) {
+						if (this.pkgData != null) {
+							this.$store.dispatch("pkgDataSelected", {
+								type: "Tissue",
+								id: tissue,
+								action: "remove",
+							});
+						}
+					}
 				}
-			} else {
-				if (this.pkgData != null) {
-					this.$store.dispatch("pkgDataSelected", {
-						type: "Tissue",
-						id: tissue,
-						action: "add",
-					});
+			} else if (event == null) {
+				chkBoxes.forEach(function (c) {
+					c.checked = false;
+				});
+				const tIndex = selectedTissues.indexOf(tissue);
+				if (tIndex > -1) {
+					if (this.pkgData != null) {
+						this.$store.dispatch("pkgDataSelected", {
+							type: "Tissue",
+							id: tissue,
+							action: "remove",
+						});
+					}
 				}
 			}
 		},
@@ -1004,7 +1216,24 @@ export default Vue.component("research-annotations-plot-v2", {
 				infoBox.setAttribute("class", "hidden");
 			}
 		},
-
+		removeAnnoTrack(ANNO) {
+			//console.log("called", ANNO);
+			let selectedAnnotations = this.pkgDataSelected
+				.filter((s) => s.type == "Annotation")
+				.map((s) => s.id);
+			const aIndex = selectedAnnotations.indexOf(ANNO);
+			//console.log("called2", aIndex, selectedAnnotations);
+			if (aIndex > -1) {
+				//this.selectedAnnos.splice(aIndex, 1);
+				if (this.pkgData != null) {
+					this.$store.dispatch("pkgDataSelected", {
+						type: "Annotation",
+						id: ANNO,
+						action: "remove",
+					});
+				}
+			}
+		},
 		checkPosition(event, TYPE) {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
@@ -1018,84 +1247,62 @@ export default Vue.component("research-annotations-plot-v2", {
 			const infoBox = document.querySelector("#tissueInfoBox");
 			let infoContent = "";
 
-			if (TYPE == "hover") {
-				if (
-					x >= this.plotMargin.leftMargin &&
-					x <= rect.width - this.plotMargin.leftMargin
-				) {
-					if (!!this.annoPosData[y]) {
-						//this.$store.dispatch("sharedPlotXpos", rawX);
-						infoContent += this.annoPosData[y].tissue;
+			if (
+				x >= this.plotMargin.leftMargin &&
+				x <= rect.width - this.plotMargin.leftMargin
+			) {
+				if (!!this.annoPosData[y]) {
+					//this.$store.dispatch("sharedPlotXpos", rawX);
+					infoContent += this.annoPosData[y].tissue;
+					for (const [region, regionValue] of Object.entries(
+						this.annoPosData[y].regions
+					)) {
+						let hPosition = region.split("_");
+						let start = hPosition[0];
+						let end = hPosition[1];
+						if (x >= start && x <= end) {
+							infoContent +=
+								"<br />" +
+								regionValue.start +
+								"-" +
+								regionValue.end;
+						}
+					}
+				}
+			} else if (
+				x >= rect.width - this.plotMargin.leftMargin &&
+				x <= rect.width
+			) {
+				let floorY = Math.floor(rawY);
+				let yStart = floorY - 4;
+				let yEnd = floorY + 4;
+				for (let i = yStart; i <= yEnd; i++) {
+					if (
+						!!this.annoPosData[i] &&
+						!!this.annoPosData[i].annotation
+					) {
 						for (const [region, regionValue] of Object.entries(
-							this.annoPosData[y].regions
+							this.annoPosData[i].regions
 						)) {
 							let hPosition = region.split("_");
 							let start = hPosition[0];
 							let end = hPosition[1];
 							if (x >= start && x <= end) {
-								infoContent +=
-									"<br />" +
-									regionValue.start +
-									"-" +
-									regionValue.end;
-							}
-						}
-					}
-				} else if (
-					x >= rect.width - this.plotMargin.leftMargin &&
-					x <= rect.width
-				) {
-					let floorY = Math.floor(rawY);
-					let yStart = floorY - 4;
-					let yEnd = floorY + 4;
-					for (let i = yStart; i <= yEnd; i++) {
-						if (
-							!!this.annoPosData[i] &&
-							!!this.annoPosData[i].annotation
-						) {
-							for (const [region, regionValue] of Object.entries(
-								this.annoPosData[i].regions
-							)) {
-								let hPosition = region.split("_");
-								let start = hPosition[0];
-								let end = hPosition[1];
-								if (x >= start && x <= end) {
-									infoContent += regionValue;
-								}
+								infoContent += regionValue;
 							}
 						}
 					}
 				}
 			}
 
-			if (TYPE == "click") {
-				if (
-					x >= this.plotMargin.leftMargin &&
-					x <= rect.width - this.plotMargin.leftMargin
-				) {
-					if (!!this.annoPosData[y]) {
-						//this.$store.dispatch("sharedPlotXpos", rawX);
-						infoContent += this.annoPosData[y].tissue;
-					}
-				}
-			}
-
-			if (TYPE == "hover") {
-				if (infoContent == "") {
-					infoBox.innerHTML = "";
-					infoBox.setAttribute("class", "hidden");
-				} else {
-					infoBox.innerHTML = infoContent;
-					infoBox.setAttribute("class", "");
-					infoBox.style.left = rawX + 15 + "px";
-					infoBox.style.top = rawY + this.spaceBy + "px";
-				}
-			}
-
-			if (TYPE == "click") {
-				if (infoContent != "") {
-					this.addRemoveTissueTrack(infoContent);
-				}
+			if (infoContent == "") {
+				infoBox.innerHTML = "";
+				infoBox.setAttribute("class", "hidden");
+			} else {
+				infoBox.innerHTML = infoContent;
+				infoBox.setAttribute("class", "");
+				infoBox.style.left = rawX + 15 + "px";
+				infoBox.style.top = rawY + this.spaceBy + "px";
 			}
 		},
 		getColorIndex(anno) {
@@ -1195,16 +1402,6 @@ export default Vue.component("research-annotations-plot-v2", {
 
 		getGEByTissue() {
 			/// put lowest pValue and fold across ancestries
-
-			let annotations = {};
-
-			Object.keys(this.GEData).map((pKey) => {
-				annotations[pKey] = {};
-				Object.keys(this.annoData).map((aKey) => {
-					annotations[pKey][aKey] = [];
-				});
-			});
-
 			let GEByTissue = {};
 			for (const [phenotype, phenotypeGE] of Object.entries(
 				this.GEData
@@ -1220,7 +1417,6 @@ export default Vue.component("research-annotations-plot-v2", {
 							pValue: null,
 							fold: null,
 							gregor: null,
-							rank: null,
 						};
 					}
 
@@ -1238,47 +1434,8 @@ export default Vue.component("research-annotations-plot-v2", {
 						GEByTissue[phenotype][g.tissue][g.annotation].fold =
 							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
 					}
-
-					annotations[phenotype][g.annotation].push({
-						tissue: g.tissue,
-						fold: GEByTissue[phenotype][g.tissue][g.annotation]
-							.fold,
-					});
-
-					/*annotations[phenotype][g.annotation].sort(
-						(a, b) => b.fold - a.fold
-					);*/
 				});
 			}
-
-			/// get the ranks of tissues by fold
-			Object.keys(annotations).map((pKey) => {
-				Object.keys(annotations[pKey]).map((aKey) => {
-					annotations[pKey][aKey] = [
-						...new Map(
-							annotations[pKey][aKey].map((item) => [
-								item["tissue"],
-								item,
-							])
-						).values(),
-					];
-
-					annotations[pKey][aKey].sort((a, b) => b.fold - a.fold);
-
-					//console.log(aKey);
-					let tIndex = 0;
-					annotations[pKey][aKey].map((tValue) => {
-						console.log(tValue.tissue, tIndex);
-						if (
-							!!this.tissuesData[tValue.tissue] &&
-							!!this.tissuesData[tValue.tissue][aKey]
-						) {
-							GEByTissue[pKey][tValue.tissue][aKey].rank = tIndex;
-							tIndex++;
-						}
-					});
-				});
-			});
 
 			return GEByTissue;
 		},
@@ -1360,8 +1517,6 @@ export default Vue.component("research-annotations-plot-v2", {
 			this.GEPosData = {};
 			let sortedGEData = {};
 
-			console.log("renderGE", this.pkgData.selectedAnnos);
-
 			//console.log("this.GEData", this.GEData);
 			//console.log("this.annoData", this.annoData);
 
@@ -1441,20 +1596,18 @@ export default Vue.component("research-annotations-plot-v2", {
 				});
 			}
 
-			let numOfPhenotypes = Object.keys(sortedGEData).length;
-
 			let canvasWidth =
-				document.querySelector("#GEPlotWrapper").clientWidth * 0.25;
+				document.querySelector("#GEPlotWrapper").clientWidth;
 
-			let allCanvasWidth = canvasWidth * numOfPhenotypes;
-
+			let numOfPhenotypes = Object.keys(sortedGEData).length;
 			let plotHeight = 130;
 			let titleSize = this.spaceBy * 2;
 			let canvasHeight =
-				this.plotMargin.topMargin +
-				this.plotMargin.bottomMargin +
-				plotHeight +
-				titleSize;
+				(this.plotMargin.topMargin +
+					this.plotMargin.bottomMargin +
+					plotHeight +
+					titleSize) *
+				numOfPhenotypes;
 
 			let plotWidth =
 				canvasWidth -
@@ -1464,20 +1617,24 @@ export default Vue.component("research-annotations-plot-v2", {
 
 			let c, ctx;
 			c = document.querySelector("#GEPlot");
-			c.setAttribute("width", allCanvasWidth);
+			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
 			ctx = c.getContext("2d");
 
 			let pIndex = 0;
 			for (const [phenotype, GE] of Object.entries(sortedGEData)) {
-				let titleYPos = titleSize;
-
-				let canvasLeft = bump + canvasWidth * pIndex;
+				let titleYPos =
+					titleSize +
+					(this.plotMargin.topMargin +
+						this.plotMargin.bottomMargin +
+						plotHeight +
+						titleSize) *
+						pIndex;
 
 				ctx.font = "14px Arial";
 				ctx.textAlign = "left";
 				ctx.fillStyle = "#000000";
-				ctx.fillText(phenotype, canvasLeft, titleYPos);
+				ctx.fillText(phenotype, bump, titleYPos);
 
 				this.renderGEAxis(
 					ctx,
@@ -1487,7 +1644,6 @@ export default Vue.component("research-annotations-plot-v2", {
 					GE.xMin,
 					GE.yMax,
 					GE.yMin,
-					canvasLeft,
 					titleYPos,
 					bump
 				);
@@ -1514,21 +1670,13 @@ export default Vue.component("research-annotations-plot-v2", {
 				let yPosByPixel = plotHeight / (GE.yMax - GE.yMin);
 
 				annotationsArr.map((annotation, annoIndex) => {
-					let dotColor =
-						!this.pkgData.selectedAnnos ||
-						this.pkgData.selectedAnnos.length == 0
-							? this.compareGroupColors[annoIndex]
-							: !!this.pkgData.selectedAnnos &&
-							  !!this.pkgData.selectedAnnos.includes(annotation)
-							? this.compareGroupColors[annoIndex]
-							: "#00000030";
+					let dotColor = this.compareGroupColors[annoIndex];
 
 					//let firstTissueInAnno = 0;
 					for (const [tissue, tValue] of Object.entries(
 						GE[annotation]
 					)) {
 						let xPos =
-							canvasLeft +
 							this.plotMargin.leftMargin +
 							(tValue.pValue - GE.xMin) * xPosByPixel;
 
@@ -1549,16 +1697,7 @@ export default Vue.component("research-annotations-plot-v2", {
 							tValue.pValue >= pValArr[2]
 						) {
 							ctx.font = "12px Arial";
-							ctx.fillStyle =
-								!this.pkgData.selectedAnnos ||
-								this.pkgData.selectedAnnos.length == 0
-									? "#000000"
-									: !!this.pkgData.selectedAnnos &&
-									  !!this.pkgData.selectedAnnos.includes(
-											annotation
-									  )
-									? "#000000"
-									: "#00000050";
+							ctx.fillStyle = "#000000";
 							if (xPos > canvasWidth * 0.75) {
 								ctx.textAlign = "right";
 								ctx.fillText(tissue, xPos - 7, yPos + 3);
@@ -1602,29 +1741,19 @@ export default Vue.component("research-annotations-plot-v2", {
 				pIndex++;
 			}
 		},
-		renderGEAxis(
-			CTX,
-			WIDTH,
-			HEIGHT,
-			XMAX,
-			XMIN,
-			YMAX,
-			YMIN,
-			XPOS,
-			YPOS,
-			BUMP
-		) {
+		renderGEAxis(CTX, WIDTH, HEIGHT, XMAX, XMIN, YMAX, YMIN, YPOS, BUMP) {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
-			let yAxisXPos =
-				Math.round(XPOS + this.plotMargin.leftMargin - BUMP) - 0.5;
-			CTX.moveTo(yAxisXPos, YPOS + this.plotMargin.topMargin);
+			CTX.moveTo(
+				this.plotMargin.leftMargin - BUMP,
+				YPOS + this.plotMargin.topMargin
+			);
 			CTX.lineTo(
-				yAxisXPos,
+				this.plotMargin.leftMargin - BUMP,
 				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
 			);
 
@@ -1638,14 +1767,8 @@ export default Vue.component("research-annotations-plot-v2", {
 
 				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
 
-				CTX.moveTo(
-					XPOS + this.plotMargin.leftMargin - BUMP * 2,
-					adjTickYPos
-				);
-				CTX.lineTo(
-					XPOS + this.plotMargin.leftMargin - BUMP,
-					adjTickYPos
-				);
+				CTX.moveTo(this.plotMargin.leftMargin - BUMP * 2, adjTickYPos);
+				CTX.lineTo(this.plotMargin.leftMargin - BUMP, adjTickYPos);
 				CTX.stroke();
 
 				CTX.textAlign = "right";
@@ -1653,7 +1776,7 @@ export default Vue.component("research-annotations-plot-v2", {
 
 				CTX.fillText(
 					Formatters.floatFormatter(YMIN + i * yStep),
-					XPOS + this.plotMargin.leftMargin - BUMP * 3,
+					this.plotMargin.leftMargin - BUMP * 3,
 					YPOS +
 						this.plotMargin.topMargin +
 						HEIGHT +
@@ -1671,17 +1794,17 @@ export default Vue.component("research-annotations-plot-v2", {
 			CTX.fillText(
 				yLabel,
 				-(this.plotMargin.topMargin + HEIGHT / 2) - YPOS,
-				XPOS + BUMP + 12
+				BUMP + 12
 			);
 
 			// render x axis
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 			CTX.moveTo(
-				XPOS + this.plotMargin.leftMargin - BUMP,
+				this.plotMargin.leftMargin - BUMP,
 				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
 			);
 			CTX.lineTo(
-				XPOS + this.plotMargin.leftMargin + WIDTH,
+				this.plotMargin.leftMargin + WIDTH,
 				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
 			);
 			CTX.stroke();
@@ -1691,8 +1814,7 @@ export default Vue.component("research-annotations-plot-v2", {
 			let xTickDistance = WIDTH / 5;
 
 			for (let i = 0; i < 6; i++) {
-				let tickXPos =
-					XPOS + this.plotMargin.leftMargin + i * xTickDistance;
+				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
 
 				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
 
@@ -1723,7 +1845,7 @@ export default Vue.component("research-annotations-plot-v2", {
 			CTX.textAlign = "center";
 			CTX.fillText(
 				xLabel,
-				XPOS + this.plotMargin.leftMargin + WIDTH / 2,
+				this.plotMargin.leftMargin + WIDTH / 2,
 				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
 			);
 		},
@@ -1755,7 +1877,7 @@ export default Vue.component("research-annotations-plot-v2", {
 					.filter((s) => s.type == starKey)
 					.map((s) => s.id)
 					.map((s) => {
-						//console.log("this.plotData[s]", plotData[s]);
+						console.log("this.plotData[s]", plotData[s]);
 						staredPositions.push(plotData[s][starPosition]);
 					});
 			}
@@ -1768,7 +1890,6 @@ export default Vue.component("research-annotations-plot-v2", {
 			let bottomMargin = this.spaceBy * 2;
 			let regionStart = this.viewingRegion.start;
 			let regionEnd = this.viewingRegion.end;
-			let pvalueFoldWidth = 120;
 
 			let selectedAnnotations = this.pkgDataSelected
 				.filter((s) => s.type == "Annotation")
@@ -1790,14 +1911,9 @@ export default Vue.component("research-annotations-plot-v2", {
 			let canvas = document.querySelector("#annotationsPlot");
 
 			if (!!canvas && !!wrapper) {
-				let canvasWidth =
-					document.querySelector("#annotationsPlotWrapper")
-						.clientWidth * 0.75;
-
-				let wrapperWidth =
-					canvasWidth +
-					Object.keys(this.pkgData.GEByTissueData).length *
-						pvalueFoldWidth;
+				let canvasWidth = document.querySelector(
+					"#annotationsPlotWrapper"
+				).clientWidth;
 
 				let canvasHeight = tempHeight + topMargin + bottomMargin;
 
@@ -1809,37 +1925,22 @@ export default Vue.component("research-annotations-plot-v2", {
 
 				let c, ctx;
 				c = document.querySelector("#annotationsPlot");
-				c.setAttribute("width", wrapperWidth);
+				c.setAttribute("width", canvasWidth);
 				c.setAttribute("height", canvasHeight);
 				ctx = c.getContext("2d");
 
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
 				let renderHeight = annotationTitleH;
-				console.log("this.annoData", this.pkgData);
+				//console.log("this.annoData", this.annoData);
 				for (const [annotation, tissues] of Object.entries(
 					this.annoData
 				)) {
 					if (selectedAnnotations.includes(annotation)) {
 						ctx.font = "14px Arial";
 						ctx.textAlign = "left";
-						ctx.fillStyle = "#000000";
+						ctx.fillStyle = "#00000050";
 						ctx.fillText(annotation, bump, renderHeight);
-
-						Object.keys(this.pkgData.GEByTissueData).map(
-							(pKey, pIndex) => {
-								ctx.fillStyle = "#000000";
-								ctx.textAlign = "start";
-								ctx.textBaseline = "middle";
-								ctx.font = "14px Arial";
-
-								ctx.fillText(
-									pKey,
-									canvasWidth + pvalueFoldWidth * pIndex,
-									renderHeight
-								);
-							}
-						);
 
 						let blockHeight =
 							Object.keys(tissues).length * perTissue;
@@ -1958,71 +2059,12 @@ export default Vue.component("research-annotations-plot-v2", {
 
 							renderHeight += perTissue;
 
-							//if (selectedTissues.indexOf(tissue) > -1) {
-							ctx.fillStyle = "#000000";
-							ctx.textAlign = "start";
-							ctx.textBaseline = "middle";
-							ctx.font = "12px Arial";
-							ctx.fillText(tissue, 5, renderHeight - 4);
-							//}
-
-							let pIndex = 0;
-							for (const [pKey, tissues] of Object.entries(
-								this.pkgData.GEByTissueData
-							)) {
-								if (
-									!!this.pkgData.GEByTissueData[pKey][
-										tissue
-									] &&
-									!!this.pkgData.GEByTissueData[pKey][tissue][
-										annotation
-									]
-								) {
-									let pvalueFold =
-										this.pkgData.GEByTissueData[pKey][
-											tissue
-										][annotation]["pValue"] +
-										" / " +
-										Number(
-											this.pkgData.GEByTissueData[pKey][
-												tissue
-											][annotation]["fold"]
-										).toFixed(3);
-
-									if (
-										this.pkgData.GEByTissueData[pKey][
-											tissue
-										][annotation]["rank"] < 5
-									) {
-										ctx.fillStyle =
-											this.getColorIndex(annotation);
-										ctx.lineWidth = 0;
-										ctx.beginPath();
-										ctx.arc(
-											canvasWidth +
-												pvalueFoldWidth * pIndex -
-												5,
-											renderHeight - 4,
-											3,
-											0,
-											2 * Math.PI
-										);
-										ctx.fill();
-									}
-
-									ctx.fillStyle = "#000000";
-									ctx.textAlign = "start";
-									ctx.textBaseline = "middle";
-									ctx.font = "11px Arial";
-
-									ctx.fillText(
-										pvalueFold,
-										canvasWidth + pvalueFoldWidth * pIndex,
-										renderHeight - 4
-									);
-								}
-
-								pIndex++;
+							if (selectedTissues.indexOf(tissue) > -1) {
+								ctx.fillStyle = "#000000";
+								ctx.textAlign = "start";
+								ctx.textBaseline = "middle";
+								ctx.font = "12px Arial";
+								ctx.fillText(tissue, 5, renderHeight - 2);
 							}
 						}
 						renderHeight += btwnAnnotations;
@@ -2139,14 +2181,13 @@ $(function () {});
 }
 
 .annotations-table-wrapper {
-	/*
 	max-height: 300px;
 	overflow: auto;
 	padding: 15px;
 	background-color: #eee;
 	border: solid 1px #ddd;
 	border-radius: 5px;
-	margin-bottom: 15px;*/
+	margin-bottom: 15px;
 }
 .annotations-plots-wrapper {
 	padding: 0 !important;

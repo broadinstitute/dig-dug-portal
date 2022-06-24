@@ -60,7 +60,10 @@
 				:regionViewArea="regionViewArea"
 			></research-credible-sets-plot>
 			<div
-				v-if="pkgConfig.viewers.includes('annotations plot') == true"
+				v-if="
+					pkgConfig.viewers.includes('annotations plot') == true ||
+					pkgConfig.viewers.includes('annotations plot v2') == true
+				"
 				class="section-opener"
 				id="annotationSectionOpener"
 				@click="
@@ -90,10 +93,29 @@
 				remove pancreas
 			</button>-->
 
-			<research-annotations-plot-v2
+			<research-annotations-plot
 				id="annotationSection"
 				class="svg-wrapper hidden-svg"
 				v-if="pkgConfig.viewers.includes('annotations plot') == true"
+				:region="$store.state.searchingRegion"
+				:phenotype="$store.state.searchingPhenotype"
+				:renderConfig="pkgConfig['annotations viewer']"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.bold"
+				:dataComparison="this.$store.state.dataComparison"
+				:plotData="$store.state.filteredData"
+				:pkgData="pkgData"
+				:pkgDataSelected="pkgDataSelected"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
+				:sharedPlotXpos="sharedPlotXpos"
+				ref="annotationsRef"
+			></research-annotations-plot>
+
+			<research-annotations-plot-v2
+				id="annotationSection"
+				class="svg-wrapper hidden-svg"
+				v-if="pkgConfig.viewers.includes('annotations plot v2') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
 				:renderConfig="pkgConfig['annotations viewer']"
@@ -153,6 +175,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
+import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchAnnotationsPlotV2 from "@/components/researchPortal/ResearchAnnotationsPlotV2.vue";
 import ResearchCredibleSets from "@/components/researchPortal/ResearchCredibleSets.vue";
 import ResearchGeneLinks from "@/components/researchPortal/ResearchGeneLinks.vue";
@@ -180,6 +203,7 @@ export default Vue.component("kp-gem-pkg", {
 	components: {
 		ResearchRegionPlot,
 		ResearchGenesTrack,
+		ResearchAnnotationsPlot,
 		ResearchAnnotationsPlotV2,
 		ResearchCredibleSets,
 		ResearchGeneLinks,

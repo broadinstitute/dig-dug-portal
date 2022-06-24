@@ -4,11 +4,7 @@
 		v-if="searchingRegion != null && searchingPhenotype != null"
 	>
 		<div class="col-md-12 CS-plot-wrapper">
-			<div
-				class="col-md-9"
-				id="CSPlotWrapper"
-				style="display: inline-block"
-			>
+			<div class="col-md-12">
 				<div id="CSUIWrapper">
 					<div
 						class="filtering-ui-wrapper add-content"
@@ -102,6 +98,12 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			<div
+				class="col-md-9"
+				id="CSPlotWrapper"
+				style="display: inline-block"
+			>
 				<div id="CSInfoBox" class="hidden">
 					<div
 						class="fixed-info-box-close"

@@ -4,7 +4,7 @@
 			class="col-md-12 gene-links-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
-			<div class="col-md-9 gene-link-plot-wrapper">
+			<div class="col-md-12">
 				<div id="geneLinksUIWrapper">
 					<div
 						class="filtering-ui-wrapper add-content"
@@ -60,6 +60,8 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			<div class="col-md-9 gene-link-plot-wrapper">
 				<div id="geneLinksPlotWrapper">
 					<div id="GLInfoBox" class="hidden">
 						<div
