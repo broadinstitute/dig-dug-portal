@@ -39,6 +39,7 @@
     "vis-util": "^5.0.2",
     "vue": "^2.6.12",
     "vue-async-computed": "^3.9.0",
+    "vue-codemirror": "^4.0.6",
     "vue-cookies": "^1.7.4",
     "vue-select": "^3.10.8",
     "vue-typeahead-bootstrap": "^2.6.0",
@@ -55,6 +56,11 @@
     "babel-loader": "^8.1.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "cache-loader": "^4.1.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.2.2",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-vue": "^9.1.1",
     "regenerator-runtime": "^0.13.7",
     "vue-template-compiler": "^2.6.12"
   }
