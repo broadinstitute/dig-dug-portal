@@ -147,6 +147,17 @@ export default Vue.component("research-phewas-plot", {
 					if (
 						!!this.phenotypeMap[d[this.renderConfig["render by"]]]
 					) {
+						let pValue =
+							typeof d[this.renderConfig["y axis field"]] ==
+							"string"
+								? Number(d[this.renderConfig["y axis field"]])
+								: d[this.renderConfig["y axis field"]];
+						d["rawPValue"] = pValue;
+
+						if (this.renderConfig["convert y -log10"] == "true") {
+							d[this.renderConfig["y axis field"]] =
+								-Math.log10(pValue);
+						}
 						content["data"].push(d);
 					}
 				});
@@ -203,7 +214,12 @@ export default Vue.component("research-phewas-plot", {
 			});
 
 			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
-				value.sort((a, b) => (a.pValue > b.pValue ? 1 : -1));
+				value.sort((a, b) =>
+					a[this.renderConfig["y axis field"]] <
+					b[this.renderConfig["y axis field"]]
+						? 1
+						: -1
+				);
 			}
 
 			return phenotypeGroupsObj;
@@ -358,14 +374,14 @@ export default Vue.component("research-phewas-plot", {
 
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-				let minY = null;
-				let maxY = null;
-
 				this.pheWasPosData = {};
 
 				let renderData = this.groupData(this.renderData);
 				let groups = {};
 				let totalNum = 0;
+
+				let minY = null;
+				let maxY = null;
 
 				for (const [key, value] of Object.entries(renderData)) {
 					groups[key] = value.length;
@@ -387,6 +403,8 @@ export default Vue.component("research-phewas-plot", {
 					});
 				}
 
+				//console.log("minY", minY, "maxY", maxY);
+
 				let plotMargin = {
 					left: this.plotMargin.leftMargin,
 					right: this.plotMargin.leftMargin * 1.5,
@@ -402,8 +420,8 @@ export default Vue.component("research-phewas-plot", {
 					plotMargin,
 					"y",
 					5,
-					-Math.log10(maxY),
-					-Math.log10(minY),
+					minY,
+					maxY,
 					this.renderConfig["y axis label"]
 				);
 
@@ -430,13 +448,16 @@ export default Vue.component("research-phewas-plot", {
 				let xStep =
 					(canvasWidth - plotMargin.left - plotMargin.right) /
 					totalNum;
-				let yMax = -Math.log10(maxY);
-				let yMin = -Math.log10(minY);
+
+				let yMax = maxY;
+				let yMin = minY;
 
 				// render Y ticks
 				let yStep =
 					(canvasHeight - (plotMargin.top + plotMargin.bottom)) /
 					(yMax - yMin);
+
+				console.log("yStep", yStep);
 
 				let groupsArr = Object.keys(groups).sort();
 
@@ -463,8 +484,8 @@ export default Vue.component("research-phewas-plot", {
 
 							let yPos =
 								canvasHeight -
-								plotMargin.bottom +
-								-Math.log10(p.pValue) * yStep;
+								plotMargin.bottom -
+								p[this.renderConfig["y axis field"]] * yStep;
 
 							if (this.renderConfig["beta field"] != "null") {
 								this.renderTriangle(
@@ -528,9 +549,14 @@ export default Vue.component("research-phewas-plot", {
 								labelIndex == 0 ||
 								labelXpos < maxWidthPerGroup
 							) {
+								console.log(
+									"thresholds",
+									this.renderConfig["thresholds"][0]
+								);
 								ctx.font = "11px Arial";
 								ctx.fillStyle =
-									p.pValue <= 2.5e-6
+									p.rawPValue <=
+									Number(this.renderConfig["thresholds"][0])
 										? "#000000"
 										: "#00000050";
 
@@ -555,10 +581,12 @@ export default Vue.component("research-phewas-plot", {
 					}
 					/// render guide line
 					this.renderConfig["thresholds"].map((t) => {
+						let tValue =
+							this.renderConfig["convert y -log10"] == "true"
+								? -Math.log10(Number(t))
+								: Number(t);
 						let guidelineYpos =
-							canvasHeight -
-							plotMargin.bottom +
-							-Math.log10(Number(t)) * yStep;
+							canvasHeight - plotMargin.bottom - tValue * yStep;
 						ctx.setLineDash([10, 5]);
 						ctx.moveTo(
 							plotMargin.left - plotMargin.bump,
