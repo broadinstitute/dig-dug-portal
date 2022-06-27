@@ -374,9 +374,10 @@
 									}"
 									:renderConfig="{
 										type: 'phewas plot',
+										'render by': 'phenotype',
 										'group by': 'phenotype group',
 										'y axis field': 'pValue',
-										'render by': 'phenotype',
+										'convert y -log10': 'true',
 										'y axis label': '-Log10(p-value)',
 										'x axis label': 'beta',
 										'beta field': 'null',
@@ -458,6 +459,7 @@
 								type: 'phewas plot',
 								'group by': 'phenotype group',
 								'y axis field': 'pValue',
+								'convert y -log10': 'true',
 								'render by': 'phenotype',
 								'y axis label': '-Log10(p-value)',
 								'x axis label': 'beta',
