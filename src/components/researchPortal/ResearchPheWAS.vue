@@ -145,8 +145,11 @@ export default Vue.component("research-phewas-plot", {
 				let phenotypesData = cloneDeep(this.phenotypesData);
 				phenotypesData.map((d) => {
 					if (
+						this.phenotypeMap != null &&
 						!!this.phenotypeMap[d[this.renderConfig["render by"]]]
 					) {
+						content["data"].push(d);
+					} else if (this.phenotypeMap == null) {
 						content["data"].push(d);
 					}
 				});
@@ -154,6 +157,8 @@ export default Vue.component("research-phewas-plot", {
 			if (!!this.filter) {
 				content.data = content.data.filter(this.filter);
 			}
+
+			console.log("content", content);
 
 			//return phenotypeGroupsObj;
 			if (!!content.data && content.data.length > 0) {
@@ -181,30 +186,58 @@ export default Vue.component("research-phewas-plot", {
 		},
 		groupData(DATA) {
 			let phenotypeGroups = [];
-			for (const [key, value] of Object.entries(this.phenotypeMap)) {
-				phenotypeGroups.push(value);
-			}
-
-			phenotypeGroups = [
-				...new Set(phenotypeGroups.map((p) => p.group)),
-			].sort();
-
 			let phenotypeGroupsObj = {};
-
-			phenotypeGroups.map((p) => {
-				phenotypeGroupsObj[p] = [];
-			});
-
-			DATA.data.map((p) => {
-				if (!!this.phenotypeMap[p.phenotype]) {
-					let group = this.phenotypeMap[p.phenotype].group;
-					phenotypeGroupsObj[group].push(p);
+			if (this.phenotypeMap != null) {
+				for (const [key, value] of Object.entries(this.phenotypeMap)) {
+					phenotypeGroups.push(value);
 				}
-			});
+				phenotypeGroups = [
+					...new Set(phenotypeGroups.map((p) => p.group)),
+				].sort();
 
-			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
-				value.sort((a, b) => (a.pValue > b.pValue ? 1 : -1));
+				phenotypeGroups.map((p) => {
+					phenotypeGroupsObj[p] = [];
+				});
+
+				DATA.data.map((p) => {
+					if (!!this.phenotypeMap[p.phenotype]) {
+						let group = this.phenotypeMap[p.phenotype].group;
+						phenotypeGroupsObj[group].push(p);
+					}
+				});
+
+				for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
+					value.sort((a, b) => (a.pValue > b.pValue ? 1 : -1));
+				}
+			} else if (this.phenotypeMap == null) {
+				phenotypeGroups = [
+					...new Set(
+						DATA.data.map((p) => p[this.renderConfig["group by"]])
+					),
+				].sort();
+
+				console.log("phenotypeGroups", phenotypeGroups);
+				phenotypeGroups.map((p) => {
+					phenotypeGroupsObj[p] = [];
+				});
+
+				DATA.data.map((p) => {
+					phenotypeGroupsObj[p[this.renderConfig["group by"]]].push(
+						p
+					);
+				});
+
+				for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
+					value.sort((a, b) =>
+						Number(a[this.renderConfig["render by"]]) >
+						Number(b[this.renderConfig["render by"]])
+							? 1
+							: -1
+					);
+				}
 			}
+
+			console.log("phenotypeGroupsObj", phenotypeGroupsObj);
 
 			return phenotypeGroupsObj;
 		},
@@ -461,10 +494,34 @@ export default Vue.component("research-phewas-plot", {
 							//console.log("p-Value":p.pValue, "")
 							let xPos = plotMargin.left + xStep * dotIndex;
 
-							let yPos =
-								canvasHeight -
-								plotMargin.bottom +
-								-Math.log10(p.pValue) * yStep;
+							let yPos;
+
+							if (this.phenotypeMap != null) {
+								yPos =
+									canvasHeight -
+									plotMargin.bottom +
+									-Math.log10(p.pValue) * yStep;
+							} else {
+								console.log(
+									typeof p[this.renderConfig["y axis field"]]
+								);
+								yPos =
+									canvasHeight -
+									plotMargin.bottom +
+									-Math.log10(
+										Number(
+											p[this.renderConfig["y axis field"]]
+										)
+									) *
+										yStep;
+							}
+
+							let pName =
+								this.phenotypeMap != null
+									? this.phenotypeMap[p.phenotype][
+											"description"
+									  ]
+									: p[this.renderConfig["render by"]];
 
 							if (this.renderConfig["beta field"] != "null") {
 								this.renderTriangle(
@@ -476,9 +533,7 @@ export default Vue.component("research-phewas-plot", {
 									Math.sign(
 										p[this.renderConfig["beta field"]]
 									),
-									this.phenotypeMap[p.phenotype][
-										"description"
-									]
+									pName
 								);
 							} else {
 								this.renderDot(
@@ -490,8 +545,8 @@ export default Vue.component("research-phewas-plot", {
 								);
 							}
 
-							let pName =
-								this.phenotypeMap[p.phenotype]["description"];
+							/*let pName =
+								this.phenotypeMap[p.phenotype]["description"];*/
 
 							///organize data by position
 							let yRangeStart = Math.round(yPos) - 5;
