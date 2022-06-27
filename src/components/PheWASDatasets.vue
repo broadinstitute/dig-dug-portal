@@ -16,10 +16,11 @@
                 <b-col class="top-level-header-item">P-Value</b-col>
                 <b-col class="top-level-header-item">Beta</b-col>
                 <b-col class="top-level-header-item">Odds Ratio</b-col>
-                <b-col class="top-level-header-item"
+                <b-col cols="2" class="top-level-header-item"
                     >Effective Sample Size</b-col
                 >
                 <b-col class="top-level-header-item">View</b-col>
+                <b-col class="top-level-header-item">Clumped Variants</b-col>
             </b-row>
             <template v-for="(item, index) in tableData">
                 <b-row
@@ -88,6 +89,9 @@
                             class="view-features-btn"
                             >Datasets</b-button
                         >
+                    </b-col>
+                    <b-col class="top-level-value-item">
+                        <b-button class="view-features-btn">Top 25 variants</b-button>
                     </b-col>
                 </b-row>
 
