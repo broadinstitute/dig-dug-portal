@@ -91,7 +91,8 @@
                         >
                     </b-col>
                     <b-col class="top-level-value-item">
-                        <b-button class="view-features-btn">Top 25 variants</b-button>
+                        <b-button @click="showTopClumpedVariants(index)"
+                        class="view-features-btn">Top 25 variants</b-button>
                     </b-col>
                 </b-row>
 
@@ -176,6 +177,10 @@
                         </b-row>
                     </template>
                 </div>
+                <div :class="`features_top25_${index}`" class="feature-content-wrapper hidden"
+                    :key="`features_top25_${index}`">
+                    <b-row>Top 25 clumped variants go here.</b-row>
+                </div>
             </template>
         </b-container>
         <b-pagination
@@ -259,6 +264,10 @@ export default Vue.component("phewas-datasets", {
             Array.from(datasets).forEach((element) => {
                 element.classList.add("hidden");
             });
+        },
+        showTopClumpedVariants(index){
+            console.log("Showing top 25 variants for index " + index);
+            uiUtils.showHideElement("features_top25_" + index);
         },
     },
 });
