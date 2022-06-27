@@ -179,7 +179,18 @@
                 </div>
                 <div :class="`features_top25_${index}`" class="feature-content-wrapper hidden"
                     :key="`features_top25_${index}`">
-                    <b-row>Top 25 clumped variants go here.</b-row>
+                    <b-row class="feature-header">
+                        <b-col class="feature-header-item">Variant ID</b-col>
+                        <b-col class="feature-header-item">rsID</b-col>
+                        <b-col class="feature-header-item">Ref/Alt</b-col>
+                        <b-col class="feature-header-item">P-Value</b-col>
+                        <b-col class="feature-header-item">Beta</b-col>
+                        <b-col class="feature-header-item">MAF</b-col>
+                        <b-col class="feature-header-item">Standard Error</b-col>
+                        <b-col class="feature-header-item">Z Score</b-col>
+                        <b-col class="feature-header-item">Consequence</b-col>
+                        <b-col class="feature-header-item">Nearest Genes</b-col>
+                    </b-row>
                 </div>
             </template>
         </b-container>
@@ -266,7 +277,6 @@ export default Vue.component("phewas-datasets", {
             });
         },
         showTopClumpedVariants(index){
-            console.log("Showing top 25 variants for index " + index);
             uiUtils.showHideElement("features_top25_" + index);
         },
     },
