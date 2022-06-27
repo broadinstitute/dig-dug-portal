@@ -141,9 +141,8 @@ export default Vue.component("research-phewas-plot", {
 			let content = {};
 			content["data"] = [];
 
-			if (!!this.phenotypesData && this.phenotypeMap != null) {
+			if (!!this.phenotypesData) {
 				let phenotypesData = cloneDeep(this.phenotypesData);
-				///This part is only for KP BioIndex
 				phenotypesData.map((d) => {
 					if (
 						!!this.phenotypeMap[d[this.renderConfig["render by"]]]
@@ -151,37 +150,12 @@ export default Vue.component("research-phewas-plot", {
 						content["data"].push(d);
 					}
 				});
-				////
-			} else if (this.phenotypeMap == null) {
-				phenotypesData.map((d) => {
-					content["data"].push(d);
-				});
 			}
-
-			///This part is only for KP BioIndex
 			if (!!this.filter) {
 				content.data = content.data.filter(this.filter);
 			}
-			///
 
-			if (this.renderConfig["convert y -log10"] == "true") {
-				content.data.map((d) => {
-					console.log(
-						d[this.renderConfig["y axis field"]],
-						":",
-						(d[this.renderConfig["y axis field"]] = -Math.log10(
-							d[this.renderConfig["y axis field"]]
-						))
-					);
-
-					d[this.renderConfig["y axis field"]] = -Math.log10(
-						d[this.renderConfig["y axis field"]]
-					);
-				});
-			}
-
-			console.log("content.data", content.data);
-
+			//return phenotypeGroupsObj;
 			if (!!content.data && content.data.length > 0) {
 				return content;
 			} else {
@@ -229,12 +203,7 @@ export default Vue.component("research-phewas-plot", {
 			});
 
 			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
-				value.sort((a, b) =>
-					a[this.renderConfig["y axis field"]] >
-					b[this.renderConfig["y axis field"]]
-						? 1
-						: -1
-				);
+				value.sort((a, b) => (a.pValue > b.pValue ? 1 : -1));
 			}
 
 			return phenotypeGroupsObj;
@@ -433,8 +402,8 @@ export default Vue.component("research-phewas-plot", {
 					plotMargin,
 					"y",
 					5,
-					maxY,
-					minY,
+					-Math.log10(maxY),
+					-Math.log10(minY),
 					this.renderConfig["y axis label"]
 				);
 
@@ -461,8 +430,8 @@ export default Vue.component("research-phewas-plot", {
 				let xStep =
 					(canvasWidth - plotMargin.left - plotMargin.right) /
 					totalNum;
-				let yMax = maxY;
-				let yMin = minY;
+				let yMax = -Math.log10(maxY);
+				let yMin = -Math.log10(minY);
 
 				// render Y ticks
 				let yStep =
@@ -489,12 +458,13 @@ export default Vue.component("research-phewas-plot", {
 							12;
 
 						value.map((p) => {
+							//console.log("p-Value":p.pValue, "")
 							let xPos = plotMargin.left + xStep * dotIndex;
 
 							let yPos =
 								canvasHeight -
 								plotMargin.bottom +
-								p[this.renderConfig["y axis field"]] * yStep;
+								-Math.log10(p.pValue) * yStep;
 
 							if (this.renderConfig["beta field"] != "null") {
 								this.renderTriangle(
@@ -560,8 +530,7 @@ export default Vue.component("research-phewas-plot", {
 							) {
 								ctx.font = "11px Arial";
 								ctx.fillStyle =
-									p[this.renderConfig["y axis field"]] <=
-									this.renderConfig["threshold"][0]
+									p.pValue <= 2.5e-6
 										? "#000000"
 										: "#00000050";
 
@@ -589,7 +558,7 @@ export default Vue.component("research-phewas-plot", {
 						let guidelineYpos =
 							canvasHeight -
 							plotMargin.bottom +
-							Number(t) * yStep;
+							-Math.log10(Number(t)) * yStep;
 						ctx.setLineDash([10, 5]);
 						ctx.moveTo(
 							plotMargin.left - plotMargin.bump,
