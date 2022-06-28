@@ -191,6 +191,10 @@
                         <b-col class="feature-header-item">Consequence</b-col>
                         <b-col class="feature-header-item">Nearest Genes</b-col>
                     </b-row>
+                    <b-row class="feature-row">
+                        <b-col class="feature-row-item">{{ item.phenotype.name }}</b-col>
+                        <b-col class="feature-row-item">{{ item.clump}}</b-col>
+                    </b-row>
                 </div>
             </template>
         </b-container>
