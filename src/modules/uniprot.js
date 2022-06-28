@@ -82,26 +82,39 @@ export default {
             }
         },
 
+        // geneFunction(state) {
+        //     let doc = state.uniprotDoc;
+        //     if (!!doc) {
+        //         let commentObject = doc.uniprot.entry.comment;
+
+        //         // most uniprot comments are an array, so ensure that
+        //         if (!Array.isArray(commentObject)) {
+        //             commentObject = [commentObject];
+        //         }
+
+        //         for (let i in commentObject) {
+        //             if (commentObject[i]._attributes.type == "function") {
+        //                 let geneFunction = jsonQuery("text[**]", {
+        //                     data: commentObject[i]
+        //                 }).value;
+        //                 return geneFunction[1];
+        //             }
+        //         }
+        //     }
+        // },
+
         geneFunction(state) {
             let doc = state.uniprotDoc;
             if (!!doc) {
-                let commentObject = doc.uniprot.entry.comment;
-
-                // most uniprot comments are an array, so ensure that
-                if (!Array.isArray(commentObject)) {
-                    commentObject = [commentObject];
-                }
-
+                let commentObject = doc.comments;
                 for (let i in commentObject) {
-                    if (commentObject[i]._attributes.type == "function") {
-                        let geneFunction = jsonQuery("text[**]", {
-                            data: commentObject[i]
-                        }).value;
-                        return geneFunction[1];
+                    if (commentObject[i].commentType == "FUNCTION") {
+                        return commentObject[i].texts[0].value;
                     }
                 }
             }
         },
+
         //display just as text
         proteinExistence(state) {
             let doc = state.uniprotDoc;
@@ -154,7 +167,7 @@ export default {
                 .finally(() => closeAlert(alertID));
 
             if (!!uniprotDoc) {
-                context.commit("setUniprotDoc", uniprotDoc);
+                context.commit("setUniprotDoc", uniprotDoc.results[0]);
             } else {
                 // TODO: postAlertError(some error message);
             }
