@@ -29,57 +29,95 @@ export default {
         }
     },
     getters: {
+        // geneNames(state) {
+        //     let geneNames = [];
+        //     let doc = state.uniprotDoc;
+        //     if (!!doc) {
+        //         let geneNameInfo = doc.uniprot.entry.gene.name;
+        //         geneNames = jsonQuery("_text[*]", { data: geneNameInfo }).value;
+        //         return geneNames;
+        //     }
+        // },
+
         geneNames(state) {
-            let geneNames = [];
             let doc = state.uniprotDoc;
             if (!!doc) {
-                let geneNameInfo = doc.uniprot.entry.gene.name;
-                geneNames = jsonQuery("_text[*]", { data: geneNameInfo }).value;
-                return geneNames;
+                return doc.genes.map(g => g.geneName.value);
             }
         },
+
+        // dbReference(state) {
+        //     let doc = state.uniprotDoc;
+        //     let dbReferences = [];
+        //     if (!!doc) {
+        //         let dbReferenceArrayObj = doc.uniprot.entry.dbReference;
+        //         for (let i in dbReferenceArrayObj) {
+        //             let attributes = jsonQuery("_attributes[*]", {
+        //                 data: dbReferenceArrayObj[i]
+        //             }).value;
+        //             let propertyAttributes = jsonQuery(
+        //                 "property[**]_attributes[**][*]",
+        //                 { data: dbReferenceArrayObj[i] }
+        //             ).value;
+        //             let values = jsonQuery("value[**]", {
+        //                 data: propertyAttributes
+        //             }).value;
+        //             dbReferences.push({
+        //                 source: attributes[0],
+        //                 id: attributes[1],
+        //                 proteinSeqID: values[0],
+        //                 moleculeType: values[1]
+        //             });
+        //         }
+        //         return dbReferences;
+        //     }
+        // },
 
         dbReference(state) {
             let doc = state.uniprotDoc;
-            let dbReferences = [];
+
             if (!!doc) {
-                let dbReferenceArrayObj = doc.uniprot.entry.dbReference;
-                for (let i in dbReferenceArrayObj) {
-                    let attributes = jsonQuery("_attributes[*]", {
-                        data: dbReferenceArrayObj[i]
-                    }).value;
-                    let propertyAttributes = jsonQuery(
-                        "property[**]_attributes[**][*]",
-                        { data: dbReferenceArrayObj[i] }
-                    ).value;
-                    let values = jsonQuery("value[**]", {
-                        data: propertyAttributes
-                    }).value;
-                    dbReferences.push({
-                        source: attributes[0],
-                        id: attributes[1],
-                        proteinSeqID: values[0],
-                        moleculeType: values[1]
-                    });
-                }
-                return dbReferences;
+                let dbReferenceArrayObj = doc.uniProtKBCrossReferences;
+                let attributes = dbReferenceArrayObj.map(item => {
+                    return {
+                        source: item.database,
+                        id: item.id,
+                        proteinSeqID: item.properties.find(
+                            e => e["key"] === "ProteinId"
+                        )?.value,
+                        moleculeType: item.properties.find(
+                            e => e["key"] === "MoleculeType"
+                        )?.value
+                    };
+                });
+                return attributes;
             }
         },
 
-        accession(state) {
+        // accession(state) {
+        //     let doc = state.uniprotDoc;
+        //     if (!!doc) {
+        //         let entryObject = doc.uniprot.entry;
+        //         // let entryAttribute = jsonQuery('_attribute[**]', { data: entryObject }).value
+        //         let acessionIds = jsonQuery("_text[]", {
+        //             data: entryObject.accession,
+        //             output: []
+        //         }).value;
+        //         if (typeof acessionIds == "string") {
+        //             return [acessionIds];
+        //         }
+        //         return acessionIds;
+        //     }
+        // },
+
+        assession(state) {
             let doc = state.uniprotDoc;
+            let assessions = [];
             if (!!doc) {
-                let entryObject = doc.uniprot.entry;
-                // let entryAttribute = jsonQuery('_attribute[**]', { data: entryObject }).value
-                let acessionIds = jsonQuery("_text[]", {
-                    data: entryObject.accession,
-                    output: []
-                }).value;
-                if (typeof acessionIds == "string") {
-                    return [acessionIds];
-                }
-                return acessionIds;
+                assessions.push(doc.primaryAccession);
+                assessions.push(...doc.secondaryAccessions);
             }
+            return assessions;
         },
 
         // geneFunction(state) {
@@ -116,17 +154,21 @@ export default {
         },
 
         //display just as text
+        // proteinExistence(state) {
+        //     let doc = state.uniprotDoc;
+        //     let references = [];
+        //     // eliminated lodash here in to remove dependencies
+        //     // previously was _.get
+        //     references.push(
+        //         !!doc.uniprot.entry.dbReference
+        //             ? doc.uniprot.entry.dbReference
+        //             : "_text"
+        //     );
+        //     return references;
+        // }
         proteinExistence(state) {
             let doc = state.uniprotDoc;
-            let references = [];
-            // eliminated lodash here in to remove dependencies
-            // previously was _.get
-            references.push(
-                !!doc.uniprot.entry.dbReference
-                    ? doc.uniprot.entry.dbReference
-                    : "_text"
-            );
-            return references;
+            return !!doc ? doc.proteinExistence : "";
         }
     },
 
