@@ -91,7 +91,7 @@
                         >
                     </b-col>
                     <b-col class="top-level-value-item">
-                        <b-button @click="showTopClumpedVariants(index)"
+                        <b-button @click="showTopClumpedVariants(index, item.phenotype.name, item.clump)"
                         class="view-features-btn">Top 25 variants</b-button>
                     </b-col>
                 </b-row>
@@ -191,10 +191,6 @@
                         <b-col class="feature-header-item">Consequence</b-col>
                         <b-col class="feature-header-item">Nearest Genes</b-col>
                     </b-row>
-                    <b-row class="feature-row">
-                        <b-col class="feature-row-item">{{ item.phenotype.name }}</b-col>
-                        <b-col class="feature-row-item">{{ item.clump}}</b-col>
-                    </b-row>
                 </div>
             </template>
         </b-container>
@@ -280,9 +276,18 @@ export default Vue.component("phewas-datasets", {
                 element.classList.add("hidden");
             });
         },
-        showTopClumpedVariants(index){
+        showTopClumpedVariants(index, phenotype, clump){
+            this.getClumpedVariants(phenotype, clump)
             uiUtils.showHideElement("features_top25_" + index);
+            // Does the API call get made here?
         },
+        async getClumpedVariants(phenotype, clump){
+            let clumpedVariantUrl = 
+                `https://bioindex.hugeamp.org/api/bio/query/clumped-variants?q=${phenotype},${clump}`;
+            console.log(clumpedVariantUrl);
+            let clumpedVariantJson = await fetch(clumpedVariantUrl).then((response) => response.json());
+            console.log(clumpedVariantJson);
+        }
     },
 });
 </script>
