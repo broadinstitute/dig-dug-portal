@@ -279,15 +279,18 @@ export default Vue.component("phewas-datasets", {
         showTopClumpedVariants(index, phenotype, clump){
             this.getClumpedVariants(phenotype, clump)
             uiUtils.showHideElement("features_top25_" + index);
-            // Does the API call get made here?
         },
         async getClumpedVariants(phenotype, clump){
-            let clumpedVariantUrl = 
+            let cvURL = 
                 `https://bioindex.hugeamp.org/api/bio/query/clumped-variants?q=${phenotype},${clump}`;
-            console.log(clumpedVariantUrl);
-            let clumpedVariantJson = await fetch(clumpedVariantUrl).then((response) => response.json());
-            console.log(clumpedVariantJson);
-        }
+            let cvJSON = await fetch(cvURL).then((response) => response.json());
+            let cvData = cvJSON.data;
+            cvData.sort((a, b) => {a.pValue - b.pValue});
+            let cvTop25 = cvData.slice(0,25);
+            let pValues = cvTop25.map((a) => a.pValue);
+            console.log(cvTop25);
+            console.log(pValues);
+        },
     },
 });
 </script>
