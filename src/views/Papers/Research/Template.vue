@@ -387,7 +387,9 @@
 									$parent.plotConfig['type'] == 'phewas plot'
 								"
 								:phenotypesData="$store.state.filteredData"
-								:phenotypeMap="null"
+								:phenotypeMap="
+									$store.state.bioPortal.phenotypeMap
+								"
 								:colors="$parent.colors.extraBold"
 								:plotMargin="$parent.plotMargin"
 								:renderConfig="$parent.plotConfig"

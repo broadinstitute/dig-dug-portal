@@ -137,6 +137,15 @@ export default Vue.component("research-phewas-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		phenotypeMapConfig() {
+			if (this.renderConfig["phenotype map"] == "null") {
+				return null;
+			} else if (
+				this.renderConfig["phenotype map"] == "kp phenotype map"
+			) {
+				return "kpPhenotypeMap";
+			}
+		},
 		renderData() {
 			let content = {};
 			content["data"] = [];
@@ -154,12 +163,13 @@ export default Vue.component("research-phewas-plot", {
 						d[this.renderConfig["y axis field"]] =
 							-Math.log10(pValue);
 					}
+
 					if (
-						this.phenotypeMap != null &&
+						this.phenotypeMapConfig == "kpPhenotypeMap" &&
 						!!this.phenotypeMap[d[this.renderConfig["render by"]]]
 					) {
 						content["data"].push(d);
-					} else if (this.phenotypeMap == null) {
+					} else if (this.phenotypeMapConfig == null) {
 						content["data"].push(d);
 					}
 				});
@@ -196,7 +206,7 @@ export default Vue.component("research-phewas-plot", {
 			let phenotypeGroups = [];
 			let phenotypeGroupsObj = {};
 
-			if (this.phenotypeMap == null) {
+			if (this.phenotypeMapConfig == null) {
 				phenotypeGroups = [
 					...new Set(
 						DATA.data.map((p) => p[this.renderConfig["group by"]])
@@ -218,7 +228,7 @@ export default Vue.component("research-phewas-plot", {
 
 			DATA.data.map((p) => {
 				let group =
-					this.phenotypeMap != null &&
+					this.phenotypeMapConfig == "kpPhenotypeMap" &&
 					!!this.phenotypeMap[p.phenotype]
 						? this.phenotypeMap[p.phenotype].group
 						: p[this.renderConfig["group by"]];
@@ -470,7 +480,7 @@ export default Vue.component("research-phewas-plot", {
 					(canvasHeight - (plotMargin.top + plotMargin.bottom)) /
 					(yMax - yMin);
 
-				console.log("yStep", yStep);
+				//console.log("yStep", yStep);
 
 				let groupsArr = Object.keys(groups).sort();
 
@@ -492,105 +502,119 @@ export default Vue.component("research-phewas-plot", {
 							12;
 
 						value.map((p) => {
-							//console.log("p-Value":p.pValue, "")
-							let xPos = plotMargin.left + xStep * dotIndex;
-
-							let yPos =
-								canvasHeight -
-								plotMargin.bottom -
-								p[this.renderConfig["y axis field"]] * yStep;
-
-							let pName =
-								this.phenotypeMap == null
-									? p[this.renderConfig["render by"]]
-									: this.phenotypeMap[
-											this.renderConfig["render by"]
-									  ]["description"];
-
-							if (this.renderConfig["beta field"] != "null") {
-								this.renderTriangle(
-									ctx,
-									xPos,
-									yPos,
-									fillColor,
-									strokeColor,
-									Math.sign(
-										p[this.renderConfig["beta field"]]
-									),
-									pName
-								);
-							} else {
-								this.renderDot(
-									ctx,
-									xPos,
-									yPos,
-									fillColor,
-									strokeColor
-								);
-							}
-
-							///organize data by position
-							let yRangeStart = Math.round(yPos) - 5;
-							let yRangeEnd = Math.round(yPos) + 5;
-							let yRange = yRangeStart + "-" + yRangeEnd;
-							let tempObj = {};
-							this.renderConfig["hover content"].map((c) => {
-								tempObj[c] = p[c];
-							});
-							let xRange = {
-								start: Math.round(xPos) - 5,
-								end: Math.round(xPos) + 5,
-								data: tempObj,
-								name: pName,
-								id: p.phenotype,
-							};
-
-							if (!this.pheWasPosData[yRange]) {
-								this.pheWasPosData[yRange] = [];
-							}
-							this.pheWasPosData[yRange].push(xRange);
-
-							///add labels if p-value above 2.5e-6
-							if (labelIndex == 0) {
-								labelOrigin = xPos;
-							}
-
-							//if (labelIndex == 0 || p.pValue <= 2.5e-6) {
-							let labelXpos = labelOrigin + 12 * labelIndex;
-
-							labelXpos = xPos > labelXpos ? xPos : labelXpos;
-
 							if (
-								labelIndex == 0 ||
-								labelXpos < maxWidthPerGroup
+								this.phenotypeMapConfig == null ||
+								(this.phenotypeMapConfig == "kpPhenotypeMap" &&
+									!!this.phenotypeMap[
+										p[this.renderConfig["render by"]]
+									])
 							) {
-								console.log(
-									"thresholds",
-									this.renderConfig["thresholds"][0]
-								);
-								ctx.font = "11px Arial";
-								ctx.fillStyle =
-									p.rawPValue <=
-									Number(this.renderConfig["thresholds"][0])
-										? "#000000"
-										: "#00000050";
+								//console.log("render");
+								let xPos = plotMargin.left + xStep * dotIndex;
 
-								ctx.save();
-								ctx.translate(labelXpos + 5, yPos - 12);
-								ctx.rotate((90 * -Math.PI) / 180);
-								ctx.textAlign = "start";
-								ctx.fillText(pName, 0, 0);
-								ctx.restore();
+								let yPos =
+									canvasHeight -
+									plotMargin.bottom -
+									p[this.renderConfig["y axis field"]] *
+										yStep;
 
-								ctx.moveTo(xPos, yPos);
-								ctx.lineTo(labelXpos, yPos - 10);
-								ctx.strokeStyle = "#00000050";
-								ctx.stroke();
+								let pName =
+									this.phenotypeMapConfig == null
+										? p[this.renderConfig["render by"]]
+										: this.phenotypeMap[
+												p[
+													this.renderConfig[
+														"render by"
+													]
+												]
+										  ]["description"];
+
+								if (this.renderConfig["beta field"] != "null") {
+									this.renderTriangle(
+										ctx,
+										xPos,
+										yPos,
+										fillColor,
+										strokeColor,
+										Math.sign(
+											p[this.renderConfig["beta field"]]
+										)
+									);
+								} else {
+									this.renderDot(
+										ctx,
+										xPos,
+										yPos,
+										fillColor,
+										strokeColor
+									);
+								}
+
+								///organize data by position
+								let yRangeStart = Math.round(yPos) - 5;
+								let yRangeEnd = Math.round(yPos) + 5;
+								let yRange = yRangeStart + "-" + yRangeEnd;
+								let tempObj = {};
+								this.renderConfig["hover content"].map((c) => {
+									tempObj[c] = p[c];
+								});
+								let xRange = {
+									start: Math.round(xPos) - 5,
+									end: Math.round(xPos) + 5,
+									data: tempObj,
+									name: pName,
+									id: p.phenotype,
+								};
+
+								if (!this.pheWasPosData[yRange]) {
+									this.pheWasPosData[yRange] = [];
+								}
+								this.pheWasPosData[yRange].push(xRange);
+
+								///add labels if p-value above 2.5e-6
+								if (labelIndex == 0) {
+									labelOrigin = xPos;
+								}
+
+								//if (labelIndex == 0 || p.pValue <= 2.5e-6) {
+								let labelXpos = labelOrigin + 12 * labelIndex;
+
+								labelXpos = xPos > labelXpos ? xPos : labelXpos;
+
+								if (
+									labelIndex == 0 ||
+									labelXpos < maxWidthPerGroup
+								) {
+									/*console.log(
+										"thresholds",
+										this.renderConfig["thresholds"][0]
+									);*/
+									ctx.font = "11px Arial";
+									ctx.fillStyle =
+										p.rawPValue <=
+										Number(
+											this.renderConfig["thresholds"][0]
+										)
+											? "#000000"
+											: "#00000050";
+
+									ctx.save();
+									ctx.translate(labelXpos + 5, yPos - 12);
+									ctx.rotate((90 * -Math.PI) / 180);
+									ctx.textAlign = "start";
+									ctx.fillText(pName, 0, 0);
+									ctx.restore();
+
+									ctx.moveTo(xPos, yPos);
+									ctx.lineTo(labelXpos, yPos - 10);
+									ctx.strokeStyle = "#00000050";
+									ctx.stroke();
+								}
+
+								labelIndex++;
+								//}
+								dotIndex++;
 							}
-
-							labelIndex++;
-							//}
-							dotIndex++;
 						});
 						keyIndex++;
 					}
@@ -625,71 +649,83 @@ export default Vue.component("research-phewas-plot", {
 
 							let yPos = canvasHeight / 2;
 
-							console.log(
+							/*console.log(
 								"beta field: ",
 								this.renderConfig["beta field"]
-							);
+							);*/
+							if (
+								this.phenotypeMapConfig == null ||
+								(this.phenotypeMapConfig == "kpPhenotypeMap" &&
+									!!this.phenotypeMap[
+										p[this.renderConfig["render by"]]
+									])
+							) {
+								if (this.renderConfig["beta field"] != "null") {
+									this.renderTriangle(
+										ctx,
+										xPos,
+										yPos,
+										fillColor,
+										strokeColor,
+										Math.sign(
+											p[this.renderConfig["beta field"]]
+										)
+									);
+								} else {
+									this.renderDot(
+										ctx,
+										xPos,
+										yPos,
+										fillColor,
+										strokeColor
+									);
+								}
 
-							if (this.renderConfig["beta field"] != "null") {
-								this.renderTriangle(
-									ctx,
-									xPos,
-									yPos,
-									fillColor,
-									strokeColor,
-									Math.sign(
-										p[this.renderConfig["beta field"]]
-									),
-									this.phenotypeMap[p.phenotype][
-										"description"
-									]
-								);
-							} else {
-								this.renderDot(
-									ctx,
-									xPos,
-									yPos,
-									fillColor,
-									strokeColor
-								);
+								let pName =
+									this.phenotypeMapConfig == null
+										? p[this.renderConfig["render by"]]
+										: this.phenotypeMap[
+												p[
+													this.renderConfig[
+														"render by"
+													]
+												]
+										  ]["description"];
+
+								///organize data by position
+								let yRangeStart = Math.round(yPos) - 5;
+								let yRangeEnd = Math.round(yPos) + 5;
+								let yRange = yRangeStart + "-" + yRangeEnd;
+								let tempObj = {};
+								this.renderConfig["hover content"].map((c) => {
+									tempObj[c] = p[c];
+								});
+								let xRange = {
+									start: Math.round(xPos) - 5,
+									end: Math.round(xPos) + 5,
+									data: tempObj,
+									name: pName,
+								};
+
+								if (!this.pheWasPosData[yRange]) {
+									this.pheWasPosData[yRange] = [];
+								}
+								this.pheWasPosData[yRange].push(xRange);
+
+								ctx.font = "13px Arial";
+								ctx.fillStyle = "#000000";
+								ctx.textAlign = "start";
+								ctx.fillText(pName, xPos + 15, yPos);
+								let infoIndex = 1;
+								this.renderConfig["hover content"].map((h) => {
+									ctx.fillText(
+										h + ": " + p[h],
+										xPos + 15,
+										yPos + infoIndex * 20
+									);
+									infoIndex++;
+								});
 							}
-
-							let pName =
-								this.phenotypeMap[p.phenotype]["description"];
-
-							///organize data by position
-							let yRangeStart = Math.round(yPos) - 5;
-							let yRangeEnd = Math.round(yPos) + 5;
-							let yRange = yRangeStart + "-" + yRangeEnd;
-							let tempObj = {};
-							this.renderConfig["hover content"].map((c) => {
-								tempObj[c] = p[c];
-							});
-							let xRange = {
-								start: Math.round(xPos) - 5,
-								end: Math.round(xPos) + 5,
-								data: tempObj,
-								name: pName,
-							};
-
-							if (!this.pheWasPosData[yRange]) {
-								this.pheWasPosData[yRange] = [];
-							}
-							this.pheWasPosData[yRange].push(xRange);
-
-							ctx.font = "13px Arial";
-							ctx.fillStyle = "#000000";
-							ctx.textAlign = "start";
-							ctx.fillText(pName, xPos + 15, yPos);
-							let infoIndex = 1;
-							this.renderConfig["hover content"].map((h) => {
-								ctx.fillText(
-									h + ": " + p[h],
-									xPos + 15,
-									yPos + infoIndex * 20
-								);
-								infoIndex++;
-							});
 						});
 					}
 				}
@@ -710,15 +746,7 @@ export default Vue.component("research-phewas-plot", {
 			//
 		},
 
-		renderTriangle(
-			CTX,
-			XPOS,
-			YPOS,
-			DOT_COLOR,
-			STROKE_COLOR,
-			EFFECT,
-			LABEL
-		) {
+		renderTriangle(CTX, XPOS, YPOS, DOT_COLOR, STROKE_COLOR, EFFECT) {
 			CTX.beginPath();
 			if (EFFECT == 1) {
 				CTX.moveTo(XPOS - 5, YPOS + 5);

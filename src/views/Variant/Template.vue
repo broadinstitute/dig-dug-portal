@@ -292,6 +292,7 @@
 										:renderConfig="{
 											type: 'phewas plot',
 											'group by': 'phenotype group',
+											'phenotype map': 'kp phenotype map',
 											'y axis field': 'pValue',
 											'convert y -log10': 'true',
 											'y axis label': '-Log10(p-value)',
