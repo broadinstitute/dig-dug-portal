@@ -331,10 +331,10 @@
                             :fields="subFields"
                             :per-page="perPage"
                             :tbody-tr-class="rowPickClass"
-                            ><template #cell(varid)="data">
+                            ><template #cell(varID)="data">
                                 <a
-                                    :href="`/variant.html?variant=${data.item.varid}`"
-                                    >{{ data.item.varid }}</a
+                                    :href="`/variant.html?variant=${data.item.varID}`"
+                                    >{{ data.item.varID }}</a
                                 >
                             </template>
                             <template #head(Feature)="data">
@@ -455,6 +455,8 @@ export default Vue.component("variant-search", {
                 NephSyndSteroidResistant:
                     "Steroid Resistant Nephrotic Syndrome",
                 AllNephroticSyndCases: "All Cases Nephrotic Syndrome",
+                FSGS: "Familial Stage III Nephrotic Syndrome",
+                MCD: "Multiple Chronic Disease",
             },
 
             perPage: 10,
@@ -666,7 +668,7 @@ export default Vue.component("variant-search", {
                         m++
                     ) {
                         let hp = this.variants[i].hprecords[m];
-                        if (hp.HP == "AllControl") {
+                        if (hp.HP == "AllNephroticSyndCases") {
                             this.variants[i].c_allelecount =
                                 2 * parseInt(hp.n_hom_var) + parseInt(hp.n_het);
                             this.variants[i].allelecount +=
