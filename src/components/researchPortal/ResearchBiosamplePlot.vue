@@ -147,7 +147,7 @@ import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-annotations-plot-v2", {
+export default Vue.component("research-biosamples-plot", {
 	props: [
 		"region",
 		"phenotype",

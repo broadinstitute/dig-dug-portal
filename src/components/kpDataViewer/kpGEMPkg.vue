@@ -59,6 +59,21 @@
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
 			></research-credible-sets-plot>
+			<!--<button
+				id="external-button"
+				@click="$refs.annotationsRef.removeAnnoTrack('binding_sites')"
+			>
+				remove binding_sites
+			</button>
+
+			<button
+				id="external-button"
+				@click="
+					$refs.annotationsRef.addRemoveTissueTrack(null, 'pancreas')
+				"
+			>
+				remove pancreas
+			</button>-->
 			<div
 				v-if="
 					pkgConfig.viewers.includes('annotations plot') == true ||
@@ -77,21 +92,6 @@
 			>
 				Filter associated variants by annotations
 			</div>
-			<!--<button
-				id="external-button"
-				@click="$refs.annotationsRef.removeAnnoTrack('binding_sites')"
-			>
-				remove binding_sites
-			</button>
-
-			<button
-				id="external-button"
-				@click="
-					$refs.annotationsRef.addRemoveTissueTrack(null, 'pancreas')
-				"
-			>
-				remove pancreas
-			</button>-->
 
 			<research-annotations-plot
 				id="annotationSection"
@@ -130,6 +130,40 @@
 				:sharedPlotXpos="sharedPlotXpos"
 				ref="annotationsRef"
 			></research-annotations-plot-v2>
+			<div
+				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
+				class="section-opener"
+				id="biosampleSectionOpener"
+				@click="
+					showHideSection(
+						$event,
+						'biosampleSection',
+						'biosampleSectionOpener',
+						'Filter associated variants by biosamples'
+					)
+				"
+			>
+				Filter associated variants by biosamples
+			</div>
+
+			<research-biosamples-plot
+				id="biosampleSection"
+				class="svg-wrapper hidden-svg"
+				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
+				:region="$store.state.searchingRegion"
+				:phenotype="$store.state.searchingPhenotype"
+				:renderConfig="pkgConfig['biosamples viewer']"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.bold"
+				:dataComparison="this.$store.state.dataComparison"
+				:plotData="$store.state.filteredData"
+				:pkgData="pkgData"
+				:pkgDataSelected="pkgDataSelected"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
+				:sharedPlotXpos="sharedPlotXpos"
+				ref="biosamplesRef"
+			></research-biosamples-plot>
 
 			<div
 				v-if="pkgConfig.viewers.includes('gene-links plot') == true"
@@ -175,6 +209,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
+import ResearchBiosamplePlot from "@/components/researchPortal/ResearchBiosamplePlot.vue";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchAnnotationsPlotV2 from "@/components/researchPortal/ResearchAnnotationsPlotV2.vue";
 import ResearchCredibleSets from "@/components/researchPortal/ResearchCredibleSets.vue";
@@ -203,6 +238,7 @@ export default Vue.component("kp-gem-pkg", {
 	components: {
 		ResearchRegionPlot,
 		ResearchGenesTrack,
+		ResearchBiosamplePlot,
 		ResearchAnnotationsPlot,
 		ResearchAnnotationsPlotV2,
 		ResearchCredibleSets,
