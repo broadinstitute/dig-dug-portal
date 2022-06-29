@@ -279,7 +279,12 @@ export default Vue.component("phewas-datasets", {
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
         showDatasets(index) {
-            uiUtils.showHideElement("features_" + index);
+            uiUtils.hideElement(`features_top25_${index}`);
+            uiUtils.showHideElement(`features_${index}`);
+        },
+        showTop25(index){
+            uiUtils.hideElement(`features_${index}`);
+            uiUtils.showHideElement(`features_top25_${index}`);
         },
         closeAllDatasets() {
             let datasets = document.getElementsByClassName(
@@ -290,27 +295,31 @@ export default Vue.component("phewas-datasets", {
                 element.classList.add("hidden");
             });
         },
-        showTopClumpedVariants(index, top25){
+        fillTopClumpedVariants(index, top25){
             const dataFields = ["varId", "dbSNP", "reference", "pValue", "beta",
                                 "maf", "stdErr", "zScore", "consequence", "nearest"];
-            console.log("Showing top clumped variants.");
-            console.log(top25);
             for(let i = 0; i < 25; i++){
                 let item = top25[i];
                 let tableCellId = `pheno${index}_var${i}_varId`;
                 let tableCell = document.getElementById(tableCellId);
                 tableCell.innerText = item.varId;
             }
-            uiUtils.showHideElement(`features_top25_${index}`);
         },
         async getClumpedVariants(index, phenotype, clump){
-            let cvURL = 
-                `https://bioindex.hugeamp.org/api/bio/query/clumped-variants?q=${phenotype},${clump}`;
-            let cvJSON = await fetch(cvURL).then((response) => response.json());
-            let cvData = cvJSON.data;
-            cvData.sort((a, b) => {a.pValue - b.pValue});
-            let top25 = cvData.slice(0,25);
-            this.showTopClumpedVariants(index, top25)
+            // if already loaded, just toggle it open
+            let testCell = document.getElementById(`pheno${index}_var0_varId`);
+            if (testCell.innerText != ""){
+                console.log(`Phenotype #${index} has already been loaded.`)
+            } else {
+                let cvURL = 
+                    `https://bioindex.hugeamp.org/api/bio/query/clumped-variants?q=${phenotype},${clump}`;
+                let cvJSON = await fetch(cvURL).then((response) => response.json());
+                let cvData = cvJSON.data;
+                cvData.sort((a, b) => {a.pValue - b.pValue});
+                let top25 = cvData.slice(0,25);
+                this.fillTopClumpedVariants(index, top25)
+            }
+            this.showTop25(index);
         },
     },
 });
