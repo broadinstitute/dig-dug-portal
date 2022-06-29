@@ -91,7 +91,7 @@
                         >
                     </b-col>
                     <b-col class="top-level-value-item">
-                        <b-button @click="showTopClumpedVariants(index, item.phenotype.name, item.clump)"
+                        <b-button @click="getClumpedVariants(index, item.phenotype.name, item.clump)"
                         class="view-features-btn">Top 25 variants</b-button>
                     </b-col>
                 </b-row>
@@ -192,17 +192,17 @@
                         <b-col class="feature-header-item">Nearest Genes</b-col>
                     </b-row>
                     <template v-for="i in 25">
-                        <b-row :id="`variant_${i}`" class="feature-content">
-                            <b-col class="feature-content-item" :id="`varId_${i}`"></b-col>
-                            <b-col class="feature-content-item" :id="`dbSNP_${i}`"></b-col>
-                            <b-col class="feature-content-item" :id="`reference_${i}`"></b-col>
-                            <b-col class="feature-content-item" :id="`pValue_${i}`"></b-col>
-                            <b-col class="feature-content-item" :id="`beta_${i}`"></b-col>
-                            <b-col class="feature-content-item" :id="`maf_${i}`"></b-col>
-                            <b-col class="feature-content-item" :id="`stdErr_${i}`"></b-col>
-                            <b-col class="feature-content-item" :id="`zScore_${i}`"></b-col>
-                            <b-col class="feature-content-item" :id="`consequence_${i}`"></b-col>
-                            <b-col class="feature-content-item" :id="`nearest_${i}`"></b-col>
+                        <b-row :id="`top25_${index}_variant_${i - 1}`" class="feature-content">
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_varId`"></b-col>
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_dbSNP`"></b-col>
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_reference`"></b-col>
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_pValue`"></b-col>
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_beta`"></b-col>
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_maf`"></b-col>
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_stdErr`"></b-col>
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_zScore`"></b-col>
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_consequence`"></b-col>
+                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_nearest`"></b-col>
                         </b-row>
                     </template>
                 </div>
@@ -290,30 +290,27 @@ export default Vue.component("phewas-datasets", {
                 element.classList.add("hidden");
             });
         },
-        showTopClumpedVariants(index, phenotype, clump){
-            let top25 = this.getClumpedVariants(phenotype, clump);
+        showTopClumpedVariants(index, top25){
             const dataFields = ["varId", "dbSNP", "reference", "pValue", "beta",
                                 "maf", "stdErr", "zScore", "consequence", "nearest"];
-            for (item in top25){
-                console.log(item);
-                for (dataField in dataFields){
-                    let fieldId = `${dataField}_${i}`;
-                    console.log(fieldId);
-                    let field = document.getElementById(fieldId);
-                    let fieldEntry = item[dataField];
-                    console.log(fieldEntry);
-                    field.innerText = fieldEntry;
-                }
+            console.log("Showing top clumped variants.");
+            console.log(top25);
+            for(let i = 0; i < 25; i++){
+                let item = top25[i];
+                let tableCellId = `pheno${index}_var${i}_varId`;
+                let tableCell = document.getElementById(tableCellId);
+                tableCell.innerText = item.varId;
             }
-            uiUtils.showHideElement("features_top25_" + index);
+            uiUtils.showHideElement(`features_top25_${index}`);
         },
-        async getClumpedVariants(phenotype, clump){
+        async getClumpedVariants(index, phenotype, clump){
             let cvURL = 
                 `https://bioindex.hugeamp.org/api/bio/query/clumped-variants?q=${phenotype},${clump}`;
             let cvJSON = await fetch(cvURL).then((response) => response.json());
             let cvData = cvJSON.data;
             cvData.sort((a, b) => {a.pValue - b.pValue});
-            return cvData.slice(0,25);
+            let top25 = cvData.slice(0,25);
+            this.showTopClumpedVariants(index, top25)
         },
     },
 });
