@@ -191,6 +191,20 @@
                         <b-col class="feature-header-item">Consequence</b-col>
                         <b-col class="feature-header-item">Nearest Genes</b-col>
                     </b-row>
+                    <template v-for="i in 25">
+                        <b-row :id="`variant_${i}`" class="feature-content">
+                            <b-col class="feature-content-item" :id="`varId_${i}`"></b-col>
+                            <b-col class="feature-content-item" :id="`dbSNP_${i}`"></b-col>
+                            <b-col class="feature-content-item" :id="`reference_${i}`"></b-col>
+                            <b-col class="feature-content-item" :id="`pValue_${i}`"></b-col>
+                            <b-col class="feature-content-item" :id="`beta_${i}`"></b-col>
+                            <b-col class="feature-content-item" :id="`maf_${i}`"></b-col>
+                            <b-col class="feature-content-item" :id="`stdErr_${i}`"></b-col>
+                            <b-col class="feature-content-item" :id="`zScore_${i}`"></b-col>
+                            <b-col class="feature-content-item" :id="`consequence_${i}`"></b-col>
+                            <b-col class="feature-content-item" :id="`nearest_${i}`"></b-col>
+                        </b-row>
+                    </template>
                 </div>
             </template>
         </b-container>
@@ -277,7 +291,20 @@ export default Vue.component("phewas-datasets", {
             });
         },
         showTopClumpedVariants(index, phenotype, clump){
-            this.getClumpedVariants(phenotype, clump)
+            let top25 = this.getClumpedVariants(phenotype, clump);
+            const dataFields = ["varId", "dbSNP", "reference", "pValue", "beta",
+                                "maf", "stdErr", "zScore", "consequence", "nearest"];
+            for (item in top25){
+                console.log(item);
+                for (dataField in dataFields){
+                    let fieldId = `${dataField}_${i}`;
+                    console.log(fieldId);
+                    let field = document.getElementById(fieldId);
+                    let fieldEntry = item[dataField];
+                    console.log(fieldEntry);
+                    field.innerText = fieldEntry;
+                }
+            }
             uiUtils.showHideElement("features_top25_" + index);
         },
         async getClumpedVariants(phenotype, clump){
@@ -286,10 +313,7 @@ export default Vue.component("phewas-datasets", {
             let cvJSON = await fetch(cvURL).then((response) => response.json());
             let cvData = cvJSON.data;
             cvData.sort((a, b) => {a.pValue - b.pValue});
-            let cvTop25 = cvData.slice(0,25);
-            let pValues = cvTop25.map((a) => a.pValue);
-            console.log(cvTop25);
-            console.log(pValues);
+            return cvData.slice(0,25);
         },
     },
 });
