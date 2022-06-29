@@ -188,7 +188,7 @@
                         <b-col class="feature-header-item">MAF</b-col>
                         <b-col class="feature-header-item">Standard Error</b-col>
                         <b-col class="feature-header-item">Z Score</b-col>
-                        <b-col class="feature-header-item">Consequence</b-col>
+                        <b-col cols="2" class="feature-header-item">Consequence</b-col>
                         <b-col class="feature-header-item">Nearest Genes</b-col>
                     </b-row>
                     <template v-for="i in 25">
@@ -201,7 +201,7 @@
                             <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_maf`"></b-col>
                             <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_stdErr`"></b-col>
                             <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_zScore`"></b-col>
-                            <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_consequence`"></b-col>
+                            <b-col cols="2" class="feature-content-item" :id="`pheno${index}_var${i - 1}_consequence`"></b-col>
                             <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_nearest`"></b-col>
                         </b-row>
                     </template>
@@ -300,9 +300,13 @@ export default Vue.component("phewas-datasets", {
                                 "maf", "stdErr", "zScore", "consequence", "nearest"];
             for(let i = 0; i < 25; i++){
                 let item = top25[i];
-                let tableCellId = `pheno${index}_var${i}_varId`;
-                let tableCell = document.getElementById(tableCellId);
-                tableCell.innerText = item.varId;
+                let zScoreNumber = Number(item.zScore);
+                item.zScore = zScoreNumber.toPrecision(5);
+                dataFields.forEach(dataField => {
+                    let tableCellId = `pheno${index}_var${i}_${dataField}`;
+                    let tableCell = document.getElementById(tableCellId);
+                    tableCell.innerText = item[dataField];
+                });
             }
         },
         async getClumpedVariants(index, phenotype, clump){
