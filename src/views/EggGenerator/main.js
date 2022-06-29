@@ -105,7 +105,7 @@ new Vue({
         // TODO figure out why actual session job list length is less than submitted
 
         loadSession(idToLoad) {
-            fetch("http://eggserver.org/lunaris/predictor/session/" + idToLoad)
+            fetch("//eggserver.org/lunaris/predictor/session/" + idToLoad)
                 .then(response => response.json())
                 .then(session => {
                     if (session.error) {
@@ -433,7 +433,7 @@ new Vue({
 
         async fetchJob(formData) {
             try {
-                let jobResponse = await fetch("http://eggserver.org/lunaris/predictor/upload", {
+                let jobResponse = await fetch("//eggserver.org/lunaris/predictor/upload", {
                     method: "POST",
                     body: formData
                 });
@@ -453,7 +453,7 @@ new Vue({
         },
 
         getSchema() {
-            fetch("http://eggserver.org/lunaris/predictor/schema")
+            fetch("//eggserver.org/lunaris/predictor/schema")
                 .then(response => {
                     return response.json();
                 })
@@ -566,7 +566,7 @@ new Vue({
         },
 
         getStatus(id) {
-            fetch("http://eggserver.org/lunaris/predictor/status/" + id)
+            fetch("//eggserver.org/lunaris/predictor/status/" + id)
                 .then(response => response.json())
                 .then(status => {
                     this.lunarisVariantPredictor.statuses[id] = status;
@@ -599,7 +599,7 @@ new Vue({
                     const outputFile = id + ".tsv";
                     linkNode.setAttribute(
                         "href",
-                        "http://eggserver.org/lunaris/predictor/results/" +
+                        "//eggserver.org/lunaris/predictor/results/" +
                             outputFile
                     );
                     linkNode.setAttribute("download", outputFile);
@@ -644,7 +644,7 @@ new Vue({
         },
 
         initMasksSelector() {
-            fetch("http://eggserver.org/lunaris/predictor/masks/list")
+            fetch("//eggserver.org/lunaris/predictor/masks/list")
                 .then(response => response.json())
                 .then(masksList => {
                     this.lunarisVariantPredictor.masksList = masksList;
@@ -684,7 +684,7 @@ new Vue({
         setPredefinedMask(e) {
             const maskSelectNode = this.getMaskSelectNode();
             const maskName = maskSelectNode.value;
-            fetch("http://eggserver.org/lunaris/predictor/masks/" + maskName)
+            fetch("//eggserver.org/lunaris/predictor/masks/" + maskName)
                 .then(response => response.text())
                 .then(mask => {
                     this.setMask(mask);
