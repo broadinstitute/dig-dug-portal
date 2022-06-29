@@ -21,9 +21,13 @@
 								>
 									Select Annotation
 								</div>
-								<select
+								<!--<select
 									class="custom-select"
 									@change="addAnnoTrack($event)"
+								>-->
+								<select
+									class="custom-select"
+									@change="setAnnotation($event)"
 								>
 									<option value="">
 										{{ "Select annotation" }}
@@ -35,9 +39,43 @@
 										v-html="annoKey"
 									></option>
 								</select>
+								<div
+									v-if="annotationOnFocus != null"
+									class="label"
+									style="
+										display: inline-block;
+										margin: 0 10px;
+									"
+								>
+									Select Tissue
+								</div>
+								<select
+									class="custom-select"
+									@change="setTissue($event)"
+									v-if="annotationOnFocus != null"
+								>
+									<option value="">
+										{{ "Select tissue" }}
+									</option>
+									<option
+										v-for="tissue in annoAssoTissues"
+										:key="tissue"
+										:value="tissue"
+										v-html="tissue"
+									></option>
+								</select>
+								<span
+									class="btn btn-default"
+									@click="
+										getBiosamples(
+											annotationOnFocus,
+											tissueOnFocus
+										)
+									"
+									>Add filter</span
+								>
 							</div>
 						</div>
-
 						<div
 							class=""
 							v-if="
@@ -172,6 +210,8 @@ export default Vue.component("research-biosamples-plot", {
 			selectedTissues: [],
 			annoPosData: {},
 			spaceBy: 12,
+			annotationOnFocus: null,
+			tissueOnFocus: null,
 		};
 	},
 	modules: {
@@ -182,12 +222,29 @@ export default Vue.component("research-biosamples-plot", {
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		this.getAnnotations(this.searchingRegion);
+		this.getBSAnnotations(this.searchingRegion);
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		annoAssoTissues() {
+			if (
+				this.annotationOnFocus != null &&
+				Object.keys(this.tissuesData).length > 0
+			) {
+				let tissues = [];
+				Object.keys(this.tissuesData).filter((t) => {
+					if (!!this.tissuesData[t][this.annotationOnFocus]) {
+						tissues.push(t);
+					}
+				});
+				//console.log(tissues);
+				return tissues;
+			} else {
+				return null;
+			}
+		},
 		searchingParameters() {
 			if (
 				this.searchingRegion != null &&
@@ -245,7 +302,6 @@ export default Vue.component("research-biosamples-plot", {
 		searchingPhenotype() {
 			if (this.phenotype != null) {
 				uiUtils.showElement("annotationsPlotWrapper");
-				//this.getAnnotations(this.searchingRegion);
 
 				let returnPhenotype = !!this.renderConfig["phenotype match"]
 					? this.renderConfig["phenotype match"][this.phenotype]
@@ -255,7 +311,6 @@ export default Vue.component("research-biosamples-plot", {
 			} else if (this.phenotype == null) {
 				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
 					uiUtils.showElement("annotationsPlotWrapper");
-					//this.getAnnotations(this.searchingRegion);
 					return keyParams[this.renderConfig["phenotype parameter"]];
 				} else {
 					return null;
@@ -265,7 +320,7 @@ export default Vue.component("research-biosamples-plot", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
-			this.getAnnotations(this.searchingRegion);
+			this.getBSAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
 			handler: function (n, o) {
@@ -284,6 +339,16 @@ export default Vue.component("research-biosamples-plot", {
 	},
 	methods: {
 		...uiUtils,
+		setAnnotation(EVENT) {
+			if (EVENT.target.value != "") {
+				this.annotationOnFocus = EVENT.target.value;
+			}
+		},
+		setTissue(EVENT) {
+			if (EVENT.target.value != "") {
+				this.tissueOnFocus = EVENT.target.value;
+			}
+		},
 		getOverlappingRegion() {
 			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
@@ -488,8 +553,9 @@ export default Vue.component("research-biosamples-plot", {
 			return contentObj;
 		},
 
-		addAnnoTrack(event) {
-			if (event.target.value != "") {
+		addBiosampleTrack(ANNOTATION, TISSUE) {
+			console.log(ANNOTATION, TISSUE);
+			/*if (event.target.value != "") {
 				let selectedAnnotations = this.pkgDataSelected
 					.filter((s) => s.type == "Annotation")
 					.map((s) => s.id);
@@ -513,7 +579,7 @@ export default Vue.component("research-biosamples-plot", {
 						this.renderGE();
 					}
 				}
-			}
+			}*/
 		},
 		removeAnnoTrack(ANNO) {
 			//console.log("called", ANNO);
@@ -1105,10 +1171,10 @@ export default Vue.component("research-biosamples-plot", {
 		},
 		async getGlobalEnrichment() {
 			//console.log("calling GE");
-			let annoServer =
-				this.renderConfig["annotations server"] == "KP BioIndex"
+			let biosamplesServer =
+				this.renderConfig["biosamples server"] == "KP BioIndex"
 					? "https://bioindex.hugeamp.org/api/bio"
-					: this.renderConfig["annotations server"];
+					: this.renderConfig["biosamples server"];
 
 			let phenotype = this.searchingPhenotype;
 
@@ -1116,7 +1182,8 @@ export default Vue.component("research-biosamples-plot", {
 				? this.renderConfig["global enrichment index"]
 				: "global-enrichment";
 
-			let GEURL = annoServer + "/query/" + GEIndex + "?q=" + phenotype;
+			let GEURL =
+				biosamplesServer + "/query/" + GEIndex + "?q=" + phenotype;
 
 			let GEJson = await fetch(GEURL).then((resp) => resp.json());
 
@@ -1179,6 +1246,8 @@ export default Vue.component("research-biosamples-plot", {
 				);
 
 				let GEByTissue = this.getGEByTissue();
+
+				console.log("this.tissuesData", this.tissuesData);
 
 				if (this.pkgData != null) {
 					Vue.set(this.pkgData, "GEByTissueData", GEByTissue);
@@ -1282,8 +1351,11 @@ export default Vue.component("research-biosamples-plot", {
 
 			return GEByTissue;
 		},
+		async getBiosamples(ANNOTATION, TISSUE) {
+			console.log(ANNOTATION, TISSUE);
+		},
 
-		async getAnnotations(REGION_OBJ) {
+		async getBSAnnotations(REGION_OBJ) {
 			if (
 				!!REGION_OBJ &&
 				!!REGION_OBJ.chr &&
@@ -1291,19 +1363,19 @@ export default Vue.component("research-biosamples-plot", {
 				REGION_OBJ.end
 			) {
 				//console.log("calling annotations");
-				let annoServer =
-					this.renderConfig["annotations server"] == "KP BioIndex"
+				let biosamplesServer =
+					this.renderConfig["biosamples server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"
-						: this.renderConfig["annotations server"];
+						: this.renderConfig["biosamples server"];
 
-				let annoIndex = !!this.renderConfig["annotations index"]
-					? this.renderConfig["annotations index"]
+				let biosamplesIndex = !!this.renderConfig["biosamples index"]
+					? this.renderConfig["biosamples index"]
 					: "regions";
 
-				let annotationsURL =
-					annoServer +
+				let biosamplesURL =
+					biosamplesServer +
 					"/query/" +
-					annoIndex +
+					biosamplesIndex +
 					"?q=" +
 					REGION_OBJ.chr +
 					":" +
@@ -1311,15 +1383,15 @@ export default Vue.component("research-biosamples-plot", {
 					"-" +
 					REGION_OBJ.end;
 
-				let annotationsJson = await fetch(annotationsURL).then((resp) =>
+				let biosamplesJson = await fetch(biosamplesURL).then((resp) =>
 					resp.json()
 				);
 
-				if (annotationsJson.error == null) {
+				if (biosamplesJson.error == null) {
 					this.annoData = {};
 					this.tissuesData = {};
 
-					annotationsJson.data.map((a) => {
+					biosamplesJson.data.map((a) => {
 						// annoData
 						if (!this.annoData[a.annotation]) {
 							this.annoData[a.annotation] = {};

@@ -133,12 +133,12 @@
 			<div
 				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
 				class="section-opener"
-				id="biosampleSectionOpener"
+				id="biosamplesSectionOpener"
 				@click="
 					showHideSection(
 						$event,
-						'biosampleSection',
-						'biosampleSectionOpener',
+						'biosamplesSection',
+						'biosamplesSectionOpener',
 						'Filter associated variants by biosamples'
 					)
 				"
@@ -147,7 +147,7 @@
 			</div>
 
 			<research-biosamples-plot
-				id="biosampleSection"
+				id="biosamplesSection"
 				class="svg-wrapper hidden-svg"
 				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
 				:region="$store.state.searchingRegion"
