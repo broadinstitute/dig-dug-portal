@@ -20,7 +20,6 @@
                     >Effective Sample Size</b-col
                 >
                 <b-col class="top-level-header-item">View</b-col>
-                <b-col class="top-level-header-item">Clumped Variants</b-col>
             </b-row>
             <template v-for="(item, index) in tableData">
                 <b-row
@@ -86,11 +85,7 @@
                     <b-col class="top-level-value-item">
                         <b-button
                             @click="showDatasets(index)"
-                            class="view-features-btn"
-                            >Datasets</b-button
-                        >
-                    </b-col>
-                    <b-col class="top-level-value-item">
+                            class="view-features-btn">Datasets</b-button>
                         <b-button @click="getClumpedVariants(index, item.phenotype.name, item.clump)"
                         class="view-features-btn">Top 25 variants</b-button>
                     </b-col>
@@ -296,8 +291,7 @@ export default Vue.component("phewas-datasets", {
             });
         },
         fillTopClumpedVariants(index, top25){
-            const dataFields = ["varId", "dbSNP", "reference", "pValue", "beta",
-                                "maf", "stdErr", "zScore", "consequence", "nearest"];
+            const dataFields = ["reference", "pValue", "maf", "stdErr", "zScore", "consequence"];
             for(let i = 0; i < 25; i++){
                 let item = top25[i];
                 let zScoreNumber = Number(item.zScore);
@@ -307,6 +301,17 @@ export default Vue.component("phewas-datasets", {
                     let tableCell = document.getElementById(tableCellId);
                     tableCell.innerText = item[dataField];
                 });
+                // Other fields: varId, dbSNP, nearest, beta
+                let varIdCell = document.getElementById(`pheno${index}_var${i}_varId`);
+                varIdCell.innerHTML = `<a href="/variant.html?variant=${item.varId}">${item.varId}</a>`;
+                let dbSNPCell = document.getElementById(`pheno${index}_var${i}_dbSNP`);
+                dbSNPCell.innerHTML = `<a href="/variant.html?variant=${item.dbSNP}">${item.dbSNP}</a>`;
+                let nearestCell = document.getElementById(`pheno${index}_var${i}_nearest`);
+                nearestCell.innerHTML = `<a href="/gene.html?gene=${item.nearest}">${item.nearest}</a>`;
+                let betaCell = document.getElementById(`pheno${index}_var${i}_beta`);
+                let betaClass = item.beta < 0 ? "effect negative" : "effect positive";
+                let betaSymbol = item.beta < 0 ? "&#9660;" : "&#9650;";
+                betaCell.innerHTML = `<span class="${betaClass}">${betaSymbol}</span>${item.beta}`;
             }
         },
         async getClumpedVariants(index, phenotype, clump){
