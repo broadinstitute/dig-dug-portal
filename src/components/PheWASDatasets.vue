@@ -200,6 +200,10 @@
                             <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_nearest`"></b-col>
                         </b-row>
                     </template>
+                    <button><a :href="
+                        `/research.html?pageid=clumped_variants&phenotype=${item.phenotype.name}&clump=${item.clump}`">
+                        View all variants in clump</a>
+                    </button>
                 </div>
             </template>
         </b-container>
