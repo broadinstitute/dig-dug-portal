@@ -72,7 +72,7 @@
 											tissueOnFocus
 										)
 									"
-									>Add filter</span
+									>Get biosamples</span
 								>
 							</div>
 						</div>
@@ -144,15 +144,15 @@
 					</div>
 				</div>
 
-				<div id="annotationsPlotWrapper">
-					<div id="tissueInfoBox" class="hidden"></div>
+				<div id="biosamplesPlotWrapper">
+					<div id="biosampleInfoBox" class="hidden"></div>
 
 					<canvas
-						id="annotationsPlot"
+						id="biosamplesPlot"
 						@resize="onResize"
 						@mousemove="checkPosition($event, 'hover')"
 						@click="checkPosition($event, 'click')"
-						@mouseout="onMouseOut('tissueInfoBox')"
+						@mouseout="onMouseOut('biosampleInfoBox')"
 						width=""
 						height=""
 					></canvas>
@@ -202,13 +202,15 @@ export default Vue.component("research-biosamples-plot", {
 	data() {
 		return {
 			annoData: {},
+			biosamplesData: {},
 			GEData: {},
 			GEPosData: {},
 			tissuesData: {},
 			tissuesPosData: {},
 			selectedAnnos: [],
 			selectedTissues: [],
-			annoPosData: {},
+			selectedBiosamples: [],
+			biosamplesPosData: {},
 			spaceBy: 12,
 			annotationOnFocus: null,
 			tissueOnFocus: null,
@@ -261,7 +263,7 @@ export default Vue.component("research-biosamples-plot", {
 			returnObj["start"] = regionArr[1].split("-")[0];
 			returnObj["end"] = regionArr[1].split("-")[1];
 
-			uiUtils.showElement("annotationsPlotWrapper");
+			uiUtils.showElement("biosamplesPlotWrapper");
 
 			//this.getAnnotations(returnObj);
 
@@ -301,7 +303,7 @@ export default Vue.component("research-biosamples-plot", {
 		},
 		searchingPhenotype() {
 			if (this.phenotype != null) {
-				uiUtils.showElement("annotationsPlotWrapper");
+				uiUtils.showElement("biosamplesPlotWrapper");
 
 				let returnPhenotype = !!this.renderConfig["phenotype match"]
 					? this.renderConfig["phenotype match"][this.phenotype]
@@ -310,7 +312,7 @@ export default Vue.component("research-biosamples-plot", {
 				return returnPhenotype;
 			} else if (this.phenotype == null) {
 				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
-					uiUtils.showElement("annotationsPlotWrapper");
+					uiUtils.showElement("biosamplesPlotWrapper");
 					return keyParams[this.renderConfig["phenotype parameter"]];
 				} else {
 					return null;
@@ -324,14 +326,14 @@ export default Vue.component("research-biosamples-plot", {
 		},
 		pkgDataSelected: {
 			handler: function (n, o) {
-				this.renderByAnnotations();
+				this.renderBiosamplesTrack();
 			},
 			deep: true,
 			immediate: true,
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				this.renderByAnnotations();
+				this.renderBiosamplesTrack();
 			},
 			deep: true,
 			immediate: true,
@@ -478,13 +480,13 @@ export default Vue.component("research-biosamples-plot", {
 			uiUtils.removeOnMouseOut(BOXID, 1000);
 		},
 		onResize(e) {
-			uiUtils.showElement("annotationsPlotWrapper");
-			this.renderByAnnotations();
+			uiUtils.showElement("biosamplesPlotWrapper");
+			this.renderBiosamplesTrack();
 			this.renderGE();
 			//this.renderTissuesTracks();
 		},
 		showHideAnnoPlots() {
-			uiUtils.showHideElement("annotationsPlotWrapper");
+			uiUtils.showHideElement("biosamplesPlotWrapper");
 		},
 		getGEContent(PKEY, TISSUE) {
 			let content = "";
@@ -553,34 +555,6 @@ export default Vue.component("research-biosamples-plot", {
 			return contentObj;
 		},
 
-		addBiosampleTrack(ANNOTATION, TISSUE) {
-			console.log(ANNOTATION, TISSUE);
-			/*if (event.target.value != "") {
-				let selectedAnnotations = this.pkgDataSelected
-					.filter((s) => s.type == "Annotation")
-					.map((s) => s.id);
-
-				if (selectedAnnotations.indexOf(event.target.value) < 0) {
-					selectedAnnotations.push(event.target.value);
-
-					if (this.pkgData != null) {
-						this.$store.dispatch("pkgDataSelected", {
-							type: "Annotation",
-							id: event.target.value,
-							action: "add",
-						});
-
-						Vue.set(
-							this.pkgData,
-							"selectedAnnos",
-							selectedAnnotations
-						);
-
-						this.renderGE();
-					}
-				}
-			}*/
-		},
 		removeAnnoTrack(ANNO) {
 			//console.log("called", ANNO);
 			let selectedAnnotations = this.pkgDataSelected
@@ -602,49 +576,28 @@ export default Vue.component("research-biosamples-plot", {
 				this.renderGE();
 			}
 		},
-		addRemoveTissueTrack(TISSUE) {
-			let tissue = TISSUE;
-			let tClass = tissue.replace(/ /g, "_");
-
-			let selectedTissues = this.pkgDataSelected
-				.filter((s) => s.type == "Tissue")
+		addRemoveBiosampleTrack(BIOSAMPLE) {
+			let selectedBiosamples = this.pkgDataSelected
+				.filter((s) => s.type == "Biosample")
 				.map((s) => s.id);
 
-			const tIndex = selectedTissues.indexOf(tissue);
+			const bIndex = selectedBiosamples.indexOf(BIOSAMPLE);
 
-			if (tIndex > -1) {
+			if (bIndex > -1) {
 				if (this.pkgData != null) {
 					this.$store.dispatch("pkgDataSelected", {
-						type: "Tissue",
-						id: tissue,
+						type: "Biosample",
+						id: BIOSAMPLE,
 						action: "remove",
 					});
 				}
 			} else {
 				if (this.pkgData != null) {
 					this.$store.dispatch("pkgDataSelected", {
-						type: "Tissue",
-						id: tissue,
+						type: "Biosample",
+						id: BIOSAMPLE,
 						action: "add",
 					});
-				}
-			}
-		},
-		addTissueTrack(event) {
-			let selectedTissues = this.pkgDataSelected
-				.filter((s) => s.type == "Tissue")
-				.map((s) => s.id);
-			if (event.target.value != "") {
-				selectedTissues.push(event.target.value);
-
-				if (this.pkgData != null) {
-					this.$store.dispatch("pkgDataSelected", {
-						type: "Tissue",
-						id: event.target.value,
-						action: "add",
-					});
-
-					Vue.set(this.pkgData, "selectedTissues", selectedTissues);
 				}
 			}
 		},
@@ -971,7 +924,7 @@ export default Vue.component("research-biosamples-plot", {
 
 			let rawY = e.clientY - rect.top;
 
-			const infoBox = document.querySelector("#selectedTissueInfoBox");
+			const infoBox = document.querySelector("#selectedbiosampleInfoBox");
 			let infoContent = "";
 
 			if (
@@ -1081,7 +1034,7 @@ export default Vue.component("research-biosamples-plot", {
 			let y =
 				Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy) - 1;
 
-			const infoBox = document.querySelector("#tissueInfoBox");
+			const infoBox = document.querySelector("#biosampleInfoBox");
 			let infoContent = "";
 
 			if (TYPE == "hover") {
@@ -1089,11 +1042,11 @@ export default Vue.component("research-biosamples-plot", {
 					x >= this.plotMargin.leftMargin &&
 					x <= rect.width - this.plotMargin.leftMargin
 				) {
-					if (!!this.annoPosData[y]) {
+					if (!!this.biosamplesPosData[y]) {
 						//this.$store.dispatch("sharedPlotXpos", rawX);
-						infoContent += this.annoPosData[y].tissue;
+						infoContent += this.biosamplesPosData[y].biosample;
 						for (const [region, regionValue] of Object.entries(
-							this.annoPosData[y].regions
+							this.biosamplesPosData[y].regions
 						)) {
 							let hPosition = region.split("_");
 							let start = hPosition[0];
@@ -1103,7 +1056,17 @@ export default Vue.component("research-biosamples-plot", {
 									"<br />" +
 									regionValue.start +
 									"-" +
-									regionValue.end;
+									regionValue.end +
+									"<br />" +
+									"dataset: " +
+									regionValue.dataset +
+									"<br />" +
+									"source: " +
+									regionValue.source +
+									"<br />" +
+									"method: " +
+									regionValue.method +
+									"<br />";
 							}
 						}
 					}
@@ -1116,11 +1079,11 @@ export default Vue.component("research-biosamples-plot", {
 					let yEnd = floorY + 4;
 					for (let i = yStart; i <= yEnd; i++) {
 						if (
-							!!this.annoPosData[i] &&
-							!!this.annoPosData[i].annotation
+							!!this.biosamplesPosData[i] &&
+							!!this.biosamplesPosData[i].annotation
 						) {
 							for (const [region, regionValue] of Object.entries(
-								this.annoPosData[i].regions
+								this.biosamplesPosData[i].regions
 							)) {
 								let hPosition = region.split("_");
 								let start = hPosition[0];
@@ -1139,9 +1102,12 @@ export default Vue.component("research-biosamples-plot", {
 					x >= this.plotMargin.leftMargin &&
 					x <= rect.width - this.plotMargin.leftMargin
 				) {
-					if (!!this.annoPosData[y]) {
+					if (!!this.biosamplesPosData[y]) {
 						//this.$store.dispatch("sharedPlotXpos", rawX);
-						infoContent += this.annoPosData[y].tissue;
+						infoContent +=
+							this.biosamplesPosData[y].annotation +
+							" / " +
+							this.biosamplesPosData[y].biosample;
 					}
 				}
 			}
@@ -1160,7 +1126,8 @@ export default Vue.component("research-biosamples-plot", {
 
 			if (TYPE == "click") {
 				if (infoContent != "") {
-					this.addRemoveTissueTrack(infoContent);
+					console.log(infoContent);
+					this.addRemoveBiosampleTrack(infoContent);
 				}
 			}
 		},
@@ -1185,9 +1152,12 @@ export default Vue.component("research-biosamples-plot", {
 			let GEURL =
 				biosamplesServer + "/query/" + GEIndex + "?q=" + phenotype;
 
+			console.log("GEURL", GEURL);
+
 			let GEJson = await fetch(GEURL).then((resp) => resp.json());
 
 			if (GEJson.error == null) {
+				console.log("GEJson", GEJson);
 				if (this.dataComparison == "newSearch") {
 					this.GEData = {};
 				}
@@ -1256,7 +1226,7 @@ export default Vue.component("research-biosamples-plot", {
 					Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 				}
 
-				this.renderByAnnotations();
+				this.renderBiosamplesTrack();
 				this.renderGE();
 			}
 			this.$forceUpdate();
@@ -1308,11 +1278,13 @@ export default Vue.component("research-biosamples-plot", {
 							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
 					}
 
-					annotations[phenotype][g.annotation].push({
-						tissue: g.tissue,
-						fold: GEByTissue[phenotype][g.tissue][g.annotation]
-							.fold,
-					});
+					if (!!annotations[phenotype][g.annotation]) {
+						annotations[phenotype][g.annotation].push({
+							tissue: g.tissue,
+							fold: GEByTissue[phenotype][g.tissue][g.annotation]
+								.fold,
+						});
+					}
 
 					/*annotations[phenotype][g.annotation].sort(
 						(a, b) => b.fold - a.fold
@@ -1353,6 +1325,300 @@ export default Vue.component("research-biosamples-plot", {
 		},
 		async getBiosamples(ANNOTATION, TISSUE) {
 			console.log(ANNOTATION, TISSUE);
+
+			let biosamplesServer =
+				this.renderConfig["biosamples server"] == "KP BioIndex"
+					? "https://bioindex-dev.hugeamp.org/api/bio"
+					: this.renderConfig["biosamples server"];
+
+			let biosamplesIndex = !!this.renderConfig["biosamples index"]
+				? this.renderConfig["biosamples index"]
+				: "tissue-regions";
+
+			let tissue = TISSUE;
+			let region = this.searchingRegion;
+
+			let biosamplesURL =
+				biosamplesServer +
+				"/query/" +
+				biosamplesIndex +
+				"?q=" +
+				tissue +
+				"," +
+				region.chr +
+				":" +
+				region.start +
+				"-" +
+				region.end;
+
+			console.log(biosamplesURL);
+
+			let biosamplesJson = await fetch(biosamplesURL).then((resp) =>
+				resp.json()
+			);
+
+			if (biosamplesJson.error == null) {
+				let regions = [];
+				biosamplesJson.data.map((d) => {
+					if (d.annotation == ANNOTATION) {
+						regions.push(d);
+					}
+				});
+
+				if (regions.length > 0) {
+					//newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
+					let biosampleKeys = [
+						...new Set(regions.map((r) => r.biosample)),
+					].sort(Intl.Collator().compare);
+
+					console.log("biosampleKeys", biosampleKeys);
+
+					if (!this.biosamplesData[ANNOTATION]) {
+						this.biosamplesData[ANNOTATION] = {};
+					}
+
+					if (!this.biosamplesData[ANNOTATION][TISSUE]) {
+						this.biosamplesData[ANNOTATION][TISSUE] = {};
+					}
+
+					biosampleKeys.map((b) => {
+						if (!this.biosamplesData[ANNOTATION][TISSUE][b]) {
+							this.biosamplesData[ANNOTATION][TISSUE][b] = [];
+						}
+						regions.map((r) => {
+							if (r.biosample == b) {
+								this.biosamplesData[ANNOTATION][TISSUE][
+									r.biosample
+								].push(r);
+							}
+						});
+					});
+				}
+
+				if (this.pkgData != null) {
+					Vue.set(
+						this.pkgData,
+						"biosamplesData",
+						this.biosamplesData
+					);
+				}
+
+				this.renderBiosamplesTrack();
+			}
+		},
+
+		renderBiosamplesTrack() {
+			console.log("render", "this.biosamplesData", this.biosamplesData);
+
+			let staredPositions = [];
+
+			if (!!this.renderConfig["star key"]) {
+				let plotData = !!Array.isArray(this.plotData)
+					? this.array2Object(
+							this.renderConfig["star key"]["key"],
+							this.plotData
+					  )
+					: this.plotData;
+
+				let starKey = this.renderConfig["star key"]["key"];
+				let starPosition = this.renderConfig["star key"]["position"];
+
+				this.pkgDataSelected
+					.filter((s) => s.type == starKey)
+					.map((s) => s.id)
+					.map((s) => {
+						//console.log("this.plotData[s]", plotData[s]);
+						staredPositions.push(plotData[s][starPosition]);
+					});
+			}
+
+			let tempHeight = 0;
+			let annotationTitleH = this.spaceBy * 2;
+			let btwnAnnotations = this.spaceBy * 7;
+			let perBiosample = this.spaceBy;
+			let topMargin = this.spaceBy * 2;
+			let bottomMargin = this.spaceBy * 2;
+			let regionStart = this.viewingRegion.start;
+			let regionEnd = this.viewingRegion.end;
+			let pvalueFoldWidth = 120;
+
+			let selectedBiosamples = this.pkgDataSelected
+				.filter((s) => s.type == "Biosample")
+				.map((s) => s.id);
+
+			let annotationTissueArr = [];
+
+			for (const [aKey, aValue] of Object.entries(this.biosamplesData)) {
+				for (const [tKey, biosamples] of Object.entries(aValue)) {
+					annotationTissueArr.push(aKey + " / " + tKey);
+					tempHeight += annotationTitleH;
+					tempHeight += Object.keys(biosamples).length * perBiosample;
+					tempHeight += btwnAnnotations;
+				}
+			}
+
+			console.log("annotationTissueArr", annotationTissueArr);
+
+			let wrapper = document.querySelector("#biosamplesPlotWrapper");
+			let canvas = document.querySelector("#biosamplesPlot");
+
+			if (!!canvas && !!wrapper) {
+				let canvasWidth = wrapper.clientWidth * 0.75;
+				let canvasHeight = tempHeight + topMargin + bottomMargin;
+				let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
+				let plotHeight = tempHeight;
+				let bump = 5.5;
+
+				let xPerPixel = plotWidth / (regionEnd - regionStart);
+
+				let c, ctx;
+				c = canvas;
+				c.setAttribute("width", canvasWidth);
+				c.setAttribute("height", canvasHeight);
+				ctx = c.getContext("2d");
+				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+				let renderHeight = annotationTitleH;
+
+				annotationTissueArr.map((at) => {
+					ctx.font = "14px Arial";
+					ctx.textAlign = "left";
+					ctx.fillStyle = "#000000";
+					ctx.fillText(at, bump, renderHeight);
+
+					renderHeight += annotationTitleH;
+
+					let atPath = at.split(" / ");
+
+					let blockHeight =
+						Object.keys(this.biosamplesData[atPath[0]][atPath[1]])
+							.length * perBiosample;
+
+					this.renderAnnoAxis(
+						ctx,
+						plotWidth,
+						blockHeight,
+						Number(regionEnd),
+						Number(regionStart),
+						renderHeight,
+						bump
+					);
+
+					if (
+						!!this.renderConfig["star key"] &&
+						staredPositions.length > 0
+					) {
+						this.renderStaredPositions(
+							ctx,
+							plotWidth,
+							blockHeight,
+							staredPositions,
+							xPerPixel,
+							Number(regionEnd),
+							Number(regionStart),
+							renderHeight,
+							bump
+						);
+					}
+
+					let biosampleIndex = 0;
+					for (const [bKey, bRegions] of Object.entries(
+						this.biosamplesData[atPath[0]][atPath[1]]
+					)) {
+						let yPosBtn = Math.ceil(renderHeight / this.spaceBy);
+
+						if (!this.biosamplesPosData[yPosBtn]) {
+							this.biosamplesPosData[yPosBtn] = {
+								biosample: bKey,
+								annotation: atPath[0],
+								regions: {},
+							};
+						} else {
+							this.biosamplesPosData[yPosBtn]["biosample"] = bKey;
+						}
+
+						if (biosampleIndex % 2 == 0) {
+							ctx.fillStyle = "#00000010";
+							ctx.fillRect(
+								this.plotMargin.leftMargin,
+								renderHeight,
+								plotWidth,
+								perBiosample
+							);
+						}
+
+						biosampleIndex++;
+
+						bRegions.map((p) => {
+							if (p.start <= regionEnd && p.end >= regionStart) {
+								let xPosStart =
+									(p.start - regionStart) * xPerPixel +
+									this.plotMargin.leftMargin;
+
+								xPosStart =
+									xPosStart <= this.plotMargin.leftMargin
+										? this.plotMargin.leftMargin
+										: xPosStart;
+								let xPosEnd =
+									(p.end - regionStart) * xPerPixel +
+									this.plotMargin.leftMargin;
+
+								xPosEnd =
+									xPosEnd >
+									this.plotMargin.leftMargin + plotWidth
+										? this.plotMargin.leftMargin + plotWidth
+										: xPosEnd;
+
+								//let xPosWidth = xPosEnd - xPosStart;
+								let xPosWidth =
+									xPosEnd - xPosStart < 1
+										? 1
+										: xPosEnd - xPosStart;
+
+								if (
+									selectedBiosamples.indexOf(
+										atPath[0] + " / " + bKey
+									) > -1
+								) {
+									ctx.fillStyle = "#FF0000";
+								} else {
+									ctx.fillStyle = this.getColorIndex(
+										atPath[0]
+									);
+								}
+
+								ctx.fillRect(
+									xPosStart,
+									renderHeight,
+									xPosWidth,
+									perBiosample - 1
+								);
+								let xPosBtn =
+									xPosStart + "_" + (xPosStart + xPosWidth);
+								this.biosamplesPosData[yPosBtn].regions[
+									xPosBtn
+								] = {
+									start: p.start,
+									end: p.end,
+									dataset: p.dataset,
+									method: p.method,
+									source: p.source,
+								};
+							}
+						});
+
+						renderHeight += perBiosample;
+
+						ctx.fillStyle = "#000000";
+						ctx.textAlign = "start";
+						ctx.textBaseline = "middle";
+						ctx.font = "12px Arial";
+						ctx.fillText(bKey, 5, renderHeight - 4);
+					}
+
+					renderHeight += btwnAnnotations;
+				});
+			}
 		},
 
 		async getBSAnnotations(REGION_OBJ) {
@@ -1446,7 +1712,10 @@ export default Vue.component("research-biosamples-plot", {
 				};
 
 				GE.map((g) => {
-					if (!!this.annoData[g.annotation][g.tissue]) {
+					if (
+						!!this.annoData[g.annotation] &&
+						!!this.annoData[g.annotation][g.tissue]
+					) {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
@@ -1809,301 +2078,6 @@ export default Vue.component("research-biosamples-plot", {
 		},
 		object2Array() {},
 
-		renderByAnnotations() {
-			let staredPositions = [];
-
-			if (!!this.renderConfig["star key"]) {
-				let plotData = !!Array.isArray(this.plotData)
-					? this.array2Object(
-							this.renderConfig["star key"]["key"],
-							this.plotData
-					  )
-					: this.plotData;
-
-				let starKey = this.renderConfig["star key"]["key"];
-				let starPosition = this.renderConfig["star key"]["position"];
-
-				this.pkgDataSelected
-					.filter((s) => s.type == starKey)
-					.map((s) => s.id)
-					.map((s) => {
-						//console.log("this.plotData[s]", plotData[s]);
-						staredPositions.push(plotData[s][starPosition]);
-					});
-			}
-
-			let tempHeight = 0;
-			let annotationTitleH = this.spaceBy * 2;
-			let btwnAnnotations = this.spaceBy * 7;
-			let perTissue = this.spaceBy;
-			let topMargin = this.spaceBy * 2;
-			let bottomMargin = this.spaceBy * 2;
-			let regionStart = this.viewingRegion.start;
-			let regionEnd = this.viewingRegion.end;
-			let pvalueFoldWidth = 120;
-
-			let selectedAnnotations = this.pkgDataSelected
-				.filter((s) => s.type == "Annotation")
-				.map((s) => s.id);
-
-			let selectedTissues = this.pkgDataSelected
-				.filter((s) => s.type == "Tissue")
-				.map((s) => s.id);
-
-			for (const [annotation, tissues] of Object.entries(this.annoData)) {
-				if (selectedAnnotations.includes(annotation)) {
-					tempHeight += annotationTitleH;
-					tempHeight += Object.keys(tissues).length * perTissue;
-					tempHeight += btwnAnnotations;
-				}
-			}
-
-			let wrapper = document.querySelector("#annotationsPlotWrapper");
-			let canvas = document.querySelector("#annotationsPlot");
-
-			if (!!canvas && !!wrapper) {
-				let canvasWidth =
-					document.querySelector("#annotationsPlotWrapper")
-						.clientWidth * 0.75;
-
-				let wrapperWidth =
-					canvasWidth +
-					Object.keys(this.pkgData.GEByTissueData).length *
-						pvalueFoldWidth;
-
-				let canvasHeight = tempHeight + topMargin + bottomMargin;
-
-				let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
-				let plotHeight = tempHeight;
-				let bump = 5.5;
-
-				let xPerPixel = plotWidth / (regionEnd - regionStart);
-
-				let c, ctx;
-				c = document.querySelector("#annotationsPlot");
-				c.setAttribute("width", wrapperWidth);
-				c.setAttribute("height", canvasHeight);
-				ctx = c.getContext("2d");
-
-				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-				let renderHeight = annotationTitleH;
-				//console.log("this.annoData", this.pkgData);
-				for (const [annotation, tissues] of Object.entries(
-					this.annoData
-				)) {
-					if (selectedAnnotations.includes(annotation)) {
-						ctx.font = "14px Arial";
-						ctx.textAlign = "left";
-						ctx.fillStyle = "#000000";
-						ctx.fillText(annotation, bump, renderHeight);
-
-						Object.keys(this.pkgData.GEByTissueData).map(
-							(pKey, pIndex) => {
-								ctx.fillStyle = "#000000";
-								ctx.textAlign = "start";
-								ctx.textBaseline = "middle";
-								ctx.font = "14px Arial";
-
-								ctx.fillText(
-									pKey,
-									canvasWidth + pvalueFoldWidth * pIndex,
-									renderHeight
-								);
-							}
-						);
-
-						let blockHeight =
-							Object.keys(tissues).length * perTissue;
-						renderHeight += annotationTitleH;
-
-						this.renderAnnoAxis(
-							ctx,
-							plotWidth,
-							blockHeight,
-							Number(regionEnd),
-							Number(regionStart),
-							renderHeight,
-							bump
-						);
-
-						if (
-							!!this.renderConfig["star key"] &&
-							staredPositions.length > 0
-						) {
-							this.renderStaredPositions(
-								ctx,
-								plotWidth,
-								blockHeight,
-								staredPositions,
-								xPerPixel,
-								Number(regionEnd),
-								Number(regionStart),
-								renderHeight,
-								bump
-							);
-						}
-
-						let tissueIndex = 0;
-						for (const [tissue, regions] of Object.entries(
-							tissues
-						)) {
-							let yPosBtn = Math.ceil(
-								renderHeight / this.spaceBy
-							);
-
-							if (!this.annoPosData[yPosBtn]) {
-								this.annoPosData[yPosBtn] = {
-									tissue: tissue,
-									regions: {},
-								};
-							} else {
-								this.annoPosData[yPosBtn]["tissue"] = tissue;
-							}
-
-							if (tissueIndex % 2 == 0) {
-								ctx.fillStyle = "#00000010";
-								ctx.fillRect(
-									this.plotMargin.leftMargin,
-									renderHeight,
-									plotWidth,
-									perTissue
-								);
-							}
-
-							tissueIndex++;
-
-							regions.region.map((p) => {
-								if (
-									p.start <= regionEnd &&
-									p.end >= regionStart
-								) {
-									let xPosStart =
-										(p.start - regionStart) * xPerPixel +
-										this.plotMargin.leftMargin;
-
-									xPosStart =
-										xPosStart <= this.plotMargin.leftMargin
-											? this.plotMargin.leftMargin
-											: xPosStart;
-									let xPosEnd =
-										(p.end - regionStart) * xPerPixel +
-										this.plotMargin.leftMargin;
-
-									xPosEnd =
-										xPosEnd >
-										this.plotMargin.leftMargin + plotWidth
-											? this.plotMargin.leftMargin +
-											  plotWidth
-											: xPosEnd;
-
-									//let xPosWidth = xPosEnd - xPosStart;
-									let xPosWidth =
-										xPosEnd - xPosStart < 1
-											? 1
-											: xPosEnd - xPosStart;
-
-									if (selectedTissues.indexOf(tissue) > -1) {
-										ctx.fillStyle = "#FF0000";
-									} else {
-										ctx.fillStyle =
-											this.getColorIndex(annotation);
-									}
-
-									ctx.fillRect(
-										xPosStart,
-										renderHeight,
-										xPosWidth,
-										perTissue - 1
-									);
-									let xPosBtn =
-										xPosStart +
-										"_" +
-										(xPosStart + xPosWidth);
-									this.annoPosData[yPosBtn].regions[xPosBtn] =
-										{
-											start: p.start,
-											end: p.end,
-										};
-								}
-							});
-
-							renderHeight += perTissue;
-
-							//if (selectedTissues.indexOf(tissue) > -1) {
-							ctx.fillStyle = "#000000";
-							ctx.textAlign = "start";
-							ctx.textBaseline = "middle";
-							ctx.font = "12px Arial";
-							ctx.fillText(tissue, 5, renderHeight - 4);
-							//}
-
-							let pIndex = 0;
-							for (const [pKey, tissues] of Object.entries(
-								this.pkgData.GEByTissueData
-							)) {
-								if (
-									!!this.pkgData.GEByTissueData[pKey][
-										tissue
-									] &&
-									!!this.pkgData.GEByTissueData[pKey][tissue][
-										annotation
-									]
-								) {
-									let pvalueFold =
-										this.pkgData.GEByTissueData[pKey][
-											tissue
-										][annotation]["pValue"] +
-										" / " +
-										Number(
-											this.pkgData.GEByTissueData[pKey][
-												tissue
-											][annotation]["fold"]
-										).toFixed(3);
-
-									if (
-										this.pkgData.GEByTissueData[pKey][
-											tissue
-										][annotation]["rank"] < 5
-									) {
-										ctx.fillStyle =
-											this.getColorIndex(annotation);
-										ctx.lineWidth = 0;
-										ctx.beginPath();
-										ctx.arc(
-											canvasWidth +
-												pvalueFoldWidth * pIndex -
-												5,
-											renderHeight - 4,
-											3,
-											0,
-											2 * Math.PI
-										);
-										ctx.fill();
-									}
-
-									ctx.fillStyle = "#000000";
-									ctx.textAlign = "start";
-									ctx.textBaseline = "middle";
-									ctx.font = "11px Arial";
-
-									ctx.fillText(
-										pvalueFold,
-										canvasWidth + pvalueFoldWidth * pIndex,
-										renderHeight - 4
-									);
-								}
-
-								pIndex++;
-							}
-						}
-						renderHeight += btwnAnnotations;
-					}
-				}
-			}
-			// get ovelapping region
-			this.getOverlappingRegion();
-		},
 		renderAnnoAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
@@ -2253,12 +2227,12 @@ $(function () {});
 
 #GEPlotWrapper,
 #tissuesPlotWrapper,
-#annotationsPlotWrapper {
+#biosamplesPlotWrapper {
 	position: relative;
 }
 
-#tissueInfoBox,
-#selectedTissueInfoBox,
+#biosampleInfoBox,
+#selectedbiosampleInfoBox,
 #GEInfoBox {
 	position: absolute;
 	background-color: #fff;

@@ -351,6 +351,9 @@ export default Vue.component("research-gem-data-table", {
 				if (selectedTypes.indexOf("Tissue") > -1) {
 					newRows.push("Tissue");
 				}
+				if (selectedTypes.indexOf("Biosample") > -1) {
+					newRows.push("Biosample");
+				}
 
 				//Remove "Annotation" from newRows since we are going to have annotations in tissues column
 				const annoIndex = newRows.indexOf("Annotation");
@@ -358,14 +361,20 @@ export default Vue.component("research-gem-data-table", {
 					newRows.splice(annoIndex, 1);
 				}
 
-				//Replace "Tissue" with "Overlapping Region"
+				//Replace "Tissue" with "Annotation Overlap"
 				const tissueIndex = newRows.indexOf("Tissue");
 				if (tissueIndex > -1) {
 					newRows[tissueIndex] = "Annotation Overlap";
 				}
 
+				//Replace "Tissue" with "Annotation Overlap"
+				const biosampleIndex = newRows.indexOf("Biosample");
+				if (biosampleIndex > -1) {
+					newRows[biosampleIndex] = "Biosample Overlap";
+				}
+
 				this.pkgDataSelected.map((p) => {
-					if (p.type == "Tissue") {
+					if (p.type == "Tissue" || p.type == "Biosample") {
 						newRows.push(p.id);
 					}
 				});
@@ -375,17 +384,38 @@ export default Vue.component("research-gem-data-table", {
 				var newTopRows = oldRows.concat(newRows);
 				newTableFormat["top rows"] = newTopRows;
 
-				// add "features" to table format if there isn't one. Then add "Credible Set"
-				if (!!newTopRows.includes("Credible Set")) {
+				// add "features" to table format if there isn't one. Then add "Credible Set" or "Biosample"
+
+				if (
+					!!newTopRows.includes("Credible Set") ||
+					!!newTopRows.includes("Biosample Overlap")
+				) {
 					if (!this.tableFormat["features"]) {
 						newTableFormat["features"] = [];
 					}
+				}
 
+				if (!!newTopRows.includes("Credible Set")) {
 					if (!newTableFormat["features"].includes("Credible Set")) {
 						newTableFormat["features"].push("Credible Set");
 					}
 
 					newTableFormat["Credible Set"] = [];
+				}
+
+				if (!!newTopRows.includes("Biosample Overlap")) {
+					this.pkgDataSelected.map((p) => {
+						if (p.type == "Biosample") {
+							if (
+								!newTableFormat["features"].includes(
+									"Biosamples"
+								)
+							) {
+								newTableFormat["features"].push("Biosamples");
+								newTableFormat["Biosamples"] = [];
+							}
+						}
+					});
 				}
 
 				this.pkgDataSelected.map((p) => {
@@ -397,6 +427,10 @@ export default Vue.component("research-gem-data-table", {
 					// add filtering CS and tissues to Evidence list
 					if (p.type == "Credible Set") {
 						newTableFormat["Credible Set"].push(p.id);
+					}
+
+					if (p.type == "Biosample") {
+						newTableFormat["Biosamples"].push(p.id);
 					}
 				});
 			}
@@ -716,6 +750,168 @@ export default Vue.component("research-gem-data-table", {
 					}
 				}
 			}
+
+			///Filter data if biosamples
+			/*
+			if (
+				!!selectedBy["Biosample"] &&
+				selectedBy["Biosample"].length > 0
+			) {
+				//first get all enriched positions
+				let enrichedPosition = null;
+
+				selectedBy["Biosample"].map((a) => {
+					if (
+						!!this.pkgData.annoData[a] &&
+						!!this.pkgData.annoData[a][t]
+					) {
+						let tempArr = [];
+						this.pkgData.annoData[a][t].region.map((r) => {
+							for (let i = r.start; i <= r.end; i++) {
+								tempArr.push(i);
+							}
+						});
+
+						if (enrichedPosition == null) {
+							enrichedPosition = tempArr;
+						} else {
+							enrichedPosition =
+								this.filterTissueType == "or"
+									? enrichedPosition.concat(tempArr)
+									: this.getArraysIntersection(
+											enrichedPosition,
+											tempArr
+									  ); // getting only intersecting positions
+						}
+					}
+				});
+
+				//sort enriched position so I can remove position between start and end positions
+				enrichedPosition.sort(function (a, b) {
+					return a - b;
+				});
+
+				//leave only start and end of overlapping regions
+				var enrichedRegion = [];
+
+				for (let i = 0; i < enrichedPosition.length; i++) {
+					if (i == 0 || i == enrichedPosition.length - 1) {
+						enrichedRegion.push(enrichedPosition[i]);
+					} else {
+						let pos1 = enrichedPosition[i - 1] + 1;
+						let pos2 = enrichedPosition[i];
+
+						if (pos2 > pos1) {
+							enrichedRegion.push(enrichedPosition[i - 1]);
+							enrichedRegion.push(enrichedPosition[i]);
+						}
+					}
+				}
+
+				///build object of overlapping regions
+				var overlappingRegions = [];
+
+				for (let i = 0; i < enrichedRegion.length - 1; i += 2) {
+					let tempObj = {};
+					tempObj["start"] = enrichedRegion[i];
+					tempObj["end"] = enrichedRegion[i + 1];
+					overlappingRegions.push(tempObj);
+				}
+
+				//filter out unoverlapping variants and add overlapping region info to each variants
+				var overlappingVariants = {};
+				for (const [vKey, vValue] of Object.entries(updatedData)) {
+					let position = vValue.Position;
+
+					overlappingRegions.map((r) => {
+						if (position >= r.start && position <= r.end) {
+							overlappingVariants[vKey] = vValue;
+							overlappingVariants[vKey]["overStart"] = r.start;
+							overlappingVariants[vKey]["overEnd"] = r.end;
+						}
+					});
+				}
+
+				updatedData = overlappingVariants;
+
+				//Add tissue content
+				for (const [vKey, vValue] of Object.entries(updatedData)) {
+					let annotationContent = {};
+					selectedBy["Tissue"].map((t) => {
+						annotationContent[t] = {};
+						selectedBy["Annotation"].map((a) => {
+							annotationContent[t][a] = null;
+						});
+					});
+
+					selectedBy["Tissue"].map((t) => {
+						let inTissue = 0;
+
+						selectedBy["Annotation"].map((a) => {
+							let inAnnotation = 0;
+							let tissueContent = "";
+							if (!!this.pkgData.tissuesData[t][a]) {
+								this.pkgData.tissuesData[t][a].region.map(
+									(r) => {
+										if (
+											vValue.Position >= r.start &&
+											vValue.Position <= r.end
+										) {
+											inAnnotation = 1;
+											annotationContent[t][a] = {
+												start: r.start,
+												end: r.end,
+											};
+										}
+									}
+								);
+								if (inAnnotation == 1) {
+									inTissue = 1;
+								}
+							}
+						});
+						if (inTissue == 0) {
+							if (this.filterTissueType == "and") {
+								delete updatedData[vKey];
+							}
+						}
+					});
+
+					if (!!updatedData[vKey]) {
+						/// feed "Tissue" column content
+						let tissueColmContent = "";
+
+						for (const [tissue, annotations] of Object.entries(
+							annotationContent
+						)) {
+							let enrichedAnnotations = "";
+							for (const [annoKey, annoValue] of Object.entries(
+								annotations
+							)) {
+								if (annoValue != null) {
+									enrichedAnnotations +=
+										annoKey +
+										": " +
+										annoValue.start +
+										"-" +
+										annoValue.end +
+										", ";
+								}
+							}
+
+							if (enrichedAnnotations != "") {
+								updatedData[vKey][tissue] =
+									enrichedAnnotations.slice(0, -2);
+							}
+						}
+
+						updatedData[vKey]["Annotation Overlap"] =
+							updatedData[vKey].overStart +
+							"-" +
+							updatedData[vKey].overEnd;
+					}
+				}
+			}*/
 
 			//usually data sorting happens with applySorting() function.
 			//but for credible sets case it happens here to avoide destroying original data
