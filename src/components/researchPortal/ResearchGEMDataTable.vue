@@ -374,8 +374,12 @@ export default Vue.component("research-gem-data-table", {
 				}
 
 				this.pkgDataSelected.map((p) => {
-					if (p.type == "Tissue" || p.type == "Biosample") {
+					if (p.type == "Tissue") {
 						newRows.push(p.id);
+					}
+
+					if (p.type == "Biosample") {
+						newRows.push(p.id.split(" / ")[2] + "(b)");
 					}
 				});
 
@@ -430,7 +434,7 @@ export default Vue.component("research-gem-data-table", {
 					}
 
 					if (p.type == "Biosample") {
-						newTableFormat["Biosamples"].push(p.id);
+						newTableFormat["Biosamples"].push(p.id.split(" / ")[2]);
 					}
 				});
 			}
@@ -752,7 +756,10 @@ export default Vue.component("research-gem-data-table", {
 			}
 
 			///Filter data if biosamples
-			/*
+
+			console.log(this.pkgData);
+			console.log(selectedBy);
+
 			if (
 				!!selectedBy["Biosample"] &&
 				selectedBy["Biosample"].length > 0
@@ -760,13 +767,31 @@ export default Vue.component("research-gem-data-table", {
 				//first get all enriched positions
 				let enrichedPosition = null;
 
-				selectedBy["Biosample"].map((a) => {
+				selectedBy["Biosample"].map((b) => {
+					let pathArr = b.split(" / ");
+					let annotation = pathArr[0];
+					let tissue = pathArr[1];
+					let biosample = pathArr[2];
+
+					console.log(annotation, tissue, biosample);
+					console.log(
+						this.pkgData.biosamplesData[annotation][tissue][
+							biosample
+						]
+					);
 					if (
-						!!this.pkgData.annoData[a] &&
-						!!this.pkgData.annoData[a][t]
+						!!this.pkgData.biosamplesData[annotation] &&
+						!!this.pkgData.biosamplesData[annotation][tissue] &&
+						!!this.pkgData.biosamplesData[annotation][tissue][
+							biosample
+						]
 					) {
+						let regions =
+							this.pkgData.biosamplesData[annotation][tissue][
+								biosample
+							];
 						let tempArr = [];
-						this.pkgData.annoData[a][t].region.map((r) => {
+						regions.map((r) => {
 							for (let i = r.start; i <= r.end; i++) {
 								tempArr.push(i);
 							}
@@ -826,8 +851,8 @@ export default Vue.component("research-gem-data-table", {
 					overlappingRegions.map((r) => {
 						if (position >= r.start && position <= r.end) {
 							overlappingVariants[vKey] = vValue;
-							overlappingVariants[vKey]["overStart"] = r.start;
-							overlappingVariants[vKey]["overEnd"] = r.end;
+							overlappingVariants[vKey]["bioStart"] = r.start;
+							overlappingVariants[vKey]["bioEnd"] = r.end;
 						}
 					});
 				}
@@ -836,41 +861,46 @@ export default Vue.component("research-gem-data-table", {
 
 				//Add tissue content
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
-					let annotationContent = {};
-					selectedBy["Tissue"].map((t) => {
-						annotationContent[t] = {};
-						selectedBy["Annotation"].map((a) => {
-							annotationContent[t][a] = null;
-						});
+					let biosampleContent = {};
+					selectedBy["Biosample"].map((bi) => {
+						let bsArr = bi.split(" / "); //0= annotation, 1= tissue, 2=biosample
+						let a = bsArr[0];
+						let b = bsArr[2];
+						if (!biosampleContent[b]) {
+							biosampleContent[b] = {};
+						}
+						if (!biosampleContent[b][a]) {
+							biosampleContent[b][a] = null;
+						}
 					});
 
-					selectedBy["Tissue"].map((t) => {
-						let inTissue = 0;
+					selectedBy["Biosample"].map((bi) => {
+						let inBiosample = 0;
 
-						selectedBy["Annotation"].map((a) => {
-							let inAnnotation = 0;
-							let tissueContent = "";
-							if (!!this.pkgData.tissuesData[t][a]) {
-								this.pkgData.tissuesData[t][a].region.map(
-									(r) => {
-										if (
-											vValue.Position >= r.start &&
-											vValue.Position <= r.end
-										) {
-											inAnnotation = 1;
-											annotationContent[t][a] = {
-												start: r.start,
-												end: r.end,
-											};
-										}
-									}
-								);
-								if (inAnnotation == 1) {
-									inTissue = 1;
-								}
+						let bsArr = bi.split(" / "); //0= annotation, 1= tissue, 2=biosample
+						let a = bsArr[0];
+						let t = bsArr[1];
+						let b = bsArr[2];
+
+						let inAnnotation = 0;
+						//if (!!this.pkgData.biosamplesData[a][t]) {
+						this.pkgData.biosamplesData[a][t][b].map((r) => {
+							if (
+								vValue.Position >= r.start &&
+								vValue.Position <= r.end
+							) {
+								inAnnotation = 1;
+								biosampleContent[b][a] = {
+									start: r.start,
+									end: r.end,
+								};
 							}
 						});
-						if (inTissue == 0) {
+						if (inAnnotation == 1) {
+							inBiosample = 1;
+						}
+
+						if (inBiosample == 0) {
 							if (this.filterTissueType == "and") {
 								delete updatedData[vKey];
 							}
@@ -879,10 +909,10 @@ export default Vue.component("research-gem-data-table", {
 
 					if (!!updatedData[vKey]) {
 						/// feed "Tissue" column content
-						let tissueColmContent = "";
+						//let tissueColmContent = "";
 
-						for (const [tissue, annotations] of Object.entries(
-							annotationContent
+						for (const [biosample, annotations] of Object.entries(
+							biosampleContent
 						)) {
 							let enrichedAnnotations = "";
 							for (const [annoKey, annoValue] of Object.entries(
@@ -900,18 +930,18 @@ export default Vue.component("research-gem-data-table", {
 							}
 
 							if (enrichedAnnotations != "") {
-								updatedData[vKey][tissue] =
+								updatedData[vKey][biosample + "(b)"] =
 									enrichedAnnotations.slice(0, -2);
 							}
 						}
 
-						updatedData[vKey]["Annotation Overlap"] =
-							updatedData[vKey].overStart +
+						updatedData[vKey]["Biosample Overlap"] =
+							updatedData[vKey].bioStart +
 							"-" +
-							updatedData[vKey].overEnd;
+							updatedData[vKey].bioEnd;
 					}
 				}
-			}*/
+			}
 
 			//usually data sorting happens with applySorting() function.
 			//but for credible sets case it happens here to avoide destroying original data

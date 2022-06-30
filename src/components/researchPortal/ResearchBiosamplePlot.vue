@@ -241,7 +241,7 @@ export default Vue.component("research-biosamples-plot", {
 						tissues.push(t);
 					}
 				});
-				//console.log(tissues);
+				////console.log(tissues);
 				return tissues;
 			} else {
 				return null;
@@ -256,7 +256,7 @@ export default Vue.component("research-biosamples-plot", {
 			}
 		},
 		searchingRegion() {
-			//console.log("this.region", this.region);
+			////console.log("this.region", this.region);
 			let returnObj = {};
 			let regionArr = this.region.split(":");
 			returnObj["chr"] = regionArr[0];
@@ -556,12 +556,12 @@ export default Vue.component("research-biosamples-plot", {
 		},
 
 		removeAnnoTrack(ANNO) {
-			//console.log("called", ANNO);
+			////console.log("called", ANNO);
 			let selectedAnnotations = this.pkgDataSelected
 				.filter((s) => s.type == "Annotation")
 				.map((s) => s.id);
 			const aIndex = selectedAnnotations.indexOf(ANNO);
-			//console.log("called2", aIndex, selectedAnnotations);
+			////console.log("called2", aIndex, selectedAnnotations);
 			if (aIndex > -1) {
 				selectedAnnotations.splice(aIndex, 1);
 				if (this.pkgData != null) {
@@ -1107,6 +1107,8 @@ export default Vue.component("research-biosamples-plot", {
 						infoContent +=
 							this.biosamplesPosData[y].annotation +
 							" / " +
+							this.biosamplesPosData[y].tissue +
+							" / " +
 							this.biosamplesPosData[y].biosample;
 					}
 				}
@@ -1126,7 +1128,7 @@ export default Vue.component("research-biosamples-plot", {
 
 			if (TYPE == "click") {
 				if (infoContent != "") {
-					console.log(infoContent);
+					//////console.log(infoContent);
 					this.addRemoveBiosampleTrack(infoContent);
 				}
 			}
@@ -1137,7 +1139,7 @@ export default Vue.component("research-biosamples-plot", {
 			return this.compareGroupColors[i];
 		},
 		async getGlobalEnrichment() {
-			//console.log("calling GE");
+			//////console.log("calling GE");
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
 					? "https://bioindex.hugeamp.org/api/bio"
@@ -1152,12 +1154,12 @@ export default Vue.component("research-biosamples-plot", {
 			let GEURL =
 				biosamplesServer + "/query/" + GEIndex + "?q=" + phenotype;
 
-			console.log("GEURL", GEURL);
+			//console.log("GEURL", GEURL);
 
 			let GEJson = await fetch(GEURL).then((resp) => resp.json());
 
 			if (GEJson.error == null) {
-				console.log("GEJson", GEJson);
+				//console.log("GEJson", GEJson);
 				if (this.dataComparison == "newSearch") {
 					this.GEData = {};
 				}
@@ -1217,7 +1219,7 @@ export default Vue.component("research-biosamples-plot", {
 
 				let GEByTissue = this.getGEByTissue();
 
-				console.log("this.tissuesData", this.tissuesData);
+				//console.log("this.tissuesData", this.tissuesData);
 
 				if (this.pkgData != null) {
 					Vue.set(this.pkgData, "GEByTissueData", GEByTissue);
@@ -1306,10 +1308,10 @@ export default Vue.component("research-biosamples-plot", {
 
 					annotations[pKey][aKey].sort((a, b) => b.fold - a.fold);
 
-					//console.log(aKey);
+					////console.log(aKey);
 					let tIndex = 0;
 					annotations[pKey][aKey].map((tValue) => {
-						//console.log(tValue.tissue, tIndex);
+						////console.log(tValue.tissue, tIndex);
 						if (
 							!!this.tissuesData[tValue.tissue] &&
 							!!this.tissuesData[tValue.tissue][aKey]
@@ -1324,7 +1326,7 @@ export default Vue.component("research-biosamples-plot", {
 			return GEByTissue;
 		},
 		async getBiosamples(ANNOTATION, TISSUE) {
-			console.log(ANNOTATION, TISSUE);
+			//console.log(ANNOTATION, TISSUE);
 
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
@@ -1351,7 +1353,7 @@ export default Vue.component("research-biosamples-plot", {
 				"-" +
 				region.end;
 
-			console.log(biosamplesURL);
+			//console.log(biosamplesURL);
 
 			let biosamplesJson = await fetch(biosamplesURL).then((resp) =>
 				resp.json()
@@ -1371,7 +1373,7 @@ export default Vue.component("research-biosamples-plot", {
 						...new Set(regions.map((r) => r.biosample)),
 					].sort(Intl.Collator().compare);
 
-					console.log("biosampleKeys", biosampleKeys);
+					//console.log("biosampleKeys", biosampleKeys);
 
 					if (!this.biosamplesData[ANNOTATION]) {
 						this.biosamplesData[ANNOTATION] = {};
@@ -1408,7 +1410,7 @@ export default Vue.component("research-biosamples-plot", {
 		},
 
 		renderBiosamplesTrack() {
-			console.log("render", "this.biosamplesData", this.biosamplesData);
+			//console.log("render", "this.biosamplesData", this.biosamplesData);
 
 			let staredPositions = [];
 
@@ -1427,7 +1429,7 @@ export default Vue.component("research-biosamples-plot", {
 					.filter((s) => s.type == starKey)
 					.map((s) => s.id)
 					.map((s) => {
-						//console.log("this.plotData[s]", plotData[s]);
+						////console.log("this.plotData[s]", plotData[s]);
 						staredPositions.push(plotData[s][starPosition]);
 					});
 			}
@@ -1457,7 +1459,7 @@ export default Vue.component("research-biosamples-plot", {
 				}
 			}
 
-			console.log("annotationTissueArr", annotationTissueArr);
+			//console.log("annotationTissueArr", annotationTissueArr);
 
 			let wrapper = document.querySelector("#biosamplesPlotWrapper");
 			let canvas = document.querySelector("#biosamplesPlot");
@@ -1531,6 +1533,7 @@ export default Vue.component("research-biosamples-plot", {
 							this.biosamplesPosData[yPosBtn] = {
 								biosample: bKey,
 								annotation: atPath[0],
+								tissue: atPath[1],
 								regions: {},
 							};
 						} else {
@@ -1577,7 +1580,11 @@ export default Vue.component("research-biosamples-plot", {
 
 								if (
 									selectedBiosamples.indexOf(
-										atPath[0] + " / " + bKey
+										atPath[0] +
+											" / " +
+											atPath[1] +
+											" / " +
+											bKey
 									) > -1
 								) {
 									ctx.fillStyle = "#FF0000";
@@ -1628,7 +1635,7 @@ export default Vue.component("research-biosamples-plot", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
-				//console.log("calling annotations");
+				////console.log("calling annotations");
 				let biosamplesServer =
 					this.renderConfig["biosamples server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"
@@ -1698,10 +1705,10 @@ export default Vue.component("research-biosamples-plot", {
 			this.GEPosData = {};
 			let sortedGEData = {};
 
-			//console.log("renderGE", this.pkgData.selectedAnnos);
+			////console.log("renderGE", this.pkgData.selectedAnnos);
 
-			//console.log("this.GEData", this.GEData);
-			//console.log("this.annoData", this.annoData);
+			////console.log("this.GEData", this.GEData);
+			////console.log("this.annoData", this.annoData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
@@ -2136,7 +2143,7 @@ export default Vue.component("research-biosamples-plot", {
 			yPos,
 			bump
 		) {
-			//console.log("called");
+			////console.log("called");
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#FFAA00";
