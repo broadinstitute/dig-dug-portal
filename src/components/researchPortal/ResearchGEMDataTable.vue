@@ -820,7 +820,7 @@ export default Vue.component("research-gem-data-table", {
 				enrichedPosition.sort(function (a, b) {
 					return a - b;
 				});
-				console.log("enrichedPosition", enrichedPosition);
+				//console.log("enrichedPosition", enrichedPosition);
 
 				//leave only start and end of overlapping regions
 				var enrichedRegion = [];
@@ -838,7 +838,7 @@ export default Vue.component("research-gem-data-table", {
 						}
 					}
 				}
-				console.log("enrichedRegion", enrichedRegion);
+				//console.log("enrichedRegion", enrichedRegion);
 
 				///build object of overlapping regions
 				var overlappingRegions = [];
@@ -915,7 +915,7 @@ export default Vue.component("research-gem-data-table", {
 					});
 
 					if (!!updatedData[vKey]) {
-						/// feed "Tissue" column content
+						/// feed "Biosample" column content
 						//let tissueColmContent = "";
 
 						for (const [biosample, annotations] of Object.entries(
@@ -946,6 +946,38 @@ export default Vue.component("research-gem-data-table", {
 							updatedData[vKey].bioStart +
 							"-" +
 							updatedData[vKey].bioEnd;
+
+						///feed feature contents for biosamples
+
+						console.log(updatedData[vKey]);
+
+						selectedBy["Biosample"].map((bi) => {
+							let inBiosample = 0;
+
+							let bsArr = bi.split(" / "); //0= annotation, 1= tissue, 2=biosample
+							let a = bsArr[0];
+							let t = bsArr[1];
+							let b = bsArr[2];
+
+							let inAnnotation = 0;
+							//if (!!this.pkgData.biosamplesData[a][t]) {
+							let featureContent = "";
+							this.pkgData.biosamplesData[a][t][b].map((r) => {
+								if (
+									vValue.Position >= r.start &&
+									vValue.Position <= r.end
+								) {
+									for (const [key, value] of Object.entries(
+										r
+									)) {
+										featureContent += key + ": " + value;
+									}
+								}
+							});
+							if (featureContent != "") {
+								vValue[a + " / " + b] = featureContent;
+							}
+						});
 					}
 				}
 			}
