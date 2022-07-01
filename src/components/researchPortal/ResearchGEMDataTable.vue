@@ -379,7 +379,9 @@ export default Vue.component("research-gem-data-table", {
 					}
 
 					if (p.type == "Biosample") {
-						newRows.push(p.id.split(" / ")[2] + "(b)");
+						if (!newRows.includes(p.id.split(" / ")[2] + "(b)")) {
+							newRows.push(p.id.split(" / ")[2] + "(b)");
+						}
 					}
 				});
 
@@ -434,7 +436,10 @@ export default Vue.component("research-gem-data-table", {
 					}
 
 					if (p.type == "Biosample") {
-						newTableFormat["Biosamples"].push(p.id.split(" / ")[2]);
+						let bsIDArr = p.id.split(" / ");
+						let bsFeatureColumnLabel =
+							bsIDArr[0] + " / " + bsIDArr[2];
+						newTableFormat["Biosamples"].push(bsFeatureColumnLabel);
 					}
 				});
 			}
@@ -815,6 +820,7 @@ export default Vue.component("research-gem-data-table", {
 				enrichedPosition.sort(function (a, b) {
 					return a - b;
 				});
+				console.log("enrichedPosition", enrichedPosition);
 
 				//leave only start and end of overlapping regions
 				var enrichedRegion = [];
@@ -832,6 +838,7 @@ export default Vue.component("research-gem-data-table", {
 						}
 					}
 				}
+				console.log("enrichedRegion", enrichedRegion);
 
 				///build object of overlapping regions
 				var overlappingRegions = [];
