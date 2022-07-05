@@ -20,13 +20,23 @@
 					>
 						<span class="feature-title">{{ value }}</span>
 					</th>
+
 					<th
 						v-for="(headerValue, headerIndex) in featuresFormat[
 							value
 						]"
 						:key="headerIndex"
 						:class="'feature-th-' + index"
-						v-html="headerValue"
+						:style="
+							!!headerValue.includes(':array')
+								? 'display:none'
+								: ''
+						"
+						v-html="
+							!!headerValue.includes(':array')
+								? headerValue.replace(':array', '')
+								: headerValue
+						"
 					></th>
 				</tr>
 
@@ -34,20 +44,22 @@
 					v-for="(featureValue, featureIndex) in featuresData[value]"
 					:key="featureIndex"
 				>
-					<!--<td
-						v-for="(headerValue, headerIndex) in featuresFormat[
-							value
-						]"
-						:key="headerIndex"
-						v-html="featureValue"
-					></td>-->
-
 					<td
 						v-for="(headerValue, headerIndex) in featuresFormat[
 							value
 						]"
 						:key="headerIndex"
-						v-html="featureValue[headerValue]"
+						:style="
+							!!headerValue.includes(':array') ? 'padding: 0' : ''
+						"
+						v-html="
+							!!headerValue.includes(':array')
+								? getFeatureContent(
+										featureValue[headerValue],
+										headerIndex
+								  )
+								: featureValue[headerValue]
+						"
 					></td>
 				</tr>
 			</table>
@@ -70,6 +82,39 @@ export default Vue.component("research-gem-table-features", {
 
 	mounted() {},
 	updated() {},
+	methods: {
+		getFeatureContent(VALUE, INDEX) {
+			let content =
+				"<table class='feature-content-table table table-striped table-sm'>";
+
+			VALUE.map((v, vIndex) => {
+				if (vIndex == 0) {
+					let thArr = Object.keys(v);
+
+					content += "<thead><tr>";
+
+					thArr.map((t) => {
+						content +=
+							"<th class='feature-th-" +
+							INDEX +
+							"'>" +
+							t +
+							"</th>";
+					});
+					content += "</tr></thead><tbody>";
+				}
+
+				content += "<tr>";
+
+				for (const [vKey, vValue] of Object.entries(v)) {
+					content += "<td>" + vValue + "</td>";
+				}
+				content += "</tr>";
+			});
+			content += "</tbody></table>";
+			return content;
+		},
+	},
 	computed: {
 		topRowNumber() {
 			let topRows =
@@ -80,7 +125,6 @@ export default Vue.component("research-gem-table-features", {
 		},
 	},
 	watch: {},
-	methods: {},
 });
 </script>
 
@@ -102,6 +146,10 @@ export default Vue.component("research-gem-table-features", {
     left: 0px;
 }
 */
+
+.feature-content-table {
+	width: 100%;
+}
 
 .feature-table > tr > th {
 	background-color: #eeeeee;

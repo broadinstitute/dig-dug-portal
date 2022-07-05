@@ -187,10 +187,6 @@
 					:id="'feature_' + index"
 					:class="'hidden'"
 				>
-					{{
-						value
-					}}
-
 					<td :colspan="topRowNumber" class="features-td">
 						<research-gem-table-features
 							:featuresData="value.features"
@@ -449,22 +445,12 @@ export default Vue.component("research-gem-data-table", {
 						isBiosample = true;
 					}
 				});
-
+				//working part
 				!!isBiosample
-					? (newTableFormat["Biosamples"] = [
-							"chromosome",
-							"start",
-							"end",
-							"annotation",
-							"tissue",
-							"dataset",
-							"method",
-							"biosample",
-							"source",
-					  ])
+					? (newTableFormat["Biosamples"] = ["Biosamples:array"])
 					: "";
 
-				console.log("newTableFormat", newTableFormat);
+				//console.log("newTableFormat", newTableFormat);
 			}
 
 			//Let's filter rawData by credible sets
@@ -785,8 +771,8 @@ export default Vue.component("research-gem-data-table", {
 
 			///Filter data if biosamples
 
-			console.log(this.pkgData);
-			console.log(selectedBy);
+			console.log("this.pkgData", this.pkgData);
+			console.log("selectedBy", selectedBy);
 
 			if (
 				!!selectedBy["Biosample"] &&
@@ -801,12 +787,8 @@ export default Vue.component("research-gem-data-table", {
 					let tissue = pathArr[1];
 					let biosample = pathArr[2];
 
-					console.log(annotation, tissue, biosample);
-					console.log(
-						this.pkgData.biosamplesData[annotation][tissue][
-							biosample
-						]
-					);
+					//console.log(annotation, tissue, biosample);
+
 					if (
 						!!this.pkgData.biosamplesData[annotation] &&
 						!!this.pkgData.biosamplesData[annotation][tissue] &&
@@ -920,10 +902,21 @@ export default Vue.component("research-gem-data-table", {
 								vValue.Position <= r.end
 							) {
 								inAnnotation = 1;
-								biosampleContent[b][a] = {
-									start: r.start,
-									end: r.end,
-								};
+								if (!biosampleContent[b][a]) {
+									biosampleContent[b][a] = {
+										start: r.start,
+										end: r.end,
+									};
+								} else {
+									biosampleContent[b][a].start =
+										r.start < biosampleContent[b][a].start
+											? r.start
+											: biosampleContent[b][a].start;
+									biosampleContent[b][a].end =
+										r.end > biosampleContent[b][a].end
+											? r.end
+											: biosampleContent[b][a].end;
+								}
 							}
 						});
 						if (inAnnotation == 1) {
@@ -940,6 +933,7 @@ export default Vue.component("research-gem-data-table", {
 					if (!!updatedData[vKey]) {
 						/// feed "Biosample" column content
 						//let tissueColmContent = "";
+						//working part
 
 						for (const [biosample, annotations] of Object.entries(
 							biosampleContent
@@ -972,7 +966,9 @@ export default Vue.component("research-gem-data-table", {
 
 						///feed feature contents for biosamples
 
-						console.log(updatedData[vKey]);
+						console.log("updatedData[vKey]", updatedData[vKey]);
+
+						let bSamplesArr = [];
 
 						selectedBy["Biosample"].map((bi) => {
 							let inBiosample = 0;
@@ -981,30 +977,42 @@ export default Vue.component("research-gem-data-table", {
 							let a = bsArr[0];
 							let t = bsArr[1];
 							let b = bsArr[2];
-
+							//working part
 							let inAnnotation = 0;
-							//if (!!this.pkgData.biosamplesData[a][t]) {
-							let featureContent = "";
+
 							this.pkgData.biosamplesData[a][t][b].map((r) => {
 								if (
 									vValue.Position >= r.start &&
 									vValue.Position <= r.end
 								) {
-									vValue["Biosamples"] = !vValue["Biosamples"]
-										? []
-										: vValue["Biosamples"];
-									vValue["Biosamples"].push(r);
-									/*for (const [key, value] of Object.entries(
-										r
-									)) {
-										featureContent += key + ": " + value;
-									}*/
+									let tempObject = {
+										region:
+											r.chromosome +
+											":" +
+											r.start +
+											"-" +
+											r.end,
+
+										method: r.method,
+										source: r.source,
+										dataset:
+											"<a href='https://cmdga.org/annotations/" +
+											r.dataset +
+											"'>" +
+											r.dataset +
+											"</a>",
+
+										annotation: r.annotation,
+										tissue: r.tissue,
+										biosample: r.biosample,
+									};
+									bSamplesArr.push(tempObject);
 								}
 							});
-							/*if (featureContent != "") {
-								vValue[a + " / " + b] = featureContent;
-							}*/
 						});
+						if (bSamplesArr.length > 0) {
+							vValue["Biosamples:array"] = bSamplesArr;
+						}
 					}
 				}
 			}
