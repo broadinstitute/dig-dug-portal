@@ -909,357 +909,109 @@ export default Vue.component("research-page-filters", {
 						.map((s) => {
 							let targetData = filtered;
 							let search = s;
+							let searchVals;
 							if (comparingFields == null) {
-								if (searchIndex.type == "dropdown") {
-									targetData.filter((row) => {
-										if (search === row[searchIndex.field]) {
-											tempFiltered.push(row);
-										}
-									});
-								} else if (
-									searchIndex.type == "search" ||
-									searchIndex.type == "dropdown word"
-								) {
-									targetData.filter((row) => {
-										if (
-											row[searchIndex.field]
-												.toLowerCase()
-												.includes(search.toLowerCase())
-										) {
-											tempFiltered.push(row);
-										}
-									});
-								} else if (
-									searchIndex.type == "search greater than"
-								) {
-									targetData.filter((row) => {
-										if (row[searchIndex.field] >= search) {
-											tempFiltered.push(row);
-										}
-									});
-								} else if (
-									searchIndex.type == "search lower than"
-								) {
-									targetData.filter((row) => {
-										if (row[searchIndex.field] <= search) {
-											tempFiltered.push(row);
-										}
-									});
-								} else if (searchIndex.type == "search or") {
-									let searchVals = search.split(",");
-									targetData.filter((row) => {
-										if (
-											row[searchIndex.field] <=
-												searchVals[0].trim() ||
-											row[searchIndex.field] >=
-												searchVals[1].trim()
-										) {
-											tempFiltered.push(row);
-										}
-									});
-								} else if (
-									searchIndex.type ==
-									"search change direction"
-								) {
-									let searchDirection =
-										document.getElementById(
-											"filter_" +
-												searchIndex.field.replace(
-													/ /g,
-													""
-												) +
-												"_direction"
-										).value;
-
-									targetData.filter((row) => {
-										if (searchDirection == "lt") {
-											if (
-												row[searchIndex.field] <= search
-											) {
-												tempFiltered.push(row);
-											}
-										} else if (searchDirection == "gt") {
-											if (
-												row[searchIndex.field] >= search
-											) {
-												tempFiltered.push(row);
-											}
-										}
-									});
-								} else if (searchIndex.type == "search and") {
-									let searchVals = search.split(",");
-									targetData.filter((row) => {
-										if (
-											row[searchIndex.field] >=
-												searchVals[0].trim() &&
-											row[searchIndex.field] <=
-												searchVals[1].trim()
-										) {
-											tempFiltered.push(row);
-										}
-									});
-								}
-							} else {
-								if (searchIndex.type == "dropdown") {
-									for (var rowNum in targetData) {
-										let row = targetData[rowNum];
-										if (
-											comparingFields.includes(
-												searchIndex.field
-											) == true
-										) {
-											let meetSearch = false;
-											for (var cellNum in row[
-												searchIndex.field
-											]) {
-												if (
-													search ===
-													row[searchIndex.field][
-														cellNum
-													]
-												) {
-													meetSearch = true;
-												}
-											}
-											if (meetSearch == true) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										} else {
-											if (
+								targetData.filter((row) => {
+									if (
+										!!row[searchIndex.field] &&
+										row[searchIndex.field] != undefined
+									) {
+										switch (searchIndex.type) {
+											case "dropdown":
 												search ===
 												row[searchIndex.field]
-											) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										}
-									}
-								} else if (
-									searchIndex.type == "search" ||
-									searchIndex.type == "dropdown word"
-								) {
-									for (var rowNum in targetData) {
-										let row = targetData[rowNum];
-										if (
-											comparingFields.includes(
-												searchIndex.field
-											) == true
-										) {
-											let meetSearch = false;
-											for (var cellNum in row[
-												searchIndex.field
-											]) {
-												if (
-													!!row[searchIndex.field][
-														cellNum
-													] &&
-													row[searchIndex.field][
-														cellNum
-													]
-														.toLowerCase()
-														.includes(
-															search.toLowerCase()
-														)
-												) {
-													meetSearch = true;
-												}
-											}
-											if (meetSearch == true) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										} else {
-											if (
-												!!row[searchIndex.field] &&
+													? tempFiltered.push(row)
+													: "";
+
+												break;
+											case "search":
 												row[searchIndex.field]
 													.toLowerCase()
 													.includes(
 														search.toLowerCase()
 													)
-											) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										}
-									}
-								} else if (
-									searchIndex.type == "search greater than"
-								) {
-									for (var rowNum in targetData) {
-										let row = targetData[rowNum];
-										if (
-											comparingFields.includes(
-												searchIndex.field
-											) == true
-										) {
-											let meetSearch = false;
-											for (var cellNum in row[
-												searchIndex.field
-											]) {
-												if (
-													row[searchIndex.field][
-														cellNum
-													] >= search
-												) {
-													meetSearch = true;
-												}
-											}
-											if (meetSearch == true) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										} else {
-											if (
+													? tempFiltered.push(row)
+													: "";
+
+												break;
+											case "dropdown word":
+												row[searchIndex.field]
+													.toLowerCase()
+													.includes(
+														search.toLowerCase()
+													)
+													? tempFiltered.push(row)
+													: "";
+
+												break;
+
+											case "search greater than":
 												row[searchIndex.field] >= search
-											) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										}
-									}
-								} else if (
-									searchIndex.type == "search lower than"
-								) {
-									for (var rowNum in targetData) {
-										let row = targetData[rowNum];
-										if (
-											comparingFields.includes(
-												searchIndex.field
-											) == true
-										) {
-											let meetSearch = false;
-											for (var cellNum in row[
-												searchIndex.field
-											]) {
-												if (
-													row[searchIndex.field][
-														cellNum
-													] <= search
-												) {
-													meetSearch = true;
-												}
-											}
-											if (meetSearch == true) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										} else {
-											if (
+													? tempFiltered.push(row)
+													: "";
+												break;
+											case "search lower than":
 												row[searchIndex.field] <= search
-											) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										}
-									}
-								} else if (searchIndex.type == "search or") {
-									let searchVals = search.split(",");
-									for (var rowNum in targetData) {
-										let row = targetData[rowNum];
-										if (
-											comparingFields.includes(
-												searchIndex.field
-											) == true
-										) {
-											let meetSearch = false;
-											for (var cellNum in row[
-												searchIndex.field
-											]) {
-												if (
-													row[searchIndex.field][
-														cellNum
-													] <= searchVals[0].trim() ||
-													row[searchIndex.field][
-														cellNum
-													] >= searchVals[1].trim()
-												) {
-													meetSearch = true;
-												}
-											}
-											if (meetSearch == true) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										} else {
-											if (
+													? tempFiltered.push(row)
+													: "";
+
+												break;
+											case "search or":
+												searchVals = search.split(",");
+
 												row[searchIndex.field] <=
 													searchVals[0].trim() ||
 												row[searchIndex.field] >=
 													searchVals[1].trim()
-											) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
+													? tempFiltered.push(row)
+													: "";
+												break;
+											case "search change direction":
+												let searchDirection =
+													document.getElementById(
+														"filter_" +
+															searchIndex.field.replace(
+																/ /g,
+																""
+															) +
+															"_direction"
+													).value;
+
+												searchDirection == "lt"
+													? row[searchIndex.field] <=
+													  search
+														? tempFiltered.push(row)
+														: ""
+													: searchDirection == "gt"
+													? row[searchIndex.field] >=
+													  search
+														? tempFiltered.push(row)
+														: ""
+													: "";
+
+												break;
+
+											case "search and":
+												searchVals = search.split(",");
+
+												row[searchIndex.field] >=
+													searchVals[0].trim() &&
+												row[searchIndex.field] <=
+													searchVals[1].trim()
+													? tempFiltered.push(row)
+													: "";
+												break;
 										}
 									}
-								} else if (
-									searchIndex.type ==
-									"search change direction"
-								) {
-									let searchDirection =
-										document.getElementById(
-											"filter_" +
-												searchIndex.field.replace(
-													/ /g,
-													""
-												) +
-												"_direction"
-										).value;
-
-									if (searchDirection == "lt") {
-										for (var rowNum in targetData) {
-											let row = targetData[rowNum];
+								});
+							} else {
+								for (var rowNum in targetData) {
+									let row = targetData[rowNum];
+									if (
+										!!row[searchIndex.field] &&
+										row[searchIndex.field] != undefined
+									) {
+										if (searchIndex.type == "dropdown") {
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1270,9 +1022,10 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
+														search ===
 														row[searchIndex.field][
 															cellNum
-														] <= search
+														]
 													) {
 														meetSearch = true;
 													}
@@ -1288,8 +1041,8 @@ export default Vue.component("research-page-filters", {
 												}
 											} else {
 												if (
-													row[searchIndex.field] <=
-													search
+													search ===
+													row[searchIndex.field]
 												) {
 													tempFiltered[
 														row[
@@ -1300,10 +1053,70 @@ export default Vue.component("research-page-filters", {
 													] = row;
 												}
 											}
-										}
-									} else if (searchDirection == "gt") {
-										for (var rowNum in targetData) {
-											let row = targetData[rowNum];
+										} else if (
+											searchIndex.type == "search" ||
+											searchIndex.type == "dropdown word"
+										) {
+											//for (var rowNum in targetData) {
+											//let row = targetData[rowNum];
+											if (
+												comparingFields.includes(
+													searchIndex.field
+												) == true
+											) {
+												let meetSearch = false;
+												for (var cellNum in row[
+													searchIndex.field
+												]) {
+													if (
+														!!row[
+															searchIndex.field
+														][cellNum] &&
+														row[searchIndex.field][
+															cellNum
+														]
+															.toLowerCase()
+															.includes(
+																search.toLowerCase()
+															)
+													) {
+														meetSearch = true;
+													}
+												}
+												if (meetSearch == true) {
+													tempFiltered[
+														row[
+															this.dataComparisonConfig[
+																"key field"
+															]
+														]
+													] = row;
+												}
+											} else {
+												if (
+													!!row[searchIndex.field] &&
+													row[searchIndex.field]
+														.toLowerCase()
+														.includes(
+															search.toLowerCase()
+														)
+												) {
+													tempFiltered[
+														row[
+															this.dataComparisonConfig[
+																"key field"
+															]
+														]
+													] = row;
+												}
+											}
+											//}
+										} else if (
+											searchIndex.type ==
+											"search greater than"
+										) {
+											//for (var rowNum in targetData) {
+											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1344,56 +1157,271 @@ export default Vue.component("research-page-filters", {
 													] = row;
 												}
 											}
-										}
-									}
-								} else if (searchIndex.type == "search and") {
-									let searchVals = search.split(",");
-									for (var rowNum in targetData) {
-										let row = targetData[rowNum];
-										if (
-											comparingFields.includes(
-												searchIndex.field
-											) == true
+											//}
+										} else if (
+											searchIndex.type ==
+											"search lower than"
 										) {
-											let meetSearch = false;
-											for (var cellNum in row[
-												searchIndex.field
-											]) {
+											//for (var rowNum in targetData) {
+											//let row = targetData[rowNum];
+											if (
+												comparingFields.includes(
+													searchIndex.field
+												) == true
+											) {
+												let meetSearch = false;
+												for (var cellNum in row[
+													searchIndex.field
+												]) {
+													if (
+														row[searchIndex.field][
+															cellNum
+														] <= search
+													) {
+														meetSearch = true;
+													}
+												}
+												if (meetSearch == true) {
+													tempFiltered[
+														row[
+															this.dataComparisonConfig[
+																"key field"
+															]
+														]
+													] = row;
+												}
+											} else {
 												if (
-													row[searchIndex.field][
-														cellNum
-													] >= searchVals[0].trim() &&
-													row[searchIndex.field][
-														cellNum
-													] <= searchVals[1].trim()
+													row[searchIndex.field] <=
+													search
 												) {
-													meetSearch = true;
+													tempFiltered[
+														row[
+															this.dataComparisonConfig[
+																"key field"
+															]
+														]
+													] = row;
 												}
 											}
-											if (meetSearch == true) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
-														]
-													]
-												] = row;
-											}
-										} else {
+											//}
+										} else if (
+											searchIndex.type == "search or"
+										) {
+											let searchVals = search.split(",");
+											//for (var rowNum in targetData) {
+											//let row = targetData[rowNum];
 											if (
-												row[searchIndex.field] <=
-													searchVals[0].trim() ||
-												row[searchIndex.field] >=
-													searchVals[1].trim()
+												comparingFields.includes(
+													searchIndex.field
+												) == true
 											) {
-												tempFiltered[
-													row[
-														this.dataComparisonConfig[
-															"key field"
+												let meetSearch = false;
+												for (var cellNum in row[
+													searchIndex.field
+												]) {
+													if (
+														row[searchIndex.field][
+															cellNum
+														] <=
+															searchVals[0].trim() ||
+														row[searchIndex.field][
+															cellNum
+														] >=
+															searchVals[1].trim()
+													) {
+														meetSearch = true;
+													}
+												}
+												if (meetSearch == true) {
+													tempFiltered[
+														row[
+															this.dataComparisonConfig[
+																"key field"
+															]
 														]
-													]
-												] = row;
+													] = row;
+												}
+											} else {
+												if (
+													row[searchIndex.field] <=
+														searchVals[0].trim() ||
+													row[searchIndex.field] >=
+														searchVals[1].trim()
+												) {
+													tempFiltered[
+														row[
+															this.dataComparisonConfig[
+																"key field"
+															]
+														]
+													] = row;
+												}
 											}
+											//}
+										} else if (
+											searchIndex.type ==
+											"search change direction"
+										) {
+											let searchDirection =
+												document.getElementById(
+													"filter_" +
+														searchIndex.field.replace(
+															/ /g,
+															""
+														) +
+														"_direction"
+												).value;
+
+											if (searchDirection == "lt") {
+												//for (var rowNum in targetData) {
+												//let row = targetData[rowNum];
+												if (
+													comparingFields.includes(
+														searchIndex.field
+													) == true
+												) {
+													let meetSearch = false;
+													for (var cellNum in row[
+														searchIndex.field
+													]) {
+														if (
+															row[
+																searchIndex
+																	.field
+															][cellNum] <= search
+														) {
+															meetSearch = true;
+														}
+													}
+													if (meetSearch == true) {
+														tempFiltered[
+															row[
+																this.dataComparisonConfig[
+																	"key field"
+																]
+															]
+														] = row;
+													}
+												} else {
+													if (
+														row[
+															searchIndex.field
+														] <= search
+													) {
+														tempFiltered[
+															row[
+																this.dataComparisonConfig[
+																	"key field"
+																]
+															]
+														] = row;
+													}
+												}
+												//}
+											} else if (
+												searchDirection == "gt"
+											) {
+												//for (var rowNum in targetData) {
+												//let row = targetData[rowNum];
+												if (
+													comparingFields.includes(
+														searchIndex.field
+													) == true
+												) {
+													let meetSearch = false;
+													for (var cellNum in row[
+														searchIndex.field
+													]) {
+														if (
+															row[
+																searchIndex
+																	.field
+															][cellNum] >= search
+														) {
+															meetSearch = true;
+														}
+													}
+													if (meetSearch == true) {
+														tempFiltered[
+															row[
+																this.dataComparisonConfig[
+																	"key field"
+																]
+															]
+														] = row;
+													}
+												} else {
+													if (
+														row[
+															searchIndex.field
+														] >= search
+													) {
+														tempFiltered[
+															row[
+																this.dataComparisonConfig[
+																	"key field"
+																]
+															]
+														] = row;
+													}
+												}
+												//}
+											}
+										} else if (
+											searchIndex.type == "search and"
+										) {
+											let searchVals = search.split(",");
+											//for (var rowNum in targetData) {
+											//let row = targetData[rowNum];
+											if (
+												comparingFields.includes(
+													searchIndex.field
+												) == true
+											) {
+												let meetSearch = false;
+												for (var cellNum in row[
+													searchIndex.field
+												]) {
+													if (
+														row[searchIndex.field][
+															cellNum
+														] >=
+															searchVals[0].trim() &&
+														row[searchIndex.field][
+															cellNum
+														] <=
+															searchVals[1].trim()
+													) {
+														meetSearch = true;
+													}
+												}
+												if (meetSearch == true) {
+													tempFiltered[
+														row[
+															this.dataComparisonConfig[
+																"key field"
+															]
+														]
+													] = row;
+												}
+											} else {
+												if (
+													row[searchIndex.field] <=
+														searchVals[0].trim() ||
+													row[searchIndex.field] >=
+														searchVals[1].trim()
+												) {
+													tempFiltered[
+														row[
+															this.dataComparisonConfig[
+																"key field"
+															]
+														]
+													] = row;
+												}
+											}
+											//}
 										}
 									}
 								}
