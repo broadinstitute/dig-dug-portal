@@ -160,13 +160,12 @@
 					<div
 						id="annoInitialMessage"
 						:class="
-							pkgDataSelected.filter(
-								(s) => s.type == 'Annotation'
-							).length > 0
+							pkgDataSelected.filter((s) => s.type == 'Biosample')
+								.length > 0
 								? 'hidden'
 								: ''
 						"
-						v-html="'Please select annotation.'"
+						v-html="'Please select annotation and tissue.'"
 					></div>
 				</div>
 			</div>
