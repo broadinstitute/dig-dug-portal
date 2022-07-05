@@ -200,10 +200,9 @@
                             <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_nearest`"></b-col>
                         </b-row>
                     </template>
-                    <button><a :href="
+                    <b-button class="btn btn-primary"><a :href="
                         `/research.html?pageid=clumped_variants&phenotype=${item.phenotype.name}&clump=${item.clump}`">
-                        View all variants in clump</a>
-                    </button>
+                        View all variants in clump</a></b-button>
                 </div>
             </template>
         </b-container>
@@ -278,11 +277,11 @@ export default Vue.component("phewas-datasets", {
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
         showDatasets(index) {
-            this.closeAllDatasets();
+            uiUtils.hideElement(`features_top25_${index}`);
             uiUtils.showHideElement(`features_${index}`);
         },
         showTop25(index){
-            this.closeAllDatasets();
+            uiUtils.hideElement(`features_${index}`);
             uiUtils.showHideElement(`features_top25_${index}`);
         },
         closeAllDatasets() {
@@ -341,4 +340,13 @@ export default Vue.component("phewas-datasets", {
 </script>
 
 <style>
+.btn-primary a {
+    color: white !important;
+}
+
+.btn-primary {
+    margin-top: 15px;
+    margin-bottom: 25px;
+}
+
 </style>
