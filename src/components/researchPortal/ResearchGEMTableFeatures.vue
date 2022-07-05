@@ -29,10 +29,19 @@
 						v-html="headerValue"
 					></th>
 				</tr>
+
 				<tr
 					v-for="(featureValue, featureIndex) in featuresData[value]"
 					:key="featureIndex"
 				>
+					<!--<td
+						v-for="(headerValue, headerIndex) in featuresFormat[
+							value
+						]"
+						:key="headerIndex"
+						v-html="featureValue"
+					></td>-->
+
 					<td
 						v-for="(headerValue, headerIndex) in featuresFormat[
 							value

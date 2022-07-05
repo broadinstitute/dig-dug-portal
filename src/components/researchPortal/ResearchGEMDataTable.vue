@@ -187,6 +187,10 @@
 					:id="'feature_' + index"
 					:class="'hidden'"
 				>
+					{{
+						value
+					}}
+
 					<td :colspan="topRowNumber" class="features-td">
 						<research-gem-table-features
 							:featuresData="value.features"
@@ -424,6 +428,8 @@ export default Vue.component("research-gem-data-table", {
 					});
 				}
 
+				let isBiosample = null;
+
 				this.pkgDataSelected.map((p) => {
 					if (!selectedBy[p.type]) {
 						selectedBy[p.type] = [];
@@ -436,12 +442,29 @@ export default Vue.component("research-gem-data-table", {
 					}
 
 					if (p.type == "Biosample") {
-						let bsIDArr = p.id.split(" / ");
+						/*let bsIDArr = p.id.split(" / ");
 						let bsFeatureColumnLabel =
 							bsIDArr[0] + " / " + bsIDArr[2];
-						newTableFormat["Biosamples"].push(bsFeatureColumnLabel);
+						newTableFormat["Biosamples"].push(bsFeatureColumnLabel);*/
+						isBiosample = true;
 					}
 				});
+
+				!!isBiosample
+					? (newTableFormat["Biosamples"] = [
+							"chromosome",
+							"start",
+							"end",
+							"annotation",
+							"tissue",
+							"dataset",
+							"method",
+							"biosample",
+							"source",
+					  ])
+					: "";
+
+				console.log("newTableFormat", newTableFormat);
 			}
 
 			//Let's filter rawData by credible sets
@@ -967,16 +990,20 @@ export default Vue.component("research-gem-data-table", {
 									vValue.Position >= r.start &&
 									vValue.Position <= r.end
 								) {
-									for (const [key, value] of Object.entries(
+									vValue["Biosamples"] = !vValue["Biosamples"]
+										? []
+										: vValue["Biosamples"];
+									vValue["Biosamples"].push(r);
+									/*for (const [key, value] of Object.entries(
 										r
 									)) {
 										featureContent += key + ": " + value;
-									}
+									}*/
 								}
 							});
-							if (featureContent != "") {
+							/*if (featureContent != "") {
 								vValue[a + " / " + b] = featureContent;
-							}
+							}*/
 						});
 					}
 				}
