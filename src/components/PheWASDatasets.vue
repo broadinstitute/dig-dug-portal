@@ -278,11 +278,11 @@ export default Vue.component("phewas-datasets", {
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
         showDatasets(index) {
-            uiUtils.hideElement(`features_top25_${index}`);
+            this.closeAllDatasets();
             uiUtils.showHideElement(`features_${index}`);
         },
         showTop25(index){
-            uiUtils.hideElement(`features_${index}`);
+            this.closeAllDatasets();
             uiUtils.showHideElement(`features_top25_${index}`);
         },
         closeAllDatasets() {
@@ -295,7 +295,7 @@ export default Vue.component("phewas-datasets", {
             });
         },
         fillTopClumpedVariants(index, top25){
-            const dataFields = ["reference", "pValue", "maf", "stdErr", "zScore", "consequence"];
+            const dataFields = ["pValue", "maf", "stdErr", "zScore", "consequence"];
             for(let i = 0; i < 25; i++){
                 let item = top25[i];
                 let zScoreNumber = Number(item.zScore);
@@ -316,6 +316,8 @@ export default Vue.component("phewas-datasets", {
                 let betaClass = item.beta < 0 ? "effect negative" : "effect positive";
                 let betaSymbol = item.beta < 0 ? "&#9660;" : "&#9650;";
                 betaCell.innerHTML = `<span class="${betaClass}">${betaSymbol}</span>${item.beta}`;
+                let refAltCell = document.getElementById(`pheno${index}_var${i}_reference`);
+                refAltCell.innerText = `${item.reference}/${item.alt}`;
             }
         },
         async getClumpedVariants(index, phenotype, clump){
