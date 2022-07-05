@@ -131,15 +131,15 @@
 							><span v-html="annoKey"></span>
 						</div>
 					</div>
-					<div id="GEPlotWrapper" v-if="searchingPhenotype != null">
-						<div id="GEInfoBox" class="hidden"></div>
+					<div id="BSGEPlotWrapper" v-if="searchingPhenotype != null">
+						<div id="BSGEInfoBox" class="hidden"></div>
 						<canvas
-							id="GEPlot"
+							id="BSGEPlot"
 							width=""
 							height=""
 							style="background-color: #ffffff"
 							@mousemove="checkGEPosition($event)"
-							@mouseout="onMouseOut('GEInfoBox')"
+							@mouseout="onMouseOut('BSGEInfoBox')"
 						></canvas>
 					</div>
 				</div>
@@ -983,7 +983,7 @@ export default Vue.component("research-biosamples-plot", {
 			let x = Math.floor(e.clientX - rect.left);
 			let y = Math.floor(e.clientY - rect.top);
 
-			const infoBox = document.querySelector("#GEInfoBox");
+			const infoBox = document.querySelector("#BSGEInfoBox");
 
 			let infoBoxContent = "";
 			for (let v = -5; v <= 5; v++) {
@@ -1792,7 +1792,7 @@ export default Vue.component("research-biosamples-plot", {
 			let numOfPhenotypes = Object.keys(sortedGEData).length;
 
 			let canvasWidth =
-				document.querySelector("#GEPlotWrapper").clientWidth * 0.25;
+				document.querySelector("#BSGEPlotWrapper").clientWidth * 0.25;
 
 			let allCanvasWidth = canvasWidth * numOfPhenotypes;
 
@@ -1811,7 +1811,7 @@ export default Vue.component("research-biosamples-plot", {
 			let bump = 5.5;
 
 			let c, ctx;
-			c = document.querySelector("#GEPlot");
+			c = document.querySelector("#BSGEPlot");
 			c.setAttribute("width", allCanvasWidth);
 			c.setAttribute("height", canvasHeight);
 			ctx = c.getContext("2d");
@@ -2232,7 +2232,7 @@ $(function () {});
 	vertical-align: -3px;
 }
 
-#GEPlotWrapper,
+#BSGEPlotWrapper,
 #tissuesPlotWrapper,
 #biosamplesPlotWrapper {
 	position: relative;
@@ -2240,7 +2240,7 @@ $(function () {});
 
 #biosampleInfoBox,
 #selectedbiosampleInfoBox,
-#GEInfoBox {
+#BSGEInfoBox {
 	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;
