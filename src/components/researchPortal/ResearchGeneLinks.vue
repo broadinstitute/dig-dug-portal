@@ -237,6 +237,8 @@ export default Vue.component("research-gene-links-plot", {
 					tempArray.push(tempObj);
 				}
 
+				tempArray.sort((a, b) => (a.tissue > b.tissue ? 1 : -1));
+
 				return tempArray;
 			}
 		},

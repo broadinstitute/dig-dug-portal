@@ -1873,9 +1873,12 @@ export default Vue.component("research-annotations-plot-v2", {
 						}
 
 						let tissueIndex = 0;
-						for (const [tissue, regions] of Object.entries(
-							tissues
-						)) {
+
+						let tissuesArr = Object.keys(tissues).sort();
+						tissuesArr.map((tissue) => {
+							let regions = tissues[tissue];
+
+							//for (const [tissue, regions] of Object.entries(tissues)) {
 							let yPosBtn = Math.ceil(
 								renderHeight / this.spaceBy
 							);
@@ -2024,7 +2027,7 @@ export default Vue.component("research-annotations-plot-v2", {
 
 								pIndex++;
 							}
-						}
+						});
 						renderHeight += btwnAnnotations;
 					}
 				}

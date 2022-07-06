@@ -80,7 +80,7 @@
 							class=""
 							v-if="
 								pkgDataSelected.filter(
-									(s) => s.type == 'Annotation'
+									(s) => s.type == 'BiosampleAnnoTissue'
 								).length > 0 &&
 								!renderConfig['no search key bubbles']
 							"
@@ -88,7 +88,7 @@
 						>
 							<template
 								v-for="a in pkgDataSelected.filter(
-									(s) => s.type == 'Annotation'
+									(s) => s.type == 'BiosampleAnnoTissue'
 								)"
 							>
 								<span
@@ -96,13 +96,13 @@
 									:class="'btn search-bubble '"
 									:style="
 										'background-color:' +
-										getColorIndex(a.id)
+										getColorIndex(a.id.split(' / ')[0])
 									"
 									v-html="
 										a.id +
 										'&nbsp;<span class=\'remove\'>X</span>'
 									"
-									@click="removeAnnoTrack(a.id)"
+									@click="removeAnnoTissue(a.id)"
 								></span>
 							</template>
 						</div>
@@ -337,12 +337,17 @@ export default Vue.component("research-biosamples-plot", {
 			deep: true,
 			immediate: true,
 		},
+		annotationOnFocus() {
+			this.renderGE();
+		},
 	},
 	methods: {
 		...uiUtils,
 		setAnnotation(EVENT) {
 			if (EVENT.target.value != "") {
 				this.annotationOnFocus = EVENT.target.value;
+			} else {
+				this.annotationOnFocus = null;
 			}
 		},
 		setTissue(EVENT) {
@@ -554,26 +559,60 @@ export default Vue.component("research-biosamples-plot", {
 			return contentObj;
 		},
 
-		removeAnnoTrack(ANNO) {
-			////console.log("called", ANNO);
-			let selectedAnnotations = this.pkgDataSelected
-				.filter((s) => s.type == "Annotation")
+		removeAnnoTissue(ID) {
+			let selectedAnnoTissue = this.pkgDataSelected
+				.filter((s) => s.type == "BiosampleAnnoTissue")
 				.map((s) => s.id);
-			const aIndex = selectedAnnotations.indexOf(ANNO);
-			////console.log("called2", aIndex, selectedAnnotations);
+			const aIndex = selectedAnnoTissue.indexOf(ID);
+
+			///First, remove from selected list
 			if (aIndex > -1) {
-				selectedAnnotations.splice(aIndex, 1);
+				selectedAnnoTissue.splice(aIndex, 1);
 				if (this.pkgData != null) {
 					this.$store.dispatch("pkgDataSelected", {
-						type: "Annotation",
-						id: ANNO,
+						type: "BiosampleAnnoTissue",
+						id: ID,
 						action: "remove",
 					});
 
-					Vue.set(this.pkgData, "selectedAnnos", selectedAnnotations);
+					Vue.set(
+						this.pkgData,
+						"selectedAnnoTissues",
+						selectedAnnoTissue
+					);
 				}
-				this.renderGE();
 			}
+
+			/// second, delete the biosample tissue data
+
+			let bsDataPath = ID.split(" / ");
+
+			delete this.pkgData.biosamplesData[bsDataPath[0]][bsDataPath[1]];
+
+			/// second, delete the biosample annotation data if empty
+			if (
+				Object.keys(this.pkgData.biosamplesData[bsDataPath[0]])
+					.length == 0
+			) {
+				delete this.pkgData.biosamplesData[bsDataPath[0]];
+			}
+
+			/// second, delete the biosample data if empty
+
+			if (Object.keys(this.pkgData.biosamplesData).length == 0) {
+				delete this.pkgData.biosamplesData;
+			}
+
+			let selectedBiosamples = this.pkgDataSelected
+				.filter((s) => s.type == "Biosample")
+				.map((s) => s.id);
+
+			selectedBiosamples.map((b) => {
+				if (!!b.includes(ID)) {
+					this.addRemoveBiosampleTrack(b);
+				}
+			});
+			this.renderBiosamplesTrack();
 		},
 		addRemoveBiosampleTrack(BIOSAMPLE) {
 			let selectedBiosamples = this.pkgDataSelected
@@ -1325,8 +1364,6 @@ export default Vue.component("research-biosamples-plot", {
 			return GEByTissue;
 		},
 		async getBiosamples(ANNOTATION, TISSUE) {
-			//console.log(ANNOTATION, TISSUE);
-
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
 					? "https://bioindex-dev.hugeamp.org/api/bio"
@@ -1352,13 +1389,24 @@ export default Vue.component("research-biosamples-plot", {
 				"-" +
 				region.end;
 
-			//console.log(biosamplesURL);
-
 			let biosamplesJson = await fetch(biosamplesURL).then((resp) =>
 				resp.json()
 			);
 
 			if (biosamplesJson.error == null) {
+				//Add annotations / tissue combination to pkgSelected
+
+				let annoTissueId = ANNOTATION + " / " + TISSUE;
+
+				if (this.pkgData != null) {
+					this.$store.dispatch("pkgDataSelected", {
+						type: "BiosampleAnnoTissue",
+						id: annoTissueId,
+						action: "add",
+					});
+				}
+
+				//working part
 				let regions = [];
 				biosamplesJson.data.map((d) => {
 					if (d.annotation == ANNOTATION) {
@@ -1367,12 +1415,9 @@ export default Vue.component("research-biosamples-plot", {
 				});
 
 				if (regions.length > 0) {
-					//newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
 					let biosampleKeys = [
 						...new Set(regions.map((r) => r.biosample)),
 					].sort(Intl.Collator().compare);
-
-					//console.log("biosampleKeys", biosampleKeys);
 
 					if (!this.biosamplesData[ANNOTATION]) {
 						this.biosamplesData[ANNOTATION] = {};
@@ -1409,8 +1454,6 @@ export default Vue.component("research-biosamples-plot", {
 		},
 
 		renderBiosamplesTrack() {
-			//console.log("render", "this.biosamplesData", this.biosamplesData);
-
 			let staredPositions = [];
 
 			if (!!this.renderConfig["star key"]) {
@@ -1862,11 +1905,8 @@ export default Vue.component("research-biosamples-plot", {
 
 				annotationsArr.map((annotation, annoIndex) => {
 					let dotColor =
-						!this.pkgData.selectedAnnos ||
-						this.pkgData.selectedAnnos.length == 0
-							? this.compareGroupColors[annoIndex]
-							: !!this.pkgData.selectedAnnos &&
-							  !!this.pkgData.selectedAnnos.includes(annotation)
+						this.annotationOnFocus == null ||
+						this.annotationOnFocus == annotation
 							? this.compareGroupColors[annoIndex]
 							: "#00000030";
 
@@ -1897,13 +1937,8 @@ export default Vue.component("research-biosamples-plot", {
 						) {
 							ctx.font = "12px Arial";
 							ctx.fillStyle =
-								!this.pkgData.selectedAnnos ||
-								this.pkgData.selectedAnnos.length == 0
-									? "#000000"
-									: !!this.pkgData.selectedAnnos &&
-									  !!this.pkgData.selectedAnnos.includes(
-											annotation
-									  )
+								this.annotationOnFocus == null ||
+								this.annotationOnFocus == annotation
 									? "#000000"
 									: "#00000050";
 							if (xPos > canvasWidth * 0.75) {
