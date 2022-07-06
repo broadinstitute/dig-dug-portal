@@ -172,6 +172,8 @@ export default Vue.component("research-annotations-plot-v2", {
 			selectedTissues: [],
 			annoPosData: {},
 			spaceBy: 12,
+			annotationOnFocus: null,
+			tissueOnFocus: null,
 		};
 	},
 	modules: {
@@ -422,6 +424,9 @@ export default Vue.component("research-annotations-plot-v2", {
 
 		addAnnoTrack(event) {
 			if (event.target.value != "") {
+				this.annotationOnFocus = event.target.value;
+
+				/// this part may not be needed
 				let selectedAnnotations = this.pkgDataSelected
 					.filter((s) => s.type == "Annotation")
 					.map((s) => s.id);
@@ -442,10 +447,14 @@ export default Vue.component("research-annotations-plot-v2", {
 							selectedAnnotations
 						);
 
-						this.renderGE();
+						//this.renderGE();
 					}
 				}
+				///
+			} else {
+				this.annotationOnFocus = null;
 			}
+			this.renderGE();
 		},
 		removeAnnoTrack(ANNO) {
 			//console.log("called", ANNO);
@@ -468,7 +477,33 @@ export default Vue.component("research-annotations-plot-v2", {
 				this.renderGE();
 			}
 		},
-		addRemoveTissueTrack(TISSUE) {
+		addRemoveTissueTrack(ANNOTISSUE) {
+			let selectedTissues = this.pkgDataSelected
+				.filter((s) => s.type == "AnnoTissue")
+				.map((s) => s.id);
+
+			const tIndex = selectedTissues.indexOf(ANNOTISSUE);
+
+			if (tIndex > -1) {
+				if (this.pkgData != null) {
+					this.$store.dispatch("pkgDataSelected", {
+						type: "AnnoTissue",
+						id: ANNOTISSUE,
+						action: "remove",
+					});
+				}
+			} else {
+				if (this.pkgData != null) {
+					this.$store.dispatch("pkgDataSelected", {
+						type: "AnnoTissue",
+						id: ANNOTISSUE,
+						action: "add",
+					});
+				}
+			}
+
+			console.log("this.pkgDataSelected", this.pkgDataSelected);
+			/*
 			let tissue = TISSUE;
 			let tClass = tissue.replace(/ /g, "_");
 
@@ -494,7 +529,7 @@ export default Vue.component("research-annotations-plot-v2", {
 						action: "add",
 					});
 				}
-			}
+			}*/
 		},
 
 		removeTissueTrack(event) {
@@ -646,12 +681,16 @@ export default Vue.component("research-annotations-plot-v2", {
 			}
 
 			if (TYPE == "click") {
+				console.log("this.annoPosData", this.annoPosData);
 				if (
 					x >= this.plotMargin.leftMargin &&
 					x <= rect.width - this.plotMargin.leftMargin
 				) {
 					if (!!this.annoPosData[y]) {
-						infoContent += this.annoPosData[y].tissue;
+						infoContent +=
+							this.annoPosData[y].annotation +
+							" / " +
+							this.annoPosData[y].tissue;
 					}
 				}
 			}
@@ -1090,12 +1129,19 @@ export default Vue.component("research-annotations-plot-v2", {
 				let yPosByPixel = plotHeight / (GE.yMax - GE.yMin);
 
 				annotationsArr.map((annotation, annoIndex) => {
-					let dotColor =
+					/*let dotColor =
 						!this.pkgData.selectedAnnos ||
 						this.pkgData.selectedAnnos.length == 0
 							? this.compareGroupColors[annoIndex]
 							: !!this.pkgData.selectedAnnos &&
 							  !!this.pkgData.selectedAnnos.includes(annotation)
+							? this.compareGroupColors[annoIndex]
+							: "#00000030";*/
+
+					let dotColor =
+						this.annotationOnFocus == null
+							? this.compareGroupColors[annoIndex]
+							: annotation == this.annotationOnFocus
 							? this.compareGroupColors[annoIndex]
 							: "#00000030";
 
@@ -1353,6 +1399,10 @@ export default Vue.component("research-annotations-plot-v2", {
 				.filter((s) => s.type == "Tissue")
 				.map((s) => s.id);
 
+			let selectedAnnoTissues = this.pkgDataSelected
+				.filter((s) => s.type == "AnnoTissue")
+				.map((s) => s.id);
+
 			for (const [annotation, tissues] of Object.entries(this.annoData)) {
 				if (selectedAnnotations.includes(annotation)) {
 					tempHeight += annotationTitleH;
@@ -1460,6 +1510,7 @@ export default Vue.component("research-annotations-plot-v2", {
 
 							if (!this.annoPosData[yPosBtn]) {
 								this.annoPosData[yPosBtn] = {
+									annotation: annotation,
 									tissue: tissue,
 									regions: {},
 								};
@@ -1509,7 +1560,25 @@ export default Vue.component("research-annotations-plot-v2", {
 											? 1
 											: xPosEnd - xPosStart;
 
-									if (selectedTissues.indexOf(tissue) > -1) {
+									/*if (selectedTissues.indexOf(tissue) > -1) {
+										ctx.fillStyle = "#FF0000";
+									} else {
+										ctx.fillStyle =
+											this.getColorIndex(annotation);
+									}*/
+
+									console.log(
+										"selectedAnnoTissues",
+										selectedAnnoTissues
+									);
+
+									console.log(annotation + " / " + tissue);
+
+									if (
+										selectedAnnoTissues.indexOf(
+											annotation + " / " + tissue
+										) > -1
+									) {
 										ctx.fillStyle = "#FF0000";
 									} else {
 										ctx.fillStyle =
