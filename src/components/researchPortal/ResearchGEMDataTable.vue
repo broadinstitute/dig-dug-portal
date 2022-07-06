@@ -765,6 +765,16 @@ export default Vue.component("research-gem-data-table", {
 
 			///Filter data if biosamples
 
+			// get list of BS methods and sources to filter them out
+			//working part
+			let removedBSMethods = this.$store.state.pkgDataSelected
+				.filter((s) => s.type == "BS-Method")
+				.map((s) => s.id);
+
+			let removedBSSources = this.$store.state.pkgDataSelected
+				.filter((s) => s.type == "BS-Source")
+				.map((s) => s.id);
+
 			if (
 				!!selectedBy["Biosample"] &&
 				selectedBy["Biosample"].length > 0
@@ -791,8 +801,13 @@ export default Vue.component("research-gem-data-table", {
 							];
 						let tempArr = [];
 						regions.map((r) => {
-							for (let i = r.start; i <= r.end; i++) {
-								tempArr.push(i);
+							if (
+								removedBSMethods.indexOf(r.method) == -1 &&
+								removedBSSources.indexOf(r.source) == -1
+							) {
+								for (let i = r.start; i <= r.end; i++) {
+									tempArr.push(i);
+								}
 							}
 						});
 
@@ -886,7 +901,9 @@ export default Vue.component("research-gem-data-table", {
 						this.pkgData.biosamplesData[a][t][b].map((r) => {
 							if (
 								vValue.Position >= r.start &&
-								vValue.Position <= r.end
+								vValue.Position <= r.end &&
+								removedBSMethods.indexOf(r.method) == -1 &&
+								removedBSSources.indexOf(r.source) == -1
 							) {
 								inAnnotation = 1;
 								if (!biosampleContent[b][a]) {
@@ -968,7 +985,9 @@ export default Vue.component("research-gem-data-table", {
 							this.pkgData.biosamplesData[a][t][b].map((r) => {
 								if (
 									vValue.Position >= r.start &&
-									vValue.Position <= r.end
+									vValue.Position <= r.end &&
+									removedBSMethods.indexOf(r.method) == -1 &&
+									removedBSSources.indexOf(r.source) == -1
 								) {
 									let tempObject = {
 										region:

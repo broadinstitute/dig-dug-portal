@@ -174,9 +174,27 @@
 					></div>
 				</div>
 				<div
-					class="col-md-3"
+					class="col-md-3 reference-area"
 					style="display: inline-block; vertical-align: top"
+					v-if="
+						getPropsArr('methods') != null &&
+						getPropsArr('sources') != null
+					"
 				>
+					<button
+						class="btn btn-sm btn-outline-secondary"
+						style="margin-right: 5px; margin-bottom: 10px"
+						@click="checkUncheckAll('check')"
+					>
+						Select all
+					</button>
+					<button
+						class="btn btn-sm btn-outline-secondary"
+						style="margin-bottom: 10px"
+						@click="checkUncheckAll('uncheck')"
+					>
+						Unselect all
+					</button>
 					<h6>
 						<strong>Methods</strong>
 					</h6>
@@ -222,7 +240,6 @@
 							/>{{ " " + g + " " }}
 						</label>
 					</div>
-					{{ pkgDataSelected }}
 				</div>
 			</div>
 		</div>
@@ -396,6 +413,67 @@ export default Vue.component("research-biosamples-plot", {
 	},
 	methods: {
 		...uiUtils,
+		checkUncheckAll(CHECK) {
+			switch (CHECK) {
+				case "check":
+					[
+						{
+							type: "BS-Method",
+							items: this.getPropsArr("methods"),
+						},
+						{
+							type: "BS-Source",
+							items: this.getPropsArr("sources"),
+						},
+					].map((o) => {
+						o.items.map((g) => {
+							//this.removeParameter(g, o.type);
+							if (
+								this.pkgDataSelected.filter(
+									(p) => p.id == g && p.type == o.type
+								).length > 0
+							) {
+								this.$store.dispatch("pkgDataSelected", {
+									type: o.type,
+									id: g,
+									action: "remove",
+								});
+							}
+						});
+					});
+
+					break;
+				case "uncheck":
+					[
+						{
+							type: "BS-Method",
+							items: this.getPropsArr("methods"),
+						},
+						{
+							type: "BS-Source",
+							items: this.getPropsArr("sources"),
+						},
+					].map((o) => {
+						o.items.map((g) => {
+							//this.addParameter(g, o.type);
+							if (
+								this.pkgDataSelected.filter(
+									(p) => p.id == g && p.type == o.type
+								).length == 0
+							) {
+								this.$store.dispatch("pkgDataSelected", {
+									type: o.type,
+									id: g,
+									action: "add",
+								});
+							}
+						});
+					});
+					break;
+			}
+
+			this.trigger++;
+		},
 		getPropsArr(PROP) {
 			console.log(this.pkgData);
 			let selectedBSObjs = this.pkgDataSelected.filter(
@@ -451,10 +529,6 @@ export default Vue.component("research-biosamples-plot", {
 					action: "add",
 				});
 			}
-
-			this.trigger++;
-
-			this.renderGLPlot();
 		},
 		setAnnotation(EVENT) {
 			if (EVENT.target.value != "") {
