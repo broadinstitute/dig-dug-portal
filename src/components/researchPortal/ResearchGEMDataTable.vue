@@ -826,23 +826,27 @@ export default Vue.component("research-gem-data-table", {
 				});
 
 				//sort enriched position so I can remove position between start and end positions
-				enrichedPosition.sort(function (a, b) {
-					return a - b;
-				});
+				if (enrichedPosition != null) {
+					enrichedPosition.sort(function (a, b) {
+						return a - b;
+					});
+				}
 
 				//leave only start and end of overlapping regions
-				var enrichedRegion = [];
+				let enrichedRegion = [];
 
-				for (let i = 0; i < enrichedPosition.length; i++) {
-					if (i == 0 || i == enrichedPosition.length - 1) {
-						enrichedRegion.push(enrichedPosition[i]);
-					} else {
-						let pos1 = enrichedPosition[i - 1] + 1;
-						let pos2 = enrichedPosition[i];
-
-						if (pos2 > pos1) {
-							enrichedRegion.push(enrichedPosition[i - 1]);
+				if (enrichedPosition != null) {
+					for (let i = 0; i < enrichedPosition.length; i++) {
+						if (i == 0 || i == enrichedPosition.length - 1) {
 							enrichedRegion.push(enrichedPosition[i]);
+						} else {
+							let pos1 = enrichedPosition[i - 1] + 1;
+							let pos2 = enrichedPosition[i];
+
+							if (pos2 > pos1) {
+								enrichedRegion.push(enrichedPosition[i - 1]);
+								enrichedRegion.push(enrichedPosition[i]);
+							}
 						}
 					}
 				}

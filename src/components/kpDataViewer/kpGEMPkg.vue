@@ -158,7 +158,7 @@
 				:dataComparison="this.$store.state.dataComparison"
 				:plotData="$store.state.filteredData"
 				:pkgData="pkgData"
-				:pkgDataSelected="pkgDataSelected"
+				:pkgDataSelected="this.$store.state.pkgDataSelected"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
 				:sharedPlotXpos="sharedPlotXpos"

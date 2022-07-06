@@ -286,6 +286,7 @@ export default Vue.component("research-biosamples-plot", {
 			spaceBy: 12,
 			annotationOnFocus: null,
 			tissueOnFocus: null,
+			trigger: 0,
 		};
 	},
 	modules: {
@@ -302,6 +303,12 @@ export default Vue.component("research-biosamples-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		/*pkgData() {
+			return this.$store.state.pkgData;
+		},
+		pkgDataSelected() {
+			return this.$store.state.pkgDataSelected;
+		},*/
 		annoAssoTissues() {
 			if (
 				this.annotationOnFocus != null &&
@@ -395,14 +402,14 @@ export default Vue.component("research-biosamples-plot", {
 		},
 		pkgDataSelected: {
 			handler: function (n, o) {
-				this.renderBiosamplesTrack();
+				this.renderBiosamplesTrack("from watch");
 			},
 			deep: true,
 			immediate: true,
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				this.renderBiosamplesTrack();
+				this.renderBiosamplesTrack("viewing region change");
 			},
 			deep: true,
 			immediate: true,
@@ -475,7 +482,6 @@ export default Vue.component("research-biosamples-plot", {
 			this.trigger++;
 		},
 		getPropsArr(PROP) {
-			console.log(this.pkgData);
 			let selectedBSObjs = this.pkgDataSelected.filter(
 				(p) => p.type == "Biosample"
 			);
@@ -496,10 +502,17 @@ export default Vue.component("research-biosamples-plot", {
 					let t = path[1];
 					let b = path[2];
 
-					this.pkgData.biosamplesData[a][t][b].map((r) => {
-						methods.push(r.method);
-						sources.push(r.source);
-					});
+					if (
+						!!this.pkgData.biosamplesData &&
+						this.pkgData.biosamplesData[a] &&
+						this.pkgData.biosamplesData[a][t] &&
+						this.pkgData.biosamplesData[a][t][b]
+					) {
+						this.pkgData.biosamplesData[a][t][b].map((r) => {
+							methods.push(r.method);
+							sources.push(r.source);
+						});
+					}
 				});
 
 				methods = [...new Set(methods)];
@@ -548,6 +561,14 @@ export default Vue.component("research-biosamples-plot", {
 				!!this.renderConfig["overlapping regions"] &&
 				this.renderConfig["overlapping regions"] != "false"
 			) {
+				let removedBSMethods = this.$store.state.pkgDataSelected
+					.filter((s) => s.type == "BS-Method")
+					.map((s) => s.id);
+
+				let removedBSSources = this.$store.state.pkgDataSelected
+					.filter((s) => s.type == "BS-Source")
+					.map((s) => s.id);
+
 				let selectedBy = {};
 				if (this.pkgDataSelected.length > 0) {
 					this.pkgDataSelected.map((p) => {
@@ -570,11 +591,32 @@ export default Vue.component("research-biosamples-plot", {
 							enrichedPosition
 						)) {
 							let tempArr = [];
-							this.pkgData.biosamplesData[a][t][b].map((r) => {
-								for (let i = r.start; i <= r.end; i++) {
-									tempArr.push(i);
-								}
-							});
+							if (
+								!!this.pkgData.biosamplesData &&
+								!!this.pkgData.biosamplesData[a] &&
+								!!this.pkgData.biosamplesData[a][t] &&
+								!!this.pkgData.biosamplesData[a][t][b]
+							)
+								this.pkgData.biosamplesData[a][t][b].map(
+									(r) => {
+										if (
+											removedBSMethods.indexOf(
+												r.method
+											) == -1 &&
+											removedBSSources.indexOf(
+												r.source
+											) == -1
+										) {
+											for (
+												let i = r.start;
+												i <= r.end;
+												i++
+											) {
+												tempArr.push(i);
+											}
+										}
+									}
+								);
 
 							if (arr == null) {
 								enrichedPosition[key] = tempArr;
@@ -661,33 +703,18 @@ export default Vue.component("research-biosamples-plot", {
 		},
 		onResize(e) {
 			uiUtils.showElement("biosamplesPlotWrapper");
-			this.renderBiosamplesTrack();
+			this.renderBiosamplesTrack("on resize");
 			this.renderGE();
 		},
 
 		removeAnnoTissue(ID) {
-			let selectedAnnoTissue = this.pkgDataSelected
-				.filter((s) => s.type == "BiosampleAnnoTissue")
-				.map((s) => s.id);
-			const aIndex = selectedAnnoTissue.indexOf(ID);
+			//working part
 
-			///First, remove from selected list
-			if (aIndex > -1) {
-				selectedAnnoTissue.splice(aIndex, 1);
-				if (this.pkgData != null) {
-					this.$store.dispatch("pkgDataSelected", {
-						type: "BiosampleAnnoTissue",
-						id: ID,
-						action: "remove",
-					});
-
-					Vue.set(
-						this.pkgData,
-						"selectedAnnoTissues",
-						selectedAnnoTissue
-					);
-				}
-			}
+			this.$store.dispatch("pkgDataSelected", {
+				type: "BiosampleAnnoTissue",
+				id: ID,
+				action: "remove",
+			});
 
 			/// second, delete the biosample tissue data
 
@@ -718,7 +745,6 @@ export default Vue.component("research-biosamples-plot", {
 					this.addRemoveBiosampleTrack(b);
 				}
 			});
-			this.renderBiosamplesTrack();
 		},
 		addRemoveBiosampleTrack(BIOSAMPLE) {
 			let selectedBiosamples = this.pkgDataSelected
@@ -872,7 +898,6 @@ export default Vue.component("research-biosamples-plot", {
 					x <= rect.width - this.plotMargin.leftMargin
 				) {
 					if (!!this.biosamplesPosData[y]) {
-						//this.$store.dispatch("sharedPlotXpos", rawX);
 						infoContent +=
 							this.biosamplesPosData[y].annotation +
 							" / " +
@@ -990,7 +1015,7 @@ export default Vue.component("research-biosamples-plot", {
 					Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 				}
 
-				this.renderBiosamplesTrack();
+				//this.renderBiosamplesTrack();
 				this.renderGE();
 			}
 			this.$forceUpdate();
@@ -1167,11 +1192,13 @@ export default Vue.component("research-biosamples-plot", {
 					);
 				}
 
-				this.renderBiosamplesTrack();
+				this.renderBiosamplesTrack("after bs data load");
 			}
 		},
 
-		renderBiosamplesTrack() {
+		renderBiosamplesTrack(WHERE) {
+			this.biosamplesPosData = {};
+
 			let staredPositions = [];
 
 			if (!!this.renderConfig["star key"]) {
