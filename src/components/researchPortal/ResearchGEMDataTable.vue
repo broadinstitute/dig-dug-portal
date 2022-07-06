@@ -438,10 +438,6 @@ export default Vue.component("research-gem-data-table", {
 					}
 
 					if (p.type == "Biosample") {
-						/*let bsIDArr = p.id.split(" / ");
-						let bsFeatureColumnLabel =
-							bsIDArr[0] + " / " + bsIDArr[2];
-						newTableFormat["Biosamples"].push(bsFeatureColumnLabel);*/
 						isBiosample = true;
 					}
 				});
@@ -449,8 +445,6 @@ export default Vue.component("research-gem-data-table", {
 				!!isBiosample
 					? (newTableFormat["Biosamples"] = ["Biosamples:array"])
 					: "";
-
-				//console.log("newTableFormat", newTableFormat);
 			}
 
 			//Let's filter rawData by credible sets
@@ -771,9 +765,6 @@ export default Vue.component("research-gem-data-table", {
 
 			///Filter data if biosamples
 
-			console.log("this.pkgData", this.pkgData);
-			console.log("selectedBy", selectedBy);
-
 			if (
 				!!selectedBy["Biosample"] &&
 				selectedBy["Biosample"].length > 0
@@ -786,8 +777,6 @@ export default Vue.component("research-gem-data-table", {
 					let annotation = pathArr[0];
 					let tissue = pathArr[1];
 					let biosample = pathArr[2];
-
-					//console.log(annotation, tissue, biosample);
 
 					if (
 						!!this.pkgData.biosamplesData[annotation] &&
@@ -825,7 +814,6 @@ export default Vue.component("research-gem-data-table", {
 				enrichedPosition.sort(function (a, b) {
 					return a - b;
 				});
-				//console.log("enrichedPosition", enrichedPosition);
 
 				//leave only start and end of overlapping regions
 				var enrichedRegion = [];
@@ -843,7 +831,6 @@ export default Vue.component("research-gem-data-table", {
 						}
 					}
 				}
-				//console.log("enrichedRegion", enrichedRegion);
 
 				///build object of overlapping regions
 				var overlappingRegions = [];
@@ -965,8 +952,6 @@ export default Vue.component("research-gem-data-table", {
 							updatedData[vKey].bioEnd;
 
 						///feed feature contents for biosamples
-
-						console.log("updatedData[vKey]", updatedData[vKey]);
 
 						let bSamplesArr = [];
 
@@ -1327,8 +1312,6 @@ export default Vue.component("research-gem-data-table", {
 			let formattedData = [];
 
 			if (this.dataComparisonConfig == null) {
-				//console.log("this.newTableFormat", this.newTableFormat);
-
 				rawData.map((d) => {
 					let tempObj = {};
 
@@ -1605,7 +1588,6 @@ export default Vue.component("research-gem-data-table", {
 			return objectedArray;
 		},
 		applySorting(key) {
-			//console.log("key", key);
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
 			this.sortByCredibleSet = false;
