@@ -467,6 +467,8 @@ new Vue({
                     }
                 });
 
+                console.log("paramTrueCount", paramTrueCount, "parametersArrLength", parametersArrLength);
+
                 if (paramTrueCount == parametersArrLength) {
                     this.$store.state.bioIndexContinue = [];
                     let queryParams = "";
@@ -481,7 +483,7 @@ new Vue({
                     });
 
                     let APIPoint = this.dataFiles[0];
-                    if (this.dataType == "bioindex") {
+                    if (this.dataType == "bioindex" && !!this.isAPI) {
 
                         /// set BioIndex API point
                         APIPoint +=
@@ -489,7 +491,12 @@ new Vue({
                             this.apiParameters.query.index +
                             "?q=" +
                             queryParams;
+                    } else if (this.dataType != "bioindex" && !!this.isAPI) {
+                        APIPoint += queryParams
                     }
+
+                    console.log('APIPoint', APIPoint)
+                    console.log('this.isAPI', this.isAPI)
 
                     let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
@@ -927,7 +934,17 @@ new Vue({
                         return processedData;
                     }
                 } else {
-                    let returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
+                    let returnData;
+                    if (typeof convertedData == "string") {
+                        returnData = (this.dataType == 'json') ? JSON.parse(convertedData).data : convertedData;
+                    } else {
+                        returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
+                    }
+
+
+                    /*console.log("convertedData", typeof convertedData)
+                    console.log("convertedData", convertedData)
+                    console.log("convertedData", JSON.parse(convertedData));*/
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
