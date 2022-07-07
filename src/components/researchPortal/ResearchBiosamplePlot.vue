@@ -149,8 +149,56 @@
 						></canvas>
 					</div>
 				</div>
+				<div
+					class="filtering-ui-wrapper add-content"
+					style="width: 100%; padding: 0 10px; text-align: left"
+					v-if="
+						pkgDataSelected.filter(
+							(s) => s.type == 'BiosampleAnnoTissue'
+						).length > 0
+					"
+				>
+					<div
+						class="filtering-ui-content"
+						style="padding: 5px; text-align: left"
+					>
+						<strong>Select biosamples by clicking tracks</strong>
+						<div
+							class=""
+							v-if="
+								pkgDataSelected.filter(
+									(s) => s.type == 'Biosample'
+								).length > 0 &&
+								!renderConfig['no search key bubbles']
+							"
+							style="float: right"
+						>
+							<template
+								v-for="a in pkgDataSelected.filter(
+									(s) => s.type == 'Biosample'
+								)"
+							>
+								<span
+									:key="a.id"
+									:class="'btn search-bubble '"
+									:style="
+										'background-color:' +
+										getColorIndex(a.id.split(' / ')[0])
+									"
+									v-html="
+										a.id.split(' / ')[2] +
+										'&nbsp;<span class=\'remove\'>X</span>'
+									"
+									@click="addRemoveBiosampleTrack(a.id)"
+								></span>
+							</template>
+						</div>
+					</div>
+				</div>
 
 				<div id="biosamplesPlotWrapper" class="col-md-9">
+					<!--working part-->
+
 					<div id="biosampleInfoBox" class="hidden"></div>
 
 					<canvas
@@ -244,7 +292,6 @@
 				</div>
 			</div>
 		</div>
-		{{ pkgDataSelected }}
 	</div>
 </template>
 

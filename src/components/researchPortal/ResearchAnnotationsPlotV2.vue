@@ -23,9 +23,10 @@
 								</div>
 								<select
 									class="custom-select"
+									v-model="annotationOnFocus"
 									@change="addAnnoTrack($event)"
 								>
-									<option value="">
+									<option value="null">
 										{{ "Select annotation" }}
 									</option>
 									<option
@@ -107,6 +108,49 @@
 				</div>
 
 				<div id="annotationsPlotWrapper">
+					<div
+						class="filtering-ui-wrapper add-content"
+						style="width: 100%; padding: 0 10px; text-align: left"
+						v-if="
+							pkgDataSelected.filter(
+								(s) => s.type == 'Annotation'
+							).length > 0
+						"
+					>
+						<div
+							class="filtering-ui-content"
+							style="padding: 5px; text-align: left"
+						>
+							<strong>Select tissues by clicking tracks</strong>
+							<div
+								class=""
+								v-if="
+									pkgDataSelected.filter(
+										(s) => s.type == 'Tissue'
+									).length > 0 &&
+									!renderConfig['no search key bubbles']
+								"
+								style="float: right"
+							>
+								<template
+									v-for="a in pkgDataSelected.filter(
+										(s) => s.type == 'Tissue'
+									)"
+								>
+									<span
+										:key="a.id"
+										:class="'btn search-bubble '"
+										:style="'background-color:#999999'"
+										v-html="
+											a.id +
+											'&nbsp;<span class=\'remove\'>X</span>'
+										"
+										@click="addRemoveTissueTrack(a.id)"
+									></span>
+								</template>
+							</div>
+						</div>
+					</div>
 					<div id="tissueInfoBox" class="hidden"></div>
 
 					<canvas
@@ -172,8 +216,8 @@ export default Vue.component("research-annotations-plot-v2", {
 			selectedTissues: [],
 			annoPosData: {},
 			spaceBy: 12,
-			annotationOnFocus: null,
-			tissueOnFocus: null,
+			annotationOnFocus: "null",
+			tissueOnFocus: "null",
 		};
 	},
 	modules: {
@@ -269,14 +313,18 @@ export default Vue.component("research-annotations-plot-v2", {
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
-			handler: function (n, o) {
-				this.renderByAnnotations();
+			handler: function (DATA) {
+				if (DATA.length == 0) {
+					this.resetAll();
+				} else {
+					this.renderByAnnotations();
+				}
 			},
 			deep: true,
 			immediate: true,
 		},
 		viewingRegion: {
-			handler: function (n, o) {
+			handler: function (DATA) {
 				this.renderByAnnotations();
 			},
 			deep: true,
@@ -285,6 +333,21 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	methods: {
 		...uiUtils,
+		resetAll() {
+			this.annoData = {};
+			this.GEData = {};
+			this.GEPosData = {};
+			this.tissuesData = {};
+			this.tissuesPosData = {};
+			this.selectedAnnos = [];
+			this.selectedTissues = [];
+			this.annoPosData = {};
+			this.annotationOnFocus = "null";
+			this.tissueOnFocus = "null";
+			//this.renderGE();
+			this.getAnnotations(this.searchingRegion);
+			this.renderByAnnotations();
+		},
 		getOverlappingRegion() {
 			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
@@ -422,8 +485,8 @@ export default Vue.component("research-annotations-plot-v2", {
 		},
 
 		addAnnoTrack(event) {
-			if (event.target.value != "") {
-				this.annotationOnFocus = event.target.value;
+			if (event.target.value != "null") {
+				//this.annotationOnFocus = event.target.value;
 
 				/// this part may not be needed
 				let selectedAnnotations = this.pkgDataSelected
@@ -445,13 +508,8 @@ export default Vue.component("research-annotations-plot-v2", {
 							"selectedAnnos",
 							selectedAnnotations
 						);
-
-						//this.renderGE();
 					}
 				}
-				///
-			} else {
-				this.annotationOnFocus = null;
 			}
 			this.renderGE();
 		},
@@ -475,46 +533,18 @@ export default Vue.component("research-annotations-plot-v2", {
 				this.renderGE();
 			}
 		},
-		addRemoveTissueTrack(ANNOTISSUE) {
-			let selectedTissues = this.pkgDataSelected
-				.filter((s) => s.type == "AnnoTissue")
-				.map((s) => s.id);
-
-			const tIndex = selectedTissues.indexOf(ANNOTISSUE);
-
-			if (tIndex > -1) {
-				if (this.pkgData != null) {
-					this.$store.dispatch("pkgDataSelected", {
-						type: "AnnoTissue",
-						id: ANNOTISSUE,
-						action: "remove",
-					});
-				}
-			} else {
-				if (this.pkgData != null) {
-					this.$store.dispatch("pkgDataSelected", {
-						type: "AnnoTissue",
-						id: ANNOTISSUE,
-						action: "add",
-					});
-				}
-			}
-
-			/*
-			let tissue = TISSUE;
-			let tClass = tissue.replace(/ /g, "_");
-
+		addRemoveTissueTrack(TISSUE) {
 			let selectedTissues = this.pkgDataSelected
 				.filter((s) => s.type == "Tissue")
 				.map((s) => s.id);
 
-			const tIndex = selectedTissues.indexOf(tissue);
+			const tIndex = selectedTissues.indexOf(TISSUE);
 
 			if (tIndex > -1) {
 				if (this.pkgData != null) {
 					this.$store.dispatch("pkgDataSelected", {
 						type: "Tissue",
-						id: tissue,
+						id: TISSUE,
 						action: "remove",
 					});
 				}
@@ -522,11 +552,11 @@ export default Vue.component("research-annotations-plot-v2", {
 				if (this.pkgData != null) {
 					this.$store.dispatch("pkgDataSelected", {
 						type: "Tissue",
-						id: tissue,
+						id: TISSUE,
 						action: "add",
 					});
 				}
-			}*/
+			}
 		},
 
 		removeTissueTrack(event) {
@@ -683,10 +713,7 @@ export default Vue.component("research-annotations-plot-v2", {
 					x <= rect.width - this.plotMargin.leftMargin
 				) {
 					if (!!this.annoPosData[y]) {
-						infoContent +=
-							this.annoPosData[y].annotation +
-							" / " +
-							this.annoPosData[y].tissue;
+						infoContent += this.annoPosData[y].tissue;
 					}
 				}
 			}
@@ -1126,7 +1153,7 @@ export default Vue.component("research-annotations-plot-v2", {
 							: "#00000030";*/
 
 					let dotColor =
-						this.annotationOnFocus == null
+						this.annotationOnFocus == "null"
 							? this.compareGroupColors[annoIndex]
 							: annotation == this.annotationOnFocus
 							? this.compareGroupColors[annoIndex]
@@ -1346,219 +1373,231 @@ export default Vue.component("research-annotations-plot-v2", {
 		},
 
 		renderByAnnotations() {
-			let staredPositions = [];
+			if (!!this.pkgData.GEByTissueData) {
+				let staredPositions = [];
 
-			if (!!this.renderConfig["star key"]) {
-				let plotData = !!Array.isArray(this.plotData)
-					? this.array2Object(
-							this.renderConfig["star key"]["key"],
-							this.plotData
-					  )
-					: this.plotData;
+				if (!!this.renderConfig["star key"]) {
+					let plotData = !!Array.isArray(this.plotData)
+						? this.array2Object(
+								this.renderConfig["star key"]["key"],
+								this.plotData
+						  )
+						: this.plotData;
 
-				let starKey = this.renderConfig["star key"]["key"];
-				let starPosition = this.renderConfig["star key"]["position"];
+					let starKey = this.renderConfig["star key"]["key"];
+					let starPosition =
+						this.renderConfig["star key"]["position"];
 
-				this.pkgDataSelected
-					.filter((s) => s.type == starKey)
-					.map((s) => s.id)
-					.map((s) => {
-						staredPositions.push(plotData[s][starPosition]);
-					});
-			}
+					this.pkgDataSelected
+						.filter((s) => s.type == starKey)
+						.map((s) => s.id)
+						.map((s) => {
+							staredPositions.push(plotData[s][starPosition]);
+						});
+				}
 
-			let tempHeight = 0;
-			let annotationTitleH = this.spaceBy * 2;
-			let btwnAnnotations = this.spaceBy * 7;
-			let perTissue = this.spaceBy;
-			let topMargin = this.spaceBy * 2;
-			let bottomMargin = this.spaceBy * 2;
-			let regionStart = this.viewingRegion.start;
-			let regionEnd = this.viewingRegion.end;
-			let pvalueFoldWidth = 120;
+				let tempHeight = 0;
+				let annotationTitleH = this.spaceBy * 2;
+				let btwnAnnotations = this.spaceBy * 7;
+				let perTissue = this.spaceBy;
+				let topMargin = this.spaceBy * 2;
+				let bottomMargin = this.spaceBy * 2;
+				let regionStart = this.viewingRegion.start;
+				let regionEnd = this.viewingRegion.end;
+				let pvalueFoldWidth = 120;
 
-			let selectedAnnoTissues = this.pkgDataSelected
+				/*let selectedAnnoTissues = this.pkgDataSelected
 				.filter((s) => s.type == "AnnoTissue")
-				.map((s) => s.id);
+				.map((s) => s.id);*/
 
-			let selectedAnnotations = this.pkgDataSelected
-				.filter((s) => s.type == "Annotation")
-				.map((s) => s.id);
+				let selectedAnnotations = this.pkgDataSelected
+					.filter((s) => s.type == "Annotation")
+					.map((s) => s.id);
 
-			/*let selectedTissues = this.pkgDataSelected
-				.filter((s) => s.type == "Tissue")
-				.map((s) => s.id);
-			let selectedAnnotations = [
+				let selectedTissues = this.pkgDataSelected
+					.filter((s) => s.type == "Tissue")
+					.map((s) => s.id);
+
+				/*let selectedAnnotations = [
 				...new Set(selectedAnnoTissues.map((s) => s.split(" / ")[0])),
-			];*/
+			];
 			let selectedTissues = [
 				...new Set(selectedAnnoTissues.map((s) => s.split(" / ")[1])),
-			];
-
-			for (const [annotation, tissues] of Object.entries(this.annoData)) {
-				if (selectedAnnotations.includes(annotation)) {
-					tempHeight += annotationTitleH;
-					tempHeight += Object.keys(tissues).length * perTissue;
-					tempHeight += btwnAnnotations;
-				}
-			}
-
-			let wrapper = document.querySelector("#annotationsPlotWrapper");
-			let canvas = document.querySelector("#annotationsPlot");
-
-			if (!!canvas && !!wrapper) {
-				let canvasWidth =
-					document.querySelector("#annotationsPlotWrapper")
-						.clientWidth * 0.75;
-
-				let wrapperWidth =
-					canvasWidth +
-					Object.keys(this.pkgData.GEByTissueData).length *
-						pvalueFoldWidth;
-
-				let canvasHeight = tempHeight + topMargin + bottomMargin;
-
-				let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
-				let plotHeight = tempHeight;
-				let bump = 5.5;
-
-				let xPerPixel = plotWidth / (regionEnd - regionStart);
-
-				let c, ctx;
-				c = document.querySelector("#annotationsPlot");
-				c.setAttribute("width", wrapperWidth);
-				c.setAttribute("height", canvasHeight);
-				ctx = c.getContext("2d");
-
-				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-				let renderHeight = annotationTitleH;
+			];*/
 
 				for (const [annotation, tissues] of Object.entries(
 					this.annoData
 				)) {
 					if (selectedAnnotations.includes(annotation)) {
-						ctx.font = "14px Arial";
-						ctx.textAlign = "left";
-						ctx.fillStyle = "#000000";
-						ctx.fillText(annotation, bump, renderHeight);
+						tempHeight += annotationTitleH;
+						tempHeight += Object.keys(tissues).length * perTissue;
+						tempHeight += btwnAnnotations;
+					}
+				}
 
-						Object.keys(this.pkgData.GEByTissueData).map(
-							(pKey, pIndex) => {
-								ctx.fillStyle = "#000000";
-								ctx.textAlign = "start";
-								ctx.textBaseline = "middle";
-								ctx.font = "14px Arial";
+				let wrapper = document.querySelector("#annotationsPlotWrapper");
+				let canvas = document.querySelector("#annotationsPlot");
 
-								ctx.fillText(
-									pKey,
-									canvasWidth + pvalueFoldWidth * pIndex,
-									renderHeight
-								);
-							}
-						);
+				if (!!canvas && !!wrapper) {
+					let canvasWidth =
+						document.querySelector("#annotationsPlotWrapper")
+							.clientWidth * 0.75;
 
-						let blockHeight =
-							Object.keys(tissues).length * perTissue;
-						renderHeight += annotationTitleH;
+					let wrapperWidth =
+						canvasWidth +
+						Object.keys(this.pkgData.GEByTissueData).length *
+							pvalueFoldWidth;
 
-						this.renderAnnoAxis(
-							ctx,
-							plotWidth,
-							blockHeight,
-							Number(regionEnd),
-							Number(regionStart),
-							renderHeight,
-							bump
-						);
+					let canvasHeight = tempHeight + topMargin + bottomMargin;
 
-						if (
-							!!this.renderConfig["star key"] &&
-							staredPositions.length > 0
-						) {
-							this.renderStaredPositions(
+					let plotWidth =
+						canvasWidth - this.plotMargin.leftMargin * 2;
+					let plotHeight = tempHeight;
+					let bump = 5.5;
+
+					let xPerPixel = plotWidth / (regionEnd - regionStart);
+
+					let c, ctx;
+					c = document.querySelector("#annotationsPlot");
+					c.setAttribute("width", wrapperWidth);
+					c.setAttribute("height", canvasHeight);
+					ctx = c.getContext("2d");
+
+					ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+					let renderHeight = annotationTitleH;
+
+					for (const [annotation, tissues] of Object.entries(
+						this.annoData
+					)) {
+						if (selectedAnnotations.includes(annotation)) {
+							ctx.font = "14px Arial";
+							ctx.textAlign = "left";
+							ctx.fillStyle = "#000000";
+							ctx.fillText(annotation, bump, renderHeight);
+
+							Object.keys(this.pkgData.GEByTissueData).map(
+								(pKey, pIndex) => {
+									ctx.fillStyle = "#000000";
+									ctx.textAlign = "start";
+									ctx.textBaseline = "middle";
+									ctx.font = "14px Arial";
+
+									ctx.fillText(
+										pKey,
+										canvasWidth + pvalueFoldWidth * pIndex,
+										renderHeight
+									);
+								}
+							);
+
+							let blockHeight =
+								Object.keys(tissues).length * perTissue;
+							renderHeight += annotationTitleH;
+
+							this.renderAnnoAxis(
 								ctx,
 								plotWidth,
 								blockHeight,
-								staredPositions,
-								xPerPixel,
 								Number(regionEnd),
 								Number(regionStart),
 								renderHeight,
 								bump
 							);
-						}
 
-						let tissueIndex = 0;
-
-						let tissuesArr = Object.keys(tissues).sort();
-						tissuesArr.map((tissue) => {
-							let regions = tissues[tissue];
-
-							//for (const [tissue, regions] of Object.entries(tissues)) {
-							let yPosBtn = Math.ceil(
-								renderHeight / this.spaceBy
-							);
-
-							if (!this.annoPosData[yPosBtn]) {
-								this.annoPosData[yPosBtn] = {
-									annotation: annotation,
-									tissue: tissue,
-									regions: {},
-								};
-							} else {
-								this.annoPosData[yPosBtn]["tissue"] = tissue;
-							}
-
-							if (tissueIndex % 2 == 0) {
-								ctx.fillStyle = "#00000010";
-								ctx.fillRect(
-									this.plotMargin.leftMargin,
-									renderHeight,
+							if (
+								!!this.renderConfig["star key"] &&
+								staredPositions.length > 0
+							) {
+								this.renderStaredPositions(
+									ctx,
 									plotWidth,
-									perTissue
+									blockHeight,
+									staredPositions,
+									xPerPixel,
+									Number(regionEnd),
+									Number(regionStart),
+									renderHeight,
+									bump
 								);
 							}
 
-							tissueIndex++;
+							let tissueIndex = 0;
 
-							regions.region.map((p) => {
-								if (
-									p.start <= regionEnd &&
-									p.end >= regionStart
-								) {
-									let xPosStart =
-										(p.start - regionStart) * xPerPixel +
-										this.plotMargin.leftMargin;
+							let tissuesArr = Object.keys(tissues).sort();
+							tissuesArr.map((tissue) => {
+								let regions = tissues[tissue];
 
-									xPosStart =
-										xPosStart <= this.plotMargin.leftMargin
-											? this.plotMargin.leftMargin
-											: xPosStart;
-									let xPosEnd =
-										(p.end - regionStart) * xPerPixel +
-										this.plotMargin.leftMargin;
+								//for (const [tissue, regions] of Object.entries(tissues)) {
+								let yPosBtn = Math.ceil(
+									renderHeight / this.spaceBy
+								);
 
-									xPosEnd =
-										xPosEnd >
-										this.plotMargin.leftMargin + plotWidth
-											? this.plotMargin.leftMargin +
-											  plotWidth
-											: xPosEnd;
+								if (!this.annoPosData[yPosBtn]) {
+									this.annoPosData[yPosBtn] = {
+										annotation: annotation,
+										tissue: tissue,
+										regions: {},
+									};
+								} else {
+									this.annoPosData[yPosBtn]["tissue"] =
+										tissue;
+								}
 
-									//let xPosWidth = xPosEnd - xPosStart;
-									let xPosWidth =
-										xPosEnd - xPosStart < 1
-											? 1
-											: xPosEnd - xPosStart;
+								if (tissueIndex % 2 == 0) {
+									ctx.fillStyle = "#00000010";
+									ctx.fillRect(
+										this.plotMargin.leftMargin,
+										renderHeight,
+										plotWidth,
+										perTissue
+									);
+								}
 
-									/*if (selectedTissues.indexOf(tissue) > -1) {
-										ctx.fillStyle = "#FF0000";
-									} else {
-										ctx.fillStyle =
-											this.getColorIndex(annotation);
-									}*/
+								tissueIndex++;
 
+								regions.region.map((p) => {
+									if (
+										p.start <= regionEnd &&
+										p.end >= regionStart
+									) {
+										let xPosStart =
+											(p.start - regionStart) *
+												xPerPixel +
+											this.plotMargin.leftMargin;
+
+										xPosStart =
+											xPosStart <=
+											this.plotMargin.leftMargin
+												? this.plotMargin.leftMargin
+												: xPosStart;
+										let xPosEnd =
+											(p.end - regionStart) * xPerPixel +
+											this.plotMargin.leftMargin;
+
+										xPosEnd =
+											xPosEnd >
+											this.plotMargin.leftMargin +
+												plotWidth
+												? this.plotMargin.leftMargin +
+												  plotWidth
+												: xPosEnd;
+
+										//let xPosWidth = xPosEnd - xPosStart;
+										let xPosWidth =
+											xPosEnd - xPosStart < 1
+												? 1
+												: xPosEnd - xPosStart;
+
+										if (
+											selectedTissues.indexOf(tissue) > -1
+										) {
+											ctx.fillStyle = "#FF0000";
+										} else {
+											ctx.fillStyle =
+												this.getColorIndex(annotation);
+										}
+										/*
 									if (
 										selectedAnnoTissues.indexOf(
 											annotation + " / " + tissue
@@ -1568,101 +1607,104 @@ export default Vue.component("research-annotations-plot-v2", {
 									} else {
 										ctx.fillStyle =
 											this.getColorIndex(annotation);
-									}
+									}*/
 
-									ctx.fillRect(
-										xPosStart,
-										renderHeight,
-										xPosWidth,
-										perTissue - 1
-									);
-									let xPosBtn =
-										xPosStart +
-										"_" +
-										(xPosStart + xPosWidth);
-									this.annoPosData[yPosBtn].regions[xPosBtn] =
-										{
+										ctx.fillRect(
+											xPosStart,
+											renderHeight,
+											xPosWidth,
+											perTissue - 1
+										);
+										let xPosBtn =
+											xPosStart +
+											"_" +
+											(xPosStart + xPosWidth);
+										this.annoPosData[yPosBtn].regions[
+											xPosBtn
+										] = {
 											start: p.start,
 											end: p.end,
 										};
-								}
-							});
+									}
+								});
 
-							renderHeight += perTissue;
+								renderHeight += perTissue;
 
-							//if (selectedTissues.indexOf(tissue) > -1) {
-							ctx.fillStyle = "#000000";
-							ctx.textAlign = "start";
-							ctx.textBaseline = "middle";
-							ctx.font = "12px Arial";
-							ctx.fillText(tissue, 5, renderHeight - 4);
-							//}
+								//if (selectedTissues.indexOf(tissue) > -1) {
+								ctx.fillStyle = "#000000";
+								ctx.textAlign = "start";
+								ctx.textBaseline = "middle";
+								ctx.font = "12px Arial";
+								ctx.fillText(tissue, 5, renderHeight - 4);
+								//}
 
-							let pIndex = 0;
-							for (const [pKey, tissues] of Object.entries(
-								this.pkgData.GEByTissueData
-							)) {
-								if (
-									!!this.pkgData.GEByTissueData[pKey][
-										tissue
-									] &&
-									!!this.pkgData.GEByTissueData[pKey][tissue][
-										annotation
-									]
-								) {
-									let pvalueFold =
-										this.pkgData.GEByTissueData[pKey][
+								let pIndex = 0;
+								for (const [pKey, tissues] of Object.entries(
+									this.pkgData.GEByTissueData
+								)) {
+									if (
+										!!this.pkgData.GEByTissueData[pKey][
 											tissue
-										][annotation]["pValue"] +
-										" / " +
-										Number(
+										] &&
+										!!this.pkgData.GEByTissueData[pKey][
+											tissue
+										][annotation]
+									) {
+										let pvalueFold =
 											this.pkgData.GEByTissueData[pKey][
 												tissue
-											][annotation]["fold"]
-										).toFixed(3);
+											][annotation]["pValue"] +
+											" / " +
+											Number(
+												this.pkgData.GEByTissueData[
+													pKey
+												][tissue][annotation]["fold"]
+											).toFixed(3);
 
-									if (
-										this.pkgData.GEByTissueData[pKey][
-											tissue
-										][annotation]["rank"] < 5
-									) {
-										ctx.fillStyle =
-											this.getColorIndex(annotation);
-										ctx.lineWidth = 0;
-										ctx.beginPath();
-										ctx.arc(
+										if (
+											this.pkgData.GEByTissueData[pKey][
+												tissue
+											][annotation]["rank"] < 5
+										) {
+											ctx.fillStyle =
+												this.getColorIndex(annotation);
+											ctx.lineWidth = 0;
+											ctx.beginPath();
+											ctx.arc(
+												canvasWidth +
+													pvalueFoldWidth * pIndex -
+													5,
+												renderHeight - 4,
+												3,
+												0,
+												2 * Math.PI
+											);
+											ctx.fill();
+										}
+
+										ctx.fillStyle = "#000000";
+										ctx.textAlign = "start";
+										ctx.textBaseline = "middle";
+										ctx.font = "11px Arial";
+
+										ctx.fillText(
+											pvalueFold,
 											canvasWidth +
-												pvalueFoldWidth * pIndex -
-												5,
-											renderHeight - 4,
-											3,
-											0,
-											2 * Math.PI
+												pvalueFoldWidth * pIndex,
+											renderHeight - 4
 										);
-										ctx.fill();
 									}
 
-									ctx.fillStyle = "#000000";
-									ctx.textAlign = "start";
-									ctx.textBaseline = "middle";
-									ctx.font = "11px Arial";
-
-									ctx.fillText(
-										pvalueFold,
-										canvasWidth + pvalueFoldWidth * pIndex,
-										renderHeight - 4
-									);
+									pIndex++;
 								}
-
-								pIndex++;
-							}
-						});
-						renderHeight += btwnAnnotations;
+							});
+							renderHeight += btwnAnnotations;
+						}
 					}
 				}
+				// get ovelapping region
+				this.getOverlappingRegion();
 			}
-			// get ovelapping region
-			this.getOverlappingRegion();
 		},
 		renderAnnoAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
 			CTX.beginPath();

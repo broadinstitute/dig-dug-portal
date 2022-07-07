@@ -469,8 +469,12 @@ export default Vue.component("research-annotations-plot", {
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
-			handler: function (n, o) {
-				this.renderByAnnotations();
+			handler: function (DATA) {
+				if (DATA.length == 0) {
+					this.resetAll();
+				} else {
+					this.renderByAnnotations();
+				}
 			},
 			deep: true,
 			immediate: true,
@@ -485,6 +489,19 @@ export default Vue.component("research-annotations-plot", {
 	},
 	methods: {
 		...uiUtils,
+		resetAll() {
+			this.annoData = {};
+			this.GEData = {};
+			this.GEPosData = {};
+			this.tissuesData = {};
+			this.tissuesPosData = {};
+			this.selectedAnnos = [];
+			this.selectedTissues = [];
+			this.annoPosData = {};
+			//this.renderGE();
+			this.getAnnotations(this.searchingRegion);
+			this.renderByAnnotations();
+		},
 		getOverlappingRegion() {
 			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
