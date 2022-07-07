@@ -199,7 +199,6 @@ export default Vue.component("research-annotations-plot-v2", {
 			}
 		},
 		searchingRegion() {
-			//console.log("this.region", this.region);
 			let returnObj = {};
 			let regionArr = this.region.split(":");
 			returnObj["chr"] = regionArr[0];
@@ -457,12 +456,11 @@ export default Vue.component("research-annotations-plot-v2", {
 			this.renderGE();
 		},
 		removeAnnoTrack(ANNO) {
-			//console.log("called", ANNO);
 			let selectedAnnotations = this.pkgDataSelected
 				.filter((s) => s.type == "Annotation")
 				.map((s) => s.id);
 			const aIndex = selectedAnnotations.indexOf(ANNO);
-			//console.log("called2", aIndex, selectedAnnotations);
+
 			if (aIndex > -1) {
 				selectedAnnotations.splice(aIndex, 1);
 				if (this.pkgData != null) {
@@ -502,7 +500,6 @@ export default Vue.component("research-annotations-plot-v2", {
 				}
 			}
 
-			console.log("this.pkgDataSelected", this.pkgDataSelected);
 			/*
 			let tissue = TISSUE;
 			let tClass = tissue.replace(/ /g, "_");
@@ -681,7 +678,6 @@ export default Vue.component("research-annotations-plot-v2", {
 			}
 
 			if (TYPE == "click") {
-				console.log("this.annoPosData", this.annoPosData);
 				if (
 					x >= this.plotMargin.leftMargin &&
 					x <= rect.width - this.plotMargin.leftMargin
@@ -719,7 +715,6 @@ export default Vue.component("research-annotations-plot-v2", {
 			return this.compareGroupColors[i];
 		},
 		async getGlobalEnrichment() {
-			//console.log("calling GE");
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
 					? "https://bioindex.hugeamp.org/api/bio"
@@ -880,10 +875,8 @@ export default Vue.component("research-annotations-plot-v2", {
 
 					annotations[pKey][aKey].sort((a, b) => b.fold - a.fold);
 
-					//console.log(aKey);
 					let tIndex = 0;
 					annotations[pKey][aKey].map((tValue) => {
-						//console.log(tValue.tissue, tIndex);
 						if (
 							!!this.tissuesData[tValue.tissue] &&
 							!!this.tissuesData[tValue.tissue][aKey]
@@ -905,7 +898,6 @@ export default Vue.component("research-annotations-plot-v2", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
-				//console.log("calling annotations");
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"
@@ -974,11 +966,6 @@ export default Vue.component("research-annotations-plot-v2", {
 		renderGE() {
 			this.GEPosData = {};
 			let sortedGEData = {};
-
-			//console.log("renderGE", this.pkgData.selectedAnnos);
-
-			//console.log("this.GEData", this.GEData);
-			//console.log("this.annoData", this.annoData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
@@ -1376,7 +1363,6 @@ export default Vue.component("research-annotations-plot-v2", {
 					.filter((s) => s.type == starKey)
 					.map((s) => s.id)
 					.map((s) => {
-						//console.log("this.plotData[s]", plotData[s]);
 						staredPositions.push(plotData[s][starPosition]);
 					});
 			}
@@ -1391,17 +1377,23 @@ export default Vue.component("research-annotations-plot-v2", {
 			let regionEnd = this.viewingRegion.end;
 			let pvalueFoldWidth = 120;
 
+			let selectedAnnoTissues = this.pkgDataSelected
+				.filter((s) => s.type == "AnnoTissue")
+				.map((s) => s.id);
+
 			let selectedAnnotations = this.pkgDataSelected
 				.filter((s) => s.type == "Annotation")
 				.map((s) => s.id);
 
-			let selectedTissues = this.pkgDataSelected
+			/*let selectedTissues = this.pkgDataSelected
 				.filter((s) => s.type == "Tissue")
 				.map((s) => s.id);
-
-			let selectedAnnoTissues = this.pkgDataSelected
-				.filter((s) => s.type == "AnnoTissue")
-				.map((s) => s.id);
+			let selectedAnnotations = [
+				...new Set(selectedAnnoTissues.map((s) => s.split(" / ")[0])),
+			];*/
+			let selectedTissues = [
+				...new Set(selectedAnnoTissues.map((s) => s.split(" / ")[1])),
+			];
 
 			for (const [annotation, tissues] of Object.entries(this.annoData)) {
 				if (selectedAnnotations.includes(annotation)) {
@@ -1441,7 +1433,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
 				let renderHeight = annotationTitleH;
-				//console.log("this.annoData", this.pkgData);
+
 				for (const [annotation, tissues] of Object.entries(
 					this.annoData
 				)) {
@@ -1566,13 +1558,6 @@ export default Vue.component("research-annotations-plot-v2", {
 										ctx.fillStyle =
 											this.getColorIndex(annotation);
 									}*/
-
-									console.log(
-										"selectedAnnoTissues",
-										selectedAnnoTissues
-									);
-
-									console.log(annotation + " / " + tissue);
 
 									if (
 										selectedAnnoTissues.indexOf(
@@ -1737,7 +1722,6 @@ export default Vue.component("research-annotations-plot-v2", {
 			yPos,
 			bump
 		) {
-			//console.log("called");
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#FFAA00";

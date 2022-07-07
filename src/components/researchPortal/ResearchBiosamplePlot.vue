@@ -27,9 +27,9 @@
 								>-->
 								<select
 									class="custom-select"
-									@change="setAnnotation($event)"
+									v-model="annotationOnFocus"
 								>
-									<option value="">
+									<option value="null">
 										{{ "Select annotation" }}
 									</option>
 									<option
@@ -40,7 +40,7 @@
 									></option>
 								</select>
 								<div
-									v-if="annotationOnFocus != null"
+									v-if="annotationOnFocus != 'null'"
 									class="label"
 									style="
 										display: inline-block;
@@ -51,10 +51,10 @@
 								</div>
 								<select
 									class="custom-select"
-									@change="setTissue($event)"
-									v-if="annotationOnFocus != null"
+									v-if="annotationOnFocus != 'null'"
+									v-model="tissueOnFocus"
 								>
-									<option value="">
+									<option value="null">
 										{{ "Select tissue" }}
 									</option>
 									<option
@@ -66,8 +66,8 @@
 								</select>
 								<span
 									v-if="
-										annotationOnFocus != null &&
-										tissueOnFocus != null
+										annotationOnFocus != 'null' &&
+										tissueOnFocus != 'null'
 									"
 									class="
 										btn btn-primary btn-sm btn-biosamples
@@ -166,7 +166,8 @@
 					<div
 						id="bioInitialMessage"
 						:class="
-							annotationOnFocus != null && tissueOnFocus != null
+							annotationOnFocus != 'null' &&
+							tissueOnFocus != 'null'
 								? 'hidden'
 								: ''
 						"
@@ -243,6 +244,7 @@
 				</div>
 			</div>
 		</div>
+		{{ pkgDataSelected }}
 	</div>
 </template>
 
@@ -264,7 +266,7 @@ export default Vue.component("research-biosamples-plot", {
 		"renderConfig",
 		"plotMargin",
 		"compareGroupColors",
-		"dataComparison",
+		"searchType",
 		"plotData",
 		"pkgData",
 		"pkgDataSelected",
@@ -278,14 +280,10 @@ export default Vue.component("research-biosamples-plot", {
 			GEData: {},
 			GEPosData: {},
 			tissuesData: {},
-			tissuesPosData: {},
-			selectedAnnos: [],
-			selectedTissues: [],
-			selectedBiosamples: [],
 			biosamplesPosData: {},
 			spaceBy: 12,
-			annotationOnFocus: null,
-			tissueOnFocus: null,
+			annotationOnFocus: "null",
+			tissueOnFocus: "null",
 			trigger: 0,
 		};
 	},
@@ -303,15 +301,9 @@ export default Vue.component("research-biosamples-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
-		/*pkgData() {
-			return this.$store.state.pkgData;
-		},
-		pkgDataSelected() {
-			return this.$store.state.pkgDataSelected;
-		},*/
 		annoAssoTissues() {
 			if (
-				this.annotationOnFocus != null &&
+				this.annotationOnFocus != "null" &&
 				Object.keys(this.tissuesData).length > 0
 			) {
 				let tissues = [];
@@ -331,7 +323,15 @@ export default Vue.component("research-biosamples-plot", {
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
-				return this.searchingRegion + "," + this.searchingPhenotype;
+				return (
+					this.searchingRegion.chr +
+					":" +
+					this.searchingRegion.start +
+					"-" +
+					this.searchingRegion.end +
+					"," +
+					this.searchingPhenotype
+				);
 			}
 		},
 		searchingRegion() {
@@ -398,14 +398,20 @@ export default Vue.component("research-biosamples-plot", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
-			this.getBSAnnotations(this.searchingRegion);
+			if (this.searchType == "newSearch") {
+				this.resetAll();
+			} else {
+				this.getBSAnnotations(this.searchingRegion);
+			}
 		},
 		pkgDataSelected: {
-			handler: function (n, o) {
-				this.renderBiosamplesTrack("from watch");
+			handler: function (DATA) {
+				if (DATA.length == 0) {
+					this.resetAll();
+				} else {
+					this.renderBiosamplesTrack("from watch");
+				}
 			},
-			deep: true,
-			immediate: true,
 		},
 		viewingRegion: {
 			handler: function (n, o) {
@@ -420,6 +426,20 @@ export default Vue.component("research-biosamples-plot", {
 	},
 	methods: {
 		...uiUtils,
+		resetAll() {
+			console.log("reset called");
+			this.annoData = {};
+			this.biosamplesData = {};
+			this.GEData = {};
+			this.GEPosData = {};
+			this.tissuesData = {};
+			this.biosamplesPosData = {};
+			this.annotationOnFocus = "null";
+			this.tissueOnFocus = "null";
+			this.trigger = 0;
+
+			this.getBSAnnotations(this.searchingRegion);
+		},
 		checkUncheckAll(CHECK) {
 			switch (CHECK) {
 				case "check":
@@ -542,7 +562,7 @@ export default Vue.component("research-biosamples-plot", {
 					action: "add",
 				});
 			}
-		},
+		} /*
 		setAnnotation(EVENT) {
 			if (EVENT.target.value != "") {
 				this.annotationOnFocus = EVENT.target.value;
@@ -554,7 +574,7 @@ export default Vue.component("research-biosamples-plot", {
 			if (EVENT.target.value != "") {
 				this.tissueOnFocus = EVENT.target.value;
 			}
-		},
+		},*/,
 		getOverlappingBSRegion() {
 			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
@@ -708,8 +728,6 @@ export default Vue.component("research-biosamples-plot", {
 		},
 
 		removeAnnoTissue(ID) {
-			//working part
-
 			this.$store.dispatch("pkgDataSelected", {
 				type: "BiosampleAnnoTissue",
 				id: ID,
@@ -949,7 +967,7 @@ export default Vue.component("research-biosamples-plot", {
 			let GEJson = await fetch(GEURL).then((resp) => resp.json());
 
 			if (GEJson.error == null) {
-				if (this.dataComparison == "newSearch") {
+				if (this.searchType == "newSearch") {
 					this.GEData = {};
 				}
 
@@ -1017,6 +1035,7 @@ export default Vue.component("research-biosamples-plot", {
 
 				//this.renderBiosamplesTrack();
 				this.renderGE();
+				this.renderBiosamplesTrack();
 			}
 			this.$forceUpdate();
 		},
@@ -1149,7 +1168,6 @@ export default Vue.component("research-biosamples-plot", {
 					});
 				}
 
-				//working part
 				let regions = [];
 				biosamplesJson.data.map((d) => {
 					if (d.annotation == ANNOTATION) {
@@ -1643,7 +1661,7 @@ export default Vue.component("research-biosamples-plot", {
 
 				annotationsArr.map((annotation, annoIndex) => {
 					let dotColor =
-						this.annotationOnFocus == null ||
+						this.annotationOnFocus == "null" ||
 						this.annotationOnFocus == annotation
 							? this.compareGroupColors[annoIndex]
 							: "#00000030";
@@ -1675,7 +1693,7 @@ export default Vue.component("research-biosamples-plot", {
 						) {
 							ctx.font = "12px Arial";
 							ctx.fillStyle =
-								this.annotationOnFocus == null ||
+								this.annotationOnFocus == "null" ||
 								this.annotationOnFocus == annotation
 									? "#000000"
 									: "#00000050";

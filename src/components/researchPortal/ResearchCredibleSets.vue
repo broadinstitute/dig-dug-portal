@@ -288,10 +288,12 @@ export default Vue.component("research-credible-sets-plot", {
 			this.renderCSPlot();
 		},*/
 		pkgDataSelected: {
-			handler: function (n, o) {
-				//if (n.length > 0) {
-				this.renderCSPlot();
-				//}
+			handler: function (DATA) {
+				if (DATA.length == 0) {
+					this.resetAll();
+				} else {
+					this.renderCSPlot();
+				}
 			},
 			deep: true,
 			immediate: true,
@@ -306,6 +308,13 @@ export default Vue.component("research-credible-sets-plot", {
 	},
 	methods: {
 		...uiUtils,
+		resetAll() {
+			this.credibleSets = [];
+			this.CSData = {};
+			this.CSPosData = {};
+			this.test = null;
+			this.renderCSPlot();
+		},
 		checkStared(ITEM) {
 			let selectedItems = this.pkgDataSelected
 				.filter((s) => s.type == this.renderConfig["star key"])

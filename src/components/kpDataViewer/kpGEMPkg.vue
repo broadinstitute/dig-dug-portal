@@ -155,7 +155,7 @@
 				:renderConfig="pkgConfig['biosamples viewer']"
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
-				:dataComparison="this.$store.state.dataComparison"
+				:searchType="this.$store.state.dataComparison"
 				:plotData="$store.state.filteredData"
 				:pkgData="pkgData"
 				:pkgDataSelected="this.$store.state.pkgDataSelected"

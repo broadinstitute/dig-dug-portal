@@ -392,8 +392,12 @@ export default Vue.component("research-gene-links-plot", {
 			this.getGlobalEnrichment(this.searchingRegion);
 		},
 		pkgDataSelected: {
-			handler: function (n, o) {
-				this.renderGLPlot();
+			handler: function (DATA) {
+				if (DATA.length == 0) {
+					this.resetAll();
+				} else {
+					this.renderGLPlot();
+				}
 			},
 			deep: true,
 			immediate: true,
@@ -409,6 +413,14 @@ export default Vue.component("research-gene-links-plot", {
 	methods: {
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
+		resetAll() {
+			this.GEData = {};
+			this.trigger = 0;
+			this.GLPosData = {};
+			this.GLData = null;
+
+			this.renderGLPlot();
+		},
 		checkUncheckAll(CHECK) {
 			switch (CHECK) {
 				case "check":
