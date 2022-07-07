@@ -47,7 +47,7 @@
 										margin: 0 10px;
 									"
 								>
-									Select Tissue
+									Select Tissue Category
 								</div>
 								<select
 									class="custom-select"

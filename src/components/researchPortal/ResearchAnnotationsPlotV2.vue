@@ -121,7 +121,10 @@
 							class="filtering-ui-content"
 							style="padding: 5px; text-align: left"
 						>
-							<strong>Select tissues by clicking tracks</strong>
+							<strong
+								>Select tissue categories by clicking
+								tracks</strong
+							>
 							<div
 								class=""
 								v-if="
