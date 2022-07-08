@@ -290,7 +290,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				return returnObj;
 			}
 		},
-		searchingPhenotype() {
+		/*searchingPhenotype() {
 			if (this.phenotype != null) {
 				uiUtils.showElement("annotationsPlotWrapper");
 				//this.getAnnotations(this.searchingRegion);
@@ -305,6 +305,34 @@ export default Vue.component("research-annotations-plot-v2", {
 					uiUtils.showElement("annotationsPlotWrapper");
 					//this.getAnnotations(this.searchingRegion);
 					return keyParams[this.renderConfig["phenotype parameter"]];
+				} else {
+					return null;
+				}
+			}
+		},*/
+		searchingPhenotype() {
+			if (this.phenotype != null) {
+				uiUtils.showElement("annotationsPlotWrapper");
+				//this.getAnnotations(this.searchingRegion);
+
+				let returnPhenotype = !!this.renderConfig["phenotype match"]
+					? this.renderConfig["phenotype match"][this.phenotype]
+					: this.phenotype;
+
+				return returnPhenotype;
+			} else if (this.phenotype == null) {
+				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
+					uiUtils.showElement("annotationsPlotWrapper");
+					//this.getAnnotations(this.searchingRegion);
+
+					let phenotype =
+						keyParams[this.renderConfig["phenotype parameter"]];
+
+					let returnPhenotype = !!this.renderConfig["phenotype match"]
+						? this.renderConfig["phenotype match"][phenotype]
+						: phenotype;
+
+					return returnPhenotype;
 				} else {
 					return null;
 				}

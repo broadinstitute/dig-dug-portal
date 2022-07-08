@@ -370,6 +370,12 @@ export default Vue.component("research-biosamples-plot", {
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
+				return this.searchingRegion + "," + this.searchingPhenotype;
+			}
+			/*if (
+				this.searchingRegion != null &&
+				this.searchingPhenotype != null
+			) {
 				return (
 					this.searchingRegion.chr +
 					":" +
@@ -379,7 +385,7 @@ export default Vue.component("research-biosamples-plot", {
 					"," +
 					this.searchingPhenotype
 				);
-			}
+			}*/
 		},
 		searchingRegion() {
 			let returnObj = {};
@@ -424,7 +430,7 @@ export default Vue.component("research-biosamples-plot", {
 				return returnObj;
 			}
 		},
-		searchingPhenotype() {
+		/*searchingPhenotype() {
 			if (this.phenotype != null) {
 				uiUtils.showElement("biosamplesPlotWrapper");
 
@@ -437,6 +443,34 @@ export default Vue.component("research-biosamples-plot", {
 				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
 					uiUtils.showElement("biosamplesPlotWrapper");
 					return keyParams[this.renderConfig["phenotype parameter"]];
+				} else {
+					return null;
+				}
+			}
+		},*/
+		searchingPhenotype() {
+			if (this.phenotype != null) {
+				uiUtils.showElement("annotationsPlotWrapper");
+				//this.getAnnotations(this.searchingRegion);
+
+				let returnPhenotype = !!this.renderConfig["phenotype match"]
+					? this.renderConfig["phenotype match"][this.phenotype]
+					: this.phenotype;
+
+				return returnPhenotype;
+			} else if (this.phenotype == null) {
+				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
+					uiUtils.showElement("annotationsPlotWrapper");
+					//this.getAnnotations(this.searchingRegion);
+
+					let phenotype =
+						keyParams[this.renderConfig["phenotype parameter"]];
+
+					let returnPhenotype = !!this.renderConfig["phenotype match"]
+						? this.renderConfig["phenotype match"][phenotype]
+						: phenotype;
+
+					return returnPhenotype;
 				} else {
 					return null;
 				}
@@ -1662,6 +1696,7 @@ export default Vue.component("research-biosamples-plot", {
 			ctx = c.getContext("2d");
 
 			let pIndex = 0;
+			console.log("sortedGEData", sortedGEData);
 			for (const [phenotype, GE] of Object.entries(sortedGEData)) {
 				let titleYPos = titleSize;
 
@@ -1690,6 +1725,7 @@ export default Vue.component("research-biosamples-plot", {
 
 				let foldArr = [];
 				let pValArr = [];
+
 				annotationsArr.map((annotation) => {
 					for (const [tissue, tissueValue] of Object.entries(
 						GE[annotation]
