@@ -457,7 +457,15 @@ export default Vue.component("research-annotations-plot", {
 				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
 					uiUtils.showElement("annotationsPlotWrapper");
 					//this.getAnnotations(this.searchingRegion);
-					return keyParams[this.renderConfig["phenotype parameter"]];
+
+					let phenotype =
+						keyParams[this.renderConfig["phenotype parameter"]];
+
+					let returnPhenotype = !!this.renderConfig["phenotype match"]
+						? this.renderConfig["phenotype match"][phenotype]
+						: phenotype;
+
+					return returnPhenotype;
 				} else {
 					return null;
 				}
@@ -1335,6 +1343,7 @@ export default Vue.component("research-annotations-plot", {
 					: this.renderConfig["annotations server"];
 
 			let phenotype = this.searchingPhenotype;
+			console.log("phenotype", phenotype);
 
 			let GEIndex = !!this.renderConfig["global enrichment index"]
 				? this.renderConfig["global enrichment index"]
