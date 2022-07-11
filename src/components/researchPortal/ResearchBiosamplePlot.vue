@@ -1605,7 +1605,8 @@ export default Vue.component("research-biosamples-plot", {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
-						let pValue = -Math.log10(g.pValue);
+						let pValue =
+							g.pValue == 0 ? 324 : -Math.log10(g.pValue);
 						let fold = g.SNPs / g.expectedSNPs;
 
 						sortedGEData[phenotype].yMax =
