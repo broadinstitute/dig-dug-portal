@@ -59,56 +59,35 @@ export default Vue.component("research-summary-plot", {
         renderCharts(dataset, nBuckets, chartWrapper){
             let maxVal = dataset.reduce((prev, next) => prev > next ? prev : next);
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
-            let interval = (maxVal - minVal) / nBuckets;
-
-            let buckets = [];
-            for (let i = minVal; i < maxVal; i = i + interval){
-                let bucketCount = dataset.filter(entry => entry >= i && entry < i + interval).length;
-                buckets.push({"bucketStart": i, "bucketCount": bucketCount});
-            }
-            // Max vals get added to the top bucket
-            let maxCount = buckets.filter(entry => entry == maxVal).length;
-            buckets[buckets.length - 1].bucketCount += maxCount;
 
             // Based on EffectorGenesPlotsLine
             var margin = { top: 25, right: 10, bottom: 20, left: 29 },
                     width =
                         $(chartWrapper).width() - margin.left - margin.right, // Use the window's width
                     height = $(chartWrapper).height() - margin.top - margin.bottom; // Use the window's height
-
-            let maxFreq = buckets.map(bucket => bucket.bucketCount)
-                                .reduce((prev, next) => prev > next ? prev : next);
-
                 
             var xScale = d3
                     .scaleLinear()
                     .domain([minVal, maxVal]) // input
                     .range([0, width]);
-            var yScale = d3
-                    .scaleLinear()
-                    .domain([0, maxFreq]) // input
+            
+            var histogram = d3.histogram()
+                            .value(function (d) {return d })
+                            .domain(xScale.domain())
+                            .thresholds(xScale.ticks(nBuckets));
+            
+            var bins = histogram(dataset);
+
+            var yScale = d3.scaleLinear()
+                    .domain([0, d3.max(bins, function(d){return d.length;})]) // input
                     .range([height, 0]); // output
 
-            var line = d3
-                    .line()
-                    .x(function (d) {
-                        return xScale(d.bucketStart);
-                    }) // set the x values for the line generator
-                    .y(function (d) {
-                        return yScale(d.bucketCount);
-                    }) // set the y values for the line generator
-                    .curve(d3.curveMonotoneX); // apply smoothing to the line
-
-            let svg = d3
-                    .select(chartWrapper)
+            let svg = d3.select(chartWrapper)
                     .append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
                     .append("g")
-                    .attr(
-                        "transform",
-                        "translate(" + margin.left + "," + margin.top + ")"
-                    );
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             
             svg.append("g")
                     .attr("class", "x axis")
@@ -121,12 +100,15 @@ export default Vue.component("research-summary-plot", {
                     .selectAll("text")
                     .style("text-anchor", "end");
             
-            svg.append("path")
-                .datum(buckets)
-                .attr("class", "chart-line")
-                .attr("d", line)
-                .attr("fill", "none")
-                .attr("stroke", "orange");
+            svg.selectAll("rect")
+                .data(bins)
+                .enter()
+                .append("rect")
+                .attr("x", 1)
+                .attr("transform", function(d){return `translate(${xScale(d.x0)},${yScale(d.length)})`;})
+                .attr("width", function(d){return xScale(d.x1) - xScale(d.x0) - 1;})
+                .attr("height", function(d){return height - yScale(d.length);})
+                .style("fill", "orange");
             
             svg.append("text")
                 .attr("text-anchor", "start")
