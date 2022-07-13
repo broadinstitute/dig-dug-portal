@@ -6,7 +6,12 @@
 <p>Gene or region:</p>
 <input v-model="region"/>
 <button @click="getAssociations(phenotype, region)">Get associations</button>
-<div class="beta-chart"></div>
+<div class="all-charts">
+    <div class="chart beta-chart"></div>
+    <div class="chart p-val-chart"></div>
+    <div class="chart std-err-chart"></div>
+    <div class="chart z-score-chart"></div>
+</div>
 </div>
 </template>
 
@@ -32,9 +37,23 @@ export default Vue.component("research-summary-plot", {
             let assocServer = "https://bioindex.hugeamp.org/api/bio"; // will this ever change?
             let queryURL = `${assocServer}/query/associations?q=${phenotype},${region}`
             let assocJSON = await fetch(queryURL).then((response) => response.json());
-            let betaVals = assocJSON.data.map(item => item.beta); // from -1 to 1         
-            console.log(betaVals);   
+            
+            // Beta
+            let betaVals = assocJSON.data.map(item => item.beta);       
             this.renderCharts(betaVals, 100, ".beta-chart");
+
+            // P-value
+            let pVals = assocJSON.data.map(item => (-1 * Math.log10(item.pValue)));
+            this.renderCharts(pVals, 100, ".p-val-chart");
+
+            // Std error
+            //let stdErrVals = assocJSON.data.map(item => item.stdErr);
+            //this.renderCharts(stdErrVals, 100, ".std-err-chart");
+
+            // Z-score
+            //let zScoreVals = assocJSON.data.map(item => item.zScore);
+            //this.renderCharts(zScoreVals, 100, ".z-score-chart");
+
         },
         
         renderCharts(dataset, nBuckets, chartWrapper){
@@ -42,31 +61,25 @@ export default Vue.component("research-summary-plot", {
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
             let interval = (maxVal - minVal) / nBuckets;
 
-            console.log(`Max val: ${maxVal}, min val: ${minVal}`);
-
             let buckets = [];
             for (let i = minVal; i < maxVal; i = i + interval){
                 let bucketCount = dataset.filter(entry => entry >= i && entry < i + interval).length;
-                console.log(bucketCount);
                 buckets.push({"bucketStart": i, "bucketCount": bucketCount});
             }
             // Max vals get added to the top bucket
             let maxCount = buckets.filter(entry => entry == maxVal).length;
             buckets[buckets.length - 1].bucketCount += maxCount;
 
-            console.log(buckets);
-
             // Based on EffectorGenesPlotsLine
             var margin = { top: 25, right: 10, bottom: 20, left: 29 },
                     width =
                         $(chartWrapper).width() - margin.left - margin.right, // Use the window's width
-                    height = 150 - margin.top - margin.bottom; // Use the window's height
+                    height = $(chartWrapper).height() - margin.top - margin.bottom; // Use the window's height
 
             let maxFreq = buckets.map(bucket => bucket.bucketCount)
                                 .reduce((prev, next) => prev > next ? prev : next);
 
                 
-            console.log(maxFreq);
             var xScale = d3
                     .scaleLinear()
                     .domain([minVal, maxVal]) // input
@@ -118,9 +131,12 @@ export default Vue.component("research-summary-plot", {
 });
 </script>
 <style>
-.beta-chart{
-    width: 500px;
-    height: 500px;
+.chart{
+    height: 275px;
+    flex: 1;
+}
 
+.all-charts{
+    display: flex;
 }
 </style>
