@@ -172,6 +172,7 @@
 									$parent.dataComparisonConfig
 								"
 								:dataType="$parent.dataType"
+								:isAPI="$parent.isAPI"
 								:uid="$parent.uid"
 								:filters="$parent.dataFilters"
 								:filterWidth="$parent.filterWidth"

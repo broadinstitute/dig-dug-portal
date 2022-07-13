@@ -407,6 +407,7 @@ export default Vue.component("research-page-filters", {
 		"dataComparisonConfig",
 		"dataFiles",
 		"dataType",
+		"isAPI",
 		"filesListLabels",
 		"uid",
 		"filters",
@@ -749,12 +750,23 @@ export default Vue.component("research-page-filters", {
 			}
 
 			let APIPoint = this.dataFiles[0];
-			if (this.dataType == "bioindex") {
+			/*if (this.dataType == "bioindex") {
 				APIPoint +=
 					"query/" +
 					this.apiParameters.query.index +
 					"?q=" +
 					queryParams;
+			}*/
+
+			if (this.dataType == "bioindex" && !!this.isAPI) {
+				/// set BioIndex API point
+				APIPoint +=
+					"query/" +
+					this.apiParameters.query.index +
+					"?q=" +
+					queryParams;
+			} else if (this.dataType != "bioindex" && !!this.isAPI) {
+				APIPoint += queryParams;
 			}
 
 			let fetchParam = { dataPoint: APIPoint, domain: "external" };

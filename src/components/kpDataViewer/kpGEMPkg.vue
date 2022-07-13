@@ -59,21 +59,6 @@
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
 			></research-credible-sets-plot>
-			<div
-				v-if="pkgConfig.viewers.includes('annotations plot') == true"
-				class="section-opener"
-				id="annotationSectionOpener"
-				@click="
-					showHideSection(
-						$event,
-						'annotationSection',
-						'annotationSectionOpener',
-						'Filter associated variants by annotations'
-					)
-				"
-			>
-				Filter associated variants by annotations
-			</div>
 			<!--<button
 				id="external-button"
 				@click="$refs.annotationsRef.removeAnnoTrack('binding_sites')"
@@ -89,6 +74,24 @@
 			>
 				remove pancreas
 			</button>-->
+			<div
+				v-if="
+					pkgConfig.viewers.includes('annotations plot') == true ||
+					pkgConfig.viewers.includes('annotations plot v2') == true
+				"
+				class="section-opener"
+				id="annotationSectionOpener"
+				@click="
+					showHideSection(
+						$event,
+						'annotationSection',
+						'annotationSectionOpener',
+						'Filter associated variants by annotations'
+					)
+				"
+			>
+				Filter associated variants by annotations
+			</div>
 
 			<research-annotations-plot
 				id="annotationSection"
@@ -108,6 +111,59 @@
 				:sharedPlotXpos="sharedPlotXpos"
 				ref="annotationsRef"
 			></research-annotations-plot>
+
+			<research-annotations-plot-v2
+				id="annotationSection"
+				class="svg-wrapper hidden-svg"
+				v-if="pkgConfig.viewers.includes('annotations plot v2') == true"
+				:region="$store.state.searchingRegion"
+				:phenotype="$store.state.searchingPhenotype"
+				:renderConfig="pkgConfig['annotations viewer']"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.bold"
+				:dataComparison="this.$store.state.dataComparison"
+				:plotData="$store.state.filteredData"
+				:pkgData="pkgData"
+				:pkgDataSelected="pkgDataSelected"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
+				:sharedPlotXpos="sharedPlotXpos"
+				ref="annotationsRef"
+			></research-annotations-plot-v2>
+			<div
+				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
+				class="section-opener"
+				id="biosamplesSectionOpener"
+				@click="
+					showHideSection(
+						$event,
+						'biosamplesSection',
+						'biosamplesSectionOpener',
+						'Filter associated variants by biosamples'
+					)
+				"
+			>
+				Filter associated variants by biosamples
+			</div>
+
+			<research-biosamples-plot
+				id="biosamplesSection"
+				class="svg-wrapper hidden-svg"
+				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
+				:region="$store.state.searchingRegion"
+				:phenotype="$store.state.searchingPhenotype"
+				:renderConfig="pkgConfig['biosamples viewer']"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.bold"
+				:searchType="this.$store.state.dataComparison"
+				:plotData="$store.state.filteredData"
+				:pkgData="pkgData"
+				:pkgDataSelected="this.$store.state.pkgDataSelected"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
+				:sharedPlotXpos="sharedPlotXpos"
+				ref="biosamplesRef"
+			></research-biosamples-plot>
 
 			<div
 				v-if="pkgConfig.viewers.includes('gene-links plot') == true"
@@ -153,7 +209,9 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
+import ResearchBiosamplePlot from "@/components/researchPortal/ResearchBiosamplePlot.vue";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
+import ResearchAnnotationsPlotV2 from "@/components/researchPortal/ResearchAnnotationsPlotV2.vue";
 import ResearchCredibleSets from "@/components/researchPortal/ResearchCredibleSets.vue";
 import ResearchGeneLinks from "@/components/researchPortal/ResearchGeneLinks.vue";
 
@@ -180,7 +238,9 @@ export default Vue.component("kp-gem-pkg", {
 	components: {
 		ResearchRegionPlot,
 		ResearchGenesTrack,
+		ResearchBiosamplePlot,
 		ResearchAnnotationsPlot,
+		ResearchAnnotationsPlotV2,
 		ResearchCredibleSets,
 		ResearchGeneLinks,
 	},

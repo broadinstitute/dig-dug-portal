@@ -4,11 +4,7 @@
 		v-if="searchingRegion != null && searchingPhenotype != null"
 	>
 		<div class="col-md-12 CS-plot-wrapper">
-			<div
-				class="col-md-9"
-				id="CSPlotWrapper"
-				style="display: inline-block"
-			>
+			<div class="col-md-12">
 				<div id="CSUIWrapper">
 					<div
 						class="filtering-ui-wrapper add-content"
@@ -102,6 +98,12 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			<div
+				class="col-md-9"
+				id="CSPlotWrapper"
+				style="display: inline-block"
+			>
 				<div id="CSInfoBox" class="hidden">
 					<div
 						class="fixed-info-box-close"
@@ -286,10 +288,12 @@ export default Vue.component("research-credible-sets-plot", {
 			this.renderCSPlot();
 		},*/
 		pkgDataSelected: {
-			handler: function (n, o) {
-				//if (n.length > 0) {
-				this.renderCSPlot();
-				//}
+			handler: function (DATA) {
+				if (DATA.length == 0) {
+					this.resetAll();
+				} else {
+					this.renderCSPlot();
+				}
 			},
 			deep: true,
 			immediate: true,
@@ -304,6 +308,13 @@ export default Vue.component("research-credible-sets-plot", {
 	},
 	methods: {
 		...uiUtils,
+		resetAll() {
+			this.credibleSets = [];
+			this.CSData = {};
+			this.CSPosData = {};
+			this.test = null;
+			this.renderCSPlot();
+		},
 		checkStared(ITEM) {
 			let selectedItems = this.pkgDataSelected
 				.filter((s) => s.type == this.renderConfig["star key"])
