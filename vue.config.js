@@ -242,6 +242,13 @@ let pages = {
         filename: "egggenerator.html",
         title: "Exome Gene-Level Group-file Generator",
         chunks: ["chunk-vendors", "chunk-common", "egggenerator"]
+    },
+    testcomponents: {
+        entry: "src/views/TestComponents/main.js",
+        template: "public/index.html",
+        filename: "testcomponent.html",
+        title: "This is Only a Test",
+        chunks: ["chunk-vendors", "chunk-common", "testcomponents"]
     }
 };
 
