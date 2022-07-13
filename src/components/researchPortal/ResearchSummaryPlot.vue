@@ -19,8 +19,8 @@ export default Vue.component("research-summary-plot", {
     props: ["dataset", "graphData"],
     data(){
         return {
-            phenotype: "",
-            region: "",
+            phenotype: "t2d",
+            region: "slc30a8",
         };
     },
     mounted: function () {},
@@ -32,27 +32,44 @@ export default Vue.component("research-summary-plot", {
             let assocServer = "https://bioindex.hugeamp.org/api/bio"; // will this ever change?
             let queryURL = `${assocServer}/query/associations?q=${phenotype},${region}`
             let assocJSON = await fetch(queryURL).then((response) => response.json());
-            let betaVals = assocJSON.data.map(item => item.beta); // from -1 to 1
-            let betaBuckets = [];
-            for (let i = -1; i < 1; i += 0.02){
-                let bucketCount = betaVals.filter(beta => beta >= i && beta < i + 0.02).length;
-                betaBuckets.push({"bucketStart": i, "bucketCount": bucketCount});
-            }
-            console.log(betaBuckets);
-            this.renderCharts(betaBuckets);
+            let betaVals = assocJSON.data.map(item => item.beta); // from -1 to 1         
+            console.log(betaVals);   
+            this.renderCharts(betaVals, 100, ".beta-chart");
         },
-        renderCharts(dataset){
+        
+        renderCharts(dataset, nBuckets, chartWrapper){
+            let maxVal = dataset.reduce((prev, next) => prev > next ? prev : next);
+            let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
+            let interval = (maxVal - minVal) / nBuckets;
+
+            console.log(`Max val: ${maxVal}, min val: ${minVal}`);
+
+            let buckets = [];
+            for (let i = minVal; i < maxVal; i = i + interval){
+                let bucketCount = dataset.filter(entry => entry >= i && entry < i + interval).length;
+                console.log(bucketCount);
+                buckets.push({"bucketStart": i, "bucketCount": bucketCount});
+            }
+            // Max vals get added to the top bucket
+            let maxCount = buckets.filter(entry => entry == maxVal).length;
+            buckets[buckets.length - 1].bucketCount += maxCount;
+
+            console.log(buckets);
+
             // Based on EffectorGenesPlotsLine
-            var chartWrapper = ".beta-chart";
             var margin = { top: 25, right: 10, bottom: 20, left: 29 },
                     width =
                         $(chartWrapper).width() - margin.left - margin.right, // Use the window's width
                     height = 150 - margin.top - margin.bottom; // Use the window's height
-            var n = dataset.length;
-            var maxFreq = 100;
+
+            let maxFreq = buckets.map(bucket => bucket.bucketCount)
+                                .reduce((prev, next) => prev > next ? prev : next);
+
+                
+            console.log(maxFreq);
             var xScale = d3
                     .scaleLinear()
-                    .domain(-1, 1) // input
+                    .domain([minVal, maxVal]) // input
                     .range([0, width]);
             var yScale = d3
                     .scaleLinear()
@@ -62,12 +79,10 @@ export default Vue.component("research-summary-plot", {
             var line = d3
                     .line()
                     .x(function (d) {
-                        console.log(d);
-                        return d.bucketStart;
+                        return xScale(d.bucketStart);
                     }) // set the x values for the line generator
                     .y(function (d) {
-                        console.log(d);
-                        return d.bucketCount;
+                        return yScale(d.bucketCount);
                     }) // set the y values for the line generator
                     .curve(d3.curveMonotoneX); // apply smoothing to the line
 
@@ -93,7 +108,7 @@ export default Vue.component("research-summary-plot", {
                     .selectAll("text")
                     .style("text-anchor", "end");
             
-            svg.append("path").datum(dataset)
+            svg.append("path").datum(buckets)
                     .attr("class", "chart-line")
                     .attr("d", line);
 
