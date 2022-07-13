@@ -47,12 +47,12 @@ export default Vue.component("research-summary-plot", {
             this.renderCharts(pVals, 100, ".p-val-chart");
 
             // Std error
-            //let stdErrVals = assocJSON.data.map(item => item.stdErr);
-            //this.renderCharts(stdErrVals, 100, ".std-err-chart");
+            let stdErrVals = assocJSON.data.map(item => Number(item.stdErr));
+            this.renderCharts(stdErrVals, 100, ".std-err-chart");
 
             // Z-score
-            //let zScoreVals = assocJSON.data.map(item => item.zScore);
-            //this.renderCharts(zScoreVals, 100, ".z-score-chart");
+            let zScoreVals = assocJSON.data.map(item => Number(item.zScore));
+            this.renderCharts(zScoreVals, 100, ".z-score-chart");
 
         },
         
@@ -121,9 +121,7 @@ export default Vue.component("research-summary-plot", {
                     .selectAll("text")
                     .style("text-anchor", "end");
             
-            svg.append("path").datum(buckets)
-                    .attr("class", "chart-line")
-                    .attr("d", line);
+            svg.append("path").datum(buckets).attr("class", "chart-line").attr("d", line);
 
         }
 
