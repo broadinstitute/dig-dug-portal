@@ -121,8 +121,18 @@ export default Vue.component("research-summary-plot", {
                     .selectAll("text")
                     .style("text-anchor", "end");
             
-            svg.append("path").datum(buckets).attr("class", "chart-line").attr("d", line);
-
+            svg.append("path")
+                .datum(buckets)
+                .attr("class", "chart-line")
+                .attr("d", line)
+                .attr("fill", "none")
+                .attr("stroke", "orange");
+            
+            svg.append("text")
+                .attr("text-anchor", "start")
+                .attr("y", 1)
+                .attr("x", 0.5)
+                .text(chartWrapper.slice(1, -6).replace("-", " "));
         }
 
     },
