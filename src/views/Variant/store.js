@@ -18,7 +18,8 @@ export default new Vuex.Store({
         transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
         regions: bioIndex("regions"),
-        datasetAssociations: bioIndex("variant-dataset-associations")
+        datasetAssociations: bioIndex("variant-dataset-associations"),
+        clumpedVariants: bioIndex("clumped-variants")
     },
 
     state: {
@@ -48,6 +49,11 @@ export default new Vuex.Store({
             if (!!newVarId) {
                 context.dispatch("variantData/query", { q: newVarId });
             }
+        },
+        // Do we need a new function here? Is this it?
+        async clumpedVariants(context, phenotype, clump){
+            let query = phenotype + "," + clump;
+            context.dispatch("clumpedVariants/query", {q: query});
         }
     }
 });

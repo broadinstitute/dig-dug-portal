@@ -172,6 +172,7 @@
 									$parent.dataComparisonConfig
 								"
 								:dataType="$parent.dataType"
+								:isAPI="$parent.isAPI"
 								:uid="$parent.uid"
 								:filters="$parent.dataFilters"
 								:filterWidth="$parent.filterWidth"
@@ -386,19 +387,9 @@
 									$parent.plotConfig != null &&
 									$parent.plotConfig['type'] == 'phewas plot'
 								"
-								:phenotypesData="
-									!!$parent.plotConfig['data self load']
-										? $parent.plotConfig['data self load']
-										: $store.state.filteredData
-								"
+								:phenotypesData="$store.state.filteredData"
 								:phenotypeMap="
-									!!$parent.plotConfig[
-										'phenotype map self load'
-									]
-										? $parent.plotConfig[
-												'phenotype map self load'
-										  ]
-										: $store.state.bioPortal.phenotypeMap
+									$store.state.bioPortal.phenotypeMap
 								"
 								:colors="$parent.colors.extraBold"
 								:plotMargin="$parent.plotMargin"

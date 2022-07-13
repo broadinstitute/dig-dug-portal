@@ -4,7 +4,7 @@
 			class="col-md-12 gene-links-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
-			<div class="col-md-9 gene-link-plot-wrapper">
+			<div class="col-md-12">
 				<div id="geneLinksUIWrapper">
 					<div
 						class="filtering-ui-wrapper add-content"
@@ -60,6 +60,8 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			<div class="col-md-9 gene-link-plot-wrapper">
 				<div id="geneLinksPlotWrapper">
 					<div id="GLInfoBox" class="hidden">
 						<div
@@ -235,6 +237,8 @@ export default Vue.component("research-gene-links-plot", {
 					tempArray.push(tempObj);
 				}
 
+				tempArray.sort((a, b) => (a.tissue > b.tissue ? 1 : -1));
+
 				return tempArray;
 			}
 		},
@@ -388,8 +392,12 @@ export default Vue.component("research-gene-links-plot", {
 			this.getGlobalEnrichment(this.searchingRegion);
 		},
 		pkgDataSelected: {
-			handler: function (n, o) {
-				this.renderGLPlot();
+			handler: function (DATA) {
+				if (DATA.length == 0) {
+					this.resetAll();
+				} else {
+					this.renderGLPlot();
+				}
 			},
 			deep: true,
 			immediate: true,
@@ -405,6 +413,14 @@ export default Vue.component("research-gene-links-plot", {
 	methods: {
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
+		resetAll() {
+			this.GEData = {};
+			this.trigger = 0;
+			this.GLPosData = {};
+			this.GLData = null;
+
+			this.renderGLPlot();
+		},
 		checkUncheckAll(CHECK) {
 			switch (CHECK) {
 				case "check":
