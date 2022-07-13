@@ -17,6 +17,7 @@ import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import Documentation from "@/components/Documentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -52,6 +53,7 @@ new Vue({
         TooltipDocumentation,
         Documentation,
         Autocomplete,
+        ResearchSingleSearch
     },
 
     created() {
@@ -75,6 +77,9 @@ new Vue({
     computed: {
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        diseaseGroups() {
+            return this.$store.state.bioPortal.diseaseGroups;
         },
         phenotypes() {
             return this.$store.state.bioPortal.phenotypes;
