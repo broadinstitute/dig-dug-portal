@@ -42,7 +42,9 @@
                     <template #cell(transcriptId)="data">
                         <a
                             v-if="data.item.transcriptId"
-                            :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
+                            :href="
+                                `https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`
+                            "
                             target="_blank"
                             rel="noopener noreferrer nofollow"
                             >{{ data.item.transcriptId }}</a
@@ -106,38 +108,49 @@ export default Vue.component("variant-phenotype-table", {
                 NephSyndUncategorized: "Uncategorized Nephrotic Syndrome",
                 NephSyndSteroidResistant:
                     "Steroid Resistant Nephrotic Syndrome",
-                AllNyphroticSyndCases: "All Cases Nephrotic Syndrome",
+                AllNephroticSyndCases: "All Cases Nephrotic Syndrome",
+                FSGS: "Focal Segmental Glomerulosclerosis",
+                MCD: "Minimal Change Disease",
+                AllSamples: "All Samples"
             },
             fields: [
                 {
                     key: "hpoterms",
-                    label: "Phenotype",
+                    label: "Phenotype"
                 },
                 {
                     key: "allelecount",
                     label: "Allele Count",
                     sortable: true,
+                    tdClass: "text-right",
+                    thClass: "text-right"
                 },
                 {
                     key: "allelnumber",
                     label: "Allele Number",
                     sortable: true,
+                    tdClass: "text-right",
+                    thClass: "text-right"
                 },
 
                 {
                     key: "allelefrequency",
                     label: "Allele Frequency",
                     sortable: true,
+                    tdClass: "text-right",
+                    thClass: "text-right"
                 },
                 {
-                    key: "TWO_ALT_GENO_CTS",
+                    key: "n_hom_var_case",
                     label: "Homozygotes",
                     sortable: true,
-                },
+                    tdClass: "text-right",
+                    thClass: "text-right"
+                }
             ],
             hprecords: [],
             perPage: 24,
-            currentPage: 1,
+            currentPage: 1
         };
     },
     created() {
@@ -163,7 +176,7 @@ export default Vue.component("variant-phenotype-table", {
                 });
             }
             return dataRows;*/
-        },
+        }
     },
     methods: {
         consequenceFormatter: Formatters.consequenceFormatter,
@@ -188,20 +201,19 @@ export default Vue.component("variant-phenotype-table", {
                     this.HPOTerms[hp.HP]
                 );
                 hpdisplay[j].allelecount =
-                    2 * hp.TWO_ALT_GENO_CTS + hp.HET_REF_ALT_CTS;
+                    2 * hp.n_hom_var_case + hp.n_het_case;
                 hpdisplay[j].allelnumber =
-                    2 *
-                    (hp.HOM_REF_CT + hp.HET_REF_ALT_CTS + hp.TWO_ALT_GENO_CTS);
+                    2 * (hp.n_hom_ref_case + hp.n_het_case + hp.n_hom_var_case);
                 hpdisplay[j].allelefrequency = this.formatAlleleFrequency(
                     hpdisplay[j].allelecount,
                     hpdisplay[j].allelnumber
                 );
 
-                hpdisplay[j].TWO_ALT_GENO_CTS = hp.TWO_ALT_GENO_CTS;
+                hpdisplay[j].n_hom_var_case = hp.n_hom_var_case;
                 j++;
                 //}
             }
-            hpdisplay = hpdisplay.sort(function (a, b) {
+            hpdisplay = hpdisplay.sort(function(a, b) {
                 //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
                 if (a.allelecount > b.allelecount) {
                     return -1;
@@ -215,14 +227,15 @@ export default Vue.component("variant-phenotype-table", {
             //console.log("results:"+JSON.stringify(this.variant[0].hprecords));
         },
         formatAlleleFrequency(count, number) {
+            console.log(count + "|" + number);
             if (count === 0 || number === 0) return 0;
             else return Number.parseFloat(count / number).toExponential(2);
         },
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
             if (item.pick === 1) return "row-pick";
-        },
-    },
+        }
+    }
 });
 </script>
 <style>
