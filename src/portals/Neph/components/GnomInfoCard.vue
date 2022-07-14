@@ -49,27 +49,27 @@ export default Vue.component("gnominfo-card", {
                 FIN: "European (Finnish)",
                 NFE: "European (Non-Finnish)",
                 SAS: "South Asian",
-                OTH: "Other",
+                OTH: "Other"
             },
             fields: [
                 {
                     key: "name",
-                    label: "Cohort",
+                    label: "Cohort"
                 },
                 {
                     key: "AC",
-                    label: "Allele Count",
+                    label: "Allele Count"
                 },
                 {
                     key: "AN",
-                    label: "Allele Number",
+                    label: "Allele Number"
                 },
                 {
                     key: "AF",
-                    label: "Allele Frequency",
-                },
+                    label: "Allele Frequency"
+                }
             ],
-            gnomAD_info: [],
+            gnomAD_info: []
         };
     },
     created() {
@@ -95,7 +95,7 @@ export default Vue.component("gnominfo-card", {
                 });
             }
             return dataRows;*/
-        },
+        }
     },
     methods: {
         async searchVariants() {
@@ -109,12 +109,11 @@ export default Vue.component("gnominfo-card", {
             //for (var k in this.variant[0].gnomAD_info) {
             gnomdisplay[0] = {};
             gnomdisplay[0].name = "Total";
-            gnomdisplay[0].AC = this.variant[0].gnomAD_info["gnomAD_exomes_AC"];
+            gnomdisplay[0].AC = this.variant[0].gnomAD_info?.gnomAD_AC || "";
             gnomdisplay[0].AF =
-                this.variant[0].gnomAD_info["gnomAD_exomes_AF"].toExponential(
-                    2
-                );
-            gnomdisplay[0].AN = this.variant[0].gnomAD_info["gnomAD_exomes_AN"];
+                this.variant[0].gnomAD_info?.gnomAD_AF?.toExponential(2) || "";
+            gnomdisplay[0].AN = this.variant[0].gnomAD_info?.gnomAD_AN || "";
+
             let j = 1;
 
             for (let k in this.InfoFields) {
@@ -122,18 +121,15 @@ export default Vue.component("gnominfo-card", {
                 if (this.InfoFields[k] != undefined) {
                     gnomdisplay[j] = {};
                     gnomdisplay[j].name = this.InfoFields[k];
-                    gnomdisplay[j].AC =
-                        this.variant[0].gnomAD_info[
-                            "gnomAD_exomes_" + k + "_AC"
-                        ];
-                    gnomdisplay[j].AF =
-                        this.variant[0].gnomAD_info[
-                            "gnomAD_exomes_" + k + "_AF"
-                        ].toExponential(2);
-                    gnomdisplay[j].AN =
-                        this.variant[0].gnomAD_info[
-                            "gnomAD_exomes_" + k + "_AN"
-                        ];
+                    gnomdisplay[j].AC = this.variant[0].gnomAD_info[
+                        "gnomAD_" + k + "_AC"
+                    ];
+                    gnomdisplay[j].AF = this.variant[0].gnomAD_info[
+                        "gnomAD_" + k + "_AF"
+                    ].toExponential(2);
+                    gnomdisplay[j].AN = this.variant[0].gnomAD_info[
+                        "gnomAD_" + k + "_AN"
+                    ];
                     j++;
                 }
             }
@@ -145,7 +141,7 @@ export default Vue.component("gnominfo-card", {
         formatAlleleFrequency(count, number) {
             if (count === 0 || number === 0) return 0;
             else return Number.parseFloat(count / number).toExponential(2);
-        },
-    },
+        }
+    }
 });
 </script>
