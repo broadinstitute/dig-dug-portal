@@ -85,8 +85,7 @@ export default Vue.component("research-summary-plot", {
                         $(chartWrapper).width() - margin.left - margin.right, // Use the window's width
                     height = $(chartWrapper).height() - margin.top - margin.bottom; // Use the window's height
                 
-            var xScale = d3
-                    .scaleLinear()
+            var xScale = d3.scaleLinear()
                     .domain([minVal, maxVal]) // input
                     .range([0, width]);
             
@@ -97,8 +96,9 @@ export default Vue.component("research-summary-plot", {
             
             var bins = histogram(dataset);
 
+            let yScaleTopEnd = d3.max(bins, function(d){return d.length;});
             var yScale = d3.scaleLinear()
-                    .domain([0, d3.max(bins, function(d){return d.length;})]) // input
+                    .domain([0, yScaleTopEnd]) // input
                     .range([height, 0]); // output
             
             // Clear the div before drawing the graph.
@@ -146,12 +146,21 @@ export default Vue.component("research-summary-plot", {
 
             // Draw a line for this item
             svg.append("line")
-                .attr("x1", xScale(randIndex))
-                .attr("x2", xScale(randIndex))
-                .attr("y1", 0)
-                .attr("y2", height)
-                .attr("stroke", "#grey")
+                .attr("x1", xScale(randItem))
+                .attr("x2", xScale(randItem))
+                .attr("y1", yScale(0))
+                .attr("y2", yScale(dataset.length))
+                .attr("stroke", "grey")
                 .attr("stroke-dasharray", "4");
+            
+            // Label the line
+            let randEntry = this.jsonData[randIndex];
+            svg.append("text")
+                .attr("x", xScale(randItem))
+                .attr("y", yScale(yScaleTopEnd * 0.75))
+                .text(randEntry.varId)
+                .style("font-size", "smaller")
+                .style("color", "grey");
         }
 
     },
