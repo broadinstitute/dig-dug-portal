@@ -76,6 +76,7 @@
                     </template>
                 </b-table>
                 <b-pagination
+                    v-if="rows > perPage"
                     class="pagination-sm justify-content-center"
                     v-model="currentPage"
                     :total-rows="rows"
@@ -227,7 +228,7 @@ export default Vue.component("variant-phenotype-table", {
             //console.log("results:"+JSON.stringify(this.variant[0].hprecords));
         },
         formatAlleleFrequency(count, number) {
-            console.log(count + "|" + number);
+            // console.log(count + "|" + number);
             if (count === 0 || number === 0) return 0;
             else return Number.parseFloat(count / number).toExponential(2);
         },
