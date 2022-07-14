@@ -678,13 +678,13 @@ export default Vue.component("variant-search", {
                     if (this.variants[i].gnomAD_info) {
                         this.variants[i].gnomAD_exomes_AC = this.variants[
                             i
-                        ].gnomAD_info.gnomAD_exomes_AC;
+                        ].gnomAD_info.gnomAD_AC?.toExponential(2);
                         this.variants[i].gnomAD_exomes_AN = this.variants[
                             i
-                        ].gnomAD_info.gnomAD_exomes_AN;
+                        ].gnomAD_info.gnomAD_AN?.toExponential(2);
                         this.variants[i].gnomAD_exomes_AF = this.variants[
                             i
-                        ].gnomAD_info.gnomAD_exomes_AF;
+                        ].gnomAD_info.gnomAD_AF?.toExponential(2);
                         //alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
                     }
 
