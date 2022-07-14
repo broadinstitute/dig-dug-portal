@@ -316,20 +316,19 @@ new Vue({
         },
 
         dbReference() {
-            return this.$store.getters["uniprot/dbReference"];
+            return this.$store.getters["uniprot/dbReference"] || [];
         },
 
         accession() {
-            return this.$store.getters["uniprot/accession"];
+            return this.$store.getters["uniprot/accession"] || [];
         },
 
         geneFunction() {
-            return this.$store.getters["uniprot/geneFunction"];
+            return this.$store.getters["uniprot/geneFunction"] || "";
         },
 
         geneNames() {
-            let x = this.$store.getters["uniprot/geneNames"];
-            return x;
+            return this.$store.getters["uniprot/geneNames"] || [];
         },
 
         gene() {

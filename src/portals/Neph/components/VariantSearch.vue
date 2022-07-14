@@ -76,7 +76,7 @@
                                                 :disabled="key"
                                                 :value="value"
                                                 inline
-                                                :key="key"
+                                                :key="key + value"
                                                 ><b-btn
                                                     disabled
                                                     :variant="
@@ -730,7 +730,6 @@ export default Vue.component("variant-search", {
                         let varrecords = this.variants[i].veprecords;
 
                         for (let j = 0; j < varrecords.length; j++) {
-                            console.log("this gene", this.gene);
                             if (varrecords[j].PICK === true) {
                                 this.variants[i].Gene_Symbol =
                                     varrecords[j].Gene_Symbol;
