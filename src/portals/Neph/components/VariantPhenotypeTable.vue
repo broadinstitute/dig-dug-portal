@@ -133,20 +133,19 @@ export default Vue.component("variant-phenotype-table", {
                     tdClass: "text-right",
                     thClass: "text-right"
                 },
-
-                {
-                    key: "allelefrequency",
-                    label: "Allele Frequency",
-                    sortable: true,
-                    tdClass: "text-right",
-                    thClass: "text-right"
-                },
                 {
                     key: "n_hom_var_case",
                     label: "Homozygotes",
                     sortable: true,
                     tdClass: "text-right",
                     thClass: "text-right"
+                },
+                {
+                    key: "allelefrequency",
+                    label: "Allele Frequency",
+                    sortable: true,
+                    tdClass: "text-left pl-5",
+                    thClass: "text-left pl-5"
                 }
             ],
             hprecords: [],
@@ -230,11 +229,11 @@ export default Vue.component("variant-phenotype-table", {
         formatAlleleFrequency(count, number) {
             // console.log(count + "|" + number);
             if (count === 0 || number === 0) return 0;
-            else return Number.parseFloat(count / number).toExponential(2);
+            else return (count / number).toFixed(8);
         },
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
-            if (item.pick === 1) return "row-pick";
+            if (item.PICK === true) return "row-pick";
         }
     }
 });
