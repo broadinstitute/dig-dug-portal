@@ -591,17 +591,16 @@ export default Vue.component("variant-search", {
                     tdClass: "text-right",
                     thClass: "text-right"
                 },
-
                 {
-                    key: "allelefrequency",
-                    label: "Allele Frequency",
+                    key: "n_hom_var_case",
+                    label: "Homozygotes",
                     sortable: true,
                     tdClass: "text-right",
                     thClass: "text-right"
                 },
                 {
-                    key: "n_hom_var_case",
-                    label: "Homozygotes",
+                    key: "allelefrequency",
+                    label: "Allele Frequency",
                     sortable: true,
                     tdClass: "text-right",
                     thClass: "text-right"
@@ -684,7 +683,7 @@ export default Vue.component("variant-search", {
                         ].gnomAD_info.gnomAD_AN?.toExponential(2);
                         this.variants[i].gnomAD_exomes_AF = this.variants[
                             i
-                        ].gnomAD_info.gnomAD_AF?.toExponential(2);
+                        ].gnomAD_info.gnomAD_AF?.toFixed(8);
                         //alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
                     }
 
@@ -714,7 +713,7 @@ export default Vue.component("variant-search", {
                                 this.variants[i].c_allelnumber;
                             this.variants[i].allelefrequency = this.variants[
                                 i
-                            ].allelefrequency.toExponential(2);
+                            ].allelefrequency.toFixed(8);
                             //this.variants[i].c_allelefrequency =this.variants[i].c_allelecount / this.variants[i].c_allelnumber;
                             //this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
                             //this.variants[i].c_TWO_ALT_GENO_CTS =hp.n_hom_var_case;
@@ -845,7 +844,7 @@ export default Vue.component("variant-search", {
         },
         formatAlleleFrequency(count, number) {
             if (count === 0 || number === 0) return 0;
-            else return Number.parseFloat(count / number).toExponential(2);
+            else return Number.parseFloat(count / number).toFixed(8);
         },
         toToggle(isShowing, buttonClicked) {
             if (isShowing) {
