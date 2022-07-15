@@ -12,8 +12,8 @@
                 <div
                     :class="
                         'front-top-banner-' +
-                        $parent.diseaseGroup.name +
-                        'kp front-top-banner'
+                            $parent.diseaseGroup.name +
+                            'kp front-top-banner'
                     "
                 >
                     <div class="container">
@@ -28,15 +28,15 @@
                                         "
                                         :src="
                                             'https://kp4cd.org/sites/default/files/vueportal/' +
-                                            $parent.frontContents
-                                                .field_front_logo
+                                                $parent.frontContents
+                                                    .field_front_logo
                                         "
                                     />
                                     <span
                                         :class="
                                             'front-logo-tagline front-logo-tagline-' +
-                                            $parent.diseaseGroup.name +
-                                            'kp'
+                                                $parent.diseaseGroup.name +
+                                                'kp'
                                         "
                                         >{{
                                             $parent.frontContents.field_tagline
@@ -75,7 +75,7 @@
                                     <div class="region-search-examples">
                                         <documentation
                                             name="home.example"
-                                            :group="$parent.diseaseGroup"
+                                            :group="$parent.diseaseGroup.name"
                                         ></documentation>
                                     </div>
 
