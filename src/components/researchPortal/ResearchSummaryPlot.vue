@@ -20,10 +20,6 @@
 
 <button @click="displayResults()">Get associations</button>
 <div class="all-charts">
-    <div class="chart beta-chart"></div>
-    <div class="chart p-val-chart"></div>
-    <div class="chart std-err-chart"></div>
-    <div class="chart z-score-chart"></div>
 </div>
 </div>
 </template>
@@ -54,7 +50,16 @@ export default Vue.component("research-summary-plot", {
     methods: {
         ...uiUtils,
         displayResults(){
-            this.getAssociations(this.phenotype, this.region, this.queryConfig());
+            let config = this.queryConfig();
+            let allCharts = document.getElementsByClassName("all-charts")[0];
+            allCharts.innerHTML = "";
+            config.columns.forEach(column => {
+                let newChart = document.createElement("div");
+                newChart.classList.add("chart");
+                newChart.classList.add(`${column}-chart`);
+                allCharts.append(newChart);
+            });
+            this.getAssociationsAndShow(this.phenotype, this.region, config);
         },
         queryConfig(){
             let attributes = [];
@@ -71,43 +76,22 @@ export default Vue.component("research-summary-plot", {
             };
             return config;
         },
-        async getAssociations(phenotype, region, configObject){
+        async getAssociationsAndShow(phenotype, region, configObject){
             let assocServer = "https://bioindex.hugeamp.org/api/bio"; // will this ever change?
             let queryURL = `${assocServer}/query/associations?q=${phenotype},${region}`
             let assocJSON = await fetch(queryURL).then((response) => response.json());
             this.jsonData = assocJSON.data;
 
-            let nBuckets = configObject.buckets;
-            
-            // Beta
-            if (this.includeBeta){
-                let betaVals = assocJSON.data.map(item => item.beta);
-                this.renderCharts(betaVals, nBuckets, ".beta-chart");
-            }
-
-            // P-value
-            if (this.includePvalue){
-                let pVals = assocJSON.data.map(item => (-1 * Math.log10(item.pValue)));
-                this.renderCharts(pVals, nBuckets, ".p-val-chart");
-            }
-            
-
-            // Std error
-            if (this.includeStdErr){
-                let stdErrVals = assocJSON.data.map(item => Number(item.stdErr));
-                this.renderCharts(stdErrVals, nBuckets, ".std-err-chart");
-            }
-
-            // Z-score
-            if (this.includeZscore){
-                let zScoreVals = assocJSON.data.map(item => Number(item.zScore));
-                this.renderCharts(zScoreVals, nBuckets, ".z-score-chart");
-            }
+            configObject.columns.forEach(column => {this.renderCharts(column, configObject.buckets)});
         },
         
-        renderCharts(dataset, nBuckets, chartWrapper){
+        renderCharts(attribute, nBuckets){
+            let dataset = this.jsonData.map(item => Number(item[attribute]));
             let maxVal = dataset.reduce((prev, next) => prev > next ? prev : next);
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
+
+            //TODO remove DOM stuff in favor of jquery? or just remove jquery
+            let chartWrapper = `.${attribute}-chart`;
 
             // Based on EffectorGenesPlotsLine
             var margin = { top: 25, right: 10, bottom: 35, left: 29 },
@@ -130,11 +114,6 @@ export default Vue.component("research-summary-plot", {
             var yScale = d3.scaleLinear()
                     .domain([0, yScaleTopEnd]) // input
                     .range([height, 0]); // output
-            
-            // Clear the div before drawing the chart.
-            let chartDiv = document.getElementsByClassName(chartWrapper.slice(1))[0]
-            chartDiv.innerHTML = "";
-            chartDiv.classList.add("shown");
 
             let svg = d3.select(chartWrapper)
                     .append("svg")
@@ -169,7 +148,7 @@ export default Vue.component("research-summary-plot", {
             svg.append("text")
                 .attr("text-anchor", "start")
                 .attr("y", yScale(yScaleTopEnd * -0.13)).attr("x", 0.5)
-                .text(chartWrapper.slice(1, -6).replace("-", " "));
+                .text(attribute);
 
             // Select a random item
             let randIndex = Math.floor(Math.random()* dataset.length);
