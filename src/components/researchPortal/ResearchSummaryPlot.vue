@@ -3,11 +3,17 @@
 <form>
     <label>Phenotype<input v-model="phenotype"/></label>
     <label>Gene or region<input v-model="region"/></label>
+    <legend class="radio">Chart type:
+        <label>Histogram<input type="radio" name="chart-type" v-model="histogramChart"/></label>
+        <label>Line<input type="radio" name="chart-type" v-model="lineChart"/></label>
+        <label>Scatterplot<input type="radio" name="chart-type" v-model="scatterChart"/></label>
+    </legend>
     <p>Attributes to include:</p>
     <label>Beta<input type="checkbox" v-model="includeBeta"/></label>
     <label>P-value<input type="checkbox" v-model="includePvalue"/></label>
     <label>Standard error<input type="checkbox" v-model="includeStdErr"/></label>
     <label>Z-score<input type="checkbox" v-model="includeZscore"/></label>
+    <label>Number of buckets for data processing:<input type="number" v-model="numberOfBuckets"/></label>
 </form>
 
 <button @click="getAssociations(phenotype, region)">Get associations</button>
@@ -31,10 +37,14 @@ export default Vue.component("research-summary-plot", {
         return {
             phenotype: "t2d",
             region: "slc30a8",
-            includeBeta: false,
-            includePvalue: false,
-            includeStdErr: false,
-            includeZscore: false,
+            includeBeta: true,
+            includePvalue: true,
+            includeStdErr: true,
+            includeZscore: true,
+            numberOfBuckets: 100,
+            histogramChart: true,
+            lineChart: false,
+            scatterChart: false,
             jsonData: null
         };
     },
@@ -43,7 +53,25 @@ export default Vue.component("research-summary-plot", {
 	watch: {},
     methods: {
         ...uiUtils,
+        queryConfig(){
+            let attributes = [];
+            attributes = attributes.concat(this.includeBeta ? ["beta"] : []);
+            attributes = attributes.concat(this.includePvalue ? ["pValue"] : []);
+            attributes = attributes.concat(this.includeStdErr ? ["stdErr"] : []);
+            attributes = attributes.concat(this.includeZscore ? ["zScore"] : []);
+
+            let type = this.histogramChart ? "histogram" : (this.lineChart ? "line" : "scatterplot")
+            
+            let config = {
+                "type": type,
+                "columns": attributes,
+                "dataConvert": {"pValue": "minusLog10"},
+                "buckets": this.numberOfBuckets
+            };
+            return config;
+        },
         async getAssociations(phenotype, region){
+            console.log(this.queryConfig());
             let assocServer = "https://bioindex.hugeamp.org/api/bio"; // will this ever change?
             let queryURL = `${assocServer}/query/associations?q=${phenotype},${region}`
             let assocJSON = await fetch(queryURL).then((response) => response.json());
@@ -80,7 +108,7 @@ export default Vue.component("research-summary-plot", {
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
 
             // Based on EffectorGenesPlotsLine
-            var margin = { top: 25, right: 10, bottom: 20, left: 29 },
+            var margin = { top: 25, right: 10, bottom: 35, left: 29 },
                     width =
                         $(chartWrapper).width() - margin.left - margin.right, // Use the window's width
                     height = $(chartWrapper).height() - margin.top - margin.bottom; // Use the window's height
@@ -101,8 +129,10 @@ export default Vue.component("research-summary-plot", {
                     .domain([0, yScaleTopEnd]) // input
                     .range([height, 0]); // output
             
-            // Clear the div before drawing the graph.
-            document.getElementsByClassName(chartWrapper.slice(1))[0].innerHTML = "";
+            // Clear the div before drawing the chart.
+            let chartDiv = document.getElementsByClassName(chartWrapper.slice(1))[0]
+            chartDiv.innerHTML = "";
+            chartDiv.classList.add("shown");
 
             let svg = d3.select(chartWrapper)
                     .append("svg")
@@ -136,13 +166,12 @@ export default Vue.component("research-summary-plot", {
             
             svg.append("text")
                 .attr("text-anchor", "start")
-                .attr("y", 1).attr("x", 0.5)
+                .attr("y", yScale(yScaleTopEnd * -0.13)).attr("x", 0.5)
                 .text(chartWrapper.slice(1, -6).replace("-", " "));
 
             // Select a random item
             let randIndex = Math.floor(Math.random()* dataset.length);
             let randItem = dataset[randIndex];
-            console.log(randItem);
 
             // Draw a line for this item
             svg.append("line")
@@ -154,8 +183,10 @@ export default Vue.component("research-summary-plot", {
                 .attr("stroke-dasharray", "4");
             
             // Label the line
+            let textAnchor = randItem < (minVal + maxVal / 2) ? "start" : "end"
             let randEntry = this.jsonData[randIndex];
             svg.append("text")
+                .attr("text-anchor", textAnchor)
                 .attr("x", xScale(randItem))
                 .attr("y", yScale(yScaleTopEnd * 0.75))
                 .text(randEntry.varId)
@@ -168,7 +199,7 @@ export default Vue.component("research-summary-plot", {
 </script>
 <style>
 .chart{
-    height: 275px;
+    height: 285px;
     flex: 1;
 }
 
@@ -178,5 +209,10 @@ export default Vue.component("research-summary-plot", {
 
 form label{
     display: block;
+}
+
+.radio label{
+    display: inline;
+    font-size: smaller;
 }
 </style>
