@@ -3,11 +3,13 @@
 <form>
     <label>Phenotype<input v-model="phenotype"/></label>
     <label>Gene or region<input v-model="region"/></label>
-    <legend class="radio">Chart type:
-        <label>Histogram<input type="radio" name="chart-type" v-model="histogramChart"/></label>
-        <label>Line<input type="radio" name="chart-type" v-model="lineChart"/></label>
-        <label>Scatterplot<input type="radio" name="chart-type" v-model="scatterChart"/></label>
-    </legend>
+    <label>Chart type:
+        <select v-model="chartType">
+            <option>histogram</option>
+            <option>line</option>
+            <option>scatterplot</option>
+        </select>
+    </label>
     <p>Attributes to include:</p>
     <label>Beta<input type="checkbox" v-model="includeBeta"/></label>
     <label>P-value<input type="checkbox" v-model="includePvalue"/></label>
@@ -16,7 +18,7 @@
     <label>Number of buckets for data processing:<input type="number" v-model="numberOfBuckets"/></label>
 </form>
 
-<button @click="getAssociations(phenotype, region)">Get associations</button>
+<button @click="displayResults()">Get associations</button>
 <div class="all-charts">
     <div class="chart beta-chart"></div>
     <div class="chart p-val-chart"></div>
@@ -42,9 +44,7 @@ export default Vue.component("research-summary-plot", {
             includeStdErr: true,
             includeZscore: true,
             numberOfBuckets: 100,
-            histogramChart: true,
-            lineChart: false,
-            scatterChart: false,
+            chartType: "histogram",
             jsonData: null
         };
     },
@@ -53,53 +53,55 @@ export default Vue.component("research-summary-plot", {
 	watch: {},
     methods: {
         ...uiUtils,
+        displayResults(){
+            this.getAssociations(this.phenotype, this.region, this.queryConfig());
+        },
         queryConfig(){
             let attributes = [];
             attributes = attributes.concat(this.includeBeta ? ["beta"] : []);
             attributes = attributes.concat(this.includePvalue ? ["pValue"] : []);
             attributes = attributes.concat(this.includeStdErr ? ["stdErr"] : []);
             attributes = attributes.concat(this.includeZscore ? ["zScore"] : []);
-
-            let type = this.histogramChart ? "histogram" : (this.lineChart ? "line" : "scatterplot")
             
             let config = {
-                "type": type,
+                "type": this.chartType,
                 "columns": attributes,
                 "dataConvert": {"pValue": "minusLog10"},
                 "buckets": this.numberOfBuckets
             };
             return config;
         },
-        async getAssociations(phenotype, region){
-            console.log(this.queryConfig());
+        async getAssociations(phenotype, region, configObject){
             let assocServer = "https://bioindex.hugeamp.org/api/bio"; // will this ever change?
             let queryURL = `${assocServer}/query/associations?q=${phenotype},${region}`
             let assocJSON = await fetch(queryURL).then((response) => response.json());
             this.jsonData = assocJSON.data;
+
+            let nBuckets = configObject.buckets;
             
             // Beta
             if (this.includeBeta){
                 let betaVals = assocJSON.data.map(item => item.beta);
-                this.renderCharts(betaVals, 100, ".beta-chart");
+                this.renderCharts(betaVals, nBuckets, ".beta-chart");
             }
 
             // P-value
             if (this.includePvalue){
                 let pVals = assocJSON.data.map(item => (-1 * Math.log10(item.pValue)));
-                this.renderCharts(pVals, 100, ".p-val-chart");
+                this.renderCharts(pVals, nBuckets, ".p-val-chart");
             }
             
 
             // Std error
             if (this.includeStdErr){
                 let stdErrVals = assocJSON.data.map(item => Number(item.stdErr));
-                this.renderCharts(stdErrVals, 100, ".std-err-chart");
+                this.renderCharts(stdErrVals, nBuckets, ".std-err-chart");
             }
 
             // Z-score
             if (this.includeZscore){
                 let zScoreVals = assocJSON.data.map(item => Number(item.zScore));
-                this.renderCharts(zScoreVals, 100, ".z-score-chart");
+                this.renderCharts(zScoreVals, nBuckets, ".z-score-chart");
             }
         },
         
