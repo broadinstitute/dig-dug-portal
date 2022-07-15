@@ -55,7 +55,7 @@
                             :isHover="true"
                         ></tooltip-documentation>
                     </div>
-                   <!--  <div class="col-md-3 gene-page-header-title">Navigate</div> -->
+                    <!--  <div class="col-md-3 gene-page-header-title">Navigate</div> -->
 
                     <div class="col-md-9 gene-page-header-body">
                         <span>
@@ -84,16 +84,11 @@
                         "
                     >
                         <h4 class="card-title">
-                            gnomAD Information
+                            gnomAD Population Frequencies
                         </h4>
-                        <gnominfo-card
-                            v-bind:variantId="
-                                $store.state.variant.varId
-                            ">
+                        <gnominfo-card :variantId="$store.state.variant.varId">
                         </gnominfo-card>
-                        
                     </div>
-                    
                 </div>
             </div>
             <div class="card mdkp-card">
@@ -183,17 +178,11 @@
                             Phenotype Information
                         </h4>
                         <variant-phenotype-table
-                            v-bind:variantId="
-                                $store.state.variant.varId
-                            "
+                            v-bind:variantId="$store.state.variant.varId"
                         ></variant-phenotype-table>
-                        
                     </div>
-                    
                 </div>
             </div>
-
-            
 
             <!-- <div class="card mdkp-card">
                 <div class="card-body">
@@ -258,7 +247,7 @@
                         </filter-effect-direction-control>
 
                         <template slot="filtered" slot-scope="{ filter }">
-                            
+
                             <b-tabs content-class="mt-3" align="center">
                                 <b-tab title="LocusZoom" active>
                                     <locuszoom
@@ -416,7 +405,7 @@
                     </criterion-function-group>
                 </div>
             </div> -->
-        </div> 
+        </div>
 
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
