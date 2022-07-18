@@ -82,11 +82,14 @@ export default Vue.component("research-summary-plot", {
             let assocJSON = await fetch(queryURL).then((response) => response.json());
             this.jsonData = assocJSON.data;
 
-            configObject.columns.forEach(column => {this.renderCharts(column, configObject.buckets)});
+            configObject.columns.forEach(column => {this.renderCharts(column, configObject)});
         },
         
-        renderCharts(attribute, nBuckets){
+        renderCharts(attribute, configObject){
             let dataset = this.jsonData.map(item => Number(item[attribute]));
+            if (configObject.dataConvert[attribute] == "minusLog10"){
+                dataset = dataset.map(data => -1 * Math.log10(data));
+            }
             let maxVal = dataset.reduce((prev, next) => prev > next ? prev : next);
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
 
@@ -106,7 +109,7 @@ export default Vue.component("research-summary-plot", {
             var histogram = d3.histogram()
                             .value(function (d) {return d })
                             .domain(xScale.domain())
-                            .thresholds(xScale.ticks(nBuckets));
+                            .thresholds(xScale.ticks(configObject.buckets));
             
             var bins = histogram(dataset);
 
