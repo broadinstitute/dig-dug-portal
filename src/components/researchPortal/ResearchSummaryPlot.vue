@@ -18,6 +18,7 @@
         <label>Standard error<input type="checkbox" v-model="includeStdErr"/></label>
         <label>Z-score<input type="checkbox" v-model="includeZscore"/></label>
     </div>
+    <label>Convert P-value to -log10 <input type="checkbox" v-model="convertPval"/></label>
     <label>Number of buckets for data processing:<input type="number" v-model="numberOfBuckets"/></label>
 </form>
 
@@ -44,6 +45,7 @@ export default Vue.component("research-summary-plot", {
             includeStdErr: true,
             includeZscore: true,
             numberOfBuckets: 100,
+            convertPval: true,
             chartType: "histogram",
             jsonData: null
         };
@@ -86,7 +88,7 @@ export default Vue.component("research-summary-plot", {
             let config = {
                 "type": this.chartType,
                 "columns": attributes,
-                "dataConvert": {"pValue": "minusLog10"},
+                "dataConvert": this.convertPval ? {"pValue": "minusLog10"} : {},
                 "buckets": this.numberOfBuckets
             };
             return config;
