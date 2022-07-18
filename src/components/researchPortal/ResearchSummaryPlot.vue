@@ -138,7 +138,8 @@ export default Vue.component("research-summary-plot", {
                     .selectAll("text")
                     .style("text-anchor", "end");
             
-            svg.selectAll("rect")
+            if (configObject.type == "histogram"){
+                svg.selectAll("rect")
                 .data(bins)
                 .enter()
                 .append("rect")
@@ -147,6 +148,15 @@ export default Vue.component("research-summary-plot", {
                 .attr("width", function(d){return xScale(d.x1) - xScale(d.x0);})
                 .attr("height", function(d){return height - yScale(d.length);})
                 .style("fill", "orange");
+            } else if (configObject.type == "line"){
+                console.log("Let's try a line");
+                console.log(bins);
+                svg.append("path")
+                    .datum(bins)
+                    .attr("class", "chart-line")
+                    .attr("d", d3.line());
+            }
+            
             
             svg.append("text")
                 .attr("text-anchor", "start")
