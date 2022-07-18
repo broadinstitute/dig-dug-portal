@@ -19,7 +19,10 @@
         <label>Z-score<input type="checkbox" v-model="includeZscore"/></label>
     </div>
     <label>Convert P-value to -log10 <input type="checkbox" v-model="convertPval"/></label>
-    <label>Number of buckets for data processing:<input type="number" v-model="numberOfBuckets"/></label>
+    <div>
+        <label>Number of buckets for data processing:<input type="number" v-model="numberOfBuckets"/></label>
+    </div>
+    
 </form>
 
 <button class="assoc-button" @click="displayResults()">Get associations</button>
@@ -47,7 +50,7 @@ export default Vue.component("research-summary-plot", {
             numberOfBuckets: 100,
             convertPval: true,
             chartType: "histogram",
-            jsonData: null
+            jsonData: {}
         };
     },
     mounted: function () {},
@@ -95,16 +98,21 @@ export default Vue.component("research-summary-plot", {
         },
         async getAssociationsAndShow(phenotype, region, configObject){
             let assocServer = "https://bioindex.hugeamp.org/api/bio"; // will this ever change?
-            let queryURL = `${assocServer}/query/associations?q=${phenotype},${region}`
-            let assocJSON = await fetch(queryURL).then((response) => response.json());
-            this.jsonData = assocJSON.data;
+            let query = `${phenotype},${region}`;
+            let queryURL = `${assocServer}/query/associations?q=${query}`
 
-            configObject.columns.forEach(column => {this.renderCharts(column, configObject)});
+            // Only fetch it if we don't already have it.
+            if (!this.jsonData[query]){
+                let assocJSON = await fetch(queryURL).then((response) => response.json());
+                this.jsonData[query] = assocJSON.data;
+            }
+
+            configObject.columns.forEach(column => {this.renderCharts(query, column, configObject)});
             this.loading = false;
         },
         
-        renderCharts(attribute, configObject){
-            let dataset = this.jsonData.map(item => Number(item[attribute]));
+        renderCharts(query, attribute, configObject){
+            let dataset = this.jsonData[query].map(item => Number(item[attribute]));
             let attributeLabel = attribute;
 
             if (configObject.dataConvert[attribute] == "minusLog10"){
@@ -235,7 +243,7 @@ export default Vue.component("research-summary-plot", {
             
             // Label the line
             let textAnchor = randItem < (minVal + maxVal / 2) ? "start" : "end"
-            let randEntry = this.jsonData[randIndex];
+            let randEntry = this.jsonData[query][randIndex];
             svg.append("text")
                 .attr("text-anchor", textAnchor)
                 .attr("x", xScale(randItem))
