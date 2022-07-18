@@ -10,15 +10,18 @@
             <option>scatterplot</option>
         </select>
     </label>
-    <p>Attributes to include:</p>
-    <label>Beta<input type="checkbox" v-model="includeBeta"/></label>
-    <label>P-value<input type="checkbox" v-model="includePvalue"/></label>
-    <label>Standard error<input type="checkbox" v-model="includeStdErr"/></label>
-    <label>Z-score<input type="checkbox" v-model="includeZscore"/></label>
+    
+    <div class="attributes">
+        Attributes to include:
+        <label>Beta<input type="checkbox" v-model="includeBeta"/></label>
+        <label>P-value<input type="checkbox" v-model="includePvalue"/></label>
+        <label>Standard error<input type="checkbox" v-model="includeStdErr"/></label>
+        <label>Z-score<input type="checkbox" v-model="includeZscore"/></label>
+    </div>
     <label>Number of buckets for data processing:<input type="number" v-model="numberOfBuckets"/></label>
 </form>
 
-<button @click="displayResults()">Get associations</button>
+<button class="assoc-button" @click="displayResults()">Get associations</button>
 <div class="all-charts">
 </div>
 </div>
@@ -33,6 +36,7 @@ export default Vue.component("research-summary-plot", {
     props: ["dataset", "graphData"],
     data(){
         return {
+            loading: false,
             phenotype: "t2d",
             region: "slc30a8",
             includeBeta: true,
@@ -50,6 +54,10 @@ export default Vue.component("research-summary-plot", {
     methods: {
         ...uiUtils,
         displayResults(){
+            if (this.loading){
+                return;
+            }
+            this.loading = true;
             let config = this.queryConfig();
             let allCharts = document.getElementsByClassName("all-charts")[0];
             allCharts.innerHTML = "";
@@ -60,6 +68,13 @@ export default Vue.component("research-summary-plot", {
                 allCharts.append(newChart);
             });
             this.getAssociationsAndShow(this.phenotype, this.region, config);
+        },
+        toggleLoading(){
+            if (this.loading){
+                this.loading = false;
+            } else {
+                this.loading = true;
+            }
         },
         queryConfig(){
             let attributes = [];
@@ -83,12 +98,16 @@ export default Vue.component("research-summary-plot", {
             this.jsonData = assocJSON.data;
 
             configObject.columns.forEach(column => {this.renderCharts(column, configObject)});
+            this.loading = false;
         },
         
         renderCharts(attribute, configObject){
             let dataset = this.jsonData.map(item => Number(item[attribute]));
+            let attributeLabel = attribute;
+
             if (configObject.dataConvert[attribute] == "minusLog10"){
                 dataset = dataset.map(data => -1 * Math.log10(data));
+                attributeLabel = `${attribute} (-log10)`;
             }
             let maxVal = dataset.reduce((prev, next) => prev > next ? prev : next);
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
@@ -141,31 +160,7 @@ export default Vue.component("research-summary-plot", {
             svg.append("text")
                 .attr("text-anchor", "start")
                 .attr("y", yScale(yScaleTopEnd * -0.13)).attr("x", 0.5)
-                .text(attribute);
-
-            // Select a random item
-            let randIndex = Math.floor(Math.random()* dataset.length);
-            let randItem = dataset[randIndex];
-
-            // Draw a line for this item
-            svg.append("line")
-                .attr("x1", xScale(randItem))
-                .attr("x2", xScale(randItem))
-                .attr("y1", yScale(0))
-                .attr("y2", yScale(dataset.length))
-                .attr("stroke", "grey")
-                .attr("stroke-dasharray", "4");
-            
-            // Label the line
-            let textAnchor = randItem < (minVal + maxVal / 2) ? "start" : "end"
-            let randEntry = this.jsonData[randIndex];
-            svg.append("text")
-                .attr("text-anchor", textAnchor)
-                .attr("x", xScale(randItem))
-                .attr("y", yScale(yScaleTopEnd * 0.75))
-                .text(randEntry.varId)
-                .style("font-size", "smaller")
-                .style("color", "grey");
+                .text(attributeLabel);
             
             if (configObject.type == "histogram"){
                 svg.selectAll("rect")
@@ -223,7 +218,29 @@ export default Vue.component("research-summary-plot", {
                 
             }
             
+            // Select a random item
+            let randIndex = Math.floor(Math.random()* dataset.length);
+            let randItem = dataset[randIndex];
+
+            // Draw a line for this item
+            svg.append("line")
+                .attr("x1", xScale(randItem))
+                .attr("x2", xScale(randItem))
+                .attr("y1", yScale(0))
+                .attr("y2", yScale(dataset.length))
+                .attr("stroke", "grey")
+                .attr("stroke-dasharray", "4");
             
+            // Label the line
+            let textAnchor = randItem < (minVal + maxVal / 2) ? "start" : "end"
+            let randEntry = this.jsonData[randIndex];
+            svg.append("text")
+                .attr("text-anchor", textAnchor)
+                .attr("x", xScale(randItem))
+                .attr("y", yScale(yScaleTopEnd * 0.75))
+                .text(randEntry.varId)
+                .style("font-size", "smaller")
+                .style("color", "grey");
             
         }
 
@@ -240,8 +257,9 @@ export default Vue.component("research-summary-plot", {
     display: flex;
 }
 
-form label{
-    display: block;
+.attributes label{
+    display: inline;
+    margin: 10px;
 }
 
 .radio label{
