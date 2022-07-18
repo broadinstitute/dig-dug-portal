@@ -105,7 +105,7 @@ export default Vue.component("research-summary-plot", {
             var xScale = d3.scaleLinear()
                     .domain([minVal, maxVal]) // input
                     .range([0, width]);
-            
+
             var histogram = d3.histogram()
                             .value(function (d) {return d })
                             .domain(xScale.domain())
@@ -137,27 +137,7 @@ export default Vue.component("research-summary-plot", {
                     .call(d3.axisLeft(yScale).ticks(3))
                     .selectAll("text")
                     .style("text-anchor", "end");
-            
-            if (configObject.type == "histogram"){
-                svg.selectAll("rect")
-                .data(bins)
-                .enter()
-                .append("rect")
-                .attr("x", 1)
-                .attr("transform", function(d){return `translate(${xScale(d.x0)},${yScale(d.length)})`;})
-                .attr("width", function(d){return xScale(d.x1) - xScale(d.x0);})
-                .attr("height", function(d){return height - yScale(d.length);})
-                .style("fill", "orange");
-            } else if (configObject.type == "line"){
-                console.log("Let's try a line");
-                console.log(bins);
-                svg.append("path")
-                    .datum(bins)
-                    .attr("class", "chart-line")
-                    .attr("d", d3.line());
-            }
-            
-            
+
             svg.append("text")
                 .attr("text-anchor", "start")
                 .attr("y", yScale(yScaleTopEnd * -0.13)).attr("x", 0.5)
@@ -186,6 +166,65 @@ export default Vue.component("research-summary-plot", {
                 .text(randEntry.varId)
                 .style("font-size", "smaller")
                 .style("color", "grey");
+            
+            if (configObject.type == "histogram"){
+                svg.selectAll("rect")
+                .data(bins)
+                .enter()
+                .append("rect")
+                .attr("x", 1)
+                .attr("transform", function(d){return `translate(${xScale(d.x0)},${yScale(d.length)})`;})
+                .attr("width", function(d){return xScale(d.x1) - xScale(d.x0);})
+                .attr("height", function(d){return height - yScale(d.length);})
+                .style("fill", "orange");
+            } else {
+                let interval = (maxVal - minVal) / configObject.buckets;
+                
+                let bucketsData = [];
+                for (let i = minVal; i < maxVal; i = i + interval){
+                    let bucketCount = dataset.filter(entry => entry >= i && entry < i + interval).length;
+                    bucketsData.push({"bucketStart": i, "bucketCount": bucketCount});
+                }
+                
+                // Max vals get added to the top bucket
+                let maxCount = bucketsData.filter(entry => entry == maxVal).length;
+                bucketsData[bucketsData.length - 1].bucketCount += maxCount;
+
+                if (configObject.type == "line"){
+                    var line = d3
+                    .line()
+                    .x(function (d) {
+                        return xScale(d.bucketStart);
+                    }) // set the x values for the line generator
+                    .y(function (d) {
+                        return yScale(d.bucketCount);
+                    }) // set the y values for the line generator
+                    .curve(d3.curveMonotoneX); // apply smoothing to the line
+              
+                    svg.append("path")
+                        .datum(bucketsData)
+                        .attr("class", "chart-line")
+                        .attr("d", line)
+                        .attr("fill", "none")
+                        .attr("stroke", "orange");
+
+                } else if (configObject.type == "scatterplot"){
+                    svg.append("g")
+                        .selectAll("dot")
+                        .data(bucketsData.filter(i => i.bucketCount > 0))
+                        .enter()
+                        .append("circle")
+                        .attr("cx", function(d){return xScale(d.bucketStart)})
+                        .attr("cy", function(d){return yScale(d.bucketCount)})
+                        .attr("r", 1.5)
+                        .style("fill", "orange");
+                }
+                
+                
+            }
+            
+            
+            
         }
 
     },
