@@ -48,7 +48,6 @@
 								:singleSearchConfig="null"
 								:phenotypes="$parent.phenotypes"
 							></research-single-search>
-							{{ $parent.diseaseGroups }}
 
 							<div class="col-md-12 portal-front-tabs">
 								<b-tabs content-class="mt-3" align="center">
@@ -146,6 +145,28 @@
 			</div>
 			<div class="container static-content-section">
 				<div class="row">
+					<div class="col-md-8" v-if="!!$parent.kPortals">
+						<h2>Community Knowledge Portals</h2>
+						<p></p>
+						<div class="row">
+							<div
+								class="k-portal"
+								v-for="portal in $parent.kPortals"
+								:key="portal.title"
+							>
+								<div v-html="portal.body"></div>
+								<div
+									class="kp-title"
+									v-html="portal.title"
+								></div>
+								<div>
+									<a :href="portal.field_portal_address"
+										>Visit portal</a
+									>
+								</div>
+							</div>
+						</div>
+					</div>
 					<div class="col-md-7">
 						<about-portal-section
 							:front-contents="$parent.frontContents"
@@ -178,3 +199,26 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+<style>
+.k-portal {
+	width: 20%;
+	text-align: center;
+	font-size: 14px;
+	border: solid 1px #eeeeee;
+	border-bottom: none;
+	border-top: none;
+	margin-bottom: 25px;
+	margin-right: -1px;
+	padding: 5px 10px;
+}
+
+.k-portal .kp-title {
+	font-size: 16px;
+	line-height: 1.25em;
+	font-weight: 500;
+}
+
+.k-portal img {
+	height: 110px;
+}
+</style>

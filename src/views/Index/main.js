@@ -107,6 +107,14 @@ new Vue({
             }
             return datasets[0];
         },
+        kPortals() {
+            let portals = this.$store.state.kp4cd.portals;
+
+            if (portals.length === 0) {
+                return null;
+            }
+            return portals;
+        }
     },
 
     watch: {
@@ -118,6 +126,7 @@ new Vue({
             this.$store.dispatch("kp4cd/getNewsFeed", group.name);
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
             this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
+            this.$store.dispatch("kp4cd/getPortals");
         },
     }
 }).$mount("#app");
