@@ -31,11 +31,15 @@ export default Vue.component("research-summary-plot", {
         this.displayResults(this.$props.summaryPlot);
     },
 	computed: {},
-	watch: {},
+	watch: {
+        rawData: function(){
+            this.displayResults(this.$props.summaryPlot);
+        }
+    },
     methods: {
         ...uiUtils,
         displayResults(config){
-            console.log(config);
+            console.log(this.$props.rawData.length);
             let allCharts = document.getElementsByClassName("all-charts")[0];
             allCharts.innerHTML = "";
             config.fields.forEach(column => {
