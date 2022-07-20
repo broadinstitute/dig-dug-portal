@@ -195,7 +195,7 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
     let barWidth = (WIDTH - MARGIN.left - MARGIN.right - (SPACER * (dataLength + 1))) / dataLength;
     let valueBump = (MAX - MIN) / TICK_NUM;
     let max = Math.round(MAX + valueBump);
-    let min = Math.round(MIN - valueBump);
+    let min = (MIN >= 0) ? 0 : Math.round(MIN - valueBump);
 
     switch (DIRECTION) {
         case "x":
@@ -360,7 +360,7 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
                 let valueBump = (MAX - MIN) / WITH_TICKS;
 
                 let max = Math.round(MAX + valueBump);
-                let min = Math.round(MIN - valueBump);
+                let min = (MIN >= 0) ? 0 : Math.round(MIN - valueBump);
 
                 // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;

@@ -30,7 +30,9 @@ export default Vue.component("research-page-description", {
 		pageContent() {
 			let formattedContent = this.content
 				.replace(/&lt;plot&gt;/g, "<div class='plot'>")
-				.replace(/&lt;plot-end&gt;/g, "</div>");
+				.replace(/&lt;plot-end&gt;/g, "</div>")
+				.replace(/<plot>/g, "<div class='plot'>")
+				.replace(/<plot-end>/g, "</div>");
 			return formattedContent;
 		},
 	},
@@ -112,6 +114,8 @@ export default Vue.component("research-page-description", {
 				valueHiLow.low =
 					value < valueHiLow.low ? value : valueHiLow.low;
 			}
+
+			console.log("valueHiLow", valueHiLow);
 
 			PlotUtils.renderAxis(
 				CTX,

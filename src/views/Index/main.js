@@ -18,6 +18,7 @@ import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import Documentation from "@/components/Documentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -53,7 +54,8 @@ new Vue({
         TooltipDocumentation,
         Documentation,
         Autocomplete,
-        ResearchSingleSearch
+        ResearchSingleSearch,
+        ResearchPageDescription
     },
 
     created() {
@@ -114,6 +116,46 @@ new Vue({
                 return null;
             }
             return portals;
+        },
+        pageDescription() {
+            //console.log("$store.state.bioPortal.datasets", this.$store.state.bioPortal.datasets);
+            let datasets = this.$store.state.bioPortal.datasets;
+
+
+
+            if (datasets.length == 0) {
+                return null;
+            } else {
+                let techLabel = [...new Set(datasets.map(d => d.tech))]
+                let tech = datasets.map(d => d.tech);
+                let techCount = {}
+
+                //console.log("techLabel", techLabel);
+                //console.log("tech", tech);
+
+                techLabel.map(l => {
+                    let tempCount = tech.filter(t => t == l);
+                    techCount[l] = tempCount.length;
+
+                })
+
+
+
+                let dataContent = "";
+
+                Object.keys(techCount).map(k => {
+                    dataContent += '"' + k + '":' + techCount[k] + ','
+                })
+
+                dataContent.slice(0, -2);
+
+                let content = '<h4>Datasets</h4><plot>{"type":"bar","data": { "GWAS":323,"ExChip":36,"ExSeq":27,"WGS":17,"IChip":9 },"width": 400,"height": 150,"color": "multi"}<plot-end>'
+
+                console.log("content", content);
+
+                return content;
+            }
+
         }
     },
 
