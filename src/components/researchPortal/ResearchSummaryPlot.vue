@@ -40,7 +40,7 @@ export default Vue.component("research-summary-plot", {
         },        
         renderChart(attribute, configObject){
             let dataset = this.$props.rawData.map(item => Number(item[attribute]));
-            let nBuckets = configObject.buckets > dataset.length ? configObject.buckets : dataset.length;
+            let nBuckets = configObject.buckets < dataset.length ? configObject.buckets : dataset.length;
             
             let attributeLabel = attribute;
             if (configObject['data convert'][attribute] == "-log10"){
