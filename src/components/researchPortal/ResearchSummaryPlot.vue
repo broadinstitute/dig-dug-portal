@@ -1,5 +1,5 @@
 <template>
-<div>
+<div class="chart-wrapper">
     <div><h4>Summary Plots</h4></div>
     <div class="all-charts">
     </div>
@@ -14,18 +14,7 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("research-summary-plot", {
     props: ["rawData", "summaryPlot"],
     data(){
-        return {
-            phenotype: "t2d",
-            region: "slc30a8",
-            includeBeta: true,
-            includePvalue: true,
-            includeStdErr: true,
-            includeZscore: true,
-            numberOfBuckets: 100,
-            convertPval: true,
-            chartType: "histogram",
-            jsonData: {}
-        };
+        return {};
     },
     mounted: function () {
         this.displayResults(this.$props.summaryPlot);
@@ -51,6 +40,7 @@ export default Vue.component("research-summary-plot", {
         },        
         renderChart(attribute, configObject){
             let dataset = this.$props.rawData.map(item => Number(item[attribute]));
+            let nBuckets = configObject.buckets > dataset.length ? configObject.buckets : dataset.length;
             
             let attributeLabel = attribute;
             if (configObject['data convert'][attribute] == "-log10"){
@@ -59,16 +49,14 @@ export default Vue.component("research-summary-plot", {
             }
             let maxVal = dataset.reduce((prev, next) => prev > next ? prev : next);
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
-            console.log(`${attribute}: ${minVal} - ${maxVal}`);
 
             //TODO remove DOM stuff in favor of jquery? or just remove jquery
             let chartWrapper = `.${attribute}-chart`;
 
             // Based on EffectorGenesPlotsLine
             var margin = { top: 25, right: 10, bottom: 35, left: 29 },
-                    width = $(chartWrapper).width() - margin.left - margin.right, // Use the window's width
-                    height = $(chartWrapper).height() - margin.top - margin.bottom; // Use the window's height
-                
+                    width = configObject.width - margin.left - margin.right,
+                    height = configObject.height - margin.top - margin.bottom;
             var xScale = d3.scaleLinear()
                     .domain([minVal, maxVal]) // input
                     .range([0, width]);
@@ -77,12 +65,12 @@ export default Vue.component("research-summary-plot", {
             var histogram = d3.histogram()
                             .value(function (d) {return d })
                             .domain(xScale.domain())
-                            .thresholds(xScale.ticks(configObject.buckets));          
+                            .thresholds(xScale.ticks(nBuckets));          
             var bins = histogram(dataset);
             let histogramTopEnd = d3.max(bins, function(d){return d.length;});
 
             // Data prep for line/scatterplot (yes, it does need to be done here)
-            let interval = (maxVal - minVal) / configObject.buckets;
+            let interval = (maxVal - minVal) / nBuckets;
 
             let bucketsData = [];
             for (let i = minVal; i < maxVal; i = i + interval){
@@ -122,7 +110,7 @@ export default Vue.component("research-summary-plot", {
 
             svg.append("text")
                 .attr("text-anchor", "start")
-                .attr("y", yScale(yScaleTopEnd * -0.13)).attr("x", 0.5)
+                .attr("y", yScale(yScaleTopEnd * -0.2)).attr("x", 0.5)
                 .text(attributeLabel)
                 .style("font-weight", "bold");
             
@@ -197,11 +185,15 @@ export default Vue.component("research-summary-plot", {
 });
 </script>
 <style>
+div{
+    display: block;
+}
+.chart-wrapper{
+    display: block;
+}
 .chart{
-    height: 285px;
     flex: 1;
 }
-
 .all-charts{
     display: flex;
     margin: 20px;
