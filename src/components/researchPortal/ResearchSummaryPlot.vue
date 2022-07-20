@@ -1,6 +1,6 @@
 <template>
 <div>
-<form>
+<!--form>
     <label>Phenotype<input v-model="phenotype"/></label>
     <label>Gene or region<input v-model="region"/></label>
     <label>Chart type:
@@ -23,8 +23,8 @@
         <label>Number of buckets for data processing:<input type="number" v-model="numberOfBuckets"/></label>
     </div>
     
-</form>
-
+</form-->
+<div>{{ summaryPlot }}</div>
 <button class="assoc-button" @click="displayResults()">Get associations</button>
 <div class="all-charts">
 </div>
@@ -37,7 +37,7 @@ import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 export default Vue.component("research-summary-plot", {
-    props: ["dataset", "graphData"],
+    props: ["rawData", "summaryPlot"],
     data(){
         return {
             loading: false,

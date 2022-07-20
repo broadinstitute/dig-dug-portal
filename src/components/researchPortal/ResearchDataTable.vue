@@ -48,7 +48,8 @@
 				Save as JSON
 			</div>
 		</div>
-
+		<research-summary-plot v-if="!!tableFormat['summary plot']"
+			v-bind:summaryPlot="tableFormat['summary plot']"></research-summary-plot>
 		<table
 			:class="'table table-sm research-data-table ' + pageID"
 			cellpadding="0"
@@ -204,6 +205,7 @@
 <script>
 import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
+import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue"
 
 import Formatters from "@/utils/formatters";
 
