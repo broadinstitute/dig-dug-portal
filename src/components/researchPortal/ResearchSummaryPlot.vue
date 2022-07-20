@@ -1,6 +1,6 @@
 <template>
 <div class="chart-wrapper">
-    <div><h4>Summary Plots</h4></div>
+    <div><h4>Summary plot</h4></div>
     <div class="all-charts">
     </div>
 </div>
@@ -12,7 +12,7 @@ import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 export default Vue.component("research-summary-plot", {
-    props: ["rawData", "summaryPlot"],
+    props: ["rawData", "summaryPlot", "isPlotByRow"],
     data(){
         return {};
     },
@@ -154,31 +154,31 @@ export default Vue.component("research-summary-plot", {
                     .style("fill", "orange");
             }
                 
-            
-            // Select a random item
-            let randIndex = Math.floor(Math.random()* dataset.length);
-            let randItem = dataset[randIndex];
+            if (this.$props.isPlotByRow){
+                // Select a random item
+                let randIndex = Math.floor(Math.random()* dataset.length);
+                let randItem = dataset[randIndex];
 
-            // Draw a line for this item
-            svg.append("line")
-                .attr("x1", xScale(randItem))
-                .attr("x2", xScale(randItem))
-                .attr("y1", yScale(0))
-                .attr("y2", yScale(dataset.length))
-                .attr("stroke", "grey")
-                .attr("stroke-dasharray", "4");
+                // Draw a line for this item
+                svg.append("line")
+                    .attr("x1", xScale(randItem))
+                    .attr("x2", xScale(randItem))
+                    .attr("y1", yScale(0))
+                    .attr("y2", yScale(dataset.length))
+                    .attr("stroke", "grey")
+                    .attr("stroke-dasharray", "4");
             
-            // Label the line
-            let textAnchor = randItem < (minVal + maxVal / 2) ? "start" : "end"
-            let randEntry = this.$props.rawData[randIndex];
-            svg.append("text")
-                .attr("text-anchor", textAnchor)
-                .attr("x", xScale(randItem))
-                .attr("y", yScale(yScaleTopEnd * 0.75))
-                .text(randEntry.varId)
-                .style("font-size", "smaller")
-                .style("color", "grey");
-            
+                // Label the line
+                let textAnchor = randItem < (minVal + maxVal / 2) ? "start" : "end"
+                let randEntry = this.$props.rawData[randIndex];
+                svg.append("text")
+                    .attr("text-anchor", textAnchor)
+                    .attr("x", xScale(randItem))
+                    .attr("y", yScale(yScaleTopEnd * 0.75))
+                    .text(randEntry.varId)
+                    .style("font-size", "smaller")
+                    .style("color", "grey");
+            }
         }
 
     },

@@ -48,9 +48,10 @@
 				Save as JSON
 			</div>
 		</div>
-		<research-summary-plot v-if="!!tableFormat['summary plot']"
+		<research-summary-plot v-if="!!tableFormat['summary plot']['plots'].includes('table')"
 			v-bind:summaryPlot="tableFormat['summary plot']"
-			v-bind:rawData="dataset"></research-summary-plot>
+			v-bind:rawData="dataset"
+			v-bind:isPlotByRow="false"></research-summary-plot>
 		<table
 			:class="'table table-sm research-data-table ' + pageID"
 			cellpadding="0"
