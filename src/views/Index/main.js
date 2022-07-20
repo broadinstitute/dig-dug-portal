@@ -117,21 +117,16 @@ new Vue({
             }
             return portals;
         },
-        pageDescription() {
-            //console.log("$store.state.bioPortal.datasets", this.$store.state.bioPortal.datasets);
+        datasetsDescription() {
             let datasets = this.$store.state.bioPortal.datasets;
 
 
+            if (datasets.length > 0) {
 
-            if (datasets.length == 0) {
-                return null;
-            } else {
+                /// create datasets plot content
                 let techLabel = [...new Set(datasets.map(d => d.tech))]
                 let tech = datasets.map(d => d.tech);
                 let techCount = {}
-
-                //console.log("techLabel", techLabel);
-                //console.log("tech", tech);
 
                 techLabel.map(l => {
                     let tempCount = tech.filter(t => t == l);
@@ -139,21 +134,73 @@ new Vue({
 
                 })
 
-
-
                 let dataContent = "";
+                let tcountLength = Object.keys(techCount).length - 1;
 
+                let kIndex = 0;
                 Object.keys(techCount).map(k => {
-                    dataContent += '"' + k + '":' + techCount[k] + ','
+                    dataContent += '"' + k + '":' + techCount[k];
+
+                    dataContent += (kIndex < tcountLength) ? ',' : '';
+                    kIndex++;
                 })
 
-                dataContent.slice(0, -2);
 
-                let content = '<h4>Datasets</h4><plot>{"type":"bar","data": { "GWAS":323,"ExChip":36,"ExSeq":27,"WGS":17,"IChip":9 },"width": 400,"height": 150,"color": "multi"}<plot-end>'
-
-                console.log("content", content);
+                let content = '<plot>{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi"}<plot-end>';
 
                 return content;
+            } else {
+                return null;
+            }
+        },
+        phenotypesDescription() {
+            let phenotypes = this.$store.state.bioPortal.phenotypes;
+
+            if (phenotypes.length > 0) {
+
+                ///create phenotypes plot content
+
+                let groupLabel = [...new Set(phenotypes.map(p => p.group))]
+                let group = phenotypes.map(g => g.group);
+                let groupCount = {}
+
+                groupLabel.map(l => {
+                    let tempCount = group.filter(t => t == l);
+                    groupCount[l] = tempCount.length;
+
+                })
+
+                let groupContent = "";
+                let gCountLength = Object.keys(groupCount).length - 1;
+
+                let gIndex = 0;
+                Object.keys(groupCount).map(g => {
+                    groupContent += '"' + g + '":' + groupCount[g];
+
+                    groupContent += (gIndex < gCountLength) ? ',' : '';
+                    gIndex++;
+                })
+
+
+                let content = '<plot>{"type":"bar","data": { ' + groupContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":140}<plot-end>';
+
+                return content;
+            } else {
+                return null;
+            }
+        },
+
+        pageDescription() {
+            if (this.phenotypesDescription != null && this.datasetsDescription != null) {
+                let content = "<h5>Datasets by types</h5>";
+                content += this.datasetsDescription;
+                content += "<h5>Phenotypes by groups</h5>";
+                content += this.phenotypesDescription;
+
+                return content;
+
+            } else {
+                return null;
             }
 
         }

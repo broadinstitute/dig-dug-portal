@@ -166,40 +166,48 @@
 								</div>
 							</div>
 						</div>
+						<h2>What's new</h2>
+						<span
+							><a href="/news.html" target="_blank"
+								>View news archive ></a
+							></span
+						>
+						<news-feed-section
+							:disease-group="$parent.diseaseGroup"
+							:news-feed="$store.state.kp4cd.newsFeed"
+						></news-feed-section>
 					</div>
 					<div class="col-md-4">
 						<research-page-description
 							v-if="$parent.pageDescription != null"
 							:content="$parent.pageDescription"
 						></research-page-description>
+						<!--<h5>Phenotypes by groups</h5>
+						<research-page-description
+							v-if="
+								$parent.datasetsDescription != null &&
+								$parent.phenotypesDescription != null
+							"
+							:content="$parent.phenotypesDescription"
+						></research-page-description>-->
+						<about-project-section
+							:front-contents="$parent.frontContents"
+						></about-project-section>
 					</div>
 				</div>
-				<div class="row">
+				<!--<div class="row">
 					<div class="col-md-7">
 						<about-portal-section
 							:front-contents="$parent.frontContents"
 						></about-portal-section>
-						<datasets-section
-							:disease-group="$parent.diseaseGroup"
-							:disease-groups="
-								$store.state.bioPortal.diseaseGroups
-							"
-							:datasets-info="$store.state.kp4cd.datasetsInfo"
-						></datasets-section>
-						<under-datasets-section
-							:front-contents="$parent.frontContents"
-						></under-datasets-section>
 					</div>
 					<div class="col-md-5">
 						<news-feed-section
 							:disease-group="$parent.diseaseGroup"
 							:news-feed="$store.state.kp4cd.newsFeed"
 						></news-feed-section>
-						<about-project-section
-							:front-contents="$parent.frontContents"
-						></about-project-section>
 					</div>
-				</div>
+				</div>-->
 			</div>
 		</div>
 

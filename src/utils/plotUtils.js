@@ -229,7 +229,7 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
 
 }
 
-const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS, SPACER) {
+const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS, SPACER, L_ANGLE) {
     CTX.beginPath();
     CTX.lineWidth = 0.5;
     CTX.strokeStyle = "#000000";
@@ -259,12 +259,24 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
 
                 CTX.textAlign = "center";
                 let positionLabel = KEYS[i];
+                if (L_ANGLE == null) {
 
-                CTX.fillText(
-                    positionLabel,
-                    adjTickXPos,
-                    HEIGHT - MARGIN.bottom + (MARGIN.bump * 4)
-                );
+                    CTX.fillText(
+                        positionLabel,
+                        adjTickXPos,
+                        HEIGHT - MARGIN.bottom + (MARGIN.bump * 4)
+                    );
+
+                } else {
+
+                    CTX.save();
+                    CTX.translate(adjTickXPos, HEIGHT - MARGIN.bottom + (MARGIN.bump * 4) - 6);
+                    CTX.rotate((L_ANGLE * -Math.PI) / 180);
+                    CTX.textAlign = "end";
+                    CTX.fillText(positionLabel, 0, 0);
+                    CTX.restore();
+                }
+
             }
             break;
         case "y":
@@ -300,7 +312,7 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
     }
 }
 
-const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
+const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, LABEL_ANGLE) {
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
     CTX.beginPath();
