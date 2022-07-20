@@ -39,7 +39,6 @@ export default Vue.component("research-summary-plot", {
     methods: {
         ...uiUtils,
         displayResults(config){
-            console.log(this.$props.rawData.length);
             let allCharts = document.getElementsByClassName("all-charts")[0];
             allCharts.innerHTML = "";
             config.fields.forEach(column => {
@@ -52,36 +51,51 @@ export default Vue.component("research-summary-plot", {
         },        
         renderChart(attribute, configObject){
             let dataset = this.$props.rawData.map(item => Number(item[attribute]));
+            
             let attributeLabel = attribute;
-
             if (configObject['data convert'][attribute] == "-log10"){
                 dataset = dataset.map(data => -1 * Math.log10(data));
                 attributeLabel = `${attribute} (-log10)`;
             }
             let maxVal = dataset.reduce((prev, next) => prev > next ? prev : next);
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
+            console.log(`${attribute}: ${minVal} - ${maxVal}`);
 
             //TODO remove DOM stuff in favor of jquery? or just remove jquery
             let chartWrapper = `.${attribute}-chart`;
 
             // Based on EffectorGenesPlotsLine
             var margin = { top: 25, right: 10, bottom: 35, left: 29 },
-                    width =
-                        $(chartWrapper).width() - margin.left - margin.right, // Use the window's width
+                    width = $(chartWrapper).width() - margin.left - margin.right, // Use the window's width
                     height = $(chartWrapper).height() - margin.top - margin.bottom; // Use the window's height
                 
             var xScale = d3.scaleLinear()
                     .domain([minVal, maxVal]) // input
                     .range([0, width]);
 
+            // Data prep for histogram
             var histogram = d3.histogram()
                             .value(function (d) {return d })
                             .domain(xScale.domain())
-                            .thresholds(xScale.ticks(configObject.buckets));
-            
+                            .thresholds(xScale.ticks(configObject.buckets));          
             var bins = histogram(dataset);
+            let histogramTopEnd = d3.max(bins, function(d){return d.length;});
 
-            let yScaleTopEnd = d3.max(bins, function(d){return d.length;});
+            // Data prep for line/scatterplot (yes, it does need to be done here)
+            let interval = (maxVal - minVal) / configObject.buckets;
+
+            let bucketsData = [];
+            for (let i = minVal; i < maxVal; i = i + interval){
+                let bucketCount = dataset.filter(entry => entry >= i && entry < i + interval).length;
+                bucketsData.push({"bucketStart": i, "bucketCount": bucketCount});
+            }
+            // Max vals get added to the top bucket
+            let maxCount = bucketsData.filter(entry => entry == maxVal).length;
+            bucketsData[bucketsData.length - 1].bucketCount += maxCount;
+            let linePlotTopEnd = bucketsData.map(item => item.bucketCount)
+                .reduce((prev, next) => prev > next ? prev : next);
+
+            let yScaleTopEnd = configObject.type == "histogram" ? histogramTopEnd : linePlotTopEnd;
             var yScale = d3.scaleLinear()
                     .domain([0, yScaleTopEnd]) // input
                     .range([height, 0]); // output
@@ -122,20 +136,7 @@ export default Vue.component("research-summary-plot", {
                 .attr("width", function(d){return xScale(d.x1) - xScale(d.x0);})
                 .attr("height", function(d){return height - yScale(d.length);})
                 .style("fill", "orange");
-            } else {
-                let interval = (maxVal - minVal) / configObject.buckets;
-                
-                let bucketsData = [];
-                for (let i = minVal; i < maxVal; i = i + interval){
-                    let bucketCount = dataset.filter(entry => entry >= i && entry < i + interval).length;
-                    bucketsData.push({"bucketStart": i, "bucketCount": bucketCount});
-                }
-                
-                // Max vals get added to the top bucket
-                let maxCount = bucketsData.filter(entry => entry == maxVal).length;
-                bucketsData[bucketsData.length - 1].bucketCount += maxCount;
-
-                if (configObject.type == "line"){
+            } else if (configObject.type == "line"){
                     var line = d3
                     .line()
                     .x(function (d) {
@@ -153,20 +154,18 @@ export default Vue.component("research-summary-plot", {
                         .attr("fill", "none")
                         .attr("stroke", "orange");
 
-                } else if (configObject.type == "scatterplot"){
-                    svg.append("g")
-                        .selectAll("dot")
-                        .data(bucketsData.filter(i => i.bucketCount > 0))
-                        .enter()
-                        .append("circle")
-                        .attr("cx", function(d){return xScale(d.bucketStart)})
-                        .attr("cy", function(d){return yScale(d.bucketCount)})
-                        .attr("r", 1.5)
-                        .style("fill", "orange");
-                }
-                
-                
+            } else if (configObject.type == "scatterplot"){
+                svg.append("g")
+                    .selectAll("dot")
+                    .data(bucketsData.filter(i => i.bucketCount > 0))
+                    .enter()
+                    .append("circle")
+                    .attr("cx", function(d){return xScale(d.bucketStart)})
+                    .attr("cy", function(d){return yScale(d.bucketCount)})
+                    .attr("r", 1.5)
+                    .style("fill", "orange");
             }
+                
             
             // Select a random item
             let randIndex = Math.floor(Math.random()* dataset.length);
