@@ -1,33 +1,8 @@
 <template>
 <div>
-<!--form>
-    <label>Phenotype<input v-model="phenotype"/></label>
-    <label>Gene or region<input v-model="region"/></label>
-    <label>Chart type:
-        <select v-model="chartType">
-            <option>histogram</option>
-            <option>line</option>
-            <option>scatterplot</option>
-        </select>
-    </label>
-    
-    <div class="attributes">
-        Attributes to include:
-        <label>Beta<input type="checkbox" v-model="includeBeta"/></label>
-        <label>P-value<input type="checkbox" v-model="includePvalue"/></label>
-        <label>Standard error<input type="checkbox" v-model="includeStdErr"/></label>
-        <label>Z-score<input type="checkbox" v-model="includeZscore"/></label>
+    <div><h4>Summary Plots</h4></div>
+    <div class="all-charts">
     </div>
-    <label>Convert P-value to -log10 <input type="checkbox" v-model="convertPval"/></label>
-    <div>
-        <label>Number of buckets for data processing:<input type="number" v-model="numberOfBuckets"/></label>
-    </div>
-    
-</form-->
-<div>{{ summaryPlot }}</div>
-<button class="assoc-button" @click="displayResults()">Get associations</button>
-<div class="all-charts">
-</div>
 </div>
 </template>
 
@@ -40,7 +15,6 @@ export default Vue.component("research-summary-plot", {
     props: ["rawData", "summaryPlot"],
     data(){
         return {
-            loading: false,
             phenotype: "t2d",
             region: "slc30a8",
             includeBeta: true,
@@ -53,69 +27,30 @@ export default Vue.component("research-summary-plot", {
             jsonData: {}
         };
     },
-    mounted: function () {},
+    mounted: function () {
+        this.displayResults(this.$props.summaryPlot);
+    },
 	computed: {},
 	watch: {},
     methods: {
         ...uiUtils,
-        displayResults(){
-            if (this.loading){
-                return;
-            }
-            this.loading = true;
-            let config = this.queryConfig();
+        displayResults(config){
+            console.log(config);
             let allCharts = document.getElementsByClassName("all-charts")[0];
             allCharts.innerHTML = "";
-            config.columns.forEach(column => {
+            config.fields.forEach(column => {
                 let newChart = document.createElement("div");
                 newChart.classList.add("chart");
                 newChart.classList.add(`${column}-chart`);
                 allCharts.append(newChart);
             });
-            this.getAssociationsAndShow(this.phenotype, this.region, config);
-        },
-        toggleLoading(){
-            if (this.loading){
-                this.loading = false;
-            } else {
-                this.loading = true;
-            }
-        },
-        queryConfig(){
-            let attributes = [];
-            attributes = attributes.concat(this.includeBeta ? ["beta"] : []);
-            attributes = attributes.concat(this.includePvalue ? ["pValue"] : []);
-            attributes = attributes.concat(this.includeStdErr ? ["stdErr"] : []);
-            attributes = attributes.concat(this.includeZscore ? ["zScore"] : []);
-            
-            let config = {
-                "type": this.chartType,
-                "columns": attributes,
-                "dataConvert": this.convertPval ? {"pValue": "minusLog10"} : {},
-                "buckets": this.numberOfBuckets
-            };
-            return config;
-        },
-        async getAssociationsAndShow(phenotype, region, configObject){
-            let assocServer = "https://bioindex.hugeamp.org/api/bio"; // will this ever change?
-            let query = `${phenotype},${region}`;
-            let queryURL = `${assocServer}/query/associations?q=${query}`
-
-            // Only fetch it if we don't already have it.
-            if (!this.jsonData[query]){
-                let assocJSON = await fetch(queryURL).then((response) => response.json());
-                this.jsonData[query] = assocJSON.data;
-            }
-
-            configObject.columns.forEach(column => {this.renderCharts(query, column, configObject)});
-            this.loading = false;
-        },
-        
-        renderCharts(query, attribute, configObject){
-            let dataset = this.jsonData[query].map(item => Number(item[attribute]));
+            config.fields.forEach(column => {this.renderChart(column, config)});
+        },        
+        renderChart(attribute, configObject){
+            let dataset = this.$props.rawData.map(item => Number(item[attribute]));
             let attributeLabel = attribute;
 
-            if (configObject.dataConvert[attribute] == "minusLog10"){
+            if (configObject['data convert'][attribute] == "-log10"){
                 dataset = dataset.map(data => -1 * Math.log10(data));
                 attributeLabel = `${attribute} (-log10)`;
             }
@@ -170,7 +105,8 @@ export default Vue.component("research-summary-plot", {
             svg.append("text")
                 .attr("text-anchor", "start")
                 .attr("y", yScale(yScaleTopEnd * -0.13)).attr("x", 0.5)
-                .text(attributeLabel);
+                .text(attributeLabel)
+                .style("font-weight", "bold");
             
             if (configObject.type == "histogram"){
                 svg.selectAll("rect")
@@ -243,7 +179,7 @@ export default Vue.component("research-summary-plot", {
             
             // Label the line
             let textAnchor = randItem < (minVal + maxVal / 2) ? "start" : "end"
-            let randEntry = this.jsonData[query][randIndex];
+            let randEntry = this.$props.rawData[randIndex];
             svg.append("text")
                 .attr("text-anchor", textAnchor)
                 .attr("x", xScale(randItem))
@@ -265,15 +201,6 @@ export default Vue.component("research-summary-plot", {
 
 .all-charts{
     display: flex;
-}
-
-.attributes label{
-    display: inline;
-    margin: 10px;
-}
-
-.radio label{
-    display: inline;
-    font-size: smaller;
+    margin: 20px;
 }
 </style>
