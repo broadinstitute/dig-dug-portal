@@ -437,7 +437,7 @@ export default Vue.component("variant-search", {
     data() {
         return {
             filters: {
-                impacts: [],
+                impacts: ["HIGH", "MODERATE", "LOW"],
                 phenotypes: []
             },
             applyfilter: false,
@@ -656,9 +656,7 @@ export default Vue.component("variant-search", {
         },
         async searchVariants() {
             this.currentPage = 1; //reset on new search
-            //Helen 2022-01-09
-            //this.variants = await query("variants", this.gene, {}, true);
-            //alert("variant-phenotype"+this.gene);
+
             this.variants = await query("variants", this.gene, {}, true);
             this.variantData = this.variants; //copy data
 
@@ -801,7 +799,14 @@ export default Vue.component("variant-search", {
                         this.variants[i].hpdisplay = hpdisplay;
                     }
                 }
-                // this.variantData = this.variants;
+
+                //if default filters are set, filter the variants
+                if (
+                    this.filters.impacts.length > 0 ||
+                    this.filters.phenotypes.length > 0
+                ) {
+                    this.addfilter();
+                }
             }
         },
         async getTranscriptConsequences(varid) {
@@ -879,7 +884,6 @@ export default Vue.component("variant-search", {
                 }
             }
             this.variantData = dataRows;
-            return this.tableData;
         },
         sort: function(s) {
             //if s == current sort, reverse
