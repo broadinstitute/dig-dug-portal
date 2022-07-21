@@ -192,9 +192,15 @@ new Vue({
 
         pageDescription() {
             if (this.phenotypesDescription != null && this.datasetsDescription != null) {
+
+                let datasets = this.$store.state.bioPortal.datasets;
+                let phenotypes = this.$store.state.bioPortal.phenotypes;
+
                 let content = "<h5>Datasets by types</h5>";
+                content += "<span>Total: " + datasets.length + " datasets</span>";
                 content += this.datasetsDescription;
                 content += "<h5>Phenotypes by groups</h5>";
+                content += "<span>Total: " + phenotypes.length + " phenotypes</span>";
                 content += this.phenotypesDescription;
 
                 return content;

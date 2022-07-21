@@ -47,6 +47,8 @@ export default Vue.component("research-page-description", {
 					.replace(/<\/p>/g, "")
 					.replace(/<br>/g, "");
 
+				console.log("innerHtml", innerHtml);
+
 				this.plotData[i] = JSON.parse(innerHtml);
 
 				let labelSpace = !!this.plotData[i]["label space"]
@@ -63,6 +65,7 @@ export default Vue.component("research-page-description", {
 					"'></canvas>";
 
 				plots[i].innerHTML = plotContent;
+				plots[i].setAttribute("class", "");
 			}
 
 			this.plotData.map((p, pIndex) => {
@@ -267,7 +270,11 @@ export default Vue.component("research-page-description", {
 			);
 		},
 	},
-	watch: {},
+	watch: {
+		pageContent() {
+			this.renderPlots();
+		},
+	},
 });
 </script>
 

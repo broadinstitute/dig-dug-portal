@@ -19,9 +19,9 @@
 					<div class="container">
 						<div class="row">
 							<div class="col-md-12">
-								<div class="front-logo-wrapper">
+								<div class="a2f-front-logo-wrapper">
 									<img
-										class="front-logo-img"
+										class="a2f-front-logo-img"
 										v-if="
 											$parent.frontContents
 												.field_front_logo
@@ -32,24 +32,21 @@
 												.field_front_logo
 										"
 									/>
-									<span
-										:class="
-											'front-logo-tagline front-logo-tagline-' +
-											$parent.diseaseGroup.name +
-											'kp'
-										"
-										>{{
-											$parent.frontContents.field_tagline
-										}}</span
+									<br />
+									<span class="a2f-front-tagline"
+										>Transforming Data into Knowledge</span
 									>
 								</div>
 							</div>
+							<h4 class="single-search-header">
+								Search gene, variant, region or phenotype
+							</h4>
 							<research-single-search
 								:singleSearchConfig="null"
 								:phenotypes="$parent.phenotypes"
 							></research-single-search>
 
-							<div class="col-md-12 portal-front-tabs">
+							<!--<div class="col-md-12 portal-front-tabs">
 								<b-tabs content-class="mt-3" align="center">
 									<b-tab
 										title="Gene, region or variant"
@@ -138,14 +135,18 @@
 										></disease-group-select>
 									</b-tab>
 								</b-tabs>
-							</div>
+							</div>-->
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="container static-content-section">
 				<div class="row">
-					<div class="col-md-8" v-if="!!$parent.kPortals">
+					<div
+						class="col-md-8"
+						v-if="!!$parent.kPortals"
+						style="margin-left: -30px; margin-right: 30px"
+					>
 						<h2>Community Knowledge Portals</h2>
 						<p></p>
 						<div class="row">
@@ -166,12 +167,15 @@
 								</div>
 							</div>
 						</div>
-						<h2>What's new</h2>
-						<span
-							><a href="/news.html" target="_blank"
-								>View news archive ></a
-							></span
-						>
+						<h2>
+							What's new
+							<span style="font-size: 16px"
+								><a href="/news.html" target="_blank"
+									>View news archive ></a
+								></span
+							>
+						</h2>
+
 						<news-feed-section
 							:disease-group="$parent.diseaseGroup"
 							:news-feed="$store.state.kp4cd.newsFeed"
@@ -216,6 +220,30 @@
 	</div>
 </template>
 <style>
+.a2f-front-logo-wrapper {
+	margin-left: auto;
+	margin-right: auto;
+	width: 900px;
+	text-align: center;
+}
+
+.a2f-front-logo-img {
+	width: 500px;
+}
+.a2f-front-tagline {
+	font-size: 32px;
+	font-weight: 100;
+	color: #fff;
+}
+
+.single-search-header {
+	text-align: center;
+	display: block;
+	width: 100%;
+	color: #fff;
+	margin-top: 30px;
+}
+
 .k-portal {
 	width: 20%;
 	text-align: center;
@@ -236,5 +264,8 @@
 
 .k-portal img {
 	height: 110px;
+}
+.a2fkp-footer {
+	margin-top: 50px;
 }
 </style>

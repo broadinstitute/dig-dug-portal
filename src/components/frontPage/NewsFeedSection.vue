@@ -6,7 +6,12 @@
 			:key="item.nid"
 		>
 			<template v-if="itemIndex < 5">
-				<div class="thumbnail"></div>
+				<div class="thumbnail">
+					<img
+						:src="item.field_image"
+						v-if="item.field_image != ''"
+					/>
+				</div>
 				<h5>{{ item.title }}</h5>
 				<div class="news-body">{{ item.body }}</div>
 				<span>
@@ -64,5 +69,6 @@ export default Vue.component("news-feed-section", {
 	background-image: url("https://kp4cd.org/sites/default/files/images/news.svg");
 	border-radius: 5px;
 	border: solid 1px #ccc;
+	overflow: hidden;
 }
 </style>
