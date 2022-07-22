@@ -74,6 +74,8 @@ new Vue({
 
         datasetsList() {
             let contents = [];
+            //console.log("this.$store.state.bioPortal.datasets", this.$store.state.bioPortal.datasets);
+            //console.log("this.$store.state.kp4cd.datasetsInfo", this.$store.state.kp4cd.datasetsInfo);
             if (this.datasetsSearchCriterion.length > 0) {
 
                 this.$store.state.kp4cd.datasetsInfo.map(d => {

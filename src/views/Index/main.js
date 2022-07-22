@@ -70,6 +70,7 @@ new Vue({
 
     methods: {
         ...uiUtils,
+        ...sortUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -160,9 +161,11 @@ new Vue({
 
                 ///create phenotypes plot content
 
-                let groupLabel = [...new Set(phenotypes.map(p => p.group))]
+                let groupLabel = [...new Set(phenotypes.map(p => p.group))].sort();
                 let group = phenotypes.map(g => g.group);
                 let groupCount = {}
+
+
 
                 groupLabel.map(l => {
                     let tempCount = group.filter(t => t == l);
@@ -196,10 +199,10 @@ new Vue({
                 let datasets = this.$store.state.bioPortal.datasets;
                 let phenotypes = this.$store.state.bioPortal.phenotypes;
 
-                let content = "<h5>Datasets by types</h5>";
+                let content = "<h5>Datasets by technology</h5>";
                 content += "<span>Total: " + datasets.length + " datasets</span>";
                 content += this.datasetsDescription;
-                content += "<h5>Phenotypes by groups</h5>";
+                content += "<h5>Phenotypes by group</h5>";
                 content += "<span>Total: " + phenotypes.length + " phenotypes</span>";
                 content += this.phenotypesDescription;
 
