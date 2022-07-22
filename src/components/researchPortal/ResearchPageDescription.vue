@@ -30,7 +30,9 @@ export default Vue.component("research-page-description", {
 		pageContent() {
 			let formattedContent = this.content
 				.replace(/&lt;plot&gt;/g, "<div class='plot'>")
-				.replace(/&lt;plot-end&gt;/g, "</div>");
+				.replace(/&lt;plot-end&gt;/g, "</div>")
+				.replace(/<plot>/g, "<div class='plot'>")
+				.replace(/<plot-end>/g, "</div>");
 			return formattedContent;
 		},
 	},
@@ -39,13 +41,19 @@ export default Vue.component("research-page-description", {
 			var plots = document.querySelectorAll("div.plot");
 
 			for (let i = 0; i < plots.length; ++i) {
-				console.log(plots[i].innerHTML);
 				//[/<p>&nbsp;<\/p>/g,""],
 				let innerHtml = plots[i].innerHTML
 					.replace(/<p>/g, "")
 					.replace(/<\/p>/g, "")
 					.replace(/<br>/g, "");
+
+				console.log("innerHtml", innerHtml);
+
 				this.plotData[i] = JSON.parse(innerHtml);
+
+				let labelSpace = !!this.plotData[i]["label space"]
+					? this.plotData[i]["label space"]
+					: 0;
 
 				let plotContent =
 					"<canvas id='plot" +
@@ -53,11 +61,21 @@ export default Vue.component("research-page-description", {
 					"' width='" +
 					this.plotData[i].width +
 					"' height='" +
-					this.plotData[i].height +
+					(this.plotData[i].height + labelSpace) +
 					"'></canvas>";
 
 				plots[i].innerHTML = plotContent;
+				plots[i].setAttribute("class", "");
 			}
+
+			this.plotData.map((p, pIndex) => {
+				if (!p["x label angle"]) {
+					p["x label angle"] = null;
+				}
+				if (!p["y label angle"]) {
+					p["y label angle"] = null;
+				}
+			});
 
 			this.plotData.map((p, pIndex) => {
 				let c, ctx;
@@ -72,7 +90,9 @@ export default Vue.component("research-page-description", {
 							p.data,
 							p.width,
 							p.height,
-							p.color
+							p.color,
+							p["x label angle"],
+							p["y label angle"]
 						);
 						break;
 
@@ -87,13 +107,27 @@ export default Vue.component("research-page-description", {
 						break;
 
 					case "line":
-						this.renderLinePlot(ctx, p.data, p.width, p.height);
+						this.renderLinePlot(
+							ctx,
+							p.data,
+							p.width,
+							p.height,
+							p["x label angle"],
+							p["y label angle"]
+						);
 						break;
 				}
 			});
 		},
-		renderBarPlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
-			//console.log("color", COLOR);
+		renderBarPlot(
+			CTX,
+			DATA,
+			WIDTH,
+			HEIGHT,
+			COLOR,
+			X_LBL_ANGLE,
+			Y_LBL_ANGLE
+		) {
 			let margin = this.plotMargin;
 			let spacer = 10;
 			let valueHiLow = { high: null, low: null };
@@ -144,7 +178,8 @@ export default Vue.component("research-page-description", {
 				margin,
 				"x",
 				Object.keys(DATA),
-				spacer
+				spacer,
+				X_LBL_ANGLE
 			);
 
 			///render bars
@@ -166,7 +201,6 @@ export default Vue.component("research-page-description", {
 			PlotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT, COLOR);
 		},
 		renderLinePlot(CTX, DATA, WIDTH, HEIGHT) {
-			//console.log(CTX, DATA, WIDTH, HEIGHT);
 			let margin = this.plotMargin;
 			let valueHiLow = { high: null, low: null };
 
@@ -236,7 +270,11 @@ export default Vue.component("research-page-description", {
 			);
 		},
 	},
-	watch: {},
+	watch: {
+		pageContent() {
+			this.renderPlots();
+		},
+	},
 });
 </script>
 
