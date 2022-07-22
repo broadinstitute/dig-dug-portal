@@ -45,6 +45,17 @@
 								:singleSearchConfig="null"
 								:phenotypes="$parent.phenotypes"
 							></research-single-search>
+							<div
+								class="
+									region-search-examples
+									a2f-region-search-examples
+								"
+							>
+								<documentation
+									name="home.example"
+									:group="cmd"
+								></documentation>
+							</div>
 
 							<!--<div class="col-md-12 portal-front-tabs">
 								<b-tabs content-class="mt-3" align="center">
@@ -242,6 +253,13 @@
 	width: 100%;
 	color: #fff;
 	margin-top: 30px;
+}
+
+.a2f-region-search-examples {
+	text-align: center;
+	color: #fff;
+	margin-top: 10px;
+	width: 100%;
 }
 
 .k-portal {
