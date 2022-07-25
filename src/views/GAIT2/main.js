@@ -12,6 +12,7 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterBasic from "@/components/criterion/FilterBasic";
 import ForestPlotSimple from "@/components/ForestPlotSimple";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
+import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
@@ -36,7 +37,8 @@ new Vue({
         FilterGreaterThan,
         FilterBasic,
         ForestPlotSimple,
-        ResearchAnnotationsPlot
+        ResearchAnnotationsPlot,
+        ResearchGenesTrack
     },
     render(createElement, context) {
         return createElement(Template);
@@ -371,12 +373,31 @@ new Vue({
             return this.$store.state.pkgDataSelected
                 .filter(s => s.type == "Tissue")
                 .map(s => s.id);
+        },
+        searchingRegion() {
+            let region = this.searchRegion.chrom + ":" + this.searchRegion.start + "-" + this.searchRegion.stop;
+            return region;
+        },
+        searchingGenes() {
+            let contents = this.$store.state.hugeampkpncms.genesInRegion;
+
+            if (contents.length > 0) {
+                return JSON.parse(contents);
+            }
+        },
+        codingGenesData() {
+            let contents = this.$store.state.hugeampkpncms.genesData;
+
+            if (contents != null) {
+                return JSON.parse(contents);
+            }
         }
     },
     methods: {
         intFormatter: Formatters.intFormatter,
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
+
         zScoreFormatter(value) {
             if (!value) {
                 return "-";
@@ -396,6 +417,8 @@ new Vue({
             this.criteriaChanged = false;
             this.$store.commit("ldServer/setCovariances", []);
         },
+
+
 
         //for NC GAIT
         async searchAnnotations() {
@@ -423,14 +446,14 @@ new Vue({
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
-                      this.selectedRegionType
-                  ].map(region => {
-                      return {
-                          chrom: this.searchRegion.chrom,
-                          start: region.start,
-                          stop: region.end
-                      };
-                  })
+                    this.selectedRegionType
+                ].map(region => {
+                    return {
+                        chrom: this.searchRegion.chrom,
+                        start: region.start,
+                        stop: region.end
+                    };
+                })
                 : [];
 
             //using hardcoded test samples
@@ -507,8 +530,8 @@ new Vue({
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
                     groups[
                         liftedRegions.regions[i].start +
-                            " - " +
-                            liftedRegions.regions[i].stop
+                        " - " +
+                        liftedRegions.regions[i].stop
                     ] = {
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop
@@ -812,6 +835,47 @@ new Vue({
         }
     },
     watch: {
+        codingGenesData(DATA) {
+
+            console.log("dk", DATA);
+            this.$store.dispatch("codingGenesData", DATA["data"]);
+        },
+        searchingRegion: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": newData });
+                }
+            },
+            deep: true
+        },
+        searchingGenes: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+
+                    let genesData = newData["data"];
+                    let codingGenes = "";
+                    let genesLength = !!!!newData["data"] ? newData["data"].length : 0;
+                    if (genesLength > 1) {
+                        genesData.map(gene => {
+                            if (gene.type = "protein_coding") {
+                                codingGenes += "\'" + gene.name + "\',";
+                            }
+                        })
+
+                        codingGenes = codingGenes.slice(0, -1)
+
+                        if (codingGenes.length > 1) {
+                            this.$store.dispatch("hugeampkpncms/getGenesData", { "genes": codingGenes });
+                        } else {
+                            this.$store.dispatch("codingGenesData", null);
+                        }
+                    } else {
+                        this.$store.dispatch("codingGenesData", null);
+                    }
+                }
+            },
+            deep: true
+        },
         searchCriteria: {
             handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
@@ -868,7 +932,7 @@ new Vue({
                 });
             }
         },
-        "$store.state.variants": function() {
+        "$store.state.variants": function () {
             this.loadingVariants = false;
             if (
                 this.$store.state.variants &&
@@ -877,10 +941,10 @@ new Vue({
                 this.updateFields();
             }
         },
-        "$store.state.ldServer.covariances": function() {
+        "$store.state.ldServer.covariances": function () {
             this.loadingCovariances = false;
         },
-        "$store.state.ldServer.runTestsError": function() {
+        "$store.state.ldServer.runTestsError": function () {
             this.loadingCovariances = false;
         },
         //check for table data update
