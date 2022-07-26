@@ -19,9 +19,19 @@
 							value
 						]"
 						:key="headerIndex"
+						class="byor-tooltip"
 						:class="'feature-th-' + index"
-						v-html="headerValue"
-					></th>
+					>
+						<span v-html="headerValue"></span>
+						<span
+							v-if="
+								!!tableFormat['tool tips'] &&
+								!!tableFormat['tool tips'][value]
+							"
+							class="tooltiptext"
+							v-html="tableFormat['tool tips'][value]"
+						></span>
+					</th>
 				</tr>
 				<tr
 					v-for="(featureValue, featureIndex) in featuresData[value]"
