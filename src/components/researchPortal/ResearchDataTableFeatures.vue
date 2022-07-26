@@ -25,11 +25,11 @@
 						<span v-html="headerValue"></span>
 						<span
 							v-if="
-								!!tableFormat['tool tips'] &&
-								!!tableFormat['tool tips'][value]
+								!!featuresFormat['tool tips'] &&
+								!!featuresFormat['tool tips'][headerValue]
 							"
 							class="tooltiptext"
-							v-html="tableFormat['tool tips'][value]"
+							v-html="featuresFormat['tool tips'][headerValue]"
 						></span>
 					</th>
 				</tr>

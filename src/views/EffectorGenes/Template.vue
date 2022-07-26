@@ -56,7 +56,7 @@
 						:filters="[
 							{
 								field: 'field_phenotype_groups',
-								label: 'field_phenotype_groups',
+								label: 'Select an effector gene prediction list',
 								type: 'dropdown',
 							},
 						]"
