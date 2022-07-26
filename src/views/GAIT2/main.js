@@ -12,6 +12,7 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterBasic from "@/components/criterion/FilterBasic";
 import ForestPlotSimple from "@/components/ForestPlotSimple";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
+import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
@@ -38,13 +39,89 @@ new Vue({
         FilterBasic,
         ForestPlotSimple,
         ResearchAnnotationsPlot,
-        ResearchGenesTrack
+        ResearchGenesTrack,
+        ResearchRegionPlot
     },
     render(createElement, context) {
         return createElement(Template);
     },
     data() {
         return {
+            plotMargin: { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50, bump: 5.5 },
+            colors: {
+                mild: [
+                    "#007bff25",
+                    "#04884525",
+                    "#8490C825",
+                    "#BF61A525",
+                    "#EE312425",
+                    "#FCD70025",
+                    "#5555FF25",
+                    "#7aaa1c25",
+                    "#9F78AC25",
+                    "#F8808425",
+                    "#F5A4C725",
+                    "#CEE6C125",
+                    "#cccc0025",
+                    "#6FC7B625",
+                    "#D5A76825",
+                    "#d4d4d425"
+                ],
+                moderate: [
+                    "#007bff50",
+                    "#04884550",
+                    "#8490C850",
+                    "#BF61A550",
+                    "#EE312450",
+                    "#FCD70050",
+                    "#5555FF50",
+                    "#7aaa1c50",
+                    "#9F78AC50",
+                    "#F8808450",
+                    "#F5A4C750",
+                    "#CEE6C150",
+                    "#cccc0050",
+                    "#6FC7B650",
+                    "#D5A76850",
+                    "#d4d4d450"
+                ],
+                bold: [
+                    "#007bff75",
+                    "#04884575",
+                    "#8490C875",
+                    "#BF61A575",
+                    "#EE312475",
+                    "#FCD70075",
+                    "#5555FF75",
+                    "#7aaa1c75",
+                    "#9F78AC75",
+                    "#F8808475",
+                    "#F5A4C775",
+                    "#CEE6C175",
+                    "#cccc0075",
+                    "#6FC7B675",
+                    "#D5A76875",
+                    "#d4d4d475"
+                ],
+                extraBold: [
+                    "#007bff",
+                    "#048845",
+                    "#8490C8",
+                    "#BF61A5",
+                    "#EE3124",
+                    "#FCD700",
+                    "#5555FF",
+                    "#7aaa1c",
+                    "#9F78AC",
+                    "#F88084",
+                    "#F5A4C7",
+                    "#CEE6C1",
+                    "#cccc00",
+                    "#6FC7B6",
+                    "#D5A768",
+                    "#d4d4d4"
+                ],
+            },
             masks: [
                 { text: "LofTee", value: "LoF_HC" },
                 { text: "16/16", value: "16of16" },
@@ -295,6 +372,32 @@ new Vue({
         this.initCriteria();
     },
     computed: {
+
+        associationsData() {
+            let DATA = this.$store.state.associations.data;
+            if (DATA.length == 0) {
+                return null;
+            } else {
+                let content = [];
+
+                DATA.map(v => {
+                    let tempObj = {};
+                    tempObj["Variant ID"] = v.chromosome + ":" + v.position + "_" + v.reference + "/" + v.alt;
+                    tempObj["-log10(P-Value)"] = -Math.log10(v.pValue);
+                    tempObj["Position"] = v.position;
+                    tempObj["P-Value"] = v.pValue;
+                    tempObj["Beta"] = v.beta;
+                    tempObj["ref"] = v.reference;
+                    tempObj["alt"] = v.alt;
+
+                    content.push(tempObj);
+
+                })
+
+                return content;
+            }
+
+        },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
@@ -836,14 +939,15 @@ new Vue({
     },
     watch: {
         codingGenesData(DATA) {
-
-            console.log("dk", DATA);
             this.$store.dispatch("codingGenesData", DATA["data"]);
         },
         searchingRegion: {
             handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
                     this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": newData });
+                    this.$store.dispatch("associations/query", {
+                        q: this.selectedPhenotypes[0] + ',' + newData
+                    });
                 }
             },
             deep: true

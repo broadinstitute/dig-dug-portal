@@ -313,31 +313,10 @@
 													'overlapping regions':
 														'true',
 												}"
-												:plotMargin="{
-													leftMargin: 75,
-													rightMargin: 20,
-													topMargin: 10,
-													bottomMargin: 50,
-													bump: 5.5,
-												}"
-												:compareGroupColors="[
-													'#007bff75',
-													'#04884575',
-													'#8490C875',
-													'#BF61A575',
-													'#EE312475',
-													'#FCD70075',
-													'#5555FF75',
-													'#7aaa1c75',
-													'#9F78AC75',
-													'#F8808475',
-													'#F5A4C775',
-													'#CEE6C175',
-													'#cccc0075',
-													'#6FC7B675',
-													'#D5A76875',
-													'#d4d4d475',
-												]"
+												:plotMargin="$parent.plotMargin"
+												:compareGroupColors="
+													$parent.colors.bold
+												"
 												:dataComparison="null"
 												:pkgData="$store.state.pkgData"
 												:pkgDataSelected="
@@ -472,7 +451,11 @@
 							</b-card-header>
 							<div>
 								<research-region-plot
-									:plotData="$store.state.associationData"
+									v-if="
+										$parent.associationsData != null &&
+										$parent.searchingRegion != ':-'
+									"
+									:plotData="$parent.associationsData"
 									:renderConfig="{
 										'x axis field': 'Position',
 										'y axis field': '-log10(P-Value)',
@@ -497,32 +480,9 @@
 										$store.state.searchParameters
 									"
 									:dataComparisonConfig="null"
-									:region="$store.state.searchingRegion"
-									:plotMargin="{
-										leftMargin: 75,
-										rightMargin: 20,
-										topMargin: 10,
-										bottomMargin: 50,
-										bump: 5.5,
-									}"
-									:compareGroupColors="[
-										'#007bff75',
-										'#04884575',
-										'#8490C875',
-										'#BF61A575',
-										'#EE312475',
-										'#FCD70075',
-										'#5555FF75',
-										'#7aaa1c75',
-										'#9F78AC75',
-										'#F8808475',
-										'#F5A4C775',
-										'#CEE6C175',
-										'#cccc0075',
-										'#6FC7B675',
-										'#D5A76875',
-										'#d4d4d475',
-									]"
+									:region="$parent.searchingRegion"
+									:plotMargin="$parent.plotMargin"
+									:compareGroupColors="$parent.colors.bold"
 									:regionZoom="0"
 									:regionViewArea="0"
 									:pkgData="$store.state.pkgData"
@@ -536,13 +496,7 @@
 									:genesData="$store.state.codingGenesData"
 									:plotConfig="{}"
 									:plotType="'region plot'"
-									:plotMargin="{
-										leftMargin: 75,
-										rightMargin: 20,
-										topMargin: 10,
-										bottomMargin: 50,
-										bump: 5.5,
-									}"
+									:plotMargin="$parent.plotMargin"
 									:regionZoom="0"
 									:regionViewArea="0"
 								></research-genes-track>
