@@ -18,7 +18,8 @@ export default new Vuex.Store({
         kp4cd,
         hugeampkpncms,
         ldServer,
-        gene: bioIndex("gene")
+        gene: bioIndex("gene"),
+        associations: bioIndex("associations"),
     },
     state: {
         variants: [],
