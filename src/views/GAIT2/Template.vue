@@ -449,7 +449,11 @@
 									</div></b-button
 								>
 							</b-card-header>
-							<div>
+							<div
+								v-if="
+									!!$parent.isAccordionVisible('accordion-3')
+								"
+							>
 								<research-region-plot
 									v-if="
 										$parent.associationsData != null &&

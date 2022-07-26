@@ -501,6 +501,19 @@ new Vue({
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
 
+        isAccordionVisible(ACCORDION) {
+            let classes = "";
+            if (!!document.getElementById(ACCORDION)) {
+                classes = document.getElementById(ACCORDION).getAttribute('class');
+            }
+            if (classes == "collapse show") {
+                return true;
+            } else {
+                return false;
+            }
+
+        },
+
         zScoreFormatter(value) {
             if (!value) {
                 return "-";
