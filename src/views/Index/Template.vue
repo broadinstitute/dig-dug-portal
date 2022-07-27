@@ -38,115 +38,113 @@
 									>
 								</div>
 							</div>
-							<h4 class="single-search-header">
-								Search gene, variant, region or phenotype
-							</h4>
-							<research-single-search
-								:singleSearchConfig="null"
-								:phenotypes="$parent.phenotypes"
-							></research-single-search>
-							<div
-								class="
-									region-search-examples
-									a2f-region-search-examples
-								"
-							>
-								<documentation
-									name="home.example"
-									:group="cmd"
-								></documentation>
-							</div>
+							{{ $parent.kpDiseasePair }}
 
-							<!--<div class="col-md-12 portal-front-tabs">
-								<b-tabs content-class="mt-3" align="center">
-									<b-tab
-										title="Gene, region or variant"
-										active
+							<div class="disease-systems-trees-wrapper">
+								<div class="disease-systems-tree-header">
+									Select a disease
+								</div>
+
+								<div class="disease-systems-tree">
+									<template
+										v-for="(
+											system, systemIndex
+										) in $parent.diseaseSystems"
 									>
-										<div class="front-gene-search-wrapper">
-											<div
-												class="col-md-12 input-wrapper"
-											>
-												<autocomplete
-													:placeholder="'Search'"
-													:matches="
-														$parent.matchingGenes
-													"
-													:match-key="null"
-													@input-change="
-														$store.dispatch(
-															'lookupGenes',
-															$event
-														)
-													"
-													@keyup-enter="
-														$store.dispatch(
-															'exploreRegionOrVariant',
-															$event
-														)
-													"
-													@item-select="
-														$store.dispatch(
-															'onGeneChange',
-															$event
-														)
-													"
-												></autocomplete>
-											</div>
-											<div class="region-search-examples">
-												<documentation
-													name="home.example"
-													:group="
-														$parent.diseaseGroup
-															.name
-													"
-												></documentation>
-											</div>
-
-											<div
-												class="text-danger"
-												v-show="
-													$store.state
-														.invalidGeneOrRegion
-												"
-											>
-												Invalid gene name or region or
-												variant
-											</div>
-										</div>
-									</b-tab>
-
-									<b-tab title="Phenotypes">
 										<div
-											class="
-												front-phenotype-search-wrapper
+											class="disease-system"
+											v-if="systemIndex < 6"
+											:key="system"
+											@mouseover="
+												$parent.feedDiseaseOptions(
+													system
+												)
+											"
+											@mouseleave="
+												$parent.emptyDiseaseOptions(
+													system
+												)
 											"
 										>
-											<phenotype-selectpicker
-												v-bind:phenotypes="
-													$parent.phenotypes
+											<img
+												:src="
+													'https://kp4cd.org/sites/default/files/images/disease_systems/' +
+													system
+														.toLowerCase()
+														.split(' ')[0] +
+													'.svg'
 												"
-											></phenotype-selectpicker>
+											/>
+											<div>{{ system }}</div>
+											<div
+												class="disease-system-options"
+												:id="system + '_options'"
+											></div>
 										</div>
-									</b-tab>
-
-									<b-tab
-										title="Disease-specific portals"
-										v-if="
-											$store.getters[
-												'bioPortal/isRootPortal'
-											]
-										"
+									</template>
+								</div>
+								<div class="disease-systems-tree">
+									<template
+										v-for="(
+											system, systemIndex
+										) in $parent.diseaseSystems"
 									>
-										<disease-group-select
-											:disease-groups="
-												$store.state.bioPortal
-													.diseaseGroups
+										<div
+											class="disease-system"
+											v-if="systemIndex >= 6"
+											:key="system"
+											@mouseover="
+												$parent.feedDiseaseOptions(
+													system + '_options'
+												)
 											"
-										></disease-group-select>
-									</b-tab>
-								</b-tabs>
-							</div>-->
+											@mouseleave="
+												$parent.emptyDiseaseOptions(
+													system + '_options'
+												)
+											"
+										>
+											<img
+												:src="
+													'https://kp4cd.org/sites/default/files/images/disease_systems/' +
+													system
+														.toLowerCase()
+														.split(' ')[0] +
+													'.svg'
+												"
+											/>
+											<div>{{ system }}</div>
+										</div>
+									</template>
+									<div class="disease-system">
+										<img
+											src="https://kp4cd.org/sites/default/files/images/disease_systems/search.svg"
+										/>
+										<span>Search</span>
+									</div>
+								</div>
+							</div>
+							<!--<h4 class="single-search-header">
+								Search gene, variant, region or phenotype
+							</h4>-->
+							<div class="single-search-wrapper">
+								<div class="single-search-header">Search</div>
+								<research-single-search
+									:singleSearchConfig="null"
+									:phenotypes="$parent.phenotypes"
+								></research-single-search>
+								<div
+									class="
+										region-search-examples
+										a2f-region-search-examples
+									"
+								>
+									<documentation
+										name="home.example"
+										:group="cmd"
+									></documentation>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -247,12 +245,54 @@
 	color: #fff;
 }
 
-.single-search-header {
+.disease-systems-trees-wrapper {
+	position: relative;
+	text-align: center;
+	width: 100%;
+	margin: 75px 0 75px 0;
+}
+
+.single-search-header,
+.disease-systems-tree,
+.disease-systems-tree-header {
 	text-align: center;
 	display: block;
 	width: 100%;
 	color: #fff;
 	margin-top: 30px;
+}
+
+.disease-systems-tree {
+	margin-top: 10px;
+	position: relative;
+}
+
+.disease-systems-tree-header {
+	position: absolute;
+	transform: rotate(-90deg);
+	border-radius: 15px;
+	font-size: 12px;
+	width: 280px;
+	top: 35%;
+	border: solid 1px #fff;
+	left: 40px;
+}
+
+.single-search-wrapper {
+	position: relative;
+	text-align: center;
+	width: 100%;
+}
+
+.single-search-header {
+	position: absolute;
+	transform: rotate(-90deg);
+	border-radius: 15px;
+	font-size: 12px;
+	width: 120px;
+	top: 0%;
+	border: solid 1px #fff;
+	left: 120px;
 }
 
 .a2f-region-search-examples {
@@ -285,5 +325,27 @@
 }
 .a2fkp-footer {
 	margin-top: 50px;
+}
+.disease-system {
+	width: 100px;
+	text-align: center;
+	font-size: 14px;
+	display: inline-block;
+	vertical-align: top;
+	margin: 0 10px 0px 10px;
+}
+
+.disease-system.row-first:after {
+	content: "\a";
+	white-space: pre;
+}
+
+.disease-system img {
+	width: 100px;
+	height: 100px;
+}
+
+.byor-single-search-wrapper input {
+	width: 680px !important;
 }
 </style>

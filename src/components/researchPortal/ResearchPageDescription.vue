@@ -47,8 +47,6 @@ export default Vue.component("research-page-description", {
 					.replace(/<\/p>/g, "")
 					.replace(/<br>/g, "");
 
-				console.log("innerHtml", innerHtml);
-
 				this.plotData[i] = JSON.parse(innerHtml);
 
 				let labelSpace = !!this.plotData[i]["label space"]

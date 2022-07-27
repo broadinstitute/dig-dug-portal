@@ -5,7 +5,7 @@
 			type="text"
 			id="byor_single_search"
 			v-model="singleSearchParam"
-			placeholder="Search"
+			placeholder="Search gene, variant, region or phenotype"
 			@keyup.enter="onSearch"
 		/>
 		<div class="byor-single-search-results-wrapper">
