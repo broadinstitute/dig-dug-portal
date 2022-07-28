@@ -16,10 +16,15 @@ function clearPhenotypes() {
 }
 
 //function to add a phenotype to the custom phenotype list for user
-// phenotype: object with name and id
-
+//phenotype: object with name and id
 function addPhenotype(phenotype) {
     if (!!phenotype) {
+        //check if phenotype have name and id
+        if (!phenotype.name || !phenotype.id) {
+            console.error("Phenotype input is missing name or id");
+            return;
+        }
+
         let phenotypes = getPhenotypes();
         if (phenotypes === null) {
             phenotypes = [];
@@ -38,7 +43,7 @@ function addPhenotype(phenotype) {
 }
 
 //function to remove a phenotype from the custom phenotype list for user
-// phenotype: object with name and id
+//phenotype: object with name and id
 function removePhenotypeById(phenotype) {
     if (!!phenotype) {
         let phenotypes = getPhenotypes();
@@ -55,3 +60,11 @@ function removePhenotypeById(phenotype) {
         return;
     }
 }
+
+export default {
+    savePhenotypes,
+    getPhenotypes,
+    clearPhenotypes,
+    addPhenotype,
+    removePhenotypeById
+};
