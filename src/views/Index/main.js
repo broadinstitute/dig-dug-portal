@@ -76,43 +76,16 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        feedDiseaseOptions(ID) {
-            let kp4ID = this.kpDiseasePair(ID);
-            let diseaseSystems = [...new Set(this.$store.state.bioPortal.diseaseSystems.filter(d => d.system == ID + ' system').map(d => d.disease))];
-            //let diseaseSystems = this.$store.state.bioPortal.diseaseSystems;
+        communityPortalLink(ID) {
 
-            console.log("ID", ID);
+            return ID + "." + this.$store.state.bioPortal.host.domain
 
-
-
-            console.log("diseaseSystems", diseaseSystems);
-
-            console.log("kp4ID", kp4ID);
-
-            let content = '';
-            content += "<strong>Select a disease</strong><br />"
-            diseaseSystems.map(d => {
-                content += '<div>' + d + '</div>';
-            })
-
-            let host = window.location.host.split(".");
-            if (!!window.location.host.includes("localhost")) {
-                host = (host.length == 2) ? host[1] : host[0];
-            } else {
-                host = (host.length == 3) ? host[1] + "." + host[2] : host[0] + "." + host[1];
-            }
-
-            content += "<strong>Community portals</strong><br />"
-            kp4ID.map(kp => {
-                content += '<div class="community-portal"><a href="https://' + kp.name + '.' + host + '">';
-                content += '<img src="https://kp4cd.org/sites/default/files/images/disease_systems/' + kp.name + 'kp.svg" /></a></div>';
-            })
-
-            return content;
         },
-        emptyDiseaseOptions(ID) {
-            console.log("ID", ID);
-            document.getElementById(ID.split(" ")[0] + "_options").innerHTML = '';
+        diseaseOptions(ID) {
+
+            let diseaseSystems = [...new Set(this.$store.state.bioPortal.diseaseSystems.filter(d => d.system == ID + ' system').map(d => d.disease))];
+
+            return diseaseSystems;
         },
         kpDiseasePair(SYSTEM, DISEASE) {
             let rawList = [

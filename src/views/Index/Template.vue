@@ -71,12 +71,48 @@
 													system.split(' ')[0] +
 													'_options'
 												"
-												v-html="
-													$parent.feedDiseaseOptions(
+											>
+												<h5>Select a disease</h5>
+												<div
+													class="disease-name"
+													v-for="disease in $parent.diseaseOptions(
 														system
-													)
-												"
-											></div>
+													)"
+													:key="disease"
+												>
+													{{ disease }}
+												</div>
+												<h5
+													v-if="
+														$parent.kpDiseasePair(
+															system
+														).length > 0
+													"
+												>
+													Community portals
+												</h5>
+												<div
+													class="community-portal"
+													v-for="kp in $parent.kpDiseasePair(
+														system
+													)"
+													:key="kp.name"
+												>
+													<a
+														:href="
+															$parent.communityPortalLink(
+																kp.name
+															)
+														"
+														><img
+															:src="
+																'https://kp4cd.org/sites/default/files/images/disease_systems/' +
+																kp.name +
+																'kp.svg'
+															"
+													/></a>
+												</div>
+											</div>
 										</div>
 									</template>
 								</div>
@@ -107,12 +143,48 @@
 													system.split(' ')[0] +
 													'_options'
 												"
-												v-html="
-													$parent.feedDiseaseOptions(
+											>
+												<h5>Select a disease</h5>
+												<div
+													class="disease-name"
+													v-for="disease in $parent.diseaseOptions(
 														system
-													)
-												"
-											></div>
+													)"
+													:key="disease"
+												>
+													{{ disease }}
+												</div>
+												<h5
+													v-if="
+														$parent.kpDiseasePair(
+															system
+														).length > 0
+													"
+												>
+													Community portals
+												</h5>
+												<div
+													class="community-portal"
+													v-for="kp in $parent.kpDiseasePair(
+														system
+													)"
+													:key="kp.name"
+												>
+													<a
+														:href="
+															$parent.communityPortalLink(
+																kp.name
+															)
+														"
+														><img
+															:src="
+																'https://kp4cd.org/sites/default/files/images/disease_systems/' +
+																kp.name +
+																'kp.svg'
+															"
+													/></a>
+												</div>
+											</div>
 										</div>
 									</template>
 									<div class="disease-system">
@@ -279,7 +351,6 @@
 
 .single-search-wrapper {
 	position: relative;
-	text-align: center;
 	width: 100%;
 }
 
@@ -344,7 +415,8 @@
 	height: 100px;
 }
 
-.byor-single-search-wrapper input {
+.byor-single-search-wrapper input,
+.byor-single-search-results {
 	width: 680px !important;
 }
 .disease-system-options {
@@ -359,17 +431,24 @@
 	z-index: 100;
 	top: 100px;
 	padding: 15px;
+	box-shadow: 10px 10px 10px 10px rgba(0, 0, 0, 0.2);
 }
 .disease-system:hover > .disease-system-options {
 	visibility: visible;
 }
 
+.disease-name {
+	padding-left: 5px;
+	font-size: 14px;
+}
+
 .community-portal {
 	margin-bottom: 10px;
+	padding-left: 5px;
 }
 
 .community-portal img {
-	height: 50px !important;
+	height: 40px !important;
 	width: auto !important;
 }
 </style>
