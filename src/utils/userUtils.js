@@ -44,7 +44,7 @@ function addPhenotype(phenotype) {
 
 //function to remove a phenotype from the custom phenotype list for user
 //phenotype: object with name and id
-function removePhenotypeById(phenotype) {
+function removePhenotype(phenotype) {
     if (!!phenotype) {
         let phenotypes = getPhenotypes();
         if (phenotypes == null) {
@@ -66,5 +66,5 @@ export default {
     getPhenotypes,
     clearPhenotypes,
     addPhenotype,
-    removePhenotypeById
+    removePhenotype
 };

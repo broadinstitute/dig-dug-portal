@@ -33,6 +33,9 @@ new Vue({
         },
         clear() {
             userUtils.clearPhenotypes();
+        },
+        remove(item) {
+            userUtils.removePhenotype(item);
         }
     },
     created() {},
