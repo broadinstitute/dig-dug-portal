@@ -820,7 +820,7 @@ export default Vue.component("research-page-filters", {
 		},
 		numberOfSearchParams() {},
 		buildOptions(field) {
-			console.log("this.dataset", this.dataset);
+			//console.log("this.dataset", this.dataset);
 			if (this.dataComparisonConfig == null) {
 				let options = this.dataset
 					.map((v) => v[field])
@@ -910,6 +910,7 @@ export default Vue.component("research-page-filters", {
 							let targetData = filtered;
 							let search = s;
 							let searchVals;
+
 							if (comparingFields == null) {
 								targetData.filter((row) => {
 									if (
