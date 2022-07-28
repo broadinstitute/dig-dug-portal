@@ -57,6 +57,55 @@ export default Vue.component("research-summary-plot", {
             var margin = { top: 25, right: 10, bottom: 35, left: 29 },
                     width = configObject.width - margin.left - margin.right,
                     height = configObject.height - margin.top - margin.bottom;
+            
+            let svg = d3.select(chartWrapper)
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            
+            if (configObject.type == "violin"){
+                var yViolin = d3.scaleLinear().domain([minVal, maxVal]).range([height, 0]);
+                svg.append("g").call(d3.axisLeft(yViolin));
+                var xViolin = d3.scaleBand().range([0, width]).domain([attribute]).padding(0.05);
+                svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(xViolin));
+
+                var histViolin = d3.histogram()
+                    .domain(yViolin.domain())
+                    .thresholds(yViolin.ticks(nBuckets))
+                    .value(d => d);
+                
+                var sumstat = d3.nest()
+                    .key(d => attributeLabel)
+                    .rollup(d => histViolin(d))
+                    .entries(dataset);
+                
+                var maxNum = 0;
+                for (let i in sumstat){
+                    let allBins = sumstat[i].value;
+                    let lengths = allBins.map(a => a.length);
+                    let longest = d3.max(lengths);
+                    if (longest > maxNum){ maxNum = longest; }
+                }
+
+                var xNum = d3.scaleLinear().range([0, xViolin.bandwidth()]).domain([-maxNum, maxNum]);
+
+                svg.selectAll("myViolin")
+                    .data(sumstat)
+                    .enter()
+                    .append("g")
+                    .attr("transform", d => `translate (${xViolin(d.key)}, 0)`)
+                    .append("path")
+                    .datum(d => d.value)
+                    .style("stroke", "none")
+                    .style("fill", "orange")
+                    .attr("d", d3.area()
+                        .x0(d => xNum(-d.length))
+                        .x1(d => xNum(d.length))
+                        .y(d => yViolin(d.x0))
+                    .curve(d3.curveCatmullRom));
+            }
             var xScale = d3.scaleLinear()
                     .domain([minVal, maxVal]) // input
                     .range([0, width]);
@@ -87,13 +136,6 @@ export default Vue.component("research-summary-plot", {
             var yScale = d3.scaleLinear()
                     .domain([0, yScaleTopEnd]) // input
                     .range([height, 0]); // output
-
-            let svg = d3.select(chartWrapper)
-                    .append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             
             svg.append("g")
                     .attr("class", "x axis")
