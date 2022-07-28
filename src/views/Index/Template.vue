@@ -38,7 +38,6 @@
 									>
 								</div>
 							</div>
-							{{ $parent.kpDiseasePair }}
 
 							<div class="disease-systems-trees-wrapper">
 								<div class="disease-systems-tree-header">
@@ -55,16 +54,6 @@
 											class="disease-system"
 											v-if="systemIndex < 6"
 											:key="system"
-											@mouseover="
-												$parent.feedDiseaseOptions(
-													system
-												)
-											"
-											@mouseleave="
-												$parent.emptyDiseaseOptions(
-													system
-												)
-											"
 										>
 											<img
 												:src="
@@ -78,7 +67,15 @@
 											<div>{{ system }}</div>
 											<div
 												class="disease-system-options"
-												:id="system + '_options'"
+												:id="
+													system.split(' ')[0] +
+													'_options'
+												"
+												v-html="
+													$parent.feedDiseaseOptions(
+														system
+													)
+												"
 											></div>
 										</div>
 									</template>
@@ -93,16 +90,6 @@
 											class="disease-system"
 											v-if="systemIndex >= 6"
 											:key="system"
-											@mouseover="
-												$parent.feedDiseaseOptions(
-													system + '_options'
-												)
-											"
-											@mouseleave="
-												$parent.emptyDiseaseOptions(
-													system + '_options'
-												)
-											"
 										>
 											<img
 												:src="
@@ -114,6 +101,18 @@
 												"
 											/>
 											<div>{{ system }}</div>
+											<div
+												class="disease-system-options"
+												:id="
+													system.split(' ')[0] +
+													'_options'
+												"
+												v-html="
+													$parent.feedDiseaseOptions(
+														system
+													)
+												"
+											></div>
 										</div>
 									</template>
 									<div class="disease-system">
@@ -347,5 +346,30 @@
 
 .byor-single-search-wrapper input {
 	width: 680px !important;
+}
+.disease-system-options {
+	visibility: hidden;
+	color: #000;
+	text-align: left;
+	position: absolute;
+	width: 400px;
+	height: auto;
+	border-radius: 5px;
+	background-color: #fff;
+	z-index: 100;
+	top: 100px;
+	padding: 15px;
+}
+.disease-system:hover > .disease-system-options {
+	visibility: visible;
+}
+
+.community-portal {
+	margin-bottom: 10px;
+}
+
+.community-portal img {
+	height: 50px !important;
+	width: auto !important;
 }
 </style>

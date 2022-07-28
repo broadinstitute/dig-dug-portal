@@ -37,7 +37,7 @@ new Vue({
             { id: 'gene', name: 'gene' },
             { id: 'variantOrRegion', name: 'variantOrRegion' },
         ],
-        diseaseSystems: ["Cardiovascular", "Digestive", "Endocrine", "Growth & development", "Immune", "Musculoskeletal", "Nervous", "Renal", "Reproductive", "Respiratory", "Sensory"]
+        diseaseSystems: ["Cardiovascular", "Digestive", "Endocrine", "Growth & Development", "Immune", "Musculoskeletal", "Nervous", "Renal", "Reproductive", "Respiratory", "Sensory"]
     },
 
     components: {
@@ -60,6 +60,7 @@ new Vue({
     },
 
     created() {
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -77,13 +78,43 @@ new Vue({
         closeAlert,
         feedDiseaseOptions(ID) {
             let kp4ID = this.kpDiseasePair(ID);
+            let diseaseSystems = [...new Set(this.$store.state.bioPortal.diseaseSystems.filter(d => d.system == ID + ' system').map(d => d.disease))];
+            //let diseaseSystems = this.$store.state.bioPortal.diseaseSystems;
+
+            console.log("ID", ID);
+
+
+
+            console.log("diseaseSystems", diseaseSystems);
 
             console.log("kp4ID", kp4ID);
+
+            let content = '';
+            content += "<strong>Select a disease</strong><br />"
+            diseaseSystems.map(d => {
+                content += '<div>' + d + '</div>';
+            })
+
+            let host = window.location.host.split(".");
+            if (!!window.location.host.includes("localhost")) {
+                host = (host.length == 2) ? host[1] : host[0];
+            } else {
+                host = (host.length == 3) ? host[1] + "." + host[2] : host[0] + "." + host[1];
+            }
+
+            content += "<strong>Community portals</strong><br />"
+            kp4ID.map(kp => {
+                content += '<div class="community-portal"><a href="https://' + kp.name + '.' + host + '">';
+                content += '<img src="https://kp4cd.org/sites/default/files/images/disease_systems/' + kp.name + 'kp.svg" /></a></div>';
+            })
+
+            return content;
         },
         emptyDiseaseOptions(ID) {
             console.log("ID", ID);
+            document.getElementById(ID.split(" ")[0] + "_options").innerHTML = '';
         },
-        kpDiseasePair(SYSTEM) {
+        kpDiseasePair(SYSTEM, DISEASE) {
             let rawList = [
                 {
                     "kp id": "autoimmune",
@@ -366,25 +397,30 @@ new Vue({
                     "system": "Cardiovascular"
                 }
             ];
-            let content = {};
+            let content = [];
 
             rawList.map(r => {
-                if (r["system"].toLowerCase().split(" ")[0] == SYSTEM.toLowerCase()) {
-                    if (!content[r["system"]]) {
-                        content[r["system"]] = {};
+                if (r["system"].toLowerCase() == SYSTEM.toLowerCase()) {
+                    if (DISEASE != null && r["disease"] == DISEASE) {
+                        content.push(r["kp id"]);
+                    } else if (DISEASE == null) {
+                        content.push(r["kp id"]);
                     }
-
-                    if (!content[r["system"]][r["disease"]]) {
-                        content[r["system"]][r["disease"]] = [];
-                    }
-
-                    content[r["system"]][r["disease"]].push(r["kp id"]);
                 }
+            })
 
+            content = [...new Set(content)];
+
+            let kps = [];
+
+            content.map(c => {
+                let tempArr = this.$store.state.bioPortal.diseaseGroups.filter(dg => dg.name == c);
+
+                kps.push(tempArr[0]);
 
             })
 
-            return content;
+            return kps;
         },
     },
 
