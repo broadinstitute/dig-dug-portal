@@ -1,8 +1,17 @@
 <template>
+<div>
+    <div class="plot-by-row-wrapper">
+    <b-icon-x-circle-fill
+            v-on:click="hideElement('plot-by-row-wrapper')"
+            class="feature-plot-close"
+        ></b-icon-x-circle-fill>
+    <div class="row-charts"></div>
+</div>
 <div class="chart-wrapper">
     <div><h4>Summary plot</h4></div>
-    <div class="all-charts">
+    <div class="table-charts">
     </div>
+</div>
 </div>
 </template>
 
@@ -12,7 +21,7 @@ import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 export default Vue.component("research-summary-plot", {
-    props: ["rawData", "summaryPlot", "isPlotByRow"],
+    props: ["rawData", "summaryPlot"],
     data(){
         return {};
     },
@@ -28,17 +37,32 @@ export default Vue.component("research-summary-plot", {
     methods: {
         ...uiUtils,
         displayResults(config){
-            let allCharts = document.getElementsByClassName("all-charts")[0];
-            allCharts.innerHTML = "";
-            config.fields.forEach(column => {
-                let newChart = document.createElement("div");
-                newChart.classList.add("chart");
-                newChart.classList.add(`${column}-chart`);
-                allCharts.append(newChart);
+            let tableCharts = document.getElementsByClassName("table-charts")[0];
+            tableCharts.innerHTML = "";
+            let rowCharts = document.getElementsByClassName("row-charts")[0];
+            rowCharts.innerHTML = "";
+            
+            config.fields.forEach(field => {
+                if (config.plots.includes("table")){
+                    let newChart = document.createElement("div");
+                    newChart.classList.add("chart");
+                    let newChartName = `${field}-chart-table`;
+                    newChart.classList.add(newChartName);
+                    tableCharts.append(newChart);
+                    this.renderChart(field, config, newChartName);
+                }
+                if (config.plots.includes("per row")){
+                    let newChart = document.createElement("div");
+                    newChart.classList.add("chart");
+                    let newChartName = `${field}-chart-row`;
+                    newChart.classList.add(newChartName);
+                    rowCharts.append(newChart);
+                    this.renderChart(field, config, newChartName);
+                }
             });
-            config.fields.forEach(column => {this.renderChart(column, config)});
+            
         },        
-        renderChart(attribute, configObject){
+        renderChart(attribute, configObject, chartWrapper){
             let dataset = this.$props.rawData.map(item => Number(item[attribute]));
             let nBuckets = configObject.buckets < dataset.length ? configObject.buckets : dataset.length;
             
@@ -50,15 +74,12 @@ export default Vue.component("research-summary-plot", {
             let maxVal = dataset.reduce((prev, next) => prev > next ? prev : next);
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
 
-            //TODO remove DOM stuff in favor of jquery? or just remove jquery
-            let chartWrapper = `.${attribute}-chart`;
-
             // Based on EffectorGenesPlotsLine
             var margin = { top: 25, right: 10, bottom: 35, left: 29 },
                     width = configObject.width - margin.left - margin.right,
                     height = configObject.height - margin.top - margin.bottom;
             
-            let svg = d3.select(chartWrapper)
+            let svg = d3.select(`.${chartWrapper}`)
                 .append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
@@ -230,7 +251,7 @@ div{
 .chart{
     flex: 1;
 }
-.all-charts{
+.row-charts, .table-charts{
     display: flex;
     margin: 20px;
 }
