@@ -1,53 +1,16 @@
-let sort = function (data, key, isNumeric, isAscending) {
-    return data.sort(function (a, b) {
-        let x = a[key].toLowerCase();
-        let y = b[key].toLowerCase();
+let generate = function () {
 
-        if (isNumeric) {
-            x = Number(x.replace(/\,/g, ""));
-            y = Number(y.replace(/\,/g, ""));
-        }
-
-        if (isAscending) {
-            return x < y ? -1 : x > y ? 1 : 0;
-        } else {
-            return x > y ? -1 : x < y ? 1 : 0;
-        }
-    });
+    let sessionId =
+        fourHexDigits(new Date().getTime() % 65536) +
+        fourHexDigits(Math.floor(Math.random() * 65537));
+    //this.setSessionId(sessionId, false);
+    return sessionId;
 }
 
-let sortEGLTableData = function (data, key, isNumeric, isAscending) {
-    return data.sort(function (a, b) {
-        let A = (isNumeric) ? a[key] : a[key].toLowerCase();
-        let B = (isNumeric) ? b[key] : b[key].toLowerCase();
-
-        let comparison = 0;
-        if (A > B) {
-            comparison = 1;
-        } else if (A < B) {
-            comparison = -1;
-        }
-
-        return (isAscending) ? (isNumeric) ? (comparison * -1) : comparison : (isNumeric) ? comparison : (comparison * -1);
-
-    });
+let fourHexDigits = function (num) {
+    return ("000" + num.toString(16)).substr(-4);
 }
-
-const uniqBy = (arr, predicate) => {
-    const cb = typeof predicate === 'function' ? predicate : (o) => o[predicate];
-
-    return [...arr.reduce((map, item) => {
-        const key = (item === null || item === undefined) ?
-            item : cb(item);
-
-        map.has(key) || map.set(key, item);
-
-        return map;
-    }, new Map()).values()];
-};
 
 export default {
-    sort,
-    sortEGLTableData,
-    uniqBy,
+    generate,
 }

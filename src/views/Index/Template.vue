@@ -39,165 +39,19 @@
 								</div>
 							</div>
 
-							<div class="disease-systems-trees-wrapper">
+							<div
+								class="disease-systems-trees-wrapper"
+								v-if="
+									$store.state.bioPortal.diseaseSystems
+										.length > 0
+								"
+							>
 								<div class="disease-systems-tree-header">
 									Select a disease
 								</div>
-
-								<div class="disease-systems-tree">
-									<template
-										v-for="(
-											system, systemIndex
-										) in $parent.diseaseSystems"
-									>
-										<div
-											class="disease-system"
-											v-if="systemIndex < 6"
-											:key="system"
-										>
-											<img
-												:src="
-													'https://kp4cd.org/sites/default/files/images/disease_systems/' +
-													system
-														.toLowerCase()
-														.split(' ')[0] +
-													'.svg'
-												"
-											/>
-											<div>{{ system }}</div>
-											<div
-												class="disease-system-options"
-												:id="
-													system.split(' ')[0] +
-													'_options'
-												"
-											>
-												<h5>Select a disease</h5>
-												<div
-													class="disease-name"
-													v-for="disease in $parent.diseaseOptions(
-														system
-													)"
-													:key="disease"
-												>
-													{{ disease }}
-												</div>
-												<h5
-													v-if="
-														$parent.kpDiseasePair(
-															system
-														).length > 0
-													"
-												>
-													Community portals
-												</h5>
-												<div
-													class="community-portal"
-													v-for="kp in $parent.kpDiseasePair(
-														system
-													)"
-													:key="kp.name"
-												>
-													<a
-														:href="
-															$parent.communityPortalLink(
-																kp.name
-															)
-														"
-														><img
-															:src="
-																'https://kp4cd.org/sites/default/files/images/disease_systems/' +
-																kp.name +
-																'kp.svg'
-															"
-													/></a>
-												</div>
-											</div>
-										</div>
-									</template>
-								</div>
-								<div class="disease-systems-tree">
-									<template
-										v-for="(
-											system, systemIndex
-										) in $parent.diseaseSystems"
-									>
-										<div
-											class="disease-system"
-											v-if="systemIndex >= 6"
-											:key="system"
-										>
-											<img
-												:src="
-													'https://kp4cd.org/sites/default/files/images/disease_systems/' +
-													system
-														.toLowerCase()
-														.split(' ')[0] +
-													'.svg'
-												"
-											/>
-											<div>{{ system }}</div>
-											<div
-												class="disease-system-options"
-												:id="
-													system.split(' ')[0] +
-													'_options'
-												"
-											>
-												<h5>Select a disease</h5>
-												<div
-													class="disease-name"
-													v-for="disease in $parent.diseaseOptions(
-														system
-													)"
-													:key="disease"
-												>
-													{{ disease }}
-												</div>
-												<h5
-													v-if="
-														$parent.kpDiseasePair(
-															system
-														).length > 0
-													"
-												>
-													Community portals
-												</h5>
-												<div
-													class="community-portal"
-													v-for="kp in $parent.kpDiseasePair(
-														system
-													)"
-													:key="kp.name"
-												>
-													<a
-														:href="
-															$parent.communityPortalLink(
-																kp.name
-															)
-														"
-														><img
-															:src="
-																'https://kp4cd.org/sites/default/files/images/disease_systems/' +
-																kp.name +
-																'kp.svg'
-															"
-													/></a>
-												</div>
-											</div>
-										</div>
-									</template>
-									<div class="disease-system">
-										<img
-											src="https://kp4cd.org/sites/default/files/images/disease_systems/search.svg"
-										/>
-										<span>Search</span>
-									</div>
-								</div>
+								<disease-systems page="front"></disease-systems>
 							</div>
-							<!--<h4 class="single-search-header">
-								Search gene, variant, region or phenotype
-							</h4>-->
+
 							<div class="single-search-wrapper">
 								<div class="single-search-header">Search</div>
 								<research-single-search
@@ -266,32 +120,12 @@
 							v-if="$parent.pageDescription != null"
 							:content="$parent.pageDescription"
 						></research-page-description>
-						<!--<h5>Phenotypes by groups</h5>
-						<research-page-description
-							v-if="
-								$parent.datasetsDescription != null &&
-								$parent.phenotypesDescription != null
-							"
-							:content="$parent.phenotypesDescription"
-						></research-page-description>-->
+
 						<about-project-section
 							:front-contents="$parent.frontContents"
 						></about-project-section>
 					</div>
 				</div>
-				<!--<div class="row">
-					<div class="col-md-7">
-						<about-portal-section
-							:front-contents="$parent.frontContents"
-						></about-portal-section>
-					</div>
-					<div class="col-md-5">
-						<news-feed-section
-							:disease-group="$parent.diseaseGroup"
-							:news-feed="$store.state.kp4cd.newsFeed"
-						></news-feed-section>
-					</div>
-				</div>-->
 			</div>
 		</div>
 
@@ -316,53 +150,40 @@
 	color: #fff;
 }
 
-.disease-systems-trees-wrapper {
+.disease-systems-trees-wrapper,
+.single-search-wrapper {
 	position: relative;
 	text-align: center;
 	width: 100%;
+}
+
+.disease-systems-trees-wrapper {
 	margin: 75px 0 75px 0;
 }
 
-.single-search-header,
-.disease-systems-tree,
-.disease-systems-tree-header {
-	text-align: center;
-	display: block;
-	width: 100%;
-	color: #fff;
-	margin-top: 30px;
-}
-
-.disease-systems-tree {
-	margin-top: 10px;
-	position: relative;
-}
-
-.disease-systems-tree-header {
-	position: absolute;
-	transform: rotate(-90deg);
-	border-radius: 15px;
-	font-size: 12px;
-	width: 280px;
-	top: 35%;
-	border: solid 1px #fff;
-	left: 40px;
-}
-
-.single-search-wrapper {
-	position: relative;
-	width: 100%;
-}
-
+.disease-systems-tree-header,
 .single-search-header {
 	position: absolute;
 	transform: rotate(-90deg);
 	border-radius: 15px;
 	font-size: 12px;
+	width: 280px;
+	top: 48%;
+	border: solid 1px #fff;
+	left: 40px;
+	color: #fff;
+}
+
+.single-search-header {
 	width: 120px;
-	top: 0%;
+	top: 20%;
 	border: solid 1px #fff;
 	left: 120px;
+}
+
+.byor-single-search-wrapper input,
+.byor-single-search-results {
+	width: 680px !important;
 }
 
 .a2f-region-search-examples {
@@ -395,60 +216,5 @@
 }
 .a2fkp-footer {
 	margin-top: 50px;
-}
-.disease-system {
-	width: 100px;
-	text-align: center;
-	font-size: 14px;
-	display: inline-block;
-	vertical-align: top;
-	margin: 0 10px 0px 10px;
-}
-
-.disease-system.row-first:after {
-	content: "\a";
-	white-space: pre;
-}
-
-.disease-system img {
-	width: 100px;
-	height: 100px;
-}
-
-.byor-single-search-wrapper input,
-.byor-single-search-results {
-	width: 680px !important;
-}
-.disease-system-options {
-	visibility: hidden;
-	color: #000;
-	text-align: left;
-	position: absolute;
-	width: 400px;
-	height: auto;
-	border-radius: 5px;
-	background-color: #fff;
-	z-index: 100;
-	top: 100px;
-	padding: 15px;
-	box-shadow: 10px 10px 10px 10px rgba(0, 0, 0, 0.2);
-}
-.disease-system:hover > .disease-system-options {
-	visibility: visible;
-}
-
-.disease-name {
-	padding-left: 5px;
-	font-size: 14px;
-}
-
-.community-portal {
-	margin-bottom: 10px;
-	padding-left: 5px;
-}
-
-.community-portal img {
-	height: 40px !important;
-	width: auto !important;
 }
 </style>
