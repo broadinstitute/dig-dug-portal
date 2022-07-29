@@ -77,8 +77,14 @@ new Vue({
         postAlertError,
         closeAlert,
         communityPortalLink(ID) {
+            let host = window.location.host.split(".");
+            if (!!window.location.host.includes("localhost")) {
+                host = (host.length == 2) ? host[1] : host[0];
+            } else {
+                host = (host.length == 3) ? host[1] + "." + host[2] : host[0] + "." + host[1];
+            }
 
-            return ID + "." + this.$store.state.bioPortal.host.domain
+            return 'https://' + ID + '.' + host;
 
         },
         diseaseOptions(ID) {
