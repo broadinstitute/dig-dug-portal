@@ -7,6 +7,32 @@
 				: 'disease-systems-sub-pages'
 		"
 	>
+		<div
+			class="custom-phenotypes-list-builder hidden"
+			id="pheno_list_builder"
+		>
+			<h5>Please review phenotypes list</h5>
+			<div class="table-wrapper">
+				<table>
+					<thead>
+						<tr>
+							<th>Select</th>
+							<th>Phenotypes</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="phenotype in phenotypes">
+							<td><input type="checkbox" checked /></td>
+							<td>{{ phenotype.description }}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="session-info"></div>
+			<h6>
+				<button type="button" class="btn btn-primary">Save list</button>
+			</h6>
+		</div>
 		<div class="disease-systems-tree col-md-12">
 			<template v-for="(system, systemIndex) in diseaseSystems">
 				<div class="disease-system col-md-2" :key="system">
@@ -69,10 +95,11 @@
 
 <script>
 import Vue from "vue";
+import uiUtils from "@/utils/uiUtils.js";
 import sessionUtils from "@/utils/sessionUtils.js";
 
 export default Vue.component("disease-systems", {
-	props: ["page"],
+	props: ["page", "phenotypes"],
 
 	data() {
 		return {
@@ -86,12 +113,8 @@ export default Vue.component("disease-systems", {
 	},
 	methods: {
 		...sessionUtils,
+		...uiUtils,
 		setPhenotypesInSession(DISEASE) {
-			console.log(
-				"this.$store.state.bioPortal.diseaseSystems",
-				this.$store.state.bioPortal.diseaseSystems[0]
-			);
-
 			let phAssoDisease = [
 				...new Set(
 					this.$store.state.bioPortal.diseaseSystems
@@ -101,6 +124,8 @@ export default Vue.component("disease-systems", {
 			];
 
 			this.$store.dispatch("phenotypesInSession", phAssoDisease);
+
+			uiUtils.showElement("pheno_list_builder");
 		},
 		setSessionId() {
 			let newSessionId = sessionUtils.generate();
@@ -458,6 +483,27 @@ export default Vue.component("disease-systems", {
 });
 </script>
 <style scoped>
+.custom-phenotypes-list-builder {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 400px;
+	height: 75%;
+	text-align: left;
+	background-color: #fff;
+	padding: 15px;
+	box-shadow: 10px 10px 10px 10px rgba(0, 0, 0, 0.2);
+	border-radius: 5px;
+	z-index: 101;
+}
+
+.custom-phenotypes-list-builder .table-wrapper {
+	width: 100%;
+	height: 100%;
+	overflow: scroll;
+}
+.custom-phenotypes-list-builder table {
+}
 /* For front page */
 .disease-systems-front .disease-systems-tree {
 	text-align: center;

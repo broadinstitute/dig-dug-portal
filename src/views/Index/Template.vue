@@ -49,7 +49,10 @@
 								<div class="disease-systems-tree-header">
 									Select a disease
 								</div>
-								<disease-systems page="front"></disease-systems>
+								<disease-systems
+									page="front"
+									:phenotypes="$parent.phenotypes"
+								></disease-systems>
 							</div>
 
 							<div class="single-search-wrapper">
