@@ -11,6 +11,7 @@ import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import StaticPageInfo from "@/components/StaticPageInfo.vue";
+import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -29,6 +30,7 @@ new Vue({
         PageFooter,
         PortalDatasetsListTable,
         Alert,
+        ResearchPageFilters
     },
 
     created() {
@@ -77,8 +79,19 @@ new Vue({
             if (contents.length === 0) {
                 return {};
             }
+            this.$store.dispatch("filteredData", contents);
+            this.$store.dispatch("unfilteredData", contents);
+
             return contents;
         },
+        summaryData() {
+            if (Object.keys(this.eglSummaries).length == 0) {
+                return null;
+            } else {
+                let content = { data: this.eglSummaries };
+                return content;
+            }
+        }
     },
 
     watch: {

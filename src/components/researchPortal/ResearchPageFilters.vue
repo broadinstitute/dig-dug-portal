@@ -673,7 +673,6 @@ export default Vue.component("research-page-filters", {
 			this.$store.dispatch("dataComparison", ifCompareData);
 		},
 		queryAPI() {
-			console.log("called");
 			this.showHideSearch();
 			uiUtils.showElement("data-loading-indicator");
 
@@ -821,6 +820,7 @@ export default Vue.component("research-page-filters", {
 		},
 		numberOfSearchParams() {},
 		buildOptions(field) {
+			console.log("this.dataset", this.dataset);
 			if (this.dataComparisonConfig == null) {
 				let options = this.dataset
 					.map((v) => v[field])
