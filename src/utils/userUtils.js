@@ -47,7 +47,7 @@ function addPhenotype(phenotype) {
 function removePhenotype(phenotype) {
     if (!!phenotype) {
         let phenotypes = getPhenotypes();
-        if (phenotypes == null) {
+        if (phenotypes === null) {
             phenotypes = [];
         }
         let index = phenotypes.findIndex(p => p.id === phenotype.id);
