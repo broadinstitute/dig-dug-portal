@@ -51,6 +51,12 @@
 								</div>
 								<disease-systems
 									page="front"
+									:diseases="
+										$store.state.bioPortal.diseaseSystems
+									"
+									:diseaseGroups="
+										$store.state.bioPortal.diseaseGroups
+									"
 									:phenotypes="$parent.phenotypes"
 								></disease-systems>
 							</div>
@@ -59,7 +65,7 @@
 								<div class="single-search-header">Search</div>
 								<research-single-search
 									:singleSearchConfig="null"
-									:phenotypes="$parent.phenotypes"
+									:phenotypes="$parent.phenotypesInSession"
 								></research-single-search>
 								<div
 									class="

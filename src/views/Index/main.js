@@ -88,6 +88,9 @@ new Vue({
             return this.$store.state.bioPortal.diseaseGroups;
         },
         phenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+        phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
                 return this.$store.state.bioPortal.phenotypes;
             } else {
@@ -105,7 +108,6 @@ new Vue({
 
                 return filteredPhs;
             }
-
         },
         matchingGenes() {
             return this.$store.state.matchingGenes;

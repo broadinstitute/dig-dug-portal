@@ -11,9 +11,25 @@
 			class="custom-phenotypes-list-builder hidden"
 			id="pheno_list_builder"
 		>
-			<h5>Please review phenotypes list</h5>
+			<h5>Build phenotypes list</h5>
+			<div>
+				<select @change="openPhenotypesBuilder(null, $event)">
+					<template v-for="system in diseaseSystems">
+						<option class="disease-name" value="">
+							{{ system }}
+						</option>
+						<option
+							class="disease-name"
+							v-for="disease in diseaseOptions(system)"
+							:value="disease"
+						>
+							{{ disease }}
+						</option>
+					</template>
+				</select>
+			</div>
 			<div class="table-wrapper">
-				<table>
+				<table class="table table-striped table-sm">
 					<thead>
 						<tr>
 							<th>Select</th>
@@ -21,17 +37,17 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="phenotype in phenotypes">
+						<tr v-for="phenotype in getPhenotypes()">
 							<td><input type="checkbox" checked /></td>
 							<td>{{ phenotype.description }}</td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
-			<div class="session-info"></div>
-			<h6>
+			<div class="session-info">
+				<div><input type="text" id="session_id" /></div>
 				<button type="button" class="btn btn-primary">Save list</button>
-			</h6>
+			</div>
 		</div>
 		<div class="disease-systems-tree col-md-12">
 			<template v-for="(system, systemIndex) in diseaseSystems">
@@ -57,7 +73,7 @@
 						>
 							<a
 								href="javascript:;"
-								@click="setPhenotypesInSession(disease)"
+								@click="openPhenotypesBuilder(disease)"
 								>{{ disease }}</a
 							>
 						</div>
@@ -85,9 +101,9 @@
 			<div class="disease-system col-md-2">
 				<img
 					class="disease-systems-icon"
-					src="https://kp4cd.org/sites/default/files/images/disease_systems/search.svg"
+					src="https://kp4cd.org/sites/default/files/images/disease_systems/setting.svg"
 				/>
-				<span>Search</span>
+				<span>Custom setting</span>
 			</div>
 		</div>
 	</div>
@@ -97,14 +113,16 @@
 import Vue from "vue";
 import uiUtils from "@/utils/uiUtils.js";
 import sessionUtils from "@/utils/sessionUtils.js";
+import sortUtils from "@/utils/sortUtils.js";
 
 export default Vue.component("disease-systems", {
-	props: ["page", "phenotypes"],
+	props: ["page", "phenotypes", "diseases", "diseaseGroups"],
 
 	data() {
 		return {
 			diseaseSystems: [],
 			sessionId: null,
+			selectedDisease: null,
 		};
 	},
 	mounted() {
@@ -114,18 +132,50 @@ export default Vue.component("disease-systems", {
 	methods: {
 		...sessionUtils,
 		...uiUtils,
-		setPhenotypesInSession(DISEASE) {
+		...sortUtils,
+		openPhenotypesBuilder(DISEASE, EVENT) {
+			console.log("called: " + DISEASE);
+			this.selectedDisease = !!EVENT ? EVENT.target.value : DISEASE;
+
+			uiUtils.showElement("pheno_list_builder");
+		},
+		getPhenotypes() {
 			let phAssoDisease = [
+				...new Set(
+					this.$store.state.bioPortal.diseaseSystems
+						.filter((d) => d.disease == this.selectedDisease)
+						.map((d) => d.phenotype)
+				),
+			];
+
+			let rawPhs = this.phenotypes;
+			let filteredPhs = [];
+
+			phAssoDisease.map((p) => {
+				rawPhs.map((rp) => {
+					if (rp.name.toLowerCase() == p.toLowerCase()) {
+						filteredPhs.push(rp);
+					}
+				});
+			});
+
+			sortUtils.sort(filteredPhs, "description", false, true);
+
+			return filteredPhs;
+		},
+		setPhenotypesInSession(DISEASE) {
+			/*let phAssoDisease = [
 				...new Set(
 					this.$store.state.bioPortal.diseaseSystems
 						.filter((d) => d.disease == DISEASE)
 						.map((d) => d.phenotype)
 				),
-			];
+			];*/
 
 			this.$store.dispatch("phenotypesInSession", phAssoDisease);
+			this.selectedDisease = null;
 
-			uiUtils.showElement("pheno_list_builder");
+			uiUtils.hideElement("pheno_list_builder");
 		},
 		setSessionId() {
 			let newSessionId = sessionUtils.generate();
@@ -134,11 +184,7 @@ export default Vue.component("disease-systems", {
 		setDiseaseSystems() {
 			this.diseaseSystems = [];
 			let diseaseSystems = [
-				...new Set(
-					this.$store.state.bioPortal.diseaseSystems.map(
-						(d) => d.system
-					)
-				),
+				...new Set(this.diseases.map((d) => d.system)),
 			].sort();
 
 			diseaseSystems.map((d) => {
@@ -162,7 +208,7 @@ export default Vue.component("disease-systems", {
 		diseaseOptions(ID) {
 			let diseaseSystems = [
 				...new Set(
-					this.$store.state.bioPortal.diseaseSystems
+					this.diseases
 						.filter((d) => d.system == ID + " system")
 						.map((d) => d.disease)
 				),
@@ -470,9 +516,7 @@ export default Vue.component("disease-systems", {
 			let kps = [];
 
 			content.map((c) => {
-				let tempArr = this.$store.state.bioPortal.diseaseGroups.filter(
-					(dg) => dg.name == c
-				);
+				let tempArr = this.diseaseGroups.filter((dg) => dg.name == c);
 
 				kps.push(tempArr[0]);
 			});
@@ -485,24 +529,34 @@ export default Vue.component("disease-systems", {
 <style scoped>
 .custom-phenotypes-list-builder {
 	position: fixed;
-	top: 0;
-	left: 0;
-	width: 400px;
+	top: 15%;
+	left: calc(50% - 250px);
+	width: 500px;
 	height: 75%;
 	text-align: left;
 	background-color: #fff;
-	padding: 15px;
-	box-shadow: 10px 10px 10px 10px rgba(0, 0, 0, 0.2);
+	padding: 10px 0 10px 10px;
+	-webkit-box-shadow: 10px 10px 10px 10px rgb(0 0 0 / 20%);
+	box-shadow: 10px 10px 10px 10px rgb(0 0 0 / 20%);
 	border-radius: 5px;
 	z-index: 101;
+	text-align: center;
 }
 
 .custom-phenotypes-list-builder .table-wrapper {
 	width: 100%;
-	height: 100%;
-	overflow: scroll;
+	height: calc(100% - 150px);
+	overflow-y: auto;
+	margin-bottom: 15px;
+	padding: 0 10px 0 10px;
 }
-.custom-phenotypes-list-builder table {
+.custom-phenotypes-list-builder table td {
+	text-align: left;
+}
+
+.session-info {
+	height: 150px;
+	width: 100%;
 }
 /* For front page */
 .disease-systems-front .disease-systems-tree {
