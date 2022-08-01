@@ -29,7 +29,7 @@ function addPhenotype(phenotype) {
         if (phenotypes === null) {
             phenotypes = [];
         }
-        let index = phenotypes.findIndex(p => p.id == phenotype.id);
+        let index = phenotypes.findIndex(p => p.id === phenotype.id);
         if (index === -1) {
             phenotypes.push(phenotype);
             savePhenotypes(phenotypes);
@@ -50,7 +50,7 @@ function removePhenotype(phenotype) {
         if (phenotypes == null) {
             phenotypes = [];
         }
-        let index = phenotypes.findIndex(p => p.id == phenotype.id);
+        let index = phenotypes.findIndex(p => p.id === phenotype.id);
         if (index > -1) {
             phenotypes.splice(index, 1);
             savePhenotypes(phenotypes);
