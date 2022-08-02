@@ -212,6 +212,8 @@
 										type: 'phewas plot',
 										'group by': 'phenotype group',
 										'y axis field': 'pValue',
+										'convert y -log10': 'true',
+										'phenotype map': 'kp phenotype map',
 										'render by': 'phenotype',
 										'y axis label': '-Log10(p-value)',
 										'x axis label': 'beta',

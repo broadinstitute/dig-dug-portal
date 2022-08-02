@@ -25,6 +25,7 @@ debug.log*
 node_modules
 
 .eslintrc.json
+.eslintrc.js
 
 package-lock.json
 pnpm-lock.yaml

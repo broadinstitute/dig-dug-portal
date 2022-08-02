@@ -374,9 +374,11 @@
 									}"
 									:renderConfig="{
 										type: 'phewas plot',
-										'group by': 'phenotype group',
-										'y axis field': 'pValue',
 										'render by': 'phenotype',
+										'group by': 'phenotype group',
+										'phenotype map': 'kp phenotype map',
+										'y axis field': 'pValue',
+										'convert y -log10': 'true',
 										'y axis label': '-Log10(p-value)',
 										'x axis label': 'beta',
 										'beta field': 'null',
@@ -389,6 +391,7 @@
 									:filter="filter"
 									ref="rpPheWASPlot"
 								></research-phewas-plot>
+
 								<unauthorized-message
 									:restricted="
 										$store.state.varassociations.restricted
@@ -456,8 +459,10 @@
 							:renderConfig="{
 								type: 'phewas plot',
 								'group by': 'phenotype group',
-								'y axis field': 'pValue',
 								'render by': 'phenotype',
+								'phenotype map': 'kp phenotype map',
+								'y axis field': 'pValue',
+								'convert y -log10': 'true',
 								'y axis label': '-Log10(p-value)',
 								'x axis label': 'beta',
 								'beta field': 'beta',
