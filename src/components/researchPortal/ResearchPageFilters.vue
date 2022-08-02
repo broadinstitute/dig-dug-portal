@@ -920,7 +920,9 @@ export default Vue.component("research-page-filters", {
 										switch (searchIndex.type) {
 											case "dropdown":
 												search ===
-												row[searchIndex.field]
+												row[
+													searchIndex.field
+												].toString()
 													? tempFiltered.push(row)
 													: "";
 
@@ -1026,7 +1028,7 @@ export default Vue.component("research-page-filters", {
 														search ===
 														row[searchIndex.field][
 															cellNum
-														]
+														].toString()
 													) {
 														meetSearch = true;
 													}
@@ -1043,7 +1045,9 @@ export default Vue.component("research-page-filters", {
 											} else {
 												if (
 													search ===
-													row[searchIndex.field]
+													row[
+														searchIndex.field
+													].toString()
 												) {
 													tempFiltered[
 														row[
