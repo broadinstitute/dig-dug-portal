@@ -90,23 +90,18 @@ new Vue({
         phenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
                 return this.$store.state.bioPortal.phenotypes;
             } else {
-                let phIds = this.$store.state.phenotypesInSession;
-                let rawPhs = this.$store.state.bioPortal.phenotypes;
-                let filteredPhs = [];
-
-                phIds.map(p => {
-                    rawPhs.map(rp => {
-                        if (rp.name.toLowerCase() == p.toLowerCase()) {
-                            filteredPhs.push(rp)
-                        }
-                    })
-                })
-
-                return filteredPhs;
+                return this.$store.state.phenotypesInSession;
             }
         },
         matchingGenes() {

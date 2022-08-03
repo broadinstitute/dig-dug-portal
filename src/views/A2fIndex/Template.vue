@@ -4,8 +4,8 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:focus="$parent.diseaseInSession"
 		></page-header>
-
 		<!-- Body -->
 		<div v-if="$parent.diseaseGroup">
 			<div class="fluid">
@@ -38,46 +38,86 @@
 									>
 								</div>
 							</div>
+						</div>
 
-							<div
-								class="disease-systems-trees-wrapper"
-								v-if="
-									$store.state.bioPortal.diseaseSystems
-										.length > 0
-								"
-							>
-								<div class="disease-systems-tree-header">
-									Select a disease
-								</div>
-								<disease-systems
-									page="front"
-									:diseases="
-										$store.state.bioPortal.diseaseSystems
-									"
-									:diseaseGroups="
-										$store.state.bioPortal.diseaseGroups
-									"
-									:phenotypes="$parent.phenotypes"
-								></disease-systems>
-							</div>
-
-							<div class="single-search-wrapper">
-								<div class="single-search-header">Search</div>
-								<research-single-search
-									:singleSearchConfig="null"
-									:phenotypes="$parent.phenotypesInSession"
-								></research-single-search>
-								<div
-									class="
-										region-search-examples
-										a2f-region-search-examples
-									"
-								>
-									<documentation
-										name="home.example"
-										:group="cmd"
-									></documentation>
-								</div>
+						<div class="row front-search-section">
+							<div class="col-md-12 portal-front-tabs">
+								<b-tabs align="center">
+									<b-tab title="Search portal" active>
+										<b-card-text>
+											<div class="single-search-wrapper">
+												<!--<div class="single-search-header">Search</div>-->
+												<research-single-search
+													:singleSearchConfig="null"
+													:phenotypes="
+														$parent.phenotypesInSession
+													"
+												></research-single-search>
+												<div
+													class="
+														region-search-examples
+														a2f-region-search-examples
+													"
+												>
+													<documentation
+														name="home.example"
+														:group="cmd"
+													></documentation>
+												</div>
+											</div>
+										</b-card-text>
+									</b-tab>
+									<b-tab
+										:title="
+											!!$parent.diseaseInSession
+												? 'Set focus (Current focus: ' +
+												  $parent.diseaseInSession +
+												  ')'
+												: 'Set phenotypes focus'
+										"
+									>
+										<b-card-text>
+											<div
+												class="
+													disease-systems-trees-wrapper
+												"
+												v-if="
+													$store.state.bioPortal
+														.diseaseSystems.length >
+													0
+												"
+											>
+												<!--<div
+													class="
+														disease-systems-tree-header
+													"
+												>
+													Set focus
+												</div>
+												<h6>
+													Current focus:
+													{{
+														$parent.diseaseInSession
+													}}
+												</h6>-->
+												<disease-systems
+													page="front"
+													:diseases="
+														$store.state.bioPortal
+															.diseaseSystems
+													"
+													:diseaseGroups="
+														$store.state.bioPortal
+															.diseaseGroups
+													"
+													:phenotypes="
+														$parent.phenotypes
+													"
+												></disease-systems>
+											</div>
+										</b-card-text>
+									</b-tab>
+								</b-tabs>
 							</div>
 						</div>
 					</div>
@@ -159,6 +199,14 @@
 	color: #fff;
 }
 
+.front-search-section {
+	margin-top: 50px;
+}
+
+.front-search-section .tab-pane {
+	padding: 50px 0 50px 0;
+}
+
 .disease-systems-trees-wrapper,
 .single-search-wrapper {
 	position: relative;
@@ -167,7 +215,6 @@
 }
 
 .disease-systems-trees-wrapper {
-	margin: 75px 0 75px 0;
 }
 
 .disease-systems-tree-header,

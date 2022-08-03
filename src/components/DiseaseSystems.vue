@@ -11,23 +11,37 @@
 			class="custom-phenotypes-list-builder hidden"
 			id="pheno_list_builder"
 		>
-			<h5>Build phenotypes list</h5>
-			<div>
-				<select @change="openPhenotypesBuilder(null, $event)">
+			<h6>Set focus by {{ focusBy }}</h6>
+
+			<div class="ph-builder-filters-wrapper" v-if="focusBy == 'disease'">
+				<select
+					class="select-disease form-control form-control-sm"
+					@change="openPhenotypesBuilder(null, $event, 'disease')"
+				>
 					<template v-for="system in diseaseSystems">
-						<option class="disease-name" value="">
+						<option class="disease-name" value="" disabled>
 							{{ system }}
 						</option>
 						<option
 							class="disease-name"
 							v-for="disease in diseaseOptions(system)"
 							:value="disease"
+							:selected="
+								disease == selectedDisease ? true : false
+							"
 						>
 							{{ disease }}
 						</option>
 					</template>
 				</select>
 			</div>
+			<div
+				class="ph-builder-filters-wrapper"
+				v-if="focusBy == 'correlation'"
+			>
+				correlations UI
+			</div>
+
 			<div class="table-wrapper">
 				<table class="table table-striped table-sm">
 					<thead>
@@ -38,15 +52,44 @@
 					</thead>
 					<tbody>
 						<tr v-for="phenotype in getPhenotypes()">
-							<td><input type="checkbox" checked /></td>
+							<td>
+								<input
+									class="phenotype-chkbox"
+									type="checkbox"
+									:value="phenotype.name"
+									checked
+								/>
+							</td>
 							<td>{{ phenotype.description }}</td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
 			<div class="session-info">
-				<div><input type="text" id="session_id" /></div>
-				<button type="button" class="btn btn-primary">Save list</button>
+				<!--<div>
+					<label>Name: <input type="text" id="session_id" /></label>
+				</div>-->
+				<button
+					type="button"
+					class="btn btn-primary btn-sm"
+					@click="saveCustomPhenotypes()"
+				>
+					Save list
+				</button>
+				<button
+					type="button"
+					class="btn btn-warning btn-sm"
+					@click="closePhenotypesBuilder()"
+				>
+					Cancel
+				</button>
+				<button
+					type="button"
+					class="btn btn-danger btn-sm"
+					@click="resetCustomPhenotypes()"
+				>
+					Reset
+				</button>
 			</div>
 		</div>
 		<div class="disease-systems-tree col-md-12">
@@ -73,7 +116,13 @@
 						>
 							<a
 								href="javascript:;"
-								@click="openPhenotypesBuilder(disease)"
+								@click="
+									openPhenotypesBuilder(
+										disease,
+										null,
+										'disease'
+									)
+								"
 								>{{ disease }}</a
 							>
 						</div>
@@ -99,11 +148,15 @@
 				</div>
 			</template>
 			<div class="disease-system col-md-2">
-				<img
-					class="disease-systems-icon"
-					src="https://kp4cd.org/sites/default/files/images/disease_systems/setting.svg"
-				/>
-				<span>Custom setting</span>
+				<a
+					href="javascript:;"
+					@click="openPhenotypesBuilder(null, null, 'correlation')"
+					><img
+						class="disease-systems-icon"
+						src="https://kp4cd.org/sites/default/files/images/disease_systems/setting.svg"
+					/>
+				</a>
+				<span>By Phenotype Correlations</span>
 			</div>
 		</div>
 	</div>
@@ -112,6 +165,7 @@
 <script>
 import Vue from "vue";
 import uiUtils from "@/utils/uiUtils.js";
+import userUtils from "@/utils/userUtils.js";
 import sessionUtils from "@/utils/sessionUtils.js";
 import sortUtils from "@/utils/sortUtils.js";
 
@@ -121,23 +175,76 @@ export default Vue.component("disease-systems", {
 	data() {
 		return {
 			diseaseSystems: [],
-			sessionId: null,
 			selectedDisease: null,
+			focusBy: null,
 		};
 	},
 	mounted() {
 		this.setDiseaseSystems();
-		this.setSessionId();
+		this.getCustomPhenotypes();
 	},
 	methods: {
 		...sessionUtils,
 		...uiUtils,
 		...sortUtils,
-		openPhenotypesBuilder(DISEASE, EVENT) {
-			console.log("called: " + DISEASE);
-			this.selectedDisease = !!EVENT ? EVENT.target.value : DISEASE;
+		...userUtils,
+		getCustomPhenotypes() {
+			let customPhsSet = userUtils.getPhenotypes();
+			let selectedDisease = !!customPhsSet ? customPhsSet.id : null;
+			let selectedPhs = !!customPhsSet ? customPhsSet.list : null;
 
+			this.selectedDisease = selectedDisease;
+			this.$store.dispatch("phenotypesInSession", selectedPhs);
+			this.$store.dispatch("diseaseInSession", selectedDisease);
+		},
+		resetCustomPhenotypes() {
+			userUtils.clearPhenotypes();
+			this.getCustomPhenotypes();
+			uiUtils.hideElement("pheno_list_builder");
+		},
+		saveCustomPhenotypes() {
+			let id = this.selectedDisease;
+			let phenotypeIds = [];
+			let phenotypesChkboxes =
+				document.querySelectorAll(".phenotype-chkbox");
+
+			phenotypesChkboxes.forEach(function (chkbox) {
+				if (!!chkbox.checked) {
+					phenotypeIds.push(chkbox.value);
+				}
+			});
+
+			let phList = [];
+
+			this.phenotypes.map((p) => {
+				phenotypeIds.map((id) => {
+					if (p.name == id) {
+						phList.push(p);
+					}
+				});
+			});
+
+			let customPhList = { id: id, list: phList };
+
+			userUtils.savePhenotypes(customPhList);
+
+			this.$store.dispatch("phenotypesInSession", phList);
+			this.$store.dispatch("diseaseInSession", id);
+			this.selectedDisease = null;
+
+			uiUtils.hideElement("pheno_list_builder");
+		},
+		closePhenotypesBuilder() {
+			uiUtils.hideElement("pheno_list_builder");
+		},
+		openPhenotypesBuilder(DISEASE, EVENT, TYPE) {
+			this.selectedDisease = !!EVENT ? EVENT.target.value : DISEASE;
 			uiUtils.showElement("pheno_list_builder");
+			if (TYPE == "disease") {
+				this.focusBy = "disease";
+			} else if (TYPE == "correlation") {
+				this.focusBy = "correlation";
+			}
 		},
 		getPhenotypes() {
 			let phAssoDisease = [
@@ -163,24 +270,24 @@ export default Vue.component("disease-systems", {
 
 			return filteredPhs;
 		},
-		setPhenotypesInSession(DISEASE) {
-			/*let phAssoDisease = [
+		/*setPhenotypesInSession(DISEASE) {
+			let phAssoDisease = [
 				...new Set(
 					this.$store.state.bioPortal.diseaseSystems
 						.filter((d) => d.disease == DISEASE)
 						.map((d) => d.phenotype)
 				),
-			];*/
+			];
 
 			this.$store.dispatch("phenotypesInSession", phAssoDisease);
 			this.selectedDisease = null;
 
 			uiUtils.hideElement("pheno_list_builder");
-		},
-		setSessionId() {
+		},*/
+		/*setSessionId() {
 			let newSessionId = sessionUtils.generate();
 			this.sessionId = newSessionId;
-		},
+		},*/
 		setDiseaseSystems() {
 			this.diseaseSystems = [];
 			let diseaseSystems = [
@@ -527,6 +634,16 @@ export default Vue.component("disease-systems", {
 });
 </script>
 <style scoped>
+.ph-builder-filters-wrapper {
+	height: 75px;
+}
+.select-disease {
+	margin: 10px 10% 0 10%;
+	width: 80%;
+}
+.select-disease option {
+	font-size: 14px;
+}
 .custom-phenotypes-list-builder {
 	position: fixed;
 	top: 15%;
@@ -535,7 +652,7 @@ export default Vue.component("disease-systems", {
 	height: 75%;
 	text-align: left;
 	background-color: #fff;
-	padding: 10px 0 10px 10px;
+	padding: 15px;
 	-webkit-box-shadow: 10px 10px 10px 10px rgb(0 0 0 / 20%);
 	box-shadow: 10px 10px 10px 10px rgb(0 0 0 / 20%);
 	border-radius: 5px;
@@ -545,10 +662,11 @@ export default Vue.component("disease-systems", {
 
 .custom-phenotypes-list-builder .table-wrapper {
 	width: 100%;
-	height: calc(100% - 150px);
+	height: calc(100% - 200px);
 	overflow-y: auto;
 	margin-bottom: 15px;
-	padding: 0 10px 0 10px;
+	border-bottom: solid 1px #ddd;
+	border-left: solid 1px #ddd;
 }
 .custom-phenotypes-list-builder table td {
 	text-align: left;
