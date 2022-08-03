@@ -153,10 +153,10 @@
 					@click="openPhenotypesBuilder(null, null, 'correlation')"
 					><img
 						class="disease-systems-icon"
-						src="https://kp4cd.org/sites/default/files/images/disease_systems/setting.svg"
+						src="https://kp4cd.org/sites/default/files/images/disease_systems/correlation.svg"
 					/>
 				</a>
-				<span>By Phenotype Correlations</span>
+				<span>By Phenotype Correlation</span>
 			</div>
 		</div>
 	</div>
