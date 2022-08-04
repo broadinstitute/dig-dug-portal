@@ -11,7 +11,7 @@
 			class="custom-phenotypes-list-builder hidden"
 			id="pheno_list_builder"
 		>
-			<h6>Set focus by {{ focusBy }}</h6>
+			<h5>Set phenotypes focus by {{ focusBy }}</h5>
 
 			<div class="ph-builder-filters-wrapper" v-if="focusBy == 'disease'">
 				<select
@@ -270,24 +270,6 @@ export default Vue.component("disease-systems", {
 
 			return filteredPhs;
 		},
-		/*setPhenotypesInSession(DISEASE) {
-			let phAssoDisease = [
-				...new Set(
-					this.$store.state.bioPortal.diseaseSystems
-						.filter((d) => d.disease == DISEASE)
-						.map((d) => d.phenotype)
-				),
-			];
-
-			this.$store.dispatch("phenotypesInSession", phAssoDisease);
-			this.selectedDisease = null;
-
-			uiUtils.hideElement("pheno_list_builder");
-		},*/
-		/*setSessionId() {
-			let newSessionId = sessionUtils.generate();
-			this.sessionId = newSessionId;
-		},*/
 		setDiseaseSystems() {
 			this.diseaseSystems = [];
 			let diseaseSystems = [
@@ -324,309 +306,23 @@ export default Vue.component("disease-systems", {
 			return diseaseSystems;
 		},
 		kpDiseasePair(SYSTEM, DISEASE) {
-			let rawList = [
-				{
-					"kp id": "autoimmune",
-					disease: "Allergic disease",
-					system: "Immune",
-				},
-				{
-					"kp id": "autoimmune",
-					disease: "Celiac disease",
-					system: "Immune",
-				},
-				{
-					"kp id": "autoimmune",
-					disease: "Inflammatory bowel disease",
-					system: "Immune",
-				},
-				{
-					"kp id": "autoimmune",
-					disease: "Multiple sclerosis",
-					system: "Immune",
-				},
-				{
-					"kp id": "autoimmune",
-					disease: "Nephrotic syndrome",
-					system: "Immune",
-				},
-				{
-					"kp id": "autoimmune",
-					disease: "Rheumatoid arthritis",
-					system: "Immune",
-				},
-				{
-					"kp id": "autoimmune",
-					disease: "Systemic lupus erythematosus",
-					system: "Immune",
-				},
-				{
-					"kp id": "autoimmune",
-					disease: "Type 1 diabetes",
-					system: "Immune",
-				},
-				{
-					"kp id": "cd",
-					disease: "Cerebrovascular disease",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "cvd",
-					disease: "Atrial fibrillation",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "cvd",
-					disease: "Coronary artery disease",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "cvd",
-					disease: "Heart failure",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "cvd",
-					disease: "Mitral valve prolapse",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "cvd",
-					disease: "Nonischemic cardiomyopathy",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "cvd",
-					disease: "Vascular disease",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "lung",
-					disease: "Asthma",
-					system: "Respiratory",
-				},
-				{
-					"kp id": "lung",
-					disease: "Chronic obstructive pulmonary disease",
-					system: "Respiratory",
-				},
-				{
-					"kp id": "lung",
-					disease: "COVID-19",
-					system: "Respiratory",
-				},
-				{
-					"kp id": "lung",
-					disease: "Idiopathic pulmonary fibrosis",
-					system: "Respiratory",
-				},
-				{
-					"kp id": "msk",
-					disease: "Musculoskeletal disorders",
-					system: "Musculoskeletal",
-				},
-				{
-					"kp id": "ndkp",
-					disease: "ALS",
-					system: "Nervous",
-				},
-				{
-					"kp id": "ndkp",
-					disease: "Alzheimer's disease",
-					system: "Nervous",
-				},
-				{
-					"kp id": "ndkp",
-					disease: "Lewy body dementia",
-					system: "Nervous",
-				},
-				{
-					"kp id": "ndkp",
-					disease: "Parkinson's disease",
-					system: "Nervous",
-				},
-				{
-					"kp id": "ocular",
-					disease: "Age-related macular degeneration",
-					system: "Sensory",
-				},
-				{
-					"kp id": "ocular",
-					disease: "Glaucoma",
-					system: "Sensory",
-				},
-				{
-					"kp id": "reproductive",
-					disease: "Gestational diabetes",
-					system: "Reproductive",
-				},
-				{
-					"kp id": "sleep",
-					disease: "Sleep disorders",
-					system: "Nervous",
-				},
-				{
-					"kp id": "t1d",
-					disease: "Type 1 diabetes",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "t1d",
-					disease: "Type 1 diabetes",
-					system: "Immune",
-				},
-				{
-					"kp id": "t2d",
-					disease: "Cirrhosis",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "t2d",
-					disease: "Gestational diabetes",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "t2d",
-					disease: "Kidney disease",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "t2d",
-					disease: "NAFLD",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "t2d",
-					disease: "Obesity",
-					system: "Growth & Development",
-				},
-				{
-					"kp id": "t2d",
-					disease: "Type 1 diabetes",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "t2d",
-					disease: "Type 2 diabetes",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "t2d",
-					disease: "Vascular disease",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "md",
-					disease: "Cerebrovascular disease",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "md",
-					disease: "Atrial fibrillation",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "md",
-					disease: "Coronary artery disease",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "md",
-					disease: "Heart failure",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "md",
-					disease: "Mitral valve prolapse",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "md",
-					disease: "Nonischemic cardiomyopathy",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "md",
-					disease: "Vascular disease",
-					system: "Cardiovascular",
-				},
-				{
-					"kp id": "md",
-					disease: "Sleep disorders",
-					system: "Nervous",
-				},
-				{
-					"kp id": "md",
-					disease: "Type 1 diabetes",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "md",
-					disease: "Type 1 diabetes",
-					system: "Immune",
-				},
-				{
-					"kp id": "md",
-					disease: "Cirrhosis",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "md",
-					disease: "Gestational diabetes",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "md",
-					disease: "Kidney disease",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "md",
-					disease: "NAFLD",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "md",
-					disease: "Obesity",
-					system: "Growth & Development",
-				},
-				{
-					"kp id": "md",
-					disease: "Type 1 diabetes",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "md",
-					disease: "Type 2 diabetes",
-					system: "Endocrine",
-				},
-				{
-					"kp id": "md",
-					disease: "Vascular disease",
-					system: "Cardiovascular",
-				},
-			];
-			let content = [];
-
-			rawList.map((r) => {
-				if (r["system"].toLowerCase() == SYSTEM.toLowerCase()) {
-					if (DISEASE != null && r["disease"] == DISEASE) {
-						content.push(r["kp id"]);
-					} else if (DISEASE == null) {
-						content.push(r["kp id"]);
-					}
+			let kpList = "";
+			this.diseases.map((d) => {
+				if (d.system.replaceAll(" system", "") == SYSTEM) {
+					kpList = d.portals;
 				}
 			});
 
-			content = [...new Set(content)];
-
 			let kps = [];
+			if (kpList != "" && !!kpList) {
+				kpList.split(",").map((c) => {
+					let tempArr = this.diseaseGroups.filter(
+						(dg) => dg.name == c
+					);
 
-			content.map((c) => {
-				let tempArr = this.diseaseGroups.filter((dg) => dg.name == c);
-
-				kps.push(tempArr[0]);
-			});
+					kps.push(tempArr[0]);
+				});
+			}
 
 			return kps;
 		},
@@ -676,6 +372,11 @@ export default Vue.component("disease-systems", {
 	height: 150px;
 	width: 100%;
 }
+
+.session-info button {
+	margin: 0 5px 0 5px;
+}
+
 /* For front page */
 .disease-systems-front .disease-systems-tree {
 	text-align: center;
