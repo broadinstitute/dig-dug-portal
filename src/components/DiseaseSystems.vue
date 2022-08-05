@@ -5,25 +5,14 @@
 				<label>{{ diseaseInSession }}</label>
 				<select
 					class="select-disease form-control form-control-sm"
-					@change="openPhenotypesBuilder(null, $event, 'disease')"
+					@change="callCustomPhActions($event)"
 				>
-					<option>Reset Focus</option>
-					<option>By Phenotype Correlations</option>
-					<template v-for="system in diseaseSystems">
-						<option class="disease-name" value="" disabled>
-							{{ system }}
-						</option>
-						<option
-							class="disease-name"
-							v-for="disease in diseaseOptions(system)"
-							:value="disease"
-							:selected="
-								disease == selectedDisease ? true : false
-							"
-						>
-							{{ disease }}
-						</option>
-					</template>
+					<option disabled>Set focus</option>
+					<option value="disease">By disease</option>
+					<option value="correlation">
+						By Phenotype correlation
+					</option>
+					<option value="reset">Reset focus</option>
 				</select>
 			</div>
 		</div>
@@ -219,6 +208,23 @@ export default Vue.component("disease-systems", {
 		...uiUtils,
 		...sortUtils,
 		...userUtils,
+		callCustomPhActions(EVENT) {
+			switch (EVENT.target.value) {
+				case "reset":
+					this.resetCustomPhenotypes();
+					break;
+				case "correlation":
+					this.openPhenotypesBuilder(null, EVENT, "correlation");
+					break;
+				case "disease":
+					this.openPhenotypesBuilder(
+						this.selectedDisease,
+						null,
+						"disease"
+					);
+					break;
+			}
+		},
 		getCustomPhenotypes() {
 			let customPhsSet = userUtils.getPhenotypes();
 			let selectedDisease = !!customPhsSet ? customPhsSet.id : null;
