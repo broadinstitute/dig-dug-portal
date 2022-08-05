@@ -20,6 +20,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -61,6 +62,7 @@ new Vue({
     },
 
     created() {
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -99,6 +101,24 @@ new Vue({
     },
 
     computed: {
+
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {
@@ -116,7 +136,12 @@ new Vue({
         },
 
         secondaryPhenotypeOptions() {
-            return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
+            } else {
+                return this.$store.state.phenotypesInSession.filter(x => x.name != this.$store.state.phenotype);
+            }
+
         },
 
         geneFinderPhenotypes() {

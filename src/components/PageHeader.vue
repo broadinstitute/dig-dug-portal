@@ -50,10 +50,19 @@
 							v-else
 							src="//kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
 							class="mdkp-logo"
-						/> </a
-					><span style="color: #fff; vertical-align: -3px">{{
-						"  " + focus
-					}}</span>
+						/>
+					</a>
+					<disease-systems
+						v-if="
+							page != 'front' &&
+							$store.state.bioPortal.diseaseSystems.length > 0
+						"
+						:page="page"
+						:diseases="$store.state.bioPortal.diseaseSystems"
+						:diseaseGroups="$store.state.bioPortal.diseaseGroups"
+						:phenotypes="rawPhenotypes"
+						:diseaseInSession="$store.state.diseaseInSession"
+					></disease-systems>
 				</div>
 				<div :class="'kp-menu-wrapper col-md-8'">
 					<menu-item
@@ -93,15 +102,18 @@ import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import MenuItem from "@/components/MenuItem.vue";
+import DiseaseSystems from "@/components/DiseaseSystems.vue";
+
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { userMixin } from "@/mixins/userMixin";
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
-	props: ["diseaseGroup", "frontContents", "focus"],
+	props: ["diseaseGroup", "frontContents", "rawPhenotypes", "page"],
 	components: {
 		GoogleAnalytics,
 		MenuItem,
+		DiseaseSystems,
 	},
 	mixins: [userMixin],
 	data() {

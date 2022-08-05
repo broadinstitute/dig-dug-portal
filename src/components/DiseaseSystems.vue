@@ -1,12 +1,110 @@
 <template>
-	<div
-		class="row"
-		:class="
-			page == 'front'
-				? 'disease-systems-front'
-				: 'disease-systems-sub-pages'
-		"
-	>
+	<div>
+		<div v-if="page != 'front'" class="disease-systems-sub-pages">
+			<div class="select-disease-wrapper">
+				<label>{{ diseaseInSession }}</label>
+				<select
+					class="select-disease form-control form-control-sm"
+					@change="openPhenotypesBuilder(null, $event, 'disease')"
+				>
+					<option>Reset Focus</option>
+					<option>By Phenotype Correlations</option>
+					<template v-for="system in diseaseSystems">
+						<option class="disease-name" value="" disabled>
+							{{ system }}
+						</option>
+						<option
+							class="disease-name"
+							v-for="disease in diseaseOptions(system)"
+							:value="disease"
+							:selected="
+								disease == selectedDisease ? true : false
+							"
+						>
+							{{ disease }}
+						</option>
+					</template>
+				</select>
+			</div>
+		</div>
+		<div v-if="page == 'front'" class="row disease-systems-front">
+			<div class="disease-systems-tree col-md-12">
+				<template v-for="(system, systemIndex) in diseaseSystems">
+					<div class="disease-system col-md-2" :key="system">
+						<img
+							class="disease-systems-icon"
+							:src="
+								'https://kp4cd.org/sites/default/files/images/disease_systems/' +
+								system.toLowerCase().split(' ')[0] +
+								'.svg'
+							"
+						/>
+						<div>{{ system }}</div>
+						<div
+							class="disease-system-options"
+							:id="system.split(' ')[0] + '_options'"
+						>
+							<h5>Limit phenotypes by a disease</h5>
+							<div
+								class="disease-name"
+								v-for="disease in diseaseOptions(system)"
+								:key="disease"
+							>
+								<a
+									href="javascript:;"
+									@click="
+										openPhenotypesBuilder(
+											disease,
+											null,
+											'disease'
+										)
+									"
+									>{{ disease }}</a
+								>
+							</div>
+							<p></p>
+							<h5 v-if="kpDiseasePair(system).length > 0">
+								Community portals
+							</h5>
+							<div
+								class="community-portal"
+								v-for="kp in kpDiseasePair(system)"
+								:key="kp.name"
+							>
+								<a :href="communityPortalLink(kp.name)"
+									><img
+										:src="
+											'https://kp4cd.org/sites/default/files/images/disease_systems/' +
+											kp.name +
+											'kp.svg'
+										"
+								/></a>
+							</div>
+						</div>
+					</div>
+				</template>
+				<div class="disease-system col-md-2">
+					<a
+						href="javascript:;"
+						@click="
+							openPhenotypesBuilder(null, null, 'correlation')
+						"
+						><img
+							class="disease-systems-icon"
+							src="https://kp4cd.org/sites/default/files/images/disease_systems/correlation.svg"
+						/>
+					</a>
+					<span>By Phenotype Correlation</span>
+				</div>
+				<button
+					type="button"
+					class="btn btn-sm btn-warning reset-button"
+					@click="resetCustomPhenotypes()"
+				>
+					Reset focus
+				</button>
+			</div>
+		</div>
 		<div
 			class="custom-phenotypes-list-builder hidden"
 			id="pheno_list_builder"
@@ -14,6 +112,7 @@
 			<h5>Set phenotypes focus by {{ focusBy }}</h5>
 
 			<div class="ph-builder-filters-wrapper" v-if="focusBy == 'disease'">
+				<label class="select-disease-label">Select disease: </label>
 				<select
 					class="select-disease form-control form-control-sm"
 					@change="openPhenotypesBuilder(null, $event, 'disease')"
@@ -83,80 +182,6 @@
 				>
 					Cancel
 				</button>
-				<button
-					type="button"
-					class="btn btn-danger btn-sm"
-					@click="resetCustomPhenotypes()"
-				>
-					Reset
-				</button>
-			</div>
-		</div>
-		<div class="disease-systems-tree col-md-12">
-			<template v-for="(system, systemIndex) in diseaseSystems">
-				<div class="disease-system col-md-2" :key="system">
-					<img
-						class="disease-systems-icon"
-						:src="
-							'https://kp4cd.org/sites/default/files/images/disease_systems/' +
-							system.toLowerCase().split(' ')[0] +
-							'.svg'
-						"
-					/>
-					<div>{{ system }}</div>
-					<div
-						class="disease-system-options"
-						:id="system.split(' ')[0] + '_options'"
-					>
-						<h5>Limit phenotypes by a disease</h5>
-						<div
-							class="disease-name"
-							v-for="disease in diseaseOptions(system)"
-							:key="disease"
-						>
-							<a
-								href="javascript:;"
-								@click="
-									openPhenotypesBuilder(
-										disease,
-										null,
-										'disease'
-									)
-								"
-								>{{ disease }}</a
-							>
-						</div>
-						<p></p>
-						<h5 v-if="kpDiseasePair(system).length > 0">
-							Community portals
-						</h5>
-						<div
-							class="community-portal"
-							v-for="kp in kpDiseasePair(system)"
-							:key="kp.name"
-						>
-							<a :href="communityPortalLink(kp.name)"
-								><img
-									:src="
-										'https://kp4cd.org/sites/default/files/images/disease_systems/' +
-										kp.name +
-										'kp.svg'
-									"
-							/></a>
-						</div>
-					</div>
-				</div>
-			</template>
-			<div class="disease-system col-md-2">
-				<a
-					href="javascript:;"
-					@click="openPhenotypesBuilder(null, null, 'correlation')"
-					><img
-						class="disease-systems-icon"
-						src="https://kp4cd.org/sites/default/files/images/disease_systems/correlation.svg"
-					/>
-				</a>
-				<span>By Phenotype Correlation</span>
 			</div>
 		</div>
 	</div>
@@ -170,7 +195,13 @@ import sessionUtils from "@/utils/sessionUtils.js";
 import sortUtils from "@/utils/sortUtils.js";
 
 export default Vue.component("disease-systems", {
-	props: ["page", "phenotypes", "diseases", "diseaseGroups"],
+	props: [
+		"page",
+		"phenotypes",
+		"diseases",
+		"diseaseGroups",
+		"diseaseInSession",
+	],
 
 	data() {
 		return {
@@ -331,11 +362,43 @@ export default Vue.component("disease-systems", {
 </script>
 <style scoped>
 .ph-builder-filters-wrapper {
-	height: 75px;
 }
-.select-disease {
-	margin: 10px 10% 0 10%;
-	width: 80%;
+
+.disease-systems-sub-pages .select-disease-wrapper {
+	position: absolute;
+	z-index: 200;
+	top: 17px;
+	left: 140px;
+	color: #fff;
+}
+
+.disease-systems-sub-pages .select-disease {
+	/* margin: 5px 5% 20px 5%; */
+	width: 15px;
+	font-size: 14px;
+	background: #fff;
+	border: solid 0px #fff;
+	border-radius: 10px;
+	color: #f7835c;
+	padding: 0 8px;
+	height: 16px;
+	text-align: center;
+	display: inline-block;
+	margin-left: 5px;
+}
+
+.disease-systems-front .select-disease {
+	margin: 5px 5% 20px 5%;
+	width: 90%;
+}
+
+.select-disease-label {
+	display: block;
+	font-size: 14px;
+	font-weight: bold;
+	text-align: left;
+	padding-left: 5%;
+	margin: 0;
 }
 .select-disease option {
 	font-size: 14px;
@@ -358,7 +421,7 @@ export default Vue.component("disease-systems", {
 
 .custom-phenotypes-list-builder .table-wrapper {
 	width: 100%;
-	height: calc(100% - 200px);
+	height: calc(100% - 170px);
 	overflow-y: auto;
 	margin-bottom: 15px;
 	border-bottom: solid 1px #ddd;
@@ -369,12 +432,20 @@ export default Vue.component("disease-systems", {
 }
 
 .session-info {
-	height: 150px;
 	width: 100%;
 }
 
 .session-info button {
 	margin: 0 5px 0 5px;
+}
+
+.reset-button {
+	font-size: 14px;
+	padding: 0 10px;
+	border-radius: 15px;
+	position: absolute;
+	top: -40px;
+	right: 20px;
 }
 
 /* For front page */

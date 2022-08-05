@@ -4,7 +4,7 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
-			:focus="$parent.diseaseInSession"
+			page="front"
 		></page-header>
 		<!-- Body -->
 		<div v-if="$parent.diseaseGroup">
@@ -84,22 +84,11 @@
 												v-if="
 													$store.state.bioPortal
 														.diseaseSystems.length >
-													0
+														0 &&
+													$parent.phenotypes.length >
+														0
 												"
 											>
-												<!--<div
-													class="
-														disease-systems-tree-header
-													"
-												>
-													Set focus
-												</div>
-												<h6>
-													Current focus:
-													{{
-														$parent.diseaseInSession
-													}}
-												</h6>-->
 												<disease-systems
 													page="front"
 													:diseases="
