@@ -85,7 +85,10 @@ new Vue({
                 })
 
             } else {
-                contents = this.$store.state.kp4cd.datasetsInfo;
+                //contents = this.$store.state.kp4cd.datasetsInfo;
+
+                contents = this.$store.state.bioPortal.datasets;
+                console.log("content", contents)
             }
 
 
@@ -100,7 +103,7 @@ new Vue({
             return contents;
         },
 
-        datasetsNameOptions() {
+        /*datasetsNameOptions() {
             let options = []
             this.$store.state.kp4cd.datasetsInfo.map(x => {
                 if (x.field_portals.includes(this.diseaseGroup.name)) {
@@ -108,23 +111,12 @@ new Vue({
                 }
             });
             return options;
-        },
+        },*/
         datasetsPhenotypeOptions() {
-            let options = []
-            this.$store.state.kp4cd.datasetsInfo.map(x => {
-                if (x.field_portals.includes(this.diseaseGroup.name)) {
-                    let phenotypes = x.field_phenotypes.split("\r\n");
-
-                    phenotypes.map(p => {
-                        if (p != "") {
-                            options.push(p);
-                        }
-                    })
-
-                }
-            });
+            let options = this.$store.state.bioPortal.phenotypes.map(p => p.description).sort();
 
             let uniqueOptions = [...new Set(options)]
+
             return uniqueOptions;
         }
     },
