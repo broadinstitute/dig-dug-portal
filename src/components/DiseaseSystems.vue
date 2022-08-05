@@ -7,7 +7,7 @@
 					class="select-disease form-control form-control-sm"
 					@change="callCustomPhActions($event)"
 				>
-					<option disabled>Set focus</option>
+					<option value="">Set focused phenotypes</option>
 					<option value="disease">By disease</option>
 					<option value="correlation">
 						By Phenotype correlation
@@ -218,7 +218,7 @@ export default Vue.component("disease-systems", {
 					break;
 				case "disease":
 					this.openPhenotypesBuilder(
-						this.selectedDisease,
+						this.diseaseInSession,
 						null,
 						"disease"
 					);
