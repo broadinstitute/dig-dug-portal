@@ -578,6 +578,11 @@ new Vue({
                 keyParams.set({ gene: newGene });
             }
         },
+        selectedRegion(newRegion, oldRegion) {
+            if (!isEqual(newRegion, oldRegion)) {
+                keyParams.set({ region: newRegion });
+            }
+        },
         selectedMasks(newMasks, oldMasks) {
             //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newMasks, oldMasks)) {
@@ -1061,6 +1066,11 @@ new Vue({
                 this.searchCriteria.push({
                     field: "gene",
                     threshold: keyParams.gene,
+                });
+            if (keyParams.region)
+                this.searchCriteria.push({
+                    field: "region",
+                    threshold: keyParams.region,
                 });
             if (keyParams.masks) {
                 let masks = keyParams.masks.split(",");
