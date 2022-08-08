@@ -29,7 +29,6 @@ Vue.config.productionTip = false;
 new Vue({
     el: "#app",
     store,
-    mixins: [pageMixin],
     components: {
         Documentation,
         CriterionFunctionGroup,
@@ -41,14 +40,18 @@ new Vue({
         ForestPlotSimple,
         ResearchAnnotationsPlot,
         ResearchGenesTrack,
-        ResearchRegionPlot
+        ResearchRegionPlot,
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
+    mixins: [pageMixin],
     data() {
         return {
-            plotMargin: { leftMargin: 75, rightMargin: 20, topMargin: 10, bottomMargin: 50, bump: 5.5 },
+            plotMargin: {
+                leftMargin: 75,
+                rightMargin: 20,
+                topMargin: 10,
+                bottomMargin: 50,
+                bump: 5.5,
+            },
             colors: {
                 mild: [
                     "#007bff25",
@@ -66,7 +69,7 @@ new Vue({
                     "#cccc0025",
                     "#6FC7B625",
                     "#D5A76825",
-                    "#d4d4d425"
+                    "#d4d4d425",
                 ],
                 moderate: [
                     "#007bff50",
@@ -84,7 +87,7 @@ new Vue({
                     "#cccc0050",
                     "#6FC7B650",
                     "#D5A76850",
-                    "#d4d4d450"
+                    "#d4d4d450",
                 ],
                 bold: [
                     "#007bff75",
@@ -102,7 +105,7 @@ new Vue({
                     "#cccc0075",
                     "#6FC7B675",
                     "#D5A76875",
-                    "#d4d4d475"
+                    "#d4d4d475",
                 ],
                 extraBold: [
                     "#007bff",
@@ -120,7 +123,7 @@ new Vue({
                     "#cccc00",
                     "#6FC7B6",
                     "#D5A768",
-                    "#d4d4d4"
+                    "#d4d4d4",
                 ],
             },
             masks: [
@@ -130,14 +133,14 @@ new Vue({
                 { text: "5/5", value: "5of5" },
                 { text: "5/5 + LofTee LC", value: "5of5_LoF_LC" },
                 { text: "5/5 + 1/5 1%", value: "1of5_1pct" },
-                { text: "5/5 + 0/5 1%", value: "0of5_1pct" }
+                { text: "5/5 + 0/5 1%", value: "0of5_1pct" },
             ],
             datasets: [{ text: "TOPMed", value: "TopMed" }],
             testMethods: [
                 { text: "Collapsing Burden", value: "burden" },
                 { text: "Variable Threshold", value: "vt" },
                 { text: "SKAT", value: "skat" },
-                { text: "SKAT Optimal", value: "skat-o" }
+                { text: "SKAT Optimal", value: "skat-o" },
             ],
             topmedDatasets: ["T2D"],
             selectedMethods: [],
@@ -157,45 +160,45 @@ new Vue({
                     key: "selected",
                     label: "Selected",
                     visible: true,
-                    stickyColumn: true
+                    stickyColumn: true,
                 },
                 {
                     key: "varId",
                     label: "Variant ID",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "burdenBinId",
                     label: "Mask",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "impact",
                     label: "Impact",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "maf",
                     label: "Minor Allele Frequency",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "altFreq",
                     label: "Alt. Frequency.",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "pValue",
                     label: "P-Value",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
-                { key: "score", label: "Score", visible: true, sortable: true }
+                { key: "score", label: "Score", visible: true, sortable: true },
             ],
             defaultFields: [
                 //custom predefined and hidden fields
@@ -212,7 +215,7 @@ new Vue({
                 // "mutationtasterPred",
                 "gene",
                 "pick",
-                "transcript_id"
+                "transcript_id",
             ],
             fields: [],
             //optionalFields: [],
@@ -221,112 +224,112 @@ new Vue({
                     key: "siftPred",
                     label: "SIFT",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "polyphen2HdivPred",
                     label: "PPH Hdiv",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "polyphen2HvarPred",
                     label: "PPH Hvar",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "lrtPred",
                     label: "LRT",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "mutationtasterPred",
                     label: "MutTas",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "caddRawRankscore",
                     label: "CADD",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "dannRankscore",
                     label: "DANN",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "eigenPcRawCodingRankscore",
                     label: "Eigen-PC",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "fathmmMklCodingPred",
                     label: "FATHMM-MKL",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "fathmmPred",
                     label: "FATHMM",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "lof",
                     label: "LOF",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "proveanPred",
                     label: "PROVEAN",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "vest4Rankscore",
                     label: "VEST4",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "gnomadGenomesPopmaxAf",
                     label: "Max AF",
                     visible: false,
-                    sortable: true
-                }
+                    sortable: true,
+                },
             ],
             ncbtVariantFields: [
                 {
                     key: "selected",
                     label: "Selected",
                     visible: true,
-                    stickyColumn: true
+                    stickyColumn: true,
                 },
                 {
                     key: "variant",
                     label: "Variant",
-                    visible: true
+                    visible: true,
                 },
                 {
                     key: "altFreq",
                     label: "Alt. Freq.",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "pvalue",
                     label: "P-Value",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
-                { key: "score", label: "Score", visible: true, sortable: true }
+                { key: "score", label: "Score", visible: true, sortable: true },
             ],
             ncbtFields: [
                 "test",
@@ -336,7 +339,7 @@ new Vue({
                 "qscore",
                 "effect",
                 "se",
-                "details"
+                "details",
             ],
             ncbtSubFields: [
                 { key: "region" },
@@ -344,7 +347,7 @@ new Vue({
                 { key: "pvalue", sortable: true },
                 { key: "stat", sortable: true },
                 { key: "effect", sortable: true },
-                { key: "se", sortable: true }
+                { key: "se", sortable: true },
             ],
             searchCriteria: [],
             selectedVariants: [],
@@ -355,25 +358,17 @@ new Vue({
             searchRegion: {
                 chrom: "",
                 start: "",
-                stop: ""
+                stop: "",
             },
             show: false,
             samples: [
                 { chrom: "22", start: 37888528, stop: 37889311 },
                 { chrom: "22", start: 37892802, stop: 37892979 },
-                { chrom: "22", start: 37913600, stop: 37916243 }
-            ]
+                { chrom: "22", start: 37913600, stop: 37916243 },
+            ],
         };
     },
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("ldServer/getPhenotypes");
-        this.initCriteria();
-    },
     computed: {
-
         associationsData() {
             let DATA = this.$store.state.associations.data;
             if (DATA.length == 0) {
@@ -381,9 +376,16 @@ new Vue({
             } else {
                 let content = [];
 
-                DATA.map(v => {
+                DATA.map((v) => {
                     let tempObj = {};
-                    tempObj["Variant ID"] = v.chromosome + ":" + v.position + "_" + v.reference + "/" + v.alt;
+                    tempObj["Variant ID"] =
+                        v.chromosome +
+                        ":" +
+                        v.position +
+                        "_" +
+                        v.reference +
+                        "/" +
+                        v.alt;
                     tempObj["-log10(P-Value)"] = -Math.log10(v.pValue);
                     tempObj["Position"] = v.position;
                     tempObj["P-Value"] = v.pValue;
@@ -392,18 +394,16 @@ new Vue({
                     tempObj["alt"] = v.alt;
 
                     content.push(tempObj);
-
-                })
+                });
 
                 return content;
             }
-
         },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
         visibleFields() {
-            return this.fields.filter(field => !!field.visible);
+            return this.fields.filter((field) => !!field.visible);
         },
         // tableData() {
         //     if (
@@ -421,9 +421,9 @@ new Vue({
 
         tableData() {
             if (this.pageCovariances && this.pageCovariances.variants) {
-                return this.pageCovariances.variants.map(v => ({
+                return this.pageCovariances.variants.map((v) => ({
                     selected: true, //add selected column for manual selection
-                    ...v
+                    ...v,
                 }));
             } else {
                 return [];
@@ -432,54 +432,66 @@ new Vue({
 
         selectedGene() {
             return this.searchCriteria
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "gene";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
+        },
+        selectedRegion() {
+            return this.searchCriteria
+                .filter((v) => {
+                    return v.field === "region";
+                })
+                .map((v) => v.threshold);
         },
         selectedMasks() {
             return this.searchCriteria
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "mask";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
         },
         selectedDataset() {
             return this.searchCriteria
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "dataset";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
         },
         selectedPhenotypes() {
             return this.searchCriteria
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "phenotype";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
         },
         selectedTests() {
             return this.selectedMethods
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "test";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
         },
         searchRegionString() {
             return `${this.searchRegion.chrom}:${this.searchRegion.start}-${this.searchRegion.stop}`;
         },
         selectedAnnotations() {
             return this.$store.state.pkgDataSelected
-                .filter(s => s.type == "Annotation")
-                .map(s => s.id);
+                .filter((s) => s.type == "Annotation")
+                .map((s) => s.id);
         },
         selectedTissues() {
             return this.$store.state.pkgDataSelected
-                .filter(s => s.type == "Tissue")
-                .map(s => s.id);
+                .filter((s) => s.type == "Tissue")
+                .map((s) => s.id);
         },
         searchingRegion() {
-            let region = this.searchRegion.chrom + ":" + this.searchRegion.start + "-" + this.searchRegion.stop;
+            let region =
+                this.searchRegion.chrom +
+                ":" +
+                this.searchRegion.start +
+                "-" +
+                this.searchRegion.stop;
             return region;
         },
         searchingGenes() {
@@ -495,7 +507,145 @@ new Vue({
             if (contents != null) {
                 return JSON.parse(contents);
             }
-        }
+        },
+    },
+    watch: {
+        codingGenesData(DATA) {
+            this.$store.dispatch("codingGenesData", DATA["data"]);
+        },
+        searchingRegion: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.$store.dispatch("hugeampkpncms/getGenesInRegion", {
+                        region: newData,
+                    });
+                    this.$store.dispatch("associations/query", {
+                        q: this.selectedPhenotypes[0] + "," + newData,
+                    });
+                }
+            },
+            deep: true,
+        },
+        searchingGenes: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    let genesData = newData["data"];
+                    let codingGenes = "";
+                    let genesLength = newData["data"]
+                        ? newData["data"].length
+                        : 0;
+                    if (genesLength > 1) {
+                        genesData.map((gene) => {
+                            if ((gene.type = "protein_coding")) {
+                                codingGenes += "'" + gene.name + "',";
+                            }
+                        });
+
+                        codingGenes = codingGenes.slice(0, -1);
+
+                        if (codingGenes.length > 1) {
+                            this.$store.dispatch("hugeampkpncms/getGenesData", {
+                                genes: codingGenes,
+                            });
+                        } else {
+                            this.$store.dispatch("codingGenesData", null);
+                        }
+                    } else {
+                        this.$store.dispatch("codingGenesData", null);
+                    }
+                }
+            },
+            deep: true,
+        },
+        searchCriteria: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.criteriaChanged = true;
+                }
+            },
+            deep: true,
+        },
+        selectedMethods: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.testChanged = true;
+                }
+            },
+            deep: true,
+        },
+        selectedGene(newGene, oldGene) {
+            if (!isEqual(newGene, oldGene)) {
+                keyParams.set({ gene: newGene });
+            }
+        },
+        selectedMasks(newMasks, oldMasks) {
+            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
+            if (!isEqual(newMasks, oldMasks)) {
+                keyParams.set({
+                    masks: newMasks.length ? newMasks.join(",") : [],
+                });
+            }
+        },
+        selectedDataset(newDataset, oldDataset) {
+            if (!isEqual(newDataset, oldDataset)) {
+                if (!isEqual([keyParams.dataset], newDataset)) {
+                    this.selectedMethods = this.selectedMethods.filter((v) => {
+                        return v.field !== "phenotype";
+                    });
+                }
+                keyParams.set({ dataset: newDataset });
+            }
+        },
+        selectedPhenotypes(newPhenotypes, oldPhenotypes) {
+            if (!isEqual(newPhenotypes, oldPhenotypes)) {
+                keyParams.set({
+                    phenotypes: newPhenotypes.length
+                        ? newPhenotypes.join(",")
+                        : [],
+                });
+                this.$store.dispatch("onPhenotypeChange", newPhenotypes);
+            }
+        },
+        selectedTests(newTests, oldTests) {
+            if (!isEqual(newTests, oldTests)) {
+                keyParams.set({
+                    tests: newTests.length ? newTests.join(",") : [],
+                });
+            }
+        },
+        "$store.state.variants": function () {
+            this.loadingVariants = false;
+            if (
+                this.$store.state.variants &&
+                this.$store.state.variants.length
+            ) {
+                this.updateFields();
+            }
+        },
+        "$store.state.ldServer.covariances": function () {
+            this.loadingCovariances = false;
+        },
+        "$store.state.ldServer.runTestsError": function () {
+            this.loadingCovariances = false;
+        },
+        //check for table data update
+        tableData: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.updateSelectedVariants(); //update selected variants when tableData is ready
+                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
+                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
+                }
+            },
+            deep: true,
+        },
+    },
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("ldServer/getPhenotypes");
+        this.initCriteria();
     },
     methods: {
         intFormatter: Formatters.intFormatter,
@@ -504,15 +654,16 @@ new Vue({
 
         isAccordionVisible(ACCORDION) {
             let classes = "";
-            if (!!document.getElementById(ACCORDION)) {
-                classes = document.getElementById(ACCORDION).getAttribute('class');
+            if (document.getElementById(ACCORDION)) {
+                classes = document
+                    .getElementById(ACCORDION)
+                    .getAttribute("class");
             }
             if (classes == "collapse show") {
                 return true;
             } else {
                 return false;
             }
-
         },
 
         zScoreFormatter(value) {
@@ -526,29 +677,29 @@ new Vue({
             this.loadingVariants = true;
             this.$store.dispatch("queryBurden", {
                 gene: this.selectedGene,
-                binID: this.selectedMasks
+                binID: this.selectedMasks,
             });
             this.$store.dispatch("gene/query", {
-                q: this.selectedGene
+                q: this.selectedGene,
             });
             this.criteriaChanged = false;
             this.$store.commit("ldServer/setCovariances", []);
         },
-
-
 
         //for NC GAIT
         async searchAnnotations() {
             this.showAnnotations = true;
             this.loadingAnnotations = true;
             this.criteriaChanged = false; //reset criteria
-            let locus = await regionUtils.parseRegion(this.selectedGene[0]);
+            let search =
+                this.selectedGene[0] || this.selectedRegion[0]?.toString();
+            let locus = await regionUtils.parseRegion(search);
             if (locus) {
                 console.log("locus found: ", locus);
                 this.searchRegion = {
                     chrom: locus.chr,
                     start: locus.start,
-                    stop: locus.end
+                    stop: locus.end,
                 };
             }
             console.log("searching annotations");
@@ -563,19 +714,19 @@ new Vue({
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
-                    this.selectedRegionType
-                ].map(region => {
-                    return {
-                        chrom: this.searchRegion.chrom,
-                        start: region.start,
-                        stop: region.end
-                    };
-                })
+                      this.selectedRegionType
+                  ].map((region) => {
+                      return {
+                          chrom: this.searchRegion.chrom,
+                          start: region.start,
+                          stop: region.end,
+                      };
+                  })
                 : [];
 
             //using hardcoded test samples
             let input = {
-                regions: regions
+                regions: regions,
                 //regions: this.samples
             };
 
@@ -647,11 +798,11 @@ new Vue({
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
                     groups[
                         liftedRegions.regions[i].start +
-                        " - " +
-                        liftedRegions.regions[i].stop
+                            " - " +
+                            liftedRegions.regions[i].stop
                     ] = {
                         start: liftedRegions.regions[i].start,
-                        stop: liftedRegions.regions[i].stop
+                        stop: liftedRegions.regions[i].stop,
                     };
                 }
                 //console.log("groups", JSON.stringify(groups, null, 2));
@@ -659,9 +810,9 @@ new Vue({
                 let input2 = {
                     chrom: liftedRegions.regions[0].chrom,
                     start: liftedRegions.regions[0].start,
-                    stop:
-                        liftedRegions.regions[liftedRegions.regions.length - 1]
-                            .stop,
+                    stop: liftedRegions.regions[
+                        liftedRegions.regions.length - 1
+                    ].stop,
                     summaryStatisticDataset: 1,
                     genomeBuild: "GRCh38",
                     maskDefinitions: [
@@ -679,9 +830,9 @@ new Vue({
                             //         stop: liftedRegions.regions[0].stop
                             //     }
                             // }
-                            groups: groups
-                        }
-                    ]
+                            groups: groups,
+                        },
+                    ],
                 };
 
                 console.log("input: ", input2);
@@ -700,10 +851,10 @@ new Vue({
             const response = await fetch(liftOverAPI, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify(regions) // body data type must match "Content-Type" header
-            }).then(resp => {
+                body: JSON.stringify(regions), // body data type must match "Content-Type" header
+            }).then((resp) => {
                 if (resp.ok) {
                     return resp.json();
                 } else {
@@ -719,10 +870,10 @@ new Vue({
             const response = await fetch(covAPI, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify(regions)
-            }).then(resp => {
+                body: JSON.stringify(regions),
+            }).then((resp) => {
                 if (resp.ok) {
                     return resp.json();
                 } else {
@@ -760,8 +911,8 @@ new Vue({
                 {
                     phenotype: this.selectedPhenotypes[0], //selecting only one phenotype for now
                     samples: data.nSamples,
-                    data: runResult
-                }
+                    data: runResult,
+                },
             ];
             //hardcoded phenotype for now
             //return { phenotype: "T2D", samples, data: runResult };
@@ -783,7 +934,7 @@ new Vue({
                 tests:
                     this.selectedTests.length > 0
                         ? this.selectedTests
-                        : ["burden"]
+                        : ["burden"],
             });
             this.testChanged = false;
         },
@@ -828,7 +979,7 @@ new Vue({
                 if (!formattedData.hasOwnProperty(row.test)) {
                     formattedData[row.test] = {
                         top: this.formatTableRow(row),
-                        data: [this.formatTableRow(row)]
+                        data: [this.formatTableRow(row)],
                     };
 
                     //formattedData[row.test].top.samples = samples; //keep samples in top row
@@ -855,11 +1006,11 @@ new Vue({
             //     });
             // });
             let returnData = [];
-            Object.values(formattedData).forEach(test => {
+            Object.values(formattedData).forEach((test) => {
                 returnData.push({
                     ...test.top,
                     variants: sumBy(test.data, "variants"),
-                    data: test.data
+                    data: test.data,
                 });
             });
             //return [formattedData];
@@ -875,7 +1026,7 @@ new Vue({
                     pvalue: row.pvalue,
                     stat: row.stat,
                     effect: row.effect,
-                    se: row.se
+                    se: row.se,
                 };
                 // if (row.test.includes("skat")) {
                 //     data.qscore = row.stat;
@@ -888,7 +1039,7 @@ new Vue({
         },
 
         async lookupGenes(input) {
-            if (!!input) {
+            if (input) {
                 let matches = await match("gene", input, { limit: 10 });
                 this.matchingGenes = matches;
             }
@@ -909,38 +1060,38 @@ new Vue({
             if (keyParams.gene)
                 this.searchCriteria.push({
                     field: "gene",
-                    threshold: keyParams.gene
+                    threshold: keyParams.gene,
                 });
             if (keyParams.masks) {
                 let masks = keyParams.masks.split(",");
-                masks.forEach(m =>
+                masks.forEach((m) =>
                     this.searchCriteria.push({
                         field: "mask",
-                        threshold: m
+                        threshold: m,
                     })
                 );
             }
             if (keyParams.dataset) {
                 this.searchCriteria.push({
                     field: "dataset",
-                    threshold: keyParams.dataset
+                    threshold: keyParams.dataset,
                 });
             }
             if (keyParams.phenotypes) {
                 let phenotypes = keyParams.phenotypes.split(",");
-                phenotypes.forEach(p =>
+                phenotypes.forEach((p) =>
                     this.searchCriteria.push({
                         field: "phenotype",
-                        threshold: p
+                        threshold: p,
                     })
                 );
             }
             if (keyParams.tests) {
                 let tests = keyParams.tests.split(",");
-                tests.forEach(t =>
+                tests.forEach((t) =>
                     this.selectedMethods.push({
                         field: "test",
-                        threshold: t
+                        threshold: t,
                     })
                 );
             }
@@ -949,144 +1100,21 @@ new Vue({
         updateSelectedVariants() {
             //get only the varIDs for selected rows
             this.selectedVariants = this.tableData
-                .filter(v => {
+                .filter((v) => {
                     return v.selected === true;
                 })
-                .map(v => v.variant);
+                .map((v) => v.variant);
         },
         selectAllVariants() {
-            this.tableData.forEach(v => (v.selected = true));
+            this.tableData.forEach((v) => (v.selected = true));
             this.updateSelectedVariants();
         },
         deselectAllVariants() {
-            this.tableData.forEach(v => (v.selected = false));
+            this.tableData.forEach((v) => (v.selected = false));
             this.updateSelectedVariants();
-        }
+        },
     },
-    watch: {
-        codingGenesData(DATA) {
-            this.$store.dispatch("codingGenesData", DATA["data"]);
-        },
-        searchingRegion: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": newData });
-                    this.$store.dispatch("associations/query", {
-                        q: this.selectedPhenotypes[0] + ',' + newData
-                    });
-                }
-            },
-            deep: true
-        },
-        searchingGenes: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-
-                    let genesData = newData["data"];
-                    let codingGenes = "";
-                    let genesLength = !!!!newData["data"] ? newData["data"].length : 0;
-                    if (genesLength > 1) {
-                        genesData.map(gene => {
-                            if (gene.type = "protein_coding") {
-                                codingGenes += "\'" + gene.name + "\',";
-                            }
-                        })
-
-                        codingGenes = codingGenes.slice(0, -1)
-
-                        if (codingGenes.length > 1) {
-                            this.$store.dispatch("hugeampkpncms/getGenesData", { "genes": codingGenes });
-                        } else {
-                            this.$store.dispatch("codingGenesData", null);
-                        }
-                    } else {
-                        this.$store.dispatch("codingGenesData", null);
-                    }
-                }
-            },
-            deep: true
-        },
-        searchCriteria: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.criteriaChanged = true;
-                }
-            },
-            deep: true
-        },
-        selectedMethods: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.testChanged = true;
-                }
-            },
-            deep: true
-        },
-        selectedGene(newGene, oldGene) {
-            if (!isEqual(newGene, oldGene)) {
-                keyParams.set({ gene: newGene });
-            }
-        },
-        selectedMasks(newMasks, oldMasks) {
-            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
-            if (!isEqual(newMasks, oldMasks)) {
-                keyParams.set({
-                    masks: newMasks.length ? newMasks.join(",") : []
-                });
-            }
-        },
-        selectedDataset(newDataset, oldDataset) {
-            if (!isEqual(newDataset, oldDataset)) {
-                if (!isEqual([keyParams.dataset], newDataset)) {
-                    this.selectedMethods = this.selectedMethods.filter(v => {
-                        return v.field !== "phenotype";
-                    });
-                }
-                keyParams.set({ dataset: newDataset });
-            }
-        },
-        selectedPhenotypes(newPhenotypes, oldPhenotypes) {
-            if (!isEqual(newPhenotypes, oldPhenotypes)) {
-                keyParams.set({
-                    phenotypes: newPhenotypes.length
-                        ? newPhenotypes.join(",")
-                        : []
-                });
-                this.$store.dispatch("onPhenotypeChange", newPhenotypes);
-            }
-        },
-        selectedTests(newTests, oldTests) {
-            if (!isEqual(newTests, oldTests)) {
-                keyParams.set({
-                    tests: newTests.length ? newTests.join(",") : []
-                });
-            }
-        },
-        "$store.state.variants": function () {
-            this.loadingVariants = false;
-            if (
-                this.$store.state.variants &&
-                this.$store.state.variants.length
-            ) {
-                this.updateFields();
-            }
-        },
-        "$store.state.ldServer.covariances": function () {
-            this.loadingCovariances = false;
-        },
-        "$store.state.ldServer.runTestsError": function () {
-            this.loadingCovariances = false;
-        },
-        //check for table data update
-        tableData: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.updateSelectedVariants(); //update selected variants when tableData is ready
-                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
-                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
-                }
-            },
-            deep: true
-        }
-    }
+    render(createElement, context) {
+        return createElement(Template);
+    },
 }).$mount("#app");
