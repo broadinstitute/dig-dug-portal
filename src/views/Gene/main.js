@@ -34,6 +34,8 @@ import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidence
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
 
+import sessionUtils from "@/utils/sessionUtils";
+
 import Counter from "@/utils/idCounter";
 
 import Alert, {
@@ -113,6 +115,9 @@ new Vue({
     },
 
     created() {
+        /// disease systems
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        ////
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
         //this.$store.dispatch("queryAssociations");
@@ -129,6 +134,7 @@ new Vue({
 
     methods: {
         ...uiUtils,
+        ...sessionUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -218,9 +224,8 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${r.chromosome
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
         isExomeWideSignificant(data, trait) {
@@ -241,14 +246,38 @@ new Vue({
     },
 
     computed: {
+        /// for disease systems
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+        ///
         phenotypeOptions() {
-            return this.$store.state.bioPortal.phenotypes
+            return this.phenotypesInSession
                 .filter(x => x.name != this.$store.state.phenotype)
                 .map(phenotype => phenotype.name);
         },
 
         geneassociations() {
             let data = this.$store.state.geneassociations.data;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
+            }
+
             let assocMap = {};
 
             for (let i in data) {
@@ -268,6 +297,36 @@ new Vue({
             // convert to an array, sorted by p-value
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
+        },
+
+        associations52k() {
+
+            let data = this.$store.state.associations52k.data;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
+            }
+
+            let assocMap = {};
+
+            for (let i in data) {
+                const assoc = data[i];
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[assoc.phenotype]) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+
+            // convert to an array, sorted by p-value
+            let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            return x;
+
         },
 
         smallestpValuePhenotype() {
@@ -406,7 +465,7 @@ new Vue({
                     missense_variant: "MODERATE",
                     protein_altering_variant: "MODERATE"
                 };
-                data.sort(function(a, b) {
+                data.sort(function (a, b) {
                     return a.pValue - b.pValue;
                 });
                 let topVariant = data[0];
@@ -417,7 +476,7 @@ new Vue({
                 );
                 let distance = 0;
                 //calculate the distance of topVariant to each gene and find the smallest distance
-                filteredGenesInARegion.forEach(function(geneinregion) {
+                filteredGenesInARegion.forEach(function (geneinregion) {
                     let distanceFromStart =
                         topVariant.position - geneinregion.start;
                     let distanceFromEnd =
@@ -434,14 +493,14 @@ new Vue({
                     }
                 });
 
-                filteredGenesInARegion.sort(function(a, b) {
+                filteredGenesInARegion.sort(function (a, b) {
                     return a.distance - b.distance;
                 });
                 let lowestPvalueClosestGene = filteredGenesInARegion[0];
 
                 //find lowest p - value, is it closest gene - TO DO
 
-                data.forEach(function(eachSNP) {
+                data.forEach(function (eachSNP) {
                     if (coding_variants.hasOwnProperty(eachSNP.consequence)) {
                         if (eachSNP.pValue < 5e-8) {
                             commonBF = 20;
@@ -623,12 +682,6 @@ new Vue({
 
                 this.$store.dispatch("getEGLData");
             }
-
-            //this.pushCriterionPhenotype(newTopPhenotype)
-            // if (removedPhenotypes.length > 0) {
-            //     this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
-            // }
-            // this.$store.dispatch("getEGLData");
         },
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {

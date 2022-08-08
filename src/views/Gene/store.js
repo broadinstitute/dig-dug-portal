@@ -24,7 +24,9 @@ export default new Vuex.Store({
     state: {
         geneName: keyParams.gene,
         aliasName: null,
-        prior: 0.3696
+        prior: 0.3696,
+        phenotypesInSession: null,
+        diseaseInSession: null,
     },
 
     mutations: {
@@ -38,6 +40,12 @@ export default new Vuex.Store({
         },
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
         }
     },
 
@@ -84,6 +92,13 @@ export default new Vuex.Store({
     },
 
     actions: {
+        // For custom phenotypes
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
 
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
@@ -93,6 +108,7 @@ export default new Vuex.Store({
                 context.dispatch("gene/query", { q: name });
             }
         },
+        ///
 
         async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
