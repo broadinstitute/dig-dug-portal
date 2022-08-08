@@ -196,11 +196,19 @@
 	padding: 50px 0 50px 0;
 }
 
-.disease-systems-trees-wrapper,
+.disease-systems-trees-wrapper {
+	position: relative;
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+}
+
 .single-search-wrapper {
 	position: relative;
 	text-align: center;
-	width: 100%;
+	width: 680px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .disease-systems-trees-wrapper {

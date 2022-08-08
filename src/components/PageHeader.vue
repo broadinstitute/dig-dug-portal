@@ -52,6 +52,9 @@
 							class="mdkp-logo"
 						/>
 					</a>
+					<span v-if="page == 'front'" class="disease-in-session">{{
+						$store.state.diseaseInSession
+					}}</span>
 					<disease-systems
 						v-if="
 							page != 'front' &&
@@ -168,3 +171,10 @@ export default Vue.component("page-header", {
 	},
 });
 </script>
+<style scoped>
+.disease-in-session {
+	color: #fff;
+	margin-left: 10px;
+	vertical-align: -4px;
+}
+</style>

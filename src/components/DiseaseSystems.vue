@@ -33,7 +33,7 @@
 							class="disease-system-options"
 							:id="system.split(' ')[0] + '_options'"
 						>
-							<h5>Limit phenotypes by a disease</h5>
+							<h5>Select a disease</h5>
 							<div
 								class="disease-name"
 								v-for="disease in diseaseOptions(system)"
@@ -53,7 +53,7 @@
 							</div>
 							<p></p>
 							<h5 v-if="kpDiseasePair(system).length > 0">
-								Community portals
+								Or visit a community portal
 							</h5>
 							<div
 								class="community-portal"
@@ -98,7 +98,7 @@
 			class="custom-phenotypes-list-builder hidden"
 			id="pheno_list_builder"
 		>
-			<h5>Set phenotypes focus by {{ focusBy }}</h5>
+			<!--<h5>Set phenotypes focus by {{ focusBy }}</h5>-->
 
 			<div class="ph-builder-filters-wrapper" v-if="focusBy == 'disease'">
 				<label class="select-disease-label">Select disease: </label>
@@ -148,7 +148,9 @@
 									checked
 								/>
 							</td>
-							<td>{{ phenotype.description }}</td>
+							<td class="phenotype-name">
+								{{ phenotype.description }}
+							</td>
 						</tr>
 					</tbody>
 				</table>
@@ -368,6 +370,7 @@ export default Vue.component("disease-systems", {
 </script>
 <style scoped>
 .ph-builder-filters-wrapper {
+	margin-bottom: 20px;
 }
 
 .disease-systems-sub-pages .select-disease-wrapper {
@@ -427,13 +430,17 @@ export default Vue.component("disease-systems", {
 
 .custom-phenotypes-list-builder .table-wrapper {
 	width: 100%;
-	height: calc(100% - 170px);
+	height: calc(100% - 130px);
 	overflow-y: auto;
 	margin-bottom: 15px;
-	border-bottom: solid 1px #ddd;
-	border-left: solid 1px #ddd;
+	border: solid 1px #ddd;
+	font-size: 14px;
 }
-.custom-phenotypes-list-builder table td {
+
+.custom-phenotypes-list-builder .table-wrapper table {
+	margin-top: -1px;
+}
+.custom-phenotypes-list-builder table td.phenotype-name {
 	text-align: left;
 }
 
