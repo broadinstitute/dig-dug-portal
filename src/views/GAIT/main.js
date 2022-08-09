@@ -23,7 +23,6 @@ Vue.config.productionTip = false;
 new Vue({
     el: "#app",
     store,
-    mixins: [pageMixin],
     components: {
         Documentation,
         CriterionFunctionGroup,
@@ -32,11 +31,9 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
         FilterBasic,
-        ForestPlotSimple
+        ForestPlotSimple,
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
+    mixins: [pageMixin],
     data() {
         return {
             masks: [
@@ -46,17 +43,17 @@ new Vue({
                 { text: "5/5", value: "5of5" },
                 { text: "5/5 + LofTee LC", value: "5of5_LoF_LC" },
                 { text: "5/5 + 1/5 1%", value: "1of5_1pct" },
-                { text: "5/5 + 0/5 1%", value: "0of5_1pct" }
+                { text: "5/5 + 0/5 1%", value: "0of5_1pct" },
             ],
             datasets: [
                 { text: "52K", value: "52k" },
-                { text: "TOPMed", value: "TopMed" }
+                { text: "TOPMed", value: "TopMed" },
             ],
             testMethods: [
                 { text: "Collapsing Burden", value: "burden" },
                 { text: "Variable Threshold", value: "vt" },
                 { text: "SKAT", value: "skat" },
-                { text: "SKAT Optimal", value: "skat-o" }
+                { text: "SKAT Optimal", value: "skat-o" },
             ],
             topmedDatasets: ["T2D", "FG", "FI"],
             selectedMethods: [],
@@ -74,32 +71,32 @@ new Vue({
                     key: "selected",
                     label: "Selected",
                     visible: true,
-                    stickyColumn: true
+                    stickyColumn: true,
                 },
                 {
                     key: "varId",
                     label: "Variant ID",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "burdenBinId",
                     label: "Mask",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "impact",
                     label: "Impact",
                     visible: true,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "maf",
                     label: "Minor Allele Frequency",
                     visible: true,
-                    sortable: true
-                }
+                    sortable: true,
+                },
             ],
             defaultFields: [
                 //custom predefined and hidden fields
@@ -116,7 +113,7 @@ new Vue({
                 // "mutationtasterPred",
                 "gene",
                 "pick",
-                "transcript_id"
+                "transcript_id",
             ],
             fields: [],
             //optionalFields: [],
@@ -125,113 +122,106 @@ new Vue({
                     key: "siftPred",
                     label: "SIFT",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "polyphen2HdivPred",
                     label: "PPH Hdiv",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "polyphen2HvarPred",
                     label: "PPH Hvar",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "lrtPred",
                     label: "LRT",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "mutationtasterPred",
                     label: "MutTas",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "caddRawRankscore",
                     label: "CADD",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "dannRankscore",
                     label: "DANN",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "eigenPcRawCodingRankscore",
                     label: "Eigen-PC",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "fathmmMklCodingPred",
                     label: "FATHMM-MKL",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "fathmmPred",
                     label: "FATHMM",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "lof",
                     label: "LOF",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "proveanPred",
                     label: "PROVEAN",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "vest4Rankscore",
                     label: "VEST4",
                     visible: false,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "gnomadGenomesPopmaxAf",
                     label: "Max AF",
                     visible: false,
-                    sortable: true
-                }
+                    sortable: true,
+                },
             ],
             searchCriteria: [],
-            selectedVariants: []
+            selectedVariants: [],
         };
-    },
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("ldServer/getPhenotypes");
-        this.initCriteria();
     },
     computed: {
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
         visibleFields() {
-            return this.fields.filter(field => !!field.visible);
+            return this.fields.filter((field) => !!field.visible);
         },
         tableData() {
             if (
                 this.$store.state.variants &&
                 this.$store.state.variants.length
             ) {
-                return this.$store.state.variants.map(v => ({
+                return this.$store.state.variants.map((v) => ({
                     selected: true, //add selected column for manual selection
-                    ...v
+                    ...v,
                 }));
             } else {
                 return [];
@@ -240,39 +230,129 @@ new Vue({
 
         selectedGene() {
             return this.searchCriteria
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "gene";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
         },
         selectedMasks() {
             return this.searchCriteria
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "mask";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
         },
         selectedDataset() {
             return this.selectedMethods
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "dataset";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
         },
         selectedPhenotypes() {
             return this.selectedMethods
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "phenotype";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
         },
         selectedTests() {
             return this.selectedMethods
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "test";
                 })
-                .map(v => v.threshold);
-        }
+                .map((v) => v.threshold);
+        },
+    },
+    watch: {
+        searchCriteria: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.criteriaChanged = true;
+                }
+            },
+            deep: true,
+        },
+        selectedMethods: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.testChanged = true;
+                }
+            },
+            deep: true,
+        },
+        selectedGene(newGene, oldGene) {
+            if (!isEqual(newGene, oldGene)) {
+                keyParams.set({ gene: newGene });
+            }
+        },
+        selectedMasks(newMasks, oldMasks) {
+            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
+            if (!isEqual(newMasks, oldMasks)) {
+                keyParams.set({
+                    masks: newMasks.length ? newMasks.join(",") : [],
+                });
+            }
+        },
+        selectedDataset(newDataset, oldDataset) {
+            if (!isEqual(newDataset, oldDataset)) {
+                if (!isEqual([keyParams.dataset], newDataset)) {
+                    this.selectedMethods = this.selectedMethods.filter((v) => {
+                        return v.field !== "phenotype";
+                    });
+                }
+                keyParams.set({ dataset: newDataset });
+            }
+        },
+        selectedPhenotypes(newPhenotypes, oldPhenotypes) {
+            if (!isEqual(newPhenotypes, oldPhenotypes)) {
+                keyParams.set({
+                    phenotypes: newPhenotypes.length
+                        ? newPhenotypes.join(",")
+                        : [],
+                });
+                this.$store.dispatch("onPhenotypeChange", newPhenotypes);
+            }
+        },
+        selectedTests(newTests, oldTests) {
+            if (!isEqual(newTests, oldTests)) {
+                keyParams.set({
+                    tests: newTests.length ? newTests.join(",") : [],
+                });
+            }
+        },
+        "$store.state.variants": function () {
+            this.loadingVariants = false;
+            if (
+                this.$store.state.variants &&
+                this.$store.state.variants.length
+            ) {
+                this.updateFields();
+            }
+        },
+        "$store.state.ldServer.covariances": function () {
+            this.loadingCovariances = false;
+        },
+        "$store.state.ldServer.runTestsError": function () {
+            this.loadingCovariances = false;
+        },
+        tableData: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.updateSelectedVariants(); //update selected variants when tableData is ready
+                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
+                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
+                }
+            },
+            deep: true,
+        },
+    },
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("ldServer/getPhenotypes");
+        this.initCriteria();
     },
     methods: {
         intFormatter: Formatters.intFormatter,
@@ -289,10 +369,10 @@ new Vue({
             this.loadingVariants = true;
             this.$store.dispatch("queryBurden", {
                 gene: this.selectedGene,
-                binID: this.selectedMasks
+                binID: this.selectedMasks,
             });
             this.$store.dispatch("gene/query", {
-                q: this.selectedGene
+                q: this.selectedGene,
             });
             this.criteriaChanged = false;
             this.$store.commit("ldServer/setCovariances", []);
@@ -307,7 +387,7 @@ new Vue({
                 tests:
                     this.selectedTests.length > 0
                         ? this.selectedTests
-                        : ["burden"]
+                        : ["burden"],
             });
             this.testChanged = false;
         },
@@ -328,7 +408,7 @@ new Vue({
         },
         formatTestData(samples, data) {
             let formatted = [];
-            data.map(test => {
+            data.map((test) => {
                 formatted.push({
                     test: test.test,
                     variants: test.variants.length,
@@ -336,13 +416,13 @@ new Vue({
                     pvalue: test.pvalue,
                     effect: test.effect,
                     se: test.se,
-                    samples
+                    samples,
                 });
             });
             return formatted;
         },
         async lookupGenes(input) {
-            if (!!input) {
+            if (input) {
                 let matches = await match("gene", input, { limit: 10 });
                 this.matchingGenes = matches;
             }
@@ -351,38 +431,38 @@ new Vue({
             if (keyParams.gene)
                 this.searchCriteria.push({
                     field: "gene",
-                    threshold: keyParams.gene
+                    threshold: keyParams.gene,
                 });
             if (keyParams.masks) {
                 let masks = keyParams.masks.split(",");
-                masks.forEach(m =>
+                masks.forEach((m) =>
                     this.searchCriteria.push({
                         field: "mask",
-                        threshold: m
+                        threshold: m,
                     })
                 );
             }
             if (keyParams.dataset) {
                 this.selectedMethods.push({
                     field: "dataset",
-                    threshold: keyParams.dataset
+                    threshold: keyParams.dataset,
                 });
             }
             if (keyParams.phenotypes) {
                 let phenotypes = keyParams.phenotypes.split(",");
-                phenotypes.forEach(p =>
+                phenotypes.forEach((p) =>
                     this.selectedMethods.push({
                         field: "phenotype",
-                        threshold: p
+                        threshold: p,
                     })
                 );
             }
             if (keyParams.tests) {
                 let tests = keyParams.tests.split(",");
-                tests.forEach(t =>
+                tests.forEach((t) =>
                     this.selectedMethods.push({
                         field: "test",
-                        threshold: t
+                        threshold: t,
                     })
                 );
             }
@@ -390,101 +470,21 @@ new Vue({
         updateSelectedVariants() {
             //get only the varIDs for selected rows
             this.selectedVariants = this.tableData
-                .filter(v => {
+                .filter((v) => {
                     return v.selected === true;
                 })
-                .map(v => v.varId);
+                .map((v) => v.varId);
         },
         selectAllVariants() {
-            this.tableData.forEach(v => (v.selected = true));
+            this.tableData.forEach((v) => (v.selected = true));
             this.updateSelectedVariants();
         },
         deselectAllVariants() {
-            this.tableData.forEach(v => (v.selected = false));
+            this.tableData.forEach((v) => (v.selected = false));
             this.updateSelectedVariants();
-        }
+        },
     },
-    watch: {
-        searchCriteria: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.criteriaChanged = true;
-                }
-            },
-            deep: true
-        },
-        selectedMethods: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.testChanged = true;
-                }
-            },
-            deep: true
-        },
-        selectedGene(newGene, oldGene) {
-            if (!isEqual(newGene, oldGene)) {
-                keyParams.set({ gene: newGene });
-            }
-        },
-        selectedMasks(newMasks, oldMasks) {
-            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
-            if (!isEqual(newMasks, oldMasks)) {
-                keyParams.set({
-                    masks: newMasks.length ? newMasks.join(",") : []
-                });
-            }
-        },
-        selectedDataset(newDataset, oldDataset) {
-            if (!isEqual(newDataset, oldDataset)) {
-                if (!isEqual([keyParams.dataset], newDataset)) {
-                    this.selectedMethods = this.selectedMethods.filter(v => {
-                        return v.field !== "phenotype";
-                    });
-                }
-                keyParams.set({ dataset: newDataset });
-            }
-        },
-        selectedPhenotypes(newPhenotypes, oldPhenotypes) {
-            if (!isEqual(newPhenotypes, oldPhenotypes)) {
-                keyParams.set({
-                    phenotypes: newPhenotypes.length
-                        ? newPhenotypes.join(",")
-                        : []
-                });
-                this.$store.dispatch("onPhenotypeChange", newPhenotypes);
-            }
-        },
-        selectedTests(newTests, oldTests) {
-            if (!isEqual(newTests, oldTests)) {
-                keyParams.set({
-                    tests: newTests.length ? newTests.join(",") : []
-                });
-            }
-        },
-        "$store.state.variants": function() {
-            this.loadingVariants = false;
-            if (
-                this.$store.state.variants &&
-                this.$store.state.variants.length
-            ) {
-                this.updateFields();
-            }
-        },
-        "$store.state.ldServer.covariances": function() {
-            this.loadingCovariances = false;
-        },
-        "$store.state.ldServer.runTestsError": function() {
-            this.loadingCovariances = false;
-        },
-        tableData: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.updateSelectedVariants(); //update selected variants when tableData is ready
-                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
-                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
-                }
-            },
-            deep: true
-        }
-    }
+    render(createElement, context) {
+        return createElement(Template);
+    },
 }).$mount("#app");
