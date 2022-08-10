@@ -20,6 +20,8 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
+import sessionUtils from "@/utils/sessionUtils";
+
 
 import Alert, {
     postAlert,
@@ -78,6 +80,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ...sessionUtils,
 
         updateAssociations(updatedPhenotypes, pValue, flush) {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
@@ -136,12 +139,16 @@ new Vue({
         },
 
         secondaryPhenotypeOptions() {
-            if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
-            } else {
-                return this.$store.state.phenotypesInSession.filter(x => x.name != this.$store.state.phenotype);
+            let data;
+
+            data = this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
+
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'name');
             }
 
+            return data;
         },
 
         geneFinderPhenotypes() {

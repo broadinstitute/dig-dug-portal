@@ -3,7 +3,30 @@
 		<div v-if="page != 'front'" class="disease-systems-sub-pages">
 			<div class="select-disease-wrapper">
 				<label>{{ diseaseInSession }}</label>
-				<select
+				<div class="select-disease">
+					<span class="menu-arrow">></span>
+					<div class="options-wrapper">
+						<div
+							class="option"
+							@click="callCustomPhActions('disease')"
+						>
+							By disease
+						</div>
+						<div
+							class="option"
+							@click="callCustomPhActions('correlation')"
+						>
+							By Phenotype correlation
+						</div>
+						<div
+							class="option"
+							@click="callCustomPhActions('reset')"
+						>
+							Reset focus
+						</div>
+					</div>
+				</div>
+				<!--<select
 					class="select-disease form-control form-control-sm"
 					@change="callCustomPhActions($event)"
 				>
@@ -13,7 +36,7 @@
 						By Phenotype correlation
 					</option>
 					<option value="reset">Reset focus</option>
-				</select>
+				</select>-->
 			</div>
 		</div>
 		<div v-if="page == 'front'" class="row disease-systems-front">
@@ -211,7 +234,7 @@ export default Vue.component("disease-systems", {
 		...sortUtils,
 		...userUtils,
 		callCustomPhActions(EVENT) {
-			switch (EVENT.target.value) {
+			switch (EVENT) {
 				case "reset":
 					this.resetCustomPhenotypes();
 					break;
@@ -376,13 +399,12 @@ export default Vue.component("disease-systems", {
 .disease-systems-sub-pages .select-disease-wrapper {
 	position: absolute;
 	z-index: 200;
-	top: 17px;
+	top: 16px;
 	left: 140px;
 	color: #fff;
 }
 
 .disease-systems-sub-pages .select-disease {
-	/* margin: 5px 5% 20px 5%; */
 	width: 15px;
 	font-size: 14px;
 	background: #fff;
@@ -394,6 +416,50 @@ export default Vue.component("disease-systems", {
 	text-align: center;
 	display: inline-block;
 	margin-left: 5px;
+	vertical-align: -2px;
+	position: relative;
+}
+
+.disease-systems-sub-pages .select-disease:hover {
+	cursor: pointer;
+}
+
+.disease-systems-sub-pages .select-disease .menu-arrow {
+	display: block;
+	font-weight: bold;
+	position: absolute;
+	top: -2px;
+	left: 5px;
+}
+
+.disease-systems-sub-pages .select-disease:hover .menu-arrow {
+	left: 8px;
+}
+
+.select-disease .options-wrapper {
+	display: none;
+	position: absolute;
+	margin-left: 8px;
+	box-shadow: 3px 3px 3px 3px rgb(0 0 0 / 20%);
+}
+
+.select-disease:hover .options-wrapper {
+	display: block;
+}
+
+.select-disease .option {
+	color: #666666;
+	background-color: #ffffff;
+	width: 200px;
+	font-size: 14px;
+	border-bottom: solid 1px #ddd;
+	text-align: left;
+	padding: 3px 10px;
+}
+
+.select-disease .option:hover {
+	cursor: pointer;
+	color: #000000;
 }
 
 .disease-systems-front .select-disease {
@@ -409,9 +475,7 @@ export default Vue.component("disease-systems", {
 	padding-left: 5%;
 	margin: 0;
 }
-.select-disease option {
-	font-size: 14px;
-}
+
 .custom-phenotypes-list-builder {
 	position: fixed;
 	top: 15%;
