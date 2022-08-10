@@ -496,16 +496,18 @@ new Vue({
         },
         searchingGenes() {
             let contents = this.$store.state.hugeampkpncms.genesInRegion;
-
             if (contents.length > 0) {
                 return JSON.parse(contents);
+            } else {
+                return {};
             }
         },
         codingGenesData() {
             let contents = this.$store.state.hugeampkpncms.genesData;
-
             if (contents != null) {
                 return JSON.parse(contents);
+            } else {
+                return {};
             }
         },
     },
@@ -1122,6 +1124,22 @@ new Vue({
         deselectAllVariants() {
             this.tableData.forEach((v) => (v.selected = false));
             this.updateSelectedVariants();
+        },
+        removeGene(event) {
+            console.log("remove gene", event);
+            this.searchCriteria = this.searchCriteria.filter(
+                (v) => v.field !== "gene"
+            );
+        },
+        removeRegion(event) {
+            console.log("remove region", event);
+            this.searchCriteria = this.searchCriteria.filter(
+                (v) => v.field !== "region"
+            );
+        },
+        sayalert(msg) {
+            alert("alert me " + msg);
+            console.log("logggg", msg);
         },
     },
     render(createElement, context) {

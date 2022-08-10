@@ -39,16 +39,16 @@
                                 role="tab"
                             >
                                 <b-button
-                                    block
                                     v-b-toggle.accordion-1
+                                    block
                                     variant="outline-primary"
                                     >Criteria
                                     <div class="criteria">
                                         <b-badge
-                                            class="filter-pill-gene"
                                             v-if="
                                                 $parent.selectedGene.length > 0
                                             "
+                                            class="filter-pill-gene"
                                         >
                                             {{ $parent.selectedGene[0] }}
                                         </b-badge>
@@ -58,9 +58,9 @@
                                             "
                                         >
                                             <b-badge
-                                                class="filter-pill-mask"
                                                 v-for="mask in $parent.selectedMasks"
                                                 :key="mask"
+                                                class="filter-pill-mask"
                                             >
                                                 {{
                                                     $parent.masks.find(
@@ -81,22 +81,22 @@
                                 <b-card-body>
                                     <transition name="fade"
                                         ><b-alert
-                                            show
                                             v-if="
                                                 $parent.selectedGene.length ==
                                                     0 ||
                                                 $parent.selectedGene[0] ===
                                                     undefined
                                             "
+                                            show
                                             >Please select a gene.</b-alert
                                         >
 
                                         <b-alert
-                                            show
                                             v-else-if="
                                                 $parent.selectedMasks.length ==
                                                 0
                                             "
+                                            show
                                             >Please select one or more
                                             masks.</b-alert
                                         ></transition
@@ -123,14 +123,14 @@
                                             ref="mask"
                                             :field="'mask'"
                                             :multiple="true"
-                                            :disableSort="true"
+                                            :disable-sort="true"
                                             placeholder="Select one or more masks ..."
                                             :options="
                                                 $parent.masks.map(
                                                     (v) => v.value
                                                 )
                                             "
-                                            :labelFormatter="
+                                            :label-formatter="
                                                 (v) =>
                                                     $parent.masks.find(
                                                         (o) => o.value === v
@@ -143,13 +143,13 @@
                                     <div class="function">
                                         <b-button
                                             variant="primary"
-                                            @click="$parent.searchVariants"
                                             :disabled="
                                                 $parent.selectedGene.length ==
                                                     0 ||
                                                 $parent.selectedMasks.length ==
                                                     0
                                             "
+                                            @click="$parent.searchVariants"
                                             >Search Variants</b-button
                                         >
                                     </div>
@@ -164,8 +164,8 @@
                                 role="tab"
                             >
                                 <b-button
-                                    block
                                     v-b-toggle.accordion-2
+                                    block
                                     :variant="
                                         $parent.criteriaChanged &&
                                         $parent.tableData.length > 0
@@ -175,11 +175,11 @@
                                     >Variants
                                     <div class="criteria">
                                         <b-badge
-                                            class="filter-pill-dataset"
                                             v-if="
                                                 $parent.selectedDataset.length >
                                                 0
                                             "
+                                            class="filter-pill-dataset"
                                         >
                                             {{ $parent.selectedDataset[0] }}
                                         </b-badge>
@@ -190,9 +190,9 @@
                                             "
                                         >
                                             <b-badge
-                                                class="filter-pill-phenotype"
                                                 v-for="phenotype in $parent.selectedPhenotypes"
                                                 :key="phenotype"
+                                                class="filter-pill-phenotype"
                                             >
                                                 {{
                                                     !!$store.state.bioPortal
@@ -211,9 +211,9 @@
                                             "
                                         >
                                             <b-badge
-                                                class="filter-pill-test"
                                                 v-for="test in $parent.selectedTests"
                                                 :key="test"
+                                                class="filter-pill-test"
                                             >
                                                 {{
                                                     $parent.testMethods.find(
@@ -246,11 +246,11 @@
                                             ></b-skeleton-table>
                                         </template>
                                         <b-alert
-                                            show
-                                            variant="warning"
                                             v-if="
                                                 $parent.tableData.length === 0
                                             "
+                                            show
+                                            variant="warning"
                                             ><b-icon
                                                 icon="exclamation-triangle"
                                             ></b-icon>
@@ -264,20 +264,20 @@
                                             >
                                         </b-alert>
                                         <b-alert
-                                            show
-                                            variant="warning"
                                             v-if="
                                                 $parent.tableData.length > 0 &&
                                                 $parent.criteriaChanged
                                             "
+                                            show
+                                            variant="warning"
                                             ><b-icon
                                                 icon="exclamation-triangle"
                                             ></b-icon>
                                             Search criteria changed. Run
                                             <b-button
+                                                v-b-toggle.accordion-1
                                                 variant="outline-primary"
                                                 size="sm"
-                                                v-b-toggle.accordion-1
                                                 >Search Variants</b-button
                                             >
 
@@ -285,42 +285,42 @@
                                             list.</b-alert
                                         >
                                         <transition
-                                            name="fade"
                                             v-if="$parent.tableData.length > 0"
+                                            name="fade"
                                         >
                                             <b-alert
-                                                show
                                                 v-if="
                                                     $parent.selectedDataset
                                                         .length == 0
                                                 "
+                                                show
                                                 >Please select a
                                                 dataset.</b-alert
                                             >
                                             <b-alert
-                                                show
                                                 v-else-if="
                                                     $parent.selectedPhenotypes
                                                         .length == 0
                                                 "
+                                                show
                                                 >Please select one or more
                                                 phenotypes.</b-alert
                                             >
                                             <b-alert
-                                                show
                                                 v-else-if="
                                                     $parent.selectedTests
                                                         .length == 0 ||
                                                     $parent.selectedTests[0] ===
                                                         undefined
                                                 "
+                                                show
                                                 >Please select one or more tests
                                                 to run.</b-alert
                                             ></transition
                                         >
                                         <b-card
-                                            class="text-center filter-tests"
                                             v-if="$parent.tableData.length > 0"
+                                            class="text-center filter-tests"
                                         >
                                             <criterion-list-group
                                                 v-model="
@@ -337,7 +337,7 @@
                                                             (v) => v.value
                                                         )
                                                     "
-                                                    :labelFormatter="
+                                                    :label-formatter="
                                                         (v) =>
                                                             $parent.datasets.find(
                                                                 (o) =>
@@ -354,7 +354,7 @@
                                                     ref="phenotype"
                                                     :field="'phenotype'"
                                                     placeholder="Select one or more phenotypes ..."
-                                                    :disableSort="true"
+                                                    :disable-sort="true"
                                                     :disabled="
                                                         $parent.selectedDataset
                                                             .length == 0 ||
@@ -372,7 +372,7 @@
                                                               )
                                                             : $parent.topmedDatasets
                                                     "
-                                                    :labelFormatter="
+                                                    :label-formatter="
                                                         (phenotype) =>
                                                             !!$store.state
                                                                 .bioPortal
@@ -397,13 +397,13 @@
                                                     :field="'test'"
                                                     placeholder="Select one or more methods ..."
                                                     :multiple="true"
-                                                    :disableSort="true"
+                                                    :disable-sort="true"
                                                     :options="
                                                         $parent.testMethods.map(
                                                             (v) => v.value
                                                         )
                                                     "
-                                                    :labelFormatter="
+                                                    :label-formatter="
                                                         (v) =>
                                                             $parent.testMethods.find(
                                                                 (o) =>
@@ -418,10 +418,10 @@
                                             </criterion-list-group>
 
                                             <div
-                                                class="function"
                                                 v-if="
                                                     $parent.tableData.length > 0
                                                 "
+                                                class="function"
                                             >
                                                 <b-button
                                                     :disabled="
@@ -445,17 +445,17 @@
                                         </b-card>
 
                                         <div
-                                            class="variants"
                                             v-if="$parent.tableData.length > 0"
+                                            class="variants"
                                         >
                                             <div class="my-2">
                                                 <b-button
                                                     size="sm"
                                                     variant="outline-secondary"
+                                                    title="Select all variants in the table below."
                                                     @click="
                                                         $parent.selectAllVariants()
                                                     "
-                                                    title="Select all variants in the table below."
                                                     ><b-icon
                                                         icon="check2-all"
                                                         aria-hidden="true"
@@ -467,10 +467,10 @@
                                                     size="sm"
                                                     variant="outline-secondary"
                                                     class="ml-2"
+                                                    title="Deselect all variants in the table below."
                                                     @click="
                                                         $parent.deselectAllVariants()
                                                     "
-                                                    title="Deselect all variants in the table below."
                                                     ><b-icon
                                                         icon="dash"
                                                         aria-hidden="true"
@@ -492,14 +492,14 @@
                                                                 field.key
                                                             ) < 0
                                                         "
+                                                        :key="field.key"
+                                                        v-model="field.visible"
                                                         :disabled="
                                                             $parent
                                                                 .visibleFields
                                                                 .length == 1 &&
                                                             field.visible
                                                         "
-                                                        :key="field.key"
-                                                        v-model="field.visible"
                                                         inline
                                                     >
                                                         {{ field.label }}
@@ -522,11 +522,11 @@
                                                 >
                                                     <b-form-group>
                                                         <input
-                                                            type="checkbox"
                                                             v-model="
                                                                 data.item
                                                                     .selected
                                                             "
+                                                            type="checkbox"
                                                             @change="
                                                                 $parent.updateSelectedVariants()
                                                             "
@@ -571,8 +571,8 @@
                                 role="tab"
                             >
                                 <b-button
-                                    block
                                     v-b-toggle.accordion-3
+                                    block
                                     :variant="
                                         ($parent.criteriaChanged &&
                                             $store.state.ldServer.covariances
@@ -608,13 +608,13 @@
                                         </template>
 
                                         <div
-                                            id="covariances"
                                             v-if="
                                                 $store.state.ldServer
                                                     .covariances &&
                                                 !$store.state.ldServer
                                                     .runTestsError
                                             "
+                                            id="covariances"
                                         >
                                             <template
                                                 v-if="
@@ -623,19 +623,19 @@
                                                 "
                                             >
                                                 <b-alert
-                                                    show
-                                                    variant="warning"
                                                     v-if="
                                                         $parent.criteriaChanged
                                                     "
+                                                    show
+                                                    variant="warning"
                                                     ><b-icon
                                                         icon="exclamation-triangle"
                                                     ></b-icon>
                                                     Search criteria changed. Run
                                                     <b-button
+                                                        v-b-toggle.accordion-1
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        v-b-toggle.accordion-1
                                                         >Search
                                                         Variants</b-button
                                                     >
@@ -644,20 +644,20 @@
                                                 >
 
                                                 <b-alert
-                                                    show
-                                                    variant="warning"
                                                     v-else-if="
                                                         $parent.testChanged
                                                     "
+                                                    show
+                                                    variant="warning"
                                                     ><b-icon
                                                         icon="exclamation-triangle"
                                                     ></b-icon>
                                                     Test criteria changed. Click
                                                     on
                                                     <b-button
+                                                        v-b-toggle.accordion-2
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        v-b-toggle.accordion-2
                                                         >Run Analysis</b-button
                                                     >
                                                     again to update the
@@ -679,9 +679,7 @@
                                                         )
                                                     "
                                                 >
-                                                    <template
-                                                        v-slot:thead-top="data"
-                                                    >
+                                                    <template #thead-top="data">
                                                         <b-th
                                                             colspan="7"
                                                             class="reference"
@@ -726,12 +724,9 @@
                                                             "
                                                             size="sm"
                                                             variant="outline-primary"
+                                                            class="mr-2 btn-mini"
                                                             @click="
                                                                 data.toggleDetails
-                                                            "
-                                                            class="
-                                                                mr-2
-                                                                btn-mini
                                                             "
                                                         >
                                                             {{
@@ -889,12 +884,12 @@
                                             </template>
                                         </div>
                                         <b-alert
-                                            show
-                                            variant="danger"
                                             v-if="
                                                 $store.state.ldServer
                                                     .runTestsError
                                             "
+                                            show
+                                            variant="danger"
                                             >{{
                                                 $store.state.ldServer
                                                     .runTestsError

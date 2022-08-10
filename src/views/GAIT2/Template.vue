@@ -146,6 +146,15 @@
                                             @input-change="
                                                 $parent.lookupGenes($event)
                                             "
+                                            @item-select="
+                                                $parent.sayalert('select')
+                                            "
+                                            @change="$parent.sayalert('change')"
+                                            @hit="$parent.sayalert('hit')"
+                                            @keyup-enter="
+                                                $parent.sayalert('enter')
+                                            "
+                                            @input="$parent.sayalert('input')"
                                         >
                                             <div class="label">Gene</div>
                                         </filter-enumeration-control>
@@ -157,8 +166,13 @@
                                         </div>
                                         <filter-basic-control
                                             ref="region"
+                                            color="primary"
                                             :field="'region'"
-                                            placeholder="Select a region (chr:start-stop)"
+                                            placeholder="Enter a region (chr:start-stop)"
+                                            @keyup.enter="$parent.alert($event)"
+                                            @keyup-enter="
+                                                $parent.alert('hello')
+                                            "
                                         >
                                             <div class="label">Region</div>
                                         </filter-basic-control>
@@ -193,6 +207,9 @@
                                                         (o) => o.value === v
                                                     ).text
                                             "
+                                            @item-select="
+                                                $parent.alert('select')
+                                            "
                                             ><div class="label">
                                                 Dataset
                                             </div></filter-enumeration-control
@@ -221,6 +238,7 @@
                                                           ].description
                                                         : phenotype
                                             "
+                                            @item-select="alert('select')"
                                         >
                                             <div class="label">Phenotypes</div>
                                         </filter-enumeration-control>
