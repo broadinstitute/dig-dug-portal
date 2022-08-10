@@ -5,6 +5,7 @@
 			v-if="$parent.displayOnKP == true"
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
 		<!--  Research page Header -->
