@@ -4,6 +4,7 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
 		<!-- Body -->
@@ -183,9 +184,7 @@
 						<filter-enumeration-control
 							:field="'phenotype'"
 							:options="
-								$store.state.bioPortal.phenotypes.map(
-									(p) => p.name
-								)
+								$parent.phenotypesInSession.map((p) => p.name)
 							"
 							:labelFormatter="
 								(phenotype) =>
@@ -254,13 +253,9 @@
 									>
 
 									<research-phewas-plot
-										v-if="
-											$store.state.phewas.data.length > 0
-										"
+										v-if="$parent.pheWasData.length > 0"
 										canvasId=""
-										:phenotypesData="
-											$store.state.phewas.data
-										"
+										:phenotypesData="$parent.pheWasData"
 										:phenotypeMap="
 											$store.state.bioPortal.phenotypeMap
 										"
@@ -311,10 +306,8 @@
 								</b-tab>
 								<b-tab title="Forest plot">
 									<forest-plot-html
-										v-if="$store.state.phewas.data"
-										:forestPlotData="
-											$store.state.phewas.data
-										"
+										v-if="$parent.pheWasData"
+										:forestPlotData="$parent.pheWasData"
 										:labelMap="
 											$store.state.bioPortal.phenotypeMap
 										"
@@ -337,8 +330,8 @@
 								"
 							></unauthorized-message>
 							<phewas-datasets
-								v-if="$store.state.phewas.data"
-								:associations="$store.state.phewas.data"
+								v-if="$parent.pheWasData"
+								:associations="$parent.pheWasData"
 								:datasets="
 									$store.state.datasetAssociations.data
 								"
