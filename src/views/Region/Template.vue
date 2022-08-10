@@ -4,6 +4,7 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
 		<!-- body -->
@@ -197,9 +198,7 @@
 									v-if="$parent.topAssociations.length > 5"
 									canvasId=""
 									:phenotypesData="$parent.topAssociations"
-									:phenotypeMap="
-										$store.state.bioPortal.phenotypeMap
-									"
+									:phenotypeMap="$parent.phenotypeMap"
 									:colors="$parent.colors"
 									:plotMargin="{
 										leftMargin: 75,
@@ -292,18 +291,14 @@
 							:multiple="true"
 							:pillFormatter="
 								(filter) =>
-									$store.state.bioPortal.phenotypeMap[
-										filter.threshold
-									].description
+									$parent.phenotypeMap[filter.threshold]
+										.description
 							"
 							:labelFormatter="
 								(phenotype) =>
-									!!$store.state.bioPortal.phenotypeMap[
-										phenotype
-									]
-										? $store.state.bioPortal.phenotypeMap[
-												phenotype
-										  ].description
+									!!$parent.phenotypeMap[phenotype]
+										? $parent.phenotypeMap[phenotype]
+												.description
 										: phenotype
 							"
 							placeholder="Select one or more phenotypes"

@@ -44,6 +44,7 @@ import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 import filterHelpers from "@/utils/filterHelpers";
 import uiUtils from "@/utils/uiUtils";
+import sessionUtils from "@/utils/sessionUtils";
 
 import Alert, {
     postAlert,
@@ -96,6 +97,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("queryRegion");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
     },
 
     render(createElement) {
@@ -141,6 +143,7 @@ new Vue({
     },
     methods: {
         ...uiUtils,
+        ...sessionUtils,
         ...Formatters,
         ...filterHelpers,
         postAlert,
@@ -267,6 +270,25 @@ new Vue({
     },
 
     computed: {
+        /// for disease systems
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+        ///
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {
@@ -280,7 +302,7 @@ new Vue({
         },
 
         allphenotypes() {
-            let phenotypes = this.$store.state.bioPortal.phenotypes;
+            let phenotypes = this.phenotypesInSession;
             let permittedValues = [];
             phenotypes.map(value => {
                 permittedValues.push(value.name);
@@ -307,7 +329,17 @@ new Vue({
         },
 
         phenotypeMap() {
-            return this.$store.state.bioPortal.phenotypeMap;
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+
+            let newPhenotypeMap = {};
+
+            this.phenotypesInSession.map(p => {
+                newPhenotypeMap[p.name] = phenotypeMap[p.name];
+            })
+
+
+
+            return newPhenotypeMap;
         },
 
         credibleSets() {
@@ -325,6 +357,8 @@ new Vue({
         // phenotypes available.
         topAssociations() {
             let data = this.$store.state.topAssociations.data;
+
+            //console.log("data", data);
             let assocMap = {};
 
             for (let i in data) {
@@ -370,7 +404,7 @@ new Vue({
             return this.pageAssociations.flatMap(assoc => assoc.nearest);
         },
         selectedPhenotypes() {
-            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            let phenotypeMap = this.phenotypeMap;
             if (Object.keys(phenotypeMap).length === 0) {
                 return [];
             }
@@ -378,6 +412,8 @@ new Vue({
             return this.regionPageSearchCriterion
                 .filter(criterion => criterion.field === "phenotype")
                 .map(criterion => phenotypeMap[criterion.threshold]);
+
+            return [];
         }
     },
     watch: {
