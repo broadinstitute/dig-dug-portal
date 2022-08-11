@@ -418,11 +418,11 @@ new Vue({
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap"(phenotypeMap) {
-            let phenotypes = keyParams.phenotype;
+            /*let phenotypes = keyParams.phenotype;
 
             if (!!phenotypes) {
                 this.setCriterionPhenotypes(phenotypes.split(","));
-            }
+            }*/
         },
         "$store.state.globalEnrichment.data"(enrichment) {
             let groups = {};
@@ -457,7 +457,7 @@ new Vue({
                     ).flatMap(pam => pam[1]);
                 });
             }
-            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
+            //keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
             //console.log("current phenotypes",phenotypes)
 
             // reload the global enrichment for these phenotypes
@@ -471,7 +471,7 @@ new Vue({
         },
         "$store.state.clearPhenotypeFlag"(shouldClear) {
             if (shouldClear) {
-                keyParams.set({ phenotype: undefined });
+                //keyParams.set({ phenotype: undefined });
                 this.setCriterionPhenotypes([]);
                 this.$store.commit("phenotypesCleared");
             }
@@ -488,7 +488,7 @@ new Vue({
             }
 
             // prefer url over the top associations
-            let keyPhenotypes = keyParams.phenotype;
+            //let keyPhenotypes = keyParams.phenotype;
             /*if (!!keyPhenotypes) {
                 this.setCriterionPhenotypes(keyPhenotypes.split(","));
             } else {*/
