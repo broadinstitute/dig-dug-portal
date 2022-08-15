@@ -300,9 +300,14 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
     }
 }
 
-const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
+const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, DECIMAL) {
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
+
+    let decimal = !!DECIMAL ? DECIMAL : 0;
+    let max = Math.ceil(MAX);
+    let min = Math.floor(MIN);
+
     CTX.beginPath();
     CTX.lineWidth = 0.5;
     CTX.strokeStyle = "#000000";
@@ -319,7 +324,7 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
             if (WITH_TICKS != null) {
                 // X ticks
-                let xStep = (MAX - MIN) / WITH_TICKS;
+                let xStep = (max - min) / WITH_TICKS;
                 let xTickDistance = (WIDTH - MARGIN.left - MARGIN.right) / WITH_TICKS;
 
                 for (let i = 0; i <= WITH_TICKS; i++) {
@@ -338,8 +343,8 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
                     CTX.textAlign = "center";
                     let positionLabel =
                         i < WITH_TICKS
-                            ? Math.round(MIN + i * xStep)
-                            : Math.round(MAX);
+                            ? Formatters.decimalFormatter(min + i * xStep, decimal)
+                            : Formatters.decimalFormatter(max, decimal);
 
                     CTX.fillText(
                         positionLabel,
@@ -357,10 +362,10 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
             if (WITH_TICKS != null) {
 
-                let valueBump = (MAX - MIN) / WITH_TICKS;
+                /*let valueBump = (max - min) / WITH_TICKS;
 
-                let max = Math.round(MAX + valueBump);
-                let min = Math.round(MIN - valueBump);
+                max = max + valueBump;
+                min = min - valueBump;*/
 
                 // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;
@@ -376,10 +381,9 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
                     let tickValue =
                         i == WITH_TICKS
-                            ? min
-                            : Formatters.floatFormatter(
-                                max - i * yStep
-                            );
+                            ? Formatters.decimalFormatter(min, decimal)
+                            : Formatters.decimalFormatter(
+                                max - i * yStep, decimal);
 
                     CTX.fillText(
                         tickValue,
@@ -393,9 +397,13 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
 };
 
-const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, LABEL) {
+const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, LABEL, DECIMAL) {
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
+
+    let decimal = !!DECIMAL ? DECIMAL : 0;
+    let max = Math.ceil(MAX);
+    let min = Math.floor(MIN);
 
     CTX.beginPath();
     CTX.lineWidth = 0.5;
@@ -413,7 +421,7 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
             if (WITH_TICKS != null) {
                 // X ticks
-                let xStep = (MAX - MIN) / WITH_TICKS;
+                let xStep = (max - min) / WITH_TICKS;
                 let xTickDistance = (WIDTH - MARGIN.left - MARGIN.right) / WITH_TICKS;
 
                 for (let i = 0; i <= WITH_TICKS; i++) {
@@ -430,10 +438,11 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                     CTX.stroke();
 
                     CTX.textAlign = "center";
+
                     let positionLabel =
                         i < WITH_TICKS
-                            ? Math.round(MIN + i * xStep)
-                            : Math.round(MAX);
+                            ? Formatters.decimalFormatter(min + i * xStep, decimal)
+                            : Formatters.decimalFormatter(max, decimal);
 
                     CTX.fillText(
                         positionLabel,
@@ -451,9 +460,6 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
             if (WITH_TICKS != null) {
 
-                let max = Math.round(MAX);
-                let min = Math.round(MIN);
-
                 // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;
                 let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom) / WITH_TICKS;
@@ -468,10 +474,10 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
                     let tickValue =
                         i == WITH_TICKS
-                            ? min
-                            : Formatters.floatFormatter(
-                                max - i * yStep
-                            );
+                            ? Formatters.decimalFormatter(min, decimal)
+                            :
+                            Formatters.decimalFormatter(max - i * yStep, decimal)
+                        ;
 
                     CTX.fillText(
                         tickValue,

@@ -213,6 +213,7 @@
 										'group by': 'phenotype group',
 										'y axis field': 'pValue',
 										'convert y -log10': 'true',
+										'y ticks decimal point': 2,
 										'phenotype map': 'kp phenotype map',
 										'render by': 'phenotype',
 										'y axis label': '-Log10(p-value)',

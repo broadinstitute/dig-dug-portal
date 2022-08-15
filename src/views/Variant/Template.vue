@@ -295,6 +295,7 @@
 											'phenotype map': 'kp phenotype map',
 											'y axis field': 'pValue',
 											'convert y -log10': 'true',
+											'y ticks decimal point': 2,
 											'y axis label': '-Log10(p-value)',
 											'render by': 'phenotype',
 											'x axis label': 'beta',

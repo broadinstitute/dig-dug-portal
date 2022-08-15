@@ -160,7 +160,7 @@ export default Vue.component("research-phewas-plot", {
 					d["rawPValue"] = pValue;
 
 					if (this.renderConfig["convert y -log10"] == "true") {
-						d[this.renderConfig["y axis field"]] =
+						d[this.renderConfig["y axis field"] + "-log10"] =
 							-Math.log10(pValue);
 					}
 
@@ -238,7 +238,7 @@ export default Vue.component("research-phewas-plot", {
 
 			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
 				value.sort((a, b) =>
-					a[this.renderConfig["y axis field"]] <
+					a[this.renderConfig["y axis field"]] >
 					b[this.renderConfig["y axis field"]]
 						? 1
 						: -1
@@ -410,7 +410,13 @@ export default Vue.component("research-phewas-plot", {
 					groups[key] = value.length;
 					totalNum += value.length;
 					value.map((p) => {
-						let yValue = p[this.renderConfig["y axis field"]];
+						let yValue =
+							this.renderConfig["convert y -log10"] == "true"
+								? p[
+										this.renderConfig["y axis field"] +
+											"-log10"
+								  ]
+								: p[this.renderConfig["y axis field"]];
 						minY =
 							minY == null
 								? yValue
@@ -445,7 +451,8 @@ export default Vue.component("research-phewas-plot", {
 					5,
 					minY,
 					maxY,
-					this.renderConfig["y axis label"]
+					this.renderConfig["y axis label"],
+					this.renderConfig["y ticks decimal point"]
 				);
 
 				plotUtils.renderAxisWBump(
@@ -454,6 +461,7 @@ export default Vue.component("research-phewas-plot", {
 					canvasHeight,
 					plotMargin,
 					"x",
+					null,
 					null,
 					null,
 					null
@@ -512,11 +520,20 @@ export default Vue.component("research-phewas-plot", {
 								//console.log("render");
 								let xPos = plotMargin.left + xStep * dotIndex;
 
+								let yValue =
+									this.renderConfig["convert y -log10"] ==
+									"true"
+										? p[
+												this.renderConfig[
+													"y axis field"
+												] + "-log10"
+										  ]
+										: p[this.renderConfig["y axis field"]];
+
 								let yPos =
 									canvasHeight -
 									plotMargin.bottom -
-									p[this.renderConfig["y axis field"]] *
-										yStep;
+									yValue * yStep;
 
 								let pName =
 									this.phenotypeMapConfig == null
