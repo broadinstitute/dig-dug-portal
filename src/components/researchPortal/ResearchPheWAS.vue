@@ -378,7 +378,7 @@ export default Vue.component("research-phewas-plot", {
 				let canvasWidth = wrapper.clientWidth;
 				let canvasHeight = Number(this.renderConfig["height"]);
 
-				let plotWidth =
+				/*let plotWidth =
 					canvasWidth -
 					this.plotMargin.leftMargin -
 					this.plotMargin.rightMargin;
@@ -387,7 +387,7 @@ export default Vue.component("research-phewas-plot", {
 					this.renderConfig["height"] -
 					this.plotMargin.topMargin -
 					this.plotMargin.bottomMargin;
-				let bump = 5.5;
+				let bump = 5.5;*/
 
 				let c, ctx;
 				c = document.querySelector("#" + this.canvasId + "pheWasPlot");
@@ -433,6 +433,10 @@ export default Vue.component("research-phewas-plot", {
 				}
 
 				//console.log("minY", minY, "maxY", maxY);
+				minY = Math.floor(minY);
+				maxY = Math.ceil(maxY);
+
+				console.log("minY", minY, "maxY", maxY);
 
 				let plotMargin = {
 					left: this.plotMargin.leftMargin,
@@ -451,8 +455,7 @@ export default Vue.component("research-phewas-plot", {
 					5,
 					minY,
 					maxY,
-					this.renderConfig["y axis label"],
-					this.renderConfig["y ticks decimal point"]
+					this.renderConfig["y axis label"]
 				);
 
 				plotUtils.renderAxisWBump(

@@ -73,8 +73,8 @@ const renderLine = function (
 
 
     let valueBump = (MAX - MIN) / TICK_NUM;
-    let max = Math.round(MAX + valueBump);
-    let min = Math.round(MIN - valueBump);
+    let max = Math.ceil(MAX + valueBump);
+    let min = Math.floor(MIN - valueBump);
 
     switch (DIRECTION) {
         case "x":
@@ -194,8 +194,8 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
     let dataLength = dataKeys.length;
     let barWidth = (WIDTH - MARGIN.left - MARGIN.right - (SPACER * (dataLength + 1))) / dataLength;
     let valueBump = (MAX - MIN) / TICK_NUM;
-    let max = Math.round(MAX + valueBump);
-    let min = Math.round(MIN - valueBump);
+    let max = Math.ceil(MAX + valueBump);
+    let min = Math.floor(MIN - valueBump);
 
     switch (DIRECTION) {
         case "x":
@@ -300,13 +300,15 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
     }
 }
 
-const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, DECIMAL) {
+const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
 
-    let decimal = !!DECIMAL ? DECIMAL : 0;
-    let max = Math.ceil(MAX);
-    let min = Math.floor(MIN);
+
+    let max = MAX;
+    let min = MIN;
+    let maxMinGap = max - min
+    let decimal = maxMinGap <= 1 ? 2 : maxMinGap <= 10 ? 1 : 0;
 
     CTX.beginPath();
     CTX.lineWidth = 0.5;
@@ -362,10 +364,10 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
             if (WITH_TICKS != null) {
 
-                /*let valueBump = (max - min) / WITH_TICKS;
+                let valueBump = (max - min) / WITH_TICKS;
 
-                max = max + valueBump;
-                min = min - valueBump;*/
+                //max = Math.ceil(max + valueBump);
+                //min = Math.floor(min - valueBump);
 
                 // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;
@@ -397,13 +399,14 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
 };
 
-const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, LABEL, DECIMAL) {
+const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, LABEL) {
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
 
-    let decimal = !!DECIMAL ? DECIMAL : 0;
-    let max = Math.ceil(MAX);
-    let min = Math.floor(MIN);
+    let max = MAX;
+    let min = MIN;
+    let maxMinGap = max - min
+    let decimal = maxMinGap <= HEIGHT / 100 ? 2 : maxMinGap <= HEIGHT / 10 ? 1 : 0;
 
     CTX.beginPath();
     CTX.lineWidth = 0.5;
@@ -479,6 +482,8 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                             Formatters.decimalFormatter(max - i * yStep, decimal)
                         ;
 
+
+
                     CTX.fillText(
                         tickValue,
                         MARGIN.left - MARGIN.bump * 3,
@@ -505,8 +510,6 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 };
 
 const renderGuideLine = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
-    //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
-    // WITH_TICKS(number of thicks. null for none), MIN, MAX
 
 
     CTX.beginPath();
