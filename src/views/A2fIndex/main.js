@@ -163,7 +163,7 @@ new Vue({
                 })
 
 
-                let content = '<plot>{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi"}<plot-end>';
+                let content = '<div class="plot">{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi"}</div>';
 
                 return content;
             } else {
@@ -201,7 +201,7 @@ new Vue({
                 })
 
 
-                let content = '<plot>{"type":"bar","data": { ' + groupContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":140}<plot-end>';
+                let content = '<div class="plot">{"type":"bar","data": { ' + groupContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":140}</div>';
 
                 return content;
             } else {

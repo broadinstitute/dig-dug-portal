@@ -1,5 +1,8 @@
 <template>
-	<div class="col-md-12 page-description-content" v-html="pageContent"></div>
+	<div
+		class="col-md-12 page-description-content"
+		v-html="pageContent(content)"
+	></div>
 </template>
 
 <script>
@@ -26,16 +29,16 @@ export default Vue.component("research-page-description", {
 	mounted() {
 		this.renderPlots();
 	},
-	computed: {
-		pageContent() {
-			let formattedContent = this.content
+	computed: {},
+	methods: {
+		pageContent(content) {
+			let formattedContent = content
 				.replace(/&lt;plot&gt;/g, "<div class='plot'>")
 				.replace(/&lt;plot-end&gt;/g, "</div>");
 			return formattedContent;
 		},
-	},
-	methods: {
 		renderPlots() {
+			console.log("called");
 			var plots = document.querySelectorAll("div.plot");
 
 			for (let i = 0; i < plots.length; ++i) {
