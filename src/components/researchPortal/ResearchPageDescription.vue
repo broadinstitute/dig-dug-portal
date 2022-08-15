@@ -1,8 +1,5 @@
 <template>
-	<div
-		class="col-md-12 page-description-content"
-		v-html="pageContent(content)"
-	></div>
+	<div class="col-md-12 page-description-content" v-html="pageContent"></div>
 </template>
 
 <script>
@@ -29,21 +26,19 @@ export default Vue.component("research-page-description", {
 	mounted() {
 		this.renderPlots();
 	},
-	computed: {},
-	methods: {
+	computed: {
 		pageContent(content) {
-			let formattedContent = content
+			let formattedContent = this.content
 				.replace(/&lt;plot&gt;/g, "<div class='plot'>")
 				.replace(/&lt;plot-end&gt;/g, "</div>");
 			return formattedContent;
 		},
+	},
+	methods: {
 		renderPlots() {
-			console.log("called");
 			var plots = document.querySelectorAll("div.plot");
 
 			for (let i = 0; i < plots.length; ++i) {
-				//console.log(plots[i].innerHTML);
-				//[/<p>&nbsp;<\/p>/g,""],
 				let innerHtml = plots[i].innerHTML
 					.replace(/<p>/g, "")
 					.replace(/<\/p>/g, "")
@@ -60,14 +55,24 @@ export default Vue.component("research-page-description", {
 					"'></canvas>";
 
 				plots[i].innerHTML = plotContent;
+				plots[i].setAttribute("class", "");
 			}
+
+			this.plotData.map((p, pIndex) => {
+				if (!p["x label angle"]) {
+					p["x label angle"] = null;
+				}
+				if (!p["y label angle"]) {
+					p["y label angle"] = null;
+				}
+			});
 
 			this.plotData.map((p, pIndex) => {
 				let c, ctx;
 
 				c = document.getElementById("plot" + pIndex);
 				ctx = c.getContext("2d");
-				//ctx.fillRect(20, 20, 150, 100);
+
 				switch (p.type) {
 					case "bar":
 						this.renderBarPlot(
@@ -75,7 +80,9 @@ export default Vue.component("research-page-description", {
 							p.data,
 							p.width,
 							p.height,
-							p.color
+							p.color,
+							p["x label angle"],
+							p["y label angle"]
 						);
 						break;
 
@@ -90,12 +97,27 @@ export default Vue.component("research-page-description", {
 						break;
 
 					case "line":
-						this.renderLinePlot(ctx, p.data, p.width, p.height);
+						this.renderLinePlot(
+							ctx,
+							p.data,
+							p.width,
+							p.height,
+							p["x label angle"],
+							p["y label angle"]
+						);
 						break;
 				}
 			});
 		},
-		renderBarPlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
+		renderBarPlot(
+			CTX,
+			DATA,
+			WIDTH,
+			HEIGHT,
+			COLOR,
+			X_LBL_ANGLE,
+			Y_LBL_ANGLE
+		) {
 			//console.log("color", COLOR);
 			let margin = this.plotMargin;
 			let spacer = 10;
@@ -151,7 +173,8 @@ export default Vue.component("research-page-description", {
 				margin,
 				"x",
 				Object.keys(DATA),
-				spacer
+				spacer,
+				X_LBL_ANGLE
 			);
 
 			///render bars
@@ -248,7 +271,11 @@ export default Vue.component("research-page-description", {
 			);
 		},
 	},
-	watch: {},
+	watch: {
+		pageContent() {
+			this.renderPlots();
+		},
+	},
 });
 </script>
 
