@@ -436,8 +436,6 @@ export default Vue.component("research-phewas-plot", {
 				minY = Math.floor(minY);
 				maxY = Math.ceil(maxY);
 
-				console.log("minY", minY, "maxY", maxY);
-
 				let plotMargin = {
 					left: this.plotMargin.leftMargin,
 					right: this.plotMargin.leftMargin * 1.5,

@@ -72,9 +72,9 @@ const renderLine = function (
     }
 
 
-    let valueBump = (MAX - MIN) / TICK_NUM;
-    let max = Math.ceil(MAX + valueBump);
-    let min = Math.floor(MIN - valueBump);
+    //let valueBump = (MAX - MIN) / TICK_NUM;
+    let max = Math.ceil(MAX);
+    let min = Math.floor(MIN);
 
     switch (DIRECTION) {
         case "x":
@@ -193,9 +193,9 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
     let dataKeys = Object.keys(DATA);
     let dataLength = dataKeys.length;
     let barWidth = (WIDTH - MARGIN.left - MARGIN.right - (SPACER * (dataLength + 1))) / dataLength;
-    let valueBump = (MAX - MIN) / TICK_NUM;
-    let max = Math.ceil(MAX + valueBump);
-    let min = Math.floor(MIN - valueBump);
+    //let valueBump = (MAX - MIN) / TICK_NUM;
+    let max = Math.ceil(MAX);
+    let min = Math.floor(MIN);
 
     switch (DIRECTION) {
         case "x":

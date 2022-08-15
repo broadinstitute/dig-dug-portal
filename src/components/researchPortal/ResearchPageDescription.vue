@@ -113,6 +113,10 @@ export default Vue.component("research-page-description", {
 					value < valueHiLow.low ? value : valueHiLow.low;
 			}
 
+			let minMaxGap = valueHiLow.high * 0.2;
+			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
+			valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+
 			PlotUtils.renderAxis(
 				CTX,
 				WIDTH,
@@ -121,8 +125,7 @@ export default Vue.component("research-page-description", {
 				"y",
 				5,
 				valueHiLow.low,
-				valueHiLow.high,
-				2
+				valueHiLow.high
 			);
 
 			PlotUtils.renderGuideLine(
@@ -187,6 +190,10 @@ export default Vue.component("research-page-description", {
 						vValue < valueHiLow.low ? vValue : valueHiLow.low;
 				}
 			}
+
+			let minMaxGap = valueHiLow.high * 0.2;
+			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
+			valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
 
 			PlotUtils.renderAxis(
 				CTX,

@@ -187,8 +187,6 @@ function pValueCss(value, max) {
 
 function decimalFormatter(NUM, DECIMAL) {
 
-    console.log("DECIMAL", DECIMAL);
-
     let decimal = DECIMAL == 0 ? 1 : DECIMAL * 10
     let newNum = Math.round(NUM * decimal) / decimal;
     return newNum;
