@@ -45,13 +45,17 @@ export default Vue.component("research-page-description", {
 					.replace(/<br>/g, "");
 				this.plotData[i] = JSON.parse(innerHtml);
 
+				let labelSpace = !!this.plotData[i]["label space"]
+					? this.plotData[i]["label space"]
+					: 0;
+
 				let plotContent =
 					"<canvas id='plot" +
 					i +
 					"' width='" +
 					this.plotData[i].width +
 					"' height='" +
-					this.plotData[i].height +
+					(this.plotData[i].height + labelSpace) +
 					"'></canvas>";
 
 				plots[i].innerHTML = plotContent;
@@ -140,7 +144,15 @@ export default Vue.component("research-page-description", {
 
 			let minMaxGap = valueHiLow.high * 0.2;
 			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
-			valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+
+			if (
+				Math.floor(valueHiLow.low) >= 0 &&
+				Math.floor(valueHiLow.low - minMaxGap) < 0
+			) {
+				valueHiLow.low = 0;
+			} else {
+				valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+			}
 
 			PlotUtils.renderAxis(
 				CTX,
@@ -219,7 +231,16 @@ export default Vue.component("research-page-description", {
 
 			let minMaxGap = valueHiLow.high * 0.2;
 			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
-			valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+			//valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+
+			if (
+				Math.floor(valueHiLow.low) >= 0 &&
+				Math.floor(valueHiLow.low - minMaxGap) < 0
+			) {
+				valueHiLow.low = 0;
+			} else {
+				valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+			}
 
 			PlotUtils.renderAxis(
 				CTX,
