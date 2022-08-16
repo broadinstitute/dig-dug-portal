@@ -185,6 +185,13 @@ function pValueCss(value, max) {
     return calculated > 100 ? 100 : calculated;
 }
 
+function decimalFormatter(NUM, DECIMAL) {
+
+    let decimal = DECIMAL == 0 ? 1 : DECIMAL * 10
+    let newNum = Math.round(NUM * decimal) / decimal;
+    return newNum;
+}
+
 export default {
     alleleFormatter,
     ancestryFormatter,
@@ -204,5 +211,6 @@ export default {
     methodFormatter,
     pValueFormatter,
     effectFormatter,
-    pValueCss
+    pValueCss,
+    decimalFormatter
 };
