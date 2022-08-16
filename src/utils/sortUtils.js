@@ -3,10 +3,15 @@ let sort = function (data, key, isNumeric, isAscending) {
         let x = (isNumeric) ? a[key] : a[key].toLowerCase();
         let y = (isNumeric) ? b[key] : b[key].toLowerCase();
 
-        /*if (isNumeric) {
-            x = Number(x.replace(/\,/g, ""));
-            y = Number(y.replace(/\,/g, ""));
-        }*/
+        if (isNumeric) {
+            if (typeof x == 'string') {
+                x = Number(x.replace(/\,/g, ""));
+            }
+
+            if (typeof y == 'string') {
+                y = Number(y.replace(/\,/g, ""));
+            }
+        }
 
         if (isAscending) {
             return x < y ? -1 : x > y ? 1 : 0;

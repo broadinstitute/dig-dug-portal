@@ -75,13 +75,13 @@
 								</filter-enumeration-control>
 								<filter-enumeration-control
 									class="filter-col-md"
-									:field="'tech'"
+									:field="'data_type'"
 									:options="$parent.techOptions"
 									:multiple="true"
 									:pillFormatter="
 										(filter) => filter.threshold
 									"
-									:labelFormatter="(tech) => tech"
+									:labelFormatter="(type) => type"
 								>
 									<div>
 										<strong>Search by data type</strong>

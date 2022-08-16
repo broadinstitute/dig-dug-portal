@@ -34,7 +34,10 @@
 						>
 							Ancestry
 						</th>
-						<th class="column type" v-on:click="setSortKey('tech')">
+						<th
+							class="column type"
+							v-on:click="setSortKey('data_type')"
+						>
 							Data type
 						</th>
 						<th
@@ -46,21 +49,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr
-						v-for="(row, i) in datasetsListNew"
-						v-if="
-							(selectedDatatype == null ||
-								selectedDatatype == row.tech) &&
-							(selectedPhenotype == null ||
-								row.phenotypes.includes(selectedPhenotype)) &&
-							(selectedPhenotypeGroup == null ||
-								row.phenotype_group.includes(
-									selectedPhenotypeGroup
-								)) &&
-							(selectedDiseaseGroup == null ||
-								row.community.includes(selectedDiseaseGroup))
-						"
-					>
+					<tr v-for="(row, i) in datasetsListNew">
 						<td class="column name">
 							<a :href="'/dinspector.html?dataset=' + row.name">{{
 								row.description
@@ -73,7 +62,7 @@
 						<td class="column ancestry">
 							{{ row.ancestry_name }}
 						</td>
-						<td class="column type">{{ row.tech }}</td>
+						<td class="column type">{{ row.data_type }}</td>
 						<td
 							class="column disease-group"
 							v-if="diseaseGroup.name == 'md'"
@@ -120,7 +109,10 @@
 						>
 							Ancestry
 						</th>
-						<th class="column type" v-on:click="setSortKey('tech')">
+						<th
+							class="column type"
+							v-on:click="setSortKey('data_type')"
+						>
 							Data type
 						</th>
 						<th
@@ -132,21 +124,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr
-						v-for="(row, i) in datasetsListNotNew"
-						v-if="
-							(selectedDatatype == null ||
-								selectedDatatype == row.tech) &&
-							(selectedPhenotype == null ||
-								row.phenotypes.includes(selectedPhenotype)) &&
-							(selectedPhenotypeGroup == null ||
-								row.phenotype_group.includes(
-									selectedPhenotypeGroup
-								)) &&
-							(selectedDiseaseGroup == null ||
-								row.community.includes(selectedDiseaseGroup))
-						"
-					>
+					<tr v-for="(row, i) in datasetsListNotNew">
 						<td class="column name">
 							<a :href="'/dinspector.html?dataset=' + row.name">{{
 								row.description
@@ -159,7 +137,7 @@
 						<td class="column ancestry">
 							{{ row.ancestry_name }}
 						</td>
-						<td class="column type">{{ row.tech }}</td>
+						<td class="column type">{{ row.data_type }}</td>
 						<td
 							class="column disease-group"
 							v-if="diseaseGroup.name == 'md'"

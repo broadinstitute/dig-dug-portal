@@ -120,6 +120,7 @@ new Vue({
 
                     x["phenotype_group"] = datasetPGroup;
                     x["ancestry_name"] = formatters.ancestryFormatter(x.ancestry);
+                    x["data_type"] = formatters.dataTypeFormatter(x.tech);
                 });
 
                 if (this.datasetsSearchCriterion.length > 0) {
@@ -163,7 +164,7 @@ new Vue({
 
         },
         techOptions() {
-            let uniqueOptions = [...new Set(this.datasetsList.map(d => d.tech))].sort();
+            let uniqueOptions = [...new Set(this.datasetsList.map(d => d["data_type"]))].sort();
 
             return uniqueOptions;
         }
