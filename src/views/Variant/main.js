@@ -7,6 +7,7 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
@@ -47,6 +48,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
         PheWASTable,

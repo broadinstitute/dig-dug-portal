@@ -16,8 +16,8 @@
                     <phenotype-selectpicker
                         v-if="$store.state.phenotype"
                         :phenotypes="$store.state.bioPortal.phenotypes"
-                        :clearOnSelected="true"
                     ></phenotype-selectpicker>
+                    <ancestry-selectpicker></ancestry-selectpicker>
                 </div>
             </search-header-wrapper>
 

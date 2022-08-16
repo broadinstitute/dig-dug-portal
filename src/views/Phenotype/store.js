@@ -15,21 +15,28 @@ export default new Vuex.Store({
         associations: bioIndex("global-associations"),
         annotations: bioIndex("global-enrichment"),
         genes: bioIndex("gene-finder"),
+        ancestryGlobalAssoc: bioIndex("ancestry-global-associations")
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
         phenotype: null,
-        newPhenotype: null
+        newPhenotype: null,
+        ancestry: null,
+        newAncestry: null
     },
     mutations: {
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
+        },
+        setAncestry(state, ancestry){
+            state.ancestry = ancestry;
         }
     },
     getters: {
         documentationMap(state) {
             return {
-                phenotype: state.phenotype.description
+                phenotype: state.phenotype.description,
+                ancestry: state.ancestry.description
             }
         }
     },
@@ -38,15 +45,24 @@ export default new Vuex.Store({
             context.commit("setPhenotype", phenotype);
             keyParams.set({ phenotype: phenotype.name });
         },
+        onAncestryChange(context, ancestry){
+            context.commit("setAncestry", ancestry);
+            keyParams.set({ ancestry: ancestry.name });
+        },
 
         queryPhenotype(context) {
-            let query = { q: context.state.phenotype.name };
-            let assocQuery = { ...query, limit: 1000 };
-            let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
-
-            context.dispatch("associations/query", assocQuery);
-            context.dispatch("annotations/query", query);
-            context.dispatch("genes/query", geneQuery);
+            if (ancestry == null) {
+                let query = { q: context.state.phenotype.name };
+                let assocQuery = { ...query, limit: 1000 };
+                let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
+                context.dispatch("associations/query", assocQuery);
+                context.dispatch("annotations/query", query);
+                context.dispatch("genes/query", geneQuery);
+            } else {
+                let query = {q: `${context.state.phenotype.name},${context.state.ancestry.name}`};
+                context.dispatch("ancestryGlobalAssoc/query", query);
+            }
+            
         }
     }
 });
