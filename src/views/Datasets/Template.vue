@@ -21,6 +21,7 @@
 				<div class="card-body">
 					<div class="row">
 						<div class="col-md-12">
+							<h3>Filter Datasets</h3>
 							<criterion-list-group
 								v-if="!!$parent.datasetsList"
 								v-model="$parent.datasetsSearchCriterion"
@@ -28,26 +29,68 @@
 								:header="'Search Criterion'"
 							>
 								<filter-enumeration-control
-									class="filter-col-lg"
+									class="filter-col-md"
 									:field="'phenotypes'"
-									:pillFormatter="
-										(filter) => filter.threshold
-									"
-									:options="
-										$parent.datasetsPhenotypeOptions.map(
-											(dataset) => dataset
-										)
-									"
+									:options="$parent.datasetsPhenotypeOptions"
 									:multiple="true"
-									:labelFormatter="(dataset) => dataset"
+									:pillFormatter="
+										(filter) =>
+											!!$store.state.bioPortal
+												.phenotypeMap[filter.threshold]
+												? $store.state.bioPortal
+														.phenotypeMap[
+														filter.threshold
+												  ].description
+												: filter.threshold
+									"
+									:labelFormatter="
+										(phenotype) =>
+											!!$store.state.bioPortal
+												.phenotypeMap[phenotype]
+												? $store.state.bioPortal
+														.phenotypeMap[phenotype]
+														.description
+												: phenotype
+									"
 								>
 									<div>
 										<strong>Search by phenotypes</strong>
 									</div>
 								</filter-enumeration-control>
+								<filter-enumeration-control
+									class="filter-col-md"
+									:field="'phenotype_group'"
+									:options="$parent.phenotypeGroupOptions"
+									:multiple="true"
+									:pillFormatter="
+										(filter) => filter.threshold
+									"
+									:labelFormatter="(group) => group"
+								>
+									<div>
+										<strong
+											>Search by phenotype group</strong
+										>
+									</div>
+								</filter-enumeration-control>
+								<filter-enumeration-control
+									class="filter-col-md"
+									:field="'tech'"
+									:options="$parent.techOptions"
+									:multiple="true"
+									:pillFormatter="
+										(filter) => filter.threshold
+									"
+									:labelFormatter="(tech) => tech"
+								>
+									<div>
+										<strong>Search by data type</strong>
+									</div>
+								</filter-enumeration-control>
 							</criterion-list-group>
 
 							<portal-datasets-list-table
+								v-if="!!$parent.datasetsList"
 								:diseaseGroups="
 									$store.state.bioPortal.diseaseGroups
 								"

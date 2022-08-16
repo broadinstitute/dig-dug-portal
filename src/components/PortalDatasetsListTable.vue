@@ -1,79 +1,5 @@
 <template>
-	<div class="page-info-wrapper">
-		<h3>
-			Filter Datasets
-			<small class="datasets-list-header-small"
-				>(Click one to start)</small
-			>
-		</h3>
-		<div
-			v-if="!!diseaseGroup && diseaseGroup.name == 'md'"
-			class="datasets-filter-wrapper"
-		>
-			<h4>Disease group</h4>
-			<div
-				v-for="(row, i) in diseaseGroupsFiltered"
-				v-if="row.memberCMD == true"
-				v-on:click="setSeletedDiseaseGroup(row.name)"
-				class="btn btn-sm btn-disease-group"
-				:class="
-					row.name == selectedDiseaseGroup ||
-					(row.name == 'md' && selectedDiseaseGroup == null)
-						? 'selected'
-						: ''
-				"
-			>
-				{{ row.description }}
-			</div>
-		</div>
-		<div class="datasets-filter-wrapper">
-			<h4>Data type</h4>
-			<div
-				v-for="(row, i) in dataTypesList"
-				v-on:click="setSeletedDatatype(row)"
-				class="btn btn-sm btn-datatype"
-				:class="
-					row == selectedDatatype ||
-					(row == 'Show all' && selectedDatatype == null)
-						? 'selected'
-						: ''
-				"
-			>
-				{{ row }}
-			</div>
-		</div>
-		<div class="datasets-filter-wrapper">
-			<h4>Phenotype group</h4>
-			<div
-				v-for="(row, i) in phenotypeGroups"
-				v-on:click="setSeletedPhenotypeGroup(row)"
-				class="btn btn-sm btn-phenotype"
-				:class="
-					row == selectedPhenotypeGroup ||
-					(row == 'Show all' && selectedPhenotypeGroup == null)
-						? 'selected'
-						: ''
-				"
-			>
-				{{ row }}
-			</div>
-		</div>
-		<div
-			v-if="selectedPhenotypeGroup != null"
-			class="datasets-filter-wrapper phenotype"
-		>
-			<h4>Phenotypes</h4>
-			<div
-				v-for="(row, i) in rawPhenotypes"
-				v-on:click="setSeletedPhenotype(row.description)"
-				v-if="row.group == selectedPhenotypeGroup"
-				class="btn btn-sm btn-phenotype"
-				:class="row.description == selectedPhenotype ? 'selected' : ''"
-			>
-				{{ row.description }}
-			</div>
-		</div>
-
+	<div>
 		<h3 style="margin-top: 30px" v-if="datasetsListNew.length > 0">
 			New Datasets
 			<small class="datasets-list-header-small"
@@ -160,7 +86,6 @@
 				</tbody>
 			</table>
 		</div>
-
 		<h3 v-if="datasetsListNotNew.length > 0">
 			Datasets
 			<small class="datasets-list-header-small"
@@ -207,26 +132,21 @@
 					</tr>
 				</thead>
 				<tbody>
-					<!--<tr
+					<tr
 						v-for="(row, i) in datasetsListNotNew"
 						v-if="
 							(selectedDatatype == null ||
 								selectedDatatype == row.tech) &&
 							(selectedPhenotype == null ||
-								row.phenotypes.includes(
-									selectedPhenotype
-								)) &&
+								row.phenotypes.includes(selectedPhenotype)) &&
 							(selectedPhenotypeGroup == null ||
 								row.phenotype_group.includes(
 									selectedPhenotypeGroup
 								)) &&
 							(selectedDiseaseGroup == null ||
-								row.field_portals.includes(
-									selectedDiseaseGroup
-								))
+								row.community.includes(selectedDiseaseGroup))
 						"
-					>-->
-					<tr>
+					>
 						<td class="column name">
 							<a :href="'/dinspector.html?dataset=' + row.name">{{
 								row.description
@@ -257,7 +177,6 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import sortUtils from "@/utils/sortUtils";
@@ -291,180 +210,28 @@ export default Vue.component("portal-datasets-list-table", {
 		};
 	},
 	computed: {
-		rawPhenotypes: function () {
-			let allPhenotypesKpn = [];
-
-			this.rawDatasets.map((x) => {
-				let datasetPhenotypes = x.phenotypes
-					.split("\r\n")
-					.map((p) => allPhenotypesKpn.push(p));
-			});
-
-			let uniquePhenotypesKpn = [...new Set(allPhenotypesKpn)];
-
-			let content = [];
-
-			this.phenotypes.map((x) => {
-				let phenotype = x.description;
-				if (uniquePhenotypesKpn.includes(phenotype)) content.push(x);
-			});
-
-			return content;
-		},
-
-		phenotypeGroups: function () {
-			let content = [...new Set(this.rawPhenotypes.map((x) => x.group))];
-			content.push("Show all");
-
-			return content;
-		},
-
-		phenotypesByGroups: function () {
-			let content = {};
-
-			this.phenotypeGroups.map((x) => {
-				let tempArray = [];
-
-				this.phenotypes.map((p) => {
-					if (p.group == x) {
-						tempArray.push(p.description.toLowerCase().trim());
-					}
-				});
-
-				content[x] = tempArray;
-			});
-
-			return content;
-		},
-
-		phenotypesInSelectedGroups: function () {
-			let content = [];
-
-			this.rawPhenotypes.map((x) => {
-				if (x.group == selectedPhenotypeGroup)
-					content.push(x.decription);
-			});
-
-			return content;
-		},
-
-		diseaseGroupsFiltered: function () {
-			let content = this.diseaseGroups;
-
-			return content;
-		},
-
-		datasetsIDsList: function () {
-			let content = this.datasetsIDs;
-			return content;
-		},
-
-		rawDatasets: function () {
-			/*let filteredDatasets = [].slice
-				.call(this.datasetsList)
-				.filter((dataset) => {
-					let contents = dataset["community"].includes(
-						this.diseaseGroup.name
-					);
-
-					return contents;
-				});*/
-
-			let filteredDatasets = this.datasetsList;
-			console.log("filteredDatasets", filteredDatasets);
-
-			return filteredDatasets;
-		},
-
-		datasetsListNotNew: function () {
-			let newDatasets = [].slice
-				.call(this.rawDatasets)
-				.filter((dataset) => dataset["field_featured"] != "featured");
-
-			let phenotypesByGroups = this.phenotypesByGroups;
-
-			newDatasets.map((x) => {
-				let datasetPhenotypes = x.phenotypes.split("\r\n");
-
-				let groupKeys = Object.keys(phenotypesByGroups);
-				let datasetPGroup = [];
-
-				for (let group of groupKeys) {
-					let tempGroupPhenotypes = phenotypesByGroups[group];
-
-					let intersectings = datasetPhenotypes.filter((p) =>
-						tempGroupPhenotypes.includes(p.toLowerCase().trim())
-					);
-
-					if (intersectings.length > 0) {
-						datasetPGroup.push(group);
-					}
-				}
-				x["phenotype_group"] = datasetPGroup;
-			});
-
-			let ascending = this.ascending;
-			let key = this.sortKey;
-			let isNumeric = key == "field_samples" ? true : false;
-
-			return sortUtils.sort(newDatasets, key, isNumeric, ascending);
-		},
-
 		datasetsListNew: function () {
-			let newDatasets = [].slice
-				.call(this.rawDatasets)
-				.filter((dataset) => dataset["field_featured"] == "featured");
-
-			let phenotypesByGroups = this.phenotypesByGroups;
-
-			newDatasets.map((x) => {
-				let datasetPhenotypes = x.field_phenotypes.split("\r\n");
-
-				let groupKeys = Object.keys(phenotypesByGroups);
-				let datasetPGroup = [];
-
-				for (let group of groupKeys) {
-					let tempGroupPhenotypes = phenotypesByGroups[group];
-
-					let intersectings = datasetPhenotypes.filter((p) =>
-						tempGroupPhenotypes.includes(p.toLowerCase().trim())
-					);
-
-					if (intersectings.length > 0) {
-						datasetPGroup.push(group);
-					}
-				}
-				x["phenotype_group"] = datasetPGroup;
-			});
-
-			let ascending = this.ascending;
-			let key = this.sortKey;
-			let isNumeric = key == "field_samples" ? true : false;
-
-			return sortUtils.sort(newDatasets, key, isNumeric, ascending);
+			return this.getDatasetsList(true);
 		},
-
-		dataTypesList: function () {
-			let content = [...new Set(this.rawDatasets.map((x) => x.tech))];
-			content.push("Show all");
-
-			return content;
-		},
-
-		tableData() {
-			let dataRows = this.groupedAnnotations;
-			if (!!this.filter) {
-				dataRows = dataRows.filter((annotation) => {
-					const regularAnnotation = decodeNamespace(annotation, {
-						prefix: `${annotation.phenotype}_`,
-					});
-					return this.filter(regularAnnotation);
-				});
-			}
-			return dataRows;
+		datasetsListNotNew: function () {
+			return this.getDatasetsList(false);
 		},
 	},
 	methods: {
+		getDatasetsList(FEATURED) {
+			let newDatasets = this.datasetsList.filter(
+				(d) => d.new == FEATURED
+			);
+
+			let isNumeric = this.sortKey == "subjects" ? true : false;
+
+			return sortUtils.sort(
+				newDatasets,
+				this.sortKey,
+				isNumeric,
+				this.ascending
+			);
+		},
 		setSeletedDiseaseGroup(diseaseGroup) {
 			this.selectedDiseaseGroup =
 				diseaseGroup == "md" ? null : diseaseGroup;
