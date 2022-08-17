@@ -411,18 +411,18 @@ export default Vue.component("research-region-plot", {
 									// set high / low values of the group
 									this.assoData[group].yAxHigh =
 										this.assoData[group].yAxHigh == null
-											? yAxValue
+											? Math.ceil(yAxValue)
 											: yAxValue >
 											  this.assoData[group].yAxHigh
-											? yAxValue
+											? Math.ceil(yAxValue)
 											: this.assoData[group].yAxHigh;
 
 									this.assoData[group].yAxLow =
 										this.assoData[group].yAxLow == null
-											? yAxValue
+											? Math.floor(yAxValue)
 											: yAxValue <
 											  this.assoData[group].yAxLow
-											? yAxValue
+											? Math.floor(yAxValue)
 											: this.assoData[group].yAxLow;
 									// add data to asso data
 									this.assoData[group].data[dKey] = {};
@@ -491,18 +491,22 @@ export default Vue.component("research-region-plot", {
 								// set high / low values of the group
 								this.assoData[group].yAxHigh =
 									this.assoData[group].yAxHigh == null
-										? yAxValue
+										? Math.ceil(yAxValue)
 										: yAxValue >
 										  this.assoData[group].yAxHigh
 										? yAxValue
-										: this.assoData[group].yAxHigh;
+										: Math.ceil(
+												this.assoData[group].yAxHigh
+										  );
 
 								this.assoData[group].yAxLow =
 									this.assoData[group].yAxLow == null
-										? yAxValue
+										? Math.floor(yAxValue)
 										: yAxValue < this.assoData[group].yAxLow
 										? yAxValue
-										: this.assoData[group].yAxLow;
+										: Math.floor(
+												this.assoData[group].yAxLow
+										  );
 								// add data to asso data
 								this.assoData[group].data[dKey] = {};
 
@@ -546,16 +550,16 @@ export default Vue.component("research-region-plot", {
 
 						this.assoData.Combined.yAxHigh =
 							this.assoData.Combined.yAxHigh == null
-								? yAxHighValue
+								? Math.ceil(yAxHighValue)
 								: yAxHighValue > this.assoData.Combined.yAxHigh
-								? yAxHighValue
+								? Math.ceil(yAxHighValue)
 								: this.assoData.Combined.yAxHigh;
 
 						this.assoData.Combined.yAxLow =
 							this.assoData.Combined.yAxLow == null
-								? yAxLowValue
+								? Math.floor(yAxLowValue)
 								: yAxLowValue < this.assoData.Combined.yAxLow
-								? yAxLowValue
+								? Math.floor(yAxLowValue)
 								: this.assoData.Combined.yAxLow;
 					});
 				}
