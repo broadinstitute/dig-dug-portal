@@ -970,9 +970,23 @@ export default Vue.component("research-gene-links-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				let positionLabel = i < 5 ? xMin + i * xStep : xMax;
+				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
 				CTX.font = "12px Arial";
 				CTX.fillStyle = "#999999";
+
+				let xMaxMinGap = xMax - xMin;
+				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+				let positionLabel = Formatters.decimalFormatter(
+					xMin + i * xStep,
+					xDecimal
+				);
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
+
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,

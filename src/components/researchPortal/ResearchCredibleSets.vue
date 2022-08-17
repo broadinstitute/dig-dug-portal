@@ -890,7 +890,14 @@ export default Vue.component("research-credible-sets-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
+
 				let positionLabel = i < 5 ? Number(xMin) + i * xStep : xMax;
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
+
 				CTX.font = "12px Arial";
 				CTX.fillStyle = "#999999";
 				CTX.fillText(

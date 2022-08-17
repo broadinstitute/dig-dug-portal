@@ -1319,8 +1319,21 @@ export default Vue.component("research-annotations-plot-v2", {
 				CTX.textAlign = "right";
 				CTX.font = "12px Arial";
 
+				let yMaxMinGap = YMAX - YMIN;
+				let yDecimal = yMaxMinGap <= 1 ? 2 : yMaxMinGap <= 50 ? 1 : 0;
+
+				let yValue = Formatters.decimalFormatter(
+					YMIN + i * yStep,
+					yDecimal
+				);
+
+				yValue =
+					yValue >= 100000
+						? Math.round(yValue * 0.001) + "k"
+						: yValue;
+
 				CTX.fillText(
-					Formatters.floatFormatter(YMIN + i * yStep),
+					yValue,
 					XPOS + this.plotMargin.leftMargin - BUMP * 3,
 					YPOS +
 						this.plotMargin.topMargin +
@@ -1377,8 +1390,21 @@ export default Vue.component("research-annotations-plot-v2", {
 				CTX.textAlign = "center";
 				CTX.font = "12px Arial";
 
+				let xMaxMinGap = XMAX - XMIN;
+				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+				let xValue = Formatters.decimalFormatter(
+					XMIN + i * xStep,
+					xDecimal
+				);
+
+				xValue =
+					xValue >= 100000
+						? Math.round(xValue * 0.001) + "k"
+						: xValue;
+
 				CTX.fillText(
-					Formatters.floatFormatter(XMIN + i * xStep),
+					xValue,
 					adjTickXPos,
 					YPOS + HEIGHT + this.plotMargin.topMargin + BUMP * 4
 				);
@@ -1775,9 +1801,23 @@ export default Vue.component("research-annotations-plot-v2", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				let positionLabel = i < 5 ? xMin + i * xStep : xMax;
+				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
 				CTX.font = "12px Arial";
 				CTX.fillStyle = "#999999";
+
+				let xMaxMinGap = xMax - xMin;
+				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+				let positionLabel = Formatters.decimalFormatter(
+					xMin + i * xStep,
+					xDecimal
+				);
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
+
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
