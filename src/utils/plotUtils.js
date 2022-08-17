@@ -301,9 +301,6 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
 }
 
 const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
-    //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
-    // WITH_TICKS(number of thicks. null for none), MIN, MAX
-
 
     let max = MAX;
     let min = MIN;

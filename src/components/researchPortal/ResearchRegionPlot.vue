@@ -244,11 +244,9 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import PlotUtils from "@/utils/plotUtils.js";
+import plotUtils from "@/utils/plotUtils.js";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
-
-import Chi from "chi-squared";
 
 Vue.use(BootstrapVueIcons);
 
@@ -1016,7 +1014,7 @@ export default Vue.component("research-region-plot", {
 							);
 							if (key == this.ldData[GROUP].refVariant) {
 								if (this.checkStared(key) == true) {
-									PlotUtils.renderStar(
+									plotUtils.renderStar(
 										CTX,
 										xPos,
 										yPos,
@@ -1036,7 +1034,7 @@ export default Vue.component("research-region-plot", {
 								}
 							} else {
 								if (this.checkStared(key) == true) {
-									PlotUtils.renderStar(
+									plotUtils.renderStar(
 										CTX,
 										xPos,
 										yPos,
@@ -1101,7 +1099,7 @@ export default Vue.component("research-region-plot", {
 										this.compareGroupColors[pIndex];
 									if (key == this.ldData[pGroup].refVariant) {
 										if (this.checkStared(key) == true) {
-											PlotUtils.renderStar(
+											plotUtils.renderStar(
 												CTX,
 												xPos,
 												yPos,
@@ -1121,7 +1119,7 @@ export default Vue.component("research-region-plot", {
 										}
 									} else {
 										if (this.checkStared(key) == true) {
-											PlotUtils.renderStar(
+											plotUtils.renderStar(
 												CTX,
 												xPos,
 												yPos,
@@ -1194,7 +1192,7 @@ export default Vue.component("research-region-plot", {
 								let dotColor = this.getDotColor(value);
 								if (key == this.ldData[GROUP].refVariant) {
 									if (this.checkStared(key) == true) {
-										PlotUtils.renderStar(
+										plotUtils.renderStar(
 											CTX,
 											xPos,
 											yPos,
@@ -1214,7 +1212,7 @@ export default Vue.component("research-region-plot", {
 									}
 								} else {
 									if (this.checkStared(key) == true) {
-										PlotUtils.renderStar(
+										plotUtils.renderStar(
 											CTX,
 											xPos,
 											yPos,
@@ -1294,7 +1292,7 @@ export default Vue.component("research-region-plot", {
 											this.ldData[pGroup].refVariant
 										) {
 											if (this.checkStared(key) == true) {
-												PlotUtils.renderStar(
+												plotUtils.renderStar(
 													CTX,
 													xPos,
 													yPos,
@@ -1314,7 +1312,7 @@ export default Vue.component("research-region-plot", {
 											}
 										} else {
 											if (this.checkStared(key) == true) {
-												PlotUtils.renderStar(
+												plotUtils.renderStar(
 													CTX,
 													xPos,
 													yPos,
@@ -1482,6 +1480,12 @@ export default Vue.component("research-region-plot", {
 			TYPE,
 			GROUP
 		) {
+			let yMaxMinGap = yMax - yMin;
+			let yDecimal = yMaxMinGap <= 1 ? 2 : yMaxMinGap <= 50 ? 1 : 0;
+
+			let xMaxMinGap = xMax - xMin;
+			let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
@@ -1538,8 +1542,15 @@ export default Vue.component("research-region-plot", {
 
 				CTX.textAlign = "right";
 
+				let tickValue = Formatters.decimalFormatter(
+					yMin + i * yStep,
+					yDecimal
+				);
+
+				tickValue += yMaxMinGap >= 100000 ? "k" : "";
+
 				CTX.fillText(
-					Formatters.floatFormatter(yMin + i * yStep),
+					tickValue,
 					this.plotMargin.leftMargin - bump * 3,
 					this.plotMargin.topMargin +
 						HEIGHT +
@@ -1592,16 +1603,16 @@ export default Vue.component("research-region-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				let positionLabel =
-					TYPE == "asso"
-						? i < 5
-							? xMin + i * xStep
-							: xMax
-						: i < 5
-						? i == 0
-							? 0
-							: (xMin + i * xStep).toFixed(1)
-						: xMax;
+
+				let positionLabel = Formatters.decimalFormatter(
+					xMin + i * xStep,
+					xDecimal
+				);
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
 
 				CTX.fillText(
 					positionLabel,
