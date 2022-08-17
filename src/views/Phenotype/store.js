@@ -45,14 +45,15 @@ export default new Vuex.Store({
             context.commit("setPhenotype", phenotype);
             keyParams.set({ phenotype: phenotype.name });
         },
-        onAncestryChange(context, ancestry){
+        onAncestryChange(context, event, ancestry){
+            // ancestry is an event when it ought to be just a string.
             console.log(ancestry);
             context.commit("setAncestry", ancestry);
-            keyParams.set({ ancestry: ancestry.name });
+            keyParams.set({ ancestry: ancestry });
         },
 
         queryPhenotype(context) {
-            if (context.state.ancestry == null) {
+            if (context.state.ancestry == undefined) {
                 let query = { q: context.state.phenotype.name };
                 let assocQuery = { ...query, limit: 1000 };
                 let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
@@ -60,7 +61,7 @@ export default new Vuex.Store({
                 context.dispatch("annotations/query", query);
                 context.dispatch("genes/query", geneQuery);
             } else {
-                let query = {q: `${context.state.phenotype.name},${context.state.ancestry.name}`};
+                let query = {q: `${context.state.phenotype.name},${context.state.ancestry}`};
                 console.log(query);
                 context.dispatch("ancestryGlobalAssoc/query", query);
             }

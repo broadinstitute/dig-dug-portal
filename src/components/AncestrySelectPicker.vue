@@ -1,10 +1,14 @@
 <template>
-    <input
-        v-model="userText"
+    <select
+        v-model="ancestryText"
         ref="ancestrySelect"
         :placeholder="placeholder || 'Type in an ancestry ...'"
         @change="onAncestrySelected($event)"
-    />
+    >
+        <option>A</option>
+        <option>B</option>
+        <option>C</option>
+    </select>
 </template>
 
 <script>
@@ -23,13 +27,11 @@ export default Vue.component("ancestry-selectpicker", {
 
     data() {
         return {
-            userText: this.defaultAncestry || "",
+            ancestryText: this.defaultAncestry || "A",
         };
     },
     computed: {
         ancestryOptions() {
-            console.log("Ancestries: ");
-            console.log(this.ancestries);
             if (!this.ancestries) {
                 return [];
             }
@@ -47,8 +49,7 @@ export default Vue.component("ancestry-selectpicker", {
     },
     methods: {
         onAncestrySelected(event) {
-            this.$store.dispatch("onAncestryChange", event);
-
+            this.$store.dispatch("onAncestryChange", event, ancestryText);
             if (this.clearOnSelected) {
                 this.userText = "";
                 this.$refs.ancestrySelect.inputValue = "";
