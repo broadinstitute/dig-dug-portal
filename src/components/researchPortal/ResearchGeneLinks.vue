@@ -414,7 +414,7 @@ export default Vue.component("research-gene-links-plot", {
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
 		resetAll() {
-			this.GEData = {};
+			//this.GEData = {};
 			this.trigger = 0;
 			this.GLPosData = {};
 			this.GLData = null;
