@@ -131,7 +131,10 @@ new Vue({
             this.$store.dispatch("queryPhenotype");
             uiUtils.hideElement("phenotypeSearchHolder");
         },
-
+        "$store.state.ancestry": function(phenotype, ancestry){
+            this.$store.dispatch("queryPhenotype");
+            uiUtils.hideElement("phenotypeSearchHolder");
+        },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         }

@@ -46,6 +46,7 @@ export default new Vuex.Store({
             keyParams.set({ phenotype: phenotype.name });
         },
         onAncestryChange(context, ancestry){
+            console.log(ancestry);
             context.commit("setAncestry", ancestry);
             keyParams.set({ ancestry: ancestry.name });
         },
@@ -60,6 +61,7 @@ export default new Vuex.Store({
                 context.dispatch("genes/query", geneQuery);
             } else {
                 let query = {q: `${context.state.phenotype.name},${context.state.ancestry.name}`};
+                console.log(query);
                 context.dispatch("ancestryGlobalAssoc/query", query);
             }
             

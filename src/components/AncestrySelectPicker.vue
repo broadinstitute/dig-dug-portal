@@ -1,20 +1,10 @@
 <template>
-    <vue-typeahead-bootstrap
+    <input
         v-model="userText"
         ref="ancestrySelect"
         :placeholder="placeholder || 'Type in an ancestry ...'"
-        :data="ancestryOptions"
-        :serializer="(s) => s.description"
-        :maxMatches="1000"
-        :minMatchingChars="0"
-        :showOnFocus="true"
-        @hit="onAncestrySelected($event)"
-    >
-        <template slot="suggestion" slot-scope="{ data, htmlText }">
-            <span v-html="htmlText"></span>&nbsp;
-            <small class="text-secondary">{{ data.group }}</small>
-        </template>
-    </vue-typeahead-bootstrap>
+        @change="onAncestrySelected($event)"
+    />
 </template>
 
 <script>
@@ -38,6 +28,8 @@ export default Vue.component("ancestry-selectpicker", {
     },
     computed: {
         ancestryOptions() {
+            console.log("Ancestries: ");
+            console.log(this.ancestries);
             if (!this.ancestries) {
                 return [];
             }
