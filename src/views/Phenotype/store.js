@@ -45,11 +45,11 @@ export default new Vuex.Store({
             context.commit("setPhenotype", phenotype);
             keyParams.set({ phenotype: phenotype.name });
         },
-        onAncestryChange(context, event, ancestry){
+        onAncestryChange(context, ancestry){
             // ancestry is an event when it ought to be just a string.
             console.log(ancestry);
             context.commit("setAncestry", ancestry);
-            keyParams.set({ ancestry: ancestry });
+            //keyParams.set({ ancestry: ancestry });
         },
 
         queryPhenotype(context) {
