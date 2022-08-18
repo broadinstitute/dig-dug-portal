@@ -1,5 +1,5 @@
 <template>
-    <select
+    <!--select
         v-model="userText"
         ref="ancestrySelect"
         :placeholder="placeholder || 'Type in an ancestry ...'"
@@ -8,7 +8,11 @@
         <option>A</option>
         <option>B</option>
         <option>C</option>
-    </select>
+    </-select-->
+    <input v-model="userText"
+        ref="ancestrySelect"
+        :placeholder="placeholder || 'Type in an ancestry ...'"
+        @change="onAncestrySelected(userText)"/>
 </template>
 
 <script>
@@ -27,7 +31,7 @@ export default Vue.component("ancestry-selectpicker", {
 
     data() {
         return {
-            userText: this.defaultAncestry || "A",
+            userText: this.defaultAncestry || "",
         };
     },
     computed: {
