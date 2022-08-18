@@ -3,7 +3,7 @@
         v-model="userText"
         ref="ancestrySelect"
         :placeholder="placeholder || 'Type in an ancestry ...'"
-        @change="onAncestrySelected($event)"
+        @change="onAncestrySelected(userText)"
     >
         <option>A</option>
         <option>B</option>
@@ -48,8 +48,8 @@ export default Vue.component("ancestry-selectpicker", {
         },
     },
     methods: {
-        onAncestrySelected(event) {
-            this.$store.dispatch("onAncestryChange", event);
+        onAncestrySelected(userText) {
+            this.$store.dispatch("onAncestryChange", userText);
             if (this.clearOnSelected) {
                 this.userText = "";
                 this.$refs.ancestrySelect.inputValue = "";
