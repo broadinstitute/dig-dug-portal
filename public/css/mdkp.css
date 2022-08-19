@@ -30,6 +30,12 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
+.front-top-banner-reproductivekp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/reproductive_front_bg.png),
+        linear-gradient(#8f7fbb, #5e53a3);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner-mdkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
         linear-gradient(#0097d6, #8ed8f8);
@@ -194,6 +200,10 @@ a:hover {
     transform: translate(0%, 35%);
 }
 
+.front-logo-tagline-reproductivekp {
+    transform: translate(0%, 35%);
+}
+
 .front-logo-tagline-mdkp {
     transform: translate(0%, 23%);
 }
@@ -305,6 +315,10 @@ a:hover {
     height: 50px;
 }
 
+.reproductivekp-logo {
+    height: 50px;
+}
+
 .mdkp-logo {
     height: 50px;
 }
@@ -369,6 +383,12 @@ a:hover {
 .ocularkp-header,
 .ocularkp-footer {
     background-color: #008fd0;
+    height: 50px;
+}
+
+.reproductivekp-header,
+.reproductivekp-footer {
+    background-color: #8f7fbb;
     height: 50px;
 }
 
@@ -534,6 +554,7 @@ a:hover {
 }
 
 .ocularkp-footer,
+.reproductivekp-footer,
 .mdkp-footer,
 .cvdkp-footer,
 .sleepkp-footer,
@@ -556,6 +577,7 @@ a:hover {
 }
 
 .ocularkp-body,
+.reproductivekp-body,
 .mdkp-body,
 .cvdkp-body,
 .sleekp-body,
@@ -577,6 +599,7 @@ a:hover {
 }
 
 .ocularkp-card,
+.reproductivekp-card,
 .mdkp-card,
 .cvdkp-card,
 .sleepkp-card,
