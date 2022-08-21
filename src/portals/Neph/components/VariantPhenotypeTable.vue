@@ -14,7 +14,6 @@
                 <b-table
                     hover
                     small
-                    sort-icon-left
                     responsive="sm"
                     :items="tableData"
                     :fields="fields"
@@ -42,9 +41,7 @@
                     <template #cell(transcriptId)="data">
                         <a
                             v-if="data.item.transcriptId"
-                            :href="
-                                `https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`
-                            "
+                            :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
                             target="_blank"
                             rel="noopener noreferrer nofollow"
                             >{{ data.item.transcriptId }}</a
@@ -112,45 +109,45 @@ export default Vue.component("variant-phenotype-table", {
                 AllNephroticSyndCases: "All Cases Nephrotic Syndrome",
                 FSGS: "Focal Segmental Glomerulosclerosis",
                 MCD: "Minimal Change Disease",
-                AllSamples: "All Samples"
+                AllSamples: "All Samples",
             },
             fields: [
                 {
                     key: "hpoterms",
-                    label: "Phenotype"
+                    label: "Phenotype",
                 },
                 {
                     key: "allelecount",
                     label: "Allele Count",
                     sortable: true,
                     tdClass: "text-right",
-                    thClass: "text-right"
+                    thClass: "text-right",
                 },
                 {
                     key: "allelnumber",
                     label: "Allele Number",
                     sortable: true,
                     tdClass: "text-right",
-                    thClass: "text-right"
+                    thClass: "text-right",
                 },
                 {
                     key: "n_hom_var_case",
                     label: "Homozygotes",
                     sortable: true,
                     tdClass: "text-right",
-                    thClass: "text-right"
+                    thClass: "text-right",
                 },
                 {
                     key: "allelefrequency",
                     label: "Allele Frequency",
                     sortable: true,
                     tdClass: "text-left pl-5",
-                    thClass: "text-left pl-5"
-                }
+                    thClass: "text-left pl-5",
+                },
             ],
             hprecords: [],
             perPage: 24,
-            currentPage: 1
+            currentPage: 1,
         };
     },
     created() {
@@ -176,7 +173,7 @@ export default Vue.component("variant-phenotype-table", {
                 });
             }
             return dataRows;*/
-        }
+        },
     },
     methods: {
         consequenceFormatter: Formatters.consequenceFormatter,
@@ -213,7 +210,7 @@ export default Vue.component("variant-phenotype-table", {
                 j++;
                 //}
             }
-            hpdisplay = hpdisplay.sort(function(a, b) {
+            hpdisplay = hpdisplay.sort(function (a, b) {
                 //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
                 if (a.allelecount > b.allelecount) {
                     return -1;
@@ -234,8 +231,8 @@ export default Vue.component("variant-phenotype-table", {
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
             if (item.PICK === true) return "row-pick";
-        }
-    }
+        },
+    },
 });
 </script>
 <style>
