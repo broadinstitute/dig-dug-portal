@@ -10,18 +10,37 @@
 				<tr>
 					<th
 						:rowspan="featuresData[value].length + 1"
+						class="byor-tooltip"
 						:class="'feature-title-th feature-th-' + index"
 					>
 						<span class="feature-title">{{ value }}</span>
+						<!--<span
+							v-if="
+								!!featuresFormat['tool tips'] &&
+								!!featuresFormat['tool tips'][value]
+							"
+							class="tooltiptext"
+							v-html="featuresFormat['tool tips'][value]"
+						></span>-->
 					</th>
 					<th
 						v-for="(headerValue, headerIndex) in featuresFormat[
 							value
 						]"
 						:key="headerIndex"
+						class="byor-tooltip"
 						:class="'feature-th-' + index"
-						v-html="headerValue"
-					></th>
+					>
+						<span v-html="headerValue"></span>
+						<span
+							v-if="
+								!!featuresFormat['tool tips'] &&
+								!!featuresFormat['tool tips'][headerValue]
+							"
+							class="tooltiptext"
+							v-html="featuresFormat['tool tips'][headerValue]"
+						></span>
+					</th>
 				</tr>
 				<tr
 					v-for="(featureValue, featureIndex) in featuresData[value]"

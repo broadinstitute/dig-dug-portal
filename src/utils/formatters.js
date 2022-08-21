@@ -10,6 +10,19 @@ function alleleFormatter(reference, alt) {
     return `${reference}/${alt}`;
 }
 
+function dataTypeFormatter(s) {
+
+    const types = {
+        GWAS: "GWAS",
+        ExChip: "Exome chip",
+        ExSeq: "Exome sequence analysis",
+        WGS: "Whole genome sequencing",
+        IChip: "IChip"
+    };
+
+    return types[s];
+}
+
 function ancestryFormatter(s) {
     const ancestries = {
         AA: "African American",
@@ -185,9 +198,17 @@ function pValueCss(value, max) {
     return calculated > 100 ? 100 : calculated;
 }
 
+function decimalFormatter(NUM, DECIMAL) {
+
+    let decimal = DECIMAL == 0 ? 1 : DECIMAL * 10
+    let newNum = Math.round(NUM * decimal) / decimal;
+    return newNum;
+}
+
 export default {
     alleleFormatter,
     ancestryFormatter,
+    dataTypeFormatter,
     annotationFormatter,
     bioTypeFormatter,
     capitalizedFormatter,
@@ -204,5 +225,6 @@ export default {
     methodFormatter,
     pValueFormatter,
     effectFormatter,
-    pValueCss
+    pValueCss,
+    decimalFormatter
 };
