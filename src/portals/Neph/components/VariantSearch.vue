@@ -153,7 +153,6 @@
             <b-table
                 hover
                 small
-                sort-icon-left
                 responsive="sm"
                 :fields="fields"
                 :items="tableData"
@@ -496,6 +495,7 @@ export default Vue.component("VariantSearch", {
                 {
                     key: "c_allelnumber",
                     label: "Number",
+                    sortable: true,
                     tdClass: "text-right",
                     thClass: "text-right",
                 },

@@ -51,8 +51,8 @@ div.details .sub-details {
     border-bottom: solid 1px #ddd;
 }
 
-.bs-popover-top>.arrow::after,
-.bs-popover-auto[x-placement^="top"]>.arrow::after {
+.bs-popover-top > .arrow::after,
+.bs-popover-auto[x-placement^="top"] > .arrow::after {
     border-top-color: #000000;
 }
 
@@ -87,7 +87,7 @@ div.details .sub-details {
     vertical-align: middle;
 }
 
-td.border-color>div {
+td.border-color > div {
     border-left-width: 5px;
     border-left-style: solid;
     border-color: #eeeeee;
@@ -146,10 +146,10 @@ td.border-color>div {
     white-space: nowrap;
 }
 
-.table.b-table>thead>tr>[aria-sort="none"],
+/* .table.b-table>thead>tr>[aria-sort="none"],
 .table.b-table>thead>tr>[aria-sort=none] {
     background-image: none;
-}
+} */
 
 #covariances tr.b-table-details table td:first-child {
     padding-left: 0.3rem;
