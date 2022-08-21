@@ -102,28 +102,6 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Closest genes</h4>
-                    <documentation
-                        name="variant.genes.subheader"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation>
-                    <div
-                        v-if="
-                            $store.state.variant && $store.state.variant.nearest
-                        "
-                    >
-                        <div
-                            v-for="gene in $store.state.variant.nearest"
-                            class="gene-with-signal protein_coding"
-                        >
-                            <a :href="`/gene.html?gene=${gene}`">{{ gene }}</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mdkp-card">
-                <div class="card-body">
                     <div
                         v-if="
                             $store.state.transcriptConsequences.data.length > 0
@@ -174,9 +152,7 @@
                             $store.state.transcriptConsequences.data.length > 0
                         "
                     >
-                        <h4 class="card-title">
-                            Phenotype Information
-                        </h4>
+                        <h4 class="card-title">Phenotype Information</h4>
                         <variant-phenotype-table
                             v-bind:variantId="$store.state.variant.varId"
                         ></variant-phenotype-table>
