@@ -51,18 +51,18 @@ export default new Vuex.Store({
         },
 
         queryPhenotype(context) {
+            let query = { q: context.state.phenotype.name };
+            let assocQuery = { ...query, limit: 1000 };
+            let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
+            let ancestryQuery = {q: `${context.state.phenotype.name},${context.state.ancestry}`};
+            let ancestryAssocQuery = { ...ancestryQuery, limit: 1000 };
             if (context.state.ancestry == "" || context.state.ancestry == null) {
-                let query = { q: context.state.phenotype.name };
-                let assocQuery = { ...query, limit: 1000 };
-                let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
                 context.dispatch("associations/query", assocQuery);
-                context.dispatch("annotations/query", query);
-                context.dispatch("genes/query", geneQuery);
             } else {
-                let query = {q: `${context.state.phenotype.name},${context.state.ancestry}`};
-                context.dispatch("ancestryGlobalAssoc/query", query);
+                context.dispatch("ancestryGlobalAssoc/query", ancestryAssocQuery);
             }
-            
+            context.dispatch("annotations/query", query);
+            context.dispatch("genes/query", geneQuery);
         }
     }
 });

@@ -113,22 +113,15 @@
                             </filter-effect-direction-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
-                                <associations-table v-if="!$store.state.ancestry"
+                                <associations-table
                                     :phenotypes="[$store.state.phenotype]"
                                     :associations="
-                                        $store.state.associations.data
+                                        !$store.state.ancestry ? $store.state.associations.data 
+                                        : $store.state.ancestryGlobalAssoc.data
                                     "
                                     :filter="filter"
                                     :per-page="10"
                                 ></associations-table>
-                                <associations-table v-if="$store.state.ancestry"
-                                    :phenotypes="[$store.state.phenotype]"
-                                    :associations="
-                                        $store.state.ancestryGlobalAssoc.data
-                                    "
-                                    :filter="filter"
-                                    :per-page="10">
-                                </associations-table>
                             </template>
                         </criterion-function-group>
                     </div>
