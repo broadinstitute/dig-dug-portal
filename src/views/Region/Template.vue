@@ -150,6 +150,7 @@
 					<h4 class="card-title">
 						Most significant variant associations in the region:
 						{{ $parent.regionString }}
+						<span v-if="$store.state.ancestry"> for Ancestry {{$store.state.ancestry}}</span>
 						<tooltip-documentation
 							name="region.mostsignificantassoc.header.tooltip"
 							:isHover="true"
