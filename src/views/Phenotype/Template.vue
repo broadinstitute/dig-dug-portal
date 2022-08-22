@@ -82,6 +82,7 @@
                         <h4 class="card-title">
                             Top single-variant association signals for
                             {{ $store.state.phenotype.description }}
+                            <span v-if="$store.state.ancestry">(Ancestry: {{ $store.state.ancestry }})</span>
                             <tooltip-documentation
                                 name="phenotype.topvariants.tooltip"
                                 :content-fill="$parent.documentationMap"
@@ -112,7 +113,7 @@
                             </filter-effect-direction-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
-                                <associations-table
+                                <associations-table v-if="!$store.state.ancestry"
                                     :phenotypes="[$store.state.phenotype]"
                                     :associations="
                                         $store.state.associations.data
@@ -120,7 +121,6 @@
                                     :filter="filter"
                                     :per-page="10"
                                 ></associations-table>
-                                <span v-if="$store.state.ancestry">Ancestry: {{ $store.state.ancestry }}</span>
                                 <associations-table v-if="$store.state.ancestry"
                                     :phenotypes="[$store.state.phenotype]"
                                     :associations="

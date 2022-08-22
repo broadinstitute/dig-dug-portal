@@ -51,7 +51,7 @@ export default new Vuex.Store({
         },
 
         queryPhenotype(context) {
-            if (context.state.ancestry == "") {
+            if (context.state.ancestry == "" || context.state.ancestry == null) {
                 let query = { q: context.state.phenotype.name };
                 let assocQuery = { ...query, limit: 1000 };
                 let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
