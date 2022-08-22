@@ -17,14 +17,17 @@ export default new Vuex.Store({
         transcriptConsequences: bioIndex("transcript-consequences"),
         transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
+        ancestryPhewas: bioIndex("ancestry-phewas-associations"),
         regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
-        clumpedVariants: bioIndex("clumped-variants")
+        clumpedVariants: bioIndex("clumped-variants"),
+        ancestryClumpedVariants: bioIndex("ancestry-clumped-variants")
     },
 
     state: {
         variant: null,
-        newVariantId: null
+        newVariantId: null,
+        ancestry: ""
     },
 
     mutations: {

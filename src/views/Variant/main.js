@@ -198,11 +198,26 @@ new Vue({
             }
         },
 
+        "$store.state.ancestry"(ancestry){
+            if(ancestry){
+                this.$store.dispatch("ancestryPhewas/query", 
+                    { q: `${this.$store.state.ancestry},${variant.varId}` });
+            } else {
+                this.$store.dispatch("phewas/query", { q: variant.varId });
+            }
+        },
+
         "$store.state.variant"(variant) {
             if (variant) {
                 let p = this.chromPos;
 
-                this.$store.dispatch("phewas/query", { q: variant.varId });
+                // phewas can be with or without ancestry
+                if(this.$store.state.ancestry) {
+                    this.$store.dispatch("ancestryPhewas/query", 
+                    { q: `${this.$store.state.ancestry},${variant.varId}` });
+                } else {
+                    this.$store.dispatch("phewas/query", { q: variant.varId });
+                }
                 this.$store.dispatch("transcriptConsequences/query", {
                     q: variant.varId
                 });

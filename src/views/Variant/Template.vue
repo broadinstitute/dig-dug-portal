@@ -21,6 +21,16 @@
 						id="variant_search_input"
 					/>
 				</div>
+				<div class="col filter-col-md">
+					<div class="label">Ancestry(optional)</div>
+					<input
+						v-model="$store.state.ancestry"
+						type="text"
+						class="form-control"
+						placeholder="Search Ancestry"
+						id="ancestry_search_input"
+					/>
+				</div>
 				<div class="col filter-col-sm">
 					<button
 						id="variantSearchGo"
@@ -163,6 +173,7 @@
 							{{ $parent.dbSNP }}
 						</span>
 						PheWAS associations
+						<span v-if="$store.state.ancestry"> for Ancestry {{ $store.state.ancestry}}</span>
 						<tooltip-documentation
 							name="variant.assoc.tooltip"
 							:content-fill="$parent.documentationMap"
@@ -255,11 +266,13 @@
 
 									<research-phewas-plot
 										v-if="
-											$store.state.phewas.data.length > 0
+											($store.state.phewas.data.length > 0 && !$store.state.ancestry) || $store.state.ancestryPhewas.data.length > 0
 										"
 										canvasId=""
 										:phenotypesData="
-											$store.state.phewas.data
+											!$store.state.ancestry 
+												? $store.state.phewas.data
+												: $store.state.ancestryPhewas.data
 										"
 										:phenotypeMap="
 											$store.state.bioPortal.phenotypeMap
@@ -338,7 +351,10 @@
 							></unauthorized-message>
 							<phewas-datasets
 								v-if="$store.state.phewas.data"
-								:associations="$store.state.phewas.data"
+								:associations=" !$store.state.ancestry
+									? $store.state.phewas.data
+									: $store.state.ancestryPhewas.data
+								"
 								:datasets="
 									$store.state.datasetAssociations.data
 								"
