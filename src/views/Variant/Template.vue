@@ -355,6 +355,7 @@
 									? $store.state.phewas.data
 									: $store.state.ancestryPhewas.data
 								"
+								:ancestry="$store.state.ancestry"
 								:datasets="
 									$store.state.datasetAssociations.data
 								"

@@ -223,7 +223,7 @@ import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import CsvDownload from "@/components/CsvDownload";
 export default Vue.component("phewas-datasets", {
-    props: ["associations", "datasets", "phenotypeMap", "datasetMap", "filter"],
+    props: ["associations", "datasets", "phenotypeMap", "datasetMap", "filter", "ancestry"],
     components: { CsvDownload },
     data() {
         return {
@@ -325,8 +325,10 @@ export default Vue.component("phewas-datasets", {
             if (testCell.innerText != ""){
                 console.log(`Phenotype #${index} has already been loaded.`)
             } else {
+                let prefix = "https://bioindex.hugeamp.org/api/bio/query";
                 let cvURL = 
-                    `https://bioindex.hugeamp.org/api/bio/query/clumped-variants?q=${phenotype},${clump}`;
+                    !this.ancestry ? `${prefix}/clumped-variants?q=${phenotype},${clump}`
+                        : `${prefix}/ancestry-clumped-variants?q=${phenotype},${$this.ancestry},${clump}`;
                 let cvJSON = await fetch(cvURL).then((response) => response.json());
                 let cvData = cvJSON.data;
                 cvData.sort((a, b) => {a.pValue - b.pValue});
