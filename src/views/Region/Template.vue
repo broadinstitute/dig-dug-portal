@@ -52,6 +52,12 @@
 						/>
 					</div>
 					<div class="region-search col filter-col-md">
+						<div class="label">Ancestry (optional)</div>
+						<input v-model="$store.state.ancestry"/>
+						<!--ancestry-selectpicker v-model="$store.state.ancestry">
+						</ancestry-selectpicker-->
+					</div>
+					<div class="region-search col filter-col-md">
 						<div class="label">Search</div>
 						<button
 							id="regionSearchGo"

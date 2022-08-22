@@ -22,6 +22,7 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker";
 import TissueSelectPicker from "@/components/TissueSelectPicker";
 import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
@@ -78,6 +79,7 @@ new Vue({
         AnnotationSelectPicker,
         TissueSelectPicker,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
         Autocomplete,
         GeneSelectPicker,
         CriterionListGroup,
@@ -324,7 +326,11 @@ new Vue({
         // Give the top associations, find the best one across all unique
         // phenotypes available.
         topAssociations() {
-            let data = this.$store.state.topAssociations.data;
+            console.log(`Calculating top associations. Ancestry: ${this.$store.state.ancestry}`);
+            // Filter by ancestry if one is provided
+            let data = this.$store.state.ancestry == "" 
+                ?  this.$store.state.topAssociations.data
+                : this.$store.state.ancestryTopAssoc.data;
             let assocMap = {};
 
             for (let i in data) {
