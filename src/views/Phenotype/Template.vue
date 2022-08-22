@@ -32,6 +32,9 @@
                         <span v-if="$store.state.phenotype">
                             {{ $store.state.phenotype.description }}
                         </span>
+                        <span v-if="$store.state.ancestry">
+                            ({{ $store.state.ancestry }})
+                        </span>
                     </div>
                 </div>
             </div>
@@ -117,6 +120,15 @@
                                     :filter="filter"
                                     :per-page="10"
                                 ></associations-table>
+                                <span v-if="$store.state.ancestry">Ancestry: {{ $store.state.ancestry }}</span>
+                                <associations-table v-if="$store.state.ancestry"
+                                    :phenotypes="[$store.state.phenotype]"
+                                    :associations="
+                                        $store.state.ancestryGlobalAssoc.data
+                                    "
+                                    :filter="filter"
+                                    :per-page="10">
+                                </associations-table>
                             </template>
                         </criterion-function-group>
                     </div>
