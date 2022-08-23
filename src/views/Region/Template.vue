@@ -53,9 +53,9 @@
 					</div>
 					<div class="region-search col filter-col-md">
 						<div class="label">Ancestry (optional)</div>
-						<input v-model="$store.state.ancestry"/>
-						<!--ancestry-selectpicker v-model="$store.state.ancestry">
-						</ancestry-selectpicker-->
+						<ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
+                                        (dataset) => dataset.ancestry
+                                    )"></ancestry-selectpicker>
 					</div>
 					<div class="region-search col filter-col-md">
 						<div class="label">Search</div>
@@ -150,7 +150,7 @@
 					<h4 class="card-title">
 						Most significant variant associations in the region:
 						{{ $parent.regionString }}
-						<span v-if="$store.state.ancestry"> for Ancestry {{$store.state.ancestry}}</span>
+						<span v-if="$store.state.ancestry"> (Ancestry: {{$parent.ancestryFormatter($store.state.ancestry)}})</span>
 						<tooltip-documentation
 							name="region.mostsignificantassoc.header.tooltip"
 							:isHover="true"

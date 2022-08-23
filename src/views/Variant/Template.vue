@@ -23,13 +23,9 @@
 				</div>
 				<div class="col filter-col-md">
 					<div class="label">Ancestry(optional)</div>
-					<input
-						v-model="$store.state.ancestry"
-						type="text"
-						class="form-control"
-						placeholder="Search Ancestry"
-						id="ancestry_search_input"
-					/>
+					<ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
+                                        (dataset) => dataset.ancestry
+                                    )"></ancestry-selectpicker>
 				</div>
 				<div class="col filter-col-sm">
 					<button
@@ -173,7 +169,9 @@
 							{{ $parent.dbSNP }}
 						</span>
 						PheWAS associations
-						<span v-if="$store.state.ancestry"> for Ancestry {{ $store.state.ancestry}}</span>
+						<span v-if="$store.state.ancestry">
+                            (Ancestry: {{ $parent.ancestryFormatter($store.state.ancestry) }})
+                        </span>
 						<tooltip-documentation
 							name="variant.assoc.tooltip"
 							:content-fill="$parent.documentationMap"

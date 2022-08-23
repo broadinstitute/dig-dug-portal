@@ -97,6 +97,7 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("queryRegion");
     },
 
@@ -145,6 +146,7 @@ new Vue({
         ...uiUtils,
         ...Formatters,
         ...filterHelpers,
+        ancestryFormatter: Formatters.ancestryFormatter,
         postAlert,
         postAlertNotice,
         postAlertError,

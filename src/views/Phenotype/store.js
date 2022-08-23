@@ -22,7 +22,6 @@ export default new Vuex.Store({
         phenotype: null,
         newPhenotype: null,
         ancestry: null,
-        newAncestry: null
     },
     mutations: {
         setPhenotype(state, phenotype) {

@@ -1,10 +1,8 @@
 <template>
     <select
-        v-model="userText"
-        ref="ancestrySelect"
-        @change="onAncestrySelected(userText)"
-    >
-        <option value="" selected>Select an ancestry</option>
+        v-model="$store.state.ancestry"
+        ref="ancestrySelect">
+        <option value="" selected>All datasets</option>
         <option v-for="ancestry in ancestryOptions" :value="ancestry">{{ ancestryFormatter(ancestry) }}</option>
     </select>
 </template>
@@ -39,7 +37,6 @@ export default Vue.component("ancestry-selectpicker", {
             let ancestryList = [];
             for (const ancestry of this.ancestries){
                 if (!ancestryList.includes(ancestry)){
-                    console.log(ancestry);
                     ancestryList.push(ancestry);
                 }
             }
