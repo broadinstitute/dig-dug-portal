@@ -107,7 +107,8 @@ export default Vue.component("research-page-description", {
 							p.width,
 							p.height,
 							p["x label angle"],
-							p["y label angle"]
+							p["y label angle"],
+							p["data labels on top"]
 						);
 						break;
 				}
@@ -207,7 +208,15 @@ export default Vue.component("research-page-description", {
 		renderPiePlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
 			PlotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT, COLOR);
 		},
-		renderLinePlot(CTX, DATA, WIDTH, HEIGHT) {
+		renderLinePlot(
+			CTX,
+			DATA,
+			WIDTH,
+			HEIGHT,
+			X_LBL_ANGLE,
+			Y_LBL_ANGLE,
+			DATA_LABELS_ON_TOP
+		) {
 			//console.log(CTX, DATA, WIDTH, HEIGHT);
 			let margin = this.plotMargin;
 			let valueHiLow = { high: null, low: null };
@@ -265,7 +274,8 @@ export default Vue.component("research-page-description", {
 				margin,
 				"x",
 				keys,
-				0
+				0,
+				X_LBL_ANGLE
 			);
 
 			PlotUtils.renderGuideLine(
@@ -288,7 +298,8 @@ export default Vue.component("research-page-description", {
 				5,
 				DATA,
 				valueHiLow.low,
-				valueHiLow.high
+				valueHiLow.high,
+				DATA_LABELS_ON_TOP
 			);
 		},
 	},

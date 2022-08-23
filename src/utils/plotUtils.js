@@ -44,7 +44,8 @@ const renderLine = function (
     TICK_NUM,
     DATA,
     MIN,
-    MAX
+    MAX,
+    DATA_LABEL
 ) {
 
     CTX.beginPath();
@@ -107,11 +108,25 @@ const renderLine = function (
                     }
 
                     if (hIndex == 0) {
-                        CTX.font = "12px Arial";
-                        //CTX.fillStyle = colors[vIndex];
+
+
+                        let lXPos, lYPos
+                        if (!!DATA_LABEL) {
+                            CTX.font = "14px Arial";
+                            lXPos = xStep + MARGIN.left, lYPos = (20 * vIndex) + MARGIN.top + 14;
+                            renderDot(CTX, lXPos, lYPos, colors[vIndex]);
+
+                            lXPos += 10, lYPos += 5;
+
+                        } else {
+                            CTX.font = "12px Arial";
+                            lXPos = xPos, lYPos = yPos - 7;
+                        }
+
                         CTX.fillStyle = "#000000";
                         CTX.textAlign = "start";
-                        CTX.fillText(key, xPos, yPos - 7);
+
+                        CTX.fillText(key, lXPos, lYPos);
                     }
 
                     previousX = xPos;
