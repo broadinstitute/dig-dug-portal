@@ -12,13 +12,17 @@
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div class="col filter-col-lg hidden">
-                    <div class="label">Search by phenotype (required) and ancestry (optional)</div>
+                    <div class="label">Search by phenotype</div>
                     <phenotype-selectpicker
                         v-if="$store.state.phenotype"
                         :phenotypes="$store.state.bioPortal.phenotypes"
                     ></phenotype-selectpicker>
-                    <ancestry-selectpicker></ancestry-selectpicker>
-                    
+                </div>
+                <div class="col filter-col-lg hidden">
+                    <div class="label">Ancestry (optional)</div>
+                    <ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
+                                        (dataset) => dataset.ancestry
+                                    )"></ancestry-selectpicker>
                 </div>
             </search-header-wrapper>
 
@@ -33,7 +37,7 @@
                             {{ $store.state.phenotype.description }}
                         </span>
                         <span v-if="$store.state.ancestry">
-                            ({{ $store.state.ancestry }})
+                            (Ancestry: {{ $parent.ancestryFormatter($store.state.ancestry) }})
                         </span>
                     </div>
                 </div>
@@ -82,7 +86,9 @@
                         <h4 class="card-title">
                             Top single-variant association signals for
                             {{ $store.state.phenotype.description }}
-                            <span v-if="$store.state.ancestry">(Ancestry: {{ $store.state.ancestry }})</span>
+                            <span v-if="$store.state.ancestry">
+                                (Ancestry: {{ $parent.ancestryFormatter($store.state.ancestry) }})
+                            </span>
                             <tooltip-documentation
                                 name="phenotype.topvariants.tooltip"
                                 :content-fill="$parent.documentationMap"
