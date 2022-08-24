@@ -35,6 +35,7 @@ import MaskTable from "@/components/MaskTable";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 
 import jsonQuery from "json-query";
+import { Cipher } from "crypto";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -195,49 +196,9 @@ new Vue({
                 phenotype: this.selectedPhenotype
             };
         },
-        //not used currently - remove it
-        isGWASSignificantAssociation() {
-            if (!!this.$store.state.associations.length > 0) {
-                let data = this.$store.state.associations;
-                for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == this.selectedPhenotype[0]) {
-                        if (data[i].pValue <= 5e-8) {
-                            // console.log(
-                            //     "I am GWAS significant" + data[i].pValue
-                            // );
-                            return true;
-                        }
-                    }
-                }
 
-                return false;
-            }
-        },
-        eglData() {
-            let geneSymbol = this.selectedGene[0];
-            if (this.selectedPhenotype[0] == "T2D") {
-                if (!!this.$store.state.kp4cd.eglData.data) {
-                    let effectordata = this.$store.state.kp4cd.eglData.data;
-                    let effectorGeneData = {};
-                    for (var i = 0; i < effectordata.length; ++i) {
-                        if (
-                            effectordata[i].gene.toLowerCase() ===
-                            geneSymbol.toLowerCase()
-                        ) {
-                            effectorGeneData = effectordata[i];
-                            if (effectorGeneData.category == "(T2D_related)") {
-                                effectorGeneData.category = "No Evidence";
-                            }
-                            break;
-                        }
-                        //if the gene is in GWAS but not in mccarthy data
-                    }
-                    return effectorGeneData;
-                }
-            } else {
-                return { category: "in GWAS" };
-            }
-        },
+
+
 
         masks() {
             let maskdata = [];
@@ -314,7 +275,7 @@ new Vue({
                                 rarebayesfactor = 1;
                             }
                             betararebfmap["rareBF"] = Number.parseFloat(rarebayesfactor).toFixed(2)
-                            betararebfmap["beta"] = beta
+                            betararebfmap["beta"] = Number.parseFloat(beta).toFixed(2)
                             return betararebfmap
                         }
                         //if phenotype doesn't exist in 52K Associations data
@@ -326,105 +287,98 @@ new Vue({
                         }
                     }
                 }
+                else {
+                    rarebayesfactor = 1;
+                    betararebfmap["rareBF"] = rarebayesfactor
+                    betararebfmap["beta"] = 1
+                }
             }
             return betararebfmap;
         },
         bayesFactorCombinedEvidencecomputed() {
-            let x = this.bayesFactorCommonVariation * this.bayesFactorRareVariation.rareBF
-            return x
+            return Formatters.floatFormatter(this.bayesFactorCommonVariation * this.bayesFactorRareVariation.rareBF)
         },
+
+
+
         bayesFactorCommonVariation() {
-            let firstBF = 1;
-            let secondBF = 1;
-            let thirdBF = 1;
+
             let commonBF = 1;
             let data = this.$store.state.associations.data;
-            if (!!data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    //if GWAS evidence
-                    if (data[i].phenotype.toUpperCase() == this.selectedPhenotype[0].toUpperCase()) {
-                        if (data[i].pValue <= 5e-8) {
-                            firstBF = 3;
-                            if (!!this.eglData) {
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "1C"
-                                ) {
-                                    secondBF = 117;
-                                }
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "2C"
-                                ) {
-                                    secondBF = 5;
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "2R"
-                                ) {
-                                    thirdBF = 5;
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "3R"
-                                ) {
-                                    thirdBF = 2.2;
-                                }
-                            }
-                        }
+            let coding_variants = {
+                transcript_ablation: "HIGH", splice_acceptor_variant: "HIGH", splice_donor_variant: "HIGH", stop_gained: "HIGH", frameshift_variant: "HIGH",
+                stop_lost: "HIGH", start_lost: "HIGH", transcript_amplification: "HIGH", inframe_insertion: "MODERATE", inframe_deletion: "MODERATE", missense_variant: "MODERATE",
+                protein_altering_variant: "MODERATE"
+            }
+            data.sort(function (a, b) {
+                return a.pValue - b.pValue;
+            });
+            let topVariant = data[0];
+            let topVariant_consequence = topVariant.consequence
+            let genesInARegion = this.$store.state.genes.data;
+            var filteredGenesInARegion = genesInARegion.filter(a => a.source == "symbol");
+            let distance = 0
+            //calculate the distance of topVariant to each gene and find the smallest distance
+            filteredGenesInARegion.forEach(function (geneinregion) {
+                let distanceFromStart = topVariant.position - geneinregion.start
+                let distanceFromEnd = topVariant.position - geneinregion.end
+                if (distanceFromStart * distanceFromEnd > 0) {
+                    distance = Math.min(Math.abs(distanceFromStart), Math.abs(distanceFromEnd))
+                    geneinregion["distance"] = distance
+                }
+                else {
+                    distance = 0
+                    geneinregion["distance"] = distance
+                }
+
+            })
+
+            filteredGenesInARegion.sort(function (a, b) {
+                return a.distance - b.distance;
+            });
+            let lowestPvalueClosestGene = filteredGenesInARegion[0]
+
+            //find lowest p - value, is it closest gene - TO DO
+
+
+
+            data.forEach(function (eachSNP) {
+                if (coding_variants.hasOwnProperty(eachSNP.consequence)) {
+                    if (eachSNP.pValue < 5e-8) {
+                        commonBF = 20
+                        return commonBF
+
                     }
+                }
+            });
+            //if NOT GWAS significant
+            if (!this.isGWASSignificantAssociation(data, this.selectedPhenotype[0])) {
+                commonBF = 1
+            }
+            //if  GWAS significant
+            else {
+                //if top variant is coding and the impact of that coding variant is high or moderate (in the same Gene)
+                let start = this.$store.state.gene.data[0].start
+                let end = this.$store.state.gene.data[0].end
+                if (coding_variants.hasOwnProperty(topVariant_consequence) && topVariant.position >= start && topVariant.position <= end) {
+                    if (coding_variants[topVariant_consequence] == "HIGH" || "MODERATE") {
+                        commonBF = 360
+                    }
+                }
+
+                else if (lowestPvalueClosestGene.name == this.selectedGene[0]) {
+                    commonBF = 45
+                    console.log(lowestPvalueClosestGene, "lowestPvalueClosestGene")
+                }
+                else {
+                    commonBF = 3
                 }
             }
 
-            commonBF = firstBF * secondBF * thirdBF;
-            return Number.parseFloat(commonBF).toFixed(2);
+            return commonBF;
         },
 
 
-        commonVariationMap() {
-            let scoreAndEvidenceMap = {}
-            let data = this.$store.state.associations.data;
-            if (!!data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    //if GWAS evidence
-                    if (data[i].phenotype == this.selectedPhenotype[0]) {
-                        if (data[i].pValue <= 5e-8) {
-
-                            if (!!this.eglData) {
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "1C"
-                                ) {
-                                    scoreAndEvidenceMap["codingEvidence"] = "117(1C)"
-
-                                }
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "2C"
-                                ) {
-                                    scoreAndEvidenceMap["codingEvidence"] = "5(2C)"
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "2R"
-                                ) {
-                                    scoreAndEvidenceMap["regulatoryEvidence"] = "5(2R)"
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "3R"
-                                ) {
-                                    scoreAndEvidenceMap["regulatoryEvidence"] = "2.2(3R)"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            return scoreAndEvidenceMap;
-        },
 
         rareVariationScoreEvidenceMap() {
             let rareVariationScoreEvidenceMap = {}
@@ -533,6 +487,18 @@ new Vue({
                 let regionlist = this.$children[0].$refs.locuszoom.zoomOut();
                 this.commonVariationStart = regionlist[0];
                 this.commonVariationEnd = regionlist[1];
+            }
+        },
+        isGWASSignificantAssociation(data, selectedPhenotype) {
+            if (!!data.length > 0) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == selectedPhenotype) {
+                        if (data[i].pValue <= 5e-8) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
             }
         },
         bayesFactorCombinedEvidence(commonBF, rareBF) {

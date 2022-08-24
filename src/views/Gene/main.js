@@ -21,6 +21,7 @@ import VariantSearch from "@/components/VariantSearch";
 import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -30,9 +31,8 @@ import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
 
-
-import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue"
-import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue"
+import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
+import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
 
 import Counter from "@/utils/idCounter";
 
@@ -67,12 +67,13 @@ new Vue({
         FilterGreaterThan,
         LocusZoom,
         LocusZoomPhewasPanel,
+        ResearchPheWAS,
         SearchHeaderWrapper,
         ResultsDashboard,
         NCATSPredicateTable,
         VariantSearch,
         ColorBarPlot,
-        GenePageCombinedEvidenceTable,
+        GenePageCombinedEvidenceTable
     },
 
     data() {
@@ -119,8 +120,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
 
-        this.pushCriterionPhenotype("T2D")
-
+        this.pushCriterionPhenotype("T2D");
     },
 
     render(createElement, context) {
@@ -141,9 +141,9 @@ new Vue({
         },
         biolinkQueryGraph(subjectCurie, { subject, predicate, object }) {
             const uuid = Counter.getUniqueId;
-            const sid = uuid('s');
-            const oid = uuid('o');
-            const eid = uuid('e')
+            const sid = uuid("s");
+            const oid = uuid("o");
+            const eid = uuid("e");
             return {
                 query_graph: {
                     nodes: {
@@ -159,11 +159,11 @@ new Vue({
                         [eid]: {
                             subject: sid,
                             object: oid,
-                            predicate: predicate,
+                            predicate: predicate
                         }
                     }
                 }
-            }
+            };
         },
         bayes_factor(beta, stdErr) {
             let w = this.$store.state.prior;
@@ -196,6 +196,18 @@ new Vue({
             }
             return category;
         },
+        isGWASSignificantAssociation(data, selectedPhenotype) {
+            if (!!data.length > 0) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == selectedPhenotype) {
+                        if (data[i].pValue <= 5e-8) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        },
         bayesFactorCombinedEvidence(commonBF, rareBF) {
             let combinedbf = commonBF * rareBF;
             return Number.parseFloat(combinedbf).toFixed(2);
@@ -206,8 +218,7 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
+                window.location.href = `./region.html?chr=${r.chromosome
                     }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
@@ -225,11 +236,15 @@ new Vue({
         },
         topPhenotype(topAssocData) {
             return topAssocData[0];
-        },
-
+        }
     },
 
     computed: {
+        phenotypeOptions() {
+            return this.$store.state.bioPortal.phenotypes
+                .filter(x => x.name != this.$store.state.phenotype)
+                .map(phenotype => phenotype.name);
+        },
 
         geneassociations() {
             let data = this.$store.state.geneassociations.data;
@@ -251,8 +266,7 @@ new Vue({
 
             // convert to an array, sorted by p-value
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
-            return x
-
+            return x;
         },
 
         smallestpValuePhenotype() {
@@ -262,7 +276,6 @@ new Vue({
             // );
 
             return "T2D";
-
         },
         selectedPhenotypes() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
@@ -273,15 +286,12 @@ new Vue({
             return this.genePageSearchCriterion
                 .filter(criterion => criterion.field === "phenotype")
                 .map(criterion => phenotypeMap[criterion.threshold]);
-
         },
 
         selectedPhenotype() {
             if (this.selectedPhenotypes.length > 0) {
-                return this.selectedPhenotypes[0].name
-            }
-            else
-                return "T2D"
+                return this.selectedPhenotypes[0].name;
+            } else return "T2D";
         },
         eglData() {
             let geneSymbol = this.$store.state.geneName;
@@ -311,7 +321,9 @@ new Vue({
         },
 
         combinedScore() {
-            return this.bayesFactorCommonVariation * this.bayesFactorRareVariation;
+            return (
+                this.bayesFactorCommonVariation * this.bayesFactorRareVariation
+            );
         },
 
         bayesFactorRareVariation() {
@@ -319,20 +331,22 @@ new Vue({
             let rarebayesfactor = 1;
             let beta;
             let stdErr;
-            let selectedPhenotype = ""
+            let selectedPhenotype = "";
             if (this.selectedPhenotypes.length > 0) {
-                selectedPhenotype = this.selectedPhenotypes[0].name
+                selectedPhenotype = this.selectedPhenotypes[0].name;
             }
 
-            let data = this.$store.state.associations52k.data
+            let data = this.$store.state.associations52k.data;
             if (this.isExomeWideSignificant(data, selectedPhenotype)) {
                 rarebayesfactor = 348;
             } else {
                 if (data.length > 0) {
                     for (let i = 0; i < data.length; i++) {
                         if (
-                            !!this.$store.state.associations52k.data[i].phenotype &&
-                            this.$store.state.associations52k.data[i].phenotype == selectedPhenotype
+                            !!this.$store.state.associations52k.data[i]
+                                .phenotype &&
+                            this.$store.state.associations52k.data[i]
+                                .phenotype == selectedPhenotype
                         ) {
                             //filter with selected phenotype
                             masks = data[i].masks;
@@ -351,7 +365,9 @@ new Vue({
                             if (rarebayesfactor < 1) {
                                 rarebayesfactor = 1;
                             }
-                            return Number.parseFloat(rarebayesfactor).toFixed(2);
+                            return Number.parseFloat(rarebayesfactor).toFixed(
+                                2
+                            );
                         }
                         //if phenotype doesn't exist in 52K Associations data
                         else {
@@ -365,66 +381,102 @@ new Vue({
         },
 
         bayesFactorCommonVariation() {
-            let firstBF = 1;
-            let secondBF = 1;
-            let thirdBF = 1;
             let commonBF = 1;
+            let data = []
+            let selectedPhenotype = "";
+            let selectGene = this.$store.state.geneName;
+            if (this.selectedPhenotypes.length > 0) {
+                selectedPhenotype = this.selectedPhenotypes[0].name;
+            }
+            data = this.$store.state.varassociations.data;
+            if (data.length > 0) {
+                //let data = this.$store.state.associations.data;
+                let coding_variants = {
+                    transcript_ablation: "HIGH", splice_acceptor_variant: "HIGH", splice_donor_variant: "HIGH", stop_gained: "HIGH", frameshift_variant: "HIGH",
+                    stop_lost: "HIGH", start_lost: "HIGH", transcript_amplification: "HIGH", inframe_insertion: "MODERATE", inframe_deletion: "MODERATE", missense_variant: "MODERATE",
+                    protein_altering_variant: "MODERATE"
+                }
+                data.sort(function (a, b) {
+                    return a.pValue - b.pValue;
+                });
+                let topVariant = data[0];
+                let topVariant_consequence = topVariant.consequence
+                let genesInARegion = this.$store.state.genes.data;
+                var filteredGenesInARegion = genesInARegion.filter(a => a.source == "symbol");
+                let distance = 0
+                //calculate the distance of topVariant to each gene and find the smallest distance
+                filteredGenesInARegion.forEach(function (geneinregion) {
+                    let distanceFromStart = topVariant.position - geneinregion.start
+                    let distanceFromEnd = topVariant.position - geneinregion.end
+                    if (distanceFromStart * distanceFromEnd > 0) {
+                        distance = Math.min(Math.abs(distanceFromStart), Math.abs(distanceFromEnd))
+                        geneinregion["distance"] = distance
+                    }
+                    else {
+                        distance = 0
+                        geneinregion["distance"] = distance
+                    }
 
-            let data = this.$store.state.varassociations.data;
+                })
 
-            if (!!data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    //if GWAS evidence
-                    if (this.selectedPhenotypes.length > 0) {
-                        if (data[i].phenotype == this.selectedPhenotypes[0].name) {
-                            if (data[i].pValue <= 5e-8) {
-                                firstBF = 3;
-                                if (!!this.eglData) {
-                                    if (
-                                        !!this.eglData.genetic &&
-                                        this.eglData.genetic == "1C"
-                                    ) {
-                                        secondBF = 117;
-                                    }
-                                    if (
-                                        !!this.eglData.genetic &&
-                                        this.eglData.genetic == "2C"
-                                    ) {
-                                        secondBF = 5;
-                                    }
-                                    if (
-                                        !!this.eglData.genomic &&
-                                        this.eglData.genomic == "2R"
-                                    ) {
-                                        thirdBF = 5;
-                                    }
-                                    if (
-                                        !!this.eglData.genomic &&
-                                        this.eglData.genomic == "3R"
-                                    ) {
-                                        thirdBF = 2.2;
-                                    }
-                                }
-                            }
+                filteredGenesInARegion.sort(function (a, b) {
+                    return a.distance - b.distance;
+                });
+                let lowestPvalueClosestGene = filteredGenesInARegion[0]
+
+                //find lowest p - value, is it closest gene - TO DO
+
+
+
+                data.forEach(function (eachSNP) {
+                    if (coding_variants.hasOwnProperty(eachSNP.consequence)) {
+                        if (eachSNP.pValue < 5e-8) {
+                            commonBF = 20
+                            return commonBF
+
                         }
                     }
+                });
+                //if NOT GWAS significant
+                if (!this.isGWASSignificantAssociation(data, selectedPhenotype)) {
+                    commonBF = 1
+                    console.log("gene is not GWAS significant")
+
+
+                }
+                //if  GWAS significant
+                else {
+                    //if top variant is coding and the impact of that coding variant is high or moderate
+                    if (coding_variants.hasOwnProperty(topVariant_consequence)) {
+                        if (coding_variants[topVariant_consequence] == "HIGH" || "MODERATE") {
+                            //you HAVE TP CHECK IF IT IS SAME GENE - TO DO
+                            commonBF = 360
+                        }
+                    }
+                    else if (lowestPvalueClosestGene.name == selectGene) {
+                        commonBF = 45
+                        console.log(lowestPvalueClosestGene, "lowestPvalueClosestGene")
+                    }
+                    else {
+                        commonBF = 3
+                    }
+
                 }
             }
 
-            commonBF = firstBF * secondBF * thirdBF;
-            console.log(commonBF, "commonBF")
-            return Number.parseFloat(commonBF).toFixed(2);
+
+            return commonBF;
+
         },
 
         queries() {
             return [
-
-                this.biolinkQueryGraph('NCBIGENE:1017', {
-                    subject: 'biolink:Gene',
-                    predicate: 'biolink:enables',
-                    object: 'biolink:MolecularActivity',
+                this.biolinkQueryGraph("NCBIGENE:1017", {
+                    subject: "biolink:Gene",
+                    predicate: "biolink:enables",
+                    object: "biolink:MolecularActivity"
                 })
-            ]
+            ];
         },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -455,9 +507,8 @@ new Vue({
             );
         },
 
-
         alternateNames() {
-            let geneData = this.$store.state.gene.data
+            let geneData = this.$store.state.gene.data;
             return this.$store.state.genes.data
                 .filter(g => g.start == geneData[0].start)
                 .filter(g => g.end == geneData[0].end)
@@ -519,9 +570,10 @@ new Vue({
         },
 
         associationPhenotypes() {
-            return this.$store.state.geneassociations.data.map(a => a.phenotype);
+            return this.$store.state.geneassociations.data.map(
+                a => a.phenotype
+            );
         },
-
 
         documentationMap() {
             let symbol = this.geneSymbol;
@@ -539,26 +591,24 @@ new Vue({
 
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
-        },
-
+        }
     },
 
     watch: {
         geneassociations(newData, oldData) {
-            let topPhenotype = "LDL"
+            let topPhenotype = "LDL";
             if (newData.length > 0) {
-                topPhenotype = newData[0].phenotype
-                console.log("top-phenotype", topPhenotype)
+                topPhenotype = newData[0].phenotype;
+                console.log("top-phenotype", topPhenotype);
                 if (this.genePageSearchCriterion[0] != topPhenotype) {
-                    this.genePageSearchCriterion = []
+                    this.genePageSearchCriterion = [];
                 }
-                this.pushCriterionPhenotype(topPhenotype)
+                this.pushCriterionPhenotype(topPhenotype);
 
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
 
                 this.$store.dispatch("getEGLData");
             }
-
 
             //this.pushCriterionPhenotype(newTopPhenotype)
             // if (removedPhenotypes.length > 0) {
@@ -567,7 +617,6 @@ new Vue({
             // this.$store.dispatch("getEGLData");
         },
 
-
         selectedPhenotypes(phenotypes, oldPhenotypes) {
             const removedPhenotypes = _.difference(
                 oldPhenotypes.map(p => p.name),
@@ -575,7 +624,10 @@ new Vue({
             );
             this.$store.dispatch("get52KAssociationData");
             if (removedPhenotypes.length > 0) {
-                this.$store.dispatch("getVarAssociationsData", phenotypes[0].name);
+                this.$store.dispatch(
+                    "getVarAssociationsData",
+                    phenotypes[0].name
+                );
             }
             this.$store.dispatch("getEGLData");
         },
@@ -594,9 +646,6 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
-
-
-
         }
     }
 }).$mount("#app");

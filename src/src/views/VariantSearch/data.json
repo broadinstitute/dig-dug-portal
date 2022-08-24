@@ -1,0 +1,422 @@
+[
+  {
+    "Variant ID": "21:33032078",
+    "dbSNP ID": "",
+    "Chromosome": 21,
+    "Position": 33032078,
+    "Reference allele": "G",
+    "Effect allele": "A",
+    "Gene": "SOD1",
+    "Protein change": "",
+    "Consequence": "5' UTR variant",
+    "PolyPhen prediction": "",
+    "SIFT prediction": "",
+    "CADD-Phred score": 7.485,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 1,
+          "Allele count (cases)": 0,
+          "Heterozygous count (cases)": 0,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 1,
+          "Heterozygous count (controls)": 1,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.0000429
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": "",
+          "Homozygous count": "",
+          "Heterozygous count": "",
+          "Minor allele frequency": "",
+          "Allele count__1": "",
+          "Homozygous count__1": "",
+          "Heterozygous count__1": "",
+          "Minor allele frequency__1": ""
+        }
+      }
+    ]
+  },
+  {
+    "Variant ID": "21:33032080",
+    "dbSNP ID": "",
+    "Chromosome": 21,
+    "Position": 33032080,
+    "Reference allele": "G",
+    "Effect allele": "A",
+    "Gene": "SOD1",
+    "Protein change": "",
+    "Consequence": "5' UTR variant",
+    "PolyPhen prediction": "",
+    "SIFT prediction": "",
+    "CADD-Phred score": 11.19,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 2,
+          "Allele count (cases)": 1,
+          "Heterozygous count (cases)": 1,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 1,
+          "Heterozygous count (controls)": 1,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.0000858
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": 4,
+          "Homozygous count": 0,
+          "Heterozygous count": 4,
+          "Minor allele frequency": 0.0000163,
+          "Allele count__1": "",
+          "Homozygous count__1": "",
+          "Heterozygous count__1": "",
+          "Minor allele frequency__1": ""
+        }
+      }
+    ]
+  },
+  {
+    "Variant ID": "21:33032096",
+    "dbSNP ID": "rs121912442",
+    "Chromosome": 21,
+    "Position": 33032096,
+    "Reference allele": "C",
+    "Effect allele": "T",
+    "Gene": "SOD1",
+    "Protein change": "p.A5V",
+    "Consequence": "missense variant",
+    "PolyPhen prediction": "possibly_damaging",
+    "SIFT prediction": "D,T",
+    "CADD-Phred score": 25.1,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 13,
+          "Allele count (cases)": 12,
+          "Heterozygous count (cases)": 12,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 1,
+          "Heterozygous count (controls)": 1,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.000557
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": 9,
+          "Homozygous count": 0,
+          "Heterozygous count": 9,
+          "Minor allele frequency": 0.0000367,
+          "Allele count__1": "",
+          "Homozygous count__1": "",
+          "Heterozygous count__1": "",
+          "Minor allele frequency__1": ""
+        }
+      }
+    ]
+  },
+  {
+    "Variant ID": "21:33032109",
+    "dbSNP ID": "",
+    "Chromosome": 21,
+    "Position": 33032109,
+    "Reference allele": "G",
+    "Effect allele": "A",
+    "Gene": "SOD1",
+    "Protein change": "p.L9L",
+    "Consequence": "synonymous variant",
+    "PolyPhen prediction": "",
+    "SIFT prediction": "",
+    "CADD-Phred score": 17.01,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 1,
+          "Allele count (cases)": 1,
+          "Heterozygous count (cases)": 1,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 0,
+          "Heterozygous count (controls)": 0,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.0000428
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": 5,
+          "Homozygous count": 0,
+          "Heterozygous count": 5,
+          "Minor allele frequency": 0.0000204,
+          "Allele count__1": "",
+          "Homozygous count__1": "",
+          "Heterozygous count__1": "",
+          "Minor allele frequency__1": ""
+        }
+      }
+    ]
+  },
+  {
+    "Variant ID": "21:33032132",
+    "dbSNP ID": "",
+    "Chromosome": 21,
+    "Position": 33032132,
+    "Reference allele": "G",
+    "Effect allele": "C",
+    "Gene": "SOD1",
+    "Protein change": "p.G17A",
+    "Consequence": "missense variant",
+    "PolyPhen prediction": "possibly_damaging",
+    "SIFT prediction": "D",
+    "CADD-Phred score": 24.6,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 1,
+          "Allele count (cases)": 1,
+          "Heterozygous count (cases)": 1,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 0,
+          "Heterozygous count (controls)": 0,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.0000428
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": 1,
+          "Homozygous count": 0,
+          "Heterozygous count": 1,
+          "Minor allele frequency": 0.00000407,
+          "Allele count__1": "",
+          "Homozygous count__1": "",
+          "Heterozygous count__1": "",
+          "Minor allele frequency__1": ""
+        }
+      }
+    ]
+  },
+  {
+    "Variant ID": "21:33032141",
+    "dbSNP ID": "",
+    "Chromosome": 21,
+    "Position": 33032141,
+    "Reference allele": "A",
+    "Effect allele": "G",
+    "Gene": "SOD1",
+    "Protein change": "p.N20S",
+    "Consequence": "missense variant",
+    "PolyPhen prediction": "benign",
+    "SIFT prediction": "T",
+    "CADD-Phred score": 15.31,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 6,
+          "Allele count (cases)": 3,
+          "Heterozygous count (cases)": 3,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 3,
+          "Heterozygous count (controls)": 3,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.000257
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": 21,
+          "Homozygous count": 0,
+          "Heterozygous count": 21,
+          "Minor allele frequency": 0.0000856,
+          "Allele count__1": 1,
+          "Homozygous count__1": 0,
+          "Heterozygous count__1": 1,
+          "Minor allele frequency__1": 0.0000323
+        }
+      }
+    ]
+  },
+  {
+    "Variant ID": "21:33032150",
+    "dbSNP ID": "",
+    "Chromosome": 21,
+    "Position": 33032150,
+    "Reference allele": "A",
+    "Effect allele": "T",
+    "Gene": "SOD1",
+    "Protein change": "p.Q23L",
+    "Consequence": "missense variant",
+    "PolyPhen prediction": "benign",
+    "SIFT prediction": "D",
+    "CADD-Phred score": 23.6,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 2,
+          "Allele count (cases)": 2,
+          "Heterozygous count (cases)": 2,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 0,
+          "Heterozygous count (controls)": 0,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.0000858
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": 1,
+          "Homozygous count": 0,
+          "Heterozygous count": 1,
+          "Minor allele frequency": 0.00000408,
+          "Allele count__1": "",
+          "Homozygous count__1": "",
+          "Heterozygous count__1": "",
+          "Minor allele frequency__1": ""
+        }
+      }
+    ]
+  },
+  {
+    "Variant ID": "21:33036099",
+    "dbSNP ID": "rs374242306",
+    "Chromosome": 21,
+    "Position": 33036099,
+    "Reference allele": "A",
+    "Effect allele": "G",
+    "Gene": "SOD1",
+    "Protein change": "",
+    "Consequence": "splice region variantintron variant",
+    "PolyPhen prediction": "",
+    "SIFT prediction": "",
+    "CADD-Phred score": 0.607,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 1,
+          "Allele count (cases)": 1,
+          "Heterozygous count (cases)": 1,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 0,
+          "Heterozygous count (controls)": 0,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.0000427
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": 18,
+          "Homozygous count": 0,
+          "Heterozygous count": 18,
+          "Minor allele frequency": 0.0000731,
+          "Allele count__1": 1,
+          "Homozygous count__1": 0,
+          "Heterozygous count__1": 1,
+          "Minor allele frequency__1": 0.0000323
+        }
+      }
+    ]
+  },
+  {
+    "Variant ID": "21:33036145",
+    "dbSNP ID": "rs121912432",
+    "Chromosome": 21,
+    "Position": 33036145,
+    "Reference allele": "C",
+    "Effect allele": "G",
+    "Gene": "SOD1",
+    "Protein change": "p.L39V",
+    "Consequence": "missense variant",
+    "PolyPhen prediction": "probably_damaging",
+    "SIFT prediction": "D",
+    "CADD-Phred score": 8.874,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 1,
+          "Allele count (cases)": 1,
+          "Heterozygous count (cases)": 1,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 0,
+          "Heterozygous count (controls)": 0,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.0000427
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": 1,
+          "Homozygous count": 0,
+          "Heterozygous count": 1,
+          "Minor allele frequency": 0.00000406,
+          "Allele count__1": "",
+          "Homozygous count__1": "",
+          "Heterozygous count__1": "",
+          "Minor allele frequency__1": ""
+        }
+      }
+    ]
+  },
+  {
+    "Variant ID": "21:33036154",
+    "dbSNP ID": "rs121912433",
+    "Chromosome": 21,
+    "Position": 33036154,
+    "Reference allele": "G",
+    "Effect allele": "A",
+    "Gene": "SOD1",
+    "Protein change": "p.G42S",
+    "Consequence": "missense variant",
+    "PolyPhen prediction": "probably_damaging",
+    "SIFT prediction": "D",
+    "CADD-Phred score": 25,
+    "datasets": [
+      {
+        "name": "dataset1",
+        "data": {
+          "Allele count (cases and controls)": 1,
+          "Allele count (cases)": 1,
+          "Heterozygous count (cases)": 1,
+          "Homozygous count (cases)": 0,
+          "Allele count (controls)": 0,
+          "Heterozygous count (controls)": 0,
+          "Homozygous count (controls)": 0,
+          "Minor allele frequency (cases and controls)": 0.0000427
+        }
+      },
+      {
+        "name": "dataset2",
+        "data": {
+          "Allele count": 1,
+          "Homozygous count": 0,
+          "Heterozygous count": 1,
+          "Minor allele frequency": 0.00000406,
+          "Allele count__1": "",
+          "Homozygous count__1": "",
+          "Heterozygous count__1": "",
+          "Minor allele frequency__1": ""
+        }
+      }
+    ]
+  }
+]

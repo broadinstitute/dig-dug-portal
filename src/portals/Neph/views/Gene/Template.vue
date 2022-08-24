@@ -12,6 +12,11 @@
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div class="col filter-col-md">
+                    <!--
+                    <gene-selectpicker
+                        @onGeneChange="$store.dispatch('queryGeneName', $event)"
+                    ></gene-selectpicker>
+                    -->
                     <gene-selectpicker
                         @onGeneChange="$store.dispatch('queryGeneName', $event)"
                     ></gene-selectpicker>
@@ -22,7 +27,7 @@
                 <div class="row card-body">
                     <div class="col-md-12 gene-page-header-title">Gene</div>
                     <div class="col-md-12 gene-page-header-body">
-                        <div>
+                        <div :key="$store.state.geneName">
                             <span>{{ $store.state.geneName }}</span>
                         </div>
                     </div>
@@ -31,13 +36,43 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Variant Search</h4>
-                    <variant-search
-                        :gene="$store.state.geneName"
-                    ></variant-search>
+                    <div >
+                        <h4 class="card-title">Variant Counts in CRDC Aggregation Database</h4>
+                        <!--<documentation
+                            name="variantsearch.subheader"
+                            group="aggregator"
+                        ></documentation> -->
+                        <p>To view information about cohorts in the CRDC Aggregation Database, visit the <a href="research.html?pageid=bch_datasets_n127">dataset page</a></p>
+                        <variant-search
+                            :key="$store.state.geneName"
+                            :gene="$store.state.geneName"
+                        ></variant-search>
+                    </div>
                 </div>
             </div>
             <div class="card mdkp-card">
+                <div class="card-body">
+                    <div v-if="$parent.dbReference">
+                        <h4 class="card-title">
+                            Rare variant gene-level associations for
+                            {{ $store.state.geneName }}
+                            <tooltip-documentation
+                                name="gene.52k.tooltip.hover"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+                       
+                        <gene-associations-masks
+                            :associations="$store.state.associations52k.data"
+                            :phenotypeMap="$store.state.HPOTerms"
+                        ></gene-associations-masks> 
+                        
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
@@ -113,17 +148,9 @@
                         </criterion-function-group>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <div class="card mdkp-card">
-                <!-- <div class="card-body">
-                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
-                    <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
-                    <documentation name="gene.translator.dashboard"></documentation>
-                    <translator-results-dashboard
-                        :queries="$parent.queries"
-                    ></translator-results-dashboard>
-                </div>-->
                 <div class="card-body">
                     <h4>
                         {{
@@ -291,7 +318,7 @@
                     <div v-if="$parent.geneNames">
                         <h4 class="card-title">External resources</h4>
                         <div
-                            v-if="$parent.accession.length > 0"
+                            v-if="$parent.accession && $parent.accession.length > 0"
                             class="gene-with-signal none"
                         >
                             <a
@@ -339,8 +366,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div> 
+        </div> 
 
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>

@@ -1,389 +1,242 @@
 <template>
-	<div class="mbm-plot-content row">
-		<div class="col-md-12">
-			<div class="score-plot-bubbles" v-if="dataComparisonConfig != null">
+	<div class="mbm-plot-content row" id="rp_region_plot">
+		<div v-if="plotsList.length > 1" class="show-hide-plots col-md-12">
+			<strong>Show/hide region plots</strong>
+			<template v-for="(item, itemIndex) in plotsList">
 				<span
-					v-for="(item, itemIndex) in yAxisFieldItems"
+					:key="item"
+					v-if="item != 'Combined'"
+					class="group-bubble"
 					v-html="item"
-					:class="'plot-item-bubble reference bg-color-' + itemIndex"
+					:style="
+						'background-color:' +
+						compareGroupColors[itemIndex] +
+						';'
+					"
+					@click="
+						showHideElement(
+							'plotsWrapper' + item.replaceAll(' ', '_')
+						)
+					"
 				></span>
 				<span
-					v-if="this.plotRenderBy == 'combined'"
-					class="plot-item-bubble reference"
-					style="background-color: #00000030"
-					>Combined</span
+					type="button"
+					v-if="item == 'Combined'"
+					class="group-bubble reference"
+					style="background-color: #ffffff; border: solid 1px #666666"
+					@click="showHideElement('plotsWrapperCombined')"
 				>
-				<span
-					v-if="yAxisFieldItems.length > 1"
-					class="plot-item-bubble reference"
+					Combined
+				</span>
+			</template>
+		</div>
+		<div id="fixedInfoBox" class="fixed-info-box hidden">
+			<div
+				class="fixed-info-box-close"
+				@click="showHidePanel('#fixedInfoBox')"
+			>
+				<b-icon icon="x-circle-fill"></b-icon>
+			</div>
+			<div class="fixed-info-box-content">
+				<div v-for="(d, dIndex) in dotsClicked">
+					<div>
+						<strong v-html="d"></strong>
+						<b-icon
+							v-if="
+								!!renderConfig['star key'] &&
+								checkStared(d) == true
+							"
+							icon="star-fill"
+							style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							"
+							@click="removeStarItem(d)"
+						></b-icon>
+						<b-icon
+							v-if="
+								!!renderConfig['star key'] &&
+								checkStared(d) == false
+							"
+							icon="star"
+							style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							"
+							@click="addStarItem(d)"
+						></b-icon>
+					</div>
+					<div>
+						<strong v-html="'Set this LD reference for: '"></strong>
+						<template v-for="(i, iIndex) in plotsList">
+							<strong
+								v-if="i != 'Combined' && !!assoData[i].data[d]"
+								v-html="i"
+								class="group-bubble"
+								:style="
+									'background-color:' +
+									compareGroupColors[iIndex] +
+									';'
+								"
+								@click="resetLdReference(i, d)"
+							></strong>
+							<strong
+								v-if="i == 'Combined'"
+								v-html="'All'"
+								class="group-bubble"
+								style="background-color: #dddddd"
+								@click="resetLdReference('All', d)"
+							></strong>
+						</template>
+					</div>
+					<div
+						v-if="g != 'Combined' && !!assoData[g].data[d]"
+						v-for="(g, gIndex) in plotsList"
+					>
+						<div
+							v-for="(h, hIndex) in renderConfig['hover content']"
+						>
+							<span
+								v-html="
+									h + '(' + g + '):' + assoData[g].data[d][h]
+								"
+							></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div
+			v-if="!!renderConfig.legend"
+			class="mbm-plot-legend col-md-12"
+			v-html="renderConfig.legend"
+		></div>
+		<div
+			class="col-md-12 region-plots-wrapper"
+			:id="'plotsWrapper' + item.replaceAll(' ', '_')"
+			v-for="(item, itemIndex) in plotsList"
+		>
+			<div class="col-md-9 region-plot-default-legend">
+				<!--<span
+					v-for="(g, gIndex) in plotsList"
+					v-if="item == 'Combined' && g != 'Combined'"
+					class="group-bubble"
+					v-html="g"
+					:style="
+						'background-color:' + compareGroupColors[gIndex] + ';'
+					"
+				></span>
+				<button
+					type="button"
+					v-if="item == 'Combined'"
+					class="group-bubble reference"
 					style="background-color: #ffffff; border: solid 1px #666666"
 					@click="showHideSplitPlots()"
-					>Show/hide split plots</span
 				>
-			</div>
-			<div class="plot-score-options-ui">
-				<label v-if="dataComparisonConfig != null"
-					>Render plot by:
-					<select
-						v-model="plotRenderBy"
-						class="score-plot-render-by"
-						@change="renderPlot()"
-					>
-						<option value="combined">Combined</option>
-						<option value="high">Highest in row</option>
-						<option value="all">All</option>
-					</select>
-				</label>
-			</div>
-		</div>
-		<div class="col-md-9 region-plot-default-legend"></div>
-		<div class="col-md-3 region-plot-default-legend">
-			<span
-				class="plot-legend-dot"
-				style="background-color: #82409970"
-			></span>
-			<span>Reference variant</span>
-			<!--<span
-                class="plot-legend-dot"
-                style="background-color: #d0363360"
-            ></span
-            ><span>1 > r2 >= 0.8</span>
-            <span
-                class="plot-legend-dot"
-                style="background-color: #ee982d50"
-            ></span
-            ><span>0.8 > r2 >= 0.6</span>
-            <span
-                class="plot-legend-dot"
-                style="background-color: #4db05240"
-            ></span
-            ><span>0.6 > r2 >= 0.4</span>
-            <span
-                class="plot-legend-dot"
-                style="background-color: #32afd530"
-            ></span
-            ><span>0.4 > r2 >= 0.2</span>
-            <span
-                class="plot-legend-dot"
-                style="background-color: #2074b620"
-            ></span
-            ><span>0.2 > r2 > 0</span>
-
-            <span
-                class="plot-legend-dot"
-                style="background-color: #33333320"
-            ></span>
-            <span>No data</span>-->
-		</div>
-		<div id="regionPlotWrapper" class="col-md-9">
-			<div id="clicked_dot_value" class="clicked-dot-value hidden">
-				<div id="clicked_dot_value_content">
+					Show/hide Individual plots
+				</button>-->
+				<div v-if="item != 'Combined'">
 					<span
-						v-if="hoverDotPosFullList.length > 5"
-						class="gene-on-clicked-dot-mplot"
-						style="color: #36c; font-weight: bold"
-						v-html="
-							'Viewing 5 of ' +
-							hoverDotPosFullList.length +
-							' variants. Click dot to view full list.'
-						"
+						class="plot-legend-dot"
+						style="background-color: #82409970"
 					></span>
+					<span>Reference variant</span>
 					<span
-						class="gene-on-clicked-dot-mplot"
-						style="color: #36c; font-weight: bold"
-						v-html="'Click dot for more options.'"
-					></span>
-					<template
-						v-for="(variant, vIndex) in hoverDotPosFullList"
-						v-if="vIndex < 5"
-					>
-						<span class="gene-on-clicked-dot-mplot">
-							<b v-html="variant[renderConfig.renderBy]"></b
-						></span>
-						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == false
-							"
-							class="content-on-clicked-dot"
-							v-for="(info, infoKey, infoIndex) in variant"
-							v-html="infoKey + ': ' + info"
-						>
-						</span>
-						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == true
-							"
-							class="content-on-clicked-dot"
-							v-for="(info, infoKey, infoIndex) in variant"
-						>
-							{{ infoKey }}: <br />
-							<span
-								class="content-on-clicked-dot-values"
-								v-for="(infoItem, infoItemKey) in info"
-								v-html="
-									infoItemKey + ': ' + infoItem + '<br />'
-								"
-							></span>
-						</span>
-					</template>
-				</div>
-			</div>
-			<div id="dot_value_full_list" class="dot-value-full-list hidden">
-				<div
-					class="clicked-dot-value-close"
-					@click="hidePanel('dot_value_full_list')"
-				>
-					<b-icon icon="x-circle-fill"></b-icon>
-				</div>
-				<div id="dot_value_full_list_content">
-					<template
-						v-for="(variant, vIndex) in clickedDotPosFullList"
-					>
-						<span class="gene-on-clicked-dot-mplot">
-							<b v-html="variant[renderConfig.renderBy]"></b
-						></span>
-						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == false
-							"
-							class="content-on-clicked-dot"
-							v-for="(info, infoKey) in variant"
-							v-html="infoKey + ': ' + info"
-						>
-						</span>
-						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == true
-							"
-							class="content-on-clicked-dot"
-							v-for="(info, infoKey) in variant"
-						>
-							{{ infoKey }}: <br />
-							<span
-								class="content-on-clicked-dot-values"
-								v-for="(infoItem, infoItemKey) in info"
-								v-html="
-									infoItemKey + ': ' + infoItem + '<br />'
-								"
-							></span>
-						</span>
+						class="plot-legend-dot"
+						style="background-color: #d0363360"
+					></span
+					><span>1 > r2 >= 0.8</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #ee982d50"
+					></span
+					><span>0.8 > r2 >= 0.6</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #4db05240"
+					></span
+					><span>0.6 > r2 >= 0.4</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #32afd530"
+					></span
+					><span>0.4 > r2 >= 0.2</span>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #2074b620"
+					></span
+					><span>0.2 > r2 > 0</span>
 
-						<!--<span class="set-it-ld-reference"
-							><a
-								href="javascript:;"
-								@click="
-									setLDReference(
-										variant[renderConfig.renderBy]
-									)
-								"
-								>Set this LD reference</a
-							>
-						</span>-->
-					</template>
+					<span
+						class="plot-legend-dot"
+						style="background-color: #33333320"
+					></span>
+					<span>No data</span>
 				</div>
 			</div>
-			<div
-				v-if="!!renderConfig.legend"
-				class="mbm-plot-legend"
-				v-html="renderConfig.legend"
-			></div>
-			<canvas
-				v-if="!!renderConfig"
-				id="regionPlot"
-				@mousemove="checkPosition($event, 'regionPlot')"
-				@resize="onResize"
-				@click="getFullList"
-				width=""
-				height=""
-			>
-			</canvas>
-			<div
-				id="splitPlots"
-				class="hidden"
-				v-if="!!renderConfig && yAxisFieldItems.length > 1"
-			>
-				<div v-for="(item, itemIndex) in yAxisFieldItems">
-					<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
+
+			<div class="col-md-9 asso-plots-wrapper">
+				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_')">
+					<h6
+						v-if="item != 'default'"
+						v-html="item"
+						:class="'text color-' + itemIndex"
+					></h6>
 					<canvas
-						:id="'splitPlot' + itemIndex"
-						@mousemove="
-							checkPosition($event, 'splitPlot' + itemIndex)
-						"
-						@click="getFullList"
+						:id="'asso_plot_' + item.replaceAll(' ', '_')"
+						class="asso-plot"
 						width=""
 						height=""
+						@resize="onResize"
+						@click="checkPosition($event, item, 'asso', 'click')"
+						@mousemove="checkPosition($event, item, 'asso', 'move')"
+						@mouseout="onMouseOut('assoInfoBox' + item)"
 					></canvas>
+					<!--<span
+						v-if="sharedPlotXpos != null"
+						:style="
+							'position:absolute;width: 1px; height:100%;top:0;left: ' +
+							sharedPlotXpos +
+							'px;border-left: solid 1px #000;'
+						"
+					></span>-->
+					<div
+						:id="'assoInfoBox' + item.replaceAll(' ', '_')"
+						class="asso-info-box hidden"
+					></div>
 				</div>
 			</div>
+			<div
+				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_')"
+				class="col-md-3 ld-plots-wrapper reference-area"
+			>
+				<h6
+					v-html="
+						item != 'default'
+							? item + ' <small>*Showing only with LD</small>'
+							: ' <small>*Showing only with LD</small>'
+					"
+					:class="'text color-' + itemIndex"
+				></h6>
+				<canvas
+					:id="'ld_plot_' + item.replaceAll(' ', '_')"
+					class="ld-plot"
+					width=""
+					height=""
+					@resize="onResize"
+					@click="checkPosition($event, item, 'LD', 'click')"
+					@mousemove="checkPosition($event, item, 'LD', 'move')"
+					@mouseout="onMouseOut('ldInfoBox' + item)"
+				></canvas>
 
-			<div
-				v-if="!!renderConfig.label"
-				class="mbm-plot-label"
-				v-html="renderConfig.label"
-			></div>
-		</div>
-		<div id="ldPlotWrapper" class="col-md-3">
-			<div id="ld_clicked_dot_value" class="ld-clicked-dot-value hidden">
-				<div id="ld_clicked_dot_value_content">
-					<span
-						v-if="hoverLdDotPosFullList.length > 5"
-						class="gene-on-clicked-dot-mplot"
-						style="color: #36c; font-weight: bold"
-						v-html="
-							'Viewing 5 of ' +
-							hoverLdDotPosFullList.length +
-							' variants. Click dot to view full list.'
-						"
-					></span>
-					<span
-						class="gene-on-clicked-dot-mplot"
-						style="color: #36c; font-weight: bold"
-						v-html="'Click dot for more options.'"
-					></span>
-					<template
-						v-for="(hLdVariant, hLdVIndex) in hoverLdDotPosFullList"
-						v-if="hLdVIndex < 5"
-					>
-						<span class="gene-on-clicked-dot-mplot">
-							<b v-html="hLdVariant[renderConfig.renderBy]"></b
-						></span>
-						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									hLdVInfoKey
-								) == false
-							"
-							class="content-on-clicked-dot"
-							v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
-							v-html="hLdVInfoKey + ': ' + hLdVInfo"
-						>
-						</span>
-						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									hLdVInfoKey
-								) == true
-							"
-							class="content-on-clicked-dot"
-							v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
-						>
-							{{ hLdVInfoKey }}: <br />
-							<span
-								class="content-on-clicked-dot-values"
-								v-for="(hLdVItem, hLdVItemKey) in hLdVInfo"
-								v-html="
-									hLdVItemKey + ': ' + hLdVItem + '<br />'
-								"
-							></span>
-						</span>
-					</template>
-				</div>
-			</div>
-			<div
-				id="ld_dot_value_full_list"
-				class="ld-dot-value-full-list hidden"
-			>
 				<div
-					class="clicked-dot-value-close"
-					@click="hidePanel('ld_dot_value_full_list')"
-				>
-					<b-icon icon="x-circle-fill"></b-icon>
-				</div>
-				<div id="ld_dot_value_full_list_content">
-					<template
-						v-for="(ldVariant, ldIndex) in clickedLdDotPosFullList"
-					>
-						<span class="gene-on-clicked-dot-mplot">
-							<b v-html="ldVariant[renderConfig.renderBy]"></b
-						></span>
-						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									ldInfoKey
-								) == false
-							"
-							class="content-on-clicked-dot"
-							v-for="(ldInfo, ldInfoKey) in ldVariant"
-							v-html="ldInfoKey + ': ' + ldInfo"
-						>
-						</span>
-						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									ldInfoKey
-								) == true
-							"
-							class="content-on-clicked-dot"
-							v-for="(ldInfo, ldInfoKey) in ldVariant"
-						>
-							{{ ldInfoKey }}: <br />
-							<span
-								class="content-on-clicked-dot-values"
-								v-for="(ldInfoItem, ldInfoItemKey) in ldInfo"
-								v-html="
-									ldInfoItemKey + ': ' + ldInfoItem + '<br />'
-								"
-							></span>
-						</span>
-						<!--<span class="set-it-ld-reference"
-							><a
-								href="javascript:;"
-								@click="
-									setLDReference(
-										ldVariant[renderConfig.renderBy]
-									)
-								"
-								>Set this LD Reference</a
-							>
-						</span>-->
-					</template>
-				</div>
-			</div>
-			<canvas
-				v-if="!!renderConfig"
-				id="ldPlot"
-				@mousemove="checkLDPosition($event, 'ldPlot')"
-				@click="getLDFullList"
-				width=""
-				height=""
-			>
-			</canvas>
-			<div
-				id="splitLDPlots"
-				class="hidden"
-				v-if="!!renderConfig && yAxisFieldItems.length > 1"
-			>
-				<div v-for="(item, itemIndex) in yAxisFieldItems">
-					<h6 v-html="item" :class="'text color-' + itemIndex"></h6>
-					<canvas
-						:id="'splitLDPlot' + itemIndex"
-						@mousemove="
-							checkLDPosition($event, 'splitLDPlot' + itemIndex)
-						"
-						@click="getLDFullList"
-						width=""
-						height=""
-					></canvas>
-				</div>
+					:id="'ldInfoBox' + item.replaceAll(' ', '_')"
+					class="ld-info-box hidden"
+				></div>
 			</div>
 		</div>
-		{{ selectedRegion }}
 	</div>
 </template>
 
@@ -391,6 +244,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import PlotUtils from "@/utils/plotUtils.js";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
@@ -402,26 +256,18 @@ export default Vue.component("research-region-plot", {
 	props: [
 		"plotData",
 		"renderConfig",
-		"selectedRegion",
-		"searchParameters",
 		"dataComparisonConfig",
 		"region",
+		"plotMargin",
+		"compareGroupColors",
+		"regionZoom",
+		"regionViewArea",
+		"pkgData",
+		"pkgDataSelected",
 	],
 	data() {
 		return {
 			plotRenderBy: "all",
-			plotRendered: 0,
-			leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			rightMargin: 0.5,
-			topMargin: 10.5, // -0.5 to draw crisp line
-			bottomMargin: 50.5,
-			dotPosData: {},
-			ldDotPosData: {},
-			hoverDotPosFullList: [],
-			hoverLdDotPosFullList: [],
-			clickedDotPosFullList: [],
-			clickedLdDotPosFullList: [],
-			refVariant: null,
 			ldColor: [
 				"#2074B620",
 				"#32AFD520",
@@ -429,125 +275,297 @@ export default Vue.component("research-region-plot", {
 				"#EE982D20",
 				"#D0363320",
 			],
-			compareGroupColors: [
-				"#007bff50",
-				"#04884550",
-				"#8490C850",
-				"#BF61A550",
-				"#EE312450",
-				"#FCD70050",
-				"#5555FF50",
-				"#7aaa1c50",
-				"#9F78AC50",
-				"#F8808450",
-				"#F5A4C750",
-				"#CEE6C150",
-				"#cccc0050",
-				"#6FC7B650",
-				"#D5A76850",
-				"#d4d4d450",
+			ldDotColor: [
+				"#2074B650",
+				"#32AFD550",
+				"#4DB05250",
+				"#EE982D50",
+				"#D0363350",
+				"#82409970",
 			],
-			yAxisFieldItems: [],
-			ldPopulations: {},
-			ldDataCalled: {},
-			ancestryOnCall: null,
-			ldPosItems: null,
+
+			//rebuilding start
+			assoData: {},
+			ldData: {},
+			recombData: "",
+			assoPos: {},
+			ldPos: {},
+			dotsClicked: [],
 		};
 	},
 	modules: {
-		uiUtils,
+		...uiUtils,
 		Formatters,
 	},
 	components: {},
 	mounted: function () {
-		if (this.renderData != null) {
-			this.setRefVariant();
-		}
-
 		window.addEventListener("resize", this.onResize);
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
-		renderData() {
-			if (this.plotData == null) {
-				return null;
+		staredVariants() {
+			if (!!this.renderConfig["star key"]) {
+				let stared = "";
+				this.pkgDataSelected
+					.filter((s) => s.type == this.renderConfig["star key"])
+					.map((s) => {
+						stared += s.id;
+					});
+
+				return stared;
 			} else {
-				let rawData = this.plotData;
-				let comparingData = [];
-				this.yAxisFieldItems = [];
-
-				if (!!this.dataComparisonConfig) {
-					for (const [rKey, r] of Object.entries(rawData)) {
-						let tempObj = r;
-
-						if (!!this.renderConfig.ifCombineYAxisField) {
-							let yAxisFieldArr = [];
-							let yAxisField =
-								r[this.renderConfig.ifCombineYAxisField.field];
-
-							for (const [yKey, y] of Object.entries(
-								yAxisField
-							)) {
-								this.yAxisFieldItems.push(yKey);
-								yAxisFieldArr.push(y);
-							}
-							let combined;
-							switch (
-								this.renderConfig.ifCombineYAxisField.type
-							) {
-								case "chi-square":
-									combined = this.chiSquared(yAxisFieldArr);
-									break;
-								case "average":
-									let X = 0;
-									let index = 0;
-									yAxisFieldArr.map((n) => {
-										X += n;
-										index++;
-									});
-
-									combined = X / index;
-									break;
-							}
-
-							if (
-								!!this.renderConfig.ifCombineYAxisField
-									.calculate
-							) {
-								switch (
-									this.renderConfig.ifCombineYAxisField
-										.calculate
-								) {
-									case "-log10":
-										tempObj["combined"] =
-											-Math.log10(combined);
-										break;
-								}
-							} else {
-								tempObj["combined"] = combined;
-							}
-						}
-
-						comparingData.push(tempObj);
-					}
-
-					this.yAxisFieldItems = [...new Set(this.yAxisFieldItems)];
-
-					return comparingData;
-				} else {
-					return rawData;
-				}
+				return null;
 			}
 		},
-		ldVariantCorrelationsData() {
-			let contents = this.$store.state.umLdServer.variantCorrelations;
+		plotsList() {
+			//used rebuild
+			if (this.plotData != null) {
+				var plotsKeys = [];
+				if (this.dataComparisonConfig != null) {
+					var field =
+						this.dataComparisonConfig["fields to compare"][0];
+					// get list of data groups
+					for (const [pKey, pValue] of Object.entries(
+						this.plotData
+					)) {
+						for (const [key, value] of Object.entries(
+							pValue[field]
+						)) {
+							plotsKeys.push(key);
+						}
+					}
+					plotsKeys = [...new Set(plotsKeys)];
 
-			if (contents == "") {
-				return null;
+					if (plotsKeys.length > 1) {
+						plotsKeys.push("Combined");
+					}
+				} else if (this.dataComparisonConfig == null) {
+					plotsKeys.push("default");
+				}
+
+				this.assoData = {}; // reset assoData
+				this.ldData = {}; // reset ldData
+				this.recombData = ""; // reset recombData
+				this.assoPos = {};
+				this.ldPos = {};
+
+				//feed assoData + set initial reference variant
+				var yAxField = this.renderConfig["y axis field"];
+				var populationsType =
+					this.renderConfig["ld server"]["populations type"];
+
+				plotsKeys.map((group) => {
+					this.assoData[group] = {
+						yAxHigh: null,
+						yAxLow: null,
+						data: {},
+					};
+					this.ldData[group] = {
+						refVariant: null,
+						population: [],
+						data: null,
+					};
+
+					if (group != "Combined") {
+						this.assoPos[group] = {};
+						this.ldPos[group] = {};
+					}
+
+					if (group != "default") {
+						for (const [dKey, dValue] of Object.entries(
+							this.plotData
+						)) {
+							if (group != "Combined") {
+								let yAxValue = dValue[yAxField][group];
+
+								if (!!yAxValue) {
+									// set population for calling LD API
+
+									if (populationsType == "fixed") {
+										this.ldData[group].population =
+											this.renderConfig["ld server"][
+												"fixed population"
+											];
+									} else if (populationsType == "dynamic") {
+										let population =
+											dValue[
+												this.renderConfig["ld server"][
+													"populations field"
+												]
+											][group];
+
+										this.ldData[group].population.push(
+											population
+										);
+									}
+
+									// set initial refVarint
+									this.ldData[group].refVariant =
+										this.assoData[group].yAxHigh == null
+											? dKey
+											: yAxValue >
+											  this.assoData[group].yAxHigh
+											? dKey
+											: this.ldData[group].refVariant;
+
+									// set high / low values of the group
+									this.assoData[group].yAxHigh =
+										this.assoData[group].yAxHigh == null
+											? yAxValue
+											: yAxValue >
+											  this.assoData[group].yAxHigh
+											? yAxValue
+											: this.assoData[group].yAxHigh;
+
+									this.assoData[group].yAxLow =
+										this.assoData[group].yAxLow == null
+											? yAxValue
+											: yAxValue <
+											  this.assoData[group].yAxLow
+											? yAxValue
+											: this.assoData[group].yAxLow;
+									// add data to asso data
+									this.assoData[group].data[dKey] = {};
+
+									for (const [fKey, fValue] of Object.entries(
+										dValue
+									)) {
+										if (this.dataComparisonConfig != null) {
+											this.assoData[group].data[dKey][
+												fKey
+											] =
+												this.dataComparisonConfig[
+													"fields to compare"
+												].includes(fKey) == true
+													? fValue[group]
+													: fValue;
+										} else if (
+											this.dataComparisonConfig == null
+										) {
+											this.assoData[group].data[dKey][
+												fKey
+											] = fValue;
+										}
+									}
+								}
+							}
+						}
+					} else if (group == "default") {
+						this.plotData.map((dValue) => {
+							let yAxValue = dValue[yAxField];
+
+							if (!!yAxValue) {
+								// set population for calling LD API
+
+								if (populationsType == "fixed") {
+									this.ldData[group].population =
+										this.renderConfig["ld server"][
+											"fixed population"
+										];
+								} else if (populationsType == "dynamic") {
+									let population =
+										dValue[
+											this.renderConfig["ld server"][
+												"populations field"
+											]
+										];
+
+									this.ldData[group].population.push(
+										population
+									);
+								}
+
+								let dKey =
+									dValue[this.renderConfig["render by"]];
+
+								// set initial refVarint
+
+								this.ldData[group].refVariant =
+									this.assoData[group].yAxHigh == null
+										? dKey
+										: yAxValue >
+										  this.assoData[group].yAxHigh
+										? dKey
+										: this.ldData[group].refVariant;
+
+								// set high / low values of the group
+								this.assoData[group].yAxHigh =
+									this.assoData[group].yAxHigh == null
+										? yAxValue
+										: yAxValue >
+										  this.assoData[group].yAxHigh
+										? yAxValue
+										: this.assoData[group].yAxHigh;
+
+								this.assoData[group].yAxLow =
+									this.assoData[group].yAxLow == null
+										? yAxValue
+										: yAxValue < this.assoData[group].yAxLow
+										? yAxValue
+										: this.assoData[group].yAxLow;
+								// add data to asso data
+								this.assoData[group].data[dKey] = {};
+
+								for (const [fKey, fValue] of Object.entries(
+									dValue
+								)) {
+									if (this.dataComparisonConfig != null) {
+										this.assoData[group].data[dKey][fKey] =
+											this.dataComparisonConfig[
+												"fields to compare"
+											].includes(fKey) == true
+												? fValue[group]
+												: fValue;
+									} else if (
+										this.dataComparisonConfig == null
+									) {
+										this.assoData[group].data[dKey][fKey] =
+											fValue;
+									}
+								}
+							}
+						});
+					}
+
+					// set LD population
+					let uniqPopulations = [
+						...new Set(this.ldData[group].population),
+					];
+					this.ldData[group].population =
+						uniqPopulations.length > 1
+							? "ALL"
+							: this.renderConfig["ld server"].populations[
+									uniqPopulations[0]
+							  ];
+				});
+
+				if (plotsKeys.includes("Combined") == true) {
+					plotsKeys.map((p) => {
+						let yAxHighValue = this.assoData[p].yAxHigh;
+						let yAxLowValue = this.assoData[p].yAxLow;
+
+						this.assoData.Combined.yAxHigh =
+							this.assoData.Combined.yAxHigh == null
+								? yAxHighValue
+								: yAxHighValue > this.assoData.Combined.yAxHigh
+								? yAxHighValue
+								: this.assoData.Combined.yAxHigh;
+
+						this.assoData.Combined.yAxLow =
+							this.assoData.Combined.yAxLow == null
+								? yAxLowValue
+								: yAxLowValue < this.assoData.Combined.yAxLow
+								? yAxLowValue
+								: this.assoData.Combined.yAxLow;
+					});
+				}
+
+				this.setUpWrappers();
+				return plotsKeys;
 			} else {
-				return contents;
+				return null;
 			}
 		},
 		searchingRegion() {
@@ -556,1301 +574,1086 @@ export default Vue.component("research-region-plot", {
 			} else {
 				let returnObj = {};
 
-				returnObj["chr"] = this.region.split(":")[0];
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 
 				let regionArr = this.region.split(":")[1].split("-");
-				returnObj["start"] = regionArr[0];
-				returnObj["end"] = regionArr[1];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
 
 				return returnObj;
 			}
 		},
 	},
 	watch: {
-		ldVariantCorrelationsData(data) {
-			let ldData = {};
-
-			if (data.data.correlation.length > 0) {
-				data.data.variant2.map((v, index) => {
-					ldData[v] = data.data.correlation[index];
-				});
-			}
-
-			this.ldPopulations[this.ancestryOnCall].ldData = ldData;
-
-			let notLoadedLDScore = 0;
-			let refVariant = null;
-			let ancester = null;
-
-			for (const [key, item] of Object.entries(this.ldPopulations)) {
-				if (item.ldData == null) {
-					notLoadedLDScore++;
-					this.ancestryOnCall = item.name;
-					ancester = item.ancestry;
-					refVariant = item.refVariant;
-				}
-			}
-
-			if (notLoadedLDScore > 0) {
-				this.getLDData(refVariant, ancester);
-			} else if (notLoadedLDScore == 0) {
-				this.renderPlot();
-			}
-		},
-		renderData(data) {
-			this.setRefVariant();
+		staredVariants(CONTENT) {
+			this.renderPlots();
 		},
 	},
 	methods: {
 		...uiUtils,
-		chiSquared(ARRAY) {
-			let X = 0.0;
-			let n = ARRAY.length;
+		showHideElement: uiUtils.showHideElement,
 
-			ARRAY.map((p) => {
-				X += -2 * Math.log(p);
-			});
-
-			let pdf = Chi.pdf(X, 2 * n);
-			let returnPdf = 2 * pdf;
-
-			return returnPdf;
-		},
-		setRefVariant() {
-			let DATA = this.renderData;
-			let yMax = null;
-			let dataGroups = {};
-			let populations = [];
-			this.ldPopulations = {};
-
-			console.log("DATA", DATA);
-			console.log(
-				"this.renderConfig.ldServer",
-				this.renderConfig.ldServer
-			);
-
-			if (!!DATA && DATA.length > 0) {
-				DATA.map((d) => {
-					if (
-						!!this.dataComparisonConfig &&
-						!!this.renderConfig.ldServer.populations_field
-					) {
-						// case of ancestry value of dynamic
-						if (
-							this.renderConfig.ldServer.populations_type ==
-							"dynamic"
-						) {
-							for (const [key, ancestry] of Object.entries(
-								d[this.renderConfig.ldServer.populations_field]
-							)) {
-								if (!!dataGroups[key]) {
-									dataGroups[key].push(ancestry);
-								} else {
-									dataGroups[key] = [];
-									dataGroups[key].push(ancestry);
-								}
-							}
-						} else if (
-							this.renderConfig.ldServer.populations_type ==
-							"fixed"
-						) {
-							for (const [key, ancestry] of Object.entries(
-								d[this.renderConfig.ldServer.populations_field]
-							)) {
-								dataGroups[key] = [];
-								dataGroups[key].push(
-									this.renderConfig.ldServer
-										.populations_fixed_ancestry
-								);
-							}
-						}
-					} else if (
-						// fixed data but multiple values in ancesry column
-						!this.dataComparisonConfig &&
-						!!this.renderConfig.ldServer.populations_field
-					) {
-						// case of ancestry value of dynamic
-						if (
-							this.renderConfig.ldServer.populations_type ==
-							"dynamic"
-						) {
-							if (
-								d[
-									this.renderConfig.ldServer.populations_field
-								] != null &&
-								d[
-									this.renderConfig.ldServer.populations_field
-								] != undefined &&
-								d[
-									this.renderConfig.ldServer.populations_field
-								] != ""
-							) {
-								if (!!dataGroups["default"]) {
-									dataGroups["default"].push(
-										this.renderConfig.ldServer
-											.populations_fixed_ancestry
-									);
-								} else {
-									dataGroups["default"] = [];
-									dataGroups["default"].push(
-										this.renderConfig.ldServer
-											.populations_fixed_ancestry
-									);
-								}
-							}
-						} else if (
-							this.renderConfig.ldServer.populations_type ==
-							"fixed"
-						) {
-							dataGroups["default"] = [];
-							dataGroups["default"].push(
-								d[this.renderConfig.ldServer.populations_field]
-							);
-						}
-					}
-				});
-
-				for (const [dataGroupKey, dataGroupAncestry] of Object.entries(
-					dataGroups
-				)) {
-					dataGroups[dataGroupKey] = [...new Set(dataGroupAncestry)];
-				}
-
-				for (const [dataGroupKey, dataGroupAncestry] of Object.entries(
-					dataGroups
-				)) {
-					let tempObj = {};
-					tempObj["ancestry"] =
-						this.renderConfig.ldServer.populations[
-							dataGroupAncestry[0]
-						];
-					tempObj["id"] = dataGroupKey;
-					tempObj["name"] = dataGroupKey;
-					tempObj["high"] = null;
-					tempObj["refVariant"] = null;
-					tempObj["ldData"] = null;
-					this.ldPopulations[dataGroupKey] = tempObj;
-				}
-
-				let yValue;
-				DATA.map((d) => {
-					if (!!this.dataComparisonConfig) {
-						Object.keys(dataGroups).map((p) => {
-							yValue = Number(d[this.renderConfig.yAxisField][p]);
-
-							if (this.ldPopulations[p].high == null) {
-								this.ldPopulations[p].high = yValue;
-								this.ldPopulations[p].refVariant =
-									d[
-										this.renderConfig.ldServer.ref_variant_field
-									];
-
-								this.ldPopulations[p].high = yValue;
-							}
-							if (yValue > this.ldPopulations[p].high) {
-								this.ldPopulations[p].refVariant =
-									d[
-										this.renderConfig.ldServer.ref_variant_field
-									];
-
-								this.ldPopulations[p].high = yValue;
-							}
-						});
-					}
-				});
-
-				console.log("this.ldPopulations", this.ldPopulations);
-
-				if (!!this.dataComparisonConfig) {
-					let searchItem = Object.keys(this.ldPopulations)[0];
-
-					this.ancestryOnCall = this.ldPopulations[searchItem].name;
-
-					this.setLDReference(
-						true,
-						this.ldPopulations[searchItem].refVariant,
-						this.ldPopulations[searchItem].ancestry
-					);
-				}
-			}
-		},
-		setLDReference(DATA_COMPARE, VARIANT, ANCESTRY_ID) {
-			this.hidePanel("ld_dot_value_full_list");
-			this.hidePanel("dot_value_full_list");
-
-			console.log("test 1", DATA_COMPARE, VARIANT, ANCESTRY_ID);
-
-			if (DATA_COMPARE == true) {
-				//make the first LD score call
-
-				this.getLDData(VARIANT, ANCESTRY_ID);
-			}
-		},
-
-		showHideSplitPlots() {
-			uiUtils.showHideElement("splitPlots");
-			uiUtils.showHideElement("splitLDPlots");
-		},
-
-		hidePanel(element) {
-			uiUtils.hideElement(element);
-		},
 		onResize(e) {
-			this.renderPlot();
+			this.renderPlots();
 		},
-		getLDData(REF_VARIANT, ANCESTRY) {
-			console.log("ANCESTRY", ANCESTRY);
-			let ldUrl =
-				"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
-				ANCESTRY +
-				"/variants?correlation=rsquare&variant=" +
-				REF_VARIANT +
-				"&chrom=" +
-				this.searchingRegion.chr +
-				"&start=" +
-				this.searchingRegion.start +
-				"&stop=" +
-				this.searchingRegion.end +
-				"&limit=100000";
+		checkStared(ITEM) {
+			let selectedItems = this.pkgDataSelected
+				.filter((s) => s.type == this.renderConfig["star key"])
+				.map((s) => s.id);
 
-			this.$store.dispatch("umLdServer/getVariantCorrelations", {
-				ldUrl: ldUrl,
+			if (!!selectedItems.includes(ITEM)) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		addStarItem(ITEM) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.renderConfig["star key"],
+				id: ITEM,
+				action: "add",
 			});
 		},
-
-		getFullList(event) {
-			this.clickedDotPosFullList = [];
-			let wrapper = document.getElementById("dot_value_full_list");
-			wrapper.classList.remove("hidden");
-			let e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
-
-			for (let h = -5; h <= 5; h++) {
-				for (let v = -5; v <= 5; v++) {
-					if (this.dotPosData[x + h] != undefined) {
-						if (this.dotPosData[x + h][y + v] != undefined) {
-							let dotObject = this.dotPosData[x + h][y + v];
-							this.clickedDotPosFullList.push(dotObject);
-						}
-					}
-				}
-			}
-
-			if (this.clickedDotPosFullList.length > 0) {
-				document.getElementById("regionPlot").classList.add("hover");
-				document
-					.getElementById("clicked_dot_value")
-					.classList.add("hidden");
-			} else {
-				wrapper.classList.add("hidden");
-				document.getElementById("regionPlot").classList.remove("hover");
-			}
+		removeStarItem(ITEM) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: this.renderConfig["star key"],
+				id: ITEM,
+				action: "remove",
+			});
 		},
-		getLDFullList(event) {
-			this.clickedLdDotPosFullList = [];
-			let wrapper = document.getElementById("ld_dot_value_full_list");
-			//let canvas = document.getElementById("ldPlot");
-			wrapper.classList.remove("hidden");
-			let e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
-
-			for (let h = -5; h <= 5; h++) {
-				for (let v = -5; v <= 5; v++) {
-					if (this.ldDotPosData[x + h] != undefined) {
-						if (this.ldDotPosData[x + h][y + v] != undefined) {
-							let dotObject = this.ldDotPosData[x + h][y + v];
-							this.clickedLdDotPosFullList.push(dotObject);
-						}
-					}
-				}
-			}
-
-			if (this.clickedLdDotPosFullList.length > 0) {
-				document.getElementById("ldPlot").classList.add("hover");
-				document
-					.getElementById("ld_clicked_dot_value")
-					.classList.add("hidden");
-			} else {
-				wrapper.classList.add("hidden");
-				document.getElementById("ldPlot").classList.remove("hover");
-			}
-		},
-
-		checkPosition(event, PLOT_ID) {
-			this.hoverDotPosFullList = [];
-			let wrapper = document.getElementById("clicked_dot_value");
-			let canvas = document.getElementById(PLOT_ID);
-			wrapper.classList.remove("hidden");
-			let e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
-			wrapper.style.top = y + canvas.offsetTop + "px";
-			wrapper.style.left =
-				x + canvas.offsetLeft + 150 > canvas.width
-					? x + canvas.offsetLeft + -215 + "px"
-					: x + canvas.offsetLeft + 15 + "px";
-			wrapper.style.width =
-				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";
-
-			for (let h = -5; h <= 5; h++) {
-				for (let v = -5; v <= 5; v++) {
-					if (this.dotPosData[x + h] != undefined) {
-						if (this.dotPosData[x + h][y + v] != undefined) {
-							let dotObject = this.dotPosData[x + h][y + v];
-							this.hoverDotPosFullList.push(dotObject);
-						}
-					}
-				}
-			}
-
-			if (this.hoverDotPosFullList.length > 0) {
-				document.getElementById("regionPlot").classList.add("hover");
-			} else {
-				wrapper.classList.add("hidden");
-				document.getElementById("regionPlot").classList.remove("hover");
-			}
-		},
-		checkLDPosition(event, PLOT_ID) {
-			this.hoverLdDotPosFullList = [];
-			let wrapper = document.getElementById("ld_clicked_dot_value");
-			let canvas = document.getElementById(PLOT_ID);
-			wrapper.classList.remove("hidden");
-			let e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
-			wrapper.style.top = y + canvas.offsetTop + "px";
-			wrapper.style.left =
-				x + canvas.offsetLeft + 150 > canvas.width
-					? x + canvas.offsetLeft + -215 + "px"
-					: x + canvas.offsetLeft + 15 + "px";
-			wrapper.style.width =
-				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";
-
-			let numOfValues = 0;
-
-			for (let h = -5; h <= 5; h++) {
-				for (let v = -5; v <= 5; v++) {
-					if (this.ldDotPosData[x + h] != undefined) {
-						if (this.ldDotPosData[x + h][y + v] != undefined) {
-							let dotObject = this.ldDotPosData[x + h][y + v];
-							this.hoverLdDotPosFullList.push(dotObject);
-						}
-					}
-				}
-			}
-
-			if (this.hoverLdDotPosFullList.length > 0) {
-				document.getElementById("ldPlot").classList.add("hover");
-			} else {
-				wrapper.classList.add("hidden");
-				document.getElementById("ldPlot").classList.remove("hover");
-			}
-		},
-		renderSplitPlots() {
-			let canvasRenderWidth = document
-				.getElementById("regionPlot")
-				.getAttribute("width");
-			let canvasRenderHeight = document
-				.getElementById("regionPlot")
-				.getAttribute("height");
-
-			let xBump = canvasRenderWidth * 0.03;
-			let yBump = canvasRenderHeight * 0.02;
-
-			let plotWidth =
-				canvasRenderWidth -
-				(this.leftMargin + this.rightMargin + xBump);
-
-			let plotHeight = !!this.renderConfig.height
-				? this.renderConfig.height
-				: 300;
-
-			this.yAxisFieldItems.map((item, itemIndex) => {
-				//console.log("canvasRenderWidth", canvasRenderWidth);
-				let c = document.getElementById("splitPlot" + itemIndex);
-				c.setAttribute("width", canvasRenderWidth);
-				c.setAttribute("height", canvasRenderHeight);
-				let ctx = c.getContext("2d");
-
-				ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
-
-				let yMin = null,
-					yMax = null,
-					xMin = Number(this.searchingRegion.start),
-					xMax = Number(this.searchingRegion.end);
-
-				this.renderData.map((d) => {
-					//let yValue;
-
-					let highNum = null;
-					let lowNum = null;
-					this.yAxisFieldItems.map((i) => {
-						if (highNum == null) {
-							highNum = d[this.renderConfig.yAxisField][i];
-						} else {
-							if (d[this.renderConfig.yAxisField][i] > highNum) {
-								highNum = d[this.renderConfig.yAxisField][i];
-							}
-						}
-
-						if (lowNum == null) {
-							lowNum = d[this.renderConfig.yAxisField][i];
-						} else {
-							if (d[this.renderConfig.yAxisField][i] < lowNum) {
-								lowNum = d[this.renderConfig.yAxisField][i];
-							}
-						}
-					});
-
-					if (yMin == null) {
-						yMin = lowNum;
-					}
-					if (yMax == null) {
-						yMax = highNum;
-					}
-
-					if (lowNum < yMin) {
-						yMin = lowNum;
-					}
-					if (highNum > yMax) {
-						yMax = highNum;
+		resetLdReference(GROUP, VARIANT) {
+			this.showHidePanel("#fixedInfoBox");
+			if (GROUP != "All") {
+				this.ldData[GROUP].refVariant = VARIANT;
+				this.ldData[GROUP].data = null;
+			} else if (GROUP == "All") {
+				this.plotsList.map((p) => {
+					if (p != "combined") {
+						this.ldData[p].refVariant = VARIANT;
+						this.ldData[p].data = null;
 					}
 				});
-
-				this.renderAxis(
-					ctx,
-					plotWidth,
-					plotHeight,
-					xMin,
-					xMax,
-					yMin,
-					yMax,
-					xBump,
-					yBump
-				);
-
-				let xStart = this.leftMargin + 5;
-				let yStart = this.topMargin;
-				let xPosByPixel = (plotWidth - 5) / (xMax - xMin);
-				let yPosByPixel = plotHeight / (yMax - yMin);
-
-				let dotColor = this.getColorIndex(item);
-				ctx.fillStyle = dotColor;
-
-				this.renderData.map((g) => {
-					let xPos =
-						xStart +
-						xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
-
-					let yPos;
-
-					if (!!g[this.renderConfig.yAxisField][item]) {
-						yPos =
-							yStart +
-							plotHeight -
-							yPosByPixel *
-								(g[this.renderConfig.yAxisField][item] - yMin);
-
-						this.renderDot(ctx, xPos, yPos, dotColor);
-					}
-				});
-			});
-		},
-
-		renderAxis(
-			CTX,
-			plotWidth,
-			plotHeight,
-			xMin,
-			xMax,
-			yMin,
-			yMax,
-			xBump,
-			yBump
-		) {
-			CTX.beginPath();
-			CTX.lineWidth = 1;
-			CTX.strokeStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
-
-			// render y axis
-			CTX.moveTo(this.leftMargin, this.topMargin);
-			CTX.lineTo(this.leftMargin, plotHeight + this.topMargin + 5);
-			CTX.stroke();
-
-			//render x axis
-			CTX.moveTo(this.leftMargin, plotHeight + this.topMargin + 5);
-			CTX.lineTo(
-				plotWidth + this.leftMargin,
-				plotHeight + this.topMargin + 5
-			);
-			CTX.stroke();
-
-			// Y ticks
-			let yStep = (yMax - yMin) / 4;
-			let yTickDistance = plotHeight / 4;
-			for (let i = 0; i < 5; i++) {
-				let tickYPos = this.topMargin + i * yTickDistance;
-				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
-				CTX.moveTo(this.leftMargin - 5, adjTickYPos);
-				CTX.lineTo(this.leftMargin, adjTickYPos);
-				CTX.stroke();
-
-				CTX.font = "12px Arial";
-				CTX.textAlign = "right";
-				CTX.fillStyle = "#000000";
-
-				CTX.fillText(
-					Formatters.floatFormatter(yMin + i * yStep),
-					this.leftMargin - 10,
-					this.topMargin + plotHeight + 5 - i * yTickDistance
-				);
 			}
 
-			// X ticks
-			let xStep = Math.ceil((xMax - xMin) / 4);
-			let xTickDistance = (plotWidth - 5) / 4;
-
-			for (let i = 0; i < 5; i++) {
-				let tickXPos = this.leftMargin + i * xTickDistance + 5;
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
-				CTX.moveTo(adjTickXPos, this.topMargin + plotHeight + yBump);
-				CTX.lineTo(
-					adjTickXPos,
-					this.topMargin + plotHeight + yBump + 5
-				);
-				CTX.stroke();
-
-				CTX.font = "12px Arial";
-				CTX.textAlign = "center";
-				CTX.fillStyle = "#000000";
-				let position = i < 4 ? xMin + i * xStep : xMax;
-				CTX.fillText(
-					position,
-					adjTickXPos,
-					this.topMargin + plotHeight + yBump + 15
-				);
-			}
-
-			//Render y axis label
-			CTX.font = "14px Arial";
-			CTX.textAlign = "center";
-			CTX.fillStyle = "#000000";
-			CTX.rotate(-(Math.PI * 2) / 4);
-			CTX.fillText(
-				this.renderConfig.yAxisLabel,
-				-(this.topMargin + plotHeight / 2),
-				this.leftMargin - this.leftMargin / 2 - 14
-			);
-
-			//Render x axis label
-			CTX.rotate((-(Math.PI * 2) / 4) * 3);
+			this.callForLDData();
 		},
-		renderPlot() {
-			this.dotPosData = {};
-
-			let wrapper = document.getElementById("clicked_dot_value");
-			wrapper.classList.add("hidden");
-
-			// canvasRenderWidth, canvasRenderHeight, plotWidth, plotHeight, xBump, yBump
-			let canvasRenderWidth = !!this.renderConfig.width
-				? this.renderConfig.width + this.leftMargin + this.rightMargin
-				: document.getElementById("regionPlotWrapper").clientWidth - 30; // -30 for - padding
-
-			let canvasRenderHeight = !!this.renderConfig.height
-				? this.renderConfig.height + this.topMargin + this.bottomMargin
-				: 300 + this.topMargin + this.bottomMargin;
-
-			let xBump = canvasRenderWidth * 0.03;
-			let yBump = canvasRenderHeight * 0.02;
-
-			let plotWidth =
-				canvasRenderWidth -
-				(this.leftMargin + this.rightMargin + xBump);
-
-			let plotHeight = !!this.renderConfig.height
-				? this.renderConfig.height
-				: 300;
-			/////
-
-			let c = document.getElementById("regionPlot");
-			c.setAttribute("width", canvasRenderWidth);
-			c.setAttribute("height", canvasRenderHeight);
-			let ctx = c.getContext("2d");
-
-			ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
-
-			// render x & y ticker values
-
-			let yMin = null,
-				yMax = null,
-				xMin = Number(this.searchingRegion.start),
-				xMax = Number(this.searchingRegion.end);
-
-			this.renderData.map((d) => {
-				let yValue;
-				if (!!this.dataComparisonConfig) {
-					let highNum = null;
-					let lowNum = null;
-					this.yAxisFieldItems.map((i) => {
-						if (highNum == null) {
-							highNum = d[this.renderConfig.yAxisField][i];
-						} else {
-							if (d[this.renderConfig.yAxisField][i] > highNum) {
-								highNum = d[this.renderConfig.yAxisField][i];
-							}
-						}
-
-						if (lowNum == null) {
-							lowNum = d[this.renderConfig.yAxisField][i];
-						} else {
-							if (d[this.renderConfig.yAxisField][i] < lowNum) {
-								lowNum = d[this.renderConfig.yAxisField][i];
-							}
-						}
-					});
-
-					if (yMin == null) {
-						yMin = lowNum;
-					}
-					if (yMax == null) {
-						yMax = highNum;
-					}
-
-					if (lowNum < yMin) {
-						yMin = lowNum;
-					}
-					if (highNum > yMax) {
-						yMax = highNum;
-					}
-					//}
-				} else {
-					yValue = d[this.renderConfig.yAxisField];
-
-					if (yMin == null) {
-						yMin = yValue;
-					}
-					if (yMax == null) {
-						yMax = yValue;
-					}
-
-					if (yValue < yMin) {
-						yMin = yValue;
-					}
-					if (yValue > yMax) {
-						yMax = yValue;
-					}
-				}
-			});
-
-			this.renderAxis(
-				ctx,
-				plotWidth,
-				plotHeight,
-				xMin,
-				xMax,
-				yMin,
-				yMax,
-				xBump,
-				yBump
-			);
-
-			let xStart = this.leftMargin + 5;
-			let yStart = this.topMargin;
-			let xPosByPixel = (plotWidth - 5) / (xMax - xMin);
-
-			let yPosByPixel = plotHeight / (yMax - yMin);
-
-			//Render dots
-			let ldConfig = this.renderConfig.ldServer;
-			let dotColor;
-
-			this.renderData.map((g) => {
-				let xPos =
-					xStart +
-					xPosByPixel * (g[this.renderConfig.xAxisField] - xMin);
-
-				let yPos;
-				if (!!this.dataComparisonConfig) {
-					if (this.plotRenderBy == "combined") {
-						yPos =
-							yStart +
-							plotHeight -
-							yPosByPixel * (g["combined"] - yMin);
-
-						let values = Object.keys(
-							g[this.renderConfig.yAxisField]
-						);
-
-						if (
-							values.length == 1 &&
-							this.yAxisFieldItems.length == 1
-						) {
-							dotColor = this.getColorIndex(values[0]);
-						} else if (
-							values.length == 1 &&
-							this.yAxisFieldItems.length > 1
-						) {
-							dotColor = this.getColorIndex(values[0]);
-						} else if (
-							values.length == this.yAxisFieldItems.length &&
-							this.yAxisFieldItems.length > 1
-						) {
-							dotColor = "#33333340";
-						}
-
-						this.renderDot(ctx, xPos, yPos, dotColor);
-
-						let xLoc = xPos.toString().split(".")[0];
-						let yLoc = yPos.toString().split(".")[0];
-						this.feedHoverContent(
-							xLoc,
-							yLoc,
-							g[this.renderConfig.renderBy],
-							g,
-							this.dotPosData
-						);
-					} else if (this.plotRenderBy == "high") {
-						let highValue = null;
-						let highItem;
-
-						this.yAxisFieldItems.map((i) => {
-							if (highValue == null) {
-								highValue = g[this.renderConfig.yAxisField][i];
-								highItem = i;
-							} else {
-								if (
-									g[this.renderConfig.yAxisField][i] >
-									highValue
-								) {
-									highValue =
-										g[this.renderConfig.yAxisField][i];
-									highItem = i;
-								}
-							}
-						});
-						yPos =
-							yStart +
-							plotHeight -
-							yPosByPixel *
-								(g[this.renderConfig.yAxisField][highItem] -
-									yMin);
-
-						dotColor =
-							dotColor == "#82409970"
-								? dotColor
-								: this.getColorIndex(highItem);
-
-						this.renderDot(ctx, xPos, yPos, dotColor);
-						let xLoc = xPos.toString().split(".")[0];
-						let yLoc = yPos.toString().split(".")[0];
-						this.feedHoverContent(
-							xLoc,
-							yLoc,
-							g[this.renderConfig.renderBy],
-							g,
-							this.dotPosData
-						);
-					} else if (this.plotRenderBy == "all") {
-						let yPosArr = [];
-						let yPosObj = {};
-
-						this.yAxisFieldItems.map((i) => {
-							let yPos =
-								yStart +
-								plotHeight -
-								yPosByPixel *
-									(g[this.renderConfig.yAxisField][i] - yMin);
-
-							yPosObj[i] = yPos;
-							yPosArr.push(yPos);
-						});
-
-						for (const [yKey, y] of Object.entries(yPosObj)) {
-							dotColor =
-								dotColor == "#82409970"
-									? dotColor
-									: this.getColorIndex(yKey);
-							this.renderDot(ctx, xPos, y, dotColor);
-
-							let xLoc = xPos.toString().split(".")[0];
-							let yLoc = y.toString().split(".")[0];
-							this.feedHoverContent(
-								xLoc,
-								yLoc,
-								g[this.renderConfig.renderBy],
-								g,
-								this.dotPosData
-							);
-						}
-						if (yPosArr.length > 1) {
-							yPosArr.sort(function (a, b) {
-								return a - b;
-							});
-
-							ctx.beginPath();
-							ctx.lineWidth = 1;
-							ctx.strokeStyle = "#00000070";
-							ctx.moveTo(xPos, yPosArr[0]);
-							ctx.lineTo(xPos, yPosArr[yPosArr.length - 1]);
-							ctx.stroke();
-						}
-					}
-				} else {
-					yPos =
-						yStart +
-						plotHeight -
-						yPosByPixel * (g[this.renderConfig.yAxisField] - yMin);
-
-					this.renderDot(ctx, xPos, yPos, dotColor);
-
-					let xLoc = xPos.toString().split(".")[0];
-					let yLoc = yPos.toString().split(".")[0];
-					this.feedHoverContent(
-						xLoc,
-						yLoc,
-						g[this.renderConfig.renderBy],
-						g,
-						this.dotPosData
+		showHidePanel(PANEL) {
+			let wrapper = document.querySelector(PANEL);
+			if (wrapper.classList.contains("hidden")) {
+				wrapper.classList.remove("hidden");
+			} else {
+				wrapper.classList.add("hidden");
+			}
+		},
+		showHideSplitPlots() {
+			this.plotsList.map((p) => {
+				if (p != "Combined") {
+					let wrapper = document.querySelector(
+						"#plotsWrapper" + p.replaceAll(" ", "_")
 					);
-				}
-			});
-
-			if (this.yAxisFieldItems.length > 1) {
-				this.renderSplitPlots();
-			}
-
-			this.renderLDPlot(canvasRenderHeight, plotHeight);
-		},
-		renderLDPlot(canvasH, plotH) {
-			this.ldDotPosData = {};
-
-			let canvasRenderWidth =
-				document.getElementById("ldPlotWrapper").clientWidth - 30; // -30 for - padding
-
-			let canvasRenderHeight = canvasH;
-
-			let xBump = canvasRenderWidth * 0.03;
-			let yBump = canvasRenderHeight * 0.02;
-
-			let plotWidth =
-				canvasRenderWidth -
-				(this.leftMargin + this.rightMargin + xBump);
-
-			let plotHeight = plotH;
-
-			let c = document.getElementById("ldPlot");
-			c.setAttribute("width", canvasRenderWidth);
-			c.setAttribute("height", canvasRenderHeight);
-			let ctx = c.getContext("2d");
-
-			ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
-
-			// render x & y ticker values
-
-			let yMin = null,
-				yMax = null,
-				xMin = 0,
-				xMax = 1;
-
-			//let chr = this.searchingRegion.chr;
-
-			this.renderData.map((d) => {
-				let yValue;
-				if (!!this.dataComparisonConfig) {
-					let highNum = null;
-					let lowNum = null;
-					this.yAxisFieldItems.map((i) => {
-						if (highNum == null) {
-							highNum = d[this.renderConfig.yAxisField][i];
-						} else {
-							if (d[this.renderConfig.yAxisField][i] > highNum) {
-								highNum = d[this.renderConfig.yAxisField][i];
-							}
-						}
-
-						if (lowNum == null) {
-							lowNum = d[this.renderConfig.yAxisField][i];
-						} else {
-							if (d[this.renderConfig.yAxisField][i] < lowNum) {
-								lowNum = d[this.renderConfig.yAxisField][i];
-							}
-						}
-					});
-
-					if (yMin == null) {
-						yMin = lowNum;
-					}
-					if (yMax == null) {
-						yMax = highNum;
-					}
-
-					if (lowNum < yMin) {
-						yMin = lowNum;
-					}
-					if (highNum > yMax) {
-						yMax = highNum;
-					}
-					//}
-				} else {
-					yValue = d[this.renderConfig.yAxisField];
-					if (yMin == null) {
-						yMin = yValue;
-					}
-					if (yMax == null) {
-						yMax = yValue;
-					}
-
-					if (yValue < yMin) {
-						yMin = yValue;
-					}
-					if (yValue > yMax) {
-						yMax = yValue;
-					}
-				}
-			});
-
-			let yStep = (yMax - yMin) / 4;
-
-			// X BG
-			let xBGDistance = (plotWidth - 5) / 5;
-
-			for (let i = 0; i < 5; i++) {
-				let bgXPos = this.leftMargin + i * xBGDistance + 5;
-				let adBGXPos = Math.floor(bgXPos) + 0.5;
-				ctx.fillStyle = this.ldColor[i];
-				ctx.fillRect(
-					adBGXPos,
-					this.topMargin,
-					xBGDistance - 1,
-					plotHeight
-				);
-			}
-
-			this.renderAxis(
-				ctx,
-				plotWidth,
-				plotHeight,
-				xMin,
-				xMax,
-				yMin,
-				yMax,
-				xBump,
-				yBump
-			);
-
-			let xStart = this.leftMargin + 5;
-			let yStart = this.topMargin;
-			let xPosByPixel = (plotWidth - 5) / (xMax - xMin);
-
-			let yPosByPixel = plotHeight / (yMax - yMin);
-
-			//Render x axis label
-			ctx.fillText(
-				"LD(r2)",
-				plotWidth / 2 + this.leftMargin,
-				this.topMargin + plotHeight + yBump + 35
-			);
-
-			//Render dots
-			let ldConfig = this.renderConfig.ldServer;
-			let dotColor = "#33333340";
-
-			//console.log("LDData", LDData);
-
-			let ldGroups = Object.keys(this.ldPopulations);
-			let posItems = {};
-			ldGroups.map((ldG) => {
-				let LDData = this.ldPopulations[ldG].ldData;
-				let refVariant = this.ldPopulations[ldG].refVariant;
-				this.renderData.map((g) => {
-					if (
-						g[this.renderConfig.yAxisField][ldG] != null &&
-						g[this.renderConfig.yAxisField][ldG] != undefined
-					) {
-						let dotID = g[ldConfig.ref_variant_field];
-
-						let ldScore = !!LDData[dotID]
-							? LDData[dotID]
-							: dotID == refVariant
-							? 1
-							: 0;
-
-						dotColor =
-							ldScore == 1
-								? "#82409970"
-								: this.getColorIndex(ldG);
-
-						let xPos = xStart + xPosByPixel * ldScore;
-						let yPos =
-							yStart +
-							plotHeight -
-							yPosByPixel *
-								(g[this.renderConfig.yAxisField][ldG] - yMin);
-
-						if (
-							posItems[dotID] == null &&
-							posItems[dotID] == undefined
-						) {
-							posItems[dotID] = {};
-						}
-
-						posItems[dotID][ldG] = {};
-
-						posItems[dotID][ldG]["xPos"] = xPos;
-						posItems[dotID][ldG]["yPos"] = yPos;
-
-						this.renderDot(ctx, xPos, yPos, dotColor);
-
-						let xLoc = xPos.toString().split(".")[0];
-						let yLoc = yPos.toString().split(".")[0];
-						this.feedHoverContent(
-							xLoc,
-							yLoc,
-							g[this.renderConfig.renderBy],
-							g,
-							this.ldDotPosData
-						);
-					}
-				});
-			});
-
-			this.ldPosItems = posItems;
-
-			for (const [id, posItem] of Object.entries(posItems)) {
-				if (Object.keys(posItem).length > 1) {
-					let posItemArr = [];
-
-					for (const [aKey, aItem] of Object.entries(posItem)) {
-						posItemArr.push(aItem);
-					}
-
-					posItemArr.map((s, sIndex) => {
-						//console.log("sIndex", sIndex);
-						if (sIndex < posItemArr.length - 1) {
-							ctx.beginPath();
-							ctx.lineWidth = 1;
-							ctx.strokeStyle = "#00000070";
-							ctx.moveTo(s.xPos, s.yPos);
-							ctx.lineTo(
-								posItemArr[sIndex + 1]["xPos"],
-								posItemArr[sIndex + 1]["yPos"]
-							);
-							ctx.stroke();
-						}
-					});
-				}
-			}
-
-			if (this.yAxisFieldItems.length > 1) {
-				this.renderSplitLDPlots();
-			}
-		},
-		renderSplitLDPlots() {
-			let canvasRenderWidth = document
-				.getElementById("ldPlot")
-				.getAttribute("width");
-			let canvasRenderHeight = document
-				.getElementById("ldPlot")
-				.getAttribute("height");
-
-			let xBump = canvasRenderWidth * 0.03;
-			let yBump = canvasRenderHeight * 0.02;
-
-			let plotWidth =
-				canvasRenderWidth -
-				(this.leftMargin + this.rightMargin + xBump);
-
-			let plotHeight = !!this.renderConfig.height
-				? this.renderConfig.height
-				: 300;
-
-			this.yAxisFieldItems.map((item, itemIndex) => {
-				//console.log("canvasRenderWidth", canvasRenderWidth);
-				let c = document.getElementById("splitLDPlot" + itemIndex);
-				c.setAttribute("width", canvasRenderWidth);
-				c.setAttribute("height", canvasRenderHeight);
-				let ctx = c.getContext("2d");
-
-				ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
-
-				let yMin = null,
-					yMax = null,
-					xMin = 0,
-					xMax = 1;
-
-				//let chr = this.searchingRegion.chr;
-
-				this.renderData.map((d) => {
-					let yValue;
-					if (!!this.dataComparisonConfig) {
-						let highNum = null;
-						let lowNum = null;
-						this.yAxisFieldItems.map((i) => {
-							if (highNum == null) {
-								highNum = d[this.renderConfig.yAxisField][i];
-							} else {
-								if (
-									d[this.renderConfig.yAxisField][i] > highNum
-								) {
-									highNum =
-										d[this.renderConfig.yAxisField][i];
-								}
-							}
-
-							if (lowNum == null) {
-								lowNum = d[this.renderConfig.yAxisField][i];
-							} else {
-								if (
-									d[this.renderConfig.yAxisField][i] < lowNum
-								) {
-									lowNum = d[this.renderConfig.yAxisField][i];
-								}
-							}
-						});
-
-						if (yMin == null) {
-							yMin = lowNum;
-						}
-						if (yMax == null) {
-							yMax = highNum;
-						}
-
-						if (lowNum < yMin) {
-							yMin = lowNum;
-						}
-						if (highNum > yMax) {
-							yMax = highNum;
-						}
-						//}
+					if (wrapper.classList.contains("hidden")) {
+						wrapper.classList.remove("hidden");
 					} else {
-						yValue = d[this.renderConfig.yAxisField];
-						if (yMin == null) {
-							yMin = yValue;
-						}
-						if (yMax == null) {
-							yMax = yValue;
-						}
-
-						if (yValue < yMin) {
-							yMin = yValue;
-						}
-						if (yValue > yMax) {
-							yMax = yValue;
-						}
-					}
-				});
-
-				let yStep = (yMax - yMin) / 4;
-
-				// X BG
-				let xBGDistance = (plotWidth - 5) / 5;
-
-				for (let i = 0; i < 5; i++) {
-					let bgXPos = this.leftMargin + i * xBGDistance + 5;
-					let adBGXPos = Math.floor(bgXPos) + 0.5;
-					ctx.fillStyle = this.ldColor[i];
-					ctx.fillRect(
-						adBGXPos,
-						this.topMargin,
-						xBGDistance - 1,
-						plotHeight
-					);
-				}
-
-				this.renderAxis(
-					ctx,
-					plotWidth,
-					plotHeight,
-					xMin,
-					xMax,
-					yMin,
-					yMax,
-					xBump,
-					yBump
-				);
-
-				//Render x axis label
-				ctx.fillText(
-					"LD(r2)",
-					plotWidth / 2 + this.leftMargin,
-					this.topMargin + plotHeight + yBump + 35
-				);
-
-				//console.log("this.ldPosItems", this.ldPosItems);
-				for (const [posItemKey, posItem] of Object.entries(
-					this.ldPosItems
-				)) {
-					if (!!posItem[item]) {
-						let xPos = posItem[item].xPos;
-						let yPos = posItem[item].yPos;
-						let dotColor = this.getColorIndex(item);
-
-						this.renderDot(ctx, xPos, yPos, dotColor);
+						wrapper.classList.add("hidden");
 					}
 				}
 			});
 		},
-		getColorIndex(SKEY) {
-			let colorIndex = "";
+		getDotsOnPosition(TYPE, GROUP, X, Y) {
+			var posData =
+				TYPE == "asso" ? this.assoPos[GROUP] : this.ldPos[GROUP];
+			var dotsList = [];
 
-			this.yAxisFieldItems.map((sValue, sIndex) => {
-				if (SKEY == sValue) {
-					colorIndex = this.compareGroupColors[sIndex];
+			for (let h = -5; h <= 5; h++) {
+				for (let v = -5; v <= 5; v++) {
+					if (posData[X + h] != undefined) {
+						if (posData[X + h][Y + v] != undefined) {
+							dotsList = dotsList.concat(posData[X + h][Y + v]);
+						}
+					}
 				}
+			}
+
+			return dotsList;
+		},
+		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
+			var e = event;
+			var rect = e.target.getBoundingClientRect();
+			var x = Math.floor(e.clientX - rect.left);
+			var y = Math.floor(e.clientY - rect.top);
+			let rawX = e.clientX;
+
+			var dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
+			dotsOnPosition = [...new Set(dotsOnPosition)];
+
+			let infoBoxId =
+				TYPE == "asso"
+					? "#assoInfoBox" + GROUP.replaceAll(" ", "_")
+					: "#ldInfoBox" + GROUP.replaceAll(" ", "_");
+
+			let canvasId =
+				TYPE == "asso"
+					? "#asso_plot_" + GROUP.replaceAll(" ", "_")
+					: "#ld_plot_" + GROUP.replaceAll(" ", "_");
+
+			let wrapper = document.querySelector(infoBoxId);
+			let canvas = document.querySelector(canvasId);
+
+			wrapper.style.top = y + canvas.offsetTop + "px";
+			wrapper.style.left =
+				x + canvas.offsetLeft + 150 > canvas.width
+					? x + canvas.offsetLeft + -215 + "px"
+					: x + canvas.offsetLeft + 15 + "px";
+			wrapper.style.width =
+				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";
+
+			if (dotsOnPosition.length > 0) {
+				if (EVENT_TYPE == "move") {
+					let infoContent =
+						dotsOnPosition.length > 5
+							? "<span class='info-box-direction'>Viewing 5 of " +
+							  dotsOnPosition.length +
+							  " variants. Click to view full list or to change LD reference variant.</span><br />"
+							: "<span class='info-box-direction'>Click to change LD reference variant.</span><br />";
+
+					dotsOnPosition.map((d, dIndex) => {
+						if (dIndex < 5) {
+							infoContent += "<strong>" + d + "</strong>";
+
+							if (!!this.renderConfig["star key"]) {
+								infoContent +=
+									this.checkStared(d) == true
+										? "&nbsp;<span style='color:#ffcc00'>&#9733;</span>"
+										: "&nbsp;<span style='color:#ffcc00'>&#9734;</span>";
+							}
+
+							infoContent += "<br />";
+
+							this.renderConfig["hover content"].map((h) => {
+								if (GROUP != "Combined") {
+									infoContent +=
+										h +
+										": " +
+										this.assoData[GROUP].data[d][h] +
+										"<br />";
+								} else if (GROUP == "Combined") {
+									this.plotsList.map((G) => {
+										if (
+											G != "Combined" &&
+											this.assoData[G].data[d]
+										) {
+											infoContent +=
+												h +
+												"(" +
+												G +
+												")" +
+												": " +
+												this.assoData[G].data[d][h] +
+												"<br />";
+										}
+									});
+								}
+							});
+						}
+					});
+					wrapper.classList.remove("hidden");
+					wrapper.innerHTML = infoContent;
+				} else if (EVENT_TYPE == "click") {
+					this.dotsClicked = dotsOnPosition;
+					this.showHidePanel("#fixedInfoBox");
+				}
+			} else {
+				wrapper.classList.add("hidden");
+			}
+		},
+		onMouseOut(BOXID) {
+			uiUtils.removeOnMouseOut(BOXID.replaceAll(" ", "_"), 1000);
+		},
+		setUpWrappers() {
+			this.callForRecombData();
+		},
+		async callForRecombData() {
+			var signalURL =
+				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
+				this.searchingRegion.chr +
+				"' and position gt " +
+				this.searchingRegion.start +
+				" and position lt " +
+				this.searchingRegion.end;
+
+			var signalJson = await fetch(signalURL).then((resp) => resp.json());
+			this.recombData = {};
+			if (signalJson.error == null) {
+				this.recombData["position"] = signalJson.data.position;
+				this.recombData["recomb_rate"] = signalJson.data.recomb_rate;
+				this.callForLDData();
+			}
+		},
+		async callForLDData() {
+			const plotWrappers = document.querySelectorAll(
+				".region-plots-wrapper"
+			);
+
+			plotWrappers.forEach(function (plotWrapper) {
+				plotWrapper.classList.remove("hidden");
 			});
 
-			return colorIndex;
+			var plotID = null;
+
+			for (var i = 0; i < this.plotsList.length; i++) {
+				if (
+					this.plotsList[i] != "Combined" &&
+					this.ldData[this.plotsList[i]].data == null
+				) {
+					plotID = this.plotsList[i];
+					break;
+				}
+			}
+
+			if (plotID != null) {
+				let ldURL =
+					"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
+					this.ldData[plotID].population +
+					"/variants?correlation=rsquare&variant=" +
+					this.ldData[plotID].refVariant +
+					"&chrom=" +
+					this.searchingRegion.chr +
+					"&start=" +
+					this.searchingRegion.start +
+					"&stop=" +
+					this.searchingRegion.end +
+					"&limit=100000";
+
+				let ldJson = await fetch(ldURL).then((resp) => resp.json());
+
+				if (ldJson.error == null) {
+					let tempObj = {};
+					ldJson.data.variant2.map((variant, variantIndex) => {
+						tempObj[variant] =
+							ldJson.data.correlation[variantIndex];
+					});
+
+					this.ldData[plotID].data = tempObj;
+					this.callForLDData();
+				}
+			} else {
+				this.renderPlots();
+			}
+			this.$forceUpdate();
+		},
+		renderPlots() {
+			let regionStart = this.searchingRegion.start;
+			let regionEnd = this.searchingRegion.end;
+			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
+			let assoCanvasWidth =
+				document.querySelector("#rp_region_plot").clientWidth * 0.75 -
+				30; //30 <- left & right padding of wrapper
+			let ldCanvasWidth =
+				document.querySelector("#rp_region_plot").clientWidth * 0.25 -
+				30; //30 <- left & right padding of wrapper
+
+			let canvasHeight = !!this.renderConfig.height
+				? this.renderConfig.height +
+				  this.plotMargin.topMargin +
+				  this.plotMargin.bottomMargin
+				: 300 +
+				  this.plotMargin.topMargin +
+				  this.plotMargin.bottomMargin;
+
+			let assoPlotWidth =
+				assoCanvasWidth - this.plotMargin.leftMargin * 2;
+			let ldPlotWidth =
+				ldCanvasWidth -
+				this.plotMargin.leftMargin -
+				this.plotMargin.rightMargin;
+
+			let plotHeight = !!this.renderConfig.height
+				? this.renderConfig.height
+				: 300;
+
+			let bump = this.plotMargin.bump;
+
+			this.plotsList.map((p) => {
+				// first asso plot
+				let c, ctx;
+
+				c = document.getElementById(
+					"asso_plot_" + p.replaceAll(" ", "_")
+				);
+				c.setAttribute("width", assoCanvasWidth);
+				c.setAttribute("height", canvasHeight);
+				ctx = c.getContext("2d");
+
+				ctx.clearRect(0, 0, assoCanvasWidth, canvasHeight);
+
+				this.renderAxis(
+					ctx,
+					assoPlotWidth,
+					plotHeight,
+					this.assoData[p].yAxHigh,
+					this.assoData[p].yAxLow,
+					regionEnd,
+					regionStart,
+					bump,
+					"asso",
+					p
+				);
+
+				this.renderRecombLine(
+					ctx,
+					assoPlotWidth,
+					plotHeight,
+					regionEnd,
+					regionStart
+				);
+
+				this.renderDots(
+					ctx,
+					assoPlotWidth,
+					plotHeight,
+					this.assoData[p].yAxHigh,
+					this.assoData[p].yAxLow,
+					regionEnd,
+					regionStart,
+					bump,
+					"asso",
+					p
+				);
+
+				// second LD plot
+				c = document.getElementById(
+					"ld_plot_" + p.replaceAll(" ", "_")
+				);
+				c.setAttribute("width", ldCanvasWidth);
+				c.setAttribute("height", canvasHeight);
+				ctx = c.getContext("2d");
+
+				ctx.clearRect(0, 0, ldCanvasWidth, canvasHeight);
+
+				this.renderAxis(
+					ctx,
+					ldPlotWidth,
+					plotHeight,
+					this.assoData[p].yAxHigh,
+					this.assoData[p].yAxLow,
+					1,
+					0,
+					bump,
+					"LD",
+					p
+				);
+
+				this.renderDots(
+					ctx,
+					ldPlotWidth,
+					plotHeight,
+					this.assoData[p].yAxHigh,
+					this.assoData[p].yAxLow,
+					1,
+					0,
+					bump,
+					"LD",
+					p
+				);
+			});
+		},
+		renderDots(
+			CTX,
+			WIDTH,
+			HEIGHT,
+			yMax,
+			yMin,
+			xMax,
+			xMin,
+			bump,
+			TYPE,
+			GROUP
+		) {
+			let xStart = this.plotMargin.leftMargin;
+			let yStart = this.plotMargin.topMargin + HEIGHT;
+			let xPosByPixel = WIDTH / (xMax - xMin);
+			let yPosByPixel = HEIGHT / (yMax - yMin);
+
+			if (TYPE == "asso") {
+				this.assoPos[GROUP] = {};
+				var xField = this.renderConfig["x axis field"];
+				var yField = this.renderConfig["y axis field"];
+
+				if (GROUP != "Combined") {
+					for (const [key, value] of Object.entries(
+						this.assoData[GROUP].data
+					)) {
+						if (value[xField] >= xMin && value[xField] <= xMax) {
+							let xPos =
+								xStart + (value[xField] - xMin) * xPosByPixel;
+							let yPos =
+								yStart - (value[yField] - yMin) * yPosByPixel;
+
+							this.feedPosData(
+								this.assoPos[GROUP],
+								xPos,
+								yPos,
+								key
+							);
+
+							let dotColor = this.getDotColor(
+								this.ldData[GROUP].data[key]
+							);
+							if (key == this.ldData[GROUP].refVariant) {
+								if (this.checkStared(key) == true) {
+									PlotUtils.renderStar(
+										CTX,
+										xPos,
+										yPos,
+										5,
+										6,
+										3,
+										dotColor,
+										dotColor
+									);
+								} else {
+									this.renderDiamond(
+										CTX,
+										xPos,
+										yPos,
+										dotColor
+									);
+								}
+							} else {
+								if (this.checkStared(key) == true) {
+									PlotUtils.renderStar(
+										CTX,
+										xPos,
+										yPos,
+										5,
+										6,
+										3,
+										dotColor,
+										dotColor
+									);
+								} else {
+									this.renderDot(CTX, xPos, yPos, dotColor);
+								}
+							}
+						}
+					}
+				}
+
+				if (GROUP == "Combined") {
+					let linesObj = {};
+
+					this.plotsList.map((pGroup, pIndex) => {
+						if (pGroup != "Combined") {
+							for (const [key, value] of Object.entries(
+								this.assoData[pGroup].data
+							)) {
+								if (
+									value[xField] >= xMin &&
+									value[xField] <= xMax
+								) {
+									if (!linesObj[key]) {
+										let tempObj = {
+											xValue: [],
+											yValue: [],
+										};
+										tempObj.xValue.push(value[xField]);
+										tempObj.yValue.push(value[yField]);
+										linesObj[key] = tempObj;
+									} else if (!!linesObj[key]) {
+										linesObj[key].xValue.push(
+											value[xField]
+										);
+										linesObj[key].yValue.push(
+											value[yField]
+										);
+									}
+
+									let xPos =
+										xStart +
+										(value[xField] - xMin) * xPosByPixel;
+									let yPos =
+										yStart -
+										(value[yField] - yMin) * yPosByPixel;
+
+									this.feedPosData(
+										this.assoPos[GROUP],
+										xPos,
+										yPos,
+										key
+									);
+
+									let dotColor =
+										this.compareGroupColors[pIndex];
+									if (key == this.ldData[pGroup].refVariant) {
+										if (this.checkStared(key) == true) {
+											PlotUtils.renderStar(
+												CTX,
+												xPos,
+												yPos,
+												5,
+												6,
+												3,
+												dotColor,
+												dotColor
+											);
+										} else {
+											this.renderDiamond(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										}
+									} else {
+										if (this.checkStared(key) == true) {
+											PlotUtils.renderStar(
+												CTX,
+												xPos,
+												yPos,
+												5,
+												6,
+												3,
+												dotColor,
+												dotColor
+											);
+										} else {
+											this.renderDot(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										}
+									}
+								}
+							}
+						}
+					});
+
+					this.renderConntingLine(
+						CTX,
+						xStart,
+						yStart,
+						xMin,
+						yMin,
+						xPosByPixel,
+						yPosByPixel,
+						linesObj
+					);
+				}
+			}
+
+			if (TYPE == "LD") {
+				this.ldPos[GROUP] = {};
+				if (GROUP != "Combined") {
+					if (Object.keys(this.ldData[GROUP].data).length == 0) {
+						CTX.textAlign = "center";
+						CTX.fillStyle = "#000000";
+						CTX.fillText(
+							"No LD data loaded against " +
+								this.ldData[GROUP].refVariant,
+							this.plotMargin.leftMargin + WIDTH / 2,
+							this.plotMargin.topMargin + HEIGHT / 2
+						);
+					} else {
+						var yField = this.renderConfig["y axis field"];
+
+						for (const [key, value] of Object.entries(
+							this.ldData[GROUP].data
+						)) {
+							if (!!this.assoData[GROUP].data[key]) {
+								let xPos = xStart + value * xPosByPixel;
+								let yPos =
+									yStart -
+									(this.assoData[GROUP].data[key][yField] -
+										yMin) *
+										yPosByPixel;
+
+								this.feedPosData(
+									this.ldPos[GROUP],
+									xPos,
+									yPos,
+									key
+								);
+
+								let dotColor = this.getDotColor(value);
+								if (key == this.ldData[GROUP].refVariant) {
+									if (this.checkStared(key) == true) {
+										PlotUtils.renderStar(
+											CTX,
+											xPos,
+											yPos,
+											5,
+											6,
+											3,
+											dotColor,
+											dotColor
+										);
+									} else {
+										this.renderDiamond(
+											CTX,
+											xPos,
+											yPos,
+											dotColor
+										);
+									}
+								} else {
+									if (this.checkStared(key) == true) {
+										PlotUtils.renderStar(
+											CTX,
+											xPos,
+											yPos,
+											5,
+											6,
+											3,
+											dotColor,
+											dotColor
+										);
+									} else {
+										this.renderDot(
+											CTX,
+											xPos,
+											yPos,
+											dotColor
+										);
+									}
+								}
+							}
+						}
+					}
+				}
+
+				if (GROUP == "Combined") {
+					let linesObj = {};
+					var yField = this.renderConfig["y axis field"];
+
+					this.plotsList.map((pGroup, pIndex) => {
+						if (pGroup != "Combined") {
+							let dotColor = this.compareGroupColors[pIndex];
+							if (
+								Object.keys(this.ldData[pGroup].data).length !=
+								0
+							) {
+								for (const [key, value] of Object.entries(
+									this.ldData[pGroup].data
+								)) {
+									if (!!this.assoData[pGroup].data[key]) {
+										if (!linesObj[key]) {
+											let tempObj = {
+												xValue: [],
+												yValue: [],
+											};
+											tempObj.xValue.push(value);
+											tempObj.yValue.push(
+												this.assoData[pGroup].data[key][
+													yField
+												]
+											);
+											linesObj[key] = tempObj;
+										} else if (!!linesObj[key]) {
+											linesObj[key].xValue.push(value);
+											linesObj[key].yValue.push(
+												this.assoData[pGroup].data[key][
+													yField
+												]
+											);
+										}
+										let xPos = xStart + value * xPosByPixel;
+										let yPos =
+											yStart -
+											(this.assoData[pGroup].data[key][
+												yField
+											] -
+												yMin) *
+												yPosByPixel;
+
+										this.feedPosData(
+											this.ldPos[GROUP],
+											xPos,
+											yPos,
+											key
+										);
+
+										if (
+											key ==
+											this.ldData[pGroup].refVariant
+										) {
+											if (this.checkStared(key) == true) {
+												PlotUtils.renderStar(
+													CTX,
+													xPos,
+													yPos,
+													5,
+													6,
+													3,
+													dotColor,
+													dotColor
+												);
+											} else {
+												this.renderDiamond(
+													CTX,
+													xPos,
+													yPos,
+													dotColor
+												);
+											}
+										} else {
+											if (this.checkStared(key) == true) {
+												PlotUtils.renderStar(
+													CTX,
+													xPos,
+													yPos,
+													5,
+													6,
+													3,
+													dotColor,
+													dotColor
+												);
+											} else {
+												this.renderDot(
+													CTX,
+													xPos,
+													yPos,
+													dotColor
+												);
+											}
+										}
+									}
+								}
+							}
+						}
+					});
+
+					this.renderConntingLine(
+						CTX,
+						xStart,
+						yStart,
+						xMin,
+						yMin,
+						xPosByPixel,
+						yPosByPixel,
+						linesObj
+					);
+				}
+			}
+		},
+		feedPosData(POS_DATA, X, Y, KEY) {
+			let floorXpos = Math.floor(X);
+			let floorYpos = Math.floor(Y);
+
+			if (!POS_DATA[floorXpos]) {
+				POS_DATA[floorXpos] = {};
+				POS_DATA[floorXpos][floorYpos] = [];
+				POS_DATA[floorXpos][floorYpos].push(KEY);
+			} else {
+				if (!POS_DATA[floorXpos][floorYpos]) {
+					POS_DATA[floorXpos][floorYpos] = [];
+					POS_DATA[floorXpos][floorYpos].push(KEY);
+				} else {
+					POS_DATA[floorXpos][floorYpos].push(KEY);
+				}
+			}
+		},
+		getDotColor(SCORE) {
+			if (SCORE == undefined) {
+				return "#00000030";
+			} else {
+				let index = Math.floor(SCORE * 5);
+				return this.ldDotColor[index];
+			}
+		},
+		renderConntingLine(
+			CTX,
+			xStart,
+			yStart,
+			xMin,
+			yMin,
+			xPosByPixel,
+			yPosByPixel,
+			linesObj
+		) {
+			for (const [key, value] of Object.entries(linesObj)) {
+				if (value.xValue.length > 1) {
+					for (let i = 0; i < value.xValue.length - 1; i++) {
+						let xPos1 =
+							xStart + (value.xValue[i] - xMin) * xPosByPixel;
+						let xPos2 =
+							xStart + (value.xValue[i + 1] - xMin) * xPosByPixel;
+						let yPos1 =
+							yStart - (value.yValue[i] - yMin) * yPosByPixel;
+						let yPos2 =
+							yStart - (value.yValue[i + 1] - yMin) * yPosByPixel;
+
+						CTX.beginPath();
+						CTX.lineWidth = 1;
+						CTX.strokeStyle = "#00000050";
+						CTX.moveTo(xPos1, yPos1);
+						CTX.lineTo(xPos2, yPos2);
+						CTX.stroke();
+					}
+				}
+			}
 		},
 		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
 			CTX.fillStyle = DOT_COLOR;
-
 			CTX.lineWidth = 0;
 			CTX.beginPath();
 			CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
 			CTX.fill();
 		},
-		feedHoverContent(xLoc, yLoc, ID, CONTENT) {
-			let hoverContent;
+		renderDiamond(CTX, XPOS, YPOS, DOT_COLOR) {
+			let WIDTH = 10;
+			let HEIGHT = 14;
+			let xpos = XPOS;
+			let ypos = YPOS;
+			CTX.save();
+			CTX.fillStyle = DOT_COLOR;
+			CTX.lineWidth = 0;
 
-			if (!!this.renderConfig.hoverContent) {
-				hoverContent = this.renderConfig.hoverContent;
-			}
+			CTX.beginPath();
+			CTX.moveTo(xpos, ypos - HEIGHT / 2);
 
-			if (!this.dotPosData[xLoc]) {
-				this.dotPosData[xLoc] = {};
-			}
-			this.dotPosData[xLoc][yLoc] = {};
-			this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] = ID;
-			if (!!this.renderConfig.hoverContent) {
-				hoverContent.map((h) => {
-					this.dotPosData[xLoc][yLoc][h] = CONTENT[h];
-				});
-			}
+			// top left edge
+			CTX.lineTo(xpos - WIDTH / 2, ypos);
+
+			// bottom left edge
+			CTX.lineTo(xpos, ypos + HEIGHT / 2);
+
+			// bottom right edge
+			CTX.lineTo(xpos + WIDTH / 2, ypos);
+
+			CTX.closePath();
+			CTX.strokeStyle = "#824099";
+			CTX.stroke();
+			CTX.fill();
+			CTX.restore();
 		},
+		renderRecombLine(CTX, PWIDTH, PHEIGHT, END, START) {
+			var DATA = this.recombData;
+			var xPixel = PWIDTH / (END - START);
+			var yPixel = PHEIGHT / 100;
 
-		feedHoverContent(xLoc, yLoc, ID, CONTENT, POS_DATA) {
-			let hoverContent;
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#007BFF";
 
-			if (!!this.renderConfig.hoverContent) {
-				hoverContent = this.renderConfig.hoverContent;
+			DATA.position.map((xPos, xPosIndex) => {
+				let x1PosPixel = (xPos - START) * xPixel;
+				let y1PosPixel = DATA.recomb_rate[xPosIndex] * yPixel;
+				let x2PosPixel =
+					(DATA.position[xPosIndex + 1] - START) * xPixel;
+				let y2PosPixel = DATA.recomb_rate[xPosIndex + 1] * yPixel;
+
+				CTX.moveTo(
+					this.plotMargin.leftMargin + x1PosPixel,
+					this.plotMargin.topMargin + PHEIGHT - y1PosPixel
+				);
+				CTX.lineTo(
+					this.plotMargin.leftMargin + x2PosPixel,
+					this.plotMargin.topMargin + PHEIGHT - y2PosPixel
+				);
+				CTX.stroke();
+			});
+		},
+		renderAxis(
+			CTX,
+			WIDTH,
+			HEIGHT,
+			yMax,
+			yMin,
+			xMax,
+			xMin,
+			bump,
+			TYPE,
+			GROUP
+		) {
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#000000";
+			CTX.font = "12px Arial";
+			CTX.fillStyle = "#000000";
+			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+			// render y axis
+			CTX.moveTo(
+				this.plotMargin.leftMargin - bump,
+				this.plotMargin.topMargin
+			);
+			CTX.lineTo(
+				this.plotMargin.leftMargin - bump,
+				HEIGHT + this.plotMargin.topMargin + bump
+			);
+			CTX.stroke();
+
+			// render recombination Rate y axis
+			let recomXpos =
+				Math.round(this.plotMargin.leftMargin + WIDTH + bump) + 0.5;
+
+			if (TYPE == "asso") {
+				CTX.moveTo(recomXpos, this.plotMargin.topMargin);
+				CTX.lineTo(
+					recomXpos,
+					HEIGHT + this.plotMargin.topMargin + bump
+				);
+				CTX.stroke();
 			}
-			//this.ldDotPosData
-			if (!POS_DATA[xLoc]) {
-				POS_DATA[xLoc] = {};
+
+			//render x axis
+			CTX.moveTo(
+				this.plotMargin.leftMargin - bump,
+				HEIGHT + this.plotMargin.topMargin + bump
+			);
+			CTX.lineTo(
+				TYPE == "asso"
+					? WIDTH + this.plotMargin.leftMargin + bump
+					: WIDTH + this.plotMargin.leftMargin,
+				HEIGHT + this.plotMargin.topMargin + bump
+			);
+			CTX.stroke();
+
+			// Y ticks
+			let yStep = (yMax - yMin) / 5;
+			let yTickDistance = HEIGHT / 5;
+			for (let i = 0; i < 6; i++) {
+				let tickYPos = this.plotMargin.topMargin + i * yTickDistance;
+				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+				CTX.moveTo(this.plotMargin.leftMargin - bump * 2, adjTickYPos);
+				CTX.lineTo(this.plotMargin.leftMargin - bump, adjTickYPos);
+				CTX.stroke();
+
+				CTX.textAlign = "right";
+
+				CTX.fillText(
+					Formatters.floatFormatter(yMin + i * yStep),
+					this.plotMargin.leftMargin - bump * 3,
+					this.plotMargin.topMargin +
+						HEIGHT +
+						bump -
+						i * yTickDistance
+				);
 			}
-			POS_DATA[xLoc][yLoc] = {};
-			POS_DATA[xLoc][yLoc][this.renderConfig.renderBy] = ID;
-			if (!!this.renderConfig.hoverContent) {
-				hoverContent.map((h) => {
-					POS_DATA[xLoc][yLoc][h] = CONTENT[h];
-				});
+
+			// render recombination Rate y ticks
+			if (TYPE == "asso") {
+				let yStep = 20;
+				let yTickDistance = HEIGHT / 5;
+				let recombYMin = 0;
+				for (let i = 0; i < 6; i++) {
+					let tickYPos =
+						this.plotMargin.topMargin + i * yTickDistance;
+					let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+					CTX.moveTo(recomXpos, adjTickYPos);
+					CTX.lineTo(recomXpos + bump, adjTickYPos);
+					CTX.stroke();
+
+					CTX.textAlign = "left";
+
+					CTX.fillText(
+						recombYMin + i * yStep,
+						this.plotMargin.leftMargin + WIDTH + bump * 3,
+						this.plotMargin.topMargin +
+							HEIGHT +
+							5 -
+							i * yTickDistance
+					);
+				}
+			}
+
+			// X ticks
+			let xStep = TYPE == "asso" ? Math.ceil((xMax - xMin) / 5) : 0.2;
+			let xTickDistance = WIDTH / 5;
+
+			for (let i = 0; i < 6; i++) {
+				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
+				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				CTX.moveTo(
+					adjTickXPos,
+					this.plotMargin.topMargin + HEIGHT + bump
+				);
+				CTX.lineTo(
+					adjTickXPos,
+					this.plotMargin.topMargin + HEIGHT + bump * 2
+				);
+				CTX.stroke();
+
+				CTX.textAlign = "center";
+				let positionLabel =
+					TYPE == "asso"
+						? i < 5
+							? xMin + i * xStep
+							: xMax
+						: i < 5
+						? i == 0
+							? 0
+							: (xMin + i * xStep).toFixed(1)
+						: xMax;
+
+				CTX.fillText(
+					positionLabel,
+					adjTickXPos,
+					this.plotMargin.topMargin + HEIGHT + bump * 4
+				);
+			}
+
+			//Render y axis label
+			CTX.textAlign = "center";
+			CTX.rotate(-(Math.PI * 2) / 4);
+			CTX.fillText(
+				this.renderConfig["y axis label"],
+				-(this.plotMargin.topMargin + HEIGHT / 2),
+				bump + 12
+			);
+
+			//Render recombination rate y axis label
+			if (TYPE == "asso") {
+				CTX.fillText(
+					"Recombination Rate (cM/Mb)",
+					-(this.plotMargin.topMargin + HEIGHT / 2),
+					this.plotMargin.leftMargin * 2 + WIDTH - (bump + 12)
+				);
+			}
+
+			//Render x axis label
+			CTX.rotate((-(Math.PI * 2) / 4) * 3);
+			CTX.fillText(
+				TYPE == "LD" ? "LD(r2)" : this.renderConfig["x axis label"],
+				WIDTH / 2 + this.plotMargin.leftMargin,
+				this.plotMargin.topMargin +
+					this.plotMargin.bottomMargin +
+					HEIGHT -
+					12
+			);
+
+			//render LD plots background
+			if (TYPE == "LD" && GROUP == "Combined") {
+				let xBGDistance = WIDTH / 5;
+
+				for (let i = 0; i < 5; i++) {
+					let bgXPos = this.plotMargin.leftMargin + i * xBGDistance;
+					let adBGXPos = Math.floor(bgXPos) + 0.5;
+					CTX.fillStyle = this.ldColor[i];
+					CTX.fillRect(
+						adBGXPos,
+						this.plotMargin.topMargin,
+						xBGDistance - 1,
+						HEIGHT
+					);
+				}
 			}
 		},
 	},
@@ -1860,6 +1663,82 @@ $(function () {});
 </script>
 
 <style>
+.show-hide-plots {
+	text-align: left;
+	padding-bottom: 25px;
+}
+.show-hide-plots span {
+	display: inline-block;
+}
+
+.show-hide-plots span:hover {
+	cursor: pointer;
+}
+
+.region-plots-wrapper {
+	padding: 0 !important;
+}
+.asso-plots-wrapper,
+.ld-plots-wrapper {
+	display: inline-block;
+}
+.asso-info-box,
+.ld-info-box {
+	position: absolute;
+	max-width: 300px;
+	padding: 5px 10px;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	background-color: #fff;
+	z-index: 10;
+	font-size: 14px;
+}
+.info-box-direction {
+	color: #36c;
+	font-weight: bold;
+}
+
+.fixed-info-box-close {
+	position: absolute;
+	top: 0;
+	right: 3px;
+	font-size: 14px;
+	color: #69f;
+}
+
+.fixed-info-box-close:hover {
+	color: #36c;
+}
+
+.fixed-info-box {
+	position: fixed;
+	width: 400px;
+	height: 300px;
+	left: calc(50% - 200px);
+	top: calc(50% - 150px);
+	padding: 20px 0px 3px 15px;
+	border-radius: 5px;
+	border: solid 1px #ddd;
+	background-color: #fff;
+	z-index: 100;
+}
+
+.fixed-info-box-content {
+	width: 100%;
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
+	font-size: 14px !important;
+}
+
+.group-bubble {
+	font-size: 12px;
+	margin-left: 3px;
+	margin-right: 3px;
+	padding: 0px 8px;
+	border-radius: 8px;
+}
+/* remove later if unused */
 .region-plot-default-legend {
 	text-align: center;
 }
@@ -1873,8 +1752,8 @@ $(function () {});
 	height: 12px;
 	border-radius: 0px;
 }
-#regionPlot.hover,
-#ldPlot.hover {
+.asso-plot.hover,
+.ld-plot.hover {
 	cursor: pointer;
 }
 .gene-on-clicked-dot-mplot,
@@ -1885,41 +1764,6 @@ $(function () {});
 #clicked_dot_value,
 #ld_clicked_dot_value {
 	padding: 8px 20px 8px 10px !important;
-}
-
-.clicked-dot-value-close {
-	position: absolute;
-	top: 0;
-	right: 3px;
-	font-size: 14px;
-	color: #69f;
-}
-
-.clicked-dot-value-close:hover {
-	color: #36c;
-}
-
-.dot-value-full-list,
-.ld-dot-value-full-list {
-	position: fixed;
-	width: 400px;
-	height: 300px;
-	left: calc(50% - 200px);
-	top: calc(50% - 150px);
-	padding: 20px 0px 3px 15px;
-	border-radius: 5px;
-	border: solid 1px #ddd;
-	background-color: #fff;
-	z-index: 100;
-}
-
-#dot_value_full_list_content,
-#ld_dot_value_full_list_content {
-	width: 100%;
-	height: 100%;
-	overflow-x: hidden;
-	overflow-y: auto;
-	font-size: 14px;
 }
 
 .content-on-clicked-dot-values {

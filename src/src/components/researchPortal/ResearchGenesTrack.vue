@@ -1,0 +1,197 @@
+<template>
+	<div class="mbm-plot-content row">
+		<div class="col-md-12 genes-plot-wrapper">
+			<div
+				id="genesTrackWrapper"
+				:class="plotType == 'region_plot' ? 'col-md-9' : 'col-md-12'"
+			>
+				<canvas
+					id="genesTrack"
+					@resize="onResize"
+					width=""
+					height=""
+				></canvas>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+import Vue from "vue";
+import $ from "jquery";
+import uiUtils from "@/utils/uiUtils";
+import { BootstrapVueIcons } from "bootstrap-vue";
+import Formatters from "@/utils/formatters.js";
+
+Vue.use(BootstrapVueIcons);
+
+export default Vue.component("research-genes-track", {
+	props: ["region", "genesData", "plotConfig", "plotType", "plotMargin"],
+	data() {
+		return {
+			plotRendered: 0,
+		};
+	},
+	modules: {
+		uiUtils,
+		Formatters,
+	},
+	components: {},
+	mounted: function () {
+		window.addEventListener("resize", this.onResize);
+		this.renderTrack(this.genesData);
+	},
+	beforeDestroy() {
+		window.removeEventListener("resize", this.onResize);
+	},
+	computed: {
+		searchingRegion() {
+			let returnObj = {};
+			let regionArr = this.region.split(":")[1].split("-");
+			returnObj["start"] = regionArr[0];
+			returnObj["end"] = regionArr[1];
+
+			return returnObj;
+		},
+		codingGenes() {
+			let codingGenesData = this.genesData;
+			return codingGenesData;
+		},
+	},
+	watch: {
+		codingGenes(DATA) {
+			this.renderTrack(this.genesData);
+		},
+	},
+	methods: {
+		...uiUtils,
+		onResize(e) {
+			this.renderTrack(this.genesData);
+		},
+		renderTrack(GENES) {
+			console.log("GENES", GENES);
+			let genesArray = GENES;
+			let canvasRenderWidth, canvasRenderHeight;
+			let eachGeneTrackHeight = 10; //15: gene name, 10: gene track, 5: space between tracks
+
+			canvasRenderWidth = !!this.plotConfig.width
+				? this.plotConfig.width +
+				  this.plotMargin.leftMargin +
+				  this.plotMargin.rightMargin
+				: document.getElementById("genesTrackWrapper").clientWidth - 30; // -30 for padding
+
+			canvasRenderHeight =
+				this.plotMargin.topMargin +
+				this.plotMargin.bottomMargin +
+				eachGeneTrackHeight * genesArray.length;
+
+			let bump = 5.5;
+
+			let plotWidth =
+				this.plotType == "region_plot"
+					? canvasRenderWidth - this.plotMargin.leftMargin * 2
+					: canvasRenderWidth -
+					  (this.plotMargin.leftMargin +
+							this.plotMargin.rightMargin);
+
+			let plotHeight = eachGeneTrackHeight * genesArray.length;
+
+			let c = document.getElementById("genesTrack");
+			c.setAttribute("width", canvasRenderWidth);
+			c.setAttribute("height", canvasRenderHeight);
+			let ctx = c.getContext("2d");
+
+			ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
+
+			ctx.beginPath();
+			ctx.lineWidth = 1;
+			ctx.strokeStyle = "#000000";
+			ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+			let xMin = Number(this.searchingRegion.start),
+				xMax = Number(this.searchingRegion.end);
+
+			let xStart = this.plotMargin.leftMargin;
+			let yStart = this.plotMargin.topMargin;
+			let xPosByPixel = plotWidth / (xMax - xMin);
+
+			ctx.font = "italic bold 12px Arial";
+			ctx.textAlign = "center";
+			ctx.fillStyle = "#000000";
+			genesArray.map((gene, geneIndex) => {
+				let xStartPos =
+					gene.start > xMin
+						? xStart + (gene.start - xMin) * xPosByPixel
+						: xStart;
+				let xEndPos =
+					gene.end < xMax
+						? xStart + (gene.end - xMin) * xPosByPixel
+						: xStart + (xMax - xMin) * xPosByPixel;
+
+				let yPos =
+					this.plotMargin.topMargin + geneIndex * eachGeneTrackHeight;
+
+				yPos += yPos % 1 == 0 ? 0.5 : 0;
+
+				var left = '"\\u' + "2190" + '"';
+				var right = '"\\u' + "2192" + '"';
+
+				let geneName =
+					gene.strand == "+"
+						? gene.gene_name + " " + eval(right)
+						: eval(left) + " " + gene.gene_name;
+
+				ctx.fillText(
+					geneName,
+					xStartPos + (xEndPos - xStartPos) / 2,
+					yPos
+				);
+
+				ctx.beginPath();
+				ctx.lineWidth = 1;
+				ctx.strokeStyle = "#000000";
+				ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+				ctx.moveTo(xStartPos, yPos + 10);
+				ctx.lineTo(xEndPos, yPos + 10);
+				ctx.stroke();
+
+				gene.exons.map((exon) => {
+					console.log(gene.gene_name, ": ", exon.start, exon.end);
+
+					if (exon.start < xMax && exon.end > xMin) {
+						let xonStartPos =
+							exon.start > xMin
+								? xStart + (exon.start - xMin) * xPosByPixel
+								: xStart;
+						let xonEndPos =
+							exon.end < xMax
+								? xStart + (exon.end - xMin) * xPosByPixel
+								: xStart + (xMax - xMin) * xPosByPixel;
+
+						let xonWidth = xonEndPos - xonStartPos;
+
+						ctx.fillRect(
+							xonStartPos,
+							yPos + 5,
+							xonWidth - 0.5,
+							9.5
+						);
+					}
+				});
+			});
+		},
+	},
+});
+
+$(function () {});
+</script>
+
+<style>
+.genes-plot-wrapper {
+	padding: 0 !important;
+}
+</style>
+
+
+

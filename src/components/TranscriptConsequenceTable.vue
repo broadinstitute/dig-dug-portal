@@ -53,6 +53,7 @@
                     :fields="fields"
                     :per-page="perPage"
                     :tbody-tr-class="rowPickClass"
+                    id="transcriptconsequence"
                     ><template #cell(varId)="data">
                         <a :href="`/variant.html?variant=${data.item.varId}`">{{
                             data.item.varId
@@ -110,6 +111,7 @@
                     v-model="currentPage"
                     :total-rows="rows"
                     :per-page="perPage"
+                    aria-controls="transcriptconsequence"
                 ></b-pagination>
             </div>
         </div>

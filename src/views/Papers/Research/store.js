@@ -27,6 +27,7 @@ export default new Vuex.Store({
         filteredData: "",
         unfilteredData: "",
         searchingRegion: null,
+        searchingPhenotype: null,
         genesInRegion: null,
         codingGenesData: null,
         variantCorrelations: "",
@@ -34,8 +35,14 @@ export default new Vuex.Store({
         searchParameters: null,
         dataComparison: "newSearch",
         initialSearch: 1,
+        pkgData: {},
+        pkgDataSelected: [],
+        sharedPlotXpos: null,
     },
     mutations: {
+        setSharedPlotXpos(state, XPOS) {
+            state.sharedPlotXpos = XPOS;
+        },
         setFilteredData(state, data) {
             state.filteredData = data;
         },
@@ -46,6 +53,10 @@ export default new Vuex.Store({
         setSearchingRegion(state, data) {
 
             state.searchingRegion = data;
+        },
+        setSearchingPhenotype(state, data) {
+
+            state.searchingPhenotype = data;
         },
         setGenesInRegion(state, data) {
 
@@ -68,9 +79,33 @@ export default new Vuex.Store({
         setDataComparison(state, data) {
             state.dataComparison = data;
         },
+        setPkgData(state, data) {
+            state.pkgData = data;
+        },
+        setPkgDataSelected(state, data) {
+            if (data.action == "add") {
+                var tempObject = { type: null, id: null };
+                tempObject.type = data.type;
+                tempObject.id = data.id;
+                state.pkgDataSelected.push(tempObject);
+            }
+
+            if (data.action == "remove") {
+                let tempArray = [];
+                state.pkgDataSelected.map(p => {
+                    if (p.type != data.type || p.id != data.id) {
+                        tempArray.push(p);
+                    }
+                })
+                state.pkgDataSelected = tempArray;
+            }
+        },
     },
     getters: {},
     actions: {
+        sharedPlotXpos(context, XPOS) {
+            context.commit("setSharedPlotXpos", XPOS);
+        },
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);
         },
@@ -82,6 +117,9 @@ export default new Vuex.Store({
         },
         searchingRegion(context, region) {
             context.commit("setSearchingRegion", region);
+        },
+        searchingPhenotype(context, phenotype) {
+            context.commit("setSearchingPhenotype", phenotype);
         },
         codingGenesData(context, setCodingGenesData) {
             context.commit("setCodingGenesData", setCodingGenesData);
@@ -97,6 +135,12 @@ export default new Vuex.Store({
         },
         dataComparison(context, dataComparison) {
             context.commit("setDataComparison", dataComparison);
+        },
+        pkgData(context, pkgData) {
+            context.commit("setPkgData", pkgData);
+        },
+        pkgDataSelected(context, data) {
+            context.commit("setPkgDataSelected", data);
         },
     }
 });

@@ -83,9 +83,10 @@ export default {
         },
 
         diseaseGroup(state, getters) {
+            //alert(state.diseaseGroups);
             for (let i in state.diseaseGroups) {
                 let group = state.diseaseGroups[i];
-
+                //alert(group.name);
                 if (group.name == state.host.subDomain) {
                     return group;
                 }
@@ -114,7 +115,7 @@ export default {
             let json = await fetch(
                 `${BIO_INDEX_HOST}/api/portal/groups`
             ).then(resp => resp.json());
-
+                
             // set the portal list
             commit("setDiseaseGroups", json.data);
         },

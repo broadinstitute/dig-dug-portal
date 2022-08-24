@@ -10,7 +10,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
-import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
+import GeneAssociationsMasks from "@/portals/Neph/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
@@ -40,6 +40,11 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+
+//Vue.http.headers.common['Access-Control-Allow-Origin'] = '*';
+//Vue.http.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+//Vue.http.headers.common['Accept'] = 'application/json, text/plain, */*';
+//Vue.http.headers.common['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, Authorization, Access-Control-Allow-Origin';
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -110,16 +115,15 @@ new Vue({
 
     created() {
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
-        //this.$store.dispatch("queryAssociations");
-        // get the disease group and set of phenotypes available
+        
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
+        //alert("created");
         this.pushCriterionPhenotype("T2D");
     },
 
     render(createElement, context) {
+        //alert("render");
         return createElement(Template);
     },
 
@@ -320,6 +324,7 @@ new Vue({
         },
 
         accession() {
+            //console.log("accession:"+JSON.stringify(this.$store.getters["uniprot/accession"]));
             return this.$store.getters["uniprot/accession"];
         },
 
@@ -394,7 +399,7 @@ new Vue({
             let topPhenotype = "LDL";
             if (newData.length > 0) {
                 topPhenotype = newData[0].phenotype;
-                console.log("top-phenotype", topPhenotype);
+                //console.log("top-phenotype", topPhenotype);
                 if (this.genePageSearchCriterion[0] != topPhenotype) {
                     this.genePageSearchCriterion = [];
                 }
@@ -410,7 +415,7 @@ new Vue({
             //     this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
             // }
             // this.$store.dispatch("getEGLData");
-        },
+        }, 
 
         // selectedPhenotypes(phenotypes, oldPhenotypes) {
         //     const removedPhenotypes = _.difference(

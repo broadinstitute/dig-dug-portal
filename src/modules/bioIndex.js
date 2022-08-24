@@ -60,7 +60,10 @@ export default function (index, extend) {
             },
 
             setResponse(state, json) {
-                state.data = json.data;
+                //console.log("set response:"+JSON.stringify(state)+"|"+(state && 'data' in json));
+                if ('data' in json){
+                    state.data = json.data;
+                }
                 state.profile = json.profile;
                 state.error = null;
             },
@@ -81,6 +84,7 @@ export default function (index, extend) {
                 context.commit("clearData");
             },
             async query(context, { q, limit, limitWhile, append }) {
+                //console.log("BioIndex:"+JSON.stringify(q));
                 let query_private = false;
                 if (typeof(extend) != "undefined" && typeof(extend.query_private) != "undefined"){
                     query_private = extend.query_private;
@@ -107,20 +111,26 @@ export default function (index, extend) {
                         onResolve: json => {
                             profile.fetch += json.profile.fetch || 0;
                             profile.query += json.profile.query || 0;
-
+                            //console.log("onResolve:"+JSON.stringify(json));
                             // update progress bar
                             context.commit("updateCount", json);
                             context.commit("setProgress", json.progress);
+                            //Helen move setResponse
+                            //console.log(JSON.stringify(json));
+                            context.commit("setResponse", json);
                         },
                         // report errors
                         onError: error => {
                             postAlertError(error.detail);
+                            console.log("Error on bioIndex:"+error.detail);
                             context.commit('setError', error.detail);
                         },
                     }, query_private).finally(() => closeAlert(alertID))
 
                     // data is loaded
-                    context.commit("setResponse", { data, profile });
+                    //Helen move setResponse
+                    //console.log("before set response:"+JSON.stringify(data));
+                    //context.commit("setResponse", { data, profile });
                 }
             }
         }

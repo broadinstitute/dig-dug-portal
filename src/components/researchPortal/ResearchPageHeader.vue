@@ -1,127 +1,134 @@
 <template>
-    <div class="research-header-menu-wrapper container-fluid">
-        <!-- Menu header-->
-
-        <ul v-if="!!this.researchMenu">
-            <li
-                v-for="menu in this.researchMenu"
-                :key="menu.label"
-                class="menu"
-            >
-                <a :href="menu.link">{{ menu.label }}</a>
-                <ul v-if="!!menu.subMenu">
-                    <li
-                        v-for="subMenu in menu.subMenu"
-                        :key="subMenu.label"
-                        class="sub-menu"
-                    >
-                        <a :href="subMenu.link">{{ subMenu.label }}</a>
-                    </li>
-                </ul>
-            </li>
-        </ul>
-    </div>
+	<div class="research-header-menu-wrapper container-fluid">
+		<!-- Menu header-->
+		<div
+			v-html="headerLogo"
+			class="rp-header-logo"
+			v-if="headerLogo != null"
+		></div>
+		<ul v-if="!!this.researchMenu">
+			<li
+				v-for="menu in this.researchMenu"
+				:key="menu.label"
+				class="menu"
+			>
+				<a :href="menu.link">{{ menu.label }}</a>
+				<ul v-if="!!menu.subMenu">
+					<li
+						v-for="subMenu in menu.subMenu"
+						:key="subMenu.label"
+						class="sub-menu"
+					>
+						<a :href="subMenu.link">{{ subMenu.label }}</a>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</div>
 </template>
 
 <script>
 import Vue from "vue";
 
 export default Vue.component("research-page-header", {
-    props: ["researchMenu"],
-    components: {},
+	props: ["researchMenu", "headerLogo"],
+	components: {},
 
-    data() {
-        return {};
-    },
-    created() {},
-    computed: {},
-    watch: {},
+	data() {
+		return {};
+	},
+	created() {},
+	computed: {},
+	watch: {},
 });
 </script>
 
 <style>
+.rp-header-logo {
+	text-align: center;
+}
 .research-header-menu-wrapper {
-    background-color: cornflowerblue;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    width: 100%;
+	background-color: cornflowerblue;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	width: 100%;
 }
 
 .research-header-menu-wrapper ul {
-    list-style: none;
-    text-align: center;
-    padding: 0;
-    margin: 0;
+	list-style: none;
+	text-align: center;
+	padding: 0;
+	margin: 0;
 }
 
 .research-header-menu-wrapper ul li.menu {
-    display: inline-block;
-    margin: 0 8px;
+	display: inline-block;
+	margin: 0 8px;
 }
 
 .research-header-menu-wrapper ul li.menu a {
-    color: #fff !important;
+	color: #fff !important;
 }
 
 .research-header-menu-wrapper ul li.menu a:hover {
-    color: #cdf !important;
+	color: #cdf !important;
 }
 
 .research-header-menu-wrapper ul li.menu > ul {
-    display: none;
-    position: absolute;
-    z-index: 100000;
-    padding: 0;
-    margin: 0;
+	display: none;
+	position: absolute;
+	z-index: 100000;
+	padding: 0;
+	margin: 0;
 }
 
 .research-header-menu-wrapper ul li.menu:hover > ul {
-    display: block;
+	display: block;
 }
 
 .research-header-menu-wrapper ul li.menu:hover li.sub-menu {
-    width: 100%;
-    padding: 0 !important;
-    font-size: 0.8em;
-    background-color: rgba(100, 100, 100, 0.65);
-    text-align: left;
-    list-style: none;
+	width: 100%;
+	padding: 0 !important;
+	font-size: 0.8em;
+	background-color: rgba(100, 100, 100, 0.65);
+	text-align: left;
+	list-style: none;
 }
 
 .research-header-menu-wrapper ul li.menu:hover li.sub-menu:hover {
-    background-color: #00000095;
+	background-color: #00000095;
 }
 
 .research-header-menu-wrapper ul li.menu:hover li.sub-menu > a {
-    display: block;
-    width: 100%;
-    padding: 3px 10px 3px 10px;
-    border-bottom: solid 1px #666;
-    list-style: none;
-    white-space: nowrap;
-    color: #ffffff !important;
-    font-size: 14px;
-    font-weight: 400;
+	display: block;
+	width: 100%;
+	padding: 3px 10px 3px 10px;
+	border-bottom: solid 1px #666;
+	list-style: none;
+	white-space: nowrap;
+	color: #ffffff !important;
+	font-size: 14px;
+	font-weight: 400;
 }
 
 .research-portal-header {
-    width: 100% !important;
+	width: 100% !important;
 }
 
 .research-portal-header-compact {
-    width: 100% !important;
-    padding: 15px 0 0 0 !important;
-    margin: 0;
-    border: none !important;
-    background: none !important;
-    margin-bottom: -15px;
+	width: 100% !important;
+	padding: 15px 0 0 0 !important;
+	margin: 0;
+	border: none !important;
+	background: none !important;
+	margin-bottom: -15px;
 }
 
 .research-portal-header-compact ul li.menu a {
-    color: #007bff !important;
+	color: #007bff !important;
 }
 
 .research-portal-header-compact ul li.menu a:hover {
-    color: #004bcf !important;
+	color: #004bcf !important;
 }
 </style>

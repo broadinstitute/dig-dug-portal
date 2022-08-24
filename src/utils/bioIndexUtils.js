@@ -20,27 +20,27 @@ export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 
 /* Returns the path for any BioIndex API end-point.
  */
-export function apiUrl(path, query_private=false) {
+export function apiUrl(path, query_private = false) {
     if (path.startsWith("/")) {
         path = path.substr(1);
     }
-    
-    if (query_private){
-        console.log("query_private:", query_private);
+
+    if (query_private) {
+        //console.log("query_private:", query_private);
         return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
     } else {
-        console.log("query_private is false:", query_private);
+        //console.log("query_private is false:", query_private);
         return `${BIO_INDEX_HOST}/${path}`;
     }
-    
 }
 
 /* Useful for /api/raw end-points with query parameters.
  */
 export function rawUrl(path, query_params, query_private=false) {
     let qs = querystring.stringify(query_params, { skipNull: true });
-
-    return `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`;
+    let random = Date.now();
+    console.log(`${apiUrl(path, query_private)}${qs ? "?" + qs+"&r="+random : ""}`);
+    return `${apiUrl(path, query_private)}${qs ? "?" + qs+"&r="+random : ""}`;
 }
 
 /* Build a generic request to a BioIndex end-point.
@@ -108,7 +108,7 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile, query
         if (!!onResolve) {
             onResolve(json);
         }
-
+        //console.log('processRequest:'+data.length+'|'+JSON.stringify(json));
         // this will also fail if resp.status !== 200
         while (!!json.continuation) {
             let req = request(`/api/bio/cont`, { token: json.continuation }, query_private);

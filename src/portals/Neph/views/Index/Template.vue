@@ -38,9 +38,10 @@
                                             $parent.diseaseGroup.name +
                                             'kp'
                                         "
-                                        >{{
+                                         v-html="
                                             $parent.frontContents.field_tagline
-                                        }}</span
+                                        "
+                                        ></span
                                     >
                                 </div>
                             </div>
@@ -121,7 +122,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> 
 
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
