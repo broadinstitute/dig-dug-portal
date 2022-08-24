@@ -150,11 +150,6 @@ export default Vue.component("variant-phenotype-table", {
             currentPage: 1,
         };
     },
-    created() {
-        if (this.variantId) {
-            this.searchVariants();
-        }
-    },
     computed: {
         rows() {
             return this.tableData.length;
@@ -174,6 +169,11 @@ export default Vue.component("variant-phenotype-table", {
             }
             return dataRows;*/
         },
+    },
+    created() {
+        if (this.variantId) {
+            this.searchVariants();
+        }
     },
     methods: {
         consequenceFormatter: Formatters.consequenceFormatter,

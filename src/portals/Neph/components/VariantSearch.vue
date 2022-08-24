@@ -167,25 +167,18 @@
                             ></b-th
                         >
                         <b-th
-                            colspan="3"
+                            colspan="4"
                             class="text-center"
                             variant="secondary"
                             >Allele</b-th
                         >
 
                         <b-th
-                            colspan="1"
-                            class="text-center"
-                            variant="secondary"
-                            style="border-left: 1px solid #dee2e6"
-                            >Homozygous</b-th
-                        >
-                        <b-th
                             colspan="3"
                             class="text-center"
                             variant="secondary"
                             style="border-left: 1px solid #dee2e6"
-                            >gnomAD Information</b-th
+                            >gnomAD Allele</b-th
                         >
                         <b-th colspan="1"
                             ><span class="sr-only">View VEP Data</span></b-th
@@ -509,7 +502,7 @@ export default Vue.component("VariantSearch", {
                 },
                 {
                     key: "homozygouscount",
-                    label: "Count",
+                    label: " Homozygotes",
                     sortable: true,
                     tdClass: "text-right",
                     thClass: "text-right",
@@ -685,7 +678,9 @@ export default Vue.component("VariantSearch", {
                                 i
                             ].gnomAD_info.gnomAD_AN?.toExponential(2);
                         this.variants[i].gnomAD_exomes_AF =
-                            this.variants[i].gnomAD_info.gnomAD_AF?.toFixed(5);
+                            this.variants[
+                                i
+                            ].gnomAD_info.gnomAD_AF?.toExponential(2);
                         //alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
                     }
 
@@ -712,7 +707,9 @@ export default Vue.component("VariantSearch", {
                                 this.variants[i].c_allelecount /
                                 this.variants[i].c_allelnumber;
                             this.variants[i].allelefrequency =
-                                this.variants[i].allelefrequency.toFixed(5);
+                                this.variants[i].allelefrequency.toExponential(
+                                    2
+                                );
                             //this.variants[i].c_allelefrequency =this.variants[i].c_allelecount / this.variants[i].c_allelnumber;
                             //this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
                             //this.variants[i].c_TWO_ALT_GENO_CTS =hp.n_hom_var_case;
@@ -848,7 +845,7 @@ export default Vue.component("VariantSearch", {
             if (item.PICK === true) return "row-pick";
         },
         formatAlleleFrequency(count, number) {
-            if (count === 0 || number === 0) return 0;
+            if (count === 0 || number === 0) return "0.00000";
             else return Number.parseFloat(count / number).toFixed(5);
         },
         toToggle(isShowing, buttonClicked) {
