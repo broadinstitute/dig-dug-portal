@@ -21,7 +21,7 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("ancestry-selectpicker", {
-    props: ["ancestries", "clearOnSelected", ],
+    props: ["ancestries", "clearOnSelected"],
 
     data() {
         return {

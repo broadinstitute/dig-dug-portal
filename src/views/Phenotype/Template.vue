@@ -18,8 +18,8 @@
                         :phenotypes="$store.state.bioPortal.phenotypes"
                     ></phenotype-selectpicker>
                 </div>
-                <div class="col filter-col-lg hidden">
-                    <div class="label">Ancestry (optional)</div>
+                <div class="col filter-col-md hidden">
+                    <div class="label">Ancestry</div>
                     <ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
                                         (dataset) => dataset.ancestry
                                     )"></ancestry-selectpicker>

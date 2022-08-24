@@ -21,21 +21,18 @@ export default new Vuex.Store({
         // phenotypes needs to be an array so colors don't change!
         phenotype: null,
         newPhenotype: null,
-        ancestry: null,
+        ancestry: "",
     },
     mutations: {
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
-        },
-        setAncestry(state, ancestry){
-            state.ancestry = ancestry;
         }
     },
     getters: {
         documentationMap(state) {
             return {
                 phenotype: state.phenotype.description,
-                //ancestry: state.ancestry.description
+                ancestry: state.ancestry
             }
         }
     },
@@ -43,10 +40,6 @@ export default new Vuex.Store({
         onPhenotypeChange(context, phenotype) {
             context.commit("setPhenotype", phenotype);
             keyParams.set({ phenotype: phenotype.name });
-        },
-        onAncestryChange(context, ancestry){
-            context.commit("setAncestry", ancestry);
-            keyParams.set({ ancestry: ancestry });
         },
 
         queryPhenotype(context) {
