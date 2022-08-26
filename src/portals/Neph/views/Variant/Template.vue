@@ -46,7 +46,18 @@
                 </div>
             </search-header-wrapper>
 
-            <div class="gene-page-header card mdkp-card">
+            <div v-if="!$parent.varId" class="card">
+                <div class="row card-body">
+                    <div class="col-12 text-center">
+                        <b-alert show variant="warning">
+                            <b-icon icon="exclamation-triangle"></b-icon> No
+                            variant information found.
+                        </b-alert>
+                    </div>
+                </div>
+            </div>
+
+            <div v-else class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-9 gene-page-header-title">
                         Variant
