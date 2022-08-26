@@ -22,7 +22,6 @@
                     id="gnomad"
                     hover
                     small
-                    sort-icon-left
                     responsive="sm"
                     :items="tableData"
                     :fields="fields"
@@ -66,14 +65,23 @@ export default Vue.component("GnominfoCard", {
                 {
                     key: "AC",
                     label: "Allele Count",
+                    sortable: true,
+                    tdClass: "text-right",
+                    thClass: "text-right",
                 },
                 {
                     key: "AN",
                     label: "Allele Number",
+                    sortable: true,
+                    tdClass: "text-right",
+                    thClass: "text-right",
                 },
                 {
                     key: "AF",
                     label: "Allele Frequency",
+                    sortable: true,
+                    tdClass: "text-left pl-5",
+                    thClass: "text-left pl-5",
                 },
             ],
             gnomAD_info: [],
@@ -85,18 +93,7 @@ export default Vue.component("GnominfoCard", {
             return this.tableData.length;
         },
         tableData() {
-            if (this.gnomAD_info && this.gnomAD_info.length) {
-                return this.gnomAD_info;
-            } else {
-                return [];
-            }
-            /*let dataRows = this.variant.hprecords;
-            if (!!this.filter) {
-                dataRows = dataRows.filter((association) => {
-                    return this.filter(association);
-                });
-            }
-            return dataRows;*/
+            return this.gnomAD_info || [];
         },
     },
     created() {
@@ -106,14 +103,11 @@ export default Vue.component("GnominfoCard", {
     },
     methods: {
         async searchVariants() {
-            //alert("variant id:" + this.variantId);
-            //console.log("variant id:" + this.variantId);
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0] + ":" + varinfo[1];
             this.variant = await query("variants", searchquery, {}, true);
             let gnomdisplay = [];
-            //alert("gnomAD_info:"+this.variant.length);
-            //for (var k in this.variant[0].gnomAD_info) {
+
             gnomdisplay[0] = {
                 name: "Total",
                 AC: this.variant[0].gnomAD_info?.gnomADg_AC || "",
@@ -135,13 +129,7 @@ export default Vue.component("GnominfoCard", {
             }
 
             this.gnomAD_info = gnomdisplay;
-
-            //console.log("results:"+JSON.stringify(this.variant[0].hprecords));
         },
-        // formatAlleleFrequency(count, number) {
-        //     if (count === 0 || number === 0) return 0;
-        //     else return Number.parseFloat(count / number).toExponential(2);
-        // }
     },
 });
 </script>
