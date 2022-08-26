@@ -5,7 +5,7 @@
 			v-if="searchingRegion != null"
 		>
 			<div class="col-md-12 bio-plot-wrapper">
-				<div id="biosamplesUIWrapper">
+				<!--<div id="biosamplesUIWrapper">
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -21,10 +21,7 @@
 								>
 									Select Annotation
 								</div>
-								<!--<select
-									class="custom-select"
-									@change="addAnnoTrack($event)"
-								>-->
+								
 								<select
 									class="custom-select"
 									v-model="annotationOnFocus"
@@ -113,8 +110,8 @@
 							</template>
 						</div>
 					</div>
-				</div>
-				<div
+				</div>-->
+				<!--<div
 					class="col-md-12 bio-plot-ui-wrapper"
 					style="border-bottom: solid 1px #dddddd"
 				>
@@ -148,7 +145,7 @@
 							@mouseout="onMouseOut('BSGEInfoBox')"
 						></canvas>
 					</div>
-				</div>
+				</div>-->
 				<div
 					class="filtering-ui-wrapper add-content"
 					style="width: 100%; padding: 0 10px; text-align: left"
@@ -342,7 +339,7 @@ export default Vue.component("research-biosamples-plot", {
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		this.getBSAnnotations(this.searchingRegion);
+		//this.getBSAnnotations(this.searchingRegion);
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -482,7 +479,7 @@ export default Vue.component("research-biosamples-plot", {
 			if (this.searchType == "newSearch") {
 				this.resetAll();
 			} else {
-				this.getBSAnnotations(this.searchingRegion);
+				//this.getBSAnnotations(this.searchingRegion);
 			}
 		},
 		pkgDataSelected: {
@@ -490,7 +487,8 @@ export default Vue.component("research-biosamples-plot", {
 				if (DATA.length == 0) {
 					this.resetAll();
 				} else {
-					this.renderBiosamplesTrack("from watch");
+					this.handleSearchUpdate(DATA);
+					//this.renderBiosamplesTrack("from watch");
 				}
 			},
 		},
@@ -507,6 +505,26 @@ export default Vue.component("research-biosamples-plot", {
 	},
 	methods: {
 		...uiUtils,
+		handleSearchUpdate(DATA) {
+			console.log("point 2", DATA);
+			let annotations = [
+				...new Set(
+					DATA.filter((d) => d.type == "Annotation").map((d) => d.id)
+				),
+			];
+			let tissues = [
+				...new Set(
+					DATA.filter((d) => d.type == "Tissue").map((d) => d.id)
+				),
+			];
+			console.log("point 1", annotations, tissues);
+
+			annotations.map((a) => {
+				tissues.map((t) => {
+					this.getBiosamples(a, t);
+				});
+			});
+		},
 		resetAll() {
 			console.log("reset called");
 			this.annoData = {};
@@ -519,7 +537,7 @@ export default Vue.component("research-biosamples-plot", {
 			this.tissueOnFocus = "null";
 			this.trigger = 0;
 
-			this.getBSAnnotations(this.searchingRegion);
+			//this.getBSAnnotations(this.searchingRegion);
 		},
 		checkUncheckAll(CHECK) {
 			switch (CHECK) {
@@ -1241,13 +1259,13 @@ export default Vue.component("research-biosamples-plot", {
 
 				let annoTissueId = ANNOTATION + " / " + TISSUE;
 
-				if (this.pkgData != null) {
+				/*if (this.pkgData != null) {
 					this.$store.dispatch("pkgDataSelected", {
 						type: "BiosampleAnnoTissue",
 						id: annoTissueId,
 						action: "add",
 					});
-				}
+				}*/
 
 				let regions = [];
 				biosamplesJson.data.map((d) => {
@@ -1296,6 +1314,7 @@ export default Vue.component("research-biosamples-plot", {
 		},
 
 		renderBiosamplesTrack(WHERE) {
+			console.log("this.biosamplesData", this.biosamplesData);
 			this.biosamplesPosData = {};
 
 			let staredPositions = [];
@@ -1581,7 +1600,7 @@ export default Vue.component("research-biosamples-plot", {
 						Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 					}
 
-					this.getGlobalEnrichment();
+					//this.getGlobalEnrichment();
 				}
 			}
 		},
