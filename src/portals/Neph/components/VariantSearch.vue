@@ -593,18 +593,19 @@ export default Vue.component("VariantSearch", {
                     thClass: "text-right",
                 },
             ],
-            variantData: [],
+            variantData: null,
             loadingData: {},
         };
     },
     computed: {
         //This works to display all data fro BI
         tableData() {
-            if (this.variantData && this.variantData.length) {
-                return this.variantData;
-            } else {
-                return [];
-            }
+            // if (this.variantData && this.variantData.length) {
+            //     return this.variantData;
+            // } else {
+            //     return [];
+            // }
+            return this.variants || [];
         },
         rows() {
             //alert("call rows");
@@ -622,6 +623,12 @@ export default Vue.component("VariantSearch", {
         gene: {
             handler(val) {
                 if (val) this.searchVariants();
+            },
+            //immediate: true,
+        },
+        variantData: {
+            handler(val) {
+                if (val) console.log("changed", val);
             },
             //immediate: true,
         },
@@ -654,33 +661,40 @@ export default Vue.component("VariantSearch", {
             this.currentPage = 1; //reset on new search
 
             this.variants = await query("variants", this.gene, {}, true);
-            this.variantData = this.variants; //copy data
 
             if (this.variants && this.variants.length) {
+                this.variantData = [...this.variants]; //copy data
+                console.log("DATAAAA", this.variantData);
+
                 for (let i = 0; i < this.variants.length; i++) {
+                    //get data from HP record AllSamples
+                    let AllSamples = this.variants[i].hprecords.find(
+                        (x) => x.HP === "AllSamples"
+                    );
+                    //copy all properties from AllSamples to variants[i]
+                    for (let prop in AllSamples) {
+                        this.variants[i][prop] = AllSamples[prop];
+                    }
+
                     this.variants[i].allelecount =
-                        2 * parseInt(this.variants[i].n_hom_var_case) +
-                        parseInt(this.variants[i].n_het_case);
+                        2 * parseInt(AllSamples.n_hom_var_case) +
+                        parseInt(AllSamples.n_het_case);
                     this.variants[i].allelnumber =
                         2 *
-                        (parseInt(this.variants[i].n_hom_ref_case) +
-                            parseInt(this.variants[i].n_het_case) +
-                            parseInt(this.variants[i].n_hom_var_case));
+                        (parseInt(AllSamples.n_hom_ref_case) +
+                            parseInt(AllSamples.n_het_case) +
+                            parseInt(AllSamples.n_hom_var_case));
                     //this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
                     //this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
                     if (this.variants[i].gnomAD_info) {
                         this.variants[i].gnomAD_exomes_AC =
-                            this.variants[
-                                i
-                            ].gnomAD_info.gnomAD_AC?.toExponential(2);
+                            this.variants[i].gnomAD_info.gnomADg_AC;
                         this.variants[i].gnomAD_exomes_AN =
-                            this.variants[
-                                i
-                            ].gnomAD_info.gnomAD_AN?.toExponential(2);
+                            this.variants[i].gnomAD_info.gnomADg_AN;
                         this.variants[i].gnomAD_exomes_AF =
                             this.variants[
                                 i
-                            ].gnomAD_info.gnomAD_AF?.toExponential(2);
+                            ].gnomAD_info.gnomADg_AF?.toExponential(2);
                         //alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
                     }
 
@@ -729,17 +743,17 @@ export default Vue.component("VariantSearch", {
                                 this.variants[i].Gene_Symbol =
                                     varrecords[j].Gene_Symbol;
                                 this.variants[i].Max_Impact =
-                                    varrecords[j].Max_Impact;
+                                    varrecords[j].IMPACT;
                                 if (this.variants[i].Max_Impact == "LOWEST") {
                                     this.variants[i].Max_Impact = "MODIFIER";
                                 }
                                 //helen test 2022-01-17
                                 this.variants[i].max_consequence =
-                                    varrecords[j].max_consequence;
+                                    varrecords[j].Consequence;
                                 this.variants[i].Protein_Position =
-                                    varrecords[j].Protein_Position;
+                                    varrecords[j].Protein_position;
                                 this.variants[i].Amino_Acids =
-                                    varrecords[j].Amino_Acids;
+                                    varrecords[j].Amino_acids;
 
                                 this.disablebtn[
                                     this.variants[i].Max_Impact
@@ -804,7 +818,10 @@ export default Vue.component("VariantSearch", {
                 ) {
                     this.addfilter();
                 }
+
+                console.log("DATAAAA INSIDE", this.variantData);
             }
+            console.log("DATAAAA AGAIN", this.variantData);
         },
         async getTranscriptConsequences(varid) {
             if (varid) {
@@ -861,7 +878,7 @@ export default Vue.component("VariantSearch", {
             }
         },
 
-        addfilter: function () {
+        addfilter() {
             let dataRows = this.variants;
             if (this.filters["impacts"].length > 0) {
                 dataRows = dataRows.filter((item) =>
@@ -882,7 +899,7 @@ export default Vue.component("VariantSearch", {
             }
             this.variantData = dataRows;
         },
-        sort: function (s) {
+        sort(s) {
             //if s == current sort, reverse
             console.log("sort", this.currentSort);
             if (s === this.currentSort) {
