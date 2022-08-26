@@ -66,14 +66,14 @@ export default Vue.component("GnominfoCard", {
                     key: "AC",
                     label: "Allele Count",
                     sortable: true,
-                    tdClass: "text-right",
+                    tdClass: "text-right pr-3",
                     thClass: "text-right",
                 },
                 {
                     key: "AN",
                     label: "Allele Number",
                     sortable: true,
-                    tdClass: "text-right",
+                    tdClass: "text-right pr-3",
                     thClass: "text-right",
                 },
                 {
