@@ -122,18 +122,14 @@ export default Vue.component("GnominfoCard", {
             };
 
             let j = 1;
-
             for (let k in this.InfoFields) {
-                //console.log(k);
                 if (this.InfoFields[k] != undefined) {
-                    gnomdisplay[j] = {};
-                    gnomdisplay[j].name = this.InfoFields[k];
-                    gnomdisplay[j].AC =
-                        this.variant[0].gnomAD_info["gnomADg_AC_" + k];
-                    gnomdisplay[j].AF =
-                        this.variant[0].gnomAD_info["gnomADg_AF_" + k];
-                    gnomdisplay[j].AN =
-                        this.variant[0].gnomAD_info["gnomADg_AN_" + k];
+                    gnomdisplay[j] = {
+                        name: this.InfoFields[k],
+                        AC: this.variant[0].gnomAD_info?.["gnomADg_AC_" + k],
+                        AF: this.variant[0].gnomAD_info?.["gnomADg_AF_" + k],
+                        AN: this.variant[0].gnomAD_info?.["gnomADg_AN_" + k],
+                    };
                     j++;
                 }
             }
