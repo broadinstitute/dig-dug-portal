@@ -6,9 +6,7 @@
                     <b-button
                         class="mr-1 text-white"
                         target="_blank"
-                        :href="
-                            `https://gnomad.broadinstitute.org/variant/${variantId}`
-                        "
+                        :href="`https://gnomad.broadinstitute.org/variant/${variantId}`"
                         size="sm"
                         >View in gnomAD browser</b-button
                     >
@@ -21,13 +19,13 @@
             </b-row>
             <div v-show="tableData.length">
                 <b-table
+                    id="gnomad"
                     hover
                     small
                     sort-icon-left
                     responsive="sm"
                     :items="tableData"
                     :fields="fields"
-                    id="gnomad"
                 >
                 </b-table>
             </div>
@@ -46,7 +44,7 @@ import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import { match, query } from "@/utils/bioIndexUtils";
 
-export default Vue.component("gnominfo-card", {
+export default Vue.component("GnominfoCard", {
     props: ["variantId"],
     data() {
         return {
@@ -58,33 +56,29 @@ export default Vue.component("gnominfo-card", {
                 FIN: "European (Finnish)",
                 NFE: "European (Non-Finnish)",
                 SAS: "South Asian",
-                OTH: "Other"
+                OTH: "Other",
             },
             fields: [
                 {
                     key: "name",
-                    label: "Population"
+                    label: "Population",
                 },
                 {
                     key: "AC",
-                    label: "Allele Count"
+                    label: "Allele Count",
                 },
                 {
                     key: "AN",
-                    label: "Allele Number"
+                    label: "Allele Number",
                 },
                 {
                     key: "AF",
-                    label: "Allele Frequency"
-                }
+                    label: "Allele Frequency",
+                },
             ],
-            gnomAD_info: []
+            gnomAD_info: [],
+            variant: [],
         };
-    },
-    created() {
-        if (this.variantId) {
-            this.searchVariants();
-        }
     },
     computed: {
         rows() {
@@ -103,6 +97,11 @@ export default Vue.component("gnominfo-card", {
                 });
             }
             return dataRows;*/
+        },
+    },
+    created() {
+        if (this.variantId) {
+            this.searchVariants();
         }
     },
     methods: {
@@ -115,11 +114,12 @@ export default Vue.component("gnominfo-card", {
             let gnomdisplay = [];
             //alert("gnomAD_info:"+this.variant.length);
             //for (var k in this.variant[0].gnomAD_info) {
-            gnomdisplay[0] = {};
-            gnomdisplay[0].name = "Total";
-            gnomdisplay[0].AC = this.variant[0].gnomAD_info?.gnomAD_AC || "";
-            gnomdisplay[0].AF = this.variant[0].gnomAD_info?.gnomAD_AF || "";
-            gnomdisplay[0].AN = this.variant[0].gnomAD_info?.gnomAD_AN || "";
+            gnomdisplay[0] = {
+                name: "Total",
+                AC: this.variant[0].gnomAD_info?.gnomADg_AC || "",
+                AF: this.variant[0].gnomAD_info?.gnomADg_AF || "",
+                AN: this.variant[0].gnomAD_info?.gnomADg_AN || "",
+            };
 
             let j = 1;
 
@@ -128,15 +128,12 @@ export default Vue.component("gnominfo-card", {
                 if (this.InfoFields[k] != undefined) {
                     gnomdisplay[j] = {};
                     gnomdisplay[j].name = this.InfoFields[k];
-                    gnomdisplay[j].AC = this.variant[0].gnomAD_info[
-                        "gnomAD_" + k + "_AC"
-                    ];
-                    gnomdisplay[j].AF = this.variant[0].gnomAD_info[
-                        "gnomAD_" + k + "_AF"
-                    ];
-                    gnomdisplay[j].AN = this.variant[0].gnomAD_info[
-                        "gnomAD_" + k + "_AN"
-                    ];
+                    gnomdisplay[j].AC =
+                        this.variant[0].gnomAD_info["gnomADg_AC_" + k];
+                    gnomdisplay[j].AF =
+                        this.variant[0].gnomAD_info["gnomADg_AF_" + k];
+                    gnomdisplay[j].AN =
+                        this.variant[0].gnomAD_info["gnomADg_AN_" + k];
                     j++;
                 }
             }
@@ -144,11 +141,11 @@ export default Vue.component("gnominfo-card", {
             this.gnomAD_info = gnomdisplay;
 
             //console.log("results:"+JSON.stringify(this.variant[0].hprecords));
-        }
+        },
         // formatAlleleFrequency(count, number) {
         //     if (count === 0 || number === 0) return 0;
         //     else return Number.parseFloat(count / number).toExponential(2);
         // }
-    }
+    },
 });
 </script>
