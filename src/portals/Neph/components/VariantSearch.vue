@@ -93,21 +93,14 @@
                                         <b-btn
                                             class="btn btn-secondary btn-sm"
                                             @click="
-                                                selectAllElements(
-                                                    'phenotypes',
-                                                    true
-                                                )
+                                                filters['phenotypes'] =
+                                                    phenotypes
                                             "
                                             >Select All</b-btn
                                         >&nbsp;
                                         <b-btn
                                             class="btn btn-secondary btn-sm"
-                                            @click="
-                                                selectAllElements(
-                                                    'phenotypes',
-                                                    false
-                                                )
-                                            "
+                                            @click="filters['phenotypes'] = []"
                                             >Unselect All</b-btn
                                         >
                                     </div>
@@ -137,6 +130,10 @@
                             >
                             <b-btn
                                 class="btn btn-success btn-sm"
+                                :disabled="
+                                    !filters['phenotypes'].length ||
+                                    !filters['impacts'].length
+                                "
                                 @click="
                                     addfilter();
                                     showHideElement('filter_pop_up');
@@ -166,10 +163,7 @@
                                 Acids</span
                             ></b-th
                         >
-                        <b-th
-                            colspan="4"
-                            class="text-center"
-                            variant="secondary"
+                        <b-th colspan="4" class="text-center" variant="primary"
                             >Allele</b-th
                         >
 
@@ -390,21 +384,14 @@
 </template>
 <script>
 import Vue from "vue";
-import { match, query } from "@/utils/bioIndexUtils";
+import { query } from "@/utils/bioIndexUtils";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import Formatters from "@/utils/formatters";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 import CsvDownload from "@/components/CsvDownload";
-//import PhenotypePicker from "@/components/PhenotypePicker.vue";
-//import FilterWrapper from "@/portals/Neph/components/FilterWrapper.vue";
-//import Multiselect from 'vue-multiselect';
-
 import uiUtils from "@/utils/uiUtils";
-
-// register globally
-//Vue.component('multiselect', Multiselect)
 
 export default Vue.component("VariantSearch", {
     components: {
@@ -414,18 +401,12 @@ export default Vue.component("VariantSearch", {
         TooltipDocumentation,
         Formatters,
         CsvDownload,
-        //PhenotypePicker,
-        //FilterWrapper,
     },
     props: {
         gene: [String, Array],
     },
     data() {
         return {
-            filters: {
-                impacts: ["HIGH", "MODERATE", "LOW"],
-                phenotypes: [],
-            },
             applyfilter: false,
             disablebtn: {
                 HIGH: true,
@@ -450,6 +431,19 @@ export default Vue.component("VariantSearch", {
                 FSGS: "Focal Segmental Glomerulosclerosis",
                 MCD: "Minimal Change Disease",
                 AllSamples: "All Samples",
+            },
+            filters: {
+                impacts: ["HIGH", "MODERATE", "LOW"],
+                phenotypes: [
+                    "Healthy",
+                    "NephSyndSteroidSensitive",
+                    "NephSyndUncategorized",
+                    "NephSyndSteroidResistant",
+                    "AllNephroticSyndCases",
+                    "FSGS",
+                    "MCD",
+                    "AllSamples",
+                ],
             },
 
             perPage: 10,
@@ -598,38 +592,22 @@ export default Vue.component("VariantSearch", {
         };
     },
     computed: {
-        //This works to display all data fro BI
         tableData() {
-            // if (this.variantData && this.variantData.length) {
-            //     return this.variantData;
-            // } else {
-            //     return [];
-            // }
             return this.variantData || [];
             // return this.variants || [];
         },
         rows() {
-            //alert("call rows");
             if (this.tableData) return this.tableData.length;
             else return [];
         },
-        // sortedData(hprecords) {
-        //     console.log(hprecords);
-        //     return hprecords.sort(function (a, b) {
-        //         return a.allelecount > b.allelecount;
-        //     });
-        // },
+        phenotypes() {
+            return Object.keys(this.HPOTerms) || [];
+        },
     },
     watch: {
         gene: {
             handler(val) {
                 if (val) this.searchVariants();
-            },
-            //immediate: true,
-        },
-        variantData: {
-            handler(val) {
-                if (val) console.log("changed", val);
             },
             //immediate: true,
         },
@@ -665,7 +643,6 @@ export default Vue.component("VariantSearch", {
 
             if (this.variants && this.variants.length) {
                 this.variantData = [...this.variants]; //copy data
-                console.log("DATAAAA", this.variantData);
 
                 for (let i = 0; i < this.variants.length; i++) {
                     //get data from HP record AllSamples
@@ -819,10 +796,7 @@ export default Vue.component("VariantSearch", {
                 ) {
                     this.addfilter();
                 }
-
-                console.log("DATAAAA INSIDE", this.variantData);
             }
-            console.log("DATAAAA AGAIN", this.variantData);
         },
         async getTranscriptConsequences(varid) {
             if (varid) {
