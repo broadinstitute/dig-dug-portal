@@ -362,11 +362,11 @@
                             <template #cell(max_consequence)="data">
                                 <div
                                     class="border-color"
-                                    :class="data.item.Max_Impact"
+                                    :class="data.item.IMPACT"
                                 >
                                     <span>{{
                                         consequenceFormatter(
-                                            data.item.max_consequence
+                                            data.item.Consequence
                                         )
                                     }}</span>
                                 </div></template
@@ -534,17 +534,17 @@ export default Vue.component("VariantSearch", {
                     label: "Feature",
                 },
                 {
-                    key: "Protein_Position",
-                    label: "Position",
-                },
-                {
-                    key: "Amino_Acids",
-                    label: "Amino Acids",
-                },
-                {
                     key: "max_consequence",
                     label: "Consequence",
                     tdClass: "border-color",
+                },
+                {
+                    key: "Protein_position",
+                    label: "Position",
+                },
+                {
+                    key: "Amino_acids",
+                    label: "Amino Acids",
                 },
                 {
                     key: "HGNC",
@@ -605,7 +605,8 @@ export default Vue.component("VariantSearch", {
             // } else {
             //     return [];
             // }
-            return this.variants || [];
+            return this.variantData || [];
+            // return this.variants || [];
         },
         rows() {
             //alert("call rows");
@@ -832,6 +833,7 @@ export default Vue.component("VariantSearch", {
         consequenceFormatter(consequence) {
             if (consequence) {
                 let trim = consequence
+                    .replaceAll(",", ", ")
                     .replace("_prime_", "' ")
                     .replace("_variant", "");
                 return Formatters.snakeFormatter(trim);
