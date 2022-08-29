@@ -89,7 +89,7 @@
 							class=""
 							v-if="
 								pkgDataSelected.filter(
-									(s) => s.type == 'BiosampleAnnoTissue'
+									(s) => s.type == 'Annotation'
 								).length > 0 &&
 								!renderConfig['no search key bubbles']
 							"
@@ -97,7 +97,7 @@
 						>
 							<template
 								v-for="a in pkgDataSelected.filter(
-									(s) => s.type == 'BiosampleAnnoTissue'
+									(s) => s.type == 'Annotation'
 								)"
 							>
 								<span
@@ -105,13 +105,29 @@
 									:class="'btn search-bubble '"
 									:style="
 										'background-color:' +
-										getColorIndex(a.id.split(' / ')[0])
+										getColorIndex(a.id)
 									"
 									v-html="
 										a.id +
 										'&nbsp;<span class=\'remove\'>X</span>'
 									"
-									@click="removeAnnoTissue(a.id)"
+									@click="removeAnno(a.id)"
+								></span>
+							</template>
+							<template
+								v-for="t in pkgDataSelected.filter(
+									(s) => s.type == 'Tissue'
+								)"
+							>
+								<span
+									:key="t.id"
+									:class="'btn search-bubble '"
+									:style="'background-color:#999999'"
+									v-html="
+										t.id +
+										'&nbsp;<span class=\'remove\'>X</span>'
+									"
+									@click="removeTissue(t.id)"
 								></span>
 							</template>
 						</div>
@@ -852,6 +868,22 @@ export default Vue.component("research-biosamples-plot", {
 			uiUtils.showElement("biosamplesPlotWrapper");
 			this.renderBiosamplesTrack("on resize");
 			this.renderGE();
+		},
+
+		removeAnno(ID) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: "Annotation",
+				id: ID,
+				action: "remove",
+			});
+		},
+
+		removeTissue(ID) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: "Tissue",
+				id: ID,
+				action: "remove",
+			});
 		},
 
 		removeAnnoTissue(ID) {
