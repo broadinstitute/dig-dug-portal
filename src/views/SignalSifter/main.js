@@ -13,6 +13,7 @@ import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import ClumpedAssociationsTable from "@/components/ClumpedAssociationsTable.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -45,6 +46,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
         Documentation,
         ManhattanPlot,
         ClumpedAssociationsTable,

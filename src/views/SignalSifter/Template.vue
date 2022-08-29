@@ -39,6 +39,12 @@
                                 >
                                 </phenotype-selectpicker>
                             </b-col>
+                            <b-col class="col-md-5 mx-auto">
+                                <div class="label">Select Ancestry</div>
+                                <ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
+                                        (dataset) => dataset.ancestry
+                                    )"></ancestry-selectpicker>
+                            </b-col>
                         </b-row>
                     </b-container>
                     <!-- phenotype criterion -->
