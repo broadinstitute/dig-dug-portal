@@ -1433,6 +1433,7 @@ export default Vue.component("research-annotations-plot-v2", {
 		renderByAnnotations() {
 			if (!!this.pkgData.GEByTissueData) {
 				let staredPositions = [];
+				this.annoPosData = {};
 
 				if (!!this.renderConfig["star key"]) {
 					let plotData = !!Array.isArray(this.plotData)

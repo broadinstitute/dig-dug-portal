@@ -521,7 +521,20 @@ export default Vue.component("research-biosamples-plot", {
 		},
 		pkgDataSelected: {
 			handler: function (DATA) {
-				if (DATA.length == 0) {
+				let annotations = [
+					...new Set(
+						DATA.filter((d) => d.type == "Annotation").map(
+							(d) => d.id
+						)
+					),
+				];
+				let tissues = [
+					...new Set(
+						DATA.filter((d) => d.type == "Tissue").map((d) => d.id)
+					),
+				];
+
+				if (annotations.length == 0 || tissues.length == 0) {
 					this.resetAll();
 				} else {
 					this.handleSearchUpdate(DATA);
@@ -575,11 +588,21 @@ export default Vue.component("research-biosamples-plot", {
 			this.tissueOnFocus = "null";
 			this.trigger = 0;
 
+			this.pkgDataSelected.map((i) => {
+				if (i.type == "Biosample") {
+					this.$store.dispatch("pkgDataSelected", {
+						type: i.type,
+						id: i.id,
+						action: "remove",
+					});
+				}
+			});
+
 			this.renderBiosamplesTrack("reset all");
 
 			if (
-				!this.renderConfig["with annotations plot"] ||
-				this.renderConfig["with annotations plot"] == "false"
+				!this.renderConfig["with annotations viewer"] ||
+				this.renderConfig["with annotations viewer"] == "false"
 			) {
 				this.getBSAnnotations(this.searchingRegion);
 			}
