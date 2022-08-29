@@ -506,7 +506,6 @@ export default Vue.component("research-biosamples-plot", {
 	methods: {
 		...uiUtils,
 		handleSearchUpdate(DATA) {
-			console.log("point 2", DATA);
 			let annotations = [
 				...new Set(
 					DATA.filter((d) => d.type == "Annotation").map((d) => d.id)
@@ -517,16 +516,18 @@ export default Vue.component("research-biosamples-plot", {
 					DATA.filter((d) => d.type == "Tissue").map((d) => d.id)
 				),
 			];
-			console.log("point 1", annotations, tissues);
 
-			annotations.map((a) => {
-				tissues.map((t) => {
-					this.getBiosamples(a, t);
+			if (annotations.length > 0 && tissues.length > 0) {
+				annotations.map((a) => {
+					tissues.map((t) => {
+						this.getBiosamples(a, t);
+					});
 				});
-			});
+			} else {
+				this.renderBiosamplesTrack("anno or tissue missing");
+			}
 		},
 		resetAll() {
-			console.log("reset called");
 			this.annoData = {};
 			this.biosamplesData = {};
 			this.GEData = {};
@@ -536,6 +537,8 @@ export default Vue.component("research-biosamples-plot", {
 			this.annotationOnFocus = "null";
 			this.tissueOnFocus = "null";
 			this.trigger = 0;
+
+			this.renderBiosamplesTrack("reset all");
 
 			//this.getBSAnnotations(this.searchingRegion);
 		},
@@ -1044,7 +1047,7 @@ export default Vue.component("research-biosamples-plot", {
 			}
 		},
 		getColorIndex(anno) {
-			let annoArry = Object.keys(this.annoData);
+			let annoArry = Object.keys(this.pkgData.annoData);
 			let i = annoArry.indexOf(anno);
 			return this.compareGroupColors[i];
 		},
@@ -1133,7 +1136,7 @@ export default Vue.component("research-biosamples-plot", {
 				}
 
 				//this.renderBiosamplesTrack();
-				this.renderGE();
+				//this.renderGE();
 				this.renderBiosamplesTrack();
 			}
 			this.$forceUpdate();
@@ -1225,41 +1228,47 @@ export default Vue.component("research-biosamples-plot", {
 			return GEByTissue;
 		},
 		async getBiosamples(ANNOTATION, TISSUE) {
-			let biosamplesServer =
-				this.renderConfig["biosamples server"] == "KP BioIndex"
-					? "https://bioindex-dev.hugeamp.org/api/bio"
-					: this.renderConfig["biosamples server"];
+			if (
+				!!this.biosamplesData[ANNOTATION] &&
+				!!this.biosamplesData[ANNOTATION][TISSUE]
+			) {
+				this.renderBiosamplesTrack("after bs data load");
+			} else {
+				let biosamplesServer =
+					this.renderConfig["biosamples server"] == "KP BioIndex"
+						? "https://bioindex-dev.hugeamp.org/api/bio"
+						: this.renderConfig["biosamples server"];
 
-			let biosamplesIndex = !!this.renderConfig["biosamples index"]
-				? this.renderConfig["biosamples index"]
-				: "tissue-regions";
+				let biosamplesIndex = !!this.renderConfig["biosamples index"]
+					? this.renderConfig["biosamples index"]
+					: "tissue-regions";
 
-			let tissue = TISSUE;
-			let region = this.searchingRegion;
+				let tissue = TISSUE;
+				let region = this.searchingRegion;
 
-			let biosamplesURL =
-				biosamplesServer +
-				"/query/" +
-				biosamplesIndex +
-				"?q=" +
-				tissue +
-				"," +
-				region.chr +
-				":" +
-				region.start +
-				"-" +
-				region.end;
+				let biosamplesURL =
+					biosamplesServer +
+					"/query/" +
+					biosamplesIndex +
+					"?q=" +
+					tissue +
+					"," +
+					region.chr +
+					":" +
+					region.start +
+					"-" +
+					region.end;
 
-			let biosamplesJson = await fetch(biosamplesURL).then((resp) =>
-				resp.json()
-			);
+				let biosamplesJson = await fetch(biosamplesURL).then((resp) =>
+					resp.json()
+				);
 
-			if (biosamplesJson.error == null) {
-				//Add annotations / tissue combination to pkgSelected
+				if (biosamplesJson.error == null) {
+					//Add annotations / tissue combination to pkgSelected
 
-				let annoTissueId = ANNOTATION + " / " + TISSUE;
+					let annoTissueId = ANNOTATION + " / " + TISSUE;
 
-				/*if (this.pkgData != null) {
+					/*if (this.pkgData != null) {
 					this.$store.dispatch("pkgDataSelected", {
 						type: "BiosampleAnnoTissue",
 						id: annoTissueId,
@@ -1267,54 +1276,55 @@ export default Vue.component("research-biosamples-plot", {
 					});
 				}*/
 
-				let regions = [];
-				biosamplesJson.data.map((d) => {
-					if (d.annotation == ANNOTATION) {
-						regions.push(d);
-					}
-				});
-
-				if (regions.length > 0) {
-					let biosampleKeys = [
-						...new Set(regions.map((r) => r.biosample)),
-					].sort(Intl.Collator().compare);
-
-					if (!this.biosamplesData[ANNOTATION]) {
-						this.biosamplesData[ANNOTATION] = {};
-					}
-
-					if (!this.biosamplesData[ANNOTATION][TISSUE]) {
-						this.biosamplesData[ANNOTATION][TISSUE] = {};
-					}
-
-					biosampleKeys.map((b) => {
-						if (!this.biosamplesData[ANNOTATION][TISSUE][b]) {
-							this.biosamplesData[ANNOTATION][TISSUE][b] = [];
+					let regions = [];
+					biosamplesJson.data.map((d) => {
+						if (d.annotation == ANNOTATION) {
+							regions.push(d);
 						}
-						regions.map((r) => {
-							if (r.biosample == b) {
-								this.biosamplesData[ANNOTATION][TISSUE][
-									r.biosample
-								].push(r);
-							}
-						});
 					});
-				}
 
-				if (this.pkgData != null) {
-					Vue.set(
-						this.pkgData,
-						"biosamplesData",
-						this.biosamplesData
-					);
-				}
+					if (regions.length > 0) {
+						let biosampleKeys = [
+							...new Set(regions.map((r) => r.biosample)),
+						].sort(Intl.Collator().compare);
 
-				this.renderBiosamplesTrack("after bs data load");
+						if (!this.biosamplesData[ANNOTATION]) {
+							this.biosamplesData[ANNOTATION] = {};
+						}
+
+						if (!this.biosamplesData[ANNOTATION][TISSUE]) {
+							this.biosamplesData[ANNOTATION][TISSUE] = {};
+						}
+
+						biosampleKeys.map((b) => {
+							if (!this.biosamplesData[ANNOTATION][TISSUE][b]) {
+								this.biosamplesData[ANNOTATION][TISSUE][b] = [];
+							}
+							regions.map((r) => {
+								if (r.biosample == b) {
+									this.biosamplesData[ANNOTATION][TISSUE][
+										r.biosample
+									].push(r);
+								}
+							});
+						});
+					}
+
+					if (this.pkgData != null) {
+						Vue.set(
+							this.pkgData,
+							"biosamplesData",
+							this.biosamplesData
+						);
+					}
+
+					this.renderBiosamplesTrack("after bs data load");
+				}
 			}
 		},
 
 		renderBiosamplesTrack(WHERE) {
-			console.log("this.biosamplesData", this.biosamplesData);
+			console.log("render", WHERE);
 			this.biosamplesPosData = {};
 
 			let staredPositions = [];
@@ -1354,14 +1364,40 @@ export default Vue.component("research-biosamples-plot", {
 
 			let annotationTissueArr = [];
 
-			for (const [aKey, aValue] of Object.entries(this.biosamplesData)) {
+			let annotations = [
+				...new Set(
+					this.pkgDataSelected
+						.filter((d) => d.type == "Annotation")
+						.map((d) => d.id)
+				),
+			];
+			let tissues = [
+				...new Set(
+					this.pkgDataSelected
+						.filter((d) => d.type == "Tissue")
+						.map((d) => d.id)
+				),
+			];
+
+			annotations.map((a) => {
+				tissues.map((t) => {
+					annotationTissueArr.push(a + " / " + t);
+					tempHeight += annotationTitleH;
+					tempHeight +=
+						Object.keys(this.biosamplesData[a][t]).length *
+						perBiosample;
+					tempHeight += btwnAnnotations;
+				});
+			});
+
+			/*for (const [aKey, aValue] of Object.entries(this.biosamplesData)) {
 				for (const [tKey, biosamples] of Object.entries(aValue)) {
 					annotationTissueArr.push(aKey + " / " + tKey);
 					tempHeight += annotationTitleH;
 					tempHeight += Object.keys(biosamples).length * perBiosample;
 					tempHeight += btwnAnnotations;
 				}
-			}
+			}*/
 
 			let wrapper = document.querySelector("#biosamplesPlotWrapper");
 			let canvas = document.querySelector("#biosamplesPlot");
@@ -1716,7 +1752,7 @@ export default Vue.component("research-biosamples-plot", {
 			ctx = c.getContext("2d");
 
 			let pIndex = 0;
-			console.log("sortedGEData", sortedGEData);
+
 			for (const [phenotype, GE] of Object.entries(sortedGEData)) {
 				let titleYPos = titleSize;
 
