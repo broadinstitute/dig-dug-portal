@@ -8,8 +8,8 @@
 				<div
 					id="biosamplesUIWrapper"
 					v-if="
-						!renderConfig['with annotations plot'] ||
-						renderConfig['with annotations plot'] == 'false'
+						!renderConfig['with annotations viewer'] ||
+						renderConfig['with annotations viewer'] == 'false'
 					"
 				>
 					<div
@@ -137,8 +137,8 @@
 					class="col-md-12 bio-plot-ui-wrapper"
 					style="border-bottom: solid 1px #dddddd"
 					v-if="
-						!renderConfig['with annotations plot'] ||
-						renderConfig['with annotations plot'] == 'false'
+						!renderConfig['with annotations viewer'] ||
+						renderConfig['with annotations viewer'] == 'false'
 					"
 				>
 					<h6><strong>Global Enrichment</strong></h6>
@@ -176,9 +176,10 @@
 					class="filtering-ui-wrapper add-content"
 					style="width: 100%; padding: 0 10px; text-align: left"
 					v-if="
-						pkgDataSelected.filter(
-							(s) => s.type == 'BiosampleAnnoTissue'
-						).length > 0
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length > 0 &&
+						pkgDataSelected.filter((s) => s.type == 'Tissue')
+							.length > 0
 					"
 				>
 					<div
@@ -234,7 +235,7 @@
 						height=""
 					></canvas>
 
-					<div
+					<!--<div
 						id="bioInitialMessage"
 						:class="
 							annotationOnFocus != 'null' &&
@@ -243,7 +244,7 @@
 								: ''
 						"
 						v-html="'Please select annotation and tissue.'"
-					></div>
+					></div>-->
 				</div>
 				<div
 					class="col-md-3 reference-area"
