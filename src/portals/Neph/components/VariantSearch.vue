@@ -225,6 +225,12 @@
                     </div>
                     <div v-else class="border-color NONE"></div>
                 </template>
+                <template #cell(HGVSc)="data">
+                    {{ data.item.HGVSc?.split(":")[1] }}</template
+                >
+                <template #cell(HGVSp)="data">
+                    {{ data.item.HGVSp?.split(":")[1].replace("%3D", "=") }}
+                </template>
 
                 <template #cell(view)="data">
                     <b-btn
@@ -365,6 +371,17 @@
                                     }}</span>
                                 </div></template
                             >
+                            <template #cell(HGVSc)="data">
+                                {{ data.item.HGVSc?.split(":")[1] }}</template
+                            >
+                            <template #cell(HGVSp)="data">
+                                {{
+                                    data.item.HGVSp?.split(":")[1].replace(
+                                        "%3D",
+                                        "="
+                                    )
+                                }}
+                            </template>
                             <template #cell(siftPrediction)="data">
                                 {{ siftFormatter(data.item.siftPrediction) }}
                             </template>
@@ -465,12 +482,12 @@ export default Vue.component("VariantSearch", {
                     tdClass: "border-color",
                 },
                 {
-                    key: "Protein_Position",
-                    label: "Protein Position",
+                    key: "HGVSc",
+                    label: "HGVSc",
                 },
                 {
-                    key: "Amino_Acids",
-                    label: "Amino Acids",
+                    key: "HGVSp",
+                    label: "HGVSp",
                 },
                 {
                     key: "c_allelecount",
@@ -539,18 +556,6 @@ export default Vue.component("VariantSearch", {
                     key: "max_consequence",
                     label: "Consequence",
                     tdClass: "border-color",
-                },
-                {
-                    key: "Protein_position",
-                    label: "Position",
-                },
-                {
-                    key: "Amino_acids",
-                    label: "Amino Acids",
-                },
-                {
-                    key: "HGNC",
-                    label: "HGNC",
                 },
                 {
                     key: "HGVSc",
@@ -733,7 +738,7 @@ export default Vue.component("VariantSearch", {
                                 if (this.variants[i].Max_Impact == "LOWEST") {
                                     this.variants[i].Max_Impact = "MODIFIER";
                                 }
-                                //helen test 2022-01-17
+
                                 this.variants[i].max_consequence =
                                     varrecords[j].Consequence;
                                 this.variants[i].Protein_Position =
@@ -744,6 +749,9 @@ export default Vue.component("VariantSearch", {
                                 this.disablebtn[
                                     this.variants[i].Max_Impact
                                 ] = false;
+
+                                this.variants[i].HGVSc = varrecords[j].HGVSc;
+                                this.variants[i].HGVSp = varrecords[j].HGVSp;
                             }
                         }
                         //Max_Impact	Biotype Gene_Symbol	Transcript_count	Amino_Acids	Protein_Position	CDS_position	Refgene	max_consequence
