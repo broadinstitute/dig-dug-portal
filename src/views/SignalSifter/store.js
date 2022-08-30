@@ -35,7 +35,6 @@ export default new Vuex.Store({
             state.phenotypes = [
                 {
                     phenotype: phenotype,
-                    // TODO FIX THIS PART
                     associations: state.ancestry == "" ? state.globalAssociations.data : state.ancestryGlobalAssoc.data,
                     filter: x => true,
                     filterVisible: true

@@ -184,6 +184,9 @@ new Vue({
                 }
             },
             deep: true
+        },
+        "$store.state.ancestry"(ancestry) {
+            this.$store.commit("removePhenotype", 0);
         }
     }
 }).$mount("#app");

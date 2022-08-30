@@ -39,7 +39,7 @@
                                 >
                                 </phenotype-selectpicker>
                             </b-col>
-                            <b-col class="col-md-5 mx-auto">
+                            <b-col class="col-md-5 mx-auto ancestry-field">
                                 <div class="label">Select Ancestry</div>
                                 <ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
                                         (dataset) => dataset.ancestry
@@ -382,5 +382,8 @@ div.lead .lead-icon {
 }
 button:focus {
     outline: none !important;
+}
+.ancestry-field div {
+    display: block;
 }
 </style>
