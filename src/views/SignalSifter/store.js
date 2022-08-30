@@ -128,7 +128,6 @@ export default new Vuex.Store({
                     q: phenotype.name
                 });
             } else {
-                console.log(`${phenotype.name},${context.state.ancestry}`);
                 await context.dispatch("ancestryGlobalAssoc/query", {
                     q: `${phenotype.name},${context.state.ancestry}`
                 });

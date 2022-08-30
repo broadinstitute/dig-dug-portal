@@ -384,6 +384,7 @@ button:focus {
     outline: none !important;
 }
 .ancestry-field div {
-    display: block;
+    display: block !important;
+    padding-bottom: 6px;
 }
 </style>

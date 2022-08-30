@@ -185,8 +185,15 @@ new Vue({
             },
             deep: true
         },
-        "$store.state.ancestry"(ancestry) {
+        async "$store.state.ancestry"(ancestry) {
+            let selectedPhenotypes = this.$store.state.phenotypes;
             this.$store.commit("removePhenotype", 0);
+            if (selectedPhenotypes.length){
+                await this.$store.dispatch("fetchLeadPhenotypeAssociations", selectedPhenotypes[0].phenotype);
+                selectedPhenotypes.slice(1).forEach(p => 
+                    this.$store.dispatch("fetchAssociationsMatrix", p.phenotype)
+                );
+            }
         }
     }
 }).$mount("#app");
