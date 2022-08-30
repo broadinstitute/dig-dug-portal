@@ -102,10 +102,10 @@
                         </div></template
                     >
                     <template #cell(hgvsc)="data">
-                        {{ data.item.hgvsc?.split(":")[1] }}</template
+                        {{ format_hgvsc(data.item.hgvsc) }}</template
                     >
                     <template #cell(hgvsp)="data">
-                        {{ data.item.hgvsp?.split(":")[1].replace("%3D", "=") }}
+                        {{ format_hgvsp(data.item.hgvsp) }}
                     </template>
                     <template #cell(siftPrediction)="data">
                         {{ siftFormatter(data.item.siftPrediction) }}
@@ -224,6 +224,12 @@ export default Vue.component("TranscriptConsequenceTable", {
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
             if (item.pick === 1) return "row-pick";
+        },
+        format_hgvsc(hgvsc) {
+            return hgvsc?.split(":")[1] || "";
+        },
+        format_hgvsp(hgvsp) {
+            return hgvsp?.split(":")[1].replace("%3D", "=") || "";
         },
     },
 });

@@ -226,10 +226,10 @@
                     <div v-else class="border-color NONE"></div>
                 </template>
                 <template #cell(HGVSc)="data">
-                    {{ data.item.HGVSc?.split(":")[1] }}</template
+                    {{ format_hgvsc(data.item.HGVSc) }}</template
                 >
                 <template #cell(HGVSp)="data">
-                    {{ data.item.HGVSp?.split(":")[1].replace("%3D", "=") }}
+                    {{ format_hgvsp(data.item.HGVSp) }}
                 </template>
 
                 <template #cell(view)="data">
@@ -372,15 +372,10 @@
                                 </div></template
                             >
                             <template #cell(HGVSc)="data">
-                                {{ data.item.HGVSc?.split(":")[1] }}</template
+                                {{ format_hgvsc(data.item.HGVSc) }}</template
                             >
                             <template #cell(HGVSp)="data">
-                                {{
-                                    data.item.HGVSp?.split(":")[1].replace(
-                                        "%3D",
-                                        "="
-                                    )
-                                }}
+                                {{ format_hgvsp(data.item.HGVSp) }}
                             </template>
                             <template #cell(siftPrediction)="data">
                                 {{ siftFormatter(data.item.siftPrediction) }}
@@ -899,6 +894,12 @@ export default Vue.component("VariantSearch", {
                     this.currentSortDir === "asc" ? "desc" : "asc";
             }
             this.currentSort = s;
+        },
+        format_hgvsc(hgvsc) {
+            return hgvsc?.split(":")[1] || "";
+        },
+        format_hgvsp(hgvsp) {
+            return hgvsp?.split(":")[1].replace("%3D", "=") || "";
         },
     },
 });
