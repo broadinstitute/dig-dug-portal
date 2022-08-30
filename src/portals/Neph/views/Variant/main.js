@@ -9,7 +9,7 @@ Vue.config.productionTip = false;
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
+import TranscriptConsequenceTable from "@/portals/Neph/components/TranscriptConsequenceTable.vue";
 import VariantPhenotypeTable from "@/portals/Neph/components/VariantPhenotypeTable.vue";
 import GnomInfoCard from "@/portals/Neph/components/GnomInfoCard.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
@@ -29,16 +29,16 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
-import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
-import FilterPValue from "@/components/criterion/FilterPValue.vue"
-import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
-import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
 new Vue({
     store,
@@ -68,38 +68,6 @@ new Vue({
         FilterGreaterThan,
 
         SearchHeaderWrapper,
-
-    },
-
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("queryVariant", keyParams.variant);
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-        consequenceFormatter: Formatters.consequenceFormatter,
-        consequenceMeaning: Formatters.consequenceMeaning,
-
-        exploreRegion(expanded = 50000) {
-            let pos = this.chromPos;
-
-            if (!!pos) {
-                window.location.href = `./region.html?chr=${pos.chromosome
-                    }&start=${pos.position - expanded}&end=${pos.position +
-                    expanded}&variant=${this.$store.state.variant.varId}`;
-            }
-        }
     },
 
     computed: {
@@ -128,8 +96,10 @@ new Vue({
 
                 return {
                     chromosome: chrom,
-                    position: parseInt(pos)
+                    position: parseInt(pos),
                 };
+            } else {
+                return {};
             }
         },
 
@@ -162,19 +132,19 @@ new Vue({
             let associations = this.$store.state.phewas.data;
 
             // filter associations w/ no phenotype data (not in portal!)
-            let portalAssociations = associations.filter(a => {
+            let portalAssociations = associations.filter((a) => {
                 return !!phenotypes[a.phenotype];
             });
 
             // transform from bio index to locuszoom
-            let phewas = portalAssociations.map(a => {
+            let phewas = portalAssociations.map((a) => {
                 let phenotype = phenotypes[a.phenotype];
 
                 return {
                     id: phenotype.name,
                     log_pvalue: -Math.log10(a.pValue),
                     trait_group: phenotype.group,
-                    trait_label: phenotype.description
+                    trait_label: phenotype.description,
                 };
             });
 
@@ -183,7 +153,7 @@ new Vue({
 
         regions() {
             return this.$store.state.regions.data;
-        }
+        },
     },
 
     watch: {
@@ -204,18 +174,51 @@ new Vue({
 
                 this.$store.dispatch("phewas/query", { q: variant.varId });
                 this.$store.dispatch("transcriptConsequences/query", {
-                    q: variant.varId
+                    q: variant.varId,
                 });
                 this.$store.dispatch("transcriptionFactors/query", {
-                    q: variant.varId
+                    q: variant.varId,
                 });
                 this.$store.dispatch("regions/query", {
-                    q: `${p.chromosome}:${p.position}`
+                    q: `${p.chromosome}:${p.position}`,
                 });
                 this.$store.dispatch("datasetAssociations/query", {
-                    q: variant.varId
+                    q: variant.varId,
                 });
             }
-        }
-    }
+        },
+    },
+
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("queryVariant", keyParams.variant);
+    },
+
+    methods: {
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
+        consequenceFormatter: Formatters.consequenceFormatter,
+        consequenceMeaning: Formatters.consequenceMeaning,
+
+        exploreRegion(expanded = 50000) {
+            let pos = this.chromPos;
+
+            if (!!pos) {
+                window.location.href = `./region.html?chr=${
+                    pos.chromosome
+                }&start=${pos.position - expanded}&end=${
+                    pos.position + expanded
+                }&variant=${this.$store.state.variant.varId}`;
+            }
+        },
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
+    },
 }).$mount("#app");
