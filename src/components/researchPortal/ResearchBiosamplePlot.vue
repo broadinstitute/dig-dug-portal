@@ -1,6 +1,5 @@
 <template>
 	<div class="mbm-plot-content row">
-		{{ pkgDataSelected }}
 		<div
 			class="col-md-12 biosamples-plot-wrapper"
 			v-if="searchingRegion != null"
