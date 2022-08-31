@@ -1,5 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
+		{{ pkgDataSelected }}
 		<div
 			class="col-md-12 biosamples-plot-wrapper"
 			v-if="searchingRegion != null"
@@ -589,7 +590,11 @@ export default Vue.component("research-biosamples-plot", {
 			this.trigger = 0;
 
 			this.pkgDataSelected.map((i) => {
-				if (i.type == "Biosample") {
+				if (
+					i.type == "Biosample" ||
+					i.type == "BS-Method" ||
+					i.type == "BS-Source"
+				) {
 					this.$store.dispatch("pkgDataSelected", {
 						type: i.type,
 						id: i.id,
@@ -891,7 +896,12 @@ export default Vue.component("research-biosamples-plot", {
 		onResize(e) {
 			uiUtils.showElement("biosamplesPlotWrapper");
 			this.renderBiosamplesTrack("on resize");
-			this.renderGE();
+			if (
+				!this.renderConfig["with annotations viewer"] ||
+				this.renderConfig["with annotations viewer"] == "false"
+			) {
+				this.renderGE();
+			}
 		},
 
 		removeAnno(ID) {
