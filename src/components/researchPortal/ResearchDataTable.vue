@@ -658,6 +658,45 @@ export default Vue.component("research-data-table", {
 
 			return objectedArray;
 		},
+		checkIfNumeric(DATA, KEY) {
+			let checkNumbers = [
+				"0",
+				"1",
+				"2",
+				"3",
+				"4",
+				"5",
+				"6",
+				"7",
+				"8",
+				"9",
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				"e",
+				"E",
+				"-",
+				".",
+			];
+			let ifNumber = true;
+
+			DATA.map((d) => {
+				for (let i in d[KEY]) {
+					if (!checkNumbers.includes(d[KEY][i])) {
+						ifNumber = false;
+					}
+				}
+			});
+
+			return ifNumber;
+		},
 		applySorting(key) {
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
@@ -679,8 +718,7 @@ export default Vue.component("research-data-table", {
 					}
 				});
 
-				let keyData = filteredWValues[0][key];
-				let isNumeric = typeof keyData != "number" ? false : true;
+				let isNumeric = this.checkIfNumeric(filtered, key);
 
 				//sort the data with values, then merge the data WO values to the sorted.
 				let sortedValues = sortUtils

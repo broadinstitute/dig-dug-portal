@@ -345,7 +345,15 @@ export default Vue.component("research-annotations-plot-v2", {
 		},
 		pkgDataSelected: {
 			handler: function (DATA) {
-				if (DATA.length == 0) {
+				let annotations = [
+					...new Set(
+						this.pkgDataSelected.filter(
+							(p) => p.type == "Annotation"
+						)
+					),
+				];
+
+				if (DATA.length == 0 || annotations.length == 0) {
 					this.resetAll();
 				} else {
 					this.renderByAnnotations();
@@ -376,6 +384,17 @@ export default Vue.component("research-annotations-plot-v2", {
 			this.annotationOnFocus = "null";
 			this.tissueOnFocus = "null";
 			//this.renderGE();
+
+			this.pkgDataSelected.map((i) => {
+				if (i.type == "Tissue") {
+					this.$store.dispatch("pkgDataSelected", {
+						type: i.type,
+						id: i.id,
+						action: "remove",
+					});
+				}
+			});
+
 			this.getAnnotations(this.searchingRegion);
 			this.renderByAnnotations();
 		},
@@ -1433,6 +1452,7 @@ export default Vue.component("research-annotations-plot-v2", {
 		renderByAnnotations() {
 			if (!!this.pkgData.GEByTissueData) {
 				let staredPositions = [];
+				this.annoPosData = {};
 
 				if (!!this.renderConfig["star key"]) {
 					let plotData = !!Array.isArray(this.plotData)
