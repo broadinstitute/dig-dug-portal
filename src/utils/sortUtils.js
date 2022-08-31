@@ -22,9 +22,6 @@ let sort = function (data, key, isNumeric, isAscending) {
 }
 
 let sortEGLTableData = function (data, key, isNumeric, isAscending) {
-    console.log("3.98E-06", typeof 3.98E-06);
-    console.log("3.98e-06", typeof 3.98e-06);
-    console.log("isNumeric", isNumeric);
     return data.sort(function (a, b) {
         let A = (isNumeric) ? a[key] : a[key].toLowerCase();
         let B = (isNumeric) ? b[key] : b[key].toLowerCase();

@@ -691,7 +691,6 @@ export default Vue.component("research-data-table", {
 				for (let i in d[KEY]) {
 					if (!checkNumbers.includes(d[KEY][i])) {
 						ifNumber = false;
-						//console.log("d[KEY][i]", d[KEY][i]);
 					}
 				}
 			});
@@ -719,12 +718,7 @@ export default Vue.component("research-data-table", {
 					}
 				});
 
-				let keyData = filteredWValues[0][key];
-				//let isNumeric = typeof keyData != "number" ? false : true;
-
 				let isNumeric = this.checkIfNumeric(filtered, key);
-
-				console.log("isNumeric", isNumeric);
 
 				//sort the data with values, then merge the data WO values to the sorted.
 				let sortedValues = sortUtils
