@@ -24,6 +24,17 @@
                                         (dataset) => dataset.ancestry
                                     )"></ancestry-selectpicker>
                 </div>
+                <div class="region-search col filter-col-md hidden">
+						<div class="label">Search</div>
+						<button
+							id="regionSearchGo"
+							class="btn btn-light btn-sm go"
+							type="button"
+							@click="$store.dispatch('queryPhenotype')"
+						>
+							GO
+						</button>
+					</div>
             </search-header-wrapper>
 
             <div class="gene-page-header card mdkp-card">
@@ -35,9 +46,6 @@
                     <div class="col-md-12 gene-page-header-body">
                         <span v-if="$store.state.phenotype">
                             {{ $store.state.phenotype.description }}
-                        </span>
-                        <span v-if="$store.state.ancestry">
-                            (Ancestry: {{ $parent.ancestryFormatter($store.state.ancestry) }})
                         </span>
                     </div>
                 </div>
