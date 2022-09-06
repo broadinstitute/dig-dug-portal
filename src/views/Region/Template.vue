@@ -269,6 +269,11 @@
 			</div>
 			<div class="card mdkp-card">
 				<div class="card-body">
+					<h4>Ancestry association table will go here</h4>
+				</div>
+			</div>
+			<div class="card mdkp-card">
+				<div class="card-body">
 					<documentation
 						name="region.lz.subheader"
 						:content-fill="$parent.documentationMap"
