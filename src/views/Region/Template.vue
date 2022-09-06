@@ -267,9 +267,17 @@
 					</template>
 				</div>
 			</div>
-			<div class="card mdkp-card">
+			<div class="card mdkp-card" v-if="$store.state.ancestry">
 				<div class="card-body">
-					<h4>Ancestry association table will go here</h4>
+					<h4>Associations (Ancestry: {{$parent.ancestryFormatter($store.state.ancestry)}})</h4>
+					<associations-table
+							id="ancestry-associations-table"
+							:phenotypes="$parent.selectedPhenotypes"
+							:associations="$store.state.ancestryAssoc.data"
+							:filter="$parent.associationsFilter"
+							:exclusive="false"
+						></associations-table
+					>
 				</div>
 			</div>
 			<div class="card mdkp-card">
