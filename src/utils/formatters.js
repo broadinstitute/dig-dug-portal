@@ -29,8 +29,10 @@ function ancestryFormatter(s) {
         AF: "African",
         EA: "East Asian",
         EU: "European",
+        GME: "Greater Middle Eastern (Middle Eastern, North African, or Persian)",
         HS: "Hispanic/Latin",
         SA: "South Asian",
+        SSAF: "Sub-Saharan African",
         Mixed: "Mixed"
     };
     return ancestries[s];
