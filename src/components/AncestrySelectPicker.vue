@@ -1,8 +1,8 @@
 <template>
-    <select
+    <select class="form-control"
         v-model="$store.state.ancestry"
         ref="ancestrySelect">
-        <option value="" selected>All datasets</option>
+        <option value="" selected>All ancestries</option>
         <option v-for="ancestry in ancestryOptions" :value="ancestry">{{ ancestryFormatter(ancestry) }}</option>
     </select>
 </template>
