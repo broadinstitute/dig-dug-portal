@@ -150,7 +150,7 @@
 					<h4 class="card-title">
 						Most significant variant associations in the region:
 						{{ $parent.regionString }}
-						<span v-if="$store.state.ancestry"> (Ancestry: {{$parent.ancestryFormatter($store.state.ancestry)}})</span>
+						(Ancestry: {{$store.state.lastQueriedAncestry == "" ? "All" : $parent.ancestryFormatter($store.state.lastQueriedAncestry)}})
 						<tooltip-documentation
 							name="region.mostsignificantassoc.header.tooltip"
 							:isHover="true"
@@ -267,9 +267,9 @@
 					</template>
 				</div>
 			</div>
-			<div class="card mdkp-card" v-if="$store.state.ancestry">
+			<!--div class="card mdkp-card" v-if="$store.state.ancestry">
 				<div class="card-body">
-					<h4>Associations (Ancestry: {{$parent.ancestryFormatter($store.state.ancestry)}})</h4>
+					<h4>Associations (Ancestry: {{$parent.ancestryFormatter($store.state.lastQueriedAncestry)}})</h4>
 					<associations-table
 							id="ancestry-associations-table"
 							:phenotypes="$parent.selectedPhenotypes"
@@ -279,7 +279,7 @@
 						></associations-table
 					>
 				</div>
-			</div>
+			</div-->
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<documentation

@@ -167,7 +167,6 @@ new Vue({
                 }
             }
         },
-
         updateLocalRegion(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -389,7 +388,10 @@ new Vue({
             return this.regionPageSearchCriterion
                 .filter(criterion => criterion.field === "phenotype")
                 .map(criterion => phenotypeMap[criterion.threshold]);
-        }
+        },
+        getLastQueriedAncestry(){
+            return this.$store.state.lastQueriedAncestry;
+        },
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap"(phenotypeMap) {
