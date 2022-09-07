@@ -331,10 +331,6 @@ new Vue({
             let data = this.$store.state.ancestry == "" 
                 ?  this.$store.state.topAssociations.data
                 : this.$store.state.ancestryTopAssoc.data;
-            if (this.$store.state.ancestry != ""){
-                console.log(`Ancestry: ${this.$store.state.ancestry}`);
-                console.log(data);
-            }
             let assocMap = {};
 
             for (let i in data) {
@@ -354,7 +350,6 @@ new Vue({
             uiUtils.hideElement("regionSearchHolder");
             // convert to an array, sorted by p-value
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
-
             return x;
         },
         globalEnrichmentAnnotations() {
@@ -435,7 +430,6 @@ new Vue({
                 });
             }
             keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
-            //console.log("current phenotypes",phenotypes)
 
             // reload the global enrichment for these phenotypes
             this.$store.dispatch("globalEnrichment/clear");

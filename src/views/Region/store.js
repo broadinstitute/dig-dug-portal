@@ -150,7 +150,6 @@ export default new Vuex.Store({
                 // Search by ancestry if applicable
                 if (context.state.ancestry != ""){
                     context.dispatch("ancestryTopAssoc/query", { q: `${context.state.ancestry},${newRegion}` });
-                    console.log(context.state.ancestryTopAssoc.data);
                 }
                 context.state.lastQueriedAncestry = context.state.ancestry;
             }
