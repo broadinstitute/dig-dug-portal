@@ -144,12 +144,12 @@ export default new Vuex.Store({
 
                 // find all the top associations and genes in the region
                 context.dispatch("genes/query", { q: newRegion });
+                context.dispatch("topAssociations/query", { q: newRegion });
 
                 // Search by ancestry if applicable
-                if (context.state.ancestry == "" || context.state.ancestry == null){
-                    context.dispatch("topAssociations/query", { q: newRegion });
-                } else {
-                    context.dispatch("ancestryTopAssoc", { q: `${context.state.ancestry},${newRegion}` });
+                if (context.state.ancestry != ""){
+                    context.dispatch("ancestryTopAssoc/query", { q: `${context.state.ancestry},${newRegion}` });
+                    console.log(context.state.ancestryTopAssoc.data);
                 }
             }
         },

@@ -328,11 +328,14 @@ new Vue({
         // Give the top associations, find the best one across all unique
         // phenotypes available.
         topAssociations() {
-            console.log(`Calculating top associations. Ancestry: ${this.$store.state.ancestry}`);
             // Filter by ancestry if one is provided
             let data = this.$store.state.ancestry == "" 
                 ?  this.$store.state.topAssociations.data
                 : this.$store.state.ancestryTopAssoc.data;
+            if (this.$store.state.ancestry != ""){
+                console.log(`Ancestry: ${this.$store.state.ancestry}`);
+                console.log(data);
+            }
             let assocMap = {};
 
             for (let i in data) {
