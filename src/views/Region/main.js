@@ -340,7 +340,6 @@ new Vue({
                 if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
-
                 const curAssoc = assocMap[assoc.phenotype];
                 if (!curAssoc || assoc.pValue < curAssoc.pValue) {
                     assocMap[assoc.phenotype] = assoc;
@@ -348,8 +347,17 @@ new Vue({
             }
             // region loaded, hide search
             uiUtils.hideElement("regionSearchHolder");
-            // convert to an array, sorted by p-value
+            // convert to an array, sorted by p-value 
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            if(x[0]){
+                //This is our top phenotype. 
+                keyParams.set({phenotype: x[0].phenotype});
+                if(this.$store.state.ancestry){
+                    let ancestryAssocQuery = `${x[0].phenotype},${this.$store.state.ancestry},${this.$store.getters.region}`;
+                    this.$store.dispatch("ancestryAssoc/query",{ q: ancestryAssocQuery});
+                    console.log(ancestryAssocQuery);
+                }
+            }
             return x;
         },
         globalEnrichmentAnnotations() {
@@ -464,7 +472,6 @@ new Vue({
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
                     topAssoc.phenotype
                 ];
-
                 // update the master list
                 this.setCriterionPhenotypes([topPhenotype.name]);
             }
