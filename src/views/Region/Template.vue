@@ -267,7 +267,7 @@
 					</template>
 				</div>
 			</div>
-			<!--div class="card mdkp-card" v-if="$store.state.ancestry">
+			<div class="card mdkp-card" v-if="$store.state.lastQueriedAncestry">
 				<div class="card-body">
 					<h4>Associations (Ancestry: {{$parent.ancestryFormatter($store.state.lastQueriedAncestry)}})</h4>
 					<associations-table
@@ -279,7 +279,7 @@
 						></associations-table
 					>
 				</div>
-			</div-->
+			</div>
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<documentation
