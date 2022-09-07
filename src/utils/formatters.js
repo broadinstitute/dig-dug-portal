@@ -25,15 +25,24 @@ function dataTypeFormatter(s) {
 
 function ancestryFormatter(s) {
     const ancestries = {
-        AA: "African American",
-        AF: "African",
+        ABA: "Aboriginal Australian",
+        AA: "African American or Afro-Caribbean",
+        AF: "African unspecified",
+        SSAF: "Sub-Saharan African",
+        ASUN: "Asian unspecified",
+        CA: "Central Asian",
         EA: "East Asian",
+        SA: "South Asian",
+        SEA: "South East Asian",
         EU: "European",
         GME: "Greater Middle Eastern (Middle Eastern, North African, or Persian)",
-        HS: "Hispanic/Latin",
-        SA: "South Asian",
-        SSAF: "Sub-Saharan African",
-        Mixed: "Mixed"
+        HS: "Hispanic or Latin American",
+        NAM: "Native American",
+        NR: "Not reported",
+        OC: "Oceanian",
+        OTH: "Other",
+        OAD: "Other admixed ancestry",
+        Mixed: "Mixed ancestry"
     };
     return ancestries[s];
 }
