@@ -56,9 +56,10 @@ export default new Vuex.Store({
             }
         },
         addPhenotype(state, phenotype) {
+            let dataToAdd = state.ancestry == "" ? state.clumpedMatrix.data : state.ancestryClumpedMatrix.data;
             state.phenotypes.push({
                 phenotype: phenotype,
-                associations: state.clumpedMatrix.data.map(r => {
+                associations: dataToAdd.map(r => {
                     let alignment = r.alignment || 1;
                     let alignedBeta = r.beta * alignment;
 
@@ -146,6 +147,10 @@ export default new Vuex.Store({
                 // use the module to download
                 await context.dispatch("clumpedMatrix/query", {
                     q: `${lead},${phenotype.name}`
+                });
+            } else {
+                await context.dispatch("ancestryClumpedMatrix/query", {
+                    q: `${lead},${phenotype.name},${context.state.ancestry}`
                 });
             }
 
