@@ -44,6 +44,7 @@ export default new Vuex.Store({
         newEnd: keyParams.end,
         searchGene: null,
         matchingGenes: null,
+        geneToQuery: "",
         selectedAncestry: "",
         ancestry: "",
     },
