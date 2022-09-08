@@ -25,6 +25,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import { isEqual } from "lodash";
 import Colors from "@/utils/colors";
+import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 
 import Alert, {
@@ -83,6 +84,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ancestryFormatter: Formatters.ancestryFormatter,
 
         removePhenotype(index) {
             this.$store.commit("removePhenotype", index);
