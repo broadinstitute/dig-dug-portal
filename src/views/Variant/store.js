@@ -25,7 +25,8 @@ export default new Vuex.Store({
     state: {
         variant: null,
         newVariantId: null,
-        ancestry: ""
+        ancestry: "",
+        selectedAncestry: ""
     },
 
     mutations: {
@@ -43,6 +44,7 @@ export default new Vuex.Store({
 
     actions: {
         async queryVariant(context, newVarId) {
+            context.state.ancestry = context.state.selectedAncestry;
             newVarId = await variantUtils.parseVariant(
                 newVarId || context.state.newVariantId
             );
