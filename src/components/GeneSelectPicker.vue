@@ -48,6 +48,7 @@ export default Vue.component("gene-selectpicker", {
         },
         selectGene(gene) {
             this.selectedGene = gene;
+            this.$store.state.geneToQuery = gene;
             this.$emit("onGeneChange", gene);
         },
     },
