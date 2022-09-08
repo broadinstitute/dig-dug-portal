@@ -115,6 +115,7 @@ new Vue({
             annotationsFilter: function (id) {
                 return true;
             },
+            selectedAncestry: "",
             pageAssociationsMap: {},
             pageAssociations: [],
             regionPageSearchCriterion: [],

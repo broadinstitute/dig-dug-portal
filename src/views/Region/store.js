@@ -44,6 +44,7 @@ export default new Vuex.Store({
         newEnd: keyParams.end,
         searchGene: null,
         matchingGenes: null,
+        selectedAncestry: "",
         ancestry: "",
         lastQueriedAncestry: "",
     },
@@ -112,6 +113,7 @@ export default new Vuex.Store({
         },
 
         async queryRegion(context, region) {
+            context.state.ancestry = context.state.selectedAncestry;
             if (
                 context.state.newChr !== context.state.chr ||
                 context.state.newStart !== context.state.start ||
