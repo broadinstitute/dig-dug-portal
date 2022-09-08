@@ -54,6 +54,7 @@
                             </b-col>
                         </b-row>
                     </b-container>
+                    <h4>Associations (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})</h4>
                     <!-- phenotype criterion -->
                     <div class="row">
                         <div class="col-md-10 mx-auto">
