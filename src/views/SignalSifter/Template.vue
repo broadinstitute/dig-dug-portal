@@ -45,6 +45,13 @@
                                         (dataset) => dataset.ancestry
                                     )"></ancestry-selectpicker>
                             </b-col>
+                            <b-col class="col-md-5 mx-auto search-field">
+						            <div class="label">Search</div>
+						                <button class="btn btn-light btn-sm go"
+							                type="button" @click="$store.dispatch('querySignalSifter')">
+						                	GO
+						                </button>
+                            </b-col>
                         </b-row>
                     </b-container>
                     <!-- phenotype criterion -->
@@ -386,5 +393,11 @@ button:focus {
 .ancestry-field div {
     display: block !important;
     padding-bottom: 6px;
+}
+button.go {
+    display: block !important;
+    margin-top: 5px;
+    border: #ced4da solid 1px;
+
 }
 </style>

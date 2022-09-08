@@ -28,7 +28,8 @@ export default new Vuex.Store({
         associations: [],
         leadPositions: {},
         phenotypes: [],
-        ancestry: ""
+        ancestry: "",
+        selectedAncestry: ""
     },
     mutations: {
         setLeadPhenotype(state, phenotype) {
@@ -103,6 +104,9 @@ export default new Vuex.Store({
         }
     },
     actions: {
+        querySignalSifter(context){
+            context.state.ancestry = context.state.selectedAncestry;
+        },
         async onPhenotypeChange(context, phenotype) {
             let i = context.state.phenotypes.indexOf(
                 p => p.name == phenotype.name
