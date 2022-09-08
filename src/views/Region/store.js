@@ -46,7 +46,6 @@ export default new Vuex.Store({
         matchingGenes: null,
         selectedAncestry: "",
         ancestry: "",
-        lastQueriedAncestry: "",
     },
     mutations: {
         setPhenotypeByName(state, name) {
@@ -153,7 +152,6 @@ export default new Vuex.Store({
                 if (context.state.ancestry != ""){
                     context.dispatch("ancestryTopAssoc/query", { q: `${context.state.ancestry},${newRegion}` });
                 }
-                context.state.lastQueriedAncestry = context.state.ancestry;
             }
         },
 
