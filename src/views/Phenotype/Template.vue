@@ -94,9 +94,7 @@
                         <h4 class="card-title">
                             Top single-variant association signals for
                             {{ $store.state.phenotype.description }}
-                            <span v-if="$store.state.ancestry">
-                                (Ancestry: {{ $parent.ancestryFormatter($store.state.ancestry) }})
-                            </span>
+                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
                             <tooltip-documentation
                                 name="phenotype.topvariants.tooltip"
                                 :content-fill="$parent.documentationMap"

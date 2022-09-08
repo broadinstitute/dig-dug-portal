@@ -22,6 +22,7 @@ export default new Vuex.Store({
         phenotype: null,
         newPhenotype: null,
         ancestry: "",
+        selectedAncestry: ""
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -43,6 +44,7 @@ export default new Vuex.Store({
         },
 
         queryPhenotype(context) {
+            context.state.ancestry = context.state.selectedAncestry;
             let query = { q: context.state.phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
             let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
