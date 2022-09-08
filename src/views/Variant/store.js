@@ -26,7 +26,8 @@ export default new Vuex.Store({
         variant: null,
         newVariantId: null,
         ancestry: "",
-        selectedAncestry: ""
+        selectedAncestry: "",
+        badSearch: false
     },
 
     mutations: {
@@ -39,7 +40,7 @@ export default new Vuex.Store({
 
                 keyParams.set({ variant: state.newVariantId });
             }
-        },
+        }
     },
 
     actions: {
@@ -51,6 +52,10 @@ export default new Vuex.Store({
 
             if (!!newVarId) {
                 context.dispatch("variantData/query", { q: newVarId });
+                console.log(newVarId);
+                context.state.badSearch = false;
+            } else {
+                context.state.badSearch = true;
             }
         }
     }

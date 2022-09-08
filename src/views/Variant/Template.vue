@@ -19,6 +19,7 @@
 						class="form-control"
 						placeholder="Search Variant"
 						id="variant_search_input"
+						@click="$parent.clearBadSearch()"
 					/>
 				</div>
 				<div class="col filter-col-md">
@@ -64,13 +65,16 @@
 					<div class="col-md-3 gene-page-header-title">Navigate</div>
 
 					<div class="col-md-9 gene-page-header-body">
-						<span>
+						<span v-if="!$store.state.badSearch">
 							{{ $parent.varId }}
 							<span v-if="$parent.dbSNP">
 								<span style="color: gray">/</span>
 								{{ $parent.dbSNP }}
 							</span>
 						</span>
+						<h6 v-if="$store.state.badSearch">
+							Search term "{{$store.state.newVariantId}}"" did not match a variant. Enter a variant to view associations.
+						</h6>
 					</div>
 					<div class="col-md-3 gene-page-header-body">
 						<button

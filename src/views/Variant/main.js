@@ -100,6 +100,9 @@ new Vue({
                     }&start=${pos.position - expanded}&end=${pos.position +
                     expanded}&variant=${this.$store.state.variant.varId}`;
             }
+        },
+        clearBadSearch(){
+            this.$store.state.badSearch = false;
         }
     },
 
@@ -107,7 +110,6 @@ new Vue({
         variantData() {
             return this.$store.state.variantData.data;
         },
-
         varId() {
             return this.$store.state.variant && this.$store.state.variant.varId;
         },
@@ -196,6 +198,8 @@ new Vue({
             //! data is an array
             if (data.length > 0) {
                 this.$store.commit("setVariant", data[0]); // only ever 1 result
+            } else {
+                console.log("no data");
             }
         },
 
