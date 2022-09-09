@@ -44,8 +44,17 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        getPageContent(NID) {
+        getPageContent(NID, CHAPTER) {
             this.$store.dispatch("kp4cd/getContentByID", NID);
+            if (!!CHAPTER) {
+
+                let chapters = document.querySelectorAll(".chapter");
+
+                chapters.forEach(chapter => {
+                    chapter.setAttribute("class", "chapter closed")
+                })
+                document.getElementById(CHAPTER).setAttribute("class", "chapter open");
+            }
         }
     },
 
