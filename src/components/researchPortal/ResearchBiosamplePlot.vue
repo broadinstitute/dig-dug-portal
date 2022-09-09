@@ -224,6 +224,21 @@
 					<!--working part-->
 
 					<div id="biosampleInfoBox" class="hidden"></div>
+					<div
+						id="bioInitialMessage"
+						:class="
+							getSelectedParameters('Annotation').length > 0 &&
+							getSelectedParameters('Tissue').length > 0
+								? 'hidden'
+								: ''
+						"
+						v-html="
+							!!renderConfig['with annotations viewer'] &&
+							renderConfig['with annotations viewer'] == 'true'
+								? 'Please select annotation and tissue under annotations filter.'
+								: 'Please select annotation and tissue.'
+						"
+					></div>
 
 					<canvas
 						id="biosamplesPlot"
@@ -234,17 +249,6 @@
 						width=""
 						height=""
 					></canvas>
-
-					<!--<div
-						id="bioInitialMessage"
-						:class="
-							annotationOnFocus != 'null' &&
-							tissueOnFocus != 'null'
-								? 'hidden'
-								: ''
-						"
-						v-html="'Please select annotation and tissue.'"
-					></div>-->
 				</div>
 				<div
 					class="col-md-3 reference-area"
@@ -521,24 +525,13 @@ export default Vue.component("research-biosamples-plot", {
 		},
 		pkgDataSelected: {
 			handler: function (DATA) {
-				let annotations = [
-					...new Set(
-						DATA.filter((d) => d.type == "Annotation").map(
-							(d) => d.id
-						)
-					),
-				];
-				let tissues = [
-					...new Set(
-						DATA.filter((d) => d.type == "Tissue").map((d) => d.id)
-					),
-				];
+				let annotations = this.getSelectedParameters("Annotation");
+				let tissues = this.getSelectedParameters("Tissue");
 
 				if (annotations.length == 0 || tissues.length == 0) {
 					this.resetAll();
 				} else {
 					this.handleSearchUpdate(DATA);
-					//this.renderBiosamplesTrack("from watch");
 				}
 			},
 		},
@@ -555,17 +548,19 @@ export default Vue.component("research-biosamples-plot", {
 	},
 	methods: {
 		...uiUtils,
+		getSelectedParameters(PARAM) {
+			let arr = [
+				...new Set(
+					this.pkgDataSelected
+						.filter((d) => d.type == PARAM)
+						.map((d) => d.id)
+				),
+			];
+			return arr;
+		},
 		handleSearchUpdate(DATA) {
-			let annotations = [
-				...new Set(
-					DATA.filter((d) => d.type == "Annotation").map((d) => d.id)
-				),
-			];
-			let tissues = [
-				...new Set(
-					DATA.filter((d) => d.type == "Tissue").map((d) => d.id)
-				),
-			];
+			let annotations = this.getSelectedParameters("Annotation");
+			let tissues = this.getSelectedParameters("Tissue");
 
 			if (annotations.length > 0 && tissues.length > 0) {
 				annotations.map((a) => {
@@ -733,19 +728,7 @@ export default Vue.component("research-biosamples-plot", {
 					action: "add",
 				});
 			}
-		} /*
-		setAnnotation(EVENT) {
-			if (EVENT.target.value != "") {
-				this.annotationOnFocus = EVENT.target.value;
-			} else {
-				this.annotationOnFocus = null;
-			}
 		},
-		setTissue(EVENT) {
-			if (EVENT.target.value != "") {
-				this.tissueOnFocus = EVENT.target.value;
-			}
-		},*/,
 		getOverlappingBSRegion() {
 			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
@@ -919,43 +902,6 @@ export default Vue.component("research-biosamples-plot", {
 			});
 		},
 
-		removeAnnoTissue(ID) {
-			this.$store.dispatch("pkgDataSelected", {
-				type: "BiosampleAnnoTissue",
-				id: ID,
-				action: "remove",
-			});
-
-			/// second, delete the biosample tissue data
-
-			let bsDataPath = ID.split(" / ");
-
-			delete this.pkgData.biosamplesData[bsDataPath[0]][bsDataPath[1]];
-
-			/// second, delete the biosample annotation data if empty
-			if (
-				Object.keys(this.pkgData.biosamplesData[bsDataPath[0]])
-					.length == 0
-			) {
-				delete this.pkgData.biosamplesData[bsDataPath[0]];
-			}
-
-			/// second, delete the biosample data if empty
-
-			if (Object.keys(this.pkgData.biosamplesData).length == 0) {
-				delete this.pkgData.biosamplesData;
-			}
-
-			let selectedBiosamples = this.pkgDataSelected
-				.filter((s) => s.type == "Biosample")
-				.map((s) => s.id);
-
-			selectedBiosamples.map((b) => {
-				if (!!b.includes(ID)) {
-					this.addRemoveBiosampleTrack(b);
-				}
-			});
-		},
 		addRemoveBiosampleTrack(BIOSAMPLE) {
 			let selectedBiosamples = this.pkgDataSelected
 				.filter((s) => s.type == "Biosample")
@@ -1318,7 +1264,7 @@ export default Vue.component("research-biosamples-plot", {
 			return GEByTissue;
 		},
 		async getBiosamples(ANNOTATION, TISSUE) {
-			let annotations = [
+			/*let annotations = [
 				...new Set(
 					this.pkgDataSelected
 						.filter((d) => d.type == "Annotation")
@@ -1331,7 +1277,10 @@ export default Vue.component("research-biosamples-plot", {
 						.filter((d) => d.type == "Tissue")
 						.map((d) => d.id)
 				),
-			].sort();
+			].sort();*/
+
+			let annotations = this.getSelectedParameters("Annotation").sort();
+			let tissues = this.getSelectedParameters("Tissue").sort();
 
 			if (!annotations.includes(ANNOTATION)) {
 				this.$store.dispatch("pkgDataSelected", {
@@ -1445,7 +1394,7 @@ export default Vue.component("research-biosamples-plot", {
 		},
 
 		renderBiosamplesTrack(WHERE) {
-			console.log("render", WHERE);
+			//console.log("render", WHERE);
 			this.biosamplesPosData = {};
 
 			let staredPositions = [];
@@ -1485,20 +1434,8 @@ export default Vue.component("research-biosamples-plot", {
 
 			let annotationTissueArr = [];
 
-			let annotations = [
-				...new Set(
-					this.pkgDataSelected
-						.filter((d) => d.type == "Annotation")
-						.map((d) => d.id)
-				),
-			].sort();
-			let tissues = [
-				...new Set(
-					this.pkgDataSelected
-						.filter((d) => d.type == "Tissue")
-						.map((d) => d.id)
-				),
-			].sort();
+			let annotations = this.getSelectedParameters("Annotation").sort();
+			let tissues = this.getSelectedParameters("Tissue").sort();
 
 			annotations.map((a) => {
 				tissues.map((t) => {
@@ -1510,15 +1447,6 @@ export default Vue.component("research-biosamples-plot", {
 					tempHeight += btwnAnnotations;
 				});
 			});
-
-			/*for (const [aKey, aValue] of Object.entries(this.biosamplesData)) {
-				for (const [tKey, biosamples] of Object.entries(aValue)) {
-					annotationTissueArr.push(aKey + " / " + tKey);
-					tempHeight += annotationTitleH;
-					tempHeight += Object.keys(biosamples).length * perBiosample;
-					tempHeight += btwnAnnotations;
-				}
-			}*/
 
 			let wrapper = document.querySelector("#biosamplesPlotWrapper");
 			let canvas = document.querySelector("#biosamplesPlot");

@@ -25,6 +25,8 @@ export default {
             paperMenu: [],
             forestPlotData: {},
             staticContent: [],
+            helpBook: [],
+            contentByID: [],
         };
     },
 
@@ -78,6 +80,13 @@ export default {
         },
         setPaperMenu(state, menu) {
             state.paperMenu = menu;
+        },
+        setHelpBook(state, book) {
+            console.log("book", book);
+            state.helpBook = book;
+        },
+        setContentByID(state, content) {
+            state.contentByID = content;
         }
     },
 
@@ -226,6 +235,20 @@ export default {
             ).then(resp => resp.json());
             // set the data
             context.commit("setPaperMenu", json);
+        },
+        async getHelpBook(context) {
+            let json = await fetch(
+                "https://kp4cd.org/rest/views/help_book"
+            ).then(resp => resp.json());
+            // set the data
+            context.commit("setHelpBook", json);
+        },
+        async getContentByID(context, nid) {
+            let json = await fetch(
+                "https://kp4cd.org/rest/views/content_by_id?nid=" + nid
+            ).then(resp => resp.json());
+            // set the data
+            context.commit("setContentByID", json);
         },
     }
 };
