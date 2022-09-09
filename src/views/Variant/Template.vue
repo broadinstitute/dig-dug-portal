@@ -51,6 +51,11 @@
 						chr3_12489012-C-T
 					</div>
 				</div>
+				<div v-if="$store.state.badSearch">
+					<p>
+							Search term "{{$store.state.newVariantId}}" did not match a variant. Enter a variant to view associations.
+					</p>
+				</div>
 			</search-header-wrapper>
 
 			<div class="gene-page-header card mdkp-card">
@@ -65,16 +70,12 @@
 					<div class="col-md-3 gene-page-header-title">Navigate</div>
 
 					<div class="col-md-9 gene-page-header-body">
-						<span v-if="!$store.state.badSearch">
-							{{ $parent.varId }}
+						<span>{{ $parent.varId }}
 							<span v-if="$parent.dbSNP">
 								<span style="color: gray">/</span>
 								{{ $parent.dbSNP }}
 							</span>
 						</span>
-						<h6 v-if="$store.state.badSearch">
-							Search term "{{$store.state.newVariantId}}"" did not match a variant. Enter a variant to view associations.
-						</h6>
 					</div>
 					<div class="col-md-3 gene-page-header-body">
 						<button
