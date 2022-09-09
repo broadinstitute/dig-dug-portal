@@ -85,6 +85,18 @@ new Vue({
     },
 
     computed: {
+        ancestryDatasets(){
+            if (!this.$store.state.ancestry){
+                return this.$store.state.bioPortal.datasets;
+            }
+            return this.$store.state.bioPortal.datasets.filter(dataset => dataset.ancestry == this.$store.state.ancestry);
+        },
+        ancestryAnnotations(){
+            if (!this.$store.state.ancestry){
+                return this.$store.state.annotations.data;
+            }
+            return this.$store.state.annotations.data.filter(annotation => annotation.ancestry == this.$store.state.ancestry);
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 

@@ -190,6 +190,7 @@
                         <h4 class="card-title">
                             Datasets with genetic associations for
                             {{ $store.state.phenotype.description }}
+                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
                         </h4>
                         <documentation
                             name="pheno.assocdatasets.subheader"
@@ -207,22 +208,9 @@
                             >
                                 <div class="label">Technology</div>
                             </filter-enumeration-control>
-
-                            <filter-enumeration-control
-                                :field="'ancestry'"
-                                :options="
-                                    $store.state.bioPortal.datasets.map(
-                                        (dataset) => dataset.ancestry
-                                    )
-                                "
-                                :labelFormatter="$parent.ancestryFormatter"
-                            >
-                                <div class="label">Ancestry</div>
-                            </filter-enumeration-control>
-
                             <template slot="filtered" slot-scope="{ filter }">
                                 <datasets-table
-                                    :datasets="$store.state.bioPortal.datasets"
+                                    :datasets="$parent.ancestryDatasets"
                                     :phenotype="$store.state.phenotype"
                                     :filter="filter"
                                 ></datasets-table>
@@ -236,6 +224,7 @@
                         <h4 class="card-title">
                             Globally enriched annotations for
                             {{ $store.state.phenotype.description }}
+                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
                             <tooltip-documentation
                                 name="phenotype.annot.tooltip"
                                 :content-fill="$parent.documentationMap"
@@ -281,19 +270,6 @@
                             >
                                 <div class="label">Tissues</div>
                             </filter-enumeration-control>
-
-                            <filter-enumeration-control
-                                :field="'ancestry'"
-                                :options="
-                                    $store.state.annotations.data.map(
-                                        (annotation) => annotation.ancestry
-                                    )
-                                "
-                                :labelFormatter="$parent.ancestryFormatter"
-                            >
-                                <div class="label">Ancestry</div>
-                            </filter-enumeration-control>
-
                             <filter-pvalue-control :field="'pValue'">
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
@@ -305,7 +281,7 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <enrichment-table
                                     :phenotypes="[$store.state.phenotype]"
-                                    :annotations="$store.state.annotations.data"
+                                    :annotations="$parent.ancestryAnnotations"
                                     :filter="filter"
                                     :per-page="10"
                                 ></enrichment-table>
