@@ -483,10 +483,12 @@
 						></div>
 					</div>
 				</div>
-
 				<div
 					class="data-loading-indicator"
-					v-if="$parent.dataPoints != false"
+					v-if="
+						$parent.dataPoints != false &&
+						$parent.dataType != 'direct input'
+					"
 					v-html="
 						$store.state.initialSearch == 1 && $parent.isAPI == true
 							? 'Start search'
