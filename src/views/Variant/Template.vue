@@ -52,7 +52,7 @@
 					</div>
 				</div>
 				<div v-if="$store.state.badSearch">
-					<p>
+					<p :style="{color: '#FF0000'}">
 							Search term "{{$store.state.newVariantId}}" did not match a variant. Enter a variant to view associations.
 					</p>
 				</div>
