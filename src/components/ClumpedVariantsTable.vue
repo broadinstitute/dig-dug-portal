@@ -106,7 +106,7 @@
 						variant="outline-primary"
 						class="btn-mini showData"
 						@click="
-							showClumpData(data.item.phenotype, data.item.clump);
+							showClumpData(data.item.phenotype, data.item.clump, $store.state.ancestry);
 							data.toggleDetails();
 						"
 					>
@@ -163,11 +163,11 @@
 				<template #row-details="row">
 					<div class="details">
 						<b-table
-							v-if="clumpData[row.item.phenotype]"
-							:items="clumpData[row.item.phenotype]"
+							v-if="clumpData[`${row.item.phenotype},${$store.state.ancestry}`]"
+							:items="clumpData[`${row.item.phenotype},${$store.state.ancestry}`]"
 							:per-page="perPage"
-							:fields="effectFields(row.item.phenotype)"
-							:current-page="subCurrentPage[row.item.phenotype]"
+							:fields="effectFields(`${row.item.phenotype},${$store.state.ancestry}`)"
+							:current-page="subCurrentPage[`${row.item.phenotype},${$store.state.ancestry}`]"
 						>
 							<template #cell(varId)="data">
 								<a
@@ -212,9 +212,9 @@
 							</template>
 						</b-table>
 						<b-pagination
-							v-if="clumpData[row.item.phenotype]"
-							v-model="subCurrentPage[row.item.phenotype]"
-							:total-rows="clumpData[row.item.phenotype].length"
+							v-if="clumpData[`${row.item.phenotype},${$store.state.ancestry}`]"
+							v-model="subCurrentPage[`${row.item.phenotype},${$store.state.ancestry}`]"
+							:total-rows="clumpData[`${row.item.phenotype},${$store.state.ancestry}`].length"
 							:per-page="perPage"
 							size="sm"
 							align="fill"
@@ -337,17 +337,24 @@ export default Vue.component("clumped-variants-table", {
 			let colorIndex = this.phenotypeGroups.indexOf(PGROUP);
 			return this.colors[colorIndex];
 		},
-		async showClumpData(phenotype, clump) {
-			if (this.clumpData[phenotype] === undefined) {
-				this.loadingData[phenotype] = true;
-				let clumpQuery = await this.getClumpData(phenotype, clump);
-				Vue.set(this.clumpData, phenotype, clumpQuery);
-				Vue.set(this.subCurrentPage, phenotype, 1);
-				this.loadingData[phenotype] = false;
+		async showClumpData(phenotype, clump, ancestry="") {
+			// Log phenotype-only data and phenotype-ancestry data in the same place.
+			let queryIndex = `${phenotype},${ancestry}`;
+			console.log(`Query index: ${queryIndex}`);
+			if (this.clumpData[queryIndex] === undefined) {
+				this.loadingData[queryIndex] = true;
+				let clumpQuery = ancestry == "" ? await this.getClumpData(phenotype, clump) 
+					: await this.getAncestryClumpData(phenotype, ancestry, clump);
+				Vue.set(this.clumpData, queryIndex, clumpQuery);
+				Vue.set(this.subCurrentPage, queryIndex, 1);
+				this.loadingData[queryIndex] = false;
 			}
 		},
 		async getClumpData(phenotype, clump) {
 			return await query("clumped-variants", `${phenotype},${clump}`);
+		},
+		async getAncestryClumpData(phenotype, ancestry, clump){
+			return await query("ancestry-clumped-variants", `${phenotype},${ancestry},${clump}`);
 		},
 		effectFields(phenotype) {
 			if (this.phenotypeMap[phenotype].dichotomous)

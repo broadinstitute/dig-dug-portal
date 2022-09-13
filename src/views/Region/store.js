@@ -17,7 +17,9 @@ export default new Vuex.Store({
         kp4cd,
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
+        ancestryAssoc: bioIndex("ancestry-associations"),
         topAssociations: bioIndex("top-associations"),
+        ancestryTopAssoc: bioIndex("ancestry-top-associations"),
         variants: bioIndex("variants"),
         documentation: bioIndex("documentation"),
         regions: bioIndex("regions"),
@@ -41,7 +43,10 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         searchGene: null,
-        matchingGenes: null
+        matchingGenes: null,
+        geneToQuery: "",
+        selectedAncestry: "",
+        ancestry: "",
     },
     mutations: {
         setPhenotypeByName(state, name) {
@@ -108,6 +113,7 @@ export default new Vuex.Store({
         },
 
         async queryRegion(context, region) {
+            context.state.ancestry = context.state.selectedAncestry;
             if (
                 context.state.newChr !== context.state.chr ||
                 context.state.newStart !== context.state.start ||
@@ -128,6 +134,8 @@ export default new Vuex.Store({
                 context.commit("genes/clearData");
                 context.commit("associations/clearData");
                 context.commit("topAssociations/clearData");
+                context.commit("ancestryAssoc/clearData");
+                context.commit("ancestryTopAssoc/clearData")
 
                 if (
                     context.state.newChr !== context.state.chr ||
@@ -138,8 +146,13 @@ export default new Vuex.Store({
                 }
 
                 // find all the top associations and genes in the region
-                context.dispatch("topAssociations/query", { q: newRegion });
                 context.dispatch("genes/query", { q: newRegion });
+                context.dispatch("topAssociations/query", { q: newRegion });
+
+                // Search by ancestry if applicable
+                if (context.state.ancestry != ""){
+                    context.dispatch("ancestryTopAssoc/query", { q: `${context.state.ancestry},${newRegion}` });
+                }
             }
         },
 

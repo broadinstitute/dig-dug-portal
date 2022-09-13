@@ -12,10 +12,20 @@
 				<!-- Wrap page level searchs with "pageSearchParameters" div -->
 
 				<div class="col filter-col-md">
-					<gene-selectpicker
-						@onGeneChange="$store.dispatch('queryGeneName', $event)"
-					></gene-selectpicker>
+					<div class="label">Gene</div>
+					<gene-selectpicker></gene-selectpicker>
 				</div>
+				<div class="col filter-col-md">
+						<div class="label">Search</div>
+						<button
+							id="regionSearchGo"
+							class="btn btn-light btn-sm go"
+							type="button"
+							@click="$store.dispatch('queryGeneName')"
+						>
+							GO
+						</button>
+					</div>
 			</search-header-wrapper>
 
 			<div class="gene-page-header card mdkp-card">
