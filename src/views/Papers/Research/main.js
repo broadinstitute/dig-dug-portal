@@ -279,7 +279,7 @@ new Vue({
 
         csv2Json(DATA) {
 
-            let rawData2 = (this.dataType == 'direct input') ? DATA : JSON.parse(DATA);
+            let rawData2 = (this.dataType == 'direct_csv') ? DATA : JSON.parse(DATA);
 
             let csvArr = this.CSVToArray(rawData2, ",");
 
@@ -685,12 +685,11 @@ new Vue({
         dataType() {
             let contents = this.researchPage;
 
-            /*if (contents === null || contents[0]["field_data_type"] == false || contents[0]["field_data_type"] == "csv") {
+            if (contents === null || contents[0]["field_data_type"] == false || contents[0]["field_data_type"] == "csv") {
                 return null;
             }
             return contents[0]["field_data_type"];
-            */
-            return 'direct input';
+
         },
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
@@ -1057,7 +1056,7 @@ new Vue({
                 }
                 //Load data
 
-                if (this.dataType == 'direct input') {
+                if (this.dataType == 'direct_csv') {
                     this.$store.dispatch("hugeampkpncms/directInputData", content[0]["field_data_points"]);
 
                 } else {
