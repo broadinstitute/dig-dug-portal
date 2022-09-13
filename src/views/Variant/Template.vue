@@ -19,7 +19,14 @@
 						class="form-control"
 						placeholder="Search Variant"
 						id="variant_search_input"
+						@click="$parent.clearBadSearch()"
 					/>
+				</div>
+				<div class="col filter-col-md">
+					<div class="label">Ancestry</div>
+					<ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
+                                        (dataset) => dataset.ancestry
+                                    )"></ancestry-selectpicker>
 				</div>
 				<div class="col filter-col-sm">
 					<button
@@ -44,6 +51,11 @@
 						chr3_12489012-C-T
 					</div>
 				</div>
+				<div v-if="$store.state.badSearch">
+					<p :style="{color: '#FF0000'}">
+							Search term "{{$store.state.newVariantId}}" did not match a variant. Enter a variant to view associations.
+					</p>
+				</div>
 			</search-header-wrapper>
 
 			<div class="gene-page-header card mdkp-card">
@@ -58,8 +70,7 @@
 					<div class="col-md-3 gene-page-header-title">Navigate</div>
 
 					<div class="col-md-9 gene-page-header-body">
-						<span>
-							{{ $parent.varId }}
+						<span>{{ $parent.varId }}
 							<span v-if="$parent.dbSNP">
 								<span style="color: gray">/</span>
 								{{ $parent.dbSNP }}
@@ -163,6 +174,9 @@
 							{{ $parent.dbSNP }}
 						</span>
 						PheWAS associations
+						<span v-if="$store.state.ancestry">
+                            (Ancestry: {{ $parent.ancestryFormatter($store.state.ancestry) }})
+                        </span>
 						<tooltip-documentation
 							name="variant.assoc.tooltip"
 							:content-fill="$parent.documentationMap"
@@ -255,11 +269,13 @@
 
 									<research-phewas-plot
 										v-if="
-											$store.state.phewas.data.length > 0
+											($store.state.phewas.data.length > 0 && !$store.state.ancestry) || $store.state.ancestryPhewas.data.length > 0
 										"
 										canvasId=""
 										:phenotypesData="
-											$store.state.phewas.data
+											!$store.state.ancestry 
+												? $store.state.phewas.data
+												: $store.state.ancestryPhewas.data
 										"
 										:phenotypeMap="
 											$store.state.bioPortal.phenotypeMap
@@ -338,7 +354,11 @@
 							></unauthorized-message>
 							<phewas-datasets
 								v-if="$store.state.phewas.data"
-								:associations="$store.state.phewas.data"
+								:associations=" !$store.state.ancestry
+									? $store.state.phewas.data
+									: $store.state.ancestryPhewas.data
+								"
+								:ancestry="$store.state.ancestry"
 								:datasets="
 									$store.state.datasetAssociations.data
 								"

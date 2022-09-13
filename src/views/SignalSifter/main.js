@@ -13,6 +13,7 @@ import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import ClumpedAssociationsTable from "@/components/ClumpedAssociationsTable.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -24,6 +25,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import { isEqual } from "lodash";
 import Colors from "@/utils/colors";
+import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 
 import Alert, {
@@ -45,6 +47,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
         Documentation,
         ManhattanPlot,
         ClumpedAssociationsTable,
@@ -81,6 +84,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ancestryFormatter: Formatters.ancestryFormatter,
 
         removePhenotype(index) {
             this.$store.commit("removePhenotype", index);
@@ -182,6 +186,16 @@ new Vue({
                 }
             },
             deep: true
+        },
+        async "$store.state.ancestry"(ancestry) {
+            let selectedPhenotypes = this.$store.state.phenotypes;
+            this.$store.commit("removePhenotype", 0);
+            if (selectedPhenotypes.length){
+                await this.$store.dispatch("fetchLeadPhenotypeAssociations", selectedPhenotypes[0].phenotype);
+                selectedPhenotypes.slice(1).forEach(p => 
+                    this.$store.dispatch("fetchAssociationsMatrix", p.phenotype)
+                );
+            }
         }
     }
 }).$mount("#app");

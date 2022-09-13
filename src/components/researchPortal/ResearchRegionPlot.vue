@@ -140,7 +140,7 @@
 				<div v-if="item != 'Combined'">
 					<span
 						class="plot-legend-dot"
-						style="background-color: #82409970"
+						style="background-color: #824099cc"
 					></span>
 					<span>Reference variant</span>
 					<span
@@ -279,7 +279,7 @@ export default Vue.component("research-region-plot", {
 				"#4DB05250",
 				"#EE982D50",
 				"#D0363350",
-				"#82409970",
+				"#824099cc",
 			],
 
 			//rebuilding start
