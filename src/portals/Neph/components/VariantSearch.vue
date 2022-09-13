@@ -32,6 +32,16 @@
                         class="btn-mini"
                         >MODIFIER</b-btn
                     >
+                    <b-form-checkbox
+                        v-model="sortByImpacts"
+                        name="sort-impacts"
+                        switch
+                        inline
+                        size="sm"
+                        class="ml-3"
+                    >
+                        Sort by Impact
+                    </b-form-checkbox>
                 </div>
             </b-col>
             <b-col class="text-right mb-2">
@@ -597,11 +607,18 @@ export default Vue.component("VariantSearch", {
             ],
             variantData: null,
             loadingData: {},
+            sortByImpacts: false,
         };
     },
     computed: {
         tableData() {
-            return this.variantData || [];
+            if (this.sortByImpacts && this.variantData.length) {
+                let sortedVariants = structuredClone(this.variantData);
+                console.log("sortedVariants", sortedVariants);
+                return sortedVariants.sort((a, b) => {
+                    return this.sortImpacts(a, b);
+                });
+            } else return this.variantData || [];
             // return this.variants || [];
         },
         rows() {
@@ -900,6 +917,21 @@ export default Vue.component("VariantSearch", {
         },
         format_hgvsp(hgvsp) {
             return hgvsp?.split(":")[1].replace("%3D", "=") || "";
+        },
+
+        //function to sort variants by impact severity
+        sortImpacts(a, b) {
+            let impactOrder = ["HIGH", "MODERATE", "LOW", "MODIFIER", "LOWEST"];
+            let aImpact = a.Max_Impact;
+            let bImpact = b.Max_Impact;
+            let aIndex = impactOrder.indexOf(aImpact);
+            let bIndex = impactOrder.indexOf(bImpact);
+            if (aIndex < bIndex) {
+                return -1;
+            } else if (aIndex > bIndex) {
+                return 1;
+            }
+            return 0;
         },
     },
 });
