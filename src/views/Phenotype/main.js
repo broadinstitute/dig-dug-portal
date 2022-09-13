@@ -7,6 +7,7 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
@@ -42,6 +43,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
         GeneFinderTable,
         AssociationsTable,
         EnrichmentTable,
@@ -83,6 +85,18 @@ new Vue({
     },
 
     computed: {
+        ancestryDatasets(){
+            if (!this.$store.state.ancestry){
+                return this.$store.state.bioPortal.datasets;
+            }
+            return this.$store.state.bioPortal.datasets.filter(dataset => dataset.ancestry == this.$store.state.ancestry);
+        },
+        ancestryAnnotations(){
+            if (!this.$store.state.ancestry){
+                return this.$store.state.annotations.data;
+            }
+            return this.$store.state.annotations.data.filter(annotation => annotation.ancestry == this.$store.state.ancestry);
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -129,7 +143,10 @@ new Vue({
             this.$store.dispatch("queryPhenotype");
             uiUtils.hideElement("phenotypeSearchHolder");
         },
-
+        "$store.state.ancestry": function(phenotype, ancestry){
+            this.$store.dispatch("queryPhenotype");
+            uiUtils.hideElement("phenotypeSearchHolder");
+        },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         }

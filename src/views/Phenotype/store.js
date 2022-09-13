@@ -15,11 +15,14 @@ export default new Vuex.Store({
         associations: bioIndex("global-associations"),
         annotations: bioIndex("global-enrichment"),
         genes: bioIndex("gene-finder"),
+        ancestryGlobalAssoc: bioIndex("ancestry-global-associations")
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
         phenotype: null,
-        newPhenotype: null
+        newPhenotype: null,
+        ancestry: "",
+        selectedAncestry: ""
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -29,7 +32,8 @@ export default new Vuex.Store({
     getters: {
         documentationMap(state) {
             return {
-                phenotype: state.phenotype.description
+                phenotype: state.phenotype.description,
+                ancestry: state.ancestry
             }
         }
     },
@@ -40,11 +44,17 @@ export default new Vuex.Store({
         },
 
         queryPhenotype(context) {
+            context.state.ancestry = context.state.selectedAncestry;
             let query = { q: context.state.phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
             let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
-
-            context.dispatch("associations/query", assocQuery);
+            let ancestryQuery = {q: `${context.state.phenotype.name},${context.state.ancestry}`};
+            let ancestryAssocQuery = { ...ancestryQuery, limit: 1000 };
+            if (context.state.ancestry == "" || context.state.ancestry == null) {
+                context.dispatch("associations/query", assocQuery);
+            } else {
+                context.dispatch("ancestryGlobalAssoc/query", ancestryAssocQuery);
+            }
             context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
         }

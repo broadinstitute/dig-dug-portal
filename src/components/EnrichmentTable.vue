@@ -102,17 +102,16 @@ export default Vue.component("enrichment-table", {
                     {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
-                        formatter: Formatters.pValueFormatter,
-                        tdClass(x) {
-                            return !!x && x < 1e-5
-                                ? "variant-table-cell high"
-                                : "";
-                        },
+                        formatter: Formatters.pValueFormatter
+                        //, tdClass(x) { return !!x && x < 1e-5 ? "variant-table-cell high" : "";},
                     },
                     {
                         key: `${p.name}_fold`,
                         label: `Fold`,
                         formatter: Formatters.floatFormatter,
+                        tdClass(x) {
+                            return !!x && x > 2 ? "variant-table-cell high" : "";
+                        }
                     },
                 ]);
             }
