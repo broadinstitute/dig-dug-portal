@@ -205,7 +205,9 @@
                     <div align="right">{{ data.item.allelnumber }}</div>
                 </template>
                 <template #cell(allelefrequency)="data">
-                    <div align="right">{{ data.item.allelefrequency }}</div>
+                    <div align="right">
+                        {{ data.item.allelefrequency.toFixed(5) }}
+                    </div>
                 </template>
                 <template #cell(homozygouscount)="data">
                     <div align="right">{{ data.item.homozygouscount }}</div>
@@ -723,10 +725,10 @@ export default Vue.component("VariantSearch", {
                             this.variants[i].allelefrequency =
                                 this.variants[i].c_allelecount /
                                 this.variants[i].c_allelnumber;
-                            this.variants[i].allelefrequency =
-                                this.variants[i].allelefrequency.toExponential(
-                                    2
-                                );
+                            // this.variants[i].allelefrequency =
+                            //     this.variants[i].allelefrequency.toExponential(
+                            //         2
+                            //     );
                             //this.variants[i].c_allelefrequency =this.variants[i].c_allelecount / this.variants[i].c_allelnumber;
                             //this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
                             //this.variants[i].c_TWO_ALT_GENO_CTS =hp.n_hom_var_case;
