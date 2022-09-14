@@ -1,9 +1,8 @@
 <template>
-    <div
-        id="phewas-datasets"
+    <div>
+        <div id="phewas-datasets"
         class="EGLT-table variant-datasets"
-        v-if="rows > 0"
-    >
+        v-if="rows > 0">
         <div class="text-right mt-2">
             <csv-download
                 :data="tableData"
@@ -87,7 +86,7 @@
                             @click="showDatasets(index)"
                             class="view-features-btn">Datasets</b-button>
                         <b-button @click="getClumpedVariants(index, item.phenotype.name, item.clump)"
-                        class="view-features-btn">Top 25 variants</b-button>
+                        class="view-features-btn" :class="`${!item.clump ? 'disabled' : ''}`">Top 25 variants</b-button>
                     </b-col>
                 </b-row>
 
@@ -213,6 +212,8 @@
             :per-page="perPage"
             @page-click="closeAllDatasets()"
         ></b-pagination>
+        </div>
+        <p v-if="rows == 0">No PheWAS associations available for this query.</p>
     </div>
 </template>
 
@@ -320,15 +321,20 @@ export default Vue.component("phewas-datasets", {
             }
         },
         async getClumpedVariants(index, phenotype, clump){
+            if (clump == undefined){
+                return;
+            }
             // if already loaded, just toggle it open
             let testCell = document.getElementById(`pheno${index}_var0_varId`);
             if (testCell.innerText != ""){
                 console.log(`Phenotype #${index} has already been loaded.`)
             } else {
                 let prefix = "https://bioindex.hugeamp.org/api/bio/query";
+                let clumpQuery = `${phenotype},${clump}`;
+                let ancestryClumpQuery = `${phenotype},${this.ancestry},${clump}`;
                 let cvURL = 
-                    !this.ancestry ? `${prefix}/clumped-variants?q=${phenotype},${clump}`
-                        : `${prefix}/ancestry-clumped-variants?q=${phenotype},${$this.ancestry},${clump}`;
+                    !this.ancestry ? `${prefix}/clumped-variants?q=${clumpQuery}`
+                        : `${prefix}/ancestry-clumped-variants?q=${ancestryClumpQuery}`;
                 let cvJSON = await fetch(cvURL).then((response) => response.json());
                 let cvData = cvJSON.data;
                 cvData.sort((a, b) => {a.pValue - b.pValue});
@@ -336,7 +342,7 @@ export default Vue.component("phewas-datasets", {
                 this.fillTopClumpedVariants(index, top25)
             }
             this.showTop25(index);
-        },
+        }
     },
 });
 </script>

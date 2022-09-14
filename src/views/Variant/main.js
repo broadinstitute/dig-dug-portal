@@ -205,10 +205,11 @@ new Vue({
 
         "$store.state.ancestry"(ancestry){
             if(ancestry){
+                console.log(`${this.$store.state.ancestry},${this.$store.state.variant.varId}`);
                 this.$store.dispatch("ancestryPhewas/query", 
-                    { q: `${this.$store.state.ancestry},${variant.varId}` });
+                    { q: `${this.$store.state.ancestry},${this.$store.state.variant.varId}` });
             } else {
-                this.$store.dispatch("phewas/query", { q: variant.varId });
+                this.$store.dispatch("phewas/query", { q: this.$store.state.variant.varId });
             }
         },
 
