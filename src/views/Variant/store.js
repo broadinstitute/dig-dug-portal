@@ -52,7 +52,6 @@ export default new Vuex.Store({
 
             if (!!newVarId) {
                 context.dispatch("variantData/query", { q: newVarId });
-                console.log(newVarId);
                 context.state.badSearch = false;
             } else {
                 context.state.badSearch = true;

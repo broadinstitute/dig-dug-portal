@@ -198,17 +198,15 @@ new Vue({
             //! data is an array
             if (data.length > 0) {
                 this.$store.commit("setVariant", data[0]); // only ever 1 result
-            } else {
-                console.log("no data");
             }
         },
 
         "$store.state.ancestry"(ancestry){
             if(ancestry){
                 this.$store.dispatch("ancestryPhewas/query", 
-                    { q: `${this.$store.state.ancestry},${variant.varId}` });
+                    { q: `${this.$store.state.ancestry},${this.$store.state.variant.varId}` });
             } else {
-                this.$store.dispatch("phewas/query", { q: variant.varId });
+                this.$store.dispatch("phewas/query", { q: this.$store.state.variant.varId });
             }
         },
 
