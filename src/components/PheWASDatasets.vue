@@ -199,8 +199,7 @@
                             <b-col class="feature-content-item" :id="`pheno${index}_var${i - 1}_nearest`"></b-col>
                         </b-row>
                     </template>
-                    <b-button class="btn btn-primary"><a :href="
-                        `/research.html?pageid=clumped_variants&phenotype=${item.phenotype.name}&clump=${item.clump}`">
+                    <b-button class="btn btn-primary"><a :href="viewAllVariantsLink(item.phenotype.name, item.clump)">
                         View all variants in clump</a></b-button>
                 </div>
             </template>
@@ -278,6 +277,12 @@ export default Vue.component("phewas-datasets", {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
+        viewAllVariantsLink(phenotype, clump){
+            if (!this.ancestry){
+                return `/research.html?pageid=clumped_variants&phenotype=${phenotype}&clump=${clump}`;
+            }
+            return `/research.html?pageid=ancestry_clumped_variants&phenotype=${phenotype}&ancestry=${this.ancestry}&clump=${clump}`;
+        },
         showDatasets(index) {
             uiUtils.hideElement(`features_top25_${index}`);
             uiUtils.showHideElement(`features_${index}`);
@@ -322,7 +327,6 @@ export default Vue.component("phewas-datasets", {
             }
         },
         async getClumpedVariants(index, phenotype, clump){
-            //if (clump == undefined){return;}
             // if already loaded, just toggle it open
             let testCell = document.getElementById(`pheno${index}_var0_varId`);
             if (testCell.innerText != ""){
