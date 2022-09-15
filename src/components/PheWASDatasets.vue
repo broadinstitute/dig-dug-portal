@@ -273,13 +273,10 @@
                                 ></b-col>
                             </b-row>
                         </template>
-                        <b-button class="btn btn-primary"
-                            ><a
-                                :href="`/research.html?pageid=clumped_variants&phenotype=${item.phenotype.name}&clump=${item.clump}`"
-                            >
-                                View all variants in clump</a
-                            ></b-button
-                        >
+                        <b-button class="btn btn-primary">
+                            <a :href="viewAllVariantsLink(item.phenotype.name, item.clump)">
+                            View all variants in clump</a>
+                        </b-button>
                     </div>
                 </template>
             </b-container>
@@ -363,6 +360,12 @@ export default Vue.component("PhewasDatasets", {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
+        viewAllVariantsLink(phenotype, clump){
+            if (!this.ancestry){
+                return `/research.html?pageid=clumped_variants&phenotype=${phenotype}&clump=${clump}`;
+            }
+            return `/research.html?pageid=ancestry_clumped_variants&phenotype=${phenotype}&ancestry=${this.ancestry}&clump=${clump}`;
+        },
         showDatasets(index) {
             uiUtils.hideElement(`features_top25_${index}`);
             uiUtils.showHideElement(`features_${index}`);
@@ -423,8 +426,7 @@ export default Vue.component("PhewasDatasets", {
                 refAltCell.innerText = `${item.reference}/${item.alt}`;
             }
         },
-        async getClumpedVariants(index, phenotype, clump) {
-            //if (clump == undefined){return;}
+        async getClumpedVariants(index, phenotype, clump){
             // if already loaded, just toggle it open
             let testCell = document.getElementById(`pheno${index}_var0_varId`);
             if (testCell.innerText != "") {
