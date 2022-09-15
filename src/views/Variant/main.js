@@ -198,14 +198,11 @@ new Vue({
             //! data is an array
             if (data.length > 0) {
                 this.$store.commit("setVariant", data[0]); // only ever 1 result
-            } else {
-                console.log("no data");
             }
         },
 
         "$store.state.ancestry"(ancestry){
             if(ancestry){
-                console.log(`${this.$store.state.ancestry},${this.$store.state.variant.varId}`);
                 this.$store.dispatch("ancestryPhewas/query", 
                     { q: `${this.$store.state.ancestry},${this.$store.state.variant.varId}` });
             } else {

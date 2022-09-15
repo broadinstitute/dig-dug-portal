@@ -86,7 +86,7 @@
                             @click="showDatasets(index)"
                             class="view-features-btn">Datasets</b-button>
                         <b-button @click="getClumpedVariants(index, item.phenotype.name, item.clump)"
-                        class="view-features-btn" :class="`${!item.clump ? 'disabled' : ''}`">Top 25 variants</b-button>
+                        class="view-features-btn" :disabled="!item.clump">Top 25 variants</b-button>
                     </b-col>
                 </b-row>
 
@@ -219,6 +219,7 @@
 
 <script>
 import Vue from "vue";
+import { BIO_INDEX_HOST } from "../utils/bioIndexUtils";
 import { orderBy, groupBy, cloneDeep } from "lodash";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
@@ -321,17 +322,15 @@ export default Vue.component("phewas-datasets", {
             }
         },
         async getClumpedVariants(index, phenotype, clump){
-            if (clump == undefined){
-                return;
-            }
+            //if (clump == undefined){return;}
             // if already loaded, just toggle it open
             let testCell = document.getElementById(`pheno${index}_var0_varId`);
             if (testCell.innerText != ""){
                 console.log(`Phenotype #${index} has already been loaded.`)
             } else {
-                let prefix = "https://bioindex.hugeamp.org/api/bio/query";
                 let clumpQuery = `${phenotype},${clump}`;
                 let ancestryClumpQuery = `${phenotype},${this.ancestry},${clump}`;
+                let prefix = `${BIO_INDEX_HOST}/api/bio/query`
                 let cvURL = 
                     !this.ancestry ? `${prefix}/clumped-variants?q=${clumpQuery}`
                         : `${prefix}/ancestry-clumped-variants?q=${ancestryClumpQuery}`;
