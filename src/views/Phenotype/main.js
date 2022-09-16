@@ -137,15 +137,15 @@ new Vue({
                 this.$store.commit("setPhenotype", phenotype);
                 keyParams.set({ phenotype: phenotype.name });
             }
+            //Initial query. Should only happen once.
+            this.$store.dispatch("queryPhenotype");
         },
 
         "$store.state.phenotype": function (phenotype) {
-            this.$store.dispatch("queryPhenotype");
             uiUtils.hideElement("phenotypeSearchHolder");
         },
         "$store.state.ancestry": function(ancestry){
             keyParams.set({ancestry: ancestry});
-            this.$store.dispatch("queryPhenotype");
             uiUtils.hideElement("phenotypeSearchHolder");
         },
         diseaseGroup(group) {
