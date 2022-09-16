@@ -45,8 +45,8 @@ export default new Vuex.Store({
         searchGene: null,
         matchingGenes: null,
         geneToQuery: "",
-        selectedAncestry: "",
-        ancestry: "",
+        selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
     },
     mutations: {
         setPhenotypeByName(state, name) {
