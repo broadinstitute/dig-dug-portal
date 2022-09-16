@@ -143,7 +143,8 @@ new Vue({
             this.$store.dispatch("queryPhenotype");
             uiUtils.hideElement("phenotypeSearchHolder");
         },
-        "$store.state.ancestry": function(phenotype, ancestry){
+        "$store.state.ancestry": function(ancestry){
+            keyParams.set({ancestry: ancestry});
             this.$store.dispatch("queryPhenotype");
             uiUtils.hideElement("phenotypeSearchHolder");
         },
