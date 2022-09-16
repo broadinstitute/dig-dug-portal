@@ -134,7 +134,7 @@ new Vue({
             let phenotype = phenotypeMap[name];
 
             if (!!phenotype) {
-                this.$store.commit("setPhenotype", phenotype);
+                this.$store.state.selectedPhenotype = phenotype;
                 keyParams.set({ phenotype: phenotype.name });
             }
             //Initial query. Should only happen once.
@@ -142,6 +142,7 @@ new Vue({
         },
 
         "$store.state.phenotype": function (phenotype) {
+            keyParams.set({phenotype: phenotype.name});
             uiUtils.hideElement("phenotypeSearchHolder");
         },
         "$store.state.ancestry": function(ancestry){

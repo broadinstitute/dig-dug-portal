@@ -21,13 +21,11 @@ export default new Vuex.Store({
         // phenotypes needs to be an array so colors don't change!
         phenotype: null,
         newPhenotype: null,
+        selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
     },
     mutations: {
-        setPhenotype(state, phenotype) {
-            state.phenotype = phenotype;
-        }
     },
     getters: {
         documentationMap(state) {
@@ -39,12 +37,13 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            context.commit("setPhenotype", phenotype);
+            context.state.selectedPhenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },
 
         queryPhenotype(context) {
             context.state.ancestry = context.state.selectedAncestry;
+            context.state.phenotype = context.state.selectedPhenotype;
             let query = { q: context.state.phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
             let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
