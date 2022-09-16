@@ -202,6 +202,7 @@ new Vue({
         },
 
         "$store.state.ancestry"(ancestry){
+            keyParams.set({ancestry: ancestry});
             if(ancestry){
                 this.$store.dispatch("ancestryPhewas/query", 
                     { q: `${this.$store.state.ancestry},${this.$store.state.variant.varId}` });
