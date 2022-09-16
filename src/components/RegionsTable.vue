@@ -90,6 +90,7 @@
         </div>
         <div v-else>
             <h4 v-if="regions.length > 0">No annotated regions</h4>
+            <p v-else>No regions available for this query</p>
         </div>
     </div>
 </template>
