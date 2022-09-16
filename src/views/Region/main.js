@@ -115,7 +115,6 @@ new Vue({
             annotationsFilter: function (id) {
                 return true;
             },
-            selectedAncestry: "",
             pageAssociationsMap: {},
             pageAssociations: [],
             regionPageSearchCriterion: [],
@@ -452,6 +451,9 @@ new Vue({
                 this.setCriterionPhenotypes([]);
                 this.$store.commit("phenotypesCleared");
             }
+        },
+        "$store.state.ancestry"(ancestry){
+            keyParams.set({ancestry: ancestry});
         },
         topAssociations(top) {
             // stop if no phenotype map

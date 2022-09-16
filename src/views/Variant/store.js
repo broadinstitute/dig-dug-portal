@@ -25,8 +25,8 @@ export default new Vuex.Store({
     state: {
         variant: null,
         newVariantId: null,
-        ancestry: "",
-        selectedAncestry: "",
+        ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         badSearch: false
     },
 
