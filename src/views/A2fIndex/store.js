@@ -23,6 +23,7 @@ export default new Vuex.Store({
         matchingGenes: null,
         phenotypesInSession: null,
         diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
     mutations: {
         setInvalidGeneOrRegionOrVariant(state, flag) {
@@ -39,6 +40,9 @@ export default new Vuex.Store({
         },
         setDiseaseInSession(state, DISEASE) {
             state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         }
     },
 
@@ -49,8 +53,10 @@ export default new Vuex.Store({
         diseaseInSession(context, DISEASE) {
             context.commit("setDiseaseInSession", DISEASE);
         },
-        async onPhenotypeChange(context, phenotype) {
-            window.location.href = "./phenotype.html?phenotype=" + phenotype.name;
+
+        phenotypeCorrelation(context, DATA) {
+            console.log(DATA)
+            context.commit("setPhenotypeCorrelation", DATA);
         },
 
         async exploreRegionOrVariant(context, input) {

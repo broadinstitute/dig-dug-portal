@@ -102,6 +102,10 @@
 													:phenotypes="
 														$parent.phenotypes
 													"
+													:phenotypeCorrelation="
+														$store.state
+															.phenotypeCorrelation
+													"
 												></disease-systems>
 											</div>
 										</b-card-text>

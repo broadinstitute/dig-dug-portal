@@ -26,17 +26,6 @@
 						</div>
 					</div>
 				</div>
-				<!--<select
-					class="select-disease form-control form-control-sm"
-					@change="callCustomPhActions($event)"
-				>
-					<option value="">Set focused phenotypes</option>
-					<option value="disease">By disease</option>
-					<option value="correlation">
-						By Phenotype correlation
-					</option>
-					<option value="reset">Reset focus</option>
-				</select>-->
 			</div>
 		</div>
 		<div v-if="page == 'front'" class="row disease-systems-front">
@@ -121,8 +110,6 @@
 			class="custom-phenotypes-list-builder hidden"
 			id="pheno_list_builder"
 		>
-			<!--<h5>Set phenotypes focus by {{ focusBy }}</h5>-->
-
 			<div class="ph-builder-filters-wrapper" v-if="focusBy == 'disease'">
 				<label class="select-disease-label">Select disease: </label>
 				<select
@@ -151,37 +138,65 @@
 				v-if="focusBy == 'correlation'"
 			>
 				correlations UI
+				<phenotype-selectpicker
+					v-if="!!phenotypes"
+					:phenotypes="phenotypes"
+					:clearOnSelected="true"
+					:useInLocal="true"
+					localPlace="diseaseSystems"
+				></phenotype-selectpicker>
 			</div>
 
-			<div class="table-wrapper">
+			<div class="table-wrapper" v-if="!!phenotypeCorrelation">
 				<table class="table table-striped table-sm">
 					<thead>
 						<tr>
 							<th>Select</th>
 							<th>Phenotypes</th>
+							<th>P-Value</th>
+							<th>Correlation</th>
+							<th>Standard error</th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="phenotype in getPhenotypes()">
+						<tr v-for="phenotype in phenotypeCorrelation.data">
 							<td>
 								<input
 									class="phenotype-chkbox"
 									type="checkbox"
-									:value="phenotype.name"
+									:value="phenotype.other_phenotype"
 									checked
 								/>
 							</td>
 							<td class="phenotype-name">
-								{{ phenotype.description }}
+								{{ phenotype.other_phenotype }}
+							</td>
+							<td class="phenotype-name">
+								{{
+									formatValue(
+										"pValueFormatter",
+										phenotype.pValue
+									)
+								}}
+							</td>
+							<td class="phenotype-name">
+								{{
+									formatValue("pValueFormatter", phenotype.rg)
+								}}
+							</td>
+							<td class="phenotype-name">
+								{{
+									formatValue(
+										"pValueFormatter",
+										phenotype.stdErr
+									)
+								}}
 							</td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
-			<div class="session-info">
-				<!--<div>
-					<label>Name: <input type="text" id="session_id" /></label>
-				</div>-->
+			<div class="session-info" v-if="!!phenotypeCorrelation">
 				<button
 					type="button"
 					class="btn btn-primary btn-sm"
@@ -207,11 +222,14 @@ import uiUtils from "@/utils/uiUtils.js";
 import userUtils from "@/utils/userUtils.js";
 import sessionUtils from "@/utils/sessionUtils.js";
 import sortUtils from "@/utils/sortUtils.js";
+import Formatters from "@/utils/formatters";
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 
 export default Vue.component("disease-systems", {
 	props: [
 		"page",
 		"phenotypes",
+		"phenotypeCorrelation",
 		"diseases",
 		"diseaseGroups",
 		"diseaseInSession",
@@ -224,6 +242,7 @@ export default Vue.component("disease-systems", {
 			focusBy: null,
 		};
 	},
+	components: { PhenotypeSelectPicker },
 	mounted() {
 		this.setDiseaseSystems();
 		this.getCustomPhenotypes();
@@ -233,13 +252,20 @@ export default Vue.component("disease-systems", {
 		...uiUtils,
 		...sortUtils,
 		...userUtils,
+		...Formatters,
+		getCorrelation() {
+			console.log("fire 2");
+		},
+		formatValue(FORMATTER, VALUE) {
+			return Formatters[FORMATTER](VALUE);
+		},
 		callCustomPhActions(EVENT) {
 			switch (EVENT) {
 				case "reset":
 					this.resetCustomPhenotypes();
 					break;
 				case "correlation":
-					this.openPhenotypesBuilder(null, EVENT, "correlation");
+					this.openPhenotypesBuilder(null, null, "correlation");
 					break;
 				case "disease":
 					this.openPhenotypesBuilder(
