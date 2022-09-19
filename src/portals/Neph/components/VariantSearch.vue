@@ -224,7 +224,7 @@
                 </template>
                 <template #cell(gnomAD_exomes_AF)="row">
                     <div align="right">
-                        {{ row.item.gnomAD_exomes_AF.toFixed(5) }}
+                        {{ format_freq(row.item.gnomAD_exomes_AF) }}
                     </div>
                 </template>
                 <template #cell(max_consequence)="data">
@@ -917,6 +917,9 @@ export default Vue.component("VariantSearch", {
         },
         format_hgvsp(hgvsp) {
             return hgvsp?.split(":")[1].replace("%3D", "=") || "";
+        },
+        format_freq(frequency) {
+            return frequency?.toFixed(5) || "";
         },
 
         //function to sort variants by impact severity
