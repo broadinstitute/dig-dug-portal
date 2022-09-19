@@ -40,7 +40,7 @@
                         size="sm"
                         class="ml-3"
                     >
-                        Sort by Impact
+                        Rank by Impact
                     </b-form-checkbox>
                 </div>
             </b-col>
