@@ -224,7 +224,7 @@
                 </template>
                 <template #cell(gnomAD_exomes_AF)="row">
                     <div align="right">
-                        {{ row.item.gnomAD_exomes_AF }}
+                        {{ row.item.gnomAD_exomes_AF.toFixed(5) }}
                     </div>
                 </template>
                 <template #cell(max_consequence)="data">
@@ -697,9 +697,7 @@ export default Vue.component("VariantSearch", {
                         this.variants[i].gnomAD_exomes_AN =
                             this.variants[i].gnomAD_info.gnomADg_AN;
                         this.variants[i].gnomAD_exomes_AF =
-                            this.variants[
-                                i
-                            ].gnomAD_info.gnomADg_AF?.toExponential(2);
+                            this.variants[i].gnomAD_info.gnomADg_AF;
                         //alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
                     }
 
