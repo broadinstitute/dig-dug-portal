@@ -21,8 +21,8 @@ export default new Vuex.Store({
         // phenotypes needs to be an array so colors don't change!
         phenotype: null,
         newPhenotype: null,
-        ancestry: "",
-        selectedAncestry: ""
+        ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
     },
     mutations: {
         setPhenotype(state, phenotype) {
