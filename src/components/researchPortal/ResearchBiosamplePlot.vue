@@ -220,102 +220,104 @@
 					</div>
 				</div>
 			</div>
-			<div id="biosamplesPlotWrapper" class="col-md-9 bio-plot-wrapper">
-				<!--working part-->
+			<div class="col-md-9 bio-plot-wrapper">
+				<div id="biosamplesPlotWrapper">
+					<!--working part-->
 
-				<div id="biosampleInfoBox" class="hidden"></div>
-				<div
-					id="bioInitialMessage"
-					:class="
-						getSelectedParameters('Annotation').length > 0 &&
-						getSelectedParameters('Tissue').length > 0
-							? 'hidden'
-							: ''
-					"
-					v-html="
-						!!renderConfig['with annotations viewer'] &&
-						renderConfig['with annotations viewer'] == 'true'
-							? 'Please select annotation and tissue under annotations filter.'
-							: 'Please select annotation and tissue.'
-					"
-				></div>
+					<div id="biosampleInfoBox" class="hidden"></div>
+					<div
+						id="bioInitialMessage"
+						:class="
+							getSelectedParameters('Annotation').length > 0 &&
+							getSelectedParameters('Tissue').length > 0
+								? 'hidden'
+								: ''
+						"
+						v-html="
+							!!renderConfig['with annotations viewer'] &&
+							renderConfig['with annotations viewer'] == 'true'
+								? 'Please select annotation and tissue under annotations filter.'
+								: 'Please select annotation and tissue.'
+						"
+					></div>
 
-				<canvas
-					id="biosamplesPlot"
-					@resize="onResize"
-					@mousemove="checkPosition($event, 'hover')"
-					@click="checkPosition($event, 'click')"
-					@mouseout="onMouseOut('biosampleInfoBox')"
-					width=""
-					height=""
-				></canvas>
-			</div>
-			<div
-				class="col-md-3 reference-area"
-				style="display: inline-block; vertical-align: top"
-				v-if="
-					getPropsArr('methods') != null &&
-					getPropsArr('sources') != null
-				"
-			>
-				<button
-					class="btn btn-sm btn-outline-secondary"
-					style="margin-right: 5px; margin-bottom: 10px"
-					@click="checkUncheckAll('check')"
-				>
-					Select all
-				</button>
-				<button
-					class="btn btn-sm btn-outline-secondary"
-					style="margin-bottom: 10px"
-					@click="checkUncheckAll('uncheck')"
-				>
-					Unselect all
-				</button>
-				<h6>
-					<strong>Methods</strong>
-				</h6>
-				<div
-					v-for="g in getPropsArr('methods')"
-					:key="g"
-					style="display: inline-block"
-				>
-					<label style="padding-right: 10px"
-						><input
-							type="checkbox"
-							:value="g"
-							@click="addRemoveParameter(g, 'BS-Method')"
-							:checked="
-								!pkgDataSelected
-									.filter((s) => s.type == 'BS-Method')
-									.map((s) => s.id)
-									.includes(g)
-							"
-						/>{{ " " + g + " " }}
-					</label>
+					<canvas
+						id="biosamplesPlot"
+						@resize="onResize"
+						@mousemove="checkPosition($event, 'hover')"
+						@click="checkPosition($event, 'click')"
+						@mouseout="onMouseOut('biosampleInfoBox')"
+						width=""
+						height=""
+					></canvas>
 				</div>
-
-				<h6>
-					<strong>Sources</strong>
-				</h6>
 				<div
-					v-for="g in getPropsArr('sources')"
-					:key="g"
-					style="display: inline-block"
+					class="col-md-3 reference-area"
+					style="display: inline-block; vertical-align: top"
+					v-if="
+						getPropsArr('methods') != null &&
+						getPropsArr('sources') != null
+					"
 				>
-					<label style="padding-right: 10px"
-						><input
-							type="checkbox"
-							:value="g"
-							@click="addRemoveParameter(g, 'BS-Source')"
-							:checked="
-								!pkgDataSelected
-									.filter((s) => s.type == 'BS-Source')
-									.map((s) => s.id)
-									.includes(g)
-							"
-						/>{{ " " + g + " " }}
-					</label>
+					<button
+						class="btn btn-sm btn-outline-secondary"
+						style="margin-right: 5px; margin-bottom: 10px"
+						@click="checkUncheckAll('check')"
+					>
+						Select all
+					</button>
+					<button
+						class="btn btn-sm btn-outline-secondary"
+						style="margin-bottom: 10px"
+						@click="checkUncheckAll('uncheck')"
+					>
+						Unselect all
+					</button>
+					<h6>
+						<strong>Methods</strong>
+					</h6>
+					<div
+						v-for="g in getPropsArr('methods')"
+						:key="g"
+						style="display: inline-block"
+					>
+						<label style="padding-right: 10px"
+							><input
+								type="checkbox"
+								:value="g"
+								@click="addRemoveParameter(g, 'BS-Method')"
+								:checked="
+									!pkgDataSelected
+										.filter((s) => s.type == 'BS-Method')
+										.map((s) => s.id)
+										.includes(g)
+								"
+							/>{{ " " + g + " " }}
+						</label>
+					</div>
+
+					<h6>
+						<strong>Sources</strong>
+					</h6>
+					<div
+						v-for="g in getPropsArr('sources')"
+						:key="g"
+						style="display: inline-block"
+					>
+						<label style="padding-right: 10px"
+							><input
+								type="checkbox"
+								:value="g"
+								@click="addRemoveParameter(g, 'BS-Source')"
+								:checked="
+									!pkgDataSelected
+										.filter((s) => s.type == 'BS-Source')
+										.map((s) => s.id)
+										.includes(g)
+								"
+							/>{{ " " + g + " " }}
+						</label>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -1463,6 +1465,8 @@ export default Vue.component("research-biosamples-plot", {
 				let plotHeight = tempHeight;
 				let bump = 5.5;
 
+				console.log("BS canvas", canvasWidth);
+
 				let xPerPixel = plotWidth / (regionEnd - regionStart);
 
 				let c, ctx;
@@ -2220,7 +2224,6 @@ $(function () {});
 .bio-plot-ui-wrapper {
 	display: inline-block;
 	vertical-align: top;
-	padding: 0;
 }
 .bio-bubble-wrapper {
 	width: auto;
@@ -2248,8 +2251,8 @@ $(function () {});
 }
 
 #biosamplesPlotWrapper {
-	display: inline-block;
-	vertical-align: top;
+	/*display: inline-block;
+	vertical-align: top;*/
 }
 
 #biosampleInfoBox,

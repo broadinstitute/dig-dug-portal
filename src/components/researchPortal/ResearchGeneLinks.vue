@@ -711,6 +711,8 @@ export default Vue.component("research-gene-links-plot", {
 						"#geneLinksPlotWrapper"
 					).clientWidth;
 
+					console.log("GL canvas", canvasWidth);
+
 					let canvasHeight = tempHeight + topMargin + bottomMargin;
 
 					let plotWidth =
