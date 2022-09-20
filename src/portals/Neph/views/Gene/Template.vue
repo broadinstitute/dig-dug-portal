@@ -31,7 +31,7 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Variant Search</h4>
+                    <h4 class="card-title">Variants</h4>
                     <documentation
                         name="variantsearch.subheader"
                     ></documentation>
