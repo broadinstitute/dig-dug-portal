@@ -57,6 +57,7 @@
                         <h4 class="card-title">
                             Genome-wide single-variant associations for
                             {{ $store.state.phenotype.description }}
+                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
                         </h4>
                         <div class="row">
                             <div class="col-md-6">

@@ -113,17 +113,27 @@ new Vue({
 
         manhattanPlot() {
             let phenotype = this.$store.state.phenotype;
+            let ancestry = this.$store.state.ancestry;
 
             if (!!phenotype) {
-                return `/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`;
+                if (!ancestry){
+                    return `/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`;
+                } else {
+                    return `api/raw/plot/phenotype/${phenotype.name}/${ancestry}/manhattan.png`;
+                }
             }
         },
 
         qqPlot() {
             let phenotype = this.$store.state.phenotype;
+            let ancestry = this.$store.state.ancestry;
 
             if (!!phenotype) {
-                return `/api/raw/plot/phenotype/${phenotype.name}/qq.png`;
+                if(!ancestry){
+                    return `/api/raw/plot/phenotype/${phenotype.name}/qq.png`;
+                } else {
+                    return `/api/raw/plot/phenotype/${phenotype.name}/${ancestry}/qq.png`;
+                }
             }
         }
     },
