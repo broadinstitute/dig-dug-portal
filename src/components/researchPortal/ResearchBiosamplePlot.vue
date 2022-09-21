@@ -251,73 +251,73 @@
 						height=""
 					></canvas>
 				</div>
-				<div
-					class="col-md-3 reference-area"
-					style="display: inline-block; vertical-align: top"
-					v-if="
-						getPropsArr('methods') != null &&
-						getPropsArr('sources') != null
-					"
+			</div>
+			<div
+				class="col-md-3 reference-area"
+				style="display: inline-block; vertical-align: top"
+				v-if="
+					getPropsArr('methods') != null &&
+					getPropsArr('sources') != null
+				"
+			>
+				<button
+					class="btn btn-sm btn-outline-secondary"
+					style="margin-right: 5px; margin-bottom: 10px"
+					@click="checkUncheckAll('check')"
 				>
-					<button
-						class="btn btn-sm btn-outline-secondary"
-						style="margin-right: 5px; margin-bottom: 10px"
-						@click="checkUncheckAll('check')"
-					>
-						Select all
-					</button>
-					<button
-						class="btn btn-sm btn-outline-secondary"
-						style="margin-bottom: 10px"
-						@click="checkUncheckAll('uncheck')"
-					>
-						Unselect all
-					</button>
-					<h6>
-						<strong>Methods</strong>
-					</h6>
-					<div
-						v-for="g in getPropsArr('methods')"
-						:key="g"
-						style="display: inline-block"
-					>
-						<label style="padding-right: 10px"
-							><input
-								type="checkbox"
-								:value="g"
-								@click="addRemoveParameter(g, 'BS-Method')"
-								:checked="
-									!pkgDataSelected
-										.filter((s) => s.type == 'BS-Method')
-										.map((s) => s.id)
-										.includes(g)
-								"
-							/>{{ " " + g + " " }}
-						</label>
-					</div>
+					Select all
+				</button>
+				<button
+					class="btn btn-sm btn-outline-secondary"
+					style="margin-bottom: 10px"
+					@click="checkUncheckAll('uncheck')"
+				>
+					Unselect all
+				</button>
+				<h6>
+					<strong>Methods</strong>
+				</h6>
+				<div
+					v-for="g in getPropsArr('methods')"
+					:key="g"
+					style="display: inline-block"
+				>
+					<label style="padding-right: 10px"
+						><input
+							type="checkbox"
+							:value="g"
+							@click="addRemoveParameter(g, 'BS-Method')"
+							:checked="
+								!pkgDataSelected
+									.filter((s) => s.type == 'BS-Method')
+									.map((s) => s.id)
+									.includes(g)
+							"
+						/>{{ " " + g + " " }}
+					</label>
+				</div>
 
-					<h6>
-						<strong>Sources</strong>
-					</h6>
-					<div
-						v-for="g in getPropsArr('sources')"
-						:key="g"
-						style="display: inline-block"
-					>
-						<label style="padding-right: 10px"
-							><input
-								type="checkbox"
-								:value="g"
-								@click="addRemoveParameter(g, 'BS-Source')"
-								:checked="
-									!pkgDataSelected
-										.filter((s) => s.type == 'BS-Source')
-										.map((s) => s.id)
-										.includes(g)
-								"
-							/>{{ " " + g + " " }}
-						</label>
-					</div>
+				<h6>
+					<strong>Sources</strong>
+				</h6>
+				<div
+					v-for="g in getPropsArr('sources')"
+					:key="g"
+					style="display: inline-block"
+				>
+					<label style="padding-right: 10px"
+						><input
+							type="checkbox"
+							:value="g"
+							@click="addRemoveParameter(g, 'BS-Source')"
+							:checked="
+								!pkgDataSelected
+									.filter((s) => s.type == 'BS-Source')
+									.map((s) => s.id)
+									.includes(g)
+							"
+						/>{{ " " + g + " " }}
+					</label>
 				</div>
 			</div>
 		</div>
