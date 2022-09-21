@@ -685,17 +685,50 @@ export default Vue.component("research-page-filters", {
 			this.$store.dispatch("hugeampkpncms/cancelResearchData");
 			this.setDataComparison();
 
+			let regionFromVariant = null;
+
 			if (this.dataType == "bioindex") {
 				/// set store.searchingPhenotype if searching BioIndex
 				if (
 					this.apiParameters.query.format.includes("phenotype") ==
 					true
 				) {
-					var phenotype = document.getElementById(
+					let phenotype = document.getElementById(
 						"search_param_phenotype"
 					).value;
 
 					this.$store.dispatch("searchingPhenotype", phenotype);
+				}
+
+				//working part
+				///This part is for a case of the region being a variant
+				if (
+					this.apiParameters.query.format.includes("region") ==
+						true &&
+					!!this.testLetters(
+						document.getElementById("search_param_region").value
+					)
+				) {
+					console.log("fire 1");
+					let currentRegion = document
+						.getElementById("search_param_region")
+						.value.split(":");
+
+					let chr = currentRegion[0];
+					let pos = currentRegion[1].replace(/\D/g, "");
+
+					let regionStart = Number(pos) - 1;
+
+					let regionEnd = Number(pos) + 1;
+
+					let newRegion = chr + ":" + regionStart + "-" + regionEnd;
+
+					console.log("newRegion", newRegion);
+
+					regionFromVariant = newRegion;
+
+					document.getElementById("search_param_region").value =
+						newRegion;
 				}
 			}
 
@@ -748,6 +781,11 @@ export default Vue.component("research-page-filters", {
 				}
 			}
 
+			if (!!regionFromVariant) {
+				let url = new URL(window.location);
+				window.location.href = url;
+			}
+
 			let APIPoint = this.dataFiles[0];
 			/*if (this.dataType == "bioindex") {
 				APIPoint +=
@@ -771,6 +809,10 @@ export default Vue.component("research-page-filters", {
 			let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
 			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+		},
+		/// test if string contains letters
+		testLetters(STR) {
+			return /[a-zA-Z]/.test(STR);
 		},
 		updateSearchInputByEvent(event) {
 			var label = this.getFileLabel(event.target.value.trim());

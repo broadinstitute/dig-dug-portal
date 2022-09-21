@@ -1266,8 +1266,6 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			console.log("formattedData", formattedData);
-
 			return formattedData;
 		},
 
