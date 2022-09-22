@@ -1,5 +1,6 @@
 <template>
 	<div class="research-data-table-wrapper">
+		{{ pkgDAta }}
 		<div v-html="tableLegend" class="data-table-legend"></div>
 		<div
 			v-if="!!dataset"

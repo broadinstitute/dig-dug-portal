@@ -147,7 +147,7 @@
 				></phenotype-selectpicker>
 			</div>
 
-			<div class="table-wrapper" v-if="!!phenotypeCorrelation">
+			<div class="table-wrapper" v-if="!!correlatedPhenotypes">
 				<table class="table table-striped table-sm">
 					<thead>
 						<tr>
@@ -159,7 +159,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="phenotype in phenotypeCorrelation.data">
+						<tr v-for="phenotype in correlatedPhenotypes">
 							<td>
 								<input
 									class="phenotype-chkbox"
@@ -169,7 +169,11 @@
 								/>
 							</td>
 							<td class="phenotype-name">
-								{{ phenotype.other_phenotype }}
+								{{
+									this.phenotypeNames(
+										phenotype.other_phenotype
+									)
+								}}
 							</td>
 							<td class="phenotype-name">
 								{{
@@ -247,6 +251,31 @@ export default Vue.component("disease-systems", {
 		this.setDiseaseSystems();
 		this.getCustomPhenotypes();
 	},
+	computed: {
+		phenotypeNames() {
+			if (!!this.phenotypes) {
+				let content = {};
+
+				this.phenotypes.map((p) => {
+					content[p.name] = p.description;
+				});
+
+				return content;
+			} else {
+				return null;
+			}
+		},
+		correlatedPhenotypes() {
+			if (!!this.phenotypeCorrelation) {
+				console.log("phenotypeCorrelation", this.phenotypeCorrelation);
+				console.log("phenotypes", this.phenotypes);
+
+				return this.phenotypeCorrelation.data;
+			} else {
+				return null;
+			}
+		},
+	},
 	methods: {
 		...sessionUtils,
 		...uiUtils,
@@ -276,6 +305,7 @@ export default Vue.component("disease-systems", {
 					break;
 			}
 		},
+
 		getCustomPhenotypes() {
 			let customPhsSet = userUtils.getPhenotypes();
 			let selectedDisease = !!customPhsSet ? customPhsSet.id : null;
