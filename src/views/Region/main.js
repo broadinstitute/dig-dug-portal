@@ -500,16 +500,16 @@ new Vue({
 
             // prefer url over the top associations
             //let keyPhenotypes = keyParams.phenotype;
-            if (!!keyPhenotypes) {
+            /*if (!!keyPhenotypes) {
                 this.setCriterionPhenotypes(keyPhenotypes.split(","));
-            } else {
-                let topAssoc = top[0];
-                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
-                    topAssoc.phenotype
-                ];
-                // update the master list
-                this.setCriterionPhenotypes([topPhenotype.name]);
-            }
+            } else {*/
+            let topAssoc = top[0];
+            let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
+                topAssoc.phenotype
+            ];
+            // update the master list
+            this.setCriterionPhenotypes([topPhenotype.name]);
+            //}
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
