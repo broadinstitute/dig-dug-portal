@@ -57,6 +57,7 @@
                         <h4 class="card-title">
                             Genome-wide single-variant associations for
                             {{ $store.state.phenotype.description }}
+                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
                         </h4>
                         <div class="row">
                             <div class="col-md-6">
@@ -66,9 +67,8 @@
                                         :src="$parent.manhattanPlot"
                                         alt="Manhattan Plot"
                                         :documentation="'phenotype.associationplots.manhattan'"
-                                        :content-fill="
-                                            $store.getters['documentationMap']
-                                        "
+                                        :content-fill="$store.getters['documentationMap']"
+                                        :customFailureMsg = "'No Manhattan plot available for this query.'"
                                     />
                                 </div>
                             </div>
@@ -79,9 +79,8 @@
                                         :src="$parent.qqPlot"
                                         alt="QQ Plot"
                                         :documentation="'phenotype.associationplots.qq'"
-                                        :content-fill="
-                                            $store.getters['documentationMap']
-                                        "
+                                        :content-fill="$store.getters['documentationMap']"
+                                        :customFailureMsg = "'No Q-Q plot available for this query.'"
                                     />
                                 </div>
                             </div>
