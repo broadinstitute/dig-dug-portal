@@ -1,7 +1,7 @@
 <template>
     <div id="correlations">
-        <b-container fluid v-if="thisIsATest">
-            <b-row class="top-level header">
+        <b-container fluid>
+            <b-row class="top-level-header">
                 <b-col class="top-level-header-item">Phenotype</b-col>
                 <b-col class="top-level-header-item">P-Value</b-col>
                 <b-col class="top-level-header-item">Correlation</b-col>
@@ -11,12 +11,12 @@
                 <b-row>
                     <b-col class="top-level-value-item">
                         <a :href="`/phenotype.html?phenotype=${item['other_phenotype']}`">{{
-                            phenotypeMap[item['other_phenotype']]}}
+                            getDescription(item['other_phenotype'])}}
                         </a>
                     </b-col>
-                    <b-col class="top-level-value-item">P-Value</b-col>
-                    <b-col class="top-level-value-item">Correlation</b-col>
-                    <b-col class="top-level-value-item">Standard error</b-col>
+                    <b-col class="top-level-value-item">{{pValueFormatter(item.pValue)}}</b-col>
+                    <b-col class="top-level-value-item">{{item.rg}}</b-col>
+                    <b-col class="top-level-value-item">{{item.stdErr}}</b-col>
                 </b-row>
             </template>
         </b-container>
@@ -37,23 +37,17 @@ export default Vue.component("correlation-table", {
         };
     },
     computed: {
-        thisIsATest() {
-            console.log(this.correlationData);
-            console.log(this.phenotypeMap);
-            console.log(this.correlationData.length);
-            return true;
-        }
     },
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
         getDescription(phenotypeCode){
-            let description = this.phenotypeMap[phenotypeCode]['description'];
-            if (!description){
+            let phenotypeEntry = this.phenotypeMap[phenotypeCode];
+            if (!phenotypeEntry || !phenotypeEntry.description){
                 return phenotypeCode;
             }
-            return description;
+            return phenotypeEntry.description;
         }
     },
 });
