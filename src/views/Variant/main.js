@@ -107,7 +107,7 @@ new Vue({
                     expanded}&variant=${this.$store.state.variant.varId}`;
             }
         },
-        clearBadSearch(){
+        clearBadSearch() {
             this.$store.state.badSearch = false;
         }
     },
@@ -135,7 +135,8 @@ new Vue({
 
         pheWasData() {
 
-            let data = this.$store.state.phewas.data;
+            let data = (!this.$store.state.ancestry) ? this.$store.state.phewas.data : this.$store.state.ancestryPhewas
+                .data;
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
                 data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
@@ -237,10 +238,10 @@ new Vue({
             }
         },
 
-        "$store.state.ancestry"(ancestry){
-            keyParams.set({ancestry: ancestry});
-            if(ancestry){
-                this.$store.dispatch("ancestryPhewas/query", 
+        "$store.state.ancestry"(ancestry) {
+            keyParams.set({ ancestry: ancestry });
+            if (ancestry) {
+                this.$store.dispatch("ancestryPhewas/query",
                     { q: `${this.$store.state.ancestry},${this.$store.state.variant.varId}` });
             } else {
                 this.$store.dispatch("phewas/query", { q: this.$store.state.variant.varId });
@@ -252,9 +253,9 @@ new Vue({
                 let p = this.chromPos;
 
                 // phewas can be with or without ancestry
-                if(this.$store.state.ancestry) {
-                    this.$store.dispatch("ancestryPhewas/query", 
-                    { q: `${this.$store.state.ancestry},${variant.varId}` });
+                if (this.$store.state.ancestry) {
+                    this.$store.dispatch("ancestryPhewas/query",
+                        { q: `${this.$store.state.ancestry},${variant.varId}` });
                 } else {
                     this.$store.dispatch("phewas/query", { q: variant.varId });
                 }

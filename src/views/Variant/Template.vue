@@ -286,12 +286,7 @@
 												.length > 0
 										"
 										canvasId=""
-										:phenotypesData="
-											!$store.state.ancestry
-												? $store.state.phewas.data
-												: $store.state.ancestryPhewas
-														.data
-										"
+										:phenotypesData="$parent.pheWasData"
 										:phenotypeMap="
 											$store.state.bioPortal.phenotypeMap
 										"
