@@ -17,6 +17,7 @@ import Documentation from "@/components/Documentation.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
+import sessionUtils from "@/utils/sessionUtils";
 
 import Formatters from "@/utils/formatters";
 import Alert, {
@@ -60,6 +61,7 @@ new Vue({
     },
 
     created() {
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -74,6 +76,7 @@ new Vue({
     },
     methods: {
         ...uiUtils,
+        ...sessionUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -83,6 +86,25 @@ new Vue({
     },
 
     computed: {
+        /// for disease systems
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+        ///
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 

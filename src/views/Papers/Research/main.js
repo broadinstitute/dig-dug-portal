@@ -33,6 +33,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotat
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import uiUtils from "@/utils/uiUtils";
+import sessionUtils from "@/utils/sessionUtils";
 import $ from "jquery";
 import keyParams from "@/utils/keyParams";
 import Alert, {
@@ -155,6 +156,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
     },
 
@@ -171,6 +173,7 @@ new Vue({
 
     methods: {
         ...uiUtils,
+        ...sessionUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -635,6 +638,23 @@ new Vue({
     },
 
     computed: {
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
         kpGenes() {
             return kpGenes;
         },
@@ -651,7 +671,7 @@ new Vue({
 
                 parameters.map(pr => {
                     if (pr.parameter == 'phenotype' && pr.values == "kp phenotypes") {
-                        let values = this.$store.state.bioPortal.phenotypes.map(p => p.name).sort();
+                        let values = this.phenotypesInSession.map(p => p.name).sort();
                         pr.values = values;
                     }
                 });
@@ -1097,7 +1117,7 @@ new Vue({
 
 
                     if (isKPPhenotype == true) {
-                        let kpPhenotypes = this.$store.state.bioPortal.phenotypes
+                        let kpPhenotypes = this.phenotypesInSession
                         let tempObj = {};
 
                         kpPhenotypes.map(p => {

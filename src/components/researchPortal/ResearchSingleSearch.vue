@@ -5,7 +5,7 @@
 			type="text"
 			id="byor_single_search"
 			v-model="singleSearchParam"
-			placeholder="Search"
+			placeholder="Search gene, variant, region or phenotype"
 			@keyup.enter="onSearch"
 		/>
 		<div class="byor-single-search-results-wrapper">
@@ -148,15 +148,13 @@ export default Vue.component("research-single-search", {
 	width: 100%;
 }
 .byor-single-search {
-	width: 500px;
-
+	width: 100%;
 	margin-left: auto;
 	margin-right: auto;
 }
 
 .byor-single-search-results-wrapper {
 	position: relative;
-	width: 500px;
 	margin-left: auto;
 	margin-right: auto;
 }
@@ -172,6 +170,7 @@ export default Vue.component("research-single-search", {
 	box-shadow: 10px 10px 10px 10px rgba(0, 0, 0, 0.2);
 	overflow-y: scroll;
 	max-height: 500px;
+	text-align: left;
 }
 
 .search-word-group {

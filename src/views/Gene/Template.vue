@@ -4,6 +4,7 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
 		<!-- Body -->
@@ -285,7 +286,7 @@
 							<filter-enumeration-control
 								:field="'phenotype'"
 								:options="
-									$store.state.geneassociations.data.map(
+									$parent.geneassociations.map(
 										(association) => association.phenotype
 									)
 								"
@@ -307,43 +308,13 @@
 							</filter-pvalue-control>
 
 							<template slot="filtered" slot-scope="{ filter }">
-								<!--<locuszoom
-									v-if="$store.state.gene"
-									ref="locuszoom"
-									:filter="filter"
-									:refSeq="false"
-									:loglog="true"
-								>
-									<lz-phewas-panel
-										v-if="$store.state.geneName"
-										:id="$store.state.geneName"
-										:type="'gene'"
-										:phenotypeMap="
-											$store.state.bioPortal.phenotypeMap
-										"
-									></lz-phewas-panel>
-								</locuszoom>
-								<b-button
-									size="sm"
-									variant="outline-secondary"
-									@click="$refs.rpPheWASPlot.renderPheWas()"
-									style="
-										position: absolute;
-										right: 25px;
-										z-index: 10;
-									"
-									>Re-render PheWAS plot</b-button
-								>-->
-
 								<research-phewas-plot
 									v-if="
 										$store.state.geneassociations.data
 											.length > 0
 									"
 									canvasId="commonVariantPlot"
-									:phenotypesData="
-										$store.state.geneassociations.data
-									"
+									:phenotypesData="$parent.geneassociations"
 									:phenotypeMap="
 										$store.state.bioPortal.phenotypeMap
 									"
@@ -400,9 +371,7 @@
 								<gene-associations-table
 									v-if="$store.state.gene.data.length > 0"
 									:gene="$store.state.gene.data[0]"
-									:associations="
-										$store.state.geneassociations.data
-									"
+									:associations="$parent.geneassociations"
 									:phenotypeMap="
 										$store.state.bioPortal.phenotypeMap
 									"
@@ -426,10 +395,13 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
+						<h6 v-if="$parent.associations52k.length == 0">
+							No data is available for the section.
+						</h6>
 						<research-phewas-plot
-							v-if="$store.state.associations52k.data.length > 0"
+							v-if="$parent.associations52k.length > 0"
 							canvasId="rareVariantPlot"
-							:phenotypesData="$store.state.associations52k.data"
+							:phenotypesData="$parent.associations52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:colors="[
 								'#007bff',
@@ -480,7 +452,7 @@
 							"
 						></unauthorized-message>
 						<gene-associations-masks
-							:associations="$store.state.associations52k.data"
+							:associations="$parent.associations52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 						></gene-associations-masks>
 					</div>

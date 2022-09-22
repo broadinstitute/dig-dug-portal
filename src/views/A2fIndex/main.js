@@ -14,6 +14,7 @@ import AboutProjectSection from "@/components/frontPage/AboutProjectSection.vue"
 import UnderDatasetsSection from "@/components/frontPage/UnderDatasetsSection.vue";
 import DatasetsSection from "@/components/frontPage/DatasetsSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
+import DiseaseSystems from "@/components/DiseaseSystems.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import Documentation from "@/components/Documentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
@@ -55,10 +56,12 @@ new Vue({
         Documentation,
         Autocomplete,
         ResearchSingleSearch,
-        ResearchPageDescription
+        ResearchPageDescription,
+        DiseaseSystems
     },
 
     created() {
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -73,10 +76,11 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
     },
 
     computed: {
+
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
@@ -85,6 +89,20 @@ new Vue({
         },
         phenotypes() {
             return this.$store.state.bioPortal.phenotypes;
+        },
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
         },
         matchingGenes() {
             return this.$store.state.matchingGenes;
@@ -120,7 +138,6 @@ new Vue({
         datasetsDescription() {
             let datasets = this.$store.state.bioPortal.datasets;
 
-
             if (datasets.length > 0) {
 
                 /// create datasets plot content
@@ -146,7 +163,7 @@ new Vue({
                 })
 
 
-                let content = '<plot>{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi"}<plot-end>';
+                let content = '<div class="plot">{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi"}</div>';
 
                 return content;
             } else {
@@ -160,9 +177,11 @@ new Vue({
 
                 ///create phenotypes plot content
 
-                let groupLabel = [...new Set(phenotypes.map(p => p.group))]
+                let groupLabel = [...new Set(phenotypes.map(p => p.group))].sort();
                 let group = phenotypes.map(g => g.group);
                 let groupCount = {}
+
+
 
                 groupLabel.map(l => {
                     let tempCount = group.filter(t => t == l);
@@ -182,7 +201,7 @@ new Vue({
                 })
 
 
-                let content = '<plot>{"type":"bar","data": { ' + groupContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":140}<plot-end>';
+                let content = '<div class="plot">{"type":"bar","data": { ' + groupContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":140}</div>';
 
                 return content;
             } else {
@@ -196,10 +215,10 @@ new Vue({
                 let datasets = this.$store.state.bioPortal.datasets;
                 let phenotypes = this.$store.state.bioPortal.phenotypes;
 
-                let content = "<h5>Datasets by types</h5>";
+                let content = "<h5>Datasets by technology</h5>";
                 content += "<span>Total: " + datasets.length + " datasets</span>";
                 content += this.datasetsDescription;
-                content += "<h5>Phenotypes by groups</h5>";
+                content += "<h5>Phenotypes by group</h5>";
                 content += "<span>Total: " + phenotypes.length + " phenotypes</span>";
                 content += this.phenotypesDescription;
 

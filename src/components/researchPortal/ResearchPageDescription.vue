@@ -27,12 +27,10 @@ export default Vue.component("research-page-description", {
 		this.renderPlots();
 	},
 	computed: {
-		pageContent() {
+		pageContent(content) {
 			let formattedContent = this.content
 				.replace(/&lt;plot&gt;/g, "<div class='plot'>")
-				.replace(/&lt;plot-end&gt;/g, "</div>")
-				.replace(/<plot>/g, "<div class='plot'>")
-				.replace(/<plot-end>/g, "</div>");
+				.replace(/&lt;plot-end&gt;/g, "</div>");
 			return formattedContent;
 		},
 	},
@@ -41,14 +39,10 @@ export default Vue.component("research-page-description", {
 			var plots = document.querySelectorAll("div.plot");
 
 			for (let i = 0; i < plots.length; ++i) {
-				//[/<p>&nbsp;<\/p>/g,""],
 				let innerHtml = plots[i].innerHTML
 					.replace(/<p>/g, "")
 					.replace(/<\/p>/g, "")
 					.replace(/<br>/g, "");
-
-				console.log("innerHtml", innerHtml);
-
 				this.plotData[i] = JSON.parse(innerHtml);
 
 				let labelSpace = !!this.plotData[i]["label space"]
@@ -82,7 +76,7 @@ export default Vue.component("research-page-description", {
 
 				c = document.getElementById("plot" + pIndex);
 				ctx = c.getContext("2d");
-				//ctx.fillRect(20, 20, 150, 100);
+
 				switch (p.type) {
 					case "bar":
 						this.renderBarPlot(
@@ -113,7 +107,8 @@ export default Vue.component("research-page-description", {
 							p.width,
 							p.height,
 							p["x label angle"],
-							p["y label angle"]
+							p["y label angle"],
+							p["data labels on top"]
 						);
 						break;
 				}
@@ -128,6 +123,7 @@ export default Vue.component("research-page-description", {
 			X_LBL_ANGLE,
 			Y_LBL_ANGLE
 		) {
+			//console.log("color", COLOR);
 			let margin = this.plotMargin;
 			let spacer = 10;
 			let valueHiLow = { high: null, low: null };
@@ -145,6 +141,18 @@ export default Vue.component("research-page-description", {
 					value > valueHiLow.high ? value : valueHiLow.high;
 				valueHiLow.low =
 					value < valueHiLow.low ? value : valueHiLow.low;
+			}
+
+			let minMaxGap = valueHiLow.high * 0.2;
+			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
+
+			if (
+				Math.floor(valueHiLow.low) >= 0 &&
+				Math.floor(valueHiLow.low - minMaxGap) < 0
+			) {
+				valueHiLow.low = 0;
+			} else {
+				valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
 			}
 
 			PlotUtils.renderAxis(
@@ -200,7 +208,16 @@ export default Vue.component("research-page-description", {
 		renderPiePlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
 			PlotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT, COLOR);
 		},
-		renderLinePlot(CTX, DATA, WIDTH, HEIGHT) {
+		renderLinePlot(
+			CTX,
+			DATA,
+			WIDTH,
+			HEIGHT,
+			X_LBL_ANGLE,
+			Y_LBL_ANGLE,
+			DATA_LABELS_ON_TOP
+		) {
+			//console.log(CTX, DATA, WIDTH, HEIGHT);
 			let margin = this.plotMargin;
 			let valueHiLow = { high: null, low: null };
 
@@ -221,6 +238,19 @@ export default Vue.component("research-page-description", {
 				}
 			}
 
+			let minMaxGap = valueHiLow.high * 0.2;
+			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
+			//valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+
+			if (
+				Math.floor(valueHiLow.low) >= 0 &&
+				Math.floor(valueHiLow.low - minMaxGap) < 0
+			) {
+				valueHiLow.low = 0;
+			} else {
+				valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+			}
+
 			PlotUtils.renderAxis(
 				CTX,
 				WIDTH,
@@ -229,7 +259,8 @@ export default Vue.component("research-page-description", {
 				"y",
 				5,
 				valueHiLow.low,
-				valueHiLow.high
+				valueHiLow.high,
+				2
 			);
 
 			PlotUtils.renderAxis(CTX, WIDTH, HEIGHT, margin, "x", null);
@@ -243,7 +274,8 @@ export default Vue.component("research-page-description", {
 				margin,
 				"x",
 				keys,
-				0
+				0,
+				X_LBL_ANGLE
 			);
 
 			PlotUtils.renderGuideLine(
@@ -266,7 +298,8 @@ export default Vue.component("research-page-description", {
 				5,
 				DATA,
 				valueHiLow.low,
-				valueHiLow.high
+				valueHiLow.high,
+				DATA_LABELS_ON_TOP
 			);
 		},
 	},

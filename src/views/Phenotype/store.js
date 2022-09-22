@@ -19,11 +19,23 @@ export default new Vuex.Store({
     state: {
         // phenotypes needs to be an array so colors don't change!
         phenotype: null,
-        newPhenotype: null
+        newPhenotype: null,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
     mutations: {
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         }
     },
     getters: {
@@ -47,6 +59,15 @@ export default new Vuex.Store({
             context.dispatch("associations/query", assocQuery);
             context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
-        }
+        },
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
     }
 });

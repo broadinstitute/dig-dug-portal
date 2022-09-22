@@ -4,8 +4,8 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			page="front"
 		></page-header>
-
 		<!-- Body -->
 		<div v-if="$parent.diseaseGroup">
 			<div class="fluid">
@@ -38,115 +38,80 @@
 									>
 								</div>
 							</div>
-							<h4 class="single-search-header">
-								Search gene, variant, region or phenotype
-							</h4>
-							<research-single-search
-								:singleSearchConfig="null"
-								:phenotypes="$parent.phenotypes"
-							></research-single-search>
-							<div
-								class="
-									region-search-examples
-									a2f-region-search-examples
-								"
-							>
-								<documentation
-									name="home.example"
-									:group="cmd"
-								></documentation>
-							</div>
+						</div>
 
-							<!--<div class="col-md-12 portal-front-tabs">
-								<b-tabs content-class="mt-3" align="center">
-									<b-tab
-										title="Gene, region or variant"
-										active
-									>
-										<div class="front-gene-search-wrapper">
-											<div
-												class="col-md-12 input-wrapper"
-											>
-												<autocomplete
-													:placeholder="'Search'"
-													:matches="
-														$parent.matchingGenes
+						<div class="row front-search-section">
+							<div class="col-md-12 portal-front-tabs">
+								<b-tabs align="center">
+									<b-tab title="Search portal" active>
+										<b-card-text>
+											<div class="single-search-wrapper">
+												<!--<div class="single-search-header">Search</div>-->
+												<research-single-search
+													:singleSearchConfig="null"
+													:phenotypes="
+														$parent.phenotypesInSession
 													"
-													:match-key="null"
-													@input-change="
-														$store.dispatch(
-															'lookupGenes',
-															$event
-														)
+												></research-single-search>
+												<div
+													class="
+														region-search-examples
+														a2f-region-search-examples
 													"
-													@keyup-enter="
-														$store.dispatch(
-															'exploreRegionOrVariant',
-															$event
-														)
-													"
-													@item-select="
-														$store.dispatch(
-															'onGeneChange',
-															$event
-														)
-													"
-												></autocomplete>
+												>
+													<documentation
+														name="home.example"
+														:group="cmd"
+													></documentation>
+												</div>
 											</div>
-											<div class="region-search-examples">
-												<documentation
-													name="home.example"
-													:group="
-														$parent.diseaseGroup
-															.name
-													"
-												></documentation>
-											</div>
-
-											<div
-												class="text-danger"
-												v-show="
-													$store.state
-														.invalidGeneOrRegion
-												"
-											>
-												Invalid gene name or region or
-												variant
-											</div>
-										</div>
+										</b-card-text>
 									</b-tab>
-
-									<b-tab title="Phenotypes">
-										<div
-											class="
-												front-phenotype-search-wrapper
-											"
-										>
-											<phenotype-selectpicker
-												v-bind:phenotypes="
-													$parent.phenotypes
-												"
-											></phenotype-selectpicker>
-										</div>
-									</b-tab>
-
 									<b-tab
-										title="Disease-specific portals"
-										v-if="
-											$store.getters[
-												'bioPortal/isRootPortal'
-											]
+										:title="
+											!!$parent.diseaseInSession
+												? 'Set focus (Current focus: ' +
+												  $parent.diseaseInSession +
+												  ')'
+												: 'Set phenotypes focus'
 										"
 									>
-										<disease-group-select
-											:disease-groups="
-												$store.state.bioPortal
-													.diseaseGroups
-											"
-										></disease-group-select>
+										<b-card-text>
+											<div
+												class="
+													disease-systems-trees-wrapper
+												"
+												v-if="
+													$store.state.bioPortal
+														.diseaseSystems.length >
+														0 &&
+													$parent.phenotypes.length >
+														0
+												"
+											>
+												<disease-systems
+													page="front"
+													:diseases="
+														$store.state.bioPortal
+															.diseaseSystems
+													"
+													:diseaseGroups="
+														$store.state.bioPortal
+															.diseaseGroups
+													"
+													:phenotypes="
+														$parent.phenotypes
+													"
+													:phenotypeCorrelation="
+														$store.state
+															.phenotypeCorrelation
+													"
+												></disease-systems>
+											</div>
+										</b-card-text>
 									</b-tab>
 								</b-tabs>
-							</div>-->
+							</div>
 						</div>
 					</div>
 				</div>
@@ -197,32 +162,12 @@
 							v-if="$parent.pageDescription != null"
 							:content="$parent.pageDescription"
 						></research-page-description>
-						<!--<h5>Phenotypes by groups</h5>
-						<research-page-description
-							v-if="
-								$parent.datasetsDescription != null &&
-								$parent.phenotypesDescription != null
-							"
-							:content="$parent.phenotypesDescription"
-						></research-page-description>-->
+
 						<about-project-section
 							:front-contents="$parent.frontContents"
 						></about-project-section>
 					</div>
 				</div>
-				<!--<div class="row">
-					<div class="col-md-7">
-						<about-portal-section
-							:front-contents="$parent.frontContents"
-						></about-portal-section>
-					</div>
-					<div class="col-md-5">
-						<news-feed-section
-							:disease-group="$parent.diseaseGroup"
-							:news-feed="$store.state.kp4cd.newsFeed"
-						></news-feed-section>
-					</div>
-				</div>-->
 			</div>
 		</div>
 
@@ -247,12 +192,55 @@
 	color: #fff;
 }
 
-.single-search-header {
+.front-search-section {
+	margin-top: 50px;
+}
+
+.front-search-section .tab-pane {
+	padding: 50px 0 50px 0;
+}
+
+.disease-systems-trees-wrapper {
+	position: relative;
 	text-align: center;
-	display: block;
-	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.single-search-wrapper {
+	position: relative;
+	text-align: center;
+	width: 680px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.disease-systems-trees-wrapper {
+}
+
+.disease-systems-tree-header,
+.single-search-header {
+	position: absolute;
+	transform: rotate(-90deg);
+	border-radius: 15px;
+	font-size: 12px;
+	width: 280px;
+	top: 48%;
+	border: solid 1px #fff;
+	left: 40px;
 	color: #fff;
-	margin-top: 30px;
+}
+
+.single-search-header {
+	width: 120px;
+	top: 20%;
+	border: solid 1px #fff;
+	left: 120px;
+}
+
+.byor-single-search-wrapper input,
+.byor-single-search-results {
+	width: 680px !important;
 }
 
 .a2f-region-search-examples {

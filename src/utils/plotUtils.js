@@ -44,7 +44,8 @@ const renderLine = function (
     TICK_NUM,
     DATA,
     MIN,
-    MAX
+    MAX,
+    DATA_LABEL
 ) {
 
     CTX.beginPath();
@@ -72,9 +73,9 @@ const renderLine = function (
     }
 
 
-    let valueBump = (MAX - MIN) / TICK_NUM;
-    let max = Math.round(MAX + valueBump);
-    let min = Math.round(MIN - valueBump);
+    //let valueBump = (MAX - MIN) / TICK_NUM;
+    let max = Math.ceil(MAX);
+    let min = Math.floor(MIN);
 
     switch (DIRECTION) {
         case "x":
@@ -107,11 +108,25 @@ const renderLine = function (
                     }
 
                     if (hIndex == 0) {
-                        CTX.font = "12px Arial";
-                        //CTX.fillStyle = colors[vIndex];
+
+
+                        let lXPos, lYPos
+                        if (!!DATA_LABEL) {
+                            CTX.font = "14px Arial";
+                            lXPos = xStep + MARGIN.left, lYPos = (20 * vIndex) + MARGIN.top + 14;
+                            renderDot(CTX, lXPos, lYPos, colors[vIndex]);
+
+                            lXPos += 10, lYPos += 5;
+
+                        } else {
+                            CTX.font = "12px Arial";
+                            lXPos = xPos, lYPos = yPos - 7;
+                        }
+
                         CTX.fillStyle = "#000000";
                         CTX.textAlign = "start";
-                        CTX.fillText(key, xPos, yPos - 7);
+
+                        CTX.fillText(key, lXPos, lYPos);
                     }
 
                     previousX = xPos;
@@ -193,9 +208,9 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
     let dataKeys = Object.keys(DATA);
     let dataLength = dataKeys.length;
     let barWidth = (WIDTH - MARGIN.left - MARGIN.right - (SPACER * (dataLength + 1))) / dataLength;
-    let valueBump = (MAX - MIN) / TICK_NUM;
-    let max = Math.round(MAX + valueBump);
-    let min = (MIN >= 0) ? 0 : Math.round(MIN - valueBump);
+    //let valueBump = (MAX - MIN) / TICK_NUM;
+    let max = Math.ceil(MAX);
+    let min = Math.floor(MIN);
 
     switch (DIRECTION) {
         case "x":
@@ -312,9 +327,16 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
     }
 }
 
-const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, LABEL_ANGLE) {
+const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
+
+
+    let max = MAX;
+    let min = MIN;
+    let maxMinGap = max - min
+    let decimal = maxMinGap <= 1 ? 2 : maxMinGap <= 10 ? 1 : 0;
+
     CTX.beginPath();
     CTX.lineWidth = 0.5;
     CTX.strokeStyle = "#000000";
@@ -331,7 +353,7 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
             if (WITH_TICKS != null) {
                 // X ticks
-                let xStep = (MAX - MIN) / WITH_TICKS;
+                let xStep = (max - min) / WITH_TICKS;
                 let xTickDistance = (WIDTH - MARGIN.left - MARGIN.right) / WITH_TICKS;
 
                 for (let i = 0; i <= WITH_TICKS; i++) {
@@ -350,8 +372,8 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
                     CTX.textAlign = "center";
                     let positionLabel =
                         i < WITH_TICKS
-                            ? Math.round(MIN + i * xStep)
-                            : Math.round(MAX);
+                            ? Formatters.decimalFormatter(min + i * xStep, decimal)
+                            : Formatters.decimalFormatter(max, decimal);
 
                     CTX.fillText(
                         positionLabel,
@@ -369,10 +391,10 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
             if (WITH_TICKS != null) {
 
-                let valueBump = (MAX - MIN) / WITH_TICKS;
+                let valueBump = (max - min) / WITH_TICKS;
 
-                let max = Math.round(MAX + valueBump);
-                let min = (MIN >= 0) ? 0 : Math.round(MIN - valueBump);
+                //max = Math.ceil(max + valueBump);
+                //min = Math.floor(min - valueBump);
 
                 // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;
@@ -388,10 +410,9 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
                     let tickValue =
                         i == WITH_TICKS
-                            ? min
-                            : Formatters.floatFormatter(
-                                max - i * yStep
-                            );
+                            ? Formatters.decimalFormatter(min, decimal)
+                            : Formatters.decimalFormatter(
+                                max - i * yStep, decimal);
 
                     CTX.fillText(
                         tickValue,
@@ -409,6 +430,11 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
     //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
     // WITH_TICKS(number of thicks. null for none), MIN, MAX
 
+    let max = MAX;
+    let min = MIN;
+    let maxMinGap = max - min
+    let decimal = maxMinGap <= HEIGHT / 100 ? 2 : maxMinGap <= HEIGHT / 10 ? 1 : 0;
+
     CTX.beginPath();
     CTX.lineWidth = 0.5;
     CTX.strokeStyle = "#000000";
@@ -425,7 +451,7 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
             if (WITH_TICKS != null) {
                 // X ticks
-                let xStep = (MAX - MIN) / WITH_TICKS;
+                let xStep = (max - min) / WITH_TICKS;
                 let xTickDistance = (WIDTH - MARGIN.left - MARGIN.right) / WITH_TICKS;
 
                 for (let i = 0; i <= WITH_TICKS; i++) {
@@ -442,10 +468,11 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                     CTX.stroke();
 
                     CTX.textAlign = "center";
+
                     let positionLabel =
                         i < WITH_TICKS
-                            ? Math.round(MIN + i * xStep)
-                            : Math.round(MAX);
+                            ? Formatters.decimalFormatter(min + i * xStep, decimal)
+                            : Formatters.decimalFormatter(max, decimal);
 
                     CTX.fillText(
                         positionLabel,
@@ -463,9 +490,6 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
             if (WITH_TICKS != null) {
 
-                let max = Math.round(MAX);
-                let min = Math.round(MIN);
-
                 // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;
                 let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom) / WITH_TICKS;
@@ -480,10 +504,12 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
                     let tickValue =
                         i == WITH_TICKS
-                            ? min
-                            : Formatters.floatFormatter(
-                                max - i * yStep
-                            );
+                            ? Formatters.decimalFormatter(min, decimal)
+                            :
+                            Formatters.decimalFormatter(max - i * yStep, decimal)
+                        ;
+
+
 
                     CTX.fillText(
                         tickValue,
@@ -511,8 +537,6 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 };
 
 const renderGuideLine = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
-    //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
-    // WITH_TICKS(number of thicks. null for none), MIN, MAX
 
 
     CTX.beginPath();

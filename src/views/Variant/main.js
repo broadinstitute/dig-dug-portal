@@ -24,6 +24,8 @@ import PheWASDatasets from "@/components/PheWASDatasets";
 import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import sessionUtils from "@/utils/sessionUtils";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -70,6 +72,9 @@ new Vue({
     },
 
     created() {
+        /// disease systems
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        ////
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -82,6 +87,7 @@ new Vue({
 
     methods: {
         ...uiUtils,
+        ...sessionUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -101,6 +107,36 @@ new Vue({
     },
 
     computed: {
+        /// for disease systems
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+
+        pheWasData() {
+
+            let data = this.$store.state.phewas.data;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
+            }
+
+            return data;
+        },
         variantData() {
             return this.$store.state.variantData.data;
         },

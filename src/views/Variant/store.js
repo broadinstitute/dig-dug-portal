@@ -24,7 +24,9 @@ export default new Vuex.Store({
 
     state: {
         variant: null,
-        newVariantId: null
+        newVariantId: null,
+        phenotypesInSession: null,
+        diseaseInSession: null,
     },
 
     mutations: {
@@ -38,6 +40,12 @@ export default new Vuex.Store({
                 keyParams.set({ variant: state.newVariantId });
             }
         },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        }
     },
 
     actions: {
@@ -51,9 +59,16 @@ export default new Vuex.Store({
             }
         },
         // Do we need a new function here? Is this it?
-        async clumpedVariants(context, phenotype, clump){
+        async clumpedVariants(context, phenotype, clump) {
             let query = phenotype + "," + clump;
-            context.dispatch("clumpedVariants/query", {q: query});
-        }
+            context.dispatch("clumpedVariants/query", { q: query });
+        },
+        // For custom phenotypes
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
     }
 });
