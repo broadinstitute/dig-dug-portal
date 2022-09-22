@@ -67,9 +67,8 @@
                                         :src="$parent.manhattanPlot"
                                         alt="Manhattan Plot"
                                         :documentation="'phenotype.associationplots.manhattan'"
-                                        :content-fill="
-                                            $store.getters['documentationMap']
-                                        "
+                                        :content-fill="$store.getters['documentationMap']"
+                                        :customFailureMsg = "'No Manhattan plot available for this query.'"
                                     />
                                 </div>
                             </div>
@@ -80,9 +79,8 @@
                                         :src="$parent.qqPlot"
                                         alt="QQ Plot"
                                         :documentation="'phenotype.associationplots.qq'"
-                                        :content-fill="
-                                            $store.getters['documentationMap']
-                                        "
+                                        :content-fill="$store.getters['documentationMap']"
+                                        :customFailureMsg = "'No Q-Q plot available for this query.'"
                                     />
                                 </div>
                             </div>
