@@ -288,6 +288,23 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">Genetic correlations for {{$store.state.phenotype.description}}</h4>
+                        <criterion-function-group>
+                            <filter-pvalue-control :field="'pValue'">
+                                <div class="label">P-Value (&le;)</div>
+                            </filter-pvalue-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <correlation-table
+                                    :correlationData="$store.state.geneticCorrelation.data"
+                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                >
+                                </correlation-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
             </div>
         </div>
 
