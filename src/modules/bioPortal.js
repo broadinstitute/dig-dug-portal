@@ -22,6 +22,7 @@ export default {
             diseaseSystems: [],
             diseaseGroups: [],
             phenotypes: [],
+            ancestries: [],
             complications: [],
             datasets: [],
             phenotypeMap: {},
@@ -50,6 +51,13 @@ export default {
                     state.phenotypes[i];
             }
         },
+        setAncestries(state, data) {
+            state.ancestries = data;
+            state.ancestryMap = {};
+            for (let i in state.ancestries){
+                state.ancestryMap[state.ancestries[i].name] = state.ancestries[i];
+            }
+         },
         setComplications(state, data) {
             state.complications = data;
             state.complicationsMap = {};
@@ -144,6 +152,16 @@ export default {
 
             // set the list of phenotypes
             commit("setPhenotypes", json.data);
+        },
+        async getAncestries({ state, commit }){
+            let qs = queryString.stringify(
+                { q: state.host.subDomain || "md"},
+                { skipNull : true}
+            );
+            let json = await fetch(
+                `${BIO_INDEX_HOST}/api/portal/ancestries?${qs}`
+            ).then(resp => resp.json());
+            commit("setAncestries", json.data);
         },
 
         // fetch all the complicaitons for given disease group

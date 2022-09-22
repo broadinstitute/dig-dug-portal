@@ -13,12 +13,33 @@
 				<!-- Wrap page level searchs with "pageSearchParameters" div -->
 
 				<div class="col filter-col-lg hidden">
-					<div class="label">Search phenotype</div>
+					<div class="label">Search by phenotype</div>
 					<phenotype-selectpicker
 						v-if="$store.state.phenotype"
 						:phenotypes="$parent.phenotypesInSession"
 						:clearOnSelected="true"
 					></phenotype-selectpicker>
+				</div>
+				<div class="col filter-col-md hidden">
+					<div class="label">Ancestry</div>
+					<ancestry-selectpicker
+						:ancestries="
+							$store.state.bioPortal.datasets.map(
+								(dataset) => dataset.ancestry
+							)
+						"
+					></ancestry-selectpicker>
+				</div>
+				<div class="region-search col filter-col-md hidden">
+					<div class="label">Search</div>
+					<button
+						id="regionSearchGo"
+						class="btn btn-light btn-sm go"
+						type="button"
+						@click="$store.dispatch('queryPhenotype')"
+					>
+						GO
+					</button>
 				</div>
 			</search-header-wrapper>
 
@@ -42,6 +63,14 @@
 						<h4 class="card-title">
 							Genome-wide single-variant associations for
 							{{ $store.state.phenotype.description }}
+							(Ancestry:
+							{{
+								$store.state.ancestry == ""
+									? "All"
+									: $parent.ancestryFormatter(
+											$store.state.ancestry
+									  )
+							}})
 						</h4>
 						<div class="row">
 							<div class="col-md-6">
@@ -54,6 +83,7 @@
 										:content-fill="
 											$store.getters['documentationMap']
 										"
+										:customFailureMsg="'No Manhattan plot available for this query.'"
 									/>
 								</div>
 							</div>
@@ -67,6 +97,7 @@
 										:content-fill="
 											$store.getters['documentationMap']
 										"
+										:customFailureMsg="'No Q-Q plot available for this query.'"
 									/>
 								</div>
 							</div>
@@ -79,6 +110,14 @@
 						<h4 class="card-title">
 							Top single-variant association signals for
 							{{ $store.state.phenotype.description }}
+							(Ancestry:
+							{{
+								$store.state.ancestry == ""
+									? "All"
+									: $parent.ancestryFormatter(
+											$store.state.ancestry
+									  )
+							}})
 							<tooltip-documentation
 								name="phenotype.topvariants.tooltip"
 								:content-fill="$parent.documentationMap"
@@ -112,7 +151,10 @@
 								<associations-table
 									:phenotypes="[$store.state.phenotype]"
 									:associations="
-										$store.state.associations.data
+										!$store.state.ancestry
+											? $store.state.associations.data
+											: $store.state.ancestryGlobalAssoc
+													.data
 									"
 									:filter="filter"
 									:per-page="10"
@@ -173,6 +215,14 @@
 						<h4 class="card-title">
 							Datasets with genetic associations for
 							{{ $store.state.phenotype.description }}
+							(Ancestry:
+							{{
+								$store.state.ancestry == ""
+									? "All"
+									: $parent.ancestryFormatter(
+											$store.state.ancestry
+									  )
+							}})
 						</h4>
 						<documentation
 							name="pheno.assocdatasets.subheader"
@@ -190,22 +240,9 @@
 							>
 								<div class="label">Technology</div>
 							</filter-enumeration-control>
-
-							<filter-enumeration-control
-								:field="'ancestry'"
-								:options="
-									$store.state.bioPortal.datasets.map(
-										(dataset) => dataset.ancestry
-									)
-								"
-								:labelFormatter="$parent.ancestryFormatter"
-							>
-								<div class="label">Ancestry</div>
-							</filter-enumeration-control>
-
 							<template slot="filtered" slot-scope="{ filter }">
 								<datasets-table
-									:datasets="$store.state.bioPortal.datasets"
+									:datasets="$parent.ancestryDatasets"
 									:phenotype="$store.state.phenotype"
 									:filter="filter"
 								></datasets-table>
@@ -219,6 +256,14 @@
 						<h4 class="card-title">
 							Globally enriched annotations for
 							{{ $store.state.phenotype.description }}
+							(Ancestry:
+							{{
+								$store.state.ancestry == ""
+									? "All"
+									: $parent.ancestryFormatter(
+											$store.state.ancestry
+									  )
+							}})
 							<tooltip-documentation
 								name="phenotype.annot.tooltip"
 								:content-fill="$parent.documentationMap"
@@ -264,19 +309,6 @@
 							>
 								<div class="label">Tissues</div>
 							</filter-enumeration-control>
-
-							<filter-enumeration-control
-								:field="'ancestry'"
-								:options="
-									$store.state.annotations.data.map(
-										(annotation) => annotation.ancestry
-									)
-								"
-								:labelFormatter="$parent.ancestryFormatter"
-							>
-								<div class="label">Ancestry</div>
-							</filter-enumeration-control>
-
 							<filter-pvalue-control :field="'pValue'">
 								<div class="label">P-Value (&le;)</div>
 							</filter-pvalue-control>
@@ -288,7 +320,7 @@
 							<template slot="filtered" slot-scope="{ filter }">
 								<enrichment-table
 									:phenotypes="[$store.state.phenotype]"
-									:annotations="$store.state.annotations.data"
+									:annotations="$parent.ancestryAnnotations"
 									:filter="filter"
 									:per-page="10"
 								></enrichment-table>

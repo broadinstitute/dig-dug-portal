@@ -15,7 +15,11 @@ if (!!document.cookie) {
 }
 
 // updated at compile-time to the dev or production BioIndex server
-export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
+//export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
+//export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
+
+// We need the dev version to access ancestry endpoints
+export const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 
 /* Returns the path for any BioIndex API end-point.

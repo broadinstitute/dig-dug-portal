@@ -7,6 +7,7 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
@@ -43,6 +44,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
         GeneFinderTable,
         AssociationsTable,
         EnrichmentTable,
@@ -105,6 +107,18 @@ new Vue({
             return this.$store.state.bioPortal.phenotypes;
         },
         ///
+        ancestryDatasets() {
+            if (!this.$store.state.ancestry) {
+                return this.$store.state.bioPortal.datasets;
+            }
+            return this.$store.state.bioPortal.datasets.filter(dataset => dataset.ancestry == this.$store.state.ancestry);
+        },
+        ancestryAnnotations() {
+            if (!this.$store.state.ancestry) {
+                return this.$store.state.annotations.data;
+            }
+            return this.$store.state.annotations.data.filter(annotation => annotation.ancestry == this.$store.state.ancestry);
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -121,17 +135,27 @@ new Vue({
 
         manhattanPlot() {
             let phenotype = this.$store.state.phenotype;
+            let ancestry = this.$store.state.ancestry;
 
             if (!!phenotype) {
-                return `/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`;
+                if (!ancestry) {
+                    return `/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`;
+                } else {
+                    return `api/raw/plot/phenotype/${phenotype.name}/${ancestry}/manhattan.png`;
+                }
             }
         },
 
         qqPlot() {
             let phenotype = this.$store.state.phenotype;
+            let ancestry = this.$store.state.ancestry;
 
             if (!!phenotype) {
-                return `/api/raw/plot/phenotype/${phenotype.name}/qq.png`;
+                if (!ancestry) {
+                    return `/api/raw/plot/phenotype/${phenotype.name}/qq.png`;
+                } else {
+                    return `/api/raw/plot/phenotype/${phenotype.name}/${ancestry}/qq.png`;
+                }
             }
         }
     },
@@ -151,7 +175,11 @@ new Vue({
             this.$store.dispatch("queryPhenotype");
             uiUtils.hideElement("phenotypeSearchHolder");
         },
-
+        "$store.state.ancestry": function (ancestry) {
+            keyParams.set({ ancestry: ancestry });
+            this.$store.dispatch("queryPhenotype");
+            uiUtils.hideElement("phenotypeSearchHolder");
+        },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         }

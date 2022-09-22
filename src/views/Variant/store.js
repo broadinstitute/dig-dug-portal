@@ -17,9 +17,9 @@ export default new Vuex.Store({
         transcriptConsequences: bioIndex("transcript-consequences"),
         transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
+        ancestryPhewas: bioIndex("ancestry-phewas-associations"),
         regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
-        clumpedVariants: bioIndex("clumped-variants")
     },
 
     state: {
@@ -27,6 +27,10 @@ export default new Vuex.Store({
         newVariantId: null,
         phenotypesInSession: null,
         diseaseInSession: null,
+        ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        badSearch: false,
+        phenotypeCorrelation: null,
     },
 
     mutations: {
@@ -45,17 +49,24 @@ export default new Vuex.Store({
         },
         setDiseaseInSession(state, DISEASE) {
             state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         }
     },
 
     actions: {
         async queryVariant(context, newVarId) {
+            context.state.ancestry = context.state.selectedAncestry;
             newVarId = await variantUtils.parseVariant(
                 newVarId || context.state.newVariantId
             );
 
             if (!!newVarId) {
                 context.dispatch("variantData/query", { q: newVarId });
+                context.state.badSearch = false;
+            } else {
+                context.state.badSearch = true;
             }
         },
         // Do we need a new function here? Is this it?
@@ -70,5 +81,9 @@ export default new Vuex.Store({
         diseaseInSession(context, DISEASE) {
             context.commit("setDiseaseInSession", DISEASE);
         },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
+
     }
 });

@@ -24,6 +24,24 @@ a:hover {
 }
 
 /* front page */
+.front-top-banner-autoimmunekp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/autoimmunekp_front_bg.png),
+        linear-gradient(#71cddd, #009bc8);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-ocularkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/ocular_front_bg.png),
+        linear-gradient(#008fd0, #005e9e);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-reproductivekp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/reproductive_front_bg.png),
+        linear-gradient(#8f7fbb, #5e53a3);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner-mdkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
         linear-gradient(#0097d6, #8ed8f8);
@@ -184,6 +202,18 @@ a:hover {
     float: left;
 }
 
+.front-logo-tagline-autoimmunekp {
+    transform: translate(0%, 25%);
+}
+
+.front-logo-tagline-ocularkp {
+    transform: translate(0%, 35%);
+}
+
+.front-logo-tagline-reproductivekp {
+    transform: translate(0%, 35%);
+}
+
 .front-logo-tagline-mdkp {
     transform: translate(0%, 23%);
 }
@@ -291,6 +321,18 @@ a:hover {
     width: 500px;
 }
 
+.autoimmunekp-logo {
+    height: 50px;
+}
+
+.ocularkp-logo {
+    height: 50px;
+}
+
+.reproductivekp-logo {
+    height: 50px;
+}
+
 .mdkp-logo {
     height: 50px;
 }
@@ -350,6 +392,24 @@ a:hover {
 
 .mdkp-footer .registered-mark {
     display: contents;
+}
+
+.autoimmunekp-header,
+.autoimmunekp-footer {
+    background-color: #71cddd;
+    height: 50px;
+}
+
+.ocularkp-header,
+.ocularkp-footer {
+    background-color: #008fd0;
+    height: 50px;
+}
+
+.reproductivekp-header,
+.reproductivekp-footer {
+    background-color: #8f7fbb;
+    height: 50px;
 }
 
 .mdkp-header,
@@ -513,6 +573,9 @@ a:hover {
     font-weight: 300;
 }
 
+.autoimmunekp-footer,
+.ocularkp-footer,
+.reproductivekp-footer,
 .mdkp-footer,
 .cvdkp-footer,
 .sleepkp-footer,
@@ -534,6 +597,9 @@ a:hover {
     font-size: 14px;
 }
 
+.autoimmunekp-body,
+.ocularkp-body,
+.reproductivekp-body,
 .mdkp-body,
 .cvdkp-body,
 .sleekp-body,
@@ -554,6 +620,9 @@ a:hover {
     padding-bottom: 10px;
 }
 
+.autoimmunekp-card,
+.ocularkp-card,
+.reproductivekp-card,
 .mdkp-card,
 .cvdkp-card,
 .sleepkp-card,

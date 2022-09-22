@@ -53,6 +53,12 @@
 						/>
 					</div>
 					<div class="region-search col filter-col-md">
+						<div class="label">Ancestry</div>
+						<ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
+                                        (dataset) => dataset.ancestry
+                                    )"></ancestry-selectpicker>
+					</div>
+					<div class="region-search col filter-col-md">
 						<div class="label">Search</div>
 						<button
 							id="regionSearchGo"
@@ -145,6 +151,7 @@
 					<h4 class="card-title">
 						Most significant variant associations in the region:
 						{{ $parent.regionString }}
+						(Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
 						<tooltip-documentation
 							name="region.mostsignificantassoc.header.tooltip"
 							:isHover="true"
@@ -257,6 +264,19 @@
 							is no significant association found in this region.
 						</b-alert>
 					</template>
+				</div>
+			</div>
+			<div class="card mdkp-card" v-if="$store.state.ancestry">
+				<div class="card-body">
+					<h4>Associations (Ancestry: {{$parent.ancestryFormatter($store.state.ancestry)}})</h4>
+					<associations-table
+							id="ancestry-associations-table"
+							:phenotypes="$parent.selectedPhenotypes"
+							:associations="$store.state.ancestryAssoc.data"
+							:filter="$parent.associationsFilter"
+							:exclusive="false"
+						></associations-table
+					>
 				</div>
 			</div>
 			<div class="card mdkp-card">

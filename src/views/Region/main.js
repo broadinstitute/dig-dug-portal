@@ -22,6 +22,7 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker";
 import TissueSelectPicker from "@/components/TissueSelectPicker";
 import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
@@ -79,6 +80,7 @@ new Vue({
         AnnotationSelectPicker,
         TissueSelectPicker,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
         Autocomplete,
         GeneSelectPicker,
         CriterionListGroup,
@@ -96,6 +98,7 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("queryRegion");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
     },
@@ -146,6 +149,7 @@ new Vue({
         ...sessionUtils,
         ...Formatters,
         ...filterHelpers,
+        ancestryFormatter: Formatters.ancestryFormatter,
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -166,7 +170,6 @@ new Vue({
                 }
             }
         },
-
         updateLocalRegion(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -356,9 +359,10 @@ new Vue({
         // Give the top associations, find the best one across all unique
         // phenotypes available.
         topAssociations() {
-            let data = this.$store.state.topAssociations.data;
-
-            //console.log("data", data);
+            // Filter by ancestry if one is provided
+            let data = this.$store.state.ancestry == ""
+                ? this.$store.state.topAssociations.data
+                : this.$store.state.ancestryTopAssoc.data;
             let assocMap = {};
 
             for (let i in data) {
@@ -368,7 +372,6 @@ new Vue({
                 if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
-
                 const curAssoc = assocMap[assoc.phenotype];
                 if (!curAssoc || assoc.pValue < curAssoc.pValue) {
                     assocMap[assoc.phenotype] = assoc;
@@ -376,9 +379,17 @@ new Vue({
             }
             // region loaded, hide search
             uiUtils.hideElement("regionSearchHolder");
-            // convert to an array, sorted by p-value
+            // convert to an array, sorted by p-value 
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
-
+            if (x[0]) {
+                //This is our top phenotype. 
+                keyParams.set({ phenotype: x[0].phenotype });
+                if (this.$store.state.ancestry) {
+                    let ancestryAssocQuery = `${x[0].phenotype},${this.$store.state.ancestry},${this.$store.getters.region}`;
+                    this.$store.dispatch("ancestryAssoc/query", { q: ancestryAssocQuery });
+                    console.log(ancestryAssocQuery);
+                }
+            }
             return x;
         },
         globalEnrichmentAnnotations() {
@@ -412,9 +423,7 @@ new Vue({
             return this.regionPageSearchCriterion
                 .filter(criterion => criterion.field === "phenotype")
                 .map(criterion => phenotypeMap[criterion.threshold]);
-
-            return [];
-        }
+        },
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap"(phenotypeMap) {
@@ -457,8 +466,7 @@ new Vue({
                     ).flatMap(pam => pam[1]);
                 });
             }
-            //keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
-            //console.log("current phenotypes",phenotypes)
+            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
 
             // reload the global enrichment for these phenotypes
             this.$store.dispatch("globalEnrichment/clear");
@@ -476,6 +484,9 @@ new Vue({
                 this.$store.commit("phenotypesCleared");
             }
         },
+        "$store.state.ancestry"(ancestry) {
+            keyParams.set({ ancestry: ancestry });
+        },
         topAssociations(top) {
             // stop if no phenotype map
             if (!this.$store.state.bioPortal.phenotypeMap) {
@@ -489,17 +500,16 @@ new Vue({
 
             // prefer url over the top associations
             //let keyPhenotypes = keyParams.phenotype;
-            /*if (!!keyPhenotypes) {
+            if (!!keyPhenotypes) {
                 this.setCriterionPhenotypes(keyPhenotypes.split(","));
-            } else {*/
-            let topAssoc = top[0];
-            let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
-                topAssoc.phenotype
-            ];
-
-            // update the master list
-            this.setCriterionPhenotypes([topPhenotype.name]);
-            //}
+            } else {
+                let topAssoc = top[0];
+                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
+                    topAssoc.phenotype
+                ];
+                // update the master list
+                this.setCriterionPhenotypes([topPhenotype.name]);
+            }
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);

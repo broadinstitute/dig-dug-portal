@@ -4,8 +4,14 @@
 			class="col-md-12 biosamples-plot-wrapper"
 			v-if="searchingRegion != null"
 		>
-			<div class="col-md-12 bio-plot-wrapper">
-				<div id="biosamplesUIWrapper">
+			<div class="col-md-12">
+				<div
+					id="biosamplesUIWrapper"
+					v-if="
+						!renderConfig['with annotations viewer'] ||
+						renderConfig['with annotations viewer'] == 'false'
+					"
+				>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -21,10 +27,7 @@
 								>
 									Select Annotation
 								</div>
-								<!--<select
-									class="custom-select"
-									@change="addAnnoTrack($event)"
-								>-->
+
 								<select
 									class="custom-select"
 									v-model="annotationOnFocus"
@@ -86,7 +89,7 @@
 							class=""
 							v-if="
 								pkgDataSelected.filter(
-									(s) => s.type == 'BiosampleAnnoTissue'
+									(s) => s.type == 'Annotation'
 								).length > 0 &&
 								!renderConfig['no search key bubbles']
 							"
@@ -94,7 +97,7 @@
 						>
 							<template
 								v-for="a in pkgDataSelected.filter(
-									(s) => s.type == 'BiosampleAnnoTissue'
+									(s) => s.type == 'Annotation'
 								)"
 							>
 								<span
@@ -102,13 +105,29 @@
 									:class="'btn search-bubble '"
 									:style="
 										'background-color:' +
-										getColorIndex(a.id.split(' / ')[0])
+										getColorIndex(a.id)
 									"
 									v-html="
 										a.id +
 										'&nbsp;<span class=\'remove\'>X</span>'
 									"
-									@click="removeAnnoTissue(a.id)"
+									@click="removeAnno(a.id)"
+								></span>
+							</template>
+							<template
+								v-for="t in pkgDataSelected.filter(
+									(s) => s.type == 'Tissue'
+								)"
+							>
+								<span
+									:key="t.id"
+									:class="'btn search-bubble '"
+									:style="'background-color:#999999'"
+									v-html="
+										t.id +
+										'&nbsp;<span class=\'remove\'>X</span>'
+									"
+									@click="removeTissue(t.id)"
 								></span>
 							</template>
 						</div>
@@ -117,6 +136,10 @@
 				<div
 					class="col-md-12 bio-plot-ui-wrapper"
 					style="border-bottom: solid 1px #dddddd"
+					v-if="
+						!renderConfig['with annotations viewer'] ||
+						renderConfig['with annotations viewer'] == 'false'
+					"
 				>
 					<h6><strong>Global Enrichment</strong></h6>
 					<div>
@@ -153,9 +176,10 @@
 					class="filtering-ui-wrapper add-content"
 					style="width: 100%; padding: 0 10px; text-align: left"
 					v-if="
-						pkgDataSelected.filter(
-							(s) => s.type == 'BiosampleAnnoTissue'
-						).length > 0
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length > 0 &&
+						pkgDataSelected.filter((s) => s.type == 'Tissue')
+							.length > 0
 					"
 				>
 					<div
@@ -195,11 +219,27 @@
 						</div>
 					</div>
 				</div>
-
-				<div id="biosamplesPlotWrapper" class="col-md-9">
+			</div>
+			<div class="col-md-9 bio-plot-wrapper">
+				<div id="biosamplesPlotWrapper">
 					<!--working part-->
 
 					<div id="biosampleInfoBox" class="hidden"></div>
+					<div
+						id="bioInitialMessage"
+						:class="
+							getSelectedParameters('Annotation').length > 0 &&
+							getSelectedParameters('Tissue').length > 0
+								? 'hidden'
+								: ''
+						"
+						v-html="
+							!!renderConfig['with annotations viewer'] &&
+							renderConfig['with annotations viewer'] == 'true'
+								? 'Please select annotation and tissue under annotations filter.'
+								: 'Please select annotation and tissue.'
+						"
+					></div>
 
 					<canvas
 						id="biosamplesPlot"
@@ -210,85 +250,74 @@
 						width=""
 						height=""
 					></canvas>
-
-					<div
-						id="bioInitialMessage"
-						:class="
-							annotationOnFocus != 'null' &&
-							tissueOnFocus != 'null'
-								? 'hidden'
-								: ''
-						"
-						v-html="'Please select annotation and tissue.'"
-					></div>
 				</div>
-				<div
-					class="col-md-3 reference-area"
-					style="display: inline-block; vertical-align: top"
-					v-if="
-						getPropsArr('methods') != null &&
-						getPropsArr('sources') != null
-					"
+			</div>
+			<div
+				class="col-md-3 reference-area"
+				style="display: inline-block; vertical-align: top"
+				v-if="
+					getPropsArr('methods') != null &&
+					getPropsArr('sources') != null
+				"
+			>
+				<button
+					class="btn btn-sm btn-outline-secondary"
+					style="margin-right: 5px; margin-bottom: 10px"
+					@click="checkUncheckAll('check')"
 				>
-					<button
-						class="btn btn-sm btn-outline-secondary"
-						style="margin-right: 5px; margin-bottom: 10px"
-						@click="checkUncheckAll('check')"
-					>
-						Select all
-					</button>
-					<button
-						class="btn btn-sm btn-outline-secondary"
-						style="margin-bottom: 10px"
-						@click="checkUncheckAll('uncheck')"
-					>
-						Unselect all
-					</button>
-					<h6>
-						<strong>Methods</strong>
-					</h6>
-					<div
-						v-for="g in getPropsArr('methods')"
-						:key="g"
-						style="display: inline-block"
-					>
-						<label style="padding-right: 10px"
-							><input
-								type="checkbox"
-								:value="g"
-								@click="addRemoveParameter(g, 'BS-Method')"
-								:checked="
-									!pkgDataSelected
-										.filter((s) => s.type == 'BS-Method')
-										.map((s) => s.id)
-										.includes(g)
-								"
-							/>{{ " " + g + " " }}
-						</label>
-					</div>
+					Select all
+				</button>
+				<button
+					class="btn btn-sm btn-outline-secondary"
+					style="margin-bottom: 10px"
+					@click="checkUncheckAll('uncheck')"
+				>
+					Unselect all
+				</button>
+				<h6>
+					<strong>Methods</strong>
+				</h6>
+				<div
+					v-for="g in getPropsArr('methods')"
+					:key="g"
+					style="display: inline-block"
+				>
+					<label style="padding-right: 10px"
+						><input
+							type="checkbox"
+							:value="g"
+							@click="addRemoveParameter(g, 'BS-Method')"
+							:checked="
+								!pkgDataSelected
+									.filter((s) => s.type == 'BS-Method')
+									.map((s) => s.id)
+									.includes(g)
+							"
+						/>{{ " " + g + " " }}
+					</label>
+				</div>
 
-					<h6>
-						<strong>Sources</strong>
-					</h6>
-					<div
-						v-for="g in getPropsArr('sources')"
-						:key="g"
-						style="display: inline-block"
-					>
-						<label style="padding-right: 10px"
-							><input
-								type="checkbox"
-								:value="g"
-								@click="addRemoveParameter(g, 'BS-Source')"
-								:checked="
-									!pkgDataSelected
-										.filter((s) => s.type == 'BS-Source')
-										.map((s) => s.id)
-										.includes(g)
-								"
-							/>{{ " " + g + " " }}
-						</label>
-					</div>
+				<h6>
+					<strong>Sources</strong>
+				</h6>
+				<div
+					v-for="g in getPropsArr('sources')"
+					:key="g"
+					style="display: inline-block"
+				>
+					<label style="padding-right: 10px"
+						><input
+							type="checkbox"
+							:value="g"
+							@click="addRemoveParameter(g, 'BS-Source')"
+							:checked="
+								!pkgDataSelected
+									.filter((s) => s.type == 'BS-Source')
+									.map((s) => s.id)
+									.includes(g)
+							"
+						/>{{ " " + g + " " }}
+					</label>
 				</div>
 			</div>
 		</div>
@@ -342,7 +371,12 @@ export default Vue.component("research-biosamples-plot", {
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		this.getBSAnnotations(this.searchingRegion);
+		if (
+			!this.renderConfig["with annotations plot"] ||
+			this.renderConfig["with annotations plot"] == "false"
+		) {
+			this.getBSAnnotations(this.searchingRegion);
+		}
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -482,15 +516,23 @@ export default Vue.component("research-biosamples-plot", {
 			if (this.searchType == "newSearch") {
 				this.resetAll();
 			} else {
-				this.getBSAnnotations(this.searchingRegion);
+				if (
+					!this.renderConfig["with annotations plot"] ||
+					this.renderConfig["with annotations plot"] == "false"
+				) {
+					this.getBSAnnotations(this.searchingRegion);
+				}
 			}
 		},
 		pkgDataSelected: {
 			handler: function (DATA) {
-				if (DATA.length == 0) {
+				let annotations = this.getSelectedParameters("Annotation");
+				let tissues = this.getSelectedParameters("Tissue");
+
+				if (annotations.length == 0 || tissues.length == 0) {
 					this.resetAll();
 				} else {
-					this.renderBiosamplesTrack("from watch");
+					this.handleSearchUpdate(DATA);
 				}
 			},
 		},
@@ -507,8 +549,31 @@ export default Vue.component("research-biosamples-plot", {
 	},
 	methods: {
 		...uiUtils,
+		getSelectedParameters(PARAM) {
+			let arr = [
+				...new Set(
+					this.pkgDataSelected
+						.filter((d) => d.type == PARAM)
+						.map((d) => d.id)
+				),
+			];
+			return arr;
+		},
+		handleSearchUpdate(DATA) {
+			let annotations = this.getSelectedParameters("Annotation");
+			let tissues = this.getSelectedParameters("Tissue");
+
+			if (annotations.length > 0 && tissues.length > 0) {
+				annotations.map((a) => {
+					tissues.map((t) => {
+						this.getBiosamples(a, t);
+					});
+				});
+			} else {
+				this.renderBiosamplesTrack("anno or tissue missing");
+			}
+		},
 		resetAll() {
-			console.log("reset called");
 			this.annoData = {};
 			this.biosamplesData = {};
 			this.GEData = {};
@@ -519,7 +584,28 @@ export default Vue.component("research-biosamples-plot", {
 			this.tissueOnFocus = "null";
 			this.trigger = 0;
 
-			this.getBSAnnotations(this.searchingRegion);
+			this.pkgDataSelected.map((i) => {
+				if (
+					i.type == "Biosample" ||
+					i.type == "BS-Method" ||
+					i.type == "BS-Source"
+				) {
+					this.$store.dispatch("pkgDataSelected", {
+						type: i.type,
+						id: i.id,
+						action: "remove",
+					});
+				}
+			});
+
+			this.renderBiosamplesTrack("reset all");
+
+			if (
+				!this.renderConfig["with annotations viewer"] ||
+				this.renderConfig["with annotations viewer"] == "false"
+			) {
+				this.getBSAnnotations(this.searchingRegion);
+			}
 		},
 		checkUncheckAll(CHECK) {
 			switch (CHECK) {
@@ -643,19 +729,7 @@ export default Vue.component("research-biosamples-plot", {
 					action: "add",
 				});
 			}
-		} /*
-		setAnnotation(EVENT) {
-			if (EVENT.target.value != "") {
-				this.annotationOnFocus = EVENT.target.value;
-			} else {
-				this.annotationOnFocus = null;
-			}
 		},
-		setTissue(EVENT) {
-			if (EVENT.target.value != "") {
-				this.tissueOnFocus = EVENT.target.value;
-			}
-		},*/,
 		getOverlappingBSRegion() {
 			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
@@ -805,46 +879,30 @@ export default Vue.component("research-biosamples-plot", {
 		onResize(e) {
 			uiUtils.showElement("biosamplesPlotWrapper");
 			this.renderBiosamplesTrack("on resize");
-			this.renderGE();
+			if (
+				!this.renderConfig["with annotations viewer"] ||
+				this.renderConfig["with annotations viewer"] == "false"
+			) {
+				this.renderGE();
+			}
 		},
 
-		removeAnnoTissue(ID) {
+		removeAnno(ID) {
 			this.$store.dispatch("pkgDataSelected", {
-				type: "BiosampleAnnoTissue",
+				type: "Annotation",
 				id: ID,
 				action: "remove",
 			});
+		},
 
-			/// second, delete the biosample tissue data
-
-			let bsDataPath = ID.split(" / ");
-
-			delete this.pkgData.biosamplesData[bsDataPath[0]][bsDataPath[1]];
-
-			/// second, delete the biosample annotation data if empty
-			if (
-				Object.keys(this.pkgData.biosamplesData[bsDataPath[0]])
-					.length == 0
-			) {
-				delete this.pkgData.biosamplesData[bsDataPath[0]];
-			}
-
-			/// second, delete the biosample data if empty
-
-			if (Object.keys(this.pkgData.biosamplesData).length == 0) {
-				delete this.pkgData.biosamplesData;
-			}
-
-			let selectedBiosamples = this.pkgDataSelected
-				.filter((s) => s.type == "Biosample")
-				.map((s) => s.id);
-
-			selectedBiosamples.map((b) => {
-				if (!!b.includes(ID)) {
-					this.addRemoveBiosampleTrack(b);
-				}
+		removeTissue(ID) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: "Tissue",
+				id: ID,
+				action: "remove",
 			});
 		},
+
 		addRemoveBiosampleTrack(BIOSAMPLE) {
 			let selectedBiosamples = this.pkgDataSelected
 				.filter((s) => s.type == "Biosample")
@@ -1026,7 +1084,7 @@ export default Vue.component("research-biosamples-plot", {
 			}
 		},
 		getColorIndex(anno) {
-			let annoArry = Object.keys(this.annoData);
+			let annoArry = Object.keys(this.pkgData.annoData);
 			let i = annoArry.indexOf(anno);
 			return this.compareGroupColors[i];
 		},
@@ -1207,95 +1265,143 @@ export default Vue.component("research-biosamples-plot", {
 			return GEByTissue;
 		},
 		async getBiosamples(ANNOTATION, TISSUE) {
+			let annotations = this.getSelectedParameters("Annotation").sort();
+			let tissues = this.getSelectedParameters("Tissue").sort();
+
+			if (!annotations.includes(ANNOTATION)) {
+				this.$store.dispatch("pkgDataSelected", {
+					type: "Annotation",
+					id: ANNOTATION,
+					action: "add",
+				});
+			}
+
+			if (!tissues.includes(TISSUE)) {
+				this.$store.dispatch("pkgDataSelected", {
+					type: "Tissue",
+					id: TISSUE,
+					action: "add",
+				});
+			}
+
+			if (
+				!!this.biosamplesData[ANNOTATION] &&
+				!!this.biosamplesData[ANNOTATION][TISSUE]
+			) {
+				this.renderBiosamplesTrack("after bs data load");
+			} else {
+				let biosamplesServer =
+					this.renderConfig["biosamples server"] == "KP BioIndex"
+						? "https://bioindex-dev.hugeamp.org/api/bio"
+						: this.renderConfig["biosamples server"];
+
+				let biosamplesIndex = !!this.renderConfig["biosamples index"]
+					? this.renderConfig["biosamples index"]
+					: "tissue-regions";
+
+				let tissue = TISSUE;
+				let region = this.searchingRegion;
+
+				let biosamplesURL =
+					biosamplesServer +
+					"/query/" +
+					biosamplesIndex +
+					"?q=" +
+					tissue +
+					"," +
+					region.chr +
+					":" +
+					region.start +
+					"-" +
+					region.end;
+
+				let biosamplesJson = await fetch(biosamplesURL).then((resp) =>
+					resp.json()
+				);
+
+				///working part
+				if (biosamplesJson.error == null) {
+					if (biosamplesJson.continuation == null) {
+						this.runAfterBSDataLoad(
+							biosamplesJson,
+							ANNOTATION,
+							TISSUE
+						);
+					} else {
+						this.loadContinue(biosamplesJson, ANNOTATION, TISSUE);
+					}
+				}
+			}
+		},
+
+		async loadContinue(CONTENT, ANNOTATION, TISSUE) {
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
 					? "https://bioindex-dev.hugeamp.org/api/bio"
 					: this.renderConfig["biosamples server"];
 
-			let biosamplesIndex = !!this.renderConfig["biosamples index"]
-				? this.renderConfig["biosamples index"]
-				: "tissue-regions";
+			let contURL =
+				biosamplesServer + "/cont?token=" + CONTENT.continuation;
 
-			let tissue = TISSUE;
-			let region = this.searchingRegion;
+			let contJson = await fetch(contURL).then((resp) => resp.json());
 
-			let biosamplesURL =
-				biosamplesServer +
-				"/query/" +
-				biosamplesIndex +
-				"?q=" +
-				tissue +
-				"," +
-				region.chr +
-				":" +
-				region.start +
-				"-" +
-				region.end;
+			if (contJson.error == null) {
+				let prevData = CONTENT.data;
+				let newData = prevData.concat(contJson.data);
 
-			let biosamplesJson = await fetch(biosamplesURL).then((resp) =>
-				resp.json()
-			);
+				contJson.data = newData;
 
-			if (biosamplesJson.error == null) {
-				//Add annotations / tissue combination to pkgSelected
-
-				let annoTissueId = ANNOTATION + " / " + TISSUE;
-
-				if (this.pkgData != null) {
-					this.$store.dispatch("pkgDataSelected", {
-						type: "BiosampleAnnoTissue",
-						id: annoTissueId,
-						action: "add",
-					});
+				if (contJson.continuation == null) {
+					this.runAfterBSDataLoad(contJson, ANNOTATION, TISSUE);
+				} else {
+					this.loadContinue(contJson, ANNOTATION, TISSUE);
 				}
-
-				let regions = [];
-				biosamplesJson.data.map((d) => {
-					if (d.annotation == ANNOTATION) {
-						regions.push(d);
-					}
-				});
-
-				if (regions.length > 0) {
-					let biosampleKeys = [
-						...new Set(regions.map((r) => r.biosample)),
-					].sort(Intl.Collator().compare);
-
-					if (!this.biosamplesData[ANNOTATION]) {
-						this.biosamplesData[ANNOTATION] = {};
-					}
-
-					if (!this.biosamplesData[ANNOTATION][TISSUE]) {
-						this.biosamplesData[ANNOTATION][TISSUE] = {};
-					}
-
-					biosampleKeys.map((b) => {
-						if (!this.biosamplesData[ANNOTATION][TISSUE][b]) {
-							this.biosamplesData[ANNOTATION][TISSUE][b] = [];
-						}
-						regions.map((r) => {
-							if (r.biosample == b) {
-								this.biosamplesData[ANNOTATION][TISSUE][
-									r.biosample
-								].push(r);
-							}
-						});
-					});
-				}
-
-				if (this.pkgData != null) {
-					Vue.set(
-						this.pkgData,
-						"biosamplesData",
-						this.biosamplesData
-					);
-				}
-
-				this.renderBiosamplesTrack("after bs data load");
 			}
+		},
+		runAfterBSDataLoad(DATA, ANNOTATION, TISSUE) {
+			let regions = [];
+			DATA.data.map((d) => {
+				if (d.annotation == ANNOTATION) {
+					regions.push(d);
+				}
+			});
+
+			if (regions.length > 0) {
+				let biosampleKeys = [
+					...new Set(regions.map((r) => r.biosample)),
+				].sort(Intl.Collator().compare);
+
+				if (!this.biosamplesData[ANNOTATION]) {
+					this.biosamplesData[ANNOTATION] = {};
+				}
+
+				if (!this.biosamplesData[ANNOTATION][TISSUE]) {
+					this.biosamplesData[ANNOTATION][TISSUE] = {};
+				}
+
+				biosampleKeys.map((b) => {
+					if (!this.biosamplesData[ANNOTATION][TISSUE][b]) {
+						this.biosamplesData[ANNOTATION][TISSUE][b] = [];
+					}
+					regions.map((r) => {
+						if (r.biosample == b) {
+							this.biosamplesData[ANNOTATION][TISSUE][
+								r.biosample
+							].push(r);
+						}
+					});
+				});
+			}
+
+			if (this.pkgData != null) {
+				Vue.set(this.pkgData, "biosamplesData", this.biosamplesData);
+			}
+
+			this.renderBiosamplesTrack("after bs data load");
 		},
 
 		renderBiosamplesTrack(WHERE) {
+			//console.log("render", WHERE);
 			this.biosamplesPosData = {};
 
 			let staredPositions = [];
@@ -1335,14 +1441,19 @@ export default Vue.component("research-biosamples-plot", {
 
 			let annotationTissueArr = [];
 
-			for (const [aKey, aValue] of Object.entries(this.biosamplesData)) {
-				for (const [tKey, biosamples] of Object.entries(aValue)) {
-					annotationTissueArr.push(aKey + " / " + tKey);
+			let annotations = this.getSelectedParameters("Annotation").sort();
+			let tissues = this.getSelectedParameters("Tissue").sort();
+
+			annotations.map((a) => {
+				tissues.map((t) => {
+					annotationTissueArr.push(a + " / " + t);
 					tempHeight += annotationTitleH;
-					tempHeight += Object.keys(biosamples).length * perBiosample;
+					tempHeight +=
+						Object.keys(this.biosamplesData[a][t]).length *
+						perBiosample;
 					tempHeight += btwnAnnotations;
-				}
-			}
+				});
+			});
 
 			let wrapper = document.querySelector("#biosamplesPlotWrapper");
 			let canvas = document.querySelector("#biosamplesPlot");
@@ -1470,7 +1581,7 @@ export default Vue.component("research-biosamples-plot", {
 											bKey
 									) > -1
 								) {
-									ctx.fillStyle = "#FF0000";
+									ctx.fillStyle = "#FF000066";
 								} else {
 									ctx.fillStyle = this.getColorIndex(
 										atPath[0]
@@ -1697,7 +1808,7 @@ export default Vue.component("research-biosamples-plot", {
 			ctx = c.getContext("2d");
 
 			let pIndex = 0;
-			console.log("sortedGEData", sortedGEData);
+
 			for (const [phenotype, GE] of Object.entries(sortedGEData)) {
 				let titleYPos = titleSize;
 
@@ -1873,8 +1984,21 @@ export default Vue.component("research-biosamples-plot", {
 				CTX.textAlign = "right";
 				CTX.font = "12px Arial";
 
+				let yMaxMinGap = YMAX - YMIN;
+				let yDecimal = yMaxMinGap <= 1 ? 2 : yMaxMinGap <= 50 ? 1 : 0;
+
+				let yValue = Formatters.decimalFormatter(
+					YMIN + i * yStep,
+					yDecimal
+				);
+
+				yValue =
+					yValue >= 100000
+						? Math.round(yValue * 0.001) + "k"
+						: yValue;
+
 				CTX.fillText(
-					Formatters.floatFormatter(YMIN + i * yStep),
+					yValue,
 					XPOS + this.plotMargin.leftMargin - BUMP * 3,
 					YPOS +
 						this.plotMargin.topMargin +
@@ -1931,8 +2055,21 @@ export default Vue.component("research-biosamples-plot", {
 				CTX.textAlign = "center";
 				CTX.font = "12px Arial";
 
+				let xMaxMinGap = XMAX - XMIN;
+				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+				let xValue = Formatters.decimalFormatter(
+					XMIN + i * xStep,
+					xDecimal
+				);
+
+				xValue =
+					xValue >= 100000
+						? Math.round(xValue * 0.001) + "k"
+						: xValue;
+
 				CTX.fillText(
-					Formatters.floatFormatter(XMIN + i * xStep),
+					xValue,
 					adjTickXPos,
 					YPOS + HEIGHT + this.plotMargin.topMargin + BUMP * 4
 				);
@@ -1995,9 +2132,23 @@ export default Vue.component("research-biosamples-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				let positionLabel = i < 5 ? xMin + i * xStep : xMax;
+				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
 				CTX.font = "12px Arial";
 				CTX.fillStyle = "#999999";
+
+				let xMaxMinGap = xMax - xMin;
+				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+				let positionLabel = Formatters.decimalFormatter(
+					xMin + i * xStep,
+					xDecimal
+				);
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
+
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
@@ -2098,8 +2249,8 @@ $(function () {});
 }
 
 #biosamplesPlotWrapper {
-	display: inline-block;
-	vertical-align: top;
+	/*display: inline-block;
+	vertical-align: top;*/
 }
 
 #biosampleInfoBox,

@@ -58,7 +58,10 @@
 										featureValue[headerValue],
 										headerIndex
 								  )
-								: featureValue[headerValue]
+								: formatValue(
+										featureValue[headerValue],
+										headerValue
+								  )
 						"
 					></td>
 				</tr>
@@ -69,6 +72,7 @@
 
 <script>
 import Vue from "vue";
+import Formatters from "@/utils/formatters";
 
 export default Vue.component("research-gem-table-features", {
 	props: ["featuresData", "featuresFormat"],
@@ -107,12 +111,119 @@ export default Vue.component("research-gem-table-features", {
 				content += "<tr>";
 
 				for (const [vKey, vValue] of Object.entries(v)) {
-					content += "<td>" + vValue + "</td>";
+					content +=
+						"<td>" + this.formatValue(vValue, vKey) + "</td>";
 				}
 				content += "</tr>";
 			});
 			content += "</tbody></table>";
 			return content;
+		},
+		formatValue(tdValue, tdKey) {
+			if (
+				this.featuresFormat["column formatting"] != undefined &&
+				this.featuresFormat["column formatting"][tdKey] != undefined
+			) {
+				let formatTypes =
+					this.featuresFormat["column formatting"][tdKey]["type"];
+
+				let linkToNewTab = !!this.featuresFormat["column formatting"][
+					tdKey
+				]["new tab"]
+					? this.featuresFormat["column formatting"][tdKey]["new tab"]
+					: null;
+
+				let cellValue = tdValue;
+
+				formatTypes.map((type) => {
+					if (type == "scientific notation") {
+						cellValue = Formatters.pValueFormatter(tdValue);
+
+						cellValue = cellValue == "-" ? 0 : cellValue;
+					}
+
+					/*if (type == "link") {
+						let linkString =
+							"<a href='" +
+							this.newTableFormat["column formatting"][tdKey][
+								"link to"
+							] +
+							cellValue;
+
+						linkString +=
+							linkToNewTab == "true"
+								? "' target='_blank'>" + cellValue + "</a>"
+								: "'>" + cellValue + "</a>";
+
+						cellValue = linkString;
+					}*/
+					if (type == "link") {
+						let linkString =
+							"<a href='" +
+							this.featuresFormat["column formatting"][tdKey][
+								"link to"
+							] +
+							cellValue;
+
+						linkString +=
+							!!this.featuresFormat["column formatting"][tdKey][
+								"link type"
+							] &&
+							this.featuresFormat["column formatting"][tdKey][
+								"link type"
+							] == "button"
+								? "' class='btn btn-sm btn-outline-secondary link-button"
+								: "";
+
+						let linkLabel = !!this.featuresFormat[
+							"column formatting"
+						][tdKey]["link label"]
+							? this.featuresFormat["column formatting"][tdKey][
+									"link label"
+							  ]
+							: cellValue;
+
+						linkString +=
+							linkToNewTab == "true"
+								? "' target='_blank'>" + linkLabel + "</a>"
+								: "'>" + linkLabel + "</a>";
+
+						cellValue = linkString;
+					}
+
+					if (type == "render background percent") {
+						let fieldValue =
+							typeof tdValue != "number"
+								? this.featuresFormat["column formatting"][
+										tdKey
+								  ]["percent if empty"]
+								: tdValue;
+
+						let weight = Math.floor(
+							((Number(fieldValue) - this.dataScores[tdKey].low) /
+								(this.dataScores[tdKey].high -
+									this.dataScores[tdKey].low)) *
+								100
+						);
+
+						let weightClasses = "cell-weight-" + weight + " ";
+
+						weightClasses +=
+							tdValue < 0 ? "weight-negative" : "weight-positive";
+
+						cellValue =
+							"<span class='" +
+							weightClasses +
+							"'>" +
+							cellValue +
+							"</span>";
+					}
+				});
+
+				return cellValue;
+			} else {
+				return tdValue;
+			}
 		},
 	},
 	computed: {

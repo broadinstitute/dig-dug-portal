@@ -158,6 +158,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
+
+
     },
 
     render(createElement, context) {
@@ -280,7 +282,7 @@ new Vue({
 
         csv2Json(DATA) {
 
-            let rawData2 = JSON.parse(DATA);
+            let rawData2 = (this.dataType == 'direct_csv') ? DATA : JSON.parse(DATA);
 
             let csvArr = this.CSVToArray(rawData2, ",");
 
@@ -470,8 +472,6 @@ new Vue({
                     }
                 });
 
-                console.log("paramTrueCount", paramTrueCount, "parametersArrLength", parametersArrLength);
-
                 if (paramTrueCount == parametersArrLength) {
                     this.$store.state.bioIndexContinue = [];
                     let queryParams = "";
@@ -497,9 +497,6 @@ new Vue({
                     } else if (this.dataType != "bioindex" && !!this.isAPI) {
                         APIPoint += queryParams
                     }
-
-                    console.log('APIPoint', APIPoint)
-                    console.log('this.isAPI', this.isAPI)
 
                     let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
@@ -576,9 +573,6 @@ new Vue({
                                 });
                             }
                         });
-
-                        //this.$store.dispatch("unfilteredData", overlappingData);
-                        //this.$store.dispatch("filteredData", overlappingData);
 
                         //return overlappingData;
 
@@ -715,6 +709,7 @@ new Vue({
                 return null;
             }
             return contents[0]["field_data_type"];
+
         },
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
@@ -774,8 +769,6 @@ new Vue({
         },
         pageDescription() {
             let contents = this.researchPage;
-
-            //console.log("contents", contents);
 
             if (contents === null || contents[0]["body"] == false) {
                 return null;
@@ -877,7 +870,6 @@ new Vue({
         },
         researchMenu() {
             let contents = this.$store.state.hugeampkpncms.researchMenu;
-            //console.log("menu contents", contents)
 
             if (contents.length === 0) {
                 return null;
@@ -906,15 +898,11 @@ new Vue({
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
-            //console.log("contents", contents)
-
             if (contents.length === 0) {
                 return null;
             } else {
 
                 let convertedData = (this.dataType == 'json' || this.dataType == 'bioindex') ? JSON.parse(contents) : this.csv2Json(contents);
-
-
 
                 if (this.dataType == 'bioindex') {
                     if (convertedData.continuation != null) {
@@ -960,11 +948,6 @@ new Vue({
                     } else {
                         returnData = (this.dataType == 'json') ? convertedData.data : convertedData;
                     }
-
-
-                    /*console.log("convertedData", typeof convertedData)
-                    console.log("convertedData", convertedData)
-                    console.log("convertedData", JSON.parse(convertedData));*/
 
                     let processedData = (this.dataTableFormat != null && !!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], returnData) : this.convertData("no convert", returnData);
 
@@ -1072,7 +1055,6 @@ new Vue({
         },
         portalStyle(style) {
 
-            //console.log("style", style);
             if (style != false && style != null) {
 
                 this.addcss(style);
@@ -1094,59 +1076,64 @@ new Vue({
                 }
                 //Load data
 
-                if (content[0]["field_data_points"] != false) {
+                if (this.dataType == 'direct_csv') {
+                    this.$store.dispatch("hugeampkpncms/directInputData", content[0]["field_data_points"]);
 
-                    let dataFiles = content[0]["field_data_points"].split(",");
+                } else {
 
-                    this.dataFiles = dataFiles;
+                    if (content[0]["field_data_points"] != false) {
 
-                    /// in case of phenotypes == kp phenotypes
+                        let dataFiles = content[0]["field_data_points"].split(",");
 
-                    let apis = JSON.parse(content[0]["field_api_parameters"]);
+                        this.dataFiles = dataFiles;
 
-                    //console.log("apis", apis);
-                    let isKPPhenotype = false;
+                        /// in case of phenotypes == kp phenotypes
 
-                    if (!!apis) {
-                        apis.parameters.map(pr => {
-                            if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
-                                isKPPhenotype = true;
-                            }
-                        })
-                    }
+                        let apis = JSON.parse(content[0]["field_api_parameters"]);
 
+                        let isKPPhenotype = false;
 
-                    if (isKPPhenotype == true) {
-                        let kpPhenotypes = this.phenotypesInSession
-                        let tempObj = {};
-
-                        kpPhenotypes.map(p => {
-                            tempObj[p.name] = p.description;
-                        });
-
-                        this.dataFilesLabels = tempObj;
-
-                    } else {
-                        this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
-                    }
+                        if (!!apis) {
+                            apis.parameters.map(pr => {
+                                if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
+                                    isKPPhenotype = true;
+                                }
+                            })
+                        }
 
 
-                    let initialData = dataFiles[0];
+                        if (isKPPhenotype == true) {
+                            let kpPhenotypes = this.phenotypesInSession
+                            let tempObj = {};
 
-                    let dataPoint = (initialData.includes("http://") || initialData.includes("https://")) ? initialData : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + initialData;
+                            kpPhenotypes.map(p => {
+                                tempObj[p.name] = p.description;
+                            });
 
-                    let domain = (initialData.includes("http://") || initialData.includes("https://")) ? "external" : "hugeampkpn";
+                            this.dataFilesLabels = tempObj;
 
-                    let fetchParam = { "dataPoint": dataPoint, "domain": domain }
+                        } else {
+                            this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+                        }
 
-                    if (this.isAPI != null && this.isAPI == false) {
 
-                        this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                        let initialData = dataFiles[0];
 
-                    } else if (this.isAPI == true) {
+                        let dataPoint = (initialData.includes("http://") || initialData.includes("https://")) ? initialData : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + initialData;
 
-                        this.queryAPI();
+                        let domain = (initialData.includes("http://") || initialData.includes("https://")) ? "external" : "hugeampkpn";
 
+                        let fetchParam = { "dataPoint": dataPoint, "domain": domain }
+
+                        if (this.isAPI != null && this.isAPI == false) {
+
+                            this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+
+                        } else if (this.isAPI == true) {
+
+                            this.queryAPI();
+
+                        }
                     }
                 }
 
@@ -1168,6 +1155,7 @@ new Vue({
 
         },
         researchData(content) {
+
             // reset searching region if applicable
 
             if (content != null && content.length > 0) {
@@ -1214,17 +1202,14 @@ new Vue({
                         this.$store.dispatch("searchingRegion", region);
                         this.$store.dispatch("hugeampkpncms/getGenesInRegion", { "region": region });
                     }
-
                 }
-
             }
 
             if (content != null && content.length > 0) {
+
                 uiUtils.hideElement("data-loading-indicator");
 
                 let allData = this.checkDataComparison(content, this.$store.state.filteredData);
-
-
 
                 if (this.dataTableFormat == null) {
 

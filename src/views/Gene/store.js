@@ -18,11 +18,13 @@ export default new Vuex.Store({
         genes: bioIndex("genes"),
         geneassociations: bioIndex("gene-associations"),
         varassociations: bioIndex("associations"),
+        ancestryAssoc: bioIndex("ancestry-associations"),
         associations52k: bioIndex("gene-associations-52k"),
         uniprot
     },
     state: {
         geneName: keyParams.gene,
+        geneToQuery: "",
         aliasName: null,
         prior: 0.3696,
         phenotypesInSession: null,
@@ -105,7 +107,9 @@ export default new Vuex.Store({
         },
 
         async queryGeneName(context, symbol) {
-            let name = symbol || context.state.geneName;
+            console.log("Querying gene");
+            console.log(context.state.geneToQuery);
+            let name = context.state.geneToQuery || context.state.geneName;
             context.commit("setGeneName", name);
 
             if (!!name) {
