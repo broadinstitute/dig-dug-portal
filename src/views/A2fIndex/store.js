@@ -55,7 +55,6 @@ export default new Vuex.Store({
         },
 
         phenotypeCorrelation(context, DATA) {
-            console.log(DATA)
             context.commit("setPhenotypeCorrelation", DATA);
         },
 

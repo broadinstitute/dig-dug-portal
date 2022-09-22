@@ -65,7 +65,32 @@
 						:diseaseGroups="$store.state.bioPortal.diseaseGroups"
 						:phenotypes="rawPhenotypes"
 						:diseaseInSession="$store.state.diseaseInSession"
+						:phenotypeCorrelation="
+							$store.state.phenotypeCorrelation
+						"
 					></disease-systems>
+					<!--
+
+						<disease-systems
+													page="front"
+													:diseases="
+														$store.state.bioPortal
+															.diseaseSystems
+													"
+													:diseaseGroups="
+														$store.state.bioPortal
+															.diseaseGroups
+													"
+													:phenotypes="
+														$parent.phenotypes
+													"
+													:phenotypeCorrelation="
+														$store.state
+															.phenotypeCorrelation
+													"
+												></disease-systems>
+
+						-->
 				</div>
 				<div :class="'kp-menu-wrapper col-md-8'">
 					<menu-item

@@ -110,6 +110,8 @@
 			class="custom-phenotypes-list-builder hidden"
 			id="pheno_list_builder"
 		>
+			<!-- UI for disease list
+			-->
 			<div class="ph-builder-filters-wrapper" v-if="focusBy == 'disease'">
 				<label class="select-disease-label">Select disease: </label>
 				<select
@@ -133,6 +135,59 @@
 					</template>
 				</select>
 			</div>
+
+			<div class="table-wrapper" v-if="focusBy == 'disease'">
+				<table class="table table-striped table-sm">
+					<thead>
+						<tr>
+							<th>Select</th>
+							<th>Phenotype</th>
+							<th>Group</th>
+							<th>Dichotomous</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="phenotype in getPhenotypes()">
+							<td>
+								<input
+									class="phenotype-chkbox"
+									type="checkbox"
+									:value="phenotype.name"
+									checked
+								/>
+							</td>
+							<td class="phenotype-name">
+								{{ phenotype.description }}
+							</td>
+							<td class="phenotype-group">
+								{{ phenotype.group }}
+							</td>
+							<td class="phenotype-dichotomous">
+								{{ phenotype.dichotomous }}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="session-info" v-if="focusBy == 'disease'">
+				<button
+					type="button"
+					class="btn btn-primary btn-sm"
+					@click="saveCustomPhenotypes('disease')"
+				>
+					Save list
+				</button>
+				<button
+					type="button"
+					class="btn btn-warning btn-sm"
+					@click="closePhenotypesBuilder()"
+				>
+					Cancel
+				</button>
+			</div>
+
+			<!-- UI for phenotype correlations
+			-->
 			<div
 				class="ph-builder-filters-wrapper"
 				v-if="focusBy == 'correlation'"
@@ -147,12 +202,15 @@
 				></phenotype-selectpicker>
 			</div>
 
-			<div class="table-wrapper" v-if="!!correlatedPhenotypes">
+			<div
+				class="table-wrapper"
+				v-if="focusBy == 'correlation' && !!correlatedPhenotypes"
+			>
 				<table class="table table-striped table-sm">
 					<thead>
 						<tr>
 							<th>Select</th>
-							<th>Phenotypes</th>
+							<th>Phenotype</th>
 							<th>P-Value</th>
 							<th>Correlation</th>
 							<th>Standard error</th>
@@ -160,51 +218,63 @@
 					</thead>
 					<tbody>
 						<tr v-for="phenotype in correlatedPhenotypes">
-							<td>
-								<input
-									class="phenotype-chkbox"
-									type="checkbox"
-									:value="phenotype.other_phenotype"
-									checked
-								/>
-							</td>
-							<td class="phenotype-name">
-								{{
-									this.phenotypeNames(
-										phenotype.other_phenotype
-									)
-								}}
-							</td>
-							<td class="phenotype-name">
-								{{
-									formatValue(
-										"pValueFormatter",
-										phenotype.pValue
-									)
-								}}
-							</td>
-							<td class="phenotype-name">
-								{{
-									formatValue("pValueFormatter", phenotype.rg)
-								}}
-							</td>
-							<td class="phenotype-name">
-								{{
-									formatValue(
-										"pValueFormatter",
-										phenotype.stdErr
-									)
-								}}
-							</td>
+							<template
+								v-if="
+									!!phenotypeNames[phenotype.other_phenotype]
+								"
+							>
+								<td>
+									<input
+										class="phenotype-chkbox"
+										type="checkbox"
+										:value="phenotype.other_phenotype"
+										checked
+									/>
+								</td>
+								<td class="phenotype-name">
+									{{
+										phenotypeNames[
+											phenotype.other_phenotype
+										]
+									}}
+								</td>
+								<td class="phenotype-name">
+									{{
+										formatValue(
+											"pValueFormatter",
+											phenotype.pValue
+										)
+									}}
+								</td>
+								<td class="phenotype-name">
+									{{
+										formatValue(
+											"pValueFormatter",
+											phenotype.rg
+										)
+									}}
+								</td>
+								<td class="phenotype-name">
+									{{
+										formatValue(
+											"pValueFormatter",
+											phenotype.stdErr
+										)
+									}}
+								</td>
+							</template>
 						</tr>
 					</tbody>
 				</table>
 			</div>
-			<div class="session-info" v-if="!!phenotypeCorrelation">
+			<div
+				class="session-info"
+				v-if="focusBy == 'correlation' && !!correlatedPhenotypes"
+			>
 				<button
 					type="button"
 					class="btn btn-primary btn-sm"
-					@click="saveCustomPhenotypes()"
+					@click="saveCustomPhenotypes('correlation')"
 				>
 					Save list
 				</button>
@@ -267,9 +337,6 @@ export default Vue.component("disease-systems", {
 		},
 		correlatedPhenotypes() {
 			if (!!this.phenotypeCorrelation) {
-				console.log("phenotypeCorrelation", this.phenotypeCorrelation);
-				console.log("phenotypes", this.phenotypes);
-
 				return this.phenotypeCorrelation.data;
 			} else {
 				return null;
@@ -282,9 +349,6 @@ export default Vue.component("disease-systems", {
 		...sortUtils,
 		...userUtils,
 		...Formatters,
-		getCorrelation() {
-			console.log("fire 2");
-		},
 		formatValue(FORMATTER, VALUE) {
 			return Formatters[FORMATTER](VALUE);
 		},
@@ -320,7 +384,12 @@ export default Vue.component("disease-systems", {
 			this.getCustomPhenotypes();
 			uiUtils.hideElement("pheno_list_builder");
 		},
-		saveCustomPhenotypes() {
+		saveCustomPhenotypes(TYPE) {
+			if (TYPE == "correlation") {
+				this.selectedDisease =
+					this.phenotypeNames[this.correlatedPhenotypes[0].phenotype];
+			}
+
 			let id = this.selectedDisease;
 			let phenotypeIds = [];
 			let phenotypesChkboxes =
@@ -348,6 +417,7 @@ export default Vue.component("disease-systems", {
 
 			this.$store.dispatch("phenotypesInSession", phList);
 			this.$store.dispatch("diseaseInSession", id);
+
 			this.selectedDisease = null;
 
 			uiUtils.hideElement("pheno_list_builder");

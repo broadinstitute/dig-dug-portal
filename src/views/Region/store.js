@@ -44,6 +44,7 @@ export default new Vuex.Store({
         matchingGenes: null,
         phenotypesInSession: null,
         diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
     mutations: {
         setPhenotypeByName(state, name) {
@@ -87,6 +88,9 @@ export default new Vuex.Store({
         },
         setDiseaseInSession(state, DISEASE) {
             state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         }
     },
     getters: {
@@ -172,6 +176,9 @@ export default new Vuex.Store({
         },
         diseaseInSession(context, DISEASE) {
             context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
         },
     }
 });

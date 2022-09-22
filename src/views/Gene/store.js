@@ -27,6 +27,7 @@ export default new Vuex.Store({
         prior: 0.3696,
         phenotypesInSession: null,
         diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
 
     mutations: {
@@ -46,6 +47,9 @@ export default new Vuex.Store({
         },
         setDiseaseInSession(state, DISEASE) {
             state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         }
     },
 
@@ -153,6 +157,9 @@ export default new Vuex.Store({
         async get52KAssociationData(context) {
             let name = context.state.geneName;
             context.dispatch('associations52k/query', { q: name });
-        }
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
     }
 });
