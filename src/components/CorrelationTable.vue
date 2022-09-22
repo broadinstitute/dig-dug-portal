@@ -10,7 +10,7 @@
             hover
             small
             responsive="sm"
-            :items="correlationData"
+            :items="tableData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -34,8 +34,9 @@ import Vue from "vue";
 import { orderBy, groupBy } from "lodash";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import { decodeNamespace } from "@/utils/filterHelpers";
 export default Vue.component("correlation-table", {
-    props: ["correlationData", "phenotypeMap"],
+    props: ["correlationData", "phenotypeMap", "filter"],
     data() {
         return {
             perPage: 10,
@@ -63,8 +64,16 @@ export default Vue.component("correlation-table", {
     },
     computed: {
         rows(){
-            return this.correlationData.length;
-        }
+            return this.tableData.length;
+        },
+        tableData() {
+            let dataRows = this.correlationData;
+            let filter = this.filter;
+            if (!!filter) {
+                dataRows = dataRows.filter((row) => filter(row));
+            }
+            return dataRows;
+        },
     },
     methods: {
         pValueFormatter: Formatters.pValueFormatter,

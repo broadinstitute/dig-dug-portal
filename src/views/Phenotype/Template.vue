@@ -299,6 +299,7 @@
                                 <correlation-table
                                     :correlationData="$store.state.geneticCorrelation.data"
                                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                    :filter="filter"
                                 >
                                 </correlation-table>
                             </template>
