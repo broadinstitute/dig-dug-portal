@@ -1465,8 +1465,6 @@ export default Vue.component("research-biosamples-plot", {
 				let plotHeight = tempHeight;
 				let bump = 5.5;
 
-				console.log("BS canvas", canvasWidth);
-
 				let xPerPixel = plotWidth / (regionEnd - regionStart);
 
 				let c, ctx;
