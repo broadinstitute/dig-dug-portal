@@ -1,26 +1,32 @@
 <template>
-    <div id="correlations">
-        <b-container fluid>
-            <b-row class="top-level-header">
-                <b-col class="top-level-header-item">Phenotype</b-col>
-                <b-col class="top-level-header-item">P-Value</b-col>
-                <b-col class="top-level-header-item">Correlation</b-col>
-                <b-col class="top-level-header-item">Standard error</b-col>
-            </b-row>
-            <template v-for="item in correlationData">
-                <b-row>
-                    <b-col class="top-level-value-item">
-                        <a :href="`/phenotype.html?phenotype=${item['other_phenotype']}`">{{
-                            getDescription(item['other_phenotype'])}}
-                        </a>
-                    </b-col>
-                    <b-col class="top-level-value-item">{{pValueFormatter(item.pValue)}}</b-col>
-                    <b-col class="top-level-value-item">{{item.rg}}</b-col>
-                    <b-col class="top-level-value-item">{{item.stdErr}}</b-col>
-                </b-row>
+    <div id="correlations" v-if="rows > 0">
+        <div class="text-right mb-2">
+            <csv-download
+                :data="correlationData"
+                filename="genetic_correlations"
+            ></csv-download>
+        </div>
+        <b-table
+            hover
+            small
+            responsive="sm"
+            :items="correlationData"
+            :fields="fields"
+            :per-page="perPage"
+            :current-page="currentPage"
+        >
+            <template v-slot:cell(link)="r">
+                <a :href="`/phenotype.html?phenotype=${r.item['other_phenotype']}`">{{
+                            getDescription(r.item['other_phenotype'])}}
+                </a>
             </template>
-        </b-container>
-        <!--p v-else>No correlations available for this query.</p-->
+        </b-table>
+        <b-pagination
+            class="pagination-sm justify-content-center"
+            v-model="currentPage"
+            :total-rows="rows"
+            :per-page="perPage"
+        ></b-pagination>
     </div>
 </template>
 <script>
@@ -34,9 +40,31 @@ export default Vue.component("correlation-table", {
         return {
             perPage: 10,
             currentPage: 1,
+            fields: [
+                {
+                    key: "link",
+                    label: "Phenotype"
+                },
+                {
+                    key: "pValue",
+                    label: "P-value",
+                    formatter: Formatters.pValueFormatter
+                },
+                {
+                    key: "rg",
+                    label: "Correlation"
+                },
+                {
+                    key: "stdErr",
+                    label: "Standard error"
+                }
+            ]
         };
     },
     computed: {
+        rows(){
+            return this.correlationData.length;
+        }
     },
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
