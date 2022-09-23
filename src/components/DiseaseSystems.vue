@@ -112,35 +112,46 @@
 		>
 			<!-- UI for disease list
 			-->
-			<div class="ph-builder-filters-wrapper" v-if="focusBy == 'disease'">
-				<label class="select-disease-label">Select disease: </label>
-				<select
-					class="select-disease form-control form-control-sm"
-					@change="openPhenotypesBuilder(null, $event, 'disease')"
-				>
-					<template v-for="system in diseaseSystems">
-						<option class="disease-name" value="" disabled>
-							{{ system }}
-						</option>
-						<option
-							class="disease-name"
-							v-for="disease in diseaseOptions(system)"
-							:value="disease"
-							:selected="
-								disease == selectedDisease ? true : false
+			<div
+				class="ph-builder-filters-wrapper filtering-ui-wrapper"
+				v-if="focusBy == 'disease'"
+			>
+				<div class="filtering-ui-content">
+					<div class="col filter-col-md">
+						<div class="label">Select disease</div>
+						<select
+							class="select-disease form-control form-control-sm"
+							@change="
+								openPhenotypesBuilder(null, $event, 'disease')
 							"
 						>
-							{{ disease }}
-						</option>
-					</template>
-				</select>
+							<template v-for="system in diseaseSystems">
+								<option class="disease-name" value="" disabled>
+									{{ system }}
+								</option>
+								<option
+									class="disease-name"
+									v-for="disease in diseaseOptions(system)"
+									:value="disease"
+									:selected="
+										disease == selectedDisease
+											? true
+											: false
+									"
+								>
+									{{ disease }}
+								</option>
+							</template>
+						</select>
+					</div>
+				</div>
 			</div>
 
 			<div class="table-wrapper" v-if="focusBy == 'disease'">
 				<table class="table table-striped table-sm">
 					<thead>
 						<tr>
-							<th>Select</th>
+							<th></th>
 							<th>Phenotype</th>
 							<th>Group</th>
 							<th>Dichotomous</th>
@@ -189,17 +200,30 @@
 			<!-- UI for phenotype correlations
 			-->
 			<div
-				class="ph-builder-filters-wrapper"
+				class="ph-builder-filters-wrapper filtering-ui-wrapper"
 				v-if="focusBy == 'correlation'"
 			>
-				correlations UI
-				<phenotype-selectpicker
-					v-if="!!phenotypes"
-					:phenotypes="phenotypes"
-					:clearOnSelected="true"
-					:useInLocal="true"
-					localPlace="diseaseSystems"
-				></phenotype-selectpicker>
+				<div class="filtering-ui-content">
+					<div class="col filter-col-md">
+						<div class="label">Select phenotype</div>
+						<phenotype-selectpicker
+							v-if="!!phenotypes"
+							:phenotypes="phenotypes"
+							:clearOnSelected="true"
+							:useInLocal="true"
+							localPlace="diseaseSystems"
+						></phenotype-selectpicker>
+					</div>
+					<div class="col filter-col-md">
+						<div class="label">Set p-value</div>
+
+						<input
+							type="text"
+							v-model="pCorPValue"
+							class="form-control"
+						/>
+					</div>
+				</div>
 			</div>
 
 			<div
@@ -209,7 +233,7 @@
 				<table class="table table-striped table-sm">
 					<thead>
 						<tr>
-							<th>Select</th>
+							<th></th>
 							<th>Phenotype</th>
 							<th>P-Value</th>
 							<th>Correlation</th>
@@ -314,6 +338,7 @@ export default Vue.component("disease-systems", {
 			diseaseSystems: [],
 			selectedDisease: null,
 			focusBy: null,
+			pCorPValue: 0.05,
 		};
 	},
 	components: { PhenotypeSelectPicker },
@@ -337,7 +362,14 @@ export default Vue.component("disease-systems", {
 		},
 		correlatedPhenotypes() {
 			if (!!this.phenotypeCorrelation) {
-				return this.phenotypeCorrelation.data;
+				let content =
+					!!this.pCorPValue && this.pCorPValue != ""
+						? this.phenotypeCorrelation.data.filter(
+								(p) => p.pValue <= this.pCorPValue
+						  )
+						: this.phenotypeCorrelation.data;
+
+				return content;
 			} else {
 				return null;
 			}
