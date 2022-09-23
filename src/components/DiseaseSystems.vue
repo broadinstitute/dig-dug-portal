@@ -146,7 +146,9 @@
 					</div>
 				</div>
 			</div>
-
+			<strong class="number-of-phenotypes" v-if="focusBy == 'disease'"
+				>Number of phenotypes: {{ getPhenotypes().length }}</strong
+			>
 			<div class="table-wrapper" v-if="focusBy == 'disease'">
 				<table class="table table-striped table-sm">
 					<thead>
@@ -225,7 +227,11 @@
 					</div>
 				</div>
 			</div>
-
+			<strong
+				class="number-of-phenotypes"
+				v-if="focusBy == 'correlation' && !!correlatedPhenotypes"
+				>Number of phenotypes: {{ correlatedPhenotypes.length }}</strong
+			>
 			<div
 				class="table-wrapper"
 				v-if="focusBy == 'correlation' && !!correlatedPhenotypes"
@@ -365,7 +371,7 @@ export default Vue.component("disease-systems", {
 				let content =
 					!!this.pCorPValue && this.pCorPValue != ""
 						? this.phenotypeCorrelation.data.filter(
-								(p) => p.pValue <= this.pCorPValue
+								(p) => p.pValue <= this.pCorPValue && p.rg > 0
 						  )
 						: this.phenotypeCorrelation.data;
 
@@ -637,8 +643,8 @@ export default Vue.component("disease-systems", {
 .custom-phenotypes-list-builder {
 	position: fixed;
 	top: 15%;
-	left: calc(50% - 250px);
-	width: 500px;
+	left: calc(50% - 330px);
+	width: 660px;
 	height: 75%;
 	text-align: left;
 	background-color: #fff;
@@ -652,7 +658,7 @@ export default Vue.component("disease-systems", {
 
 .custom-phenotypes-list-builder .table-wrapper {
 	width: 100%;
-	height: calc(100% - 130px);
+	height: calc(100% - 160px);
 	overflow-y: auto;
 	margin-bottom: 15px;
 	border: solid 1px #ddd;
@@ -765,5 +771,10 @@ export default Vue.component("disease-systems", {
 .community-portal img {
 	height: 40px !important;
 	width: auto !important;
+}
+
+.number-of-phenotypes {
+	font-size: 12px;
+	float: left;
 }
 </style>
