@@ -9,6 +9,7 @@ a {
     /*color: #0097d6 !important;*/
     color: #007bff !important;
 }
+
 a:hover {
     /*text-decoration: none !important;*/
 }
@@ -23,6 +24,24 @@ a:hover {
 }
 
 /* front page */
+.front-top-banner-autoimmunekp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/autoimmunekp_front_bg.png),
+        linear-gradient(#71cddd, #009bc8);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-ocularkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/ocular_front_bg.png),
+        linear-gradient(#008fd0, #005e9e);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-reproductivekp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/reproductive_front_bg.png),
+        linear-gradient(#8f7fbb, #5e53a3);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner-mdkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
         linear-gradient(#0097d6, #8ed8f8);
@@ -183,6 +202,18 @@ a:hover {
     float: left;
 }
 
+.front-logo-tagline-autoimmunekp {
+    transform: translate(0%, 25%);
+}
+
+.front-logo-tagline-ocularkp {
+    transform: translate(0%, 35%);
+}
+
+.front-logo-tagline-reproductivekp {
+    transform: translate(0%, 35%);
+}
+
 .front-logo-tagline-mdkp {
     transform: translate(0%, 23%);
 }
@@ -261,6 +292,7 @@ a:hover {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_middle.png);
     background-size: 100% 70px;
 }
+
 .amp-banner-right {
     width: 100%;
     height: 70px;
@@ -268,6 +300,7 @@ a:hover {
     background-repeat: no-repeat;
     background-position: right;
 }
+
 .amp-banner-left {
     height: 70px;
     background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_left.png);
@@ -288,18 +321,34 @@ a:hover {
     width: 500px;
 }
 
+.autoimmunekp-logo {
+    height: 50px;
+}
+
+.ocularkp-logo {
+    height: 50px;
+}
+
+.reproductivekp-logo {
+    height: 50px;
+}
+
 .mdkp-logo {
     height: 50px;
 }
+
 .t2dkp-logo {
     height: 50px;
 }
+
 .cvdkp-logo {
     height: 50px;
 }
+
 .cdkp-logo {
     height: 50px;
 }
+
 .sleepkp-logo {
     height: 50px;
 }
@@ -343,6 +392,24 @@ a:hover {
 
 .mdkp-footer .registered-mark {
     display: contents;
+}
+
+.autoimmunekp-header,
+.autoimmunekp-footer {
+    background-color: #71cddd;
+    height: 50px;
+}
+
+.ocularkp-header,
+.ocularkp-footer {
+    background-color: #008fd0;
+    height: 50px;
+}
+
+.reproductivekp-header,
+.reproductivekp-footer {
+    background-color: #8f7fbb;
+    height: 50px;
 }
 
 .mdkp-header,
@@ -443,19 +510,19 @@ a:hover {
     padding: 0;
 }
 
-.portal-menu-wrapper > ul > li,
-.login-menu-wrapper > ul > li {
+.portal-menu-wrapper>ul>li,
+.login-menu-wrapper>ul>li {
     display: inline-block;
     position: relative;
     padding-top: 15px;
 }
 
-.login-menu-wrapper > ul > li > a {
+.login-menu-wrapper>ul>li>a {
     border-left: solid 1px #fff;
 }
 
-.portal-menu-wrapper > ul > li > a,
-.login-menu-wrapper > ul > li > a {
+.portal-menu-wrapper>ul>li>a,
+.login-menu-wrapper>ul>li>a {
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 5px;
@@ -465,11 +532,11 @@ a:hover {
     font-weight: 300;
 }
 
-.portal-menu-wrapper .item + .item:before {
+.portal-menu-wrapper .item+.item:before {
     content: "" !important;
 }
 
-.portal-menu-wrapper > ul > li > ul {
+.portal-menu-wrapper>ul>li>ul {
     display: none;
     position: absolute;
     z-index: 100000;
@@ -477,11 +544,11 @@ a:hover {
     margin: 0;
 }
 
-.portal-menu-wrapper > ul > li:hover > ul {
+.portal-menu-wrapper>ul>li:hover>ul {
     display: block;
 }
 
-.portal-menu-wrapper > ul > li > ul > li {
+.portal-menu-wrapper>ul>li>ul>li {
     width: 100%;
     padding: 0 !important;
     font-size: 0.8em;
@@ -490,11 +557,11 @@ a:hover {
     list-style: none;
 }
 
-.portal-menu-wrapper > ul > li > ul > li:hover {
+.portal-menu-wrapper>ul>li>ul>li:hover {
     background-color: rgba(90, 90, 90, 1);
 }
 
-.portal-menu-wrapper > ul > li > ul > li > a {
+.portal-menu-wrapper>ul>li>ul>li>a {
     display: block;
     width: 100%;
     padding: 5px 15px 5px 15px;
@@ -506,6 +573,9 @@ a:hover {
     font-weight: 300;
 }
 
+.autoimmunekp-footer,
+.ocularkp-footer,
+.reproductivekp-footer,
 .mdkp-footer,
 .cvdkp-footer,
 .sleepkp-footer,
@@ -527,6 +597,9 @@ a:hover {
     font-size: 14px;
 }
 
+.autoimmunekp-body,
+.ocularkp-body,
+.reproductivekp-body,
 .mdkp-body,
 .cvdkp-body,
 .sleekp-body,
@@ -546,6 +619,10 @@ a:hover {
     padding-top: 10px;
     padding-bottom: 10px;
 }
+
+.autoimmunekp-card,
+.ocularkp-card,
+.reproductivekp-card,
 .mdkp-card,
 .cvdkp-card,
 .sleepkp-card,
@@ -588,12 +665,10 @@ a:hover {
 
 .portal-front-tabs .nav-tabs .nav-link.active {
     color: rgba(255, 255, 255, 1) !important;
-    background-image: linear-gradient(
-        rgba(255, 255, 255, 0),
-        rgba(255, 255, 255, 0),
-        rgba(255, 255, 255, 0),
-        rgba(255, 255, 255, 0.5)
-    );
+    background-image: linear-gradient(rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0.5));
 }
 
 .portal-front-tabs .tab-content {
@@ -745,8 +820,7 @@ a.edit-btn:hover {
     border-left: solid 1px #eee;
 }
 
-.gene-page-header-search-holder {
-}
+.gene-page-header-search-holder {}
 
 div.filtering-tools {
     border: solid 1px #ddd;
@@ -779,7 +853,7 @@ div.filtering-tools table th {
     margin-right: 10px !important;
 }
 
-.phenotype-btn > span.remove {
+.phenotype-btn>span.remove {
     font-family: "Roboto";
     font-size: 1.2em;
     position: absolute;
@@ -797,7 +871,7 @@ div.filtering-tools table th {
     text-align: center;
 }
 
-.phenotype-btn:hover > span.remove {
+.phenotype-btn:hover>span.remove {
     background-color: #000;
     color: #fff;
 }
@@ -874,7 +948,7 @@ div.filtering-tools table th {
     height: 100%;
 }
 
-.region-search > .input-wrapper {
+.region-search>.input-wrapper {
     display: inline-block !important;
 }
 
@@ -1233,9 +1307,12 @@ polyline {
     font-size: 15px;
     /* width: fit-content;*/
     margin: auto;
-    width: intrinsic; /* Safari/WebKit uses a non-standard name */
-    width: -moz-max-content; /* Firefox/Gecko */
-    width: -webkit-max-content; /* Chrome */
+    width: intrinsic;
+    /* Safari/WebKit uses a non-standard name */
+    width: -moz-max-content;
+    /* Firefox/Gecko */
+    width: -webkit-max-content;
+    /* Chrome */
 }
 
 .pagination.b-pagination .page-item {
@@ -1449,6 +1526,7 @@ div.filtering-ui-content div.col.filter-col-sm input {
     margin-bottom: 8px;
     font-size: 14px;
 }
+
 .igv-zoom {
     width: 28px;
     height: 28px;
@@ -1540,6 +1618,7 @@ div.filtering-ui-content div.col.filter-col-sm input {
     border: solid 1px #ccc;
     float: right;
 }
+
 .viewing-region {
     float: left;
     margin-right: 20px;
@@ -1608,26 +1687,33 @@ a.to-previous-page:hover {
     border-right: none;
     margin-top: 1rem;
 }
+
 #phewas-datasets div {
     border-left: none;
     border-right: none;
 }
+
 #phewas-datasets .top-level-value-item:first-child {
     text-align: left;
 }
+
 #phewas-datasets .top-level-header,
 #phewas-datasets .top-level-value {
     font-size: 1rem;
 }
+
 #phewas-datasets .top-level-value:hover {
     background-color: #efefef;
 }
+
 #phewas-datasets .list {
     margin-bottom: 1rem;
 }
+
 #phewas-datasets .feature-content-wrapper {
     border-left: 4px solid #6c757d78;
 }
+
 #phewas-datasets .feature-header-item {
     background-color: #d2d2d2;
 }
@@ -1636,7 +1722,7 @@ a.to-previous-page:hover {
     position: relative;
 }
 
-.phenotype-gene-association > .options-4-actions {
+.phenotype-gene-association>.options-4-actions {
     display: none;
     position: absolute;
     background-color: #000000;
@@ -1651,27 +1737,26 @@ a.to-previous-page:hover {
     line-height: 1.5em;
 }
 
-.phenotype-gene-association > .options-4-actions {
+.phenotype-gene-association>.options-4-actions {
     left: 80%;
     top: -30%;
 }
 
-.phenotype-gene-association:hover > .options-4-actions {
+.phenotype-gene-association:hover>.options-4-actions {
     display: block;
 }
 
-.phenotype-gene-association:hover > .options-4-actions a {
+.phenotype-gene-association:hover>.options-4-actions a {
     color: #ffffff !important;
 }
 
-.phenotype-gene-association:hover > .options-4-actions a:hover {
+.phenotype-gene-association:hover>.options-4-actions a:hover {
     color: #aaaaff !important;
 }
+
 /* for vue-bootstrap-typeahead */
 [type="search"] {
-    background: #fff
-        url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e")
-        no-repeat right 0.75rem center/8px 10px;
+    background: #fff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.75rem center/8px 10px;
 }
 
 [class*="filter-pill-"] {
@@ -1699,15 +1784,19 @@ a.to-previous-page:hover {
 .filter-pill-phenotype {
     background-color: #28a745 !important;
 }
+
 .filter-pill-condition {
     background-color: #28a745 !important;
 }
+
 .filter-pill-secondaryPhenotype {
     background-color: #007bff !important;
 }
+
 .filter-pill-primaryphenotype {
     background-color: #28a745 !important;
 }
+
 .filter-pill-secondaryphenotype {
     background-color: #007bff !important;
 }
@@ -1727,6 +1816,7 @@ a.to-previous-page:hover {
 .filter-pill-phenotypeHuge {
     background-color: #b2c060 !important;
 }
+
 .filter-pill-consequence {
     background-color: #28a745 !important;
 }
@@ -1773,6 +1863,7 @@ a.to-previous-page:hover {
 #huge .filter-pill-gene {
     background-color: #ff8c00 !important;
 }
+
 #huge .filter-pill-phenotype {
     background-color: #9de21c !important;
 }
@@ -1781,71 +1872,90 @@ a.to-previous-page:hover {
 #gait .accordion .card.mb-1 {
     overflow: unset;
 }
+
 #gait .accordion .btn-block {
     text-align: left;
     position: relative;
 }
+
 #gait .accordion .btn-block.btn-outline-primary {
     border-color: transparent;
 }
+
 #gait .accordion .criteria {
     position: absolute;
     right: 0.75rem;
     top: unset;
 }
+
 #gait .criteria {
     display: inline;
     overflow: visible;
 }
+
 #gait .accordion .alert,
 #variant-search .alert {
     text-align: center;
 }
-#gait .reference > span {
+
+#gait .reference>span {
     color: white;
 }
+
 #gait .function {
     text-align: center;
     margin: 20px auto;
 }
+
 #gait .filter-tests.card {
     border-style: dashed;
 }
-#gait .filter-tests > .card-header {
+
+#gait .filter-tests>.card-header {
     background-color: #cce5ff;
     color: #004085;
 }
+
 #gait .filter-pill-dataset {
     background-color: #8a2be2 !important;
 }
+
 #gait .filter-pill-gene {
     background-color: #ff8c00 !important;
 }
+
 #gait .filter-pill-test {
     background-color: #dc3545 !important;
 }
+
 #gait .form-group {
     margin-bottom: auto;
 }
+
 #gait .alert-info,
 #variant-search .alert-info,
 #dataset_inspector .alert-info {
     padding: 0.1rem 1.25rem;
 }
+
 #gait .b-table-details {
     background-color: unset;
 }
+
 #gait .b-table-details td {
     padding: 0;
 }
+
 #gait .variants {
     margin-top: 2rem;
 }
+
 button.btn.btn-mini {
     padding: 0.1rem 0.25rem;
     font-size: 0.75rem;
     line-height: 1.25rem;
 }
+
 #gait .forest-plot-simple {
     position: relative;
     padding-top: 20px;
@@ -1858,15 +1968,19 @@ button.btn.btn-mini {
     color: #aaa;
     margin-left: 15px;
 }
+
 #gait .forest-plot-html-row {
     margin-top: 10px auto;
 }
+
 #gait .forest-plot-html-row:hover {
     background-color: unset;
 }
+
 #gait .beta-box {
     background-color: #55aaee;
 }
+
 #gait .plot {
     overflow: hidden;
 }
@@ -1875,7 +1989,12 @@ button.btn.btn-mini {
 .fade-leave-active {
     transition: opacity 1s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+
+.fade-enter,
+.fade-leave-to
+
+/* .fade-leave-active below version 2.1.8 */
+    {
     opacity: 0;
 }
 
@@ -1950,7 +2069,7 @@ span.volcano-score-2 {
     display: block;
 }
 
-.top-associations-section-phenotype-filter > div {
+.top-associations-section-phenotype-filter>div {
     background-color: #ddefff;
     border: solid 1px #bbdfff;
     border-radius: 5px;
@@ -1977,7 +2096,7 @@ span.volcano-score-2 {
     padding-right: 10px;
 }
 
-.top-associations-section-phenotype-filter div.filter-col-md > div {
+.top-associations-section-phenotype-filter div.filter-col-md>div {
     display: inline-block;
     margin-right: 10px;
 }
@@ -1992,6 +2111,7 @@ span.volcano-score-2 {
     visibility: visible;
     height: auto;
 }
+
 .svg-wrapper.hidden-svg {
     visibility: hidden;
     height: 5px;
@@ -2017,12 +2137,13 @@ span.volcano-score-2 {
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
 }
+
 .kp-tabs li.active {
     border-bottom: solid 1px #fff;
     background-color: #fff;
 }
 
-.kp-tabs li > a {
+.kp-tabs li>a {
     display: block;
     padding: 10px 15px 5px 15px;
     cursor: pointer;
@@ -2083,29 +2204,29 @@ span.spacer-5 {
 /* for tool tip UI. */
 
 .tip-wrapper {
-	vertical-align: -13px;
-	margin-left: 5px;
-	position: relative;
+    vertical-align: -13px;
+    margin-left: 5px;
+    position: relative;
 }
 
-.tip-wrapper > .tip-content {
-	display: none;
-	position: absolute;
-	width: auto;
-	z-index: 10;
-	top: 0;
-	left: 18px;
+.tip-wrapper>.tip-content {
+    display: none;
+    position: absolute;
+    width: auto;
+    z-index: 10;
+    top: 0;
+    left: 18px;
     min-width: 300px;
     background-color: #000000;
-	color: #ffffff;
-	padding: 5px 10px;
-	border-radius: 3px;
+    color: #ffffff;
+    padding: 5px 10px;
+    border-radius: 3px;
     font-size: 13px;
 }
 
-.tip-wrapper:hover > .tip-content {
-	display: block;
-	
+.tip-wrapper:hover>.tip-content {
+    display: block;
+
 }
 
 .tip-bigger {
@@ -2113,5 +2234,5 @@ span.spacer-5 {
 }
 
 .warning {
-	color: #ff0000;
+    color: #ff0000;
 }

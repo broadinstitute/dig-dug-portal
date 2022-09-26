@@ -1214,11 +1214,22 @@ export default Vue.component("research-gem-data-table", {
 							let linkedGenesArr = linkedGenes.split(",");
 							linkedGenesArr = [...new Set(linkedGenesArr)]
 								.filter((g) => g != "")
-								.sort()
-								.join(", ");
+								.sort();
+
+							let genesWithLinks = [];
+
+							linkedGenesArr.map((g) => {
+								genesWithLinks.push(
+									"<a href='/gene.html?gene=" +
+										g +
+										"'>" +
+										g +
+										"</a>"
+								);
+							});
 
 							let tempObj = {};
-							tempObj["Linked Genes"] = linkedGenesArr;
+							tempObj["Linked Genes"] = genesWithLinks.join(", ");
 							tempObj["GENES"] = featureArr;
 
 							tempData[vKey] = tempObj;

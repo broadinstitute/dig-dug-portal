@@ -17,14 +17,17 @@ export default new Vuex.Store({
         transcriptConsequences: bioIndex("transcript-consequences"),
         transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
+        ancestryPhewas: bioIndex("ancestry-phewas-associations"),
         regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
-        clumpedVariants: bioIndex("clumped-variants")
     },
 
     state: {
         variant: null,
-        newVariantId: null
+        newVariantId: null,
+        ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        badSearch: false
     },
 
     mutations: {
@@ -37,23 +40,22 @@ export default new Vuex.Store({
 
                 keyParams.set({ variant: state.newVariantId });
             }
-        },
+        }
     },
 
     actions: {
         async queryVariant(context, newVarId) {
+            context.state.ancestry = context.state.selectedAncestry;
             newVarId = await variantUtils.parseVariant(
                 newVarId || context.state.newVariantId
             );
 
             if (!!newVarId) {
                 context.dispatch("variantData/query", { q: newVarId });
+                context.state.badSearch = false;
+            } else {
+                context.state.badSearch = true;
             }
-        },
-        // Do we need a new function here? Is this it?
-        async clumpedVariants(context, phenotype, clump){
-            let query = phenotype + "," + clump;
-            context.dispatch("clumpedVariants/query", {q: query});
         }
     }
 });

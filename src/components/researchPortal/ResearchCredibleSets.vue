@@ -309,7 +309,7 @@ export default Vue.component("research-credible-sets-plot", {
 	methods: {
 		...uiUtils,
 		resetAll() {
-			this.credibleSets = [];
+			//this.credibleSets = [];
 			this.CSData = {};
 			this.CSPosData = {};
 			this.test = null;
@@ -388,6 +388,7 @@ export default Vue.component("research-credible-sets-plot", {
 			return idString;
 		},
 		removeCSData(CSID, PTYPE) {
+			console.log("test called");
 			let idString = CSID + PTYPE;
 			idString = idString.replace(/[^a-zA-Z0-9 ]/g, "");
 
@@ -890,7 +891,14 @@ export default Vue.component("research-credible-sets-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
+
 				let positionLabel = i < 5 ? Number(xMin) + i * xStep : xMax;
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
+
 				CTX.font = "12px Arial";
 				CTX.fillStyle = "#999999";
 				CTX.fillText(

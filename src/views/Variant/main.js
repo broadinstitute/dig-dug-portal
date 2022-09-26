@@ -7,6 +7,7 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
@@ -47,6 +48,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
         PheWASTable,
@@ -86,6 +88,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ancestryFormatter: Formatters.ancestryFormatter,
         consequenceFormatter: Formatters.consequenceFormatter,
         consequenceMeaning: Formatters.consequenceMeaning,
 
@@ -97,6 +100,9 @@ new Vue({
                     }&start=${pos.position - expanded}&end=${pos.position +
                     expanded}&variant=${this.$store.state.variant.varId}`;
             }
+        },
+        clearBadSearch(){
+            this.$store.state.badSearch = false;
         }
     },
 
@@ -104,7 +110,6 @@ new Vue({
         variantData() {
             return this.$store.state.variantData.data;
         },
-
         varId() {
             return this.$store.state.variant && this.$store.state.variant.varId;
         },
@@ -196,11 +201,27 @@ new Vue({
             }
         },
 
+        "$store.state.ancestry"(ancestry){
+            keyParams.set({ancestry: ancestry});
+            if(ancestry){
+                this.$store.dispatch("ancestryPhewas/query", 
+                    { q: `${this.$store.state.ancestry},${this.$store.state.variant.varId}` });
+            } else {
+                this.$store.dispatch("phewas/query", { q: this.$store.state.variant.varId });
+            }
+        },
+
         "$store.state.variant"(variant) {
             if (variant) {
                 let p = this.chromPos;
 
-                this.$store.dispatch("phewas/query", { q: variant.varId });
+                // phewas can be with or without ancestry
+                if(this.$store.state.ancestry) {
+                    this.$store.dispatch("ancestryPhewas/query", 
+                    { q: `${this.$store.state.ancestry},${variant.varId}` });
+                } else {
+                    this.$store.dispatch("phewas/query", { q: variant.varId });
+                }
                 this.$store.dispatch("transcriptConsequences/query", {
                     q: variant.varId
                 });
