@@ -48,16 +48,18 @@ export default Vue.component("correlation-table", {
                 },
                 {
                     key: "pValue",
-                    label: "P-value",
+                    label: "P-Value",
                     formatter: Formatters.pValueFormatter
                 },
                 {
                     key: "rg",
-                    label: "Correlation"
+                    label: "Correlation",
+                    formatter: Formatters.effectFormatter
                 },
                 {
                     key: "stdErr",
-                    label: "Standard error"
+                    label: "Standard error",
+                    formatter: Formatters.effectFormatter
                 }
             ]
         };
