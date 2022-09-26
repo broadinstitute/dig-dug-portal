@@ -16,16 +16,16 @@
 					<gene-selectpicker></gene-selectpicker>
 				</div>
 				<div class="col filter-col-md">
-						<div class="label">Search</div>
-						<button
-							id="regionSearchGo"
-							class="btn btn-light btn-sm go"
-							type="button"
-							@click="$store.dispatch('queryGeneName')"
-						>
-							GO
-						</button>
-					</div>
+					<div class="label">Search</div>
+					<button
+						id="regionSearchGo"
+						class="btn btn-light btn-sm go"
+						type="button"
+						@click="$store.dispatch('queryGeneName')"
+					>
+						GO
+					</button>
+				</div>
 			</search-header-wrapper>
 
 			<div class="gene-page-header card mdkp-card">
@@ -309,6 +309,7 @@
 													.description
 											: phenotype
 								"
+								:multiple="true"
 							>
 								<div class="label">Phenotypes</div>
 							</filter-enumeration-control>
