@@ -1292,7 +1292,7 @@ export default Vue.component("research-biosamples-plot", {
 			} else {
 				let biosamplesServer =
 					this.renderConfig["biosamples server"] == "KP BioIndex"
-						? "https://bioindex-dev.hugeamp.org/api/bio"
+						? "https://bioindex.hugeamp.org/api/bio"
 						: this.renderConfig["biosamples server"];
 
 				let biosamplesIndex = !!this.renderConfig["biosamples index"]
@@ -1337,7 +1337,7 @@ export default Vue.component("research-biosamples-plot", {
 		async loadContinue(CONTENT, ANNOTATION, TISSUE) {
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
-					? "https://bioindex-dev.hugeamp.org/api/bio"
+					? "https://bioindex.hugeamp.org/api/bio"
 					: this.renderConfig["biosamples server"];
 
 			let contURL =
