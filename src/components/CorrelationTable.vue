@@ -1,6 +1,9 @@
 <template>
     <div id="correlations" v-if="rows > 0">
         <div class="text-right mb-2">
+            <label class="label">
+                <input type="checkbox" v-model="sortByCorrelation"/> Sort by correlation
+            </label>
             <csv-download
                 :data="correlationData"
                 filename="genetic_correlations"
@@ -41,6 +44,7 @@ export default Vue.component("correlation-table", {
         return {
             perPage: 10,
             currentPage: 1,
+            sortByCorrelation: false,
             fields: [
                 {
                     key: "link",
@@ -74,6 +78,11 @@ export default Vue.component("correlation-table", {
             if (!!filter) {
                 dataRows = dataRows.filter((row) => filter(row));
             }
+            if (this.sortByCorrelation) {
+                dataRows.sort((a, b) => a['rg'] > b['rg']);
+            } else {
+                dataRows.sort((a, b) => a['pValue'] > b['pValue']);
+            }
             return dataRows;
         },
     },
@@ -93,5 +102,9 @@ export default Vue.component("correlation-table", {
 </script>
 <style>
 @import url("/css/effectorGenes.css");
+
+label {
+    margin: 10px;
+}
 </style>
 
