@@ -147,17 +147,26 @@
                                                 $parent.lookupGenes($event)
                                             "
                                             @item-select="
-                                                $parent.sayalert('select')
+                                                $parent.EventBus.emit('select')
                                             "
-                                            @change="$parent.sayalert('change')"
-                                            @hit="$parent.sayalert('hit')"
+                                            @change="
+                                                $parent.eventBus.emit('change')
+                                            "
+                                            @hit="$parent.EventBus.emit('hit')"
                                             @keyup-enter="
-                                                $parent.sayalert('enter')
+                                                $parent.EventBus.emit('enter')
                                             "
-                                            @input="$parent.sayalert('input')"
+                                            @input="
+                                                $parent.EventBus.emit('input')
+                                            "
                                         >
                                             <div class="label">Gene</div>
                                         </filter-enumeration-control>
+                                        <b-btn
+                                            @click="$parent.sayalert('click')"
+                                        >
+                                            Click me</b-btn
+                                        >
                                         <div
                                             class="col divider"
                                             style="background: none"
@@ -171,7 +180,12 @@
                                             placeholder="Enter a region (chr:start-stop)"
                                             @keyup.enter="$parent.alert($event)"
                                             @keyup-enter="
-                                                $parent.alert('hello')
+                                                $parent.parent.sayalert('hello')
+                                            "
+                                            @change="
+                                                $parent.parent.sayalert(
+                                                    'change'
+                                                )
                                             "
                                         >
                                             <div class="label">Region</div>

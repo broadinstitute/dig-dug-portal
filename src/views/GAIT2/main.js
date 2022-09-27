@@ -22,6 +22,7 @@ import { isEqual, startCase, groupBy, sumBy } from "lodash";
 import { postAlertError } from "@/components/Alert.vue";
 import regionUtils from "@/utils/regionUtils";
 import * as raremetal from "raremetal.js";
+import EventBus from "@/utils/eventBus";
 
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
@@ -41,6 +42,12 @@ new Vue({
         ResearchAnnotationsPlot,
         ResearchGenesTrack,
         ResearchRegionPlot,
+        EventBus,
+    },
+    mounted() {
+        EventBus.$on("alert", (message) => {
+            postAlertError(message);
+        });
     },
     mixins: [pageMixin],
     data() {
