@@ -182,15 +182,10 @@
 					"
 				>
 					<strong
-						>Filter associated variants by location within annotated
-						regulatory regions in specific tissue or cell types: </strong
-					>The tracks below show annotations in the specific tissue or
-					cell types that are included within the tissue category or
-					categories selected above. Click on a track(s) to further
-					filter the table to display only variants located within
-					that annotation type(s) in the selected tissue or cell
-					types. In the table, click “View” to see the coordinates and
-					provenance of the annotations.
+						>Filter associated variants by location within
+						regulatory regions annotated in specific tissue or cell
+						types.
+					</strong>
 				</span>
 				<!--<div
 					class="filtering-ui-wrapper add-content"
@@ -237,11 +232,21 @@
 								></span>
 							</template>
 						</div>
-					</div>-->
-				</div>
+					</div>
+				</div>-->
 			</div>
 			<div class="col-md-9 bio-plot-wrapper">
-				<div id="biosamplesPlotWrapper">
+				<div
+					id="biosamplesPlotWrapper"
+					:class="
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length == 0 ||
+						pkgDataSelected.filter((s) => s.type == 'Tissue')
+							.length == 0
+							? 'height-1px'
+							: 'height-auto'
+					"
+				>
 					<!--working part-->
 
 					<div id="biosampleInfoBox" class="hidden"></div>
@@ -2207,6 +2212,12 @@ $(function () {});
 </script>
 
 <style>
+.height-1px {
+	height: 1px !important;
+}
+.height-auto {
+	height: auto;
+}
 .btn-biosamples {
 	margin-left: 20px;
 	vertical-align: bottom;

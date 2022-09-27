@@ -9,8 +9,7 @@
 					<span>
 						<strong
 							>Filter associated variants by location within
-							tissue-specific regulatory regions to see the
-							locations of those annotations in broad tissue
+							regulatory regions annotated in broad tissue
 							categories.</strong
 						>
 					</span>

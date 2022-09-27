@@ -7,11 +7,8 @@
 			<div class="col-md-12">
 				<div id="geneLinksUIWrapper">
 					<strong
-						>Filter associated variants by gene-region or
-						gene-variant linksto see genomic regions that are linked
-						to genes in the region in that tissue(s), based on the
-						listed techniques.</strong
-					>
+						>Filter associated variants by links to genes.
+					</strong>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -108,12 +105,6 @@
 				v-if="GLData != null"
 			>
 				<div>
-					<span
-						>Modify the tracks and filter the table by selecting
-						specific genes and techniques. In the table, click
-						“View” to see the coordinates and provenance of the
-						annotations.</span
-					>
 					<button
 						class="btn btn-sm btn-outline-secondary"
 						style="margin-right: 5px; margin-bottom: 10px"
@@ -1126,7 +1117,6 @@ $(function () {});
 }
 .height-auto {
 	height: auto;
-	border-top: solid 1px #ddd;
 }
 .GL-search-bubble {
 	background-color: #999999;
