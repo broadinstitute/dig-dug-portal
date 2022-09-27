@@ -295,6 +295,9 @@
                             <filter-pvalue-control :field="'pValue'">
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
+                            <filter-greater-control :field="'rg'">
+                                <div class="label">Correlation (&ge;)</div>
+                            </filter-greater-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <correlation-table
                                     :correlationData="$store.state.geneticCorrelation.data"

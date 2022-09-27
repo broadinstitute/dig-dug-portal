@@ -34,10 +34,7 @@
 </template>
 <script>
 import Vue from "vue";
-import { orderBy, groupBy } from "lodash";
 import Formatters from "@/utils/formatters";
-import uiUtils from "@/utils/uiUtils";
-import { decodeNamespace } from "@/utils/filterHelpers";
 export default Vue.component("correlation-table", {
     props: ["correlationData", "phenotypeMap", "filter"],
     data() {
@@ -53,7 +50,12 @@ export default Vue.component("correlation-table", {
                 {
                     key: "pValue",
                     label: "P-Value",
-                    formatter: Formatters.pValueFormatter
+                    formatter: Formatters.pValueFormatter,
+                    tdClass(x) {
+							return !!x && x < 1e-5
+								? "variant-table-cell high"
+								: "";
+						}
                 },
                 {
                     key: "rg",
@@ -79,7 +81,7 @@ export default Vue.component("correlation-table", {
                 dataRows = dataRows.filter((row) => filter(row));
             }
             if (this.sortByCorrelation) {
-                dataRows.sort((a, b) => a['rg'] > b['rg']);
+                dataRows.sort((a, b) => a['rg'] < b['rg']);
             } else {
                 dataRows.sort((a, b) => a['pValue'] > b['pValue']);
             }
