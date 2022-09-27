@@ -29,7 +29,7 @@
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
 			></research-genes-track>
-			<div
+			<!--<div
 				v-if="pkgConfig.viewers.includes('credible sets plot') == true"
 				class="section-opener"
 				id="credibleSetSectionOpener"
@@ -38,15 +38,16 @@
 						$event,
 						'credibleSetSection',
 						'credibleSetSectionOpener',
-						'Filter associated variants by credible sets'
+						'Filter associated variants by credible set membership'
 					)
 				"
 			>
-				Filter associated variants by credible sets
-			</div>
+				Filter associated variants by credible set membership
+			</div>-->
+			<!--removing ' hidden-svg' from class -->
 			<research-credible-sets-plot
 				id="credibleSetSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('credible sets plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -74,7 +75,7 @@
 			>
 				remove pancreas
 			</button>-->
-			<div
+			<!--<div
 				v-if="
 					pkgConfig.viewers.includes('annotations plot') == true ||
 					pkgConfig.viewers.includes('annotations plot v2') == true
@@ -86,16 +87,17 @@
 						$event,
 						'annotationSection',
 						'annotationSectionOpener',
-						'Filter associated variants by annotations'
+						'Filter associated variants by location within tissue-specific regulatory regions'
 					)
 				"
 			>
-				Filter associated variants by annotations
-			</div>
-
+				Filter associated variants by location within tissue-specific
+				regulatory regions
+			</div>-->
+			<!--removing ' hidden-svg' from class -->
 			<research-annotations-plot
 				id="annotationSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('annotations plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -114,7 +116,7 @@
 
 			<research-annotations-plot-v2
 				id="annotationSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('annotations plot v2') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -130,7 +132,7 @@
 				:sharedPlotXpos="sharedPlotXpos"
 				ref="annotationsRef"
 			></research-annotations-plot-v2>
-			<div
+			<!--<div
 				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
 				class="section-opener"
 				id="biosamplesSectionOpener"
@@ -139,16 +141,17 @@
 						$event,
 						'biosamplesSection',
 						'biosamplesSectionOpener',
-						'Filter associated variants by biosamples'
+						'Filter associated variants by location within annotated regulatory regions in specific tissue or cell types'
 					)
 				"
 			>
-				Filter associated variants by biosamples
-			</div>
-
+				Filter associated variants by location within annotated
+				regulatory regions in specific tissue or cell types
+			</div>-->
+			<!--removing ' hidden-svg' from class -->
 			<research-biosamples-plot
 				id="biosamplesSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -165,7 +168,7 @@
 				ref="biosamplesRef"
 			></research-biosamples-plot>
 
-			<div
+			<!--<div
 				v-if="pkgConfig.viewers.includes('gene-links plot') == true"
 				class="section-opener"
 				id="geneLinksSectionOpener"
@@ -174,16 +177,16 @@
 						$event,
 						'geneLinksSection',
 						'geneLinksSectionOpener',
-						'Filter associated variants by linked genes'
+						'Filter associated variants by gene-region or gene-variant links'
 					)
 				"
 			>
-				Filter associated variants by linked genes
-			</div>
-
+				Filter associated variants by gene-region or gene-variant links
+			</div>-->
+			<!--removing ' hidden-svg' from class -->
 			<research-gene-links-plot
 				id="geneLinksSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('gene-links plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"

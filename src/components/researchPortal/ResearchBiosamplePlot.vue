@@ -172,7 +172,27 @@
 						></canvas>
 					</div>
 				</div>
-				<div
+
+				<span
+					v-if="
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length > 0 &&
+						pkgDataSelected.filter((s) => s.type == 'Tissue')
+							.length > 0
+					"
+				>
+					<strong
+						>Filter associated variants by location within annotated
+						regulatory regions in specific tissue or cell types: </strong
+					>The tracks below show annotations in the specific tissue or
+					cell types that are included within the tissue category or
+					categories selected above. Click on a track(s) to further
+					filter the table to display only variants located within
+					that annotation type(s) in the selected tissue or cell
+					types. In the table, click “View” to see the coordinates and
+					provenance of the annotations.
+				</span>
+				<!--<div
 					class="filtering-ui-wrapper add-content"
 					style="width: 100%; padding: 0 10px; text-align: left"
 					v-if="
@@ -217,7 +237,7 @@
 								></span>
 							</template>
 						</div>
-					</div>
+					</div>-->
 				</div>
 			</div>
 			<div class="col-md-9 bio-plot-wrapper">
@@ -225,7 +245,7 @@
 					<!--working part-->
 
 					<div id="biosampleInfoBox" class="hidden"></div>
-					<div
+					<!--<div
 						id="bioInitialMessage"
 						:class="
 							getSelectedParameters('Annotation').length > 0 &&
@@ -239,7 +259,7 @@
 								? 'Please select annotation and tissue under annotations filter.'
 								: 'Please select annotation and tissue.'
 						"
-					></div>
+					></div>-->
 
 					<canvas
 						id="biosamplesPlot"
@@ -248,7 +268,7 @@
 						@click="checkPosition($event, 'click')"
 						@mouseout="onMouseOut('biosampleInfoBox')"
 						width=""
-						height=""
+						height="0"
 					></canvas>
 				</div>
 			</div>
@@ -1292,7 +1312,7 @@ export default Vue.component("research-biosamples-plot", {
 			} else {
 				let biosamplesServer =
 					this.renderConfig["biosamples server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? "https://bioindex-dev.hugeamp.org/api/bio"
 						: this.renderConfig["biosamples server"];
 
 				let biosamplesIndex = !!this.renderConfig["biosamples index"]
@@ -1337,7 +1357,7 @@ export default Vue.component("research-biosamples-plot", {
 		async loadContinue(CONTENT, ANNOTATION, TISSUE) {
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
+					? "https://bioindex-dev.hugeamp.org/api/bio"
 					: this.renderConfig["biosamples server"];
 
 			let contURL =
