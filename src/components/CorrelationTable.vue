@@ -53,14 +53,15 @@ export default Vue.component("correlation-table", {
                     formatter: Formatters.pValueFormatter,
                     tdClass(x) {
 							return !!x && x < 1e-5
-								? "variant-table-cell high"
+								? "variant-table-cell p-value-flag high"
 								: "";
 						}
                 },
                 {
                     key: "rg",
                     label: "Correlation",
-                    formatter: Formatters.effectFormatter
+                    formatter: Formatters.effectFormatter,
+                    tdClass: "variant-table-cell rg-flag"
                 },
                 {
                     key: "stdErr",
@@ -100,6 +101,20 @@ export default Vue.component("correlation-table", {
             return phenotypeEntry.description;
         }
     },
+    watch: {
+        sortByCorrelation(newVal){
+            let cellsToClear = document.querySelectorAll("#correlations td");
+            cellsToClear.forEach(function (cell){
+                cell.classList.remove("high");
+            });
+
+            let classToHighlight = newVal ? "rg-flag" : "p-value-flag";
+            let cellsToHighlight = document.querySelectorAll(`#correlations td.${classToHighlight}`);
+            cellsToHighlight.forEach(function (cell){
+                cell.classList.add("high");
+            });
+        }
+    }
 });
 </script>
 <style>
