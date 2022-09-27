@@ -2163,8 +2163,20 @@ span.volcano-score-2 {
     margin: 0 !important;
 }
 
+.kp-tab-content .svg-wrapper {
+    visibility: hidden !important;
+    height: 0px !important;
+    margin: 0 !important;
+}
+
+
 .kp-tab-content.active {
     visibility: visible;
+    height: auto !important;
+}
+
+.kp-tab-content.active .svg-wrapper {
+    visibility: visible !important;
     height: auto !important;
 }
 

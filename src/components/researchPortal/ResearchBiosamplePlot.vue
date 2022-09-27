@@ -172,7 +172,22 @@
 						></canvas>
 					</div>
 				</div>
-				<div
+
+				<span
+					v-if="
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length > 0 &&
+						pkgDataSelected.filter((s) => s.type == 'Tissue')
+							.length > 0
+					"
+				>
+					<strong
+						>Filter associated variants by location within
+						regulatory regions annotated in specific tissue or cell
+						types.
+					</strong>
+				</span>
+				<!--<div
 					class="filtering-ui-wrapper add-content"
 					style="width: 100%; padding: 0 10px; text-align: left"
 					v-if="
@@ -218,14 +233,24 @@
 							</template>
 						</div>
 					</div>
-				</div>
+				</div>-->
 			</div>
 			<div class="col-md-9 bio-plot-wrapper">
-				<div id="biosamplesPlotWrapper">
+				<div
+					id="biosamplesPlotWrapper"
+					:class="
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length == 0 ||
+						pkgDataSelected.filter((s) => s.type == 'Tissue')
+							.length == 0
+							? 'height-1px'
+							: 'height-auto'
+					"
+				>
 					<!--working part-->
 
 					<div id="biosampleInfoBox" class="hidden"></div>
-					<div
+					<!--<div
 						id="bioInitialMessage"
 						:class="
 							getSelectedParameters('Annotation').length > 0 &&
@@ -239,7 +264,7 @@
 								? 'Please select annotation and tissue under annotations filter.'
 								: 'Please select annotation and tissue.'
 						"
-					></div>
+					></div>-->
 
 					<canvas
 						id="biosamplesPlot"
@@ -248,7 +273,7 @@
 						@click="checkPosition($event, 'click')"
 						@mouseout="onMouseOut('biosampleInfoBox')"
 						width=""
-						height=""
+						height="0"
 					></canvas>
 				</div>
 			</div>
@@ -2187,6 +2212,12 @@ $(function () {});
 </script>
 
 <style>
+.height-1px {
+	height: 1px !important;
+}
+.height-auto {
+	height: auto;
+}
 .btn-biosamples {
 	margin-left: 20px;
 	vertical-align: bottom;
