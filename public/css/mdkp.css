@@ -2114,7 +2114,7 @@ span.volcano-score-2 {
 
 .svg-wrapper.hidden-svg {
     visibility: hidden;
-    height: 5px;
+    height: 25px;
 }
 
 .kp-tabs-wrapper {
@@ -2164,7 +2164,7 @@ span.volcano-score-2 {
 }
 
 .kp-tab-content .svg-wrapper {
-    visibility: hidden !important;
+    visibility: hidden;
     height: 0px !important;
     margin: 0 !important;
 }
@@ -2178,6 +2178,11 @@ span.volcano-score-2 {
 .kp-tab-content.active .svg-wrapper {
     visibility: visible !important;
     height: auto !important;
+}
+
+.kp-tab-content.active .svg-wrapper.hidden-svg {
+    visibility: hidden !important;
+    height: 25px !important;
 }
 
 span[class^="spacer-"],

@@ -29,7 +29,7 @@
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
 			></research-genes-track>
-			<!--<div
+			<div
 				v-if="pkgConfig.viewers.includes('credible sets plot') == true"
 				class="section-opener"
 				id="credibleSetSectionOpener"
@@ -37,13 +37,15 @@
 					showHideSection(
 						$event,
 						'credibleSetSection',
+						'Show credible sets filter',
 						'credibleSetSectionOpener',
-						'Filter associated variants by credible set membership'
+						'Hide filter'
 					)
 				"
 			>
-				Filter associated variants by credible set membership
-			</div>-->
+				Hide filter
+			</div>
+
 			<!--removing ' hidden-svg' from class -->
 			<research-credible-sets-plot
 				id="credibleSetSection"
@@ -75,7 +77,7 @@
 			>
 				remove pancreas
 			</button>-->
-			<!--<div
+			<div
 				v-if="
 					pkgConfig.viewers.includes('annotations plot') == true ||
 					pkgConfig.viewers.includes('annotations plot v2') == true
@@ -86,14 +88,14 @@
 					showHideSection(
 						$event,
 						'annotationSection',
+						'Show annotations filter',
 						'annotationSectionOpener',
-						'Filter associated variants by location within tissue-specific regulatory regions'
+						'Hide filter'
 					)
 				"
 			>
-				Filter associated variants by location within tissue-specific
-				regulatory regions
-			</div>-->
+				Hide filter
+			</div>
 			<!--removing ' hidden-svg' from class -->
 			<research-annotations-plot
 				id="annotationSection"
@@ -132,22 +134,30 @@
 				:sharedPlotXpos="sharedPlotXpos"
 				ref="annotationsRef"
 			></research-annotations-plot-v2>
-			<!--<div
-				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
+			<div
+				v-if="
+					pkgConfig.viewers.includes('biosamples plot') == true &&
+					this.$store.state.pkgDataSelected.filter(
+						(s) => s.type == 'Annotation'
+					).length > 0 &&
+					this.$store.state.pkgDataSelected.filter(
+						(s) => s.type == 'Tissue'
+					).length > 0
+				"
 				class="section-opener"
 				id="biosamplesSectionOpener"
 				@click="
 					showHideSection(
 						$event,
 						'biosamplesSection',
+						'Show biosamples filter',
 						'biosamplesSectionOpener',
-						'Filter associated variants by location within annotated regulatory regions in specific tissue or cell types'
+						'Hide filter'
 					)
 				"
 			>
-				Filter associated variants by location within annotated
-				regulatory regions in specific tissue or cell types
-			</div>-->
+				Hide filter
+			</div>
 			<!--removing ' hidden-svg' from class -->
 			<research-biosamples-plot
 				id="biosamplesSection"
@@ -168,7 +178,7 @@
 				ref="biosamplesRef"
 			></research-biosamples-plot>
 
-			<!--<div
+			<div
 				v-if="pkgConfig.viewers.includes('gene-links plot') == true"
 				class="section-opener"
 				id="geneLinksSectionOpener"
@@ -176,13 +186,14 @@
 					showHideSection(
 						$event,
 						'geneLinksSection',
+						'Show gene-links filter',
 						'geneLinksSectionOpener',
-						'Filter associated variants by gene-region or gene-variant links'
+						'Hide filter'
 					)
 				"
 			>
-				Filter associated variants by gene-region or gene-variant links
-			</div>-->
+				Hide filter
+			</div>
 			<!--removing ' hidden-svg' from class -->
 			<research-gene-links-plot
 				id="geneLinksSection"
@@ -271,7 +282,7 @@ export default Vue.component("kp-gem-pkg", {
 	watch: {},
 	methods: {
 		...uiUtils,
-		showHideSection(event, SECTION, OPENER, LABEL) {
+		showHideSection(event, SECTION_ID, OPEN_LABEL, OPENER, LABEL) {
 			let element = document.getElementById(OPENER);
 
 			if (element.classList.contains("open")) {
@@ -279,10 +290,10 @@ export default Vue.component("kp-gem-pkg", {
 				event.target.innerText = LABEL;
 			} else {
 				element.classList.add("open");
-				event.target.innerText = "Hide Section";
+				event.target.innerText = OPEN_LABEL;
 			}
 
-			uiUtils.showHideSvg(SECTION);
+			uiUtils.showHideSvg(SECTION_ID);
 		},
 	},
 });
@@ -290,7 +301,7 @@ export default Vue.component("kp-gem-pkg", {
 
 <style>
 .section-opener {
-	position: relative;
+	/*position: relative;
 	display: inline-block;
 	font-size: 12px;
 	font-weight: bold;
@@ -304,7 +315,21 @@ export default Vue.component("kp-gem-pkg", {
 	transition: all 0.75s;
 	z-index: 10;
 	transform-origin: top left;
-	margin-left: -20px;
+	margin-left: -20px;*/
+	position: absolute;
+	right: 15px;
+	margin-top: -5px;
+	font-size: 12px;
+	font-weight: bold;
+	padding: 0px 10px;
+	border: solid 1px #cccccc;
+	border-radius: 10px;
+	background-color: #eeeeee;
+	color: #333;
+	margin-bottom: 10px;
+	width: auto;
+	transition: all 0.75s;
+	z-index: 10;
 }
 .section-opener:hover {
 	cursor: pointer;
@@ -312,9 +337,9 @@ export default Vue.component("kp-gem-pkg", {
 .section-opener.open {
 	background-color: #666;
 	color: #ffffff;
-	transform: rotate(90deg);
+	/*transform: rotate(90deg);
 	transform-origin: top left;
-	margin-left: -10px;
+	margin-left: -10px;*/
 }
 </style>
 
