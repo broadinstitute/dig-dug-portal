@@ -794,7 +794,7 @@ export default Vue.component("research-data-table", {
 	padding-top: 10px;
 }
 .data-table-legend {
-	margin-bottom: -15px;
+	/*margin-bottom: -15px;*/
 }
 .research-data-table-wrapper {
 	margin-top: 25px;

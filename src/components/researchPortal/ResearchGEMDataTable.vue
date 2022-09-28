@@ -1,6 +1,7 @@
 <template>
 	<div class="research-data-table-wrapper">
 		<div v-html="tableLegend" class="data-table-legend"></div>
+		<!--<div v-if="!!newTableFormat">{{ newTableFormat["top rows"] }}</div>-->
 		<div
 			v-if="!!dataset"
 			v-html="'Total rows: ' + this.rows"
@@ -1726,7 +1727,7 @@ export default Vue.component("research-gem-data-table", {
 	padding-top: 10px;
 }
 .data-table-legend {
-	margin-bottom: -15px;
+	/*margin-bottom: -15px;*/
 }
 .research-data-table-wrapper {
 	margin-top: 25px;
