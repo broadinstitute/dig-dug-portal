@@ -55,35 +55,49 @@
 			>
 				Save as JSON
 			</div>
-			<div class="convert-2-csv btn-sm" @click="">show/hide columns</div>
-			<div v-if="!!newTableFormat" id="showHideColumnsBox">
-				<h4>Show/hide columns</h4>
-				<table class="table table-sm">
-					<thead>
-						<tr>
-							<th></th>
-							<th>Column</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr
-							v-for="column in newTableFormat['top rows']"
-							:key="column"
-						>
-							<td>
-								<input
-									type="checkbox"
-									name="visible_top_rows"
-									:id="getColumnId(column)"
-									:value="column"
-									checked
-									@click="addRemoveColumn($event)"
-								/>
-							</td>
-							<td v-html="column"></td>
-						</tr>
-					</tbody>
-				</table>
+			<div
+				class="convert-2-csv btn-sm"
+				@click="showHidePanel('#showHideColumnsBox')"
+			>
+				show/hide columns
+			</div>
+			<div v-if="!!newTableFormat" id="showHideColumnsBox" class="hidden">
+				<div
+					class="show-hide-columns-box-close"
+					@click="showHidePanel('#showHideColumnsBox')"
+				>
+					<b-icon icon="x-circle-fill"></b-icon>
+				</div>
+				<h4 style="text-align: center">Show/hide columns</h4>
+				<p></p>
+				<div class="table-wrapper">
+					<table class="table table-sm">
+						<thead>
+							<tr>
+								<th></th>
+								<th>Column</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr
+								v-for="column in newTableFormat['top rows']"
+								:key="column"
+							>
+								<td>
+									<input
+										type="checkbox"
+										name="visible_top_rows"
+										:id="getColumnId(column)"
+										:value="column"
+										checked
+										@click="addRemoveColumn($event)"
+									/>
+								</td>
+								<td v-html="column"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 
@@ -1384,6 +1398,14 @@ export default Vue.component("research-gem-data-table", {
 	},
 	methods: {
 		...Formatters,
+		showHidePanel(PANEL) {
+			let wrapper = document.querySelector(PANEL);
+			if (wrapper.classList.contains("hidden")) {
+				wrapper.classList.remove("hidden");
+			} else {
+				wrapper.classList.add("hidden");
+			}
+		},
 		getIfChecked(LABEL) {
 			let id = this.getColumnId(LABEL);
 
@@ -1772,16 +1794,43 @@ export default Vue.component("research-gem-data-table", {
 </script>
 
 <style>
-#showHideColumnsBox {
+.show-hide-columns-box-close {
 	position: absolute;
+	top: 5px;
+	right: 8px;
+	font-size: 14px;
+	color: #69f;
+}
+
+.show-hide-columns-box-close:hover {
+	color: #36c;
+}
+#showHideColumnsBox {
+	position: fixed;
 	background-color: #fff;
 	border: solid 1px #ddd;
 	border-radius: 5px;
-	padding: 5px 15px;
 	z-index: 11;
 	font-size: 14px;
+	width: 400px;
+	height: 50%;
+	text-align: left;
+	top: 25%;
+	left: calc(50% - 200px);
+	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
+	padding: 20px;
 }
 
+#showHideColumnsBox .table-wrapper {
+	overflow: auto !important;
+	padding: 0;
+	height: calc(100% - 35px);
+}
+
+#showHideColumnsBox th,
+#showHideColumnsBox td {
+	border: none;
+}
 .group-item-bubble {
 	margin-left: 3px;
 	margin-right: 3px;
