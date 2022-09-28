@@ -1,7 +1,7 @@
 <template>
 	<div class="research-data-table-wrapper">
 		<div v-html="tableLegend" class="data-table-legend"></div>
-		<!--<div v-if="!!newTableFormat">{{ newTableFormat["top rows"] }}</div>-->
+
 		<div
 			v-if="!!dataset"
 			v-html="'Total rows: ' + this.rows"
@@ -55,6 +55,36 @@
 			>
 				Save as JSON
 			</div>
+			<div class="convert-2-csv btn-sm" @click="">show/hide columns</div>
+			<div v-if="!!newTableFormat" id="showHideColumnsBox">
+				<h4>Show/hide columns</h4>
+				<table class="table table-sm">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Column</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							v-for="column in newTableFormat['top rows']"
+							:key="column"
+						>
+							<td>
+								<input
+									type="checkbox"
+									name="visible_top_rows"
+									:id="getColumnId(column)"
+									:value="column"
+									checked
+									@click="addRemoveColumn($event)"
+								/>
+							</td>
+							<td v-html="column"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 
 		<table
@@ -87,35 +117,40 @@
 							@click="showHideStared()"
 						></b-icon>
 					</th>
-					<th
-						v-for="(value, index) in topRows"
-						:key="index"
-						@click="
-							!!tableFormat['top rows'].includes(value) ||
-							value == 'Credible Set'
-								? applySorting(value)
-								: ''
-						"
-						class="byor-tooltip"
-						:class="
-							!!tableFormat['top rows'].includes(value) ||
-							value == 'Credible Set'
-								? 'sortable-th ' + value
-								: ''
-						"
-					>
-						<span
-							v-html="value == 'Credible Set' ? 'PPA' : value"
-						></span>
-						<span
-							v-if="
-								!!tableFormat['tool tips'] &&
-								!!tableFormat['tool tips'][value]
+					<template v-for="(value, index) in topRows">
+						<th
+							v-if="getIfChecked(value) == true"
+							:key="index"
+							@click="
+								!!tableFormat['top rows'].includes(value) ||
+								value == 'Credible Set'
+									? applySorting(value)
+									: ''
 							"
-							class="tooltiptext"
-							v-html="tableFormat['tool tips'][value]"
-						></span>
-					</th>
+							class="byor-tooltip"
+							:class="
+								!!tableFormat['top rows'].includes(value) ||
+								value == 'Credible Set'
+									? 'sortable-th ' +
+									  value +
+									  ' ' +
+									  getColumnId(value)
+									: '' + getColumnId(value)
+							"
+						>
+							<span
+								v-html="value == 'Credible Set' ? 'PPA' : value"
+							></span>
+							<span
+								v-if="
+									!!tableFormat['tool tips'] &&
+									!!tableFormat['tool tips'][value]
+								"
+								class="tooltiptext"
+								v-html="tableFormat['tool tips'][value]"
+							></span>
+						</th>
+					</template>
 					<th
 						class="th-evidence"
 						v-if="newTableFormat['features'] != undefined"
@@ -148,14 +183,22 @@
 						v-if="topRows.includes(tdKey)"
 					>
 						<td
-							v-if="ifDataObject(tdValue) == false"
+							v-if="
+								ifDataObject(tdValue) == false &&
+								getIfChecked(tdKey) == true
+							"
 							:key="tdKey"
 							v-html="formatValue(tdValue, tdKey)"
+							:class="getColumnId(tdKey)"
 						></td>
 						<td
-							v-if="ifDataObject(tdValue) == true"
+							v-if="
+								ifDataObject(tdValue) == true &&
+								getIfChecked(tdKey) == true
+							"
 							:key="tdKey"
 							class="multi-value-td"
+							:class="getColumnId(tdKey)"
 						>
 							<span
 								v-for="(sValue, sKey, sIndex) in tdValue"
@@ -1341,6 +1384,20 @@ export default Vue.component("research-gem-data-table", {
 	},
 	methods: {
 		...Formatters,
+		getIfChecked(LABEL) {
+			let id = this.getColumnId(LABEL);
+
+			let content = !!document.querySelector("#" + id)
+				? document.querySelector("#" + id).checked
+				: true;
+			return content;
+		},
+		getColumnId(LABEL) {
+			return LABEL.replace(/\W/g, "").toLowerCase();
+		},
+		addRemoveColumn(EVENT) {
+			this.$forceUpdate();
+		},
 		formattedData(DATA) {
 			let rawData = DATA;
 
@@ -1715,6 +1772,16 @@ export default Vue.component("research-gem-data-table", {
 </script>
 
 <style>
+#showHideColumnsBox {
+	position: absolute;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	padding: 5px 15px;
+	z-index: 11;
+	font-size: 14px;
+}
+
 .group-item-bubble {
 	margin-left: 3px;
 	margin-right: 3px;
