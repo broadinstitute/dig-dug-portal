@@ -26,7 +26,7 @@
 									@change="addAnnoTrack($event)"
 								>
 									<option value="">
-										{{ "Select annotation" }}
+										{{ "Show all" }}
 									</option>
 									<option
 										v-for="(annoValue, annoKey) in annoData"
