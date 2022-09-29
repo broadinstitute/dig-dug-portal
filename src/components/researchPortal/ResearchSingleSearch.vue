@@ -51,6 +51,7 @@
 import Vue from "vue";
 
 import uiUtils from "@/utils/uiUtils";
+import regionUtils from "@/utils/regionUtils";
 import { match } from "@/utils/bioIndexUtils";
 
 export default Vue.component("research-single-search", {
@@ -117,19 +118,17 @@ export default Vue.component("research-single-search", {
 		},
 
 		async searchRegion(KEY) {
-			let searchPoint =
-				"https://bioindex.hugeamp.org/api/bio/query/gene?q=" + KEY;
+			let region = await regionUtils.parseRegion(KEY, true, 50000);
 
-			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
-
-			if (geneJson.error == null) {
+			if (region) {
+				console.log(region);
 				let regionPageUrl =
 					"/region.html?chr=" +
-					geneJson.data[0].chromosome +
+					region.chr +
 					"&end=" +
-					geneJson.data[0].end +
+					region.end +
 					"&start=" +
-					geneJson.data[0].start;
+					region.start;
 
 				location.href = regionPageUrl;
 			}

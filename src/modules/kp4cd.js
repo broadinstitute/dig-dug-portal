@@ -239,7 +239,7 @@ export default {
         },
         async getPortals(context) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/community_kps"
+                "https://kp4cd.org/rest/views/a2f_community_kps"
             ).then(resp => resp.json());
             // set the data
             context.commit("setPortals", json);
