@@ -91,7 +91,13 @@
 										checked
 										@click="addRemoveColumn($event)"
 									/>
-									{{ " " + column }}
+									<span
+										v-html="
+											column == 'Credible Set'
+												? ' PPA'
+												: ' ' + column
+										"
+									></span>
 								</td>
 							</tr>
 						</tbody>
