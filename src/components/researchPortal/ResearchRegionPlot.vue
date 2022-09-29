@@ -1696,6 +1696,8 @@ $(function () {});
 .asso-plots-wrapper,
 .ld-plots-wrapper {
 	display: inline-block;
+	height: auto !important;
+	padding-bottom: 0 !important;
 }
 .asso-info-box,
 .ld-info-box {

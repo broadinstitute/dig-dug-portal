@@ -6,6 +6,13 @@
 		>
 			<div class="col-md-12 anno-plot-wrapper">
 				<div id="annotationsUIWrapper">
+					<span>
+						<strong
+							>Filter associated variants by location within
+							regulatory regions annotated in broad tissue
+							categories.</strong
+						>
+					</span>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -27,7 +34,7 @@
 									@change="addAnnoTrack($event)"
 								>
 									<option value="null">
-										{{ "Select annotation" }}
+										{{ "Show all" }}
 									</option>
 									<option
 										v-for="(annoValue, annoKey) in annoData"
@@ -73,7 +80,7 @@
 				</div>
 				<div
 					class="col-md-12 anno-plot-ui-wrapper"
-					style="border-bottom: solid 1px #dddddd"
+					style="padding-top: 15px"
 				>
 					<h6><strong>Global Enrichment</strong></h6>
 					<div>
@@ -107,8 +114,16 @@
 					</div>
 				</div>
 
-				<div id="annotationsPlotWrapper">
-					<div
+				<div
+					id="annotationsPlotWrapper"
+					:class="
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length == 0
+							? 'height-1px'
+							: 'height-auto'
+					"
+				>
+					<!--<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
 						v-if="
@@ -153,7 +168,18 @@
 								</template>
 							</div>
 						</div>
-					</div>
+					</div>-->
+					<strong
+						v-if="
+							pkgDataSelected.filter(
+								(s) => s.type == 'Annotation'
+							).length > 0
+						"
+					>
+						Clicking on a tissue track(s) filters the table to
+						display only variants located within that annotation
+						type(s) in the selected tissue categories.</strong
+					>
 					<div id="tissueInfoBox" class="hidden"></div>
 
 					<canvas
@@ -166,7 +192,7 @@
 						height=""
 					></canvas>
 
-					<div
+					<!--<div
 						id="annoInitialMessage"
 						:class="
 							pkgDataSelected.filter(
@@ -176,7 +202,7 @@
 								: ''
 						"
 						v-html="'Please select annotation.'"
-					></div>
+					></div>-->
 				</div>
 			</div>
 		</div>
@@ -1876,6 +1902,13 @@ $(function () {});
 </script>
 
 <style>
+.height-1px {
+	height: 1px !important;
+}
+.height-auto {
+	height: auto;
+	border-top: solid 1px #ddd;
+}
 .search-bubble {
 	font-size: 12px;
 	margin-right: 5px;

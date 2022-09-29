@@ -47,6 +47,49 @@
 			>
 				Save as JSON
 			</div>
+			<div
+				class="convert-2-csv btn-sm"
+				@click="showHidePanel('#showHideColumnsBox')"
+			>
+				show/hide columns
+			</div>
+			<div v-if="!!tableFormat" id="showHideColumnsBox" class="hidden">
+				<div
+					class="show-hide-columns-box-close"
+					@click="showHidePanel('#showHideColumnsBox')"
+				>
+					<b-icon icon="x-circle-fill"></b-icon>
+				</div>
+				<h4 style="text-align: center">Show/hide columns</h4>
+				<p></p>
+				<div class="table-wrapper">
+					<table class="table table-sm">
+						<thead>
+							<tr>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr
+								v-for="column in tableFormat['top rows']"
+								:key="column"
+							>
+								<td>
+									<input
+										type="checkbox"
+										name="visible_top_rows"
+										:id="getColumnId(column)"
+										:value="column"
+										checked
+										@click="addRemoveColumn($event)"
+									/>
+									{{ " " + column }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</div>
 
 		<table
@@ -92,23 +135,30 @@
 						></span>
 					</th>
 						-->
-					<th
-						v-for="(value, index) in topRows"
-						:key="index"
-						@click="applySorting(value)"
-						class="byor-tooltip"
-						:class="'sortable-th ' + value"
-					>
-						<span v-html="value"></span>
-						<span
-							v-if="
-								!!tableFormat['tool tips'] &&
-								!!tableFormat['tool tips'][value]
+					<template v-for="(value, index) in topRows">
+						<th
+							v-if="getIfChecked(value) == true"
+							:key="index"
+							@click="applySorting(value)"
+							class="byor-tooltip"
+							:class="
+								'sortable-th ' +
+								value +
+								' ' +
+								getColumnId(value)
 							"
-							class="tooltiptext"
-							v-html="tableFormat['tool tips'][value]"
-						></span>
-					</th>
+						>
+							<span v-html="value"></span>
+							<span
+								v-if="
+									!!tableFormat['tool tips'] &&
+									!!tableFormat['tool tips'][value]
+								"
+								class="tooltiptext"
+								v-html="tableFormat['tool tips'][value]"
+							></span>
+						</th>
+					</template>
 					<th
 						class="th-evidence"
 						v-if="tableFormat['features'] != undefined"
@@ -138,17 +188,25 @@
 					</td>
 					<template
 						v-for="(tdValue, tdKey) in value"
-						v-if="topRows.includes(tdKey)"
+						v-if="
+							topRows.includes(tdKey) &&
+							getIfChecked(tdKey) == true
+						"
 					>
 						<td
 							v-if="ifDataObject(tdValue) == false"
 							:key="tdKey"
 							v-html="formatValue(tdValue, tdKey)"
+							:class="getColumnId(tdKey)"
 						></td>
 						<td
-							v-if="ifDataObject(tdValue) == true"
+							v-if="
+								ifDataObject(tdValue) == true &&
+								getIfChecked(tdKey) == true
+							"
 							:key="tdKey"
 							class="multi-value-td"
+							:class="getColumnId(tdKey)"
 						>
 							<span
 								v-for="(sValue, sKey, sIndex) in tdValue"
@@ -445,6 +503,28 @@ export default Vue.component("research-data-table", {
 	},
 	methods: {
 		...Formatters,
+		showHidePanel(PANEL) {
+			let wrapper = document.querySelector(PANEL);
+			if (wrapper.classList.contains("hidden")) {
+				wrapper.classList.remove("hidden");
+			} else {
+				wrapper.classList.add("hidden");
+			}
+		},
+		getIfChecked(LABEL) {
+			let id = this.getColumnId(LABEL);
+
+			let content = !!document.querySelector("#" + id)
+				? document.querySelector("#" + id).checked
+				: true;
+			return content;
+		},
+		getColumnId(LABEL) {
+			return LABEL.replace(/\W/g, "").toLowerCase();
+		},
+		addRemoveColumn(EVENT) {
+			this.$forceUpdate();
+		},
 		addStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
 			this.$store.dispatch("pkgDataSelected", {
@@ -782,6 +862,43 @@ export default Vue.component("research-data-table", {
 </script>
 
 <style>
+.show-hide-columns-box-close {
+	position: absolute;
+	top: 5px;
+	right: 8px;
+	font-size: 14px;
+	color: #69f;
+}
+
+.show-hide-columns-box-close:hover {
+	color: #36c;
+}
+#showHideColumnsBox {
+	position: fixed;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	z-index: 11;
+	font-size: 14px;
+	width: 400px;
+	height: 50%;
+	text-align: left;
+	top: 25%;
+	left: calc(50% - 200px);
+	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
+	padding: 20px;
+}
+
+#showHideColumnsBox .table-wrapper {
+	overflow: auto !important;
+	padding: 0;
+	height: calc(100% - 35px);
+}
+
+#showHideColumnsBox th,
+#showHideColumnsBox td {
+	border: none;
+}
 .group-item-bubble {
 	margin-left: 3px;
 	margin-right: 3px;
@@ -794,7 +911,7 @@ export default Vue.component("research-data-table", {
 	padding-top: 10px;
 }
 .data-table-legend {
-	margin-bottom: -15px;
+	/*margin-bottom: -15px;*/
 }
 .research-data-table-wrapper {
 	margin-top: 25px;
