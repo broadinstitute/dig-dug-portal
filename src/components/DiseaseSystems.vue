@@ -8,9 +8,21 @@
 					<div class="options-wrapper">
 						<div
 							class="option"
+							@click="callCustomPhActions('system')"
+						>
+							By disease system
+						</div>
+						<div
+							class="option"
 							@click="callCustomPhActions('disease')"
 						>
 							By disease
+						</div>
+						<div
+							class="option"
+							@click="callCustomPhActions('group')"
+						>
+							By Phenotype groups
 						</div>
 						<div
 							class="option"
@@ -19,7 +31,7 @@
 							By Phenotype correlation
 						</div>
 						<div
-							class="option"
+							class="option reset"
 							@click="callCustomPhActions('reset')"
 						>
 							Reset focus
@@ -45,7 +57,24 @@
 							class="disease-system-options"
 							:id="system.split(' ')[0] + '_options'"
 						>
-							<h5>Select a disease</h5>
+							<h6>
+								<a
+									href="javascript:;"
+									@click="
+										openPhenotypesBuilder(
+											system,
+											null,
+											'system'
+										)
+									"
+									>{{
+										"Select " +
+										system.toLowerCase() +
+										" system"
+									}}</a
+								>
+							</h6>
+							<h6>Or select by disease</h6>
 							<div
 								class="disease-name"
 								v-for="disease in diseaseOptions(system)"
@@ -64,9 +93,9 @@
 								>
 							</div>
 							<p></p>
-							<h5 v-if="kpDiseasePair(system).length > 0">
+							<h6 v-if="kpDiseasePair(system).length > 0">
 								Or visit a community portal
-							</h5>
+							</h6>
 							<div
 								class="community-portal"
 								v-for="kp in kpDiseasePair(system)"
@@ -85,17 +114,36 @@
 					</div>
 				</template>
 				<div class="disease-system col-md-2">
-					<a
-						href="javascript:;"
-						@click="
-							openPhenotypesBuilder(null, null, 'correlation')
-						"
-						><img
-							class="disease-systems-icon"
-							src="https://kp4cd.org/sites/default/files/images/disease_systems/correlation.svg"
-						/>
-					</a>
-					<span>By Phenotype Correlation</span>
+					<img
+						class="disease-systems-icon"
+						src="https://kp4cd.org/sites/default/files/images/disease_systems/correlation.svg"
+					/>
+
+					<div class="disease-system-options">
+						<h6>
+							<a
+								href="javascript:;"
+								@click="
+									openPhenotypesBuilder(null, null, 'group')
+								"
+								>By Phenotype group
+							</a>
+						</h6>
+						<h6>
+							<a
+								href="javascript:;"
+								@click="
+									openPhenotypesBuilder(
+										null,
+										null,
+										'correlation'
+									)
+								"
+								>By Phenotype Correlation
+							</a>
+						</h6>
+					</div>
+					<span>By Phenotype</span>
 				</div>
 				<button
 					type="button"
@@ -110,6 +158,95 @@
 			class="custom-phenotypes-list-builder hidden"
 			id="pheno_list_builder"
 		>
+			<!-- UI for System list
+			-->
+			<div
+				class="ph-builder-filters-wrapper filtering-ui-wrapper"
+				v-if="focusBy == 'system'"
+			>
+				<div class="filtering-ui-content">
+					<div class="col filter-col-md">
+						<div class="label">Select disease system</div>
+						<select
+							class="select-disease form-control form-control-sm"
+							@change="
+								openPhenotypesBuilder(null, $event, 'system')
+							"
+						>
+							<template v-for="system in diseaseSystems">
+								<option class="disease-name" value="system">
+									{{ system }}
+								</option>
+								<!--<option
+									class="disease-name"
+									v-for="disease in diseaseOptions(system)"
+									:value="disease"
+									:selected="
+										disease == selectedDisease
+											? true
+											: false
+									"
+								>
+									{{ disease }}
+								</option>-->
+							</template>
+						</select>
+					</div>
+				</div>
+			</div>
+			<strong class="number-of-phenotypes" v-if="focusBy == 'system'"
+				>Number of phenotypes: {{ getPhenotypes().length }}</strong
+			>
+			<div class="table-wrapper" v-if="focusBy == 'system'">
+				<table class="table table-striped table-sm">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Phenotype</th>
+							<th>Group</th>
+							<th>Dichotomous</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="phenotype in getPhenotypes()">
+							<td>
+								<input
+									class="phenotype-chkbox"
+									type="checkbox"
+									:value="phenotype.name"
+									checked
+								/>
+							</td>
+							<td class="phenotype-name">
+								{{ phenotype.description }}
+							</td>
+							<td class="phenotype-group">
+								{{ phenotype.group }}
+							</td>
+							<td class="phenotype-dichotomous">
+								{{ phenotype.dichotomous }}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="session-info" v-if="focusBy == 'system'">
+				<button
+					type="button"
+					class="btn btn-primary btn-sm"
+					@click="saveCustomPhenotypes('system', 'set')"
+				>
+					Set focus
+				</button>
+				<button
+					type="button"
+					class="btn btn-warning btn-sm"
+					@click="closePhenotypesBuilder()"
+				>
+					Cancel
+				</button>
+			</div>
+			<!-- -->
 			<!-- UI for disease list
 			-->
 			<div
@@ -186,9 +323,16 @@
 				<button
 					type="button"
 					class="btn btn-primary btn-sm"
-					@click="saveCustomPhenotypes('disease')"
+					@click="saveCustomPhenotypes('disease', 'set')"
 				>
-					Save list
+					Set focus
+				</button>
+				<button
+					type="button"
+					class="btn btn-success btn-sm"
+					@click="saveCustomPhenotypes('disease', 'add')"
+				>
+					Add to focus
 				</button>
 				<button
 					type="button"
@@ -297,16 +441,14 @@
 					</tbody>
 				</table>
 			</div>
-			<div
-				class="session-info"
-				v-if="focusBy == 'correlation' && !!correlatedPhenotypes"
-			>
+			<div class="session-info" v-if="focusBy == 'correlation'">
 				<button
+					v-if="!!correlatedPhenotypes"
 					type="button"
 					class="btn btn-primary btn-sm"
-					@click="saveCustomPhenotypes('correlation')"
+					@click="saveCustomPhenotypes('correlation', 'set')"
 				>
-					Save list
+					Set focus
 				</button>
 				<button
 					type="button"
@@ -342,6 +484,7 @@ export default Vue.component("disease-systems", {
 	data() {
 		return {
 			diseaseSystems: [],
+			selectedSystem: null,
 			selectedDisease: null,
 			focusBy: null,
 			pCorPValue: 0.05,
@@ -405,6 +548,16 @@ export default Vue.component("disease-systems", {
 						"disease"
 					);
 					break;
+				case "system":
+					this.openPhenotypesBuilder(
+						this.diseaseInSession,
+						null,
+						"system"
+					);
+					break;
+				case "group":
+					this.openPhenotypesBuilder(null, null, "group");
+					break;
 			}
 		},
 
@@ -422,7 +575,7 @@ export default Vue.component("disease-systems", {
 			this.getCustomPhenotypes();
 			uiUtils.hideElement("pheno_list_builder");
 		},
-		saveCustomPhenotypes(TYPE) {
+		saveCustomPhenotypes(TYPE, ACTION) {
 			if (TYPE == "correlation") {
 				this.selectedDisease =
 					this.phenotypeNames[this.correlatedPhenotypes[0].phenotype];
@@ -463,13 +616,18 @@ export default Vue.component("disease-systems", {
 		closePhenotypesBuilder() {
 			uiUtils.hideElement("pheno_list_builder");
 		},
-		openPhenotypesBuilder(DISEASE, EVENT, TYPE) {
-			this.selectedDisease = !!EVENT ? EVENT.target.value : DISEASE;
+		openPhenotypesBuilder(TARGET, EVENT, TYPE) {
 			uiUtils.showElement("pheno_list_builder");
 			if (TYPE == "disease") {
 				this.focusBy = "disease";
+				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
+			} else if (TYPE == "system") {
+				this.focusBy = "system";
+				this.selectedSystem = !!EVENT ? EVENT.target.value : TARGET;
 			} else if (TYPE == "correlation") {
 				this.focusBy = "correlation";
+			} else if (TYPE == "group") {
+				this.focusBy = "group";
 			}
 		},
 		getPhenotypes() {
@@ -621,6 +779,10 @@ export default Vue.component("disease-systems", {
 	padding: 3px 10px;
 }
 
+.select-disease .option.reset {
+	background-color: #ffdddd;
+}
+
 .select-disease .option:hover {
 	cursor: pointer;
 	color: #000000;
@@ -758,7 +920,7 @@ export default Vue.component("disease-systems", {
 	visibility: visible;
 }
 
-.disease-name {
+div.disease-name {
 	padding-left: 5px;
 	font-size: 14px;
 }
