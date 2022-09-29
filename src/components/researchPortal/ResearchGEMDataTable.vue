@@ -75,7 +75,6 @@
 						<thead>
 							<tr>
 								<th></th>
-								<th>Column</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -92,8 +91,8 @@
 										checked
 										@click="addRemoveColumn($event)"
 									/>
+									{{ " " + column }}
 								</td>
-								<td v-html="column"></td>
 							</tr>
 						</tbody>
 					</table>
