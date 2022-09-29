@@ -6,11 +6,11 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -23,10 +23,8 @@ new Vue({
     store,
 
     components: {
-        StaticPageInfo,
         PageHeader,
         PageFooter,
-        PortalDatasetsListTable,
         Alert,
     },
 
@@ -45,11 +43,11 @@ new Vue({
         postAlertError,
         closeAlert,
         getPageContent(NID, CHAPTER) {
+            console.log(NID, CHAPTER);
             this.$store.dispatch("kp4cd/getContentByID", NID);
+            this.$store.dispatch("page", NID);
             if (!!CHAPTER) {
-
                 let chapters = document.querySelectorAll(".chapter");
-
                 chapters.forEach(chapter => {
                     chapter.setAttribute("class", "chapter closed")
                 })
@@ -83,11 +81,14 @@ new Vue({
 
         helpTOC() {
             let bookData = this.$store.state.kp4cd.helpBook;
+
             if (bookData.length > 0) {
-                this.$store.dispatch("kp4cd/getContentByID", bookData[0].nid_1);
+                if (!this.$store.state.page) {
+                    this.$store.dispatch("kp4cd/getContentByID", bookData[0].nid_1);
+                } else if (!!this.$store.state.page) {
+                    this.$store.dispatch("kp4cd/getContentByID", this.$store.state.page);
+                }
             }
-
-
 
             let contents = {};
 

@@ -184,7 +184,7 @@
 					<strong
 						>Filter associated variants by location within
 						regulatory regions annotated in specific tissue or cell
-						types.
+						types within the tissue categories selected above.
 					</strong>
 				</span>
 				<!--<div
