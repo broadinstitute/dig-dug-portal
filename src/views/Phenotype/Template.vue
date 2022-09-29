@@ -290,7 +290,9 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Genetic correlations for {{$store.state.phenotype.description}}</h4>
+                        <h4 class="card-title">Genetic correlations for {{$store.state.phenotype.description}}
+                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
+                        </h4>
                         <criterion-function-group>
                             <filter-pvalue-control :field="'pValue'">
                                 <div class="label">P-Value (&le;)</div>

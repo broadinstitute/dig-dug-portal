@@ -58,7 +58,8 @@ export default new Vuex.Store({
             }
             context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
-            context.dispatch("geneticCorrelation/query", query);
+            let gcQuery = !context.state.ancestry ? query : ancestryQuery; 
+            context.dispatch("geneticCorrelation/query", gcQuery);
         }
     }
 });
