@@ -10,25 +10,25 @@
 							class="option"
 							@click="callCustomPhActions('system')"
 						>
-							By disease system
+							By disease system(DS)
 						</div>
 						<div
 							class="option"
 							@click="callCustomPhActions('disease')"
 						>
-							By disease
+							By disease(D)
 						</div>
 						<div
 							class="option"
 							@click="callCustomPhActions('group')"
 						>
-							By Phenotype groups
+							By Phenotype groups(PG)
 						</div>
 						<div
 							class="option"
 							@click="callCustomPhActions('correlation')"
 						>
-							By Phenotype correlation
+							By Phenotype correlation(PC)
 						</div>
 						<div
 							class="option reset"
@@ -174,79 +174,21 @@
 							"
 						>
 							<template v-for="system in diseaseSystems">
-								<option class="disease-name" value="system">
-									{{ system }}
-								</option>
-								<!--<option
+								<option
 									class="disease-name"
-									v-for="disease in diseaseOptions(system)"
-									:value="disease"
+									:value="system"
 									:selected="
-										disease == selectedDisease
-											? true
-											: false
+										system == selectedDisease ? true : false
 									"
 								>
-									{{ disease }}
-								</option>-->
+									{{ system }}
+								</option>
 							</template>
 						</select>
 					</div>
 				</div>
 			</div>
-			<strong class="number-of-phenotypes" v-if="focusBy == 'system'"
-				>Number of phenotypes: {{ getPhenotypes().length }}</strong
-			>
-			<div class="table-wrapper" v-if="focusBy == 'system'">
-				<table class="table table-striped table-sm">
-					<thead>
-						<tr>
-							<th></th>
-							<th>Phenotype</th>
-							<th>Group</th>
-							<th>Dichotomous</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="phenotype in getPhenotypes()">
-							<td>
-								<input
-									class="phenotype-chkbox"
-									type="checkbox"
-									:value="phenotype.name"
-									checked
-								/>
-							</td>
-							<td class="phenotype-name">
-								{{ phenotype.description }}
-							</td>
-							<td class="phenotype-group">
-								{{ phenotype.group }}
-							</td>
-							<td class="phenotype-dichotomous">
-								{{ phenotype.dichotomous }}
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div class="session-info" v-if="focusBy == 'system'">
-				<button
-					type="button"
-					class="btn btn-primary btn-sm"
-					@click="saveCustomPhenotypes('system', 'set')"
-				>
-					Set focus
-				</button>
-				<button
-					type="button"
-					class="btn btn-warning btn-sm"
-					@click="closePhenotypesBuilder()"
-				>
-					Cancel
-				</button>
-			</div>
-			<!-- -->
+
 			<!-- UI for disease list
 			-->
 			<div
@@ -283,65 +225,90 @@
 					</div>
 				</div>
 			</div>
-			<strong class="number-of-phenotypes" v-if="focusBy == 'disease'"
-				>Number of phenotypes: {{ getPhenotypes().length }}</strong
+
+			<!-- UI for phenotype groups
+			-->
+			<div
+				class="ph-builder-filters-wrapper filtering-ui-wrapper"
+				v-if="focusBy == 'group'"
 			>
-			<div class="table-wrapper" v-if="focusBy == 'disease'">
-				<table class="table table-striped table-sm">
-					<thead>
-						<tr>
-							<th></th>
-							<th>Phenotype</th>
-							<th>Group</th>
-							<th>Dichotomous</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="phenotype in getPhenotypes()">
-							<td>
-								<input
-									class="phenotype-chkbox"
-									type="checkbox"
-									:value="phenotype.name"
-									checked
-								/>
-							</td>
-							<td class="phenotype-name">
-								{{ phenotype.description }}
-							</td>
-							<td class="phenotype-group">
-								{{ phenotype.group }}
-							</td>
-							<td class="phenotype-dichotomous">
-								{{ phenotype.dichotomous }}
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<div><strong>Select phenotype groups</strong></div>
+
+				<div
+					v-for="group in phenotypGroups"
+					:key="group"
+					class="ph-group-option"
+				>
+					<input
+						type="checkbox"
+						:value="group"
+						@click="addRemovePhenotypeGroup(group)"
+						:checked="!!selectedGroups.includes(group)"
+					/>
+					{{ group }}
+				</div>
 			</div>
-			<div class="session-info" v-if="focusBy == 'disease'">
-				<button
-					type="button"
-					class="btn btn-primary btn-sm"
-					@click="saveCustomPhenotypes('disease', 'set')"
+			<!-- table for "system", "disease", "group" -->
+			<template
+				v-if="
+					focusBy == 'system' ||
+					focusBy == 'disease' ||
+					focusBy == 'group'
+				"
+			>
+				<strong class="number-of-phenotypes"
+					>Number of phenotypes: {{ getPhenotypes().length }}</strong
 				>
-					Set focus
-				</button>
-				<button
-					type="button"
-					class="btn btn-success btn-sm"
-					@click="saveCustomPhenotypes('disease', 'add')"
-				>
-					Add to focus
-				</button>
-				<button
-					type="button"
-					class="btn btn-warning btn-sm"
-					@click="closePhenotypesBuilder()"
-				>
-					Cancel
-				</button>
-			</div>
+				<div class="table-wrapper" :class="focusBy">
+					<table class="table table-striped table-sm">
+						<thead>
+							<tr>
+								<th></th>
+								<th>Phenotype</th>
+								<th>Group</th>
+								<th>Dichotomous</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="phenotype in getPhenotypes()">
+								<td>
+									<input
+										class="phenotype-chkbox"
+										type="checkbox"
+										:value="phenotype.name"
+										checked
+									/>
+								</td>
+								<td class="phenotype-name">
+									{{ phenotype.description }}
+								</td>
+								<td class="phenotype-group">
+									{{ phenotype.group }}
+								</td>
+								<td class="phenotype-dichotomous">
+									{{ phenotype.dichotomous }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="session-info">
+					<button
+						type="button"
+						class="btn btn-primary btn-sm"
+						@click="saveCustomPhenotypes(focusBy, 'set')"
+					>
+						Set focus
+					</button>
+					<button
+						type="button"
+						class="btn btn-warning btn-sm"
+						@click="closePhenotypesBuilder()"
+					>
+						Cancel
+					</button>
+				</div>
+			</template>
 
 			<!-- UI for phenotype correlations
 			-->
@@ -360,14 +327,31 @@
 							localPlace="diseaseSystems"
 						></phenotype-selectpicker>
 					</div>
-					<div class="col filter-col-md">
-						<div class="label">Set p-value</div>
+					<div class="col filter-col-sm">
+						<div class="label">P-Value(<=)</div>
 
 						<input
 							type="text"
 							v-model="pCorPValue"
 							class="form-control"
 						/>
+					</div>
+					<div class="col filter-col-sm">
+						<div class="label">Correlation(>=)</div>
+
+						<input
+							type="text"
+							v-model="pCorCorrelation"
+							class="form-control"
+						/>
+					</div>
+					<div class="col filter-col-sm">
+						<div class="label">Sort by</div>
+
+						<select v-model="pCorDirection" class="form-control">
+							<option value="pValue">P-Value</option>
+							<option value="rg">Correlation</option>
+						</select>
 					</div>
 				</div>
 			</div>
@@ -486,8 +470,11 @@ export default Vue.component("disease-systems", {
 			diseaseSystems: [],
 			selectedSystem: null,
 			selectedDisease: null,
+			selectedGroups: [],
 			focusBy: null,
 			pCorPValue: 0.05,
+			pCorCorrelation: null,
+			pCorDirection: "pValue",
 		};
 	},
 	components: { PhenotypeSelectPicker },
@@ -496,6 +483,16 @@ export default Vue.component("disease-systems", {
 		this.getCustomPhenotypes();
 	},
 	computed: {
+		phenotypGroups() {
+			if (!!this.phenotypes) {
+				let phGroups = [
+					...new Set(this.phenotypes.map((p) => p.group).sort()),
+				];
+				return phGroups;
+			} else {
+				return null;
+			}
+		},
 		phenotypeNames() {
 			if (!!this.phenotypes) {
 				let content = {};
@@ -514,9 +511,19 @@ export default Vue.component("disease-systems", {
 				let content =
 					!!this.pCorPValue && this.pCorPValue != ""
 						? this.phenotypeCorrelation.data.filter(
-								(p) => p.pValue <= this.pCorPValue && p.rg > 0
+								(p) => p.pValue <= this.pCorPValue
 						  )
 						: this.phenotypeCorrelation.data;
+
+				if (!!this.pCorCorrelation && this.pCorCorrelation != "") {
+					content = content.filter(
+						(p) => p.rg >= this.pCorCorrelation
+					);
+				}
+
+				if (this.pCorDirection == "rg") {
+					content = sortUtils.sort(content, "rg", true, null);
+				}
 
 				return content;
 			} else {
@@ -532,6 +539,14 @@ export default Vue.component("disease-systems", {
 		...Formatters,
 		formatValue(FORMATTER, VALUE) {
 			return Formatters[FORMATTER](VALUE);
+		},
+		addRemovePhenotypeGroup(GROUP) {
+			let index = this.selectedGroups.indexOf(GROUP);
+			if (index > -1) {
+				this.selectedGroups.splice(index, 1);
+			} else {
+				this.selectedGroups.push(GROUP);
+			}
 		},
 		callCustomPhActions(EVENT) {
 			switch (EVENT) {
@@ -567,8 +582,9 @@ export default Vue.component("disease-systems", {
 			let selectedPhs = !!customPhsSet ? customPhsSet.list : null;
 
 			this.selectedDisease = selectedDisease;
-			this.$store.dispatch("phenotypesInSession", selectedPhs);
+
 			this.$store.dispatch("diseaseInSession", selectedDisease);
+			this.$store.dispatch("phenotypesInSession", selectedPhs);
 		},
 		resetCustomPhenotypes() {
 			userUtils.clearPhenotypes();
@@ -577,9 +593,39 @@ export default Vue.component("disease-systems", {
 		},
 		saveCustomPhenotypes(TYPE, ACTION) {
 			if (TYPE == "correlation") {
-				this.selectedDisease =
-					this.phenotypeNames[this.correlatedPhenotypes[0].phenotype];
 			}
+
+			switch (TYPE) {
+				case "system":
+					this.selectedDisease =
+						"Disease system: " + this.selectedDisease;
+					break;
+				case "disease":
+					this.selectedDisease = "Disease: " + this.selectedDisease;
+					break;
+				case "group":
+					let firstInGroup = this.selectedGroups[0];
+					let restOfGroups =
+						this.selectedGroups.length > 1
+							? " +" +
+							  (this.selectedGroups.length - 1) +
+							  " groups"
+							: "";
+
+					console.log("restOfGroups", restOfGroups);
+					this.selectedDisease =
+						"Phenotype groups: " + firstInGroup + restOfGroups;
+					break;
+				case "correlation":
+					this.selectedDisease =
+						"Phenotype correlation: " +
+						this.phenotypeNames[
+							this.correlatedPhenotypes[0].phenotype
+						];
+					break;
+			}
+
+			console.log("this.selectedDisease", this.selectedDisease);
 
 			let id = this.selectedDisease;
 			let phenotypeIds = [];
@@ -623,7 +669,7 @@ export default Vue.component("disease-systems", {
 				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
 			} else if (TYPE == "system") {
 				this.focusBy = "system";
-				this.selectedSystem = !!EVENT ? EVENT.target.value : TARGET;
+				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
 			} else if (TYPE == "correlation") {
 				this.focusBy = "correlation";
 			} else if (TYPE == "group") {
@@ -631,26 +677,55 @@ export default Vue.component("disease-systems", {
 			}
 		},
 		getPhenotypes() {
-			let phAssoDisease = [
-				...new Set(
-					this.$store.state.bioPortal.diseaseSystems
-						.filter((d) => d.disease == this.selectedDisease)
-						.map((d) => d.phenotype)
-				),
-			];
+			let phAssoDisease;
+
+			if (this.focusBy == "system") {
+				phAssoDisease = [
+					...new Set(
+						this.$store.state.bioPortal.diseaseSystems
+							.filter(
+								(d) => !!d.system.includes(this.selectedDisease)
+							)
+							.map((d) => d.phenotype)
+					),
+				];
+			}
+
+			if (this.focusBy == "disease") {
+				phAssoDisease = [
+					...new Set(
+						this.$store.state.bioPortal.diseaseSystems
+							.filter((d) => d.disease == this.selectedDisease)
+							.map((d) => d.phenotype)
+					),
+				];
+			}
 
 			let rawPhs = this.phenotypes;
 			let filteredPhs = [];
 
-			phAssoDisease.map((p) => {
-				rawPhs.map((rp) => {
-					if (rp.name.toLowerCase() == p.toLowerCase()) {
-						filteredPhs.push(rp);
-					}
+			if (this.focusBy == "system" || this.focusBy == "disease") {
+				phAssoDisease.map((p) => {
+					rawPhs.map((rp) => {
+						if (rp.name.toLowerCase() == p.toLowerCase()) {
+							filteredPhs.push(rp);
+						}
+					});
 				});
-			});
+			}
+
+			if (this.focusBy == "group") {
+				this.selectedGroups.map((g) => {
+					rawPhs.map((rp) => {
+						if (rp.group.toLowerCase() == g.toLowerCase()) {
+							filteredPhs.push(rp);
+						}
+					});
+				});
+			}
 
 			sortUtils.sort(filteredPhs, "description", false, true);
+			sortUtils.sort(filteredPhs, "group", false, true);
 
 			return filteredPhs;
 		},
@@ -716,6 +791,17 @@ export default Vue.component("disease-systems", {
 <style scoped>
 .ph-builder-filters-wrapper {
 	margin-bottom: 20px;
+}
+
+.ph-group-option {
+	font-size: 14px;
+	margin-right: 10px;
+	display: inline-block;
+}
+
+.ph-group-option input[type="checkbox"] {
+	width: 14px;
+	height: 14px;
 }
 
 .disease-systems-sub-pages .select-disease-wrapper {
@@ -805,14 +891,14 @@ export default Vue.component("disease-systems", {
 .custom-phenotypes-list-builder {
 	position: fixed;
 	top: 15%;
-	left: calc(50% - 330px);
-	width: 660px;
+	left: calc(50% - 380px);
+	width: 760px;
 	height: 75%;
 	text-align: left;
 	background-color: #fff;
 	padding: 15px;
-	-webkit-box-shadow: 10px 10px 10px 10px rgb(0 0 0 / 20%);
-	box-shadow: 10px 10px 10px 10px rgb(0 0 0 / 20%);
+	-webkit-box-shadow: 0px 10px 10px 10px rgb(0 0 0 / 20%);
+	box-shadow: 0px 10px 10px 10px rgb(0 0 0 / 20%);
 	border-radius: 5px;
 	z-index: 101;
 	text-align: center;
@@ -827,11 +913,19 @@ export default Vue.component("disease-systems", {
 	font-size: 14px;
 }
 
+.custom-phenotypes-list-builder .table-wrapper.group {
+	height: calc(100% - 260px);
+}
+
 .custom-phenotypes-list-builder .table-wrapper table {
 	margin-top: -1px;
 }
 .custom-phenotypes-list-builder table td.phenotype-name {
 	text-align: left;
+}
+
+.custom-phenotypes-list-builder table td.phenotype-group {
+	background: none !important;
 }
 
 .session-info {

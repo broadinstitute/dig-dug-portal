@@ -70,9 +70,8 @@
 									<b-tab
 										:title="
 											!!$parent.diseaseInSession
-												? 'Set focus (Current focus: ' +
-												  $parent.diseaseInSession +
-												  ')'
+												? 'Current focus: ' +
+												  $parent.diseaseInSession
 												: 'Set phenotypes focus'
 										"
 									>
