@@ -63,7 +63,7 @@
 						<select
 							:id="'search_param_' + parameter.parameter"
 							:class="
-								'custom-select custom-select-search ' +
+								'custom-select custom-select-search long-list ' +
 								getVisibleValues(
 									parameter.values,
 									paramSearch,
@@ -84,7 +84,12 @@
 									: ''
 							"
 							v-if="parameter.type == 'list'"
-							@change="updateSearchInputByEvent($event)"
+							@change="
+								updateSearchInputByEvent(
+									$event,
+									parameter.parameter
+								)
+							"
 						>
 							<option
 								v-for="param in parameter.values"
@@ -509,7 +514,10 @@ export default Vue.component("research-page-filters", {
 					if (pType != "list" && !!ifValuesFromKP) {
 						this.geneSearch = keyParams[param];
 					} else if (pType == "list" && !!ifValuesFromKP) {
-						let label = this.getFileLabel(keyParams[param].trim());
+						let label = this.getFileLabel(
+							keyParams[param].trim(),
+							param
+						);
 
 						let labelContent = label + "(" + keyParams[param] + ")";
 
@@ -579,7 +587,7 @@ export default Vue.component("research-page-filters", {
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
-		getPlaceHolder(PARAM) {
+		/*getPlaceHolder(PARAM) {
 			let content = "";
 			if (keyParams[PARAM] != undefined) {
 				let paramType = this.apiParameters.parameters.filter(
@@ -598,7 +606,7 @@ export default Vue.component("research-page-filters", {
 			} else {
 				return "";
 			}
-		},
+		},*/
 		getVisibleValues(VALUES, SEARCH, PARAMETER) {
 			var numOfVisible = 0;
 
@@ -835,8 +843,8 @@ export default Vue.component("research-page-filters", {
 		testLetters(STR) {
 			return /[a-zA-Z]/.test(STR);
 		},
-		updateSearchInputByEvent(event) {
-			var label = this.getFileLabel(event.target.value.trim());
+		updateSearchInputByEvent(event, PARAMETER) {
+			var label = this.getFileLabel(event.target.value.trim(), PARAMETER);
 
 			this.paramSearch = label + "(" + event.target.value + ")";
 		},
@@ -1546,11 +1554,17 @@ export default Vue.component("research-page-filters", {
 	left: 50px;*/
 }
 .custom-select-search {
+	width: 175px !important;
+	min-width: 175px;
+}
+
+.custom-select-search.long-list {
 	width: auto !important;
 	min-width: 175px;
 }
 
-.custom-select-search.hidden {
+.custom-select-search.hidden,
+.custom-select-search.long-list.hidden {
 	display: none !important;
 }
 
