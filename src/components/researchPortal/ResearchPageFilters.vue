@@ -36,7 +36,12 @@
 							<template v-for="param in parameter.values">
 								<option
 									:value="param.trim()"
-									v-html="getFileLabel(param.trim())"
+									v-html="
+										getFileLabel(
+											param.trim(),
+											parameter.parameter
+										)
+									"
 									:key="param.trim()"
 								></option>
 							</template>
@@ -59,7 +64,11 @@
 							:id="'search_param_' + parameter.parameter"
 							:class="
 								'custom-select custom-select-search ' +
-								getVisibleValues(parameter.values, paramSearch)
+								getVisibleValues(
+									parameter.values,
+									paramSearch,
+									parameter.parameter
+								)
 							"
 							:size="
 								parameter.values.length > 10
@@ -80,12 +89,20 @@
 							<option
 								v-for="param in parameter.values"
 								:value="param.trim()"
-								v-html="getFileLabel(param.trim())"
+								v-html="
+									getFileLabel(
+										param.trim(),
+										parameter.parameter
+									)
+								"
 								:key="param.trim()"
 								:class="
 									parameter.values.length > 10 &&
 									paramSearch.length > 2 &&
-									!getFileLabel(param.trim())
+									!getFileLabel(
+										param.trim(),
+										parameter.parameter
+									)
 										.toLowerCase()
 										.includes(paramSearch.toLowerCase())
 										? 'hidden'
@@ -582,12 +599,12 @@ export default Vue.component("research-page-filters", {
 				return "";
 			}
 		},
-		getVisibleValues(VALUES, SEARCH) {
+		getVisibleValues(VALUES, SEARCH, PARAMETER) {
 			var numOfVisible = 0;
 
 			VALUES.map((v) => {
 				if (
-					!!this.getFileLabel(v.trim())
+					!!this.getFileLabel(v.trim(), PARAMETER)
 						.toLowerCase()
 						.includes(SEARCH.toLowerCase())
 				) {
@@ -658,9 +675,13 @@ export default Vue.component("research-page-filters", {
 					: "col";
 			return classes;
 		},
-		getFileLabel(file) {
+		getFileLabel(file, PARAMETER) {
 			if (this.filesListLabels != null) {
-				return this.filesListLabels[file];
+				if (!!PARAMETER) {
+					return this.filesListLabels[PARAMETER][file];
+				} else {
+					return this.filesListLabels[file];
+				}
 			} else {
 				return file;
 			}
