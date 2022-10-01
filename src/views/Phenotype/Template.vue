@@ -12,7 +12,7 @@
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div class="col filter-col-lg hidden">
-                    <div class="label">Search by phenotype</div>
+                    <div class="label">Phenotype</div>
                     <phenotype-selectpicker
                         v-if="$store.state.phenotype"
                         :phenotypes="$store.state.bioPortal.phenotypes"
