@@ -213,7 +213,6 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 import keyParams from "@/utils/keyParams";
@@ -900,6 +899,8 @@ export default Vue.component("research-annotations-plot-v2", {
 					Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 				}
 
+				//console.log("this.pkgData", this.pkgData);
+
 				this.renderByAnnotations();
 				this.renderGE();
 			}
@@ -1067,8 +1068,16 @@ export default Vue.component("research-annotations-plot-v2", {
 			}
 		},
 		renderGE() {
+			//working part
+
 			this.GEPosData = {};
 			let sortedGEData = {};
+			let ancestry = !!this.renderConfig["ancestry parameter"]
+				? document.querySelector(
+						"#search_param_" +
+							this.renderConfig["ancestry parameter"]
+				  ).value
+				: null;
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
@@ -1079,12 +1088,39 @@ export default Vue.component("research-annotations-plot-v2", {
 				};
 
 				GE.map((g) => {
-					if (!!this.annoData[g.annotation][g.tissue]) {
+					let meetCondition = null;
+
+					if (
+						!!ancestry &&
+						!!this.annoData[g.annotation][g.tissue] &&
+						!!this.annoData[g.annotation][g.tissue]["ancestries"][
+							ancestry
+						]
+					) {
+						meetCondition = true;
+					} else if (
+						!ancestry &&
+						!!this.annoData[g.annotation][g.tissue] &&
+						!!this.annoData[g.annotation][g.tissue]
+					) {
+						meetCondition = true;
+					}
+
+					if (!!meetCondition) {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
-						let pValue =
-							g.pValue == 0 ? 324 : -Math.log10(g.pValue);
+						/*let pValue =
+							g.pValue == 0 ? 324 : -Math.log10(g.pValue);*/
+
+						let pValue = !!ancestry
+							? this.annoData[g.annotation][g.tissue][
+									"ancestries"
+							  ][ancestry][phenotype]
+							: g.pValue;
+
+						pValue = pValue == 0 ? 324 : -Math.log10(pValue);
+
 						let fold = g.SNPs / g.expectedSNPs;
 
 						sortedGEData[phenotype].yMax =

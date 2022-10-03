@@ -1091,6 +1091,9 @@ new Vue({
                                 tempObj[p.name] = p.description;
                             });
 
+                            // if there is data files lables filed is empty (null)
+                            this.dataFilesLabels = (!this.dataFilesLabels) ? {} : this.dataFilesLabels;
+
                             this.dataFilesLabels["phenotype"] = tempObj;
 
                         }
