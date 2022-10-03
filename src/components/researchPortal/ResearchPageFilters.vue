@@ -542,6 +542,10 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		resetAll() {
+			this.$store.state.pkgData = {};
+			this.$store.state.pkgDataSelected = [];
+		},
 		expandRegion(EVENT, PARAM) {
 			let expandNumber = EVENT.target.value;
 
@@ -729,7 +733,6 @@ export default Vue.component("research-page-filters", {
 					this.$store.dispatch("searchingPhenotype", phenotype);
 				}
 
-				//working part
 				///This part is for a case of the region being a variant
 				if (
 					this.apiParameters.query.format.includes("region") ==
@@ -738,7 +741,6 @@ export default Vue.component("research-page-filters", {
 						document.getElementById("search_param_region").value
 					)
 				) {
-					console.log("fire 1");
 					let currentRegion = document
 						.getElementById("search_param_region")
 						.value.split(":");
@@ -777,6 +779,8 @@ export default Vue.component("research-page-filters", {
 
 					// add to search parameters index
 					if (this.$store.state.dataComparison == "newSearch") {
+						//reset pkgData and selected filters
+						this.resetAll();
 						this.searchParamsIndex[param].search = [];
 						let sValue = document.getElementById(
 							"search_param_" + param

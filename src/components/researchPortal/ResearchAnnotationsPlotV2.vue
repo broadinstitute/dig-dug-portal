@@ -206,6 +206,7 @@
 				</div>
 			</div>
 		</div>
+		{{ searchingParameters }}
 	</div>
 </template>
 
@@ -223,6 +224,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	props: [
 		"region",
 		"phenotype",
+		"ancestry",
 		"renderConfig",
 		"plotMargin",
 		"compareGroupColors",
@@ -263,12 +265,30 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	computed: {
 		searchingParameters() {
+			let content = "";
 			if (
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
-				return this.searchingRegion + "," + this.searchingPhenotype;
+				let region =
+					this.searchingRegion.chr +
+					":" +
+					this.searchingRegion.start +
+					"-" +
+					this.searchingRegion.end;
+
+				content = region + "," + this.searchingPhenotype;
 			}
+
+			content += !!this.renderConfig["ancestry parameter"]
+				? "," +
+				  document.querySelector(
+						"#search_param_" +
+							this.renderConfig["ancestry parameter"]
+				  ).value
+				: "";
+
+			return content;
 		},
 		searchingRegion() {
 			let returnObj = {};
@@ -366,6 +386,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
+			console.log(PARAM);
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -1110,8 +1131,6 @@ export default Vue.component("research-annotations-plot-v2", {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
-						/*let pValue =
-							g.pValue == 0 ? 324 : -Math.log10(g.pValue);*/
 
 						let pValue = !!ancestry
 							? this.annoData[g.annotation][g.tissue][

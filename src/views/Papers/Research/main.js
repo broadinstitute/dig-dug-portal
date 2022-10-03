@@ -1098,7 +1098,7 @@ new Vue({
 
                         }
 
-                        console.log("this.dataFilesLabels", this.dataFilesLabels);
+                        //console.log("this.dataFilesLabels", this.dataFilesLabels);
 
 
                         let initialData = dataFiles[0];

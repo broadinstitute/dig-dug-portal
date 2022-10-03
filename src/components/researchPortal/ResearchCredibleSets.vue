@@ -963,7 +963,7 @@ export default Vue.component("research-credible-sets-plot", {
 						  )
 						: CSJson.data;
 
-					if (this.pkgData != null) {
+					if (!!this.pkgData && !!this.pkgData.CSData) {
 						if (!this.pkgData.CSData[phenotype]) {
 							this.pkgData.CSData[phenotype] = {};
 						}
