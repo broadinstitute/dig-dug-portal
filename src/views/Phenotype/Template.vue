@@ -56,7 +56,14 @@
 					</div>
 				</div>
 			</div>
-
+			<div class="card mdkp-card">
+				<div class="card-body temporary-card">
+					<documentation
+						name="phenotype.page.subheader"
+						:content-fill="$parent.documentationMap"
+					></documentation>
+				</div>
+			</div>
 			<div v-if="$store.state.phenotype">
 				<div class="card mdkp-card">
 					<div class="card-body">
@@ -138,16 +145,11 @@
 							>
 								<div class="label">Closest Genes</div>
 							</filter-enumeration-control>
-            <div class="card mdkp-card">
-                <div class="card-body temporary-card">
-                    <documentation
-                        name="phenotype.page.subheader"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation>
-                </div>
-            </div>
+						</criterion-function-group>
+					</div>
+				</div>
 
-            <div v-if="$store.state.phenotype">
+				<!--<div v-if="$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
@@ -215,6 +217,7 @@
                                 :noIcon="false"
                             ></tooltip-documentation>
                         </h4>
+						<criterion-function-group>
 
 							<filter-pvalue-control :field="'pValue'">
 								<div class="label">P-Value (&le;)</div>
@@ -463,7 +466,7 @@
 							</template>
 						</criterion-function-group>
 					</div>
-				</div>
+				</div>-->
 			</div>
 		</div>
 
