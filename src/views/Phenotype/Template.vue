@@ -138,6 +138,83 @@
 							>
 								<div class="label">Closest Genes</div>
 							</filter-enumeration-control>
+            <div class="card mdkp-card">
+                <div class="card-body temporary-card">
+                    <documentation
+                        name="phenotype.page.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
+                </div>
+            </div>
+
+            <div v-if="$store.state.phenotype">
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Genome-wide single-variant associations for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card" style="width: 95%; border: 0">
+                                    <raw-img
+                                        id="manhattanPlot"
+                                        :src="$parent.manhattanPlot"
+                                        alt="Manhattan Plot"
+                                        :documentation="'phenotype.associationplots.manhattan'"
+                                        :content-fill="
+                                            $store.getters['documentationMap']
+                                        "
+                                        :customFailureMsg="'No Manhattan plot available for this query.'"
+                                    />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card" style="width: 95%; border: 0">
+                                    <raw-img
+                                        id="qqPlot"
+                                        :src="$parent.qqPlot"
+                                        alt="QQ Plot"
+                                        :documentation="'phenotype.associationplots.qq'"
+                                        :content-fill="
+                                            $store.getters['documentationMap']
+                                        "
+                                        :customFailureMsg="'No Q-Q plot available for this query.'"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Top single-variant association signals for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                            <tooltip-documentation
+                                name="phenotype.topvariants.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
 
 							<filter-pvalue-control :field="'pValue'">
 								<div class="label">P-Value (&le;)</div>
@@ -177,6 +254,23 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
+						<criterion-function-group>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <associations-table
+                                    :phenotypes="[$store.state.phenotype]"
+                                    :associations="
+                                        !$store.state.ancestry
+                                            ? $store.state.associations.data
+                                            : $store.state.ancestryGlobalAssoc
+                                                  .data
+                                    "
+                                    :filter="filter"
+                                    :per-page="10"
+                                ></associations-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
 
 						<criterion-function-group>
 							<filter-enumeration-control
@@ -250,6 +344,24 @@
 						</criterion-function-group>
 					</div>
 				</div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Datasets with genetic associations for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                        </h4>
+                        <documentation
+                            name="pheno.assocdatasets.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
 
 				<div class="card mdkp-card">
 					<div class="card-body">
@@ -287,6 +399,30 @@
 							>
 								<div class="label">Annotations</div>
 							</filter-enumeration-control>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Globally enriched annotations for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                            <tooltip-documentation
+                                name="phenotype.annot.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+                        <documentation
+                            name="pheno.globalenrich.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
 
 							<filter-enumeration-control
 								:field="'method'"
