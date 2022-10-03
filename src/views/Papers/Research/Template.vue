@@ -153,8 +153,7 @@
 							class="col-md-12"
 							v-if="
 								($parent.dataFilters != null &&
-									$parent.researchData != null &&
-									$store.state.filteredData != '') ||
+									$parent.researchData != null) ||
 								$parent.dataFiles.length > 1 ||
 								$parent.apiParameters != null
 							"

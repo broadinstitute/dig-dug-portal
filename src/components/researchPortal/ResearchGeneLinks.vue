@@ -6,6 +6,9 @@
 		>
 			<div class="col-md-12">
 				<div id="geneLinksUIWrapper">
+					<strong
+						>Filter associated variants by links to genes.
+					</strong>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -62,7 +65,15 @@
 				</div>
 			</div>
 			<div class="col-md-9 gene-link-plot-wrapper">
-				<div id="geneLinksPlotWrapper">
+				<div
+					id="geneLinksPlotWrapper"
+					:class="
+						pkgDataSelected.filter((s) => s.type == 'GLTissue')
+							.length == 0
+							? 'height-1px'
+							: 'height-auto'
+					"
+				>
 					<div id="GLInfoBox" class="hidden">
 						<div
 							id="info_box_close"
@@ -89,8 +100,11 @@
 					></canvas>
 				</div>
 			</div>
-			<div class="col-md-3 GL-plot-ui-wrapper reference-area">
-				<div v-if="GLData != null">
+			<div
+				class="col-md-3 GL-plot-ui-wrapper reference-area"
+				v-if="GLData != null"
+			>
+				<div>
 					<button
 						class="btn btn-sm btn-outline-secondary"
 						style="margin-right: 5px; margin-bottom: 10px"
@@ -1098,6 +1112,12 @@ $(function () {});
 </script>
 
 <style>
+.height-1px {
+	height: 1px !important;
+}
+.height-auto {
+	height: auto;
+}
 .GL-search-bubble {
 	background-color: #999999;
 	font-size: 12px;
@@ -1130,6 +1150,7 @@ $(function () {});
 .GL-plot-ui-wrapper {
 	display: inline-block;
 	vertical-align: top;
+	height: auto;
 }
 .anno-bubble-wrapper {
 	width: auto;
