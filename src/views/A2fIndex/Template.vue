@@ -33,9 +33,9 @@
 										"
 									/>
 									<br />
-									<span class="a2f-front-tagline"
-										>Transforming Data into Knowledge</span
-									>
+									<span class="a2f-front-tagline">{{
+										$parent.frontContents.field_tagline
+									}}</span>
 								</div>
 							</div>
 						</div>

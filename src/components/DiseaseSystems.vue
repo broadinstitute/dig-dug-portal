@@ -578,8 +578,26 @@ export default Vue.component("disease-systems", {
 
 		getCustomPhenotypes() {
 			let customPhsSet = userUtils.getPhenotypes();
+
 			let selectedDisease = !!customPhsSet ? customPhsSet.id : null;
 			let selectedPhs = !!customPhsSet ? customPhsSet.list : null;
+
+			if (
+				!!selectedDisease &&
+				!!selectedDisease.includes("Phenotype group")
+			) {
+				let groupArr = selectedDisease.split(":");
+				let groups = groupArr[1].split(",");
+				if (groups.length > 2) {
+					selectedDisease =
+						"Phenotype groups:" +
+						groups[0] +
+						"+" +
+						(groups.length - 2);
+				} else {
+					selectedDisease = "Phenotype group:" + groups[0];
+				}
+			}
 
 			this.selectedDisease = selectedDisease;
 
@@ -604,17 +622,11 @@ export default Vue.component("disease-systems", {
 					this.selectedDisease = "Disease: " + this.selectedDisease;
 					break;
 				case "group":
-					let firstInGroup = this.selectedGroups[0];
-					let restOfGroups =
-						this.selectedGroups.length > 1
-							? " +" +
-							  (this.selectedGroups.length - 1) +
-							  " groups"
-							: "";
-
-					console.log("restOfGroups", restOfGroups);
-					this.selectedDisease =
-						"Phenotype groups: " + firstInGroup + restOfGroups;
+					let groups = "";
+					this.selectedGroups.map((g) => {
+						groups += g + ",";
+					});
+					this.selectedDisease = "Phenotype groups: " + groups;
 					break;
 				case "correlation":
 					this.selectedDisease =
@@ -652,6 +664,20 @@ export default Vue.component("disease-systems", {
 
 			userUtils.savePhenotypes(customPhList);
 
+			if (!!id.includes("Phenotype group")) {
+				let groupArr = id.split(":");
+				let groups = groupArr[1].split(",");
+				if (groups.length > 2) {
+					id =
+						"Phenotype groups:" +
+						groups[0] +
+						"+" +
+						(groups.length - 2);
+				} else {
+					id = "Phenotype group:" + groups[0];
+				}
+			}
+
 			this.$store.dispatch("phenotypesInSession", phList);
 			this.$store.dispatch("diseaseInSession", id);
 
@@ -674,6 +700,19 @@ export default Vue.component("disease-systems", {
 				this.focusBy = "correlation";
 			} else if (TYPE == "group") {
 				this.focusBy = "group";
+				let customPhsSet = userUtils.getPhenotypes();
+				//let selectedDisease = !!customPhsSet ? customPhsSet.id : null;
+				//let selectedPhs = !!customPhsSet ? customPhsSet.list : null;
+
+				if (!!customPhsSet.id.includes("Phenotype group")) {
+					let groups = customPhsSet.id.split(":")[1].split(",");
+					groups.map((g) => {
+						if (g != "") {
+							this.selectedGroups.push(g.trim());
+						}
+					});
+					console.log("this.selectedGroups", this.selectedGroups);
+				}
 			}
 		},
 		getPhenotypes() {
