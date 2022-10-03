@@ -12,7 +12,7 @@
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div class="col filter-col-lg hidden">
-                    <div class="label">Search by phenotype</div>
+                    <div class="label">Phenotype</div>
                     <phenotype-selectpicker
                         v-if="$store.state.phenotype"
                         :phenotypes="$store.state.bioPortal.phenotypes"
@@ -20,21 +20,25 @@
                 </div>
                 <div class="col filter-col-md hidden">
                     <div class="label">Ancestry</div>
-                    <ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
-                                        (dataset) => dataset.ancestry
-                                    )"></ancestry-selectpicker>
+                    <ancestry-selectpicker
+                        :ancestries="
+                            $store.state.bioPortal.datasets.map(
+                                (dataset) => dataset.ancestry
+                            )
+                        "
+                    ></ancestry-selectpicker>
                 </div>
                 <div class="region-search col filter-col-md hidden">
-						<div class="label">Search</div>
-						<button
-							id="regionSearchGo"
-							class="btn btn-light btn-sm go"
-							type="button"
-							@click="$store.dispatch('queryPhenotype')"
-						>
-							GO
-						</button>
-					</div>
+                    <div class="label">Search</div>
+                    <button
+                        id="regionSearchGo"
+                        class="btn btn-light btn-sm go"
+                        type="button"
+                        @click="$store.dispatch('queryPhenotype')"
+                    >
+                        GO
+                    </button>
+                </div>
             </search-header-wrapper>
 
             <div class="gene-page-header card mdkp-card">
@@ -51,13 +55,29 @@
                 </div>
             </div>
 
+            <div class="card mdkp-card">
+                <div class="card-body temporary-card">
+                    <documentation
+                        name="phenotype.page.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
+                </div>
+            </div>
+
             <div v-if="$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
                             Genome-wide single-variant associations for
                             {{ $store.state.phenotype.description }}
-                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
                         </h4>
                         <div class="row">
                             <div class="col-md-6">
@@ -67,8 +87,10 @@
                                         :src="$parent.manhattanPlot"
                                         alt="Manhattan Plot"
                                         :documentation="'phenotype.associationplots.manhattan'"
-                                        :content-fill="$store.getters['documentationMap']"
-                                        :customFailureMsg = "'No Manhattan plot available for this query.'"
+                                        :content-fill="
+                                            $store.getters['documentationMap']
+                                        "
+                                        :customFailureMsg="'No Manhattan plot available for this query.'"
                                     />
                                 </div>
                             </div>
@@ -79,8 +101,10 @@
                                         :src="$parent.qqPlot"
                                         alt="QQ Plot"
                                         :documentation="'phenotype.associationplots.qq'"
-                                        :content-fill="$store.getters['documentationMap']"
-                                        :customFailureMsg = "'No Q-Q plot available for this query.'"
+                                        :content-fill="
+                                            $store.getters['documentationMap']
+                                        "
+                                        :customFailureMsg="'No Q-Q plot available for this query.'"
                                     />
                                 </div>
                             </div>
@@ -93,7 +117,14 @@
                         <h4 class="card-title">
                             Top single-variant association signals for
                             {{ $store.state.phenotype.description }}
-                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
                             <tooltip-documentation
                                 name="phenotype.topvariants.tooltip"
                                 :content-fill="$parent.documentationMap"
@@ -127,8 +158,10 @@
                                 <associations-table
                                     :phenotypes="[$store.state.phenotype]"
                                     :associations="
-                                        !$store.state.ancestry ? $store.state.associations.data 
-                                        : $store.state.ancestryGlobalAssoc.data
+                                        !$store.state.ancestry
+                                            ? $store.state.associations.data
+                                            : $store.state.ancestryGlobalAssoc
+                                                  .data
                                     "
                                     :filter="filter"
                                     :per-page="10"
@@ -189,7 +222,14 @@
                         <h4 class="card-title">
                             Datasets with genetic associations for
                             {{ $store.state.phenotype.description }}
-                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
                         </h4>
                         <documentation
                             name="pheno.assocdatasets.subheader"
@@ -223,7 +263,14 @@
                         <h4 class="card-title">
                             Globally enriched annotations for
                             {{ $store.state.phenotype.description }}
-                            (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
                             <tooltip-documentation
                                 name="phenotype.annot.tooltip"
                                 :content-fill="$parent.documentationMap"
