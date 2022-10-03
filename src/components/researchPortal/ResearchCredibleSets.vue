@@ -311,7 +311,8 @@ export default Vue.component("research-credible-sets-plot", {
 	methods: {
 		...uiUtils,
 		resetAll() {
-			//this.credibleSets = [];
+			console.log("this.credibleSets", this.credibleSets);
+			this.credibleSets = [];
 			this.CSData = {};
 			this.CSPosData = {};
 			this.test = null;
