@@ -197,6 +197,25 @@
 			>
 				<div class="filtering-ui-content">
 					<div class="col filter-col-md">
+						<div class="label">Select disease system</div>
+						<select
+							class="select-disease form-control form-control-sm"
+							v-model="PBuilderDSystem"
+						>
+							<template v-for="system in diseaseSystems">
+								<option
+									class="disease-name"
+									:value="system"
+									:selected="
+										system == selectedDisease ? true : false
+									"
+								>
+									{{ system }}
+								</option>
+							</template>
+						</select>
+					</div>
+					<div class="col filter-col-md">
 						<div class="label">Select disease</div>
 						<select
 							class="select-disease form-control form-control-sm"
@@ -205,11 +224,9 @@
 							"
 						>
 							<template v-for="system in diseaseSystems">
-								<option class="disease-name" value="" disabled>
-									{{ system }}
-								</option>
 								<option
 									class="disease-name"
+									v-if="system == PBuilderDSystem"
 									v-for="disease in diseaseOptions(system)"
 									:value="disease"
 									:selected="
@@ -475,6 +492,7 @@ export default Vue.component("disease-systems", {
 			pCorPValue: 0.05,
 			pCorCorrelation: null,
 			pCorDirection: "pValue",
+			PBuilderDSystem: null,
 		};
 	},
 	components: { PhenotypeSelectPicker },
@@ -693,6 +711,11 @@ export default Vue.component("disease-systems", {
 			if (TYPE == "disease") {
 				this.focusBy = "disease";
 				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
+
+				let system = this.diseases.filter(
+					(d) => d.disease == this.selectedDisease
+				)[0]["system"];
+				this.PBuilderDSystem = system.replaceAll(" system", "");
 			} else if (TYPE == "system") {
 				this.focusBy = "system";
 				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
