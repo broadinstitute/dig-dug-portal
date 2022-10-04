@@ -82,9 +82,9 @@ export default Vue.component("correlation-table", {
                 dataRows = dataRows.filter((row) => filter(row));
             }
             if (this.sortByCorrelation) {
-                dataRows.sort((a, b) => a['rg'] < b['rg']);
+                dataRows.sort((a, b) => b['rg'] - a['rg']);
             } else {
-                dataRows.sort((a, b) => a['pValue'] > b['pValue']);
+                dataRows.sort((a, b) => a['pValue'] - b['pValue']);
             }
             return dataRows;
         },
