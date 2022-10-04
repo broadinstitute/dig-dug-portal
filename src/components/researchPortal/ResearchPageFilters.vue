@@ -688,12 +688,17 @@ export default Vue.component("research-page-filters", {
 			return classes;
 		},
 		getFileLabel(file, PARAMETER) {
-			if (this.filesListLabels != null) {
-				if (!!PARAMETER) {
-					return this.filesListLabels[PARAMETER][file];
-				} else {
-					return this.filesListLabels[file];
-				}
+			if (
+				this.filesListLabels != null &&
+				this.filesListLabels[PARAMETER] &&
+				this.filesListLabels[PARAMETER][file]
+			) {
+				return this.filesListLabels[PARAMETER][file];
+			} else if (
+				this.filesListLabels != null &&
+				this.filesListLabels[file]
+			) {
+				return this.filesListLabels[file];
 			} else {
 				return file;
 			}
