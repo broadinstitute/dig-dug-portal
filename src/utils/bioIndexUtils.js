@@ -30,10 +30,10 @@ export function apiUrl(path, query_private = false) {
     }
 
     if (query_private) {
-        console.log("query_private:", query_private);
+        console.log("query_private:", query_private, path);
         return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
     } else {
-        console.log("query_private is false:", query_private);
+        console.log("query_private is false:", query_private, path);
         return `${BIO_INDEX_HOST}/${path}`;
     }
 }

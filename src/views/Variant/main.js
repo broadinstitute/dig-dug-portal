@@ -199,42 +199,6 @@ new Vue({
             if (data.length > 0) {
                 this.$store.commit("setVariant", data[0]); // only ever 1 result
             }
-        },
-
-        "$store.state.ancestry"(ancestry){
-            keyParams.set({ancestry: ancestry});
-            if(ancestry){
-                this.$store.dispatch("ancestryPhewas/query", 
-                    { q: `${this.$store.state.ancestry},${this.$store.state.variant.varId}` });
-            } else {
-                this.$store.dispatch("phewas/query", { q: this.$store.state.variant.varId });
-            }
-        },
-
-        "$store.state.variant"(variant) {
-            if (variant) {
-                let p = this.chromPos;
-
-                // phewas can be with or without ancestry
-                if(this.$store.state.ancestry) {
-                    this.$store.dispatch("ancestryPhewas/query", 
-                    { q: `${this.$store.state.ancestry},${variant.varId}` });
-                } else {
-                    this.$store.dispatch("phewas/query", { q: variant.varId });
-                }
-                this.$store.dispatch("transcriptConsequences/query", {
-                    q: variant.varId
-                });
-                this.$store.dispatch("transcriptionFactors/query", {
-                    q: variant.varId
-                });
-                this.$store.dispatch("regions/query", {
-                    q: `${p.chromosome}:${p.position}`
-                });
-                this.$store.dispatch("datasetAssociations/query", {
-                    q: variant.varId
-                });
-            }
         }
     }
 }).$mount("#app");
