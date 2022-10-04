@@ -269,6 +269,13 @@
 			</div>
 			<div class="card mdkp-card" v-if="$store.state.ancestry">
 				<div class="card-body">
+					<a
+						v-if="$store.state.ancestryAssoc.data.length > 0 && $parent.isSifterAncestry()"
+						:href="
+							`/research.html?pageid=kp_variant_sifter_ancestry&phenotype=${$parent.selectedPhenotypes[0].name}&ancestry=${$store.state.ancestry}&region=${$store.state.chr}:${$store.state.start}-${$store.state.end}`"
+						class="btn btn-primary link-to-vs"
+						>Prioritize variants in this region&nbsp;&nbsp;</a
+					>
 					<h4>Associations (Ancestry: {{$parent.ancestryFormatter($store.state.ancestry)}})</h4>
 					<associations-table
 							id="ancestry-associations-table"
