@@ -206,7 +206,6 @@
 				</div>
 			</div>
 		</div>
-		{{ searchingParameters }}
 	</div>
 </template>
 
@@ -418,10 +417,13 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	methods: {
 		...uiUtils,
-		resetAll() {
+		resetAll(TYPE) {
+			if (!!TYPE && TYPE == "all") {
+				this.GEData = {};
+				this.GEPosData = {};
+			}
+
 			this.annoData = {};
-			this.GEData = {};
-			this.GEPosData = {};
 			this.tissuesData = {};
 			this.tissuesPosData = {};
 			this.selectedAnnos = [];
@@ -1099,6 +1101,8 @@ export default Vue.component("research-annotations-plot-v2", {
 							this.renderConfig["ancestry parameter"]
 				  ).value
 				: null;
+
+			console.log("this.GEData", this.GEData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
