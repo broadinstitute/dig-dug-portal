@@ -280,7 +280,7 @@
 					>
 				</div>
 			</div>
-			<div class="card mdkp-card">
+			<div class="card mdkp-card" v-if="!$store.state.ancestry">
 				<div class="card-body">
 					<documentation
 						name="region.lz.subheader"
