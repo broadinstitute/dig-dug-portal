@@ -213,7 +213,6 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 import keyParams from "@/utils/keyParams";
@@ -224,6 +223,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	props: [
 		"region",
 		"phenotype",
+		"ancestry",
 		"renderConfig",
 		"plotMargin",
 		"compareGroupColors",
@@ -264,12 +264,30 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	computed: {
 		searchingParameters() {
+			let content = "";
 			if (
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
-				return this.searchingRegion + "," + this.searchingPhenotype;
+				let region =
+					this.searchingRegion.chr +
+					":" +
+					this.searchingRegion.start +
+					"-" +
+					this.searchingRegion.end;
+
+				content = region + "," + this.searchingPhenotype;
 			}
+
+			content += !!this.renderConfig["ancestry parameter"]
+				? "," +
+				  document.querySelector(
+						"#search_param_" +
+							this.renderConfig["ancestry parameter"]
+				  ).value
+				: "";
+
+			return content;
 		},
 		searchingRegion() {
 			let returnObj = {};
@@ -367,6 +385,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
+			console.log(PARAM);
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -398,10 +417,13 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	methods: {
 		...uiUtils,
-		resetAll() {
+		resetAll(TYPE) {
+			if (!!TYPE && TYPE == "all") {
+				this.GEData = {};
+				this.GEPosData = {};
+			}
+
 			this.annoData = {};
-			this.GEData = {};
-			this.GEPosData = {};
 			this.tissuesData = {};
 			this.tissuesPosData = {};
 			this.selectedAnnos = [];
@@ -900,6 +922,8 @@ export default Vue.component("research-annotations-plot-v2", {
 					Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 				}
 
+				//console.log("this.pkgData", this.pkgData);
+
 				this.renderByAnnotations();
 				this.renderGE();
 			}
@@ -1067,8 +1091,18 @@ export default Vue.component("research-annotations-plot-v2", {
 			}
 		},
 		renderGE() {
+			//working part
+
 			this.GEPosData = {};
 			let sortedGEData = {};
+			let ancestry = !!this.renderConfig["ancestry parameter"]
+				? document.querySelector(
+						"#search_param_" +
+							this.renderConfig["ancestry parameter"]
+				  ).value
+				: null;
+
+			console.log("this.GEData", this.GEData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
@@ -1079,12 +1113,37 @@ export default Vue.component("research-annotations-plot-v2", {
 				};
 
 				GE.map((g) => {
-					if (!!this.annoData[g.annotation][g.tissue]) {
+					let meetCondition = null;
+
+					if (
+						!!ancestry &&
+						!!this.annoData[g.annotation][g.tissue] &&
+						!!this.annoData[g.annotation][g.tissue]["ancestries"][
+							ancestry
+						]
+					) {
+						meetCondition = true;
+					} else if (
+						!ancestry &&
+						!!this.annoData[g.annotation][g.tissue] &&
+						!!this.annoData[g.annotation][g.tissue]
+					) {
+						meetCondition = true;
+					}
+
+					if (!!meetCondition) {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
-						let pValue =
-							g.pValue == 0 ? 324 : -Math.log10(g.pValue);
+
+						let pValue = !!ancestry
+							? this.annoData[g.annotation][g.tissue][
+									"ancestries"
+							  ][ancestry][phenotype]
+							: g.pValue;
+
+						pValue = pValue == 0 ? 324 : -Math.log10(pValue);
+
 						let fold = g.SNPs / g.expectedSNPs;
 
 						sortedGEData[phenotype].yMax =

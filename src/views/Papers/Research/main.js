@@ -1081,6 +1081,7 @@ new Vue({
                             })
                         }
 
+                        this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
 
                         if (isKPPhenotype == true) {
                             let kpPhenotypes = this.$store.state.bioPortal.phenotypes
@@ -1090,11 +1091,14 @@ new Vue({
                                 tempObj[p.name] = p.description;
                             });
 
-                            this.dataFilesLabels = tempObj;
+                            // if there is data files lables filed is empty (null)
+                            this.dataFilesLabels = (!this.dataFilesLabels) ? {} : this.dataFilesLabels;
 
-                        } else {
-                            this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+                            this.dataFilesLabels["phenotype"] = tempObj;
+
                         }
+
+                        //console.log("this.dataFilesLabels", this.dataFilesLabels);
 
 
                         let initialData = dataFiles[0];
