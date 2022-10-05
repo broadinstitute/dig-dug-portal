@@ -15,6 +15,7 @@ import GeneFinderTable from "@/components/GeneFinderTable.vue";
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
+import PathwayTable from "@/components/PathwayTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
@@ -50,6 +51,7 @@ new Vue({
         EnrichmentTable,
         DatasetsTable,
         CorrelationTable,
+        PathwayTable,
         Documentation,
         RawImage,
 

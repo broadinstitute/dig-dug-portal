@@ -217,24 +217,49 @@
 					</div>
 				</div>
 
-				<div class="card mdkp-card">
-					<div class="card-body">
-						<h4 class="card-title">
-							Datasets with genetic associations for
-							{{ $store.state.phenotype.description }}
-							(Ancestry:
-							{{
-								$store.state.ancestry == ""
-									? "All"
-									: $parent.ancestryFormatter(
-											$store.state.ancestry
-									  )
-							}})
-						</h4>
-						<documentation
-							name="pheno.assocdatasets.subheader"
-							:content-fill="$parent.documentationMap"
-						></documentation>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Top pathways for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                        </h4>
+                        <criterion-function-group>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <pathway-table
+                                    :pathwayData="$store.state.pathwayAssoc.data"
+                                    :filter="filter"
+                                ></pathway-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
+
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Datasets with genetic associations for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                        </h4>
+                        <documentation
+                            name="pheno.assocdatasets.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
 
 						<criterion-function-group>
 							<filter-enumeration-control
