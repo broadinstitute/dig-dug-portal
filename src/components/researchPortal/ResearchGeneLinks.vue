@@ -669,6 +669,14 @@ export default Vue.component("research-gene-links-plot", {
 				CTX.stroke();
 			});
 		},
+		array2Object(KEY, ARRAY) {
+			var convertedObj = {};
+			ARRAY.map((a) => {
+				let key = a[KEY];
+				convertedObj[key] = a;
+			});
+			return convertedObj;
+		},
 		renderGLPlot() {
 			if (
 				!!this.pkgData.GLData &&
@@ -725,7 +733,7 @@ export default Vue.component("research-gene-links-plot", {
 						"#geneLinksPlotWrapper"
 					).clientWidth;
 
-					console.log("GL canvas", canvasWidth);
+					//console.log("GL canvas", canvasWidth);
 
 					let canvasHeight = tempHeight + topMargin + bottomMargin;
 

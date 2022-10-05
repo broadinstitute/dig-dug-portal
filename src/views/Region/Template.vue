@@ -54,9 +54,13 @@
 					</div>
 					<div class="region-search col filter-col-md">
 						<div class="label">Ancestry</div>
-						<ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
-                                        (dataset) => dataset.ancestry
-                                    )"></ancestry-selectpicker>
+						<ancestry-selectpicker
+							:ancestries="
+								$store.state.bioPortal.datasets.map(
+									(dataset) => dataset.ancestry
+								)
+							"
+						></ancestry-selectpicker>
 					</div>
 					<div class="region-search col filter-col-md">
 						<div class="label">Search</div>
@@ -151,7 +155,14 @@
 					<h4 class="card-title">
 						Most significant variant associations in the region:
 						{{ $parent.regionString }}
-						(Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})
+						(Ancestry:
+						{{
+							$store.state.ancestry == ""
+								? "All"
+								: $parent.ancestryFormatter(
+										$store.state.ancestry
+								  )
+						}})
 						<tooltip-documentation
 							name="region.mostsignificantassoc.header.tooltip"
 							:isHover="true"
@@ -268,18 +279,37 @@
 			</div>
 			<div class="card mdkp-card" v-if="$store.state.ancestry">
 				<div class="card-body">
-					<h4>Associations (Ancestry: {{$parent.ancestryFormatter($store.state.ancestry)}})</h4>
-					<associations-table
-							id="ancestry-associations-table"
-							:phenotypes="$parent.selectedPhenotypes"
-							:associations="$store.state.ancestryAssoc.data"
-							:filter="$parent.associationsFilter"
-							:exclusive="false"
-						></associations-table
+					<h4>
+						Variants in region (Ancestry:
+						{{ $parent.ancestryFormatter($store.state.ancestry) }})
+						&nbsp;<tooltip-documentation
+							name="region.topassoc.tooltip"
+							:isHover="true"
+							:noIcon="false"
+						></tooltip-documentation>
+					</h4>
+					<documentation
+						name="region.variantassociation.subheader"
+					></documentation>
+					<a
+						v-if="
+							$store.state.ancestryAssoc.data.length > 0 &&
+							$parent.isSifterAncestry()
+						"
+						:href="`/research.html?pageid=kp_variant_sifter_ancestry&phenotype=${$parent.selectedPhenotypes[0].name}&ancestry=${$store.state.ancestry}&region=${$store.state.chr}:${$store.state.start}-${$store.state.end}`"
+						class="btn btn-primary link-to-vs ancestry"
+						>Prioritize variants in this region&nbsp;&nbsp;</a
 					>
+					<associations-table
+						id="ancestry-associations-table"
+						:phenotypes="$parent.selectedPhenotypes"
+						:associations="$store.state.ancestryAssoc.data"
+						:filter="$parent.associationsFilter"
+						:exclusive="false"
+					></associations-table>
 				</div>
 			</div>
-			<div class="card mdkp-card">
+			<div class="card mdkp-card" v-if="!$store.state.ancestry">
 				<div class="card-body">
 					<documentation
 						name="region.lz.subheader"
@@ -544,6 +574,11 @@
 	background-image: url(/images/icons/new.svg);
 	background-repeat: no-repeat;
 	background-position: top right;
+}
+
+.link-to-vs.ancestry {
+	float: left;
+	margin-top: -8px;
 }
 
 .link-to-vs:hover {

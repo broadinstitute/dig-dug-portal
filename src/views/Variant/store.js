@@ -58,32 +58,35 @@ export default new Vuex.Store({
     actions: {
         async queryVariant(context, newVarId) {
             context.state.ancestry = context.state.selectedAncestry;
+            keyParams.set({ ancestry: context.state.selectedAncestry });
             newVarId = await variantUtils.parseVariant(
                 newVarId || context.state.newVariantId
             );
 
             if (!!newVarId) {
-                context.dispatch("variantData/query", { q: newVarId });
+                await context.dispatch("variantData/query", { q: newVarId });
                 context.state.badSearch = false;
+                context.dispatch("queryAll");
             } else {
                 context.state.badSearch = true;
             }
-        },
-        // Do we need a new function here? Is this it?
-        async clumpedVariants(context, phenotype, clump) {
-            let query = phenotype + "," + clump;
-            context.dispatch("clumpedVariants/query", { q: query });
-        },
-        // For custom phenotypes
-        phenotypesInSession(context, PHENOTYPES) {
-            context.commit("setPhenotypesInSession", PHENOTYPES);
-        },
-        diseaseInSession(context, DISEASE) {
-            context.commit("setDiseaseInSession", DISEASE);
-        },
-        phenotypeCorrelation(context, DATA) {
-            context.commit("setPhenotypeCorrelation", DATA);
-        },
 
+        },
+        queryAll(context) {
+            let ancestry = context.state.ancestry;
+            let varId = context.state.variant.varId;
+            let chromosome = varId.split(":")[0];
+            let position = parseInt(varId.split(":")[1]);
+            // phewas can be with or without ancestry
+            if (!!ancestry) {
+                context.dispatch("ancestryPhewas/query", { q: `${ancestry},${varId}` });
+            } else {
+                context.dispatch("phewas/query", { q: varId });
+            }
+            context.dispatch("transcriptConsequences/query", { q: varId });
+            context.dispatch("transcriptionFactors/query", { q: varId });
+            context.dispatch("regions/query", { q: `${chromosome}:${position}` });
+            context.dispatch("datasetAssociations/query", { q: varId });
+        }
     }
 });

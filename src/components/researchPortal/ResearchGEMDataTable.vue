@@ -505,7 +505,7 @@ export default Vue.component("research-gem-data-table", {
 						isBiosample = true;
 					}
 				});
-				//working part
+
 				!!isBiosample
 					? (newTableFormat["Biosamples"] = ["Biosamples:array"])
 					: "";
@@ -830,7 +830,7 @@ export default Vue.component("research-gem-data-table", {
 			///Filter data if biosamples
 
 			// get list of BS methods and sources to filter them out
-			//working part
+
 			let removedBSMethods = this.$store.state.pkgDataSelected
 				.filter((s) => s.type == "BS-Method")
 				.map((s) => s.id);
@@ -1005,7 +1005,6 @@ export default Vue.component("research-gem-data-table", {
 					if (!!updatedData[vKey]) {
 						/// feed "Biosample" column content
 						//let tissueColmContent = "";
-						//working part
 
 						for (const [biosample, annotations] of Object.entries(
 							biosampleContent
@@ -1047,7 +1046,7 @@ export default Vue.component("research-gem-data-table", {
 							let a = bsArr[0];
 							let t = bsArr[1];
 							let b = bsArr[2];
-							//working part
+
 							let inAnnotation = 0;
 
 							this.pkgData.biosamplesData[a][t][b].map((r) => {
@@ -1198,6 +1197,7 @@ export default Vue.component("research-gem-data-table", {
 			///Let's filter data by linked genes
 			///This is a messy solution but easier to understand
 
+			console.log('this.pkgData["GLData"]', this.pkgData["GLData"]);
 			if (
 				!!this.pkgData["GLData"] &&
 				Object.keys(this.pkgData["GLData"]).length > 0
@@ -1236,6 +1236,15 @@ export default Vue.component("research-gem-data-table", {
 				let removedMethods = this.$store.state.pkgDataSelected
 					.filter((s) => s.type == "GL-Method")
 					.map((s) => s.id);
+
+				// working part
+
+				updatedData = !!Array.isArray(updatedData)
+					? this.array2Object(
+							this.tableFormat["star column"],
+							updatedData
+					  )
+					: updatedData;
 
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let position = vValue["Position"];
@@ -1698,10 +1707,18 @@ export default Vue.component("research-gem-data-table", {
 			}
 			return arrayedObject;
 		},
-		array2Object(DATASET, RAW_DATASET, KEY) {
+		array2Object(KEY, ARRAY) {
+			var convertedObj = {};
+			ARRAY.map((a) => {
+				let key = a[KEY];
+				convertedObj[key] = a;
+			});
+			return convertedObj;
+		},
+		array2Object4Filter(DATASET, RAW_DATASET, KEY) {
 			let objectedArray = {};
 			DATASET.map((d) => {
-				let keyField = d[this.dataComparisonConfig["key field"]];
+				let keyField = d[KEY];
 				objectedArray[keyField] = RAW_DATASET[keyField];
 			});
 
@@ -1748,7 +1765,11 @@ export default Vue.component("research-gem-data-table", {
 				let returnData =
 					this.dataComparisonConfig == null
 						? sortedValues
-						: this.array2Object(sortedValues, this.dataset, key);
+						: this.array2Object4Filter(
+								sortedValues,
+								this.dataset,
+								this.dataComparisonConfig["key field"]
+						  );
 				this.$store.dispatch("filteredData", returnData);
 			} else if (key == this.newTableFormat["locus field"]) {
 				let sortKey = this.newTableFormat["locus field"];
