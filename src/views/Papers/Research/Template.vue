@@ -154,6 +154,7 @@
 							class="col-md-12"
 							v-if="
 								($parent.dataFilters != null &&
+									$parent.dataFilesLabels != null &&
 									$parent.researchData != null) ||
 								$parent.dataFiles.length > 1 ||
 								$parent.apiParameters != null
@@ -163,7 +164,7 @@
 								:dataFiles="$parent.dataFiles"
 								:filesListLabels="
 									$parent.dataFiles.length > 1 ||
-									$parent.dataFilesLabels != false
+									$parent.dataFilesLabels != null
 										? $parent.dataFilesLabels
 										: null
 								"

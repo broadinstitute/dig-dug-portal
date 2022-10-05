@@ -173,12 +173,32 @@
 								openPhenotypesBuilder(null, $event, 'system')
 							"
 						>
+							<option
+								v-if="
+									!diseaseSystems.includes(
+										selectedDisease.replaceAll(
+											'Disease system: ',
+											''
+										)
+									)
+								"
+								class="disease-name"
+								value=""
+							>
+								Select one
+							</option>
 							<template v-for="system in diseaseSystems">
 								<option
 									class="disease-name"
 									:value="system"
 									:selected="
-										system == selectedDisease ? true : false
+										system ==
+										selectedDisease.replaceAll(
+											'Disease system: ',
+											''
+										)
+											? true
+											: false
 									"
 								>
 									{{ system }}
@@ -202,6 +222,9 @@
 							class="select-disease form-control form-control-sm"
 							v-model="PBuilderDSystem"
 						>
+							<option class="disease-name" value="">
+								Select one
+							</option>
 							<template v-for="system in diseaseSystems">
 								<option
 									class="disease-name"
@@ -215,6 +238,7 @@
 							</template>
 						</select>
 					</div>
+					{{ selectedDisease + " : " + PBuilderDSystem }}
 					<div class="col filter-col-md">
 						<div class="label">Select disease</div>
 						<select
@@ -223,20 +247,24 @@
 								openPhenotypesBuilder(null, $event, 'disease')
 							"
 						>
+							<option class="disease-name" value="">
+								Select one
+							</option>
 							<template v-for="system in diseaseSystems">
-								<option
+								{{ system }}
+								<!--<option
 									class="disease-name"
 									v-if="system == PBuilderDSystem"
 									v-for="disease in diseaseOptions(system)"
 									:value="disease"
 									:selected="
-										disease == selectedDisease
+										disease == selectedDisease.replaceAll("Disease: ","")
 											? true
 											: false
 									"
 								>
 									{{ disease }}
-								</option>
+								</option>-->
 							</template>
 						</select>
 					</div>
@@ -712,8 +740,12 @@ export default Vue.component("disease-systems", {
 				this.focusBy = "disease";
 				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
 
+				//console.log("this.selectedDisease-1", this.selectedDisease);
+
 				let system = this.diseases.filter(
-					(d) => d.disease == this.selectedDisease
+					(d) =>
+						d.disease ==
+						this.selectedDisease.replaceAll("Disease: ", "")
 				)[0]["system"];
 				this.PBuilderDSystem = system.replaceAll(" system", "");
 			} else if (TYPE == "system") {
@@ -816,6 +848,7 @@ export default Vue.component("disease-systems", {
 			return "https://" + ID + "." + host;
 		},
 		diseaseOptions(ID) {
+			console.log("id", ID);
 			let diseaseSystems = [
 				...new Set(
 					this.diseases

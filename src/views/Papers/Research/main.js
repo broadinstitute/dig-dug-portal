@@ -73,7 +73,6 @@ new Vue({
             devID: null,
             devPW: null,
             dataFiles: [],
-            dataFilesLabels: null,
             dataTableFormat: null,
             colors: {
                 moderate: [
@@ -663,14 +662,14 @@ new Vue({
 
                 let parameters = apiConfig.parameters;
 
+
+
                 parameters.map(pr => {
                     if (pr.parameter == 'phenotype' && pr.values == "kp phenotypes") {
                         let values = this.phenotypesInSession.map(p => p.name).sort();
                         pr.values = values;
                     }
                 });
-
-
 
                 return apiConfig;
             }
@@ -1010,7 +1009,36 @@ new Vue({
             if (contents != null) {
                 return JSON.parse(contents);
             }
-        }
+        },
+        dataFilesLabels() {
+            let contents = this.researchPage;
+            let content;
+            if (contents === null || this.$store.state.bioPortal.phenotypes == null) {
+                return null;
+            } else {
+                if (contents[0]["field_data_points_list_labels"] == false) {
+                    content = {}
+                } else {
+                    content = JSON.parse(contents[0]["field_data_points_list_labels"]);
+                }
+
+                if (this.apiParameters != null) {
+
+                    this.apiParameters["rawConfig"].parameters.map(pr => {
+                        if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
+                            let kpPhenotypes = this.$store.state.bioPortal.phenotypes
+                            content["phenotype"] = {}
+
+                            kpPhenotypes.map(p => {
+                                content["phenotype"][p.name] = p.description;
+                            });
+                        }
+                    })
+                }
+            }
+
+            return content;
+        },
     },
 
     watch: {
@@ -1087,40 +1115,6 @@ new Vue({
 
                         this.dataFiles = dataFiles;
 
-                        /// in case of phenotypes == kp phenotypes
-
-                        let apis = JSON.parse(content[0]["field_api_parameters"]);
-
-                        let isKPPhenotype = false;
-
-                        if (!!apis) {
-                            apis.parameters.map(pr => {
-                                if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
-                                    isKPPhenotype = true;
-                                }
-                            })
-                        }
-
-                        this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
-
-                        if (isKPPhenotype == true) {
-                            let kpPhenotypes = this.phenotypesInSession
-                            let tempObj = {};
-
-                            kpPhenotypes.map(p => {
-                                tempObj[p.name] = p.description;
-                            });
-
-                            // if there is data files lables filed is empty (null)
-                            this.dataFilesLabels = (!this.dataFilesLabels) ? {} : this.dataFilesLabels;
-
-                            this.dataFilesLabels["phenotype"] = tempObj;
-
-                        }
-
-                        //console.log("this.dataFilesLabels", this.dataFilesLabels);
-
-
                         let initialData = dataFiles[0];
 
                         let dataPoint = (initialData.includes("http://") || initialData.includes("https://")) ? initialData : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + initialData;
@@ -1158,6 +1152,7 @@ new Vue({
             }
 
         },
+
         researchData(content) {
 
             // reset searching region if applicable
