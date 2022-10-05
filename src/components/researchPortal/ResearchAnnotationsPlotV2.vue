@@ -213,6 +213,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import hostUtils from "@/utils/hostUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 import keyParams from "@/utils/keyParams";
@@ -417,6 +418,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	methods: {
 		...uiUtils,
+		...hostUtils,
 		resetAll(TYPE) {
 			if (!!TYPE && TYPE == "all") {
 				this.GEData = {};
@@ -842,7 +844,7 @@ export default Vue.component("research-annotations-plot-v2", {
 		async getGlobalEnrichment() {
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
+					? hostUtils.biDomain() + "/api/bio"
 					: this.renderConfig["annotations server"];
 
 			let phenotype = this.searchingPhenotype;
@@ -1025,6 +1027,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
+				/// replace to hostUtils.biDomain()+"/api/bio"
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"

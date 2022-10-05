@@ -179,6 +179,7 @@ import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
+import hostUtils from "@/utils/hostUtils";
 import alertUtils from "@/utils/alertUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
@@ -425,6 +426,7 @@ export default Vue.component("research-gene-links-plot", {
 		},
 	},
 	methods: {
+		...hostUtils,
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
 		resetAll() {
@@ -1043,7 +1045,7 @@ export default Vue.component("research-gene-links-plot", {
 			if (event.target.value != "") {
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? hostUtils.biDomain() + "/api/bio"
 						: this.renderConfig["gene links server"];
 
 				let tissue = event.target.value.replaceAll(" ", "_");
@@ -1093,7 +1095,7 @@ export default Vue.component("research-gene-links-plot", {
 			) {
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? hostUtils.biDomain() + "/api/bio"
 						: this.renderConfig["gene links server"];
 
 				let phenotype = this.searchingPhenotype;

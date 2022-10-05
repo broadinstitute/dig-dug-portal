@@ -353,6 +353,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import hostUtils from "@/utils/hostUtils";
 import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
@@ -574,6 +575,7 @@ export default Vue.component("research-biosamples-plot", {
 	},
 	methods: {
 		...uiUtils,
+		...hostUtils,
 		getSelectedParameters(PARAM) {
 			let arr = [
 				...new Set(
@@ -1116,7 +1118,7 @@ export default Vue.component("research-biosamples-plot", {
 		async getGlobalEnrichment() {
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
+					? hostUtils.biDomain() + "/api/bio"
 					: this.renderConfig["biosamples server"];
 
 			let phenotype = this.searchingPhenotype;
@@ -1317,7 +1319,7 @@ export default Vue.component("research-biosamples-plot", {
 			} else {
 				let biosamplesServer =
 					this.renderConfig["biosamples server"] == "KP BioIndex"
-						? "https://bioindex-dev.hugeamp.org/api/bio"
+						? hostUtils.biDomain() + "/api/bio"
 						: this.renderConfig["biosamples server"];
 
 				let biosamplesIndex = !!this.renderConfig["biosamples index"]
@@ -1362,7 +1364,7 @@ export default Vue.component("research-biosamples-plot", {
 		async loadContinue(CONTENT, ANNOTATION, TISSUE) {
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
-					? "https://bioindex-dev.hugeamp.org/api/bio"
+					? hostUtils.biDomain() + "/api/bio"
 					: this.renderConfig["biosamples server"];
 
 			let contURL =
@@ -1656,6 +1658,7 @@ export default Vue.component("research-biosamples-plot", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
+				///Update to 'hostUtils.biDomain() + "/api/bio"' before release
 				let biosamplesServer =
 					this.renderConfig["biosamples server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"

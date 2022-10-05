@@ -12,8 +12,21 @@ if (host !== 'localhost') {
     host = `${parts.pop()}.${host}`;
 }
 
+function biDomain() {
+    let content = url.port == ""
+        ? "https://bioindex.hugeamp.org"
+        : "https://bioindex-dev.hugeamp.org";
+
+    return content;
+}
+
+
 export default {
     url,
+
+    //BioIndex domain for BYOR
+
+    biDomain,
 
     // the domain name
     domain: host,
