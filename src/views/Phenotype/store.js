@@ -16,7 +16,8 @@ export default new Vuex.Store({
         annotations: bioIndex("global-enrichment"),
         genes: bioIndex("gene-finder"),
         ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
-        geneticCorrelation: bioIndex("genetic-correlation")
+        geneticCorrelation: bioIndex("genetic-correlation"),
+        pathwayAssoc: bioIndex("pathway-associations")
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -57,8 +58,9 @@ export default new Vuex.Store({
             }
             context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
-            let gcQuery = !context.state.ancestry ? query : ancestryQuery; 
-            context.dispatch("geneticCorrelation/query", gcQuery);
+            let ancestryOptionalQuery = !context.state.ancestry ? query : ancestryQuery; 
+            context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
+            context.dispatch("pathwayAssoc/query", ancestryOptionalQuery);
         }
     }
 });
