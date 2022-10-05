@@ -230,22 +230,22 @@
 							<option class="disease-name" value="">
 								Select one
 							</option>
-							<template v-for="system in diseaseSystems">
-								{{ system }}
-								<option
-									class="disease-name"
-									v-if="system == PBuilderDSystem"
-									v-for="disease in diseaseOptions(system)"
-									:value="disease"
-									:selected="
-										disease == selectedDisease.replaceAll("Disease: ","")
-											? true
-											: false
-									"
-								>
-									{{ disease }}
-								</option>
-							</template>
+							<option
+								v-for="disease in diseaseOptions(
+									PBuilderDSystem
+								)"
+								class="disease-name"
+								:value="disease"
+								:selected="
+									disease ==
+									selectedDisease.replaceAll('Disease: ', '')
+										? true
+										: false
+								"
+								:key="disease"
+							>
+								{{ disease }}
+							</option>
 						</select>
 					</div>
 				</div>
@@ -575,10 +575,12 @@ export default Vue.component("disease-systems", {
 			}
 		},
 		callCustomPhActions(EVENT) {
-			let inSessionValue = this.diseaseInSession
-				.replaceAll("Disease system:", "")
-				.replaceAll("Disease:", "")
-				.trim();
+			let inSessionValue = !!this.diseaseInSession
+				? this.diseaseInSession
+						.replaceAll("Disease system:", "")
+						.replaceAll("Disease:", "")
+						.trim()
+				: "";
 
 			console.log("inSessionValue", inSessionValue);
 			switch (EVENT) {
@@ -718,11 +720,23 @@ export default Vue.component("disease-systems", {
 				this.focusBy = "disease";
 				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
 
-				console.log("this.selectedDisease-1", this.selectedDisease);
+				let system;
+				if (!!this.selectedDisease.includes("Phenotype")) {
+					system = this.diseases[0]["system"];
+				} else if (!!this.selectedDisease.includes("system")) {
+					system = this.selectedDisease
+						.replaceAll("Disease system", "")
+						.trim();
+				} else {
+					system = this.diseases.filter(
+						(d) =>
+							d.disease ==
+							this.selectedDisease
+								.replaceAll("Disease system:", "")
+								.trim()
+					)[0]["system"];
+				}
 
-				let system = this.diseases.filter(
-					(d) => d.disease == this.selectedDisease
-				)[0]["system"];
 				this.PBuilderDSystem = system.replaceAll(" system", "");
 			} else if (TYPE == "system") {
 				this.focusBy = "system";
@@ -832,6 +846,8 @@ export default Vue.component("disease-systems", {
 						.map((d) => d.disease)
 				),
 			];
+
+			console.log("diseaseSystems", diseaseSystems);
 
 			return diseaseSystems;
 		},
