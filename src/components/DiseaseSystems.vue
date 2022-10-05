@@ -10,25 +10,25 @@
 							class="option"
 							@click="callCustomPhActions('system')"
 						>
-							By disease system(DS)
+							By disease system
 						</div>
 						<div
 							class="option"
 							@click="callCustomPhActions('disease')"
 						>
-							By disease(D)
+							By disease
 						</div>
 						<div
 							class="option"
 							@click="callCustomPhActions('group')"
 						>
-							By Phenotype groups(PG)
+							By Phenotype groups
 						</div>
 						<div
 							class="option"
 							@click="callCustomPhActions('correlation')"
 						>
-							By Phenotype correlation(PC)
+							By Phenotype correlation
 						</div>
 						<div
 							class="option reset"
@@ -174,14 +174,7 @@
 							"
 						>
 							<option
-								v-if="
-									!diseaseSystems.includes(
-										selectedDisease.replaceAll(
-											'Disease system: ',
-											''
-										)
-									)
-								"
+								v-if="!diseaseSystems.includes(selectedDisease)"
 								class="disease-name"
 								value=""
 							>
@@ -192,13 +185,7 @@
 									class="disease-name"
 									:value="system"
 									:selected="
-										system ==
-										selectedDisease.replaceAll(
-											'Disease system: ',
-											''
-										)
-											? true
-											: false
+										system == selectedDisease ? true : false
 									"
 								>
 									{{ system }}
@@ -226,19 +213,12 @@
 								Select one
 							</option>
 							<template v-for="system in diseaseSystems">
-								<option
-									class="disease-name"
-									:value="system"
-									:selected="
-										system == selectedDisease ? true : false
-									"
-								>
+								<option class="disease-name" :value="system">
 									{{ system }}
 								</option>
 							</template>
 						</select>
 					</div>
-					{{ selectedDisease + " : " + PBuilderDSystem }}
 					<div class="col filter-col-md">
 						<div class="label">Select disease</div>
 						<select
@@ -252,7 +232,7 @@
 							</option>
 							<template v-for="system in diseaseSystems">
 								{{ system }}
-								<!--<option
+								<option
 									class="disease-name"
 									v-if="system == PBuilderDSystem"
 									v-for="disease in diseaseOptions(system)"
@@ -264,7 +244,7 @@
 									"
 								>
 									{{ disease }}
-								</option>-->
+								</option>
 							</template>
 						</select>
 					</div>
@@ -595,6 +575,12 @@ export default Vue.component("disease-systems", {
 			}
 		},
 		callCustomPhActions(EVENT) {
+			let inSessionValue = this.diseaseInSession
+				.replaceAll("Disease system:", "")
+				.replaceAll("Disease:", "")
+				.trim();
+
+			console.log("inSessionValue", inSessionValue);
 			switch (EVENT) {
 				case "reset":
 					this.resetCustomPhenotypes();
@@ -603,18 +589,10 @@ export default Vue.component("disease-systems", {
 					this.openPhenotypesBuilder(null, null, "correlation");
 					break;
 				case "disease":
-					this.openPhenotypesBuilder(
-						this.diseaseInSession,
-						null,
-						"disease"
-					);
+					this.openPhenotypesBuilder(inSessionValue, null, "disease");
 					break;
 				case "system":
-					this.openPhenotypesBuilder(
-						this.diseaseInSession,
-						null,
-						"system"
-					);
+					this.openPhenotypesBuilder(inSessionValue, null, "system");
 					break;
 				case "group":
 					this.openPhenotypesBuilder(null, null, "group");
@@ -740,12 +718,10 @@ export default Vue.component("disease-systems", {
 				this.focusBy = "disease";
 				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
 
-				//console.log("this.selectedDisease-1", this.selectedDisease);
+				console.log("this.selectedDisease-1", this.selectedDisease);
 
 				let system = this.diseases.filter(
-					(d) =>
-						d.disease ==
-						this.selectedDisease.replaceAll("Disease: ", "")
+					(d) => d.disease == this.selectedDisease
 				)[0]["system"];
 				this.PBuilderDSystem = system.replaceAll(" system", "");
 			} else if (TYPE == "system") {
