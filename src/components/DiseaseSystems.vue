@@ -747,7 +747,7 @@ export default Vue.component("disease-systems", {
 
 					break;
 				case "group":
-					if (params.groups != null) {
+					if (!!params && !!params.groups) {
 						params.groups.map((g) => {
 							if (g != "") {
 								this.selectedGroups.push(g.trim());
