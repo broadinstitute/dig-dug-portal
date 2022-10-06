@@ -721,14 +721,17 @@ export default Vue.component("disease-systems", {
 
 			switch (TYPE) {
 				case "system":
-					if (!!params.system || !!EVENT) {
+					if ((!!params && !!params.system) || !!EVENT) {
 						this.selectedDisease = !!EVENT
 							? EVENT.target.value
 							: params.system.replaceAll(" system", "");
 					}
 					break;
 				case "disease":
-					if ((!!params.system && !!params.disease) || !!EVENT) {
+					if (
+						(!!params && !!params.system && !!params.disease) ||
+						!!EVENT
+					) {
 						this.selectedDisease = !!EVENT
 							? EVENT.target.value
 							: params.disease;
