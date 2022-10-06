@@ -7,7 +7,7 @@
 		>
 			<div class="text-right mt-2">
 				<csv-download
-					:data="tableData"
+					:data="downloadData"
 					filename="PheWAS_associations"
 				></csv-download>
 			</div>
@@ -340,6 +340,21 @@ export default Vue.component("PhewasDatasets", {
 		rows() {
 			return this.pheWASAssociations.length;
 		},
+		downloadData() {
+			let dataRows = this.pheWASAssociations;
+
+			if (this.filter) {
+				dataRows = dataRows.filter((association) => {
+					const regularAssociation = Object.assign(
+						cloneDeep(association),
+						{ phenotype: association.phenotype.name }
+					);
+					return this.filter(regularAssociation);
+				});
+			}
+
+			return dataRows;
+		},
 		tableData() {
 			let dataRows = this.pheWASAssociations;
 
@@ -364,8 +379,6 @@ export default Vue.component("PhewasDatasets", {
 					tempArr.push(dataRows[i]);
 				}
 			}
-
-			console.log(tempArr);
 
 			return tempArr;
 		},
