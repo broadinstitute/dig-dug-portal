@@ -19,7 +19,7 @@ import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociat
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ForestPlotHtml from "@/components/ForestPlotHtml.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
-import DatasetAssociations from "@/components/DatasetAssociations";
+//import DatasetAssociations from "@/components/DatasetAssociations";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import PheWASDatasets from "@/components/PheWASDatasets";
 import keyParams from "@/utils/keyParams";
@@ -59,7 +59,7 @@ new Vue({
         LocusZoomPhewasPanel,
         ForestPlotHtml,
         ResearchPheWAS,
-        DatasetAssociations,
+        //DatasetAssociations,
         UnauthorizedMessage,
         CriterionFunctionGroup,
         FilterPValue,
@@ -101,7 +101,7 @@ new Vue({
                     expanded}&variant=${this.$store.state.variant.varId}`;
             }
         },
-        clearBadSearch(){
+        clearBadSearch() {
             this.$store.state.badSearch = false;
         }
     },
