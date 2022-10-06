@@ -728,7 +728,7 @@ export default Vue.component("disease-systems", {
 					}
 					break;
 				case "disease":
-					if ((!!params.system && !!param.disease) || !!EVENT) {
+					if ((!!params.system && !!params.disease) || !!EVENT) {
 						this.selectedDisease = !!EVENT
 							? EVENT.target.value
 							: params.disease;
@@ -934,7 +934,8 @@ export default Vue.component("disease-systems", {
 .select-disease .options-wrapper {
 	display: none;
 	position: absolute;
-	margin-left: 8px;
+	margin-left: -90px;
+	margin-top: 8px;
 	box-shadow: 3px 3px 3px 3px rgb(0 0 0 / 20%);
 }
 
