@@ -338,7 +338,7 @@ export default Vue.component("PhewasDatasets", {
 				.sort((a, b) => a.pValue - b.pValue);
 		},
 		rows() {
-			return this.pheWASAssociations.length;
+			return this.downloadData.length;
 		},
 		downloadData() {
 			let dataRows = this.pheWASAssociations;
@@ -356,19 +356,8 @@ export default Vue.component("PhewasDatasets", {
 			return dataRows;
 		},
 		tableData() {
-			let dataRows = this.pheWASAssociations;
+			let dataRows = this.downloadData;
 
-			if (this.filter) {
-				dataRows = dataRows.filter((association) => {
-					const regularAssociation = Object.assign(
-						cloneDeep(association),
-						{ phenotype: association.phenotype.name }
-					);
-					return this.filter(regularAssociation);
-				});
-			}
-
-			//return dataRows;
 			let tempArr = [];
 
 			let arrIndex = (this.currentPage - 1) * this.perPage;
