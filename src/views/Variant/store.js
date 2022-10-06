@@ -46,7 +46,7 @@ export default new Vuex.Store({
     actions: {
         async queryVariant(context, newVarId) {
             context.state.ancestry = context.state.selectedAncestry;
-            keyParams.set({ancestry: context.state.selectedAncestry});
+            keyParams.set({ ancestry: context.state.selectedAncestry });
             newVarId = await variantUtils.parseVariant(
                 newVarId || context.state.newVariantId
             );
@@ -58,23 +58,23 @@ export default new Vuex.Store({
             } else {
                 context.state.badSearch = true;
             }
-            
+
         },
-        queryAll(context){
+        queryAll(context) {
             let ancestry = context.state.ancestry;
             let varId = context.state.variant.varId;
             let chromosome = varId.split(":")[0];
             let position = parseInt(varId.split(":")[1]);
             // phewas can be with or without ancestry
-            if(!!ancestry) {
+            if (!!ancestry) {
                 context.dispatch("ancestryPhewas/query", { q: `${ancestry},${varId}` });
             } else {
                 context.dispatch("phewas/query", { q: varId });
             }
-            context.dispatch("transcriptConsequences/query", {q: varId});
-            context.dispatch("transcriptionFactors/query", {q: varId});
-            context.dispatch("regions/query", {q: `${chromosome}:${position}`});
-            context.dispatch("datasetAssociations/query", {q: varId});
+            context.dispatch("transcriptConsequences/query", { q: varId });
+            context.dispatch("transcriptionFactors/query", { q: varId });
+            context.dispatch("regions/query", { q: `${chromosome}:${position}` });
+            context.dispatch("datasetAssociations/query", { q: varId });
         }
     }
 });
