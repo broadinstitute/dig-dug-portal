@@ -8,31 +8,31 @@
 					<div class="options-wrapper">
 						<div
 							class="option"
-							@click="callCustomPhActions('system')"
+							@click="openPhenotypesBuilder('system')"
 						>
 							By disease system
 						</div>
 						<div
 							class="option"
-							@click="callCustomPhActions('disease')"
+							@click="openPhenotypesBuilder('disease')"
 						>
 							By disease
 						</div>
 						<div
 							class="option"
-							@click="callCustomPhActions('group')"
+							@click="openPhenotypesBuilder('group')"
 						>
 							By Phenotype groups
 						</div>
 						<div
 							class="option"
-							@click="callCustomPhActions('correlation')"
+							@click="openPhenotypesBuilder('correlation')"
 						>
 							By Phenotype correlation
 						</div>
 						<div
 							class="option reset"
-							@click="callCustomPhActions('reset')"
+							@click="resetCustomPhenotypes()"
 						>
 							Reset focus
 						</div>
@@ -42,7 +42,7 @@
 		</div>
 		<div v-if="page == 'front'" class="row disease-systems-front">
 			<div class="disease-systems-tree col-md-12">
-				<template v-for="(system, systemIndex) in diseaseSystems">
+				<template v-for="system in diseaseSystems">
 					<div class="disease-system col-md-2" :key="system">
 						<img
 							class="disease-systems-icon"
@@ -61,11 +61,9 @@
 								<a
 									href="javascript:;"
 									@click="
-										openPhenotypesBuilder(
-											system,
-											null,
-											'system'
-										)
+										openPhenotypesBuilder('system', {
+											system: system,
+										})
 									"
 									>{{
 										"Select " +
@@ -83,11 +81,10 @@
 								<a
 									href="javascript:;"
 									@click="
-										openPhenotypesBuilder(
-											disease,
-											null,
-											'disease'
-										)
+										openPhenotypesBuilder('disease', {
+											system: system,
+											disease: disease,
+										})
 									"
 									>{{ disease }}</a
 								>
@@ -123,22 +120,14 @@
 						<h6>
 							<a
 								href="javascript:;"
-								@click="
-									openPhenotypesBuilder(null, null, 'group')
-								"
+								@click="openPhenotypesBuilder('group')"
 								>By Phenotype group
 							</a>
 						</h6>
 						<h6>
 							<a
 								href="javascript:;"
-								@click="
-									openPhenotypesBuilder(
-										null,
-										null,
-										'correlation'
-									)
-								"
+								@click="openPhenotypesBuilder('correlation')"
 								>By Phenotype Correlation
 							</a>
 						</h6>
@@ -170,7 +159,7 @@
 						<select
 							class="select-disease form-control form-control-sm"
 							@change="
-								openPhenotypesBuilder(null, $event, 'system')
+								openPhenotypesBuilder('system', null, $event)
 							"
 						>
 							<option
@@ -224,7 +213,7 @@
 						<select
 							class="select-disease form-control form-control-sm"
 							@change="
-								openPhenotypesBuilder(null, $event, 'disease')
+								openPhenotypesBuilder('disease', null, $event)
 							"
 						>
 							<option class="disease-name" value="">
@@ -237,16 +226,14 @@
 								class="disease-name"
 								:value="disease"
 								:selected="
-									disease ==
-									selectedDisease.replaceAll('Disease: ', '')
-										? true
-										: false
+									disease == selectedDisease ? true : false
 								"
 								:key="disease"
 							>
 								{{ disease }}
 							</option>
 						</select>
+						{{ PBuilderDSystem }}
 					</div>
 				</div>
 			</div>
@@ -563,6 +550,46 @@ export default Vue.component("disease-systems", {
 		...sortUtils,
 		...userUtils,
 		...Formatters,
+		currentFocus() {
+			let customPhsSet = userUtils.getPhenotypes();
+
+			if (!!customPhsSet) {
+				let content = {
+					system: null,
+					disease: null,
+					groups: null,
+					phenotypes: [],
+				};
+
+				let focusLabel = customPhsSet.id.split(": ");
+
+				switch (focusLabel[0]) {
+					case "Disease system":
+						content.system = focusLabel[1];
+						break;
+
+					case "Disease":
+						content.system = this.diseases.filter(
+							(d) => d.disease == focusLabel[1]
+						)[0]["system"];
+						content.disease = focusLabel[1];
+						break;
+
+					case "Phenotype groups":
+						content.groups = focusLabel[1].slice(0, -1).split(",");
+						break;
+
+					case "Phenotype correlation":
+						break;
+				}
+
+				content.phenotypes = customPhsSet.list;
+
+				return content;
+			} else {
+				return null;
+			}
+		},
 		formatValue(FORMATTER, VALUE) {
 			return Formatters[FORMATTER](VALUE);
 		},
@@ -574,34 +601,6 @@ export default Vue.component("disease-systems", {
 				this.selectedGroups.push(GROUP);
 			}
 		},
-		callCustomPhActions(EVENT) {
-			let inSessionValue = !!this.diseaseInSession
-				? this.diseaseInSession
-						.replaceAll("Disease system:", "")
-						.replaceAll("Disease:", "")
-						.trim()
-				: "";
-
-			console.log("inSessionValue", inSessionValue);
-			switch (EVENT) {
-				case "reset":
-					this.resetCustomPhenotypes();
-					break;
-				case "correlation":
-					this.openPhenotypesBuilder(null, null, "correlation");
-					break;
-				case "disease":
-					this.openPhenotypesBuilder(inSessionValue, null, "disease");
-					break;
-				case "system":
-					this.openPhenotypesBuilder(inSessionValue, null, "system");
-					break;
-				case "group":
-					this.openPhenotypesBuilder(null, null, "group");
-					break;
-			}
-		},
-
 		getCustomPhenotypes() {
 			let customPhsSet = userUtils.getPhenotypes();
 
@@ -714,51 +713,48 @@ export default Vue.component("disease-systems", {
 		closePhenotypesBuilder() {
 			uiUtils.hideElement("pheno_list_builder");
 		},
-		openPhenotypesBuilder(TARGET, EVENT, TYPE) {
-			uiUtils.showElement("pheno_list_builder");
-			if (TYPE == "disease") {
-				this.focusBy = "disease";
-				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
+		openPhenotypesBuilder(TYPE, PARAMS, EVENT) {
+			this.focusBy = TYPE;
+			console.log("TYPE", TYPE);
+			console.log("currentFocus", this.currentFocus());
 
-				let system;
-				if (!!this.selectedDisease.includes("Phenotype")) {
-					system = this.diseases[0]["system"];
-				} else if (!!this.selectedDisease.includes("system")) {
-					system = this.selectedDisease
-						.replaceAll("Disease system", "")
-						.trim();
-				} else {
-					system = this.diseases.filter(
-						(d) =>
-							d.disease ==
-							this.selectedDisease
-								.replaceAll("Disease system:", "")
-								.trim()
-					)[0]["system"];
-				}
+			let params = !!PARAMS ? PARAMS : this.currentFocus();
 
-				this.PBuilderDSystem = system.replaceAll(" system", "");
-			} else if (TYPE == "system") {
-				this.focusBy = "system";
-				this.selectedDisease = !!EVENT ? EVENT.target.value : TARGET;
-			} else if (TYPE == "correlation") {
-				this.focusBy = "correlation";
-			} else if (TYPE == "group") {
-				this.focusBy = "group";
-				let customPhsSet = userUtils.getPhenotypes();
-				//let selectedDisease = !!customPhsSet ? customPhsSet.id : null;
-				//let selectedPhs = !!customPhsSet ? customPhsSet.list : null;
+			switch (TYPE) {
+				case "system":
+					this.selectedDisease = !!EVENT
+						? EVENT.target.value
+						: params.system.replaceAll(" system", "");
+					break;
+				case "disease":
+					this.selectedDisease = !!EVENT
+						? EVENT.target.value
+						: params.disease;
 
-				if (!!customPhsSet.id.includes("Phenotype group")) {
-					let groups = customPhsSet.id.split(":")[1].split(",");
-					groups.map((g) => {
-						if (g != "") {
-							this.selectedGroups.push(g.trim());
-						}
-					});
-					console.log("this.selectedGroups", this.selectedGroups);
-				}
+					this.PBuilderDSystem = !!EVENT
+						? this.diseases
+								.filter(
+									(d) => d.disease == EVENT.target.value
+								)[0]
+								["system"].replaceAll(" system", "")
+						: params.system.replaceAll(" system", "");
+					break;
+				case "group":
+					if (params.groups != null) {
+						params.groups.map((g) => {
+							if (g != "") {
+								this.selectedGroups.push(g.trim());
+							}
+						});
+					}
+
+					break;
+				case "correlation":
+					break;
 			}
+
+			//open phenotype Builder
+			uiUtils.showElement("pheno_list_builder");
 		},
 		getPhenotypes() {
 			let phAssoDisease;
@@ -838,7 +834,7 @@ export default Vue.component("disease-systems", {
 			return "https://" + ID + "." + host;
 		},
 		diseaseOptions(ID) {
-			console.log("id", ID);
+			//console.log("id", ID);
 			let diseaseSystems = [
 				...new Set(
 					this.diseases
@@ -847,7 +843,7 @@ export default Vue.component("disease-systems", {
 				),
 			];
 
-			console.log("diseaseSystems", diseaseSystems);
+			//console.log("diseaseSystems", diseaseSystems);
 
 			return diseaseSystems;
 		},
