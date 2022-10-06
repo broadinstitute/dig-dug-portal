@@ -233,7 +233,6 @@
 								{{ disease }}
 							</option>
 						</select>
-						{{ PBuilderDSystem }}
 					</div>
 				</div>
 			</div>
@@ -722,22 +721,27 @@ export default Vue.component("disease-systems", {
 
 			switch (TYPE) {
 				case "system":
-					this.selectedDisease = !!EVENT
-						? EVENT.target.value
-						: params.system.replaceAll(" system", "");
+					if (!!params.system || !!EVENT) {
+						this.selectedDisease = !!EVENT
+							? EVENT.target.value
+							: params.system.replaceAll(" system", "");
+					}
 					break;
 				case "disease":
-					this.selectedDisease = !!EVENT
-						? EVENT.target.value
-						: params.disease;
+					if ((!!params.system && !!param.disease) || !!EVENT) {
+						this.selectedDisease = !!EVENT
+							? EVENT.target.value
+							: params.disease;
 
-					this.PBuilderDSystem = !!EVENT
-						? this.diseases
-								.filter(
-									(d) => d.disease == EVENT.target.value
-								)[0]
-								["system"].replaceAll(" system", "")
-						: params.system.replaceAll(" system", "");
+						this.PBuilderDSystem = !!EVENT
+							? this.diseases
+									.filter(
+										(d) => d.disease == EVENT.target.value
+									)[0]
+									["system"].replaceAll(" system", "")
+							: params.system.replaceAll(" system", "");
+					}
+
 					break;
 				case "group":
 					if (params.groups != null) {
