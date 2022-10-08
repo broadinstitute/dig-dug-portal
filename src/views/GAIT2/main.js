@@ -1144,10 +1144,6 @@ new Vue({
                 (v) => v.field !== "region"
             );
         },
-        sayalert(msg) {
-            alert("alert me " + msg);
-            console.log("logggg", msg);
-        },
     },
     render(createElement, context) {
         return createElement(Template);

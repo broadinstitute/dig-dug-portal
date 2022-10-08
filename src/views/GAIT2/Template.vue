@@ -162,11 +162,7 @@
                                         >
                                             <div class="label">Gene</div>
                                         </filter-enumeration-control>
-                                        <b-btn
-                                            @click="$parent.sayalert('click')"
-                                        >
-                                            Click me</b-btn
-                                        >
+
                                         <div
                                             class="col divider"
                                             style="background: none"
@@ -178,15 +174,6 @@
                                             color="primary"
                                             :field="'region'"
                                             placeholder="Enter a region (chr:start-stop)"
-                                            @keyup.enter="$parent.alert($event)"
-                                            @keyup-enter="
-                                                $parent.parent.sayalert('hello')
-                                            "
-                                            @change="
-                                                $parent.parent.sayalert(
-                                                    'change'
-                                                )
-                                            "
                                         >
                                             <div class="label">Region</div>
                                         </filter-basic-control>
@@ -221,9 +208,6 @@
                                                         (o) => o.value === v
                                                     ).text
                                             "
-                                            @item-select="
-                                                $parent.alert('select')
-                                            "
                                             ><div class="label">
                                                 Dataset
                                             </div></filter-enumeration-control
@@ -252,7 +236,6 @@
                                                           ].description
                                                         : phenotype
                                             "
-                                            @item-select="alert('select')"
                                         >
                                             <div class="label">Phenotypes</div>
                                         </filter-enumeration-control>
