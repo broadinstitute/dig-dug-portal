@@ -120,93 +120,6 @@ new Vue({
                 "transcript_id",
             ],
             fields: [],
-            //optionalFields: [],
-            optionalFields: [
-                {
-                    key: "siftPred",
-                    label: "SIFT",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "polyphen2HdivPred",
-                    label: "PPH Hdiv",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "polyphen2HvarPred",
-                    label: "PPH Hvar",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "lrtPred",
-                    label: "LRT",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "mutationtasterPred",
-                    label: "MutTas",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "caddRawRankscore",
-                    label: "CADD",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "dannRankscore",
-                    label: "DANN",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "eigenPcRawCodingRankscore",
-                    label: "Eigen-PC",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "fathmmMklCodingPred",
-                    label: "FATHMM-MKL",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "fathmmPred",
-                    label: "FATHMM",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "lof",
-                    label: "LOF",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "proveanPred",
-                    label: "PROVEAN",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "vest4Rankscore",
-                    label: "VEST4",
-                    visible: false,
-                    sortable: true,
-                },
-                {
-                    key: "gnomadGenomesPopmaxAf",
-                    label: "Max AF",
-                    visible: false,
-                    sortable: true,
-                },
-            ],
             searchCriteria: [],
             selectedVariants: [],
         };
@@ -323,21 +236,7 @@ new Vue({
             });
             this.testChanged = false;
         },
-        updateFields() {
-            // let addFields = [];
-            // Object.keys(this.tableData[0]).forEach(k => {
-            //     if (this.defaultFields.indexOf(k) < 0) {
-            //         addFields.push({
-            //             key: k,
-            //             label: startCase(k),
-            //             visible: false
-            //         });
-            //     }
-            // });
 
-            // this.optionalFields = addFields;
-            this.fields = this.baseFields.concat(this.optionalFields);
-        },
         formatTestData(samples, data) {
             let formatted = [];
             data.map((test) => {
@@ -372,7 +271,7 @@ new Vue({
                 });
             }
             if (keyParams.dataset) {
-                this.selectedMethods.push({
+                this.searchCriteria.push({
                     field: "dataset",
                     threshold: keyParams.dataset,
                 });
@@ -468,15 +367,7 @@ new Vue({
                 });
             }
         },
-        "$store.state.variants": function () {
-            this.loadingVariants = false;
-            if (
-                this.$store.state.variants &&
-                this.$store.state.variants.length
-            ) {
-                this.updateFields();
-            }
-        },
+
         "$store.state.ldServer.covariances": function () {
             this.loadingCovariances = false;
         },
