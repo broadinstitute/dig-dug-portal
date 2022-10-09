@@ -506,7 +506,7 @@
                                                 responsive="sm"
                                                 sticky-header="400px"
                                                 :items="$parent.tableData"
-                                                :fields="$parent.visibleFields"
+                                                :fields="$parent.baseFields"
                                             >
                                                 <template
                                                     #cell(selected)="data"

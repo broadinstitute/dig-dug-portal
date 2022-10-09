@@ -84,8 +84,14 @@ new Vue({
                     sortable: true,
                 },
                 {
-                    key: "burdenBinId",
-                    label: "Mask",
+                    key: "geneId",
+                    label: "Gene ID",
+                    visible: true,
+                    sortable: true,
+                },
+                {
+                    key: "transcriptId",
+                    label: "Transcript ID",
                     visible: true,
                     sortable: true,
                 },
@@ -367,7 +373,9 @@ new Vue({
                 });
             }
         },
-
+        "$store.state.variants": function () {
+            this.loadingVariants = false;
+        },
         "$store.state.ldServer.covariances": function () {
             this.loadingCovariances = false;
         },
