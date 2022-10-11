@@ -1,6 +1,6 @@
 <template>
     <autocomplete
-        :placeholder="'Search gene'"
+        :placeholder="!$store.state.geneToQuery ? 'Search gene' : $store.state.geneToQuery"
         :matches="matchingGenes"
         ref="geneSelect"
         @input-change="lookupGenes($event)"
@@ -30,7 +30,6 @@ export default Vue.component("gene-selectpicker", {
     data() {
         return {
             matchingGenes: [],
-            selectedGene: null,
         };
     },
     computed: {},
@@ -47,7 +46,7 @@ export default Vue.component("gene-selectpicker", {
             }
         },
         selectGene(gene) {
-            this.selectedGene = gene;
+            this.$store.state.geneToQuery = gene;
             this.$emit("onGeneChange", gene);
         },
     },

@@ -39,7 +39,7 @@ export default Vue.component("research-page-description", {
 			var plots = document.querySelectorAll("div.plot");
 
 			for (let i = 0; i < plots.length; ++i) {
-				console.log(plots[i].innerHTML);
+				//console.log(plots[i].innerHTML);
 				//[/<p>&nbsp;<\/p>/g,""],
 				let innerHtml = plots[i].innerHTML
 					.replace(/<p>/g, "")
@@ -112,6 +112,10 @@ export default Vue.component("research-page-description", {
 				valueHiLow.low =
 					value < valueHiLow.low ? value : valueHiLow.low;
 			}
+
+			let minMaxGap = valueHiLow.high * 0.2;
+			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
+			valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
 
 			PlotUtils.renderAxis(
 				CTX,
@@ -187,6 +191,10 @@ export default Vue.component("research-page-description", {
 				}
 			}
 
+			let minMaxGap = valueHiLow.high * 0.2;
+			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
+			valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+
 			PlotUtils.renderAxis(
 				CTX,
 				WIDTH,
@@ -195,7 +203,8 @@ export default Vue.component("research-page-description", {
 				"y",
 				5,
 				valueHiLow.low,
-				valueHiLow.high
+				valueHiLow.high,
+				2
 			);
 
 			PlotUtils.renderAxis(CTX, WIDTH, HEIGHT, margin, "x", null);

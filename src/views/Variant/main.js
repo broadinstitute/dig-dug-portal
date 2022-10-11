@@ -7,6 +7,7 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
@@ -18,7 +19,7 @@ import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociat
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ForestPlotHtml from "@/components/ForestPlotHtml.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
-import DatasetAssociations from "@/components/DatasetAssociations";
+//import DatasetAssociations from "@/components/DatasetAssociations";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import PheWASDatasets from "@/components/PheWASDatasets";
 import keyParams from "@/utils/keyParams";
@@ -47,6 +48,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
         PheWASTable,
@@ -57,7 +59,7 @@ new Vue({
         LocusZoomPhewasPanel,
         ForestPlotHtml,
         ResearchPheWAS,
-        DatasetAssociations,
+        //DatasetAssociations,
         UnauthorizedMessage,
         CriterionFunctionGroup,
         FilterPValue,
@@ -86,6 +88,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ancestryFormatter: Formatters.ancestryFormatter,
         consequenceFormatter: Formatters.consequenceFormatter,
         consequenceMeaning: Formatters.consequenceMeaning,
 
@@ -97,6 +100,9 @@ new Vue({
                     }&start=${pos.position - expanded}&end=${pos.position +
                     expanded}&variant=${this.$store.state.variant.varId}`;
             }
+        },
+        clearBadSearch() {
+            this.$store.state.badSearch = false;
         }
     },
 
@@ -104,7 +110,6 @@ new Vue({
         variantData() {
             return this.$store.state.variantData.data;
         },
-
         varId() {
             return this.$store.state.variant && this.$store.state.variant.varId;
         },
@@ -193,26 +198,6 @@ new Vue({
             //! data is an array
             if (data.length > 0) {
                 this.$store.commit("setVariant", data[0]); // only ever 1 result
-            }
-        },
-
-        "$store.state.variant"(variant) {
-            if (variant) {
-                let p = this.chromPos;
-
-                this.$store.dispatch("phewas/query", { q: variant.varId });
-                this.$store.dispatch("transcriptConsequences/query", {
-                    q: variant.varId
-                });
-                this.$store.dispatch("transcriptionFactors/query", {
-                    q: variant.varId
-                });
-                this.$store.dispatch("regions/query", {
-                    q: `${p.chromosome}:${p.position}`
-                });
-                this.$store.dispatch("datasetAssociations/query", {
-                    q: variant.varId
-                });
             }
         }
     }

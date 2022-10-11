@@ -109,5 +109,9 @@ export default {
 
             context.commit("setGenesData", genesData);
         },
+
+        directInputData(context, data) {
+            context.commit("setResearchData", data);
+        }
     }
 };
