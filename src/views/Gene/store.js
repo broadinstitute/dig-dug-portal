@@ -26,7 +26,8 @@ export default new Vuex.Store({
         geneName: keyParams.gene,
         geneToQuery: "",
         aliasName: null,
-        prior: 0.3696
+        prior: 0.3696,
+        selectedAncestry: "",
     },
 
     mutations: {
@@ -88,8 +89,6 @@ export default new Vuex.Store({
     actions: {
 
         async queryGeneName(context, symbol) {
-            console.log("Querying gene");
-            console.log(context.state.geneToQuery);
             let name = context.state.geneToQuery || context.state.geneName;
             context.commit("setGeneName", name);
 
