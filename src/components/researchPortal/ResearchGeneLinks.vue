@@ -6,6 +6,9 @@
 		>
 			<div class="col-md-12">
 				<div id="geneLinksUIWrapper">
+					<strong
+						>Filter associated variants by links to genes.
+					</strong>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -62,7 +65,15 @@
 				</div>
 			</div>
 			<div class="col-md-9 gene-link-plot-wrapper">
-				<div id="geneLinksPlotWrapper">
+				<div
+					id="geneLinksPlotWrapper"
+					:class="
+						pkgDataSelected.filter((s) => s.type == 'GLTissue')
+							.length == 0
+							? 'height-1px'
+							: 'height-auto'
+					"
+				>
 					<div id="GLInfoBox" class="hidden">
 						<div
 							id="info_box_close"
@@ -89,8 +100,11 @@
 					></canvas>
 				</div>
 			</div>
-			<div class="col-md-3 GL-plot-ui-wrapper reference-area">
-				<div v-if="GLData != null">
+			<div
+				class="col-md-3 GL-plot-ui-wrapper reference-area"
+				v-if="GLData != null"
+			>
+				<div>
 					<button
 						class="btn btn-sm btn-outline-secondary"
 						style="margin-right: 5px; margin-bottom: 10px"
@@ -414,7 +428,7 @@ export default Vue.component("research-gene-links-plot", {
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
 		resetAll() {
-			this.GEData = {};
+			//this.GEData = {};
 			this.trigger = 0;
 			this.GLPosData = {};
 			this.GLData = null;
@@ -655,6 +669,14 @@ export default Vue.component("research-gene-links-plot", {
 				CTX.stroke();
 			});
 		},
+		array2Object(KEY, ARRAY) {
+			var convertedObj = {};
+			ARRAY.map((a) => {
+				let key = a[KEY];
+				convertedObj[key] = a;
+			});
+			return convertedObj;
+		},
 		renderGLPlot() {
 			if (
 				!!this.pkgData.GLData &&
@@ -710,6 +732,8 @@ export default Vue.component("research-gene-links-plot", {
 					let canvasWidth = document.querySelector(
 						"#geneLinksPlotWrapper"
 					).clientWidth;
+
+					//console.log("GL canvas", canvasWidth);
 
 					let canvasHeight = tempHeight + topMargin + bottomMargin;
 
@@ -970,9 +994,23 @@ export default Vue.component("research-gene-links-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				let positionLabel = i < 5 ? xMin + i * xStep : xMax;
+				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
 				CTX.font = "12px Arial";
 				CTX.fillStyle = "#999999";
+
+				let xMaxMinGap = xMax - xMin;
+				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+				let positionLabel = Formatters.decimalFormatter(
+					xMin + i * xStep,
+					xDecimal
+				);
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
+
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
@@ -1082,6 +1120,12 @@ $(function () {});
 </script>
 
 <style>
+.height-1px {
+	height: 1px !important;
+}
+.height-auto {
+	height: auto;
+}
 .GL-search-bubble {
 	background-color: #999999;
 	font-size: 12px;
@@ -1114,6 +1158,7 @@ $(function () {});
 .GL-plot-ui-wrapper {
 	display: inline-block;
 	vertical-align: top;
+	height: auto;
 }
 .anno-bubble-wrapper {
 	width: auto;

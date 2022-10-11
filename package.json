@@ -35,7 +35,7 @@
     "vis-data": "^7.1.2",
     "vis-network": "^9.0.2",
     "vis-util": "^5.0.2",
-    "vue": "^2.6.12",
+    "vue": "^2.7.10",
     "vue-async-computed": "^3.9.0",
     "vue-codemirror": "^4.0.6",
     "vue-cookies": "^1.7.4",
@@ -60,6 +60,6 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-vue": "^9.1.1",
     "regenerator-runtime": "^0.13.7",
-    "vue-template-compiler": "^2.6.12"
+    "vue-template-compiler": "^2.7.10"
   }
 }

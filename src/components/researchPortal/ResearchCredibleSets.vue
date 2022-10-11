@@ -6,6 +6,14 @@
 		<div class="col-md-12 CS-plot-wrapper">
 			<div class="col-md-12">
 				<div id="CSUIWrapper">
+					<span>
+						<strong
+							>Filter associated variants by credible set
+							membership to view the set(s) of fine-mapped
+							variants most likely to include the causal variant
+							for this locus.</strong
+						>
+					</span>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -131,20 +139,14 @@
 					v-if="
 						pkgDataSelected
 							.filter((s) => s.type == 'Credible Set')
-							.map((s) => s.id).length == 0
-					"
-					v-html="
+							.map((s) => s.id).length != 0 &&
 						credibleSets.length == 0
-							? 'There is no available credible set.'
-							: 'Please select a credible set to render.'
 					"
+					v-html="'There is no available credible set.'"
 				></div>
 			</div>
 
-			<div
-				class="col-md-3 reference-area"
-				style="display: inline-block"
-			></div>
+			<div class="col-md-3" style="display: inline-block"></div>
 		</div>
 	</div>
 </template>
@@ -309,6 +311,7 @@ export default Vue.component("research-credible-sets-plot", {
 	methods: {
 		...uiUtils,
 		resetAll() {
+			console.log("this.credibleSets", this.credibleSets);
 			this.credibleSets = [];
 			this.CSData = {};
 			this.CSPosData = {};
@@ -388,6 +391,7 @@ export default Vue.component("research-credible-sets-plot", {
 			return idString;
 		},
 		removeCSData(CSID, PTYPE) {
+			console.log("test called");
 			let idString = CSID + PTYPE;
 			idString = idString.replace(/[^a-zA-Z0-9 ]/g, "");
 
@@ -890,7 +894,14 @@ export default Vue.component("research-credible-sets-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
+
 				let positionLabel = i < 5 ? Number(xMin) + i * xStep : xMax;
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
+
 				CTX.font = "12px Arial";
 				CTX.fillStyle = "#999999";
 				CTX.fillText(
@@ -953,7 +964,7 @@ export default Vue.component("research-credible-sets-plot", {
 						  )
 						: CSJson.data;
 
-					if (this.pkgData != null) {
+					if (!!this.pkgData && !!this.pkgData.CSData) {
 						if (!this.pkgData.CSData[phenotype]) {
 							this.pkgData.CSData[phenotype] = {};
 						}

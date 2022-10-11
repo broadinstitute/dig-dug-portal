@@ -20,19 +20,23 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         globalAssociations: bioIndex("global-associations"),
-        clumpedMatrix: bioIndex("clumped-matrix")
+        ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
+        clumpedMatrix: bioIndex("clumped-matrix"),
+        ancestryClumpedMatrix: bioIndex("ancestry-clumped-matrix")
     },
     state: {
         associations: [],
         leadPositions: {},
-        phenotypes: []
+        phenotypes: [],
+        ancestry: "",
+        selectedAncestry: ""
     },
     mutations: {
         setLeadPhenotype(state, phenotype) {
             state.phenotypes = [
                 {
                     phenotype: phenotype,
-                    associations: state.globalAssociations.data,
+                    associations: state.ancestry == "" ? state.globalAssociations.data : state.ancestryGlobalAssoc.data,
                     filter: x => true,
                     filterVisible: true
                 }
@@ -42,14 +46,21 @@ export default new Vuex.Store({
             state.leadPositions = {};
 
             // get the lead SNP position for each clump
-            state.globalAssociations.data.forEach(r => {
-                state.leadPositions[r.clump] = r.position;
-            });
+            if (state.ancestry == ""){
+                state.globalAssociations.data.forEach(r => {
+                    state.leadPositions[r.clump] = r.position;
+                });
+            } else {
+                state.ancestryGlobalAssoc.data.forEach(r => {
+                    state.leadPositions[r.clump] = r.position;
+                });
+            }
         },
         addPhenotype(state, phenotype) {
+            let dataToAdd = state.ancestry == "" ? state.clumpedMatrix.data : state.ancestryClumpedMatrix.data;
             state.phenotypes.push({
                 phenotype: phenotype,
-                associations: state.clumpedMatrix.data.map(r => {
+                associations: dataToAdd.map(r => {
                     let alignment = r.alignment || 1;
                     let alignedBeta = r.beta * alignment;
 
@@ -94,6 +105,9 @@ export default new Vuex.Store({
         }
     },
     actions: {
+        querySignalSifter(context){
+            context.state.ancestry = context.state.selectedAncestry;
+        },
         async onPhenotypeChange(context, phenotype) {
             let i = context.state.phenotypes.indexOf(
                 p => p.name == phenotype.name
@@ -114,9 +128,15 @@ export default new Vuex.Store({
 
         // fetch the lead (first) phenotype clumped associations
         async fetchLeadPhenotypeAssociations(context, phenotype) {
-            await context.dispatch("globalAssociations/query", {
-                q: phenotype.name
-            });
+            if (context.state.ancestry == ""){
+                await context.dispatch("globalAssociations/query", {
+                    q: phenotype.name
+                });
+            } else {
+                await context.dispatch("ancestryGlobalAssoc/query", {
+                    q: `${phenotype.name},${context.state.ancestry}`
+                });
+            }
 
             // calculate lead positions
             context.commit("setLeadPhenotype", phenotype);
@@ -127,10 +147,16 @@ export default new Vuex.Store({
         async fetchAssociationsMatrix(context, phenotype) {
             let lead = context.state.phenotypes[0].phenotype.name;
 
-            // use the module to download
-            await context.dispatch("clumpedMatrix/query", {
-                q: `${lead},${phenotype.name}`
-            });
+            if (context.state.ancestry == ""){
+                // use the module to download
+                await context.dispatch("clumpedMatrix/query", {
+                    q: `${lead},${phenotype.name}`
+                });
+            } else {
+                await context.dispatch("ancestryClumpedMatrix/query", {
+                    q: `${lead},${phenotype.name},${context.state.ancestry}`
+                });
+            }
 
             // commit a copy of the data
             context.commit("addPhenotype", phenotype);

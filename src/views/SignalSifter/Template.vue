@@ -39,8 +39,22 @@
                                 >
                                 </phenotype-selectpicker>
                             </b-col>
+                            <b-col class="col-md-5 mx-auto ancestry-field">
+                                <div class="label">Select Ancestry</div>
+                                <ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
+                                        (dataset) => dataset.ancestry
+                                    )"></ancestry-selectpicker>
+                            </b-col>
+                            <b-col class="col-md-5 mx-auto search-field">
+						            <div class="label">Search</div>
+						                <button class="btn btn-light btn-sm go"
+							                type="button" @click="$store.dispatch('querySignalSifter')">
+						                	GO
+						                </button>
+                            </b-col>
                         </b-row>
                     </b-container>
+                    <h4>Associations (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})</h4>
                     <!-- phenotype criterion -->
                     <div class="row">
                         <div class="col-md-10 mx-auto">
@@ -376,5 +390,15 @@ div.lead .lead-icon {
 }
 button:focus {
     outline: none !important;
+}
+.ancestry-field div {
+    display: block !important;
+    padding-bottom: 6px;
+}
+button.go {
+    display: block !important;
+    margin-top: 5px;
+    border: #ced4da solid 1px;
+
 }
 </style>

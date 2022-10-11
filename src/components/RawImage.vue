@@ -32,6 +32,9 @@
                 permission to view this content. <br />Please contact us if you
                 believe you should've given access.
             </b-alert>
+            <b-alert v-else-if="!!customFailureMsg" class="unauthorized" show variant="warning">
+                {{customFailureMsg}}
+            </b-alert>
             <b-alert v-else-if="failed" class="failed" show variant="danger">
                 <b-icon icon="exclamation-triangle"></b-icon> Failed to load
             </b-alert>
@@ -51,7 +54,7 @@ import { userMixin } from "@/mixins/userMixin";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 export default Vue.component("raw-img", {
-    props: ["src", "documentation", "contentFill"],
+    props: ["src", "documentation", "contentFill", "customFailureMsg"],
     mixins: [userMixin],
     components: {
         Documentation,
@@ -73,6 +76,9 @@ export default Vue.component("raw-img", {
             return this.status === 401;
         },
         failed() {
+            console.log(`Status: ${this.status}`);
+            console.log(`Loaded: ${this.loaded}`);
+            console.log(`Unauthorized: ${this.unauthorized}`);
             return !!this.status && !this.loaded && !this.unauthorized;
         },
     },

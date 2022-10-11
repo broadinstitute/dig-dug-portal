@@ -37,16 +37,19 @@
 					showHideSection(
 						$event,
 						'credibleSetSection',
+						'Show credible sets filter',
 						'credibleSetSectionOpener',
-						'Filter associated variants by credible sets'
+						'Hide filter'
 					)
 				"
 			>
-				Filter associated variants by credible sets
+				Hide filter
 			</div>
+
+			<!--removing ' hidden-svg' from class -->
 			<research-credible-sets-plot
 				id="credibleSetSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('credible sets plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -85,17 +88,18 @@
 					showHideSection(
 						$event,
 						'annotationSection',
+						'Show annotations filter',
 						'annotationSectionOpener',
-						'Filter associated variants by annotations'
+						'Hide filter'
 					)
 				"
 			>
-				Filter associated variants by annotations
+				Hide filter
 			</div>
-
+			<!--removing ' hidden-svg' from class -->
 			<research-annotations-plot
 				id="annotationSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('annotations plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -114,10 +118,11 @@
 
 			<research-annotations-plot-v2
 				id="annotationSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('annotations plot v2') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
+				:ancestry="$store.state.searchingAncestry"
 				:renderConfig="pkgConfig['annotations viewer']"
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
@@ -131,24 +136,33 @@
 				ref="annotationsRef"
 			></research-annotations-plot-v2>
 			<div
-				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
+				v-if="
+					pkgConfig.viewers.includes('biosamples plot') == true &&
+					this.$store.state.pkgDataSelected.filter(
+						(s) => s.type == 'Annotation'
+					).length > 0 &&
+					this.$store.state.pkgDataSelected.filter(
+						(s) => s.type == 'Tissue'
+					).length > 0
+				"
 				class="section-opener"
 				id="biosamplesSectionOpener"
 				@click="
 					showHideSection(
 						$event,
 						'biosamplesSection',
+						'Show biosamples filter',
 						'biosamplesSectionOpener',
-						'Filter associated variants by biosamples'
+						'Hide filter'
 					)
 				"
 			>
-				Filter associated variants by biosamples
+				Hide filter
 			</div>
-
+			<!--removing ' hidden-svg' from class -->
 			<research-biosamples-plot
 				id="biosamplesSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('biosamples plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -173,17 +187,18 @@
 					showHideSection(
 						$event,
 						'geneLinksSection',
+						'Show gene-links filter',
 						'geneLinksSectionOpener',
-						'Filter associated variants by linked genes'
+						'Hide filter'
 					)
 				"
 			>
-				Filter associated variants by linked genes
+				Hide filter
 			</div>
-
+			<!--removing ' hidden-svg' from class -->
 			<research-gene-links-plot
 				id="geneLinksSection"
-				class="svg-wrapper hidden-svg"
+				class="svg-wrapper"
 				v-if="pkgConfig.viewers.includes('gene-links plot') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
@@ -268,7 +283,7 @@ export default Vue.component("kp-gem-pkg", {
 	watch: {},
 	methods: {
 		...uiUtils,
-		showHideSection(event, SECTION, OPENER, LABEL) {
+		showHideSection(event, SECTION_ID, OPEN_LABEL, OPENER, LABEL) {
 			let element = document.getElementById(OPENER);
 
 			if (element.classList.contains("open")) {
@@ -276,10 +291,10 @@ export default Vue.component("kp-gem-pkg", {
 				event.target.innerText = LABEL;
 			} else {
 				element.classList.add("open");
-				event.target.innerText = "Hide Section";
+				event.target.innerText = OPEN_LABEL;
 			}
 
-			uiUtils.showHideSvg(SECTION);
+			uiUtils.showHideSvg(SECTION_ID);
 		},
 	},
 });
@@ -287,7 +302,7 @@ export default Vue.component("kp-gem-pkg", {
 
 <style>
 .section-opener {
-	position: relative;
+	/*position: relative;
 	display: inline-block;
 	font-size: 12px;
 	font-weight: bold;
@@ -301,7 +316,21 @@ export default Vue.component("kp-gem-pkg", {
 	transition: all 0.75s;
 	z-index: 10;
 	transform-origin: top left;
-	margin-left: -20px;
+	margin-left: -20px;*/
+	position: absolute;
+	right: 15px;
+	margin-top: -5px;
+	font-size: 12px;
+	font-weight: bold;
+	padding: 0px 10px;
+	border: solid 1px #cccccc;
+	border-radius: 10px;
+	background-color: #eeeeee;
+	color: #333;
+	margin-bottom: 10px;
+	width: auto;
+	transition: all 0.75s;
+	z-index: 10;
 }
 .section-opener:hover {
 	cursor: pointer;
@@ -309,9 +338,9 @@ export default Vue.component("kp-gem-pkg", {
 .section-opener.open {
 	background-color: #666;
 	color: #ffffff;
-	transform: rotate(90deg);
+	/*transform: rotate(90deg);
 	transform-origin: top left;
-	margin-left: -10px;
+	margin-left: -10px;*/
 }
 </style>
 
