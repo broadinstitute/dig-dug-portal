@@ -311,7 +311,8 @@ export default Vue.component("research-credible-sets-plot", {
 	methods: {
 		...uiUtils,
 		resetAll() {
-			//this.credibleSets = [];
+			console.log("this.credibleSets", this.credibleSets);
+			this.credibleSets = [];
 			this.CSData = {};
 			this.CSPosData = {};
 			this.test = null;
@@ -963,7 +964,7 @@ export default Vue.component("research-credible-sets-plot", {
 						  )
 						: CSJson.data;
 
-					if (this.pkgData != null) {
+					if (!!this.pkgData && !!this.pkgData.CSData) {
 						if (!this.pkgData.CSData[phenotype]) {
 							this.pkgData.CSData[phenotype] = {};
 						}

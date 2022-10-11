@@ -14,6 +14,8 @@ import AssociationsTable from "@/components/AssociationsTable.vue";
 import GeneFinderTable from "@/components/GeneFinderTable.vue";
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
+import CorrelationTable from "@/components/CorrelationTable.vue";
+import PathwayTable from "@/components/PathwayTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
@@ -48,6 +50,8 @@ new Vue({
         AssociationsTable,
         EnrichmentTable,
         DatasetsTable,
+        CorrelationTable,
+        PathwayTable,
         Documentation,
         RawImage,
 
@@ -144,18 +148,19 @@ new Vue({
             let phenotype = phenotypeMap[name];
 
             if (!!phenotype) {
-                this.$store.commit("setPhenotype", phenotype);
+                this.$store.state.selectedPhenotype = phenotype;
                 keyParams.set({ phenotype: phenotype.name });
             }
+            //Initial query. Should only happen once.
+            this.$store.dispatch("queryPhenotype");
         },
 
         "$store.state.phenotype": function (phenotype) {
-            this.$store.dispatch("queryPhenotype");
+            keyParams.set({phenotype: phenotype.name});
             uiUtils.hideElement("phenotypeSearchHolder");
         },
         "$store.state.ancestry": function(ancestry){
             keyParams.set({ancestry: ancestry});
-            this.$store.dispatch("queryPhenotype");
             uiUtils.hideElement("phenotypeSearchHolder");
         },
         diseaseGroup(group) {

@@ -36,7 +36,12 @@
 							<template v-for="param in parameter.values">
 								<option
 									:value="param.trim()"
-									v-html="getFileLabel(param.trim())"
+									v-html="
+										getFileLabel(
+											param.trim(),
+											parameter.parameter
+										)
+									"
 									:key="param.trim()"
 								></option>
 							</template>
@@ -58,8 +63,12 @@
 						<select
 							:id="'search_param_' + parameter.parameter"
 							:class="
-								'custom-select custom-select-search ' +
-								getVisibleValues(parameter.values, paramSearch)
+								'custom-select custom-select-search long-list ' +
+								getVisibleValues(
+									parameter.values,
+									paramSearch,
+									parameter.parameter
+								)
 							"
 							:size="
 								parameter.values.length > 10
@@ -75,17 +84,30 @@
 									: ''
 							"
 							v-if="parameter.type == 'list'"
-							@change="updateSearchInputByEvent($event)"
+							@change="
+								updateSearchInputByEvent(
+									$event,
+									parameter.parameter
+								)
+							"
 						>
 							<option
 								v-for="param in parameter.values"
 								:value="param.trim()"
-								v-html="getFileLabel(param.trim())"
+								v-html="
+									getFileLabel(
+										param.trim(),
+										parameter.parameter
+									)
+								"
 								:key="param.trim()"
 								:class="
 									parameter.values.length > 10 &&
 									paramSearch.length > 2 &&
-									!getFileLabel(param.trim())
+									!getFileLabel(
+										param.trim(),
+										parameter.parameter
+									)
 										.toLowerCase()
 										.includes(paramSearch.toLowerCase())
 										? 'hidden'
@@ -492,7 +514,10 @@ export default Vue.component("research-page-filters", {
 					if (pType != "list" && !!ifValuesFromKP) {
 						this.geneSearch = keyParams[param];
 					} else if (pType == "list" && !!ifValuesFromKP) {
-						let label = this.getFileLabel(keyParams[param].trim());
+						let label = this.getFileLabel(
+							keyParams[param].trim(),
+							param
+						);
 
 						let labelContent = label + "(" + keyParams[param] + ")";
 
@@ -517,6 +542,10 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		resetAll() {
+			this.$store.state.pkgData = {};
+			this.$store.state.pkgDataSelected = [];
+		},
 		expandRegion(EVENT, PARAM) {
 			let expandNumber = EVENT.target.value;
 
@@ -562,7 +591,7 @@ export default Vue.component("research-page-filters", {
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
-		getPlaceHolder(PARAM) {
+		/*getPlaceHolder(PARAM) {
 			let content = "";
 			if (keyParams[PARAM] != undefined) {
 				let paramType = this.apiParameters.parameters.filter(
@@ -581,13 +610,13 @@ export default Vue.component("research-page-filters", {
 			} else {
 				return "";
 			}
-		},
-		getVisibleValues(VALUES, SEARCH) {
+		},*/
+		getVisibleValues(VALUES, SEARCH, PARAMETER) {
 			var numOfVisible = 0;
 
 			VALUES.map((v) => {
 				if (
-					!!this.getFileLabel(v.trim())
+					!!this.getFileLabel(v.trim(), PARAMETER)
 						.toLowerCase()
 						.includes(SEARCH.toLowerCase())
 				) {
@@ -658,8 +687,17 @@ export default Vue.component("research-page-filters", {
 					: "col";
 			return classes;
 		},
-		getFileLabel(file) {
-			if (this.filesListLabels != null) {
+		getFileLabel(file, PARAMETER) {
+			if (
+				this.filesListLabels != null &&
+				this.filesListLabels[PARAMETER] &&
+				this.filesListLabels[PARAMETER][file]
+			) {
+				return this.filesListLabels[PARAMETER][file];
+			} else if (
+				this.filesListLabels != null &&
+				this.filesListLabels[file]
+			) {
 				return this.filesListLabels[file];
 			} else {
 				return file;
@@ -700,7 +738,6 @@ export default Vue.component("research-page-filters", {
 					this.$store.dispatch("searchingPhenotype", phenotype);
 				}
 
-				//working part
 				///This part is for a case of the region being a variant
 				if (
 					this.apiParameters.query.format.includes("region") ==
@@ -709,7 +746,6 @@ export default Vue.component("research-page-filters", {
 						document.getElementById("search_param_region").value
 					)
 				) {
-					console.log("fire 1");
 					let currentRegion = document
 						.getElementById("search_param_region")
 						.value.split(":");
@@ -748,6 +784,8 @@ export default Vue.component("research-page-filters", {
 
 					// add to search parameters index
 					if (this.$store.state.dataComparison == "newSearch") {
+						//reset pkgData and selected filters
+						this.resetAll();
 						this.searchParamsIndex[param].search = [];
 						let sValue = document.getElementById(
 							"search_param_" + param
@@ -814,8 +852,8 @@ export default Vue.component("research-page-filters", {
 		testLetters(STR) {
 			return /[a-zA-Z]/.test(STR);
 		},
-		updateSearchInputByEvent(event) {
-			var label = this.getFileLabel(event.target.value.trim());
+		updateSearchInputByEvent(event, PARAMETER) {
+			var label = this.getFileLabel(event.target.value.trim(), PARAMETER);
 
 			this.paramSearch = label + "(" + event.target.value + ")";
 		},
@@ -1525,11 +1563,17 @@ export default Vue.component("research-page-filters", {
 	left: 50px;*/
 }
 .custom-select-search {
+	width: 175px !important;
+	min-width: 175px;
+}
+
+.custom-select-search.long-list {
 	width: auto !important;
 	min-width: 175px;
 }
 
-.custom-select-search.hidden {
+.custom-select-search.hidden,
+.custom-select-search.long-list.hidden {
 	display: none !important;
 }
 

@@ -122,6 +122,7 @@
 				v-if="pkgConfig.viewers.includes('annotations plot v2') == true"
 				:region="$store.state.searchingRegion"
 				:phenotype="$store.state.searchingPhenotype"
+				:ancestry="$store.state.searchingAncestry"
 				:renderConfig="pkgConfig['annotations viewer']"
 				:plotMargin="plotMargin"
 				:compareGroupColors="colors.bold"
