@@ -282,7 +282,8 @@
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
 							Common variant gene-level associations for
-							{{ $store.state.geneName }}
+							{{ $store.state.geneName }} 
+							(Ancestry: {{ $store.state.selectedAncestry == "" ? "All": $parent.ancestryFormatter($store.state.selectedAncestry)}})
 							<tooltip-documentation
 								name="gene.associations.tooltip.hover"
 								:content-fill="$parent.documentationMap"
@@ -292,6 +293,12 @@
 						</h4>
 
 						<criterion-function-group>
+							<div class="col filter-col-md">
+								<div class="label">Ancestry</div>
+									<ancestry-selectpicker
+									:ancestries="$store.state.bioPortal.datasets.map((dataset) => dataset.ancestry)"
+						></ancestry-selectpicker>
+					</div>
 							<filter-enumeration-control
 								:field="'phenotype'"
 								:options="
