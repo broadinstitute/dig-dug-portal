@@ -164,24 +164,27 @@
 										<filter-enumeration-control
 											ref="gene"
 											:field="'gene'"
-											placeholder="Select a gene ..."
+											placeholder="Select a gene or put region ..."
 											:options="$parent.matchingGenes"
 											@input-change="
 												$parent.lookupGenes($event)
+											"
+											@keydown.enter.native="
+												$parent.feedRegion($event)
 											"
 										>
 											<div class="label">
 												Gene or Region (chr:start-end)
 											</div>
 										</filter-enumeration-control>
-
+										<!--
 										<div
 											class="col divider"
 											style="background: none"
 										>
 											<span class="or-text">or</span>
 										</div>
-										<!--<filter-basic-control
+										<filter-basic-control
 											ref="region"
 											color="primary"
 											:field="'region'"
@@ -201,9 +204,9 @@
                                                     $event
                                                 )
                                             "
-                                        ></autocomplete> -->
+                                        ></autocomplete> 
 
-										<b-col class="divider"></b-col>
+										<b-col class="divider"></b-col>-->
 
 										<filter-enumeration-control
 											ref="dataset"

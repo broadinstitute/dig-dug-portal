@@ -666,6 +666,10 @@ new Vue({
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
 
+
+        feedRegion(event) {
+            console.log(event.target.value);
+        },
         isAccordionVisible(ACCORDION) {
             let classes = "";
             if (document.getElementById(ACCORDION)) {
@@ -1054,8 +1058,10 @@ new Vue({
 
         async lookupGenes(input) {
             if (input) {
-                let matches = await match("gene", input, { limit: 10 });
-                this.matchingGenes = matches;
+                if (!input.includes(":")) {
+                    let matches = await match("gene", input, { limit: 10 });
+                    this.matchingGenes = matches;
+                }
             }
         },
         async exploreRegionOrVariant(input) {
