@@ -243,13 +243,13 @@ let pages = {
         title: "Exome Gene-Level Group-file Generator",
         chunks: ["chunk-vendors", "chunk-common", "egggenerator"]
     },
-    testcomponents: {
-        entry: "src/views/TestComponents/main.js",
+    help: {
+        entry: "src/views/Help/main.js",
         template: "public/index.html",
-        filename: "testcomponent.html",
-        title: "This is Only a Test",
-        chunks: ["chunk-vendors", "chunk-common", "testcomponents"]
-    }
+        filename: "help.html",
+        title: "Help",
+        chunks: ["chunk-vendors", "chunk-common", "help"]
+    },
 };
 
 // remove the debug page in production

@@ -153,8 +153,7 @@
 							class="col-md-12"
 							v-if="
 								($parent.dataFilters != null &&
-									$parent.researchData != null &&
-									$store.state.filteredData != '') ||
+									$parent.researchData != null) ||
 								$parent.dataFiles.length > 1 ||
 								$parent.apiParameters != null
 							"
@@ -483,10 +482,13 @@
 						></div>
 					</div>
 				</div>
-
 				<div
 					class="data-loading-indicator"
-					v-if="$parent.dataPoints != false"
+					v-if="
+						$parent.dataPoints != false &&
+						$parent.dataType != 'direct_csv' &&
+						$parent.dataType != 'direct_json'
+					"
 					v-html="
 						$store.state.initialSearch == 1 && $parent.isAPI == true
 							? 'Start search'

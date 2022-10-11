@@ -12,9 +12,19 @@
 				<!-- Wrap page level searchs with "pageSearchParameters" div -->
 
 				<div class="col filter-col-md">
-					<gene-selectpicker
-						@onGeneChange="$store.dispatch('queryGeneName', $event)"
-					></gene-selectpicker>
+					<div class="label">Gene</div>
+					<gene-selectpicker></gene-selectpicker>
+				</div>
+				<div class="col filter-col-md">
+					<div class="label">Search</div>
+					<button
+						id="regionSearchGo"
+						class="btn btn-light btn-sm go"
+						type="button"
+						@click="$store.dispatch('queryGeneName')"
+					>
+						GO
+					</button>
 				</div>
 			</search-header-wrapper>
 
@@ -272,7 +282,8 @@
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
 							Common variant gene-level associations for
-							{{ $store.state.geneName }}
+							{{ $store.state.geneName }} 
+							(Ancestry: {{ $store.state.selectedAncestry == "" ? "All": $parent.ancestryFormatter($store.state.selectedAncestry)}})
 							<tooltip-documentation
 								name="gene.associations.tooltip.hover"
 								:content-fill="$parent.documentationMap"
@@ -282,6 +293,12 @@
 						</h4>
 
 						<criterion-function-group>
+							<div class="col filter-col-md">
+								<div class="label">Ancestry</div>
+									<ancestry-selectpicker
+									:ancestries="$store.state.bioPortal.datasets.map((dataset) => dataset.ancestry)"
+						></ancestry-selectpicker>
+					</div>
 							<filter-enumeration-control
 								:field="'phenotype'"
 								:options="
@@ -299,6 +316,7 @@
 													.description
 											: phenotype
 								"
+								:multiple="true"
 							>
 								<div class="label">Phenotypes</div>
 							</filter-enumeration-control>

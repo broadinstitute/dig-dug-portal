@@ -6,12 +6,11 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-import Documentation from "@/components/Documentation.vue";
-import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
+
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import StaticPageInfo from "@/components/StaticPageInfo.vue";
-import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -24,13 +23,9 @@ new Vue({
     store,
 
     components: {
-        StaticPageInfo,
-        Documentation,
         PageHeader,
         PageFooter,
-        PortalDatasetsListTable,
         Alert,
-        ResearchPageFilters
     },
 
     created() {
@@ -46,7 +41,19 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+        getPageContent(NID, CHAPTER) {
+            console.log(NID, CHAPTER);
+            this.$store.dispatch("kp4cd/getContentByID", NID);
+            this.$store.dispatch("page", NID);
+            if (!!CHAPTER) {
+                let chapters = document.querySelectorAll(".chapter");
+                chapters.forEach(chapter => {
+                    chapter.setAttribute("class", "chapter closed")
+                })
+                document.getElementById(CHAPTER).setAttribute("class", "chapter open");
+            }
+        }
     },
 
     computed: {
@@ -63,9 +70,8 @@ new Vue({
             }
             return contents[0];
         },
-
         pageInfo() {
-            let contents = this.$store.state.kp4cd.pageInfo;
+            let contents = this.$store.state.kp4cd.contentByID;
 
             if (contents.length === 0) {
                 return {};
@@ -73,32 +79,42 @@ new Vue({
             return contents;
         },
 
-        eglSummaries() {
-            let contents = this.$store.state.kp4cd.eglSummaries;
+        helpTOC() {
+            let bookData = this.$store.state.kp4cd.helpBook;
+
+            if (bookData.length > 0) {
+                if (!this.$store.state.page) {
+                    this.$store.dispatch("kp4cd/getContentByID", bookData[0].nid_1);
+                } else if (!!this.$store.state.page) {
+                    this.$store.dispatch("kp4cd/getContentByID", this.$store.state.page);
+                }
+            }
+
+            let contents = {};
+
+            bookData.map(p => {
+
+                if (!contents[p.title_2]) {
+                    contents[p.title_2] = { "nid": p.nid_2, "title": p.title_2, "pages": [] }
+                }
+
+                contents[p.title_2]["pages"].push({ "nid": p.nid, "title": p.title });
+
+
+            })
 
             if (contents.length === 0) {
                 return {};
             }
-            this.$store.dispatch("filteredData", contents);
-            this.$store.dispatch("unfilteredData", contents);
-
             return contents;
         },
-        summaryData() {
-            if (Object.keys(this.eglSummaries).length == 0) {
-                return null;
-            } else {
-                let content = { data: this.eglSummaries };
-                return content;
-            }
-        }
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getPageInfo", { "page": "eglmethodscollection", "portal": group.name });
-            this.$store.dispatch("kp4cd/getEglSummaries", group.name);
+            this.$store.dispatch("kp4cd/getHelpBook");
         },
+
     }
 }).$mount("#app");

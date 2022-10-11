@@ -6,6 +6,13 @@
 		>
 			<div class="col-md-12 anno-plot-wrapper">
 				<div id="annotationsUIWrapper">
+					<span>
+						<strong
+							>Filter associated variants by location within
+							regulatory regions annotated in broad tissue
+							categories.</strong
+						>
+					</span>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -27,7 +34,7 @@
 									@change="addAnnoTrack($event)"
 								>
 									<option value="null">
-										{{ "Select annotation" }}
+										{{ "Show all" }}
 									</option>
 									<option
 										v-for="(annoValue, annoKey) in annoData"
@@ -73,7 +80,7 @@
 				</div>
 				<div
 					class="col-md-12 anno-plot-ui-wrapper"
-					style="border-bottom: solid 1px #dddddd"
+					style="padding-top: 15px"
 				>
 					<h6><strong>Global Enrichment</strong></h6>
 					<div>
@@ -107,8 +114,16 @@
 					</div>
 				</div>
 
-				<div id="annotationsPlotWrapper">
-					<div
+				<div
+					id="annotationsPlotWrapper"
+					:class="
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length == 0
+							? 'height-1px'
+							: 'height-auto'
+					"
+				>
+					<!--<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
 						v-if="
@@ -153,7 +168,18 @@
 								</template>
 							</div>
 						</div>
-					</div>
+					</div>-->
+					<strong
+						v-if="
+							pkgDataSelected.filter(
+								(s) => s.type == 'Annotation'
+							).length > 0
+						"
+					>
+						Clicking on a tissue track(s) filters the table to
+						display only variants located within that annotation
+						type(s) in the selected tissue categories.</strong
+					>
 					<div id="tissueInfoBox" class="hidden"></div>
 
 					<canvas
@@ -166,7 +192,7 @@
 						height=""
 					></canvas>
 
-					<div
+					<!--<div
 						id="annoInitialMessage"
 						:class="
 							pkgDataSelected.filter(
@@ -176,7 +202,7 @@
 								: ''
 						"
 						v-html="'Please select annotation.'"
-					></div>
+					></div>-->
 				</div>
 			</div>
 		</div>
@@ -187,7 +213,6 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 import keyParams from "@/utils/keyParams";
@@ -198,6 +223,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	props: [
 		"region",
 		"phenotype",
+		"ancestry",
 		"renderConfig",
 		"plotMargin",
 		"compareGroupColors",
@@ -238,12 +264,30 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	computed: {
 		searchingParameters() {
+			let content = "";
 			if (
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
-				return this.searchingRegion + "," + this.searchingPhenotype;
+				let region =
+					this.searchingRegion.chr +
+					":" +
+					this.searchingRegion.start +
+					"-" +
+					this.searchingRegion.end;
+
+				content = region + "," + this.searchingPhenotype;
 			}
+
+			content += !!this.renderConfig["ancestry parameter"]
+				? "," +
+				  document.querySelector(
+						"#search_param_" +
+							this.renderConfig["ancestry parameter"]
+				  ).value
+				: "";
+
+			return content;
 		},
 		searchingRegion() {
 			let returnObj = {};
@@ -341,11 +385,20 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
+			console.log(PARAM);
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
 			handler: function (DATA) {
-				if (DATA.length == 0) {
+				let annotations = [
+					...new Set(
+						this.pkgDataSelected.filter(
+							(p) => p.type == "Annotation"
+						)
+					),
+				];
+
+				if (DATA.length == 0 || annotations.length == 0) {
 					this.resetAll();
 				} else {
 					this.renderByAnnotations();
@@ -364,10 +417,13 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	methods: {
 		...uiUtils,
-		resetAll() {
+		resetAll(TYPE) {
+			if (!!TYPE && TYPE == "all") {
+				this.GEData = {};
+				this.GEPosData = {};
+			}
+
 			this.annoData = {};
-			this.GEData = {};
-			this.GEPosData = {};
 			this.tissuesData = {};
 			this.tissuesPosData = {};
 			this.selectedAnnos = [];
@@ -376,6 +432,17 @@ export default Vue.component("research-annotations-plot-v2", {
 			this.annotationOnFocus = "null";
 			this.tissueOnFocus = "null";
 			//this.renderGE();
+
+			this.pkgDataSelected.map((i) => {
+				if (i.type == "Tissue") {
+					this.$store.dispatch("pkgDataSelected", {
+						type: i.type,
+						id: i.id,
+						action: "remove",
+					});
+				}
+			});
+
 			this.getAnnotations(this.searchingRegion);
 			this.renderByAnnotations();
 		},
@@ -855,6 +922,8 @@ export default Vue.component("research-annotations-plot-v2", {
 					Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 				}
 
+				//console.log("this.pkgData", this.pkgData);
+
 				this.renderByAnnotations();
 				this.renderGE();
 			}
@@ -1022,8 +1091,18 @@ export default Vue.component("research-annotations-plot-v2", {
 			}
 		},
 		renderGE() {
+			//working part
+
 			this.GEPosData = {};
 			let sortedGEData = {};
+			let ancestry = !!this.renderConfig["ancestry parameter"]
+				? document.querySelector(
+						"#search_param_" +
+							this.renderConfig["ancestry parameter"]
+				  ).value
+				: null;
+
+			console.log("this.GEData", this.GEData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
@@ -1034,12 +1113,37 @@ export default Vue.component("research-annotations-plot-v2", {
 				};
 
 				GE.map((g) => {
-					if (!!this.annoData[g.annotation][g.tissue]) {
+					let meetCondition = null;
+
+					if (
+						!!ancestry &&
+						!!this.annoData[g.annotation][g.tissue] &&
+						!!this.annoData[g.annotation][g.tissue]["ancestries"][
+							ancestry
+						]
+					) {
+						meetCondition = true;
+					} else if (
+						!ancestry &&
+						!!this.annoData[g.annotation][g.tissue] &&
+						!!this.annoData[g.annotation][g.tissue]
+					) {
+						meetCondition = true;
+					}
+
+					if (!!meetCondition) {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
-						let pValue =
-							g.pValue == 0 ? 324 : -Math.log10(g.pValue);
+
+						let pValue = !!ancestry
+							? this.annoData[g.annotation][g.tissue][
+									"ancestries"
+							  ][ancestry][phenotype]
+							: g.pValue;
+
+						pValue = pValue == 0 ? 324 : -Math.log10(pValue);
+
 						let fold = g.SNPs / g.expectedSNPs;
 
 						sortedGEData[phenotype].yMax =
@@ -1319,8 +1423,21 @@ export default Vue.component("research-annotations-plot-v2", {
 				CTX.textAlign = "right";
 				CTX.font = "12px Arial";
 
+				let yMaxMinGap = YMAX - YMIN;
+				let yDecimal = yMaxMinGap <= 1 ? 2 : yMaxMinGap <= 50 ? 1 : 0;
+
+				let yValue = Formatters.decimalFormatter(
+					YMIN + i * yStep,
+					yDecimal
+				);
+
+				yValue =
+					yValue >= 100000
+						? Math.round(yValue * 0.001) + "k"
+						: yValue;
+
 				CTX.fillText(
-					Formatters.floatFormatter(YMIN + i * yStep),
+					yValue,
 					XPOS + this.plotMargin.leftMargin - BUMP * 3,
 					YPOS +
 						this.plotMargin.topMargin +
@@ -1377,8 +1494,21 @@ export default Vue.component("research-annotations-plot-v2", {
 				CTX.textAlign = "center";
 				CTX.font = "12px Arial";
 
+				let xMaxMinGap = XMAX - XMIN;
+				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+				let xValue = Formatters.decimalFormatter(
+					XMIN + i * xStep,
+					xDecimal
+				);
+
+				xValue =
+					xValue >= 100000
+						? Math.round(xValue * 0.001) + "k"
+						: xValue;
+
 				CTX.fillText(
-					Formatters.floatFormatter(XMIN + i * xStep),
+					xValue,
 					adjTickXPos,
 					YPOS + HEIGHT + this.plotMargin.topMargin + BUMP * 4
 				);
@@ -1407,6 +1537,7 @@ export default Vue.component("research-annotations-plot-v2", {
 		renderByAnnotations() {
 			if (!!this.pkgData.GEByTissueData) {
 				let staredPositions = [];
+				this.annoPosData = {};
 
 				if (!!this.renderConfig["star key"]) {
 					let plotData = !!Array.isArray(this.plotData)
@@ -1775,9 +1906,23 @@ export default Vue.component("research-annotations-plot-v2", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				let positionLabel = i < 5 ? xMin + i * xStep : xMax;
+				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
 				CTX.font = "12px Arial";
 				CTX.fillStyle = "#999999";
+
+				let xMaxMinGap = xMax - xMin;
+				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+				let positionLabel = Formatters.decimalFormatter(
+					xMin + i * xStep,
+					xDecimal
+				);
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
+
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
@@ -1816,6 +1961,13 @@ $(function () {});
 </script>
 
 <style>
+.height-1px {
+	height: 1px !important;
+}
+.height-auto {
+	height: auto;
+	border-top: solid 1px #ddd;
+}
 .search-bubble {
 	font-size: 12px;
 	margin-right: 5px;
