@@ -17,6 +17,7 @@ import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
+import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
 import Formatters from "@/utils/formatters";
 import VariantSearch from "@/components/VariantSearch";
 import keyParams from "@/utils/keyParams";
@@ -62,6 +63,7 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
         AncestrySelectPicker,
+        TranscriptSelectPicker,
         UnauthorizedMessage,
         CriterionFunctionGroup,
         FilterPValue,
