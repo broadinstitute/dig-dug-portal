@@ -444,11 +444,20 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
-						<div class="col filter-col-md">
-								<div class="label">Transcript</div>
-									<transcript-selectpicker 
-										:transcripts="$store.state.geneToTranscript.data.map((item) => item.transcript_id)">
-									</transcript-selectpicker>
+						<div class="filtering-ui-wrapper container-fluid">
+							<div class="row filtering-ui-content">
+								<div class="col filter-col-md">
+									<div class="label">Transcript</div>
+										<transcript-selectpicker 
+											:transcripts="$store.state.geneToTranscript.data.map((item) => item.transcript_id)">
+										</transcript-selectpicker>
+								</div>
+								<div class="col filter-col-md">
+									<button id="transcriptGo" class="btn btn-light btn-sm go" type="button"
+										@click="$store.dispatch('getTxAssociations')">GO
+									</button>
+								</div>
+							</div>
 						</div>
 						<research-phewas-plot
 							v-if="$store.state.associations52k.data.length > 0"
