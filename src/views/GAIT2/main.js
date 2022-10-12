@@ -18,7 +18,7 @@ import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
-import { isEqual, startCase, groupBy, sumBy } from "lodash";
+import { isEqual, sumBy, cloneDeep } from "lodash";
 import { postAlertError } from "@/components/Alert.vue";
 import regionUtils from "@/utils/regionUtils";
 import * as raremetal from "raremetal.js";
@@ -43,11 +43,6 @@ new Vue({
         ResearchGenesTrack,
         ResearchRegionPlot,
         EventBus,
-    },
-    mounted() {
-        EventBus.$on("alert", (message) => {
-            postAlertError(message);
-        });
     },
     mixins: [pageMixin],
     data() {
@@ -438,46 +433,67 @@ new Vue({
         },
 
         selectedGene() {
-            return this.searchCriteria
-                .filter((v) => {
-                    return v.field === "gene";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "gene";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
         selectedRegion() {
-            return this.searchCriteria
-                .filter((v) => {
-                    return v.field === "region";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "region";
+                    })
+                    .map((v) => v.threshold) || []
+            );
+        },
+        selectedGeneORregion() {
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "geneORregion";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
         selectedMasks() {
-            return this.searchCriteria
-                .filter((v) => {
-                    return v.field === "mask";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "mask";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
         selectedDataset() {
-            return this.searchCriteria
-                .filter((v) => {
-                    return v.field === "dataset";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "dataset";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
         selectedPhenotypes() {
-            return this.searchCriteria
-                .filter((v) => {
-                    return v.field === "phenotype";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "phenotype";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
         selectedTests() {
-            return this.selectedMethods
-                .filter((v) => {
-                    return v.field === "test";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.selectedMethods
+                    .filter((v) => {
+                        return v.field === "test";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
         searchRegionString() {
             return `${this.searchRegion.chrom}:${this.searchRegion.start}-${this.searchRegion.stop}`;
@@ -666,9 +682,16 @@ new Vue({
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
 
-
         feedRegion(event) {
-            console.log(event.target.value);
+            if (event.target.value) {
+                let foundIndex = this.searchCriteria.findIndex(
+                    (v) => v.field === "geneORregion"
+                );
+                if (foundIndex > -1) {
+                    this.searchCriteria[foundIndex].threshold =
+                        event.target.value;
+                }
+            }
         },
         isAccordionVisible(ACCORDION) {
             let classes = "";
@@ -709,8 +732,9 @@ new Vue({
             this.showAnnotations = true;
             this.loadingAnnotations = true;
             this.criteriaChanged = false; //reset criteria
-            let search =
-                this.selectedGene[0] || this.selectedRegion[0]?.toString();
+            // let search =
+            //     this.selectedGene[0] || this.selectedRegion[0]?.toString();
+            let search = this.selectedGeneORregion[0].toString();
             let locus = await regionUtils.parseRegion(search);
             if (locus) {
                 console.log("locus found: ", locus);
@@ -732,14 +756,14 @@ new Vue({
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
-                    this.selectedRegionType
-                ].map((region) => {
-                    return {
-                        chrom: this.searchRegion.chrom,
-                        start: region.start,
-                        stop: region.end,
-                    };
-                })
+                      this.selectedRegionType
+                  ].map((region) => {
+                      return {
+                          chrom: this.searchRegion.chrom,
+                          start: region.start,
+                          stop: region.end,
+                      };
+                  })
                 : [];
 
             //using hardcoded test samples
@@ -816,8 +840,8 @@ new Vue({
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
                     groups[
                         liftedRegions.regions[i].start +
-                        " - " +
-                        liftedRegions.regions[i].stop
+                            " - " +
+                            liftedRegions.regions[i].stop
                     ] = {
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop,
@@ -1138,17 +1162,19 @@ new Vue({
             this.tableData.forEach((v) => (v.selected = false));
             this.updateSelectedVariants();
         },
-        removeGene(event) {
-            console.log("remove gene", event);
-            this.searchCriteria = this.searchCriteria.filter(
-                (v) => v.field !== "gene"
-            );
+        async removeGene() {
+            let copiedArray = await this.searchCriteria.slice();
+            //remove object from arrray with field = gene
+            let index = copiedArray.findIndex((o) => o.field === "gene");
+            if (index !== -1) copiedArray.splice(index, 1);
+            this.searchCriteria = copiedArray;
         },
-        removeRegion(event) {
-            console.log("remove region", event);
-            this.searchCriteria = this.searchCriteria.filter(
-                (v) => v.field !== "region"
-            );
+        removeRegion() {
+            let copiedArray = this.searchCriteria.slice();
+            //remove object from arrray with field = region
+            let index = copiedArray.findIndex((o) => o.field === "region");
+            if (index !== -1) copiedArray.splice(index, 1);
+            this.searchCriteria = copiedArray;
         },
     },
     render(createElement, context) {
