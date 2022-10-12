@@ -456,9 +456,9 @@
 							</div>
 						</div>
 						<research-phewas-plot
-							v-if="$parent.transcriptOr52k.data.length > 0"
+							v-if="$parent.transcriptOr52k.length > 0"
 							canvasId="rareVariantPlot"
-							:phenotypesData="$parent.transcriptOr52k.data"
+							:phenotypesData="$parent.transcriptOr52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:colors="[
 								'#007bff',
@@ -503,9 +503,9 @@
 							:pkgDataSelected="null"
 							ref="rareVariantPheWASPlot"
 						></research-phewas-plot>
-						<unauthorized-message :restricted="$parent.transcriptOr52k.restricted"></unauthorized-message>
+						<unauthorized-message :restricted="$store.state.restricted"></unauthorized-message>
 						<gene-associations-masks
-							:associations="$parent.transcriptOr52k.data"
+							:associations="$parent.transcriptOr52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 						></gene-associations-masks>
 					</div>

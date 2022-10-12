@@ -255,9 +255,12 @@ new Vue({
         },
 
         transcriptOr52k(){
-            return !this.$store.state.selectedTranscript 
+            let endpoint = !this.$store.state.selectedTranscript 
                 ? this.$store.state.associations52k
                     : this.$store.state.transcriptAssoc;
+            this.$store.state.restricted = endpoint.restricted;
+            endpoint.data.sort((a, b)=> this.pValueFormatter(a.pValue) - this.pValueFormatter(b.pValue));
+            return endpoint.data;
         },
 
         geneassociations() {
