@@ -386,7 +386,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
-			console.log(PARAM);
+			//console.log(PARAM);
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -1105,7 +1105,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				  ).value
 				: null;
 
-			console.log("this.GEData", this.GEData);
+			//console.log("this.GEData", this.GEData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
