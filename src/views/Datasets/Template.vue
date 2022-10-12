@@ -19,6 +19,14 @@
 				</div>
 			</div>
 			<div class="card mdkp-card">
+				<div class="card-body temporary-card">
+					<documentation
+						name="datasets.titlecard.phenotypes"
+						:content-fill="$parent.documentationMap"
+					></documentation>
+				</div>
+			</div>
+			<div class="card mdkp-card">
 				<div class="card-body">
 					<div class="row">
 						<div class="col-md-12">

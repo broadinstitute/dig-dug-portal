@@ -9,6 +9,7 @@ Vue.config.productionTip = false;
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
+import Documentation from "@/components/Documentation.vue";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import uiUtils from "@/utils/uiUtils";
@@ -28,6 +29,7 @@ new Vue({
         PageFooter,
         PortalDatasetsListTable,
         Alert,
+        Documentation,
         CriterionListGroup,
         FilterEnumeration,
     },

@@ -241,28 +241,8 @@
 						</filter-effect-direction-control>
 
 						<template slot="filtered" slot-scope="{ filter }">
-							<!--<h4 class="card-title">Visualization</h4>-->
 							<b-tabs content-class="mt-3" align="center">
 								<b-tab title="PheWAS plot" active>
-									<!--<locuszoom
-										ref="locuszoom"
-										:chr="$store.state.chr"
-										:start="$store.state.start"
-										:end="$store.state.end"
-										:filter="filter"
-										:refSeq="false"
-										:loglog="true"
-									>
-										<lz-phewas-panel
-											v-if="$store.state.variant"
-											:id="$store.state.variant.varId"
-											:type="'variant'"
-											:phenotypeMap="
-												$store.state.bioPortal
-													.phenotypeMap
-											"
-										></lz-phewas-panel>
-									</locuszoom>-->
 									<b-button
 										size="sm"
 										variant="outline-secondary"
