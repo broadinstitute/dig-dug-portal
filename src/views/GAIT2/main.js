@@ -598,16 +598,6 @@ new Vue({
             },
             deep: true,
         },
-        // selectedGene(newGene, oldGene) {
-        //     if (!isEqual(newGene, oldGene)) {
-        //         keyParams.set({ gene: newGene });
-        //     }
-        // },
-        // selectedRegion(newRegion, oldRegion) {
-        //     if (!isEqual(newRegion, oldRegion)) {
-        //         keyParams.set({ region: newRegion });
-        //     }
-        // },
 
         selectedGeneOrRegion(newGeneOrRegion, oldGeneOrRegion) {
             if (!isEqual(newGeneOrRegion, oldGeneOrRegion)) {
@@ -1117,11 +1107,6 @@ new Vue({
                     field: "geneORregion",
                     threshold: keyParams.geneORregion,
                 });
-            // if (keyParams.region)
-            //     this.searchCriteria.push({
-            //         field: "region",
-            //         threshold: keyParams.region,
-            //     });
             if (keyParams.masks) {
                 let masks = keyParams.masks.split(",");
                 masks.forEach((m) =>
