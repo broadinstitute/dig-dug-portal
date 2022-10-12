@@ -4,6 +4,7 @@
         ref="transcriptSelect">
         <option value="" selected>Select a transcript</option>
         <option v-for="transcript in transcriptOptions" :value="transcript">{{ transcript }}</option>
+        <option value="">{{ $store.state.geneName}}</option>
     </select>
 </template>
 

@@ -435,8 +435,9 @@
 				<div class="card-body">
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
-							Rare variant gene-level associations for
-							{{ $store.state.geneName }}
+							Rare variant {{ !$store.state.transcript 
+								? `gene-level associations for ${$store.state.geneName}` 
+									: `transcript-level associations for ${$store.state.transcript}`}}
 							<tooltip-documentation
 								name="gene.52k.tooltip.hover"
 								:content-fill="$parent.documentationMap"
