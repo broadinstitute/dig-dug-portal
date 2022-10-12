@@ -435,9 +435,9 @@
 				<div class="card-body">
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
-							Rare variant {{ !$store.state.transcript 
+							Rare variant {{ !$store.state.selectedTranscript 
 								? `gene-level associations for ${$store.state.geneName}` 
-									: `transcript-level associations for ${$store.state.transcript}`}}
+									: `transcript-level associations for ${$store.state.selectedTranscript}`}}
 							<tooltip-documentation
 								name="gene.52k.tooltip.hover"
 								:content-fill="$parent.documentationMap"
@@ -452,11 +452,6 @@
 										<transcript-selectpicker 
 											:transcripts="$store.state.geneToTranscript.data.map((item) => item.transcript_id)">
 										</transcript-selectpicker>
-								</div>
-								<div class="col filter-col-md">
-									<button id="transcriptGo" class="btn btn-light btn-sm go" type="button"
-										@click="$store.dispatch('setTranscript')">GO
-									</button>
 								</div>
 							</div>
 						</div>

@@ -139,6 +139,7 @@ new Vue({
         postAlertError,
         closeAlert,
         ancestryFormatter: Formatters.ancestryFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
         pushCriterionPhenotype(phenotypeName) {
             this.genePageSearchCriterion.push({
                 field: "phenotype",
@@ -254,7 +255,7 @@ new Vue({
         },
 
         transcriptOr52k(){
-            return !this.$store.state.transcript 
+            return !this.$store.state.selectedTranscript 
                 ? this.$store.state.associations52k
                     : this.$store.state.transcriptAssoc;
         },
@@ -677,7 +678,7 @@ new Vue({
             let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}`};
             this.$store.dispatch("geneassociations/query", geneQuery);
         },
-        "$store.state.transcript"(newTranscript){
+        "$store.state.selectedTranscript"(newTranscript){
             if(!!newTranscript){
                 this.$store.dispatch("transcriptAssoc/query", {q : newTranscript});
             }

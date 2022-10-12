@@ -35,6 +35,7 @@ export default Vue.component("transcript-selectpicker", {
         },
     },
     methods: {
+        pValueFormatter: Formatters.pValueFormatter,
         setFocus() {
             this.$nextTick(() => {
                 this.$refs.transcriptSelect.$refs.input.focus();
