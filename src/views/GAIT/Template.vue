@@ -98,7 +98,16 @@
                                                 $parent.selectedGene.length ===
                                                 0
                                             "
-                                            >Please select a gene.</b-alert
+                                            >Please select a gene, and
+                                            optionally a transcript.</b-alert
+                                        >
+                                        <b-alert
+                                            show
+                                            v-else-if="
+                                                $parent.selectedDataset
+                                                    .length === 0
+                                            "
+                                            >Please select a dataset.</b-alert
                                         >
 
                                         <b-alert
@@ -185,7 +194,8 @@
                                             @click="$parent.searchVariants"
                                             :disabled="
                                                 !$parent.selectedGene.length ||
-                                                !$parent.selectedMask.length
+                                                !$parent.selectedMask.length ||
+                                                !$parent.selectedDataset.length
                                             "
                                             >Search Variants</b-button
                                         >
@@ -319,17 +329,8 @@
                                             <b-alert
                                                 show
                                                 v-if="
-                                                    $parent.selectedDataset
-                                                        .length == 0
-                                                "
-                                                >Please select a
-                                                dataset.</b-alert
-                                            >
-                                            <b-alert
-                                                show
-                                                v-else-if="
                                                     $parent.selectedPhenotypes
-                                                        .length == 0
+                                                        .length === 0
                                                 "
                                                 >Please select one or more
                                                 phenotypes.</b-alert
@@ -338,7 +339,7 @@
                                                 show
                                                 v-else-if="
                                                     $parent.selectedTests
-                                                        .length == 0 ||
+                                                        .length === 0 ||
                                                     $parent.selectedTests[0] ===
                                                         undefined
                                                 "
@@ -363,7 +364,7 @@
                                                     :disableSort="true"
                                                     :disabled="
                                                         $parent.selectedDataset
-                                                            .length == 0 ||
+                                                            .length === 0 ||
                                                         $parent
                                                             .selectedDataset[0] ===
                                                             undefined
@@ -371,7 +372,7 @@
                                                     :multiple="true"
                                                     :options="
                                                         $parent.selectedDataset ==
-                                                        '52k'
+                                                        '55k'
                                                             ? $store.state.ldServer.phenotypes.map(
                                                                   (phenotype) =>
                                                                       phenotype.name
