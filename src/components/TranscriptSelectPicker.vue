@@ -1,8 +1,8 @@
 <template>
     <select class="form-control"
         v-model="$store.state.selectedTranscript"
-        ref="transcriptSelect">
-        <option value="" selected>Select a transcript</option>
+        ref="transcriptSelect" @click="this.disablePlaceholder">
+        <option value="undefined" id="transcript-placeholder" selected>Select a transcript</option>
         <option v-for="transcript in transcriptOptions" :value="transcript">{{ transcript }}</option>
         <option value="">{{ $store.state.geneName}}</option>
     </select>
@@ -41,6 +41,10 @@ export default Vue.component("transcript-selectpicker", {
                 this.$refs.transcriptSelect.$refs.input.focus();
             });
         },
+        disablePlaceholder(){
+            let placeholder = document.getElementById("transcript-placeholder");
+            placeholder.disabled = true;
+        }
     },
 });
 </script>
