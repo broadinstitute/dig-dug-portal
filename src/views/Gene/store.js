@@ -21,6 +21,7 @@ export default new Vuex.Store({
         ancestryAssoc: bioIndex("ancestry-associations"),
         associations52k: bioIndex("gene-associations-52k"),
         geneToTranscript: bioIndex("gene-to-transcript"),
+        transcriptAssoc: bioIndex("transcript-associations"),
         uniprot
     },
     state: {
@@ -145,9 +146,8 @@ export default new Vuex.Store({
             let name = context.state.geneName;
             context.dispatch('associations52k/query', { q: name });
         },
-        getTxAssociations(context){
+        setTranscript(context){
             context.state.transcript = context.state.selectedTranscript;
-            console.log(context.state.transcript);
         }
     }
 });

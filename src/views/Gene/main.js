@@ -253,6 +253,12 @@ new Vue({
                 .map(phenotype => phenotype.name);
         },
 
+        transcriptOr52k(){
+            return !this.$store.state.transcript 
+                ? this.$store.state.associations52k
+                    : this.$store.state.transcriptAssoc;
+        },
+
         geneassociations() {
             let data = this.$store.state.geneassociations.data;
             let assocMap = {};
@@ -668,9 +674,13 @@ new Vue({
             this.$store.dispatch("queryAssociations");
         },
         "$store.state.selectedAncestry"(newAncestry){
-            console.log(newAncestry);
             let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}`};
             this.$store.dispatch("geneassociations/query", geneQuery);
         },
+        "$store.state.transcript"(newTranscript){
+            if(!!newTranscript){
+                this.$store.dispatch("transcriptAssoc/query", {q : newTranscript});
+            }
+        }
     }
 }).$mount("#app");

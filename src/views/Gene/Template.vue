@@ -454,15 +454,15 @@
 								</div>
 								<div class="col filter-col-md">
 									<button id="transcriptGo" class="btn btn-light btn-sm go" type="button"
-										@click="$store.dispatch('getTxAssociations')">GO
+										@click="$store.dispatch('setTranscript')">GO
 									</button>
 								</div>
 							</div>
 						</div>
 						<research-phewas-plot
-							v-if="$store.state.associations52k.data.length > 0"
+							v-if="$parent.transcriptOr52k.data.length > 0"
 							canvasId="rareVariantPlot"
-							:phenotypesData="$store.state.associations52k.data"
+							:phenotypesData="$parent.transcriptOr52k.data"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:colors="[
 								'#007bff',
@@ -507,13 +507,9 @@
 							:pkgDataSelected="null"
 							ref="rareVariantPheWASPlot"
 						></research-phewas-plot>
-						<unauthorized-message
-							:restricted="
-								$store.state.associations52k.restricted
-							"
-						></unauthorized-message>
+						<unauthorized-message :restricted="$parent.transcriptOr52k.restricted"></unauthorized-message>
 						<gene-associations-masks
-							:associations="$store.state.associations52k.data"
+							:associations="$parent.transcriptOr52k.data"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 						></gene-associations-masks>
 					</div>
