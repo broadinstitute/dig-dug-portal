@@ -46,9 +46,18 @@
                                     <div class="criteria">
                                         <b-badge
                                             class="filter-pill-gene"
-                                            v-if="$parent.selectedGene.length"
+                                            v-if="$parent.selectedGene?.length"
                                         >
                                             {{ $parent.selectedGene[0] }}
+                                        </b-badge>
+                                        <b-badge
+                                            class="filter-pill-transcript"
+                                            v-if="
+                                                $parent.selectedTranscript
+                                                    ?.length
+                                            "
+                                        >
+                                            {{ $parent.selectedTranscript[0] }}
                                         </b-badge>
                                         <b-badge
                                             class="filter-pill-dataset"
@@ -60,7 +69,10 @@
                                             {{ $parent.selectedDataset[0] }}
                                         </b-badge>
 
-                                        <b-badge class="filter-pill-mask">
+                                        <b-badge
+                                            class="filter-pill-mask"
+                                            v-if="$parent.selectedMask.length"
+                                        >
                                             {{
                                                 $parent.masks.find(
                                                     (o) =>
@@ -116,9 +128,12 @@
                                         <filter-enumeration-control
                                             ref="transcript"
                                             :field="'transcript'"
-                                            placeholder="Select a transcript ..."
+                                            placeholder="Select a transcript (optional) ..."
                                             :options="
                                                 $parent.matchingTranscripts
+                                            "
+                                            :disabled="
+                                                !$parent.selectedGene.length
                                             "
                                             ><div class="label">Transcript</div>
                                         </filter-enumeration-control>

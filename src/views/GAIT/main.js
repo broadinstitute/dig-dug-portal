@@ -13,7 +13,7 @@ import FilterBasic from "@/components/criterion/FilterBasic";
 import ForestPlotSimple from "@/components/ForestPlotSimple";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
-import { match } from "@/utils/bioIndexUtils";
+import { query, match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
 
@@ -254,6 +254,15 @@ new Vue({
                     .map((v) => v.threshold) || []
             );
         },
+        selectedTranscript() {
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "transcript";
+                    })
+                    .map((v) => v.threshold) || []
+            );
+        },
         selectedMask() {
             return (
                 this.searchCriteria
@@ -353,11 +362,22 @@ new Vue({
                 this.matchingGenes = matches;
             }
         },
+        async lookupTranscripts(input) {
+            if (!!input) {
+                let matches = await query("gene-to-transcript", input);
+                this.matchingTranscripts = matches.map((m) => m.transcript_id);
+            }
+        },
         initCriteria() {
             if (keyParams.gene)
                 this.searchCriteria.push({
                     field: "gene",
                     threshold: keyParams.gene,
+                });
+            if (keyParams.transcript)
+                this.searchCriteria.push({
+                    field: "transcript",
+                    threshold: keyParams.transcript,
                 });
             if (keyParams.mask) {
                 this.searchCriteria.push({
@@ -427,6 +447,10 @@ new Vue({
         selectedGene(newGene, oldGene) {
             if (!isEqual(newGene, oldGene)) {
                 keyParams.set({ gene: newGene });
+
+                if (newGene.length > 0) {
+                    this.lookupTranscripts(newGene[0]);
+                }
             }
         },
         selectedMask(newMask, oldMask) {
