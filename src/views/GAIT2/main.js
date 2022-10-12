@@ -450,7 +450,7 @@ new Vue({
                     .map((v) => v.threshold) || []
             );
         },
-        selectedGeneORregion() {
+        selectedGeneOrRegion() {
             return (
                 this.searchCriteria
                     .filter((v) => {
@@ -598,14 +598,20 @@ new Vue({
             },
             deep: true,
         },
-        selectedGene(newGene, oldGene) {
-            if (!isEqual(newGene, oldGene)) {
-                keyParams.set({ gene: newGene });
-            }
-        },
-        selectedRegion(newRegion, oldRegion) {
-            if (!isEqual(newRegion, oldRegion)) {
-                keyParams.set({ region: newRegion });
+        // selectedGene(newGene, oldGene) {
+        //     if (!isEqual(newGene, oldGene)) {
+        //         keyParams.set({ gene: newGene });
+        //     }
+        // },
+        // selectedRegion(newRegion, oldRegion) {
+        //     if (!isEqual(newRegion, oldRegion)) {
+        //         keyParams.set({ region: newRegion });
+        //     }
+        // },
+
+        selectedGeneOrRegion(newGeneOrRegion, oldGeneOrRegion) {
+            if (!isEqual(newGeneOrRegion, oldGeneOrRegion)) {
+                keyParams.set({ geneORregion: newGeneOrRegion });
             }
         },
         selectedMasks(newMasks, oldMasks) {
@@ -690,6 +696,11 @@ new Vue({
                 if (foundIndex > -1) {
                     this.searchCriteria[foundIndex].threshold =
                         event.target.value;
+                } else {
+                    this.searchCriteria.push({
+                        field: "geneORregion",
+                        threshold: event.target.value,
+                    });
                 }
             }
         },
@@ -734,7 +745,7 @@ new Vue({
             this.criteriaChanged = false; //reset criteria
             // let search =
             //     this.selectedGene[0] || this.selectedRegion[0]?.toString();
-            let search = this.selectedGeneORregion[0].toString();
+            let search = this.selectedGeneOrRegion[0].toString();
             let locus = await regionUtils.parseRegion(search);
             if (locus) {
                 console.log("locus found: ", locus);
@@ -1101,16 +1112,16 @@ new Vue({
             }
         },
         initCriteria() {
-            if (keyParams.gene)
+            if (keyParams.geneORregion)
                 this.searchCriteria.push({
-                    field: "gene",
-                    threshold: keyParams.gene,
+                    field: "geneORregion",
+                    threshold: keyParams.geneORregion,
                 });
-            if (keyParams.region)
-                this.searchCriteria.push({
-                    field: "region",
-                    threshold: keyParams.region,
-                });
+            // if (keyParams.region)
+            //     this.searchCriteria.push({
+            //         field: "region",
+            //         threshold: keyParams.region,
+            //     });
             if (keyParams.masks) {
                 let masks = keyParams.masks.split(",");
                 masks.forEach((m) =>

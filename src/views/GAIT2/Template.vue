@@ -46,21 +46,16 @@
                                     <div class="criteria">
                                         <b-badge
                                             v-if="
-                                                $parent.selectedGene.length > 0
+                                                $parent.selectedGeneOrRegion
+                                                    .length > 0
                                             "
-                                            class="filter-pill-gene"
+                                            class="filter-pill-geneORregion"
                                         >
-                                            {{ $parent.selectedGene[0] }}
+                                            {{
+                                                $parent.selectedGeneOrRegion[0]
+                                            }}
                                         </b-badge>
-                                        <b-badge
-                                            v-if="
-                                                $parent.selectedRegion.length >
-                                                0
-                                            "
-                                            class="filter-pill-variant"
-                                        >
-                                            {{ $parent.selectedRegion[0] }}
-                                        </b-badge>
+
                                         <b-badge
                                             v-if="
                                                 $parent.selectedDataset.length >
@@ -105,9 +100,10 @@
                                     <transition name="fade"
                                         ><b-alert
                                             v-if="
-                                                $parent.selectedGene.length ===
-                                                    0 ||
-                                                $parent.selectedGene[0] ===
+                                                $parent.selectedGeneOrRegion
+                                                    .length === 0 ||
+                                                $parent
+                                                    .selectedGeneOrRegion[0] ===
                                                     undefined
                                             "
                                             show
@@ -416,10 +412,8 @@
                                         <b-button
                                             variant="primary"
                                             :disabled="
-                                                ($parent.selectedGene.length ===
-                                                    0 &&
-                                                    $parent.selectedRegion
-                                                        .length === 0) ||
+                                                $parent.selectedGeneOrRegion
+                                                    .length === 0 ||
                                                 $parent.selectedDataset
                                                     .length === 0 ||
                                                 $parent.selectedPhenotypes
