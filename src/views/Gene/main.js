@@ -16,6 +16,8 @@ import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker";
+import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
 import Formatters from "@/utils/formatters";
 import VariantSearch from "@/components/VariantSearch";
 import keyParams from "@/utils/keyParams";
@@ -60,6 +62,8 @@ new Vue({
         Documentation,
         Autocomplete,
         GeneSelectPicker,
+        AncestrySelectPicker,
+        TranscriptSelectPicker,
         UnauthorizedMessage,
         CriterionFunctionGroup,
         FilterPValue,
@@ -119,6 +123,7 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
 
         this.pushCriterionPhenotype("T2D");
     },
@@ -133,6 +138,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ancestryFormatter: Formatters.ancestryFormatter,
         pushCriterionPhenotype(phenotypeName) {
             this.genePageSearchCriterion.push({
                 field: "phenotype",
@@ -245,6 +251,12 @@ new Vue({
             return this.$store.state.bioPortal.phenotypes
                 .filter(x => x.name != this.$store.state.phenotype)
                 .map(phenotype => phenotype.name);
+        },
+
+        transcriptOr52k(){
+            return !this.$store.state.transcript 
+                ? this.$store.state.associations52k
+                    : this.$store.state.transcriptAssoc;
         },
 
         geneassociations() {
@@ -660,6 +672,15 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
+        },
+        "$store.state.selectedAncestry"(newAncestry){
+            let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}`};
+            this.$store.dispatch("geneassociations/query", geneQuery);
+        },
+        "$store.state.transcript"(newTranscript){
+            if(!!newTranscript){
+                this.$store.dispatch("transcriptAssoc/query", {q : newTranscript});
+            }
         }
     }
 }).$mount("#app");
