@@ -25,11 +25,11 @@ export default new Vuex.Store({
     state: {
         variant: null,
         newVariantId: null,
-        phenotypesInSession: null,
-        diseaseInSession: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         badSearch: false,
+        phenotypesInSession: null,
+        diseaseInSession: null,
         phenotypeCorrelation: null,
     },
 
@@ -87,6 +87,16 @@ export default new Vuex.Store({
             context.dispatch("transcriptionFactors/query", { q: varId });
             context.dispatch("regions/query", { q: `${chromosome}:${position}` });
             context.dispatch("datasetAssociations/query", { q: varId });
-        }
+        },
+        // For custom phenotypes
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
     }
 });

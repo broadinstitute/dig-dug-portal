@@ -1032,12 +1032,13 @@ export default Vue.component("disease-systems", {
 }
 
 .reset-button {
-	font-size: 14px;
+	font-size: 16px;
 	padding: 0 10px;
 	border-radius: 15px;
-	position: absolute;
+	margin-top: 20px;
+	/*position: absolute;
 	top: -40px;
-	right: 20px;
+	right: 20px;*/
 }
 
 /* For front page */
