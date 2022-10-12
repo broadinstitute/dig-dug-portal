@@ -77,6 +77,9 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        showHideElement(ID) {
+            uiUtils.showHideElement(ID);
+        }
     },
 
     computed: {

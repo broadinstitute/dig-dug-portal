@@ -136,7 +136,11 @@
 				</div>
 				<button
 					type="button"
-					class="btn btn-sm btn-warning reset-button"
+					:class="
+						!this.$store.state.diseaseInSession
+							? 'hidden'
+							: 'btn btn-sm btn-warning reset-button'
+					"
 					@click="resetCustomPhenotypes()"
 				>
 					Remove focus
@@ -1053,7 +1057,7 @@ export default Vue.component("disease-systems", {
 	font-size: 14px;
 	display: inline-grid;
 	vertical-align: top;
-	margin: 0 10px 5px 10px;
+	margin: 0 30px 5px -10px;
 }
 
 .disease-systems-front .disease-systems-icon {

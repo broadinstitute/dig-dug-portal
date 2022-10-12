@@ -19,7 +19,32 @@
 					<div class="container">
 						<div class="row">
 							<div class="col-md-12">
-								<div class="a2f-front-logo-wrapper col-md-6">
+								<div class="front-logo-wrapper">
+									<img
+										class="front-logo-img"
+										v-if="
+											$parent.frontContents
+												.field_front_logo
+										"
+										:src="
+											'https://kp4cd.org/sites/default/files/vueportal/' +
+											$parent.frontContents
+												.field_front_logo
+										"
+									/>
+									<span
+										:class="
+											'front-logo-tagline front-logo-tagline-' +
+											$parent.diseaseGroup.name +
+											'kp'
+										"
+										v-html="
+											$parent.frontContents.field_tagline
+										"
+									></span>
+								</div>
+							</div>
+							<!--<div class="a2f-front-logo-wrapper col-md-6">
 									<img
 										class="a2f-front-logo-img"
 										v-if="
@@ -37,42 +62,55 @@
 								<div
 									class="a2f-front-tagline col-md-6"
 									v-html="$parent.frontContents.field_tagline"
-								></div>
-							</div>
+								></div>-->
 						</div>
-						<div class="row front-search-section">
-							<div class="col-md-12" align="center">
-								<div class="single-search-wrapper">
-									<research-single-search
-										:singleSearchConfig="null"
-										:phenotypes="
-											$parent.phenotypesInSession
-										"
-									></research-single-search>
-									<div
-										class="
-											region-search-examples
-											a2f-region-search-examples
-										"
-									>
-										<documentation
-											name="home.example"
-											:group="cmd"
-										></documentation>
-									</div>
-								</div>
-							</div>
-							<div class="col-md-12" align="center">
-								<h3
+
+						<div class="row" style="margin-top: 25px">
+							<div class="col-md-8 offset-md-2">
+								<h4
+									style="color: #fff"
 									v-html="
 										!!$parent.diseaseInSession
-											? 'Current focus: ' +
+											? '<small>Current focus:</small> ' +
 											  $parent.diseaseInSession
 											: 'Set phenotypes focus'
 									"
-								></h3>
+									align="center"
+								></h4>
+
+								<div
+									:class="
+										!$parent.diseaseInSession
+											? 'hidden'
+											: ''
+									"
+									style="
+										text-align: center;
+										margin-bottom: 20px;
+									"
+								>
+									<span
+										href="javascript:;"
+										align="center"
+										class="btn btn-sm btn-light"
+										@click="
+											$parent.showHideElement(
+												'disease_systems_tree'
+											)
+										"
+									>
+										{{ "Change phenotypes focus" }}</span
+									>
+								</div>
+
 								<div
 									class="disease-systems-trees-wrapper"
+									:class="
+										!!$parent.diseaseInSession
+											? 'hidden'
+											: ''
+									"
+									id="disease_systems_tree"
 									v-if="
 										$store.state.bioPortal.diseaseSystems
 											.length > 0 &&
@@ -96,6 +134,35 @@
 								</div>
 							</div>
 						</div>
+
+						<div class="row front-search-section">
+							<div class="col-md-8 offset-md-2" align="center">
+								<div class="single-search-wrapper">
+									<h4 style="color: #fff">
+										Search gene, variant, region or
+										phenotype
+									</h4>
+									<research-single-search
+										:singleSearchConfig="null"
+										:phenotypes="
+											$parent.phenotypesInSession
+										"
+									></research-single-search>
+									<div
+										class="
+											region-search-examples
+											a2f-region-search-examples
+										"
+									>
+										<documentation
+											name="home.example"
+											:group="cmd"
+										></documentation>
+									</div>
+								</div>
+							</div>
+						</div>
+
 						<!--
 						<div class="row front-search-section">
 							<div class="col-md-12 portal-front-tabs">
