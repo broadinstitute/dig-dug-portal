@@ -34,7 +34,7 @@
 							class="option reset"
 							@click="resetCustomPhenotypes()"
 						>
-							Reset focus
+							Remove focus
 						</div>
 					</div>
 				</div>
@@ -139,7 +139,7 @@
 					class="btn btn-sm btn-warning reset-button"
 					@click="resetCustomPhenotypes()"
 				>
-					Reset focus
+					Remove focus
 				</button>
 			</div>
 		</div>

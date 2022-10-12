@@ -19,7 +19,7 @@
 					<div class="container">
 						<div class="row">
 							<div class="col-md-12">
-								<div class="a2f-front-logo-wrapper">
+								<div class="a2f-front-logo-wrapper col-md-6">
 									<img
 										class="a2f-front-logo-img"
 										v-if="
@@ -33,20 +33,76 @@
 										"
 									/>
 									<br />
-									<span class="a2f-front-tagline">{{
-										$parent.frontContents.field_tagline
-									}}</span>
+								</div>
+								<div
+									class="a2f-front-tagline col-md-6"
+									v-html="$parent.frontContents.field_tagline"
+								></div>
+							</div>
+						</div>
+						<div class="row front-search-section">
+							<div class="col-md-12" align="center">
+								<div class="single-search-wrapper">
+									<research-single-search
+										:singleSearchConfig="null"
+										:phenotypes="
+											$parent.phenotypesInSession
+										"
+									></research-single-search>
+									<div
+										class="
+											region-search-examples
+											a2f-region-search-examples
+										"
+									>
+										<documentation
+											name="home.example"
+											:group="cmd"
+										></documentation>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-12" align="center">
+								<h3
+									v-html="
+										!!$parent.diseaseInSession
+											? 'Current focus: ' +
+											  $parent.diseaseInSession
+											: 'Set phenotypes focus'
+									"
+								></h3>
+								<div
+									class="disease-systems-trees-wrapper"
+									v-if="
+										$store.state.bioPortal.diseaseSystems
+											.length > 0 &&
+										$parent.phenotypes.length > 0
+									"
+								>
+									<disease-systems
+										page="front"
+										:diseases="
+											$store.state.bioPortal
+												.diseaseSystems
+										"
+										:diseaseGroups="
+											$store.state.bioPortal.diseaseGroups
+										"
+										:phenotypes="$parent.phenotypes"
+										:phenotypeCorrelation="
+											$store.state.phenotypeCorrelation
+										"
+									></disease-systems>
 								</div>
 							</div>
 						</div>
-
+						<!--
 						<div class="row front-search-section">
 							<div class="col-md-12 portal-front-tabs">
 								<b-tabs align="center">
 									<b-tab title="Search portal" active>
 										<b-card-text>
 											<div class="single-search-wrapper">
-												<!--<div class="single-search-header">Search</div>-->
 												<research-single-search
 													:singleSearchConfig="null"
 													:phenotypes="
@@ -112,6 +168,7 @@
 								</b-tabs>
 							</div>
 						</div>
+						-->
 					</div>
 				</div>
 			</div>
@@ -186,7 +243,7 @@
 	width: 500px;
 }
 .a2f-front-tagline {
-	font-size: 32px;
+	font-size: 28px;
 	font-weight: 100;
 	color: #fff;
 }
