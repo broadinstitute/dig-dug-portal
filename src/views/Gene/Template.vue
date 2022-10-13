@@ -35,7 +35,7 @@
 
 					<div class="col-md-8 gene-page-header-body">
 						<div>
-							<span>{{ $store.state.geneName }}</span>
+							<span>{{ $store.state.geneName.toUpperCase() }}</span>
 						</div>
 					</div>
 					<div class="col-md-4 gene-page-header-body">
@@ -89,7 +89,7 @@
 				<div class="card-body">
 					<h4>
 						{{
-							`Functional associations for ${$store.state.geneName}`
+							`Functional associations for ${$store.state.geneName.toUpperCase()}`
 						}}
 						<tooltip-documentation
 							name="gene.translator.tooltip.hover"
@@ -282,7 +282,7 @@
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
 							Common variant gene-level associations for
-							{{ $store.state.geneName }} 
+							{{ $store.state.geneName.toUpperCase() }} 
 							(Ancestry: {{ $store.state.selectedAncestry == "" ? "All": $parent.ancestryFormatter($store.state.selectedAncestry)}})
 							<tooltip-documentation
 								name="gene.associations.tooltip.hover"
@@ -436,7 +436,7 @@
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
 							Rare variant {{ !$store.state.selectedTranscript 
-								? `gene-level associations for ${$store.state.geneName}` 
+								? `gene-level associations for ${$store.state.geneName.toUpperCase()}` 
 									: `transcript-level associations for ${$store.state.selectedTranscript}`}}
 							<tooltip-documentation
 								name="gene.52k.tooltip.hover"
