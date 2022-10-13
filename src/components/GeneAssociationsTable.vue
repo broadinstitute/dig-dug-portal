@@ -7,7 +7,7 @@
             ></csv-download>
         </div>
         <b-table
-            v-if="gene"
+            v-if="gene && rows > 0"
             hover
             small
             responsive="sm"
@@ -39,6 +39,7 @@
                 &nbsp;
             </template>
         </b-table>
+        <div v-else>No data available for this query.</div>
         <b-pagination
             class="pagination-sm justify-content-center"
             v-model="currentPage"
