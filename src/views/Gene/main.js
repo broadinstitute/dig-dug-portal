@@ -246,21 +246,20 @@ new Vue({
             return topAssocData[0];
         },
         showHideAncestryFilter(){
-            if(!this.$store.state.selectedAncestry){
-                this.$store.state.forceShowFilterPills = false;
-            } else {
-                this.$store.state.forceShowFilterPills = true;
-                let ancestryBubble = document.createElement("span");
+            let filterPills = document.querySelectorAll("#common-variants .filter-pill-collection")[0];
+            let ancestryBubble = document.querySelectorAll("#common-variants .filter-pill-ancestry")[0];
+            if (!ancestryBubble) {
+                ancestryBubble = document.createElement("span");
                 ancestryBubble.classList.add("badge");
                 ancestryBubble.classList.add("badge-secondary");
                 ancestryBubble.classList.add("badge-pill");
                 ancestryBubble.classList.add("btn");
                 ancestryBubble.classList.add("filter-pill-ancestry");
-                ancestryBubble.innerText = this.ancestryFormatter(this.$store.state.selectedAncestry);
-                let filterPills = document.querySelectorAll("#common-variants .filter-pill-collection")[0];
                 filterPills.appendChild(ancestryBubble);
             }
-        }
+            ancestryBubble.innerText = !this.$store.state.selectedAncestry ? "" 
+                : `ancestry = ${this.ancestryFormatter(this.$store.state.selectedAncestry)}`;
+        },
     },
 
     computed: {
@@ -694,9 +693,9 @@ new Vue({
             this.$store.dispatch("queryAssociations");
         },
         "$store.state.selectedAncestry"(newAncestry){
-            this.showHideAncestryFilter();
             let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}`};
             this.$store.dispatch("geneassociations/query", geneQuery);
+            this.showHideAncestryFilter();
         },
         "$store.state.selectedTranscript"(newTranscript){
             if(!!newTranscript){
