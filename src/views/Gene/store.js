@@ -30,7 +30,8 @@ export default new Vuex.Store({
         aliasName: null,
         prior: 0.3696,
         selectedAncestry: "",
-        transcript: ""
+        transcript: "",
+        forceShowFilterPills: true
     },
 
     mutations: {

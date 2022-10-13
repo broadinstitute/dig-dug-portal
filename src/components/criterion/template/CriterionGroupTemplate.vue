@@ -16,7 +16,7 @@
                         <criterion-pills
                             v-if="filterListInternal != null && filterListInternal.length > 0"
                             :header="header"
-                            :fitlerList="filterListInternal"
+                            :filterList="filterListInternal"
                             :clearable="clearable"
                             @unset="unsetFilter"
                         ></criterion-pills>
@@ -27,7 +27,7 @@
 
             <slot v-if="!inlinePills && !noPills" name="pills">
                 <criterion-pills
-                    v-if="filterListInternal != null && filterListInternal.length > 0"
+                    v-if="filterListInternal != null && filterListInternal.length > 0 || true"
                     :header="header"
                     :filterList="filterListInternal"
                     :clearable="clearable"

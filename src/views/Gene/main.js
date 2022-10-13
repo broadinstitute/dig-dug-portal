@@ -244,6 +244,13 @@ new Vue({
         },
         topPhenotype(topAssocData) {
             return topAssocData[0];
+        },
+        showHideAncestryFilter(){
+            if(!this.$store.state.selectedAncestry){
+                this.$store.state.forceShowFilterPills = true;
+            } else {
+                this.$store.state.forceShowFilterPills = false;
+            }
         }
     },
 

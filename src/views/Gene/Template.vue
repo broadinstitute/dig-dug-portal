@@ -298,7 +298,7 @@
 									<ancestry-selectpicker
 									:ancestries="$store.state.bioPortal.datasets.map((dataset) => dataset.ancestry)"
 						></ancestry-selectpicker>
-					</div>
+							</div>
 							<filter-enumeration-control
 								:field="'phenotype'"
 								:options="
