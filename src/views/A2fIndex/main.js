@@ -138,10 +138,30 @@ new Vue({
             }
             return portals;
         },
+        phenotypesByName() {
+            if (!this.phenotypes) {
+                return null
+            }
+
+            let content = {}
+
+            this.phenotypes.map(p => {
+                content[p.name] = p;
+            })
+
+            return content;
+
+        },
         datasetsDescription() {
             let datasets = this.$store.state.bioPortal.datasets;
 
-            if (datasets.length > 0) {
+            console.log("datasets", datasets);
+            console.log("this.phenotypes", this.phenotypesByName);
+            if (datasets.length > 0 && !!this.phenotypesByName) {
+
+                datasets.map(d => {
+                    console.log(this.phenotypesByName[d.phenotypes[0]])
+                })
 
                 /// create datasets plot content
                 let techLabel = [...new Set(datasets.map(d => d.tech))]
