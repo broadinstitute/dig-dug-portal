@@ -1082,8 +1082,53 @@ export default Vue.component("research-gene-links-plot", {
 					}
 
 					this.trigger++;
-					this.renderGLPlot();
+					this.getS2GeneLinks();
 				}
+			}
+		},
+
+		async getS2GeneLinks() {
+			let geneLinksServer =
+				this.renderConfig["gene links server"] == "KP BioIndex"
+					? hostUtils.biDomain() + "/api/bio"
+					: this.renderConfig["gene links server"];
+
+			let region = this.searchingRegion;
+
+			let GLURL =
+				geneLinksServer +
+				"/query/variant-links?q=" +
+				region.chr +
+				":" +
+				region.start +
+				"-" +
+				region.end;
+
+			let S2GLJson = await fetch(GLURL).then((resp) => resp.json());
+
+			let S2GTissue = "SNP to gene";
+
+			if (S2GLJson.error == null) {
+				if (S2GLJson.data.length == 0) {
+					alertUtils.popAlert(
+						"No SNP to gene data found in the region."
+					);
+				} else {
+					this.$store.dispatch("pkgDataSelected", {
+						type: "GLTissue",
+						id: S2GTissue,
+						action: "add",
+					});
+					if (!this.pkgData["GLData"]) {
+						this.pkgData["GLData"] = {};
+						this.GLData = {};
+					}
+					this.pkgData["GLData"][S2GTissue] = S2GLJson.data;
+					this.GLData[S2GTissue] = S2GLJson.data;
+				}
+
+				this.trigger++;
+				this.renderGLPlot();
 			}
 		},
 		async getGlobalEnrichment(REGION_OBJ) {

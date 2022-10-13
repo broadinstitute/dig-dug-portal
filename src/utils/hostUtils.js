@@ -13,13 +13,23 @@ if (host !== 'localhost') {
 }
 
 function biDomain() {
+
     let content = url.port == ""
         ? "https://bioindex.hugeamp.org"
         : "https://bioindex-dev.hugeamp.org";
 
     return content;
 }
+/*
+function domain() {
+    return host;
+}
 
+function subDomain() {
+    let content = (parts.length > 0) ? parts.join('.') : null
+    return content;
+}
+*/
 
 export default {
     url,
