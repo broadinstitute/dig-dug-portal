@@ -110,15 +110,6 @@ export default Vue.component("mask-table", {
                 "Standard Error",
                 "Sample Size",
             ],
-            masks: {
-                LoF_HC: { description: "LofTee", sort: 0 },
-                "16of16": { description: "16/16", sort: 1 },
-                "11of11": { description: "11/11 ", sort: 2 },
-                "5of5": { description: "5/5", sort: 3 },
-                "5of5_LoF_LC": { description: "5/5 + LofTee LC", sort: 4 },
-                "1of5_1pct": { description: "5/5 + 1/5 1%", sort: 5 },
-                "0of5_1pct": { description: "5/5 + 0/5 1% ", sort: 6 },
-            },
         };
     },
     created() {},
