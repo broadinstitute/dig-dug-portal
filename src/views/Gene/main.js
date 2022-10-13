@@ -247,9 +247,9 @@ new Vue({
         },
         showHideAncestryFilter(){
             if(!this.$store.state.selectedAncestry){
-                this.$store.state.forceShowFilterPills = true;
-            } else {
                 this.$store.state.forceShowFilterPills = false;
+            } else {
+                this.$store.state.forceShowFilterPills = true;
             }
         }
     },
@@ -685,6 +685,7 @@ new Vue({
             this.$store.dispatch("queryAssociations");
         },
         "$store.state.selectedAncestry"(newAncestry){
+            this.showHideAncestryFilter();
             let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}`};
             this.$store.dispatch("geneassociations/query", geneQuery);
         },

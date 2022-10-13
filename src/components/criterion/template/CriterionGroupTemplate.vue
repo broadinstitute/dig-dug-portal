@@ -27,7 +27,7 @@
 
             <slot v-if="!inlinePills && !noPills" name="pills">
                 <criterion-pills
-                    v-if="filterListInternal != null && filterListInternal.length > 0 || true"
+                    v-if="(filterListInternal != null && filterListInternal.length > 0) || $store.state.forceShowFilterPills"
                     :header="header"
                     :filterList="filterListInternal"
                     :clearable="clearable"
