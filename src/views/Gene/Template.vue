@@ -435,8 +435,9 @@
 				<div class="card-body">
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
-							Rare variant gene-level associations for
-							{{ $store.state.geneName }}
+							Rare variant {{ !$store.state.selectedTranscript 
+								? `gene-level associations for ${$store.state.geneName}` 
+									: `transcript-level associations for ${$store.state.selectedTranscript}`}}
 							<tooltip-documentation
 								name="gene.52k.tooltip.hover"
 								:content-fill="$parent.documentationMap"
@@ -444,10 +445,20 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
+						<div class="filtering-ui-wrapper container-fluid">
+							<div class="row filtering-ui-content">
+								<div class="col filter-col-md">
+									<div class="label">Transcript</div>
+										<transcript-selectpicker 
+											:transcripts="$store.state.geneToTranscript.data.map((item) => item.transcript_id)">
+										</transcript-selectpicker>
+								</div>
+							</div>
+						</div>
 						<research-phewas-plot
-							v-if="$store.state.associations52k.data.length > 0"
+							v-if="$parent.transcriptOr52k.length > 0"
 							canvasId="rareVariantPlot"
-							:phenotypesData="$store.state.associations52k.data"
+							:phenotypesData="$parent.transcriptOr52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:colors="[
 								'#007bff',
@@ -492,13 +503,9 @@
 							:pkgDataSelected="null"
 							ref="rareVariantPheWASPlot"
 						></research-phewas-plot>
-						<unauthorized-message
-							:restricted="
-								$store.state.associations52k.restricted
-							"
-						></unauthorized-message>
+						<unauthorized-message :restricted="$store.state.restricted"></unauthorized-message>
 						<gene-associations-masks
-							:associations="$store.state.associations52k.data"
+							:associations="$parent.transcriptOr52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 						></gene-associations-masks>
 					</div>

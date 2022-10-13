@@ -20,6 +20,8 @@ export default new Vuex.Store({
         varassociations: bioIndex("associations"),
         ancestryAssoc: bioIndex("ancestry-associations"),
         associations52k: bioIndex("gene-associations-52k"),
+        geneToTranscript: bioIndex("gene-to-transcript"),
+        transcriptAssoc: bioIndex("transcript-associations"),
         uniprot
     },
     state: {
@@ -28,6 +30,7 @@ export default new Vuex.Store({
         aliasName: null,
         prior: 0.3696,
         selectedAncestry: "",
+        transcript: ""
     },
 
     mutations: {
@@ -94,6 +97,7 @@ export default new Vuex.Store({
 
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
+                context.dispatch("geneToTranscript/query", {q: name});
             }
         },
 

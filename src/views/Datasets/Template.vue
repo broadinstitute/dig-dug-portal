@@ -12,9 +12,18 @@
 				<div class="row card-body">
 					<div class="col-md-12">
 						<h2 v-if="!!$parent.diseaseGroup">
-							{{ $parent.diseaseGroup.description }} KP Datasets
+							{{ $parent.diseaseGroup.description }} KP genetic
+							association datasets
 						</h2>
 					</div>
+				</div>
+			</div>
+			<div class="card mdkp-card">
+				<div class="card-body temporary-card">
+					<documentation
+						name="datasets.titlecard.phenotypes"
+						:content-fill="$parent.documentationMap"
+					></documentation>
 				</div>
 			</div>
 			<div class="card mdkp-card">
@@ -69,7 +78,7 @@
 								>
 									<div>
 										<strong
-											>Search by phenotype group</strong
+											>Filter by phenotype group</strong
 										>
 									</div>
 								</filter-enumeration-control>
@@ -84,7 +93,7 @@
 									:labelFormatter="(type) => type"
 								>
 									<div>
-										<strong>Search by data type</strong>
+										<strong>Filter by data type</strong>
 									</div>
 								</filter-enumeration-control>
 							</criterion-list-group>
