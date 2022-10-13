@@ -273,6 +273,16 @@ let isIdFixed = function (ID) {
     return isFixed;
 }
 
+function biDomain() {
+    let url = parseUrl(window.location.href);
+
+    let content = url.port == ""
+        ? "https://bioindex.hugeamp.org"
+        : "https://bioindex-dev.hugeamp.org";
+
+    return content;
+}
+
 export default {
     popOutElement,
     hideElement,
@@ -291,5 +301,6 @@ export default {
     getAxisTicks,
     showTabContent,
     removeOnMouseOut,
-    isIdFixed
+    isIdFixed,
+    biDomain
 };

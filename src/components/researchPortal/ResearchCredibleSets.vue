@@ -155,7 +155,6 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import hostUtils from "@/utils/hostUtils";
 import plotUtils from "@/utils/plotUtils";
 import dataConvert from "@/utils/dataConvert";
 import { BootstrapVueIcons } from "bootstrap-vue";
@@ -312,9 +311,7 @@ export default Vue.component("research-credible-sets-plot", {
 	},
 	methods: {
 		...uiUtils,
-		...hostUtils,
 		resetAll() {
-			console.log("this.credibleSets", this.credibleSets);
 			this.credibleSets = [];
 			this.CSData = {};
 			this.CSPosData = {};
@@ -935,7 +932,7 @@ export default Vue.component("research-credible-sets-plot", {
 
 				let CSServer =
 					this.renderConfig["credible sets server"] == "KP BioIndex"
-						? hostUtils.biDomain() + "/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["credible sets server"];
 
 				let CSIndex = !!this.renderConfig["credible variants index"]
@@ -991,7 +988,7 @@ export default Vue.component("research-credible-sets-plot", {
 		async getCredibleSetsList(REGION, PHENOTYPE) {
 			let CSServer =
 				this.renderConfig["credible sets server"] == "KP BioIndex"
-					? hostUtils.biDomain() + "/api/bio"
+					? uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["credible sets server"];
 
 			let CSIndex = !!this.renderConfig["credible sets index"]

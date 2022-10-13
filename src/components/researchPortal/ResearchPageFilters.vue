@@ -421,7 +421,6 @@
 import Vue from "vue";
 
 import uiUtils from "@/utils/uiUtils";
-import hostUtils from "@/utils/hostUtils";
 import keyParams from "@/utils/keyParams";
 
 export default Vue.component("research-page-filters", {
@@ -543,7 +542,6 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
-		...hostUtils,
 		resetAll() {
 			this.$store.state.pkgData = {};
 			this.$store.state.pkgDataSelected = [];
@@ -636,7 +634,7 @@ export default Vue.component("research-page-filters", {
 
 		async getRegion(KEY, PARAM) {
 			let searchPoint =
-				hostUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+				uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
 
 			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
@@ -655,7 +653,7 @@ export default Vue.component("research-page-filters", {
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
 				let searchPoint =
-					hostUtils.biDomain() +
+					uiUtils.biDomain() +
 					"/api/bio/match/gene?q=" +
 					EVENT.target.value;
 
