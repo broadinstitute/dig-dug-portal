@@ -24,9 +24,14 @@
 								>
 									Select Tissue
 								</div>
-								<select
+								<!--<select
 									class="custom-select"
 									@change="getGeneLinks($event)"
+								>-->
+
+								<select
+									class="custom-select"
+									@change="getLinks($event)"
 								>
 									<option value="">
 										{{ "Select Tissue" }}
@@ -251,6 +256,11 @@ export default Vue.component("research-gene-links-plot", {
 				}
 
 				tempArray.sort((a, b) => (a.tissue > b.tissue ? 1 : -1));
+
+				console.log(tempArray);
+
+				/// to add S2G option.
+				tempArray.push({ tissue: "SNP to Gene", phenotypes: [] });
 
 				return tempArray;
 			}
@@ -1036,7 +1046,18 @@ export default Vue.component("research-gene-links-plot", {
 			this.renderGLPlot();
 		},
 		getTissueLabel(TISSUE) {
-			return TISSUE.tissue + " (" + TISSUE.phenotypes.join() + ")";
+			let label =
+				TISSUE.phenotypes.length > 0
+					? TISSUE.tissue + " (" + TISSUE.phenotypes.join() + ")"
+					: TISSUE.tissue;
+			return label;
+		},
+		getLinks(event) {
+			if (!!event.target.value.includes("SNP to Gene")) {
+				this.getS2GeneLinks();
+			} else {
+				this.getGeneLinks(event);
+			}
 		},
 
 		async getGeneLinks(event) {
@@ -1112,6 +1133,11 @@ export default Vue.component("research-gene-links-plot", {
 						"No SNP to gene data found in the region."
 					);
 				} else {
+					///adding this part since data model for variant-links is different from gene-links
+					S2GLJson.data.map((g) => {
+						g["targetGene"] = g.gene;
+					});
+
 					this.$store.dispatch("pkgDataSelected", {
 						type: "GLTissue",
 						id: S2GTissue,

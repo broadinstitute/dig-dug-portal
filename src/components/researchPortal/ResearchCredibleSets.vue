@@ -391,7 +391,6 @@ export default Vue.component("research-credible-sets-plot", {
 			return idString;
 		},
 		removeCSData(CSID, PTYPE) {
-			console.log("test called");
 			let idString = CSID + PTYPE;
 			idString = idString.replace(/[^a-zA-Z0-9 ]/g, "");
 
@@ -597,7 +596,6 @@ export default Vue.component("research-credible-sets-plot", {
 			let selectedCS = this.pkgDataSelected
 				.filter((s) => s.type == "Credible Set")
 				.map((s) => s.id);
-			//console.log("selectedCS.length", selectedCS.length);
 
 			this.CSPosData = {};
 			let regionStart = this.viewingRegion.start;

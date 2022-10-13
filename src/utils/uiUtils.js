@@ -1,3 +1,5 @@
+import parseUrl from "url-parse";
+
 let popOutElement = function (ELEMENT) {
     let element = checkExist(ELEMENT);
     element.classList.toggle("popped-out");
