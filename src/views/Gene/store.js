@@ -30,7 +30,6 @@ export default new Vuex.Store({
         aliasName: null,
         prior: 0.3696,
         selectedAncestry: "",
-        selectedTranscript: "",
         transcript: ""
     },
 
@@ -145,9 +144,6 @@ export default new Vuex.Store({
         async get52KAssociationData(context) {
             let name = context.state.geneName;
             context.dispatch('associations52k/query', { q: name });
-        },
-        setTranscript(context){
-            context.state.transcript = context.state.selectedTranscript;
         }
     }
 });
