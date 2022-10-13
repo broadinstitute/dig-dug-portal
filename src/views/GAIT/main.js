@@ -23,7 +23,6 @@ Vue.config.productionTip = false;
 new Vue({
     el: "#app",
     store,
-    mixins: [pageMixin],
     components: {
         Documentation,
         CriterionFunctionGroup,
@@ -34,9 +33,7 @@ new Vue({
         FilterBasic,
         ForestPlotSimple,
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
+    mixins: [pageMixin],
     data() {
         return {
             masks: [
@@ -217,13 +214,6 @@ new Vue({
             selectedVariants: [],
         };
     },
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("ldServer/getPhenotypes");
-        this.initCriteria();
-    },
     computed: {
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
@@ -298,133 +288,6 @@ new Vue({
                     })
                     .map((v) => v.threshold) || []
             );
-        },
-    },
-    methods: {
-        intFormatter: Formatters.intFormatter,
-        pValueFormatter: Formatters.pValueFormatter,
-        effectFormatter: Formatters.effectFormatter,
-        zScoreFormatter(value) {
-            if (!value) {
-                return "-";
-            }
-            return Number.parseFloat(value).toFixed(7);
-        },
-        searchVariants() {
-            this.showVariants = true;
-            this.loadingVariants = true;
-            this.$store.dispatch("queryBurden", {
-                dataset: this.selectedDataset,
-                gene: this.selectedGene,
-                binID: this.selectedMask,
-            });
-            this.$store.dispatch("gene/query", {
-                q: this.selectedGene,
-            });
-            this.criteriaChanged = false;
-            this.$store.commit("ldServer/setCovariances", []);
-        },
-        searchCovariances() {
-            this.showCovariances = true;
-            this.loadingCovariances = true;
-            this.$store.dispatch("ldServer/runTests", {
-                variants: this.selectedVariants,
-                phenotypes: this.selectedPhenotypes,
-                dataset: this.selectedDataset,
-                tests:
-                    this.selectedTests.length > 0
-                        ? this.selectedTests
-                        : ["burden"],
-            });
-            this.testChanged = false;
-        },
-        updateFields() {
-            this.fields = this.baseFields.concat(this.optionalFields);
-        },
-        formatTestData(samples, data) {
-            let formatted = [];
-            data.map((test) => {
-                formatted.push({
-                    test: test.test,
-                    variants: test.variants.length,
-                    zscore: test.stat,
-                    pvalue: test.pvalue,
-                    effect: test.effect,
-                    se: test.se,
-                    samples,
-                });
-            });
-            return formatted;
-        },
-        async lookupGenes(input) {
-            if (!!input) {
-                let matches = await match("gene", input, { limit: 10 });
-                this.matchingGenes = matches;
-            }
-        },
-        async lookupTranscripts(input) {
-            if (!!input) {
-                let matches = await query("gene-to-transcript", input);
-                this.matchingTranscripts = matches.map((m) => m.transcript_id);
-            }
-        },
-        initCriteria() {
-            if (keyParams.gene)
-                this.searchCriteria.push({
-                    field: "gene",
-                    threshold: keyParams.gene,
-                });
-            if (keyParams.transcript)
-                this.searchCriteria.push({
-                    field: "transcript",
-                    threshold: keyParams.transcript,
-                });
-            if (keyParams.mask) {
-                this.searchCriteria.push({
-                    field: "mask",
-                    threshold: keyParams.mask,
-                });
-            }
-            if (keyParams.dataset) {
-                this.searchCriteria.push({
-                    field: "dataset",
-                    threshold: keyParams.dataset,
-                });
-            }
-            if (keyParams.phenotypes) {
-                let phenotypes = keyParams.phenotypes.split(",");
-                phenotypes.forEach((p) =>
-                    this.selectedMethods.push({
-                        field: "phenotype",
-                        threshold: p,
-                    })
-                );
-            }
-            if (keyParams.tests) {
-                let tests = keyParams.tests.split(",");
-                tests.forEach((t) =>
-                    this.selectedMethods.push({
-                        field: "test",
-                        threshold: t,
-                    })
-                );
-            }
-        },
-        updateSelectedVariants() {
-            //get only the varIDs for selected rows
-            this.selectedVariants = this.tableData
-                .filter((v) => {
-                    return v.selected === true;
-                })
-                .map((v) => v.varId);
-        },
-        selectAllVariants() {
-            this.tableData.forEach((v) => (v.selected = true));
-            this.updateSelectedVariants();
-        },
-        deselectAllVariants() {
-            this.tableData.forEach((v) => (v.selected = false));
-            this.updateSelectedVariants();
         },
     },
     watch: {
@@ -514,5 +377,142 @@ new Vue({
             },
             deep: true,
         },
+    },
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("ldServer/getPhenotypes");
+        this.initCriteria();
+    },
+    methods: {
+        intFormatter: Formatters.intFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
+        effectFormatter: Formatters.effectFormatter,
+        zScoreFormatter(value) {
+            if (!value) {
+                return "-";
+            }
+            return Number.parseFloat(value).toFixed(7);
+        },
+        searchVariants() {
+            this.showVariants = true;
+            this.loadingVariants = true;
+            this.$store.dispatch("queryBurden", {
+                dataset: this.selectedDataset,
+                gene: this.selectedGene,
+                binID: this.selectedMask,
+            });
+            this.$store.dispatch("gene/query", {
+                q: this.selectedGene,
+            });
+            this.criteriaChanged = false;
+            this.$store.commit("ldServer/setCovariances", []);
+        },
+        searchCovariances() {
+            this.showCovariances = true;
+            this.loadingCovariances = true;
+            this.$store.dispatch("ldServer/runTests", {
+                variants: this.selectedVariants,
+                phenotypes: this.selectedPhenotypes,
+                dataset: this.selectedDataset,
+                tests:
+                    this.selectedTests.length > 0
+                        ? this.selectedTests
+                        : ["burden"],
+            });
+            this.testChanged = false;
+        },
+        updateFields() {
+            this.fields = this.baseFields.concat(this.optionalFields);
+        },
+        formatTestData(samples, data) {
+            let formatted = [];
+            data.map((test) => {
+                formatted.push({
+                    test: test.test,
+                    variants: test.variants.length,
+                    zscore: test.stat,
+                    pvalue: test.pvalue,
+                    effect: test.effect,
+                    se: test.se,
+                    samples,
+                });
+            });
+            return formatted;
+        },
+        async lookupGenes(input) {
+            if (input) {
+                let matches = await match("gene", input, { limit: 10 });
+                this.matchingGenes = matches;
+            }
+        },
+        async lookupTranscripts(input) {
+            if (input) {
+                let matches = await query("gene-to-transcript", input);
+                this.matchingTranscripts = matches.map((m) => m.transcript_id);
+            }
+        },
+        initCriteria() {
+            if (keyParams.gene)
+                this.searchCriteria.push({
+                    field: "gene",
+                    threshold: keyParams.gene,
+                });
+            if (keyParams.transcript)
+                this.searchCriteria.push({
+                    field: "transcript",
+                    threshold: keyParams.transcript,
+                });
+            if (keyParams.mask) {
+                this.searchCriteria.push({
+                    field: "mask",
+                    threshold: keyParams.mask,
+                });
+            }
+            if (keyParams.dataset) {
+                this.searchCriteria.push({
+                    field: "dataset",
+                    threshold: keyParams.dataset,
+                });
+            }
+            if (keyParams.phenotypes) {
+                let phenotypes = keyParams.phenotypes.split(",");
+                phenotypes.forEach((p) =>
+                    this.selectedMethods.push({
+                        field: "phenotype",
+                        threshold: p,
+                    })
+                );
+            }
+            if (keyParams.tests) {
+                let tests = keyParams.tests.split(",");
+                tests.forEach((t) =>
+                    this.selectedMethods.push({
+                        field: "test",
+                        threshold: t,
+                    })
+                );
+            }
+        },
+        updateSelectedVariants() {
+            //get only the varIDs for selected rows
+            this.selectedVariants = this.tableData
+                .filter((v) => {
+                    return v.selected === true;
+                })
+                .map((v) => v.varId);
+        },
+        selectAllVariants() {
+            this.tableData.forEach((v) => (v.selected = true));
+            this.updateSelectedVariants();
+        },
+        deselectAllVariants() {
+            this.tableData.forEach((v) => (v.selected = false));
+            this.updateSelectedVariants();
+        },
+    },
+    render(createElement, context) {
+        return createElement(Template);
     },
 }).$mount("#app");
