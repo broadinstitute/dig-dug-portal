@@ -24,14 +24,10 @@
 								>
 									Select Tissue
 								</div>
-								<!--<select
-									class="custom-select"
-									@change="getGeneLinks($event)"
-								>-->
 
 								<select
 									class="custom-select"
-									@change="getLinks($event)"
+									@change="getGeneLinks($event)"
 								>
 									<option value="">
 										{{ "Select Tissue" }}
@@ -45,6 +41,35 @@
 									</template>
 								</select>
 							</div>
+							<!-- this part is for SNP to Gene options
+							<div class="col divider" style="background: none">
+								<span class="or-text">or</span>
+							</div>
+							<div class="col" style="padding: 2px">
+								<div
+									class="label"
+									style="
+										display: inline-block;
+										margin-right: 10px;
+									"
+								>
+									Select SNP 2 Gene
+								</div>
+
+								<select
+									class="custom-select"
+									@change="getS2GeneLinks($event)"
+								>
+									<option value="">
+										{{ "Select one" }}
+									</option>
+									<option
+										value="s2g"
+										v-html="'SNP to Gene'"
+									></option>
+								</select>
+							</div>
+							-->
 						</div>
 						<div
 							class=""
@@ -257,10 +282,8 @@ export default Vue.component("research-gene-links-plot", {
 
 				tempArray.sort((a, b) => (a.tissue > b.tissue ? 1 : -1));
 
-				console.log(tempArray);
-
 				/// to add S2G option.
-				tempArray.push({ tissue: "SNP to Gene", phenotypes: [] });
+				//tempArray.push({ tissue: "SNP to Gene", phenotypes: [] });
 
 				return tempArray;
 			}
@@ -1052,13 +1075,6 @@ export default Vue.component("research-gene-links-plot", {
 					: TISSUE.tissue;
 			return label;
 		},
-		getLinks(event) {
-			if (!!event.target.value.includes("SNP to Gene")) {
-				this.getS2GeneLinks();
-			} else {
-				this.getGeneLinks(event);
-			}
-		},
 
 		async getGeneLinks(event) {
 			if (event.target.value != "") {
@@ -1101,12 +1117,12 @@ export default Vue.component("research-gene-links-plot", {
 					}
 
 					this.trigger++;
-					this.getS2GeneLinks();
+					this.renderGLPlot();
 				}
 			}
 		},
 
-		async getS2GeneLinks() {
+		async getS2GeneLinks(event) {
 			let geneLinksServer =
 				this.renderConfig["gene links server"] == "KP BioIndex"
 					? uiUtils.biDomain() + "/api/bio"
