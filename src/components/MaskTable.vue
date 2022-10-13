@@ -125,17 +125,11 @@ export default Vue.component("mask-table", {
     computed: {
         formattedMasks() {
             let sorted = this.maskData.slice().sort((a, b) => {
-                if (!this.masks[a.mask] || !this.masks[b.mask])
-                    return 0;
-                if (this.masks[a.mask].sort < this.masks[b.mask].sort)
-                    return -1;
-                if (this.masks[b.mask].sort < this.masks[a.mask].sort) 
-                    return 1;
-                return 0;
+                return this.maskFormatter(a.mask).sort - this.maskFormatter(b.mask).sort
             });
             return sorted.map((m) => ({
                 ...m,
-                mask: !this.masks[m.mask] ? m.mask : this.masks[m.mask].description,
+                mask: this.maskFormatter(m.mask).description,
             }));
         },
     },
@@ -144,6 +138,7 @@ export default Vue.component("mask-table", {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
+        maskFormatter: Formatters.maskFormatter
     },
 });
 </script>
