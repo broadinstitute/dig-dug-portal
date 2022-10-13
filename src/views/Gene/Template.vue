@@ -278,7 +278,7 @@
 			</div>
 
 			<div class="card mdkp-card">
-				<div class="card-body">
+				<div class="card-body" id="common-variants">
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
 							Common variant gene-level associations for

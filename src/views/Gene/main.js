@@ -250,6 +250,15 @@ new Vue({
                 this.$store.state.forceShowFilterPills = false;
             } else {
                 this.$store.state.forceShowFilterPills = true;
+                let ancestryBubble = document.createElement("span");
+                ancestryBubble.classList.add("badge");
+                ancestryBubble.classList.add("badge-secondary");
+                ancestryBubble.classList.add("badge-pill");
+                ancestryBubble.classList.add("btn");
+                ancestryBubble.classList.add("filter-pill-ancestry");
+                ancestryBubble.innerText = this.ancestryFormatter(this.$store.state.selectedAncestry);
+                let filterPills = document.querySelectorAll("#common-variants .filter-pill-collection")[0];
+                filterPills.appendChild(ancestryBubble);
             }
         }
     },
