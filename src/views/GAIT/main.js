@@ -316,6 +316,11 @@ new Vue({
                 }
             }
         },
+        selectedTranscript(newTranscript, oldTranscript) {
+            if (!isEqual(newTranscript, oldTranscript)) {
+                keyParams.set({ transcript: newTranscript });
+            }
+        },
         selectedMask(newMask, oldMask) {
             //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newMask, oldMask)) {
@@ -402,6 +407,7 @@ new Vue({
                 dataset: this.selectedDataset,
                 gene: this.selectedGene,
                 binID: this.selectedMask,
+                transcriptID: this.selectedTranscript,
             });
             this.$store.dispatch("gene/query", {
                 q: this.selectedGene,

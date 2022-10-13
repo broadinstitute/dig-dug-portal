@@ -61,17 +61,24 @@ export default new Vuex.Store({
             context.commit("setGenes", data);
         },
 
-        async queryBurden(context, { dataset, gene, binID }) {
+        async queryBurden(context, { dataset, gene, binID, transcriptID }) {
             //let queries = binID.map(bin => query("burden", `${gene},${bin}`));
             // let data = await Promise.all(queries)
             //     .then(results => results.flatMap(data => data))
             //     .then(data => uniqBy(data, "varId"));
             // context.commit("setVariants", data);
-
-            let data = await query(
-                "burden-datatype",
-                `${dataset},${gene},${binID}`
-            );
+            let data = {};
+            if (transcriptID?.length > 0) {
+                data = await query(
+                    "burden-transcript-datatype",
+                    `${dataset},${transcriptID},${binID}`
+                );
+            } else {
+                data = await query(
+                    "burden-datatype",
+                    `${dataset},${gene},${binID}`
+                );
+            }
             context.commit("setVariants", data);
         },
     },
