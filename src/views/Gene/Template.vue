@@ -425,19 +425,13 @@
 				<div class="card-body">
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
-							<<<<<<< HEAD Rare variant
-							{{
-								!$store.state.selectedTranscript
-									? `gene-level associations for ${$store.state.geneName}`
-									: `transcript-level associations for ${$store.state.selectedTranscript}`
-							}}
-							======= Rare variant
+							Rare variant
 							{{
 								!$store.state.selectedTranscript
 									? `gene-level associations for ${$store.state.geneName.toUpperCase()}`
 									: `transcript-level associations for ${$store.state.selectedTranscript}`
 							}}
-							>>>>>>> master
+
 							<tooltip-documentation
 								name="gene.52k.tooltip.hover"
 								:content-fill="$parent.documentationMap"
