@@ -76,7 +76,7 @@ export default Vue.component("correlation-table", {
             return this.tableData.length;
         },
         tableData() {
-            let dataRows = this.correlationData;
+            let dataRows = this.correlationData.filter((item) => !!this.phenotypeMap[item.other_phenotype]);
             let filter = this.filter;
             if (!!filter) {
                 dataRows = dataRows.filter((row) => filter(row));
