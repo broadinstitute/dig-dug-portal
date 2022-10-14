@@ -45,7 +45,7 @@
                                     >Criteria
                                     <div class="criteria">
                                         <b-badge
-                                            v-if="$parent.selectedGene?.length"
+                                            v-if="$parent.selectedGene.length"
                                             class="filter-pill-gene"
                                         >
                                             {{ $parent.selectedGene[0] }}
@@ -53,7 +53,7 @@
                                         <b-badge
                                             v-if="
                                                 $parent.selectedTranscript
-                                                    ?.length
+                                                    .length
                                             "
                                             class="filter-pill-transcript"
                                         >
