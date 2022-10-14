@@ -278,7 +278,7 @@
 					</template>
 				</div>
 			</div>
-			<div class="card mdkp-card" v-if="$store.state.ancestry">
+			<div class="card mdkp-card" v-if="!!$store.state.ancestry">
 				<div class="card-body">
 					<h4>
 						Variants in region (Ancestry:
@@ -545,7 +545,7 @@
 						"
 					>
 						<h4 class="card-title">
-							Variants in region &nbsp;
+							Variants in region <span v-if="!$store.state.ancestry">(Ancestry: All)</span> &nbsp;
 							<tooltip-documentation
 								name="region.topassoc.tooltip"
 								:isHover="true"
