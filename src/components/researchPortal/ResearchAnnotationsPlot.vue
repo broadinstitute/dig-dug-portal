@@ -1339,7 +1339,7 @@ export default Vue.component("research-annotations-plot", {
 			//console.log("calling GE");
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
+					? uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["annotations server"];
 
 			let phenotype = this.searchingPhenotype;

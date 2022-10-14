@@ -24,6 +24,7 @@
 								>
 									Select Tissue
 								</div>
+
 								<select
 									class="custom-select"
 									@change="getGeneLinks($event)"
@@ -40,6 +41,35 @@
 									</template>
 								</select>
 							</div>
+							<!-- this part is for SNP to Gene options
+							<div class="col divider" style="background: none">
+								<span class="or-text">or</span>
+							</div>
+							<div class="col" style="padding: 2px">
+								<div
+									class="label"
+									style="
+										display: inline-block;
+										margin-right: 10px;
+									"
+								>
+									Select SNP 2 Gene
+								</div>
+
+								<select
+									class="custom-select"
+									@change="getS2GeneLinks($event)"
+								>
+									<option value="">
+										{{ "Select one" }}
+									</option>
+									<option
+										value="s2g"
+										v-html="'SNP to Gene'"
+									></option>
+								</select>
+							</div>
+							-->
 						</div>
 						<div
 							class=""
@@ -178,7 +208,6 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
 import alertUtils from "@/utils/alertUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
@@ -252,6 +281,9 @@ export default Vue.component("research-gene-links-plot", {
 				}
 
 				tempArray.sort((a, b) => (a.tissue > b.tissue ? 1 : -1));
+
+				/// to add S2G option.
+				//tempArray.push({ tissue: "SNP to Gene", phenotypes: [] });
 
 				return tempArray;
 			}
@@ -425,6 +457,7 @@ export default Vue.component("research-gene-links-plot", {
 		},
 	},
 	methods: {
+		...uiUtils,
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
 		resetAll() {
@@ -1036,14 +1069,18 @@ export default Vue.component("research-gene-links-plot", {
 			this.renderGLPlot();
 		},
 		getTissueLabel(TISSUE) {
-			return TISSUE.tissue + " (" + TISSUE.phenotypes.join() + ")";
+			let label =
+				TISSUE.phenotypes.length > 0
+					? TISSUE.tissue + " (" + TISSUE.phenotypes.join() + ")"
+					: TISSUE.tissue;
+			return label;
 		},
 
 		async getGeneLinks(event) {
 			if (event.target.value != "") {
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["gene links server"];
 
 				let tissue = event.target.value.replaceAll(" ", "_");
@@ -1084,6 +1121,56 @@ export default Vue.component("research-gene-links-plot", {
 				}
 			}
 		},
+
+		async getS2GeneLinks(event) {
+			let geneLinksServer =
+				this.renderConfig["gene links server"] == "KP BioIndex"
+					? uiUtils.biDomain() + "/api/bio"
+					: this.renderConfig["gene links server"];
+
+			let region = this.searchingRegion;
+
+			let GLURL =
+				geneLinksServer +
+				"/query/variant-links?q=" +
+				region.chr +
+				":" +
+				region.start +
+				"-" +
+				region.end;
+
+			let S2GLJson = await fetch(GLURL).then((resp) => resp.json());
+
+			let S2GTissue = "SNP to gene";
+
+			if (S2GLJson.error == null) {
+				if (S2GLJson.data.length == 0) {
+					alertUtils.popAlert(
+						"No SNP to gene data found in the region."
+					);
+				} else {
+					///adding this part since data model for variant-links is different from gene-links
+					S2GLJson.data.map((g) => {
+						g["targetGene"] = g.gene;
+					});
+
+					this.$store.dispatch("pkgDataSelected", {
+						type: "GLTissue",
+						id: S2GTissue,
+						action: "add",
+					});
+					if (!this.pkgData["GLData"]) {
+						this.pkgData["GLData"] = {};
+						this.GLData = {};
+					}
+					this.pkgData["GLData"][S2GTissue] = S2GLJson.data;
+					this.GLData[S2GTissue] = S2GLJson.data;
+				}
+
+				this.trigger++;
+				this.renderGLPlot();
+			}
+		},
 		async getGlobalEnrichment(REGION_OBJ) {
 			if (
 				!!REGION_OBJ &&
@@ -1093,7 +1180,7 @@ export default Vue.component("research-gene-links-plot", {
 			) {
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["gene links server"];
 
 				let phenotype = this.searchingPhenotype;
