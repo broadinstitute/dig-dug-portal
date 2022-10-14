@@ -46,7 +46,7 @@ new Vue({
                 { text: "5/5 + 0/5 1%", value: "0of5_1pct" },
             ],
             datasets: [
-                { text: "55K", value: "55k" },
+                { text: "52K", value: "55k" },
                 { text: "TOPMed", value: "TOPMed" },
             ],
             testMethods: [

@@ -66,7 +66,14 @@
                                             "
                                             class="filter-pill-dataset"
                                         >
-                                            {{ $parent.selectedDataset[0] }}
+                                            {{
+                                                $parent.datasets.find(
+                                                    (o) =>
+                                                        o.value ===
+                                                        $parent
+                                                            .selectedDataset[0]
+                                                ).text
+                                            }}
                                         </b-badge>
 
                                         <b-badge
