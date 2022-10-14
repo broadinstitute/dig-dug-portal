@@ -1103,7 +1103,13 @@ export default Vue.component("research-gene-links-plot", {
 					if (GLJson.data.length == 0) {
 						alertUtils.popAlert(tissue + " has no linked genes.");
 					} else {
-						this.$store.dispatch("pkgDataSelected", {
+						if (GLJson.continuation == null) {
+							this.runAfterGLDataLoad(tissue, GLJson);
+						} else {
+							this.loadContinue(GLJson, tissue);
+						}
+
+						/*this.$store.dispatch("pkgDataSelected", {
 							type: "GLTissue",
 							id: tissue,
 							action: "add",
@@ -1113,13 +1119,55 @@ export default Vue.component("research-gene-links-plot", {
 							this.GLData = {};
 						}
 						this.pkgData["GLData"][tissue] = GLJson.data;
-						this.GLData[tissue] = GLJson.data;
+						this.GLData[tissue] = GLJson.data;*/
 					}
 
-					this.trigger++;
-					this.renderGLPlot();
+					//this.trigger++;
+					//this.renderGLPlot();
 				}
 			}
+		},
+
+		async loadContinue(CONTENT, TISSUE) {
+			let biosamplesServer =
+				this.renderConfig["gene links server"] == "KP BioIndex"
+					? uiUtils.biDomain() + "/api/bio"
+					: this.renderConfig["gene links server"];
+
+			let contURL =
+				biosamplesServer + "/cont?token=" + CONTENT.continuation;
+
+			let contJson = await fetch(contURL).then((resp) => resp.json());
+
+			if (contJson.error == null) {
+				let prevData = CONTENT.data;
+				let newData = prevData.concat(contJson.data);
+
+				contJson.data = newData;
+
+				if (contJson.continuation == null) {
+					this.runAfterGLDataLoad(contJson.data, TISSUE);
+				} else {
+					this.loadContinue(contJson, TISSUE);
+				}
+			}
+		},
+
+		runAfterGLDataLoad(GLJson, tissue) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: "GLTissue",
+				id: tissue,
+				action: "add",
+			});
+			if (!this.pkgData["GLData"]) {
+				this.pkgData["GLData"] = {};
+				this.GLData = {};
+			}
+			this.pkgData["GLData"][tissue] = GLJson;
+			this.GLData[tissue] = GLJson;
+
+			this.trigger++;
+			this.renderGLPlot();
 		},
 
 		async getS2GeneLinks(event) {
