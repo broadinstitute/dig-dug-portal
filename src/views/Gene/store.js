@@ -30,7 +30,8 @@ export default new Vuex.Store({
         aliasName: null,
         prior: 0.3696,
         selectedAncestry: "",
-        transcript: ""
+        transcript: "",
+        commonVariantsLength: 0,
     },
 
     mutations: {
@@ -44,6 +45,9 @@ export default new Vuex.Store({
         },
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
+        },
+        setCommonVariantsLength(state, NUM) {
+            state.commonVariantsLength = NUM;
         }
     },
 
@@ -90,6 +94,9 @@ export default new Vuex.Store({
     },
 
     actions: {
+        commonVariantsLength(context, NUM) {
+            context.commit("setCommonVariantsLength", NUM);
+        },
 
         async queryGeneName(context, symbol) {
             let name = context.state.geneToQuery || context.state.geneName;
@@ -97,7 +104,7 @@ export default new Vuex.Store({
 
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
-                context.dispatch("geneToTranscript/query", {q: name});
+                context.dispatch("geneToTranscript/query", { q: name });
             }
         },
 
