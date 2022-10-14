@@ -385,7 +385,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
-			console.log(PARAM);
+			//console.log(PARAM);
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -842,7 +842,7 @@ export default Vue.component("research-annotations-plot-v2", {
 		async getGlobalEnrichment() {
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
+					? uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["annotations server"];
 
 			let phenotype = this.searchingPhenotype;
@@ -1025,6 +1025,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
+				/// replace to uiUtils.biDomain()+"/api/bio"
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
 						? "https://bioindex.hugeamp.org/api/bio"
@@ -1102,7 +1103,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				  ).value
 				: null;
 
-			console.log("this.GEData", this.GEData);
+			//console.log("this.GEData", this.GEData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
