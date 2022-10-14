@@ -4,7 +4,7 @@
         ref="transcriptSelect" @click="this.disablePlaceholder">
         <option value="undefined" id="transcript-placeholder" selected>Select a transcript</option>
         <option v-for="transcript in transcriptOptions" :value="transcript">{{ transcript }}</option>
-        <option value="">{{ $store.state.geneName}}</option>
+        <option value="">{{ $store.state.geneName.toUpperCase()}}</option>
     </select>
 </template>
 
