@@ -279,18 +279,18 @@
 				</div>
 			</div>
 			<div class="card mdkp-card" v-if="!!$store.state.ancestry">
-				<div class="card-body">
+				<div class="card-body test-ancestry">
 					<h4>
 						Variants in region (Ancestry:
 						{{ $parent.ancestryFormatter($store.state.ancestry) }})
 						&nbsp;<tooltip-documentation
-							name="region.topassoc.tooltip"
+							name="region.ancestrytopassoc.tooltip"
 							:isHover="true"
 							:noIcon="false"
 						></tooltip-documentation>
 					</h4>
 					<documentation
-						name="region.variantassociation.subheader"
+						name="region.ancestrytopassoc.subheader"
 					></documentation>
 					<a
 						v-if="
@@ -311,7 +311,7 @@
 				</div>
 			</div>
 			<div class="card mdkp-card" v-if="!$store.state.ancestry">
-				<div class="card-body">
+				<div class="card-body test-original">
 					<documentation
 						name="region.lz.subheader"
 						:content-fill="$parent.documentationMap"
@@ -545,7 +545,11 @@
 						"
 					>
 						<h4 class="card-title">
-							Variants in region <span v-if="!$store.state.ancestry">(Ancestry: All)</span> &nbsp;
+							Variants in region
+							<span v-if="!$store.state.ancestry"
+								>(Ancestry: All)</span
+							>
+							&nbsp;
 							<tooltip-documentation
 								name="region.topassoc.tooltip"
 								:isHover="true"
