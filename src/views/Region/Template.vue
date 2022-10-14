@@ -276,7 +276,7 @@
                     </template>
                 </div>
             </div>
-            <div v-if="!!$store.state.ancestry" class="card mdkp-card">
+            <div v-show="$store.state.ancestry" class="card mdkp-card">
                 <div class="card-body test-ancestry">
                     <h4>
                         Variants in region (Ancestry:
@@ -308,7 +308,7 @@
                     ></associations-table>
                 </div>
             </div>
-            <div v-if="!$store.state.ancestry" class="card mdkp-card">
+            <div v-show="!$store.state.ancestry" class="card mdkp-card">
                 <div class="card-body test-original">
                     <documentation
                         name="region.lz.subheader"
