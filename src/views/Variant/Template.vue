@@ -179,15 +179,9 @@
 							<span style="color: gray">/</span>
 							{{ $parent.dbSNP }}
 						</span>
-						PheWAS associations
-						<span v-if="$store.state.ancestry">
-							(Ancestry:
-							{{
-								$parent.ancestryFormatter(
-									$store.state.ancestry
-								)
-							}})
-						</span>
+						PheWAS associations (Ancestry: 
+							{{!$store.state.ancestry ? "All" 
+								: $parent.ancestryFormatter($store.state.ancestry)}})
 						<tooltip-documentation
 							name="variant.assoc.tooltip"
 							:content-fill="$parent.documentationMap"
