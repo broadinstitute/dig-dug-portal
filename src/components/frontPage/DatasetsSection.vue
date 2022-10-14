@@ -50,7 +50,7 @@ export default Vue.component("datasets-section", {
                     a.value < b.value ? 1 : -1
                 );
 
-                let valueHigh = renderingData[0].value;
+                let valueHigh = renderingData[0]?.value;
 
                 renderingData.map((t) => {
                     let valuePercent = (t.value / valueHigh) * 100;
@@ -75,9 +75,8 @@ export default Vue.component("datasets-section", {
 
                 tableContent += "</div>";
 
-                document.getElementById(
-                    "datasets-chart"
-                ).innerHTML += tableContent;
+                document.getElementById("datasets-chart").innerHTML +=
+                    tableContent;
             };
             var renderPie = function (PIEDATA, SVGID, COLORSET, WIDTH, HEIGHT) {
                 var width = WIDTH,
@@ -275,17 +274,15 @@ export default Vue.component("datasets-section", {
                 }
             });
 
-            datasetsMap["totalPhenotypes"] = datasetsMap[
-                "totalPhenotypes"
-            ].filter(onlyUnique);
+            datasetsMap["totalPhenotypes"] =
+                datasetsMap["totalPhenotypes"].filter(onlyUnique);
 
             datasetsMap["totalPhenotypesNum"] =
                 datasetsMap["totalPhenotypes"].length;
 
             $.each(portals, function (e, d) {
-                datasetsMap[d + "Phenotypes"] = datasetsMap[
-                    d + "Phenotypes"
-                ].filter(onlyUnique);
+                datasetsMap[d + "Phenotypes"] =
+                    datasetsMap[d + "Phenotypes"].filter(onlyUnique);
 
                 datasetsMap[d + "PhenotypesNum"] =
                     datasetsMap[d + "Phenotypes"].length;
