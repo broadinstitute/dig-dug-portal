@@ -13,7 +13,7 @@ import FilterBasic from "@/components/criterion/FilterBasic";
 import ForestPlotSimple from "@/components/ForestPlotSimple";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
-import { match } from "@/utils/bioIndexUtils";
+import { query, match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
 
@@ -46,8 +46,8 @@ new Vue({
                 { text: "5/5 + 0/5 1%", value: "0of5_1pct" },
             ],
             datasets: [
-                { text: "52K", value: "52k" },
-                { text: "TOPMed", value: "TopMed" },
+                { text: "55K", value: "55k" },
+                { text: "TOPMed", value: "TOPMed" },
             ],
             testMethods: [
                 { text: "Collapsing Burden", value: "burden" },
@@ -58,6 +58,7 @@ new Vue({
             topmedDatasets: ["T2D", "FG", "FI"],
             selectedMethods: [],
             matchingGenes: [],
+            matchingTranscripts: [],
             showVariants: false,
             showCovariances: false,
             loadingVariants: false,
@@ -79,12 +80,18 @@ new Vue({
                     visible: true,
                     sortable: true,
                 },
-                {
-                    key: "burdenBinId",
-                    label: "Mask",
-                    visible: true,
-                    sortable: true,
-                },
+                // {
+                //     key: "geneId",
+                //     label: "Gene ID",
+                //     visible: true,
+                //     sortable: true,
+                // },
+                // {
+                //     key: "transcriptId",
+                //     label: "Transcript ID",
+                //     visible: true,
+                //     sortable: true,
+                // },
                 {
                     key: "impact",
                     label: "Impact",
@@ -116,7 +123,6 @@ new Vue({
                 "transcript_id",
             ],
             fields: [],
-            //optionalFields: [],
             optionalFields: [
                 {
                     key: "siftPred",
@@ -203,6 +209,7 @@ new Vue({
                     sortable: true,
                 },
             ],
+
             searchCriteria: [],
             selectedVariants: [],
         };
@@ -229,39 +236,58 @@ new Vue({
         },
 
         selectedGene() {
-            return this.searchCriteria
-                .filter((v) => {
-                    return v.field === "gene";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "gene";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
-        selectedMasks() {
-            return this.searchCriteria
-                .filter((v) => {
-                    return v.field === "mask";
-                })
-                .map((v) => v.threshold);
+        selectedTranscript() {
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "transcript";
+                    })
+                    .map((v) => v.threshold) || []
+            );
+        },
+        selectedMask() {
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "mask";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
         selectedDataset() {
-            return this.selectedMethods
-                .filter((v) => {
-                    return v.field === "dataset";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.searchCriteria
+                    .filter((v) => {
+                        return v.field === "dataset";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
         selectedPhenotypes() {
-            return this.selectedMethods
-                .filter((v) => {
-                    return v.field === "phenotype";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.selectedMethods
+                    .filter((v) => {
+                        return v.field === "phenotype";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
         selectedTests() {
-            return this.selectedMethods
-                .filter((v) => {
-                    return v.field === "test";
-                })
-                .map((v) => v.threshold);
+            return (
+                this.selectedMethods
+                    .filter((v) => {
+                        return v.field === "test";
+                    })
+                    .map((v) => v.threshold) || []
+            );
         },
     },
     watch: {
@@ -284,14 +310,21 @@ new Vue({
         selectedGene(newGene, oldGene) {
             if (!isEqual(newGene, oldGene)) {
                 keyParams.set({ gene: newGene });
+
+                if (newGene.length > 0) {
+                    this.lookupTranscripts(newGene[0]);
+                }
             }
         },
-        selectedMasks(newMasks, oldMasks) {
+        selectedTranscript(newTranscript, oldTranscript) {
+            if (!isEqual(newTranscript, oldTranscript)) {
+                keyParams.set({ transcript: newTranscript });
+            }
+        },
+        selectedMask(newMask, oldMask) {
             //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
-            if (!isEqual(newMasks, oldMasks)) {
-                keyParams.set({
-                    masks: newMasks.length ? newMasks.join(",") : [],
-                });
+            if (!isEqual(newMask, oldMask)) {
+                keyParams.set({ mask: newMask });
             }
         },
         selectedDataset(newDataset, oldDataset) {
@@ -321,6 +354,9 @@ new Vue({
                 });
             }
         },
+        // "$store.state.variants": function () {
+        //     this.loadingVariants = false;
+        // },
         "$store.state.variants": function () {
             this.loadingVariants = false;
             if (
@@ -368,8 +404,10 @@ new Vue({
             this.showVariants = true;
             this.loadingVariants = true;
             this.$store.dispatch("queryBurden", {
+                dataset: this.selectedDataset,
                 gene: this.selectedGene,
-                binID: this.selectedMasks,
+                binID: this.selectedMask,
+                transcriptID: this.selectedTranscript,
             });
             this.$store.dispatch("gene/query", {
                 q: this.selectedGene,
@@ -392,18 +430,6 @@ new Vue({
             this.testChanged = false;
         },
         updateFields() {
-            // let addFields = [];
-            // Object.keys(this.tableData[0]).forEach(k => {
-            //     if (this.defaultFields.indexOf(k) < 0) {
-            //         addFields.push({
-            //             key: k,
-            //             label: startCase(k),
-            //             visible: false
-            //         });
-            //     }
-            // });
-
-            // this.optionalFields = addFields;
             this.fields = this.baseFields.concat(this.optionalFields);
         },
         formatTestData(samples, data) {
@@ -427,23 +453,31 @@ new Vue({
                 this.matchingGenes = matches;
             }
         },
+        async lookupTranscripts(input) {
+            if (input) {
+                let matches = await query("gene-to-transcript", input);
+                this.matchingTranscripts = matches.map((m) => m.transcript_id);
+            }
+        },
         initCriteria() {
             if (keyParams.gene)
                 this.searchCriteria.push({
                     field: "gene",
                     threshold: keyParams.gene,
                 });
-            if (keyParams.masks) {
-                let masks = keyParams.masks.split(",");
-                masks.forEach((m) =>
-                    this.searchCriteria.push({
-                        field: "mask",
-                        threshold: m,
-                    })
-                );
+            if (keyParams.transcript)
+                this.searchCriteria.push({
+                    field: "transcript",
+                    threshold: keyParams.transcript,
+                });
+            if (keyParams.mask) {
+                this.searchCriteria.push({
+                    field: "mask",
+                    threshold: keyParams.mask,
+                });
             }
             if (keyParams.dataset) {
-                this.selectedMethods.push({
+                this.searchCriteria.push({
                     field: "dataset",
                     threshold: keyParams.dataset,
                 });

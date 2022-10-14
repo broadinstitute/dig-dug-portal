@@ -1934,6 +1934,10 @@ a.to-previous-page:hover {
     background-color: #dc3545 !important;
 }
 
+#gait .filter-pill-transcript {
+    background-color: #3e78ff !important;
+}
+
 #gait .form-group {
     margin-bottom: auto;
 }

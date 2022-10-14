@@ -45,30 +45,42 @@
                                     >Criteria
                                     <div class="criteria">
                                         <b-badge
-                                            v-if="
-                                                $parent.selectedGene.length > 0
-                                            "
+                                            v-if="$parent.selectedGene?.length"
                                             class="filter-pill-gene"
                                         >
                                             {{ $parent.selectedGene[0] }}
                                         </b-badge>
-                                        <template
+                                        <b-badge
                                             v-if="
-                                                $parent.selectedMasks.length > 0
+                                                $parent.selectedTranscript
+                                                    ?.length
                                             "
+                                            class="filter-pill-transcript"
                                         >
-                                            <b-badge
-                                                v-for="mask in $parent.selectedMasks"
-                                                :key="mask"
-                                                class="filter-pill-mask"
-                                            >
-                                                {{
-                                                    $parent.masks.find(
-                                                        (o) => o.value === mask
-                                                    ).text
-                                                }}
-                                            </b-badge>
-                                        </template>
+                                            {{ $parent.selectedTranscript[0] }}
+                                        </b-badge>
+                                        <b-badge
+                                            v-if="
+                                                $parent.selectedDataset.length >
+                                                0
+                                            "
+                                            class="filter-pill-dataset"
+                                        >
+                                            {{ $parent.selectedDataset[0] }}
+                                        </b-badge>
+
+                                        <b-badge
+                                            v-if="$parent.selectedMask.length"
+                                            class="filter-pill-mask"
+                                        >
+                                            {{
+                                                $parent.masks.find(
+                                                    (o) =>
+                                                        o.value ===
+                                                        $parent.selectedMask[0]
+                                                ).text
+                                            }}
+                                        </b-badge>
                                     </div>
                                 </b-button>
                             </b-card-header>
@@ -82,23 +94,29 @@
                                     <transition name="fade"
                                         ><b-alert
                                             v-if="
-                                                $parent.selectedGene.length ==
-                                                    0 ||
-                                                $parent.selectedGene[0] ===
-                                                    undefined
+                                                $parent.selectedGene.length ===
+                                                0
                                             "
                                             show
-                                            >Please select a gene.</b-alert
+                                            >Please select a gene, and
+                                            optionally a transcript.</b-alert
+                                        >
+                                        <b-alert
+                                            v-else-if="
+                                                $parent.selectedDataset
+                                                    .length === 0
+                                            "
+                                            show
+                                            >Please select a dataset.</b-alert
                                         >
 
                                         <b-alert
                                             v-else-if="
-                                                $parent.selectedMasks.length ==
+                                                $parent.selectedMask.length ===
                                                 0
                                             "
                                             show
-                                            >Please select one or more
-                                            masks.</b-alert
+                                            >Please select a mask.</b-alert
                                         ></transition
                                     >
                                     <criterion-list-group
@@ -116,15 +134,45 @@
                                         >
                                             <div class="label">Gene</div>
                                         </filter-enumeration-control>
+                                        <filter-enumeration-control
+                                            ref="transcript"
+                                            :field="'transcript'"
+                                            placeholder="Select a transcript (optional) ..."
+                                            :options="
+                                                $parent.matchingTranscripts
+                                            "
+                                            :disabled="
+                                                !$parent.selectedGene.length
+                                            "
+                                            ><div class="label">Transcript</div>
+                                        </filter-enumeration-control>
 
                                         <b-col class="divider"></b-col>
+                                        <filter-enumeration-control
+                                            ref="dataset"
+                                            :field="'dataset'"
+                                            placeholder="Select a dataset ..."
+                                            :options="
+                                                $parent.datasets.map(
+                                                    (v) => v.value
+                                                )
+                                            "
+                                            :label-formatter="
+                                                (v) =>
+                                                    $parent.datasets.find(
+                                                        (o) => o.value === v
+                                                    ).text
+                                            "
+                                            ><div class="label">
+                                                Dataset
+                                            </div></filter-enumeration-control
+                                        >
 
                                         <filter-enumeration-control
                                             ref="mask"
                                             :field="'mask'"
-                                            :multiple="true"
                                             :disable-sort="true"
-                                            placeholder="Select one or more masks ..."
+                                            placeholder="Select a mask ..."
                                             :options="
                                                 $parent.masks.map(
                                                     (v) => v.value
@@ -136,7 +184,7 @@
                                                         (o) => o.value === v
                                                     ).text
                                             "
-                                            ><div class="label">Masks</div>
+                                            ><div class="label">Mask</div>
                                         </filter-enumeration-control>
                                     </criterion-list-group>
 
@@ -144,10 +192,9 @@
                                         <b-button
                                             variant="primary"
                                             :disabled="
-                                                $parent.selectedGene.length ==
-                                                    0 ||
-                                                $parent.selectedMasks.length ==
-                                                    0
+                                                !$parent.selectedGene.length ||
+                                                !$parent.selectedMask.length ||
+                                                !$parent.selectedDataset.length
                                             "
                                             @click="$parent.searchVariants"
                                             >Search Variants</b-button
@@ -174,15 +221,6 @@
                                     "
                                     >Variants
                                     <div class="criteria">
-                                        <b-badge
-                                            v-if="
-                                                $parent.selectedDataset.length >
-                                                0
-                                            "
-                                            class="filter-pill-dataset"
-                                        >
-                                            {{ $parent.selectedDataset[0] }}
-                                        </b-badge>
                                         <template
                                             v-if="
                                                 $parent.selectedPhenotypes
@@ -290,17 +328,8 @@
                                         >
                                             <b-alert
                                                 v-if="
-                                                    $parent.selectedDataset
-                                                        .length == 0
-                                                "
-                                                show
-                                                >Please select a
-                                                dataset.</b-alert
-                                            >
-                                            <b-alert
-                                                v-else-if="
                                                     $parent.selectedPhenotypes
-                                                        .length == 0
+                                                        .length === 0
                                                 "
                                                 show
                                                 >Please select one or more
@@ -309,7 +338,7 @@
                                             <b-alert
                                                 v-else-if="
                                                     $parent.selectedTests
-                                                        .length == 0 ||
+                                                        .length === 0 ||
                                                     $parent.selectedTests[0] ===
                                                         undefined
                                                 "
@@ -329,35 +358,13 @@
                                                 :header="'Test(s) Selected'"
                                             >
                                                 <filter-enumeration-control
-                                                    ref="dataset"
-                                                    :field="'dataset'"
-                                                    placeholder="Select a dataset ..."
-                                                    :options="
-                                                        $parent.datasets.map(
-                                                            (v) => v.value
-                                                        )
-                                                    "
-                                                    :label-formatter="
-                                                        (v) =>
-                                                            $parent.datasets.find(
-                                                                (o) =>
-                                                                    o.value ===
-                                                                    v
-                                                            ).text
-                                                    "
-                                                    ><div class="label">
-                                                        Dataset
-                                                    </div></filter-enumeration-control
-                                                >
-
-                                                <filter-enumeration-control
                                                     ref="phenotype"
                                                     :field="'phenotype'"
                                                     placeholder="Select one or more phenotypes ..."
                                                     :disable-sort="true"
                                                     :disabled="
                                                         $parent.selectedDataset
-                                                            .length == 0 ||
+                                                            .length === 0 ||
                                                         $parent
                                                             .selectedDataset[0] ===
                                                             undefined
@@ -365,7 +372,7 @@
                                                     :multiple="true"
                                                     :options="
                                                         $parent.selectedDataset ==
-                                                        '52k'
+                                                        '55k'
                                                             ? $store.state.ldServer.phenotypes.map(
                                                                   (phenotype) =>
                                                                       phenotype.name
