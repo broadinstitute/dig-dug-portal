@@ -26,6 +26,7 @@ export default new Vuex.Store({
         selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        manhattanPlotAvailable: true
     },
     mutations: {
     },
@@ -44,6 +45,7 @@ export default new Vuex.Store({
         },
 
         queryPhenotype(context) {
+            context.state.manhattanPlotAvailable = true;
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;
             let query = { q: context.state.phenotype.name };
