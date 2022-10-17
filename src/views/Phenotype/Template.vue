@@ -236,16 +236,7 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
-						<criterion-function-group>
-							<template slot="filtered" slot-scope="{ filter }">
-								<pathway-table
-									:pathwayData="
-										$store.state.pathwayAssoc.data
-									"
-									:filter="filter"
-								></pathway-table>
-							</template>
-						</criterion-function-group>
+						<pathway-table :pathwayData="$store.state.pathwayAssoc.data"></pathway-table>
 					</div>
 				</div>
 
