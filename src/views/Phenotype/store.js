@@ -45,7 +45,6 @@ export default new Vuex.Store({
         },
 
         queryPhenotype(context) {
-            context.state.manhattanPlotAvailable = true;
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;
             let query = { q: context.state.phenotype.name };
@@ -63,6 +62,7 @@ export default new Vuex.Store({
             let ancestryOptionalQuery = !context.state.ancestry ? query : ancestryQuery; 
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
             context.dispatch("pathwayAssoc/query", ancestryOptionalQuery);
+            context.state.manhattanPlotAvailable = true;
         }
     }
 });
