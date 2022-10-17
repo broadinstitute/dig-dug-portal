@@ -461,7 +461,9 @@ new Vue({
         async lookupTranscripts(input) {
             if (input) {
                 let matches = await query("gene-to-transcript", input);
-                this.matchingTranscripts = matches.map((m) => m.transcript_id);
+                this.matchingTranscripts = matches
+                    .filter((t) => t["CCDS"])
+                    .map((t) => t.transcript_id);
             }
         },
         initCriteria() {
