@@ -36,7 +36,10 @@ export default Vue.component("ancestry-selectpicker", {
             }
             let ancestryList = [];
             for (const ancestry of this.ancestries){
-                if (!ancestryList.includes(ancestry)){
+                // "Mixed" in this context refers only to meta-analysis across datasets.
+                // So it's a misnomer here and won't return anything from an ancestry endpoint.
+                // TODO address this
+                if (!ancestryList.includes(ancestry) && ancestry != 'Mixed'){
                     ancestryList.push(ancestry);
                 }
             }
