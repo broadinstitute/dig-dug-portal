@@ -1,6 +1,6 @@
 {
   "name": "dig-dug-t2dkp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "watch": "vue-cli-service build --mode development --watch",
@@ -35,7 +35,7 @@
     "vis-data": "^7.1.4",
     "vis-network": "^9.1.2",
     "vis-util": "^5.0.3",
-    "vue": "^2.7.12",
+    "vue": "^2.7.13",
     "vue-async-computed": "^3.9.0",
     "vue-codemirror": "^4.0.6",
     "vue-cookies": "^1.8.1",
@@ -63,6 +63,6 @@
     "eslint-plugin-vue": "^9.6.0",
     "prettier": "^2.7.1",
     "regenerator-runtime": "^0.13.10",
-    "vue-template-compiler": "^2.7.12"
+    "vue-template-compiler": "^2.7.13"
   }
 }
