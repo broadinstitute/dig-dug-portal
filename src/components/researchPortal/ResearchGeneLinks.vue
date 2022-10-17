@@ -292,6 +292,8 @@ export default Vue.component("research-gene-links-plot", {
 			this.trigger--;
 
 			let renderObj = {};
+
+			console.log("this.pkgData.GLData", this.pkgData.GLData);
 			for (const [tKey, tValue] of Object.entries(this.pkgData.GLData)) {
 				if (!renderObj[tKey]) {
 					renderObj[tKey] = {};
@@ -1104,26 +1106,12 @@ export default Vue.component("research-gene-links-plot", {
 						alertUtils.popAlert(tissue + " has no linked genes.");
 					} else {
 						if (GLJson.continuation == null) {
-							this.runAfterGLDataLoad(tissue, GLJson);
+							console.log("to end", GLJson.data, tissue);
+							this.runAfterGLDataLoad(GLJson.data, tissue);
 						} else {
 							this.loadContinue(GLJson, tissue);
 						}
-
-						/*this.$store.dispatch("pkgDataSelected", {
-							type: "GLTissue",
-							id: tissue,
-							action: "add",
-						});
-						if (!this.pkgData["GLData"]) {
-							this.pkgData["GLData"] = {};
-							this.GLData = {};
-						}
-						this.pkgData["GLData"][tissue] = GLJson.data;
-						this.GLData[tissue] = GLJson.data;*/
 					}
-
-					//this.trigger++;
-					//this.renderGLPlot();
 				}
 			}
 		},
