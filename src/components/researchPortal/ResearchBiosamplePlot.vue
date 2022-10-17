@@ -1658,7 +1658,7 @@ export default Vue.component("research-biosamples-plot", {
 				///Update to 'uiUtils.biDomain() + "/api/bio"' before release
 				let biosamplesServer =
 					this.renderConfig["biosamples server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["biosamples server"];
 
 				let biosamplesIndex = !!this.renderConfig["biosamples index"]
