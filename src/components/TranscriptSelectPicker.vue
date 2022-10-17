@@ -31,7 +31,8 @@ export default Vue.component("transcript-selectpicker", {
     },
     computed: {
         transcriptOptions: function() {
-            return !this.transcripts ? [] : this.transcripts;
+            return !this.transcripts ? [] 
+                : this.transcripts.filter((transcript) => transcript["CCDS"]).map((transcript) => transcript["transcript_id"]);
         },
     },
     methods: {

@@ -444,11 +444,7 @@
 								<div class="col filter-col-md">
 									<div class="label">Transcript</div>
 									<transcript-selectpicker
-										:transcripts="
-											$store.state.geneToTranscript.data.map(
-												(item) => item.transcript_id
-											)
-										"
+										:transcripts="$store.state.geneToTranscript.data"
 									>
 									</transcript-selectpicker>
 								</div>
