@@ -492,6 +492,14 @@
                                                     Deselect all
                                                     variants</b-button
                                                 >
+                                                <span class="float-right mt-1"
+                                                    ><strong
+                                                        >Total variants:</strong
+                                                    >
+                                                    {{
+                                                        $parent.tableData.length
+                                                    }}</span
+                                                >
                                             </div>
                                             <div>
                                                 <strong
