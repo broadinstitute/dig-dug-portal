@@ -99,6 +99,19 @@ new Vue({
                     sortable: true,
                 },
                 {
+                    key: "consequenceTerms",
+                    label: "Consequence",
+                    tdClass: "border-color",
+                    visible: true,
+                    sortable: true,
+                },
+                {
+                    key: "proteinChange",
+                    label: "Protein Change",
+                    visible: true,
+                    sortable: true,
+                },
+                {
                     key: "maf",
                     label: "Minor Allele Frequency",
                     visible: true,
@@ -399,6 +412,7 @@ new Vue({
         intFormatter: Formatters.intFormatter,
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
+        consequenceFormatter: Formatters.consequenceFormatter,
         zScoreFormatter(value) {
             if (!value) {
                 return "-";

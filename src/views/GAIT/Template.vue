@@ -579,6 +579,37 @@
                                                         )
                                                     }}
                                                 </template>
+                                                <template
+                                                    #cell(consequenceTerms)="data"
+                                                >
+                                                    <div
+                                                        class="border-color"
+                                                        :class="
+                                                            data.item.impact
+                                                        "
+                                                    >
+                                                        <span
+                                                            v-for="(
+                                                                c, i
+                                                            ) in data.item
+                                                                .consequenceTerms"
+                                                            :key="c"
+                                                            >{{
+                                                                $parent.consequenceFormatter(
+                                                                    c
+                                                                )
+                                                            }}{{
+                                                                i <
+                                                                data.item
+                                                                    .consequenceTerms
+                                                                    .length -
+                                                                    1
+                                                                    ? ", "
+                                                                    : ""
+                                                            }}</span
+                                                        >
+                                                    </div></template
+                                                >
                                             </b-table>
                                         </div>
                                     </b-skeleton-wrapper>
