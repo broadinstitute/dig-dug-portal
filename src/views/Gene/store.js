@@ -57,6 +57,9 @@ export default new Vuex.Store({
         },
         setPhenotypeCorrelation(state, Correlation) {
             state.phenotypeCorrelation = Correlation;
+        },
+        setCommonVariantsLength(state, NUM) {
+            state.commonVariantsLength = NUM;
         }
     },
 

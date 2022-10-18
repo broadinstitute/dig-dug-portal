@@ -2,7 +2,12 @@
 	<div>
 		<div v-if="page != 'front'" class="disease-systems-sub-pages">
 			<div class="select-disease-wrapper">
-				<label>{{ diseaseInSession }}</label>
+				<label v-if="!!diseaseInSession && diseaseInSession != ''">{{
+					diseaseInSession
+				}}</label>
+				<label v-if="!diseaseInSession || diseaseInSession == ''"
+					>Set phenotype focus</label
+				>
 				<div class="select-disease">
 					<span class="menu-arrow">></span>
 					<div class="options-wrapper">
