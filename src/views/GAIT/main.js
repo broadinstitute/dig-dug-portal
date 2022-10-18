@@ -92,18 +92,18 @@ new Vue({
                 //     visible: true,
                 //     sortable: true,
                 // },
-                {
-                    key: "impact",
-                    label: "Impact",
-                    visible: true,
-                    sortable: true,
-                },
+                // {
+                //     key: "impact",
+                //     label: "Impact",
+                //     visible: true,
+                //     sortable: true,
+                // },
                 {
                     key: "consequenceTerms",
                     label: "Consequence",
                     tdClass: "border-color",
                     visible: true,
-                    sortable: true,
+                    sortable: false,
                 },
                 {
                     key: "proteinChange",

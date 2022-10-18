@@ -983,4 +983,10 @@
 </template>
 <style>
 @import url("/css/table.css");
+/*
+  Fix an issue in vue-bootstrap v2.22.0:
+  https://github.com/bootstrap-vue/bootstrap-vue/issues/6961 */
+.b-table-sticky-header > .table.b-table > thead > tr > th {
+    position: sticky !important;
+}
 </style>
