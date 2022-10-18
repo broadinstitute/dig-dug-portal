@@ -92,9 +92,22 @@ new Vue({
                 //     visible: true,
                 //     sortable: true,
                 // },
+                // {
+                //     key: "impact",
+                //     label: "Impact",
+                //     visible: true,
+                //     sortable: true,
+                // },
                 {
-                    key: "impact",
-                    label: "Impact",
+                    key: "consequenceTerms",
+                    label: "Consequence",
+                    tdClass: "border-color",
+                    visible: true,
+                    sortable: false,
+                },
+                {
+                    key: "proteinChange",
+                    label: "Protein Change",
                     visible: true,
                     sortable: true,
                 },
@@ -399,6 +412,7 @@ new Vue({
         intFormatter: Formatters.intFormatter,
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
+        consequenceFormatter: Formatters.consequenceFormatter,
         zScoreFormatter(value) {
             if (!value) {
                 return "-";

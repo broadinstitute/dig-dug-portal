@@ -579,6 +579,37 @@
                                                         )
                                                     }}
                                                 </template>
+                                                <template
+                                                    #cell(consequenceTerms)="data"
+                                                >
+                                                    <div
+                                                        class="border-color"
+                                                        :class="
+                                                            data.item.impact
+                                                        "
+                                                    >
+                                                        <span
+                                                            v-for="(
+                                                                c, i
+                                                            ) in data.item
+                                                                .consequenceTerms"
+                                                            :key="c"
+                                                            >{{
+                                                                $parent.consequenceFormatter(
+                                                                    c
+                                                                )
+                                                            }}{{
+                                                                i <
+                                                                data.item
+                                                                    .consequenceTerms
+                                                                    .length -
+                                                                    1
+                                                                    ? ", "
+                                                                    : ""
+                                                            }}</span
+                                                        >
+                                                    </div></template
+                                                >
                                             </b-table>
                                         </div>
                                     </b-skeleton-wrapper>
@@ -952,4 +983,10 @@
 </template>
 <style>
 @import url("/css/table.css");
+/*
+  Fix an issue in vue-bootstrap v2.22.0:
+  https://github.com/bootstrap-vue/bootstrap-vue/issues/6961 */
+.b-table-sticky-header > .table.b-table > thead > tr > th {
+    position: sticky !important;
+}
 </style>
