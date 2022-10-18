@@ -77,6 +77,7 @@ export default new Vuex.Store({
             let ancestryOptionalQuery = !context.state.ancestry ? query : ancestryQuery;
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
             context.dispatch("pathwayAssoc/query", ancestryOptionalQuery);
+            context.state.manhattanPlotAvailable = true;
         },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
@@ -87,7 +88,7 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
-        context.state.manhattanPlotAvailable = true;
+
+
     }
-}
 });
