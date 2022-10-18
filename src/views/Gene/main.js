@@ -398,14 +398,14 @@ new Vue({
 
         },
 
-        smallestpValuePhenotype() {
+        /*smallestpValuePhenotype() {
             // let data = this.$store.state.varassociations.data;
             // let x = data.sort(
             //     (a, b) => a.pValue - b.pValue
             // );
 
             return "T2D";
-        },
+        },*/
         selectedPhenotypes() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             if (Object.keys(phenotypeMap).length === 0) {
