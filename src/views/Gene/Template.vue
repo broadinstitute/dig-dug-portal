@@ -436,13 +436,7 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
-						<!--<h6 v-if="$parent.associations52k.length == 0">
-							No data is available for the section.
-						</h6>
-						<research-phewas-plot
-							v-if="$parent.associations52k.length > 0"
-							canvasId="rareVariantPlot"
-							:phenotypesData="$parent.associations52k"-->
+
 						<div class="filtering-ui-wrapper container-fluid">
 							<div class="row filtering-ui-content">
 								<div class="col filter-col-md">
