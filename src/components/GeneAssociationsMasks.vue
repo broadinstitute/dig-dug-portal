@@ -86,6 +86,9 @@
             </template>
         </b-container>
     </div>
+    <div v-else>
+        No data available for this query.
+    </div>
 </template>
 
 <script>

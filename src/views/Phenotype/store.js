@@ -29,6 +29,7 @@ export default new Vuex.Store({
         selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        manhattanPlotAvailable: true
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -86,5 +87,7 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
+        context.state.manhattanPlotAvailable = true;
     }
+}
 });

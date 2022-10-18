@@ -13,7 +13,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
-import RegionsTable from "@/components/RegionsTable.vue";
+//import RegionsTable from "@/components/RegionsTable.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
@@ -55,7 +55,7 @@ new Vue({
         TranscriptionFactorsTable,
         PheWASTable,
         PheWASDatasets,
-        RegionsTable,
+        //RegionsTable,
         LocusZoom,
         LocusZoomAssociationsPanel,
         LocusZoomPhewasPanel,
@@ -221,9 +221,9 @@ new Vue({
             return phewas;
         },
 
-        regions() {
+        /*regions() {
             return this.$store.state.regions.data;
-        }
+        }*/
     },
 
     watch: {

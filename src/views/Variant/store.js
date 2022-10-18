@@ -18,7 +18,7 @@ export default new Vuex.Store({
         transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
         ancestryPhewas: bioIndex("ancestry-phewas-associations"),
-        regions: bioIndex("regions"),
+        //regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
     },
 
@@ -85,7 +85,7 @@ export default new Vuex.Store({
             }
             context.dispatch("transcriptConsequences/query", { q: varId });
             context.dispatch("transcriptionFactors/query", { q: varId });
-            context.dispatch("regions/query", { q: `${chromosome}:${position}` });
+            //context.dispatch("regions/query", { q: `${chromosome}:${position}` });
             context.dispatch("datasetAssociations/query", { q: varId });
         },
         // For custom phenotypes

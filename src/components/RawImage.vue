@@ -33,7 +33,7 @@
                 believe you should've given access.
             </b-alert>
             <b-alert v-else-if="!!customFailureMsg" class="unauthorized" show variant="warning">
-                {{customFailureMsg}}
+                {{this.customFailureMsg}}
             </b-alert>
             <b-alert v-else-if="failed" class="failed" show variant="danger">
                 <b-icon icon="exclamation-triangle"></b-icon> Failed to load
@@ -66,6 +66,7 @@ export default Vue.component("raw-img", {
         };
     },
     mounted() {
+        this.$store.state.manhattanPlotAvailable = true;
         this.getImage();
     },
     computed: {
@@ -76,10 +77,8 @@ export default Vue.component("raw-img", {
             return this.status === 401;
         },
         failed() {
-            console.log(`Status: ${this.status}`);
-            console.log(`Loaded: ${this.loaded}`);
-            console.log(`Unauthorized: ${this.unauthorized}`);
-            return !!this.status && !this.loaded && !this.unauthorized;
+            let hasFailed = !!this.status && !this.loaded && !this.unauthorized;
+            return hasFailed;
         },
     },
     methods: {
@@ -93,12 +92,16 @@ export default Vue.component("raw-img", {
                     that.status = resp.status;
 
                     if (resp.status === 200) {
+                        this.$store.state.manhattanPlotAvailable = true;
                         return resp.blob();
                     }
                 })
                 .then((blob) => {
                     if (!!blob) {
+                        this.$store.state.manhattanPlotAvailable = true;
                         im.src = URL.createObjectURL(blob);
+                    } else {
+                        this.$store.state.manhattanPlotAvailable = false;
                     }
                     this.loading = false;
                 });

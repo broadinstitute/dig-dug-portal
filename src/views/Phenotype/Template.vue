@@ -65,7 +65,7 @@
 				</div>
 			</div>
 
-			<div v-if="$store.state.phenotype">
+			<div v-if="$store.state.phenotype && $store.state.manhattanPlotAvailable">
 				<div class="card mdkp-card">
 					<div class="card-body">
 						<h4 class="card-title">
@@ -237,16 +237,7 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
-						<criterion-function-group>
-							<template slot="filtered" slot-scope="{ filter }">
-								<pathway-table
-									:pathwayData="
-										$store.state.pathwayAssoc.data
-									"
-									:filter="filter"
-								></pathway-table>
-							</template>
-						</criterion-function-group>
+						<pathway-table :pathwayData="$store.state.pathwayAssoc.data"></pathway-table>
 					</div>
 				</div>
 
@@ -411,6 +402,13 @@
 								</correlation-table>
 							</template>
 						</criterion-function-group>
+					</div>
+				</div>
+			</div>
+			<div v-else>
+				<div class="card mdkp-card">
+					<div class="card-body">
+						No data available for this query.
 					</div>
 				</div>
 			</div>

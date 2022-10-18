@@ -20,6 +20,8 @@ export default new Vuex.Store({
         varassociations: bioIndex("associations"),
         ancestryAssoc: bioIndex("ancestry-associations"),
         associations52k: bioIndex("gene-associations-52k"),
+        geneToTranscript: bioIndex("gene-to-transcript"),
+        transcriptAssoc: bioIndex("transcript-associations"),
         uniprot
     },
     state: {
@@ -31,6 +33,8 @@ export default new Vuex.Store({
         diseaseInSession: null,
         phenotypeCorrelation: null,
         selectedAncestry: "",
+        transcript: "",
+        commonVariantsLength: 0,
     },
 
     mutations: {
@@ -106,6 +110,9 @@ export default new Vuex.Store({
         diseaseInSession(context, DISEASE) {
             context.commit("setDiseaseInSession", DISEASE);
         },
+        commonVariantsLength(context, NUM) {
+            context.commit("setCommonVariantsLength", NUM);
+        },
 
         async queryGeneName(context, symbol) {
             let name = context.state.geneToQuery || context.state.geneName;
@@ -113,6 +120,7 @@ export default new Vuex.Store({
 
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
+                context.dispatch("geneToTranscript/query", { q: name });
             }
         },
         ///

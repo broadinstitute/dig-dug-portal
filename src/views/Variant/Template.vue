@@ -180,15 +180,14 @@
 							<span style="color: gray">/</span>
 							{{ $parent.dbSNP }}
 						</span>
-						PheWAS associations
-						<span v-if="$store.state.ancestry">
-							(Ancestry:
-							{{
-								$parent.ancestryFormatter(
-									$store.state.ancestry
-								)
-							}})
-						</span>
+						PheWAS associations (Ancestry:
+						{{
+							!$store.state.ancestry
+								? "All"
+								: $parent.ancestryFormatter(
+										$store.state.ancestry
+								  )
+						}})
 						<tooltip-documentation
 							name="variant.assoc.tooltip"
 							:content-fill="$parent.documentationMap"
@@ -395,7 +394,7 @@
 					</div>
 				</div>
 			</div>
-
+			<!--
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<h4 class="card-title">
@@ -452,7 +451,7 @@
 						</template>
 					</criterion-function-group>
 				</div>
-			</div>
+			</div>-->
 		</div>
 
 		<!-- Footer-->
