@@ -65,7 +65,12 @@
 				</div>
 			</div>
 
-			<div v-if="$store.state.phenotype && $store.state.manhattanPlotAvailable">
+			<div
+				v-if="
+					$store.state.phenotype &&
+					$store.state.manhattanPlotAvailable
+				"
+			>
 				<div class="card mdkp-card">
 					<div class="card-body">
 						<h4 class="card-title">
@@ -177,7 +182,15 @@
 						<h4 class="card-title">
 							Top common variant gene-level associations for
 							{{ $store.state.phenotype.description }}
-							with P-Value &le; 0.05
+							with P-Value &le; 0.05 (Ancestry:
+							{{
+								$store.state.ancestry == ""
+									? "All"
+									: $parent.ancestryFormatter(
+											$store.state.ancestry
+									  )
+							}})
+
 							<tooltip-documentation
 								name="phenotype.genes.tooltip"
 								:content-fill="$parent.documentationMap"
@@ -237,7 +250,10 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
-						<pathway-table :pathwayData="$store.state.pathwayAssoc.data"></pathway-table>
+						<pathway-table
+							:pathwayData="$store.state.pathwayAssoc.data"
+						>
+						</pathway-table>
 					</div>
 				</div>
 

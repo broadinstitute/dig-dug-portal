@@ -33,7 +33,7 @@ export default new Vuex.Store({
         diseaseInSession: null,
         phenotypeCorrelation: null,
         selectedAncestry: "",
-        transcript: "",
+        selectedTranscript: "",
         commonVariantsLength: 0,
     },
 
