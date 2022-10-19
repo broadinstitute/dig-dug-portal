@@ -323,14 +323,14 @@ new Vue({
         selectedGene(newGene, oldGene) {
             if (!isEqual(newGene, oldGene)) {
                 keyParams.set({ gene: newGene });
+                //remove transcripts
+                this.searchCriteria = this.searchCriteria.filter(
+                    (v) => v.field !== "transcript"
+                );
+                this.matchingTranscripts = [];
+
                 if (newGene.length > 0) {
                     this.lookupTranscripts(newGene[0]);
-                } else {
-                    //remove transcripts
-                    this.searchCriteria = this.searchCriteria.filter(
-                        (v) => v.field !== "transcript"
-                    );
-                    this.matchingTranscripts = [];
                 }
             }
         },
