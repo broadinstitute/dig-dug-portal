@@ -217,7 +217,7 @@
 						<template v-for="i in 25">
 							<b-row
 								:id="`${index}_${item.phenotype.name}_variant_${i - 1}`"
-								class="feature-content"
+								class="feature-content hidden"
 							>
 								<b-col
 									:id="`${index}_${item.phenotype.name}_var${i - 1}_varId`"
@@ -410,47 +410,53 @@ export default Vue.component("PhewasDatasets", {
 			];
 			for (let i = 0; i < 25; i++) {
 				let item = top25[i];
-				let zScoreNumber = Number(item.zScore);
-				item.zScore = zScoreNumber.toPrecision(5);
-				item.pValue = this.pValueFormatter(item.pValue);
-				dataFields.forEach((dataField) => {
-					let tableCellId = 
-						`${index}_${phenotype}_var${i}_${dataField}`;
-					let tableCell = document.getElementById(tableCellId);
-					tableCell.innerText = item[dataField];
-				});
-				// Other fields: varId, dbSNP, nearest, beta, reference
-				let varIdCell = document.getElementById(
-					`${index}_${phenotype}_var${i}_varId`
-				);
-				varIdCell.innerHTML = `<a href="/variant.html?variant=
-					${item.varId}">${item.varId}</a>`;
+				let itemRow = document.getElementById(
+						`${index}_${phenotype}_variant_${i}`
+					);
+				if (!!item){
+					itemRow.classList.remove("hidden");
+					let zScoreNumber = Number(item.zScore);
+					item.zScore = zScoreNumber.toPrecision(5);
+					item.pValue = this.pValueFormatter(item.pValue);
+					dataFields.forEach((dataField) => {
+						let tableCellId = 
+							`${index}_${phenotype}_var${i}_${dataField}`;
+						let tableCell = document.getElementById(tableCellId);
+						tableCell.innerText = item[dataField];
+					});
+					// Other fields: varId, dbSNP, nearest, beta, reference
+					let varIdCell = document.getElementById(
+						`${index}_${phenotype}_var${i}_varId`
+					);
+					varIdCell.innerHTML = `<a href="/variant.html?variant=
+						${item.varId}">${item.varId}</a>`;
 
-				let dbSNPCell = document.getElementById(
-					`${index}_${phenotype}_var${i}_dbSNP`
-				);
-				dbSNPCell.innerHTML = `<a href="/variant.html?variant=
-					${item.dbSNP}">${item.dbSNP}</a>`;
+					let dbSNPCell = document.getElementById(
+						`${index}_${phenotype}_var${i}_dbSNP`
+					);
+					dbSNPCell.innerHTML = `<a href="/variant.html?variant=
+						${item.dbSNP}">${item.dbSNP}</a>`;
 
-				let nearestCell = document.getElementById(
-					`${index}_${phenotype}_var${i}_nearest`
-				);
-				nearestCell.innerHTML = `<a href="/gene.html?gene=
-					${item.nearest}">${item.nearest}</a>`;
+					let nearestCell = document.getElementById(
+						`${index}_${phenotype}_var${i}_nearest`
+					);
+					nearestCell.innerHTML = `<a href="/gene.html?gene=
+						${item.nearest}">${item.nearest}</a>`;
 
-				let betaCell = document.getElementById(
-					`${index}_${phenotype}_var${i}_beta`
-				);
-				let betaClass =
-					item.beta < 0 ? "effect negative" : "effect positive";
-				let betaSymbol = item.beta < 0 ? "&#9660;" : "&#9650;";
-				betaCell.innerHTML = `<span class="${betaClass}">
-					${betaSymbol}</span>${item.beta}`;
+					let betaCell = document.getElementById(
+						`${index}_${phenotype}_var${i}_beta`
+					);
+					let betaClass =
+						item.beta < 0 ? "effect negative" : "effect positive";
+					let betaSymbol = item.beta < 0 ? "&#9660;" : "&#9650;";
+					betaCell.innerHTML = `<span class="${betaClass}">
+						${betaSymbol}</span>${item.beta}`;
 
-				let refAltCell = document.getElementById(
-					`${index}_${phenotype}_var${i}_reference`
-				);
-				refAltCell.innerText = `${item.reference}/${item.alt}`;
+					let refAltCell = document.getElementById(
+						`${index}_${phenotype}_var${i}_reference`
+					);
+					refAltCell.innerText = `${item.reference}/${item.alt}`;
+				}
 			}
 		},
 		async getClumpedVariants(index, phenotype, clump) {
