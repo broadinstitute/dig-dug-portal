@@ -34,6 +34,8 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import MaskTable from "@/components/MaskTable";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 
+import sessionUtils from "@/utils/sessionUtils";
+
 import jsonQuery from "json-query";
 import { Cipher } from "crypto";
 
@@ -118,6 +120,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
         // if (keyParams.gene) {
         //     this.$store.dispatch("get52KAssociationData", keyParams.gene);
         // }
@@ -135,7 +138,14 @@ new Vue({
 
     computed: {
         phenotypeOptions() {
-            return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
+
+            let data = this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'name');
+            }
+
+            return data;
         },
         numberOfSearches() {
             return this.hugecalSearchCriterion.length;
@@ -434,9 +444,28 @@ new Vue({
             };
         },
 
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+
     },
     methods: {
 
+        ...sessionUtils,
 
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
