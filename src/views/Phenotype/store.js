@@ -29,6 +29,7 @@ export default new Vuex.Store({
         selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        manhattanPlotAvailable: true
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -63,9 +64,11 @@ export default new Vuex.Store({
             context.state.phenotype = context.state.selectedPhenotype;
             let query = { q: context.state.phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
-            let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
             let ancestryQuery = { q: `${context.state.phenotype.name},${context.state.ancestry}` };
             let ancestryAssocQuery = { ...ancestryQuery, limit: 1000 };
+            let ancestryOptionalQuery = !context.state.ancestry ? query : ancestryQuery;
+            let geneQuery = { ...ancestryOptionalQuery, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
+
             if (context.state.ancestry == "" || context.state.ancestry == null) {
                 context.dispatch("associations/query", assocQuery);
             } else {
@@ -73,9 +76,9 @@ export default new Vuex.Store({
             }
             context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
-            let ancestryOptionalQuery = !context.state.ancestry ? query : ancestryQuery;
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
             context.dispatch("pathwayAssoc/query", ancestryOptionalQuery);
+            context.state.manhattanPlotAvailable = true;
         },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
@@ -86,5 +89,7 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
+
+
     }
 });

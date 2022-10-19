@@ -36,7 +36,9 @@
 
 					<div class="col-md-8 gene-page-header-body">
 						<div>
-							<span>{{ $store.state.geneName }}</span>
+							<span>{{
+								$store.state.geneName.toUpperCase()
+							}}</span>
 						</div>
 					</div>
 					<div class="col-md-4 gene-page-header-body">
@@ -90,7 +92,7 @@
 				<div class="card-body">
 					<h4>
 						{{
-							`Functional associations for ${$store.state.geneName}`
+							`Functional associations for ${$store.state.geneName.toUpperCase()}`
 						}}
 						<tooltip-documentation
 							name="gene.translator.tooltip.hover"
@@ -283,8 +285,15 @@
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
 							Common variant gene-level associations for
-							{{ $store.state.geneName }} 
-							(Ancestry: {{ $store.state.selectedAncestry == "" ? "All": $parent.ancestryFormatter($store.state.selectedAncestry)}})
+							{{ $store.state.geneName.toUpperCase() }}
+							(Ancestry:
+							{{
+								$store.state.selectedAncestry == ""
+									? "All"
+									: $parent.ancestryFormatter(
+											$store.state.selectedAncestry
+									  )
+							}})
 							<tooltip-documentation
 								name="gene.associations.tooltip.hover"
 								:content-fill="$parent.documentationMap"
@@ -293,15 +302,20 @@
 							></tooltip-documentation>
 						</h4>
 
-						<criterion-function-group>
+						<criterion-function-group id="common_variants">
 							<div class="col filter-col-md">
 								<div class="label">Ancestry</div>
-									<ancestry-selectpicker
-									:ancestries="$store.state.bioPortal.datasets.map((dataset) => dataset.ancestry)"
-						></ancestry-selectpicker>
-					</div>
+								<ancestry-selectpicker
+									:ancestries="
+										$store.state.bioPortal.datasets.map(
+											(dataset) => dataset.ancestry
+										)
+									"
+								></ancestry-selectpicker>
+							</div>
 							<filter-enumeration-control
 								:field="'phenotype'"
+								placeholder="Select a phenotype ..."
 								:options="
 									$parent.geneassociations.map(
 										(association) => association.phenotype
@@ -321,11 +335,15 @@
 							>
 								<div class="label">Phenotypes</div>
 							</filter-enumeration-control>
-							<filter-pvalue-control :field="'pValue'">
+							<filter-pvalue-control
+								:field="'pValue'"
+								placeholder="Set P-Value ..."
+							>
 								<div class="label">P-Value (&le;)</div>
 							</filter-pvalue-control>
 
 							<template slot="filtered" slot-scope="{ filter }">
+								<div align="center" id="ancestry_set"></div>
 								<research-phewas-plot
 									v-if="
 										$store.state.geneassociations.data
@@ -404,8 +422,13 @@
 				<div class="card-body">
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
-							Rare variant gene-level associations for
-							{{ $store.state.geneName }}
+							Rare variant
+							{{
+								!$store.state.selectedTranscript
+									? `gene-level associations for ${$store.state.geneName.toUpperCase()}`
+									: `transcript-level associations for ${$store.state.selectedTranscript}`
+							}}
+
 							<tooltip-documentation
 								name="gene.52k.tooltip.hover"
 								:content-fill="$parent.documentationMap"
@@ -413,13 +436,33 @@
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
-						<h6 v-if="$parent.associations52k.length == 0">
-							No data is available for the section.
-						</h6>
+
+						<div class="filtering-ui-wrapper container-fluid">
+							<div class="row filtering-ui-content">
+								<div class="col filter-col-md">
+									<div class="label">Transcript</div>
+									<transcript-selectpicker
+										:transcripts="
+											$store.state.geneToTranscript.data
+										"
+									>
+									</transcript-selectpicker>
+								</div>
+							</div>
+						</div>
+						<!-- Cheating to add search bubble here-->
+						<div align="center">
+							<b-badge
+								pill
+								v-if="!!$store.state.selectedTranscript"
+								class="btn search-bubble 1"
+								v-html="$store.state.selectedTranscript"
+							></b-badge>
+						</div>
 						<research-phewas-plot
-							v-if="$parent.associations52k.length > 0"
+							v-if="$parent.transcriptOr52k.length > 0"
 							canvasId="rareVariantPlot"
-							:phenotypesData="$parent.associations52k"
+							:phenotypesData="$parent.transcriptOr52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:colors="[
 								'#007bff',
@@ -465,12 +508,10 @@
 							ref="rareVariantPheWASPlot"
 						></research-phewas-plot>
 						<unauthorized-message
-							:restricted="
-								$store.state.associations52k.restricted
-							"
+							:restricted="$store.state.restricted"
 						></unauthorized-message>
 						<gene-associations-masks
-							:associations="$parent.associations52k"
+							:associations="$parent.transcriptOr52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 						></gene-associations-masks>
 					</div>

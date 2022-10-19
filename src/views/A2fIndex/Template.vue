@@ -156,86 +156,12 @@
 									>
 										<documentation
 											name="home.example"
-											:group="cmd"
+											:group="a2f"
 										></documentation>
 									</div>
 								</div>
 							</div>
 						</div>
-
-						<!--
-						<div class="row front-search-section">
-							<div class="col-md-12 portal-front-tabs">
-								<b-tabs align="center">
-									<b-tab title="Search portal" active>
-										<b-card-text>
-											<div class="single-search-wrapper">
-												<research-single-search
-													:singleSearchConfig="null"
-													:phenotypes="
-														$parent.phenotypesInSession
-													"
-												></research-single-search>
-												<div
-													class="
-														region-search-examples
-														a2f-region-search-examples
-													"
-												>
-													<documentation
-														name="home.example"
-														:group="cmd"
-													></documentation>
-												</div>
-											</div>
-										</b-card-text>
-									</b-tab>
-									<b-tab
-										:title="
-											!!$parent.diseaseInSession
-												? 'Current focus: ' +
-												  $parent.diseaseInSession
-												: 'Set phenotypes focus'
-										"
-									>
-										<b-card-text>
-											<div
-												class="
-													disease-systems-trees-wrapper
-												"
-												v-if="
-													$store.state.bioPortal
-														.diseaseSystems.length >
-														0 &&
-													$parent.phenotypes.length >
-														0
-												"
-											>
-												<disease-systems
-													page="front"
-													:diseases="
-														$store.state.bioPortal
-															.diseaseSystems
-													"
-													:diseaseGroups="
-														$store.state.bioPortal
-															.diseaseGroups
-													"
-													:phenotypes="
-														$parent.phenotypes
-													"
-													:phenotypeCorrelation="
-														$store.state
-															.phenotypeCorrelation
-													"
-												></disease-systems>
-											</div>
-										</b-card-text>
-									</b-tab>
-								</b-tabs>
-							</div>
-						</div>
-						-->
 					</div>
 				</div>
 			</div>

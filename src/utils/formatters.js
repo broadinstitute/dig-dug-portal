@@ -215,6 +215,34 @@ function decimalFormatter(NUM, DECIMAL) {
     let newNum = Math.round(NUM * decimal) / decimal;
     return newNum;
 }
+function maskFormatter(mask){
+    let maskLookup = {
+        "LoF_HC": { description: "LofTee", sort: 0 },
+        "loftee": { description: "LofTee", sort: 0 },
+
+        "16of16": { description: "16/16", sort: 1 },
+        "ns_severe": { description: "16/16", sort: 1 },
+
+        "11of11": { description: "11/11 ", sort: 2 },
+        "ns_stringent": { description: "11/11 ", sort: 2 },
+
+        "5of5": { description: "5/5", sort: 3 },
+        "ns_strict": { description: "5/5", sort: 3 },
+
+        "5of5_LoF_LC": { description: "5/5 + LofTee LC", sort: 4 },
+        "ns_strict_fp_ptvs": { description: "5/5 + LofTee LC", sort: 4 },
+
+        "1of5_1pct": { description: "5/5 + 1/5 1%", sort: 5 },
+        "ns_strict_ns_broad_1pct": { description: "5/5 + 1/5 1%", sort: 5 },
+
+        "0of5_1pct": { description: "5/5 + 0/5 1%", sort: 6 },
+        "ns_strict_ns_1pct": { description: "5/5 + 0/5 1%", sort: 6 },
+    }
+    if (maskLookup[mask]){
+        return maskLookup[mask];
+    }
+    return { description: mask, sort: 7};
+}
 
 export default {
     alleleFormatter,
@@ -230,6 +258,7 @@ export default {
     intFormatter,
     locusFormatter,
     igvLocusFormatter,
+    maskFormatter,
     phenotypeFormatter,
     snakeFormatter,
     tissueFormatter,

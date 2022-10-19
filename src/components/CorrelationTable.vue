@@ -1,35 +1,38 @@
 <template>
-    <div id="correlations" v-if="rows > 0">
-        <div class="text-right mb-2">
-            <label class="label">
-                <input type="checkbox" v-model="sortByCorrelation"/> Sort by correlation
-            </label>
-            <csv-download
-                :data="correlationData"
-                filename="genetic_correlations"
-            ></csv-download>
+    <div id="correlations">
+        <div v-if="rows > 0">
+            <div class="text-right mb-2">
+                <label class="label">
+                    <input type="checkbox" v-model="sortByCorrelation"/> Sort by correlation
+                </label>
+                <csv-download
+                    :data="correlationData"
+                    filename="genetic_correlations"
+                ></csv-download>
+            </div>
+            <b-table
+                hover
+                small
+                responsive="sm"
+                :items="tableData"
+                :fields="fields"
+                :per-page="perPage"
+                :current-page="currentPage"
+            >
+                <template v-slot:cell(link)="r">
+                    <a :href="`/phenotype.html?phenotype=${r.item['other_phenotype']}`">{{
+                                getDescription(r.item['other_phenotype'])}}
+                    </a>
+                </template>
+            </b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+            ></b-pagination>
         </div>
-        <b-table
-            hover
-            small
-            responsive="sm"
-            :items="tableData"
-            :fields="fields"
-            :per-page="perPage"
-            :current-page="currentPage"
-        >
-            <template v-slot:cell(link)="r">
-                <a :href="`/phenotype.html?phenotype=${r.item['other_phenotype']}`">{{
-                            getDescription(r.item['other_phenotype'])}}
-                </a>
-            </template>
-        </b-table>
-        <b-pagination
-            class="pagination-sm justify-content-center"
-            v-model="currentPage"
-            :total-rows="rows"
-            :per-page="perPage"
-        ></b-pagination>
+        <div v-else>No data available for this query.</div>
     </div>
 </template>
 <script>
@@ -76,7 +79,7 @@ export default Vue.component("correlation-table", {
             return this.tableData.length;
         },
         tableData() {
-            let dataRows = this.correlationData;
+            let dataRows = this.correlationData.filter((item) => !!this.phenotypeMap[item.other_phenotype]);
             let filter = this.filter;
             if (!!filter) {
                 dataRows = dataRows.filter((row) => filter(row));

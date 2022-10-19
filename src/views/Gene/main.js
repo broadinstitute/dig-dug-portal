@@ -17,6 +17,7 @@ import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
+import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
 import Formatters from "@/utils/formatters";
 import VariantSearch from "@/components/VariantSearch";
 import keyParams from "@/utils/keyParams";
@@ -64,6 +65,7 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
         AncestrySelectPicker,
+        TranscriptSelectPicker,
         UnauthorizedMessage,
         CriterionFunctionGroup,
         FilterPValue,
@@ -112,7 +114,8 @@ new Vue({
                     title: "Universal Protein Resource",
                     link: "https://www.uniprot.org/uniprot/"
                 }
-            }
+            },
+
         };
     },
 
@@ -143,6 +146,36 @@ new Vue({
         postAlertError,
         closeAlert,
         ancestryFormatter: Formatters.ancestryFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
+        onAncestrySet() {
+
+            let ancestry = this.$store.state.selectedAncestry;
+
+            let sectionWrapper = document.getElementById('common_variants');
+            let bubbleCollection = sectionWrapper.querySelectorAll('.filter-pill-collection');
+            let bubbleWrapper = document.getElementById('ancestry_set');
+
+            bubbleWrapper.innerHTML = "";
+
+            let ancestryBubble = document.getElementById('ancestry_bubble')
+            if (!!ancestryBubble) {
+                ancestryBubble.remove();
+            }
+
+            let bubble = document.createElement("span");
+            bubble.setAttribute("class", "badge btn search-bubble 3 badge-secondary badge-pill");
+            bubble.setAttribute("id", "ancestry_bubble");
+            bubble.textContent = 'Ancestry = ' + this.ancestryFormatter(ancestry);
+
+            if (!!ancestry && ancestry != undefined) {
+                if (bubbleCollection.length > 0) {
+                    bubbleCollection[0].append(bubble);
+                } else {
+                    bubbleWrapper.innerHTML = " Selected Filters:	 ";
+                    bubbleWrapper.append(bubble);
+                }
+            }
+        },
         pushCriterionPhenotype(phenotypeName) {
             this.genePageSearchCriterion.push({
                 field: "phenotype",
@@ -275,6 +308,38 @@ new Vue({
                 .map(phenotype => phenotype.name);
         },
 
+        transcriptOr52k() {
+            let endpoint = !this.$store.state.selectedTranscript
+                ? this.$store.state.associations52k
+                : this.$store.state.transcriptAssoc;
+            this.$store.state.restricted = endpoint.restricted;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                endpoint.data = sessionUtils.getInSession(endpoint.data, this.phenotypesInSession, 'phenotype');
+            }
+
+            let assocMap = {};
+
+            for (let i in endpoint.data) {
+                const assoc = endpoint.data[i];
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[assoc.phenotype]) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+
+
+            endpoint.data.sort((a, b) => this.pValueFormatter(a.pValue) - this.pValueFormatter(b.pValue));
+
+            return endpoint.data;
+        },
+
         geneassociations() {
             let data = this.$store.state.geneassociations.data;
 
@@ -333,14 +398,14 @@ new Vue({
 
         },
 
-        smallestpValuePhenotype() {
+        /*smallestpValuePhenotype() {
             // let data = this.$store.state.varassociations.data;
             // let x = data.sort(
             //     (a, b) => a.pValue - b.pValue
             // );
 
             return "T2D";
-        },
+        },*/
         selectedPhenotypes() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             if (Object.keys(phenotypeMap).length === 0) {
@@ -718,10 +783,17 @@ new Vue({
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
         },
-        "$store.state.selectedAncestry"(newAncestry){
-            console.log(newAncestry);
-            let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}`};
+        "$store.state.selectedAncestry"(newAncestry) {
+            let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}` };
             this.$store.dispatch("geneassociations/query", geneQuery);
         },
+        "$store.state.selectedTranscript"(newTranscript) {
+            if (!!newTranscript) {
+                this.$store.dispatch("transcriptAssoc/query", { q: newTranscript });
+            }
+        },
+        "$store.state.commonVariantsLength"(NUM) {
+            this.onAncestrySet();
+        }
     }
 }).$mount("#app");
