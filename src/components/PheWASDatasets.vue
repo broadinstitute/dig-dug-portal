@@ -411,6 +411,7 @@ export default Vue.component("PhewasDatasets", {
 				let item = top25[i];
 				let zScoreNumber = Number(item.zScore);
 				item.zScore = zScoreNumber.toPrecision(5);
+				item.pValue = this.pValueFormatter(item.pValue);
 				dataFields.forEach((dataField) => {
 					let tableCellId = `pheno${index}_var${i}_${dataField}`;
 					let tableCell = document.getElementById(tableCellId);
@@ -420,22 +421,30 @@ export default Vue.component("PhewasDatasets", {
 				let varIdCell = document.getElementById(
 					`pheno${index}_var${i}_varId`
 				);
-				varIdCell.innerHTML = `<a href="/variant.html?variant=${item.varId}">${item.varId}</a>`;
+				varIdCell.innerHTML = `<a href="/variant.html?variant=
+					${item.varId}">${item.varId}</a>`;
+
 				let dbSNPCell = document.getElementById(
 					`pheno${index}_var${i}_dbSNP`
 				);
-				dbSNPCell.innerHTML = `<a href="/variant.html?variant=${item.dbSNP}">${item.dbSNP}</a>`;
+				dbSNPCell.innerHTML = `<a href="/variant.html?variant=
+					${item.dbSNP}">${item.dbSNP}</a>`;
+
 				let nearestCell = document.getElementById(
 					`pheno${index}_var${i}_nearest`
 				);
-				nearestCell.innerHTML = `<a href="/gene.html?gene=${item.nearest}">${item.nearest}</a>`;
+				nearestCell.innerHTML = `<a href="/gene.html?gene=
+					${item.nearest}">${item.nearest}</a>`;
+
 				let betaCell = document.getElementById(
 					`pheno${index}_var${i}_beta`
 				);
 				let betaClass =
 					item.beta < 0 ? "effect negative" : "effect positive";
 				let betaSymbol = item.beta < 0 ? "&#9660;" : "&#9650;";
-				betaCell.innerHTML = `<span class="${betaClass}">${betaSymbol}</span>${item.beta}`;
+				betaCell.innerHTML = `<span class="${betaClass}">
+					${betaSymbol}</span>${item.beta}`;
+
 				let refAltCell = document.getElementById(
 					`pheno${index}_var${i}_reference`
 				);
