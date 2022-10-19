@@ -216,50 +216,50 @@
 						</b-row>
 						<template v-for="i in 25">
 							<b-row
-								:id="`${item.phenotype.name}_variant_${i - 1}`"
+								:id="`${index}_${item.phenotype.name}_variant_${i - 1}`"
 								class="feature-content"
 							>
 								<b-col
-									:id="`${item.phenotype.name}_var${i - 1}_varId`"
+									:id="`${index}_${item.phenotype.name}_var${i - 1}_varId`"
 									class="feature-content-item"
 								></b-col>
 								<b-col
-									:id="`${item.phenotype.name}_var${i - 1}_dbSNP`"
+									:id="`${index}_${item.phenotype.name}_var${i - 1}_dbSNP`"
 									class="feature-content-item"
 								></b-col>
 								<b-col
-									:id="`${item.phenotype.name}_var${i - 1}_reference`"
+									:id="`${index}_${item.phenotype.name}_var${i - 1}_reference`"
 									class="feature-content-item"
 								></b-col>
 								<b-col
-									:id="`${item.phenotype.name}_var${i - 1}_pValue`"
+									:id="`${index}_${item.phenotype.name}_var${i - 1}_pValue`"
 									class="feature-content-item"
 								></b-col>
 								<b-col
-									:id="`${item.phenotype.name}_var${i - 1}_beta`"
+									:id="`${index}_${item.phenotype.name}_var${i - 1}_beta`"
 									class="feature-content-item"
 								></b-col>
 								<b-col
-									:id="`${item.phenotype.name}_var${i - 1}_maf`"
+									:id="`${index}_${item.phenotype.name}_var${i - 1}_maf`"
 									class="feature-content-item"
 								></b-col>
 								<b-col
-									:id="`${item.phenotype.name}_var${i - 1}_stdErr`"
+									:id="`${index}_${item.phenotype.name}_var${i - 1}_stdErr`"
 									class="feature-content-item"
 								></b-col>
 								<b-col
-									:id="`${item.phenotype.name}_var${i - 1}_zScore`"
+									:id="`${index}_${item.phenotype.name}_var${i - 1}_zScore`"
 									class="feature-content-item"
 								></b-col>
 								<b-col
-									:id="`${item.phenotype.name}_var${
+									:id="`${index}_${item.phenotype.name}_var${
 										i - 1
 									}_consequence`"
 									cols="2"
 									class="feature-content-item"
 								></b-col>
 								<b-col
-									:id="`${item.phenotype.name}_var${i - 1}_nearest`"
+									:id="`${index}_${item.phenotype.name}_var${i - 1}_nearest`"
 									class="feature-content-item"
 								></b-col>
 							</b-row>
@@ -400,7 +400,7 @@ export default Vue.component("PhewasDatasets", {
 				element.classList.add("hidden");
 			});
 		},
-		fillTopClumpedVariants(phenotype, top25) {
+		fillTopClumpedVariants(index, phenotype, top25) {
 			const dataFields = [
 				"pValue",
 				"maf",
@@ -414,31 +414,32 @@ export default Vue.component("PhewasDatasets", {
 				item.zScore = zScoreNumber.toPrecision(5);
 				item.pValue = this.pValueFormatter(item.pValue);
 				dataFields.forEach((dataField) => {
-					let tableCellId = `${phenotype}_var${i}_${dataField}`;
+					let tableCellId = 
+						`${index}_${phenotype}_var${i}_${dataField}`;
 					let tableCell = document.getElementById(tableCellId);
 					tableCell.innerText = item[dataField];
 				});
-				// Other fields: varId, dbSNP, nearest, beta
+				// Other fields: varId, dbSNP, nearest, beta, reference
 				let varIdCell = document.getElementById(
-					`${phenotype}_var${i}_varId`
+					`${index}_${phenotype}_var${i}_varId`
 				);
 				varIdCell.innerHTML = `<a href="/variant.html?variant=
 					${item.varId}">${item.varId}</a>`;
 
 				let dbSNPCell = document.getElementById(
-					`${phenotype}_var${i}_dbSNP`
+					`${index}_${phenotype}_var${i}_dbSNP`
 				);
 				dbSNPCell.innerHTML = `<a href="/variant.html?variant=
 					${item.dbSNP}">${item.dbSNP}</a>`;
 
 				let nearestCell = document.getElementById(
-					`${phenotype}_var${i}_nearest`
+					`${index}_${phenotype}_var${i}_nearest`
 				);
 				nearestCell.innerHTML = `<a href="/gene.html?gene=
 					${item.nearest}">${item.nearest}</a>`;
 
 				let betaCell = document.getElementById(
-					`${phenotype}_var${i}_beta`
+					`${index}_${phenotype}_var${i}_beta`
 				);
 				let betaClass =
 					item.beta < 0 ? "effect negative" : "effect positive";
@@ -447,7 +448,7 @@ export default Vue.component("PhewasDatasets", {
 					${betaSymbol}</span>${item.beta}`;
 
 				let refAltCell = document.getElementById(
-					`${phenotype}_var${i}_reference`
+					`${index}_${phenotype}_var${i}_reference`
 				);
 				refAltCell.innerText = `${item.reference}/${item.alt}`;
 			}
@@ -476,7 +477,7 @@ export default Vue.component("PhewasDatasets", {
 				clumpData = cvData.slice(0, 25);
 				this.phenotypesLoaded[query] = clumpData;
 			}
-			this.fillTopClumpedVariants(phenotype, clumpData);
+			this.fillTopClumpedVariants(index, phenotype, clumpData);
 			this.showTop25(index);
 		},
 	},
