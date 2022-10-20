@@ -241,14 +241,14 @@ let pages = {
         template: "public/index.html",
         filename: "egggenerator.html",
         title: "Exome Gene-Level Group-file Generator",
-        chunks: ["chunk-vendors", "chunk-common", "egggenerator"]
+        chunks: ["chunk-vendors", "chunk-common", "egggenerator"],
     },
     help: {
         entry: "src/views/Help/main.js",
         template: "public/index.html",
         filename: "help.html",
         title: "Help",
-        chunks: ["chunk-vendors", "chunk-common", "help"]
+        chunks: ["chunk-vendors", "chunk-common", "help"],
     },
 };
 
@@ -311,10 +311,7 @@ module.exports = {
             config.devtool = "cheap-module-source-map";
         }
     },
-    outputDir:
-        process.env.NODE_ENV === "production"
-            ? "portals/A2FKP/dist-prod"
-            : "portals/A2FKP/dist",
+    outputDir: "portals/A2FKP/dist",
     productionSourceMap: false,
     pages,
 };
