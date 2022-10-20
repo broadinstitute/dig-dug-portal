@@ -316,8 +316,19 @@
 								</b-tab>
 								<b-tab title="Forest plot">
 									<forest-plot-html
-										v-if="$parent.pheWasData"
-										:forestPlotData="$parent.pheWasData"
+										v-if="
+											($store.state.phewas.data.length >
+												0 &&
+												!$store.state.ancestry) ||
+											$store.state.ancestryPhewas.data
+												.length > 0
+										"
+										:forestPlotData="
+											!$store.state.ancestry
+												? $store.state.phewas.data
+												: $store.state.ancestryPhewas
+														.data
+										"
 										:labelMap="
 											$store.state.bioPortal.phenotypeMap
 										"
