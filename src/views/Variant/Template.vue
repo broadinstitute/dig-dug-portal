@@ -347,11 +347,7 @@
 							></unauthorized-message>
 							<phewas-datasets
 								v-if="$store.state.phewas.data"
-								:associations="
-									!$store.state.ancestry
-										? $store.state.phewas.data
-										: $store.state.ancestryPhewas.data
-								"
+								:associations="$parent.pheWasData"
 								:ancestry="$store.state.ancestry"
 								:datasets="
 									$store.state.datasetAssociations.data
