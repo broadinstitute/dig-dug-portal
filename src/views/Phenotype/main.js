@@ -174,10 +174,6 @@ new Vue({
                 focusedData = data;
             }
 
-            console.log(data);
-
-            console.log(data.length, focusedData.length)
-
             return focusedData;
         }
     },

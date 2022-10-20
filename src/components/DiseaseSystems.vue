@@ -911,6 +911,12 @@ export default Vue.component("disease-systems", {
 	color: #fff;
 }
 
+.select-disease-wrapper label {
+	display: inline-block !important;
+	margin: 0 !important;
+	margin-bottom: 0.5rem !important;
+}
+
 .disease-systems-sub-pages .select-disease {
 	width: 15px;
 	font-size: 14px;
