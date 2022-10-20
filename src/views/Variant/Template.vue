@@ -323,12 +323,7 @@
 											$store.state.ancestryPhewas.data
 												.length > 0
 										"
-										:forestPlotData="
-											!$store.state.ancestry
-												? $store.state.phewas.data
-												: $store.state.ancestryPhewas
-														.data
-										"
+										:forestPlotData="$parent.pheWasData"
 										:labelMap="
 											$store.state.bioPortal.phenotypeMap
 										"
