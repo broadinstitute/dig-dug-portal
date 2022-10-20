@@ -162,6 +162,23 @@ new Vue({
                     return `/api/raw/plot/phenotype/${phenotype.name}/${ancestry}/qq.png`;
                 }
             }
+        },
+        geneticCorrelationData() {
+
+            let data = this.$store.state.geneticCorrelation.data;
+            let focusedData;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                focusedData = sessionUtils.getInSession(data, this.phenotypesInSession, 'other_phenotype');
+            } else {
+                focusedData = data;
+            }
+
+            console.log(data);
+
+            console.log(data.length, focusedData.length)
+
+            return focusedData;
         }
     },
 

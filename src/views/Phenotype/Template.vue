@@ -408,7 +408,7 @@
 							<template slot="filtered" slot-scope="{ filter }">
 								<correlation-table
 									:correlationData="
-										$store.state.geneticCorrelation.data
+										$parent.geneticCorrelationData
 									"
 									:phenotypeMap="
 										$store.state.bioPortal.phenotypeMap
