@@ -342,7 +342,11 @@
 							</filter-pvalue-control>
 
 							<template slot="filtered" slot-scope="{ filter }">
-								<div align="center" id="ancestry_set"></div>
+								<div
+									align="center"
+									id="ancestry_set"
+									style="text-align: -webkit-center"
+								></div>
 								<research-phewas-plot
 									v-if="
 										$store.state.geneassociations.data
@@ -444,14 +448,16 @@
 								<div class="col filter-col-md">
 									<div class="label">Transcript</div>
 									<transcript-selectpicker
-										:transcripts="$store.state.geneToTranscript.data"
+										:transcripts="
+											$store.state.geneToTranscript.data
+										"
 									>
 									</transcript-selectpicker>
 								</div>
 							</div>
 						</div>
 						<!-- Cheating to add search bubble here-->
-						<div align="center">
+						<div align="center" style="text-align: -webkit-center">
 							<b-badge
 								pill
 								v-if="!!$store.state.selectedTranscript"
