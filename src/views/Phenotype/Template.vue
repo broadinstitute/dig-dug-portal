@@ -179,6 +179,47 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
+                            Datasets with genetic associations for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                        </h4>
+                        <documentation
+                            name="pheno.assocdatasets.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
+
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'tech'"
+                                :options="
+                                    $store.state.bioPortal.datasets.map(
+                                        (dataset) => dataset.tech
+                                    )
+                                "
+                            >
+                                <div class="label">Technology</div>
+                            </filter-enumeration-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <datasets-table
+                                    :datasets="$parent.ancestryDatasets"
+                                    :phenotype="$store.state.phenotype"
+                                    :filter="filter"
+                                ></datasets-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
+
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
                             Top common variant gene-level associations for
                             {{ $store.state.phenotype.description }}
                             with P-Value &le; 0.05 (Ancestry:
@@ -259,9 +300,8 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            Datasets with genetic associations for
-                            {{ $store.state.phenotype.description }}
-                            (Ancestry:
+                            Genetic correlations for
+                            {{ $store.state.phenotype.description }} (Ancestry:
                             {{
                                 $store.state.ancestry == ""
                                     ? "All"
@@ -269,29 +309,35 @@
                                           $store.state.ancestry
                                       )
                             }})
+                            <tooltip-documentation
+                                name="phenotype.correlation.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :is-hover="true"
+                                :no-icon="false"
+                            ></tooltip-documentation>
                         </h4>
                         <documentation
-                            name="pheno.assocdatasets.subheader"
+                            name="phenotype.correlation.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
-
                         <criterion-function-group>
-                            <filter-enumeration-control
-                                :field="'tech'"
-                                :options="
-                                    $store.state.bioPortal.datasets.map(
-                                        (dataset) => dataset.tech
-                                    )
-                                "
-                            >
-                                <div class="label">Technology</div>
-                            </filter-enumeration-control>
+                            <filter-pvalue-control :field="'pValue'">
+                                <div class="label">P-Value (&le;)</div>
+                            </filter-pvalue-control>
+                            <filter-greater-control :field="'rg'">
+                                <div class="label">Correlation (&ge;)</div>
+                            </filter-greater-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <datasets-table
-                                    :datasets="$parent.ancestryDatasets"
-                                    :phenotype="$store.state.phenotype"
+                                <correlation-table
+                                    :correlation-data="
+                                        $store.state.geneticCorrelation.data
+                                    "
+                                    :phenotype-map="
+                                        $store.state.bioPortal.phenotypeMap
+                                    "
                                     :filter="filter"
-                                ></datasets-table>
+                                >
+                                </correlation-table>
                             </template>
                         </criterion-function-group>
                     </div>
@@ -370,51 +416,6 @@
                                     :filter="filter"
                                     :per-page="10"
                                 ></enrichment-table>
-                            </template>
-                        </criterion-function-group>
-                    </div>
-                </div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            Genetic correlations for
-                            {{ $store.state.phenotype.description }} (Ancestry:
-                            {{
-                                $store.state.ancestry == ""
-                                    ? "All"
-                                    : $parent.ancestryFormatter(
-                                          $store.state.ancestry
-                                      )
-                            }})
-                            <tooltip-documentation
-                                name="phenotype.correlation.tooltip"
-                                :content-fill="$parent.documentationMap"
-                                :is-hover="true"
-                                :no-icon="false"
-                            ></tooltip-documentation>
-                        </h4>
-                        <documentation
-                            name="phenotype.correlation.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-                        <criterion-function-group>
-                            <filter-pvalue-control :field="'pValue'">
-                                <div class="label">P-Value (&le;)</div>
-                            </filter-pvalue-control>
-                            <filter-greater-control :field="'rg'">
-                                <div class="label">Correlation (&ge;)</div>
-                            </filter-greater-control>
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <correlation-table
-                                    :correlation-data="
-                                        $store.state.geneticCorrelation.data
-                                    "
-                                    :phenotype-map="
-                                        $store.state.bioPortal.phenotypeMap
-                                    "
-                                    :filter="filter"
-                                >
-                                </correlation-table>
                             </template>
                         </criterion-function-group>
                     </div>
