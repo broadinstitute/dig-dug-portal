@@ -721,6 +721,10 @@ export default Vue.component("disease-systems", {
 
 			if (!!currentUrl.pathname.includes("region.html")) {
 				keyParams.set({ phenotype: "" });
+
+				let nextUrl = uiUtils.getUrl();
+
+				location.href = nextUrl.pathname + nextUrl.query;
 			}
 		},
 		closePhenotypesBuilder() {
