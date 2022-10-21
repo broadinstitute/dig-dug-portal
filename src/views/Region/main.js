@@ -270,7 +270,7 @@ new Vue({
                 threshold: phenotypeName
             });
         },
-        isSifterAncestry(){
+        isSifterAncestry() {
             let sifterAncestry = ["AA", "EA", "EU", "HS", "SA"];
             return sifterAncestry.includes(this.$store.state.ancestry);
         }
