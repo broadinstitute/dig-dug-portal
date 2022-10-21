@@ -6,7 +6,7 @@
 					diseaseInSession
 				}}</label>
 				<label v-if="!diseaseInSession || diseaseInSession == ''"
-					>Set phenotype focus</label
+					>Set focus</label
 				>
 				<div class="select-disease">
 					<span class="menu-arrow">></span>
@@ -15,7 +15,7 @@
 							class="option"
 							@click="openPhenotypesBuilder('system')"
 						>
-							By disease system
+							By organ system
 						</div>
 						<div
 							class="option"

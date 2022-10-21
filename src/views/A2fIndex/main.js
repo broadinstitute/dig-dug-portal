@@ -28,6 +28,7 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import { concat } from "lodash";
 
 new Vue({
     store,
@@ -154,39 +155,111 @@ new Vue({
         },
         datasetsDescription() {
             let datasets = this.$store.state.bioPortal.datasets;
+            let diseases = this.$store.state.bioPortal
+                .diseaseSystems
 
-            //console.log("datasets", datasets);
-            //console.log("this.phenotypes", this.phenotypesByName);
-            if (datasets.length > 0 && !!this.phenotypesByName) {
+            //first get datasets by phenotype groups
+            if (datasets.length > 0 && !!this.phenotypesByName && diseases.length > 0) {
+
+                let pGroups = {}
+
+                this.$store.state.bioPortal.phenotypes.map(p => {
+                    if (!pGroups[p.group]) {
+                        pGroups[p.group] = { phenotypes: [], datasets: [] };
+                    }
+                    pGroups[p.group].phenotypes.push(p.name)
+                })
 
                 datasets.map(d => {
-                    //console.log(this.phenotypesByName[d.phenotypes[0]])
+
+                    d.phenotypes.map(dp => {
+                        for (const [key, data] of Object.entries(pGroups)) {
+                            if (!!data.phenotypes.includes(dp)) {
+                                data.datasets.push(d.name)
+                            }
+                        }
+                    })
                 })
 
-                /// create datasets plot content
-                let techLabel = [...new Set(datasets.map(d => d.tech))]
-                let tech = datasets.map(d => d.tech);
-                let techCount = {}
+                //console.log("pGroups", pGroups);
 
-                techLabel.map(l => {
-                    let tempCount = tech.filter(t => t == l);
-                    techCount[l] = tempCount.length;
+                //then get phenotype groups by disease systems
+                /*console.log("diseaseSystems", this.$store.state.bioPortal
+                    .diseaseSystems);*/
 
+
+
+                let diseaseSystems = [
+                    ...new Set(diseases.map((d) => d.system)),
+                ].sort();
+
+                let dGroups = {}
+
+                diseaseSystems.map(ds => {
+                    dGroups[ds] = { phenotypes: [], datasets: [] };
                 })
+
+                diseases.map(d => {
+                    if (!dGroups[d.system].phenotypes.includes(d.group)) {
+                        dGroups[d.system].phenotypes.push(d.group);
+                    }
+                })
+
+
+
+                //then get dataset numbers by disease systems X phenotype groups
+
+                Object.keys(dGroups).map(dg => {
+                    dGroups[dg].phenotypes.map(p => {
+
+                        if (!!pGroups[p]) {
+                            let tempDatasetsArr = [].concat(dGroups[dg].datasets, pGroups[p].datasets);
+                            dGroups[dg].datasets = [... new Set(tempDatasetsArr)];
+                        }
+
+                    })
+                })
+
+                console.log("dGroups", dGroups);
+
+                //then create diagram content by disease groups
 
                 let dataContent = "";
-                let tcountLength = Object.keys(techCount).length - 1;
+
+
+                let dGroupKeys = Object.keys(dGroups).sort();
+                let dcountLength = dGroupKeys.length - 1;
 
                 let kIndex = 0;
-                Object.keys(techCount).map(k => {
-                    dataContent += '"' + k + '":' + techCount[k];
 
-                    dataContent += (kIndex < tcountLength) ? ',' : '';
+                dGroupKeys.map(k => {
+                    dataContent += '"' + k.replaceAll(" system", "").replaceAll(" & ", " / ") + '":' + dGroups[k].datasets.length;
+
+                    dataContent += (kIndex < dcountLength) ? ',' : '';
                     kIndex++;
                 })
 
+                let content = '<div class="plot">{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":100}</div>';
 
-                let content = '<div class="plot">{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi"}</div>';
+
+                //then create diagram content by phenotype groups
+
+                /*let dataContent = "";
+                let gcountLength = Object.keys(pGroups).length - 1;
+
+                let kIndex = 0;
+                let gGroupKeys = Object.keys(pGroups).sort();
+
+                gGroupKeys.map(k => {
+                    dataContent += '"' + k + '":' + pGroups[k].datasets.length;
+
+                    dataContent += (kIndex < gcountLength) ? ',' : '';
+                    kIndex++;
+                })
+
+                let content = '<div class="plot">{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":140}</div>';
+*/
+
 
                 return content;
             } else {
@@ -238,7 +311,7 @@ new Vue({
                 let datasets = this.$store.state.bioPortal.datasets;
                 let phenotypes = this.$store.state.bioPortal.phenotypes;
 
-                let content = "<h5>Datasets by technology</h5>";
+                let content = "<h5>Datasets by organ system</h5>";
                 content += "<span>Total: " + datasets.length + " datasets</span>";
                 content += this.datasetsDescription;
                 content += "<h5>Phenotypes by group</h5>";

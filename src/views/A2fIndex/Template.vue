@@ -73,7 +73,7 @@
 										!!$parent.diseaseInSession
 											? '<small>Current focus:</small> ' +
 											  $parent.diseaseInSession
-											: 'Set phenotypes focus'
+											: 'Set system focus'
 									"
 									align="center"
 								></h4>
