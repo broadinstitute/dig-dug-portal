@@ -155,12 +155,12 @@ new Vue({
         datasetsDescription() {
             let datasets = this.$store.state.bioPortal.datasets;
 
-            console.log("datasets", datasets);
-            console.log("this.phenotypes", this.phenotypesByName);
+            //console.log("datasets", datasets);
+            //console.log("this.phenotypes", this.phenotypesByName);
             if (datasets.length > 0 && !!this.phenotypesByName) {
 
                 datasets.map(d => {
-                    console.log(this.phenotypesByName[d.phenotypes[0]])
+                    //console.log(this.phenotypesByName[d.phenotypes[0]])
                 })
 
                 /// create datasets plot content

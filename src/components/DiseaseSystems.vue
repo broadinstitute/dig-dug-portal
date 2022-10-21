@@ -469,6 +469,7 @@
 <script>
 import Vue from "vue";
 import uiUtils from "@/utils/uiUtils.js";
+import keyParams from "@/utils/keyParams";
 import userUtils from "@/utils/userUtils.js";
 import sessionUtils from "@/utils/sessionUtils.js";
 import sortUtils from "@/utils/sortUtils.js";
@@ -558,6 +559,7 @@ export default Vue.component("disease-systems", {
 		...sortUtils,
 		...userUtils,
 		...Formatters,
+		...keyParams,
 		currentFocus() {
 			let customPhsSet = userUtils.getPhenotypes();
 
@@ -643,9 +645,6 @@ export default Vue.component("disease-systems", {
 			uiUtils.hideElement("pheno_list_builder");
 		},
 		saveCustomPhenotypes(TYPE, ACTION) {
-			if (TYPE == "correlation") {
-			}
-
 			switch (TYPE) {
 				case "system":
 					this.selectedDisease =
@@ -669,8 +668,6 @@ export default Vue.component("disease-systems", {
 						];
 					break;
 			}
-
-			console.log("this.selectedDisease", this.selectedDisease);
 
 			let id = this.selectedDisease;
 			let phenotypeIds = [];
@@ -717,6 +714,14 @@ export default Vue.component("disease-systems", {
 			this.selectedDisease = null;
 
 			uiUtils.hideElement("pheno_list_builder");
+
+			let currentUrl = uiUtils.getUrl();
+
+			console.log("currentUrl", currentUrl);
+
+			if (!!currentUrl.pathname.includes("region.html")) {
+				keyParams.set({ phenotype: "" });
+			}
 		},
 		closePhenotypesBuilder() {
 			uiUtils.hideElement("pheno_list_builder");
