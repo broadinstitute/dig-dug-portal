@@ -99,7 +99,7 @@
 											)
 										"
 									>
-										{{ "Change phenotypes focus" }}</span
+										{{ "Change focus" }}</span
 									>
 								</div>
 
