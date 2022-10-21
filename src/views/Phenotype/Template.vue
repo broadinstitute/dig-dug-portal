@@ -199,9 +199,13 @@
                             <filter-enumeration-control
                                 :field="'tech'"
                                 :options="
-                                    $store.state.bioPortal.datasets.map(
-                                        (dataset) => dataset.tech
-                                    )
+                                    $parent.ancestryDatasets
+                                        .filter((dataset) =>
+                                            dataset.phenotypes.includes(
+                                                $store.state.phenotype.name
+                                            )
+                                        )
+                                        .map((dataset) => dataset.tech)
                                 "
                             >
                                 <div class="label">Technology</div>
