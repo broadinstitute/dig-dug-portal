@@ -228,6 +228,13 @@ new Vue({
         };
     },
     computed: {
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
@@ -304,6 +311,9 @@ new Vue({
         },
     },
     watch: {
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
         searchCriteria: {
             handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
