@@ -1,6 +1,7 @@
 <template>
 	<div>
-		<img v-if="bioindex_dev" src="/images/dev_flag.svg" class="dev-flag" />
+		<!-- uncomment in the final version<img v-if="bioindex_dev" src="/images/dev_flag.svg" class="dev-flag" />-->
+		<img src="/images/dev_flag.svg" class="dev-flag" />
 		<analytics></analytics>
 		<alert></alert>
 
