@@ -6,7 +6,7 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+//import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -46,7 +46,7 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
-        PhenotypeSelectPicker,
+        //PhenotypeSelectPicker,
         AncestrySelectPicker,
         GeneFinderTable,
         AssociationsTable,
@@ -79,6 +79,8 @@ new Vue({
     },
     data() {
         return {
+            phenotypeSearchKey: null,
+            newPhenotypeSearchKey: null
         }
     },
     methods: {
@@ -90,9 +92,15 @@ new Vue({
         closeAlert,
         intFormatter: Formatters.intFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        setSelectedPhenotype(PHENOTYPE) {
+            this.newPhenotypeSearchKey = PHENOTYPE.description;
+            this.phenotypeSearchKey = null;
+            this.$store.dispatch("selectedPhenotype", PHENOTYPE);
+        },
     },
 
     computed: {
+
         /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
