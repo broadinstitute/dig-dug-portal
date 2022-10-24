@@ -1,24 +1,25 @@
 <template>
 	<div>
-		<!--<div v-show="showPlot">
-            <manhattan-plot
-                :associations="combinedAssociations"
-                :phenotypes="phenotypes"
-                :phenotypeMap="phenotypeMap"
-                :colorByPhenotype="true"
-                style="margin-bottom: 10px"
-            ></manhattan-plot>
-            <center style="margin-bottom: 30px">
-                <b v-show="!!this.showChiSquared">
-                    Combined P-Value(Χ²) across
-                    <a
-                        v-for="p in phenotypes"
-                        class="item"
-                        :href="`/phenotype.html?phenotype=${p}`"
-                    >{{ phenotypeMap[p].description }}</a>
-                </b>
-            </center>
-        </div>-->
+		<div v-show="showPlot">
+			<manhattan-plot
+				:associations="combinedAssociations"
+				:phenotypes="phenotypes"
+				:phenotypeMap="phenotypeMap"
+				:colorByPhenotype="true"
+				style="margin-bottom: 10px"
+			></manhattan-plot>
+			<center style="margin-bottom: 30px">
+				<b v-show="!!this.showChiSquared">
+					Combined P-Value(Χ²) across
+					<a
+						v-for="p in phenotypes"
+						class="item"
+						:href="`/phenotype.html?phenotype=${p}`"
+						>{{ phenotypeMap[p].description }}</a
+					>
+				</b>
+			</center>
+		</div>
 
 		<div v-if="tableData.length > 0">
 			<div class="text-right mb-2">
