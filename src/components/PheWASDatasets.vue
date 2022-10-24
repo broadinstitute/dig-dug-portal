@@ -215,7 +215,7 @@
                             >
                         </b-row>
                         <template v-for="i in 25">
-                            <b-row :key="`features_top25_${index}_${i}`">
+                            <b-row :key="`features_top25_${index}_${i}`"
                                 :id="`${index}_${item.phenotype.name}_variant_${
                                 i - 1 }`" class="feature-content hidden" >
                                 <b-col
@@ -334,7 +334,22 @@ export default Vue.component("PhewasDatasets", {
     },
     computed: {
         groupedDatasets() {
-            let ordered = orderBy(this.datasets, ["pValue"], ["asc"]);
+			let filteredDatasets = [];
+			if (!!this.ancestry){
+				for (let dataset of this.datasets){
+					let datasetKey = dataset.dataset;
+					if (!!this.datasetMap[datasetKey]){
+						let datasetAncestry = 
+							this.datasetMap[datasetKey].ancestry;
+						if (datasetAncestry == this.ancestry){
+							filteredDatasets.push(dataset);
+						}
+					}
+				}
+			} else {
+				filteredDatasets = this.datasets;
+			}
+            let ordered = orderBy(filteredDatasets, ["pValue"], ["asc"]);
             return groupBy(ordered, "phenotype");
         },
         pheWASAssociations() {
