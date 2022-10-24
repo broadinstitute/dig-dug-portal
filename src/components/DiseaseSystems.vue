@@ -339,6 +339,7 @@
 				<div class="filtering-ui-content">
 					<div class="col filter-col-md">
 						<div class="label">Select phenotype</div>
+
 						<phenotype-selectpicker
 							v-if="!!phenotypes"
 							:phenotypes="phenotypes"

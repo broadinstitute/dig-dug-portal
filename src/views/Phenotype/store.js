@@ -43,6 +43,10 @@ export default new Vuex.Store({
         },
         setPhenotypeCorrelation(state, Correlation) {
             state.phenotypeCorrelation = Correlation;
+        },
+        setSelectedPhenotype(state, PHENOTYPE) {
+            state.selectedPhenotype = PHENOTYPE;
+            keyParams.set({ phenotype: PHENOTYPE.name });
         }
     },
     getters: {
@@ -88,6 +92,11 @@ export default new Vuex.Store({
         },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
+        },
+
+        selectedPhenotype(context, PHENOTYPE) {
+            console.log("onState", PHENOTYPE);
+            context.commit("setSelectedPhenotype", PHENOTYPE);
         },
 
 

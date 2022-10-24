@@ -12,12 +12,49 @@
 			<search-header-wrapper>
 				<!-- Wrap page level searchs with "pageSearchParameters" div -->
 
-				<div class="col filter-col-lg hidden">
+				<div
+					class="col filter-col-md hidden"
+					style="vertical-align: -8px !important"
+				>
 					<div class="label">Phenotype</div>
-					<phenotype-selectpicker
+					<!--<phenotype-selectpicker
 						v-if="$store.state.phenotype"
 						:phenotypes="$parent.phenotypesInSession"
-					></phenotype-selectpicker>
+					></phenotype-selectpicker>-->
+					<div class="form-control new-phenotype-search-key">
+						{{
+							!$parent.newPhenotypeSearchKey
+								? "Search phenotype"
+								: $parent.newPhenotypeSearchKey
+						}}
+					</div>
+					<input
+						class="form-control phenotype-search-input"
+						type="text"
+						v-model="$parent.phenotypeSearchKey"
+					/>
+
+					<ul
+						v-if="!!$parent.phenotypeSearchKey"
+						class="page-phenotypes-list"
+					>
+						<li
+							v-for="item in $parent.phenotypesInSession"
+							v-if="
+								!!item.description
+									.toLowerCase()
+									.includes(
+										$parent.phenotypeSearchKey.toLowerCase()
+									)
+							"
+						>
+							<a
+								v-html="item.description"
+								@click="$parent.setSelectedPhenotype(item)"
+								href="javascript:;"
+							></a>
+						</li>
+					</ul>
 				</div>
 				<div class="col filter-col-md hidden">
 					<div class="label">Ancestry</div>
@@ -439,3 +476,42 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+<style scoped>
+.phenotype-search-input {
+	display: block !important;
+	position: absolute;
+	top: 25px;
+	background: none;
+	border: none;
+}
+
+.phenotype-search-input:focus {
+	background-color: #fff;
+}
+
+.new-phenotype-search-key {
+	text-align: left;
+	overflow: hidden;
+}
+
+.page-phenotypes-list {
+	position: absolute;
+	z-index: 20;
+	list-style: none;
+	text-align: left;
+	white-space: nowrap;
+	padding: 0;
+	display: block;
+	overflow-x: hidden;
+	overflow-y: auto;
+	max-height: 300px;
+	border-radius: 5px;
+	border: solid 1px #eeeeee;
+}
+
+.page-phenotypes-list li {
+	background-color: #fff;
+	padding: 3px 12px;
+	border-bottom: solid 1px #eeeeee;
+}
+</style>
