@@ -836,7 +836,6 @@ export default Vue.component("research-page-filters", {
 			}
 
 			let APIPoint = this.dataFiles[0];
-					queryParams;
 
 			if (this.dataType == "bioindex" && !!this.isAPI) {
 				/// set BioIndex API point
