@@ -776,11 +776,21 @@ export default Vue.component("research-page-filters", {
 				let key2Update = {};
 
 				parametersArr.map((param, index) => {
-					queryParams += document.getElementById(
+					let queryParamValue = document.getElementById(
 						"search_param_" + param
 					).value;
-					if (index + 1 < parametersArr.length) {
-						queryParams += ",";
+
+					if (queryParamValue != "noValue") {
+						queryParams += queryParamValue;
+
+						if (index + 1 < parametersArr.length) {
+							queryParams += ",";
+						}
+					} else {
+						if (queryParams[queryParams.length - 1] == ",") {
+							let newQP = queryParams.slice(0, -1);
+							queryParams = newQP;
+						}
 					}
 
 					// add to search parameters index
@@ -826,13 +836,6 @@ export default Vue.component("research-page-filters", {
 			}
 
 			let APIPoint = this.dataFiles[0];
-			/*if (this.dataType == "bioindex") {
-				APIPoint +=
-					"query/" +
-					this.apiParameters.query.index +
-					"?q=" +
-					queryParams;
-			}*/
 
 			if (this.dataType == "bioindex" && !!this.isAPI) {
 				/// set BioIndex API point
