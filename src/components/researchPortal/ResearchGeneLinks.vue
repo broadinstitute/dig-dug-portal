@@ -283,7 +283,7 @@ export default Vue.component("research-gene-links-plot", {
 				tempArray.sort((a, b) => (a.tissue > b.tissue ? 1 : -1));
 
 				/// to add S2G option.
-				//tempArray.push({ tissue: "SNP to Gene", phenotypes: [] });
+				tempArray.push({ tissue: "SNP to Gene", phenotypes: [] });
 
 				return tempArray;
 			}
