@@ -634,7 +634,7 @@ export default Vue.component("research-page-filters", {
 
 		async getRegion(KEY, PARAM) {
 			let searchPoint =
-				"https://bioindex.hugeamp.org/api/bio/query/gene?q=" + KEY;
+				uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
 
 			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
@@ -653,7 +653,8 @@ export default Vue.component("research-page-filters", {
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
 				let searchPoint =
-					"https://bioindex.hugeamp.org/api/bio/match/gene?q=" +
+					uiUtils.biDomain() +
+					"/api/bio/match/gene?q=" +
 					EVENT.target.value;
 
 				var geneJson = await fetch(searchPoint).then((resp) =>
@@ -775,11 +776,21 @@ export default Vue.component("research-page-filters", {
 				let key2Update = {};
 
 				parametersArr.map((param, index) => {
-					queryParams += document.getElementById(
+					let queryParamValue = document.getElementById(
 						"search_param_" + param
 					).value;
-					if (index + 1 < parametersArr.length) {
-						queryParams += ",";
+
+					if (queryParamValue != "noValue") {
+						queryParams += queryParamValue;
+
+						if (index + 1 < parametersArr.length) {
+							queryParams += ",";
+						}
+					} else {
+						if (queryParams[queryParams.length - 1] == ",") {
+							let newQP = queryParams.slice(0, -1);
+							queryParams = newQP;
+						}
 					}
 
 					// add to search parameters index
@@ -825,13 +836,6 @@ export default Vue.component("research-page-filters", {
 			}
 
 			let APIPoint = this.dataFiles[0];
-			/*if (this.dataType == "bioindex") {
-				APIPoint +=
-					"query/" +
-					this.apiParameters.query.index +
-					"?q=" +
-					queryParams;
-			}*/
 
 			if (this.dataType == "bioindex" && !!this.isAPI) {
 				/// set BioIndex API point

@@ -38,7 +38,7 @@
 							class="column type"
 							v-on:click="setSortKey('data_type')"
 						>
-							Data type
+							Technology
 						</th>
 						<th
 							class="column disease-group"
@@ -113,7 +113,7 @@
 							class="column type"
 							v-on:click="setSortKey('data_type')"
 						>
-							Data type
+							Technology
 						</th>
 						<th
 							class="column disease-group"

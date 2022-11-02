@@ -44,6 +44,7 @@
             <h4 v-if="annotations.length > 0">
                 No overlapping annotations found
             </h4>
+            <div v-else>No data available for this query.</div>
         </div>
     </div>
 </template>

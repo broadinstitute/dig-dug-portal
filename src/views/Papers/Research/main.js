@@ -474,11 +474,20 @@ new Vue({
                     let queryParams = "";
                     parametersArr.map((param, index) => {
 
-                        let paramValue = (typeof keyParams[param] === 'number') ? keyParams[param] : keyParams[param].trim();
+                        if (keyParams[param] != "noValue") {
+                            let paramValue = (typeof keyParams[param] === 'number') ? keyParams[param] : keyParams[param].trim();
 
-                        queryParams += paramValue;
-                        if (index + 1 < parametersArr.length) {
-                            queryParams += ",";
+                            queryParams += paramValue;
+                            if (index + 1 < parametersArr.length) {
+                                queryParams += ",";
+                            }
+                        } else {
+                            if (queryParams[queryParams.length - 1] == ",") {
+
+                                let newQP = queryParams.slice(0, -1);
+
+                                queryParams = newQP
+                            }
                         }
                     });
 
@@ -494,6 +503,8 @@ new Vue({
                     } else if (this.dataType != "bioindex" && !!this.isAPI) {
                         APIPoint += queryParams
                     }
+
+                    console.log(APIPoint);
 
                     let fetchParam = { dataPoint: APIPoint, domain: "external" };
 

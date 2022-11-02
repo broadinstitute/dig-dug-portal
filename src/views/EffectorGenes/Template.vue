@@ -25,7 +25,7 @@
 							></documentation>
 						</div>
 					</div>
-					<div class="row">
+					<!--<div class="row">
 						<div class="col-md-12">
 							<h2 v-if="!!$parent.pageInfo[0]">
 								{{ $parent.pageInfo[0].title[0].value }}
@@ -34,7 +34,7 @@
 								:pageInfo="$parent.pageInfo"
 							></static-page-info-section>
 						</div>
-					</div>
+					</div>-->
 				</div>
 			</div>
 

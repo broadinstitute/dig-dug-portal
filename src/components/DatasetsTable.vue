@@ -1,36 +1,39 @@
 <template>
     <div>
-        <div class="text-right mb-2">
-            <csv-download
-                :data="tableData"
-                filename="datasets_associations"
-            ></csv-download>
+        <div v-if="tableData.length > 0">
+            <div class="text-right mb-2">
+                <csv-download
+                    :data="tableData"
+                    filename="datasets_associations"
+                ></csv-download>
+            </div>
+            <b-table
+                hover
+                small
+                responsive="sm"
+                :items="tableData"
+                :fields="fields"
+                :per-page="perPage"
+                :current-page="currentPage"
+            >
+                <template center v-slot:cell(image)="r">
+                    <span :class="'community-icon ' + r.item.community"></span>
+                </template>
+                <template v-slot:cell(link)="r">
+                    <a
+                        :href="`/dinspector.html?dataset=${r.item.name}&phenotype=${phenotype.name}`"
+                        >{{ r.item.description }}</a
+                    >
+                </template>
+            </b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+            ></b-pagination>
         </div>
-        <b-table
-            hover
-            small
-            responsive="sm"
-            :items="tableData"
-            :fields="fields"
-            :per-page="perPage"
-            :current-page="currentPage"
-        >
-            <template center v-slot:cell(image)="r">
-                <span :class="'community-icon ' + r.item.community"></span>
-            </template>
-            <template v-slot:cell(link)="r">
-                <a
-                    :href="`/dinspector.html?dataset=${r.item.name}&phenotype=${phenotype.name}`"
-                    >{{ r.item.description }}</a
-                >
-            </template>
-        </b-table>
-        <b-pagination
-            class="pagination-sm justify-content-center"
-            v-model="currentPage"
-            :total-rows="rows"
-            :per-page="perPage"
-        ></b-pagination>
+        <div v-else>No data available for this query.</div>
     </div>
 </template>
 

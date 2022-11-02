@@ -385,7 +385,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
-			console.log(PARAM);
+			//console.log(PARAM);
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -842,7 +842,7 @@ export default Vue.component("research-annotations-plot-v2", {
 		async getGlobalEnrichment() {
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
+					? uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["annotations server"];
 
 			let phenotype = this.searchingPhenotype;
@@ -1025,9 +1025,10 @@ export default Vue.component("research-annotations-plot-v2", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
+				/// replace to uiUtils.biDomain()+"/api/bio"
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["annotations server"];
 
 				let annoIndex = !!this.renderConfig["annotations index"]
@@ -1050,7 +1051,12 @@ export default Vue.component("research-annotations-plot-v2", {
 				);
 
 				if (annotationsJson.error == null) {
-					this.annoData = {};
+					if (annotationsJson.continuation == null) {
+						this.runAfterAnnoDataLoad(annotationsJson);
+					} else {
+						this.loadContinue(annotationsJson);
+					}
+					/*this.annoData = {};
 					this.tissuesData = {};
 
 					annotationsJson.data.map((a) => {
@@ -1086,9 +1092,72 @@ export default Vue.component("research-annotations-plot-v2", {
 						Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 					}
 
-					this.getGlobalEnrichment();
+					this.getGlobalEnrichment();*/
 				}
 			}
+		},
+		async loadContinue(CONTENT) {
+			let annoServer =
+				this.renderConfig["annotations server"] == "KP BioIndex"
+					? uiUtils.biDomain() + "/api/bio"
+					: this.renderConfig["annotations server"];
+
+			let contURL = annoServer + "/cont?token=" + CONTENT.continuation;
+
+			let contJson = await fetch(contURL).then((resp) => resp.json());
+
+			if (contJson.error == null) {
+				let prevData = CONTENT.data;
+				let newData = prevData.concat(contJson.data);
+
+				contJson.data = newData;
+
+				if (contJson.continuation == null) {
+					this.runAfterAnnoDataLoad(contJson);
+				} else {
+					this.loadContinue(contJson);
+				}
+			}
+		},
+
+		runAfterAnnoDataLoad(annotationsJson) {
+			this.annoData = {};
+			this.tissuesData = {};
+
+			annotationsJson.data.map((a) => {
+				// annoData
+				if (!this.annoData[a.annotation]) {
+					this.annoData[a.annotation] = {};
+				}
+				if (!this.annoData[a.annotation][a.tissue]) {
+					this.annoData[a.annotation][a.tissue] = {
+						region: [],
+						ancestries: {},
+					};
+				}
+
+				this.annoData[a.annotation][a.tissue].region.push(a);
+
+				//tissuesData
+				if (!this.tissuesData[a.tissue]) {
+					this.tissuesData[a.tissue] = {};
+				}
+
+				if (!this.tissuesData[a.tissue][a.annotation]) {
+					this.tissuesData[a.tissue][a.annotation] = {
+						region: [],
+						ancestries: {},
+					};
+				}
+				this.tissuesData[a.tissue][a.annotation].region.push(a);
+			});
+
+			if (this.pkgData != null) {
+				Vue.set(this.pkgData, "annoData", this.annoData);
+				Vue.set(this.pkgData, "tissuesData", this.tissuesData);
+			}
+
+			this.getGlobalEnrichment();
 		},
 		renderGE() {
 			//working part
@@ -1102,7 +1171,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				  ).value
 				: null;
 
-			console.log("this.GEData", this.GEData);
+			//console.log("this.GEData", this.GEData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
