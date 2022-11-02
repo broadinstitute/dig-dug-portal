@@ -16,6 +16,7 @@ import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
 import PathwayTable from "@/components/PathwayTable.vue";
+import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import Documentation from "@/components/Documentation.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";

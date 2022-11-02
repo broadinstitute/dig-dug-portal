@@ -188,6 +188,7 @@ export default Vue.component("research-credible-sets-plot", {
 	modules: {
 		uiUtils,
 		plotUtils,
+
 		Formatters,
 		keyParams,
 		dataConvert,
@@ -311,8 +312,7 @@ export default Vue.component("research-credible-sets-plot", {
 	methods: {
 		...uiUtils,
 		resetAll() {
-			console.log("this.credibleSets", this.credibleSets);
-			this.credibleSets = [];
+			//this.credibleSets = [];
 			this.CSData = {};
 			this.CSPosData = {};
 			this.test = null;
@@ -391,7 +391,6 @@ export default Vue.component("research-credible-sets-plot", {
 			return idString;
 		},
 		removeCSData(CSID, PTYPE) {
-			console.log("test called");
 			let idString = CSID + PTYPE;
 			idString = idString.replace(/[^a-zA-Z0-9 ]/g, "");
 
@@ -597,7 +596,6 @@ export default Vue.component("research-credible-sets-plot", {
 			let selectedCS = this.pkgDataSelected
 				.filter((s) => s.type == "Credible Set")
 				.map((s) => s.id);
-			//console.log("selectedCS.length", selectedCS.length);
 
 			this.CSPosData = {};
 			let regionStart = this.viewingRegion.start;
@@ -932,7 +930,7 @@ export default Vue.component("research-credible-sets-plot", {
 
 				let CSServer =
 					this.renderConfig["credible sets server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["credible sets server"];
 
 				let CSIndex = !!this.renderConfig["credible variants index"]
@@ -988,7 +986,7 @@ export default Vue.component("research-credible-sets-plot", {
 		async getCredibleSetsList(REGION, PHENOTYPE) {
 			let CSServer =
 				this.renderConfig["credible sets server"] == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
+					? uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["credible sets server"];
 
 			let CSIndex = !!this.renderConfig["credible sets index"]
