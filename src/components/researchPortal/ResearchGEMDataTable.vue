@@ -1068,7 +1068,7 @@ export default Vue.component("research-gem-data-table", {
 										dataset:
 											"<a href='https://cmdga.org/annotations/" +
 											r.dataset +
-											"'>" +
+											"' target='_blank'>" +
 											r.dataset +
 											"</a>",
 
@@ -1219,6 +1219,7 @@ export default Vue.component("research-gem-data-table", {
 						"Target Region in Gene",
 						"Method",
 						"Source",
+						"Dataset",
 						"Assay",
 						"Tissue",
 						"Biosample",
@@ -1271,6 +1272,12 @@ export default Vue.component("research-gem-data-table", {
 										o["targetGeneEnd"],
 									Method: o["method"],
 									Source: o["source"],
+									Dataset:
+										"<a href='https://cmdga.org/annotations/" +
+										o["dataset"] +
+										"' target='_blank'>" +
+										o["dataset"] +
+										"</a>",
 									Assay: o["assay"],
 									Tissue: o["tissue"],
 									Biosample: o["biosample"],
