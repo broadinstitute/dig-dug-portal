@@ -103,14 +103,12 @@
                         </button>-->
 						<expand-region> </expand-region>
 						<lunaris-link
-							:diseaseGroup="$parent.diseaseGroup"
+							:disease-group="$parent.diseaseGroup"
 							:chr="$store.state.chr"
 							:begin="$store.state.start"
 							:end="$store.state.end"
 							:trait="$parent.selectedPhenotypes[0]"
-							:dataContent="
-								this.$store.state.lunaris.dataFromLunaris
-							"
+							:data-content="$store.state.lunaris.dataFromLunaris"
 						></lunaris-link>
 					</div>
 					<!-- <div class="col-md-4 gene-page-header-body">
@@ -133,15 +131,15 @@
 						Genes overlapping region
 						<tooltip-documentation
 							name="region.genesoverlapping.header.tooltip"
-							:isHover="true"
-							:noIcon="false"
+							:is-hover="true"
+							:no-icon="false"
 						></tooltip-documentation>
 					</h4>
 
 					<div
 						v-for="row in $parent.genes"
-						:class="'gene-with-signal ' + row.type"
 						:key="row.name"
+						:class="'gene-with-signal ' + row.type"
 					>
 						<a :href="`/gene.html?gene=${row.name}`">
 							{{ row.name }}
@@ -164,8 +162,8 @@
 						}})
 						<tooltip-documentation
 							name="region.mostsignificantassoc.header.tooltip"
-							:isHover="true"
-							:noIcon="false"
+							:is-hover="true"
+							:no-icon="false"
 						></tooltip-documentation>
 					</h4>
 					<documentation
@@ -181,12 +179,13 @@
 							"
 						>
 							<div
-								style="text-align: right; padding-bottom: 5px"
 								v-if="$parent.topAssociations[0].pValue <= 5e-8"
+								style="text-align: right; padding-bottom: 5px"
 							>
 								<div
 									href="javascript:;"
-									v-on:click="
+									class="switch-view btn btn-secondary btn-sm"
+									@click="
 										$parent.switchPlotViews(
 											['pws-merged-view', 'pws-bar-view'],
 											[
@@ -195,7 +194,6 @@
 											]
 										)
 									"
-									class="switch-view btn btn-secondary btn-sm"
 								>
 									View associations by phenotype group
 								</div>
@@ -213,20 +211,21 @@
 								></phenotype-signal-bar-chart>
 								<research-phewas-plot
 									v-if="$parent.topAssociations.length > 5"
-									canvasId=""
-									:phenotypesData="$parent.topAssociations"
-									:phenotypeMap="
+									ref="rpPheWASPlot"
+									canvas-id=""
+									:phenotypes-data="$parent.topAssociations"
+									:phenotype-map="
 										$store.state.bioPortal.phenotypeMap
 									"
 									:colors="$parent.colors"
-									:plotMargin="{
+									:plot-margin="{
 										leftMargin: 75,
 										rightMargin: 20,
 										topMargin: 10,
 										bottomMargin: 50,
 										bump: 5.5,
 									}"
-									:renderConfig="{
+									:render-config="{
 										type: 'phewas plot',
 										'group by': 'phenotype group',
 										'y axis field': 'pValue',
@@ -237,22 +236,21 @@
 										'x axis label': 'beta',
 										'beta field': 'beta',
 										'hover content': ['pValue', 'beta'],
-										thresholds: ['2.5e-6'],
+										thresholds: ['5e-8'],
 										height: '500',
 									}"
-									:pkgData="null"
-									:pkgDataSelected="null"
+									:pkg-data="null"
+									:pkg-data-selected="null"
 									:filter="null"
 									:options="[
 										'add phenotype',
 										'open phenotype page',
 									]"
-									ref="rpPheWASPlot"
 								></research-phewas-plot>
 							</div>
 							<div
-								class="pws-bar-view svg-wrapper hidden-svg"
 								v-if="$parent.topAssociations.length > 1"
+								class="pws-bar-view svg-wrapper hidden-svg"
 							>
 								<phenotype-signal-in-group
 									:phenotypes="$parent.topAssociations"
@@ -265,7 +263,7 @@
 							<clumped-variants-table
 								legends
 								:variants="$parent.topAssociations"
-								:phenotypeMap="$parent.phenotypeMap"
+								:phenotype-map="$parent.phenotypeMap"
 								:colors="$parent.colors"
 							></clumped-variants-table>
 						</div>
@@ -278,19 +276,19 @@
 					</template>
 				</div>
 			</div>
-			<div class="card mdkp-card" v-if="$store.state.ancestry">
-				<div class="card-body">
+			<div v-show="$store.state.ancestry" class="card mdkp-card">
+				<div class="card-body test-ancestry">
 					<h4>
 						Variants in region (Ancestry:
 						{{ $parent.ancestryFormatter($store.state.ancestry) }})
 						&nbsp;<tooltip-documentation
-							name="region.topassoc.tooltip"
-							:isHover="true"
-							:noIcon="false"
+							name="region.ancestrytopassoc.tooltip"
+							:is-hover="true"
+							:no-icon="false"
 						></tooltip-documentation>
 					</h4>
 					<documentation
-						name="region.variantassociation.subheader"
+						name="region.ancestrytopassoc.subheader"
 					></documentation>
 					<a
 						v-if="
@@ -310,8 +308,8 @@
 					></associations-table>
 				</div>
 			</div>
-			<div class="card mdkp-card" v-if="!$store.state.ancestry">
-				<div class="card-body">
+			<div v-show="!$store.state.ancestry" class="card mdkp-card">
+				<div class="card-body test-original">
 					<documentation
 						name="region.lz.subheader"
 						:content-fill="$parent.documentationMap"
@@ -325,14 +323,14 @@
 					<h6>
 						Add tracks &nbsp;<tooltip-documentation
 							name="region.add.phenotypes.tooltip"
-							:isHover="true"
-							:noIcon="false"
+							:is-hover="true"
+							:no-icon="false"
 						></tooltip-documentation>
 					</h6>
 
 					<criterion-list-group
-						class="first"
 						v-model="$parent.regionPageSearchCriterion"
+						class="first"
 						:header="''"
 					>
 						<filter-enumeration-control
@@ -340,13 +338,13 @@
 							:field="'phenotype'"
 							:options="$parent.allphenotypes"
 							:multiple="true"
-							:pillFormatter="
+							:pill-formatter="
 								(filter) =>
 									$store.state.bioPortal.phenotypeMap[
 										filter.threshold
 									].description
 							"
-							:labelFormatter="
+							:label-formatter="
 								(phenotype) =>
 									!!$store.state.bioPortal.phenotypeMap[
 										phenotype
@@ -366,8 +364,8 @@
 								Add credible sets
 							</div>
 							<credible-sets-selectpicker
-								:credibleSets="$parent.credibleSets"
-								:clearOnSelected="true"
+								:credible-sets="$parent.credibleSets"
+								:clear-on-selected="true"
 								@credibleset="
 									$parent.addCredibleVariantsPanel($event)
 								"
@@ -380,7 +378,7 @@
 							</div>
 							<tissue-selectpicker
 								:tissues="$parent.globalEnrichmentTissues"
-								:clearOnSelected="true"
+								:clear-on-selected="true"
 								@tissue="
 									$parent.addTissueIntervalsPanel($event)
 								"
@@ -395,7 +393,7 @@
 								:annotations="
 									$parent.globalEnrichmentAnnotations
 								"
-								:clearOnSelected="true"
+								:clear-on-selected="true"
 								@annotation="
 									$parent.addAnnotationIntervalsPanel($event)
 								"
@@ -410,7 +408,7 @@
 							</div>
 							<tissue-selectpicker
 								:tissues="$parent.globalEnrichmentTissues"
-								:clearOnSelected="true"
+								:clear-on-selected="true"
 								@tissue="
 									$parent.addTissueCoaccessibilityPanel(
 										$event
@@ -423,8 +421,8 @@
 						Filter tracks and table &nbsp;
 						<tooltip-documentation
 							name="region.filter.topassoc.tooltip"
-							:isHover="true"
-							:noIcon="false"
+							:is-hover="true"
+							:no-icon="false"
 						></tooltip-documentation>
 					</h6>
 
@@ -437,10 +435,10 @@
 					>
 
 					<b-tabs v-show="$parent.selectedPhenotypes.length"
-						><b-tab title="Variant associations" key="associations">
+						><b-tab key="associations" title="Variant associations">
 							<criterion-function-group
-								v-model="$parent.associationsFilter"
 								v-if="$parent.selectedPhenotypes.length > 0"
+								v-model="$parent.associationsFilter"
 							>
 								<filter-enumeration-control
 									:field="'consequence'"
@@ -492,15 +490,15 @@
 						:chr="$store.state.chr"
 						:start="$store.state.start"
 						:end="$store.state.end"
-						:filterAssociations="$parent.associationsFilter"
-						:filterAnnotations="$parent.annotationsFilter"
+						:filter-associations="$parent.associationsFilter"
+						:filter-annotations="$parent.annotationsFilter"
+						:ldpop="true"
+						:ref-seq="true"
 						@regionchanged="
 							($event) => {
 								$parent.requestCredibleSets($event.data);
 							}
 						"
-						:ldpop="true"
-						:refSeq="true"
 					>
 						<p
 							v-for="phenotype in $parent.selectedPhenotypes"
@@ -545,11 +543,15 @@
 						"
 					>
 						<h4 class="card-title">
-							Variants in region &nbsp;
+							Variants in region
+							<span v-if="!$store.state.ancestry"
+								>(Ancestry: All)</span
+							>
+							&nbsp;
 							<tooltip-documentation
 								name="region.topassoc.tooltip"
-								:isHover="true"
-								:noIcon="false"
+								:is-hover="true"
+								:no-icon="false"
 							></tooltip-documentation>
 						</h4>
 						<documentation

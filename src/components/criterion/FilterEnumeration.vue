@@ -10,6 +10,7 @@
         :options="selectionOptions"
         @input-change="$emit('input-change', $event)"
         :color="color"
+        :label="label"
         :multiple="!!multiple"
         :inclusive="!!inclusive || !!multiple"
         :disabled="disabled"
@@ -29,6 +30,7 @@ export default Vue.component("filter-enumeration-control", {
         placeholder: String,
         options: Array,
         color: String,
+        label: String,
         multiple: {
             type: Boolean,
             default: false,
@@ -39,7 +41,7 @@ export default Vue.component("filter-enumeration-control", {
         },
         predicate: {
             type: Function,
-            default: (string, selection) => string === selection
+            default: (string, selection) => string === selection,
         },
         labelFormatter: {
             type: Function,
@@ -48,11 +50,13 @@ export default Vue.component("filter-enumeration-control", {
         pillFormatter: {
             type: Function,
             default: (filterDefinition) =>
-                `${filterDefinition.field} = ${!!filterDefinition.labelFormatter ?
-                    filterDefinition.labelFormatter(
-                        filterDefinition.threshold
-                    )
-                : filterDefinition.threshold}`
+                `${filterDefinition.field} = ${
+                    !!filterDefinition.labelFormatter
+                        ? filterDefinition.labelFormatter(
+                              filterDefinition.threshold
+                          )
+                        : filterDefinition.threshold
+                }`,
         },
         disableSort: {
             type: Boolean,

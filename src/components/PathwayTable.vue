@@ -1,27 +1,30 @@
 <template>
-    <div id="pathways" v-if="rows > 0">
-        <div class="text-right mb-2">
-            <csv-download
-                :data="pathwayData"
-                filename="genetic_correlations"
-            ></csv-download>
+    <div id="pathways">
+        <div v-if="rows > 0">
+            <div class="text-right mb-2">
+                <csv-download
+                    :data="pathwayData"
+                    filename="genetic_correlations"
+                ></csv-download>
+            </div>
+            <b-table
+                hover
+                small
+                responsive="sm"
+                :items="tableData"
+                :fields="fields"
+                :per-page="perPage"
+                :current-page="currentPage"
+            >
+            </b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+            ></b-pagination>
         </div>
-        <b-table
-            hover
-            small
-            responsive="sm"
-            :items="tableData"
-            :fields="fields"
-            :per-page="perPage"
-            :current-page="currentPage"
-        >
-        </b-table>
-        <b-pagination
-            class="pagination-sm justify-content-center"
-            v-model="currentPage"
-            :total-rows="rows"
-            :per-page="perPage"
-        ></b-pagination>
+        <div v-else>No data available for this query.</div>
     </div>
 </template>
 <script>

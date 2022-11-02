@@ -1196,7 +1196,6 @@ export default Vue.component("research-gem-data-table", {
 			///Let's filter data by linked genes
 			///This is a messy solution but easier to understand
 
-			console.log('this.pkgData["GLData"]', this.pkgData["GLData"]);
 			if (
 				!!this.pkgData["GLData"] &&
 				Object.keys(this.pkgData["GLData"]).length > 0
@@ -1235,8 +1234,6 @@ export default Vue.component("research-gem-data-table", {
 				let removedMethods = this.$store.state.pkgDataSelected
 					.filter((s) => s.type == "GL-Method")
 					.map((s) => s.id);
-
-				// working part
 
 				updatedData = !!Array.isArray(updatedData)
 					? this.array2Object(
@@ -1337,6 +1334,8 @@ export default Vue.component("research-gem-data-table", {
 					}
 				}
 			}
+
+			//console.log("this.pkgData", this.pkgData);
 
 			return formattedData;
 		},

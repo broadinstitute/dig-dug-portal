@@ -119,121 +119,127 @@ export default Vue.component("research-genes-track", {
 		},
 		renderTrack(GENES) {
 			//console.log("GENES", GENES);
-			let genesArray = GENES;
-			let canvasRenderWidth, canvasRenderHeight;
-			let eachGeneTrackHeight = 30; //15: gene name, 10: gene track, 5: space between tracks
 
-			canvasRenderWidth = !!this.plotConfig.width
-				? this.plotConfig.width +
-				  this.plotMargin.leftMargin +
-				  this.plotMargin.rightMargin
-				: document.getElementById("genesTrackWrapper").clientWidth - 30; // -30 for padding
+			if (!!document.getElementById("genesTrackWrapper")) {
+				let genesArray = GENES;
+				let canvasRenderWidth, canvasRenderHeight;
+				let eachGeneTrackHeight = 30; //15: gene name, 10: gene track, 5: space between tracks
 
-			canvasRenderHeight =
-				this.plotMargin.topMargin +
-				eachGeneTrackHeight * genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
+				canvasRenderWidth = !!this.plotConfig.width
+					? this.plotConfig.width +
+					  this.plotMargin.leftMargin +
+					  this.plotMargin.rightMargin
+					: document.getElementById("genesTrackWrapper").clientWidth -
+					  30; // -30 for padding
 
-			let bump = this.plotMargin.bump;
+				canvasRenderHeight =
+					this.plotMargin.topMargin +
+					eachGeneTrackHeight * genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
 
-			let plotWidth =
-				this.plotType == "region plot"
-					? canvasRenderWidth - this.plotMargin.leftMargin * 2
-					: canvasRenderWidth -
-					  (this.plotMargin.leftMargin +
-							this.plotMargin.rightMargin);
+				let bump = this.plotMargin.bump;
 
-			let plotHeight = eachGeneTrackHeight * genesArray.length;
+				let plotWidth =
+					this.plotType == "region plot"
+						? canvasRenderWidth - this.plotMargin.leftMargin * 2
+						: canvasRenderWidth -
+						  (this.plotMargin.leftMargin +
+								this.plotMargin.rightMargin);
 
-			let c = document.getElementById("genesTrack");
-			c.setAttribute("width", canvasRenderWidth);
-			c.setAttribute("height", canvasRenderHeight);
-			let ctx = c.getContext("2d");
+				let plotHeight = eachGeneTrackHeight * genesArray.length;
 
-			ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
+				let c = document.getElementById("genesTrack");
+				c.setAttribute("width", canvasRenderWidth);
+				c.setAttribute("height", canvasRenderHeight);
+				let ctx = c.getContext("2d");
 
-			ctx.beginPath();
-			ctx.lineWidth = 1;
-			ctx.strokeStyle = "#000000";
-			ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+				ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
 
-			let xMin = Number(this.viewingRegion.start),
-				xMax = Number(this.viewingRegion.end);
+				ctx.beginPath();
+				ctx.lineWidth = 1;
+				ctx.strokeStyle = "#000000";
+				ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
-			let xStart = this.plotMargin.leftMargin;
-			let yStart = this.plotMargin.topMargin;
-			let xPosByPixel = plotWidth / (xMax - xMin);
+				let xMin = Number(this.viewingRegion.start),
+					xMax = Number(this.viewingRegion.end);
 
-			ctx.font = "italic bold 12px Arial";
-			ctx.textAlign = "center";
-			ctx.fillStyle = "#000000";
-			genesArray.map((gene, geneIndex) => {
-				if (gene.start <= xMax && gene.end >= xMin) {
-					let xStartPos =
-						gene.start > xMin
-							? xStart + (gene.start - xMin) * xPosByPixel
-							: xStart;
-					let xEndPos =
-						gene.end < xMax
-							? xStart + (gene.end - xMin) * xPosByPixel
-							: xStart + (xMax - xMin) * xPosByPixel;
+				let xStart = this.plotMargin.leftMargin;
+				let yStart = this.plotMargin.topMargin;
+				let xPosByPixel = plotWidth / (xMax - xMin);
 
-					let yPos =
-						this.plotMargin.topMargin +
-						geneIndex * eachGeneTrackHeight;
+				ctx.font = "italic bold 12px Arial";
+				ctx.textAlign = "center";
+				ctx.fillStyle = "#000000";
+				genesArray.map((gene, geneIndex) => {
+					if (gene.start <= xMax && gene.end >= xMin) {
+						let xStartPos =
+							gene.start > xMin
+								? xStart + (gene.start - xMin) * xPosByPixel
+								: xStart;
+						let xEndPos =
+							gene.end < xMax
+								? xStart + (gene.end - xMin) * xPosByPixel
+								: xStart + (xMax - xMin) * xPosByPixel;
 
-					yPos += yPos % 1 == 0 ? 0.5 : 0;
+						let yPos =
+							this.plotMargin.topMargin +
+							geneIndex * eachGeneTrackHeight;
 
-					//var left = '"\\u' + "2190" + '"';
-					//var right = '"\\u' + "2192" + '"';
+						yPos += yPos % 1 == 0 ? 0.5 : 0;
 
-					var left = "\u{2190}";
-					var right = "\u{2192}";
+						//var left = '"\\u' + "2190" + '"';
+						//var right = '"\\u' + "2192" + '"';
 
-					let geneName =
-						gene.strand == "+"
-							? gene.gene_name + " " + right
-							: left + " " + gene.gene_name;
+						var left = "\u{2190}";
+						var right = "\u{2192}";
 
-					ctx.fillText(
-						geneName,
-						xStartPos + (xEndPos - xStartPos) / 2,
-						yPos
-					);
+						let geneName =
+							gene.strand == "+"
+								? gene.gene_name + " " + right
+								: left + " " + gene.gene_name;
 
-					ctx.beginPath();
-					ctx.lineWidth = 1;
-					ctx.strokeStyle = "#000000";
-					ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+						ctx.fillText(
+							geneName,
+							xStartPos + (xEndPos - xStartPos) / 2,
+							yPos
+						);
 
-					ctx.moveTo(xStartPos, yPos + 10);
-					ctx.lineTo(xEndPos, yPos + 10);
-					ctx.stroke();
+						ctx.beginPath();
+						ctx.lineWidth = 1;
+						ctx.strokeStyle = "#000000";
+						ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
-					gene.exons.map((exon) => {
-						//console.log(gene.gene_name, ": ", exon.start, exon.end);
+						ctx.moveTo(xStartPos, yPos + 10);
+						ctx.lineTo(xEndPos, yPos + 10);
+						ctx.stroke();
 
-						if (exon.start < xMax && exon.end > xMin) {
-							let xonStartPos =
-								exon.start > xMin
-									? xStart + (exon.start - xMin) * xPosByPixel
-									: xStart;
-							let xonEndPos =
-								exon.end < xMax
-									? xStart + (exon.end - xMin) * xPosByPixel
-									: xStart + (xMax - xMin) * xPosByPixel;
+						gene.exons.map((exon) => {
+							//console.log(gene.gene_name, ": ", exon.start, exon.end);
 
-							let xonWidth = xonEndPos - xonStartPos;
+							if (exon.start < xMax && exon.end > xMin) {
+								let xonStartPos =
+									exon.start > xMin
+										? xStart +
+										  (exon.start - xMin) * xPosByPixel
+										: xStart;
+								let xonEndPos =
+									exon.end < xMax
+										? xStart +
+										  (exon.end - xMin) * xPosByPixel
+										: xStart + (xMax - xMin) * xPosByPixel;
 
-							ctx.fillRect(
-								xonStartPos,
-								yPos + 5,
-								xonWidth - 0.5,
-								9.5
-							);
-						}
-					});
-				}
-			});
+								let xonWidth = xonEndPos - xonStartPos;
+
+								ctx.fillRect(
+									xonStartPos,
+									yPos + 5,
+									xonWidth - 0.5,
+									9.5
+								);
+							}
+						});
+					}
+				});
+			}
 		},
 	},
 });
