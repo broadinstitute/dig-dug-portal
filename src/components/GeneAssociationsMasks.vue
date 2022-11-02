@@ -68,7 +68,7 @@
                         </template>
                     </b-col>
                     <b-col class="top-level-value-item" cols="2">
-                        <b-button
+                        <b-button :disabled ="!row.masks.length"
                             @click="showFeatures(i)"
                             class="view-features-btn"
                             >Masks + Plot</b-button
