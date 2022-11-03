@@ -755,12 +755,8 @@ export default Vue.component("research-page-filters", {
 					let pos = currentRegion[1].replace(/\D/g, "");
 
 					let regionStart = Number(pos) - 1;
-
 					let regionEnd = Number(pos) + 1;
-
 					let newRegion = chr + ":" + regionStart + "-" + regionEnd;
-
-					console.log("newRegion", newRegion);
 
 					regionFromVariant = newRegion;
 
@@ -904,7 +900,6 @@ export default Vue.component("research-page-filters", {
 		},
 		numberOfSearchParams() {},
 		buildOptions(field) {
-			//console.log("this.dataset", this.dataset);
 			if (this.dataComparisonConfig == null) {
 				let options = this.dataset
 					.map((v) => v[field])

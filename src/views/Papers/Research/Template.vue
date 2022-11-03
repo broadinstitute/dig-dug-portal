@@ -426,7 +426,10 @@
 							"
 						>
 							<research-data-table
-								v-if="!$parent.dataTableFormat['custom table']"
+								v-if="
+									!$parent.dataTableFormat['custom table'] &&
+									!!$store.state.bioPortal.phenotypeMap
+								"
 								:pageID="$parent.pageID"
 								:dataset="$parent.filteredData"
 								:tableFormat="$parent.dataTableFormat"
@@ -440,6 +443,9 @@
 								"
 								:pkgData="$store.state.pkgData"
 								:pkgDataSelected="$store.state.pkgDataSelected"
+								:phenotypeMap="
+									$store.state.bioPortal.phenotypeMap
+								"
 							>
 							</research-data-table>
 							<research-gem-data-table

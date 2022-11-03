@@ -279,6 +279,7 @@ export default Vue.component("research-data-table", {
 		"searchParameters",
 		"pkgData",
 		"pkgDataSelected",
+		"phenotypeMap",
 	],
 	data() {
 		return {
@@ -369,15 +370,20 @@ export default Vue.component("research-data-table", {
 
 					if (this.tableFormat["features"] != undefined) {
 						tempObj["features"] = {};
+
 						this.tableFormat["features"].map((f) => {
-							tempObj["features"][f] = [];
+							if (!!d[f]) {
+								tempObj["features"][f] = d[f];
+							} else {
+								tempObj["features"][f] = [];
 
-							let fTempObj = {};
-							this.tableFormat[f].map((fItem) => {
-								fTempObj[fItem] = d[fItem];
-							});
+								let fTempObj = {};
+								this.tableFormat[f].map((fItem) => {
+									fTempObj[fItem] = d[fItem];
+								});
 
-							tempObj["features"][f].push(fTempObj);
+								tempObj["features"][f].push(fTempObj);
+							}
 						});
 					}
 					formattedData.push(tempObj);
@@ -393,14 +399,18 @@ export default Vue.component("research-data-table", {
 					if (this.tableFormat["features"] != undefined) {
 						tempObj["features"] = {};
 						this.tableFormat["features"].map((f) => {
-							tempObj["features"][f] = [];
+							if (!!value[f]) {
+								tempObj["features"][f] = value[f];
+							} else {
+								tempObj["features"][f] = [];
 
-							let fTempObj = {};
-							this.tableFormat[f].map((fItem) => {
-								fTempObj[fItem] = value[fItem];
-							});
+								let fTempObj = {};
+								this.tableFormat[f].map((fItem) => {
+									fTempObj[fItem] = value[fItem];
+								});
 
-							tempObj["features"][f].push(fTempObj);
+								tempObj["features"][f].push(fTempObj);
+							}
 						});
 					}
 					formattedData.push(tempObj);
@@ -623,6 +633,45 @@ export default Vue.component("research-data-table", {
 						cellValue = Formatters.pValueFormatter(tdValue);
 
 						cellValue = cellValue == "-" ? 0 : cellValue;
+					}
+
+					if (type == "kp phenotype link") {
+						console.log(cellValue);
+						console.log(this.phenotypeMap[cellValue]);
+						let phenotypeName = !!this.phenotypeMap[cellValue]
+							? this.phenotypeMap[cellValue].description
+							: cellValue;
+						let linkString =
+							"<a href='" +
+							this.tableFormat["column formatting"][tdKey][
+								"link to"
+							] +
+							cellValue;
+
+						linkString +=
+							!!this.tableFormat["column formatting"][tdKey][
+								"link type"
+							] &&
+							this.tableFormat["column formatting"][tdKey][
+								"link type"
+							] == "button"
+								? "' class='btn btn-sm btn-outline-secondary link-button"
+								: "";
+
+						let linkLabel = !!this.tableFormat["column formatting"][
+							tdKey
+						]["link label"]
+							? this.tableFormat["column formatting"][tdKey][
+									"link label"
+							  ]
+							: phenotypeName;
+
+						linkString +=
+							linkToNewTab == "true"
+								? "' target='_blank'>" + linkLabel + "</a>"
+								: "'>" + linkLabel + "</a>";
+
+						cellValue = linkString;
 					}
 
 					if (type == "link") {

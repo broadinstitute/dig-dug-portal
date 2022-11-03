@@ -6,6 +6,7 @@
 			class="research-data-table-features"
 			:v-if="!!featuresData && !!featuresFormat['features']"
 		>
+			{{ featuresData[value] }}
 			<table class="table table-sm feature-table">
 				<tr>
 					<th
@@ -14,14 +15,6 @@
 						:class="'feature-title-th feature-th-' + index"
 					>
 						<span class="feature-title">{{ value }}</span>
-						<!--<span
-							v-if="
-								!!featuresFormat['tool tips'] &&
-								!!featuresFormat['tool tips'][value]
-							"
-							class="tooltiptext"
-							v-html="featuresFormat['tool tips'][value]"
-						></span>-->
 					</th>
 					<th
 						v-for="(headerValue, headerIndex) in featuresFormat[
