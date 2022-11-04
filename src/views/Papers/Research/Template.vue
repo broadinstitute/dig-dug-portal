@@ -584,4 +584,11 @@ html {
 	color: #3388ff;
 	cursor: pointer;
 }
+
+.direction-positive {
+	color: #0066ff;
+}
+.direction-negative {
+	color: #ff0000;
+}
 </style>

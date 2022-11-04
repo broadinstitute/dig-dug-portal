@@ -315,6 +315,9 @@ export default Vue.component("research-data-table", {
 					if (
 						columnFormatting[column].type.includes(
 							"render background percent"
+						) ||
+						columnFormatting[column].type.includes(
+							"render background percent negative"
 						)
 					) {
 						scores[column] = { high: null, low: null };
@@ -613,134 +616,15 @@ export default Vue.component("research-data-table", {
 			uiUtils.saveJson(DATA, FILENAME);
 		},
 		formatValue(tdValue, tdKey) {
-			if (
-				this.tableFormat["column formatting"] != undefined &&
-				this.tableFormat["column formatting"][tdKey] != undefined
-			) {
-				let formatTypes =
-					this.tableFormat["column formatting"][tdKey]["type"];
+			let content = Formatters.BYORColumnFormatter(
+				tdValue,
+				tdKey,
+				this.tableFormat,
+				this.phenotypeMap,
+				this.dataScores
+			);
 
-				let linkToNewTab = !!this.tableFormat["column formatting"][
-					tdKey
-				]["new tab"]
-					? this.tableFormat["column formatting"][tdKey]["new tab"]
-					: null;
-
-				let cellValue = tdValue;
-
-				formatTypes.map((type) => {
-					if (type == "scientific notation") {
-						cellValue = Formatters.pValueFormatter(tdValue);
-
-						cellValue = cellValue == "-" ? 0 : cellValue;
-					}
-
-					if (type == "kp phenotype link") {
-						console.log(cellValue);
-						console.log(this.phenotypeMap[cellValue]);
-						let phenotypeName = !!this.phenotypeMap[cellValue]
-							? this.phenotypeMap[cellValue].description
-							: cellValue;
-						let linkString =
-							"<a href='" +
-							this.tableFormat["column formatting"][tdKey][
-								"link to"
-							] +
-							cellValue;
-
-						linkString +=
-							!!this.tableFormat["column formatting"][tdKey][
-								"link type"
-							] &&
-							this.tableFormat["column formatting"][tdKey][
-								"link type"
-							] == "button"
-								? "' class='btn btn-sm btn-outline-secondary link-button"
-								: "";
-
-						let linkLabel = !!this.tableFormat["column formatting"][
-							tdKey
-						]["link label"]
-							? this.tableFormat["column formatting"][tdKey][
-									"link label"
-							  ]
-							: phenotypeName;
-
-						linkString +=
-							linkToNewTab == "true"
-								? "' target='_blank'>" + linkLabel + "</a>"
-								: "'>" + linkLabel + "</a>";
-
-						cellValue = linkString;
-					}
-
-					if (type == "link") {
-						let linkString =
-							"<a href='" +
-							this.tableFormat["column formatting"][tdKey][
-								"link to"
-							] +
-							cellValue;
-
-						linkString +=
-							!!this.tableFormat["column formatting"][tdKey][
-								"link type"
-							] &&
-							this.tableFormat["column formatting"][tdKey][
-								"link type"
-							] == "button"
-								? "' class='btn btn-sm btn-outline-secondary link-button"
-								: "";
-
-						let linkLabel = !!this.tableFormat["column formatting"][
-							tdKey
-						]["link label"]
-							? this.tableFormat["column formatting"][tdKey][
-									"link label"
-							  ]
-							: cellValue;
-
-						linkString +=
-							linkToNewTab == "true"
-								? "' target='_blank'>" + linkLabel + "</a>"
-								: "'>" + linkLabel + "</a>";
-
-						cellValue = linkString;
-					}
-
-					if (type == "render background percent") {
-						let fieldValue =
-							typeof tdValue != "number"
-								? this.tableFormat["column formatting"][tdKey][
-										"percent if empty"
-								  ]
-								: tdValue;
-
-						let weight = Math.floor(
-							((Number(fieldValue) - this.dataScores[tdKey].low) /
-								(this.dataScores[tdKey].high -
-									this.dataScores[tdKey].low)) *
-								100
-						);
-
-						let weightClasses = "cell-weight-" + weight + " ";
-
-						weightClasses +=
-							tdValue < 0 ? "weight-negative" : "weight-positive";
-
-						cellValue =
-							"<span class='" +
-							weightClasses +
-							"'>" +
-							cellValue +
-							"</span>";
-					}
-				});
-
-				return cellValue;
-			} else {
-				return tdValue;
-			}
+			return content;
 		},
 		object2Array(DATASET, KEY, SORT_DIRECTION) {
 			let arrayedObject = [];

@@ -6,7 +6,6 @@
 			class="research-data-table-features"
 			:v-if="!!featuresData && !!featuresFormat['features']"
 		>
-			{{ featuresData[value] }}
 			<table class="table table-sm feature-table">
 				<tr>
 					<th
@@ -41,6 +40,7 @@
 				>
 					<td
 						v-for="(contentValue, contentKey) in featureValue"
+						v-if="!!featuresFormat[value].includes(contentKey)"
 						:key="contentKey"
 						v-html="contentValue"
 					></td>
