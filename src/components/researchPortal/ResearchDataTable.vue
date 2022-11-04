@@ -254,6 +254,7 @@
 				v-model="currentPage"
 				:total-rows="rows"
 				:per-page="perPageNumber"
+				:phenotypeMap="phenotypeMap"
 			></b-pagination>
 		</b-container>
 	</div>
