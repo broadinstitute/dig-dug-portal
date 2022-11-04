@@ -6,9 +6,22 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
+import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
+import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
+import PheWASTable from "@/components/PheWASTable.vue";
+//import RegionsTable from "@/components/RegionsTable.vue";
+import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
+import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
+import ForestPlotHtml from "@/components/ForestPlotHtml.vue";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+//import DatasetAssociations from "@/components/DatasetAssociations";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
+import PheWASDatasets from "@/components/PheWASDatasets";
 import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
@@ -19,6 +32,11 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+import FilterPValue from "@/components/criterion/FilterPValue.vue"
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 
@@ -29,10 +47,14 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
-        SearchHeaderWrapper,
+        UnauthorizedMessage,
     },
 
     created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("queryVariant", keyParams.variant);
     },
 
     render(createElement, context) {
@@ -45,14 +67,26 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        ancestryFormatter: Formatters.ancestryFormatter,
-        consequenceFormatter: Formatters.consequenceFormatter,
-        consequenceMeaning: Formatters.consequenceMeaning,
     },
 
     computed: {
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
     },
 
     watch: {
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
     }
 }).$mount("#app");

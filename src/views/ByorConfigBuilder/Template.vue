@@ -8,11 +8,19 @@
 
 		<!-- Body -->
 		<div class="container-fluid mdkp-body">
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4>BYOR Configuration Builder</h4>
+
+			<div class="card mdkp-card">
+				<div class="row card-body">
+                    <h4 class="card-title">BYOR Configuration Builder</h4>
+				</div>
+			</div>
+
+
+			<div class="card mdkp-card">
+				<div class="card-body">
+                    Coming soon!
                 </div>
-            </div>
+			</div>
 		</div>
 
 		<!-- Footer-->
