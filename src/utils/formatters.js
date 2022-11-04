@@ -265,6 +265,42 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 cellValue = cellValue == "-" ? 0 : cellValue;
             }
 
+            if (type == "fixed 2") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 10) / 10;
+            }
+
+            if (type == "fixed 3") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 100) / 100;
+            }
+
+            if (type == "fixed 4") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 1000) / 1000;
+            }
+
+            if (type == "fixed 5") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 10000) / 10000;
+            }
+
+            if (type == "fixed 6") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 100000) / 100000;
+            }
+
+            if (type == "fixed 7") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 1000000) / 1000000;
+            }
+
+            if (type == "fixed 8") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 10000000) / 10000000;
+            }
+
+            if (type == "fixed 9") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 100000000) / 100000000;
+            }
+
+            if (type == "fixed 10") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 1000000000) / 1000000000;
+            }
+
             if (type == "kp phenotype link") {
                 let phenotypeName = !!PMAP[cellValue]
                     ? PMAP[cellValue].description
@@ -390,7 +426,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             }
 
             if (type == "direction triangle") {
-                cellValue = (VALUE > 0) ? '<span class="direction-positive">&#x25B2;</span>' + cellValue : '<span class="direction-negative">&#x25BC;</span>' + VALUE;
+                cellValue = (cellValue > 0) ? '<span class="direction-positive">&#x25B2;</span>' + cellValue : '<span class="direction-negative">&#x25BC;</span>' + cellValue;
             }
         });
 

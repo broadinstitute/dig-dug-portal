@@ -95,7 +95,6 @@ export default Vue.component("research-data-table-features", {
 					}
 				}
 
-				console.log("this.featuresData", this.featuresData);
 				this.featuresFormat["features"].map((feature) => {
 					this.featuresData[feature].map((row) => {
 						for (const field in scores) {
