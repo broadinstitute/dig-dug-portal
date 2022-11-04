@@ -39,6 +39,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+import DataPasteBox from "@/components/researchPortal/configBuilder/DataPasteBox.vue";
 
 new Vue({
     store,
@@ -48,13 +49,13 @@ new Vue({
         PageFooter,
         Alert,
         UnauthorizedMessage,
+        DataPasteBox
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("queryVariant", keyParams.variant);
     },
 
     render(createElement, context) {

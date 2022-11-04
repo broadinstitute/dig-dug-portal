@@ -19,6 +19,7 @@
 			<div class="card mdkp-card">
 				<div class="card-body">
                     Coming soon!
+                    <data-pastebox></data-pastebox>
                 </div>
 			</div>
 		</div>
