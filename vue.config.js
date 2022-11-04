@@ -243,6 +243,13 @@ let pages = {
         title: "Exome Gene-Level Group-file Generator",
         chunks: ["chunk-vendors", "chunk-common", "egggenerator"]
     },
+    configbuilder: {
+        entry: "src/views/ByorConfigBuilder/main.js",
+        template: "public/index.html",
+        filename: "byorconfiguration.html",
+        title: "BYOR Configuration Builder",
+        chunks: ["chunk-vendors", "chunk-common", "configbuilder"]
+    },
     help: {
         entry: "src/views/Help/main.js",
         template: "public/index.html",
