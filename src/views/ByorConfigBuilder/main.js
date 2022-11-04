@@ -8,10 +8,8 @@ Vue.config.productionTip = false;
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
-import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
-import PheWASTable from "@/components/PheWASTable.vue";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
+import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
