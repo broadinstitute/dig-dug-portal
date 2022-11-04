@@ -313,6 +313,7 @@ export default Vue.component("research-data-table", {
 				let columnFormatting = this.tableFormat["column formatting"];
 
 				for (const column in columnFormatting) {
+					let isRequired = null;
 					if (
 						columnFormatting[column].type.includes(
 							"render background percent"
@@ -321,33 +322,51 @@ export default Vue.component("research-data-table", {
 							"render background percent negative"
 						)
 					) {
-						scores[column] = { high: null, low: null };
+						isRequired = true;
+					}
+
+					if (!!isRequired) {
+						for (const column in columnFormatting) {
+							scores[column] = { high: null, low: null };
+						}
+
+						//console.log("this.dataset", this.dataset);
+
+						this.dataset.map((row) => {
+							for (const field in scores) {
+								let fieldValue =
+									typeof row[field] != "number"
+										? columnFormatting[field][
+												"percent if empty"
+										  ]
+										: row[field];
+								scores[field].high =
+									scores[field].high == null
+										? fieldValue
+										: scores[field].high < fieldValue
+										? fieldValue
+										: scores[field].high;
+
+								scores[field].low =
+									scores[field].low == null
+										? fieldValue
+										: scores[field].low > fieldValue
+										? fieldValue
+										: scores[field].low;
+							}
+						});
+
+						//return scores;
 					}
 				}
 
-				this.dataset.map((row) => {
-					for (const field in scores) {
-						let fieldValue =
-							typeof row[field] != "number"
-								? columnFormatting[field]["percent if empty"]
-								: row[field];
-						scores[field].high =
-							scores[field].high == null
-								? fieldValue
-								: scores[field].high < fieldValue
-								? fieldValue
-								: scores[field].high;
-
-						scores[field].low =
-							scores[field].low == null
-								? fieldValue
-								: scores[field].low > fieldValue
-								? fieldValue
-								: scores[field].low;
-					}
-				});
-
-				return scores;
+				if (Object.keys(scores).length > 0) {
+					return scores;
+				} else {
+					return null;
+				}
+			} else {
+				return null;
 			}
 		},
 		rows() {
