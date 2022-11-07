@@ -5,7 +5,8 @@
 			<div class="col-md-2">
 				<label>Type
 					<select v-model="typeInUse">
-						<option v-for="fieldType in Object.keys(fieldTypes)">
+						<option v-for="fieldType in Object.keys(fieldTypes)"
+							:value="fieldType">
 							{{fieldTypes[fieldType].displayName}}
 						</option>
 					</select>
@@ -22,7 +23,13 @@
 				</label>
 			</div>
 			<div class="col-md-1">
-				<button class="add">&rarr;</button>
+				<button class="add" @click="addFieldToMulti">&rarr;</button>
+			</div>
+			<div class="col-md-2">
+				Field
+				<ul>
+					<li v-for="field in fieldsAddedCurrently">{{field}}</li>
+				</ul>
 			</div>
         </div>
     </div>
@@ -72,6 +79,7 @@ export default Vue.component("add-fields", {
 				}
 			},
 			selectedFields: [],
+			fieldsAdded: [],
 			componentConfig: {},
 			typeInUse: ""
 		};
@@ -79,10 +87,29 @@ export default Vue.component("add-fields", {
 	modules: {},
 	components: {},
 	computed: {
+		fieldsAddedCurrently(){
+			return this.fieldsAdded;
+		}
 	},
 	methods: {
-		...uiUtils
+		...uiUtils,
+		addFieldToMulti(){
+			let maximum = this.fieldTypes[this.typeInUse].maxItems;
+			for (let field of this.selectedFields){
+				if (this.fieldsAdded.length >= maximum){
+					console.log("This type can't accept that many fields");
+				} else if (!this.fieldsAdded.includes(field)) {
+					this.fieldsAdded.push(field);
+				}
+			}
+		}
 	},
+	watch: {
+		typeInUse(newType){
+			console.log(newType);
+			this.fieldsAdded = [];
+		}
+	}
 });
 </script>
 <style>
