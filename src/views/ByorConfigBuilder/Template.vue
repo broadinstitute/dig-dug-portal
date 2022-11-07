@@ -19,7 +19,7 @@
 			<div class="card mdkp-card">
 				<div class="card-body">
                     Coming soon!
-                    <data-pastebox></data-pastebox>
+                    <data-pastebox @dataready="$parent.acceptSampleData"></data-pastebox>
                 </div>
 			</div>
 		</div>

@@ -22,21 +22,17 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("data-pastebox", {
-	props: [
-	],
+	props: [],
+	emits: ['dataready'],
 	data() {
 		return {
             rawContent: "",
-            sampleData: [],
-            columnHeaders: [],
 			hideFormatWarning: true
 		};
 	},
-	modules: {
-	},
+	modules: {},
 	components: {},
-	computed: {
-	},
+	computed: {},
 	methods: {
 		...uiUtils,
 		processContent(){
@@ -46,18 +42,15 @@ export default Vue.component("data-pastebox", {
 				this.hideFormatWarning = false;
 				return;
 			}
-			let headers = lines[0].split(",");
-			console.log(headers);
-			if (headers.length <= 1 || headers.includes("")){
-				this.hideFormatWarning = false;
-				return;
-			}
-			this.columnHeaders = headers;
 			let allData = [];
 			for (let line of lines){
 				allData.push(line.split(","));
 			}
-			this.sampleData = allData;
+			if (allData[0].length <= 1 || allData[0].includes("")){
+				this.hideFormatWarning = false;
+				return;
+			}
+			this.$emit('dataready', allData);
 		},
 	},
 });

@@ -48,6 +48,10 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        acceptSampleData(sampleData){
+            this.$store.state.headers = sampleData[0];
+            this.$store.state.sampleDataBody = sampleData.slice(1);
+        }
     },
 
     computed: {

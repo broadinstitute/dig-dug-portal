@@ -13,7 +13,9 @@ export default new Vuex.Store({
     },
 
     state: {
-        config: {}
+        config: {},
+        sampleDataBody: [],
+        sampleDataHeaders: []
     },
 
     mutations: {
