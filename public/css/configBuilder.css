@@ -32,3 +32,6 @@
 .add:active:not(:disabled) {
     color: white !important;
 }
+.fieldlabel {
+    font-weight: bold;
+}

@@ -30,7 +30,9 @@
 				<button class="add" :disabled="!fields.length" @click="addFieldToMulti">&rarr;</button>
 			</div>
 			<div class="col-md-2">
-				Field
+				<span class="fieldlabel" v-if="maxFields >= 1">Fields ({{fieldsAdded.length}} of {{maxFields}})</span>
+				<span class="fieldlabel" v-else-if="maxFields == 1">Field</span>
+				<span class="fieldlabel" v-else="maxFields == -1">Fields</span>
 				<ul>
 					<li v-for="field in fieldsAddedCurrently">{{field}}</li>
 				</ul>
@@ -90,7 +92,8 @@ export default Vue.component("add-fields", {
 			componentConfig: {},
 			typeInUse: "",
 			hideTypeWarning: true,
-			disablePlaceholder: false
+			disablePlaceholder: false,
+			maxFields: 0
 		};
 	},
 	modules: {},
@@ -103,14 +106,13 @@ export default Vue.component("add-fields", {
 	methods: {
 		...uiUtils,
 		addFieldToMulti(){
-			let maximum = 0;
-			if (this.fieldTypes[this.typeInUse]){
-				maximum = this.fieldTypes[this.typeInUse].maxItems;
-			} else {
+			if(!this.typeInUse){
 				this.hideTypeWarning = false;
+				return;
 			}
 			for (let field of this.selectedFields){
-				if (this.fieldsAdded.length >= maximum && maximum != -1){
+				if (this.fieldsAdded.length >= this.maxFields 
+					&& this.maxFields != -1){
 					console.log("This type can't accept that many fields");
 				} else if (!this.fieldsAdded.includes(field)) {
 					this.fieldsAdded.push(field);
@@ -124,6 +126,7 @@ export default Vue.component("add-fields", {
 			this.hideTypeWarning = true;
 			this.selectedFields = [];
 			this.fieldsAdded = [];
+			this.maxFields = this.fieldTypes[newType].maxItems;
 		}
 	}
 });
