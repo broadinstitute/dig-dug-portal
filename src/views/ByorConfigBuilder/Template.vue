@@ -18,9 +18,16 @@
 
 			<div class="card mdkp-card">
 				<div class="card-body">
-                    Coming soon!
                     <data-pastebox @dataready="$parent.acceptSampleData"></data-pastebox>
                 </div>
+				<b-card no-body>
+					<b-tabs card content-class="mt-3" id="table-filter-tabs">
+						<b-tab title="Table">
+							<add-fields :fields="$parent.rawHeaders"></add-fields>
+						</b-tab>
+						<b-tab title="Filters"></b-tab>
+					</b-tabs>
+				</b-card>
 			</div>
 		</div>
 
@@ -28,3 +35,11 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+<style>
+#table-filter-tabs {
+	padding: 10px !important;
+}
+#table-filter-tabs a {
+	color: black !important;
+}
+</style>

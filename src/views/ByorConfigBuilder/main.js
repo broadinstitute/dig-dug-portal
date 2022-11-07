@@ -18,6 +18,7 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 import DataPasteBox from "@/components/researchPortal/configBuilder/DataPasteBox.vue";
+import AddFields from "@/components/researchPortal/configBuilder/AddFields.vue";
 
 new Vue({
     store,
@@ -29,7 +30,8 @@ new Vue({
         UnauthorizedMessage,
         DataPasteBox,
         // why does it behave badly if we remove TranscriptionFactorsTable?
-        TranscriptionFactorsTable
+        TranscriptionFactorsTable,
+        AddFields
     },
 
     created() {
@@ -49,7 +51,7 @@ new Vue({
         postAlertError,
         closeAlert,
         acceptSampleData(sampleData){
-            this.$store.state.headers = sampleData[0];
+            this.$store.state.sampleDataHeaders = sampleData[0];
             this.$store.state.sampleDataBody = sampleData.slice(1);
         }
     },
@@ -67,6 +69,9 @@ new Vue({
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
+        rawHeaders(){
+            return this.$store.state.sampleDataHeaders;
+        }
     },
 
     watch: {
