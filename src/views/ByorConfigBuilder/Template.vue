@@ -36,10 +36,5 @@
 	</div>
 </template>
 <style>
-#table-filter-tabs {
-	padding: 10px !important;
-}
-#table-filter-tabs a {
-	color: black !important;
-}
+@import url("/css/configBuilder.css");
 </style>

@@ -1,0 +1,23 @@
+#table-filter-tabs {
+	padding: 10px !important;
+}
+#table-filter-tabs a {
+	color: black !important;
+}
+.component-wrapper {
+	font-size: smaller;
+}
+.gray-box {
+	background-color: lightgray;
+	min-height: 5em;
+	border-radius: 5px;
+}
+.gray-box label {
+    font-weight: bold;
+}
+.gray-box select {
+    display: block;
+}
+.flat-box option selected {
+    color: lightblue;
+}
