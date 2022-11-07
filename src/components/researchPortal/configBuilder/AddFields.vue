@@ -5,6 +5,10 @@
 			<div class="col-md-2">
 				<label>Type
 					<select v-model="typeInUse">
+						<option selected value="" 
+							:disabled="disablePlaceholder">
+							Select a display type
+						</option>
 						<option v-for="fieldType in Object.keys(fieldTypes)"
 							:value="fieldType">
 							{{fieldTypes[fieldType].displayName}}
@@ -23,7 +27,7 @@
 				</label>
 			</div>
 			<div class="col-md-1">
-				<button class="add" @click="addFieldToMulti">&rarr;</button>
+				<button class="add" :disabled="!fields.length" @click="addFieldToMulti">&rarr;</button>
 			</div>
 			<div class="col-md-2">
 				Field
@@ -32,6 +36,9 @@
 				</ul>
 			</div>
         </div>
+		<div class="warning" :hidden="hideTypeWarning">
+			Select a field type to continue
+		</div>
     </div>
 </template>
 
@@ -81,7 +88,9 @@ export default Vue.component("add-fields", {
 			selectedFields: [],
 			fieldsAdded: [],
 			componentConfig: {},
-			typeInUse: ""
+			typeInUse: "",
+			hideTypeWarning: true,
+			disablePlaceholder: false
 		};
 	},
 	modules: {},
@@ -94,9 +103,14 @@ export default Vue.component("add-fields", {
 	methods: {
 		...uiUtils,
 		addFieldToMulti(){
-			let maximum = this.fieldTypes[this.typeInUse].maxItems;
+			let maximum = 0;
+			if (this.fieldTypes[this.typeInUse]){
+				maximum = this.fieldTypes[this.typeInUse].maxItems;
+			} else {
+				this.hideTypeWarning = false;
+			}
 			for (let field of this.selectedFields){
-				if (this.fieldsAdded.length >= maximum){
+				if (this.fieldsAdded.length >= maximum && maximum != -1){
 					console.log("This type can't accept that many fields");
 				} else if (!this.fieldsAdded.includes(field)) {
 					this.fieldsAdded.push(field);
@@ -106,7 +120,9 @@ export default Vue.component("add-fields", {
 	},
 	watch: {
 		typeInUse(newType){
-			console.log(newType);
+			this.disablePlaceholder = true;
+			this.hideTypeWarning = true;
+			this.selectedFields = [];
 			this.fieldsAdded = [];
 		}
 	}

@@ -4,9 +4,6 @@
 #table-filter-tabs a {
 	color: black !important;
 }
-.component-wrapper {
-	font-size: smaller;
-}
 .gray-box {
 	background-color: lightgray;
 	min-height: 5em;
@@ -17,6 +14,9 @@
 }
 .gray-box select {
     display: block;
+}
+.flat-box {
+    width: 250px;
 }
 .flat-box option selected {
     color: lightblue;
@@ -29,6 +29,6 @@
     font-weight: bold;
     height: 100%;
 }
-.add:active {
+.add:active:not(:disabled) {
     color: white !important;
 }
