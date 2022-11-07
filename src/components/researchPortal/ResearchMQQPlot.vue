@@ -616,20 +616,24 @@ export default Vue.component("research-m-qq-plot", {
 
 					//Render Dots
 
-					dValue.unsorted.map((g) => {
-						let yPosByPixel = plotHeight / (yMax - yMin);
-						let xPosByPixel = plotWidth / (yMax - yMin);
+					let yPosByPixel = plotHeight / (yMax - yMin);
+					let xPosByPixel = plotWidth / dValue.unsorted.length;
 
+					dValue.unsorted.map((g, gIndex) => {
 						let yPos =
 							this.topMargin +
 							plotHeight -
 							(g[this.renderConfig["y axis field"]] - yMin) *
 								yPosByPixel;
 
-						let xPos =
+						/*let xPos =
 							this.leftMargin +
 							(g[this.renderConfig["y axis field"]] - yMin) *
-								xPosByPixel;
+								xPosByPixel;*/
+
+						let xPos =
+							this.leftMargin +
+							(plotWidth - xPosByPixel * gIndex);
 
 						let dotColor = "#0066FF";
 
@@ -637,7 +641,7 @@ export default Vue.component("research-m-qq-plot", {
 
 						ctx.lineWidth = 0;
 						ctx.beginPath();
-						ctx.arc(xPos, yPos, 3, 0, 2 * Math.PI);
+						ctx.arc(xPos, yPos, 2, 0, 2 * Math.PI);
 						ctx.fill();
 
 						let xLoc = xPos.toString().split(".")[0];
