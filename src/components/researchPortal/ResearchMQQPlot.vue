@@ -28,9 +28,9 @@
 					v-if="!!renderConfig"
 					:id="'mPlot' + item"
 					@mouseleave="hidePanel"
-					@mousemove="checkPosition($event, item, 'm_')"
+					@mousemove="checkPosition($event, item, 'm')"
 					@resize="onResize"
-					@click="getFullList($event, item, 'm_')"
+					@click="getFullList($event, item, 'm')"
 					width=""
 					height=""
 				>
@@ -70,9 +70,9 @@
 					v-if="!!renderConfig"
 					:id="'qqPlot' + item"
 					@mouseleave="hidePanel"
-					@mousemove="checkPosition($event, item, 'qq_')"
+					@mousemove="checkPosition($event, item, 'qq')"
 					@resize="onResize"
-					@click="getFullList($event, item, 'qq_')"
+					@click="getFullList($event, item, 'qq')"
 					width=""
 					height=""
 				>
@@ -146,7 +146,8 @@ export default Vue.component("research-m-qq-plot", {
 			rightMargin: 0.5,
 			topMargin: 10.5, // -0.5 to draw crisp line
 			bottomMargin: 50.5,
-			dotPosData: {},
+			mDotPosData: {},
+			qqDotPosData: {},
 			compareGroups: null,
 		};
 	},
@@ -318,7 +319,9 @@ export default Vue.component("research-m-qq-plot", {
 			this.renderPlot(this.renderData);
 		},
 		getFullList(event, ID, PLOT) {
-			let wrapper = document.getElementById(PLOT + "dot_value_full_list");
+			let wrapper = document.getElementById(
+				PLOT + "_dot_value_full_list"
+			);
 			let canvas = document.getElementById(PLOT + "Plot" + ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
@@ -332,9 +335,13 @@ export default Vue.component("research-m-qq-plot", {
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
-					if (this.dotPosData[ID][x + h] != undefined) {
-						if (this.dotPosData[ID][x + h][y + v] != undefined) {
-							let dotObject = this.dotPosData[ID][x + h][y + v];
+					if (this[PLOT + "DotPosData"][ID][x + h] != undefined) {
+						if (
+							this[PLOT + "DotPosData"][ID][x + h][y + v] !=
+							undefined
+						) {
+							let dotObject =
+								this[PLOT + "DotPosData"][ID][x + h][y + v];
 							clickedDotValue +=
 								'<span class="gene-on-clicked-dot-mplot"><b>' +
 								dotObject[this.renderConfig["render by"]] +
@@ -393,11 +400,13 @@ export default Vue.component("research-m-qq-plot", {
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
-					if (this.dotPosData[ID][x + h] != undefined) {
-						if (this.dotPosData[ID][x + h][y + v] != undefined) {
+					if (this[PLOT + "DotPosData"][x + h] != undefined) {
+						if (
+							this[PLOT + "DotPosData"][x + h][y + v] != undefined
+						) {
 							if (numOfValues < 6) {
 								let dotObject =
-									this.dotPosData[ID][x + h][y + v];
+									this[PLOT + "DotPosData"][x + h][y + v];
 								clickedDotValue +=
 									'<span class="gene-on-clicked-dot-mplot"><b>' +
 									dotObject[this.renderConfig["render by"]] +
@@ -453,7 +462,7 @@ export default Vue.component("research-m-qq-plot", {
 			this.renderQQPlot(DATA);
 		},
 		renderQQPlot(DATA) {
-			this.dotPosData = {};
+			this.qqDotPosData = {};
 
 			let wrapper = document.getElementById("qq_clicked_dot_value");
 			wrapper.classList.add("hidden");
@@ -464,7 +473,7 @@ export default Vue.component("research-m-qq-plot", {
 
 			let canvasRenderWidth = !!this.renderConfig.width
 				? this.renderConfig.width + this.leftMargin + this.rightMargin
-				: canvasWrapper.clientWidth;
+				: canvasWrapper.clientWidth - 30;
 
 			let canvasRenderHeight = !!this.renderConfig.height
 				? this.renderConfig.height + this.topMargin + this.bottomMargin
@@ -480,6 +489,8 @@ export default Vue.component("research-m-qq-plot", {
 			let plotHeight =
 				canvasRenderHeight -
 				(this.topMargin + yBump + this.bottomMargin);
+
+			console.log(DATA);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
 				//console.log("renderData", dKey, dValue);
@@ -519,8 +530,6 @@ export default Vue.component("research-m-qq-plot", {
 					let yMax = null;
 
 					dValue.unsorted.map((d) => {
-						//yAxisData.push(d[this.renderConfig["y axis field"]]);
-
 						let yValue = d[this.renderConfig["y axis field"]];
 
 						if (yMin == null) {
@@ -581,51 +590,23 @@ export default Vue.component("research-m-qq-plot", {
 						this.leftMargin - this.leftMargin / 2 - 14
 					);
 
-					let dnaLength = 0;
+					//render xAxis
 
-					//get list of chrs with variants
-					let chrs = Object.keys(dValue.sorted).filter(
-						(key) => dValue.sorted[key].length > 0
-					);
-
-					// compare length of chromosomes in the data to the defalt
-
-					chrs.map((chr) => {
-						let chrLength = 0;
-						dValue.sorted[chr].map((v) => {
-							chrLength =
-								v.locus > chrLength ? v.locus : chrLength;
-						});
-
-						this.chromosomeLength[chr] =
-							chrLength > this.chromosomeLength[chr]
-								? chrLength
-								: this.chromosomeLength[chr];
-					});
-
-					chrs.map((chr) => {
-						dnaLength += this.chromosomeLength[chr];
-					});
-
-					let chrByPixel = plotWidth / dnaLength;
+					let segByPixel = plotWidth / 8;
 
 					let xStart = this.leftMargin;
 					ctx.textAlign = "center";
 					ctx.rotate((Math.PI * 2) / 4);
 
-					chrs.map((chr) => {
-						let chrLength = this.chromosomeLength[chr] * chrByPixel;
-						xStart += chrLength;
-						let chrPos = xStart - chrLength / 2;
+					for (let i = 0; i < 9; i++) {
+						let segPos = xStart + segByPixel * i;
 
 						ctx.fillText(
-							chr,
-							chrPos,
+							i,
+							segPos,
 							this.topMargin + plotHeight + yBump + 14 + bump
 						);
-					});
-
-					//Render x axis label
+					}
 
 					ctx.fillText(
 						this.renderConfig["x axis label"],
@@ -635,11 +616,66 @@ export default Vue.component("research-m-qq-plot", {
 
 					//Render Dots
 
+					dValue.unsorted.map((g) => {
+						let yPosByPixel = plotHeight / (yMax - yMin);
+						let xPosByPixel = plotWidth / (yMax - yMin);
+
+						let yPos =
+							this.topMargin +
+							plotHeight -
+							(g[this.renderConfig["y axis field"]] - yMin) *
+								yPosByPixel;
+
+						let xPos =
+							this.leftMargin +
+							(g[this.renderConfig["y axis field"]] - yMin) *
+								xPosByPixel;
+
+						let dotColor = "#0066FF";
+
+						ctx.fillStyle = dotColor + "75";
+
+						ctx.lineWidth = 0;
+						ctx.beginPath();
+						ctx.arc(xPos, yPos, 3, 0, 2 * Math.PI);
+						ctx.fill();
+
+						let xLoc = xPos.toString().split(".")[0];
+						let yLoc = yPos.toString().split(".")[0];
+
+						let hoverContent;
+
+						if (!!this.renderConfig["hover content"]) {
+							hoverContent = this.renderConfig["hover content"];
+						}
+
+						if (!this.qqDotPosData[dKey]) {
+							this.qqDotPosData[dKey] = {};
+						}
+
+						if (!this.qqDotPosData[dKey][xLoc]) {
+							this.qqDotPosData[dKey][xLoc] = {};
+						}
+						this.qqDotPosData[dKey][xLoc][yLoc] = {};
+						this.qqDotPosData[dKey][xLoc][yLoc][
+							this.renderConfig["render by"]
+						] = g[this.renderConfig["render by"]];
+						if (!!this.renderConfig["hover content"]) {
+							hoverContent.map((h) => {
+								this.qqDotPosData[dKey][xLoc][yLoc][h] = g[h];
+							});
+						}
+					});
+
+					/*let chrs = Object.keys(dValue.sorted).filter(
+						(key) => dValue.sorted[key].length > 0
+					);
+
 					xStart = 0;
 					let exChr = "";
-					let chrNum = 1;
+					let chrNum = 1;*/
 
-					chrs.map((chr) => {
+					/*chrs.map((chr) => {
 						dValue.sorted[chr].map((g) => {
 							let xPos =
 								(xStart + g.locus) * chrByPixel +
@@ -653,10 +689,7 @@ export default Vue.component("research-m-qq-plot", {
 								(g[this.renderConfig["y axis field"]] - yMin) *
 									yPosByPixel;
 
-							let dotColor =
-								this.chromosomeColors[
-									chrNum % this.chromosomeColors.length
-								];
+							let dotColor = "#0066FF";
 
 							ctx.fillStyle = dotColor + "75";
 
@@ -675,20 +708,21 @@ export default Vue.component("research-m-qq-plot", {
 									this.renderConfig["hover content"];
 							}
 
-							if (!this.dotPosData[dKey]) {
-								this.dotPosData[dKey] = {};
+							if (!this.qqDotPosData[dKey]) {
+								this.qqDotPosData[dKey] = {};
 							}
 
-							if (!this.dotPosData[dKey][xLoc]) {
-								this.dotPosData[dKey][xLoc] = {};
+							if (!this.qqDotPosData[dKey][xLoc]) {
+								this.qqDotPosData[dKey][xLoc] = {};
 							}
-							this.dotPosData[dKey][xLoc][yLoc] = {};
-							this.dotPosData[dKey][xLoc][yLoc][
+							this.qqDotPosData[dKey][xLoc][yLoc] = {};
+							this.qqDotPosData[dKey][xLoc][yLoc][
 								this.renderConfig["render by"]
 							] = g[this.renderConfig["render by"]];
 							if (!!this.renderConfig["hover content"]) {
 								hoverContent.map((h) => {
-									this.dotPosData[dKey][xLoc][yLoc][h] = g[h];
+									this.qqDotPosData[dKey][xLoc][yLoc][h] =
+										g[h];
 								});
 							}
 						});
@@ -696,12 +730,12 @@ export default Vue.component("research-m-qq-plot", {
 						xStart += this.chromosomeLength[chr];
 
 						chrNum++;
-					});
+					});*/
 				}
 			}
 		},
 		renderMPlot(DATA) {
-			this.dotPosData = {};
+			this.mDotPosData = {};
 
 			let wrapper = document.getElementById("m_clicked_dot_value");
 			wrapper.classList.add("hidden");
@@ -712,7 +746,7 @@ export default Vue.component("research-m-qq-plot", {
 
 			let canvasRenderWidth = !!this.renderConfig.width
 				? this.renderConfig.width + this.leftMargin + this.rightMargin
-				: canvasWrapper.clientWidth;
+				: canvasWrapper.clientWidth - 30;
 
 			let canvasRenderHeight = !!this.renderConfig.height
 				? this.renderConfig.height + this.topMargin + this.bottomMargin
@@ -923,20 +957,21 @@ export default Vue.component("research-m-qq-plot", {
 									this.renderConfig["hover content"];
 							}
 
-							if (!this.dotPosData[dKey]) {
-								this.dotPosData[dKey] = {};
+							if (!this.mDotPosData[dKey]) {
+								this.mDotPosData[dKey] = {};
 							}
 
-							if (!this.dotPosData[dKey][xLoc]) {
-								this.dotPosData[dKey][xLoc] = {};
+							if (!this.mDotPosData[dKey][xLoc]) {
+								this.mDotPosData[dKey][xLoc] = {};
 							}
-							this.dotPosData[dKey][xLoc][yLoc] = {};
-							this.dotPosData[dKey][xLoc][yLoc][
+							this.mDotPosData[dKey][xLoc][yLoc] = {};
+							this.mDotPosData[dKey][xLoc][yLoc][
 								this.renderConfig["render by"]
 							] = g[this.renderConfig["render by"]];
 							if (!!this.renderConfig["hover content"]) {
 								hoverContent.map((h) => {
-									this.dotPosData[dKey][xLoc][yLoc][h] = g[h];
+									this.mDotPosData[dKey][xLoc][yLoc][h] =
+										g[h];
 								});
 							}
 						});
