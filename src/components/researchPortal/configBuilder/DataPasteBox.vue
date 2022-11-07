@@ -1,10 +1,16 @@
 <template>
 	<div>
         <div>
+			<div>
             Place the first few rows of your data including the header row 
             in .csv format here.
-            <textarea v-model="rawContent" placeholder="Enter your data">
+			</div>
+            <textarea v-model="rawContent" placeholder="Enter your data"
+				rows="5" cols="60" v-on:focusout="processContent">
             </textarea>
+			<div id="warning" :hidden="hideFormatWarning">
+				Data must be in .csv format.
+			</div>
         </div>
     </div>
 </template>
@@ -22,7 +28,8 @@ export default Vue.component("data-pastebox", {
 		return {
             rawContent: "",
             sampleData: [],
-            columnHeaders: []
+            columnHeaders: [],
+			hideFormatWarning: true
 		};
 	},
 	modules: {
@@ -30,19 +37,36 @@ export default Vue.component("data-pastebox", {
 	components: {},
 	computed: {
 	},
-	watch: {
-		rawContent(){
-            console.log(this.rawContent);
-        }
-	},
 	methods: {
 		...uiUtils,
+		processContent(){
+			this.hideFormatWarning = true;
+			let lines = this.rawContent.split("\n");
+			if (lines.length <= 1){
+				this.hideFormatWarning = false;
+				return;
+			}
+			let headers = lines[0].split(",");
+			console.log(headers);
+			if (headers.length <= 1 || headers.includes("")){
+				this.hideFormatWarning = false;
+				return;
+			}
+			this.columnHeaders = headers;
+			let allData = [];
+			for (let line of lines){
+				allData.push(line.split(","));
+			}
+			this.sampleData = allData;
+		},
 	},
 });
 </script>
-
 <style>
+#warning {
+	color: red;
+	font-size: smaller;
+}
 </style>
-
 
 
