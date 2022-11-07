@@ -21,8 +21,8 @@
 					</select>
 				</label>
 			</div>
-			<div class="col-md-2">
-
+			<div class="col-md-1">
+				<button class="add">&rarr;</button>
 			</div>
         </div>
     </div>

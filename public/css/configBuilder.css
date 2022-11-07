@@ -21,3 +21,14 @@
 .flat-box option selected {
     color: lightblue;
 }
+.add {
+    background-color: lightgray !important;
+    border: none;
+    color: black !important;
+    font-size: large;
+    font-weight: bold;
+    height: 100%;
+}
+.add:active {
+    color: white !important;
+}
