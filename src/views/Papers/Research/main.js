@@ -23,6 +23,7 @@ import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchGEMDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
+import ResearchMQQPlot from "@/components/researchPortal/ResearchMQQPlot.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
@@ -55,6 +56,7 @@ new Vue({
         ResearchAnnotationsPlot,
         ResearchGEMDataTable,
         ResearchMPlotBitmap,
+        ResearchMQQPlot,
         ResearchRegionPlot,
         ResearchScorePlot,
         ResearchGenesTrack,
@@ -466,7 +468,7 @@ new Vue({
 
                     convertedData.push(newTempObj);
                 });
-                console.log("convertedData", convertedData);
+
             } else {
                 convertedData = DATA;
             }
@@ -533,8 +535,6 @@ new Vue({
                     } else if (this.dataType != "bioindex" && !!this.isAPI) {
                         APIPoint += queryParams
                     }
-
-                    console.log(APIPoint);
 
                     let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
@@ -1138,8 +1138,6 @@ new Vue({
                             this.dataFilesLabels["phenotype"] = tempObj;
 
                         }
-
-                        //console.log("this.dataFilesLabels", this.dataFilesLabels);
 
 
                         let initialData = dataFiles[0];

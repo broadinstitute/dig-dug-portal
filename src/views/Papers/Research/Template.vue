@@ -307,6 +307,20 @@
 								"
 								:compareGroupColors="$parent.colors.moderate"
 							></research-m-bitmap-plot>
+							<!--v-if="$parent.plotType == 'mbm_plot'"-->
+							<research-m-qq-plot
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] ==
+										'manhattan qq plot'
+								"
+								:plotData="$store.state.filteredData"
+								:renderConfig="$parent.plotConfig"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:compareGroupColors="$parent.colors.moderate"
+							></research-m-qq-plot>
 							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
 								v-if="
