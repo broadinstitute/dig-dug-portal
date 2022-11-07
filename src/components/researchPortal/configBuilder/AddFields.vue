@@ -33,13 +33,15 @@
 				<span class="fieldlabel" v-if="maxFields >= 1">Fields ({{fieldsAdded.length}} of {{maxFields}})</span>
 				<span class="fieldlabel" v-else-if="maxFields == 1">Field</span>
 				<span class="fieldlabel" v-else="maxFields == -1">Fields</span>
-				<ul>
-					<li v-for="field in fieldsAddedCurrently">{{field}}</li>
-				</ul>
+				<div class="fieldlist">
+					<ul>
+						<li v-for="field in fieldsAddedCurrently">{{field}}</li>
+					</ul>
+				</div>
 			</div>
         </div>
 		<div class="warning" :hidden="hideTypeWarning">
-			Select a field type to continue
+			Select a display type to continue
 		</div>
     </div>
 </template>
