@@ -27,7 +27,9 @@ new Vue({
         PageFooter,
         Alert,
         UnauthorizedMessage,
-        DataPasteBox
+        DataPasteBox,
+        // why does it behave badly if we remove TranscriptionFactorsTable?
+        TranscriptionFactorsTable
     },
 
     created() {
