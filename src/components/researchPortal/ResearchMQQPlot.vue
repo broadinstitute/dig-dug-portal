@@ -628,13 +628,24 @@ export default Vue.component("research-m-qq-plot", {
 					//Render Dots
 
 					let yPosByPixel = plotHeight / (yMax - yMin);
-					let xPosByPixel = plotWidth / dValue.unsorted.length;
+					//let xPosByPixel = plotWidth / dValue.unsorted.length;
 
 					let pRange = yMax - yMin;
 
 					//let xPosByPixel = plotWidth / (yMax - yMin);
 
 					let plotData = dValue.unsorted;
+					let expected = [];
+
+					for (let i = 1; i <= plotData.length; i++) {
+						expected.push(Math.log(i + 1 / plotData.length));
+					}
+
+					let xPosByPixel =
+						plotWidth /
+						(expected[expected.length - 1] - expected[0]);
+
+					console.log(expected);
 
 					plotData.map((g, gIndex) => {
 						let dPValue =
@@ -642,37 +653,19 @@ export default Vue.component("research-m-qq-plot", {
 						let yPos =
 							this.topMargin + plotHeight - dPValue * yPosByPixel;
 
-						let xP =
-							(yMax - g[this.renderConfig["y axis field"]]) *
-							(1 / pRange);
-
-						/*let xPos =
-							this.leftMargin + (plotWidth - plotWidth * xP);*/
+						let xPos =
+							this.leftMargin +
+							plotWidth -
+							expected[gIndex] * xPosByPixel;
 
 						let N = plotData.length;
-						let i = gIndex;
-						//
+						let i = gIndex + 1;
 
-						let x = 1 - i / (N + 1);
-						/*let x = -Math.log10(
-							parseFloat(
-								yMax - g[this.renderConfig["y axis field"]]
-							) /
-								(yMax - yMin)
-						);*/
-
-						let xPos = this.leftMargin + plotWidth * x;
-
-						//console.log("vMean", vMean);
-						//console.log("vMedian", vMedian);
-
-						/*let xPos =
-							this.leftMargin +
-							(dValue.unsorted.length - gIndex) * xPosByPixel;*/
+						let x = 1 - i / N;
 
 						let dotColor = "#0066FF";
 
-						ctx.fillStyle = dotColor + "75";
+						ctx.fillStyle = dotColor;
 
 						ctx.lineWidth = 0;
 						ctx.beginPath();
