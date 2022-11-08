@@ -490,7 +490,7 @@ export default Vue.component("research-m-qq-plot", {
 				canvasRenderHeight -
 				(this.topMargin + yBump + this.bottomMargin);
 
-			console.log(DATA);
+			//console.log(DATA);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
 				//console.log("renderData", dKey, dValue);
@@ -551,16 +551,7 @@ export default Vue.component("research-m-qq-plot", {
 						}
 					});
 
-					let vMean = vTotal / dValue.unsorted.length;
-					let medianLength = Math.round(dValue.unsorted.length / 2);
-					let vMedian = dValue.unsorted[medianLength]["y axis field"];
-
-					console.log("vMean", vMean);
-					console.log("vMedian", vMedian);
-
 					let yStep = (yMax - yMin) / 4;
-
-					//let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
 
 					let yTickDistance = plotHeight / 4;
 
@@ -596,7 +587,7 @@ export default Vue.component("research-m-qq-plot", {
 					ctx.fillStyle = "#000000";
 					ctx.rotate(-(Math.PI * 2) / 4);
 					ctx.fillText(
-						this.renderConfig["y axis label"],
+						this.renderConfig["qq-plot y axis label"],
 						-(this.topMargin + plotHeight / 2),
 						this.leftMargin - this.leftMargin / 2 - 14
 					);
@@ -620,32 +611,34 @@ export default Vue.component("research-m-qq-plot", {
 					}
 
 					ctx.fillText(
-						this.renderConfig["x axis label"],
+						this.renderConfig["qq-plot x axis label"],
 						plotWidth / 2 + this.leftMargin,
 						this.topMargin + plotHeight + yBump + 44
 					);
 
 					//Render Dots
 
-					let yPosByPixel = plotHeight / (yMax - yMin);
-					//let xPosByPixel = plotWidth / dValue.unsorted.length;
-
-					let pRange = yMax - yMin;
-
-					//let xPosByPixel = plotWidth / (yMax - yMin);
-
 					let plotData = dValue.unsorted;
 					let expected = [];
-
 					for (let i = 1; i <= plotData.length; i++) {
-						expected.push(Math.log(i + 1 / plotData.length));
+						expected.push(Math.log10(i + 1 / plotData.length));
 					}
 
+					let yPosByPixel = plotHeight / (yMax - yMin);
 					let xPosByPixel =
 						plotWidth /
 						(expected[expected.length - 1] - expected[0]);
 
-					console.log(expected);
+					/// render expected p-value line to 8;
+					ctx.beginPath();
+					ctx.strokeStyle = "#ff0000";
+					ctx.moveTo(this.leftMargin, this.topMargin + plotHeight);
+					ctx.lineTo(
+						this.leftMargin + plotWidth,
+						this.topMargin + plotHeight - 8 * yPosByPixel
+					);
+
+					ctx.stroke();
 
 					plotData.map((g, gIndex) => {
 						let dPValue =
@@ -658,10 +651,10 @@ export default Vue.component("research-m-qq-plot", {
 							plotWidth -
 							expected[gIndex] * xPosByPixel;
 
-						let N = plotData.length;
+						/*let N = plotData.length;
 						let i = gIndex + 1;
 
-						let x = 1 - i / N;
+						let x = 1 - i / N;*/
 
 						let dotColor = "#0066FF";
 
@@ -890,7 +883,7 @@ export default Vue.component("research-m-qq-plot", {
 					ctx.fillStyle = "#000000";
 					ctx.rotate(-(Math.PI * 2) / 4);
 					ctx.fillText(
-						this.renderConfig["y axis label"],
+						this.renderConfig["m-plot y axis label"],
 						-(this.topMargin + plotHeight / 2),
 						this.leftMargin - this.leftMargin / 2 - 14
 					);
@@ -942,7 +935,7 @@ export default Vue.component("research-m-qq-plot", {
 					//Render x axis label
 
 					ctx.fillText(
-						this.renderConfig["x axis label"],
+						this.renderConfig["m-plot x axis label"],
 						plotWidth / 2 + this.leftMargin,
 						this.topMargin + plotHeight + yBump + 44
 					);
