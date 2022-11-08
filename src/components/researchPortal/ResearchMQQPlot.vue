@@ -529,8 +529,12 @@ export default Vue.component("research-m-qq-plot", {
 					let yMin = null;
 					let yMax = null;
 
+					let vTotal = 0;
+
 					dValue.unsorted.map((d) => {
 						let yValue = d[this.renderConfig["y axis field"]];
+
+						vTotal += yValue;
 
 						if (yMin == null) {
 							yMin = yValue;
@@ -546,6 +550,13 @@ export default Vue.component("research-m-qq-plot", {
 							yMax = yValue;
 						}
 					});
+
+					let vMean = vTotal / dValue.unsorted.length;
+					let medianLength = Math.round(dValue.unsorted.length / 2);
+					let vMedian = dValue.unsorted[medianLength]["y axis field"];
+
+					console.log("vMean", vMean);
+					console.log("vMedian", vMedian);
 
 					let yStep = (yMax - yMin) / 4;
 
@@ -619,21 +630,45 @@ export default Vue.component("research-m-qq-plot", {
 					let yPosByPixel = plotHeight / (yMax - yMin);
 					let xPosByPixel = plotWidth / dValue.unsorted.length;
 
-					dValue.unsorted.map((g, gIndex) => {
+					let pRange = yMax - yMin;
+
+					//let xPosByPixel = plotWidth / (yMax - yMin);
+
+					let plotData = dValue.unsorted;
+
+					plotData.map((g, gIndex) => {
+						let dPValue =
+							g[this.renderConfig["y axis field"]] - yMin;
 						let yPos =
-							this.topMargin +
-							plotHeight -
-							(g[this.renderConfig["y axis field"]] - yMin) *
-								yPosByPixel;
+							this.topMargin + plotHeight - dPValue * yPosByPixel;
+
+						let xP =
+							(yMax - g[this.renderConfig["y axis field"]]) *
+							(1 / pRange);
+
+						/*let xPos =
+							this.leftMargin + (plotWidth - plotWidth * xP);*/
+
+						let N = plotData.length;
+						let i = gIndex;
+						//
+
+						let x = 1 - i / (N + 1);
+						/*let x = -Math.log10(
+							parseFloat(
+								yMax - g[this.renderConfig["y axis field"]]
+							) /
+								(yMax - yMin)
+						);*/
+
+						let xPos = this.leftMargin + plotWidth * x;
+
+						//console.log("vMean", vMean);
+						//console.log("vMedian", vMedian);
 
 						/*let xPos =
 							this.leftMargin +
-							(g[this.renderConfig["y axis field"]] - yMin) *
-								xPosByPixel;*/
-
-						let xPos =
-							this.leftMargin +
-							(plotWidth - xPosByPixel * gIndex);
+							(dValue.unsorted.length - gIndex) * xPosByPixel;*/
 
 						let dotColor = "#0066FF";
 
