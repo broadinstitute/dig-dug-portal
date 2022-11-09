@@ -35,27 +35,32 @@
 				typeInUse == 'join multi'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
-				@configReady="updateSingleFieldConfig">
+				@configReady="updateSingleFieldConfig"
+				@deleteField="deleteField">
 			</join-field>
 			<calculate-field v-else-if="typeInUse == 'calculate'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
-				@configReady="updateSingleFieldConfig">
+				@configReady="updateSingleFieldConfig"
+				@deleteField="deleteField">
 			</calculate-field>
 			<raw-field v-else-if="typeInUse == 'raw'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
-				@configReady="updateSingleFieldConfig">
+				@configReady="updateSingleFieldConfig"
+				@deleteField="deleteField">
 			</raw-field>
 			<array-to-string-field v-else-if="typeInUse == 'array to string'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
-				@configReady="updateSingleFieldConfig">
+				@configReady="updateSingleFieldConfig"
+				@deleteField="deleteField">
 			</array-to-string-field>
 			<replace-chars-field v-else-if="typeInUse == 'replace characters'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
-				@configReady="updateSingleFieldConfig">
+				@configReady="updateSingleFieldConfig"
+				@deleteField="deleteField">
 			</replace-chars-field>
 			<score-columns-field v-else-if="typeInUse == 'score columns'"
 				:type="typeInUse" :inputFields="fieldsAdded"
@@ -180,8 +185,11 @@ export default Vue.component("add-fields", {
 				}
 			}
 		},
-		deleteField(field){
-			console.log(`Deleting ${field}`);
+		deleteField(fieldToDelete){
+			console.log(`Deleting ${fieldToDelete}`);
+			this.fieldsAdded = this.fieldsAdded.filter(
+				(field) => field != fieldToDelete
+			);
 		},
 		updateSingleFieldConfig(configObject){
 			this.singleFieldConfig = configObject;

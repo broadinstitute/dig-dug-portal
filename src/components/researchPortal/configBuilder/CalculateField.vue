@@ -3,7 +3,12 @@
         <span class="fieldlabel">Field ({{inputFields.length}} of 1)</span>
 		<div class="fieldlist">
 			<ul>
-				<li v-for="field of inputFields">{{field}}</li>
+				<li v-for="field of inputFields">
+					{{field}}
+					<delete-button 
+						@deleteThis="$emit('deleteField', field)">
+					</delete-button>
+				</li>
 			</ul>
 		</div>
     </div>
