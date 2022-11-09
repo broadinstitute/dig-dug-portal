@@ -1,8 +1,8 @@
 <template>
 	<div class="col-md-2">
-        <span class="fieldlabel">Field</span>
+        <span class="fieldlabel">Fields</span>
         <div class="fieldlist">
-			<span>{{inputFields[0]}}</span>
+			<span v-for="field of inputFields">{{field}}</span>
 		</div>
     </div>
 </template>
@@ -13,7 +13,7 @@ import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("raw-field", {
+export default Vue.component("calculate-field", {
 	props: ['type', 'inputFields', 'newName'],
 	emits: ['configReady'],
 	data() {

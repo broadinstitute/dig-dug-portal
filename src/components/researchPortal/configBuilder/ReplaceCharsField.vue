@@ -31,7 +31,7 @@ export default Vue.component("replace-chars-field", {
 		...uiUtils,
 		emitConfig(){
 			this.$emit('configReady', {
-				"type": "replace characters",
+				"type": this.type,
 				"field name": this.newName,
 				"raw field": this.inputFields[0]
 			}

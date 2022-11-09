@@ -13,7 +13,7 @@ import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("raw-field", {
+export default Vue.component("array-to-string-field", {
 	props: ['type', 'inputFields', 'newName'],
 	emits: ['configReady'],
 	data() {

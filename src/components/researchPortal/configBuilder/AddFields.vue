@@ -31,16 +31,37 @@
 					@click="addFieldToMulti">&rarr;
 				</button>
 			</div>
-			<raw-field v-if="typeInUse == 'raw'"
+			<join-field v-if="typeInUse == 'join' || 
+				typeInUse == 'join multi'"
+				:type="typeInUse" :inputFields="fieldsAdded"
+				:newName="newFieldName"
+				@configReady="updateSingleFieldConfig">
+			</join-field>
+			<calculate-field v-else-if="typeInUse == 'calculate'"
+				:type="typeInUse" :inputFields="fieldsAdded"
+				:newName="newFieldName"
+				@configReady="updateSingleFieldConfig">
+			</calculate-field>
+			<raw-field v-else-if="typeInUse == 'raw'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
 				@configReady="updateSingleFieldConfig">
 			</raw-field>
+			<array-to-string-field v-else-if="typeInUse == 'array to string'"
+				:type="typeInUse" :inputFields="fieldsAdded"
+				:newName="newFieldName"
+				@configReady="updateSingleFieldConfig">
+			</array-to-string-field>
 			<replace-chars-field v-else-if="typeInUse == 'replace characters'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
 				@configReady="updateSingleFieldConfig">
 			</replace-chars-field>
+			<score-columns-field v-else-if="typeInUse == 'score columns'"
+				:type="typeInUse" :inputFields="fieldsAdded"
+				:newName="newFieldName"
+				@configReady="updateSingleFieldConfig">
+			</score-columns-field>
 			<div v-else class="col-md-2"><strong>Fields</strong></div>
 			<label>New field name
 				<input type="text" v-model="newFieldName"/>
@@ -64,6 +85,10 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 import RawField from "@/components/researchPortal/configBuilder/RawField.vue";
 import ReplaceCharsField from "@/components/researchPortal/configBuilder/ReplaceCharsField.vue";
+import JoinField from "@/components/researchPortal/configBuilder/JoinField.vue";
+import CalculateField from "@/components/researchPortal/configBuilder/CalculateField.vue";
+import ArrayToStringField from "@/components/researchPortal/configBuilder/ArrayToStringField.vue";
+import ScoreColumnsField from "@/components/researchPortal/configBuilder/ScoreColumnsField.vue";
 
 export default Vue.component("add-fields", {
 	props: ['availableFields'],
@@ -115,7 +140,12 @@ export default Vue.component("add-fields", {
 	},
 	modules: {},
 	components: {
-		RawField
+		RawField,
+		ReplaceCharsField,
+		JoinField,
+		CalculateField,
+		ArrayToStringField,
+		ScoreColumnsField
 	},
 	computed: {
 		fieldsAddedCurrently(){
