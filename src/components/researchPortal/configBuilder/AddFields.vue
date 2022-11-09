@@ -28,7 +28,7 @@
 			</div>
 			<div class="col-md-1">
 				<button class="add" :disabled="!availableFields.length" 
-					@click="addFieldToMulti">&rarr;
+					@click="addField">&rarr;
 				</button>
 			</div>
 			<join-field v-if="typeInUse == 'join' || 
@@ -60,9 +60,16 @@
 			<score-columns-field v-else-if="typeInUse == 'score columns'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
-				@configReady="updateSingleFieldConfig">
+				@configReady="updateSingleFieldConfig"
+				@deleteField="deleteField">
 			</score-columns-field>
-			<div v-else class="col-md-2"><strong>Fields</strong></div>
+			<div v-else class="col-md-2"><strong>Fields</strong>
+				<div class="fieldlist">
+					<ul>
+						<li></li>
+					</ul>
+				</div>
+			</div>
 			<label class="col-md-2">New field name
 				<input type="text" v-model="newFieldName"/>
 			</label>
@@ -159,7 +166,7 @@ export default Vue.component("add-fields", {
 	},
 	methods: {
 		...uiUtils,
-		addFieldToMulti(){
+		addField(){
 			if(!this.typeInUse){
 				this.hideTypeWarning = false;
 				return;
@@ -172,6 +179,9 @@ export default Vue.component("add-fields", {
 					this.fieldsAdded.push(field);
 				}
 			}
+		},
+		deleteField(field){
+			console.log(`Deleting ${field}`);
 		},
 		updateSingleFieldConfig(configObject){
 			this.singleFieldConfig = configObject;

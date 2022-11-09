@@ -3,7 +3,12 @@
         <span class="fieldlabel">Fields</span>
         <div class="fieldlist">
 			<ul>
-				<li v-for="field of inputFields">{{field}}</li>
+				<li v-for="field of inputFields">
+					{{field}}
+					<delete-button 
+						@deleteThis="$emit('deleteField', field)">
+					</delete-button>
+				</li>
 			</ul>
 		</div>
     </div>
@@ -12,12 +17,13 @@
 <script>
 import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
+import DeleteButton from "@/components/researchPortal/configBuilder/DeleteButton.vue"
 import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("score-columns-field", {
 	props: ['type', 'inputFields', 'newName'],
-	emits: ['configReady'],
+	emits: ['configReady', 'deleteField'],
 	data() {
 		return {
             config: {}
@@ -27,7 +33,9 @@ export default Vue.component("score-columns-field", {
 		this.emitConfig();
 	},
 	modules: {},
-	components: {},
+	components: {
+		DeleteButton
+	},
 	computed: {},
 	methods: {
 		...uiUtils,
