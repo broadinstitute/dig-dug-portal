@@ -23,7 +23,7 @@
 				<b-card no-body>
 					<b-tabs card content-class="mt-3" id="table-filter-tabs">
 						<b-tab title="Table">
-							<add-fields :fields="$parent.rawHeaders"></add-fields>
+							<add-fields :availableFields="$parent.rawHeaders"></add-fields>
 						</b-tab>
 						<b-tab title="Filters"></b-tab>
 					</b-tabs>

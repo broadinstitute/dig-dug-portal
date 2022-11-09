@@ -56,10 +56,7 @@ export default Vue.component("data-pastebox", {
 });
 </script>
 <style>
-#warning {
-	color: red;
-	font-size: smaller;
-}
+@import url("/css/configBuilder.css");
 </style>
 
 

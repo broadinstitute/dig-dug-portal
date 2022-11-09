@@ -12,6 +12,9 @@
 .gray-box label {
     font-weight: bold;
 }
+.gray-box label input, .gray-box label textarea {
+    display: block;
+}
 .gray-box select {
     display: block;
 }
@@ -42,4 +45,8 @@
 .fieldlist ul {
     list-style: none;
     margin-left: -1rem;
+}
+#warning {
+	color: red;
+	font-size: smaller;
 }

@@ -19,26 +19,33 @@
 			<div class="col-md-2">
 				<label>Select field(s)
 					<select class="flat-box" multiple v-model="selectedFields">
-						<option v-if="!fields.length">
+						<option v-if="!availableFields.length">
 							Add your sample data to begin
 						</option>
-						<option v-for="field in fields">{{field}}</option>
+						<option v-for="field in availableFields">{{field}}</option>
 					</select>
 				</label>
 			</div>
 			<div class="col-md-1">
-				<button class="add" :disabled="!fields.length" @click="addFieldToMulti">&rarr;</button>
+				<button class="add" :disabled="!availableFields.length" 
+					@click="addFieldToMulti">&rarr;
+				</button>
 			</div>
-			<div class="col-md-2">
-				<span class="fieldlabel" v-if="maxFields >= 1">Fields ({{fieldsAdded.length}} of {{maxFields}})</span>
-				<span class="fieldlabel" v-else-if="maxFields == 1">Field</span>
-				<span class="fieldlabel" v-else="maxFields == -1">Fields</span>
-				<div class="fieldlist">
-					<ul>
-						<li v-for="field in fieldsAddedCurrently">{{field}}</li>
-					</ul>
-				</div>
-			</div>
+			<single-field v-if="typeInUse == 'raw' || 
+				typeInUse == 'replace characters'"
+				:type="typeInUse" :inputFields="fieldsAdded"
+				@configReady="updateSingleFieldConfig">
+			</single-field>
+			<div v-else class="col-md-2">This field type coming soon</div>
+			<label>New field name
+				<input type="text" v-model="newFieldName"
+				v-on:focusout="updateSingleFieldConfig(singleFieldConfig)"/>
+			</label>
+			<label> Edit 
+				<textarea v-model="singleFieldConfigString"
+					rows="4" cols="30">
+				</textarea>
+			</label>
         </div>
 		<div class="warning" :hidden="hideTypeWarning">
 			Select a display type to continue
@@ -51,9 +58,10 @@ import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
+import SingleField from "@/components/researchPortal/configBuilder/SingleField.vue";
 
 export default Vue.component("add-fields", {
-	props: ['fields'],
+	props: ['availableFields'],
 	// Add a hidden thing for replace chars and maybe also one for join by
 	emits: [],
 	data() {
@@ -91,15 +99,19 @@ export default Vue.component("add-fields", {
 			},
 			selectedFields: [],
 			fieldsAdded: [],
-			componentConfig: {},
+			singleFieldConfig: {},
+			singleFieldConfigString: JSON.stringify({}),
 			typeInUse: "",
 			hideTypeWarning: true,
 			disablePlaceholder: false,
-			maxFields: 0
+			maxFields: 0,
+			newFieldName: ""
 		};
 	},
 	modules: {},
-	components: {},
+	components: {
+		SingleField
+	},
 	computed: {
 		fieldsAddedCurrently(){
 			return this.fieldsAdded;
@@ -120,7 +132,12 @@ export default Vue.component("add-fields", {
 					this.fieldsAdded.push(field);
 				}
 			}
-		}
+		},
+		updateSingleFieldConfig(configObject){
+			let newConfig = configObject;
+			newConfig["field name"] = this.newFieldName;
+			this.singleFieldConfig = newConfig;
+		},
 	},
 	watch: {
 		typeInUse(newType){
@@ -129,12 +146,15 @@ export default Vue.component("add-fields", {
 			this.selectedFields = [];
 			this.fieldsAdded = [];
 			this.maxFields = this.fieldTypes[newType].maxItems;
+		},
+		singleFieldConfig(newConfig){
+			this.singleFieldConfigString = JSON.stringify(newConfig);
 		}
 	}
 });
 </script>
 <style>
-
+@import url("/css/configBuilder.css");
 </style>
 
 
