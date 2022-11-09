@@ -63,14 +63,19 @@
 				@configReady="updateSingleFieldConfig">
 			</score-columns-field>
 			<div v-else class="col-md-2"><strong>Fields</strong></div>
-			<label>New field name
+			<label class="col-md-2">New field name
 				<input type="text" v-model="newFieldName"/>
 			</label>
-			<label> Edit 
+			<label class="col-md-2"> Edit 
 				<textarea v-model="singleFieldConfigString"
 					rows="4" cols="30">
 				</textarea>
 			</label>
+			<div class="col-md-1 triplebutton">
+				<b-button style="background-color: blue;">Add</b-button>
+				<b-button style="background-color: orange;">Cancel</b-button>
+				<b-button style="background-color: red;">Delete</b-button>
+			</div>
         </div>
 		<div class="warning" :hidden="hideTypeWarning">
 			Select a display type to continue
