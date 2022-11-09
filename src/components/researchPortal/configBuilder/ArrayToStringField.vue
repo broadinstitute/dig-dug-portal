@@ -1,8 +1,10 @@
 <template>
 	<div class="col-md-2">
-        <span class="fieldlabel">Field</span>
+        <span class="fieldlabel">Field ({{inputFields.length}} of 1)</span>
         <div class="fieldlist">
-			<span>{{inputFields[0]}}</span>
+			<ul>
+				<li v-for="field of inputFields">{{field}}</li>
+			</ul>
 		</div>
     </div>
 </template>

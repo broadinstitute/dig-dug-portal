@@ -4,7 +4,9 @@
 			<span v-if="type == 'join'"> ({{inputFields.length}} of 2)</span>
 		</span>
         <div class="fieldlist">
-			<span v-for="field of inputFields">{{field}}</span>
+			<ul>
+				<li v-for="field of inputFields">{{field}}</li>
+			</ul>
 		</div>
     </div>
 </template>

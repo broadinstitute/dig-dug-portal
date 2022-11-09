@@ -1,8 +1,10 @@
 <template>
 	<div class="col-md-2">
-        <span class="fieldlabel">Field</span>
+        <span class="fieldlabel">Fields</span>
         <div class="fieldlist">
-			<span v-for="field of inputFields">{{field}}</span>
+			<ul>
+				<li v-for="field of inputFields">{{field}}</li>
+			</ul>
 		</div>
     </div>
 </template>

@@ -104,7 +104,7 @@ export default Vue.component("add-fields", {
 				},
 				"calculate": {
 					displayName: "Calculate",
-					maxItems: -1
+					maxItems: 1
 				},
 				"join": {
 					displayName: "Join",
