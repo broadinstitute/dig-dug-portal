@@ -31,12 +31,12 @@
 					@click="addFieldToMulti">&rarr;
 				</button>
 			</div>
-			<single-field v-if="typeInUse == 'raw' || 
+			<raw-field v-if="typeInUse == 'raw' || 
 				typeInUse == 'replace characters'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				@configReady="updateSingleFieldConfig">
-			</single-field>
-			<div v-else class="col-md-2">This field type coming soon</div>
+			</raw-field>
+			<div v-else class="col-md-2"><strong>Fields</strong></div>
 			<label>New field name
 				<input type="text" v-model="newFieldName"
 				v-on:focusout="updateSingleFieldConfig(singleFieldConfig)"/>
