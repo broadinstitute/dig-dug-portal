@@ -34,12 +34,12 @@
 			<raw-field v-if="typeInUse == 'raw' || 
 				typeInUse == 'replace characters'"
 				:type="typeInUse" :inputFields="fieldsAdded"
+				:newName="newFieldName"
 				@configReady="updateSingleFieldConfig">
 			</raw-field>
 			<div v-else class="col-md-2"><strong>Fields</strong></div>
 			<label>New field name
-				<input type="text" v-model="newFieldName"
-				v-on:focusout="updateSingleFieldConfig(singleFieldConfig)"/>
+				<input type="text" v-model="newFieldName"/>
 			</label>
 			<label> Edit 
 				<textarea v-model="singleFieldConfigString"
@@ -135,7 +135,7 @@ export default Vue.component("add-fields", {
 		},
 		updateSingleFieldConfig(configObject){
 			let newConfig = configObject;
-			newConfig["field name"] = this.newFieldName;
+			//newConfig["field name"] = this.newFieldName;
 			this.singleFieldConfig = newConfig;
 		},
 	},

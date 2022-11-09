@@ -14,7 +14,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("raw-field", {
-	props: ['type', 'inputFields'],
+	props: ['type', 'inputFields', 'newName'],
 	emits: ['configReady'],
 	data() {
 		return {
@@ -32,7 +32,7 @@ export default Vue.component("raw-field", {
 		emitConfig(){
 			this.$emit('configReady', {
 				"type": "raw",
-				"field name": "",
+				"field name": this.newName,
 				"raw field": this.inputFields[0]
 			}
 		)
@@ -40,6 +40,9 @@ export default Vue.component("raw-field", {
 	},
 	watch:{
 		inputFields(){
+			this.emitConfig();
+		},
+		newName(){
 			this.emitConfig();
 		}
 	}
