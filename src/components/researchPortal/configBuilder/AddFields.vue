@@ -58,7 +58,7 @@ import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
-import SingleField from "@/components/researchPortal/configBuilder/SingleField.vue";
+import RawField from "@/components/researchPortal/configBuilder/RawField.vue";
 
 export default Vue.component("add-fields", {
 	props: ['availableFields'],
@@ -110,7 +110,7 @@ export default Vue.component("add-fields", {
 	},
 	modules: {},
 	components: {
-		SingleField
+		RawField
 	},
 	computed: {
 		fieldsAddedCurrently(){
