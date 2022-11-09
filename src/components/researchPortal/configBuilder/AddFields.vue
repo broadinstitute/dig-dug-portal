@@ -31,12 +31,16 @@
 					@click="addFieldToMulti">&rarr;
 				</button>
 			</div>
-			<raw-field v-if="typeInUse == 'raw' || 
-				typeInUse == 'replace characters'"
+			<raw-field v-if="typeInUse == 'raw'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
 				@configReady="updateSingleFieldConfig">
 			</raw-field>
+			<replace-chars-field v-else-if="typeInUse == 'replace characters'"
+				:type="typeInUse" :inputFields="fieldsAdded"
+				:newName="newFieldName"
+				@configReady="updateSingleFieldConfig">
+			</replace-chars-field>
 			<div v-else class="col-md-2"><strong>Fields</strong></div>
 			<label>New field name
 				<input type="text" v-model="newFieldName"/>
@@ -59,6 +63,7 @@ import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 import RawField from "@/components/researchPortal/configBuilder/RawField.vue";
+import ReplaceCharsField from "@/components/researchPortal/configBuilder/ReplaceCharsField.vue";
 
 export default Vue.component("add-fields", {
 	props: ['availableFields'],
@@ -134,9 +139,7 @@ export default Vue.component("add-fields", {
 			}
 		},
 		updateSingleFieldConfig(configObject){
-			let newConfig = configObject;
-			//newConfig["field name"] = this.newFieldName;
-			this.singleFieldConfig = newConfig;
+			this.singleFieldConfig = configObject;
 		},
 	},
 	watch: {
@@ -148,6 +151,7 @@ export default Vue.component("add-fields", {
 			this.maxFields = this.fieldTypes[newType].maxItems;
 		},
 		singleFieldConfig(newConfig){
+			//TODO make it go both ways
 			this.singleFieldConfigString = JSON.stringify(newConfig);
 		}
 	}
