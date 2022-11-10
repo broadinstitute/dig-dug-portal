@@ -44,6 +44,9 @@
     border: 1px solid gray;
     border-radius: 2px;
     width: 250px;
+    height: 6em;
+    overflow-y: scroll;
+    overflow-x: scroll;
 }
 .fieldlist ul {
     list-style: none;
@@ -52,6 +55,7 @@
     overflow-x: scroll;
     height: 5em;
 }
+
 #warning {
 	color: red;
 	font-size: smaller;

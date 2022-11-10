@@ -2,14 +2,24 @@
 	<div class="col-md-2">
         <span class="fieldlabel">Field ({{inputFields.length}} of 1)</span>
         <div class="fieldlist">
-			<ul>
+			<!--ul>
 				<li v-for="field of inputFields">
 					{{field}}
 					<delete-button 
 						@deleteThis="$emit('deleteField', field)">
 					</delete-button>
 				</li>
-			</ul>
+			</ul-->
+			<table>
+				<tr v-for="field of inputFields">
+					<td>{{field}}</td>
+					<td>
+						<delete-button 
+							@deleteThis="$emit('deleteField', field)">
+						</delete-button>
+					</td>
+				</tr>
+			</table>
 		</div>
     </div>
 </template>
