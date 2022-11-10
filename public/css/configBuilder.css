@@ -20,6 +20,7 @@
 }
 .flat-box {
     width: 250px;
+    overflow: scroll;
 }
 .flex-large {
     flex: 5
@@ -46,11 +47,7 @@
     font-weight: bold;
 }
 .fieldlist {
-    /*background-color: white;
-    border: 1px solid gray;
-    border-radius: 2px;
-    width: 250px;*/
-    /*height: 6em;*/
+
     overflow-y: scroll;
     overflow-x: scroll;
 }
@@ -68,10 +65,6 @@
     background-color: white;
     border: 1px solid gray;
     border-radius: 2px;
-}
-
-.fieldlist table td {
-    flex: 1;
 }
 
 .fieldlist table input {

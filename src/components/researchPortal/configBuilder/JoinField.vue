@@ -14,7 +14,7 @@
 				</thead>
 				<tbody>
 					<tr v-for="field of inputFields">
-						<td>{{field}}</td>
+						<td>{{fieldDisplayName(field)}}</td>
 						<td><input/></td>
 						<td>
 							<delete-button 
@@ -44,7 +44,8 @@ export default Vue.component("join-field", {
 	emits: ['configReady'],
 	data() {
 		return {
-            config: {}
+            config: {},
+			joins: []
 		};
 	},
 	mounted() {
@@ -59,9 +60,15 @@ export default Vue.component("join-field", {
 			this.$emit('configReady', {
 				"type": this.type,
 				"field name": this.newName,
-				"raw field": this.inputFields[0]
+				"fields to join": this.inputFields
 			}
 		)
+		},
+		fieldDisplayName(field){
+			if (field.length > 20){
+				return `${field.slice(0,20)}...`;
+			}
+			return field;
 		}
 	},
 	watch:{
