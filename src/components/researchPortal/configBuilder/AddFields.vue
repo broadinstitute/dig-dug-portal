@@ -92,7 +92,7 @@
 				<b-button style="background-color: red;">Delete</b-button>
 			</div>
         </div>
-		<div class="warning" :hidden="hideTypeWarning">
+		<div class="warning fields-warning" hidden>
 			Select a display type to continue
 		</div>
 		<div><strong>Output:</strong>{{showOutputObject}}</div>
@@ -153,7 +153,6 @@ export default Vue.component("add-fields", {
 			singleFieldConfig: {},
 			singleFieldConfigString: JSON.stringify({}),
 			typeInUse: "",
-			hideTypeWarning: true,
 			disablePlaceholder: false,
 			maxFields: 0,
 			newFieldName: "",
@@ -178,7 +177,7 @@ export default Vue.component("add-fields", {
 		...uiUtils,
 		addField(){
 			if(!this.typeInUse){
-				this.hideTypeWarning = false;
+				this.showWarning("Select a display type to continue.");
 				return;
 			}
 			for (let field of this.selectedFields){
@@ -200,14 +199,31 @@ export default Vue.component("add-fields", {
 			this.singleFieldConfig = configObject;
 		},
 		addDataConvertField (){
+			if (!this.singleFieldConfig["field name"]){
+				this.showWarning("New field name is required.");
+				return;
+			} else {
+				this.hideWarning();
+			}
 			this.output["data convert"].push(this.singleFieldConfig);
 			this.singleFieldConfig = {};
 		},
+		showWarning(warning){
+			let fieldsWarningArea = 
+				document.getElementsByClassName("fields-warning")[0];
+			fieldsWarningArea.innerText = warning;
+			fieldsWarningArea.hidden = false;
+		},
+		hideWarning(){
+			let fieldsWarningArea = 
+				document.getElementsByClassName("fields-warning")[0];
+			fieldsWarningArea.hidden = true;
+		}
 	},
 	watch: {
 		typeInUse(newType){
 			this.disablePlaceholder = true;
-			this.hideTypeWarning = true;
+			this.hideWarning();
 			this.selectedFields = [];
 			this.fieldsAdded = [];
 			this.maxFields = this.fieldTypes[newType].maxItems;
@@ -215,6 +231,11 @@ export default Vue.component("add-fields", {
 		singleFieldConfig(newConfig){
 			//TODO make it go both ways
 			this.singleFieldConfigString = JSON.stringify(newConfig);
+		},
+		newFieldName(newName){
+			if (!!newName){
+				this.hideWarning();
+			}
 		}
 	}
 });

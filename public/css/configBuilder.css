@@ -71,7 +71,7 @@
     width: 2em;
 }
 
-#warning {
+.warning {
 	color: red;
 	font-size: smaller;
 }
