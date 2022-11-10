@@ -1,17 +1,34 @@
 <template>
 	<div class="col-md-2">
-        <span class="fieldlabel">Fields
-			<span v-if="type == 'join'"> ({{inputFields.length}} of 2)</span>
-		</span>
         <div class="fieldlist">
-			<ul>
-				<li v-for="field of inputFields">
-					{{field}}
-					<delete-button 
-						@deleteThis="$emit('deleteField', field)">
-					</delete-button>
-				</li>
-			</ul>
+			<table>
+				<thead class="fieldlabel">
+					<tr>
+						<td>Field 
+							<!--span v-if="type == 'join'">
+								 ({{inputFields.length}} of 2)
+							</span-->
+						</td>
+						<td colspan="2">Join by</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="field of inputFields">
+						<td>{{field}}</td>
+						<td><input/></td>
+						<td>
+							<delete-button 
+								@deleteThis="$emit('deleteField', field)">
+							</delete-button>
+						</td>
+					</tr>
+					<tr v-if="inputFields.length == 0">
+						<td> </td>
+						<td> </td>
+						<td> </td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
     </div>
 </template>
