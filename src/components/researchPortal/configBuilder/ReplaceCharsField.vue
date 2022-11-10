@@ -2,14 +2,37 @@
 	<div>
         <span class="fieldlabel">Field ({{inputFields.length}} of 1)</span>
         <div class="fieldlist">
-			<ul>
-				<li v-for="field of inputFields">
-					{{field}}
-					<delete-button 
-						@deleteThis="$emit('deleteField', field)">
-					</delete-button>
-				</li>
-			</ul>
+			<table>
+				<thead class="fieldlabel">
+					<tr>
+						<td>Field 
+							<!--span v-if="type == 'join'">
+								 ({{inputFields.length}} of 2)
+							</span-->
+						</td>
+						<td>From</td>
+						<td colspan="2">To</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>{{fieldDisplayName(inputFields[0])}}</td>
+						<td><input v-model="from"/></td>
+						<td><input v-model="to"/></td>
+						<td>
+							<delete-button 
+								@deleteThis="$emit('deleteField', 
+									inputFields[0])">
+							</delete-button>
+						</td>
+					</tr>
+					<tr v-if="inputFields.length == 0">
+						<td> </td>
+						<td> </td>
+						<td> </td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
     </div>
 </template>
@@ -25,7 +48,8 @@ export default Vue.component("replace-chars-field", {
 	emits: ['configReady'],
 	data() {
 		return {
-            config: {}
+			from: "",
+			to: ""
 		};
 	},
 	mounted() {
@@ -37,12 +61,26 @@ export default Vue.component("replace-chars-field", {
 	methods: {
 		...uiUtils,
 		emitConfig(){
+			// Remember, an empty string is valid input
+			// When/where to make it yell at people over commas?
 			this.$emit('configReady', {
 				"type": this.type,
 				"field name": this.newName,
-				"raw field": this.inputFields[0]
+				"raw field": this.inputFields[0],
+				"replace": [
+					{
+						"from": this.from,
+						"to": this.to
+					}
+				]
 			}
 		)
+		},
+		fieldDisplayName(field){
+			if (field.length > 20){
+				return `${field.slice(0,20)}...`;
+			}
+			return field;
 		}
 	},
 	watch:{
@@ -50,6 +88,12 @@ export default Vue.component("replace-chars-field", {
 			this.emitConfig();
 		},
 		newName(){
+			this.emitConfig();
+		},
+		from(){
+			this.emitConfig();
+		},
+		to(){
 			this.emitConfig();
 		}
 	}

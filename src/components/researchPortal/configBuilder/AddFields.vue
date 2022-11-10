@@ -206,9 +206,6 @@ export default Vue.component("add-fields", {
 			this.output["data convert"].push(this.singleFieldConfig);
 			this.singleFieldConfig = {};
 		},
-		cancelDataConvertField(){
-			
-		}
 	},
 	watch: {
 		typeInUse(newType){

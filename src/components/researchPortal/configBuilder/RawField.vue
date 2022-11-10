@@ -1,9 +1,14 @@
 <template>
 	<div>
-        <span class="fieldlabel">Field ({{inputFields.length}} of 1)</span>
         <div class="fieldlist">
 			<table>
-				<tr v-for="field of inputFields">
+				<thead class="fieldlabel">
+					<tr>
+						<td colspan="2">Field</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="field of inputFields">
 					<td>{{field}}</td>
 					<td>
 						<delete-button 
@@ -11,6 +16,7 @@
 						</delete-button>
 					</td>
 				</tr>
+				</tbody>
 			</table>
 		</div>
     </div>

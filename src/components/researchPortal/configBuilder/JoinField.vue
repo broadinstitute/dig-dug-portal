@@ -45,7 +45,6 @@ export default Vue.component("join-field", {
 	emits: ['configReady'],
 	data() {
 		return {
-            config: {},
 			joins: []
 		};
 	},
