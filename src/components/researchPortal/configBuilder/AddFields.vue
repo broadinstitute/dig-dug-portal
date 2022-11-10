@@ -2,7 +2,7 @@
 	<div class="component-wrapper">
 		<div>Add fields to display/convert</div>
         <div class="gray-box row">
-			<div class="justfornow">
+			<div class="col-md-2">
 				<label>Type
 					<select v-model="typeInUse">
 						<option selected value="" 
@@ -16,7 +16,7 @@
 					</select>
 				</label>
 			</div>
-			<div class="justfornow">
+			<div class="col-md-2">
 				<label>Select field(s)
 					<select class="flat-box" multiple v-model="selectedFields">
 						<option v-if="!availableFields.length">
@@ -29,7 +29,7 @@
 					@click="addField">&rarr;
 				</button>
 			</div>
-			<div class="field-component justfornow">
+			<div class="field-component col-md-2">
 				<join-field v-if="typeInUse == 'join' || 
 				typeInUse == 'join multi'"
 				:type="typeInUse" :inputFields="fieldsAdded"
@@ -75,19 +75,19 @@
 				</div>
 			</div>
 			</div>
-			<div class="justfornow">
+			<div class="col-md-2">
 				<label>New field name
 				<input type="text" v-model="newFieldName"/>
 				</label>
 			</div>
-			<div class="justfornow">
+			<div class="col-md-2">
 				<label> Edit 
 				<textarea v-model="singleFieldConfigString"
 					rows="4" cols="30">
 				</textarea>
 			</label>
 			</div>
-			<div class="justfornow triplebutton">
+			<div class="col-md-1 triplebutton">
 				<b-button style="background-color: blue;" @click="addDataConvertField">Add</b-button>
 				<b-button style="background-color: orange;">Cancel</b-button>
 				<b-button style="background-color: red;">Delete</b-button>

@@ -1,5 +1,5 @@
 <template>
-	<div class="col-md-2">
+	<div>
         <div class="fieldlist">
 			<table>
 				<thead class="fieldlabel">

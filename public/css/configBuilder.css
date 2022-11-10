@@ -11,7 +11,7 @@
 }
 .gray-box .justfornow {
     display: inline;
-    float: left;
+    flex: 1;
 }
 .gray-box label {
     font-weight: bold;

@@ -1,5 +1,5 @@
 <template>
-	<div class="col-md-2">
+	<div>
         <span class="fieldlabel">Field ({{inputFields.length}} of 1)</span>
         <div class="fieldlist">
 			<ul>

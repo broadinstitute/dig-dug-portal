@@ -1,5 +1,5 @@
 <template>
-	<div class="col-md-2">
+	<div>
         <span class="fieldlabel">Fields</span>
         <div class="fieldlist">
 			<ul>
