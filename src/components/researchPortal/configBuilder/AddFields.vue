@@ -2,7 +2,7 @@
 	<div class="component-wrapper">
 		<div>Add fields to display/convert</div>
         <div class="gray-box row">
-			<div class="col-md-2">
+			<div class="flexdiv flex-med">
 				<label>Type
 					<select v-model="typeInUse">
 						<option selected value="" 
@@ -16,7 +16,7 @@
 					</select>
 				</label>
 			</div>
-			<div class="col-md-2">
+			<div class="flexdiv flex-med">
 				<label>Select field(s)
 					<select class="flat-box" multiple v-model="selectedFields">
 						<option v-if="!availableFields.length">
@@ -25,11 +25,13 @@
 						<option v-for="field in availableFields">{{field}}</option>
 					</select>
 				</label>
+			</div>
+			<div class="flexdiv flex-small">
 				<button class="add" :disabled="!availableFields.length" 
 					@click="addField">&rarr;
 				</button>
 			</div>
-			<div class="field-component col-md-2">
+			<div class="field-component flexdiv flex-large">
 				<join-field v-if="typeInUse == 'join' || 
 				typeInUse == 'join multi'"
 				:type="typeInUse" :inputFields="fieldsAdded"
@@ -75,19 +77,19 @@
 				</div>
 			</div>
 			</div>
-			<div class="col-md-2">
+			<div class="flexdiv flex-med">
 				<label>New field name
 				<input type="text" v-model="newFieldName"/>
 				</label>
 			</div>
-			<div class="col-md-2">
+			<div class="flexdiv flex-med">
 				<label> Edit 
 				<textarea v-model="singleFieldConfigString"
 					rows="4" cols="30">
 				</textarea>
 			</label>
 			</div>
-			<div class="col-md-1 triplebutton">
+			<div class="flexdiv flex-small triplebutton">
 				<b-button style="background-color: blue;" @click="addDataConvertField">Add</b-button>
 				<b-button style="background-color: orange;">Cancel</b-button>
 				<b-button style="background-color: red;">Delete</b-button>

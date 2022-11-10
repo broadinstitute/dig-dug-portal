@@ -9,10 +9,6 @@
 	min-height: 5em;
 	border-radius: 5px;
 }
-.gray-box .justfornow {
-    display: inline;
-    flex: 1;
-}
 .gray-box label {
     font-weight: bold;
 }
@@ -25,15 +21,23 @@
 .flat-box {
     width: 250px;
 }
+.flex-large {
+    flex: 5
+}
+.flex-med {
+    flex: 3
+}
+.flex-small {
+    flex: 1
+}
 .add {
-    /*display: inline;*/
+    display: inline;
     background-color: lightgray !important;
     border: none;
     color: black !important;
     font-size: large;
     font-weight: bold;
-    /*float: left;*/
-    /*height: 100%;*/
+    height: 100%;
 }
 .add:active:not(:disabled) {
     color: white !important;
@@ -46,7 +50,7 @@
     border: 1px solid gray;
     border-radius: 2px;
     width: 250px;*/
-    height: 6em;
+    /*height: 6em;*/
     overflow-y: scroll;
     overflow-x: scroll;
 }
@@ -58,13 +62,16 @@
     height: 5em;
 }
 .fieldlist table {
-    width: 200px;
+    width: 95%;
 }
 .fieldlist table tbody {
     background-color: white;
     border: 1px solid gray;
     border-radius: 2px;
-    height: 5em;
+}
+
+.fieldlist table td {
+    flex: 1;
 }
 
 .fieldlist table input {
