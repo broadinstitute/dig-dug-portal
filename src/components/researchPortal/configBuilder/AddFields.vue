@@ -71,9 +71,6 @@
 			</score-columns-field>
 			<div v-else><strong>Fields</strong>
 				<div class="fieldlist">
-					<ul>
-						<li></li>
-					</ul>
 				</div>
 			</div>
 			</div>

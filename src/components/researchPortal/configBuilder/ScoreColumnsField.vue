@@ -1,15 +1,23 @@
 <template>
 	<div>
-        <span class="fieldlabel">Fields</span>
         <div class="fieldlist">
-			<ul>
-				<li v-for="field of inputFields">
-					{{field}}
-					<delete-button 
-						@deleteThis="$emit('deleteField', field)">
-					</delete-button>
-				</li>
-			</ul>
+			<table>
+				<thead class="fieldlabel">
+					<tr>
+						<td colspan="2">Field</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="field of inputFields">
+					<td>{{field}}</td>
+					<td>
+						<delete-button 
+							@deleteThis="$emit('deleteField', field)">
+						</delete-button>
+					</td>
+				</tr>
+				</tbody>
+			</table>
 		</div>
     </div>
 </template>

@@ -1,15 +1,32 @@
 <template>
 	<div>
-        <span class="fieldlabel">Field ({{inputFields.length}} of 1)</span>
 		<div class="fieldlist">
-			<ul>
-				<li v-for="field of inputFields">
-					{{field}}
-					<delete-button 
-						@deleteThis="$emit('deleteField', field)">
-					</delete-button>
-				</li>
-			</ul>
+			<table>
+				<thead class="fieldlabel">
+					<tr>
+						<td>Field</td>
+						<td colspan="2">Calculate</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(field, i) in inputFields">
+						<td>{{field}}</td>
+						<td>
+							<select v-model="calcType[i]">
+								<option value="">Select type</option>
+								<option v-for="item in calcOptions">
+									{{item}}
+								</option>
+						</select>
+						</td>
+						<td>
+							<delete-button 
+								@deleteThis="$emit('deleteField', field)">
+							</delete-button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
     </div>
 </template>
@@ -25,7 +42,8 @@ export default Vue.component("calculate-field", {
 	emits: ['configReady'],
 	data() {
 		return {
-            config: {}
+            calcOptions: ["-log10"],
+			calcType: [""]
 		};
 	},
 	mounted() {
@@ -40,7 +58,8 @@ export default Vue.component("calculate-field", {
 			this.$emit('configReady', {
 				"type": this.type,
 				"field name": this.newName,
-				"raw field": this.inputFields[0]
+				"raw field": this.inputFields[0],
+				"calculation type": this.calcType[0]
 			}
 		)
 		}
@@ -50,6 +69,9 @@ export default Vue.component("calculate-field", {
 			this.emitConfig();
 		},
 		newName(){
+			this.emitConfig();
+		},
+		calcType(){
 			this.emitConfig();
 		}
 	}
