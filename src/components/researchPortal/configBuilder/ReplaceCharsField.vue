@@ -1,6 +1,5 @@
 <template>
 	<div>
-        <span class="fieldlabel">Field ({{inputFields.length}} of 1)</span>
         <div class="fieldlist">
 			<table>
 				<thead class="fieldlabel">
@@ -15,21 +14,17 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr>
-						<td>{{fieldDisplayName(inputFields[0])}}</td>
-						<td><input v-model="from"/></td>
-						<td><input v-model="to"/></td>
+					<tr v-for="(field, i) in inputFields">
+						<td>{{fieldDisplayName(field)}}</td>
+						<td><input v-model="from[i]"/>
+						</td>
+						<td><input v-model="to[i]"/>
+						</td>
 						<td>
 							<delete-button 
-								@deleteThis="$emit('deleteField', 
-									inputFields[0])">
+								@deleteThis="$emit('deleteField', field)">
 							</delete-button>
 						</td>
-					</tr>
-					<tr v-if="inputFields.length == 0">
-						<td> </td>
-						<td> </td>
-						<td> </td>
 					</tr>
 				</tbody>
 			</table>
@@ -48,8 +43,8 @@ export default Vue.component("replace-chars-field", {
 	emits: ['configReady'],
 	data() {
 		return {
-			from: "",
-			to: ""
+			from: [""],
+			to: [""],
 		};
 	},
 	mounted() {
@@ -69,8 +64,8 @@ export default Vue.component("replace-chars-field", {
 				"raw field": this.inputFields[0],
 				"replace": [
 					{
-						"from": this.from,
-						"to": this.to
+						"from": this.from[0],
+						"to": this.to[0]
 					}
 				]
 			}

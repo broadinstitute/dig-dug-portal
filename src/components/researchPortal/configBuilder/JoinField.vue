@@ -51,6 +51,7 @@ export default Vue.component("join-field", {
 	mounted() {
 		this.emitConfig();
 		for (let field of this.inputFields){
+			// need to "forget" join symbols when box is cleared. or do we?
 			this.joins.push("");
 		}
 	},
@@ -60,6 +61,7 @@ export default Vue.component("join-field", {
 	methods: {
 		...uiUtils,
 		emitConfig(){
+			// need to add the empty string immediately
 			let relevantJoins = this.joins;
 			if (this.type == "join"){
 				relevantJoins = this.joins[0];

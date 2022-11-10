@@ -1,15 +1,26 @@
 <template>
 	<div>
-        <span class="fieldlabel">Field ({{inputFields.length}} of 1)</span>
 		<div class="fieldlist">
-			<ul>
-				<li v-for="field of inputFields">
-					{{field}}
-					<delete-button 
-						@deleteThis="$emit('deleteField', field)">
-					</delete-button>
-				</li>
-			</ul>
+			<table>
+				<thead class="fieldlabel">
+					<tr>
+						<td>Field
+						</td>
+						<td colspan="2">Separate by</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(field, i) in inputFields">
+						<td>{{fieldDisplayName(field)}}</td>
+						<td><input v-model="separators[i]"/></td>
+						<td>
+							<delete-button 
+								@deleteThis="$emit('deleteField', field)">
+							</delete-button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
     </div>
 </template>
@@ -25,7 +36,7 @@ export default Vue.component("array-to-string-field", {
 	emits: ['configReady'],
 	data() {
 		return {
-            config: {}
+            separators: [""]
 		};
 	},
 	mounted() {
@@ -40,9 +51,16 @@ export default Vue.component("array-to-string-field", {
 			this.$emit('configReady', {
 				"type": this.type,
 				"field name": this.newName,
-				"raw field": this.inputFields[0]
+				"raw field": this.inputFields[0],
+				"separate by": this.separators[0]
 			}
 		)
+		},
+		fieldDisplayName(field){
+			if (field.length > 20){
+				return `${field.slice(0,20)}...`;
+			}
+			return field;
 		}
 	},
 	watch:{
@@ -50,6 +68,9 @@ export default Vue.component("array-to-string-field", {
 			this.emitConfig();
 		},
 		newName(){
+			this.emitConfig();
+		},
+		separators(){
 			this.emitConfig();
 		}
 	}
