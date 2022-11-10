@@ -84,7 +84,7 @@
 				</textarea>
 			</label>
 			<div class="col-md-1 triplebutton">
-				<b-button style="background-color: blue;">Add</b-button>
+				<b-button style="background-color: blue;" @click="addDataConvertField">Add</b-button>
 				<b-button style="background-color: orange;">Cancel</b-button>
 				<b-button style="background-color: red;">Delete</b-button>
 			</div>
@@ -92,6 +92,7 @@
 		<div class="warning" :hidden="hideTypeWarning">
 			Select a display type to continue
 		</div>
+		<div><strong>Output:</strong>{{showOutputObject}}</div>
     </div>
 </template>
 
@@ -152,7 +153,8 @@ export default Vue.component("add-fields", {
 			hideTypeWarning: true,
 			disablePlaceholder: false,
 			maxFields: 0,
-			newFieldName: ""
+			newFieldName: "",
+			output: {"data convert" : []}
 		};
 	},
 	modules: {},
@@ -165,8 +167,8 @@ export default Vue.component("add-fields", {
 		ScoreColumnsField
 	},
 	computed: {
-		fieldsAddedCurrently(){
-			return this.fieldsAdded;
+		showOutputObject(){
+			return JSON.stringify(this.output);
 		}
 	},
 	methods: {
@@ -194,6 +196,13 @@ export default Vue.component("add-fields", {
 		updateSingleFieldConfig(configObject){
 			this.singleFieldConfig = configObject;
 		},
+		addDataConvertField (){
+			this.output["data convert"].push(this.singleFieldConfig);
+			this.singleFieldConfig = {};
+		},
+		cancelDataConvertField(){
+			
+		}
 	},
 	watch: {
 		typeInUse(newType){
