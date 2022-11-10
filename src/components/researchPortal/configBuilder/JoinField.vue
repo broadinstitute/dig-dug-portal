@@ -15,7 +15,8 @@
 				<tbody>
 					<tr v-for="(field, i) in inputFields">
 						<td>{{fieldDisplayName(field)}}</td>
-						<td><input v-if="i != inputFields.length -1"/></td>
+						<td><input v-if="i != inputFields.length -1"
+							v-model="joins[i]"/></td>
 						<td>
 							<delete-button 
 								@deleteThis="$emit('deleteField', field)">
@@ -50,6 +51,9 @@ export default Vue.component("join-field", {
 	},
 	mounted() {
 		this.emitConfig();
+		for (let field of this.inputFields){
+			this.joins.push("");
+		}
 	},
 	modules: {},
 	components: {},
@@ -57,10 +61,15 @@ export default Vue.component("join-field", {
 	methods: {
 		...uiUtils,
 		emitConfig(){
+			let relevantJoins = this.joins;
+			if (this.type == "join"){
+				relevantJoins = this.joins[0];
+			}
 			this.$emit('configReady', {
 				"type": this.type,
 				"field name": this.newName,
-				"fields to join": this.inputFields
+				"fields to join": this.inputFields,
+				"join by": relevantJoins
 			}
 		)
 		},
@@ -76,6 +85,9 @@ export default Vue.component("join-field", {
 			this.emitConfig();
 		},
 		newName(){
+			this.emitConfig();
+		},
+		joins(){
 			this.emitConfig();
 		}
 	}
