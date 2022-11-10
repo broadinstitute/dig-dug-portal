@@ -2,7 +2,7 @@
 	<div class="component-wrapper">
 		<div>Add fields to display/convert</div>
         <div class="gray-box row">
-			<div class="col-md-2">
+			<div class="justfornow">
 				<label>Type
 					<select v-model="typeInUse">
 						<option selected value="" 
@@ -16,7 +16,7 @@
 					</select>
 				</label>
 			</div>
-			<div class="col-md-2">
+			<div class="justfornow">
 				<label>Select field(s)
 					<select class="flat-box" multiple v-model="selectedFields">
 						<option v-if="!availableFields.length">
@@ -25,13 +25,12 @@
 						<option v-for="field in availableFields">{{field}}</option>
 					</select>
 				</label>
-			</div>
-			<div class="col-md-1">
 				<button class="add" :disabled="!availableFields.length" 
 					@click="addField">&rarr;
 				</button>
 			</div>
-			<join-field v-if="typeInUse == 'join' || 
+			<div class="field-component justfornow">
+				<join-field v-if="typeInUse == 'join' || 
 				typeInUse == 'join multi'"
 				:type="typeInUse" :inputFields="fieldsAdded"
 				:newName="newFieldName"
@@ -68,22 +67,27 @@
 				@configReady="updateSingleFieldConfig"
 				@deleteField="deleteField">
 			</score-columns-field>
-			<div v-else class="col-md-2"><strong>Fields</strong>
+			<div v-else><strong>Fields</strong>
 				<div class="fieldlist">
 					<ul>
 						<li></li>
 					</ul>
 				</div>
 			</div>
-			<label class="col-md-2">New field name
+			</div>
+			<div class="justfornow">
+				<label>New field name
 				<input type="text" v-model="newFieldName"/>
-			</label>
-			<label class="col-md-2"> Edit 
+				</label>
+			</div>
+			<div class="justfornow">
+				<label> Edit 
 				<textarea v-model="singleFieldConfigString"
 					rows="4" cols="30">
 				</textarea>
 			</label>
-			<div class="col-md-1 triplebutton">
+			</div>
+			<div class="justfornow triplebutton">
 				<b-button style="background-color: blue;" @click="addDataConvertField">Add</b-button>
 				<b-button style="background-color: orange;">Cancel</b-button>
 				<b-button style="background-color: red;">Delete</b-button>
