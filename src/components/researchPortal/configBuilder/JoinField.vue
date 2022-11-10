@@ -13,9 +13,9 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-for="field of inputFields">
+					<tr v-for="(field, i) in inputFields">
 						<td>{{fieldDisplayName(field)}}</td>
-						<td><input/></td>
+						<td><input v-if="i != inputFields.length -1"/></td>
 						<td>
 							<delete-button 
 								@deleteThis="$emit('deleteField', field)">
