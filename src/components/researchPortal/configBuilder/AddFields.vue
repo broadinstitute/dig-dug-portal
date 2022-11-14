@@ -227,6 +227,13 @@ export default Vue.component("add-fields", {
 				this.showWarning("New field name is required.");
 				return false;
 			}
+			for (let field of this.dataConvert){
+				if (this.singleFieldConfig["field name"] 
+					== field["field name"]){
+					this.showWarning("New field names cannot be duplicates.");
+					return false;
+				}
+			}
 			return true;
 		}
 	},
