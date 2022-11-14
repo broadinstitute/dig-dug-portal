@@ -95,8 +95,8 @@
 		<div class="warning fields-warning" hidden>
 			Select a display type to continue
 		</div>
-		<div class="bubbles">
-			<span class="bubble filter-pill" v-for="item in dataConvert">
+		<div class="field-bubbles">
+			<span class="field-bubble" v-for="item in dataConvert">
 				{{item["field name"]}}
 			</span>
 		</div>
