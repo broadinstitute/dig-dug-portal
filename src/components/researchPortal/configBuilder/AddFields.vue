@@ -5,9 +5,8 @@
 			<div class="flexdiv flex-med">
 				<label>Type
 					<select v-model="typeInUse">
-						<option selected value="" 
-							:disabled="disablePlaceholder">
-							Select a display type
+						<option selected value="">
+							Select a field type
 						</option>
 						<option v-for="fieldType in Object.keys(fieldTypes)"
 							:value="fieldType">
@@ -87,14 +86,14 @@
 			</label>
 			</div>
 			<div class="flexdiv flex-small triplebutton">
-				<b-button style="background-color: blue;" @click="addDataConvertField">Add</b-button>
-				<b-button style="background-color: orange;">Cancel</b-button>
+				<b-button style="background-color: blue;" 
+					@click="addDataConvertField">Add</b-button>
+				<b-button style="background-color: orange;" 
+					@click="clearInputs">Cancel</b-button>
 				<b-button style="background-color: red;">Delete</b-button>
 			</div>
         </div>
-		<div class="warning fields-warning" hidden>
-			Select a display type to continue
-		</div>
+		<div class="warning fields-warning" hidden></div>
 		<div class="field-bubbles">
 			<span class="field-bubble" v-for="item in dataConvert">
 				{{item["field name"]}}
@@ -158,7 +157,6 @@ export default Vue.component("add-fields", {
 			singleFieldConfig: {},
 			singleFieldConfigString: JSON.stringify({}),
 			typeInUse: "",
-			disablePlaceholder: false,
 			maxFields: 0,
 			newFieldName: "",
 			dataConvert: [],
@@ -183,7 +181,7 @@ export default Vue.component("add-fields", {
 		...uiUtils,
 		addField(){
 			if(!this.typeInUse){
-				this.showWarning("Select a display type to continue.");
+				this.showWarning("Select a field type to continue.");
 				return;
 			}
 			for (let field of this.selectedFields){
@@ -208,6 +206,7 @@ export default Vue.component("add-fields", {
 			if (this.singleFieldConfigIsValid()){
 				this.dataConvert.push(this.singleFieldConfig);
 				this.singleFieldConfig = {};
+				this.clearInputs();
 			}
 		},
 		showWarning(warning){
@@ -223,6 +222,11 @@ export default Vue.component("add-fields", {
 		},
 		singleFieldConfigIsValid(){
 			this.hideWarning();
+			if (!this.singleFieldConfig.type 
+				|| this.singleFieldConfig.type == ""){
+					this.showWarning("Field type is required.");
+					return false;
+				}
 			if (this.singleFieldConfig["field name"] == ""){
 				this.showWarning("New field name is required.");
 				return false;
@@ -234,16 +238,35 @@ export default Vue.component("add-fields", {
 					return false;
 				}
 			}
+			return this.fieldSpecificConstraintsAreValid();
+		},
+		fieldSpecificConstraintsAreValid(){
+			if (this.singleFieldConfig.type == "replace characters"){
+				if (this.singleFieldConfig.replace.from == ""){
+					this.showWarning("'From' field cannot be empty.");
+					return false;
+				}
+			}
 			return true;
+		},
+		clearInputs(){
+			this.typeInUse = "";
+			this.singleFieldConfig = {};
+			this.newFieldName = "";
+			this.selectedFields = [];
+			this.fieldsAdded = [];
 		}
 	},
 	watch: {
 		typeInUse(newType){
-			this.disablePlaceholder = true;
 			this.hideWarning();
 			this.selectedFields = [];
 			this.fieldsAdded = [];
-			this.maxFields = this.fieldTypes[newType].maxItems;
+			if (newType != ""){
+				this.maxFields = this.fieldTypes[newType].maxItems;
+			} else {
+				this.maxFields = 0;
+			}
 		},
 		singleFieldConfig(newConfig){
 			//TODO make it go both ways
