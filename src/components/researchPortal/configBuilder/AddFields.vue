@@ -90,14 +90,15 @@
 					@click="addDataConvertField">Add</b-button>
 				<b-button style="background-color: orange;" 
 					@click="clearInputs">Cancel</b-button>
-				<b-button style="background-color: red;">Delete</b-button>
+				<b-button style="background-color: red;"
+					@click="deleteDataConvertField">Delete</b-button>
 			</div>
         </div>
 		<div class="warning fields-warning" hidden></div>
 		<div class="field-bubbles">
-			<span class="field-bubble" v-for="item in dataConvert">
+			<span class="field-bubble" v-for="(item, i) in dataConvert">
 				{{item["field name"]}} | {{item.type}}  
-				<button class="edit-button" @click="editField(item)">Edit</button>
+				<button class="edit-button" @click="editField(i)">Edit</button>
 			</span>
 		</div>
 		<!--div><strong>Output:</strong>{{showOutputObject}}</div-->
@@ -161,7 +162,7 @@ export default Vue.component("add-fields", {
 			maxFields: 0,
 			newFieldName: "",
 			dataConvert: [],
-			currentlyEditedField: null
+			editingField: null
 		};
 	},
 	modules: {},
@@ -257,9 +258,25 @@ export default Vue.component("add-fields", {
 			this.selectedFields = [];
 			this.fieldsAdded = [];
 		},
-		editField(item){
-			console.log("Editing:");
-			console.log(JSON.stringify(item));
+		editField(i){
+			this.editingField = i;
+			this.singleFieldConfig = this.dataConvert[i];
+			// still need to actually load the fields - or do I?
+		},
+		deleteDataConvertField(){
+			console.log(`Deleting field ${this.editingField}`);
+			if (this.editingField == null){
+				return;
+			}
+			this.dataConvert = this.dataConvert
+				.slice(0, this.editingField)
+				.concat(this.dataConvert.slice(this.editingField + 1));
+			this.editingField = null;
+			this.clearInputs();
+
+		},
+		loadFieldConfig(fieldConfig){
+			console.log("coming soon");
 		}
 	},
 	watch: {
