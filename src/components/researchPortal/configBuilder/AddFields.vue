@@ -95,7 +95,12 @@
 		<div class="warning fields-warning" hidden>
 			Select a display type to continue
 		</div>
-		<div><strong>Output:</strong>{{showOutputObject}}</div>
+		<div class="bubbles">
+			<span class="bubble filter-pill" v-for="item in dataConvert">
+				{{item["field name"]}}
+			</span>
+		</div>
+		<!--div><strong>Output:</strong>{{showOutputObject}}</div-->
     </div>
 </template>
 
@@ -156,7 +161,8 @@ export default Vue.component("add-fields", {
 			disablePlaceholder: false,
 			maxFields: 0,
 			newFieldName: "",
-			output: {"data convert" : []}
+			dataConvert: [],
+			currentlyEditedField: null
 		};
 	},
 	modules: {},
@@ -170,7 +176,7 @@ export default Vue.component("add-fields", {
 	},
 	computed: {
 		showOutputObject(){
-			return JSON.stringify(this.output);
+			return JSON.stringify(this.dataConvert);
 		}
 	},
 	methods: {
@@ -199,14 +205,10 @@ export default Vue.component("add-fields", {
 			this.singleFieldConfig = configObject;
 		},
 		addDataConvertField (){
-			if (!this.singleFieldConfig["field name"]){
-				this.showWarning("New field name is required.");
-				return;
-			} else {
-				this.hideWarning();
+			if (this.singleFieldConfigIsValid()){
+				this.dataConvert.push(this.singleFieldConfig);
+				this.singleFieldConfig = {};
 			}
-			this.output["data convert"].push(this.singleFieldConfig);
-			this.singleFieldConfig = {};
 		},
 		showWarning(warning){
 			let fieldsWarningArea = 
@@ -218,6 +220,14 @@ export default Vue.component("add-fields", {
 			let fieldsWarningArea = 
 				document.getElementsByClassName("fields-warning")[0];
 			fieldsWarningArea.hidden = true;
+		},
+		singleFieldConfigIsValid(){
+			this.hideWarning();
+			if (this.singleFieldConfig["field name"] == ""){
+				this.showWarning("New field name is required.");
+				return false;
+			}
+			return true;
 		}
 	},
 	watch: {
