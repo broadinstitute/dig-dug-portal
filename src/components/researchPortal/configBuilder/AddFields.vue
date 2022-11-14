@@ -96,7 +96,8 @@
 		<div class="warning fields-warning" hidden></div>
 		<div class="field-bubbles">
 			<span class="field-bubble" v-for="item in dataConvert">
-				{{item["field name"]}}
+				{{item["field name"]}} | {{item.type}}  
+				<button class="edit-button" @click="editField(item)">Edit</button>
 			</span>
 		</div>
 		<!--div><strong>Output:</strong>{{showOutputObject}}</div-->
@@ -255,6 +256,10 @@ export default Vue.component("add-fields", {
 			this.newFieldName = "";
 			this.selectedFields = [];
 			this.fieldsAdded = [];
+		},
+		editField(item){
+			console.log("Editing:");
+			console.log(JSON.stringify(item));
 		}
 	},
 	watch: {

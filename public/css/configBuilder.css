@@ -121,3 +121,10 @@
 .field-bubbles {
     text-align: center;
 }
+
+.edit-button{
+    background-color: black;
+    color: white !important;
+    border: none;
+    border-radius: 5px;
+}
