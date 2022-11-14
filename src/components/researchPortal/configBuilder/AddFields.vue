@@ -86,8 +86,10 @@
 			</label>
 			</div>
 			<div class="flexdiv flex-small triplebutton">
-				<b-button style="background-color: blue;" 
+				<b-button v-if="editingField == null" style="background-color: blue;" 
 					@click="addDataConvertField">Add</b-button>
+				<b-button v-else style="background-color: green;"
+					@click="saveDataConvertField">Save</b-button>
 				<b-button style="background-color: orange;" 
 					@click="clearInputs">Cancel</b-button>
 				<b-button style="background-color: red;"
@@ -233,6 +235,10 @@ export default Vue.component("add-fields", {
 				this.showWarning("New field name is required.");
 				return false;
 			}
+			if (this.singleFieldConfig["field name"].includes(",")){
+				this.showWarning("Field name may not contain commas.");
+				return false;
+			}
 			for (let field of this.dataConvert){
 				if (this.singleFieldConfig["field name"] 
 					== field["field name"]){
@@ -260,8 +266,7 @@ export default Vue.component("add-fields", {
 		},
 		editField(i){
 			this.editingField = i;
-			this.singleFieldConfig = this.dataConvert[i];
-			// still need to actually load the fields - or do I?
+			this.loadFieldConfig(this.dataConvert[i]);
 		},
 		deleteDataConvertField(){
 			console.log(`Deleting field ${this.editingField}`);
@@ -275,8 +280,29 @@ export default Vue.component("add-fields", {
 			this.clearInputs();
 
 		},
+		saveDataConvertField(){
+			if (this.editingField == null){
+				return;
+			}
+			if (this.singleFieldConfigIsValid()){
+				this.dataConvert[this.editingField] = this.singleFieldConfig;
+			}
+		},
 		loadFieldConfig(fieldConfig){
-			console.log("coming soon");
+			if (!fieldConfig.type || !fieldConfig["field name"]){
+				this.showWarning("Could not load field configuration.");
+			}
+			this.singleFieldConfig = fieldConfig;
+			this.typeInUse = fieldConfig.type;
+			this.newFieldName = fieldConfig["field name"];
+			// pass props to field component? e.g. join by
+			if (!!fieldConfig["raw field"]){
+				this.selectedFields = [fieldConfig["raw field"]];
+				this.fieldsAdded = [fieldConfig["raw field"]];
+			} else if(!!fieldConfig["fields to join"]){
+				this.selectedFields = [fieldConfig["raw field"]];
+				this.fieldsAdded = [fieldConfig["raw field"]];
+			}
 		}
 	},
 	watch: {
