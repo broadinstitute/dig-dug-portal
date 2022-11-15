@@ -330,8 +330,6 @@ export default Vue.component("research-data-table", {
 							scores[column] = { high: null, low: null };
 						}
 
-						//console.log("this.dataset", this.dataset);
-
 						this.dataset.map((row) => {
 							for (const field in scores) {
 								let fieldValue =
@@ -636,13 +634,23 @@ export default Vue.component("research-data-table", {
 			uiUtils.saveJson(DATA, FILENAME);
 		},
 		formatValue(tdValue, tdKey) {
-			let content = Formatters.BYORColumnFormatter(
-				tdValue,
-				tdKey,
-				this.tableFormat,
-				this.phenotypeMap,
-				this.dataScores
-			);
+			let content;
+
+			if (
+				!!this.tableFormat &&
+				!!this.tableFormat["column formatting"] &&
+				!!this.tableFormat["column formatting"][tdKey]
+			) {
+				content = Formatters.BYORColumnFormatter(
+					tdValue,
+					tdKey,
+					this.tableFormat,
+					this.phenotypeMap,
+					this.dataScores
+				);
+			} else {
+				content = tdValue;
+			}
 
 			return content;
 		},

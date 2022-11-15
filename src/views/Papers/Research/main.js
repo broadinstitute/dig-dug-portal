@@ -941,6 +941,7 @@ new Vue({
                         this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
 
                     } else if (convertedData.continuation == null && convertedData.page != 1) {
+                        console.log("finally")
                         // merge the last arrived data to the collection of research data
                         this.$store.dispatch("bioIndexContinue", convertedData.data);
                         //merge all data from continue
