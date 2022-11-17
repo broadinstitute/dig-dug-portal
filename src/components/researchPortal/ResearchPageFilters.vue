@@ -415,6 +415,7 @@
 				Clear all search
 			</b-badge>
 		</b-container>
+		<div id="byor_filter_warning" class="byor-filter-warning"></div>
 	</div>
 </template>
 
@@ -1117,10 +1118,12 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														search ===
+														search.toLowerCase() ===
 														row[searchIndex.field][
 															cellNum
-														].toString()
+														]
+															.toString()
+															.toLowerCase()
 													) {
 														meetSearch = true;
 													}
@@ -1531,7 +1534,20 @@ export default Vue.component("research-page-filters", {
 				}
 			}
 
-			this.$store.dispatch("filteredData", filtered);
+			let filteredLength =
+				filtered.length != undefined
+					? filtered.length
+					: Object.keys(filtered).length;
+
+			console.log(filteredLength);
+
+			if (filteredLength == 0 || filteredLength == null) {
+				document.getElementById("byor_filter_warning").innerHTML =
+					"nothing in bucket";
+				this.$store.dispatch("filteredData", this.unfilteredDataset);
+			} else {
+				this.$store.dispatch("filteredData", filtered);
+			}
 		},
 		removeAllFilters() {
 			for (const FIELD in this.filtersIndex) {
