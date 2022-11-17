@@ -91,7 +91,6 @@
 				</div>
 			</div>
 		</div>
-
 		<table
 			:class="'table table-sm research-data-table ' + pageID"
 			cellpadding="0"
@@ -107,34 +106,6 @@
 							@click="showHideStared()"
 						></b-icon>
 					</th>
-					<!--
-						<th
-						v-for="(value, index) in topRows"
-						:key="index"
-						@click="
-							!!tableFormat['top rows'].includes(value) ||
-							value == 'Credible Set'
-								? applySorting(value)
-								: ''
-						"
-						class="byor-tooltip"
-						:class="
-							!!tableFormat['top rows'].includes(value) ||
-							value == 'Credible Set'
-								? 'sortable-th ' + value
-								: ''
-						"
-					>
-						<span
-							v-html="value == 'Credible Set' ? 'PPA' : value"
-						></span>
-						<span
-							v-if="!!tableFormat['tool tips'][value]"
-							class="tooltiptext"
-							v-html="tableFormat['tool tips'][value]"
-						></span>
-					</th>
-						-->
 					<template v-for="(value, index) in topRows">
 						<th
 							v-if="getIfChecked(value) == true"
@@ -458,6 +429,7 @@ export default Vue.component("research-data-table", {
 				let formattedData = this.rawData;
 
 				//let filtered = this.dataset;
+
 				let paged = [];
 				let perPage =
 					Number(this.perPageNumber) != 0
@@ -466,9 +438,22 @@ export default Vue.component("research-data-table", {
 
 				let startIndex = (this.currentPage - 1) * perPage;
 				let endIndex =
-					this.rows - this.currentPage * perPage > perPage
+					this.rows - this.currentPage * perPage > 0
 						? this.currentPage * perPage
 						: this.rows;
+
+				console.log(
+					"perPage:",
+					perPage,
+					"this.currentPage",
+					this.currentPage,
+					"total:",
+					this.rows,
+					"startIndex:",
+					startIndex,
+					"endIndex:",
+					endIndex
+				);
 
 				for (let i = startIndex; i < endIndex; i++) {
 					if (!!formattedData[i]) {
@@ -563,7 +548,6 @@ export default Vue.component("research-data-table", {
 				id: value,
 				action: "add",
 			});
-			//console.log("pkgDataSelected", this.pkgDataSelected);
 		},
 		removeStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
@@ -572,11 +556,8 @@ export default Vue.component("research-data-table", {
 				id: value,
 				action: "remove",
 			});
-
-			//console.log("pkgDataSelected", this.pkgDataSelected);
 		},
 		checkStared(WHERE, ITEM) {
-			//console.log("WHERE", WHERE, ITEM);
 			if (!!ITEM) {
 				let selectedItems = this.pkgDataSelected
 					.filter((s) => s.type == this.tableFormat["star column"])
