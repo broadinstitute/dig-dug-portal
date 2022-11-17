@@ -312,6 +312,7 @@
 					<template
 						v-if="
 							filter.type == 'search' ||
+							filter.type == 'search exact' ||
 							filter.type == 'search greater than' ||
 							filter.type == 'search lower than' ||
 							filter.type == 'search or' ||
@@ -942,7 +943,7 @@ export default Vue.component("research-page-filters", {
 			inputField.blur();
 			inputField.value = "";
 
-			if (TYPE == "search") {
+			if (TYPE == "search" || TYPE == "search exact") {
 				let searchTerms = searchValue.split(",");
 				searchTerms.map((searchTerm) => {
 					this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
@@ -1012,6 +1013,15 @@ export default Vue.component("research-page-filters", {
 													.includes(
 														search.toLowerCase()
 													)
+													? tempFiltered.push(row)
+													: "";
+
+												break;
+											case "search exact":
+												search.toLowerCase() ===
+												row[searchIndex.field]
+													.toString()
+													.toLowerCase()
 													? tempFiltered.push(row)
 													: "";
 
@@ -1093,7 +1103,10 @@ export default Vue.component("research-page-filters", {
 										!!row[searchIndex.field] &&
 										row[searchIndex.field] != undefined
 									) {
-										if (searchIndex.type == "dropdown") {
+										if (
+											searchIndex.type == "dropdown" ||
+											searchIndex.type == "search exact"
+										) {
 											if (
 												comparingFields.includes(
 													searchIndex.field

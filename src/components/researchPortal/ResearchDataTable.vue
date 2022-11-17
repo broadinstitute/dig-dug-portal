@@ -442,19 +442,6 @@ export default Vue.component("research-data-table", {
 						? this.currentPage * perPage
 						: this.rows;
 
-				console.log(
-					"perPage:",
-					perPage,
-					"this.currentPage",
-					this.currentPage,
-					"total:",
-					this.rows,
-					"startIndex:",
-					startIndex,
-					"endIndex:",
-					endIndex
-				);
-
 				for (let i = startIndex; i < endIndex; i++) {
 					if (!!formattedData[i]) {
 						paged.push(formattedData[i]);
