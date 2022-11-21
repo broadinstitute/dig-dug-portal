@@ -415,7 +415,6 @@
 				Clear all search
 			</b-badge>
 		</b-container>
-		<div id="byor_filter_warning" class="byor-filter-warning"></div>
 	</div>
 </template>
 
@@ -423,6 +422,7 @@
 import Vue from "vue";
 
 import uiUtils from "@/utils/uiUtils";
+import alertUtils from "@/utils/alertUtils";
 import keyParams from "@/utils/keyParams";
 
 export default Vue.component("research-page-filters", {
@@ -447,6 +447,7 @@ export default Vue.component("research-page-filters", {
 			paramSearch: "",
 			geneSearch: "",
 			kpGenes: [],
+			lastFilter: { field: null, value: null },
 		};
 	},
 	created() {
@@ -943,6 +944,10 @@ export default Vue.component("research-page-filters", {
 
 			inputField.blur();
 			inputField.value = "";
+
+			///Record the last filtering item
+
+			this.lastFilter = { field: FIELD, value: searchValue };
 
 			if (TYPE == "search" || TYPE == "search exact") {
 				let searchTerms = searchValue.split(",");
@@ -1539,12 +1544,18 @@ export default Vue.component("research-page-filters", {
 					? filtered.length
 					: Object.keys(filtered).length;
 
-			console.log(filteredLength);
-
 			if (filteredLength == 0 || filteredLength == null) {
-				document.getElementById("byor_filter_warning").innerHTML =
-					"nothing in bucket";
-				this.$store.dispatch("filteredData", this.unfilteredDataset);
+				alertUtils.popAlert(
+					"The last filtering item returns no data therefore removed."
+				);
+
+				let newSearchArr = this.filtersIndex[
+					this.lastFilter.field
+				].search.filter((s) => s != this.lastFilter.value);
+
+				this.filtersIndex[this.lastFilter.field].search = newSearchArr;
+
+				this.applyFilters();
 			} else {
 				this.$store.dispatch("filteredData", filtered);
 			}

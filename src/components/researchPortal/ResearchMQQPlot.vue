@@ -365,7 +365,7 @@ export default Vue.component("research-m-qq-plot", {
 				}
 			}
 			let contentWrapper = document.getElementById(
-				PLOT + "dot_value_full_list_content"
+				PLOT + "_dot_value_full_list_content"
 			);
 
 			if (clickedDotValue != "") {
@@ -374,7 +374,7 @@ export default Vue.component("research-m-qq-plot", {
 					.getElementById(PLOT + "Plot" + ID)
 					.classList.add("hover");
 				document
-					.getElementById(PLOT + "clicked_dot_value")
+					.getElementById(PLOT + "_clicked_dot_value")
 					.classList.add("hidden");
 			} else {
 				wrapper.classList.add("hidden");
@@ -398,15 +398,22 @@ export default Vue.component("research-m-qq-plot", {
 
 			let numOfValues = 0;
 
+			console.log(x, y);
+
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
-					if (this[PLOT + "DotPosData"][x + h] != undefined) {
+					if (this[PLOT + "DotPosData"][ID][x + h] != undefined) {
+						console.log(this[PLOT + "DotPosData"][ID][x + h]);
 						if (
-							this[PLOT + "DotPosData"][x + h][y + v] != undefined
+							this[PLOT + "DotPosData"][ID][x + h][y + v] !=
+							undefined
 						) {
+							console.log(
+								this[PLOT + "DotPosData"][ID][x + h][y + v]
+							);
 							if (numOfValues < 6) {
 								let dotObject =
-									this[PLOT + "DotPosData"][x + h][y + v];
+									this[PLOT + "DotPosData"][ID][x + h][y + v];
 								clickedDotValue +=
 									'<span class="gene-on-clicked-dot-mplot"><b>' +
 									dotObject[this.renderConfig["render by"]] +
@@ -1028,9 +1035,21 @@ $(function () {});
 #m_clicked_dot_value,
 #qq_clicked_dot_value {
 	padding: 8px 20px 8px 10px !important;
+	position: absolute;
+	background-color: #fff;
+	border: solid 1px #aaa;
+	box-shadow: 0 0 5px #00000075;
+	font-size: 12px;
+	padding: 0px 10px 5px 10px;
+	max-width: 300px;
+	border-radius: 5px;
+	z-index: 10;
+	width: auto;
+	white-space: nowrap;
 }
 
-.clicked-dot-value-close {
+.m-clicked-dot-value-close,
+.qq-clicked-dot-value-close {
 	position: absolute;
 	top: 0;
 	right: 3px;
@@ -1038,7 +1057,8 @@ $(function () {});
 	color: #69f;
 }
 
-.clicked-dot-value-close:hover {
+.m-clicked-dot-value-close:hover,
+.qq-clicked-dot-value-close:hover {
 	color: #36c;
 }
 
