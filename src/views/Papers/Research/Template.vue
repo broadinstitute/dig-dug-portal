@@ -307,6 +307,20 @@
 								"
 								:compareGroupColors="$parent.colors.moderate"
 							></research-m-bitmap-plot>
+							<!--v-if="$parent.plotType == 'mbm_plot'"-->
+							<research-m-qq-plot
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] ==
+										'manhattan qq plot'
+								"
+								:plotData="$store.state.filteredData"
+								:renderConfig="$parent.plotConfig"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:compareGroupColors="$parent.colors.moderate"
+							></research-m-qq-plot>
 							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
 								v-if="
@@ -426,7 +440,10 @@
 							"
 						>
 							<research-data-table
-								v-if="!$parent.dataTableFormat['custom table']"
+								v-if="
+									!$parent.dataTableFormat['custom table'] &&
+									!!$store.state.bioPortal.phenotypeMap
+								"
 								:pageID="$parent.pageID"
 								:dataset="$parent.filteredData"
 								:tableFormat="$parent.dataTableFormat"
@@ -440,6 +457,9 @@
 								"
 								:pkgData="$store.state.pkgData"
 								:pkgDataSelected="$store.state.pkgDataSelected"
+								:phenotypeMap="
+									$store.state.bioPortal.phenotypeMap
+								"
 							>
 							</research-data-table>
 							<research-gem-data-table
@@ -577,5 +597,12 @@ html {
 .zoom-radio-number:hover {
 	color: #3388ff;
 	cursor: pointer;
+}
+
+.direction-positive {
+	color: #0066ff;
+}
+.direction-negative {
+	color: #ff0000;
 }
 </style>
