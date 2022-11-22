@@ -91,6 +91,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
@@ -398,19 +399,13 @@ export default Vue.component("research-m-qq-plot", {
 
 			let numOfValues = 0;
 
-			console.log(x, y);
-
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
 					if (this[PLOT + "DotPosData"][ID][x + h] != undefined) {
-						console.log(this[PLOT + "DotPosData"][ID][x + h]);
 						if (
 							this[PLOT + "DotPosData"][ID][x + h][y + v] !=
 							undefined
 						) {
-							console.log(
-								this[PLOT + "DotPosData"][ID][x + h][y + v]
-							);
 							if (numOfValues < 6) {
 								let dotObject =
 									this[PLOT + "DotPosData"][ID][x + h][y + v];
@@ -497,8 +492,6 @@ export default Vue.component("research-m-qq-plot", {
 				canvasRenderHeight -
 				(this.topMargin + yBump + this.bottomMargin);
 
-			//console.log(DATA);
-
 			for (const [dKey, dValue] of Object.entries(DATA)) {
 				//console.log("renderData", dKey, dValue);
 				let c = document.getElementById("qqPlot" + dKey);
@@ -538,7 +531,14 @@ export default Vue.component("research-m-qq-plot", {
 
 					let vTotal = 0;
 
-					dValue.unsorted.map((d) => {
+					let qqData = sortUtils.sortArrOfObjects(
+						dValue.unsorted,
+						this.renderConfig["y axis field"],
+						"number",
+						"desc"
+					);
+
+					qqData.map((d) => {
 						let yValue = d[this.renderConfig["y axis field"]];
 
 						vTotal += yValue;
@@ -625,10 +625,10 @@ export default Vue.component("research-m-qq-plot", {
 
 					//Render Dots
 
-					let plotData = dValue.unsorted;
+					//let plotData = dValue.unsorted;
 					let expected = [];
-					for (let i = 1; i <= plotData.length; i++) {
-						expected.push(Math.log10(i + 1 / plotData.length));
+					for (let i = 1; i <= qqData.length; i++) {
+						expected.push(Math.log10(i + 1 / qqData.length));
 					}
 
 					let yPosByPixel = plotHeight / (yMax - yMin);
@@ -647,7 +647,7 @@ export default Vue.component("research-m-qq-plot", {
 
 					ctx.stroke();
 
-					plotData.map((g, gIndex) => {
+					qqData.map((g, gIndex) => {
 						let dPValue =
 							g[this.renderConfig["y axis field"]] - yMin;
 						let yPos =
@@ -657,11 +657,6 @@ export default Vue.component("research-m-qq-plot", {
 							this.leftMargin +
 							plotWidth -
 							expected[gIndex] * xPosByPixel;
-
-						/*let N = plotData.length;
-						let i = gIndex + 1;
-
-						let x = 1 - i / N;*/
 
 						let dotColor = "#0066FF";
 
@@ -698,71 +693,6 @@ export default Vue.component("research-m-qq-plot", {
 							});
 						}
 					});
-
-					/*let chrs = Object.keys(dValue.sorted).filter(
-						(key) => dValue.sorted[key].length > 0
-					);
-
-					xStart = 0;
-					let exChr = "";
-					let chrNum = 1;*/
-
-					/*chrs.map((chr) => {
-						dValue.sorted[chr].map((g) => {
-							let xPos =
-								(xStart + g.locus) * chrByPixel +
-								this.leftMargin;
-
-							let yPosByPixel = plotHeight / (yMax - yMin);
-
-							let yPos =
-								this.topMargin +
-								plotHeight -
-								(g[this.renderConfig["y axis field"]] - yMin) *
-									yPosByPixel;
-
-							let dotColor = "#0066FF";
-
-							ctx.fillStyle = dotColor + "75";
-
-							ctx.lineWidth = 0;
-							ctx.beginPath();
-							ctx.arc(xPos, yPos, 3, 0, 2 * Math.PI);
-							ctx.fill();
-
-							let xLoc = xPos.toString().split(".")[0];
-							let yLoc = yPos.toString().split(".")[0];
-
-							let hoverContent;
-
-							if (!!this.renderConfig["hover content"]) {
-								hoverContent =
-									this.renderConfig["hover content"];
-							}
-
-							if (!this.qqDotPosData[dKey]) {
-								this.qqDotPosData[dKey] = {};
-							}
-
-							if (!this.qqDotPosData[dKey][xLoc]) {
-								this.qqDotPosData[dKey][xLoc] = {};
-							}
-							this.qqDotPosData[dKey][xLoc][yLoc] = {};
-							this.qqDotPosData[dKey][xLoc][yLoc][
-								this.renderConfig["render by"]
-							] = g[this.renderConfig["render by"]];
-							if (!!this.renderConfig["hover content"]) {
-								hoverContent.map((h) => {
-									this.qqDotPosData[dKey][xLoc][yLoc][h] =
-										g[h];
-								});
-							}
-						});
-
-						xStart += this.chromosomeLength[chr];
-
-						chrNum++;
-					});*/
 				}
 			}
 		},

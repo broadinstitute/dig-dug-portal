@@ -51,8 +51,25 @@ const uniqBy = (arr, predicate) => {
     }, new Map()).values()];
 };
 
+const sortArrOfObjects = (DATA, PRPT, TYPE, DIRECTION) => {
+
+    let sorted;
+    if (TYPE == 'number') {
+        sorted = (DIRECTION == "asc") ? DATA.sort((a, b) => a[PRPT] - b[PRPT]) :
+            DATA.sort((a, b) => b[PRPT] - a[PRPT]);
+    }
+
+    if (TYPE == 'alphabetical') {
+        sorted = (DIRECTION == "asc") ? DATA.sort((a, b) => (a[PRPT] > b[PRPT]) ? 1 : ((b[PRPT] > a[PRPT]) ? -1 : 0)) :
+            DATA.sort((a, b) => (a[PRPT] < b[PRPT]) ? 1 : ((b[PRPT] < a[PRPT]) ? -1 : 0));
+    }
+
+    return sorted;
+}
+
 export default {
     sort,
     sortEGLTableData,
     uniqBy,
+    sortArrOfObjects,
 }
