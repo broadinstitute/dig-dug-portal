@@ -51,6 +51,7 @@ const uniqBy = (arr, predicate) => {
     }, new Map()).values()];
 };
 
+/// Sort array of objects by a property (data, property, sorting value type, direction)
 const sortArrOfObjects = (DATA, PRPT, TYPE, DIRECTION) => {
 
     let sorted;
