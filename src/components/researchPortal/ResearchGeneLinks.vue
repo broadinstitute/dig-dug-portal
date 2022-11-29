@@ -6,6 +6,9 @@
 		>
 			<div class="col-md-12">
 				<div id="geneLinksUIWrapper">
+					<strong
+						>Filter associated variants by links to genes.
+					</strong>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -21,6 +24,7 @@
 								>
 									Select Tissue
 								</div>
+
 								<select
 									class="custom-select"
 									@change="getGeneLinks($event)"
@@ -37,6 +41,38 @@
 									</template>
 								</select>
 							</div>
+							<!-- this part is for SNP to Gene options -->
+							<!--<div class="col divider" style="background: none">
+								<span class="or-text">or</span>
+							</div>-->
+							<div
+								class="col"
+								style="padding: 2px; margin-left: 15px"
+							>
+								<div
+									class="label"
+									style="
+										display: inline-block;
+										margin-right: 10px;
+									"
+								>
+									Select SNP 2 Gene
+								</div>
+
+								<select
+									class="custom-select"
+									@change="getS2GeneLinks($event)"
+								>
+									<option value="">
+										{{ "Select one" }}
+									</option>
+									<option
+										value="s2g"
+										v-html="'SNP to Gene'"
+									></option>
+								</select>
+							</div>
+							<!-- -->
 						</div>
 						<div
 							class=""
@@ -62,7 +98,15 @@
 				</div>
 			</div>
 			<div class="col-md-9 gene-link-plot-wrapper">
-				<div id="geneLinksPlotWrapper">
+				<div
+					id="geneLinksPlotWrapper"
+					:class="
+						pkgDataSelected.filter((s) => s.type == 'GLTissue')
+							.length == 0
+							? 'height-1px'
+							: 'height-auto'
+					"
+				>
 					<div id="GLInfoBox" class="hidden">
 						<div
 							id="info_box_close"
@@ -89,8 +133,11 @@
 					></canvas>
 				</div>
 			</div>
-			<div class="col-md-3 GL-plot-ui-wrapper reference-area">
-				<div v-if="GLData != null">
+			<div
+				class="col-md-3 GL-plot-ui-wrapper reference-area"
+				v-if="GLData != null"
+			>
+				<div>
 					<button
 						class="btn btn-sm btn-outline-secondary"
 						style="margin-right: 5px; margin-bottom: 10px"
@@ -164,7 +211,6 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
 import alertUtils from "@/utils/alertUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
@@ -246,6 +292,7 @@ export default Vue.component("research-gene-links-plot", {
 			this.trigger--;
 
 			let renderObj = {};
+
 			for (const [tKey, tValue] of Object.entries(this.pkgData.GLData)) {
 				if (!renderObj[tKey]) {
 					renderObj[tKey] = {};
@@ -411,6 +458,7 @@ export default Vue.component("research-gene-links-plot", {
 		},
 	},
 	methods: {
+		...uiUtils,
 		isIdFixed: uiUtils.isIdFixed,
 		removeOnMouseOut: uiUtils.removeOnMouseOut,
 		resetAll() {
@@ -655,6 +703,14 @@ export default Vue.component("research-gene-links-plot", {
 				CTX.stroke();
 			});
 		},
+		array2Object(KEY, ARRAY) {
+			var convertedObj = {};
+			ARRAY.map((a) => {
+				let key = a[KEY];
+				convertedObj[key] = a;
+			});
+			return convertedObj;
+		},
 		renderGLPlot() {
 			if (
 				!!this.pkgData.GLData &&
@@ -710,6 +766,8 @@ export default Vue.component("research-gene-links-plot", {
 					let canvasWidth = document.querySelector(
 						"#geneLinksPlotWrapper"
 					).clientWidth;
+
+					//console.log("GL canvas", canvasWidth);
 
 					let canvasHeight = tempHeight + topMargin + bottomMargin;
 
@@ -1012,14 +1070,18 @@ export default Vue.component("research-gene-links-plot", {
 			this.renderGLPlot();
 		},
 		getTissueLabel(TISSUE) {
-			return TISSUE.tissue + " (" + TISSUE.phenotypes.join() + ")";
+			let label =
+				TISSUE.phenotypes.length > 0
+					? TISSUE.tissue + " (" + TISSUE.phenotypes.join() + ")"
+					: TISSUE.tissue;
+			return label;
 		},
 
 		async getGeneLinks(event) {
 			if (event.target.value != "") {
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["gene links server"];
 
 				let tissue = event.target.value.replaceAll(" ", "_");
@@ -1042,17 +1104,102 @@ export default Vue.component("research-gene-links-plot", {
 					if (GLJson.data.length == 0) {
 						alertUtils.popAlert(tissue + " has no linked genes.");
 					} else {
+						if (GLJson.continuation == null) {
+							this.runAfterGLDataLoad(GLJson.data, tissue);
+						} else {
+							this.loadContinue(GLJson, tissue);
+						}
+					}
+				}
+			}
+		},
+
+		async loadContinue(CONTENT, TISSUE) {
+			let biosamplesServer =
+				this.renderConfig["gene links server"] == "KP BioIndex"
+					? uiUtils.biDomain() + "/api/bio"
+					: this.renderConfig["gene links server"];
+
+			let contURL =
+				biosamplesServer + "/cont?token=" + CONTENT.continuation;
+
+			let contJson = await fetch(contURL).then((resp) => resp.json());
+
+			if (contJson.error == null) {
+				let prevData = CONTENT.data;
+				let newData = prevData.concat(contJson.data);
+
+				contJson.data = newData;
+
+				if (contJson.continuation == null) {
+					this.runAfterGLDataLoad(contJson.data, TISSUE);
+				} else {
+					this.loadContinue(contJson, TISSUE);
+				}
+			}
+		},
+
+		runAfterGLDataLoad(GLJson, tissue) {
+			this.$store.dispatch("pkgDataSelected", {
+				type: "GLTissue",
+				id: tissue,
+				action: "add",
+			});
+			if (!this.pkgData["GLData"]) {
+				this.pkgData["GLData"] = {};
+				this.GLData = {};
+			}
+			this.pkgData["GLData"][tissue] = GLJson;
+			this.GLData[tissue] = GLJson;
+
+			this.trigger++;
+			this.renderGLPlot();
+		},
+
+		async getS2GeneLinks(event) {
+			if (!!event.target.value && event.target.value != "") {
+				let geneLinksServer =
+					this.renderConfig["gene links server"] == "KP BioIndex"
+						? uiUtils.biDomain() + "/api/bio"
+						: this.renderConfig["gene links server"];
+
+				let region = this.searchingRegion;
+
+				let GLURL =
+					geneLinksServer +
+					"/query/variant-links?q=" +
+					region.chr +
+					":" +
+					region.start +
+					"-" +
+					region.end;
+
+				let S2GLJson = await fetch(GLURL).then((resp) => resp.json());
+
+				let S2GTissue = "SNP to gene";
+
+				if (S2GLJson.error == null) {
+					if (S2GLJson.data.length == 0) {
+						alertUtils.popAlert(
+							"No SNP to gene data found in the region."
+						);
+					} else {
+						///adding this part since data model for variant-links is different from gene-links
+						S2GLJson.data.map((g) => {
+							g["targetGene"] = g.gene;
+						});
+
 						this.$store.dispatch("pkgDataSelected", {
 							type: "GLTissue",
-							id: tissue,
+							id: S2GTissue,
 							action: "add",
 						});
 						if (!this.pkgData["GLData"]) {
 							this.pkgData["GLData"] = {};
 							this.GLData = {};
 						}
-						this.pkgData["GLData"][tissue] = GLJson.data;
-						this.GLData[tissue] = GLJson.data;
+						this.pkgData["GLData"][S2GTissue] = S2GLJson.data;
+						this.GLData[S2GTissue] = S2GLJson.data;
 					}
 
 					this.trigger++;
@@ -1069,7 +1216,7 @@ export default Vue.component("research-gene-links-plot", {
 			) {
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["gene links server"];
 
 				let phenotype = this.searchingPhenotype;
@@ -1096,6 +1243,12 @@ $(function () {});
 </script>
 
 <style>
+.height-1px {
+	height: 1px !important;
+}
+.height-auto {
+	height: auto;
+}
 .GL-search-bubble {
 	background-color: #999999;
 	font-size: 12px;
@@ -1128,6 +1281,7 @@ $(function () {});
 .GL-plot-ui-wrapper {
 	display: inline-block;
 	vertical-align: top;
+	height: auto;
 }
 .anno-bubble-wrapper {
 	width: auto;

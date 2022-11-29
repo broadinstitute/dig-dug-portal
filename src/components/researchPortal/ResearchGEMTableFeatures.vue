@@ -112,7 +112,7 @@ export default Vue.component("research-gem-table-features", {
 
 				for (const [vKey, vValue] of Object.entries(v)) {
 					content +=
-						"<td>test" + this.formatValue(vValue, vKey) + "</td>";
+						"<td>" + this.formatValue(vValue, vKey) + "</td>";
 				}
 				content += "</tr>";
 			});

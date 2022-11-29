@@ -20,13 +20,18 @@ export default new Vuex.Store({
         varassociations: bioIndex("associations"),
         ancestryAssoc: bioIndex("ancestry-associations"),
         associations52k: bioIndex("gene-associations-52k"),
+        geneToTranscript: bioIndex("gene-to-transcript"),
+        transcriptAssoc: bioIndex("transcript-associations"),
         uniprot
     },
     state: {
         geneName: keyParams.gene,
         geneToQuery: "",
         aliasName: null,
-        prior: 0.3696
+        prior: 0.3696,
+        selectedAncestry: "",
+        selectedTranscript: "",
+        commonVariantsLength: 0,
     },
 
     mutations: {
@@ -40,6 +45,9 @@ export default new Vuex.Store({
         },
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
+        },
+        setCommonVariantsLength(state, NUM) {
+            state.commonVariantsLength = NUM;
         }
     },
 
@@ -86,15 +94,17 @@ export default new Vuex.Store({
     },
 
     actions: {
+        commonVariantsLength(context, NUM) {
+            context.commit("setCommonVariantsLength", NUM);
+        },
 
         async queryGeneName(context, symbol) {
-            console.log("Querying gene");
-            console.log(context.state.geneToQuery);
             let name = context.state.geneToQuery || context.state.geneName;
             context.commit("setGeneName", name);
 
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
+                context.dispatch("geneToTranscript/query", { q: name });
             }
         },
 

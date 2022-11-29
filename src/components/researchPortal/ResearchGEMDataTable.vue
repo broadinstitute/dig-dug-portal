@@ -1,6 +1,7 @@
 <template>
 	<div class="research-data-table-wrapper">
 		<div v-html="tableLegend" class="data-table-legend"></div>
+
 		<div
 			v-if="!!dataset"
 			v-html="'Total rows: ' + this.rows"
@@ -54,6 +55,55 @@
 			>
 				Save as JSON
 			</div>
+			<div
+				class="convert-2-csv btn-sm"
+				@click="showHidePanel('#showHideColumnsBox')"
+			>
+				show/hide columns
+			</div>
+			<div v-if="!!newTableFormat" id="showHideColumnsBox" class="hidden">
+				<div
+					class="show-hide-columns-box-close"
+					@click="showHidePanel('#showHideColumnsBox')"
+				>
+					<b-icon icon="x-circle-fill"></b-icon>
+				</div>
+				<h4 style="text-align: center">Show/hide columns</h4>
+				<p></p>
+				<div class="table-wrapper">
+					<table class="table table-sm">
+						<thead>
+							<tr>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr
+								v-for="column in newTableFormat['top rows']"
+								:key="column"
+							>
+								<td>
+									<input
+										type="checkbox"
+										name="visible_top_rows"
+										:id="getColumnId(column)"
+										:value="column"
+										checked
+										@click="addRemoveColumn($event)"
+									/>
+									<span
+										v-html="
+											column == 'Credible Set'
+												? ' PPA'
+												: ' ' + column
+										"
+									></span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</div>
 
 		<table
@@ -86,35 +136,40 @@
 							@click="showHideStared()"
 						></b-icon>
 					</th>
-					<th
-						v-for="(value, index) in topRows"
-						:key="index"
-						@click="
-							!!tableFormat['top rows'].includes(value) ||
-							value == 'Credible Set'
-								? applySorting(value)
-								: ''
-						"
-						class="byor-tooltip"
-						:class="
-							!!tableFormat['top rows'].includes(value) ||
-							value == 'Credible Set'
-								? 'sortable-th ' + value
-								: ''
-						"
-					>
-						<span
-							v-html="value == 'Credible Set' ? 'PPA' : value"
-						></span>
-						<span
-							v-if="
-								!!tableFormat['tool tips'] &&
-								!!tableFormat['tool tips'][value]
+					<template v-for="(value, index) in topRows">
+						<th
+							v-if="getIfChecked(value) == true"
+							:key="index"
+							@click="
+								!!tableFormat['top rows'].includes(value) ||
+								value == 'Credible Set'
+									? applySorting(value)
+									: ''
 							"
-							class="tooltiptext"
-							v-html="tableFormat['tool tips'][value]"
-						></span>
-					</th>
+							class="byor-tooltip"
+							:class="
+								!!tableFormat['top rows'].includes(value) ||
+								value == 'Credible Set'
+									? 'sortable-th ' +
+									  value +
+									  ' ' +
+									  getColumnId(value)
+									: '' + getColumnId(value)
+							"
+						>
+							<span
+								v-html="value == 'Credible Set' ? 'PPA' : value"
+							></span>
+							<span
+								v-if="
+									!!tableFormat['tool tips'] &&
+									!!tableFormat['tool tips'][value]
+								"
+								class="tooltiptext"
+								v-html="tableFormat['tool tips'][value]"
+							></span>
+						</th>
+					</template>
 					<th
 						class="th-evidence"
 						v-if="newTableFormat['features'] != undefined"
@@ -147,14 +202,22 @@
 						v-if="topRows.includes(tdKey)"
 					>
 						<td
-							v-if="ifDataObject(tdValue) == false"
+							v-if="
+								ifDataObject(tdValue) == false &&
+								getIfChecked(tdKey) == true
+							"
 							:key="tdKey"
 							v-html="formatValue(tdValue, tdKey)"
+							:class="getColumnId(tdKey)"
 						></td>
 						<td
-							v-if="ifDataObject(tdValue) == true"
+							v-if="
+								ifDataObject(tdValue) == true &&
+								getIfChecked(tdKey) == true
+							"
 							:key="tdKey"
 							class="multi-value-td"
+							:class="getColumnId(tdKey)"
 						>
 							<span
 								v-for="(sValue, sKey, sIndex) in tdValue"
@@ -441,7 +504,7 @@ export default Vue.component("research-gem-data-table", {
 						isBiosample = true;
 					}
 				});
-				//working part
+
 				!!isBiosample
 					? (newTableFormat["Biosamples"] = ["Biosamples:array"])
 					: "";
@@ -766,7 +829,7 @@ export default Vue.component("research-gem-data-table", {
 			///Filter data if biosamples
 
 			// get list of BS methods and sources to filter them out
-			//working part
+
 			let removedBSMethods = this.$store.state.pkgDataSelected
 				.filter((s) => s.type == "BS-Method")
 				.map((s) => s.id);
@@ -941,7 +1004,6 @@ export default Vue.component("research-gem-data-table", {
 					if (!!updatedData[vKey]) {
 						/// feed "Biosample" column content
 						//let tissueColmContent = "";
-						//working part
 
 						for (const [biosample, annotations] of Object.entries(
 							biosampleContent
@@ -983,7 +1045,7 @@ export default Vue.component("research-gem-data-table", {
 							let a = bsArr[0];
 							let t = bsArr[1];
 							let b = bsArr[2];
-							//working part
+
 							let inAnnotation = 0;
 
 							this.pkgData.biosamplesData[a][t][b].map((r) => {
@@ -1006,7 +1068,7 @@ export default Vue.component("research-gem-data-table", {
 										dataset:
 											"<a href='https://cmdga.org/annotations/" +
 											r.dataset +
-											"'>" +
+											"' target='_blank'>" +
 											r.dataset +
 											"</a>",
 
@@ -1157,6 +1219,7 @@ export default Vue.component("research-gem-data-table", {
 						"Target Region in Gene",
 						"Method",
 						"Source",
+						"Dataset",
 						"Assay",
 						"Tissue",
 						"Biosample",
@@ -1172,6 +1235,13 @@ export default Vue.component("research-gem-data-table", {
 				let removedMethods = this.$store.state.pkgDataSelected
 					.filter((s) => s.type == "GL-Method")
 					.map((s) => s.id);
+
+				updatedData = !!Array.isArray(updatedData)
+					? this.array2Object(
+							this.tableFormat["star column"],
+							updatedData
+					  )
+					: updatedData;
 
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let position = vValue["Position"];
@@ -1202,6 +1272,12 @@ export default Vue.component("research-gem-data-table", {
 										o["targetGeneEnd"],
 									Method: o["method"],
 									Source: o["source"],
+									Dataset:
+										"<a href='https://cmdga.org/annotations/" +
+										o["dataset"] +
+										"' target='_blank'>" +
+										o["dataset"] +
+										"</a>",
 									Assay: o["assay"],
 									Tissue: o["tissue"],
 									Biosample: o["biosample"],
@@ -1266,7 +1342,7 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			console.log("formattedData", formattedData);
+			//console.log("this.pkgData", this.pkgData);
 
 			return formattedData;
 		},
@@ -1342,6 +1418,28 @@ export default Vue.component("research-gem-data-table", {
 	},
 	methods: {
 		...Formatters,
+		showHidePanel(PANEL) {
+			let wrapper = document.querySelector(PANEL);
+			if (wrapper.classList.contains("hidden")) {
+				wrapper.classList.remove("hidden");
+			} else {
+				wrapper.classList.add("hidden");
+			}
+		},
+		getIfChecked(LABEL) {
+			let id = this.getColumnId(LABEL);
+
+			let content = !!document.querySelector("#" + id)
+				? document.querySelector("#" + id).checked
+				: true;
+			return content;
+		},
+		getColumnId(LABEL) {
+			return LABEL.replace(/\W/g, "").toLowerCase();
+		},
+		addRemoveColumn(EVENT) {
+			this.$forceUpdate();
+		},
 		formattedData(DATA) {
 			let rawData = DATA;
 
@@ -1614,10 +1712,18 @@ export default Vue.component("research-gem-data-table", {
 			}
 			return arrayedObject;
 		},
-		array2Object(DATASET, RAW_DATASET, KEY) {
+		array2Object(KEY, ARRAY) {
+			var convertedObj = {};
+			ARRAY.map((a) => {
+				let key = a[KEY];
+				convertedObj[key] = a;
+			});
+			return convertedObj;
+		},
+		array2Object4Filter(DATASET, RAW_DATASET, KEY) {
 			let objectedArray = {};
 			DATASET.map((d) => {
-				let keyField = d[this.dataComparisonConfig["key field"]];
+				let keyField = d[KEY];
 				objectedArray[keyField] = RAW_DATASET[keyField];
 			});
 
@@ -1664,7 +1770,11 @@ export default Vue.component("research-gem-data-table", {
 				let returnData =
 					this.dataComparisonConfig == null
 						? sortedValues
-						: this.array2Object(sortedValues, this.dataset, key);
+						: this.array2Object4Filter(
+								sortedValues,
+								this.dataset,
+								this.dataComparisonConfig["key field"]
+						  );
 				this.$store.dispatch("filteredData", returnData);
 			} else if (key == this.newTableFormat["locus field"]) {
 				let sortKey = this.newTableFormat["locus field"];
@@ -1716,6 +1826,43 @@ export default Vue.component("research-gem-data-table", {
 </script>
 
 <style>
+.show-hide-columns-box-close {
+	position: absolute;
+	top: 5px;
+	right: 8px;
+	font-size: 14px;
+	color: #69f;
+}
+
+.show-hide-columns-box-close:hover {
+	color: #36c;
+}
+#showHideColumnsBox {
+	position: fixed;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	z-index: 11;
+	font-size: 14px;
+	width: 400px;
+	height: 50%;
+	text-align: left;
+	top: 25%;
+	left: calc(50% - 200px);
+	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
+	padding: 20px;
+}
+
+#showHideColumnsBox .table-wrapper {
+	overflow: auto !important;
+	padding: 0;
+	height: calc(100% - 35px);
+}
+
+#showHideColumnsBox th,
+#showHideColumnsBox td {
+	border: none;
+}
 .group-item-bubble {
 	margin-left: 3px;
 	margin-right: 3px;
@@ -1728,7 +1875,7 @@ export default Vue.component("research-gem-data-table", {
 	padding-top: 10px;
 }
 .data-table-legend {
-	margin-bottom: -15px;
+	/*margin-bottom: -15px;*/
 }
 .research-data-table-wrapper {
 	margin-top: 25px;

@@ -23,6 +23,7 @@ import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchGEMDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
+import ResearchMQQPlot from "@/components/researchPortal/ResearchMQQPlot.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
@@ -55,6 +56,7 @@ new Vue({
         ResearchAnnotationsPlot,
         ResearchGEMDataTable,
         ResearchMPlotBitmap,
+        ResearchMQQPlot,
         ResearchRegionPlot,
         ResearchScorePlot,
         ResearchGenesTrack,
@@ -372,71 +374,101 @@ new Vue({
                 return string.slice(0, -1)
             }
 
+            let applyConvert = function (DATA, CONVERT) {
+                let tempObj = {};
+                CONVERT.map(c => {
+
+                    let cType = c.type;
+
+
+                    switch (cType) {
+                        case "join":
+                            tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], DATA);
+                            break;
+
+                        case "join multi":
+                            tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], DATA);
+                            break;
+
+                        case "get locus":
+                            tempObj[c["field name"]] = formatLocus(c["chromosome"], c["start"], c["end"], DATA);
+                            break;
+
+                        case "calculate":
+
+                            let calType = c["calculation type"];
+
+                            switch (calType) {
+                                case "-log10":
+                                    tempObj[c["field name"]] = -Math.log10(DATA[c["raw field"]]);
+                                    break;
+                            }
+                            break;
+
+                        case "raw":
+                            tempObj[c["field name"]] = DATA[c["raw field"]];
+                            break;
+
+                        case "score columns":
+                            tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], DATA);
+                            break;
+
+                        case "array to string":
+                            tempObj[c["field name"]] = array2String(DATA[c["raw field"]], c["separate by"]);
+                            break;
+
+                        case "replace characters":
+                            let replaceArr = c["replace"]
+                            let rawString = DATA[c["raw field"]];
+                            let newString = "";
+                            let sIndex = 0;
+
+                            replaceArr.map(r => {
+                                newString = (sIndex == 0) ? rawString : newString;
+                                if (!!rawString) {
+                                    newString = newString.replaceAll(r.from, r.to);
+                                }
+                                sIndex++;
+                            })
+
+                            tempObj[c["field name"]] = newString;
+                            break;
+                    }
+                })
+
+                return tempObj;
+            }
+
             if (CONVERT != "no convert") {
                 DATA.map(d => {
-                    let tempObj = {};
-                    CONVERT.map(c => {
-
-                        let cType = c.type;
+                    let tempObj = applyConvert(d, CONVERT);
 
 
-                        switch (cType) {
-                            case "join":
-                                tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
-                                break;
+                    // Apply data convert to feature data level
+                    let dKeys = Object.keys(tempObj);
 
-                            case "join multi":
-                                tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
-                                break;
+                    let newTempObj = {};
 
-                            case "get locus":
-                                tempObj[c["field name"]] = formatLocus(c["chromosome"], c["start"], c["end"], d);
-                                break;
+                    dKeys.map(dKey => {
 
-                            case "calculate":
+                        if (typeof tempObj[dKey] == 'object' && tempObj[dKey].length > 0) {
+                            let tempArr = []
 
-                                let calType = c["calculation type"];
+                            tempObj[dKey].map(fd => {
+                                let tempFDObj = applyConvert(fd, CONVERT);
+                                tempArr.push(tempFDObj);
+                            })
 
-                                switch (calType) {
-                                    case "-log10":
-                                        tempObj[c["field name"]] = -Math.log10(d[c["raw field"]]);
-                                        break;
-                                }
-                                break;
-
-                            case "raw":
-                                tempObj[c["field name"]] = d[c["raw field"]];
-                                break;
-
-                            case "score columns":
-                                tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], d);
-                                break;
-
-                            case "array to string":
-                                tempObj[c["field name"]] = array2String(d[c["raw field"]], c["separate by"]);
-                                break;
-
-                            case "replace characters":
-                                let replaceArr = c["replace"]
-                                let rawString = d[c["raw field"]];
-                                let newString = "";
-                                let sIndex = 0;
-
-                                replaceArr.map(r => {
-                                    newString = (sIndex == 0) ? rawString : newString;
-                                    if (!!rawString) {
-                                        newString = newString.replaceAll(r.from, r.to);
-                                    }
-                                    sIndex++;
-                                })
-
-                                tempObj[c["field name"]] = newString;
-                                break;
+                            newTempObj[dKey] = tempArr;
+                        } else {
+                            newTempObj[dKey] = tempObj[dKey];
                         }
+
                     })
 
-                    convertedData.push(tempObj);
+                    convertedData.push(newTempObj);
                 });
+
             } else {
                 convertedData = DATA;
             }
@@ -474,11 +506,20 @@ new Vue({
                     let queryParams = "";
                     parametersArr.map((param, index) => {
 
-                        let paramValue = (typeof keyParams[param] === 'number') ? keyParams[param] : keyParams[param].trim();
+                        if (keyParams[param] != "noValue") {
+                            let paramValue = (typeof keyParams[param] === 'number') ? keyParams[param] : keyParams[param].trim();
 
-                        queryParams += paramValue;
-                        if (index + 1 < parametersArr.length) {
-                            queryParams += ",";
+                            queryParams += paramValue;
+                            if (index + 1 < parametersArr.length) {
+                                queryParams += ",";
+                            }
+                        } else {
+                            if (queryParams[queryParams.length - 1] == ",") {
+
+                                let newQP = queryParams.slice(0, -1);
+
+                                queryParams = newQP
+                            }
                         }
                     });
 
@@ -1081,6 +1122,7 @@ new Vue({
                             })
                         }
 
+                        this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
 
                         if (isKPPhenotype == true) {
                             let kpPhenotypes = this.$store.state.bioPortal.phenotypes
@@ -1090,10 +1132,11 @@ new Vue({
                                 tempObj[p.name] = p.description;
                             });
 
-                            this.dataFilesLabels = tempObj;
+                            // if there is data files lables filed is empty (null)
+                            this.dataFilesLabels = (!this.dataFilesLabels) ? {} : this.dataFilesLabels;
 
-                        } else {
-                            this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+                            this.dataFilesLabels["phenotype"] = tempObj;
+
                         }
 
 

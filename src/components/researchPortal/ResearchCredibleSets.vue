@@ -6,6 +6,14 @@
 		<div class="col-md-12 CS-plot-wrapper">
 			<div class="col-md-12">
 				<div id="CSUIWrapper">
+					<span>
+						<strong
+							>Filter associated variants by credible set
+							membership to view the set(s) of fine-mapped
+							variants most likely to include the causal variant
+							for this locus.</strong
+						>
+					</span>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -131,20 +139,14 @@
 					v-if="
 						pkgDataSelected
 							.filter((s) => s.type == 'Credible Set')
-							.map((s) => s.id).length == 0
-					"
-					v-html="
+							.map((s) => s.id).length != 0 &&
 						credibleSets.length == 0
-							? 'There is no available credible set.'
-							: 'Please select a credible set to render.'
 					"
+					v-html="'There is no available credible set.'"
 				></div>
 			</div>
 
-			<div
-				class="col-md-3 reference-area"
-				style="display: inline-block"
-			></div>
+			<div class="col-md-3" style="display: inline-block"></div>
 		</div>
 	</div>
 </template>
@@ -186,6 +188,7 @@ export default Vue.component("research-credible-sets-plot", {
 	modules: {
 		uiUtils,
 		plotUtils,
+
 		Formatters,
 		keyParams,
 		dataConvert,
@@ -388,7 +391,6 @@ export default Vue.component("research-credible-sets-plot", {
 			return idString;
 		},
 		removeCSData(CSID, PTYPE) {
-			console.log("test called");
 			let idString = CSID + PTYPE;
 			idString = idString.replace(/[^a-zA-Z0-9 ]/g, "");
 
@@ -594,7 +596,6 @@ export default Vue.component("research-credible-sets-plot", {
 			let selectedCS = this.pkgDataSelected
 				.filter((s) => s.type == "Credible Set")
 				.map((s) => s.id);
-			//console.log("selectedCS.length", selectedCS.length);
 
 			this.CSPosData = {};
 			let regionStart = this.viewingRegion.start;
@@ -929,7 +930,7 @@ export default Vue.component("research-credible-sets-plot", {
 
 				let CSServer =
 					this.renderConfig["credible sets server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["credible sets server"];
 
 				let CSIndex = !!this.renderConfig["credible variants index"]
@@ -961,7 +962,7 @@ export default Vue.component("research-credible-sets-plot", {
 						  )
 						: CSJson.data;
 
-					if (this.pkgData != null) {
+					if (!!this.pkgData && !!this.pkgData.CSData) {
 						if (!this.pkgData.CSData[phenotype]) {
 							this.pkgData.CSData[phenotype] = {};
 						}
@@ -985,7 +986,7 @@ export default Vue.component("research-credible-sets-plot", {
 		async getCredibleSetsList(REGION, PHENOTYPE) {
 			let CSServer =
 				this.renderConfig["credible sets server"] == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
+					? uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["credible sets server"];
 
 			let CSIndex = !!this.renderConfig["credible sets index"]

@@ -36,7 +36,12 @@
 							<template v-for="param in parameter.values">
 								<option
 									:value="param.trim()"
-									v-html="getFileLabel(param.trim())"
+									v-html="
+										getFileLabel(
+											param.trim(),
+											parameter.parameter
+										)
+									"
 									:key="param.trim()"
 								></option>
 							</template>
@@ -58,8 +63,12 @@
 						<select
 							:id="'search_param_' + parameter.parameter"
 							:class="
-								'custom-select custom-select-search ' +
-								getVisibleValues(parameter.values, paramSearch)
+								'custom-select custom-select-search long-list ' +
+								getVisibleValues(
+									parameter.values,
+									paramSearch,
+									parameter.parameter
+								)
 							"
 							:size="
 								parameter.values.length > 10
@@ -75,17 +84,30 @@
 									: ''
 							"
 							v-if="parameter.type == 'list'"
-							@change="updateSearchInputByEvent($event)"
+							@change="
+								updateSearchInputByEvent(
+									$event,
+									parameter.parameter
+								)
+							"
 						>
 							<option
 								v-for="param in parameter.values"
 								:value="param.trim()"
-								v-html="getFileLabel(param.trim())"
+								v-html="
+									getFileLabel(
+										param.trim(),
+										parameter.parameter
+									)
+								"
 								:key="param.trim()"
 								:class="
 									parameter.values.length > 10 &&
 									paramSearch.length > 2 &&
-									!getFileLabel(param.trim())
+									!getFileLabel(
+										param.trim(),
+										parameter.parameter
+									)
 										.toLowerCase()
 										.includes(paramSearch.toLowerCase())
 										? 'hidden'
@@ -290,6 +312,7 @@
 					<template
 						v-if="
 							filter.type == 'search' ||
+							filter.type == 'search exact' ||
 							filter.type == 'search greater than' ||
 							filter.type == 'search lower than' ||
 							filter.type == 'search or' ||
@@ -399,6 +422,7 @@
 import Vue from "vue";
 
 import uiUtils from "@/utils/uiUtils";
+import alertUtils from "@/utils/alertUtils";
 import keyParams from "@/utils/keyParams";
 
 export default Vue.component("research-page-filters", {
@@ -423,6 +447,7 @@ export default Vue.component("research-page-filters", {
 			paramSearch: "",
 			geneSearch: "",
 			kpGenes: [],
+			lastFilter: { field: null, value: null },
 		};
 	},
 	created() {
@@ -492,7 +517,10 @@ export default Vue.component("research-page-filters", {
 					if (pType != "list" && !!ifValuesFromKP) {
 						this.geneSearch = keyParams[param];
 					} else if (pType == "list" && !!ifValuesFromKP) {
-						let label = this.getFileLabel(keyParams[param].trim());
+						let label = this.getFileLabel(
+							keyParams[param].trim(),
+							param
+						);
 
 						let labelContent = label + "(" + keyParams[param] + ")";
 
@@ -517,6 +545,10 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		resetAll() {
+			this.$store.state.pkgData = {};
+			this.$store.state.pkgDataSelected = [];
+		},
 		expandRegion(EVENT, PARAM) {
 			let expandNumber = EVENT.target.value;
 
@@ -562,7 +594,7 @@ export default Vue.component("research-page-filters", {
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
-		getPlaceHolder(PARAM) {
+		/*getPlaceHolder(PARAM) {
 			let content = "";
 			if (keyParams[PARAM] != undefined) {
 				let paramType = this.apiParameters.parameters.filter(
@@ -581,13 +613,13 @@ export default Vue.component("research-page-filters", {
 			} else {
 				return "";
 			}
-		},
-		getVisibleValues(VALUES, SEARCH) {
+		},*/
+		getVisibleValues(VALUES, SEARCH, PARAMETER) {
 			var numOfVisible = 0;
 
 			VALUES.map((v) => {
 				if (
-					!!this.getFileLabel(v.trim())
+					!!this.getFileLabel(v.trim(), PARAMETER)
 						.toLowerCase()
 						.includes(SEARCH.toLowerCase())
 				) {
@@ -605,7 +637,7 @@ export default Vue.component("research-page-filters", {
 
 		async getRegion(KEY, PARAM) {
 			let searchPoint =
-				"https://bioindex.hugeamp.org/api/bio/query/gene?q=" + KEY;
+				uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
 
 			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
@@ -624,7 +656,8 @@ export default Vue.component("research-page-filters", {
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
 				let searchPoint =
-					"https://bioindex.hugeamp.org/api/bio/match/gene?q=" +
+					uiUtils.biDomain() +
+					"/api/bio/match/gene?q=" +
 					EVENT.target.value;
 
 				var geneJson = await fetch(searchPoint).then((resp) =>
@@ -658,8 +691,17 @@ export default Vue.component("research-page-filters", {
 					: "col";
 			return classes;
 		},
-		getFileLabel(file) {
-			if (this.filesListLabels != null) {
+		getFileLabel(file, PARAMETER) {
+			if (
+				this.filesListLabels != null &&
+				this.filesListLabels[PARAMETER] &&
+				this.filesListLabels[PARAMETER][file]
+			) {
+				return this.filesListLabels[PARAMETER][file];
+			} else if (
+				this.filesListLabels != null &&
+				this.filesListLabels[file]
+			) {
 				return this.filesListLabels[file];
 			} else {
 				return file;
@@ -685,17 +727,44 @@ export default Vue.component("research-page-filters", {
 			this.$store.dispatch("hugeampkpncms/cancelResearchData");
 			this.setDataComparison();
 
+			let regionFromVariant = null;
+
 			if (this.dataType == "bioindex") {
 				/// set store.searchingPhenotype if searching BioIndex
 				if (
 					this.apiParameters.query.format.includes("phenotype") ==
 					true
 				) {
-					var phenotype = document.getElementById(
+					let phenotype = document.getElementById(
 						"search_param_phenotype"
 					).value;
 
 					this.$store.dispatch("searchingPhenotype", phenotype);
+				}
+
+				///This part is for a case of the region being a variant
+				if (
+					this.apiParameters.query.format.includes("region") ==
+						true &&
+					!!this.testLetters(
+						document.getElementById("search_param_region").value
+					)
+				) {
+					let currentRegion = document
+						.getElementById("search_param_region")
+						.value.split(":");
+
+					let chr = currentRegion[0];
+					let pos = currentRegion[1].replace(/\D/g, "");
+
+					let regionStart = Number(pos) - 1;
+					let regionEnd = Number(pos) + 1;
+					let newRegion = chr + ":" + regionStart + "-" + regionEnd;
+
+					regionFromVariant = newRegion;
+
+					document.getElementById("search_param_region").value =
+						newRegion;
 				}
 			}
 
@@ -706,15 +775,27 @@ export default Vue.component("research-page-filters", {
 				let key2Update = {};
 
 				parametersArr.map((param, index) => {
-					queryParams += document.getElementById(
+					let queryParamValue = document.getElementById(
 						"search_param_" + param
 					).value;
-					if (index + 1 < parametersArr.length) {
-						queryParams += ",";
+
+					if (queryParamValue != "noValue") {
+						queryParams += queryParamValue;
+
+						if (index + 1 < parametersArr.length) {
+							queryParams += ",";
+						}
+					} else {
+						if (queryParams[queryParams.length - 1] == ",") {
+							let newQP = queryParams.slice(0, -1);
+							queryParams = newQP;
+						}
 					}
 
 					// add to search parameters index
 					if (this.$store.state.dataComparison == "newSearch") {
+						//reset pkgData and selected filters
+						this.resetAll();
 						this.searchParamsIndex[param].search = [];
 						let sValue = document.getElementById(
 							"search_param_" + param
@@ -748,14 +829,12 @@ export default Vue.component("research-page-filters", {
 				}
 			}
 
+			if (!!regionFromVariant) {
+				let url = new URL(window.location);
+				window.location.href = url;
+			}
+
 			let APIPoint = this.dataFiles[0];
-			/*if (this.dataType == "bioindex") {
-				APIPoint +=
-					"query/" +
-					this.apiParameters.query.index +
-					"?q=" +
-					queryParams;
-			}*/
 
 			if (this.dataType == "bioindex" && !!this.isAPI) {
 				/// set BioIndex API point
@@ -772,8 +851,12 @@ export default Vue.component("research-page-filters", {
 
 			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
 		},
-		updateSearchInputByEvent(event) {
-			var label = this.getFileLabel(event.target.value.trim());
+		/// test if string contains letters
+		testLetters(STR) {
+			return /[a-zA-Z]/.test(STR);
+		},
+		updateSearchInputByEvent(event, PARAMETER) {
+			var label = this.getFileLabel(event.target.value.trim(), PARAMETER);
 
 			this.paramSearch = label + "(" + event.target.value + ")";
 		},
@@ -820,7 +903,6 @@ export default Vue.component("research-page-filters", {
 		},
 		numberOfSearchParams() {},
 		buildOptions(field) {
-			//console.log("this.dataset", this.dataset);
 			if (this.dataComparisonConfig == null) {
 				let options = this.dataset
 					.map((v) => v[field])
@@ -863,7 +945,11 @@ export default Vue.component("research-page-filters", {
 			inputField.blur();
 			inputField.value = "";
 
-			if (TYPE == "search") {
+			///Record the last filtering item
+
+			this.lastFilter = { field: FIELD, value: searchValue };
+
+			if (TYPE == "search" || TYPE == "search exact") {
 				let searchTerms = searchValue.split(",");
 				searchTerms.map((searchTerm) => {
 					this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
@@ -933,6 +1019,15 @@ export default Vue.component("research-page-filters", {
 													.includes(
 														search.toLowerCase()
 													)
+													? tempFiltered.push(row)
+													: "";
+
+												break;
+											case "search exact":
+												search.toLowerCase() ===
+												row[searchIndex.field]
+													.toString()
+													.toLowerCase()
 													? tempFiltered.push(row)
 													: "";
 
@@ -1014,7 +1109,10 @@ export default Vue.component("research-page-filters", {
 										!!row[searchIndex.field] &&
 										row[searchIndex.field] != undefined
 									) {
-										if (searchIndex.type == "dropdown") {
+										if (
+											searchIndex.type == "dropdown" ||
+											searchIndex.type == "search exact"
+										) {
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1025,10 +1123,12 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														search ===
+														search.toLowerCase() ===
 														row[searchIndex.field][
 															cellNum
-														].toString()
+														]
+															.toString()
+															.toLowerCase()
 													) {
 														meetSearch = true;
 													}
@@ -1439,7 +1539,26 @@ export default Vue.component("research-page-filters", {
 				}
 			}
 
-			this.$store.dispatch("filteredData", filtered);
+			let filteredLength =
+				filtered.length != undefined
+					? filtered.length
+					: Object.keys(filtered).length;
+
+			if (filteredLength == 0 || filteredLength == null) {
+				alertUtils.popAlert(
+					"The last filtering item returns no data therefore removed."
+				);
+
+				let newSearchArr = this.filtersIndex[
+					this.lastFilter.field
+				].search.filter((s) => s != this.lastFilter.value);
+
+				this.filtersIndex[this.lastFilter.field].search = newSearchArr;
+
+				this.applyFilters();
+			} else {
+				this.$store.dispatch("filteredData", filtered);
+			}
 		},
 		removeAllFilters() {
 			for (const FIELD in this.filtersIndex) {
@@ -1483,11 +1602,17 @@ export default Vue.component("research-page-filters", {
 	left: 50px;*/
 }
 .custom-select-search {
+	width: 175px !important;
+	min-width: 175px;
+}
+
+.custom-select-search.long-list {
 	width: auto !important;
 	min-width: 175px;
 }
 
-.custom-select-search.hidden {
+.custom-select-search.hidden,
+.custom-select-search.long-list.hidden {
 	display: none !important;
 }
 

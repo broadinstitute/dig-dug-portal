@@ -14,14 +14,6 @@
 						:class="'feature-title-th feature-th-' + index"
 					>
 						<span class="feature-title">{{ value }}</span>
-						<!--<span
-							v-if="
-								!!featuresFormat['tool tips'] &&
-								!!featuresFormat['tool tips'][value]
-							"
-							class="tooltiptext"
-							v-html="featuresFormat['tool tips'][value]"
-						></span>-->
 					</th>
 					<th
 						v-for="(headerValue, headerIndex) in featuresFormat[
@@ -46,11 +38,18 @@
 					v-for="(featureValue, featureIndex) in featuresData[value]"
 					:key="featureIndex"
 				>
-					<td
-						v-for="(contentValue, contentKey) in featureValue"
-						:key="contentKey"
-						v-html="contentValue"
-					></td>
+					<template v-for="headerValue in featuresFormat[value]">
+						<td
+							v-if="!!featuresFormat[value].includes(headerValue)"
+							:key="headerValue"
+							v-html="
+								formatValue(
+									featureValue[headerValue],
+									headerValue
+								)
+							"
+						></td>
+					</template>
 				</tr>
 			</table>
 		</div>
@@ -59,9 +58,10 @@
 
 <script>
 import Vue from "vue";
+import Formatters from "@/utils/formatters";
 
 export default Vue.component("research-data-table-features", {
-	props: ["featuresData", "featuresFormat"],
+	props: ["featuresData", "featuresFormat", "phenotypeMap"],
 	data() {
 		return {};
 	},
@@ -73,16 +73,73 @@ export default Vue.component("research-data-table-features", {
 	mounted() {},
 	updated() {},
 	computed: {
-		/*topRowNumber() {
-			let topRows =
-				this.tableFormat["features"] != undefined
-					? this.tableFormat["top rows"].length + 1
-					: this.tableFormat["top rows"].length;
-			return topRows;
-		},*/
+		dataScores() {
+			if (
+				!!this.featuresData &&
+				!!this.featuresFormat &&
+				this.featuresFormat["column formatting"] != undefined
+			) {
+				let scores = {};
+				let columnFormatting = this.featuresFormat["column formatting"];
+
+				for (const column in columnFormatting) {
+					if (
+						columnFormatting[column].type.includes(
+							"render background percent"
+						) ||
+						columnFormatting[column].type.includes(
+							"render background percent negative"
+						)
+					) {
+						scores[column] = { high: null, low: null };
+					}
+				}
+
+				this.featuresFormat["features"].map((feature) => {
+					this.featuresData[feature].map((row) => {
+						for (const field in scores) {
+							let fieldValue =
+								typeof row[field] != "number"
+									? columnFormatting[field][
+											"percent if empty"
+									  ]
+									: row[field];
+							scores[field].high =
+								scores[field].high == null
+									? fieldValue
+									: scores[field].high < fieldValue
+									? fieldValue
+									: scores[field].high;
+
+							scores[field].low =
+								scores[field].low == null
+									? fieldValue
+									: scores[field].low > fieldValue
+									? fieldValue
+									: scores[field].low;
+						}
+					});
+				});
+
+				return scores;
+			}
+		},
 	},
 	watch: {},
-	methods: {},
+	methods: {
+		...Formatters,
+		formatValue(tdValue, tdKey) {
+			let content = Formatters.BYORColumnFormatter(
+				tdValue,
+				tdKey,
+				this.featuresFormat,
+				this.phenotypeMap,
+				this.dataScores
+			);
+
+			return content;
+		},
+	},
 });
 </script>
 

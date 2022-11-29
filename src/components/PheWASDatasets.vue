@@ -7,7 +7,7 @@
         >
             <div class="text-right mt-2">
                 <csv-download
-                    :data="tableData"
+                    :data="downloadData"
                     filename="PheWAS_associations"
                 ></csv-download>
             </div>
@@ -29,16 +29,7 @@
                     <b-col class="top-level-header-item">View</b-col>
                 </b-row>
                 <template v-for="(item, index) in tableData">
-                    <b-row
-                        :key="index"
-                        class="top-level-value"
-                        :class="
-                            index < (currentPage - 1) * perPage ||
-                            index >= currentPage * perPage
-                                ? 'hidden'
-                                : ''
-                        "
-                    >
+                    <b-row :key="index" class="top-level-value">
                         <b-col cols="4" class="top-level-value-item"
                             ><a
                                 :href="`/phenotype.html?phenotype=${item.phenotype.name}`"
@@ -224,58 +215,83 @@
                             >
                         </b-row>
                         <template v-for="i in 25">
-                            <b-row
-                                :id="`top25_${index}_variant_${i - 1}`"
-                                class="feature-content"
-                            >
+                            <b-row :key="`features_top25_${index}_${i}`"
+                                :id="`${index}_${item.phenotype.name}_variant_${
+                                i - 1 }`" class="feature-content hidden" >
                                 <b-col
-                                    :id="`pheno${index}_var${i - 1}_varId`"
+                                    :id="`${index}_${item.phenotype.name}_var${
+                                        i - 1
+                                    }_varId`"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
-                                    :id="`pheno${index}_var${i - 1}_dbSNP`"
+                                    :id="`${index}_${item.phenotype.name}_var${
+                                        i - 1
+                                    }_dbSNP`"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
-                                    :id="`pheno${index}_var${i - 1}_reference`"
+                                    :id="`${index}_${item.phenotype.name}_var${
+                                        i - 1
+                                    }_reference`"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
-                                    :id="`pheno${index}_var${i - 1}_pValue`"
+                                    :id="`${index}_${item.phenotype.name}_var${
+                                        i - 1
+                                    }_pValue`"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
-                                    :id="`pheno${index}_var${i - 1}_beta`"
+                                    :id="`${index}_${item.phenotype.name}_var${
+                                        i - 1
+                                    }_beta`"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
-                                    :id="`pheno${index}_var${i - 1}_maf`"
+                                    :id="`${index}_${item.phenotype.name}_var${
+                                        i - 1
+                                    }_maf`"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
-                                    :id="`pheno${index}_var${i - 1}_stdErr`"
+                                    :id="`${index}_${item.phenotype.name}_var${
+                                        i - 1
+                                    }_stdErr`"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
-                                    :id="`pheno${index}_var${i - 1}_zScore`"
+                                    :id="`${index}_${item.phenotype.name}_var${
+                                        i - 1
+                                    }_zScore`"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
-                                    :id="`pheno${index}_var${
+                                    :id="`${index}_${item.phenotype.name}_var${
                                         i - 1
                                     }_consequence`"
                                     cols="2"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
-                                    :id="`pheno${index}_var${i - 1}_nearest`"
+                                    :id="`${index}_${item.phenotype.name}_var${
+                                        i - 1
+                                    }_nearest`"
                                     class="feature-content-item"
                                 ></b-col>
                             </b-row>
                         </template>
                         <b-button class="btn btn-primary">
-                            <a :href="viewAllVariantsLink(item.phenotype.name, item.clump)">
-                            View all variants in clump</a>
+                            <a
+                                :href="
+                                    viewAllVariantsLink(
+                                        item.phenotype.name,
+                                        item.clump
+                                    )
+                                "
+                            >
+                                View all variants in clump</a
+                            >
                         </b-button>
                     </div>
                 </template>
@@ -313,11 +329,27 @@ export default Vue.component("PhewasDatasets", {
         return {
             perPage: 10,
             currentPage: 1,
+            phenotypesLoaded: {},
         };
     },
     computed: {
         groupedDatasets() {
-            let ordered = orderBy(this.datasets, ["pValue"], ["asc"]);
+			let filteredDatasets = [];
+			if (!!this.ancestry){
+				for (let dataset of this.datasets){
+					let datasetKey = dataset.dataset;
+					if (!!this.datasetMap[datasetKey]){
+						let datasetAncestry = 
+							this.datasetMap[datasetKey].ancestry;
+						if (datasetAncestry == this.ancestry){
+							filteredDatasets.push(dataset);
+						}
+					}
+				}
+			} else {
+				filteredDatasets = this.datasets;
+			}
+            let ordered = orderBy(filteredDatasets, ["pValue"], ["asc"]);
             return groupBy(ordered, "phenotype");
         },
         pheWASAssociations() {
@@ -339,9 +371,9 @@ export default Vue.component("PhewasDatasets", {
                 .sort((a, b) => a.pValue - b.pValue);
         },
         rows() {
-            return this.tableData.length;
+            return this.downloadData.length;
         },
-        tableData() {
+        downloadData() {
             let dataRows = this.pheWASAssociations;
 
             if (this.filter) {
@@ -353,15 +385,32 @@ export default Vue.component("PhewasDatasets", {
                     return this.filter(regularAssociation);
                 });
             }
+
             return dataRows;
+        },
+        tableData() {
+            let dataRows = this.downloadData;
+
+            let tempArr = [];
+
+            let arrIndex = (this.currentPage - 1) * this.perPage;
+            let arrIndexLimit = arrIndex + this.perPage;
+
+            for (let i = arrIndex; i < arrIndexLimit; i++) {
+                if (dataRows[i]) {
+                    tempArr.push(dataRows[i]);
+                }
+            }
+
+            return tempArr;
         },
     },
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
-        viewAllVariantsLink(phenotype, clump){
-            if (!this.ancestry){
+        viewAllVariantsLink(phenotype, clump) {
+            if (!this.ancestry) {
                 return `/research.html?pageid=clumped_variants&phenotype=${phenotype}&clump=${clump}`;
             }
             return `/research.html?pageid=ancestry_clumped_variants&phenotype=${phenotype}&ancestry=${this.ancestry}&clump=${clump}`;
@@ -383,7 +432,7 @@ export default Vue.component("PhewasDatasets", {
                 element.classList.add("hidden");
             });
         },
-        fillTopClumpedVariants(index, top25) {
+        fillTopClumpedVariants(index, phenotype, top25) {
             const dataFields = [
                 "pValue",
                 "maf",
@@ -393,51 +442,69 @@ export default Vue.component("PhewasDatasets", {
             ];
             for (let i = 0; i < 25; i++) {
                 let item = top25[i];
-                let zScoreNumber = Number(item.zScore);
-                item.zScore = zScoreNumber.toPrecision(5);
-                dataFields.forEach((dataField) => {
-                    let tableCellId = `pheno${index}_var${i}_${dataField}`;
-                    let tableCell = document.getElementById(tableCellId);
-                    tableCell.innerText = item[dataField];
-                });
-                // Other fields: varId, dbSNP, nearest, beta
-                let varIdCell = document.getElementById(
-                    `pheno${index}_var${i}_varId`
+                let itemRow = document.getElementById(
+                    `${index}_${phenotype}_variant_${i}`
                 );
-                varIdCell.innerHTML = `<a href="/variant.html?variant=${item.varId}">${item.varId}</a>`;
-                let dbSNPCell = document.getElementById(
-                    `pheno${index}_var${i}_dbSNP`
-                );
-                dbSNPCell.innerHTML = `<a href="/variant.html?variant=${item.dbSNP}">${item.dbSNP}</a>`;
-                let nearestCell = document.getElementById(
-                    `pheno${index}_var${i}_nearest`
-                );
-                nearestCell.innerHTML = `<a href="/gene.html?gene=${item.nearest}">${item.nearest}</a>`;
-                let betaCell = document.getElementById(
-                    `pheno${index}_var${i}_beta`
-                );
-                let betaClass =
-                    item.beta < 0 ? "effect negative" : "effect positive";
-                let betaSymbol = item.beta < 0 ? "&#9660;" : "&#9650;";
-                betaCell.innerHTML = `<span class="${betaClass}">${betaSymbol}</span>${item.beta}`;
-                let refAltCell = document.getElementById(
-                    `pheno${index}_var${i}_reference`
-                );
-                refAltCell.innerText = `${item.reference}/${item.alt}`;
+                if (item) {
+                    itemRow.classList.remove("hidden");
+                    let zScoreNumber = Number(item.zScore);
+                    item.zScore = zScoreNumber.toPrecision(5);
+                    item.pValue = this.pValueFormatter(item.pValue);
+                    dataFields.forEach((dataField) => {
+                        let tableCellId = `${index}_${phenotype}_var${i}_${dataField}`;
+                        let tableCell = document.getElementById(tableCellId);
+                        tableCell.innerText = item[dataField];
+                    });
+                    // Other fields: varId, dbSNP, nearest, beta, reference
+                    let varIdCell = document.getElementById(
+                        `${index}_${phenotype}_var${i}_varId`
+                    );
+                    varIdCell.innerHTML = `<a href="/variant.html?variant=
+						${item.varId}">${item.varId}</a>`;
+
+                    let dbSNPCell = document.getElementById(
+                        `${index}_${phenotype}_var${i}_dbSNP`
+                    );
+                    dbSNPCell.innerHTML = `<a href="/variant.html?variant=
+						${item.dbSNP}">${item.dbSNP}</a>`;
+
+                    let nearestCell = document.getElementById(
+                        `${index}_${phenotype}_var${i}_nearest`
+                    );
+                    nearestCell.innerHTML = `<a href="/gene.html?gene=
+						${item.nearest}">${item.nearest}</a>`;
+
+                    let betaCell = document.getElementById(
+                        `${index}_${phenotype}_var${i}_beta`
+                    );
+                    let betaClass =
+                        item.beta < 0 ? "effect negative" : "effect positive";
+                    let betaSymbol = item.beta < 0 ? "&#9660;" : "&#9650;";
+                    betaCell.innerHTML = `<span class="${betaClass}">
+						${betaSymbol}</span>${item.beta}`;
+
+                    let refAltCell = document.getElementById(
+                        `${index}_${phenotype}_var${i}_reference`
+                    );
+                    refAltCell.innerText = `${item.reference}/${item.alt}`;
+                }
             }
         },
-        async getClumpedVariants(index, phenotype, clump){
+        async getClumpedVariants(index, phenotype, clump) {
             // if already loaded, just toggle it open
-            let testCell = document.getElementById(`pheno${index}_var0_varId`);
-            if (testCell.innerText != "") {
-                console.log(`Phenotype #${index} has already been loaded.`);
+            let clumpQuery = `${phenotype},${clump}`;
+            let ancestryClumpQuery = `${phenotype},${this.ancestry},${clump}`;
+            let query = !this.ancestry ? clumpQuery : ancestryClumpQuery;
+
+            let clumpData = this.phenotypesLoaded[query];
+            if (clumpData) {
+                console.log(`${query} has already been loaded.`);
             } else {
-                let clumpQuery = `${phenotype},${clump}`;
-                let ancestryClumpQuery = `${phenotype},${this.ancestry},${clump}`;
                 let prefix = `${BIO_INDEX_HOST}/api/bio/query`;
-                let cvURL = !this.ancestry
-                    ? `${prefix}/clumped-variants?q=${clumpQuery}`
-                    : `${prefix}/ancestry-clumped-variants?q=${ancestryClumpQuery}`;
+                let endpoint = !this.ancestry
+                    ? "clumped-variants"
+                    : "ancestry-clumped-variants";
+                let cvURL = `${prefix}/${endpoint}?q=${query}`;
                 let cvJSON = await fetch(cvURL).then((response) =>
                     response.json()
                 );
@@ -445,9 +512,10 @@ export default Vue.component("PhewasDatasets", {
                 cvData.sort((a, b) => {
                     a.pValue - b.pValue;
                 });
-                let top25 = cvData.slice(0, 25);
-                this.fillTopClumpedVariants(index, top25);
+                clumpData = cvData.slice(0, 25);
+                this.phenotypesLoaded[query] = clumpData;
             }
+            this.fillTopClumpedVariants(index, phenotype, clumpData);
             this.showTop25(index);
         },
     },
@@ -455,6 +523,7 @@ export default Vue.component("PhewasDatasets", {
 </script>
 
 <style>
+@import url("/css/effectorGenes.css");
 .btn-primary a {
     color: white !important;
 }

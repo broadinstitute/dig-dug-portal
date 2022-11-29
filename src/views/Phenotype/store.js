@@ -15,19 +15,20 @@ export default new Vuex.Store({
         associations: bioIndex("global-associations"),
         annotations: bioIndex("global-enrichment"),
         genes: bioIndex("gene-finder"),
-        ancestryGlobalAssoc: bioIndex("ancestry-global-associations")
+        ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
+        geneticCorrelation: bioIndex("genetic-correlation"),
+        pathwayAssoc: bioIndex("pathway-associations")
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
         phenotype: null,
         newPhenotype: null,
+        selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        manhattanPlotAvailable: true
     },
     mutations: {
-        setPhenotype(state, phenotype) {
-            state.phenotype = phenotype;
-        }
     },
     getters: {
         documentationMap(state) {
@@ -39,17 +40,20 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            context.commit("setPhenotype", phenotype);
+            context.state.selectedPhenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },
 
         queryPhenotype(context) {
             context.state.ancestry = context.state.selectedAncestry;
+            context.state.phenotype = context.state.selectedPhenotype;
             let query = { q: context.state.phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
-            let geneQuery = { ...query, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
             let ancestryQuery = {q: `${context.state.phenotype.name},${context.state.ancestry}`};
             let ancestryAssocQuery = { ...ancestryQuery, limit: 1000 };
+            let ancestryOptionalQuery = !context.state.ancestry ? query : ancestryQuery; 
+            let geneQuery = { ...ancestryOptionalQuery, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
+            
             if (context.state.ancestry == "" || context.state.ancestry == null) {
                 context.dispatch("associations/query", assocQuery);
             } else {
@@ -57,6 +61,9 @@ export default new Vuex.Store({
             }
             context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
+            context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
+            context.dispatch("pathwayAssoc/query", ancestryOptionalQuery);
+            context.state.manhattanPlotAvailable = true;
         }
     }
 });

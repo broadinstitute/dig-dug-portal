@@ -6,6 +6,13 @@
 		>
 			<div class="col-md-12 anno-plot-wrapper">
 				<div id="annotationsUIWrapper">
+					<span>
+						<strong
+							>Filter associated variants by location within
+							regulatory regions annotated in broad tissue
+							categories.</strong
+						>
+					</span>
 					<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
@@ -27,7 +34,7 @@
 									@change="addAnnoTrack($event)"
 								>
 									<option value="null">
-										{{ "Select annotation" }}
+										{{ "Show all" }}
 									</option>
 									<option
 										v-for="(annoValue, annoKey) in annoData"
@@ -73,7 +80,7 @@
 				</div>
 				<div
 					class="col-md-12 anno-plot-ui-wrapper"
-					style="border-bottom: solid 1px #dddddd"
+					style="padding-top: 15px"
 				>
 					<h6><strong>Global Enrichment</strong></h6>
 					<div>
@@ -107,8 +114,16 @@
 					</div>
 				</div>
 
-				<div id="annotationsPlotWrapper">
-					<div
+				<div
+					id="annotationsPlotWrapper"
+					:class="
+						pkgDataSelected.filter((s) => s.type == 'Annotation')
+							.length == 0
+							? 'height-1px'
+							: 'height-auto'
+					"
+				>
+					<!--<div
 						class="filtering-ui-wrapper add-content"
 						style="width: 100%; padding: 0 10px; text-align: left"
 						v-if="
@@ -153,7 +168,18 @@
 								</template>
 							</div>
 						</div>
-					</div>
+					</div>-->
+					<strong
+						v-if="
+							pkgDataSelected.filter(
+								(s) => s.type == 'Annotation'
+							).length > 0
+						"
+					>
+						Clicking on a tissue track(s) filters the table to
+						display only variants located within that annotation
+						type(s) in the selected tissue categories.</strong
+					>
 					<div id="tissueInfoBox" class="hidden"></div>
 
 					<canvas
@@ -166,7 +192,7 @@
 						height=""
 					></canvas>
 
-					<div
+					<!--<div
 						id="annoInitialMessage"
 						:class="
 							pkgDataSelected.filter(
@@ -176,7 +202,7 @@
 								: ''
 						"
 						v-html="'Please select annotation.'"
-					></div>
+					></div>-->
 				</div>
 			</div>
 		</div>
@@ -187,7 +213,6 @@
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 import keyParams from "@/utils/keyParams";
@@ -198,6 +223,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	props: [
 		"region",
 		"phenotype",
+		"ancestry",
 		"renderConfig",
 		"plotMargin",
 		"compareGroupColors",
@@ -238,12 +264,30 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	computed: {
 		searchingParameters() {
+			let content = "";
 			if (
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
-				return this.searchingRegion + "," + this.searchingPhenotype;
+				let region =
+					this.searchingRegion.chr +
+					":" +
+					this.searchingRegion.start +
+					"-" +
+					this.searchingRegion.end;
+
+				content = region + "," + this.searchingPhenotype;
 			}
+
+			content += !!this.renderConfig["ancestry parameter"]
+				? "," +
+				  document.querySelector(
+						"#search_param_" +
+							this.renderConfig["ancestry parameter"]
+				  ).value
+				: "";
+
+			return content;
 		},
 		searchingRegion() {
 			let returnObj = {};
@@ -341,6 +385,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
+			//console.log(PARAM);
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -372,10 +417,13 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	methods: {
 		...uiUtils,
-		resetAll() {
+		resetAll(TYPE) {
+			if (!!TYPE && TYPE == "all") {
+				this.GEData = {};
+				this.GEPosData = {};
+			}
+
 			this.annoData = {};
-			this.GEData = {};
-			this.GEPosData = {};
 			this.tissuesData = {};
 			this.tissuesPosData = {};
 			this.selectedAnnos = [];
@@ -794,7 +842,7 @@ export default Vue.component("research-annotations-plot-v2", {
 		async getGlobalEnrichment() {
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
-					? "https://bioindex.hugeamp.org/api/bio"
+					? uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["annotations server"];
 
 			let phenotype = this.searchingPhenotype;
@@ -873,6 +921,8 @@ export default Vue.component("research-annotations-plot-v2", {
 					Vue.set(this.pkgData, "annoData", this.annoData);
 					Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 				}
+
+				//console.log("this.pkgData", this.pkgData);
 
 				this.renderByAnnotations();
 				this.renderGE();
@@ -975,9 +1025,10 @@ export default Vue.component("research-annotations-plot-v2", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
+				/// replace to uiUtils.biDomain()+"/api/bio"
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
-						? "https://bioindex.hugeamp.org/api/bio"
+						? uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["annotations server"];
 
 				let annoIndex = !!this.renderConfig["annotations index"]
@@ -1000,7 +1051,12 @@ export default Vue.component("research-annotations-plot-v2", {
 				);
 
 				if (annotationsJson.error == null) {
-					this.annoData = {};
+					if (annotationsJson.continuation == null) {
+						this.runAfterAnnoDataLoad(annotationsJson);
+					} else {
+						this.loadContinue(annotationsJson);
+					}
+					/*this.annoData = {};
 					this.tissuesData = {};
 
 					annotationsJson.data.map((a) => {
@@ -1036,13 +1092,86 @@ export default Vue.component("research-annotations-plot-v2", {
 						Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 					}
 
-					this.getGlobalEnrichment();
+					this.getGlobalEnrichment();*/
 				}
 			}
 		},
+		async loadContinue(CONTENT) {
+			let annoServer =
+				this.renderConfig["annotations server"] == "KP BioIndex"
+					? uiUtils.biDomain() + "/api/bio"
+					: this.renderConfig["annotations server"];
+
+			let contURL = annoServer + "/cont?token=" + CONTENT.continuation;
+
+			let contJson = await fetch(contURL).then((resp) => resp.json());
+
+			if (contJson.error == null) {
+				let prevData = CONTENT.data;
+				let newData = prevData.concat(contJson.data);
+
+				contJson.data = newData;
+
+				if (contJson.continuation == null) {
+					this.runAfterAnnoDataLoad(contJson);
+				} else {
+					this.loadContinue(contJson);
+				}
+			}
+		},
+
+		runAfterAnnoDataLoad(annotationsJson) {
+			this.annoData = {};
+			this.tissuesData = {};
+
+			annotationsJson.data.map((a) => {
+				// annoData
+				if (!this.annoData[a.annotation]) {
+					this.annoData[a.annotation] = {};
+				}
+				if (!this.annoData[a.annotation][a.tissue]) {
+					this.annoData[a.annotation][a.tissue] = {
+						region: [],
+						ancestries: {},
+					};
+				}
+
+				this.annoData[a.annotation][a.tissue].region.push(a);
+
+				//tissuesData
+				if (!this.tissuesData[a.tissue]) {
+					this.tissuesData[a.tissue] = {};
+				}
+
+				if (!this.tissuesData[a.tissue][a.annotation]) {
+					this.tissuesData[a.tissue][a.annotation] = {
+						region: [],
+						ancestries: {},
+					};
+				}
+				this.tissuesData[a.tissue][a.annotation].region.push(a);
+			});
+
+			if (this.pkgData != null) {
+				Vue.set(this.pkgData, "annoData", this.annoData);
+				Vue.set(this.pkgData, "tissuesData", this.tissuesData);
+			}
+
+			this.getGlobalEnrichment();
+		},
 		renderGE() {
+			//working part
+
 			this.GEPosData = {};
 			let sortedGEData = {};
+			let ancestry = !!this.renderConfig["ancestry parameter"]
+				? document.querySelector(
+						"#search_param_" +
+							this.renderConfig["ancestry parameter"]
+				  ).value
+				: null;
+
+			//console.log("this.GEData", this.GEData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
@@ -1053,12 +1182,37 @@ export default Vue.component("research-annotations-plot-v2", {
 				};
 
 				GE.map((g) => {
-					if (!!this.annoData[g.annotation][g.tissue]) {
+					let meetCondition = null;
+
+					if (
+						!!ancestry &&
+						!!this.annoData[g.annotation][g.tissue] &&
+						!!this.annoData[g.annotation][g.tissue]["ancestries"][
+							ancestry
+						]
+					) {
+						meetCondition = true;
+					} else if (
+						!ancestry &&
+						!!this.annoData[g.annotation][g.tissue] &&
+						!!this.annoData[g.annotation][g.tissue]
+					) {
+						meetCondition = true;
+					}
+
+					if (!!meetCondition) {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
-						let pValue =
-							g.pValue == 0 ? 324 : -Math.log10(g.pValue);
+
+						let pValue = !!ancestry
+							? this.annoData[g.annotation][g.tissue][
+									"ancestries"
+							  ][ancestry][phenotype]
+							: g.pValue;
+
+						pValue = pValue == 0 ? 324 : -Math.log10(pValue);
+
 						let fold = g.SNPs / g.expectedSNPs;
 
 						sortedGEData[phenotype].yMax =
@@ -1876,6 +2030,13 @@ $(function () {});
 </script>
 
 <style>
+.height-1px {
+	height: 1px !important;
+}
+.height-auto {
+	height: auto;
+	border-top: solid 1px #ddd;
+}
 .search-bubble {
 	font-size: 12px;
 	margin-right: 5px;

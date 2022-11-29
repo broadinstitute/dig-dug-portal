@@ -15,11 +15,7 @@ if (!!document.cookie) {
 }
 
 // updated at compile-time to the dev or production BioIndex server
-//export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
-//export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
-
-// We need the dev version to access ancestry endpoints
-export const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
+export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
 export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 
 /* Returns the path for any BioIndex API end-point.
@@ -30,10 +26,10 @@ export function apiUrl(path, query_private = false) {
     }
 
     if (query_private) {
-        console.log("query_private:", query_private);
+        console.log("query_private:", query_private, path);
         return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
     } else {
-        console.log("query_private is false:", query_private);
+        console.log("query_private is false:", query_private, path);
         return `${BIO_INDEX_HOST}/${path}`;
     }
 }
@@ -51,8 +47,8 @@ export function rawUrl(path, query_params, query_private=false) {
 export async function request(path, query_params, query_private=false) {
     return fetch(rawUrl(path, query_params, query_private), {
         headers: {
-            "x-bioindex-access-token": session_cookie
-        }
+            "x-bioindex-access-token": session_cookie,
+        },
     });
 }
 
@@ -150,5 +146,5 @@ export default {
     request,
     rawUrl,
     BIO_INDEX_HOST,
-    BIO_INDEX_HOST_PRIVATE
-}
+    BIO_INDEX_HOST_PRIVATE,
+};

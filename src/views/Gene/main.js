@@ -16,6 +16,8 @@ import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker";
+import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
 import Formatters from "@/utils/formatters";
 import VariantSearch from "@/components/VariantSearch";
 import keyParams from "@/utils/keyParams";
@@ -60,6 +62,8 @@ new Vue({
         Documentation,
         Autocomplete,
         GeneSelectPicker,
+        AncestrySelectPicker,
+        TranscriptSelectPicker,
         UnauthorizedMessage,
         CriterionFunctionGroup,
         FilterPValue,
@@ -108,7 +112,8 @@ new Vue({
                     title: "Universal Protein Resource",
                     link: "https://www.uniprot.org/uniprot/"
                 }
-            }
+            },
+
         };
     },
 
@@ -119,6 +124,7 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
 
         this.pushCriterionPhenotype("T2D");
     },
@@ -133,6 +139,37 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ancestryFormatter: Formatters.ancestryFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
+        onAncestrySet() {
+
+            let ancestry = this.$store.state.selectedAncestry;
+
+            let sectionWrapper = document.getElementById('common_variants');
+            let bubbleCollection = sectionWrapper.querySelectorAll('.filter-pill-collection');
+            let bubbleWrapper = document.getElementById('ancestry_set');
+
+            bubbleWrapper.innerHTML = "";
+
+            let ancestryBubble = document.getElementById('ancestry_bubble')
+            if (!!ancestryBubble) {
+                ancestryBubble.remove();
+            }
+
+            let bubble = document.createElement("span");
+            bubble.setAttribute("class", "badge btn search-bubble 3 badge-secondary badge-pill");
+            bubble.setAttribute("id", "ancestry_bubble");
+            bubble.textContent = 'Ancestry = ' + this.ancestryFormatter(ancestry);
+
+            if (!!ancestry && ancestry != undefined) {
+                if (bubbleCollection.length > 0) {
+                    bubbleCollection[0].append(bubble);
+                } else {
+                    bubbleWrapper.innerHTML = " Selected Filters:	 ";
+                    bubbleWrapper.append(bubble);
+                }
+            }
+        },
         pushCriterionPhenotype(phenotypeName) {
             this.genePageSearchCriterion.push({
                 field: "phenotype",
@@ -218,9 +255,8 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${r.chromosome
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
         isExomeWideSignificant(data, trait) {
@@ -241,10 +277,20 @@ new Vue({
     },
 
     computed: {
+
         phenotypeOptions() {
             return this.$store.state.bioPortal.phenotypes
                 .filter(x => x.name != this.$store.state.phenotype)
                 .map(phenotype => phenotype.name);
+        },
+
+        transcriptOr52k() {
+            let endpoint = !this.$store.state.selectedTranscript
+                ? this.$store.state.associations52k
+                : this.$store.state.transcriptAssoc;
+            this.$store.state.restricted = endpoint.restricted;
+            endpoint.data.sort((a, b) => this.pValueFormatter(a.pValue) - this.pValueFormatter(b.pValue));
+            return endpoint.data;
         },
 
         geneassociations() {
@@ -406,7 +452,7 @@ new Vue({
                     missense_variant: "MODERATE",
                     protein_altering_variant: "MODERATE"
                 };
-                data.sort(function(a, b) {
+                data.sort(function (a, b) {
                     return a.pValue - b.pValue;
                 });
                 let topVariant = data[0];
@@ -417,7 +463,7 @@ new Vue({
                 );
                 let distance = 0;
                 //calculate the distance of topVariant to each gene and find the smallest distance
-                filteredGenesInARegion.forEach(function(geneinregion) {
+                filteredGenesInARegion.forEach(function (geneinregion) {
                     let distanceFromStart =
                         topVariant.position - geneinregion.start;
                     let distanceFromEnd =
@@ -434,14 +480,14 @@ new Vue({
                     }
                 });
 
-                filteredGenesInARegion.sort(function(a, b) {
+                filteredGenesInARegion.sort(function (a, b) {
                     return a.distance - b.distance;
                 });
                 let lowestPvalueClosestGene = filteredGenesInARegion[0];
 
                 //find lowest p - value, is it closest gene - TO DO
 
-                data.forEach(function(eachSNP) {
+                data.forEach(function (eachSNP) {
                     if (coding_variants.hasOwnProperty(eachSNP.consequence)) {
                         if (eachSNP.pValue < 5e-8) {
                             commonBF = 20;
@@ -660,6 +706,18 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
+        },
+        "$store.state.selectedAncestry"(newAncestry) {
+            let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}` };
+            this.$store.dispatch("geneassociations/query", geneQuery);
+        },
+        "$store.state.selectedTranscript"(newTranscript) {
+            if (!!newTranscript) {
+                this.$store.dispatch("transcriptAssoc/query", { q: newTranscript });
+            }
+        },
+        "$store.state.commonVariantsLength"(NUM) {
+            this.onAncestrySet();
         }
     }
 }).$mount("#app");

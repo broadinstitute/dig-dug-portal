@@ -229,8 +229,9 @@ export default Vue.component("research-phewas-plot", {
 			DATA.data.map((p) => {
 				let group =
 					this.phenotypeMapConfig == "kpPhenotypeMap" &&
-					!!this.phenotypeMap[p.phenotype]
-						? this.phenotypeMap[p.phenotype].group
+					!!this.phenotypeMap[p[this.renderConfig["render by"]]]
+						? this.phenotypeMap[p[this.renderConfig["render by"]]]
+								.group
 						: p[this.renderConfig["group by"]];
 
 				phenotypeGroupsObj[group].push(p);
@@ -581,7 +582,7 @@ export default Vue.component("research-phewas-plot", {
 									end: Math.round(xPos) + 5,
 									data: tempObj,
 									name: pName,
-									id: p.phenotype,
+									id: p[this.renderConfig["render by"]],
 								};
 
 								if (!this.pheWasPosData[yRange]) {

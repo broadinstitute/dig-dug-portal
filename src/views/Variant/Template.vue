@@ -24,9 +24,13 @@
 				</div>
 				<div class="col filter-col-md">
 					<div class="label">Ancestry</div>
-					<ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
-                                        (dataset) => dataset.ancestry
-                                    )"></ancestry-selectpicker>
+					<ancestry-selectpicker
+						:ancestries="
+							$store.state.bioPortal.datasets.map(
+								(dataset) => dataset.ancestry
+							)
+						"
+					></ancestry-selectpicker>
 				</div>
 				<div class="col filter-col-sm">
 					<button
@@ -52,8 +56,9 @@
 					</div>
 				</div>
 				<div v-if="$store.state.badSearch">
-					<p :style="{color: '#FF0000'}">
-							Search term "{{$store.state.newVariantId}}" did not match a variant. Enter a variant to view associations.
+					<p :style="{ color: '#FF0000' }">
+						Search term "{{ $store.state.newVariantId }}" did not
+						match a variant. Enter a variant to view associations.
 					</p>
 				</div>
 			</search-header-wrapper>
@@ -70,7 +75,8 @@
 					<div class="col-md-3 gene-page-header-title">Navigate</div>
 
 					<div class="col-md-9 gene-page-header-body">
-						<span>{{ $parent.varId }}
+						<span
+							>{{ $parent.varId }}
 							<span v-if="$parent.dbSNP">
 								<span style="color: gray">/</span>
 								{{ $parent.dbSNP }}
@@ -173,10 +179,14 @@
 							<span style="color: gray">/</span>
 							{{ $parent.dbSNP }}
 						</span>
-						PheWAS associations
-						<span v-if="$store.state.ancestry">
-                            (Ancestry: {{ $parent.ancestryFormatter($store.state.ancestry) }})
-                        </span>
+						PheWAS associations (Ancestry:
+						{{
+							!$store.state.ancestry
+								? "All"
+								: $parent.ancestryFormatter(
+										$store.state.ancestry
+								  )
+						}})
 						<tooltip-documentation
 							name="variant.assoc.tooltip"
 							:content-fill="$parent.documentationMap"
@@ -231,28 +241,8 @@
 						</filter-effect-direction-control>
 
 						<template slot="filtered" slot-scope="{ filter }">
-							<!--<h4 class="card-title">Visualization</h4>-->
 							<b-tabs content-class="mt-3" align="center">
 								<b-tab title="PheWAS plot" active>
-									<!--<locuszoom
-										ref="locuszoom"
-										:chr="$store.state.chr"
-										:start="$store.state.start"
-										:end="$store.state.end"
-										:filter="filter"
-										:refSeq="false"
-										:loglog="true"
-									>
-										<lz-phewas-panel
-											v-if="$store.state.variant"
-											:id="$store.state.variant.varId"
-											:type="'variant'"
-											:phenotypeMap="
-												$store.state.bioPortal
-													.phenotypeMap
-											"
-										></lz-phewas-panel>
-									</locuszoom>-->
 									<b-button
 										size="sm"
 										variant="outline-secondary"
@@ -269,13 +259,18 @@
 
 									<research-phewas-plot
 										v-if="
-											($store.state.phewas.data.length > 0 && !$store.state.ancestry) || $store.state.ancestryPhewas.data.length > 0
+											($store.state.phewas.data.length >
+												0 &&
+												!$store.state.ancestry) ||
+											$store.state.ancestryPhewas.data
+												.length > 0
 										"
 										canvasId=""
 										:phenotypesData="
-											!$store.state.ancestry 
+											!$store.state.ancestry
 												? $store.state.phewas.data
-												: $store.state.ancestryPhewas.data
+												: $store.state.ancestryPhewas
+														.data
 										"
 										:phenotypeMap="
 											$store.state.bioPortal.phenotypeMap
@@ -316,7 +311,7 @@
 											'x axis label': 'beta',
 											'beta field': 'beta',
 											'hover content': ['pValue', 'beta'],
-											thresholds: ['2.5e-6'],
+											thresholds: ['5e-8'],
 											height: '500',
 										}"
 										:pkgData="null"
@@ -327,9 +322,18 @@
 								</b-tab>
 								<b-tab title="Forest plot">
 									<forest-plot-html
-										v-if="$store.state.phewas.data"
+										v-if="
+											($store.state.phewas.data.length >
+												0 &&
+												!$store.state.ancestry) ||
+											$store.state.ancestryPhewas.data
+												.length > 0
+										"
 										:forestPlotData="
-											$store.state.phewas.data
+											!$store.state.ancestry
+												? $store.state.phewas.data
+												: $store.state.ancestryPhewas
+														.data
 										"
 										:labelMap="
 											$store.state.bioPortal.phenotypeMap
@@ -354,9 +358,10 @@
 							></unauthorized-message>
 							<phewas-datasets
 								v-if="$store.state.phewas.data"
-								:associations=" !$store.state.ancestry
-									? $store.state.phewas.data
-									: $store.state.ancestryPhewas.data
+								:associations="
+									!$store.state.ancestry
+										? $store.state.phewas.data
+										: $store.state.ancestryPhewas.data
 								"
 								:ancestry="$store.state.ancestry"
 								:datasets="
@@ -406,7 +411,7 @@
 					</div>
 				</div>
 			</div>
-
+			<!--
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<h4 class="card-title">
@@ -463,7 +468,7 @@
 						</template>
 					</criterion-function-group>
 				</div>
-			</div>
+			</div>-->
 		</div>
 
 		<!-- Footer-->

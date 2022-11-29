@@ -14,7 +14,7 @@ export default {
             variants: [],
             masks: [],
             covariances: [],
-            runTestsError: "" //error to display if test failed
+            runTestsError: "", //error to display if test failed
         };
     },
     mutations: {
@@ -26,14 +26,14 @@ export default {
         },
         setError(state, data) {
             state.runTestsError = data;
-        }
+        },
     },
     actions: {
         // fetch all the phenotypes available
         async getPhenotypes({ state, commit }) {
             let json = await fetch(
                 "https://ld.hugeamp.org/aggregation/metadata"
-            ).then(resp => resp.json());
+            ).then((resp) => resp.json());
 
             // phenotypes for dataset
             commit(
@@ -49,7 +49,7 @@ export default {
             let query = {};
             let region = context.rootGetters.region;
 
-            if (dataset == "52k") {
+            if (dataset == "55k") {
                 query = {
                     chrom: region.chromosome,
                     start: region.start,
@@ -69,24 +69,24 @@ export default {
                             group_type: "GENE",
                             identifier_type: "ENSEMBL",
                             groups: {
-                                VARIANTS: variants
-                            }
-                        }
-                    ]
+                                VARIANTS: variants,
+                            },
+                        },
+                    ],
                 };
             } else {
                 //TopMed dataset
                 const datasets = [
                     { phenotype: "FG", id: 6 },
                     { phenotype: "T2D", id: 7 },
-                    { phenotype: "FI", id: 8 }
+                    { phenotype: "FI", id: 8 },
                 ];
                 query = {
                     chrom: region.chromosome,
                     start: region.start,
                     stop: region.end,
                     summaryStatisticDataset: datasets.find(
-                        p => p.phenotype === phenotype
+                        (p) => p.phenotype === phenotype
                     ).id, //for different versions and phenotypes
                     variantFormat: "COLONS",
                     samples: "ALL",
@@ -100,10 +100,10 @@ export default {
                             group_type: "GENE",
                             identifier_type: "ENSEMBL",
                             groups: {
-                                VARIANTS: variants
-                            }
-                        }
-                    ]
+                                VARIANTS: variants,
+                            },
+                        },
+                    ],
                 };
             }
 
@@ -115,25 +115,23 @@ export default {
                     method: "POST",
                     headers: {
                         Accept: "application/json, text/plain, */*",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(query)
+                    body: JSON.stringify(query),
                 }
             )
-                .then(resp => {
+                .then((resp) => {
                     if (resp.ok) {
                         return resp.json();
                     } else {
                         throw new Error("Request to LD server failed");
                     }
                 })
-                .then(json => {
+                .then((json) => {
                     samples = json.data.nSamples;
                     // Use the returned covariance data to run aggregation tests and return results (note that runner.run() returns a Promise)
-                    const [
-                        groups,
-                        variants
-                    ] = raremetal.helpers.parsePortalJSON(json);
+                    const [groups, variants] =
+                        raremetal.helpers.parsePortalJSON(json);
                     const runner = new raremetal.helpers.PortalTestRunner(
                         groups,
                         variants,
@@ -148,12 +146,12 @@ export default {
             return { phenotype, samples, data: json };
         },
         async runTests(context, { variants, phenotypes, dataset, tests }) {
-            let queries = phenotypes.map(phenotype =>
+            let queries = phenotypes.map((phenotype) =>
                 context.dispatch("getCovariances", {
                     variants,
                     phenotype,
                     dataset,
-                    tests
+                    tests,
                 })
             );
 
@@ -171,6 +169,6 @@ export default {
                 console.error(e);
                 context.commit("setError", e);
             }
-        }
-    }
+        },
+    },
 };

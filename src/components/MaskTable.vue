@@ -110,29 +110,17 @@ export default Vue.component("mask-table", {
                 "Standard Error",
                 "Sample Size",
             ],
-            masks: {
-                LoF_HC: { description: "LofTee", sort: 0 },
-                "16of16": { description: "16/16", sort: 1 },
-                "11of11": { description: "11/11 ", sort: 2 },
-                "5of5": { description: "5/5", sort: 3 },
-                "5of5_LoF_LC": { description: "5/5 + LofTee LC", sort: 4 },
-                "1of5_1pct": { description: "5/5 + 1/5 1%", sort: 5 },
-                "0of5_1pct": { description: "5/5 + 0/5 1% ", sort: 6 },
-            },
         };
     },
     created() {},
     computed: {
         formattedMasks() {
             let sorted = this.maskData.slice().sort((a, b) => {
-                if (this.masks[a.mask].sort < this.masks[b.mask].sort)
-                    return -1;
-                if (this.masks[b.mask].sort < this.masks[a.mask].sort) return 1;
-                return 0;
+                return this.maskFormatter(a.mask).sort - this.maskFormatter(b.mask).sort
             });
             return sorted.map((m) => ({
                 ...m,
-                mask: this.masks[m.mask].description,
+                mask: this.maskFormatter(m.mask).description,
             }));
         },
     },
@@ -141,6 +129,7 @@ export default Vue.component("mask-table", {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
+        maskFormatter: Formatters.maskFormatter
     },
 });
 </script>
