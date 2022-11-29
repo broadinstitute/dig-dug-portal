@@ -104,7 +104,7 @@
                             $store.state.transcriptConsequences.data.length > 0
                         "
                     >
-                        <h4 class="card-title">Phenotype Information</h4>
+                        <h4 class="card-title">Phenotypes of variant carriers in NephKP</h4>
                         <variant-phenotype-table
                             :variant-id="$store.state.variant.varId"
                         ></variant-phenotype-table>

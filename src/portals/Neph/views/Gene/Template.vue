@@ -31,9 +31,9 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Variants</h4>
+                    <h4 class="card-title">Variants in NephKP database</h4>
                     <documentation
-                        name="variantsearch.subheader"
+                        name="variantsearch.subheader" group="neph"
                     ></documentation>
                     <variant-search
                         :gene="$store.state.geneName"
