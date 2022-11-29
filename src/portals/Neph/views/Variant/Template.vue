@@ -97,18 +97,17 @@
                 </div>
             </div>
 
-            <div class="card mdkp-card">
+             <div class="card mdkp-card">
                 <div class="card-body">
                     <div
                         v-if="
                             $store.state.transcriptConsequences.data.length > 0
                         "
                     >
-                        <h4 class="card-title">
-                            gnomAD Population Frequencies
-                        </h4>
-                        <gnominfo-card :variant-id="$store.state.variant.varId">
-                        </gnominfo-card>
+                        <h4 class="card-title">Phenotype Information</h4>
+                        <variant-phenotype-table
+                            :variant-id="$store.state.variant.varId"
+                        ></variant-phenotype-table>
                     </div>
                 </div>
             </div>
@@ -158,6 +157,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div
@@ -165,13 +165,16 @@
                             $store.state.transcriptConsequences.data.length > 0
                         "
                     >
-                        <h4 class="card-title">Phenotype Information</h4>
-                        <variant-phenotype-table
-                            :variant-id="$store.state.variant.varId"
-                        ></variant-phenotype-table>
+                        <h4 class="card-title">
+                            gnomAD Population Frequencies
+                        </h4>
+                        <gnominfo-card :variant-id="$store.state.variant.varId">
+                        </gnominfo-card>
                     </div>
                 </div>
             </div>
+
+
         </div>
 
         <!-- Footer-->
