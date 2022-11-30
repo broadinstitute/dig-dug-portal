@@ -374,7 +374,8 @@ new Vue({
                 return string.slice(0, -1)
             }
 
-            let applyConvert = function (DATA, CONVERT) {
+            let applyConvert = function (DATA, CONVERT, PHENOTYPE_MAP) {
+
                 let tempObj = {};
                 CONVERT.map(c => {
 
@@ -433,6 +434,13 @@ new Vue({
 
                             tempObj[c["field name"]] = newString;
                             break;
+
+                        case "kp phenotype name":
+
+                            let pID = DATA[c["raw field"]]
+
+                            tempObj[c["field name"]] = (!!PHENOTYPE_MAP[pID] ? PHENOTYPE_MAP[pID].description : pID);
+                            break;
                     }
                 })
 
@@ -440,8 +448,11 @@ new Vue({
             }
 
             if (CONVERT != "no convert") {
+                console.log(this.$store.state.bioPortal.phenotypeMap);
+                let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+
                 DATA.map(d => {
-                    let tempObj = applyConvert(d, CONVERT);
+                    let tempObj = applyConvert(d, CONVERT, phenotypeMap);
 
 
                     // Apply data convert to feature data level
@@ -455,7 +466,7 @@ new Vue({
                             let tempArr = []
 
                             tempObj[dKey].map(fd => {
-                                let tempFDObj = applyConvert(fd, CONVERT);
+                                let tempFDObj = applyConvert(fd, CONVERT, phenotypeMap);
                                 tempArr.push(tempFDObj);
                             })
 
