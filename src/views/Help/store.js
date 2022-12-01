@@ -14,11 +14,17 @@ export default new Vuex.Store({
     },
     state: {
         page: keyParams.page,
+        searchKey: null,
+        searchedKey: null,
     },
     mutations: {
         setPage(state, page) {
             state.page = page || state.page;
             keyParams.set({ page: state.page });
+        },
+
+        setSearchedKey(state, KEY) {
+            state.searchedKey = KEY;
         },
     },
     getters: {
@@ -27,5 +33,8 @@ export default new Vuex.Store({
         page(context, PAGE) {
             context.commit("setPage", PAGE);
         },
+        searchedKey(context, KEY) {
+            context.commit("setSearchedKey", KEY);
+        }
     }
 });
