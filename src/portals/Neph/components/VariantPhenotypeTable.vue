@@ -234,12 +234,12 @@ export default Vue.component("variant-phenotype-table", {
             hpdisplay = hpdisplay.filter(
                 (hp) => hp.hp != "Healthy" && hp.hp != "AllNephroticSyndCases"
             );
-            console.log(hpdisplay);
+
             //sort hpdisplay by sortOrder
             hpdisplay.sort(function (a, b) {
                 return sortOrder.indexOf(a.hp) - sortOrder.indexOf(b.hp);
             });
-            console.log(hpdisplay);
+
             this.hprecords = hpdisplay;
 
             //console.log("results:"+JSON.stringify(this.variant[0].hprecords));

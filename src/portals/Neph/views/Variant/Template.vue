@@ -89,22 +89,15 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="card-body temporary-card">
-                    <documentation
-                        name="variant.explore.subheader"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation>
-                </div>
-            </div>
-
-             <div class="card mdkp-card">
                 <div class="card-body">
                     <div
                         v-if="
                             $store.state.transcriptConsequences.data.length > 0
                         "
                     >
-                        <h4 class="card-title">Phenotypes of variant carriers in NephKP</h4>
+                        <h4 class="card-title">
+                            Phenotypes of variant carriers in NephKP
+                        </h4>
                         <variant-phenotype-table
                             :variant-id="$store.state.variant.varId"
                         ></variant-phenotype-table>
@@ -173,8 +166,6 @@
                     </div>
                 </div>
             </div>
-
-
         </div>
 
         <!-- Footer-->
