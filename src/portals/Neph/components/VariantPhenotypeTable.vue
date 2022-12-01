@@ -210,15 +210,36 @@ export default Vue.component("variant-phenotype-table", {
                 j++;
                 //}
             }
-            hpdisplay = hpdisplay.sort(function (a, b) {
-                //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
-                if (a.allelecount > b.allelecount) {
-                    return -1;
-                } else if (a.allelecount < b.allelecount) {
-                    return 1;
-                }
-                return 0;
+            //nolonger sort by allele count
+            // hpdisplay = hpdisplay.sort(function (a, b) {
+            //     //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
+            //     if (a.allelecount > b.allelecount) {
+            //         return -1;
+            //     } else if (a.allelecount < b.allelecount) {
+            //         return 1;
+            //     }
+            //     return 0;
+            // });
+
+            let sortOrder = [
+                "AllSamples",
+                "FSGS",
+                "MCD",
+                "NephSyndSteroidResistant",
+                "NephSyndSteroidSensitive",
+                "NephSyndUncategorized",
+            ];
+
+            //remove Healthy and AllNephroticSyndCases
+            hpdisplay = hpdisplay.filter(
+                (hp) => hp.hp != "Healthy" && hp.hp != "AllNephroticSyndCases"
+            );
+            console.log(hpdisplay);
+            //sort hpdisplay by sortOrder
+            hpdisplay.sort(function (a, b) {
+                return sortOrder.indexOf(a.hp) - sortOrder.indexOf(b.hp);
             });
+            console.log(hpdisplay);
             this.hprecords = hpdisplay;
 
             //console.log("results:"+JSON.stringify(this.variant[0].hprecords));
