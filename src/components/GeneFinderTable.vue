@@ -4,15 +4,16 @@
             <manhattan-plot
                 :associations="combinedAssociations"
                 :phenotypes="phenotypes"
-                :phenotypeMap="phenotypeMap"
-                :colorByPhenotype="true"
+                :phenotype-map="phenotypeMap"
+                :color-by-phenotype="true"
                 style="margin-bottom: 10px"
             ></manhattan-plot>
             <center style="margin-bottom: 30px">
-                <b v-show="!!this.showChiSquared">
+                <b v-show="!!showChiSquared">
                     Combined P-Value(Χ²) across
                     <a
                         v-for="p in phenotypes"
+                        :key="p"
                         class="item"
                         :href="`/phenotype.html?phenotype=${p}`"
                         >{{ phenotypeMap[p].description }}</a
@@ -60,24 +61,24 @@
                         </span>
                     </b-th>
                 </template>
-                <template v-slot:cell(geneName)="r">
+                <template #cell(geneName)="r">
                     <a :href="`/gene.html?gene=${r.item.gene}`">{{
                         r.item.gene
                     }}</a>
                 </template>
                 <template
-                    v-slot:[phenotypePValueColumn(p)]="r"
                     v-for="p in phenotypes"
+                    #[phenotypePValueColumn(p)]="r"
                     >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
                 >
-                <template
+                <!-- <template
                     v-slot:[phenotypeVariantsColumn(p)]="r"
                     v-for="p in phenotypes"
                     >{{ intFormatter(r.item[`${p}:nParam`]) }}</template
-                >
+                > -->
                 <template
-                    v-slot:[phenotypeSubjectsColumn(p)]="r"
                     v-for="p in phenotypes"
+                    #[phenotypeSubjectsColumn(p)]="r"
                     >{{ intFormatter(r.item[`${p}:subjects`]) }}</template
                 >
             </b-table>
@@ -100,19 +101,21 @@ import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
-
-import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
+import ManhattanPlot from "@/components/ManhattanPlot.vue";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import Documentation from "@/components/Documentation";
-import TooltipDocumentation from "@/components/TooltipDocumentation";
+
 import CsvDownload from "@/components/CsvDownload";
 
-export default Vue.component("gene-finder-table", {
+export default Vue.component("GeneFinderTable", {
+    components: {
+        CsvDownload,
+        ManhattanPlot,
+    },
     props: [
         "associations",
         "phenotypes",
@@ -123,12 +126,6 @@ export default Vue.component("gene-finder-table", {
         "showChiSquared",
         "rowsPerPage",
     ],
-    components: {
-        Documentation,
-        TooltipDocumentation,
-        EffectorGenesMPlot,
-        CsvDownload,
-    },
     data() {
         return {
             currentPage: 1,
@@ -147,7 +144,7 @@ export default Vue.component("gene-finder-table", {
         },
 
         tableData() {
-            if (!!this.filter) {
+            if (this.filter) {
                 return this.associations.filter(this.filter);
             }
             return this.associations;
@@ -157,7 +154,7 @@ export default Vue.component("gene-finder-table", {
             let fields = this.baseFields;
 
             // add the chi squared column
-            if (!!this.showChiSquared) {
+            if (this.showChiSquared) {
                 fields.push({
                     key: "chiSquared",
                     label: "P-Value(Χ²)",
@@ -308,7 +305,7 @@ export default Vue.component("gene-finder-table", {
             for (let i in this.phenotypes) {
                 let p = row[`${this.phenotypes[i]}:pValue`];
 
-                if (!!p) {
+                if (p) {
                     X += -2 * Math.log(p);
                 }
             }
