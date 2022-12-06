@@ -16,7 +16,7 @@
                         :key="p"
                         class="item"
                         :href="`/phenotype.html?phenotype=${p}`"
-                        >{{ phenotypeMap[p].description }}</a
+                        >{{ phenotypeMap[p]?.description }}</a
                     >
                 </b>
             </center>

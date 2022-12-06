@@ -19,6 +19,7 @@ import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import keyParams from "@/utils/keyParams";
 
 import Alert, {
     postAlert,
@@ -27,7 +28,7 @@ import Alert, {
     closeAlert,
 } from "@/components/Alert";
 import { query } from "@/utils/bioIndexUtils";
-import { difference } from "lodash";
+import { isEqual, difference } from "lodash";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -69,14 +70,10 @@ new Vue({
             return contents[0];
         },
         diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
+            return this.$store.getters["bioPortal/diseaseGroup"] || [];
         },
-        phenotypes() {
-            let selectedPhenotypesList = [];
-            selectedPhenotypesList = this.geneFinderSearchCriterion
-                .filter((criterion) => criterion.field === "phenotype")
-                .map((criterion) => criterion.threshold);
-            return selectedPhenotypesList;
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap || {};
         },
 
         secondaryPhenotypeOptions() {
@@ -86,12 +83,14 @@ new Vue({
         },
 
         geneFinderPhenotypes() {
-            return this.geneFinderSearchCriterion
-                .filter((criterion) => criterion.field === "phenotype")
-                .map((criterion) => criterion.threshold);
+            return (
+                this.geneFinderSearchCriterion
+                    .filter((criterion) => criterion.field === "phenotype")
+                    .map((criterion) => criterion.threshold) || []
+            );
         },
         geneFinderPhenotype() {
-            return this.geneFinderPhenotypes[0];
+            return this.geneFinderPhenotypes[0] || null;
         },
         combined() {
             return Object.entries(this.geneFinderAssociationsMap).flatMap(
@@ -143,12 +142,35 @@ new Vue({
                 }
             }
         },
+        geneFinderPhenotypes(newPhenotypes, oldPhenotypes) {
+            //if not the same, update keyparams
+            if (!isEqual(newPhenotypes, oldPhenotypes)) {
+                //update phenotype parameters
+                keyParams.set({
+                    phenotype: newPhenotypes.join(","),
+                });
+            }
+        },
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        //check if parameter is passed, set criterion
+        if (keyParams.phenotype) {
+            keyParams.phenotype.split(",").forEach((phenotype) => {
+                this.geneFinderSearchCriterion.push({
+                    field: "phenotype",
+                    threshold: phenotype,
+                });
+            });
+            this.updateAssociations(
+                this.geneFinderPhenotypes,
+                this.geneFinderPValue,
+                true
+            );
+        }
     },
 
     methods: {
@@ -159,11 +181,14 @@ new Vue({
         closeAlert,
 
         updateAssociations(updatedPhenotypes, pValue, flush) {
-            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            //let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             let promises = updatedPhenotypes.map((phenotype) => {
                 if (!this.geneFinderAssociationsMap[phenotype] || flush) {
                     let alertId = postAlertNotice(
-                        `Loading ${phenotypeMap[phenotype].description} gene associations...`
+                        `Loading ${
+                            this.phenotypeMap[phenotype]?.description ||
+                            phenotype
+                        } gene associations...`
                     );
                     return query(`gene-finder`, phenotype, {
                         limitWhile: (record) => record.pValue < pValue,
