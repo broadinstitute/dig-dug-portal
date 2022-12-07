@@ -4,13 +4,6 @@
     </div>
 </template>
 
-<style>
-.c3-circle {
-    opacity: 0.65 !important;
-    fill: currentColor;
-}
-</style>
-
 <script>
 import Vue from "vue";
 import c3 from "c3";
@@ -18,130 +11,13 @@ import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import { difference } from "lodash";
 
-export default Vue.component("manhattan-plot", {
+export default Vue.component("ManhattanPlot", {
     props: ["associations", "colorByPhenotype", "phenotypes", "phenotypeMap"],
 
     data() {
         return {
             chart: null,
         };
-    },
-
-    mounted() {
-        this.build_chart({}, []);
-    },
-
-    methods: {
-        build_chart(xs, columns) {
-            let component = this;
-            let names = {};
-
-            for (let p in xs) {
-                names[p] = this.phenotypeMap[p].description;
-            }
-
-            // attach to the dom
-            this.chart = c3.generate({
-                bindto: "#manhattan",
-                size: {
-                    height: 300,
-                },
-                interaction: {
-                    enabled: true,
-                },
-                data: {
-                    xs,
-                    columns,
-                    names,
-                    type: "scatter",
-                    order: null,
-                    color: function (color, d) {
-                        if (
-                            !component.phenotypes ||
-                            !component.colorByPhenotype
-                        ) {
-                            return positionColors.find((c) => d.x < c[0])[1];
-                        }
-
-                        // phenotype index will determine the color
-                        let i = component.phenotypes.indexOf(d.id);
-
-                        // if not found, default to black
-                        return i >= 0 ? Colors[i] : "#000";
-                    },
-                },
-                legend: {
-                    show: false,
-                },
-                zoom: {
-                    enabled: false,
-                    rescale: false,
-                },
-                point: {
-                    r: 4,
-                    focus: {
-                        expand: {
-                            enabled: true,
-                            r: 7,
-                        },
-                    },
-                },
-                tooltip: {
-                    show: true,
-                    grouped: true,
-                    contents: function (d, titleFormat, valueFormat, color) {
-                        let contents = '<div class="manhattan-tooltip">';
-
-                        // do any of the entries have a gene name?
-                        let dGene = d.find((d) => !!d.gene);
-                        let title = !!dGene ? dGene.gene : "P-value";
-
-                        // make a table
-                        contents += `<table cellspacing="4">
-                        <thead><tr>
-                            <th colspan="2" class="p-value">${title}</th>
-                        </tr></thead>`;
-
-                        d.forEach((d) => {
-                            contents += `<tr>
-                                <td class="tooltip-id">
-                                    <span style="color:${color(
-                                        d
-                                    )}">&#x25fc;</span>
-                                    <span>${d.name}</span>
-                                </td>
-                                <td class="p-value">
-                                    <span>${Formatters.pValueFormatter(
-                                        Math.pow(10.0, -d.value)
-                                    )}</span>
-                                </td>
-                            </tr>`;
-                        });
-
-                        return contents + "</table></div>";
-                    },
-                },
-                axis: {
-                    x: {
-                        label: "Chromosome",
-                        min: 0,
-                        max: chromosomeStart.Y + chromosomeLength.Y,
-                        tick: {
-                            values: chromosomes.map(
-                                (c) =>
-                                    chromosomeStart[c] +
-                                    Math.floor(chromosomeLength[c] / 2)
-                            ),
-                            format: (pos) => chromosomePos[pos],
-                            fit: false,
-                        },
-                    },
-                    y: {
-                        label: "-log10(p)",
-                    },
-                },
-            });
-        },
     },
 
     computed: {
@@ -207,6 +83,123 @@ export default Vue.component("manhattan-plot", {
             let xs = this.columnKeys;
 
             this.build_chart(xs, columns);
+        },
+    },
+
+    mounted() {
+        this.build_chart({}, []);
+    },
+
+    methods: {
+        build_chart(xs, columns) {
+            let component = this;
+            let names = {};
+
+            for (let p in xs) {
+                names[p] = this.phenotypeMap[p]?.description;
+            }
+
+            // attach to the dom
+            this.chart = c3.generate({
+                bindto: "#manhattan",
+                size: {
+                    height: 300,
+                },
+                interaction: {
+                    enabled: true,
+                },
+                data: {
+                    xs,
+                    columns,
+                    names,
+                    type: "scatter",
+                    order: null,
+                    color: function (color, d) {
+                        if (
+                            !component.phenotypes ||
+                            !component.colorByPhenotype
+                        ) {
+                            return positionColors.find((c) => d.x < c[0])[1];
+                        }
+
+                        // phenotype index will determine the color
+                        let i = component.phenotypes.indexOf(d.id);
+
+                        // if not found, default to black
+                        return i >= 0 ? Colors[i] : "#000";
+                    },
+                },
+                legend: {
+                    show: false,
+                },
+                zoom: {
+                    enabled: false,
+                    rescale: false,
+                },
+                point: {
+                    r: 4,
+                    focus: {
+                        expand: {
+                            enabled: true,
+                            r: 7,
+                        },
+                    },
+                },
+                tooltip: {
+                    show: true,
+                    grouped: true,
+                    contents: function (d, titleFormat, valueFormat, color) {
+                        let contents = '<div class="manhattan-tooltip">';
+
+                        // do any of the entries have a gene name?
+                        let dGene = d.find((d) => !!d.gene);
+                        let title = dGene ? dGene.gene : "P-value";
+
+                        // make a table
+                        contents += `<table cellspacing="4">
+                        <thead><tr>
+                            <th colspan="2" class="p-value">${title}</th>
+                        </tr></thead>`;
+
+                        d.forEach((d) => {
+                            contents += `<tr>
+                                <td class="tooltip-id">
+                                    <span style="color:${color(
+                                        d
+                                    )}">&#x25fc;</span>
+                                    <span>${d.name}</span>
+                                </td>
+                                <td class="p-value">
+                                    <span>${Formatters.pValueFormatter(
+                                        Math.pow(10.0, -d.value)
+                                    )}</span>
+                                </td>
+                            </tr>`;
+                        });
+
+                        return contents + "</table></div>";
+                    },
+                },
+                axis: {
+                    x: {
+                        label: "Chromosome",
+                        min: 0,
+                        max: chromosomeStart.Y + chromosomeLength.Y,
+                        tick: {
+                            values: chromosomes.map(
+                                (c) =>
+                                    chromosomeStart[c] +
+                                    Math.floor(chromosomeLength[c] / 2)
+                            ),
+                            format: (pos) => chromosomePos[pos],
+                            fit: false,
+                        },
+                    },
+                    y: {
+                        label: "-log10(p)",
+                    },
+                },
+            });
         },
     },
 });
@@ -299,7 +292,11 @@ for (let i in chromosomes) {
 </script>
 
 <style>
-div.manhattan-tooltip table {
+.c3-circle {
+    opacity: 0.65 !important;
+    fill: currentColor;
+}
+</script > <style > div.manhattan-tooltip table {
     background-color: white;
     font-size: small;
     border: 1px solid darkgray;
