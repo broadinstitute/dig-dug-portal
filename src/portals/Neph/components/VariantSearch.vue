@@ -174,7 +174,7 @@
                             ></b-th
                         >
                         <b-th colspan="4" class="text-center" variant="primary"
-                            >Allele</b-th
+                            >NephKP Allele</b-th
                         >
 
                         <b-th
