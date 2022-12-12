@@ -23,6 +23,7 @@ import { query } from "@/utils/bioIndexUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import HugeCalTable from "@/components/HugeCalTable.vue";
 import Hugescoretable from "@/components/Hugescoretable.vue";
+import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 import CommonVariationGenSignificantTable from "@/components/CommonVariationGenSignificantTable.vue";
 import CommonVariationNotGenSignificantTable from "@/components/CommonVariationNotGenSignificantTable.vue";
 import RareVariationExSignificantTable from "@/components/RareVariationExSignificantTable.vue";
@@ -61,6 +62,7 @@ new Vue({
         HugeCalTable,
         LocusZoomAssociationsPanel,
         Hugescoretable,
+        HugeCalScoreSection,
         CommonVariationGenSignificantTable,
         RareVariationExSignificantTable,
         RareVariationNotExSignificantTable,
@@ -128,7 +130,7 @@ new Vue({
             let phenoRegionQuery = { gene: gene, phenotype: phenotype };
             this.$store.dispatch("getAssociationsData", phenoRegionQuery);
             this.$store.dispatch("get52KAssociationData", gene);
-            this.$store.dispatch("getEGLData", phenotype);
+            //this.$store.dispatch("getEGLData", phenotype);
         }
         // this.$store.dispatch("getAssociationsData", { "phenotype": keyParams.phenotype, "gene": keyParams.searchGene });
     },
@@ -221,8 +223,6 @@ new Vue({
         },
 
         beta() {
-
-
             return 3;
         },
 
@@ -314,6 +314,7 @@ new Vue({
                 return a.pValue - b.pValue;
             });
             let topVariant = data[0];
+            console.log("main", topVariant.dbSNP);
             let topVariant_consequence = topVariant.consequence
             let genesInARegion = this.$store.state.genes.data;
             var filteredGenesInARegion = genesInARegion.filter(a => a.source == "symbol");
@@ -340,6 +341,8 @@ new Vue({
 
             //find lowest p - value, is it closest gene - TO DO
 
+            //console.log("from main", lowestPvalueClosestGene)
+
 
 
             data.forEach(function (eachSNP) {
@@ -351,6 +354,9 @@ new Vue({
                     }
                 }
             });
+
+            console.log("from main", this.isGWASSignificantAssociation(data, this.selectedPhenotype[0]));
+
             //if NOT GWAS significant
             if (!this.isGWASSignificantAssociation(data, this.selectedPhenotype[0])) {
                 commonBF = 1
@@ -368,7 +374,7 @@ new Vue({
 
                 else if (lowestPvalueClosestGene.name == this.selectedGene[0]) {
                     commonBF = 45
-                    console.log(lowestPvalueClosestGene, "lowestPvalueClosestGene")
+                    //console.log(lowestPvalueClosestGene, "lowestPvalueClosestGene")
                 }
                 else {
                     commonBF = 3
@@ -587,9 +593,9 @@ new Vue({
                 phenoRegionQuery = { gene: gene[0], phenotype: phenotype[0] };
                 this.$store.dispatch("getAssociationsData", phenoRegionQuery);
                 this.$store.dispatch("get52KAssociationData", gene);
-                this.$store.dispatch("getEGLData", phenotype[0]);
+                //this.$store.dispatch("getEGLData", phenotype[0]);
             }
-        },
+        }
 
     },
 

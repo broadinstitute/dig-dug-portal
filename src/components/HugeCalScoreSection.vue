@@ -36,6 +36,7 @@
 			*HuGE Score(combined evidence) = BF of common variation X BF of rare
 			variation
 		</span>
+		{{ CommonVarBF }}
 	</div>
 </template>
         
@@ -48,7 +49,16 @@ import bioIndex from "@/modules/bioIndex";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
 export default Vue.component("hugecal-score-section", {
-	props: ["currentPage", "documentationMap", "associations"],
+	props: [
+		"currentPage",
+		"documentationMap",
+		"commonAssociations",
+		"geneData",
+		"genesInARegion",
+		"rareAssociations",
+		"selectedGene",
+		"selectedPhenotype",
+	],
 	data() {
 		return {};
 	},
@@ -56,7 +66,7 @@ export default Vue.component("hugecal-score-section", {
 	computed: {
 		CommonVarBF() {
 			let commonBF = 1;
-			let coding_variants = {
+			let codingVariants = {
 				transcript_ablation: "HIGH",
 				splice_acceptor_variant: "HIGH",
 				splice_donor_variant: "HIGH",
@@ -70,88 +80,83 @@ export default Vue.component("hugecal-score-section", {
 				missense_variant: "MODERATE",
 				protein_altering_variant: "MODERATE",
 			};
-			let assoData = this.associations;
+			let assoData = this.commonAssociations;
 
-			assoData.sort(function (a, b) {
-				return a.pValue - b.pValue;
+			let topVariant = assoData[0];
+			assoData.map((v) => {
+				topVariant = v.pValue < topVariant.pValue ? v : topVariant;
 			});
 
-			let topVariant = data[0];
-			let topVariant_consequence = topVariant.consequence;
-			let genesInARegion = this.$store.state.genes.data;
-			var filteredGenesInARegion = genesInARegion.filter(
+			let filteredGenesInARegion = this.genesInARegion.filter(
 				(a) => a.source == "symbol"
 			);
-			let distance = 0;
+
+			let closestGene = null;
 			//calculate the distance of topVariant to each gene and find the smallest distance
-			filteredGenesInARegion.forEach(function (geneinregion) {
-				let distanceFromStart =
-					topVariant.position - geneinregion.start;
-				let distanceFromEnd = topVariant.position - geneinregion.end;
-				if (distanceFromStart * distanceFromEnd > 0) {
-					distance = Math.min(
-						Math.abs(distanceFromStart),
-						Math.abs(distanceFromEnd)
-					);
-					geneinregion["distance"] = distance;
-				} else {
-					distance = 0;
-					geneinregion["distance"] = distance;
-				}
+			filteredGenesInARegion.map((gene) => {
+				let distanceFromStart = topVariant.position - gene.start;
+				let distanceFromEnd = topVariant.position - gene.end;
+
+				//get distance to the genes other than the one topVarint belongs to.
+				gene["distance"] =
+					distanceFromStart * distanceFromEnd > 0
+						? Math.min(
+								Math.abs(distanceFromStart),
+								Math.abs(distanceFromEnd)
+						  )
+						: 0;
+
+				closestGene =
+					closestGene == null
+						? gene
+						: closestGene.distance <= gene.distance
+						? closestGene
+						: gene;
 			});
 
-			filteredGenesInARegion.sort(function (a, b) {
-				return a.distance - b.distance;
-			});
-			let lowestPvalueClosestGene = filteredGenesInARegion[0];
-
-			//find lowest p - value, is it closest gene - TO DO
-
-			data.forEach(function (eachSNP) {
-				if (coding_variants.hasOwnProperty(eachSNP.consequence)) {
-					if (eachSNP.pValue < 5e-8) {
-						commonBF = 20;
-						return commonBF;
-					}
-				}
-			});
-			//if NOT GWAS significant
-			if (
-				!this.isGWASSignificantAssociation(
-					data,
-					this.selectedPhenotype[0]
-				)
-			) {
-				commonBF = 1;
-			}
-			//if  GWAS significant
-			else {
-				//if top variant is coding and the impact of that coding variant is high or moderate (in the same Gene)
-				let start = this.$store.state.gene.data[0].start;
-				let end = this.$store.state.gene.data[0].end;
+			assoData.map((eachSNP) => {
 				if (
-					coding_variants.hasOwnProperty(topVariant_consequence) &&
-					topVariant.position >= start &&
-					topVariant.position <= end
+					!!codingVariants.hasOwnProperty(eachSNP.consequence) &&
+					eachSNP.pValue < 5e-8
 				) {
-					if (
-						coding_variants[topVariant_consequence] == "HIGH" ||
-						"MODERATE"
-					) {
-						commonBF = 360;
-					}
-				} else if (
-					lowestPvalueClosestGene.name == this.selectedGene[0]
-				) {
-					commonBF = 45;
-					console.log(
-						lowestPvalueClosestGene,
-						"lowestPvalueClosestGene"
-					);
-				} else {
-					commonBF = 3;
+					commonBF = 20;
+					return commonBF; //BF of common variation:
 				}
-			}
+			});
+
+			//if NOT GWAS significant
+			let isGWASSignificantAssociation = false;
+
+			assoData.map((variant) => {
+				if (
+					isGWASSignificantAssociation == false &&
+					variant.phenotype == this.selectedPhenotype &&
+					variant.pValue <= 5e-8
+				) {
+					isGWASSignificantAssociation = true;
+				}
+			});
+
+			let isCodingVariant =
+				codingVariants.hasOwnProperty(topVariant.consequence) &&
+				topVariant.position >= this.geneData[0].start &&
+				topVariant.position <= this.geneData[0].end
+					? true
+					: false;
+
+			let isHighImpcat =
+				codingVariants[topVariant.consequence] == "HIGH" || "MODERATE"
+					? true
+					: false;
+
+			//if top variant is coding and the impact of that coding variant is high or moderate (in the same Gene)
+			commonBF = !isGWASSignificantAssociation
+				? 1
+				: !!isCodingVariant && !!isHighImpcat
+				? 360
+				: closestGene.name == this.selectedGene[0]
+				? 45
+				: 3;
 
 			return commonBF;
 		},

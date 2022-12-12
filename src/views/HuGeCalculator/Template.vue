@@ -84,6 +84,18 @@
 							$parent.selectedGene.length != 0
 						"
 					>
+						<hugecal-score-section
+							currentPage="huge calculator"
+							:documentationMap="$parent.documentationMap"
+							:commonAssociations="$store.state.associations.data"
+							:geneData="$store.state.gene.data"
+							:genesInARegion="$store.state.genes.data"
+							:rareAssociations="
+								$store.state.geneAssociations52k.data
+							"
+							:selectedGene="$parent.selectedGene"
+							:selectedPhenotype="$parent.selectedPhenotype[0]"
+						></hugecal-score-section>
 						<div>
 							<div class="card-body">
 								<span class="lead" style="font-size: 12px">
