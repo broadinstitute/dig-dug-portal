@@ -95,6 +95,7 @@
 							"
 							:selectedGene="$parent.selectedGene"
 							:selectedPhenotype="$parent.selectedPhenotype[0]"
+							:prior="$store.state.prior"
 						></hugecal-score-section>
 						<div>
 							<div class="card-body">

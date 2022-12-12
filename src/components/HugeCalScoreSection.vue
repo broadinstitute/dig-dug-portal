@@ -36,7 +36,7 @@
 			*HuGE Score(combined evidence) = BF of common variation X BF of rare
 			variation
 		</span>
-		{{ CommonVarBF }}
+		{{ commonVarBF }}:{{ rareVarBF.rareBF }}:{{ hugeScore }}
 	</div>
 </template>
         
@@ -58,13 +58,14 @@ export default Vue.component("hugecal-score-section", {
 		"rareAssociations",
 		"selectedGene",
 		"selectedPhenotype",
+		"prior",
 	],
 	data() {
 		return {};
 	},
 	components: { TooltipDocumentation },
 	computed: {
-		CommonVarBF() {
+		commonVarBF() {
 			let commonBF = 1;
 			let codingVariants = {
 				transcript_ablation: "HIGH",
@@ -159,6 +160,78 @@ export default Vue.component("hugecal-score-section", {
 				: 3;
 
 			return commonBF;
+		},
+		rareVarBF() {
+			let betararebfmap = {};
+			let masks = [];
+			let rareBF = 1;
+			let rareBeta = 1;
+			//let beta;
+			//let stdErr;
+
+			let rareAssoData = this.rareAssociations;
+
+			let isExomeWideSignificant = false;
+			rareAssoData.map((v) => {
+				if (
+					isExomeWideSignificant == false &&
+					v.phenotype == this.selectedPhenotype &&
+					v.pValue <= 2.5e-6
+				) {
+					isExomeWideSignificant = true;
+				}
+			});
+
+			if (!!isExomeWideSignificant) {
+				rareBF = 348;
+				rareBeta = 1;
+			} else {
+				if (rareAssoData.length > 0) {
+					rareAssoData.map((v) => {
+						if (
+							!!v.phenotype &&
+							v.phenotype == this.selectedPhenotype
+						) {
+							//filter with selected phenotype
+							masks = v.masks;
+
+							let stdErr, beta, wn, vn, f1, sqrtF1, f2, f3, f4;
+
+							if (!!masks && masks.length > 0) {
+								let d = masks.sort(
+									(a, b) => a.pValue - b.pValue
+								);
+
+								//d[0] is the most significant mask
+								stdErr = d[0].stdErr;
+								beta = d[0].beta;
+								wn = this.prior;
+								vn = Math.pow(stdErr, 2);
+								f1 = vn / (vn + wn);
+								sqrtF1 = Math.sqrt(f1);
+								f2 = wn * Math.pow(beta, 2);
+								f3 = 2 * vn * (vn + wn);
+								f4 = f2 / f3;
+								rareBF = sqrtF1 * Math.exp(f4);
+							}
+
+							betararebfmap["rareBF"] =
+								rareBF < 1
+									? 1
+									: Number.parseFloat(rareBF).toFixed(2);
+							betararebfmap["beta"] =
+								Number.parseFloat(beta).toFixed(2);
+
+							return betararebfmap;
+						}
+					});
+				}
+			}
+
+			betararebfmap["rareBF"] = rareBF;
+			betararebfmap["beta"] = rareBeta;
+
+			return betararebfmap;
 		},
 	},
 	methods: {},
