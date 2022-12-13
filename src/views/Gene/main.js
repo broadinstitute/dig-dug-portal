@@ -36,6 +36,8 @@ import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidence
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
 
+import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
+
 import Counter from "@/utils/idCounter";
 
 import Alert, {
@@ -77,7 +79,8 @@ new Vue({
         NCATSPredicateTable,
         VariantSearch,
         ColorBarPlot,
-        GenePageCombinedEvidenceTable
+        GenePageCombinedEvidenceTable,
+        HugeCalScoreSection
     },
 
     data() {
@@ -340,7 +343,7 @@ new Vue({
                 return this.selectedPhenotypes[0].name;
             } else return "T2D";
         },
-        eglData() {
+        /*eglData() {
             let geneSymbol = this.$store.state.geneName;
             if (this.selectedPhenotype == "T2D") {
                 if (!!this.$store.state.kp4cd.eglData.data) {
@@ -365,7 +368,7 @@ new Vue({
             } else {
                 return { category: "in GWAS" };
             }
-        },
+        },*/
 
         combinedScore() {
             return (
@@ -667,7 +670,7 @@ new Vue({
 
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
 
-                this.$store.dispatch("getEGLData");
+                //this.$store.dispatch("getEGLData");
             }
 
             //this.pushCriterionPhenotype(newTopPhenotype)
@@ -689,7 +692,7 @@ new Vue({
                     phenotypes[0].name
                 );
             }
-            this.$store.dispatch("getEGLData");
+            //this.$store.dispatch("getEGLData");
         },
 
         diseaseGroup(group) {

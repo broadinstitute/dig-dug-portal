@@ -38,10 +38,22 @@ export default new Vuex.Store({
         phenotype: null,
         searchGene: keyParams.gene,
         suggestedPriorNew: 0,
-        universalPriorList: [0.05, 0.2]
+        universalPriorList: [0.05, 0.2],
+        commonVarBF: null,
+        rareVarBF: null,
+        hugeScore: null,
 
     },
     mutations: {
+        setCommonVarBF(state, BF) {
+            state.commonVarBF = BF
+        },
+        setRareVarBF(state, BF) {
+            state.rareVarBF = BF
+        },
+        setHugeScore(state, BF) {
+            state.hugeScore = BF
+        },
         setUniversalPriorList(state, universalPriorList) {
             state.universalPriorList = universalPriorList
         },
@@ -93,6 +105,15 @@ export default new Vuex.Store({
         },
     },
     actions: {
+        commonVarBF(context, BF) {
+            context.commit('setCommonVarBF', BF)
+        },
+        rareVarBF(context, BF) {
+            context.commit('setRareVarBF', BF)
+        },
+        hugeScore(context, BF) {
+            context.commit('setHugeScore', BF)
+        },
         async queryRegion(context, regionPhenotypeMap) {
             const newRegion = regionPhenotypeMap["region"] || context.getters.region;
             const phenotype = regionPhenotypeMap["phenotype"];

@@ -81,125 +81,29 @@
 						v-if="
 							$store.state.associations.data.length > 0 &&
 							$parent.selectedPhenotype.length != 0 &&
-							$parent.selectedGene.length != 0
+							$parent.selectedGene.length != 0 &&
+							$store.state.gene.data.length > 0
 						"
 					>
-						<hugecal-score-section
-							currentPage="huge calculator"
-							:documentationMap="$parent.documentationMap"
-							:commonAssociations="$store.state.associations.data"
-							:geneData="$store.state.gene.data"
-							:genesInARegion="$store.state.genes.data"
-							:rareAssociations="
-								$store.state.geneAssociations52k.data
-							"
-							:selectedGene="$parent.selectedGene"
-							:selectedPhenotype="$parent.selectedPhenotype[0]"
-							:prior="$store.state.prior"
-						></hugecal-score-section>
 						<div>
 							<div class="card-body">
-								<span class="lead" style="font-size: 12px">
-									*BF=Bayes Factor
-									<div
-										class="row"
-										id="suggestionBox"
-										style="
-											color: #3fb54a;
-											font-size: 15px;
-											font-weight: bold;
-											border-radius: 10px;
-											background-color: #e4f4e4;
-											padding: 5px 5px 5px 5px;
-										"
-									>
-										<div class="col-md-6">
-											HuGE Score (Combined Evidence)
-											<tooltip-documentation
-												name="hugecal.combined.tooltip.hover"
-												:content-fill="
-													$parent.documentationMap
-												"
-												:isHover="true"
-												:noIcon="false"
-											></tooltip-documentation>
-										</div>
-										<div
-											class="col-md-6"
-											style="
-												text-align: right;
-												white-space: nowrap;
-											"
-										>
-											{{
-												$parent.bayesFactorCommonVariation
-											}}(Common variation BF) *
-											{{
-												$parent.bayesFactorRareVariation
-													.rareBF
-											}}(Rare variation BF) =
-											{{
-												$parent.bayesFactorCombinedEvidencecomputed
-											}}
-										</div>
-									</div>
-									*HuGE Score(combined evidence) = BF of
-									common variation * BF of rare variation
-								</span>
-								<div style="margin-block-end: 60px"></div>
-
-								<hugescore-table
-									:commonBF="
-										parseFloat(
-											$parent.bayesFactorCommonVariation
-										)
+								<hugecal-score-section
+									currentPage="huge calculator"
+									:documentationMap="$parent.documentationMap"
+									:commonAssociations="
+										$store.state.associations.data
 									"
-									:rareBF="
-										parseFloat(
-											$parent.bayesFactorRareVariation
-												.rareBF
-										)
+									:geneData="$store.state.gene.data"
+									:genesInARegion="$store.state.genes.data"
+									:rareAssociations="
+										$store.state.geneAssociations52k.data
 									"
-									:hugeScore="
-										parseFloat(
-											$parent.bayesFactorCombinedEvidencecomputed
-										)
+									:selectedGene="$parent.selectedGene[0]"
+									:selectedPhenotype="
+										$parent.selectedPhenotype[0]
 									"
-									:exomeSignificant="
-										$parent.isExomeWideSignificant(
-											this.$store.state
-												.geneAssociations52k.data,
-											$parent.selectedPhenotype[0]
-										)
-									"
-								></hugescore-table>
-
-								<div class="container">
-									<div class="center">
-										<color-bar-plot
-											v-if="
-												$parent.bayesFactorRareVariation
-													.rareBF
-											"
-											:category="
-												$parent.determineCategory(
-													parseFloat(
-														$parent.bayesFactorCombinedEvidencecomputed
-													)
-												)
-											"
-											:elementid="'combinedVariation'"
-											:score="
-												parseFloat(
-													$parent.bayesFactorCombinedEvidencecomputed
-												)
-											"
-										></color-bar-plot>
-									</div>
-								</div>
-								<div style="margin-block-end: 30px"></div>
-
-								<!-- First Collapsible section - Posterior probability - Start -->
+									:prior="$store.state.prior"
+								></hugecal-score-section>
 
 								<div
 									v-if="$parent.geneAssociations52k"
@@ -213,7 +117,11 @@
 									</div>
 								</div>
 
-								<div :id="'ppasection'" class="row hidden">
+								<div
+									:id="'ppasection'"
+									class="row hidden"
+									v-if="!!this.$store.state.hugeScore"
+								>
 									<div class="col-md-8">
 										<h6
 											style="
@@ -236,9 +144,7 @@
 												padding: 50px 250px 50px 250px;
 											"
 											:hugeScore="
-												parseFloat(
-													$parent.bayesFactorCombinedEvidencecomputed
-												)
+												this.$store.state.hugeScore
 											"
 										></hugecal-table>
 									</div>
@@ -251,9 +157,7 @@
 												this.$store.state.prior
 											"
 											:bayes_factor="
-												parseFloat(
-													$parent.bayesFactorCombinedEvidencecomputed
-												)
+												this.$store.state.hugeScore
 											"
 											:universalPriorList="
 												this.$store.state
@@ -270,6 +174,7 @@
 							<div
 								class="card-body"
 								style="margin-block-end: 20px cursor"
+								v-if="!!this.$store.state.commonVarBF"
 							>
 								<span
 									style="cursor: pointer"
@@ -309,7 +214,7 @@
 											style="text-align: right"
 										>
 											BF:{{
-												$parent.bayesFactorCommonVariation
+												this.$store.state.commonVarBF
 											}}
 										</div>
 									</div>
@@ -377,9 +282,7 @@
 											:isGenomeWideSignificant="true"
 											:gwasEvidence="'3(P-value <= 5e-8)'"
 											:commonBF="
-												parseFloat(
-													$parent.bayesFactorCommonVariation
-												)
+												this.$store.state.commonVarBF
 											"
 										></commonvariation-genomesig-table>
 									</div>
@@ -433,9 +336,7 @@
 											:isGenomeWideSignificant="false"
 											:gwasEvidence="'1(No Evidence)'"
 											:commonBF="
-												parseFloat(
-													$parent.bayesFactorCommonVariation
-												)
+												this.$store.state.commonVarBF
 											"
 										></commonvariation-not-genomesig-table>
 									</div>
@@ -443,19 +344,16 @@
 									<div class="container">
 										<div class="center">
 											<color-bar-plot
-												v-if="
-													$parent.bayesFactorCommonVariation
-												"
 												:category="
-													$parent.determineCategory(
-														$parent.bayesFactorCommonVariation
+													$parent.getCategory(
+														this.$store.state
+															.commonVarBF
 													)
 												"
 												:elementid="'commonVariation'"
 												:score="
-													parseFloat(
-														$parent.bayesFactorCommonVariation
-													)
+													this.$store.state
+														.commonVarBF
 												"
 											></color-bar-plot>
 										</div>
@@ -500,7 +398,7 @@
 								</div>
 								<br />
 								<!-- NEW RARE VARIATION -->
-								<div>
+								<div v-if="!!this.$store.state.rareVarBF">
 									<span
 										style="cursor: pointer"
 										v-on:click="
@@ -540,8 +438,7 @@
 												style="text-align: right"
 											>
 												BF:{{
-													$parent
-														.bayesFactorRareVariation
+													this.$store.state.rareVarBF
 														.rareBF
 												}}
 											</div>
@@ -601,36 +498,27 @@
 													]
 												"
 												:rareBF="
-													parseFloat(
-														$parent
-															.bayesFactorRareVariation
-															.rareBF
-													)
+													this.$store.state.rareVarBF
+														.rareBF
 												"
 											></rarevariation-exomesig-table>
 
 											<div class="container">
 												<div class="center">
 													<color-bar-plot
-														v-if="
-															$parent
-																.bayesFactorRareVariation
-																.rareBF
-														"
 														:category="
-															$parent.determineCategory(
-																$parent
-																	.bayesFactorRareVariation
+															$parent.getCategory(
+																this.$store
+																	.state
+																	.rareVarBF
 																	.rareBF
 															)
 														"
 														:elementid="'rareVariation'"
 														:score="
-															parseFloat(
-																$parent
-																	.bayesFactorRareVariation
-																	.rareBF
-															)
+															this.$store.state
+																.rareVarBF
+																.rareBF
 														"
 													></color-bar-plot>
 												</div>
@@ -726,43 +614,31 @@
 													$store.state.prior
 												"
 												:rareBF="
-													parseFloat(
-														$parent
-															.bayesFactorRareVariation
-															.rareBF
-													)
+													this.$store.state.rareVarBF
+														.rareBF
 												"
 												:burdenAssocEvidence="
-													parseFloat(
-														$parent
-															.bayesFactorRareVariation
-															.beta
-													)
+													this.$store.state.rareVarBF
+														.beta
 												"
 											></rarevariation-not-exomesig-table>
 
 											<div class="container">
 												<div class="center">
 													<color-bar-plot
-														v-if="
-															$parent
-																.bayesFactorRareVariation
-																.rareBF
-														"
 														:category="
-															$parent.determineCategory(
-																$parent
-																	.bayesFactorRareVariation
+															$parent.getCategory(
+																this.$store
+																	.state
+																	.rareVarBF
 																	.rareBF
 															)
 														"
 														:elementid="'rareVariation'"
 														:score="
-															parseFloat(
-																$parent
-																	.bayesFactorRareVariation
-																	.rareBF
-															)
+															this.$store.state
+																.rareVarBF
+																.rareBF
 														"
 													></color-bar-plot>
 												</div>
@@ -822,17 +698,6 @@
 </template>
 
 <script>
-//   setup() {
-//             this.$nextTick(() => {
-//                 this.$refs.annotations.$refs.input.focus();
-//             });
-//             this.shouldRender = ref(false);
-//             nextTick(() => {
-//                 shouldRender.value = true;
-//             });
-
-//             return shouldRender;
-//         },
 </script>
 <style>
 .color-bar-plot-wrapper {

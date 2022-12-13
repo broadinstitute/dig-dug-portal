@@ -234,7 +234,24 @@
 							<div class="label">Change Phenotype:</div>
 						</filter-enumeration-control>
 					</criterion-list-group>
-					<div>
+					<hugecal-score-section
+						v-if="
+							$store.state.varassociations.data.length > 0 &&
+							$parent.selectedPhenotypes.length != 0 &&
+							$store.state.geneName != 0 &&
+							$store.state.gene.data.length > 0
+						"
+						currentPage="gene"
+						:documentationMap="null"
+						:commonAssociations="$store.state.varassociations.data"
+						:geneData="$store.state.gene.data"
+						:genesInARegion="$store.state.genes.data"
+						:rareAssociations="$store.state.associations52k.data"
+						:selectedGene="$store.state.geneName"
+						:selectedPhenotype="$parent.selectedPhenotypes[0].name"
+						:prior="$store.state.prior"
+					></hugecal-score-section>
+					<!--<div>
 						<br />
 
 						<genepage-combinedevidence-table
@@ -275,7 +292,7 @@
 							:elementid="'combinedVariation'"
 							:score="$parent.combinedScore"
 						></color-bar-plot>
-					</div>
+					</div>-->
 				</div>
 			</div>
 

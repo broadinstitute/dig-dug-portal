@@ -143,11 +143,11 @@ export default new Vuex.Store({
             context.dispatch('varassociations/query', { q: phenoRegionQuery });
 
         },
-        async getEGLData(context) {
+        /*async getEGLData(context) {
             let dataset = "mccarthy";
             let trait = "t2d";
             context.dispatch("kp4cd/getEglData", { dataset, trait });
-        },
+        },*/
         async get52KAssociationData(context) {
             let name = context.state.geneName;
             context.dispatch('associations52k/query', { q: name });

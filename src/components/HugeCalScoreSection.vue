@@ -1,19 +1,7 @@
 <template>
-	<div class="card-body">
-		<span class="lead" style="font-size: 12px">
-			*BF=Bayes Factor
-			<div
-				class="row"
-				id="suggestionBox"
-				style="
-					color: #3fb54a;
-					font-size: 15px;
-					font-weight: bold;
-					border-radius: 10px;
-					background-color: #e4f4e4;
-					padding: 5px 5px 5px 5px;
-				"
-			>
+	<div>
+		<template v-if="currentPage == 'huge calculator'">
+			<div class="row" id="suggestionBox">
 				<div class="col-md-6">
 					HuGE Score (Combined Evidence)
 					<tooltip-documentation
@@ -27,26 +15,110 @@
 					class="col-md-6"
 					style="text-align: right; white-space: nowrap"
 				>
-					<!--{{ $parent.bayesFactorCommonVariation }}(Common variation
-					BF) * {{ $parent.bayesFactorRareVariation.rareBF }}(Rare
-					variation BF) =
-					{{ $parent.bayesFactorCombinedEvidencecomputed }}-->
+					{{ commonVarBF }}(Common variation BF) *
+					{{ rareVarBF.rareBF }}(Rare variation BF) =
+					{{ hugeScore }}
 				</div>
 			</div>
-			*HuGE Score(combined evidence) = BF of common variation X BF of rare
-			variation
-		</span>
-		{{ commonVarBF }}:{{ rareVarBF.rareBF }}:{{ hugeScore }}
+			<div class="lead block-end">
+				*BF=Bayes Factor &nbsp;&nbsp;*HuGE Score(combined evidence) = BF
+				of common variation X BF of rare variation
+			</div>
+
+			<hugescore-table
+				:commonBF="commonVarBF"
+				:rareBF="rareVarBF.rareBF"
+				:hugeScore="hugeScore"
+				:exomeSignificant="isExomeWideSignificant(rareAssociations)"
+			></hugescore-table>
+		</template>
+		<template v-if="currentPage != 'huge calculator'">
+			<div class="container">
+				<div class="center">
+					<b-table-simple borderless fixed small>
+						<b-tbody>
+							<b-tr>
+								<b-td
+									style="
+										width: 30px;
+										background-color: #e7edf7;
+									"
+									class="text-center"
+									>{{ commonVarBF }}</b-td
+								>
+								<b-td style="width: 15px" class="text-center"
+									>X</b-td
+								>
+								<b-td
+									style="
+										width: 30px;
+										background-color: #fef8dc;
+									"
+									class="text-center"
+									>{{ rareVarBF.rareBF }}</b-td
+								>
+								<b-td style="width: 15px" class="text-center"
+									>=</b-td
+								>
+								<b-td
+									style="
+										width: 30px;
+										background-color: #c4edc8;
+									"
+									class="text-center"
+									>{{ hugeScore }}</b-td
+								>
+								<b-td style="width: 20px" class="text-left"
+									><-- HuGE Score</b-td
+								>
+							</b-tr>
+						</b-tbody>
+						<!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
+					</b-table-simple>
+				</div>
+			</div>
+			<div style="margin-bottom: 25px" class="container">
+				<ul class="legend center" style="white-space: nowrap">
+					<li>
+						<span class="superawesome"></span> Common Variation
+						Bayes Factor
+					</li>
+					<li>
+						<span class="awesome"></span> Rare Variation Bayes
+						Factor
+					</li>
+					<li>
+						<a
+							:href="`/hugecalculator.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
+							>View evidence in HuGE calculator >></a
+						>
+					</li>
+				</ul>
+				<br />
+			</div>
+		</template>
+		<div class="container color-bar">
+			<div class="center">
+				<color-bar-plot
+					v-if="rareVarBF.rareBF"
+					:category="getCategory(hugeScore)"
+					:elementid="'combinedVariation'"
+					:score="hugeScore"
+					class="block-end"
+				></color-bar-plot>
+			</div>
+		</div>
 	</div>
 </template>
         
 <script>
 import Vue from "vue";
 import "bootstrap/dist/css/bootstrap.css";
-import bioPortal from "@/modules/bioPortal";
-import bioIndex from "@/modules/bioIndex";
+import Formatters from "@/utils/formatters";
 
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import ColorBarPlot from "@/components/ColorBarPlot.vue";
+import Hugescoretable from "@/components/Hugescoretable.vue";
 
 export default Vue.component("hugecal-score-section", {
 	props: [
@@ -63,7 +135,7 @@ export default Vue.component("hugecal-score-section", {
 	data() {
 		return {};
 	},
-	components: { TooltipDocumentation },
+	components: { TooltipDocumentation, ColorBarPlot, Hugescoretable },
 	computed: {
 		commonVarBF() {
 			let commonBF = 1;
@@ -83,10 +155,14 @@ export default Vue.component("hugecal-score-section", {
 			};
 			let assoData = this.commonAssociations;
 
+			//console.log("assoData", assoData[0]);
+
 			let topVariant = assoData[0];
 			assoData.map((v) => {
 				topVariant = v.pValue < topVariant.pValue ? v : topVariant;
 			});
+
+			//console.log("this.genesInARegion", this.genesInARegion);
 
 			let filteredGenesInARegion = this.genesInARegion.filter(
 				(a) => a.source == "symbol"
@@ -128,6 +204,8 @@ export default Vue.component("hugecal-score-section", {
 			//if NOT GWAS significant
 			let isGWASSignificantAssociation = false;
 
+			//console.log("this.selectedPhenotype", this.selectedPhenotype);
+
 			assoData.map((variant) => {
 				if (
 					isGWASSignificantAssociation == false &&
@@ -155,14 +233,18 @@ export default Vue.component("hugecal-score-section", {
 				? 1
 				: !!isCodingVariant && !!isHighImpcat
 				? 360
-				: closestGene.name == this.selectedGene[0]
+				: closestGene.name == this.selectedGene
 				? 45
 				: 3;
 
-			return commonBF;
+			if (this.currentPage == "huge calculator") {
+				this.$store.dispatch("commonVarBF", parseFloat(commonBF));
+			}
+
+			return parseFloat(commonBF);
 		},
 		rareVarBF() {
-			let betararebfmap = {};
+			let betaRareBFMap = {};
 			let masks = [];
 			let rareBF = 1;
 			let rareBeta = 1;
@@ -171,16 +253,8 @@ export default Vue.component("hugecal-score-section", {
 
 			let rareAssoData = this.rareAssociations;
 
-			let isExomeWideSignificant = false;
-			rareAssoData.map((v) => {
-				if (
-					isExomeWideSignificant == false &&
-					v.phenotype == this.selectedPhenotype &&
-					v.pValue <= 2.5e-6
-				) {
-					isExomeWideSignificant = true;
-				}
-			});
+			let isExomeWideSignificant =
+				this.isExomeWideSignificant(rareAssoData);
 
 			if (!!isExomeWideSignificant) {
 				rareBF = 348;
@@ -215,28 +289,118 @@ export default Vue.component("hugecal-score-section", {
 								rareBF = sqrtF1 * Math.exp(f4);
 							}
 
-							betararebfmap["rareBF"] =
-								rareBF < 1
-									? 1
-									: Number.parseFloat(rareBF).toFixed(2);
-							betararebfmap["beta"] =
-								Number.parseFloat(beta).toFixed(2);
+							betaRareBFMap["rareBF"] =
+								rareBF < 1 ? 1 : parseFloat(rareBF.toFixed(2));
+							betaRareBFMap["beta"] = parseFloat(beta.toFixed(2));
 
-							return betararebfmap;
+							if (this.currentPage == "huge calculator") {
+								this.$store.dispatch(
+									"rareVarBF",
+									betaRareBFMap
+								);
+							}
+
+							return betaRareBFMap;
 						}
 					});
 				}
 			}
 
-			betararebfmap["rareBF"] = rareBF;
-			betararebfmap["beta"] = rareBeta;
+			betaRareBFMap["rareBF"] = parseFloat(rareBF.toFixed(2));
+			betaRareBFMap["beta"] = parseFloat(rareBeta.toFixed(2));
 
-			return betararebfmap;
+			if (this.currentPage == "huge calculator") {
+				this.$store.dispatch("rareVarBF", betaRareBFMap);
+			}
+
+			return betaRareBFMap;
+		},
+		hugeScore() {
+			let score = parseFloat(
+				Formatters.floatFormatter(
+					this.commonVarBF * this.rareVarBF.rareBF
+				)
+			);
+
+			if (this.currentPage == "huge calculator") {
+				this.$store.dispatch("hugeScore", score);
+			}
+
+			return score;
 		},
 	},
-	methods: {},
+	methods: {
+		getCategory(BF) {
+			let category =
+				BF >= 350
+					? "Compelling"
+					: BF >= 100
+					? "Extreme"
+					: BF >= 30
+					? "Very Strong"
+					: BF >= 10
+					? "Strong"
+					: BF >= 3
+					? "Moderate"
+					: BF > 1
+					? "Anecdotal"
+					: "No";
+			return category;
+		},
+		isExomeWideSignificant(DATA) {
+			let isExomeWideSignificant = false;
+			DATA.map((v) => {
+				if (
+					isExomeWideSignificant == false &&
+					v.phenotype == this.selectedPhenotype &&
+					v.pValue <= 2.5e-6
+				) {
+					isExomeWideSignificant = true;
+				}
+			});
+
+			return isExomeWideSignificant;
+		},
+	},
 });
 </script>
 
 <style scoped>
+#suggestionBox {
+	color: #3fb54a;
+	font-size: 15px;
+	font-weight: bold;
+	border-radius: 10px;
+	background-color: #e4f4e4;
+	padding: 5px 5px 5px 5px;
+}
+.lead {
+	font-size: 12px;
+	text-align: right;
+}
+.block-end {
+	margin-block-end: 60px;
+}
+/* basic positioning */
+.legend {
+	list-style: none;
+}
+.legend li {
+	float: left;
+	margin-right: 10px;
+}
+.legend span {
+	border: 0px;
+	float: left;
+	width: 12px;
+	height: 12px;
+	margin: 2px;
+}
+/* your colors */
+.legend .superawesome {
+	background-color: #e7edf7;
+}
+.legend .awesome {
+	background-color: #fef8dc;
+}
 </style>

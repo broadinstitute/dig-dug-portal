@@ -226,7 +226,7 @@ new Vue({
             return 3;
         },
 
-        bayesFactorRareVariation() {
+        /*bayesFactorRareVariation() {
             let betararebfmap = {}
             let masks = [];
             let rarebayesfactor = 1;
@@ -294,14 +294,14 @@ new Vue({
                 }
             }
             return betararebfmap;
-        },
-        bayesFactorCombinedEvidencecomputed() {
+        },*/
+        /*bayesFactorCombinedEvidencecomputed() {
             return Formatters.floatFormatter(this.bayesFactorCommonVariation * this.bayesFactorRareVariation.rareBF)
-        },
+        },*/
 
 
 
-        bayesFactorCommonVariation() {
+        /*bayesFactorCommonVariation() {
 
             let commonBF = 1;
             let data = this.$store.state.associations.data;
@@ -382,7 +382,7 @@ new Vue({
             }
 
             return commonBF;
-        },
+        },*/
 
 
 
@@ -507,10 +507,10 @@ new Vue({
                 return false;
             }
         },
-        bayesFactorCombinedEvidence(commonBF, rareBF) {
+        /*bayesFactorCombinedEvidence(commonBF, rareBF) {
             let combinedbf = commonBF * rareBF;
             return Number.parseFloat(combinedbf).toFixed(2);
-        },
+        },*/
         // < 1: No Evidence
         // >= 1 and < 3: Anecdotal
         // >= 3 and < 10: Moderate
@@ -518,27 +518,24 @@ new Vue({
         // >= 30 and < 100: Very Strong
         // >= 100 and < 350: Extreme
         // >= 350: Compelling
-        determineCategory(bayesfactor) {
-            let category;
-            if (bayesfactor <= 1) {
-                category = "No";
-            }
-            if (bayesfactor > 1 && bayesfactor < 3) {
-                category = "Anecdotal";
-            } else if (bayesfactor >= 3 && bayesfactor < 10) {
-                category = "Moderate";
-            } else if (bayesfactor >= 10 && bayesfactor < 30) {
-                category = "Strong";
-            } else if (bayesfactor >= 30 && bayesfactor < 100) {
-                category = "Very Strong";
-            } else if (bayesfactor >= 100 && bayesfactor < 350) {
-                category = "Extreme";
-            } else if (bayesfactor >= 350) {
-                category = "Compelling";
-            }
+        getCategory(BF) {
+            let category =
+                BF >= 350
+                    ? "Compelling"
+                    : BF >= 100
+                        ? "Extreme"
+                        : BF >= 30
+                            ? "Very Strong"
+                            : BF >= 10
+                                ? "Strong"
+                                : BF >= 3
+                                    ? "Moderate"
+                                    : BF > 1
+                                        ? "Anecdotal"
+                                        : "No";
             return category;
         },
-        bayes_factor(beta, stdErr) {
+        /*bayes_factor(beta, stdErr) {
             let w = this.$store.state.prior;
             let v = Math.pow(stdErr, 2);
             let f1 = v / (v + w);
@@ -548,7 +545,7 @@ new Vue({
             let f4 = f2 / f3;
             let bayes_factor = sqrt_f1 * Math.exp(f4);
             return bayes_factor;
-        },
+        },*/
 
         isExomeWideSignificant(data, trait) {
             if (!!data.length) {
