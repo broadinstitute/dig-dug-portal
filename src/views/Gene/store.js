@@ -110,7 +110,9 @@ export default new Vuex.Store({
 
         async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
-            let q = `${chromosome}:${start}-${end}`;
+            let q = `${chromosome}:${start - 300000}-${end + 300000}`;
+
+            console.log("region", q)
 
             context.dispatch("genes/query", { q });
         },
@@ -140,6 +142,8 @@ export default new Vuex.Store({
             }
 
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
+            console.log("phenoRegionQuery", phenoRegionQuery);
+
             context.dispatch('varassociations/query', { q: phenoRegionQuery });
 
         },

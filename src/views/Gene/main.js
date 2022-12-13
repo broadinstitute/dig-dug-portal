@@ -205,7 +205,7 @@ new Vue({
                 }
             };
         },
-        bayes_factor(beta, stdErr) {
+        /*bayes_factor(beta, stdErr) {
             let w = this.$store.state.prior;
             let v = Math.pow(stdErr, 2);
             let f1 = v / (v + w);
@@ -215,8 +215,8 @@ new Vue({
             let f4 = f2 / f3;
             let bayes_factor = sqrt_f1 * Math.exp(f4);
             return bayes_factor;
-        },
-        determineCategory(bayesfactor) {
+        },*/
+        /*determineCategory(bayesfactor) {
             let category;
             if (bayesfactor <= 1) {
                 category = "No";
@@ -235,8 +235,8 @@ new Vue({
                 category = "Compelling";
             }
             return category;
-        },
-        isGWASSignificantAssociation(data, selectedPhenotype) {
+        },*/
+        /*isGWASSignificantAssociation(data, selectedPhenotype) {
             if (!!data.length > 0) {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == selectedPhenotype) {
@@ -247,11 +247,11 @@ new Vue({
                 }
                 return false;
             }
-        },
-        bayesFactorCombinedEvidence(commonBF, rareBF) {
+        },*/
+        /*bayesFactorCombinedEvidence(commonBF, rareBF) {
             let combinedbf = commonBF * rareBF;
             return Number.parseFloat(combinedbf).toFixed(2);
-        },
+        },*/
 
         // go to region page
         exploreRegion(expanded = 0) {
@@ -262,7 +262,7 @@ new Vue({
                     }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
-        isExomeWideSignificant(data, trait) {
+        /*isExomeWideSignificant(data, trait) {
             if (!!data.length) {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == trait) {
@@ -273,7 +273,7 @@ new Vue({
                 }
                 return false;
             }
-        },
+        },*/
         topPhenotype(topAssocData) {
             return topAssocData[0];
         }
@@ -370,13 +370,13 @@ new Vue({
             }
         },*/
 
-        combinedScore() {
+        /*combinedScore() {
             return (
                 this.bayesFactorCommonVariation * this.bayesFactorRareVariation
             );
-        },
+        },*/
 
-        bayesFactorRareVariation() {
+        /*bayesFactorRareVariation() {
             let masks = [];
             let rarebayesfactor = 1;
             let beta;
@@ -428,9 +428,9 @@ new Vue({
             }
 
             return Number.parseFloat(rarebayesfactor).toFixed(2);
-        },
+        },*/
 
-        bayesFactorCommonVariation() {
+        /*bayesFactorCommonVariation() {
             let commonBF = 1;
             let data = [];
             let selectedPhenotype = "";
@@ -531,7 +531,7 @@ new Vue({
             }
 
             return commonBF;
-        },
+        },*/
 
         queries() {
             return [
@@ -681,6 +681,7 @@ new Vue({
         },
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {
+            console.log("selectedPhenotypes", phenotypes, oldPhenotypes);
             const removedPhenotypes = _.difference(
                 oldPhenotypes.map(p => p.name),
                 phenotypes.map(p => p.name)

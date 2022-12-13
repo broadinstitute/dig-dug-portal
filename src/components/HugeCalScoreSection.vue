@@ -89,7 +89,7 @@
 					</li>
 					<li>
 						<a
-							:href="`/hugecalculator.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
+							:href="`/hugecalculator.html?gene=${selectedGene}&phenotype=${selectedPhenotype}`"
 							>View evidence in HuGE calculator >></a
 						>
 					</li>
@@ -155,14 +155,14 @@ export default Vue.component("hugecal-score-section", {
 			};
 			let assoData = this.commonAssociations;
 
-			//console.log("assoData", assoData[0]);
-
 			let topVariant = assoData[0];
 			assoData.map((v) => {
 				topVariant = v.pValue < topVariant.pValue ? v : topVariant;
 			});
 
-			//console.log("this.genesInARegion", this.genesInARegion);
+			console.log("topVariant", topVariant.varId);
+
+			console.log("this.genesInARegion", this.genesInARegion.length);
 
 			let filteredGenesInARegion = this.genesInARegion.filter(
 				(a) => a.source == "symbol"

@@ -237,7 +237,7 @@
 					<hugecal-score-section
 						v-if="
 							$store.state.varassociations.data.length > 0 &&
-							$parent.selectedPhenotypes.length != 0 &&
+							$parent.selectedPhenotypes.length > 0 &&
 							$store.state.geneName != 0 &&
 							$store.state.gene.data.length > 0
 						"
@@ -248,7 +248,7 @@
 						:genesInARegion="$store.state.genes.data"
 						:rareAssociations="$store.state.associations52k.data"
 						:selectedGene="$store.state.geneName"
-						:selectedPhenotype="$parent.selectedPhenotypes[0].name"
+						:selectedPhenotype="$parent.selectedPhenotype"
 						:prior="$store.state.prior"
 					></hugecal-score-section>
 					<!--<div>

@@ -128,8 +128,11 @@ export default new Vuex.Store({
             }
 
             const phenoRegionQuery = `${phenotype},${newRegion.chromosome}:${newRegion.start}-${newRegion.end}`;
+
+            console.log("phenoRegionQuery", phenoRegionQuery);
             context.dispatch('associations/query', { q: phenoRegionQuery });
         },
+
         updatedUniversalSuggestedPriorList(context, universalPriorList) {
             context.commit('setUniversalPriorList', universalPriorList);
 
@@ -152,6 +155,10 @@ export default new Vuex.Store({
             }
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start - 50000}-${locus.end + 50000}`;
             const regionQuery = `${locus.chr}:${locus.start - 250000}-${locus.end + 250000}`;
+
+            console.log("phenoRegionQuery", phenoRegionQuery);
+            console.log("regionQuery", regionQuery);
+
             context.dispatch('associations/query', { q: phenoRegionQuery });
             context.dispatch('genes/query', { q: regionQuery });
         },
