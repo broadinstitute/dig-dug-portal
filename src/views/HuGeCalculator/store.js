@@ -59,7 +59,7 @@ export default new Vuex.Store({
         },
         setSuggestedPriorNew(state, suggestedPriorNew) {
             state.suggestedPriorNew = suggestedPriorNew
-            console.log("updated suggested prior state to " + suggestedPriorNew)
+            //console.log("updated suggested prior state to " + suggestedPriorNew)
         },
         setAssociationsData(state, associationsData) {
             state.associationsData = associationsData
@@ -129,7 +129,7 @@ export default new Vuex.Store({
 
             const phenoRegionQuery = `${phenotype},${newRegion.chromosome}:${newRegion.start}-${newRegion.end}`;
 
-            console.log("phenoRegionQuery", phenoRegionQuery);
+            //console.log("phenoRegionQuery", phenoRegionQuery);
             context.dispatch('associations/query', { q: phenoRegionQuery });
         },
 
@@ -143,6 +143,8 @@ export default new Vuex.Store({
             let phenotype = phenoGeneInput["phenotype"];
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
+            //console.log("huge", locus);
+
             if (locus) {
                 context.state.newChr = locus.chr
                 context.state.newStart = locus.start;
@@ -155,9 +157,6 @@ export default new Vuex.Store({
             }
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start - 50000}-${locus.end + 50000}`;
             const regionQuery = `${locus.chr}:${locus.start - 250000}-${locus.end + 250000}`;
-
-            console.log("phenoRegionQuery", phenoRegionQuery);
-            console.log("regionQuery", regionQuery);
 
             context.dispatch('associations/query', { q: phenoRegionQuery });
             context.dispatch('genes/query', { q: regionQuery });

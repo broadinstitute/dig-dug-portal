@@ -256,6 +256,8 @@ export default Vue.component("hugecal-score-section", {
 			let isExomeWideSignificant =
 				this.isExomeWideSignificant(rareAssoData);
 
+			console.log("isExomeWideSignificant", isExomeWideSignificant);
+
 			if (!!isExomeWideSignificant) {
 				rareBF = 348;
 				rareBeta = 1;
@@ -286,21 +288,23 @@ export default Vue.component("hugecal-score-section", {
 								f2 = wn * Math.pow(beta, 2);
 								f3 = 2 * vn * (vn + wn);
 								f4 = f2 / f3;
+
 								rareBF = sqrtF1 * Math.exp(f4);
 							}
 
-							betaRareBFMap["rareBF"] =
-								rareBF < 1 ? 1 : parseFloat(rareBF.toFixed(2));
-							betaRareBFMap["beta"] = parseFloat(beta.toFixed(2));
+							rareBF = rareBF < 1 ? 1 : rareBF;
+							rareBeta = beta;
 
-							if (this.currentPage == "huge calculator") {
+							/*if (this.currentPage == "huge calculator") {
 								this.$store.dispatch(
 									"rareVarBF",
 									betaRareBFMap
 								);
 							}
 
-							return betaRareBFMap;
+							console.log("rare case 1", betaRareBFMap);
+
+							return betaRareBFMap;*/
 						}
 					});
 				}
@@ -312,6 +316,8 @@ export default Vue.component("hugecal-score-section", {
 			if (this.currentPage == "huge calculator") {
 				this.$store.dispatch("rareVarBF", betaRareBFMap);
 			}
+
+			console.log("rare case", betaRareBFMap);
 
 			return betaRareBFMap;
 		},
