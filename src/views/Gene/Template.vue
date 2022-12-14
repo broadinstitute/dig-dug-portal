@@ -251,48 +251,6 @@
 						:selectedPhenotype="$parent.selectedPhenotype"
 						:prior="$store.state.prior"
 					></hugecal-score-section>
-					<!--<div>
-						<br />
-
-						<genepage-combinedevidence-table
-							:commonBF="
-								parseFloat($parent.bayesFactorCommonVariation)
-							"
-							:combinedBF="parseFloat($parent.combinedScore)"
-							:rareBF="
-								parseFloat($parent.bayesFactorRareVariation)
-							"
-						></genepage-combinedevidence-table>
-					</div>
-					<div style="margin-bottom: 25px" class="container">
-						<ul class="legend center" style="white-space: nowrap">
-							<li>
-								<span class="superawesome"></span> Common
-								Variation Bayes Factor
-							</li>
-							<li>
-								<span class="awesome"></span> Rare Variation
-								Bayes Factor
-							</li>
-							<li>
-								<a
-									:href="`/hugecalculator.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
-									>View evidence in HuGE calculator >></a
-								>
-							</li>
-						</ul>
-						<br />
-					</div>
-
-					<div class="container">
-						<color-bar-plot
-							:category="
-								$parent.determineCategory($parent.combinedScore)
-							"
-							:elementid="'combinedVariation'"
-							:score="$parent.combinedScore"
-						></color-bar-plot>
-					</div>-->
 				</div>
 			</div>
 

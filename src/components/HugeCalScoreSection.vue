@@ -160,10 +160,6 @@ export default Vue.component("hugecal-score-section", {
 				topVariant = v.pValue < topVariant.pValue ? v : topVariant;
 			});
 
-			console.log("topVariant", topVariant.varId);
-
-			console.log("this.genesInARegion", this.genesInARegion.length);
-
 			let filteredGenesInARegion = this.genesInARegion.filter(
 				(a) => a.source == "symbol"
 			);
@@ -203,8 +199,6 @@ export default Vue.component("hugecal-score-section", {
 
 			//if NOT GWAS significant
 			let isGWASSignificantAssociation = false;
-
-			//console.log("this.selectedPhenotype", this.selectedPhenotype);
 
 			assoData.map((variant) => {
 				if (
@@ -248,15 +242,11 @@ export default Vue.component("hugecal-score-section", {
 			let masks = [];
 			let rareBF = 1;
 			let rareBeta = 1;
-			//let beta;
-			//let stdErr;
 
 			let rareAssoData = this.rareAssociations;
 
 			let isExomeWideSignificant =
 				this.isExomeWideSignificant(rareAssoData);
-
-			console.log("isExomeWideSignificant", isExomeWideSignificant);
 
 			if (!!isExomeWideSignificant) {
 				rareBF = 348;
@@ -294,17 +284,6 @@ export default Vue.component("hugecal-score-section", {
 
 							rareBF = rareBF < 1 ? 1 : rareBF;
 							rareBeta = beta;
-
-							/*if (this.currentPage == "huge calculator") {
-								this.$store.dispatch(
-									"rareVarBF",
-									betaRareBFMap
-								);
-							}
-
-							console.log("rare case 1", betaRareBFMap);
-
-							return betaRareBFMap;*/
 						}
 					});
 				}
@@ -316,8 +295,6 @@ export default Vue.component("hugecal-score-section", {
 			if (this.currentPage == "huge calculator") {
 				this.$store.dispatch("rareVarBF", betaRareBFMap);
 			}
-
-			console.log("rare case", betaRareBFMap);
 
 			return betaRareBFMap;
 		},
