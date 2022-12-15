@@ -29,15 +29,15 @@
                 </div>
             </template> -->
 
-            <template v-slot:cell(gene)="v">
+            <template #cell(gene)="v">
                 <a :href="'/gene.html?gene=' + v.item.gene_id">{{
                     v.item.gene_id
                 }}</a>
             </template>
         </b-table>
         <b-pagination
-            class="pagination-sm justify-content-center"
             v-model="currentPage"
+            class="pagination-sm justify-content-center"
             :total-rows="rows"
             :per-page="perPage"
         ></b-pagination>
@@ -58,13 +58,13 @@ import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 import CsvDownload from "@/components/CsvDownload";
 
-export default Vue.component("uniprot-references-table", {
-    props: ["references", "filter"],
+export default Vue.component("UniprotReferencesTable", {
     components: {
         Documentation,
         TooltipDocumentation,
         CsvDownload,
     },
+    props: ["references", "filter"],
     data() {
         return {
             fields: [
@@ -92,22 +92,24 @@ export default Vue.component("uniprot-references-table", {
             context: null,
         };
     },
-    async created() {
-        this.context = await fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
-            .then(response => response.json())
-            .then(json => json['@context']);
-    },
     computed: {
         rows() {
             return this.tableData.length;
         },
         tableData() {
             let dataRows = this.references;
-            if (!!this.filter) {
+            if (this.filter) {
                 dataRows = dataRows.filter(this.filter);
             }
             return dataRows;
         },
+    },
+    async created() {
+        this.context = await fetch(
+            "https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld"
+        )
+            .then((response) => response.json())
+            .then((json) => json["@context"]);
     },
     methods: {
         // remap(prefix) {
