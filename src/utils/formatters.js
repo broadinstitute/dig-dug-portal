@@ -245,11 +245,10 @@ function maskFormatter(mask) {
 }
 
 function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
-    let columnFormat = CONFIG["column formatting"]
-    let columnKeyObj = CONFIG["column formatting"][KEY];
+
     if (
-        columnFormat != undefined &&
-        columnKeyObj != undefined
+        CONFIG["column formatting"] != undefined &&
+        CONFIG["column formatting"][KEY] != undefined
     ) {
 
         let formatTypes = columnKeyObj["type"];
