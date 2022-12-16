@@ -250,7 +250,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
         CONFIG["column formatting"] != undefined &&
         CONFIG["column formatting"][KEY] != undefined
     ) {
-
+        let columnKeyObj = CONFIG["column formatting"][KEY];
         let formatTypes = columnKeyObj["type"];
         let linkToNewTab = !!columnKeyObj["new tab"]
             ? columnKeyObj["new tab"]
