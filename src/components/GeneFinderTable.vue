@@ -101,6 +101,9 @@ import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
+import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot.vue";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);

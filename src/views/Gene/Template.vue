@@ -7,73 +7,81 @@
 			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
-        <!-- Body -->
-        <div class="container-fluid mdkp-body">
-            <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
+		<!-- Body -->
+		<div class="container-fluid mdkp-body">
+			<search-header-wrapper>
+				<!-- Wrap page level searchs with "pageSearchParameters" div -->
 
-                <div class="col filter-col-md">
-                    <div class="label">Gene</div>
-                    <gene-selectpicker></gene-selectpicker>
-                </div>
-                <div class="col filter-col-md">
-                    <div class="label">Search</div>
-                    <button
-                        id="regionSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="$store.dispatch('queryGeneName')"
-                    >
-                        GO
-                    </button>
-                </div>
-            </search-header-wrapper>
+				<div class="col filter-col-md">
+					<div class="label">Gene</div>
+					<gene-selectpicker></gene-selectpicker>
+				</div>
+				<div class="col filter-col-md">
+					<div class="label">Search</div>
+					<button
+						id="regionSearchGo"
+						class="btn btn-light btn-sm go"
+						type="button"
+						@click="$store.dispatch('queryGeneName')"
+					>
+						GO
+					</button>
+				</div>
+			</search-header-wrapper>
 
-            <div class="gene-page-header card mdkp-card">
-                <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">Gene</div>
-                    <div class="col-md-4 gene-page-header-title">Navigate</div>
+			<div class="gene-page-header card mdkp-card">
+				<div class="row card-body">
+					<div class="col-md-8 gene-page-header-title">Gene</div>
+					<div class="col-md-4 gene-page-header-title">Navigate</div>
 
-                    <div class="col-md-8 gene-page-header-body">
-                        <div>
-                            <span>{{
-                                $store.state.geneName.toUpperCase()
-                            }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <div v-if="$parent.symbolName" class="input-group">
-                            <button
-                                class="btn btn-primary input-group-prepend explore-region-btn"
-                                style="margin-right: 20px"
-                                :title="$parent.regionText"
-                                @click="$parent.exploreRegion()"
-                            >
-                                Explore Region
-                            </button>
-                            <button
-                                class="btn btn-primary input-group-append explore-region-btn"
-                                :title="$parent.regionTextExpanded"
-                                @click="$parent.exploreRegion(50000)"
-                            >
-                                Explore &plusmn; 50 kb
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+					<div class="col-md-8 gene-page-header-body">
+						<div>
+							<span>{{
+								$store.state.geneName.toUpperCase()
+							}}</span>
+						</div>
+					</div>
+					<div class="col-md-4 gene-page-header-body">
+						<div v-if="$parent.symbolName" class="input-group">
+							<button
+								class="
+									btn btn-primary
+									input-group-prepend
+									explore-region-btn
+								"
+								style="margin-right: 20px"
+								:title="$parent.regionText"
+								@click="$parent.exploreRegion()"
+							>
+								Explore Region
+							</button>
+							<button
+								class="
+									btn btn-primary
+									input-group-append
+									explore-region-btn
+								"
+								:title="$parent.regionTextExpanded"
+								@click="$parent.exploreRegion(50000)"
+							>
+								Explore &plusmn; 50 kb
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
 
-            <div class="card mdkp-card">
-                <div class="card-body temporary-card">
-                    <documentation
-                        name="gene.explore.subheader"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation>
-                </div>
-            </div>
+			<div class="card mdkp-card">
+				<div class="card-body temporary-card">
+					<documentation
+						name="gene.explore.subheader"
+						:content-fill="$parent.documentationMap"
+					></documentation>
+				</div>
+			</div>
 
-            <div class="card mdkp-card">
-                <!-- <div class="card-body">
+			<div class="card mdkp-card">
+				<!-- <div class="card-body">
                     <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
                     <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
                     <documentation name="gene.translator.dashboard"></documentation>
@@ -81,297 +89,298 @@
                         :queries="$parent.queries"
                     ></translator-results-dashboard>
                 </div>-->
-                <div class="card-body">
-                    <h4>
-                        {{
-                            `Functional associations for ${$store.state.geneName.toUpperCase()}`
-                        }}
-                        <tooltip-documentation
-                            name="gene.translator.tooltip.hover"
-                            :content-fill="$parent.documentationMap"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation>
-                    </h4>
+				<div class="card-body">
+					<h4>
+						{{
+							`Functional associations for ${$store.state.geneName.toUpperCase()}`
+						}}
+						<tooltip-documentation
+							name="gene.translator.tooltip.hover"
+							:content-fill="$parent.documentationMap"
+							:isHover="true"
+							:noIcon="false"
+						></tooltip-documentation>
+					</h4>
 
-                    <documentation
-                        name="gene.translator.dashboard"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation>
-                    <b-tabs>
-                        <b-tab title="Function">
-                            <div class="card-body row">
-                                <div class="col-md-8">
-                                    <div v-if="$parent.geneFunction">
-                                        <h4>
-                                            Function
-                                            <tooltip-documentation
-                                                name="gene.function.tooltip.hover"
-                                                :content-fill="
-                                                    $parent.documentationMap
-                                                "
-                                                :isHover="true"
-                                                :noIcon="false"
-                                            ></tooltip-documentation>
-                                        </h4>
+					<documentation
+						name="gene.translator.dashboard"
+						:content-fill="$parent.documentationMap"
+					></documentation>
+					<b-tabs>
+						<b-tab title="Function">
+							<div class="card-body row">
+								<div class="col-md-8">
+									<div v-if="$parent.geneFunction">
+										<h4>
+											Function
+											<tooltip-documentation
+												name="gene.function.tooltip.hover"
+												:content-fill="
+													$parent.documentationMap
+												"
+												:isHover="true"
+												:noIcon="false"
+											></tooltip-documentation>
+										</h4>
 
-                                        <div>{{ $parent.geneFunction }}</div>
-                                    </div>
-                                    <div v-else>
-                                        <h5>Gene function not found</h5>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <h4>Info</h4>
-                                    <div
-                                        v-if="$parent.geneNames"
-                                        class="alternative-names"
-                                    >
-                                        <strong
-                                            >Alternative names:&nbsp;</strong
-                                        >
-                                        <span
-                                            v-for="gene in $parent.alternateNames"
-                                            v-if="gene.source == 'alias'"
-                                            :key="gene.name"
-                                            >{{ gene.name }}</span
-                                        >&nbsp;
-                                    </div>
-                                    <div v-if="$parent.regionText">
-                                        <strong>Coding sequence:</strong>
-                                        {{ $parent.regionText }}
-                                    </div>
-                                    <div v-if="$parent.region">
-                                        <strong>Length:</strong>
-                                        {{
-                                            " " +
-                                            (
-                                                $parent.region.end -
-                                                $parent.region.start
-                                            ).toLocaleString()
-                                        }}
-                                        bp
-                                    </div>
-                                    <div><strong>Assembly:</strong> GRCh37</div>
-                                    <div>
-                                        <strong>Gene sources:</strong>
-                                        <span
-                                            >&nbsp;Ensembl, HGNC, UCSC, RGD,
-                                            MGD</span
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-                        </b-tab>
-                        <b-tab title="Gene Ontology">
-                            <translator-predicate-table
-                                title="Gene Ontology (GO) Annotations"
-                                :geneSymbol="$store.state.geneName"
-                                :field="'go'"
-                            ></translator-predicate-table>
-                        </b-tab>
-                        <b-tab title="Pathways">
-                            <translator-predicate-table
-                                title="Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)"
-                                :geneSymbol="$store.state.geneName"
-                                :field="'pathway'"
-                            ></translator-predicate-table>
-                        </b-tab>
-                    </b-tabs>
-                </div>
-            </div>
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4 style="font-weight: bold" class="card-title">
-                        HuGE Score
-                    </h4>
+										<div>{{ $parent.geneFunction }}</div>
+									</div>
+									<div v-else>
+										<h5>Gene function not found</h5>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<h4>Info</h4>
+									<div
+										v-if="$parent.geneNames"
+										class="alternative-names"
+									>
+										<strong
+											>Alternative names:&nbsp;</strong
+										>
+										<span
+											v-for="gene in $parent.alternateNames"
+											v-if="gene.source == 'alias'"
+											:key="gene.name"
+											>{{ gene.name }}</span
+										>&nbsp;
+									</div>
+									<div v-if="$parent.regionText">
+										<strong>Coding sequence:</strong>
+										{{ $parent.regionText }}
+									</div>
+									<div v-if="$parent.region">
+										<strong>Length:</strong>
+										{{
+											" " +
+											(
+												$parent.region.end -
+												$parent.region.start
+											).toLocaleString()
+										}}
+										bp
+									</div>
+									<div><strong>Assembly:</strong> GRCh37</div>
+									<div>
+										<strong>Gene sources:</strong>
+										<span
+											>&nbsp;Ensembl, HGNC, UCSC, RGD,
+											MGD</span
+										>
+									</div>
+								</div>
+							</div>
+						</b-tab>
+						<b-tab title="Gene Ontology">
+							<translator-predicate-table
+								title="Gene Ontology (GO) Annotations"
+								:geneSymbol="$store.state.geneName"
+								:field="'go'"
+							></translator-predicate-table>
+						</b-tab>
+						<b-tab title="Pathways">
+							<translator-predicate-table
+								title="Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)"
+								:geneSymbol="$store.state.geneName"
+								:field="'pathway'"
+							></translator-predicate-table>
+						</b-tab>
+					</b-tabs>
+				</div>
+			</div>
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<h4 style="font-weight: bold" class="card-title">
+						HuGE Score
+					</h4>
 
-                    <span>
-                        <documentation
-                            name="gene.hugecal.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-                    </span>
-                    <!-- Phenotype Selector -->
-                    <criterion-list-group
-                        v-model="$parent.genePageSearchCriterion"
-                        :header="''"
-                        class="top-associations-section-phenotype-filter"
-                    >
-                        <!-- Phenotype Selector -->
-                        <filter-enumeration-control
-                            :field="'phenotype'"
-                            :options="$parent.phenotypeOptions"
-                            :multiple="false"
-                            :pillFormatter="
-                                (filter) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        filter.threshold
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              filter.threshold
-                                          ].description
-                                        : filter.threshold
-                            "
-                            :labelFormatter="
-                                (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
-                                        : phenotype
-                            "
-                        >
-                            <div class="label">Change Phenotype:</div>
-                        </filter-enumeration-control>
-                    </criterion-list-group>
-                    <hugecal-score-section
-                        v-if="
-                            $store.state.varassociations.data.length > 0 &&
-                            $parent.selectedPhenotypes.length > 0 &&
-                            $store.state.geneName != 0 &&
-                            $store.state.gene.data.length > 0
-                        "
-                        currentPage="gene"
-                        :documentationMap="null"
-                        :commonAssociations="$store.state.varassociations.data"
-                        :geneData="$store.state.gene.data"
-                        :genesInARegion="$store.state.genes.data"
-                        :rareAssociations="$store.state.associations52k.data"
-                        :selectedGene="$store.state.geneName"
-                        :selectedPhenotype="$parent.selectedPhenotype"
-                        :prior="$store.state.prior"
-                    ></hugecal-score-section>
-                </div>
-            </div>
+					<span>
+						<documentation
+							name="gene.hugecal.subheader"
+							:content-fill="$parent.documentationMap"
+						></documentation>
+					</span>
+					<!-- Phenotype Selector -->
+					<criterion-list-group
+						v-model="$parent.genePageSearchCriterion"
+						:header="''"
+						class="top-associations-section-phenotype-filter"
+					>
+						<!-- Phenotype Selector -->
+						<filter-enumeration-control
+							:field="'phenotype'"
+							:options="$parent.phenotypeOptions"
+							:multiple="false"
+							:pillFormatter="
+								(filter) =>
+									!!$store.state.bioPortal.phenotypeMap[
+										filter.threshold
+									]
+										? $store.state.bioPortal.phenotypeMap[
+												filter.threshold
+										  ].description
+										: filter.threshold
+							"
+							:labelFormatter="
+								(phenotype) =>
+									!!$store.state.bioPortal.phenotypeMap[
+										phenotype
+									]
+										? $store.state.bioPortal.phenotypeMap[
+												phenotype
+										  ].description
+										: phenotype
+							"
+						>
+							<div class="label">Change Phenotype:</div>
+						</filter-enumeration-control>
+					</criterion-list-group>
+					<hugecal-score-section
+						v-if="
+							$store.state.varassociations.data.length > 0 &&
+							$parent.selectedPhenotypes.length > 0 &&
+							$store.state.geneName != 0 &&
+							$store.state.gene.data.length > 0
+						"
+						currentPage="gene"
+						:documentationMap="null"
+						:commonAssociations="$store.state.varassociations.data"
+						:geneData="$store.state.gene.data"
+						:genesInARegion="$store.state.genes.data"
+						:rareAssociations="$store.state.associations52k.data"
+						:selectedGene="$store.state.geneName"
+						:selectedPhenotype="$parent.selectedPhenotype"
+						:prior="$store.state.prior"
+					></hugecal-score-section>
+				</div>
+			</div>
 
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <div v-if="$parent.dbReference">
-                        <h4 class="card-title">
-                            Common variant gene-level associations for
-                            {{ $store.state.geneName.toUpperCase() }}
-                            (Ancestry:
-                            {{
-                                $store.state.selectedAncestry == ""
-                                    ? "All"
-                                    : $parent.ancestryFormatter(
-                                          $store.state.selectedAncestry
-                                      )
-                            }})
-                            <tooltip-documentation
-                                name="gene.associations.tooltip.hover"
-                                :content-fill="$parent.documentationMap"
-                                :isHover="true"
-                                :noIcon="false"
-                            ></tooltip-documentation>
-                        </h4>
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<div v-if="$parent.dbReference">
+						<h4 class="card-title">
+							Common variant gene-level associations for
+							{{ $store.state.geneName.toUpperCase() }}
+							(Ancestry:
+							{{
+								$store.state.selectedAncestry == ""
+									? "All"
+									: $parent.ancestryFormatter(
+											$store.state.selectedAncestry
+									  )
+							}})
+							<tooltip-documentation
+								name="gene.associations.tooltip.hover"
+								:content-fill="$parent.documentationMap"
+								:isHover="true"
+								:noIcon="false"
+							></tooltip-documentation>
+						</h4>
 
-                        <criterion-function-group id="common_variants">
-                            <div class="col filter-col-md">
-                                <div class="label">Ancestry</div>
-                                <ancestry-selectpicker
-                                    :ancestries="
-                                        $store.state.bioPortal.datasets.map(
-                                            (dataset) => dataset.ancestry
-                                        )
-                                    "
-                                ></ancestry-selectpicker>
-                            </div>
-                            <filter-enumeration-control
-                                :field="'phenotype'"
-                                placeholder="Select a phenotype ..."
-                                :options="
-                                    $store.state.geneassociations.data.map(
-                                        (association) => association.phenotype
-                                    )
-                                "
-                                :labelFormatter="
-                                    (phenotype) =>
-                                        !!$store.state.bioPortal.phenotypeMap[
-                                            phenotype
-                                        ]
-                                            ? $store.state.bioPortal
-                                                  .phenotypeMap[phenotype]
-                                                  .description
-                                            : phenotype
-                                "
-                                :multiple="true"
-                            >
-                                <div class="label">Phenotypes</div>
-                            </filter-enumeration-control>
-                            <filter-pvalue-control
-                                :field="'pValue'"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">P-Value (&le;)</div>
-                            </filter-pvalue-control>
+						<criterion-function-group id="common_variants">
+							<div class="col filter-col-md">
+								<div class="label">Ancestry</div>
+								<ancestry-selectpicker
+									:ancestries="
+										$store.state.bioPortal.datasets.map(
+											(dataset) => dataset.ancestry
+										)
+									"
+								></ancestry-selectpicker>
+							</div>
+							<filter-enumeration-control
+								:field="'phenotype'"
+								placeholder="Select a phenotype ..."
+								:options="
+									$store.state.geneassociations.data.map(
+										(association) => association.phenotype
+									)
+								"
+								:labelFormatter="
+									(phenotype) =>
+										!!$store.state.bioPortal.phenotypeMap[
+											phenotype
+										]
+											? $store.state.bioPortal
+													.phenotypeMap[phenotype]
+													.description
+											: phenotype
+								"
+								:multiple="true"
+							>
+								<div class="label">Phenotypes</div>
+							</filter-enumeration-control>
+							<filter-pvalue-control
+								:field="'pValue'"
+								placeholder="Set P-Value ..."
+							>
+								<div class="label">P-Value (&le;)</div>
+							</filter-pvalue-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <div
-                                    align="center"
-                                    id="ancestry_set"
-                                    style="text-align: -webkit-center"
-                                ></div>
-                                <research-phewas-plot
-                                    v-if="
-                                        $store.state.geneassociations.data
-                                            .length > 0
-                                    "
-                                    canvasId="commonVariantPlot"
-                                    :phenotypesData="
-                                        $store.state.geneassociations.data
-                                    "
-                                    :phenotypeMap="
-                                        $store.state.bioPortal.phenotypeMap
-                                    "
-                                    :colors="[
-                                        '#007bff',
-                                        '#048845',
-                                        '#8490C8',
-                                        '#BF61A5',
-                                        '#EE3124',
-                                        '#FCD700',
-                                        '#5555FF',
-                                        '#7aaa1c',
-                                        '#9F78AC',
-                                        '#F88084',
-                                        '#F5A4C7',
-                                        '#CEE6C1',
-                                        '#cccc00',
-                                        '#6FC7B6',
-                                        '#D5A768',
-                                        '#d4d4d4',
-                                    ]"
-                                    :plotMargin="{
-                                        leftMargin: 75,
-                                        rightMargin: 20,
-                                        topMargin: 10,
-                                        bottomMargin: 50,
-                                        bump: 5.5,
-                                    }"
-                                    :renderConfig="{
-                                        type: 'phewas plot',
-                                        'render by': 'phenotype',
-                                        'group by': 'phenotype group',
-                                        'phenotype map': 'kp phenotype map',
-                                        'y axis field': 'pValue',
-                                        'convert y -log10': 'true',
-                                        'y axis label': '-Log10(p-value)',
-                                        'x axis label': 'beta',
-                                        'beta field': 'null',
-                                        'hover content': ['pValue'],
-                                        thresholds: ['2.5e-6'],
-                                        height: '500',
-                                    }"
-                                    :pkgData="null"
-                                    :pkgDataSelected="null"
-                                    :filter="filter"
-                                    ref="rpPheWASPlot"
-                                ></research-phewas-plot>
-
+							<template slot="filtered" slot-scope="{ filter }">
+								<div
+									align="center"
+									id="ancestry_set"
+									style="text-align: -webkit-center"
+								></div>
+								<research-phewas-plot
+									v-if="
+										$store.state.geneassociations.data
+											.length > 0
+									"
+									canvasId="commonVariantPlot"
+									:phenotypesData="
+										$store.state.geneassociations.data
+									"
+									:phenotypeMap="
+										$store.state.bioPortal.phenotypeMap
+									"
+									:colors="[
+										'#007bff',
+										'#048845',
+										'#8490C8',
+										'#BF61A5',
+										'#EE3124',
+										'#FCD700',
+										'#5555FF',
+										'#7aaa1c',
+										'#9F78AC',
+										'#F88084',
+										'#F5A4C7',
+										'#CEE6C1',
+										'#cccc00',
+										'#6FC7B6',
+										'#D5A768',
+										'#d4d4d4',
+									]"
+									:plotMargin="{
+										leftMargin: 75,
+										rightMargin: 20,
+										topMargin: 10,
+										bottomMargin: 50,
+										bump: 5.5,
+									}"
+									:renderConfig="{
+										type: 'phewas plot',
+										'render by': 'phenotype',
+										'group by': 'phenotype group',
+										'phenotype map': 'kp phenotype map',
+										'y axis field': 'pValue',
+										'convert y -log10': 'true',
+										'y axis label': '-Log10(p-value)',
+										'x axis label': 'beta',
+										'beta field': 'null',
+										'hover content': ['pValue'],
+										thresholds: ['2.5e-6'],
+										height: '500',
+									}"
+									:pkgData="null"
+									:pkgDataSelected="null"
+									:filter="filter"
+									ref="rpPheWASPlot"
+								></research-phewas-plot>
+							</template>
+						</criterion-function-group>
 						<criterion-function-group id="common_variants">
 							<div class="col filter-col-md">
 								<div class="label">Ancestry</div>
@@ -627,78 +636,79 @@
 								:inclusive="true"
 							>
 								<div class="label">Molecule Type</div>
-							</filter-enumeration-control> -->
+							</filter-enumeration-control>
+							-->
 
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <uniprot-references-table
-                                    :references="$parent.dbReference"
-                                    :filter="filter"
-                                ></uniprot-references-table>
-                            </template>
-                        </criterion-function-group>
-                    </div>
-                </div>
-            </div>
+							<template slot="filtered" slot-scope="{ filter }">
+								<uniprot-references-table
+									:references="$parent.dbReference"
+									:filter="filter"
+								></uniprot-references-table>
+							</template>
+						</criterion-function-group>
+					</div>
+				</div>
+			</div>
 
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <div v-if="$parent.geneNames">
-                        <h4 class="card-title">External resources</h4>
-                        <div
-                            v-if="$parent.accession.length > 0"
-                            class="gene-with-signal none"
-                        >
-                            <a
-                                :href="
-                                    $parent.externalResources['uniprot'].link +
-                                    $parent.accession[0]
-                                "
-                                target="_blank"
-                                :title="
-                                    $parent.externalResources['uniprot'].title
-                                "
-                                >UNIPROT</a
-                            >
-                        </div>
-                        <div
-                            v-for="gene in $parent.alternateNames"
-                            v-if="gene.source != 'alias'"
-                            class="gene-with-signal none"
-                            :key="gene.name"
-                        >
-                            <a
-                                v-if="gene.source != 'ucsc'"
-                                :href="
-                                    $parent.externalResources[gene.source]
-                                        .link + gene.name
-                                "
-                                target="_blank"
-                                :title="
-                                    $parent.externalResources[gene.source].title
-                                "
-                                >{{ gene.source.toUpperCase() }}</a
-                            >
-                            <a
-                                v-else
-                                :href="
-                                    $parent.externalResources[gene.source]
-                                        .link + $parent.symbolName
-                                "
-                                target="_blank"
-                                :title="
-                                    $parent.externalResources[gene.source].title
-                                "
-                                >{{ gene.source.toUpperCase() }}</a
-                            >
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<div v-if="$parent.geneNames">
+						<h4 class="card-title">External resources</h4>
+						<div
+							v-if="$parent.accession.length > 0"
+							class="gene-with-signal none"
+						>
+							<a
+								:href="
+									$parent.externalResources['uniprot'].link +
+									$parent.accession[0]
+								"
+								target="_blank"
+								:title="
+									$parent.externalResources['uniprot'].title
+								"
+								>UNIPROT</a
+							>
+						</div>
+						<div
+							v-for="gene in $parent.alternateNames"
+							v-if="gene.source != 'alias'"
+							class="gene-with-signal none"
+							:key="gene.name"
+						>
+							<a
+								v-if="gene.source != 'ucsc'"
+								:href="
+									$parent.externalResources[gene.source]
+										.link + gene.name
+								"
+								target="_blank"
+								:title="
+									$parent.externalResources[gene.source].title
+								"
+								>{{ gene.source.toUpperCase() }}</a
+							>
+							<a
+								v-else
+								:href="
+									$parent.externalResources[gene.source]
+										.link + $parent.symbolName
+								"
+								target="_blank"
+								:title="
+									$parent.externalResources[gene.source].title
+								"
+								>{{ gene.source.toUpperCase() }}</a
+							>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 
-        <!-- Footer-->
-        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
-    </div>
+		<!-- Footer-->
+		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
+	</div>
 </template>
 
 <style>
