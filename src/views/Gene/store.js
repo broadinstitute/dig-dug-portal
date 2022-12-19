@@ -129,8 +129,9 @@ export default new Vuex.Store({
         ///
 
         async queryGeneRegion(context, region) {
+            //To match with HuGE cal +- 300000 to the region
             let { chromosome, start, end } = region || context.getters.region;
-            let q = `${chromosome}:${start}-${end}`;
+            let q = `${chromosome}:${start - 300000}-${end + 300000}`;
 
             context.dispatch("genes/query", { q });
         },
@@ -150,7 +151,6 @@ export default new Vuex.Store({
         },
         async getVarAssociationsData(context, phenotype) {
             let gene = context.state.geneName;
-            // let phenotype = phenoGeneInput["phenotype"];
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {
@@ -159,15 +159,16 @@ export default new Vuex.Store({
                 context.state.newEnd = locus.end;
             }
 
-            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
+            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start - 50000}-${locus.end + 50000}`;
+
             context.dispatch('varassociations/query', { q: phenoRegionQuery });
 
         },
-        async getEGLData(context) {
+        /*async getEGLData(context) {
             let dataset = "mccarthy";
             let trait = "t2d";
             context.dispatch("kp4cd/getEglData", { dataset, trait });
-        },
+        },*/
         async get52KAssociationData(context) {
             let name = context.state.geneName;
             context.dispatch('associations52k/query', { q: name });

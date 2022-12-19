@@ -100,16 +100,14 @@ import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
-
-import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
+import ManhattanPlot from "@/components/ManhattanPlot.vue";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import Documentation from "@/components/Documentation";
-import TooltipDocumentation from "@/components/TooltipDocumentation";
+
 import CsvDownload from "@/components/CsvDownload";
 
 export default Vue.component("gene-finder-table", {

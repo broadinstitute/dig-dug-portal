@@ -107,7 +107,11 @@
 											"
 											show
 											>Please select a gene, and
-											optionally a transcript.</b-alert
+											optionally a transcript. Learn about
+											<b>masks </b>
+											<a href="/help.html?page=959#mask"
+												>here</a
+											>.</b-alert
 										>
 										<b-alert
 											v-else-if="
@@ -124,7 +128,11 @@
 												0
 											"
 											show
-											>Please select a mask.</b-alert
+											>Please select a mask. Learn about
+											<b>masks </b>
+											<a href="/help.html?page=959#mask"
+												>here</a
+											></b-alert
 										></transition
 									>
 									<criterion-list-group

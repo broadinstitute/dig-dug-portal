@@ -37,6 +37,7 @@ import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
 
 import sessionUtils from "@/utils/sessionUtils";
+import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
 import Counter from "@/utils/idCounter";
 
@@ -79,7 +80,8 @@ new Vue({
         NCATSPredicateTable,
         VariantSearch,
         ColorBarPlot,
-        GenePageCombinedEvidenceTable
+        GenePageCombinedEvidenceTable,
+        HugeCalScoreSection
     },
 
     data() {
@@ -208,7 +210,7 @@ new Vue({
                 }
             };
         },
-        bayes_factor(beta, stdErr) {
+        /*bayes_factor(beta, stdErr) {
             let w = this.$store.state.prior;
             let v = Math.pow(stdErr, 2);
             let f1 = v / (v + w);
@@ -218,8 +220,8 @@ new Vue({
             let f4 = f2 / f3;
             let bayes_factor = sqrt_f1 * Math.exp(f4);
             return bayes_factor;
-        },
-        determineCategory(bayesfactor) {
+        },*/
+        /*determineCategory(bayesfactor) {
             let category;
             if (bayesfactor <= 1) {
                 category = "No";
@@ -238,8 +240,8 @@ new Vue({
                 category = "Compelling";
             }
             return category;
-        },
-        isGWASSignificantAssociation(data, selectedPhenotype) {
+        },*/
+        /*isGWASSignificantAssociation(data, selectedPhenotype) {
             if (!!data.length > 0) {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == selectedPhenotype) {
@@ -250,11 +252,11 @@ new Vue({
                 }
                 return false;
             }
-        },
-        bayesFactorCombinedEvidence(commonBF, rareBF) {
+        },*/
+        /*bayesFactorCombinedEvidence(commonBF, rareBF) {
             let combinedbf = commonBF * rareBF;
             return Number.parseFloat(combinedbf).toFixed(2);
-        },
+        },*/
 
         // go to region page
         exploreRegion(expanded = 0) {
@@ -265,7 +267,7 @@ new Vue({
                     }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
-        isExomeWideSignificant(data, trait) {
+        /*isExomeWideSignificant(data, trait) {
             if (!!data.length) {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == trait) {
@@ -276,7 +278,7 @@ new Vue({
                 }
                 return false;
             }
-        },
+        },*/
         topPhenotype(topAssocData) {
             return topAssocData[0];
         }
@@ -422,7 +424,7 @@ new Vue({
                 return this.selectedPhenotypes[0].name;
             } else return "T2D";
         },
-        eglData() {
+        /*eglData() {
             let geneSymbol = this.$store.state.geneName;
             if (this.selectedPhenotype == "T2D") {
                 if (!!this.$store.state.kp4cd.eglData.data) {
@@ -447,170 +449,7 @@ new Vue({
             } else {
                 return { category: "in GWAS" };
             }
-        },
-
-        combinedScore() {
-            return (
-                this.bayesFactorCommonVariation * this.bayesFactorRareVariation
-            );
-        },
-
-        bayesFactorRareVariation() {
-            let masks = [];
-            let rarebayesfactor = 1;
-            let beta;
-            let stdErr;
-            let selectedPhenotype = "";
-            if (this.selectedPhenotypes.length > 0) {
-                selectedPhenotype = this.selectedPhenotypes[0].name;
-            }
-
-            let data = this.$store.state.associations52k.data;
-            if (this.isExomeWideSignificant(data, selectedPhenotype)) {
-                rarebayesfactor = 348;
-            } else {
-                if (data.length > 0) {
-                    for (let i = 0; i < data.length; i++) {
-                        if (
-                            !!this.$store.state.associations52k.data[i]
-                                .phenotype &&
-                            this.$store.state.associations52k.data[i]
-                                .phenotype == selectedPhenotype
-                        ) {
-                            //filter with selected phenotype
-                            masks = data[i].masks;
-                            if (!!masks && masks.length > 0) {
-                                let d = masks.sort(
-                                    (a, b) => a.pValue - b.pValue
-                                );
-                                let mostSignificantMask = d[0];
-                                stdErr = mostSignificantMask.stdErr;
-                                beta = mostSignificantMask.beta;
-                                rarebayesfactor = this.bayes_factor(
-                                    beta,
-                                    stdErr
-                                );
-                            }
-                            if (rarebayesfactor < 1) {
-                                rarebayesfactor = 1;
-                            }
-                            return Number.parseFloat(rarebayesfactor).toFixed(
-                                2
-                            );
-                        }
-                        //if phenotype doesn't exist in 52K Associations data
-                        else {
-                            rarebayesfactor = 1;
-                        }
-                    }
-                }
-            }
-
-            return Number.parseFloat(rarebayesfactor).toFixed(2);
-        },
-
-        bayesFactorCommonVariation() {
-            let commonBF = 1;
-            let data = [];
-            let selectedPhenotype = "";
-            let selectGene = this.$store.state.geneName;
-            if (this.selectedPhenotypes.length > 0) {
-                selectedPhenotype = this.selectedPhenotypes[0].name;
-            }
-            data = this.$store.state.varassociations.data;
-            if (data.length > 0) {
-                //let data = this.$store.state.associations.data;
-                let coding_variants = {
-                    transcript_ablation: "HIGH",
-                    splice_acceptor_variant: "HIGH",
-                    splice_donor_variant: "HIGH",
-                    stop_gained: "HIGH",
-                    frameshift_variant: "HIGH",
-                    stop_lost: "HIGH",
-                    start_lost: "HIGH",
-                    transcript_amplification: "HIGH",
-                    inframe_insertion: "MODERATE",
-                    inframe_deletion: "MODERATE",
-                    missense_variant: "MODERATE",
-                    protein_altering_variant: "MODERATE"
-                };
-                data.sort(function (a, b) {
-                    return a.pValue - b.pValue;
-                });
-                let topVariant = data[0];
-                let topVariant_consequence = topVariant.consequence;
-                let genesInARegion = this.$store.state.genes.data;
-                var filteredGenesInARegion = genesInARegion.filter(
-                    a => a.source == "symbol"
-                );
-                let distance = 0;
-                //calculate the distance of topVariant to each gene and find the smallest distance
-                filteredGenesInARegion.forEach(function (geneinregion) {
-                    let distanceFromStart =
-                        topVariant.position - geneinregion.start;
-                    let distanceFromEnd =
-                        topVariant.position - geneinregion.end;
-                    if (distanceFromStart * distanceFromEnd > 0) {
-                        distance = Math.min(
-                            Math.abs(distanceFromStart),
-                            Math.abs(distanceFromEnd)
-                        );
-                        geneinregion["distance"] = distance;
-                    } else {
-                        distance = 0;
-                        geneinregion["distance"] = distance;
-                    }
-                });
-
-                filteredGenesInARegion.sort(function (a, b) {
-                    return a.distance - b.distance;
-                });
-                let lowestPvalueClosestGene = filteredGenesInARegion[0];
-
-                //find lowest p - value, is it closest gene - TO DO
-
-                data.forEach(function (eachSNP) {
-                    if (coding_variants.hasOwnProperty(eachSNP.consequence)) {
-                        if (eachSNP.pValue < 5e-8) {
-                            commonBF = 20;
-                            return commonBF;
-                        }
-                    }
-                });
-                //if NOT GWAS significant
-                if (
-                    !this.isGWASSignificantAssociation(data, selectedPhenotype)
-                ) {
-                    commonBF = 1;
-                    console.log("gene is not GWAS significant");
-                }
-                //if  GWAS significant
-                else {
-                    //if top variant is coding and the impact of that coding variant is high or moderate
-                    if (
-                        coding_variants.hasOwnProperty(topVariant_consequence)
-                    ) {
-                        if (
-                            coding_variants[topVariant_consequence] == "HIGH" ||
-                            "MODERATE"
-                        ) {
-                            //you HAVE TP CHECK IF IT IS SAME GENE - TO DO
-                            commonBF = 360;
-                        }
-                    } else if (lowestPvalueClosestGene.name == selectGene) {
-                        commonBF = 45;
-                        console.log(
-                            lowestPvalueClosestGene,
-                            "lowestPvalueClosestGene"
-                        );
-                    } else {
-                        commonBF = 3;
-                    }
-                }
-            }
-
-            return commonBF;
-        },
+        },*/
 
         queries() {
             return [
@@ -741,7 +580,6 @@ new Vue({
             let topPhenotype = "LDL";
             if (newData.length > 0) {
                 topPhenotype = newData[0].phenotype;
-                console.log("top-phenotype", topPhenotype);
                 if (this.genePageSearchCriterion[0] != topPhenotype) {
                     this.genePageSearchCriterion = [];
                 }
@@ -749,7 +587,7 @@ new Vue({
 
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
 
-                this.$store.dispatch("getEGLData");
+                //this.$store.dispatch("getEGLData");
             }
         },
 
@@ -765,7 +603,7 @@ new Vue({
                     phenotypes[0].name
                 );
             }
-            this.$store.dispatch("getEGLData");
+            //this.$store.dispatch("getEGLData");
         },
 
         diseaseGroup(group) {

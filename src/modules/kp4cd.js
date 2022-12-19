@@ -27,6 +27,7 @@ export default {
             staticContent: [],
             portals: [],
             helpBook: [],
+            helpBookSearch: [],
             contentByID: [],
         };
     },
@@ -87,6 +88,9 @@ export default {
         },
         setHelpBook(state, book) {
             state.helpBook = book;
+        },
+        setHelpBookSearch(state, searchReturn) {
+            state.helpBookSearch = searchReturn;
         },
         setContentByID(state, content) {
             state.contentByID = content;
@@ -257,6 +261,13 @@ export default {
             ).then(resp => resp.json());
             // set the data
             context.commit("setContentByID", json);
+        },
+        async getHelpBookSearch(context, searchKey) {
+            let json = await fetch(
+                "https://kp4cd.org/rest/views/help_book_search?body=" + searchKey
+            ).then(resp => resp.json());
+            // set the data
+            context.commit("setHelpBookSearch", json);
         },
     }
 };

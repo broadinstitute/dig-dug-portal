@@ -312,6 +312,7 @@
 					<template
 						v-if="
 							filter.type == 'search' ||
+							filter.type == 'search exact' ||
 							filter.type == 'search greater than' ||
 							filter.type == 'search lower than' ||
 							filter.type == 'search or' ||
@@ -421,6 +422,7 @@
 import Vue from "vue";
 
 import uiUtils from "@/utils/uiUtils";
+import alertUtils from "@/utils/alertUtils";
 import keyParams from "@/utils/keyParams";
 
 export default Vue.component("research-page-filters", {
@@ -445,6 +447,7 @@ export default Vue.component("research-page-filters", {
 			paramSearch: "",
 			geneSearch: "",
 			kpGenes: [],
+			lastFilter: { field: null, value: null },
 		};
 	},
 	created() {
@@ -755,12 +758,8 @@ export default Vue.component("research-page-filters", {
 					let pos = currentRegion[1].replace(/\D/g, "");
 
 					let regionStart = Number(pos) - 1;
-
 					let regionEnd = Number(pos) + 1;
-
 					let newRegion = chr + ":" + regionStart + "-" + regionEnd;
-
-					console.log("newRegion", newRegion);
 
 					regionFromVariant = newRegion;
 
@@ -776,11 +775,21 @@ export default Vue.component("research-page-filters", {
 				let key2Update = {};
 
 				parametersArr.map((param, index) => {
-					queryParams += document.getElementById(
+					let queryParamValue = document.getElementById(
 						"search_param_" + param
 					).value;
-					if (index + 1 < parametersArr.length) {
-						queryParams += ",";
+
+					if (queryParamValue != "noValue") {
+						queryParams += queryParamValue;
+
+						if (index + 1 < parametersArr.length) {
+							queryParams += ",";
+						}
+					} else {
+						if (queryParams[queryParams.length - 1] == ",") {
+							let newQP = queryParams.slice(0, -1);
+							queryParams = newQP;
+						}
 					}
 
 					// add to search parameters index
@@ -826,13 +835,6 @@ export default Vue.component("research-page-filters", {
 			}
 
 			let APIPoint = this.dataFiles[0];
-			/*if (this.dataType == "bioindex") {
-				APIPoint +=
-					"query/" +
-					this.apiParameters.query.index +
-					"?q=" +
-					queryParams;
-			}*/
 
 			if (this.dataType == "bioindex" && !!this.isAPI) {
 				/// set BioIndex API point
@@ -901,7 +903,6 @@ export default Vue.component("research-page-filters", {
 		},
 		numberOfSearchParams() {},
 		buildOptions(field) {
-			//console.log("this.dataset", this.dataset);
 			if (this.dataComparisonConfig == null) {
 				let options = this.dataset
 					.map((v) => v[field])
@@ -944,7 +945,11 @@ export default Vue.component("research-page-filters", {
 			inputField.blur();
 			inputField.value = "";
 
-			if (TYPE == "search") {
+			///Record the last filtering item
+
+			this.lastFilter = { field: FIELD, value: searchValue };
+
+			if (TYPE == "search" || TYPE == "search exact") {
 				let searchTerms = searchValue.split(",");
 				searchTerms.map((searchTerm) => {
 					this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
@@ -1014,6 +1019,15 @@ export default Vue.component("research-page-filters", {
 													.includes(
 														search.toLowerCase()
 													)
+													? tempFiltered.push(row)
+													: "";
+
+												break;
+											case "search exact":
+												search.toLowerCase() ===
+												row[searchIndex.field]
+													.toString()
+													.toLowerCase()
 													? tempFiltered.push(row)
 													: "";
 
@@ -1095,7 +1109,10 @@ export default Vue.component("research-page-filters", {
 										!!row[searchIndex.field] &&
 										row[searchIndex.field] != undefined
 									) {
-										if (searchIndex.type == "dropdown") {
+										if (
+											searchIndex.type == "dropdown" ||
+											searchIndex.type == "search exact"
+										) {
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1106,10 +1123,12 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														search ===
+														search.toLowerCase() ===
 														row[searchIndex.field][
 															cellNum
-														].toString()
+														]
+															.toString()
+															.toLowerCase()
 													) {
 														meetSearch = true;
 													}
@@ -1520,7 +1539,26 @@ export default Vue.component("research-page-filters", {
 				}
 			}
 
-			this.$store.dispatch("filteredData", filtered);
+			let filteredLength =
+				filtered.length != undefined
+					? filtered.length
+					: Object.keys(filtered).length;
+
+			if (filteredLength == 0 || filteredLength == null) {
+				alertUtils.popAlert(
+					"The last filtering item returns no data therefore removed."
+				);
+
+				let newSearchArr = this.filtersIndex[
+					this.lastFilter.field
+				].search.filter((s) => s != this.lastFilter.value);
+
+				this.filtersIndex[this.lastFilter.field].search = newSearchArr;
+
+				this.applyFilters();
+			} else {
+				this.$store.dispatch("filteredData", filtered);
+			}
 		},
 		removeAllFilters() {
 			for (const FIELD in this.filtersIndex) {

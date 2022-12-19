@@ -17,6 +17,8 @@ export default new Vuex.Store({
         phenotypesInSession: null,
         diseaseInSession: null,
         phenotypeCorrelation: null,
+        searchKey: null,
+        searchedKey: null,
     },
     mutations: {
         setPage(state, page) {
@@ -31,6 +33,10 @@ export default new Vuex.Store({
         },
         setPhenotypeCorrelation(state, Correlation) {
             state.phenotypeCorrelation = Correlation;
+        },
+
+        setSearchedKey(state, KEY) {
+            state.searchedKey = KEY;
         },
     },
     getters: {
@@ -48,5 +54,8 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
+        searchedKey(context, KEY) {
+            context.commit("setSearchedKey", KEY);
+        }
     }
 });
