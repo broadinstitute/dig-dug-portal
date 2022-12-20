@@ -44,28 +44,13 @@
 									></span>
 								</div>
 							</div>
-							<!--<div class="a2f-front-logo-wrapper col-md-6">
-									<img
-										class="a2f-front-logo-img"
-										v-if="
-											$parent.frontContents
-												.field_front_logo
-										"
-										:src="
-											'https://kp4cd.org/sites/default/files/vueportal/' +
-											$parent.frontContents
-												.field_front_logo
-										"
-									/>
-									<br />
-								</div>
-								<div
-									class="a2f-front-tagline col-md-6"
-									v-html="$parent.frontContents.field_tagline"
-								></div>-->
 						</div>
-
-						<div class="row" style="margin-top: 25px">
+						<!-- A2F only feature -->
+						<div
+							class="row"
+							style="margin-top: 25px"
+							v-if="$parent.diseaseGroup.name == 'a2f'"
+						>
 							<div class="col-md-8 offset-md-2">
 								<h4
 									style="color: #fff"
@@ -134,7 +119,7 @@
 								</div>
 							</div>
 						</div>
-
+						<!-- end -->
 						<div class="row front-search-section">
 							<div class="col-md-8 offset-md-2" align="center">
 								<div class="single-search-wrapper">
