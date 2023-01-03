@@ -141,7 +141,7 @@
 									>
 										<documentation
 											name="home.example"
-											:group="a2f"
+											:group="$parent.diseaseGroup.name"
 										></documentation>
 									</div>
 								</div>
@@ -150,6 +150,109 @@
 					</div>
 				</div>
 			</div>
+			<!-- A2FKP only static content -->
+			<template v-if="$parent.diseaseGroup.name == 'a2f'">
+				<div class="container static-content-section">
+					<div class="row">
+						<div
+							class="col-md-8"
+							v-if="!!$parent.kPortals"
+							style="margin-left: -30px; margin-right: 30px"
+						>
+							<h2>Community Knowledge Portals</h2>
+							<p></p>
+							<div class="row">
+								<div
+									class="k-portal"
+									v-for="portal in $parent.kPortals"
+									:key="portal.title"
+								>
+									<div v-html="portal.body"></div>
+									<div
+										class="kp-title"
+										v-html="portal.title"
+									></div>
+									<div>
+										<a :href="portal.field_portal_address"
+											>Visit portal</a
+										>
+									</div>
+								</div>
+							</div>
+							<h2>
+								What's new
+								<span style="font-size: 16px"
+									><a href="/news.html" target="_blank"
+										>View news archive ></a
+									></span
+								>
+							</h2>
+
+							<news-feed-section
+								:disease-group="$parent.diseaseGroup"
+								:news-feed="$store.state.kp4cd.newsFeed"
+							></news-feed-section>
+						</div>
+						<div class="col-md-4">
+							<research-page-description
+								v-if="$parent.pageDescription != null"
+								:content="$parent.pageDescription"
+							></research-page-description>
+
+							<about-project-section
+								:front-contents="$parent.frontContents"
+							></about-project-section>
+						</div>
+					</div>
+				</div>
+			</template>
+			<!-- end-->
+			<!-- Static contents for other portals -->
+			<template v-else>
+				<div class="container static-content-section">
+					<div class="row">
+						<div class="col-md-7">
+							<about-portal-section
+								:front-contents="$parent.frontContents"
+							></about-portal-section>
+							<!--<datasets-section
+								:disease-group="$parent.diseaseGroup"
+								:disease-groups="
+									$store.state.bioPortal.diseaseGroups
+								"
+								:datasets-info="$store.state.kp4cd.datasetsInfo"
+							></datasets-section>-->
+							<h2>
+								What's new
+								<span style="font-size: 16px"
+									><a href="/news.html" target="_blank"
+										>View news archive ></a
+									></span
+								>
+							</h2>
+							<news-feed-section
+								:disease-group="$parent.diseaseGroup"
+								:news-feed="$store.state.kp4cd.newsFeed"
+							></news-feed-section>
+							<under-datasets-section
+								:front-contents="$parent.frontContents"
+							></under-datasets-section>
+						</div>
+						<div class="col-md-5">
+							<research-page-description
+								v-if="$parent.pageDescription != null"
+								:content="$parent.pageDescription"
+							></research-page-description>
+							<about-project-section
+								:front-contents="$parent.frontContents"
+							></about-project-section>
+						</div>
+					</div></div
+			></template>
+			<!-- end>
+
+			
+			<!--
 			<div class="container static-content-section">
 				<div class="row">
 					<div
@@ -202,9 +305,12 @@
 						></about-project-section>
 					</div>
 				</div>
+				
 			</div>
-		</div>
+		</template>-->
 
+			<!-- end-->
+		</div>
 		<!-- Footer-->
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>

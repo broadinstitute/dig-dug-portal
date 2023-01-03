@@ -181,14 +181,6 @@ new Vue({
                     })
                 })
 
-                //console.log("pGroups", pGroups);
-
-                //then get phenotype groups by disease systems
-                /*console.log("diseaseSystems", this.$store.state.bioPortal
-                    .diseaseSystems);*/
-
-
-
                 let diseaseSystems = [
                     ...new Set(diseases.map((d) => d.system)),
                 ].sort();
@@ -220,7 +212,7 @@ new Vue({
                     })
                 })
 
-                console.log("dGroups", dGroups);
+
 
                 //then create diagram content by disease groups
 
@@ -233,32 +225,18 @@ new Vue({
                 let kIndex = 0;
 
                 dGroupKeys.map(k => {
-                    dataContent += '"' + k.replaceAll(" system", "").replaceAll(" & ", " / ") + '":' + dGroups[k].datasets.length;
 
-                    dataContent += (kIndex < dcountLength) ? ',' : '';
+                    if (dGroups[k].datasets.length > 0) {
+                        dataContent += '"' + k.replaceAll(" system", "").replaceAll(" & ", " / ") + '":' + dGroups[k].datasets.length;
+
+                        dataContent += (kIndex < dcountLength) ? ',' : '';
+
+                    }
                     kIndex++;
                 })
 
                 let content = '<div class="plot">{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":100}</div>';
 
-
-                //then create diagram content by phenotype groups
-
-                /*let dataContent = "";
-                let gcountLength = Object.keys(pGroups).length - 1;
-
-                let kIndex = 0;
-                let gGroupKeys = Object.keys(pGroups).sort();
-
-                gGroupKeys.map(k => {
-                    dataContent += '"' + k + '":' + pGroups[k].datasets.length;
-
-                    dataContent += (kIndex < gcountLength) ? ',' : '';
-                    kIndex++;
-                })
-
-                let content = '<div class="plot">{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":140}</div>';
-*/
 
 
                 return content;
