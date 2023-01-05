@@ -179,7 +179,21 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        getSubHeader() {
+            if (!!this.apiParameters && !!this.apiParameters["parameters in sub header"]) {
+                const queryString = window.location.search;
+                const urlParams = new URLSearchParams(queryString);
+                let subHeaderContent = "<span class='rp-sub-header-label'>Search parameters</span><div>";
 
+                this.apiParameters["parameters in sub header"].map(p => {
+                    let paramVlue = urlParams.get(p)
+                    subHeaderContent += '<span class="rp-sub-header-search-param-label">' + p + '</span>: <span class="rp-sub-header-search-param">' + paramVlue + '</span>';
+                })
+                subHeaderContent += "</div>";
+
+                document.getElementById("rpSubHeader").innerHTML = subHeaderContent;
+            }
+        },
         addcss(css) {
             var head = document.getElementsByTagName('head')[0];
             var s = document.createElement('style');
@@ -1046,7 +1060,9 @@ new Vue({
     },
 
     watch: {
-        filteredData(DATA) { },
+        filteredData(DATA) {
+            this.getSubHeader();
+        },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
@@ -1189,6 +1205,7 @@ new Vue({
 
         },
         researchData(content) {
+
 
             // reset searching region if applicable
 
