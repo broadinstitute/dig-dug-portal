@@ -96,6 +96,16 @@
 				<div class="row card-body">
 					<div class="col-md-12">
 						<h3 v-html="$parent.pageTitle"></h3>
+						<div
+							v-if="
+								!!$parent.apiParameters &&
+								!!$parent.apiParameters[
+									'parameters in sub header'
+								]
+							"
+							id="rpSubHeader"
+							class="rp-sub-header"
+						></div>
 					</div>
 				</div>
 			</div>
@@ -606,5 +616,36 @@ html {
 }
 .direction-negative {
 	color: #ff0000;
+}
+
+.rp-sub-header {
+	position: relative;
+	border-top: solid 1px #dddddd;
+	font-size: 16px;
+	margin-top: 15px;
+}
+
+.rp-sub-header-label {
+	display: block;
+	position: absolute;
+	font-size: 10px;
+	color: #eeeeee;
+	top: -1px;
+	background-color: #666666;
+	padding: 0 5px;
+	right: 0;
+}
+
+.rp-sub-header span.rp-sub-header-search-param-label,
+.rp-sub-header span.rp-sub-header-search-param {
+	display: inline-block;
+}
+.rp-sub-header span.rp-sub-header-search-param-label:first-letter {
+	text-transform: uppercase;
+}
+
+.rp-sub-header span.rp-sub-header-search-param {
+	font-size: 20px;
+	margin-right: 20px;
 }
 </style>

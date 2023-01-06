@@ -942,6 +942,35 @@ export default Vue.component("research-m-qq-plot", {
 
 						chrNum++;
 					});
+
+					/// render guide line
+					if (!!this.renderConfig["m-plot thresholds"]) {
+						this.renderConfig["m-plot thresholds"].map((t) => {
+							let tValue = -Math.log10(Number(t));
+
+							console.log("thresholds", t, tValue);
+
+							let yPosByPixel = plotHeight / (yMax - yMin);
+
+							let guidelineYpos =
+								this.topMargin +
+								plotHeight -
+								(tValue - yMin) * yPosByPixel;
+
+							/*let guidelineYpos =
+								canvasRenderHeight -
+								this.bottomMargin -
+								tValue * yStep;*/
+							ctx.setLineDash([10, 5]);
+							ctx.moveTo(this.leftMargin - yBump, guidelineYpos);
+							ctx.lineTo(
+								canvasRenderWidth + yBump - this.rightMargin,
+								guidelineYpos
+							);
+							ctx.strokeStyle = "#FFCC00";
+							ctx.stroke();
+						});
+					}
 				}
 			}
 		},
