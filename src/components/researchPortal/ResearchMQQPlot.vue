@@ -464,6 +464,8 @@ export default Vue.component("research-m-qq-plot", {
 			this.renderQQPlot(DATA);
 		},
 		renderQQPlot(DATA) {
+			console.log(DATA);
+
 			this.qqDotPosData = {};
 
 			let wrapper = document.getElementById("qq_clicked_dot_value");
@@ -494,6 +496,7 @@ export default Vue.component("research-m-qq-plot", {
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
 				//console.log("renderData", dKey, dValue);
+
 				let c = document.getElementById("qqPlot" + dKey);
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
@@ -631,9 +634,15 @@ export default Vue.component("research-m-qq-plot", {
 						expected.push(Math.log10(i + 1 / qqData.length));
 					}
 
+					console.log(expected[0], expected[expected.length - 1]);
+
+					let maxExpPxLoc =
+						plotWidth *
+						((expected[expected.length - 1] - expected[0]) / 8);
+
 					let yPosByPixel = plotHeight / (yMax - yMin);
 					let xPosByPixel =
-						plotWidth /
+						maxExpPxLoc /
 						(expected[expected.length - 1] - expected[0]);
 
 					/// render expected p-value line to 8;
@@ -655,8 +664,9 @@ export default Vue.component("research-m-qq-plot", {
 
 						let xPos =
 							this.leftMargin +
-							plotWidth -
-							expected[gIndex] * xPosByPixel;
+							maxExpPxLoc -
+							(expected[gIndex] * xPosByPixel +
+								expected[0] * xPosByPixel);
 
 						let dotColor = "#0066FF";
 
