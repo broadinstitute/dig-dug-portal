@@ -634,8 +634,6 @@ export default Vue.component("research-m-qq-plot", {
 						expected.push(Math.log10(i + 1 / qqData.length));
 					}
 
-					console.log(expected[0], expected[expected.length - 1]);
-
 					let maxExpPxLoc =
 						plotWidth *
 						((expected[expected.length - 1] - expected[0]) / 8);
