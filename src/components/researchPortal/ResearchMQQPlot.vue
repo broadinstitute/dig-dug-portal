@@ -193,9 +193,14 @@ export default Vue.component("research-m-qq-plot", {
 			let compareGroups = [];
 			let massagedData = {};
 			let plotsList = [...this.plotsList];
+			let lambdaValue = !!this.plotData[0].lambda
+				? this.plotData[0].lambda
+				: null;
+
+			//console.log("lambdaValue", lambdaValue);
 
 			plotsList.map((c) => {
-				let tempObj = { sorted: {}, unsorted: [] };
+				let tempObj = { lambda: lambdaValue, sorted: {}, unsorted: [] };
 				massagedData[c] = tempObj;
 			});
 
@@ -299,6 +304,8 @@ export default Vue.component("research-m-qq-plot", {
 					}
 				});
 			}
+
+			//console.log("massagedData", massagedData);
 
 			return massagedData;
 		},
@@ -464,7 +471,7 @@ export default Vue.component("research-m-qq-plot", {
 			this.renderQQPlot(DATA);
 		},
 		renderQQPlot(DATA) {
-			console.log(DATA);
+			//console.log(DATA);
 
 			this.qqDotPosData = {};
 
@@ -540,6 +547,18 @@ export default Vue.component("research-m-qq-plot", {
 						"number",
 						"desc"
 					);
+
+					//console.log("DATA.lambda", dValue.lambda);
+
+					if (!!dValue.lambda) {
+						ctx.font = "13px Arial";
+						ctx.textAlign = "end";
+						ctx.fillText(
+							"lambda(0.95): " + dValue.lambda.toFixed(4),
+							plotWidth + this.leftMargin + bump,
+							plotHeight + this.topMargin + yBump
+						);
+					}
 
 					qqData.map((d) => {
 						let yValue = d[this.renderConfig["y axis field"]];
@@ -956,7 +975,7 @@ export default Vue.component("research-m-qq-plot", {
 						this.renderConfig["m-plot thresholds"].map((t) => {
 							let tValue = -Math.log10(Number(t));
 
-							console.log("thresholds", t, tValue);
+							//console.log("thresholds", t, tValue);
 
 							let yPosByPixel = plotHeight / (yMax - yMin);
 
