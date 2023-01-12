@@ -91,7 +91,7 @@
 				</div>
 			</div>
 		</div>
-		<research-summary-plot v-if="!!tableFormat['summary plot']['plots'].includes('table')"
+		<research-summary-plot v-if="!!tableFormat['summary plot'] && tableFormat['summary plot']['plots'].includes('table')"
                        v-bind:summaryPlot="tableFormat['summary plot']"
                        v-bind:rawData="dataset"
                        v-bind:isPlotByRow="false">
