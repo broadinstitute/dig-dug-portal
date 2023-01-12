@@ -43,7 +43,7 @@ export default Vue.component("research-summary-plot", {
             let nBuckets = configObject.buckets < dataset.length ? configObject.buckets : dataset.length;
             
             let attributeLabel = attribute;
-            if (configObject['data convert'][attribute] == "-log10"){
+            if (!!configObject['data convert'] && configObject['data convert'][attribute] == "-log10"){
                 dataset = dataset.map(data => -1 * Math.log10(data));
                 attributeLabel = `${attribute} (-log10)`;
             }
