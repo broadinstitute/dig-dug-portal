@@ -215,7 +215,7 @@ function decimalFormatter(NUM, DECIMAL) {
     let newNum = Math.round(NUM * decimal) / decimal;
     return newNum;
 }
-function maskFormatter(mask){
+function maskFormatter(mask) {
     let maskLookup = {
         "LoF_HC": { description: "LofTee", sort: 0 },
         "loftee": { description: "LofTee", sort: 0 },
@@ -238,10 +238,202 @@ function maskFormatter(mask){
         "0of5_1pct": { description: "5/5 + 0/5 1%", sort: 6 },
         "ns_strict_ns_1pct": { description: "5/5 + 0/5 1%", sort: 6 },
     }
-    if (maskLookup[mask]){
+    if (maskLookup[mask]) {
         return maskLookup[mask];
     }
-    return { description: mask, sort: 7};
+    return { description: mask, sort: 7 };
+}
+
+function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
+
+    if (
+        CONFIG["column formatting"] != undefined &&
+        CONFIG["column formatting"][KEY] != undefined
+    ) {
+        let columnKeyObj = CONFIG["column formatting"][KEY];
+        let formatTypes = columnKeyObj["type"];
+        let linkToNewTab = !!columnKeyObj["new tab"]
+            ? columnKeyObj["new tab"]
+            : null;
+        let cellValue = VALUE;
+
+        formatTypes.map((type) => {
+            if (type == "scientific notation") {
+                cellValue = pValueFormatter(VALUE);
+
+                cellValue = cellValue == "-" ? 0 : cellValue;
+            }
+
+            if (type == "fixed 2") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 10) / 10;
+            }
+
+            if (type == "fixed 3") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 100) / 100;
+            }
+
+            if (type == "fixed 4") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 1000) / 1000;
+            }
+
+            if (type == "fixed 5") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 10000) / 10000;
+            }
+
+            if (type == "fixed 6") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 100000) / 100000;
+            }
+
+            if (type == "fixed 7") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 1000000) / 1000000;
+            }
+
+            if (type == "fixed 8") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 10000000) / 10000000;
+            }
+
+            if (type == "fixed 9") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 100000000) / 100000000;
+            }
+
+            if (type == "fixed 10") {
+                cellValue = VALUE == "-" ? 0 : Math.round(Number.parseFloat(VALUE) * 1000000000) / 1000000000;
+            }
+
+            if (type == "kp phenotype link") {
+                let phenotypeName = !!PMAP[cellValue]
+                    ? PMAP[cellValue].description
+                    : cellValue;
+                let linkString =
+                    "<a href='" +
+                    columnKeyObj[
+                    "link to"
+                    ] +
+                    cellValue;
+
+                linkString +=
+                    !!columnKeyObj[
+                        "link type"
+                    ] &&
+                        columnKeyObj[
+                        "link type"
+                        ] == "button"
+                        ? "' class='btn btn-sm btn-outline-secondary link-button"
+                        : "";
+
+                let linkLabel = !!columnKeyObj["link label"]
+                    ? columnKeyObj[
+                    "link label"
+                    ]
+                    : phenotypeName;
+
+                linkString +=
+                    linkToNewTab == "true"
+                        ? "' target='_blank'>" + linkLabel + "</a>"
+                        : "'>" + linkLabel + "</a>";
+
+                cellValue = linkString;
+            }
+
+            if (type == "link") {
+                let linkString =
+                    "<a href='" +
+                    columnKeyObj[
+                    "link to"
+                    ] +
+                    cellValue;
+
+                linkString +=
+                    !!columnKeyObj[
+                        "link type"
+                    ] &&
+                        columnKeyObj[
+                        "link type"
+                        ] == "button"
+                        ? "' class='btn btn-sm btn-outline-secondary link-button"
+                        : "";
+
+                let linkLabel = !!columnKeyObj["link label"]
+                    ? columnKeyObj[
+                    "link label"
+                    ]
+                    : cellValue;
+
+                linkString +=
+                    linkToNewTab == "true"
+                        ? "' target='_blank'>" + linkLabel + "</a>"
+                        : "'>" + linkLabel + "</a>";
+
+                cellValue = linkString;
+            }
+
+            if (type == "render background percent") {
+                let fieldValue =
+                    typeof VALUE != "number"
+                        ? columnKeyObj[
+                        "percent if empty"
+                        ]
+                        : VALUE;
+
+                let weight = Math.floor(
+                    ((Number(fieldValue) - DATA_SCORES[KEY].low) /
+                        (DATA_SCORES[KEY].high -
+                            DATA_SCORES[KEY].low)) *
+                    100
+                );
+
+                let weightClasses = "cell-weight-" + weight + " ";
+
+                weightClasses +=
+                    VALUE < 0 ? "weight-negative" : "weight-positive";
+
+                cellValue =
+                    "<span class='" +
+                    weightClasses +
+                    "'>" +
+                    cellValue +
+                    "</span>";
+            }
+
+            if (type == "render background percent negative") {
+
+                let fieldValue =
+                    typeof VALUE != "number"
+                        ? columnKeyObj[
+                        "percent if empty"
+                        ]
+                        : VALUE;
+
+                let weight = 100 - Math.floor(
+                    ((Number(fieldValue) - DATA_SCORES[KEY].low) /
+                        (DATA_SCORES[KEY].high -
+                            DATA_SCORES[KEY].low)) *
+                    100
+                );
+
+                let weightClasses = "cell-weight-" + weight + " ";
+
+                weightClasses +=
+                    VALUE < 0 ? "weight-negative" : "weight-positive";
+
+                cellValue =
+                    "<span class='" +
+                    weightClasses +
+                    "'>" +
+                    cellValue +
+                    "</span>";
+            }
+
+            if (type == "direction triangle") {
+                cellValue = (cellValue > 0) ? '<span class="direction-positive">&#x25B2;</span>' + cellValue : '<span class="direction-negative">&#x25BC;</span>' + cellValue;
+            }
+        });
+
+        return cellValue;
+    } else {
+        return VALUE;
+    }
+
 }
 
 export default {
@@ -266,5 +458,6 @@ export default {
     pValueFormatter,
     effectFormatter,
     pValueCss,
-    decimalFormatter
+    decimalFormatter,
+    BYORColumnFormatter
 };

@@ -38,16 +38,27 @@ export default new Vuex.Store({
         phenotype: null,
         searchGene: keyParams.gene,
         suggestedPriorNew: 0,
-        universalPriorList: [0.05, 0.2]
+        universalPriorList: [0.05, 0.2],
+        commonVarBF: null,
+        rareVarBF: null,
+        hugeScore: null,
 
     },
     mutations: {
+        setCommonVarBF(state, BF) {
+            state.commonVarBF = BF
+        },
+        setRareVarBF(state, BF) {
+            state.rareVarBF = BF
+        },
+        setHugeScore(state, BF) {
+            state.hugeScore = BF
+        },
         setUniversalPriorList(state, universalPriorList) {
             state.universalPriorList = universalPriorList
         },
         setSuggestedPriorNew(state, suggestedPriorNew) {
             state.suggestedPriorNew = suggestedPriorNew
-            console.log("updated suggested prior state to " + suggestedPriorNew)
         },
         setAssociationsData(state, associationsData) {
             state.associationsData = associationsData
@@ -93,6 +104,15 @@ export default new Vuex.Store({
         },
     },
     actions: {
+        commonVarBF(context, BF) {
+            context.commit('setCommonVarBF', BF)
+        },
+        rareVarBF(context, BF) {
+            context.commit('setRareVarBF', BF)
+        },
+        hugeScore(context, BF) {
+            context.commit('setHugeScore', BF)
+        },
         async queryRegion(context, regionPhenotypeMap) {
             const newRegion = regionPhenotypeMap["region"] || context.getters.region;
             const phenotype = regionPhenotypeMap["phenotype"];
@@ -109,6 +129,7 @@ export default new Vuex.Store({
             const phenoRegionQuery = `${phenotype},${newRegion.chromosome}:${newRegion.start}-${newRegion.end}`;
             context.dispatch('associations/query', { q: phenoRegionQuery });
         },
+
         updatedUniversalSuggestedPriorList(context, universalPriorList) {
             context.commit('setUniversalPriorList', universalPriorList);
 
@@ -131,6 +152,7 @@ export default new Vuex.Store({
             }
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start - 50000}-${locus.end + 50000}`;
             const regionQuery = `${locus.chr}:${locus.start - 250000}-${locus.end + 250000}`;
+
             context.dispatch('associations/query', { q: phenoRegionQuery });
             context.dispatch('genes/query', { q: regionQuery });
         },

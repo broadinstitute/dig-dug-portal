@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import effectorGenes from "@/modules/effectorGenes";
+import hugeampkpncms from "@/modules/hugeampkpncms";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
@@ -19,7 +20,8 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        effectorGenes
+        effectorGenes,
+        hugeampkpncms
     },
     state: {
         geneName: "",
@@ -58,25 +60,47 @@ export default new Vuex.Store({
             context.commit("setGene", gene);
         },
         async fetchConfig(context, config) {
-            let json = await fetch(
+            /*
+            let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
+            let csv = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+            */
+            /*let json = await fetch(
                 `https://kp4cd.org/egldata/config?dataset=${config.dataset}`
+            ).then(resp => resp.json());*/
+
+            //let configUrl = 'https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/'+config.dataset+
+
+            let json = await fetch(
+                `https://hugeampkpncms.org/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${config.dataset}/${config.dataset}_config.json`
             ).then(resp => resp.json());
-            context.commit("setConfig", json);
+
+
+
+            let parsedJson = JSON.parse(json)
+
+            context.commit("setConfig", parsedJson);
             context.commit("setPageTitle", {
-                config: json,
+                config: parsedJson,
                 dataset: config.dataset
             });
             context.commit("setPlotsConfig", {
-                config: json,
+                config: parsedJson,
                 dataset: config.dataset
             });
         },
         async fetchData(context, dataset) {
-            let json = await fetch(
+
+            /*let json = await fetch(
                 `https://kp4cd.org/egldata/dataset?dataset=${dataset.dataset}&trait=${dataset.trait}`
+            ).then(resp => resp.json());*/
+            let json = await fetch(
+                `https://hugeampkpncms.org/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${dataset.dataset}/${dataset.dataset}_${dataset.trait}.json`
             ).then(resp => resp.json());
-            context.commit("setTableData", json.data);
-            context.commit("setFilteredData", json.data);
+
+            let parsedJson = JSON.parse(json)
+
+            context.commit("setTableData", parsedJson.data);
+            context.commit("setFilteredData", parsedJson.data);
         },
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);

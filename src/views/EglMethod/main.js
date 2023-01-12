@@ -84,7 +84,7 @@ new Vue({
         appendCss(DATASET) {
             let file = document.createElement('link');
             file.rel = 'stylesheet';
-            file.href = 'https://kp4cd.org/sites/default/files/vueportal/egl_data/' + DATASET + '/' + DATASET + '.css'
+            file.href = 'https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/' + DATASET + '/' + DATASET + '.css'
             document.head.appendChild(file)
         },
         tableTop() {
