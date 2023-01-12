@@ -1,9 +1,10 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
 Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -21,6 +22,10 @@ import Alert, {
 
 new Vue({
     store,
+    data() {
+        return {
+        }
+    },
 
     components: {
         PageHeader,
@@ -43,7 +48,7 @@ new Vue({
         postAlertError,
         closeAlert,
         getPageContent(NID, CHAPTER) {
-            console.log(NID, CHAPTER);
+            //console.log(NID, CHAPTER);
             this.$store.dispatch("kp4cd/getContentByID", NID);
             this.$store.dispatch("page", NID);
             if (!!CHAPTER) {
@@ -53,6 +58,15 @@ new Vue({
                 })
                 document.getElementById(CHAPTER).setAttribute("class", "chapter open");
             }
+        },
+        searchHelpBook() {
+
+            this.$store.dispatch("kp4cd/getHelpBookSearch", this.$store.state.searchKey);
+            this.$store.dispatch("searchedKey", this.$store.state.searchKey);
+            this.$store.state.searchKey = null;
+        },
+        hideSearch() {
+            uiUtils.hideElement("search_results");
         }
     },
 
@@ -77,6 +91,19 @@ new Vue({
                 return {};
             }
             return contents;
+        },
+        searchResults() {
+            let contents = this.$store.state.kp4cd.helpBookSearch;
+
+            console.log(contents)
+
+            if (contents.length === 0) {
+                return null;
+            } else {
+                uiUtils.showElement("search_results");
+                return contents;
+            }
+
         },
 
         helpTOC() {
