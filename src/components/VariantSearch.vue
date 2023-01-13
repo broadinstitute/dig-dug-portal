@@ -223,12 +223,7 @@
                                             :key="c"
                                             >{{ consequenceFormatter(c)
                                             }}{{
-                                                i <
-                                                data.item.consequenceTerms
-                                                    .length -
-                                                    1
-                                                    ? ", "
-                                                    : ""
+                                                i < data.item.consequenceTerms.length -1? ", ": ""
                                             }}</span
                                         >
                                     </div></template
