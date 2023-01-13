@@ -41,6 +41,8 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import {SignIn,CheckSignInStatus} from "@/portals/Neph/components/LoginComponent.js";
+
 //Vue.http.headers.common['Access-Control-Allow-Origin'] = '*';
 //Vue.http.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
 //Vue.http.headers.common['Accept'] = 'application/json, text/plain, */*';
@@ -114,6 +116,9 @@ new Vue({
     },
 
     created() {
+        this.CheckSignInStatus();
+
+
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         
         this.$store.dispatch("bioPortal/getDiseaseGroups");
@@ -133,6 +138,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        CheckSignInStatus,
         pushCriterionPhenotype(phenotypeName) {
             this.genePageSearchCriterion.push({
                 field: "phenotype",
