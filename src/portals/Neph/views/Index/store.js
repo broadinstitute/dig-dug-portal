@@ -8,6 +8,8 @@ import variantUtils from "@/utils/variantUtils";
 import { postAlertError } from "@/components/Alert.vue";
 import { match } from "@/utils/bioIndexUtils";
 
+//import {msalInstance, msalConfig} from "@/portals/Neph/components/LoginComponent.vue";
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -19,7 +21,8 @@ export default new Vuex.Store({
         geneOrRegionOrVariant: null,
         invalidGeneOrRegionOrVariant: false,
         userInput: null,
-        matchingGenes: null
+        matchingGenes: null,
+        //msalInstance,
     },
     mutations: {
         setInvalidGeneOrRegionOrVariant(state, flag) {
