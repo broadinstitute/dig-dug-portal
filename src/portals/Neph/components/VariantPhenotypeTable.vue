@@ -28,7 +28,7 @@
                             data.item.varId
                         }}</a>
                     </template>
-                    <template #head(transcriptId)="data">
+                    <!-- <template #head(transcriptId)="data">
                         <span class="external_source"
                             >Feature
                             <b-badge
@@ -49,7 +49,7 @@
                             rel="noopener noreferrer nofollow"
                             >{{ data.item.transcriptId }}</a
                         >
-                    </template>
+                    </template> 
                     <template #cell(position)="data">
                         {{
                             data.item.proteinStart !== data.item.proteinEnd
@@ -73,7 +73,12 @@
                     >
                     <template #cell(siftPrediction)="data">
                         {{ siftFormatter(data.item.siftPrediction) }}
-                    </template> 
+                    </template> -->
+                    <template #cell(hpoterms)="data">
+                        <a :href="`/phenotype.html?phenotype=${data.item.hp}`">{{
+                            data.item.hpoterms
+                        }}</a>
+                    </template>
                     <template #cell(view)="data">
                         <b-btn
                             v-if="data.item.samples.length === 0"
@@ -113,6 +118,17 @@
                                 :per-page="perPagephenotype"
                                 :tbody-tr-class="rowPickClass"
                             >
+                            
+                            <template #cell(sample_ID)="row">
+                                <a 
+                                    v-if="row.item.sample_ID != '******'"
+                                    :href="`/patient.html?patient=${row.item.sample_ID}`">{{
+                                        row.item.sample_ID
+                                    }}</a>
+                                    <div v-if="row.item.sample_ID == '******'">{{
+                                        row.item.sample_ID
+                                    }}</div>
+                            </template>
                                 <!-- <template #cell(allelecount)="row">
                                     <div align="right">
                                         {{ row.item.allelecount }}
@@ -162,34 +178,34 @@ import Formatters from "@/utils/formatters";
 import { match, query } from "@/utils/bioIndexUtils";
 
 export default Vue.component("variant-phenotype-table", {
-    props: ["variantId", "filter"],
+    props: ["variantId", "samples","filter"],
     data() {
         return {
             HPOTerms: {
-				"HP-0000119": "Abnormality of the genitourinary system",
-				"HP-0000152": "Abnormality of head or neck",
-				"HP-0000478": "Abnormality of the eye",
-				"HP-0000598": "Abnormality of the ear",
-				"HP-0000707": "Abnormality of the nervous system",
-				"HP-0000769": "Abnormality of the breast",
-				"HP-0000818": "Abnormality of the endocrine system",
-				"HP-0001197": "Abnormality of prenatal development or birth",
-				"HP-0001507": "Growth abnormality",
-				"HP-0001574": "Abnormality of the integument",
-				"HP-0001608": "Abnormality of the voice",
-				"HP-0001626": "Abnormality of the cardiovascular system",
-				"HP-0001871": "Abnormality of blood and blood-forming tissues",
-				"HP-0001939": "Abnormality of metabolism/homeostasis",
-				"HP-0002086": "Abnormality of the respiratory system",
-				"HP-0002664": "Neoplasm",
-				"HP-0002715": "Abnormality of the immune system",
-				"HP-0025031": "Abnormality of the digestive system",
-				"HP-0025142": "Constitutional symptom",
-				"HP-0025354": "Abnormal cellular phenotype",
-				"HP-0033127": "Abnormality of the musculoskeletal system",
-				"HP-0040064": "Abnormality of limbs",
-				"HP-0045027": "Abnormality of the thoracic cavity",
-				"AllControl": "Controls",
+				"HP0000119": "Abnormality of the genitourinary system",
+				"HP0000152": "Abnormality of head or neck",
+				"HP0000478": "Abnormality of the eye",
+				"HP0000598": "Abnormality of the ear",
+				"HP0000707": "Abnormality of the nervous system",
+				"HP0000769": "Abnormality of the breast",
+				"HP0000818": "Abnormality of the endocrine system",
+				"HP0001197": "Abnormality of prenatal development or birth",
+				"HP0001507": "Growth abnormality",
+				"HP0001574": "Abnormality of the integument",
+				"HP0001608": "Abnormality of the voice",
+				"HP0001626": "Abnormality of the cardiovascular system",
+				"HP0001871": "Abnormality of blood and blood-forming tissues",
+				"HP0001939": "Abnormality of metabolism/homeostasis",
+				"HP0002086": "Abnormality of the respiratory system",
+				"HP0002664": "Neoplasm",
+				"HP0002715": "Abnormality of the immune system",
+				"HP0025031": "Abnormality of the digestive system",
+				"HP0025142": "Constitutional symptom",
+				"HP0025354": "Abnormal cellular phenotype",
+				"HP0033127": "Abnormality of the musculoskeletal system",
+				"HP0040064": "Abnormality of limbs",
+				"HP0045027": "Abnormality of the thoracic cavity",
+				"isControl": "Controls",
 			},
             fields: [
                 {
@@ -235,7 +251,7 @@ export default Vue.component("variant-phenotype-table", {
             ],
             subFields: [
 				{
-					key: "variant_Id",
+					key: "variant_ID",
 					label: "Variant",
 				},
 				{
@@ -250,13 +266,14 @@ export default Vue.component("variant-phenotype-table", {
 					key: "N_alleles",
 					label: "Alleles Number",
 				},
-				{
+				/*{
 					key: "HPO_terms",
 					label: "HPO Terms",
-				},
+				},*/
 			],
             hprecords: [],
             perPage: 10,
+            perPagephenotype:5,
             currentPage: 1,
         };
     },
@@ -308,16 +325,19 @@ export default Vue.component("variant-phenotype-table", {
                     hpdisplay[j] = {};
                     //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
                     hpdisplay[j].hp = hp.HP;
+                    if (hpdisplay[j].hp.length == 9){
+                        hpdisplay[j].hp = hpdisplay[j].hp.replace("HP", "HP-")
+                    }
                     //console.log(hp.HP);
                     let hpindex = hp.HP;
-                    hpindex = hpindex.replace("-", ":");
+                    //hpindex = hpindex.replace("-", "");
                     //console.log(hpindex);
                     hpdisplay[j].hpoterms =
                         Formatters.snakeFormatter(
                             this.HPOTerms[hp.HP]
                         );
-                    hpdisplay[j].allelecount =2 * hp.TWO_ALT_GENO_CTS +hp.HET_REF_ALT_CTS;
-                    hpdisplay[j].allelnumber =2 *(hp.HOM_REF_CT +hp.HET_REF_ALT_CTS +hp.TWO_ALT_GENO_CTS);
+                    hpdisplay[j].allelecount =2 * parseInt(hp.TWO_ALT_GENO_CTS) +parseInt(hp.HET_REF_ALT_CTS);
+                    hpdisplay[j].allelnumber =2 *(parseInt(hp.HOM_REF_CT) +parseInt(hp.HET_REF_ALT_CTS) +parseInt(hp.TWO_ALT_GENO_CTS));
                     hpdisplay[j].allelefrequency =
                         this.formatAlleleFrequency(
                             hpdisplay[j].allelecount,
@@ -330,8 +350,11 @@ export default Vue.component("variant-phenotype-table", {
                     hpdisplay[j].samples=[];
                     let n=0;
                     for(let m=0; m < this.samples.length; m++){
-                        if (this.samples[m].HPO_terms == hp){
+                        if (this.samples[m].HPO_terms.substring(this.samples[m].HPO_terms.length-7) == hpindex.substring(hpindex.length-7)){
                             hpdisplay[j].samples[n]=this.samples[m];
+                            if (!hpdisplay[j].samples[n]['sample_ID'].startsWith("BCH")){
+                                hpdisplay[j].samples[n]['sample_ID']='******'
+                            }
                             n++;
                         }
                     }
