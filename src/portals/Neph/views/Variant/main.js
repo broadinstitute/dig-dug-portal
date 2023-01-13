@@ -12,6 +12,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/portals/Neph/components/TranscriptConsequenceTable.vue";
 import VariantPhenotypeTable from "@/portals/Neph/components/VariantPhenotypeTable.vue";
 import GnomInfoCard from "@/portals/Neph/components/GnomInfoCard.vue";
+import VariantSampleTable from "@/portals/Neph/components/VariantSampleTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
 import RegionsTable from "@/components/RegionsTable.vue";
@@ -40,6 +41,8 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 
+import {SignIn,CheckSignInStatus} from "@/portals/Neph/components/LoginComponent.js";
+
 new Vue({
     store,
 
@@ -51,6 +54,7 @@ new Vue({
         TranscriptConsequenceTable,
         VariantPhenotypeTable,
         GnomInfoCard,
+        VariantSampleTable,
         TranscriptionFactorsTable,
         PheWASTable,
         PheWASDatasets,
@@ -72,6 +76,7 @@ new Vue({
     },
 
     created() {
+        this.CheckSignInStatus();
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -90,6 +95,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        CheckSignInStatus,
         consequenceFormatter: Formatters.consequenceFormatter,
         consequenceMeaning: Formatters.consequenceMeaning,
 
@@ -228,6 +234,7 @@ new Vue({
                 this.$store.dispatch("datasetAssociations/query", {
                     q: variant.varId
                 });
+                this.$store.dispatch("samples/query", { q: variant.varId, query_private:true });
             }
         }
     }
