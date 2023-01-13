@@ -6,22 +6,19 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import TranscriptConsequenceTable from "@/portals/Neph/components/TranscriptConsequenceTable.vue";
-import VariantPhenotypeTable from "@/portals/Neph/components/VariantPhenotypeTable.vue";
-import GnomInfoCard from "@/portals/Neph/components/GnomInfoCard.vue";
-import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
-import PheWASTable from "@/components/PheWASTable.vue";
-import RegionsTable from "@/components/RegionsTable.vue";
+import PateintDiagnosisCard from "@/portals/Neph/components/PatientDiagnosis.vue";
+import PateintAdminMedicineCard from "@/portals/Neph/components/PatientAdminMedicine.vue";
+import PateintHomeMedicineCard from "@/portals/Neph/components/PatientHomeMedicine.vue";
+import PateintLaboratoryCard from "@/portals/Neph/components/PatientLaboratory.vue";
+import PateintVitalCard from "@/portals/Neph/components/PatientVital.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ForestPlotHtml from "@/components/ForestPlotHtml.vue";
 import DatasetAssociations from "@/components/DatasetAssociations";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
-import PheWASDatasets from "@/components/PheWASDatasets";
 import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
@@ -39,7 +36,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
-
+import {SignIn,CheckSignInStatus} from "@/portals/Neph/components/LoginComponent.js";
 new Vue({
     store,
 
@@ -47,14 +44,6 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
-        PhenotypeSelectPicker,
-        TranscriptConsequenceTable,
-        VariantPhenotypeTable,
-        GnomInfoCard,
-        TranscriptionFactorsTable,
-        PheWASTable,
-        PheWASDatasets,
-        RegionsTable,
         LocusZoom,
         LocusZoomAssociationsPanel,
         LocusZoomPhewasPanel,
@@ -66,16 +55,24 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
-
+        PateintDiagnosisCard,
+        PateintAdminMedicineCard,
+        PateintHomeMedicineCard,
+        PateintLaboratoryCard,
+        PateintVitalCard,
         SearchHeaderWrapper,
 
     },
 
     created() {
+        this.CheckSignInStatus();
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("queryPatient", keyParams.variant);
+        /*if(keyParams.patient){
+            this.$store.dispatch("queryPatient", keyParams.patient);
+        } */
+        
         //alert(store.state.variant.nearest);
         //alert("5");
     },
@@ -90,6 +87,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        CheckSignInStatus,
         consequenceFormatter: Formatters.consequenceFormatter,
         consequenceMeaning: Formatters.consequenceMeaning,
 
@@ -113,12 +111,11 @@ new Vue({
             /*if (this.$store.state.variant){
                 console.log(JSON.stringify(this.$store.state.variant));
             }*/
-            if (this.$store.state.variant && this.$store.state.variant.varId){
-                return this.$store.state.variant && this.$store.state.variant.varId;
+            if (this.$store.state.patient){
+                return this.$store.state.patient;
             } else {
-                this.$store.state.variant = {};
-                this.$store.state.variant.varId = keyParams.variant;
-                return keyParams.variant;
+                this.$store.state.patient = keyParams.patient;
+                return keyParams.patient;
             }
             
         },
@@ -210,26 +207,15 @@ new Vue({
             }
         },
 
-        "$store.state.newPatientId"(patient) {
-            alert("watch:"+patient);
-            /*if (variant) {
+        /*"$store.state.patient"(patient) {
+            //alert("watch:"+patient);
+            if (patient) {
                 //console.log(variant);
                 let p = this.chromPos;
 
-                this.$store.dispatch("phewas/query", { q: variant.varId });
-                this.$store.dispatch("transcriptConsequences/query", {
-                    q: variant.varId, query_private:true  
-                });
-                this.$store.dispatch("transcriptionFactors/query", {
-                    q: variant.varId
-                });
-                this.$store.dispatch("regions/query", {
-                    q: `${p.chromosome}:${p.position}`
-                });
-                this.$store.dispatch("datasetAssociations/query", {
-                    q: variant.varId
-                });
-            }*/
-        }
+                this.$store.dispatch("patientDiagnosis/query", { q: patient });
+                
+            }
+        } */
     }
 }).$mount("#app");
