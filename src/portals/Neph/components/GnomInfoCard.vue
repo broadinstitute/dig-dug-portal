@@ -160,7 +160,7 @@ export default Vue.component("gnominfo-card", {
                 //for (var k in this.variant[0].gnomAD_info) {
                 let flag = 0;
                 for (var k in this.variant[0].gnomAD_info) {
-                    if (k.includes('gnomADg') && this.variant[0].gnomAD_info[k] != "-"){
+                    if (k.includes('gnomADg') && this.variant[0].gnomAD_info[k] != "-" && this.variant[0].gnomAD_info[k] != "NA"){
                         flag = 1;
                     }
                 }
