@@ -20,6 +20,7 @@ export default new Vuex.Store({
         regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
         //variantPhenotypeData: bioIndex("variant-phenotype",this.gene,{},true),
+        samples: bioIndex("variant-sample",{query_private:true}),
     },
 
     state: {
