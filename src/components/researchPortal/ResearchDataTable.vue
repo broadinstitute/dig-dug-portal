@@ -1,11 +1,7 @@
 <template>
 	<div class="research-data-table-wrapper">
 		<div v-html="tableLegend" class="data-table-legend"></div>
-		<div
-			v-if="!!dataset"
-			v-html="'Total rows: ' + this.rows"
-			class="table-total-rows"
-		></div>
+		
 		<div
 			v-if="
 				!!searchParameters &&
@@ -21,6 +17,16 @@
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
 			></span>
 		</div>
+		<research-summary-plot v-if="!!tableFormat['summary plot'] && tableFormat['summary plot']['plots'].includes('table')"
+                       v-bind:summaryPlot="tableFormat['summary plot']"
+                       v-bind:rawData="dataset"
+                       v-bind:isPlotByRow="false">
+		</research-summary-plot>
+		<div
+			v-if="!!dataset"
+			v-html="'Total rows: ' + this.rows"
+			class="table-total-rows"
+		></div>
 		<div class="table-ui-wrapper">
 			<label
 				>Rows per page:
@@ -91,11 +97,6 @@
 				</div>
 			</div>
 		</div>
-		<research-summary-plot v-if="!!tableFormat['summary plot'] && tableFormat['summary plot']['plots'].includes('table')"
-                       v-bind:summaryPlot="tableFormat['summary plot']"
-                       v-bind:rawData="dataset"
-                       v-bind:isPlotByRow="false">
-		</research-summary-plot>
 		<table
 			:class="'table table-sm research-data-table ' + pageID"
 			cellpadding="0"
