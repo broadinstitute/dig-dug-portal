@@ -63,20 +63,20 @@
                                 <span style="color: gray">/</span>
                                 {{ $parent.dbSNP }}
                             </span>
-                            <span v-if="$store.state.variant.existing_variation">
+                            <span v-if="$store.state.variant.existing_variation != '-' ">
                                 <span style="color: gray">/</span>
                                 {{ $store.state.variant.existing_variation}}
                             </span>
                         </span>
                     </div>
-                    <div class="col-md-3 gene-page-header-body">
+                    <!--<div class="col-md-3 gene-page-header-body">
 						<button
 							class="btn btn-primary explore-region-btn"
 							@click="$parent.exploreRegion()"
 						>
 							Explore region
 						</button>
-					</div>
+					</div> -->
                 </div>
             </div> 
             <div class="card mdkp-card">
@@ -95,6 +95,24 @@
                                 $store.state.variant.varId
                             "
                         ></variant-phenotype-table>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div
+                        v-if="$store.state.samples.data.length>0"
+                    >
+                        <h4 class="card-title">
+                            Samples
+                        </h4>
+                        <variant-sample-table
+                            v-bind:samples="
+                                $store.state.samples.data
+                            ">
+                        </variant-sample-table>
                         
                     </div>
                     
