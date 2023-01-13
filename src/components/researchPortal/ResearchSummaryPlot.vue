@@ -1,6 +1,6 @@
 <template>
 <div class="chart-wrapper">
-    <div><h4>Summary plot</h4></div>
+    <div v-if="!!summaryPlot['title']"><h4>{{summaryPlot['title']}}</h4></div>
     <div class="all-charts">
     </div>
 </div>
