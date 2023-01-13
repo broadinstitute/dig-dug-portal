@@ -18,7 +18,7 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "page404"]
     },
     phenotype: {
-        entry: "src/views/Phenotype/main.js",
+        entry: "src/portals/Neph/views/Phenotype/main.js",
         template: "public/index.html",
         filename: "phenotype.html",
         title: "Phenotype",
@@ -32,7 +32,7 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "region"]
     },
     variant: {
-        entry: "src/views/Variant/main.js",
+        entry: "src/portals/Neph/views/Variant/main.js",
         template: "public/index.html",
         filename: "variant.html",
         title: "Variant Info",
@@ -80,6 +80,13 @@ let pages = {
         title: "Collaborate",
         chunks: ["chunk-vendors", "chunk-common", "collaborate"]
     },
+    documentation: {
+        entry: "src/portals/Neph/views/Documentation/main.js",
+        template: "public/index.html",
+        filename: "documentation.html",
+        title: "Documentation",
+        chunks: ["chunk-vendors", "chunk-common", "documentation"]
+    },
     resources: {
         entry: "src/views/Resources/main.js",
         template: "public/index.html",
@@ -100,63 +107,108 @@ let pages = {
         filename: "contacts.html",
         title: "Contacts",
         chunks: ["chunk-vendors", "chunk-common", "contacts"]
-    }
+    },
+    research: {
+        entry: "src/views/Papers/Research/main.js",
+        template: "public/index.html",
+        filename: "research.html",
+        title: "Research",
+        chunks: ["chunk-vendors", "chunk-common", "research"]
+    },
+    patient: {
+        entry: "src/portals/Neph/views/Patient/main.js",
+        template: "public/index.html",
+        filename: "patient.html",
+        title: "Patient Info",
+        chunks: ["chunk-vendors", "chunk-common", "patient"]
+    },
+    signalsifter: {
+        entry: "src/portals/Neph/views/SignalSifter/main.js",
+        template: "public/index.html",
+        filename: "signalsifter.html",
+        title: "Signal Sifter",
+        chunks: ["chunk-vendors", "chunk-common", "signalsifter"]
+    },
+    genefinder: {
+        entry: "src/portals/Neph/views/GeneFinder/main.js",
+        template: "public/index.html",
+        filename: "genefinder.html",
+        title: "Gene Finder",
+        chunks: ["chunk-vendors", "chunk-common", "genefinder"]
+    },
+    login: {
+        entry: "src/portals/Neph/views/Login/main.js",
+        template: "public/index.html",
+        filename: "login.html",
+        title: "Log in",
+        chunks: ["chunk-vendors", "chunk-common", "login"]
+    },
+    loginerror: {
+        entry: "src/portals/Neph/views/LoginError/main.js",
+        template: "public/index.html",
+        filename: "loginerror.html",
+        title: "Log in Error",
+        chunks: ["chunk-vendors", "chunk-common", "loginerror"]
+    },
 };
 
 module.exports = {
     devServer: {
+        host: "aggregator.bchresearch.org",
+        port: 80,
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
-        let bioindex_host = "https://bioindex.hugeamp.org"; // production by default
+        let bioindex_host = "https://bioindex-dev.hugeamp.org"; // production by default
+        //set private bioindex host if variable is defined, otherwise use default
         let bioindex_host_private =
-            "https://bioindex.hugeamp.org/" + process.env.BIOINDEX_HOST_PRIVATE;
-
-        if (!!bioindex_dev) {
-            bioindex_host =
-                bioindex_dev == "localhost"
-                    ? "http://localhost:5000"
-                    : "https://bioindex-dev.hugeamp.org";
-        }
-
-        // output which vue config file and bioindex is being used
-        console.log(
-            `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host} ${bioindex_host_private}`
-        );
-
-        // add the transform rule for bioindex
-        config.module.rules.push({
-            test: /bioIndexUtils\.js$/,
-            loader: "string-replace-loader",
-            options: {
-                search: "SERVER_IP_ADDRESS",
-                replace: bioindex_host,
-                flags: "g"
+            process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex-dev.hugeamp.org";
+            if (!!bioindex_dev) {
+                bioindex_host =
+                    bioindex_dev == "localhost"
+                        ? "http://localhost:5000"
+                        : "https://bioindex-dev.hugeamp.org";
             }
-        });
-
-        // add the transform rule for bioindex
-        // Helen 2021-06-17
-        config.module.rules.push({
-            test: /bioIndexUtils\.js$/,
-            loader: "string-replace-loader",
-            options: {
-                search: "SERVER_IP_PRIVATE",
-                replace: bioindex_host_private,
-                flags: "g"
+    
+            // output which vue config file and bioindex is being used
+            console.log(
+                `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host} and ${bioindex_host_private}`
+            );
+    
+            // add the transform rule for bioindex
+            config.module.rules.push({
+                test: /bioIndexUtils\.js$/,
+                loader: "string-replace-loader",
+                options: {
+                    search: "SERVER_IP_ADDRESS",
+                    replace: bioindex_host,
+                    flags: "g"
+                }
+            });
+    
+            // add the transform rule for bioindex
+            // Helen 2021-06-17
+            config.module.rules.push({
+                test: /bioIndexUtils\.js$/,
+                loader: "string-replace-loader",
+                options: {
+                    search: "SERVER_IP_PRIVATE",
+                    replace: bioindex_host_private,
+                    flags: "g"
+                }
+            });
+    
+            // create inline maps for dev builds
+            if (process.env.NODE_ENV !== "production") {
+                //config.devtool = "inline-source-map";
+    
+                //https://stackoverflow.com/questions/48047150/chrome-extension-compiled-by-webpack-throws-unsafe-eval-error
+                config.devtool = "cheap-module-source-map";
             }
-        });
-
-        // create inline maps for dev builds
-        if (process.env.NODE_ENV !== "production") {
-            //config.devtool = "inline-source-map";
-
-            //https://stackoverflow.com/questions/48047150/chrome-extension-compiled-by-webpack-throws-unsafe-eval-error
-            config.devtool = "cheap-module-source-map";
-        }
-    },
-    outputDir: "portals/Neph",
-    productionSourceMap: false,
-    pages
-};
+        },
+        outputDir: "portals/Neph",
+        productionSourceMap: false,
+        pages
+    };
+      
