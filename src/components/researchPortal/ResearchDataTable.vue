@@ -91,6 +91,11 @@
 				</div>
 			</div>
 		</div>
+		<research-summary-plot v-if="!!tableFormat['summary plot'] && tableFormat['summary plot']['plots'].includes('table')"
+                       v-bind:summaryPlot="tableFormat['summary plot']"
+                       v-bind:rawData="dataset"
+                       v-bind:isPlotByRow="false">
+		</research-summary-plot>
 		<table
 			:class="'table table-sm research-data-table ' + pageID"
 			cellpadding="0"
@@ -234,6 +239,7 @@
 <script>
 import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
+import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue"
 
 import Formatters from "@/utils/formatters";
 
