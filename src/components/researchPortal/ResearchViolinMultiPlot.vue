@@ -36,7 +36,7 @@ export default Vue.component("research-violin-multi-plot", {
             let chart = document.getElementById("v-multi-chart");
             chart.innerHTML = "";
 
-            var margin = { top: 10, right: 30, bottom: 30, left: 40 },
+            var margin = { top: 10, right: 30, bottom: 65, left: 40 },
                         width = configObject.width - margin.left - margin.right,
                         height = configObject.height - margin.top - margin.bottom;
             
@@ -56,13 +56,16 @@ export default Vue.component("research-violin-multi-plot", {
                     let interQuantileRange = q3-q1;
                     let min = d.map(g => g.min_TPM);
                     let max = d.map(g => g.max_TPM);
+                    let mean = d.map(g => g.mean_TPM);
                     return({
                         q1: q1,
                         median: median,
                         q3: q3,
                         interQuantileRange: interQuantileRange,
                         min: min,
-                        max: max});
+                        max: max,
+                        mean: mean
+                    });
                 }).entries(rawData);
 
             var x = d3.scaleBand()
@@ -72,7 +75,10 @@ export default Vue.component("research-violin-multi-plot", {
                 .paddingOuter(.5);
             svg.append("g")
                 .attr("transform", `translate(0,${height})`)
-                .call(d3.axisBottom(x));
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .style("text-anchor", "start")
+                .attr("transform", "rotate(45)");
             
             let maxVal = rawData.map(item => item.max_TPM).reduce(
                 (prev, next) => prev > next ? prev : next);
@@ -114,6 +120,17 @@ export default Vue.component("research-violin-multi-plot", {
                     .attr("y1", d => y(d.value.median))
                     .attr("y2", d => y(d.value.median))
                     .attr("stroke", "black")
+                    .style("width", 80);
+
+            svg.selectAll("meanLines")
+                .data(sumstat)
+                .enter()
+                .append("line")
+                    .attr("x1", d => x(d.key) - boxWidth/2)
+                    .attr("x2", d => x(d.key) + boxWidth/2)
+                    .attr("y1", d => y(d.value.mean))
+                    .attr("y2", d => y(d.value.mean))
+                    .attr("stroke", "white")
                     .style("width", 80);
         }        
     },
