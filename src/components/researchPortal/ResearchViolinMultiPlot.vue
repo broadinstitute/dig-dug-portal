@@ -1,11 +1,8 @@
 <template>
 <div class="chart-wrapper">
     <div v-if="!!summaryPlot['title']"><h4>{{summaryPlot['title']}}</h4></div>
-    <research-violin-multi-plot v-if="summaryPlot.type == 'violin multi'"
-				v-bind:summaryPlot="summaryPlot"
-                v-bind:rawData="rawData">
-			</research-violin-multi-plot>
-    <div v-else class="all-charts">
+    <div class="all-charts">
+        <h4>Pending!</h4>
     </div>
 </div>
 </template>
@@ -15,27 +12,27 @@ import Vue from "vue";
 import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-export default Vue.component("research-summary-plot", {
-    props: ["rawData", "summaryPlot", "isPlotByRow"],
+export default Vue.component("research-violin-multi-plot", {
+    props: ["rawData", "summaryPlot"],
     data(){
         return {};
     },
     mounted: function () {
-        this.displayResults(this.$props.summaryPlot);
+        if (this.$props.summaryPlot.type != "violin multi"){
+            console.error("")
+        }
+        //this.displayResults(this.$props.summaryPlot);
     },
 	computed: {},
 	watch: {
         rawData: function(){
-            this.displayResults(this.$props.summaryPlot);
+            console.log("violin plot real soon!");
+            //this.displayResults(this.$props.summaryPlot);
         }
     },
     methods: {
         ...uiUtils,
         displayResults(config){
-            if (config.type == "violin multi"){
-                //Violin multi plot is handled by its own component.
-                return;
-            }
             let allCharts = document.getElementsByClassName("all-charts")[0];
             allCharts.innerHTML = "";
             config.fields.forEach(column => {

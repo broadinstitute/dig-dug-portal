@@ -240,7 +240,8 @@
 <script>
 import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
-import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue"
+import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
+import ResearchViolinMultiPlot from "./ResearchViolinMultiPlot.vue";
 
 import Formatters from "@/utils/formatters";
 
