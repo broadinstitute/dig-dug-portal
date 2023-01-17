@@ -74,8 +74,9 @@ export default Vue.component("research-violin-multi-plot", {
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x));
             
-            let maxVal = rawData.reduce((prev, next) => 
-                prev.max_TPM > next.max_TPM ? prev.max_TPM : next.max_TPM);
+            let maxVal = rawData.map(item => item.max_TPM).reduce(
+                (prev, next) => prev > next ? prev : next);
+            console.log(`maxVal: ${maxVal}`);
             var y = d3.scaleLinear()
                 .domain([0,maxVal])
                 .range([height,0]);
@@ -102,7 +103,7 @@ export default Vue.component("research-violin-multi-plot", {
                     .attr("height", d => y(d.value.q1) - y(d.value.q3))
                     .attr("width", boxWidth)
                     .attr("stroke", "black")
-                    .style("fill", "$69b3a2");
+                    .style("fill", "#69b3a2");
             
             svg.selectAll("medianLines")
                 .data(sumstat)
