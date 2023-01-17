@@ -1,10 +1,10 @@
 <template>
 <div class="chart-wrapper">
     <div v-if="!!summaryPlot['title']"><h4>{{summaryPlot['title']}}</h4></div>
-    <research-violin-multi-plot v-if="summaryPlot.type == 'violin multi'"
+    <research-multi-plot v-if="summaryPlot.type == 'multi'"
 				v-bind:summaryPlot="summaryPlot"
                 v-bind:rawData="rawData">
-			</research-violin-multi-plot>
+			</research-multi-plot>
     <div v-else class="all-charts">
     </div>
 </div>
@@ -15,6 +15,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import ResearchMultiPlot from "./ResearchMultiPlot.vue";
 export default Vue.component("research-summary-plot", {
     props: ["rawData", "summaryPlot", "isPlotByRow"],
     data(){
@@ -32,8 +33,8 @@ export default Vue.component("research-summary-plot", {
     methods: {
         ...uiUtils,
         displayResults(config){
-            if (config.type == "violin multi"){
-                //Violin multi plot is handled by its own component.
+            if (config.type == "multi"){
+                //multi plot is handled by its own component.
                 return;
             }
             let allCharts = document.getElementsByClassName("all-charts")[0];

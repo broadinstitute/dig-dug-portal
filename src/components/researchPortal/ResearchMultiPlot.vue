@@ -1,6 +1,6 @@
 <template>
 <div class="chart-wrapper">
-    <div id="v-multi-chart">
+    <div id="multi-chart">
         <h4>Pending!</h4>
     </div>
 </div>
@@ -11,21 +11,20 @@ import Vue from "vue";
 import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-export default Vue.component("research-violin-multi-plot", {
+export default Vue.component("research-multi-plot", {
     props: ["rawData", "summaryPlot"],
     data(){
         return {};
     },
     mounted: function () {
-        if (this.$props.summaryPlot.type != "violin multi"){
-            console.error("")
+        if (this.$props.summaryPlot.type != "multi"){
+            console.error("Configuration error; multi plot not specified.")
         }
         this.displayResults(this.$props.summaryPlot);
     },
 	computed: {},
 	watch: {
         rawData: function(){
-            console.log("violin plot real soon!");
             this.displayResults(this.$props.summaryPlot);
         }
     },
@@ -33,14 +32,17 @@ export default Vue.component("research-violin-multi-plot", {
         ...uiUtils,
         displayResults(configObject){
             let rawData = this.$props.rawData;
-            let chart = document.getElementById("v-multi-chart");
+            let keyAttribute = configObject["render by"];
+            let statFields = !!configObject["stat fields"] 
+                ? configObject["stat fields"] : null;
+            let chart = document.getElementById("multi-chart");
             chart.innerHTML = "";
 
             var margin = { top: 10, right: 30, bottom: 65, left: 40 },
                         width = configObject.width - margin.left - margin.right,
                         height = configObject.height - margin.top - margin.bottom;
             
-            let svg = d3.select("#v-multi-chart")
+            let svg = d3.select("#multi-chart")
                     .append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
@@ -48,15 +50,15 @@ export default Vue.component("research-violin-multi-plot", {
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
             var sumstat = d3.nest()
-                .key(function(d){return d.dataset;})
+                .key(function(d){return d[keyAttribute];})
                 .rollup(function(d){
-                    let q1 = d.map(g => g.FirstQu_TPM);
-                    let median = d.map(g => g.median_TPM);
-                    let q3 = d.map(g => g.ThirdQu_TPM);
+                    let q1 = d.map(g => g[statFields.q1]);
+                    let median = d.map(g => g[statFields.median]);
+                    let q3 = d.map(g => g[statFields.q3]);
                     let interQuantileRange = q3-q1;
-                    let min = d.map(g => g.min_TPM);
-                    let max = d.map(g => g.max_TPM);
-                    let mean = d.map(g => g.mean_TPM);
+                    let min = d.map(g => g[statFields.min]);
+                    let max = d.map(g => g[statFields.max]);
+                    let mean = d.map(g => g[statFields.mean]);
                     return({
                         q1: q1,
                         median: median,
@@ -70,7 +72,7 @@ export default Vue.component("research-violin-multi-plot", {
 
             var x = d3.scaleBand()
                 .range([0, width])
-                .domain(rawData.map(entry => entry.dataset))
+                .domain(rawData.map(entry => entry[keyAttribute]))
                 .paddingInner(1)
                 .paddingOuter(.5);
             svg.append("g")
@@ -82,7 +84,6 @@ export default Vue.component("research-violin-multi-plot", {
             
             let maxVal = rawData.map(item => item.max_TPM).reduce(
                 (prev, next) => prev > next ? prev : next);
-            console.log(`maxVal: ${maxVal}`);
             var y = d3.scaleLinear()
                 .domain([0,maxVal])
                 .range([height,0]);

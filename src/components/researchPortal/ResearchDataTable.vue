@@ -241,10 +241,7 @@
 import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
-import ResearchViolinMultiPlot from "./ResearchViolinMultiPlot.vue";
-
 import Formatters from "@/utils/formatters";
-
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
