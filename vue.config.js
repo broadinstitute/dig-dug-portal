@@ -250,6 +250,13 @@ let pages = {
         title: "Help",
         chunks: ["chunk-vendors", "chunk-common", "help"]
     },
+    dataregistry: {
+        entry: "src/views/DataRegistry/main.js",
+        template: "public/index.html",
+        filename: "data_registry.html",
+        title: "Data Registry",
+        chunks: ["chunk-vendors", "chunk-common", "dataregistry"]
+    },
 };
 
 // remove the debug page in production
