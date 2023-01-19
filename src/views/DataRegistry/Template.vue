@@ -211,7 +211,7 @@
 							</div>
 						</div>
 						<div class="col-md-3 dr-meta-info">
-							<div class="col filter-col-md">
+							<div class="col-md-12 col filter-col-md">
 								<div class="label">
 									Data submitter<sup>*</sup>
 								</div>
@@ -221,7 +221,7 @@
 									placeholder="Data submitter"
 								/>
 							</div>
-							<div class="col filter-col-md">
+							<div class="col-md-12 col filter-col-md">
 								<div class="label">
 									Data submitter email<sup>*</sup>
 								</div>
@@ -231,7 +231,7 @@
 									placeholder="submitter@email"
 								/>
 							</div>
-							<div class="col filter-col-md">
+							<div class="col-md-12 col filter-col-md">
 								<div class="label">Data contributor</div>
 								<input
 									type="text"
@@ -239,7 +239,7 @@
 									placeholder="Data contributor"
 								/>
 							</div>
-							<div class="col filter-col-md">
+							<div class="col-md-12 col filter-col-md">
 								<div class="label">Data contributor email</div>
 								<input
 									type="text"
@@ -247,7 +247,7 @@
 									placeholder="contributor@email"
 								/>
 							</div>
-							<div class="col filter-col-md">
+							<div class="col-md-12 col filter-col-md">
 								<div class="label">Institution<sup>*</sup></div>
 								<input
 									type="text"
@@ -258,7 +258,37 @@
 						</div>
 					</div>
 					<div class="row dr-description-section">
-						<div class="col-md-12"><h4>Data description</h4></div>
+						<div class="col-md-12">
+							<h4>Data description</h4>
+							<div class="row">
+								<div class="col filter-col-md">
+									<div class="label">
+										Description<sup>*</sup>
+									</div>
+									<textarea
+										rows="4"
+										class="form-control"
+									></textarea>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-md-9 col filter-col-md">
+									<div class="label">Publication</div>
+									<textarea
+										rows="2"
+										class="form-control"
+									></textarea>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">PMID</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="PMID"
+									/>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="card-body">
@@ -287,6 +317,10 @@
 	text-align: center;
 	border-top: solid 1px #dddddd;
 	padding-top: 15px;
+}
+.dr-description-section {
+	padding-top: 15px;
+	margin-top: 15px;
 }
 .dr-form .col {
 	margin-bottom: 10px;
