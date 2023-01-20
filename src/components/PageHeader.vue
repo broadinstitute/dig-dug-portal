@@ -68,15 +68,43 @@
 									title="Data Registry"
 									>Data Registry</a
 								>
+								<ul>
+									<li>
+										<a
+											href="javascript:;"
+											:class="
+												diseaseGroup.name + 'kp-login'
+											"
+											title="BYOR Config Builder"
+											>{{
+												diseaseGroup.name.toUpperCase() +
+												"KP Data Registry"
+											}}
+										</a>
+									</li>
+									<li>
+										<a
+											href="javascript:;"
+											:class="
+												diseaseGroup.name + 'kp-login'
+											"
+											title="BYOR Config Builder"
+											>BYOR Config Builder</a
+										>
+									</li>
+									<li>
+										<a
+											href="javascript:;"
+											:class="
+												diseaseGroup.name + 'kp-login'
+											"
+											title="Tutorial"
+											>Tutorial</a
+										>
+									</li>
+								</ul>
 							</li>
-							<li>
-								<a
-									href="javascript:;"
-									:class="diseaseGroup.name + 'kp-login'"
-									title="BYOR Config Builder"
-									>BYOR Config Builder</a
-								>
-							</li>
+
 							<li v-if="!!user">
 								<a
 									href="/logout"

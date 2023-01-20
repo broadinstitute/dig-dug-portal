@@ -10,43 +10,77 @@
 		<div class="container-fluid mdkp-body">
 			<div class="card mdkp-card dataset-page-header">
 				<div class="row card-body">
-					<div class="col-md-12">
+					<div class="col-md-8">
 						<h2>Data Registry</h2>
+					</div>
+					<div class="col-md-4 col filter-col-md">
+						<div class="label">Edit dataset info</div>
+						<div class="row">
+							<div class="col-md-8">
+								<input
+									type="text"
+									class="
+										form-control form-control-sm
+										input-default
+									"
+									placeholder="Dataset ID"
+								/>
+							</div>
+							<div class="col-md-4">
+								<button
+									class="btn btn-primary btn-sm"
+									type="button"
+								>
+									Load info
+								</button>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
 			<div class="card mdkp-card">
 				<div class="card-body dr-form">
 					<div class="row dr-status-section">
-						<div class="col-md-8"></div>
-						<div class="col-md-4"><h4>Status</h4></div>
+						<div class="col-md-6 col filter-col-md">
+							<div class="label">Dataset name<sup>*</sup></div>
+							<input
+								type="text"
+								class="form-control input-default"
+								placeholder="Dataset name"
+							/>
+						</div>
+						<div class="col-md-3 col filter-col-md">
+							<div class="label">
+								Dataset ID<sup>Admin only</sup>
+							</div>
+							<input
+								type="text"
+								class="form-control input-default"
+								placeholder="Dataset ID (Admin only)"
+							/>
+						</div>
+
+						<div class="col-md-3 col filter-col-md">
+							<div class="label">Status<sup>*</sup></div>
+							<select class="form-control">
+								<option value="pre">Pre-publication</option>
+								<option value="open">Open access</option>
+							</select>
+						</div>
+					</div>
+					<div class="row dr-data-update-section">
+						<div class="col-md-12 col filter-col-md">
+							Portal:
+							{{ $parent.diseaseGroup.name.toUpperCase() + "KP" }}
+							| Registered date: 00-00-0000 | Updated date:
+							00-00-0000 | Any server side captured information
+							here.
+						</div>
 					</div>
 					<div class="row dr-data-section">
 						<div class="col-md-12"><h4>Data</h4></div>
 
 						<div class="col-md-9">
-							<div class="row">
-								<div class="col-md-8 col filter-col-md">
-									<div class="label">
-										Dataset name<sup>*</sup>
-									</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Dataset name"
-									/>
-								</div>
-								<div class="col-md-4 col filter-col-md">
-									<div class="label">
-										Dataset ID (Admin only)
-									</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Dataset ID (Admin only)"
-									/>
-								</div>
-							</div>
 							<div class="row">
 								<div class="col-md-3 col filter-col-md">
 									<div class="label">
@@ -193,7 +227,11 @@
 							<div class="row">
 								<div class="col-md-6 col filter-col-md">
 									<div class="label">
-										Phenotype<sup>*</sup>
+										Phenotype<sup>*</sup
+										><sup class="optional">
+											Start typing to search
+											phenotype</sup
+										>
 									</div>
 									<phenotype-combo
 										:phenotypes="$parent.fullPhenotypes"
@@ -206,6 +244,28 @@
 										type="text"
 										class="form-control input-default"
 										placeholder=""
+									/>
+								</div>
+								<div
+									class="
+										col-md-12 col
+										filter-col-md
+										selected-phenotypes
+									"
+								>
+									Selected phenotypes: Type 1 diabetes, BMI
+									adj type 1 diabetes
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-md-6 col filter-col-md">
+									<div class="label">
+										If there is parent dataset
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Dataset ID"
 									/>
 								</div>
 							</div>
@@ -257,8 +317,56 @@
 							</div>
 						</div>
 					</div>
+					<div class="row dr-credible-set-section">
+						<div class="col-md-9">
+							<h4>
+								If credible set
+								<sup class="optional">optional</sup>
+							</h4>
+							<div class="row">
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Data source type</div>
+									<select class="form-control">
+										<option value="api">API</option>
+										<option value="file">File</option>
+										<option value="remote">
+											Remote storage
+										</option>
+									</select>
+								</div>
+								<div class="col-md-9 col filter-col-md">
+									<div class="label">Data source</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Data source"
+									/>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-md-9 col filter-col-md">
+									<div class="label">Credible set name</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Data source"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">
+										Credible set ID<sup>Admin only</sup>
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Data source"
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
 					<div class="row dr-description-section">
-						<div class="col-md-12">
+						<div class="col-md-9">
 							<h4>Data description</h4>
 							<div class="row">
 								<div class="col filter-col-md">
@@ -318,21 +426,42 @@
 	border-top: solid 1px #dddddd;
 	padding-top: 15px;
 }
+.dr-data-section,
+.dr-credible-set-section,
 .dr-description-section {
 	padding-top: 15px;
 	margin-top: 15px;
+}
+
+.dr-data-update-section {
+	font-size: 14px;
+}
+
+.dr-data-section .row {
+	margin-bottom: 15px;
 }
 .dr-form .col {
 	margin-bottom: 10px;
 }
 
-.dr-form .col > div.label {
+.dr-form .col > div.label,
+.dataset-page-header .col > div.label {
 	font-weight: 700;
 	font-size: 14px;
+}
+
+.selected-phenotypes {
+	font-size: 13px;
 }
 
 .dr-form sup {
 	font-size: 12px;
 	color: #ff0000;
+}
+
+.dr-form sup.optional {
+	font-weight: 400 !important;
+	font-size: 12px;
+	color: #08954a !important;
 }
 </style>

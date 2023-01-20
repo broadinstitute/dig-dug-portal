@@ -73,5 +73,14 @@ export default Vue.component("phenotype-combo", {
 <style scoped>
 .dr-phenotypes-list {
 	position: absolute;
+	width: 150%;
+	background-color: #ffffff;
+	border-radius: 5px;
+	border: solid 1px #dddddd;
+	padding: 20px;
+	z-index: 10;
+	box-shadow: 12px 12px 5px 1px rgba(60, 60, 60, 0.2);
+	max-height: 500px;
+	overflow: auto;
 }
 </style>
