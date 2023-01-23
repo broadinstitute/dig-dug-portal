@@ -235,6 +235,26 @@
 									/>
 								</div>
 							</div>
+							<div class="row">
+								<div class="col-md-6 col filter-col-md">
+									<div class="label">
+										Global sample size<sup>*</sup>
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Sample size"
+									/>
+								</div>
+								<div
+									class="col-md-6 col filter-col-md"
+									style="font-size: 14px"
+								>
+									<br />
+									Learn how to calculate sample size
+									<a href="javascript:;">here</a>.
+								</div>
+							</div>
 							<div class="row dr-phenotype-samples">
 								<div
 									class="
