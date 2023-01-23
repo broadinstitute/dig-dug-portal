@@ -51,12 +51,12 @@
 						</div>
 						<div class="col-md-3 col filter-col-md">
 							<div class="label">
-								Dataset ID<sup>Admin only</sup>
+								Dataset ID <sup>admin only</sup>
 							</div>
 							<input
 								type="text"
 								class="form-control input-default"
-								placeholder="Dataset ID (Admin only)"
+								placeholder="Dataset ID (admin only)"
 							/>
 						</div>
 
@@ -197,37 +197,20 @@
 								</div>
 							</div>
 							<div class="row">
-								<div class="col-md-4 col filter-col-md">
-									<div class="label">
-										Sample size<sup>*</sup>
-									</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Sample size"
-									/>
-								</div>
-								<div class="col-md-4 col filter-col-md">
-									<div class="label">Cases</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Cases"
-									/>
-								</div>
-								<div class="col-md-4 col filter-col-md">
-									<div class="label">Controls</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Controls"
-									/>
+								<div class="col-md-6 col filter-col-md">
+									<div class="label">Sex<sup>*</sup></div>
+									<select class="form-control">
+										<option value="mixed">Mixed</option>
+										<option value="male">Male</option>
+										<option value="female">Female</option>
+									</select>
 								</div>
 							</div>
+
 							<div class="row">
 								<div class="col-md-6 col filter-col-md">
 									<div class="label">
-										Phenotype<sup>*</sup
+										Phenotypes<sup>*</sup
 										><sup class="optional">
 											Start typing to search
 											phenotype</sup
@@ -239,22 +222,105 @@
 									</phenotype-combo>
 								</div>
 								<div class="col-md-6 col filter-col-md">
-									<div class="label">If other phenotype</div>
+									<div class="label">
+										If other phenotypes
+										<sup class="optional"
+											>separate with ','</sup
+										>
+									</div>
 									<input
 										type="text"
 										class="form-control input-default"
 										placeholder=""
 									/>
 								</div>
+							</div>
+							<div class="row dr-phenotype-samples">
 								<div
 									class="
-										col-md-12 col
+										offset-md-1
+										col-md-11 col
 										filter-col-md
 										selected-phenotypes
 									"
 								>
-									Selected phenotypes: Type 1 diabetes, BMI
-									adj type 1 diabetes
+									Type 1 diabetes
+								</div>
+								<div
+									class="
+										offset-md-1
+										col-md-5 col
+										filter-col-md
+									"
+								>
+									<div class="label">
+										Sample size<sup>*</sup>
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Sample size"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Cases</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Cases"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Controls</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Controls"
+									/>
+								</div>
+							</div>
+							<div class="row dr-phenotype-samples">
+								<div
+									class="
+										offset-md-1
+										col-md-11 col
+										filter-col-md
+										selected-phenotypes
+									"
+								>
+									BMI adj type 1 diabetes
+								</div>
+								<div
+									class="
+										offset-md-1
+										col-md-5 col
+										filter-col-md
+									"
+								>
+									<div class="label">
+										Sample size<sup>*</sup>
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Sample size"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Cases</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Cases"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Controls</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Controls"
+									/>
 								</div>
 							</div>
 							<div class="row">
@@ -354,7 +420,7 @@
 								</div>
 								<div class="col-md-3 col filter-col-md">
 									<div class="label">
-										Credible set ID<sup>Admin only</sup>
+										Credible set ID <sup>admin only</sup>
 									</div>
 									<input
 										type="text"
@@ -418,7 +484,7 @@
 <style scoped>
 .dr-meta-info {
 	border-radius: 5px;
-	background-color: #dfdfdf;
+	background-color: #eeeeee;
 	padding: 15px 0 10px 0;
 }
 .dr-submit-section {
@@ -451,7 +517,8 @@
 }
 
 .selected-phenotypes {
-	font-size: 13px;
+	font-size: 14px;
+	font-weight: 700;
 }
 
 .dr-form sup {
@@ -463,5 +530,13 @@
 	font-weight: 400 !important;
 	font-size: 12px;
 	color: #08954a !important;
+}
+
+.dr-phenotype-samples {
+	background-color: #eeeeee;
+	border-radius: 5px;
+	border: solid 1px #ffffff;
+	padding-top: 5px;
+	margin-top: -15px;
 }
 </style>
