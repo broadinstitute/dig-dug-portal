@@ -434,6 +434,7 @@ export default Vue.component("research-phewas-plot", {
 				minY = Math.floor(minY);
 				maxY = Math.ceil(maxY);
 
+				ctx.stroke();
 				let plotMargin = {
 					left: this.plotMargin.leftMargin,
 					right: this.plotMargin.leftMargin * 1.5,
@@ -490,6 +491,7 @@ export default Vue.component("research-phewas-plot", {
 				/// render guide line
 				ctx.save();
 				this.renderConfig["thresholds"].map((t) => {
+					ctx.beginPath();
 					let tValue =
 						this.renderConfig["convert y -log10"] == "true"
 							? -Math.log10(Number(t))
@@ -505,12 +507,13 @@ export default Vue.component("research-phewas-plot", {
 						canvasWidth + plotMargin.bump - plotMargin.right,
 						guidelineYpos
 					);
-					ctx.strokeStyle = "#FFAA00";
+
 					ctx.lineWidth = 2;
+					ctx.strokeStyle = "#FFAA00";
 					ctx.stroke();
+					ctx.closePath();
 				});
 				ctx.restore();
-
 				let groupsArr = Object.keys(groups).sort();
 
 				let dotIndex = 0;
@@ -767,13 +770,14 @@ export default Vue.component("research-phewas-plot", {
 				CTX.lineTo(XPOS, YPOS + 10);
 				CTX.lineTo(XPOS + 10, YPOS - 10);
 			}
-			CTX.closePath();
 
 			CTX.fillStyle = DOT_COLOR;
 			CTX.fill();
 			CTX.lineWidth = 1;
+			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 			CTX.strokeStyle = STROKE_COLOR;
 			CTX.stroke();
+			CTX.closePath();
 		},
 
 		renderTicksByGroup(CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, GROUPS) {
