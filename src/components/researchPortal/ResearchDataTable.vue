@@ -1,7 +1,7 @@
 <template>
 	<div class="research-data-table-wrapper">
 		<div v-html="tableLegend" class="data-table-legend"></div>
-		
+
 		<div
 			v-if="
 				!!searchParameters &&
@@ -17,10 +17,15 @@
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
 			></span>
 		</div>
-		<research-summary-plot v-if="!!tableFormat['summary plot'] && tableFormat['summary plot']['plots'].includes('table')"
-                       v-bind:summaryPlot="tableFormat['summary plot']"
-                       v-bind:rawData="dataset"
-                       v-bind:isPlotByRow="false">
+		<research-summary-plot
+			v-if="
+				!!tableFormat['summary plot'] &&
+				tableFormat['summary plot']['plots'].includes('table')
+			"
+			v-bind:summaryPlot="tableFormat['summary plot']"
+			v-bind:rawData="dataset"
+			v-bind:isPlotByRow="false"
+		>
 		</research-summary-plot>
 		<div
 			v-if="!!dataset"
@@ -241,6 +246,7 @@
 import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
+
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -267,7 +273,7 @@ export default Vue.component("research-data-table", {
 		};
 	},
 	modules: {},
-	components: { ResearchDataTableFeatures },
+	components: { ResearchDataTableFeatures, ResearchSummaryPlot },
 	created() {},
 	beforeMount() {},
 
@@ -614,13 +620,36 @@ export default Vue.component("research-data-table", {
 				!!this.tableFormat["column formatting"] &&
 				!!this.tableFormat["column formatting"][tdKey]
 			) {
-				content = Formatters.BYORColumnFormatter(
-					tdValue,
-					tdKey,
-					this.tableFormat,
-					this.phenotypeMap,
-					this.dataScores
-				);
+				let types = this.tableFormat["column formatting"][tdKey].type;
+
+				if (
+					!!types.includes("render background percent") ||
+					!!types.includes("render background percent negative")
+				) {
+					content = Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						null,
+						this.dataScores
+					);
+				} else if (!!types.includes("kp phenotype link")) {
+					content = Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						this.phenotypeMap,
+						null
+					);
+				} else {
+					content = Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						null,
+						null
+					);
+				}
 			} else {
 				content = tdValue;
 			}
