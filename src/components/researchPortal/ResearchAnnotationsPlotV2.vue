@@ -774,7 +774,9 @@ export default Vue.component("research-annotations-plot-v2", {
 									"<br />" +
 									regionValue.start +
 									"-" +
-									regionValue.end;
+									regionValue.end +
+									"<br />State: " +
+									regionValue.state;
 							}
 						}
 					}
@@ -1856,6 +1858,7 @@ export default Vue.component("research-annotations-plot-v2", {
 										] = {
 											start: p.start,
 											end: p.end,
+											state: p.state,
 										};
 									}
 								});

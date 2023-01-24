@@ -193,9 +193,14 @@ export default Vue.component("research-m-qq-plot", {
 			let compareGroups = [];
 			let massagedData = {};
 			let plotsList = [...this.plotsList];
+			let lambdaValue = !!this.plotData[0].lambda
+				? this.plotData[0].lambda
+				: null;
+
+			//console.log("lambdaValue", lambdaValue);
 
 			plotsList.map((c) => {
-				let tempObj = { sorted: {}, unsorted: [] };
+				let tempObj = { lambda: lambdaValue, sorted: {}, unsorted: [] };
 				massagedData[c] = tempObj;
 			});
 
@@ -299,6 +304,8 @@ export default Vue.component("research-m-qq-plot", {
 					}
 				});
 			}
+
+			//console.log("massagedData", massagedData);
 
 			return massagedData;
 		},
@@ -464,6 +471,8 @@ export default Vue.component("research-m-qq-plot", {
 			this.renderQQPlot(DATA);
 		},
 		renderQQPlot(DATA) {
+			//console.log(DATA);
+
 			this.qqDotPosData = {};
 
 			let wrapper = document.getElementById("qq_clicked_dot_value");
@@ -494,6 +503,7 @@ export default Vue.component("research-m-qq-plot", {
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
 				//console.log("renderData", dKey, dValue);
+
 				let c = document.getElementById("qqPlot" + dKey);
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
@@ -537,6 +547,18 @@ export default Vue.component("research-m-qq-plot", {
 						"number",
 						"desc"
 					);
+
+					//console.log("DATA.lambda", dValue.lambda);
+
+					if (!!dValue.lambda) {
+						ctx.font = "13px Arial";
+						ctx.textAlign = "end";
+						ctx.fillText(
+							"lambda(0.95): " + dValue.lambda.toFixed(4),
+							plotWidth + this.leftMargin + bump,
+							plotHeight + this.topMargin + yBump
+						);
+					}
 
 					qqData.map((d) => {
 						let yValue = d[this.renderConfig["y axis field"]];
@@ -631,9 +653,13 @@ export default Vue.component("research-m-qq-plot", {
 						expected.push(Math.log10(i + 1 / qqData.length));
 					}
 
+					let maxExpPxLoc =
+						plotWidth *
+						((expected[expected.length - 1] - expected[0]) / 8);
+
 					let yPosByPixel = plotHeight / (yMax - yMin);
 					let xPosByPixel =
-						plotWidth /
+						maxExpPxLoc /
 						(expected[expected.length - 1] - expected[0]);
 
 					/// render expected p-value line to 8;
@@ -655,8 +681,9 @@ export default Vue.component("research-m-qq-plot", {
 
 						let xPos =
 							this.leftMargin +
-							plotWidth -
-							expected[gIndex] * xPosByPixel;
+							maxExpPxLoc -
+							(expected[gIndex] * xPosByPixel +
+								expected[0] * xPosByPixel);
 
 						let dotColor = "#0066FF";
 
@@ -948,7 +975,7 @@ export default Vue.component("research-m-qq-plot", {
 						this.renderConfig["m-plot thresholds"].map((t) => {
 							let tValue = -Math.log10(Number(t));
 
-							console.log("thresholds", t, tValue);
+							//console.log("thresholds", t, tValue);
 
 							let yPosByPixel = plotHeight / (yMax - yMin);
 

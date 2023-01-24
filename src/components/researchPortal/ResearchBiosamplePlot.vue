@@ -1042,6 +1042,9 @@ export default Vue.component("research-biosamples-plot", {
 									"<br />" +
 									"method: " +
 									regionValue.method +
+									"<br />" +
+									"state: " +
+									regionValue.state +
 									"<br />";
 							}
 						}
@@ -1628,6 +1631,7 @@ export default Vue.component("research-biosamples-plot", {
 									dataset: p.dataset,
 									method: p.method,
 									source: p.source,
+									state: p.state,
 								};
 							}
 						});
