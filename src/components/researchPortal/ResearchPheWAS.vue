@@ -376,24 +376,21 @@ export default Vue.component("research-phewas-plot", {
 			);
 
 			if (!!canvas && !!wrapper) {
-				let canvasWidth = wrapper.clientWidth;
-				let canvasHeight = Number(this.renderConfig["height"]);
-
-				/*let plotWidth =
-					canvasWidth -
-					this.plotMargin.leftMargin -
-					this.plotMargin.rightMargin;
-
-				let plotHeight =
-					this.renderConfig["height"] -
-					this.plotMargin.topMargin -
-					this.plotMargin.bottomMargin;
-				let bump = 5.5;*/
+				let canvasWidth = wrapper.clientWidth * 2;
+				let canvasHeight = Number(this.renderConfig["height"]) * 2;
 
 				let c, ctx;
 				c = document.querySelector("#" + this.canvasId + "pheWasPlot");
 				c.setAttribute("width", canvasWidth);
 				c.setAttribute("height", canvasHeight);
+				c.setAttribute(
+					"style",
+					"width:" +
+						canvasWidth / 2 +
+						"px;height:" +
+						canvasHeight / 2 +
+						"px;"
+				);
 				ctx = c.getContext("2d");
 
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -442,7 +439,7 @@ export default Vue.component("research-phewas-plot", {
 					right: this.plotMargin.leftMargin * 1.5,
 					top: this.plotMargin.bottomMargin * 3.5,
 					bottom: this.plotMargin.bottomMargin * 2.5,
-					bump: 5,
+					bump: 10,
 				};
 
 				plotUtils.renderAxisWBump(
@@ -490,8 +487,6 @@ export default Vue.component("research-phewas-plot", {
 					(canvasHeight - (plotMargin.top + plotMargin.bottom)) /
 					(yMax - yMin);
 
-				//console.log("yStep", yStep);
-
 				let groupsArr = Object.keys(groups).sort();
 
 				let dotIndex = 0;
@@ -509,7 +504,7 @@ export default Vue.component("research-phewas-plot", {
 							plotMargin.left +
 							xStep * dotIndex +
 							xStep * value.length -
-							12;
+							24;
 
 						value.map((p) => {
 							if (
@@ -570,16 +565,16 @@ export default Vue.component("research-phewas-plot", {
 								}
 
 								///organize data by position
-								let yRangeStart = Math.round(yPos) - 5;
-								let yRangeEnd = Math.round(yPos) + 5;
+								let yRangeStart = Math.round(yPos / 2) - 5;
+								let yRangeEnd = Math.round(yPos / 2) + 5;
 								let yRange = yRangeStart + "-" + yRangeEnd;
 								let tempObj = {};
 								this.renderConfig["hover content"].map((c) => {
 									tempObj[c] = p[c];
 								});
 								let xRange = {
-									start: Math.round(xPos) - 5,
-									end: Math.round(xPos) + 5,
+									start: Math.round(xPos / 2) - 5,
+									end: Math.round(xPos / 2) + 5,
 									data: tempObj,
 									name: pName,
 									id: p[this.renderConfig["render by"]],
@@ -596,7 +591,7 @@ export default Vue.component("research-phewas-plot", {
 								}
 
 								//if (labelIndex == 0 || p.pValue <= 2.5e-6) {
-								let labelXpos = labelOrigin + 12 * labelIndex;
+								let labelXpos = labelOrigin + 24 * labelIndex;
 
 								labelXpos = xPos > labelXpos ? xPos : labelXpos;
 
@@ -604,11 +599,7 @@ export default Vue.component("research-phewas-plot", {
 									labelIndex == 0 ||
 									labelXpos < maxWidthPerGroup
 								) {
-									/*console.log(
-										"thresholds",
-										this.renderConfig["thresholds"][0]
-									);*/
-									ctx.font = "11px Arial";
+									ctx.font = "22px Arial";
 									ctx.fillStyle =
 										p.rawPValue <=
 										Number(
@@ -618,15 +609,16 @@ export default Vue.component("research-phewas-plot", {
 											: "#00000050";
 
 									ctx.save();
-									ctx.translate(labelXpos + 5, yPos - 12);
+									ctx.translate(labelXpos + 10, yPos - 24);
 									ctx.rotate((90 * -Math.PI) / 180);
 									ctx.textAlign = "start";
 									ctx.fillText(pName, 0, 0);
 									ctx.restore();
 
+									ctx.lineWidth = 1;
 									ctx.moveTo(xPos, yPos);
-									ctx.lineTo(labelXpos, yPos - 10);
-									ctx.strokeStyle = "#00000050";
+									ctx.lineTo(labelXpos, yPos - 20);
+									ctx.strokeStyle = "#00000080";
 									ctx.stroke();
 								}
 
@@ -645,7 +637,7 @@ export default Vue.component("research-phewas-plot", {
 								: Number(t);
 						let guidelineYpos =
 							canvasHeight - plotMargin.bottom - tValue * yStep;
-						ctx.setLineDash([10, 5]);
+						ctx.setLineDash([20, 10]);
 						ctx.moveTo(
 							plotMargin.left - plotMargin.bump,
 							guidelineYpos
@@ -654,7 +646,8 @@ export default Vue.component("research-phewas-plot", {
 							canvasWidth + plotMargin.bump - plotMargin.right,
 							guidelineYpos
 						);
-						ctx.strokeStyle = "#00000050";
+						ctx.strokeStyle = "#FFAA00";
+						ctx.lineWidth = 2;
 						ctx.stroke();
 					});
 				} else {
@@ -731,7 +724,7 @@ export default Vue.component("research-phewas-plot", {
 								}
 								this.pheWasPosData[yRange].push(xRange);
 
-								ctx.font = "13px Arial";
+								ctx.font = "26px Arial";
 								ctx.fillStyle = "#000000";
 								ctx.textAlign = "start";
 								ctx.fillText(pName, xPos + 15, yPos);
@@ -768,14 +761,14 @@ export default Vue.component("research-phewas-plot", {
 		renderTriangle(CTX, XPOS, YPOS, DOT_COLOR, STROKE_COLOR, EFFECT) {
 			CTX.beginPath();
 			if (EFFECT == 1) {
-				CTX.moveTo(XPOS - 5, YPOS + 5);
-				CTX.lineTo(XPOS + 5, YPOS + 5);
-				CTX.lineTo(XPOS, YPOS - 5);
+				CTX.moveTo(XPOS - 10, YPOS + 10);
+				CTX.lineTo(XPOS + 10, YPOS + 10);
+				CTX.lineTo(XPOS, YPOS - 10);
 			}
 			if (EFFECT == -1) {
-				CTX.moveTo(XPOS - 5, YPOS - 5);
-				CTX.lineTo(XPOS, YPOS + 5);
-				CTX.lineTo(XPOS + 5, YPOS - 5);
+				CTX.moveTo(XPOS - 10, YPOS - 10);
+				CTX.lineTo(XPOS, YPOS + 10);
+				CTX.lineTo(XPOS + 10, YPOS - 10);
 			}
 			CTX.closePath();
 
@@ -794,9 +787,9 @@ export default Vue.component("research-phewas-plot", {
 			}
 
 			CTX.beginPath();
-			CTX.lineWidth = 0.5;
+			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
-			CTX.font = "11px Arial";
+			CTX.font = "22px Arial";
 			CTX.fillStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
@@ -810,7 +803,7 @@ export default Vue.component("research-phewas-plot", {
 						if (value > 0) {
 							let tickXPos =
 								MARGIN.left + previousGroup * xTickDistance;
-							let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+							let adjTickXPos = Math.floor(tickXPos);
 							CTX.moveTo(
 								adjTickXPos,
 								HEIGHT - MARGIN.bottom + MARGIN.bump

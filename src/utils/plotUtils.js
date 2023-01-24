@@ -170,11 +170,11 @@ const renderPie = function (CTX, DATA, WIDTH, HEIGHT, COLOR) {
         let x = w + Math.cos(mid) * (h / 1.5);
         let y = h + Math.sin(mid) * (h / 1.5)
 
-        CTX.font = "12px Arial";
-        CTX.fillText(dataKeys[i], x, y - 7);
+        CTX.font = "24px Arial";
+        CTX.fillText(dataKeys[i], x, y - 14);
 
-        CTX.font = "14px Arial";
-        CTX.fillText(DATA[dataKeys[i]], x, y + 7);
+        CTX.font = "28px Arial";
+        CTX.fillText(DATA[dataKeys[i]], x, y + 14);
 
         lastend += Math.PI * 2 * (DATA[dataKeys[i]] / valueTotal);
     }
@@ -406,17 +406,17 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
     let decimal = maxMinGap <= HEIGHT / 100 ? 2 : maxMinGap <= HEIGHT / 10 ? 1 : 0;
 
     CTX.beginPath();
-    CTX.lineWidth = 0.5;
+    CTX.lineWidth = 1;
     CTX.strokeStyle = "#000000";
-    CTX.font = "12px Arial";
+    CTX.font = "24px Arial";
     CTX.fillStyle = "#000000";
     CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
     switch (DIRECTION) {
         case "x":
             // render x axis
-            CTX.moveTo(MARGIN.left - MARGIN.bump, HEIGHT + MARGIN.bump - MARGIN.bottom + 0.5);
-            CTX.lineTo(WIDTH + MARGIN.bump - MARGIN.right, HEIGHT + MARGIN.bump - MARGIN.bottom + 0.5);
+            CTX.moveTo(MARGIN.left - MARGIN.bump, HEIGHT + MARGIN.bump - MARGIN.bottom);
+            CTX.lineTo(WIDTH + MARGIN.bump - MARGIN.right, HEIGHT + MARGIN.bump - MARGIN.bottom);
             CTX.stroke();
 
             if (WITH_TICKS != null) {
@@ -426,7 +426,7 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
                 for (let i = 0; i <= WITH_TICKS; i++) {
                     let tickXPos = MARGIN.left + i * xTickDistance;
-                    let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+                    let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
                     CTX.moveTo(
                         adjTickXPos,
                         HEIGHT - MARGIN.bottom
@@ -454,8 +454,8 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
             break;
         case "y":
             // render y axis
-            CTX.moveTo(MARGIN.left - MARGIN.bump - 0.5, MARGIN.top - MARGIN.bump);
-            CTX.lineTo(MARGIN.left - MARGIN.bump - 0.5, HEIGHT + MARGIN.bump - MARGIN.bottom);
+            CTX.moveTo(MARGIN.left - MARGIN.bump, MARGIN.top - MARGIN.bump);
+            CTX.lineTo(MARGIN.left - MARGIN.bump, HEIGHT + MARGIN.bump - MARGIN.bottom);
             CTX.stroke();
 
             if (WITH_TICKS != null) {
@@ -465,7 +465,7 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                 let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom) / WITH_TICKS;
                 for (let i = 0; i <= WITH_TICKS; i++) {
                     let tickYPos = MARGIN.top + i * yTickDistance;
-                    let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+                    let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
                     CTX.moveTo(MARGIN.left - MARGIN.bump, adjTickYPos);
                     CTX.lineTo(MARGIN.left - MARGIN.bump * 2, adjTickYPos);
                     CTX.stroke();
@@ -484,15 +484,15 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                     CTX.fillText(
                         tickValue,
                         MARGIN.left - MARGIN.bump * 3,
-                        adjTickYPos + 3
+                        adjTickYPos + 6
                     );
                 }
             }
 
             if (LABEL != null) {
-                let labelXPos = 15;
+                let labelXPos = 30;
                 let labelYPos = MARGIN.top + ((HEIGHT - MARGIN.top - MARGIN.bottom) / 2);
-                CTX.font = "12px Arial";
+                CTX.font = "24px Arial";
                 CTX.fillStyle = "#000000";
                 CTX.save();
                 CTX.translate(labelXPos, labelYPos);
