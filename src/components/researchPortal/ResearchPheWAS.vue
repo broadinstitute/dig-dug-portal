@@ -259,10 +259,10 @@ export default Vue.component("research-phewas-plot", {
 			let rawY = e.clientY - rect.top;
 
 			let plotMargin = {
-				left: this.plotMargin.leftMargin,
-				right: this.plotMargin.leftMargin * 1.5,
-				top: this.plotMargin.bottomMargin * 3.5,
-				bottom: this.plotMargin.bottomMargin * 2.5,
+				left: this.plotMargin.leftMargin / 2,
+				right: (this.plotMargin.leftMargin / 2) * 1.5,
+				top: (this.plotMargin.bottomMargin / 2) * 3.5,
+				bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
 				bump: 5,
 			};
 
@@ -487,6 +487,30 @@ export default Vue.component("research-phewas-plot", {
 					(canvasHeight - (plotMargin.top + plotMargin.bottom)) /
 					(yMax - yMin);
 
+				/// render guide line
+				ctx.save();
+				this.renderConfig["thresholds"].map((t) => {
+					let tValue =
+						this.renderConfig["convert y -log10"] == "true"
+							? -Math.log10(Number(t))
+							: Number(t);
+					let guidelineYpos =
+						canvasHeight - plotMargin.bottom - tValue * yStep;
+					ctx.setLineDash([20, 10]);
+					ctx.moveTo(
+						plotMargin.left - plotMargin.bump,
+						guidelineYpos
+					);
+					ctx.lineTo(
+						canvasWidth + plotMargin.bump - plotMargin.right,
+						guidelineYpos
+					);
+					ctx.strokeStyle = "#FFAA00";
+					ctx.lineWidth = 2;
+					ctx.stroke();
+				});
+				ctx.restore();
+
 				let groupsArr = Object.keys(groups).sort();
 
 				let dotIndex = 0;
@@ -496,7 +520,7 @@ export default Vue.component("research-phewas-plot", {
 						let keyIndex =
 							groupsArr.indexOf(key) % this.colors.length;
 						let fillColor = this.colors[keyIndex];
-						let strokeColor = "#00000075"; //this.colors[keyIndex];
+						let strokeColor = "#000000"; //this.colors[keyIndex];
 
 						let labelIndex = 0;
 						let labelOrigin = 0;
@@ -629,27 +653,6 @@ export default Vue.component("research-phewas-plot", {
 						});
 						keyIndex++;
 					}
-					/// render guide line
-					this.renderConfig["thresholds"].map((t) => {
-						let tValue =
-							this.renderConfig["convert y -log10"] == "true"
-								? -Math.log10(Number(t))
-								: Number(t);
-						let guidelineYpos =
-							canvasHeight - plotMargin.bottom - tValue * yStep;
-						ctx.setLineDash([20, 10]);
-						ctx.moveTo(
-							plotMargin.left - plotMargin.bump,
-							guidelineYpos
-						);
-						ctx.lineTo(
-							canvasWidth + plotMargin.bump - plotMargin.right,
-							guidelineYpos
-						);
-						ctx.strokeStyle = "#FFAA00";
-						ctx.lineWidth = 2;
-						ctx.stroke();
-					});
 				} else {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
@@ -661,10 +664,6 @@ export default Vue.component("research-phewas-plot", {
 
 							let yPos = canvasHeight / 2;
 
-							/*console.log(
-								"beta field: ",
-								this.renderConfig["beta field"]
-							);*/
 							if (
 								this.phenotypeMapConfig == null ||
 								(this.phenotypeMapConfig == "kpPhenotypeMap" &&
@@ -744,11 +743,9 @@ export default Vue.component("research-phewas-plot", {
 			}
 		},
 
-		renderGiudeLine() {},
-
 		renderDot(CTX, XPOS, YPOS, DOT_COLOR, STROKE_COLOR) {
 			CTX.beginPath();
-			CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
+			CTX.arc(XPOS, YPOS, 10, 0, 2 * Math.PI);
 
 			CTX.fillStyle = DOT_COLOR;
 			CTX.fill();
