@@ -489,7 +489,8 @@ export default Vue.component("research-phewas-plot", {
 					(yMax - yMin);
 
 				/// render guide line
-				ctx.save();
+				//
+
 				this.renderConfig["thresholds"].map((t) => {
 					ctx.beginPath();
 					let tValue =
@@ -507,13 +508,14 @@ export default Vue.component("research-phewas-plot", {
 						canvasWidth + plotMargin.bump - plotMargin.right,
 						guidelineYpos
 					);
-
-					ctx.lineWidth = 2;
 					ctx.strokeStyle = "#FFAA00";
+					ctx.lineWidth = 2;
 					ctx.stroke();
 					ctx.closePath();
 				});
-				ctx.restore();
+
+				ctx.setLineDash([]); // Set annoying line dash back to normal
+
 				let groupsArr = Object.keys(groups).sort();
 
 				let dotIndex = 0;
@@ -523,7 +525,7 @@ export default Vue.component("research-phewas-plot", {
 						let keyIndex =
 							groupsArr.indexOf(key) % this.colors.length;
 						let fillColor = this.colors[keyIndex];
-						let strokeColor = "#000000"; //this.colors[keyIndex];
+						let strokeColor = "#00000075"; //this.colors[keyIndex];
 
 						let labelIndex = 0;
 						let labelOrigin = 0;
@@ -770,14 +772,13 @@ export default Vue.component("research-phewas-plot", {
 				CTX.lineTo(XPOS, YPOS + 10);
 				CTX.lineTo(XPOS + 10, YPOS - 10);
 			}
+			CTX.closePath();
 
 			CTX.fillStyle = DOT_COLOR;
 			CTX.fill();
 			CTX.lineWidth = 1;
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 			CTX.strokeStyle = STROKE_COLOR;
 			CTX.stroke();
-			CTX.closePath();
 		},
 
 		renderTicksByGroup(CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, GROUPS) {
