@@ -22,13 +22,13 @@ let renderDot = function (CTX, XPOS, YPOS, DOT_COLOR) {
     CTX.fillStyle = DOT_COLOR;
     CTX.lineWidth = 0;
     CTX.beginPath();
-    CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
+    CTX.arc(XPOS, YPOS, 8, 0, 2 * Math.PI);
     CTX.fill();
 }
 
 let connectDots = function (CTX, X1, Y1, X2, Y2, COLOR) {
     CTX.beginPath();
-    CTX.lineWidth = 1;
+    CTX.lineWidth = 2;
     CTX.strokeStyle = COLOR;
     CTX.moveTo(X1, Y1);
     CTX.lineTo(X2, Y2);
@@ -44,13 +44,14 @@ const renderLine = function (
     TICK_NUM,
     DATA,
     MIN,
-    MAX
+    MAX,
+    DATA_LABEL
 ) {
 
     CTX.beginPath();
-    CTX.lineWidth = 0.5;
+    CTX.lineWidth = 1;
     //CTX.strokeStyle = "#000000";
-    CTX.font = "12px Arial";
+    CTX.font = "24px Arial";
     //CTX.fillStyle = "#000000";
     CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
@@ -107,11 +108,25 @@ const renderLine = function (
                     }
 
                     if (hIndex == 0) {
-                        CTX.font = "12px Arial";
-                        //CTX.fillStyle = colors[vIndex];
+
+
+                        let lXPos, lYPos
+                        if (!!DATA_LABEL) {
+                            CTX.font = "28px Arial";
+                            lXPos = xStep + MARGIN.left, lYPos = (20 * vIndex) + MARGIN.top + 28;
+                            renderDot(CTX, lXPos, lYPos, colors[vIndex]);
+
+                            lXPos += 20, lYPos += 10;
+
+                        } else {
+                            CTX.font = "24px Arial";
+                            lXPos = xPos, lYPos = yPos - 14;
+                        }
+
                         CTX.fillStyle = "#000000";
                         CTX.textAlign = "start";
-                        CTX.fillText(key, xPos, yPos - 7);
+
+                        CTX.fillText(key, lXPos, lYPos);
                     }
 
                     previousX = xPos;
@@ -185,7 +200,7 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
     CTX.beginPath();
     CTX.lineWidth = 0.5;
     CTX.strokeStyle = "#000000";
-    CTX.font = "12px Arial";
+    CTX.font = "24px Arial";
     CTX.fillStyle = "#000000";
     CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
@@ -213,7 +228,7 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
                 CTX.fillRect(adjTickXPos - (barWidth / 2), HEIGHT - MARGIN.bottom - barHeight, barWidth, barHeight
                 );
 
-                CTX.font = "14px Arial";
+                CTX.font = "28px Arial";
                 CTX.fillStyle = "#000000";
 
                 CTX.fillText(
@@ -229,11 +244,11 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
 
 }
 
-const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS, SPACER) {
+const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS, SPACER, L_ANGLE) {
     CTX.beginPath();
-    CTX.lineWidth = 0.5;
+    CTX.lineWidth = 1;
     CTX.strokeStyle = "#000000";
-    CTX.font = "12px Arial";
+    CTX.font = "24px Arial";
     CTX.fillStyle = "#000000";
     CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
@@ -246,7 +261,7 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
                 let tickXPos1 = (MARGIN.left + SPACER) + i * xTickDistance;
                 let tickXPos2 = (MARGIN.left + SPACER) + (i + 1) * xTickDistance;
                 let tickXPos = tickXPos1 + ((tickXPos2 - tickXPos1) / 2);
-                let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+                let adjTickXPos = Math.floor(tickXPos);
                 CTX.moveTo(
                     adjTickXPos,
                     HEIGHT - MARGIN.bottom
@@ -259,12 +274,24 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
 
                 CTX.textAlign = "center";
                 let positionLabel = KEYS[i];
+                if (L_ANGLE == null) {
 
-                CTX.fillText(
-                    positionLabel,
-                    adjTickXPos,
-                    HEIGHT - MARGIN.bottom + (MARGIN.bump * 4)
-                );
+                    CTX.fillText(
+                        positionLabel,
+                        adjTickXPos,
+                        HEIGHT - MARGIN.bottom + (MARGIN.bump * 4)
+                    );
+
+                } else {
+
+                    CTX.save();
+                    CTX.translate(adjTickXPos, HEIGHT - MARGIN.bottom + (MARGIN.bump * 4) - 12);
+                    CTX.rotate((L_ANGLE * -Math.PI) / 180);
+                    CTX.textAlign = "end";
+                    CTX.fillText(positionLabel, 0, 0);
+                    CTX.restore();
+                }
+
             }
             break;
         case "y":
@@ -275,7 +302,7 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
                 let tickYPos1 = (MARGIN.top + SPACER) + i * yTickDistance;
                 let tickYPos2 = (MARGIN.top + SPACER) + (i + 1) * yTickDistance;
                 let tickYPos = tickYPos1 + ((tickYPos2 - tickYPos1) / 2);
-                let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+                let adjTickYPos = Math.floor(tickYPos);
                 CTX.moveTo(
 
                     MARGIN.left,
@@ -293,7 +320,7 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
                 CTX.fillText(
                     positionLabel,
                     MARGIN.left - (MARGIN.bump * 2),
-                    adjTickYPos + 3,
+                    adjTickYPos + 6,
                 );
             }
             break;
@@ -308,9 +335,9 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
     let decimal = maxMinGap <= 1 ? 2 : maxMinGap <= 10 ? 1 : 0;
 
     CTX.beginPath();
-    CTX.lineWidth = 0.5;
+    CTX.lineWidth = 1;
     CTX.strokeStyle = "#000000";
-    CTX.font = "12px Arial";
+    CTX.font = "24px Arial";
     CTX.fillStyle = "#000000";
     CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
@@ -328,7 +355,7 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
                 for (let i = 0; i <= WITH_TICKS; i++) {
                     let tickXPos = MARGIN.left + i * xTickDistance;
-                    let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+                    let adjTickXPos = Math.floor(tickXPos);
                     CTX.moveTo(
                         adjTickXPos,
                         HEIGHT - MARGIN.bottom
@@ -371,7 +398,7 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
                 let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom) / WITH_TICKS;
                 for (let i = 0; i <= WITH_TICKS; i++) {
                     let tickYPos = MARGIN.top + i * yTickDistance;
-                    let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+                    let adjTickYPos = Math.floor(tickYPos);
                     CTX.moveTo(MARGIN.left, adjTickYPos);
                     CTX.lineTo(MARGIN.left - MARGIN.bump, adjTickYPos);
                     CTX.stroke();
@@ -387,7 +414,7 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
                     CTX.fillText(
                         tickValue,
                         MARGIN.left - MARGIN.bump * 2,
-                        adjTickYPos + 3
+                        adjTickYPos + 6
                     );
                 }
             }
@@ -510,7 +537,7 @@ const renderGuideLine = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
 
     CTX.beginPath();
-    CTX.lineWidth = 0.5;
+    CTX.lineWidth = 1;
     CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
     switch (DIRECTION) {
@@ -520,7 +547,7 @@ const renderGuideLine = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                 let xTickDistance = (WIDTH - MARGIN.left - MARGIN.right) / WITH_TICKS;
                 for (let i = 0; i <= WITH_TICKS; i++) {
                     let tickXPos = MARGIN.left + i * xTickDistance;
-                    let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+                    let adjTickXPos = Math.floor(tickXPos);
                     CTX.moveTo(adjTickXPos, MARGIN.top);
                     CTX.lineTo(adjTickXPos, HEIGHT - MARGIN.bottom);
                     CTX.strokeStyle = "#cccccc"
@@ -535,7 +562,7 @@ const renderGuideLine = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                 let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom) / WITH_TICKS;
                 for (let i = 0; i <= WITH_TICKS; i++) {
                     let tickYPos = MARGIN.top + i * yTickDistance;
-                    let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+                    let adjTickYPos = Math.floor(tickYPos);
                     CTX.moveTo(MARGIN.left, adjTickYPos);
                     CTX.lineTo(WIDTH - MARGIN.right, adjTickYPos);
                     CTX.strokeStyle = "#cccccc"
