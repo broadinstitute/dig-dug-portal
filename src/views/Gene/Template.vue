@@ -292,7 +292,7 @@
 								:field="'phenotype'"
 								placeholder="Select a phenotype ..."
 								:options="
-									$store.state.geneassociations.data.map(
+									$parent.geneassociations.data.map(
 										(association) => association.phenotype
 									)
 								"
