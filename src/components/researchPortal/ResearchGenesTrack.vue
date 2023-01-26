@@ -233,7 +233,10 @@ export default Vue.component("research-genes-track", {
 										  (exon.end - xMin) * xPosByPixel
 										: xStart + (xMax - xMin) * xPosByPixel;
 
-								let xonWidth = xonEndPos - xonStartPos;
+								let xonWidth =
+									xonEndPos - xonStartPos <= 1
+										? 1
+										: xonEndPos - xonStartPos;
 
 								ctx.fillRect(
 									xonStartPos,
