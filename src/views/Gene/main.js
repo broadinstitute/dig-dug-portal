@@ -210,53 +210,6 @@ new Vue({
                 }
             };
         },
-        /*bayes_factor(beta, stdErr) {
-            let w = this.$store.state.prior;
-            let v = Math.pow(stdErr, 2);
-            let f1 = v / (v + w);
-            let sqrt_f1 = Math.sqrt(f1);
-            let f2 = w * Math.pow(beta, 2);
-            let f3 = 2 * v * (v + w);
-            let f4 = f2 / f3;
-            let bayes_factor = sqrt_f1 * Math.exp(f4);
-            return bayes_factor;
-        },*/
-        /*determineCategory(bayesfactor) {
-            let category;
-            if (bayesfactor <= 1) {
-                category = "No";
-            }
-            if (bayesfactor > 1 && bayesfactor < 3) {
-                category = "Anecdotal";
-            } else if (bayesfactor >= 3 && bayesfactor < 10) {
-                category = "Moderate";
-            } else if (bayesfactor >= 10 && bayesfactor < 30) {
-                category = "Strong";
-            } else if (bayesfactor >= 30 && bayesfactor < 100) {
-                category = "Very Strong";
-            } else if (bayesfactor >= 100 && bayesfactor < 350) {
-                category = "Extreme";
-            } else if (bayesfactor >= 350) {
-                category = "Compelling";
-            }
-            return category;
-        },*/
-        /*isGWASSignificantAssociation(data, selectedPhenotype) {
-            if (!!data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == selectedPhenotype) {
-                        if (data[i].pValue <= 5e-8) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-        },*/
-        /*bayesFactorCombinedEvidence(commonBF, rareBF) {
-            let combinedbf = commonBF * rareBF;
-            return Number.parseFloat(combinedbf).toFixed(2);
-        },*/
 
         // go to region page
         exploreRegion(expanded = 0) {
@@ -267,18 +220,7 @@ new Vue({
                     }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
-        /*isExomeWideSignificant(data, trait) {
-            if (!!data.length) {
-                for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == trait) {
-                        if (data[i].pValue <= 2.5e-6) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-        },*/
+
         topPhenotype(topAssocData) {
             return topAssocData[0];
         }
