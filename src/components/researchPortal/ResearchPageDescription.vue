@@ -15,11 +15,11 @@ export default Vue.component("research-page-description", {
 		return {
 			plotData: [],
 			plotMargin: {
-				left: 50.5,
-				right: 10.5,
-				top: 10.5,
-				bottom: 30.5,
-				bump: 5,
+				left: 100,
+				right: 20,
+				top: 20,
+				bottom: 60,
+				bump: 10,
 			},
 		};
 	},
@@ -53,13 +53,17 @@ export default Vue.component("research-page-description", {
 					"<canvas id='plot" +
 					i +
 					"' width='" +
-					this.plotData[i].width +
+					this.plotData[i].width * 2 +
 					"' height='" +
+					(this.plotData[i].height + labelSpace) * 2 +
+					"' style='width:" +
+					this.plotData[i].width +
+					"px;height:" +
 					(this.plotData[i].height + labelSpace) +
-					"'></canvas>";
+					"px;'></canvas>";
 
 				plots[i].innerHTML = plotContent;
-				plots[i].setAttribute("class", "");
+				plots[i].setAttribute("style", "");
 			}
 
 			this.plotData.map((p, pIndex) => {
@@ -82,8 +86,8 @@ export default Vue.component("research-page-description", {
 						this.renderBarPlot(
 							ctx,
 							p.data,
-							p.width,
-							p.height,
+							p.width * 2,
+							p.height * 2,
 							p.color,
 							p["x label angle"],
 							p["y label angle"]
@@ -94,8 +98,8 @@ export default Vue.component("research-page-description", {
 						this.renderPiePlot(
 							ctx,
 							p.data,
-							p.width,
-							p.height,
+							p.width * 2,
+							p.height * 2,
 							p.color
 						);
 						break;
@@ -104,8 +108,8 @@ export default Vue.component("research-page-description", {
 						this.renderLinePlot(
 							ctx,
 							p.data,
-							p.width,
-							p.height,
+							p.width * 2,
+							p.height * 2,
 							p["x label angle"],
 							p["y label angle"],
 							p["data labels on top"]
@@ -125,7 +129,7 @@ export default Vue.component("research-page-description", {
 		) {
 			//console.log("color", COLOR);
 			let margin = this.plotMargin;
-			let spacer = 10;
+			let spacer = 20;
 			let valueHiLow = { high: null, low: null };
 
 			for (const [key, value] of Object.entries(DATA)) {

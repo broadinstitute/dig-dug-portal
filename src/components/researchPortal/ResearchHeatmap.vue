@@ -278,9 +278,10 @@ export default Vue.component("research-heatmap", {
 			let canvasWidth =
 				this.renderConfig["font size"] *
 				1.5 *
-				this.renderData.columns.length;
+				this.renderData.columns.length *
+				2;
 
-			let canvasHeight = this.boxSize * this.renderData.rows.length;
+			let canvasHeight = this.boxSize * this.renderData.rows.length * 2;
 
 			document.getElementById("heatmapColumnsWrapper").style.fontSize =
 				this.renderConfig["font size"] + "px";
@@ -327,15 +328,25 @@ export default Vue.component("research-heatmap", {
 			let c = document.getElementById("heatmap");
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
+			c.setAttribute(
+				"style",
+				"width:" +
+					canvasWidth / 2 +
+					"px;height:" +
+					canvasHeight / 2 +
+					"px;"
+			);
 			let ctx = c.getContext("2d");
+
+			let renderBoxSize = this.boxSize * 2;
 
 			this.renderData.rows.map((r) => {
 				this.squareData[rIndex] = {};
 				let cIndex = 0;
 				this.renderData.columns.map((c) => {
 					let mainValue = this.renderData[r][c].main;
-					let left = this.boxSize * cIndex;
-					let top = this.boxSize * rIndex;
+					let left = renderBoxSize * cIndex;
+					let top = renderBoxSize * rIndex;
 
 					this.squareData[rIndex][cIndex] = {};
 					this.squareData[rIndex][cIndex]["main"] = {
@@ -387,7 +398,7 @@ export default Vue.component("research-heatmap", {
 
 					if (X == cIndex && Y == rIndex) {
 						ctx.beginPath();
-						ctx.rect(left, top, this.boxSize, this.boxSize);
+						ctx.rect(left, top, renderBoxSize, renderBoxSize);
 						ctx.fillStyle = "black";
 						ctx.fill();
 
@@ -395,14 +406,14 @@ export default Vue.component("research-heatmap", {
 						ctx.rect(
 							left + 2,
 							top + 2,
-							this.boxSize - 4,
-							this.boxSize - 4
+							renderBoxSize - 4,
+							renderBoxSize - 4
 						);
 						ctx.fillStyle = colorString;
 						ctx.fill();
 					} else {
 						ctx.beginPath();
-						ctx.rect(left, top, this.boxSize, this.boxSize);
+						ctx.rect(left, top, renderBoxSize, renderBoxSize);
 						ctx.fillStyle = colorString;
 						ctx.fill();
 					}
@@ -410,8 +421,8 @@ export default Vue.component("research-heatmap", {
 					if (!!this.renderConfig.sub) {
 						let steps = this.renderConfig.sub["value range"];
 						let subDirection = this.renderConfig.sub.direction;
-						let dotMaxR = (this.boxSize * 0.75) / 2;
-						let centerPos = this.boxSize / 2;
+						let dotMaxR = (renderBoxSize * 0.75) / 2;
+						let centerPos = renderBoxSize / 2;
 
 						let stepVal = 0;
 						let subValue = this.renderData[r][c].sub;
