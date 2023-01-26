@@ -53,32 +53,45 @@
 							class="mdkp-logo"
 						/>
 					</a>
-					{{ $store.state.bioPortal.diseaseSystems }}
-					<template
-						v-if="!!diseaseGroup.name && diseaseGroup.name == 'a2f'"
-					>
-						<span
-							v-if="page == 'front'"
-							class="disease-in-session"
-							>{{ $store.state.diseaseInSession }}</span
-						>
+					<span v-if="page == 'front'" class="disease-in-session">{{
+						$store.state.diseaseInSession
+					}}</span>
+					<disease-systems
+						v-if="
+							page != 'front' &&
+							$store.state.bioPortal.diseaseSystems.length > 0
+						"
+						:page="page"
+						:diseases="$store.state.bioPortal.diseaseSystems"
+						:diseaseGroups="$store.state.bioPortal.diseaseGroups"
+						:phenotypes="rawPhenotypes"
+						:diseaseInSession="$store.state.diseaseInSession"
+						:phenotypeCorrelation="
+							$store.state.phenotypeCorrelation
+						"
+					></disease-systems>
+					<!--
+
 						<disease-systems
-							v-if="
-								page != 'front' &&
-								$store.state.bioPortal.diseaseSystems.length > 0
-							"
-							:page="page"
-							:diseases="$store.state.bioPortal.diseaseSystems"
-							:diseaseGroups="
-								$store.state.bioPortal.diseaseGroups
-							"
-							:phenotypes="rawPhenotypes"
-							:diseaseInSession="$store.state.diseaseInSession"
-							:phenotypeCorrelation="
-								$store.state.phenotypeCorrelation
-							"
-						></disease-systems>
-					</template>
+													page="front"
+													:diseases="
+														$store.state.bioPortal
+															.diseaseSystems
+													"
+													:diseaseGroups="
+														$store.state.bioPortal
+															.diseaseGroups
+													"
+													:phenotypes="
+														$parent.phenotypes
+													"
+													:phenotypeCorrelation="
+														$store.state
+															.phenotypeCorrelation
+													"
+												></disease-systems>
+
+						-->
 				</div>
 				<div :class="'kp-menu-wrapper col-md-8'">
 					<menu-item
