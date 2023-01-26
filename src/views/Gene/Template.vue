@@ -456,11 +456,11 @@
 										'#d4d4d4',
 									]"
 									:plotMargin="{
-										leftMargin: 75,
-										rightMargin: 20,
-										topMargin: 10,
-										bottomMargin: 50,
-										bump: 5.5,
+										leftMargin: 150,
+										rightMargin: 40,
+										topMargin: 20,
+										bottomMargin: 100,
+										bump: 11,
 									}"
 									:renderConfig="{
 										type: 'phewas plot',
