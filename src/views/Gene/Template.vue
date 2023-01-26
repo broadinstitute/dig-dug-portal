@@ -292,7 +292,7 @@
 								:field="'phenotype'"
 								placeholder="Select a phenotype ..."
 								:options="
-									$parent.geneassociations.data.map(
+									$parent.geneassociations.map(
 										(association) => association.phenotype
 									)
 								"
@@ -324,14 +324,9 @@
 									style="text-align: -webkit-center"
 								></div>
 								<research-phewas-plot
-									v-if="
-										$store.state.geneassociations.data
-											.length > 0
-									"
+									v-if="$parent.geneassociations.length > 0"
 									canvasId="commonVariantPlot"
-									:phenotypesData="
-										$store.state.geneassociations.data
-									"
+									:phenotypesData="$parent.geneassociations"
 									:phenotypeMap="
 										$store.state.bioPortal.phenotypeMap
 									"
@@ -387,9 +382,7 @@
 								<gene-associations-table
 									v-if="$store.state.gene.data.length > 0"
 									:gene="$store.state.gene.data[0]"
-									:associations="
-										$store.state.geneassociations.data
-									"
+									:associations="$parent.geneassociations"
 									:phenotypeMap="
 										$store.state.bioPortal.phenotypeMap
 									"
