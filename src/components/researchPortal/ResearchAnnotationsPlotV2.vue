@@ -244,7 +244,7 @@ export default Vue.component("research-annotations-plot-v2", {
 			selectedAnnos: [],
 			selectedTissues: [],
 			annoPosData: {},
-			spaceBy: 12,
+			spaceBy: 24,
 			annotationOnFocus: "null",
 			tissueOnFocus: "null",
 		};
@@ -748,18 +748,16 @@ export default Vue.component("research-annotations-plot-v2", {
 			let x = Math.floor(e.clientX - rect.left);
 			let rawX = e.clientX - rect.left;
 			let rawY = e.clientY - rect.top;
+			let localSpaceBy = Math.round(this.spaceBy / 2);
 
 			let y =
-				Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy) - 1;
+				Math.ceil(Math.floor(e.clientY - rect.top) / localSpaceBy) - 1;
 
 			const infoBox = document.querySelector("#tissueInfoBox");
 			let infoContent = "";
 
 			if (TYPE == "hover") {
-				if (
-					x >= this.plotMargin.leftMargin &&
-					x <= rect.width - this.plotMargin.leftMargin
-				) {
+				if (x >= this.plotMargin.leftMargin / 2 && x <= rect.width) {
 					if (!!this.annoPosData[y]) {
 						//this.$store.dispatch("sharedPlotXpos", rawX);
 						infoContent += this.annoPosData[y].tissue;
@@ -808,10 +806,7 @@ export default Vue.component("research-annotations-plot-v2", {
 			}
 
 			if (TYPE == "click") {
-				if (
-					x >= this.plotMargin.leftMargin &&
-					x <= rect.width - this.plotMargin.leftMargin
-				) {
+				if (x >= this.plotMargin.leftMargin / 2 && x <= rect.width) {
 					if (!!this.annoPosData[y]) {
 						infoContent += this.annoPosData[y].tissue;
 					}
@@ -826,7 +821,7 @@ export default Vue.component("research-annotations-plot-v2", {
 					infoBox.innerHTML = infoContent;
 					infoBox.setAttribute("class", "");
 					infoBox.style.left = rawX + 15 + "px";
-					infoBox.style.top = rawY + this.spaceBy + "px";
+					infoBox.style.top = rawY + localSpaceBy + "px";
 				}
 			}
 
@@ -1280,11 +1275,11 @@ export default Vue.component("research-annotations-plot-v2", {
 			let numOfPhenotypes = Object.keys(sortedGEData).length;
 
 			let canvasWidth =
-				document.querySelector("#GEPlotWrapper").clientWidth * 0.25;
+				document.querySelector("#GEPlotWrapper").clientWidth * 2 * 0.25;
 
 			let allCanvasWidth = canvasWidth * numOfPhenotypes;
 
-			let plotHeight = 130;
+			let plotHeight = 260;
 			let titleSize = this.spaceBy * 2;
 			let canvasHeight =
 				this.plotMargin.topMargin +
@@ -1296,12 +1291,21 @@ export default Vue.component("research-annotations-plot-v2", {
 				canvasWidth -
 				this.plotMargin.leftMargin -
 				this.plotMargin.rightMargin;
-			let bump = 5.5;
+			let bump = 11;
 
 			let c, ctx;
 			c = document.querySelector("#GEPlot");
 			c.setAttribute("width", allCanvasWidth);
 			c.setAttribute("height", canvasHeight);
+			c.setAttribute(
+				"style",
+				"width:" +
+					allCanvasWidth / 2 +
+					"px;height:" +
+					canvasHeight / 2 +
+					"px;"
+			);
+
 			ctx = c.getContext("2d");
 
 			let pIndex = 0;
@@ -1310,7 +1314,7 @@ export default Vue.component("research-annotations-plot-v2", {
 
 				let canvasLeft = bump + canvasWidth * pIndex;
 
-				ctx.font = "14px Arial";
+				ctx.font = "28px Arial";
 				ctx.textAlign = "left";
 				ctx.fillStyle = "#000000";
 				ctx.fillText(phenotype, canvasLeft, titleYPos);
@@ -1350,15 +1354,6 @@ export default Vue.component("research-annotations-plot-v2", {
 				let yPosByPixel = plotHeight / (GE.yMax - GE.yMin);
 
 				annotationsArr.map((annotation, annoIndex) => {
-					/*let dotColor =
-						!this.pkgData.selectedAnnos ||
-						this.pkgData.selectedAnnos.length == 0
-							? this.compareGroupColors[annoIndex]
-							: !!this.pkgData.selectedAnnos &&
-							  !!this.pkgData.selectedAnnos.includes(annotation)
-							? this.compareGroupColors[annoIndex]
-							: "#00000030";*/
-
 					let dotColor =
 						this.annotationOnFocus == "null"
 							? this.compareGroupColors[annoIndex]
@@ -1384,14 +1379,14 @@ export default Vue.component("research-annotations-plot-v2", {
 						ctx.fillStyle = dotColor;
 						ctx.lineWidth = 0;
 						ctx.beginPath();
-						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+						ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 						ctx.fill();
 
 						if (
 							tValue.fold >= foldArr[2] ||
 							tValue.pValue >= pValArr[2]
 						) {
-							ctx.font = "12px Arial";
+							ctx.font = "24px Arial";
 							ctx.fillStyle =
 								!this.pkgData.selectedAnnos ||
 								this.pkgData.selectedAnnos.length == 0
@@ -1404,38 +1399,41 @@ export default Vue.component("research-annotations-plot-v2", {
 									: "#00000050";
 							if (xPos > canvasWidth * 0.75) {
 								ctx.textAlign = "right";
-								ctx.fillText(tissue, xPos - 7, yPos + 3);
+								ctx.fillText(tissue, xPos - 14, yPos + 6);
 							} else {
 								ctx.textAlign = "left";
-								ctx.fillText(tissue, xPos + 7, yPos + 3);
+								ctx.fillText(tissue, xPos + 14, yPos + 6);
 							}
 						}
 
-						if (!this.GEPosData[Math.round(yPos)]) {
-							this.GEPosData[Math.round(yPos)] = {};
+						if (!this.GEPosData[Math.round(yPos / 2)]) {
+							this.GEPosData[Math.round(yPos / 2)] = {};
 						}
 						if (
-							!this.GEPosData[Math.round(yPos)][Math.round(xPos)]
+							!this.GEPosData[Math.round(yPos / 2)][
+								Math.round(xPos / 2)
+							]
 						) {
-							this.GEPosData[Math.round(yPos)][Math.round(xPos)] =
-								{};
+							this.GEPosData[Math.round(yPos / 2)][
+								Math.round(xPos / 2)
+							] = {};
 						}
 
-						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
-							tissue
-						] = { pValue: null, fold: null };
+						this.GEPosData[Math.round(yPos / 2)][
+							Math.round(xPos / 2)
+						][tissue] = { pValue: null, fold: null };
 
-						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
-							tissue
-						]["pValue"] = tValue.pValue;
+						this.GEPosData[Math.round(yPos / 2)][
+							Math.round(xPos / 2)
+						][tissue]["pValue"] = tValue.pValue;
 
-						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
-							tissue
-						]["fold"] = tValue.fold;
+						this.GEPosData[Math.round(yPos / 2)][
+							Math.round(xPos / 2)
+						][tissue]["fold"] = tValue.fold;
 
-						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
-							tissue
-						]["annotationIndex"] = annoIndex;
+						this.GEPosData[Math.round(yPos / 2)][
+							Math.round(xPos / 2)
+						][tissue]["annotationIndex"] = annoIndex;
 
 						//tissuesCount++;
 						//firstTissueInAnno++;
@@ -1463,8 +1461,9 @@ export default Vue.component("research-annotations-plot-v2", {
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
-			let yAxisXPos =
-				Math.round(XPOS + this.plotMargin.leftMargin - BUMP) - 0.5;
+			let yAxisXPos = Math.round(
+				XPOS + this.plotMargin.leftMargin - BUMP
+			);
 			CTX.moveTo(yAxisXPos, YPOS + this.plotMargin.topMargin);
 			CTX.lineTo(
 				yAxisXPos,
@@ -1479,7 +1478,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				let tickYPos =
 					YPOS + this.plotMargin.topMargin + i * yTickDistance;
 
-				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickYPos = Math.floor(tickYPos);
 
 				CTX.moveTo(
 					XPOS + this.plotMargin.leftMargin - BUMP * 2,
@@ -1492,7 +1491,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				CTX.stroke();
 
 				CTX.textAlign = "right";
-				CTX.font = "12px Arial";
+				CTX.font = "24px Arial";
 
 				let yMaxMinGap = YMAX - YMIN;
 				let yDecimal = yMaxMinGap <= 1 ? 2 : yMaxMinGap <= 50 ? 1 : 0;
@@ -1527,7 +1526,7 @@ export default Vue.component("research-annotations-plot-v2", {
 			CTX.fillText(
 				yLabel,
 				-(this.plotMargin.topMargin + HEIGHT / 2) - YPOS,
-				XPOS + BUMP + 12
+				XPOS + BUMP + 24
 			);
 
 			// render x axis
@@ -1550,7 +1549,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				let tickXPos =
 					XPOS + this.plotMargin.leftMargin + i * xTickDistance;
 
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos);
 
 				CTX.moveTo(
 					adjTickXPos,
@@ -1563,7 +1562,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				CTX.font = "12px Arial";
+				CTX.font = "24px Arial";
 
 				let xMaxMinGap = XMAX - XMIN;
 				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
@@ -1593,7 +1592,7 @@ export default Vue.component("research-annotations-plot-v2", {
 			CTX.fillText(
 				xLabel,
 				XPOS + this.plotMargin.leftMargin + WIDTH / 2,
-				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
+				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 24
 			);
 		},
 		array2Object(KEY, ARRAY) {
@@ -1638,11 +1637,7 @@ export default Vue.component("research-annotations-plot-v2", {
 				let bottomMargin = this.spaceBy * 2;
 				let regionStart = this.viewingRegion.start;
 				let regionEnd = this.viewingRegion.end;
-				let pvalueFoldWidth = 120;
-
-				/*let selectedAnnoTissues = this.pkgDataSelected
-				.filter((s) => s.type == "AnnoTissue")
-				.map((s) => s.id);*/
+				let pvalueFoldWidth = 240;
 
 				let selectedAnnotations = this.pkgDataSelected
 					.filter((s) => s.type == "Annotation")
@@ -1651,13 +1646,6 @@ export default Vue.component("research-annotations-plot-v2", {
 				let selectedTissues = this.pkgDataSelected
 					.filter((s) => s.type == "Tissue")
 					.map((s) => s.id);
-
-				/*let selectedAnnotations = [
-				...new Set(selectedAnnoTissues.map((s) => s.split(" / ")[0])),
-			];
-			let selectedTissues = [
-				...new Set(selectedAnnoTissues.map((s) => s.split(" / ")[1])),
-			];*/
 
 				for (const [annotation, tissues] of Object.entries(
 					this.annoData
@@ -1675,7 +1663,9 @@ export default Vue.component("research-annotations-plot-v2", {
 				if (!!canvas && !!wrapper) {
 					let canvasWidth =
 						document.querySelector("#annotationsPlotWrapper")
-							.clientWidth * 0.75;
+							.clientWidth *
+						2 *
+						0.75;
 
 					let wrapperWidth =
 						canvasWidth +
@@ -1687,7 +1677,7 @@ export default Vue.component("research-annotations-plot-v2", {
 					let plotWidth =
 						canvasWidth - this.plotMargin.leftMargin * 2;
 					let plotHeight = tempHeight;
-					let bump = 5.5;
+					let bump = 11;
 
 					let xPerPixel = plotWidth / (regionEnd - regionStart);
 
@@ -1695,6 +1685,14 @@ export default Vue.component("research-annotations-plot-v2", {
 					c = document.querySelector("#annotationsPlot");
 					c.setAttribute("width", wrapperWidth);
 					c.setAttribute("height", canvasHeight);
+					c.setAttribute(
+						"style",
+						"width:" +
+							wrapperWidth / 2 +
+							"px;height:" +
+							canvasHeight / 2 +
+							"px;"
+					);
 					ctx = c.getContext("2d");
 
 					ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -1705,7 +1703,7 @@ export default Vue.component("research-annotations-plot-v2", {
 						this.annoData
 					)) {
 						if (selectedAnnotations.includes(annotation)) {
-							ctx.font = "14px Arial";
+							ctx.font = "28px Arial";
 							ctx.textAlign = "left";
 							ctx.fillStyle = "#000000";
 							ctx.fillText(annotation, bump, renderHeight);
@@ -1715,7 +1713,7 @@ export default Vue.component("research-annotations-plot-v2", {
 									ctx.fillStyle = "#000000";
 									ctx.textAlign = "start";
 									ctx.textBaseline = "middle";
-									ctx.font = "14px Arial";
+									ctx.font = "28px Arial";
 
 									ctx.fillText(
 										pKey,
@@ -1762,7 +1760,6 @@ export default Vue.component("research-annotations-plot-v2", {
 							tissuesArr.map((tissue) => {
 								let regions = tissues[tissue];
 
-								//for (const [tissue, regions] of Object.entries(tissues)) {
 								let yPosBtn = Math.ceil(
 									renderHeight / this.spaceBy
 								);
@@ -1819,8 +1816,8 @@ export default Vue.component("research-annotations-plot-v2", {
 
 										//let xPosWidth = xPosEnd - xPosStart;
 										let xPosWidth =
-											xPosEnd - xPosStart < 1
-												? 1
+											xPosEnd - xPosStart < 2
+												? 2
 												: xPosEnd - xPosStart;
 
 										if (
@@ -1831,17 +1828,6 @@ export default Vue.component("research-annotations-plot-v2", {
 											ctx.fillStyle =
 												this.getColorIndex(annotation);
 										}
-										/*
-									if (
-										selectedAnnoTissues.indexOf(
-											annotation + " / " + tissue
-										) > -1
-									) {
-										ctx.fillStyle = "#FF0000";
-									} else {
-										ctx.fillStyle =
-											this.getColorIndex(annotation);
-									}*/
 
 										ctx.fillRect(
 											xPosStart,
@@ -1850,9 +1836,11 @@ export default Vue.component("research-annotations-plot-v2", {
 											perTissue - 1
 										);
 										let xPosBtn =
-											xPosStart +
+											Math.round(xPosStart / 2) +
 											"_" +
-											(xPosStart + xPosWidth);
+											Math.round(
+												(xPosStart + xPosWidth) / 2
+											);
 										this.annoPosData[yPosBtn].regions[
 											xPosBtn
 										] = {
@@ -1869,8 +1857,8 @@ export default Vue.component("research-annotations-plot-v2", {
 								ctx.fillStyle = "#000000";
 								ctx.textAlign = "start";
 								ctx.textBaseline = "middle";
-								ctx.font = "12px Arial";
-								ctx.fillText(tissue, 5, renderHeight - 4);
+								ctx.font = "24px Arial";
+								ctx.fillText(tissue, 10, renderHeight - 8);
 								//}
 
 								let pIndex = 0;
@@ -1908,9 +1896,9 @@ export default Vue.component("research-annotations-plot-v2", {
 											ctx.arc(
 												canvasWidth +
 													pvalueFoldWidth * pIndex -
-													5,
-												renderHeight - 4,
-												3,
+													10,
+												renderHeight - 8,
+												6,
 												0,
 												2 * Math.PI
 											);
@@ -1920,13 +1908,13 @@ export default Vue.component("research-annotations-plot-v2", {
 										ctx.fillStyle = "#000000";
 										ctx.textAlign = "start";
 										ctx.textBaseline = "middle";
-										ctx.font = "11px Arial";
+										ctx.font = "22px Arial";
 
 										ctx.fillText(
 											pvalueFold,
 											canvasWidth +
 												pvalueFoldWidth * pIndex,
-											renderHeight - 4
+											renderHeight - 8
 										);
 									}
 
@@ -1937,30 +1925,38 @@ export default Vue.component("research-annotations-plot-v2", {
 						}
 					}
 				}
+
+				console.log("this.annoPosData", this.annoPosData);
 				// get ovelapping region
 				this.getOverlappingRegion();
 			}
 		},
 		renderAnnoAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
-			CTX.beginPath();
 			CTX.lineWidth = 1;
-			CTX.strokeStyle = "#999999";
+
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
+			CTX.beginPath();
+			CTX.strokeStyle = "#999999";
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos);
 			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.stroke();
 
 			// render recombination Rate y axis
-			let recomXpos =
-				Math.round(this.plotMargin.leftMargin + WIDTH + bump) + 0.5;
+			let recomXpos = Math.round(
+				this.plotMargin.leftMargin + WIDTH + bump
+			);
 
 			CTX.moveTo(recomXpos, yPos);
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
 
+			CTX.closePath();
+
 			//render x axis
+			CTX.beginPath();
+			CTX.strokeStyle = "#000000";
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
@@ -1972,15 +1968,15 @@ export default Vue.component("research-annotations-plot-v2", {
 
 			for (let i = 0; i < 6; i++) {
 				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos);
 				CTX.moveTo(adjTickXPos, yPos + HEIGHT + bump);
 				CTX.lineTo(adjTickXPos, yPos + HEIGHT + bump * 2);
 				CTX.stroke();
 
 				CTX.textAlign = "center";
 				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
-				CTX.font = "12px Arial";
-				CTX.fillStyle = "#999999";
+				CTX.font = "24px Arial";
+				CTX.fillStyle = "#000000";
 
 				let xMaxMinGap = xMax - xMin;
 				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
@@ -2001,6 +1997,7 @@ export default Vue.component("research-annotations-plot-v2", {
 					yPos + HEIGHT + bump * 4
 				);
 			}
+			CTX.closePath();
 		},
 		renderStaredPositions(
 			CTX,
@@ -2014,9 +2011,9 @@ export default Vue.component("research-annotations-plot-v2", {
 			bump
 		) {
 			CTX.beginPath();
-			CTX.lineWidth = 1;
+			CTX.lineWidth = 2;
 			CTX.strokeStyle = "#FFAA00";
-			CTX.setLineDash([3, 3]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([6, 6]); // cancel dashed line incase dashed lines rendered some where
 
 			// render dased lines
 			STARED.map((s) => {

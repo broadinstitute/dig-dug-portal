@@ -15,11 +15,11 @@ export default Vue.component("research-page-description", {
 		return {
 			plotData: [],
 			plotMargin: {
-				left: 50.5,
-				right: 10.5,
-				top: 10.5,
-				bottom: 30.5,
-				bump: 5,
+				left: 100,
+				right: 20,
+				top: 20,
+				bottom: 60,
+				bump: 10,
 			},
 		};
 	},
@@ -27,7 +27,7 @@ export default Vue.component("research-page-description", {
 		this.renderPlots();
 	},
 	computed: {
-		pageContent() {
+		pageContent(content) {
 			let formattedContent = this.content
 				.replace(/&lt;plot&gt;/g, "<div class='plot'>")
 				.replace(/&lt;plot-end&gt;/g, "</div>");
@@ -39,40 +39,58 @@ export default Vue.component("research-page-description", {
 			var plots = document.querySelectorAll("div.plot");
 
 			for (let i = 0; i < plots.length; ++i) {
-				//console.log(plots[i].innerHTML);
-				//[/<p>&nbsp;<\/p>/g,""],
 				let innerHtml = plots[i].innerHTML
 					.replace(/<p>/g, "")
 					.replace(/<\/p>/g, "")
 					.replace(/<br>/g, "");
 				this.plotData[i] = JSON.parse(innerHtml);
 
+				let labelSpace = !!this.plotData[i]["label space"]
+					? this.plotData[i]["label space"]
+					: 0;
+
 				let plotContent =
 					"<canvas id='plot" +
 					i +
 					"' width='" +
-					this.plotData[i].width +
+					this.plotData[i].width * 2 +
 					"' height='" +
-					this.plotData[i].height +
-					"'></canvas>";
+					(this.plotData[i].height + labelSpace) * 2 +
+					"' style='width:" +
+					this.plotData[i].width +
+					"px;height:" +
+					(this.plotData[i].height + labelSpace) +
+					"px;'></canvas>";
 
 				plots[i].innerHTML = plotContent;
+				plots[i].setAttribute("style", "");
 			}
+
+			this.plotData.map((p, pIndex) => {
+				if (!p["x label angle"]) {
+					p["x label angle"] = null;
+				}
+				if (!p["y label angle"]) {
+					p["y label angle"] = null;
+				}
+			});
 
 			this.plotData.map((p, pIndex) => {
 				let c, ctx;
 
 				c = document.getElementById("plot" + pIndex);
 				ctx = c.getContext("2d");
-				//ctx.fillRect(20, 20, 150, 100);
+
 				switch (p.type) {
 					case "bar":
 						this.renderBarPlot(
 							ctx,
 							p.data,
-							p.width,
-							p.height,
-							p.color
+							p.width * 2,
+							p.height * 2,
+							p.color,
+							p["x label angle"],
+							p["y label angle"]
 						);
 						break;
 
@@ -80,22 +98,38 @@ export default Vue.component("research-page-description", {
 						this.renderPiePlot(
 							ctx,
 							p.data,
-							p.width,
-							p.height,
+							p.width * 2,
+							p.height * 2,
 							p.color
 						);
 						break;
 
 					case "line":
-						this.renderLinePlot(ctx, p.data, p.width, p.height);
+						this.renderLinePlot(
+							ctx,
+							p.data,
+							p.width * 2,
+							p.height * 2,
+							p["x label angle"],
+							p["y label angle"],
+							p["data labels on top"]
+						);
 						break;
 				}
 			});
 		},
-		renderBarPlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
+		renderBarPlot(
+			CTX,
+			DATA,
+			WIDTH,
+			HEIGHT,
+			COLOR,
+			X_LBL_ANGLE,
+			Y_LBL_ANGLE
+		) {
 			//console.log("color", COLOR);
 			let margin = this.plotMargin;
-			let spacer = 10;
+			let spacer = 20;
 			let valueHiLow = { high: null, low: null };
 
 			for (const [key, value] of Object.entries(DATA)) {
@@ -115,7 +149,15 @@ export default Vue.component("research-page-description", {
 
 			let minMaxGap = valueHiLow.high * 0.2;
 			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
-			valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+
+			if (
+				Math.floor(valueHiLow.low) >= 0 &&
+				Math.floor(valueHiLow.low - minMaxGap) < 0
+			) {
+				valueHiLow.low = 0;
+			} else {
+				valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+			}
 
 			PlotUtils.renderAxis(
 				CTX,
@@ -148,7 +190,8 @@ export default Vue.component("research-page-description", {
 				margin,
 				"x",
 				Object.keys(DATA),
-				spacer
+				spacer,
+				X_LBL_ANGLE
 			);
 
 			///render bars
@@ -169,7 +212,15 @@ export default Vue.component("research-page-description", {
 		renderPiePlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
 			PlotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT, COLOR);
 		},
-		renderLinePlot(CTX, DATA, WIDTH, HEIGHT) {
+		renderLinePlot(
+			CTX,
+			DATA,
+			WIDTH,
+			HEIGHT,
+			X_LBL_ANGLE,
+			Y_LBL_ANGLE,
+			DATA_LABELS_ON_TOP
+		) {
 			//console.log(CTX, DATA, WIDTH, HEIGHT);
 			let margin = this.plotMargin;
 			let valueHiLow = { high: null, low: null };
@@ -193,7 +244,16 @@ export default Vue.component("research-page-description", {
 
 			let minMaxGap = valueHiLow.high * 0.2;
 			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
-			valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+			//valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+
+			if (
+				Math.floor(valueHiLow.low) >= 0 &&
+				Math.floor(valueHiLow.low - minMaxGap) < 0
+			) {
+				valueHiLow.low = 0;
+			} else {
+				valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
+			}
 
 			PlotUtils.renderAxis(
 				CTX,
@@ -218,7 +278,8 @@ export default Vue.component("research-page-description", {
 				margin,
 				"x",
 				keys,
-				0
+				0,
+				X_LBL_ANGLE
 			);
 
 			PlotUtils.renderGuideLine(
@@ -241,11 +302,16 @@ export default Vue.component("research-page-description", {
 				5,
 				DATA,
 				valueHiLow.low,
-				valueHiLow.high
+				valueHiLow.high,
+				DATA_LABELS_ON_TOP
 			);
 		},
 	},
-	watch: {},
+	watch: {
+		pageContent() {
+			this.renderPlots();
+		},
+	},
 });
 </script>
 
