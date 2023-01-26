@@ -379,109 +379,6 @@
 									:filter="filter"
 									ref="rpPheWASPlot"
 								></research-phewas-plot>
-							</template>
-						</criterion-function-group>
-						<criterion-function-group id="common_variants">
-							<div class="col filter-col-md">
-								<div class="label">Ancestry</div>
-								<ancestry-selectpicker
-									:ancestries="
-										$store.state.bioPortal.datasets.map(
-											(dataset) => dataset.ancestry
-										)
-									"
-								></ancestry-selectpicker>
-							</div>
-							<filter-enumeration-control
-								:field="'phenotype'"
-								placeholder="Select a phenotype ..."
-								:options="
-									$parent.geneassociations.map(
-										(association) => association.phenotype
-									)
-								"
-								:labelFormatter="
-									(phenotype) =>
-										!!$store.state.bioPortal.phenotypeMap[
-											phenotype
-										]
-											? $store.state.bioPortal
-													.phenotypeMap[phenotype]
-													.description
-											: phenotype
-								"
-								:multiple="true"
-							>
-								<div class="label">Phenotypes</div>
-							</filter-enumeration-control>
-							<filter-pvalue-control
-								:field="'pValue'"
-								placeholder="Set P-Value ..."
-							>
-								<div class="label">P-Value (&le;)</div>
-							</filter-pvalue-control>
-
-							<template slot="filtered" slot-scope="{ filter }">
-								<div
-									align="center"
-									id="ancestry_set"
-									style="text-align: -webkit-center"
-								></div>
-								<research-phewas-plot
-									v-if="
-										$store.state.geneassociations.data
-											.length > 0
-									"
-									canvasId="commonVariantPlot"
-									:phenotypesData="$parent.geneassociations"
-									:phenotypeMap="
-										$store.state.bioPortal.phenotypeMap
-									"
-									:colors="[
-										'#007bff',
-										'#048845',
-										'#8490C8',
-										'#BF61A5',
-										'#EE3124',
-										'#FCD700',
-										'#5555FF',
-										'#7aaa1c',
-										'#9F78AC',
-										'#F88084',
-										'#F5A4C7',
-										'#CEE6C1',
-										'#cccc00',
-										'#6FC7B6',
-										'#D5A768',
-										'#d4d4d4',
-									]"
-									:plotMargin="{
-										leftMargin: 150,
-										rightMargin: 40,
-										topMargin: 20,
-										bottomMargin: 100,
-										bump: 11,
-									}"
-									:renderConfig="{
-										type: 'phewas plot',
-										'render by': 'phenotype',
-										'group by': 'phenotype group',
-										'phenotype map': 'kp phenotype map',
-										'y axis field': 'pValue',
-										'convert y -log10': 'true',
-										'y axis label': '-Log10(p-value)',
-										'x axis label': 'beta',
-										'beta field': 'null',
-										'hover content': ['pValue'],
-										thresholds: ['2.5e-6'],
-										height: '500',
-									}"
-									:pkgData="null"
-									:pkgDataSelected="null"
-									:filter="filter"
-									ref="rpPheWASPlot"
-								></research-phewas-plot>
-
 								<unauthorized-message
 									:restricted="
 										$store.state.varassociations.restricted
@@ -490,7 +387,9 @@
 								<gene-associations-table
 									v-if="$store.state.gene.data.length > 0"
 									:gene="$store.state.gene.data[0]"
-									:associations="$parent.geneassociations"
+									:associations="
+										$store.state.geneassociations.data
+									"
 									:phenotypeMap="
 										$store.state.bioPortal.phenotypeMap
 									"
