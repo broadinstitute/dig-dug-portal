@@ -53,7 +53,7 @@
 							class="mdkp-logo"
 						/>
 					</a>
-
+					{{ $store.state.bioPortal.diseaseSystems }}
 					<template
 						v-if="!!diseaseGroup.name && diseaseGroup.name == 'a2f'"
 					>
