@@ -863,17 +863,21 @@ export default Vue.component("research-region-plot", {
 			let regionEnd = this.searchingRegion.end;
 			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
 			let assoCanvasWidth =
-				document.querySelector("#rp_region_plot").clientWidth * 0.75 -
-				30; //30 <- left & right padding of wrapper
+				document.querySelector("#rp_region_plot").clientWidth *
+					0.75 *
+					2 -
+				60; //30 <- left & right padding of wrapper *2
 			let ldCanvasWidth =
-				document.querySelector("#rp_region_plot").clientWidth * 0.25 -
-				30; //30 <- left & right padding of wrapper
+				document.querySelector("#rp_region_plot").clientWidth *
+					0.25 *
+					2 -
+				60; //30 <- left & right padding of wrapper *2
 
 			let canvasHeight = !!this.renderConfig.height
-				? this.renderConfig.height +
+				? this.renderConfig.height * 2 +
 				  this.plotMargin.topMargin +
 				  this.plotMargin.bottomMargin
-				: 300 +
+				: 600 +
 				  this.plotMargin.topMargin +
 				  this.plotMargin.bottomMargin;
 
@@ -885,8 +889,8 @@ export default Vue.component("research-region-plot", {
 				this.plotMargin.rightMargin;
 
 			let plotHeight = !!this.renderConfig.height
-				? this.renderConfig.height
-				: 300;
+				? this.renderConfig.height * 2
+				: 600;
 
 			let bump = this.plotMargin.bump;
 
@@ -899,6 +903,14 @@ export default Vue.component("research-region-plot", {
 				);
 				c.setAttribute("width", assoCanvasWidth);
 				c.setAttribute("height", canvasHeight);
+				c.setAttribute(
+					"style",
+					"width:" +
+						assoCanvasWidth / 2 +
+						"px;height:" +
+						canvasHeight / 2 +
+						"px;"
+				);
 				ctx = c.getContext("2d");
 
 				ctx.clearRect(0, 0, assoCanvasWidth, canvasHeight);
@@ -943,6 +955,14 @@ export default Vue.component("research-region-plot", {
 				);
 				c.setAttribute("width", ldCanvasWidth);
 				c.setAttribute("height", canvasHeight);
+				c.setAttribute(
+					"style",
+					"width:" +
+						ldCanvasWidth / 2 +
+						"px;height:" +
+						canvasHeight / 2 +
+						"px;"
+				);
 				ctx = c.getContext("2d");
 
 				ctx.clearRect(0, 0, ldCanvasWidth, canvasHeight);
@@ -1008,8 +1028,8 @@ export default Vue.component("research-region-plot", {
 
 							this.feedPosData(
 								this.assoPos[GROUP],
-								xPos,
-								yPos,
+								Math.round(xPos / 2),
+								Math.round(yPos / 2),
 								key
 							);
 
@@ -1023,8 +1043,8 @@ export default Vue.component("research-region-plot", {
 										xPos,
 										yPos,
 										5,
+										10,
 										6,
-										3,
 										dotColor,
 										dotColor
 									);
@@ -1043,8 +1063,8 @@ export default Vue.component("research-region-plot", {
 										xPos,
 										yPos,
 										5,
+										10,
 										6,
-										3,
 										dotColor,
 										dotColor
 									);
@@ -1094,8 +1114,8 @@ export default Vue.component("research-region-plot", {
 
 									this.feedPosData(
 										this.assoPos[GROUP],
-										xPos,
-										yPos,
+										Math.round(xPos / 2),
+										Math.round(yPos / 2),
 										key
 									);
 
@@ -1108,8 +1128,8 @@ export default Vue.component("research-region-plot", {
 												xPos,
 												yPos,
 												5,
+												10,
 												6,
-												3,
 												dotColor,
 												dotColor
 											);
@@ -1128,8 +1148,8 @@ export default Vue.component("research-region-plot", {
 												xPos,
 												yPos,
 												5,
+												10,
 												6,
-												3,
 												dotColor,
 												dotColor
 											);
@@ -1188,8 +1208,8 @@ export default Vue.component("research-region-plot", {
 
 								this.feedPosData(
 									this.ldPos[GROUP],
-									xPos,
-									yPos,
+									Math.round(xPos / 2),
+									Math.round(yPos / 2),
 									key
 								);
 
@@ -1201,8 +1221,8 @@ export default Vue.component("research-region-plot", {
 											xPos,
 											yPos,
 											5,
+											10,
 											6,
-											3,
 											dotColor,
 											dotColor
 										);
@@ -1221,8 +1241,8 @@ export default Vue.component("research-region-plot", {
 											xPos,
 											yPos,
 											5,
+											10,
 											6,
-											3,
 											dotColor,
 											dotColor
 										);
@@ -1286,8 +1306,8 @@ export default Vue.component("research-region-plot", {
 
 										this.feedPosData(
 											this.ldPos[GROUP],
-											xPos,
-											yPos,
+											Math.round(xPos / 2),
+											Math.round(yPos / 2),
 											key
 										);
 
@@ -1301,8 +1321,8 @@ export default Vue.component("research-region-plot", {
 													xPos,
 													yPos,
 													5,
+													10,
 													6,
-													3,
 													dotColor,
 													dotColor
 												);
@@ -1321,8 +1341,8 @@ export default Vue.component("research-region-plot", {
 													xPos,
 													yPos,
 													5,
+													10,
 													6,
-													3,
 													dotColor,
 													dotColor
 												);
@@ -1415,12 +1435,12 @@ export default Vue.component("research-region-plot", {
 			CTX.fillStyle = DOT_COLOR;
 			CTX.lineWidth = 0;
 			CTX.beginPath();
-			CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
+			CTX.arc(XPOS, YPOS, 9, 0, 2 * Math.PI);
 			CTX.fill();
 		},
 		renderDiamond(CTX, XPOS, YPOS, DOT_COLOR) {
-			let WIDTH = 10;
-			let HEIGHT = 14;
+			let WIDTH = 18;
+			let HEIGHT = 24;
 			let xpos = XPOS;
 			let ypos = YPOS;
 			CTX.save();
@@ -1493,7 +1513,7 @@ export default Vue.component("research-region-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
-			CTX.font = "12px Arial";
+			CTX.font = "24px Arial";
 			CTX.fillStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
@@ -1509,8 +1529,9 @@ export default Vue.component("research-region-plot", {
 			CTX.stroke();
 
 			// render recombination Rate y axis
-			let recomXpos =
-				Math.round(this.plotMargin.leftMargin + WIDTH + bump) + 0.5;
+			let recomXpos = Math.round(
+				this.plotMargin.leftMargin + WIDTH + bump
+			);
 
 			if (TYPE == "asso") {
 				CTX.moveTo(recomXpos, this.plotMargin.topMargin);
@@ -1539,7 +1560,7 @@ export default Vue.component("research-region-plot", {
 			let yTickDistance = HEIGHT / 5;
 			for (let i = 0; i < 6; i++) {
 				let tickYPos = this.plotMargin.topMargin + i * yTickDistance;
-				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
 				CTX.moveTo(this.plotMargin.leftMargin - bump * 2, adjTickYPos);
 				CTX.lineTo(this.plotMargin.leftMargin - bump, adjTickYPos);
 				CTX.stroke();
@@ -1571,7 +1592,7 @@ export default Vue.component("research-region-plot", {
 				for (let i = 0; i < 6; i++) {
 					let tickYPos =
 						this.plotMargin.topMargin + i * yTickDistance;
-					let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+					let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
 					CTX.moveTo(recomXpos, adjTickYPos);
 					CTX.lineTo(recomXpos + bump, adjTickYPos);
 					CTX.stroke();
@@ -1595,7 +1616,7 @@ export default Vue.component("research-region-plot", {
 
 			for (let i = 0; i < 6; i++) {
 				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
 				CTX.moveTo(
 					adjTickXPos,
 					this.plotMargin.topMargin + HEIGHT + bump
@@ -1631,7 +1652,7 @@ export default Vue.component("research-region-plot", {
 			CTX.fillText(
 				this.renderConfig["y axis label"],
 				-(this.plotMargin.topMargin + HEIGHT / 2),
-				bump + 12
+				bump + 24
 			);
 
 			//Render recombination rate y axis label
@@ -1639,7 +1660,7 @@ export default Vue.component("research-region-plot", {
 				CTX.fillText(
 					"Recombination Rate (cM/Mb)",
 					-(this.plotMargin.topMargin + HEIGHT / 2),
-					this.plotMargin.leftMargin * 2 + WIDTH - (bump + 12)
+					this.plotMargin.leftMargin * 2 + WIDTH - (bump + 24)
 				);
 			}
 
@@ -1651,7 +1672,7 @@ export default Vue.component("research-region-plot", {
 				this.plotMargin.topMargin +
 					this.plotMargin.bottomMargin +
 					HEIGHT -
-					12
+					24
 			);
 
 			//render LD plots background
@@ -1660,7 +1681,7 @@ export default Vue.component("research-region-plot", {
 
 				for (let i = 0; i < 5; i++) {
 					let bgXPos = this.plotMargin.leftMargin + i * xBGDistance;
-					let adBGXPos = Math.floor(bgXPos) + 0.5;
+					let adBGXPos = Math.floor(bgXPos);
 					CTX.fillStyle = this.ldColor[i];
 					CTX.fillRect(
 						adBGXPos,
