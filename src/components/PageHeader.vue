@@ -53,6 +53,7 @@
 							class="mdkp-logo"
 						/>
 					</a>
+
 					<template
 						v-if="!!diseaseGroup.name && diseaseGroup.name == 'a2f'"
 					>
