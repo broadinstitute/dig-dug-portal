@@ -900,7 +900,7 @@ new Vue({
             return contents[0]["body"];
         },
         pageID() {
-            return keyParams.pageid.trim();
+            return keyParams.pageid?.trim();
         },
         pageTitle() {
             let contents = this.researchPage;
