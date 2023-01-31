@@ -1245,9 +1245,20 @@ new Vue({
             let pageMode = content;
 
             if (pageMode == "public") {
-                this.$store.dispatch("hugeampkpncms/getResearchPage", {
-                    pageID: keyParams.pageid,
-                });
+                if (keyParams.pageid != null) {
+                    this.$store.dispatch("hugeampkpncms/getResearchPage", {
+                        pageID: keyParams.pageid,
+                    });
+                } else {
+                    //pageID is found in /r/ in url
+                    let url = window.location.href;
+                    let pageID = url.split("/r/")[1];
+
+                    if (pageID != null)
+                        this.$store.dispatch("hugeampkpncms/getResearchPage", {
+                            pageID: pageID,
+                        });
+                }
             }
         },
         portalStyle(style) {
