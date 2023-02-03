@@ -257,6 +257,13 @@ let pages = {
         title: "Data Registry",
         chunks: ["chunk-vendors", "chunk-common", "dataregistry"]
     },
+    byorconfigbuilder: {
+        entry: "src/views/BYORConfigBuilder/main.js",
+        template: "public/index.html",
+        filename: "byor_config_builder.html",
+        title: "BYOR Configuration Builder",
+        chunks: ["chunk-vendors", "chunk-common", "byorconfigbuilder"]
+    },
 };
 
 // remove the debug page in production

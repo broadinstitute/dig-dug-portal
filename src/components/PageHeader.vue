@@ -71,7 +71,7 @@
 								<ul>
 									<li>
 										<a
-											href="javascript:;"
+											href="/data_registry.html"
 											:class="
 												diseaseGroup.name + 'kp-login'
 											"
@@ -84,12 +84,12 @@
 									</li>
 									<li>
 										<a
-											href="javascript:;"
+											href="/byor_config_builder.html"
 											:class="
 												diseaseGroup.name + 'kp-login'
 											"
 											title="BYOR Config Builder"
-											>BYOR Config Builder</a
+											>BYOR Configuration Builder</a
 										>
 									</li>
 									<li>
