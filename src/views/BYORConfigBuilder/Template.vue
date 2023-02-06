@@ -241,6 +241,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 								<div class="col-md-12 col">
 									<b-tabs>
 										<b-tab title="Builder">
+											<pre />
 											<div class="row">
 												<div
 													class="
@@ -264,8 +265,93 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</textarea>
 												</div>
 											</div>
+											<h5>Data convert</h5>
+
+											<div class="row dr-builder-ui">
+												<div class="col-md-3 col">
+													<div class="label">
+														Type
+													</div>
+													<select
+														class="form-control"
+													>
+														<option value="">
+															Array to string<sup
+																>*</sup
+															>
+														</option>
+														<option value="">
+															Calculate
+														</option>
+														<option value="">
+															Join
+														</option>
+														<option value="">
+															Join multi
+														</option>
+														<option value="">
+															Raw
+														</option>
+														<option value="">
+															Replace characters
+														</option>
+														<option value="">
+															Score columns
+														</option>
+													</select>
+												</div>
+												<div class="col-md-3 col">
+													<div class="label">
+														Select field(s)
+													</div>
+													<ul
+														class="
+															dr-byor-data-columns
+														"
+													>
+														<li>CHR</li>
+														<li>POS</li>
+														<li>REF</li>
+														<li>ALT</li>
+														<li>RSID</li>
+														<li>PVAL</li>
+													</ul>
+												</div>
+												<div class="col-md-3 col">
+													<div class="label">
+														Join by
+													</div>
+													<ul>
+														<li>CHR</li>
+														<li>POS</li>
+														<li>REF</li>
+														<li>ALT</li>
+													</ul>
+												</div>
+												<div class="col-md-3 col">
+													<div class="label">
+														New field name
+													</div>
+													<ul>
+														<li>CHR</li>
+														<li>POS</li>
+														<li>REF</li>
+														<li>ALT</li>
+													</ul>
+												</div>
+											</div>
 										</b-tab>
-										<b-tab title="Manul build"> </b-tab>
+										<b-tab title="Manual build">
+											<pre />
+											<textarea
+												rows="6"
+												class="form-control"
+												v-html="
+													'{\r\n\'top rows\':[]\r\n\'}'
+												"
+											>
+											</textarea>
+										</b-tab>
 									</b-tabs>
 								</div>
 							</div>
@@ -519,5 +605,31 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 	border: solid 1px #ffffff;
 	padding-top: 5px;
 	margin-top: -15px;
+}
+
+.dr-builder-ui {
+	padding: 5px 15px;
+}
+
+.dr-builder-ui > div {
+	border-right: solid 1px #dddddd;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	background-color: #eeeeee;
+}
+
+.dr-builder-ui > div:first-child {
+	border: solid 1px #ddd;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+.dr-builder-ui > div:last-child {
+	border: solid 1px #ddd;
+	border-left: none;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+ul.dr-byor-data-columns {
 }
 </style>
