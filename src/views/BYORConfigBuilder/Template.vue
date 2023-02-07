@@ -205,7 +205,12 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 								</div>
 							</div>
 
-							<h4>Data table format</h4>
+							<h4>
+								Data table format
+								<sup class="optional"
+									>Progress under 'Manual build' tab
+								</sup>
+							</h4>
 							<div class="row">
 								<div class="col-md-12 col">
 									<b-tabs>
@@ -234,10 +239,15 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</textarea>
 												</div>
 											</div>
-											<h5>Data convert</h5>
+											<h5>
+												Data convert
+												<sup class="optional"
+													>Tutorial
+												</sup>
+											</h5>
 
 											<div class="row dr-builder-ui">
-												<div class="col-md-2 col">
+												<div class="col-md-3 col">
 													<div class="label">
 														Type
 													</div>
@@ -268,8 +278,20 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															Score columns
 														</option>
 													</select>
+													<pre />
+													<div class="label">
+														New field name
+													</div>
+													<input
+														type="text"
+														class="
+															form-control
+															input-default
+														"
+														placeholder="name"
+													/>
 												</div>
-												<div class="col-md-3 col">
+												<div class="col-md-4 col">
 													<div class="label">
 														Select field(s)
 														<sup class="optional"
@@ -470,7 +492,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														</li>
 													</ul>
 												</div>
-												<div class="col-md-3 col">
+												<div class="col-md-4 col">
 													<div class="label">
 														Join by
 													</div>
@@ -522,27 +544,189 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														</li>
 													</ul>
 												</div>
-												<div class="col-md-2 col">
-													<div class="label">
-														New field name
-													</div>
-													<ul>
-														<li>CHR</li>
-														<li>POS</li>
-														<li>REF</li>
-														<li>ALT</li>
-													</ul>
+												<div class="col-md-1 col">
+													<button
+														class="
+															btn
+															btn-primary
+															btn-sm
+														"
+														type="button"
+													>
+														Save
+													</button>
+													<button
+														class="
+															btn
+															btn-warning
+															btn-sm
+														"
+														type="button"
+													>
+														Cancel
+													</button>
+													<button
+														class="
+															btn
+															btn-danger
+															btn-sm
+														"
+														type="button"
+													>
+														Delete
+													</button>
 												</div>
-												<div class="col-md-2 col">
-													<div class="label">
-														New field name
+											</div>
+											<div class="row">
+												<div
+													class="
+														col-md-12 col
+														text-center
+														dr-bubbles-wrapper
+													"
+												>
+													<div
+														class="dr-format-bubble"
+													>
+														<span class="name"
+															>Variant ID</span
+														><span class="type"
+															>join multi</span
+														><span class="edit"
+															>Edit</span
+														>
 													</div>
-													<ul>
-														<li>CHR</li>
-														<li>POS</li>
-														<li>REF</li>
-														<li>ALT</li>
-													</ul>
+													<div
+														class="dr-format-bubble"
+													>
+														<span class="name"
+															>P-Value
+															(-Log10)</span
+														><span class="type"
+															>calculate</span
+														><span class="edit"
+															>Edit</span
+														>
+													</div>
+												</div>
+											</div>
+
+											<h5>
+												Column formatting
+												<sup class="optional"
+													>Tutorial
+												</sup>
+											</h5>
+
+											<div class="row dr-builder-ui">
+												<div class="col-md-4 col">
+													<div class="label">
+														Select column
+													</div>
+													<div class="form-check">
+														<input
+															class="
+																form-check-input
+															"
+															type="radio"
+															value=""
+														/>
+														<label
+															class="
+																form-check-label
+															"
+															for=""
+														>
+															Variant ID
+														</label>
+													</div>
+													<div class="form-check">
+														<input
+															class="
+																form-check-input
+															"
+															type="radio"
+															value=""
+														/>
+														<label
+															class="
+																form-check-label
+															"
+															for=""
+														>
+															P-Value
+														</label>
+													</div>
+												</div>
+												<div class="col-md-7 col">
+													<div class="label">
+														Type
+													</div>
+												</div>
+												<div class="col-md-1 col">
+													<button
+														class="
+															btn
+															btn-primary
+															btn-sm
+														"
+														type="button"
+													>
+														Save
+													</button>
+													<button
+														class="
+															btn
+															btn-warning
+															btn-sm
+														"
+														type="button"
+													>
+														Cancel
+													</button>
+													<button
+														class="
+															btn
+															btn-danger
+															btn-sm
+														"
+														type="button"
+													>
+														Delete
+													</button>
+												</div>
+											</div>
+											<div class="row">
+												<div
+													class="
+														col-md-12 col
+														text-center
+														dr-bubbles-wrapper
+													"
+												>
+													<div
+														class="dr-format-bubble"
+													>
+														<span class="name"
+															>Variant ID</span
+														><span class="type"
+															>join multi</span
+														><span class="edit"
+															>Edit</span
+														>
+													</div>
+													<div
+														class="dr-format-bubble"
+													>
+														<span class="name"
+															>P-Value
+															(-Log10)</span
+														><span class="type"
+															>calculate</span
+														><span class="edit"
+															>Edit</span
+														>
+													</div>
 												</div>
 											</div>
 										</b-tab>
@@ -993,22 +1177,25 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 }
 
 .dr-builder-ui > div {
-	border-right: solid 1px #dddddd;
+	border: solid 1px #dddddd;
+	border-left: none;
 	padding-top: 15px;
 	padding-bottom: 15px;
 	background-color: #eeeeee;
 }
 
 .dr-builder-ui > div:first-child {
-	border: solid 1px #ddd;
 	border-top-left-radius: 5px;
 	border-bottom-left-radius: 5px;
 }
 .dr-builder-ui > div:last-child {
-	border: solid 1px #ddd;
-	border-left: none;
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
+}
+
+.dr-builder-ui > div:last-child > button {
+	width: 100%;
+	margin-bottom: 10px;
 }
 
 ul.dr-byor-data-columns {
@@ -1031,5 +1218,40 @@ ul.dr-byor-data-columns > li > label > input[type="text"] {
 	font-size: 12px;
 	padding: 0 5px;
 	height: 22px;
+}
+
+.dr-bubbles-wrapper {
+	margin-top: -15px;
+}
+
+.dr-format-bubble {
+	font-size: 12px;
+	padding: 3px 15px;
+	height: 22px;
+	border-radius: 12px;
+	background-color: cornflowerblue;
+	margin: 0 5px 5px 5px;
+	display: inline-block;
+}
+
+.dr-format-bubble span {
+	color: #ffffff;
+	display: inline-block;
+	margin: 0 3px;
+}
+
+.dr-format-bubble span.edit {
+	color: #ffffff;
+	background-color: #000000;
+	border-right: none;
+	border-radius: 8px;
+	font-size: 10px;
+	padding: 0 5px;
+	margin-right: 0;
+	vertical-align: 1px;
+}
+
+.dr-format-bubble span.edit:hover {
+	cursor: pointer;
 }
 </style>
