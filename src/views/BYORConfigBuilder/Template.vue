@@ -239,6 +239,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</textarea>
 												</div>
 											</div>
+											<!-- data convert -->
 											<h5>
 												Data convert
 												<sup class="optional"
@@ -269,7 +270,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															Join multi
 														</option>
 														<option value="">
-															Raw
+															Raw (rename)
 														</option>
 														<option value="">
 															Replace characters
@@ -291,258 +292,1278 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														placeholder="name"
 													/>
 												</div>
-												<div class="col-md-4 col">
-													<div class="label">
-														Select field(s)
-														<sup class="optional"
-															>Set weight to
-															select
-														</sup>
-													</div>
-													<ul
-														class="
-															dr-byor-data-columns
-														"
+												<div class="col-md-8 col">
+													<!-- raw -->
+													<div
+														class="row"
+														id="rawConfig"
 													>
-														<li>
-															CHR<label>
-																<select
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Raw (rename) |
+																Select field
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li
 																	class="
-																		form-control
+																		form-check
+																		form-check-inline
 																	"
 																>
-																	<option>
-																		None
-																	</option>
-																	<option>
-																		0
-																	</option>
-																	<option>
-																		1
-																	</option>
-																	<option>
-																		2
-																	</option>
-																	<option>
-																		3
-																	</option>
-																	<option>
-																		4
-																	</option>
-																	<option>
-																		5
-																	</option>
-																</select></label
-															>
-														</li>
-														<li>
-															POS<label>
-																<select
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		CHR
+																	</span>
+																</li>
+																<li
 																	class="
-																		form-control
+																		form-check
+																		form-check-inline
 																	"
 																>
-																	<option>
-																		None
-																	</option>
-																	<option>
-																		0
-																	</option>
-																	<option>
-																		1
-																	</option>
-																	<option>
-																		2
-																	</option>
-																	<option>
-																		3
-																	</option>
-																	<option>
-																		4
-																	</option>
-																	<option>
-																		5
-																	</option>
-																</select></label
-															>
-														</li>
-														<li>
-															REF<label>
-																<select
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		POS</span
+																	>
+																</li>
+
+																<li
 																	class="
-																		form-control
+																		form-check
+																		form-check-inline
 																	"
 																>
-																	<option>
-																		None
-																	</option>
-																	<option>
-																		0
-																	</option>
-																	<option>
-																		1
-																	</option>
-																	<option>
-																		2
-																	</option>
-																	<option>
-																		3
-																	</option>
-																	<option>
-																		4
-																	</option>
-																	<option>
-																		5
-																	</option>
-																</select></label
-															>
-														</li>
-														<li>
-															ALT<label>
-																<select
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		REF
+																	</span>
+																</li>
+																<li
 																	class="
-																		form-control
+																		form-check
+																		form-check-inline
 																	"
 																>
-																	<option>
-																		None
-																	</option>
-																	<option>
-																		0
-																	</option>
-																	<option>
-																		1
-																	</option>
-																	<option>
-																		2
-																	</option>
-																	<option>
-																		3
-																	</option>
-																	<option>
-																		4
-																	</option>
-																	<option>
-																		5
-																	</option>
-																</select></label
-															>
-														</li>
-														<li>
-															RSID<label>
-																<select
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		ALT
+																	</span>
+																</li>
+																<li
 																	class="
-																		form-control
+																		form-check
+																		form-check-inline
 																	"
 																>
-																	<option>
-																		None
-																	</option>
-																	<option>
-																		0
-																	</option>
-																	<option>
-																		1
-																	</option>
-																	<option>
-																		2
-																	</option>
-																	<option>
-																		3
-																	</option>
-																	<option>
-																		4
-																	</option>
-																	<option>
-																		5
-																	</option>
-																</select></label
-															>
-														</li>
-														<li>
-															PVAL<label>
-																<select
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		RSID
+																	</span>
+																</li>
+																<li
 																	class="
-																		form-control
+																		form-check
+																		form-check-inline
 																	"
 																>
-																	<option>
-																		None
-																	</option>
-																	<option>
-																		0
-																	</option>
-																	<option>
-																		1
-																	</option>
-																	<option>
-																		2
-																	</option>
-																	<option>
-																		3
-																	</option>
-																	<option>
-																		4
-																	</option>
-																	<option>
-																		5
-																	</option>
-																</select></label
-															>
-														</li>
-													</ul>
-												</div>
-												<div class="col-md-4 col">
-													<div class="label">
-														Join by
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		PVAL
+																	</span>
+																</li>
+															</ul>
+														</div>
+														<div
+															class="col-md-6 col"
+														></div>
 													</div>
-													<ul
-														class="
-															dr-byor-data-columns
-														"
+													<!-- calculate -->
+													<div
+														class="row"
+														id="calculateConfig"
 													>
-														<li>
-															CHR<label
-																><input
-																	type="text"
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Calculate |
+																Select field
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li
 																	class="
-																		form-control
-																		input-default
+																		form-check
+																		form-check-inline
 																	"
-																/>
-															</label>
-														</li>
-														<li>
-															POS<label>
-																<input
-																	type="text"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		CHR
+																	</span>
+																</li>
+																<li
 																	class="
-																		form-control
-																		input-default
+																		form-check
+																		form-check-inline
 																	"
-															/></label>
-														</li>
-														<li>
-															REF<label>
-																<input
-																	type="text"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		POS</span
+																	>
+																</li>
+
+																<li
 																	class="
-																		form-control
-																		input-default
+																		form-check
+																		form-check-inline
 																	"
-															/></label>
-														</li>
-														<li>
-															ALT<label>
-																<input
-																	type="text"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		REF
+																	</span>
+																</li>
+																<li
 																	class="
-																		form-control
-																		input-default
+																		form-check
+																		form-check-inline
 																	"
-															/></label>
-														</li>
-													</ul>
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		ALT
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		RSID
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		PVAL
+																	</span>
+																</li>
+															</ul>
+														</div>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Calculate
+															</div>
+															<select
+																class="
+																	form-control
+																"
+															>
+																<option>
+																	-Log10
+																</option>
+															</select>
+														</div>
+													</div>
+													<!-- join -->
+													<div
+														class="row"
+														id="joinConfig"
+													>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Join | Select
+																field(s)
+																<sup
+																	class="
+																		optional
+																	"
+																	>Set weight
+																	to select
+																</sup>
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li>
+																	CHR<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	POS<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	REF<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	ALT<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	RSID<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	PVAL<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																		</select></label
+																	>
+																</li>
+															</ul>
+														</div>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Join by
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li>
+																	CHR<label
+																		><input
+																			type="text"
+																			class="
+																				form-control
+																				input-default
+																			"
+																		/>
+																	</label>
+																</li>
+																<li>POS</li>
+															</ul>
+														</div>
+													</div>
+													<!-- join multi -->
+													<div
+														class="row"
+														id="joinMultiConfig"
+													>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Join multi |
+																Select field(s)
+																<sup
+																	class="
+																		optional
+																	"
+																	>Set weight
+																	to select
+																</sup>
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li>
+																	CHR<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																			<option>
+																				2
+																			</option>
+																			<option>
+																				3
+																			</option>
+																			<option>
+																				4
+																			</option>
+																			<option>
+																				5
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	POS<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																			<option>
+																				2
+																			</option>
+																			<option>
+																				3
+																			</option>
+																			<option>
+																				4
+																			</option>
+																			<option>
+																				5
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	REF<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																			<option>
+																				2
+																			</option>
+																			<option>
+																				3
+																			</option>
+																			<option>
+																				4
+																			</option>
+																			<option>
+																				5
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	ALT<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																			<option>
+																				2
+																			</option>
+																			<option>
+																				3
+																			</option>
+																			<option>
+																				4
+																			</option>
+																			<option>
+																				5
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	RSID<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																			<option>
+																				2
+																			</option>
+																			<option>
+																				3
+																			</option>
+																			<option>
+																				4
+																			</option>
+																			<option>
+																				5
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	PVAL<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				0
+																			</option>
+																			<option>
+																				1
+																			</option>
+																			<option>
+																				2
+																			</option>
+																			<option>
+																				3
+																			</option>
+																			<option>
+																				4
+																			</option>
+																			<option>
+																				5
+																			</option>
+																		</select></label
+																	>
+																</li>
+															</ul>
+														</div>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Join by
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li>
+																	CHR<label
+																		><input
+																			type="text"
+																			class="
+																				form-control
+																				input-default
+																			"
+																		/>
+																	</label>
+																</li>
+																<li>
+																	POS<label>
+																		<input
+																			type="text"
+																			class="
+																				form-control
+																				input-default
+																			"
+																	/></label>
+																</li>
+																<li>
+																	REF<label>
+																		<input
+																			type="text"
+																			class="
+																				form-control
+																				input-default
+																			"
+																	/></label>
+																</li>
+																<li>ALT</li>
+															</ul>
+														</div>
+													</div>
+													<!-- array to string -->
+													<div
+														class="row"
+														id="array2StringConfig"
+													>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Array to string
+																| Select field
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		CHR
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		POS</span
+																	>
+																</li>
+
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		REF
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		ALT
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		RSID
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		PVAL
+																	</span>
+																</li>
+															</ul>
+														</div>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Separate items
+																by
+															</div>
+															<input
+																type="text"
+																class="
+																	form-control
+																	input-default
+																"
+															/>
+														</div>
+													</div>
+													<!-- replace characters -->
+													<div
+														class="row"
+														id="replaceCharactersConfig"
+													>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Replace
+																characters |
+																Select field
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		CHR
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		POS</span
+																	>
+																</li>
+
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		REF
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		ALT
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		RSID
+																	</span>
+																</li>
+																<li
+																	class="
+																		form-check
+																		form-check-inline
+																	"
+																>
+																	<input
+																		class="
+																			form-check-input
+																		"
+																		type="radio"
+																		value=""
+																		id="flexCheckDefault"
+																	/>
+																	<span
+																		class="
+																			form-check-label
+																		"
+																		for="flexCheckDefault"
+																	>
+																		PVAL
+																	</span>
+																</li>
+															</ul>
+														</div>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Add
+																'string|replacing_string'
+																pair per line.
+															</div>
+															<textarea
+																rows="3"
+																class="
+																	form-control
+																"
+																placeholder="example|replace"
+															>
+															</textarea>
+														</div>
+													</div>
+													<!-- Score columns -->
+													<div
+														class="row"
+														id="scoreColumnsConfig"
+													>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Score columns
+																<sup
+																	class="
+																		optional
+																	"
+																	>Select type
+																	to calculate
+																	score
+																</sup>
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li>
+																	CHR<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				Boolean
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	POS<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				Boolean
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	REF<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				Boolean
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	ALT<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				Boolean
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	RSID<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				Boolean
+																			</option>
+																		</select></label
+																	>
+																</li>
+																<li>
+																	PVAL<label>
+																		<select
+																			class="
+																				form-control
+																			"
+																		>
+																			<option>
+																				None
+																			</option>
+																			<option>
+																				Boolean
+																			</option>
+																		</select></label
+																	>
+																</li>
+															</ul>
+														</div>
+														<div
+															class="col-md-6 col"
+														>
+															<div class="label">
+																Add
+																'value:score'
+																pair separated
+																by comma
+															</div>
+															<ul
+																class="
+																	dr-byor-data-columns
+																"
+															>
+																<li>
+																	CHR<input
+																		type="text"
+																		class="
+																			form-control
+																			input-default
+																		"
+																		placeholder="true:1,false:0"
+																	/>
+																</li>
+																<li>
+																	POS<input
+																		type="text"
+																		class="
+																			form-control
+																			input-default
+																		"
+																		placeholder="true:1,false:0"
+																	/>
+																</li>
+															</ul>
+														</div>
+													</div>
 												</div>
 												<div class="col-md-1 col">
 													<button
@@ -610,7 +1631,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</div>
 												</div>
 											</div>
-
+											<!-- column formatting -->
 											<h5>
 												Column formatting
 												<sup class="optional"
@@ -619,7 +1640,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 											</h5>
 
 											<div class="row dr-builder-ui">
-												<div class="col-md-4 col">
+												<div class="col-md-2 col">
 													<div class="label">
 														Select column
 													</div>
@@ -658,9 +1679,292 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														</label>
 													</div>
 												</div>
-												<div class="col-md-7 col">
+												<div class="col-md-4 col">
 													<div class="label">
-														Type
+														Set formatting order
+													</div>
+													<ul
+														class="
+															dr-byor-data-columns
+														"
+													>
+														<li>
+															Link<label>
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		None
+																	</option>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																	<option>
+																		2
+																	</option>
+																	<option>
+																		3
+																	</option>
+																</select></label
+															>
+														</li>
+														<li>
+															Rander background
+															%<label>
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		None
+																	</option>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																	<option>
+																		2
+																	</option>
+																	<option>
+																		3
+																	</option>
+																</select></label
+															>
+														</li>
+														<li>
+															Rander background %
+															(negative)<label>
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		None
+																	</option>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																	<option>
+																		2
+																	</option>
+																	<option>
+																		3
+																	</option>
+																</select></label
+															>
+														</li>
+														<li>
+															Scientific
+															notation<label>
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		None
+																	</option>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																	<option>
+																		2
+																	</option>
+																	<option>
+																		3
+																	</option>
+																</select></label
+															>
+														</li>
+														<li>
+															Fixed after decimal
+															point<label>
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		None
+																	</option>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																	<option>
+																		2
+																	</option>
+																	<option>
+																		3
+																	</option>
+																</select></label
+															>
+														</li>
+													</ul>
+												</div>
+												<div class="col-md-5 col">
+													<div class="label">
+														Link
+													</div>
+													<div id="linkFormat">
+														<div
+															class="form-inline"
+														>
+															<span
+																>Link to:
+															</span>
+
+															<input
+																type="text"
+																class="
+																	form-control
+																	form-control-sm
+																	input-default
+																"
+																style="
+																	width: 80%;
+																	margin-left: 5px;
+																"
+															/>
+														</div>
+														<div
+															class="form-inline"
+														>
+															<div
+																class="
+																	form-check
+																"
+																style="
+																	margin-right: 10px;
+																"
+															>
+																<input
+																	class="
+																		form-check-input
+																	"
+																	type="checkbox"
+																	value=""
+																/>
+																<label
+																	class="
+																		form-check-label
+																	"
+																	for=""
+																>
+																	New tab
+																</label>
+															</div>
+															<div
+																class="
+																	form-check
+																"
+															>
+																<input
+																	class="
+																		form-check-input
+																	"
+																	type="checkbox"
+																	value=""
+																/>
+																<label
+																	class="
+																		form-check-label
+																	"
+																	for=""
+																>
+																	As button
+																</label>
+															</div>
+														</div>
+														<div
+															class="form-inline"
+														>
+															<span
+																>Button label:
+															</span>
+
+															<input
+																type="text"
+																class="
+																	form-control
+																	form-control-sm
+																	input-default
+																"
+																style="
+																	width: 80%;
+																	margin-left: 5px;
+																"
+															/>
+														</div>
+													</div>
+													<pre />
+													<div class="label">
+														Render background %
+													</div>
+													<div class="form-inline">
+														<span
+															>Percent if no
+															value:
+														</span>
+
+														<input
+															type="text"
+															class="
+																form-control
+																form-control-sm
+																input-default
+															"
+															style="
+																width: 50%;
+																margin-left: 5px;
+															"
+														/>
+													</div>
+													<pre />
+													<div class="label">
+														Fixed after decimal
+														point
+													</div>
+													<div class="form-inline">
+														<span>Place </span>
+
+														<select
+															class="
+																form-control
+																form-control-sm
+															"
+															style="
+																width: 50%;
+																margin-left: 5px;
+															"
+														>
+															<option>1</option>
+															<option>2</option>
+															<option>3</option>
+															<option>4</option>
+															<option>5</option>
+															<option>6</option>
+															<option>7</option>
+															<option>8</option>
+															<option>9</option>
+														</select>
 													</div>
 												</div>
 												<div class="col-md-1 col">
@@ -710,7 +2014,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														<span class="name"
 															>Variant ID</span
 														><span class="type"
-															>join multi</span
+															>link</span
 														><span class="edit"
 															>Edit</span
 														>
@@ -719,14 +2023,316 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														class="dr-format-bubble"
 													>
 														<span class="name"
-															>P-Value
-															(-Log10)</span
+															>P-Value </span
 														><span class="type"
-															>calculate</span
+															>Sceintific
+															notation, render
+															background %</span
 														><span class="edit"
 															>Edit</span
 														>
 													</div>
+												</div>
+											</div>
+											<!-- top rows -->
+											<h5>
+												Top rows
+												<sup class="optional"
+													>Tutorial
+												</sup>
+											</h5>
+											<div class="row dr-builder-ui">
+												<div class="col-md-12 col">
+													<div class="label">
+														Set order
+													</div>
+													<ul
+														class="
+															dr-byor-data-columns
+															inline-list
+														"
+													>
+														<li>
+															<label
+																class="
+																	form-inline
+																"
+																>Variant ID:
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		None
+																	</option>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																</select></label
+															>
+														</li>
+														<li>
+															<label
+																class="
+																	form-inline
+																"
+																>P-Value:
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		None
+																	</option>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																</select></label
+															>
+														</li>
+													</ul>
+												</div>
+											</div>
+											<!-- features -->
+											<h5>
+												Features
+												<sup class="optional"
+													>Tutorial
+												</sup>
+											</h5>
+											<div class="row dr-builder-ui">
+												<div class="col-md-3 col">
+													<div class="label">
+														Feature name
+													</div>
+													<input
+														type="text"
+														class="
+															form-control
+															input-default
+														"
+														placeholder="name"
+													/>
+												</div>
+												<div class="col-md-8 col">
+													<div class="label">
+														Set columns order
+													</div>
+													<ul
+														class="
+															dr-byor-data-columns
+															inline-list
+														"
+													>
+														<li>
+															<label
+																class="
+																	form-inline
+																"
+																>Variant ID:
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		None
+																	</option>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																</select></label
+															>
+														</li>
+														<li>
+															<label
+																class="
+																	form-inline
+																"
+																>P-Value:
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		None
+																	</option>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																</select></label
+															>
+														</li>
+													</ul>
+												</div>
+												<div class="col-md-1 col">
+													<button
+														class="
+															btn
+															btn-primary
+															btn-sm
+														"
+														type="button"
+													>
+														Save
+													</button>
+													<button
+														class="
+															btn
+															btn-warning
+															btn-sm
+														"
+														type="button"
+													>
+														Cancel
+													</button>
+													<button
+														class="
+															btn
+															btn-danger
+															btn-sm
+														"
+														type="button"
+													>
+														Delete
+													</button>
+												</div>
+											</div>
+											<div class="row">
+												<div
+													class="
+														col-md-12 col
+														text-center
+														dr-bubbles-wrapper
+													"
+												>
+													<div
+														class="dr-format-bubble"
+													>
+														<span class="name"
+															>Feature 1</span
+														><span class="edit"
+															>Edit</span
+														>
+													</div>
+												</div>
+											</div>
+											<!-- tool tips -->
+											<h5>
+												Tool tips
+												<sup class="optional"
+													>Tutorial
+												</sup>
+											</h5>
+											<div class="row dr-builder-ui">
+												<div class="col-md-12 col">
+													<div class="label">
+														Tool tips
+													</div>
+													<div class="row">
+														<div
+															class="col-md-2 col"
+														>
+															Variant ID
+														</div>
+														<div
+															class="
+																col-md-10 col
+															"
+														>
+															<input
+																type="text"
+																class="
+																	form-control
+																	input-default
+																"
+																placeholder="tool tip"
+															/>
+														</div>
+													</div>
+													<div class="row">
+														<div
+															class="col-md-2 col"
+														>
+															P-Value
+														</div>
+														<div
+															class="
+																col-md-10 col
+															"
+														>
+															<input
+																type="text"
+																class="
+																	form-control
+																	input-default
+																"
+																placeholder="tool tip"
+															/>
+														</div>
+													</div>
+												</div>
+											</div>
+											<!-- Locus field / star column -->
+											<h5>
+												Locus field / star column
+												<sup class="optional"
+													>Tutorial
+												</sup>
+											</h5>
+											<div class="row dr-builder-ui">
+												<div
+													class="
+														col-md-6 col
+														text-center
+													"
+												>
+													<div class="label">
+														Locus field
+													</div>
+													<select
+														class="form-control"
+													>
+														<option>None</option>
+														<option>
+															Variant ID
+														</option>
+														<option>P-Value</option>
+													</select>
+												</div>
+												<div
+													class="
+														col-md-6 col
+														text-center
+													"
+												>
+													<div class="label">
+														Star column
+													</div>
+													<select
+														class="form-control"
+													>
+														<option>None</option>
+														<option>
+															Variant ID
+														</option>
+														<option>P-Value</option>
+													</select>
 												</div>
 											</div>
 										</b-tab>
@@ -744,181 +2350,394 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 									</b-tabs>
 								</div>
 							</div>
-							<h4>
-								Data comparison
-								<sup class="optional"
-									>Optional for only daynamic data points |
-									Tutorial
-								</sup>
-							</h4>
+						</div>
+					</div>
+
+					<h4>
+						Data comparison
+						<sup class="optional"
+							>Optional for only daynamic data points | Tutorial
+						</sup>
+					</h4>
+					<div class="row">
+						<div class="col-md-12 col">
+							<b-tabs>
+								<b-tab title="Builder">
+									<pre />
+									<div class="row dr-builder-ui">
+										<div class="col-md-4 col">
+											<div class="label">Key field</div>
+											<div
+												class="
+													form-check form-check-inline
+												"
+											>
+												<input
+													class="form-check-input"
+													type="radio"
+													value=""
+													id="flexCheckDefault"
+												/>
+												<label
+													class="form-check-label"
+													for="flexCheckDefault"
+												>
+													Variant ID
+												</label>
+											</div>
+											<div
+												class="
+													form-check form-check-inline
+												"
+											>
+												<input
+													class="form-check-input"
+													type="radio"
+													value=""
+													id="flexCheckDefault"
+												/>
+												<label
+													class="form-check-label"
+													for="flexCheckDefault"
+												>
+													P-Value
+												</label>
+											</div>
+										</div>
+										<div class="col-md-4 col">
+											<div class="label">
+												Fields group data key
+												<sup class="optional"
+													>Query parameters
+												</sup>
+											</div>
+											<div
+												class="
+													form-check form-check-inline
+												"
+											>
+												<input
+													class="form-check-input"
+													type="checkbox"
+													value=""
+													id="flexCheckDefault"
+												/>
+												<label
+													class="form-check-label"
+													for="flexCheckDefault"
+												>
+													ancestry
+												</label>
+											</div>
+											<div
+												class="
+													form-check form-check-inline
+												"
+											>
+												<input
+													class="form-check-input"
+													type="checkbox"
+													value=""
+													id="flexCheckDefault"
+												/>
+												<label
+													class="form-check-label"
+													for="flexCheckDefault"
+												>
+													phenotype
+												</label>
+											</div>
+											<div
+												class="
+													form-check form-check-inline
+												"
+											>
+												<input
+													class="form-check-input"
+													type="checkbox"
+													value=""
+													id="flexCheckDefault"
+												/>
+												<label
+													class="form-check-label"
+													for="flexCheckDefault"
+												>
+													region
+												</label>
+											</div>
+										</div>
+										<div class="col-md-4 col">
+											<div class="label">
+												Fields to compare
+											</div>
+											<div
+												class="
+													form-check form-check-inline
+												"
+											>
+												<input
+													class="form-check-input"
+													type="checkbox"
+													value=""
+													id="flexCheckDefault"
+												/>
+												<label
+													class="form-check-label"
+													for="flexCheckDefault"
+												>
+													Variant ID
+												</label>
+											</div>
+											<div
+												class="
+													form-check form-check-inline
+												"
+											>
+												<input
+													class="form-check-input"
+													type="checkbox"
+													value=""
+													id="flexCheckDefault"
+												/>
+												<label
+													class="form-check-label"
+													for="flexCheckDefault"
+												>
+													P-Value
+												</label>
+											</div>
+										</div>
+									</div></b-tab
+								>
+								<b-tab title="Manual build">
+									<pre />
+									<textarea
+										rows="6"
+										class="form-control"
+										v-html="
+											'{\r\n\'key field\':,\r\n\'fields group data key\':[],\r\n\'fields to compare\':[]\r\n}'
+										"
+									>
+									</textarea>
+								</b-tab>
+							</b-tabs>
+						</div>
+					</div>
+
+					<!-- filters -->
+					<h5>
+						Filters
+						<sup class="optional">Tutorial </sup>
+					</h5>
+					<div class="row">
+						<div class="col-md-12 col">
+							<b-tabs>
+								<b-tab title="Builder">
+									<pre />
+									<div class="row">
+										<div class="col-md-7">
+											<div class="row dr-builder-ui">
+												<div class="col-md-3 col">
+													<div class="label">
+														Select field
+													</div>
+													<select
+														class="form-control"
+													>
+														<option>
+															variant ID
+														</option>
+														<option>P-Value</option>
+													</select>
+												</div>
+												<div class="col-md-3 col">
+													<div class="label">
+														Filter type
+													</div>
+
+													<select
+														class="form-control"
+													>
+														<option>Search</option>
+														<option>
+															Search greater than
+														</option>
+														<option>
+															Search lower than
+														</option>
+														<option>
+															Search or
+														</option>
+														<option>
+															Search and
+														</option>
+														<option>
+															Dropdown
+														</option>
+													</select>
+												</div>
+												<div class="col-md-3 col">
+													<div class="label">
+														Label
+													</div>
+
+													<input
+														type="text"
+														class="
+															form-control
+															input-default
+														"
+													/>
+												</div>
+												<div class="col-md-3 col">
+													<button
+														class="
+															btn
+															btn-primary
+															btn-sm
+														"
+														type="button"
+													>
+														Save
+													</button>
+													<button
+														class="
+															btn
+															btn-warning
+															btn-sm
+														"
+														type="button"
+													>
+														Cancel
+													</button>
+													<button
+														class="
+															btn
+															btn-danger
+															btn-sm
+														"
+														type="button"
+													>
+														Delete
+													</button>
+												</div>
+											</div>
+										</div>
+										<div class="col-md-5">
+											<div class="row dr-builder-ui">
+												<div class="col-md-6 col">
+													<div class="label">
+														Filter order
+													</div>
+
+													<ul
+														class="
+															dr-byor-data-columns
+														"
+													>
+														<li>
+															Variant ID (<a
+																href="javascript:;"
+																>Edit</a
+															>)<label>
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																</select></label
+															>
+														</li>
+														<li>
+															P-Value (<a
+																href="javascript:;"
+																>Edit</a
+															>)<label>
+																<select
+																	class="
+																		form-control
+																	"
+																>
+																	<option>
+																		0
+																	</option>
+																	<option>
+																		1
+																	</option>
+																</select></label
+															>
+														</li>
+													</ul>
+												</div>
+												<div class="col-md-6 col">
+													<div class="label">
+														Filter width
+													</div>
+
+													<select
+														class="form-control"
+													>
+														<option>
+															Midium (default)
+														</option>
+														<option>Small</option>
+														<option>Large</option>
+													</select>
+												</div>
+											</div>
+										</div>
+									</div>
+								</b-tab>
+								<b-tab title="Manual build">
+									<textarea rows="6" class="form-control">
+									</textarea>
+								</b-tab>
+							</b-tabs>
+						</div>
+					</div>
+
+					<div class="row dr-description-section">
+						<div class="col-md-12">
+							<h4>Visulizer</h4>
 							<div class="row">
-								<div class="col-md-12 col">
-									<div class="label">Key field</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="radio"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											Field 1
-										</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="radio"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											Field 2
-										</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="radio"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											Field 3
-										</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="radio"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											Field 4
-										</label>
-									</div>
-								</div>
-								<div class="col-md-12 col">
+								<div class="col filter-col-md">
 									<div class="label">
-										Fields group data key
-										<sup class="optional"
-											>Query parameters
-										</sup>
+										Visualizer configuration
 									</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="checkbox"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											ancestry
-										</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="checkbox"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											phenotype
-										</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="checkbox"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											region
-										</label>
-									</div>
+									<textarea
+										rows="6"
+										class="form-control"
+									></textarea>
 								</div>
-								<div class="col-md-12 col">
-									<div class="label">Fields to compare</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="checkbox"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											Field 1
-										</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="checkbox"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											Field 2
-										</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="checkbox"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											Field 3
-										</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input
-											class="form-check-input"
-											type="checkbox"
-											value=""
-											id="flexCheckDefault"
-										/>
-										<label
-											class="form-check-label"
-											for="flexCheckDefault"
-										>
-											Field 4
-										</label>
-									</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="row dr-description-section">
+						<div class="col-md-12">
+							<h4>Legends</h4>
+							<div class="row">
+								<div class="col filter-col-md">
+									<div class="label">Datatable legend</div>
+									<textarea
+										rows="3"
+										class="form-control"
+									></textarea>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-md-12 col filter-col-md">
+									<div class="label">Visualizer legend</div>
+									<textarea
+										rows="3"
+										class="form-control"
+									></textarea>
 								</div>
 							</div>
 						</div>
@@ -996,7 +2815,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 							<input
 								type="text"
 								class="form-control input-default"
-								placeholder="Dev ID"
+								placeholder="Node ID"
 							/>
 						</div>
 						<div class="col-md-6 col filter-col-md">
@@ -1009,7 +2828,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 							<input
 								type="text"
 								class="form-control input-default"
-								placeholder="Dev password"
+								placeholder="Node ID"
 							/>
 						</div>
 					</div>
@@ -1086,6 +2905,32 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 									>
 								</label>
 							</div>
+						</div>
+					</div>
+					<div class="row dr-meta-info">
+						<div class="col-md-4 col filter-col-md">
+							<div class="label">Revision</div>
+							<div class="form-check">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									value=""
+									id="flexCheckDefault"
+								/>
+								<label
+									class="form-check-label"
+									for="flexCheckDefault"
+								>
+									Create revision
+								</label>
+							</div>
+						</div>
+						<div class="col-md-8 col filter-col-md">
+							<div class="label">Revision log message</div>
+							<input
+								type="text"
+								class="form-control input-default"
+							/>
 						</div>
 					</div>
 				</div>
@@ -1185,6 +3030,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 }
 
 .dr-builder-ui > div:first-child {
+	border-left: solid 1px #dddddd;
 	border-top-left-radius: 5px;
 	border-bottom-left-radius: 5px;
 }
@@ -1218,6 +3064,17 @@ ul.dr-byor-data-columns > li > label > input[type="text"] {
 	font-size: 12px;
 	padding: 0 5px;
 	height: 22px;
+}
+
+ul.dr-byor-data-columns.inline-list > li {
+	width: auto;
+	display: inline-block;
+	margin-right: 15px;
+}
+
+ul.dr-byor-data-columns.inline-list > li > label {
+	display: inline-block;
+	position: relative;
 }
 
 .dr-bubbles-wrapper {
