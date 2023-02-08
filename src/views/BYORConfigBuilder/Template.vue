@@ -2909,6 +2909,25 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 					</div>
 					<div class="row dr-meta-info">
 						<div class="col-md-4 col filter-col-md">
+							<div class="label">Show portal header and menu</div>
+							<div class="form-check">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									value=""
+									id="flexCheckDefault"
+								/>
+								<label
+									class="form-check-label"
+									for="flexCheckDefault"
+								>
+									Show
+								</label>
+							</div>
+						</div>
+					</div>
+					<div class="row dr-meta-info">
+						<div class="col-md-4 col filter-col-md">
 							<div class="label">Revision</div>
 							<div class="form-check">
 								<input
