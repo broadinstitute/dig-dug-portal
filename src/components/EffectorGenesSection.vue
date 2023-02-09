@@ -1,6 +1,30 @@
 <template>
 	<div>
-		{{ eglsList }}
+		<div class="row" v-for="item in eglsList">
+			<div class="col-md-4" v-html="item['Effector list name']"></div>
+			<div
+				class="col-md-4"
+				v-html="item['Title'] + '. ' + item['Citation']"
+			></div>
+			<div
+				class="col-md-2"
+				v-html="
+					'<a target=\'_blank\'href=\'https://pubmed.ncbi.nlm.nih.gov/' +
+					item['PMID'] +
+					'\'>' +
+					item['PMID'] +
+					'</a>'
+				"
+			></div>
+			<div
+				class="col-md-2"
+				v-html="
+					'<a class=\'btn btn-sm btn-primary\' target=\'_blank\'href=\'\\research.html?pageid=' +
+					item['Page ID'] +
+					'\'>View genes</a>'
+				"
+			></div>
+		</div>
 	</div>
 </template>
 
