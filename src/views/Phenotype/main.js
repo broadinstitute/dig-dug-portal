@@ -17,6 +17,7 @@ import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
 import PathwayTable from "@/components/PathwayTable.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
+import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import Documentation from "@/components/Documentation.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
@@ -56,6 +57,7 @@ new Vue({
         PathwayTable,
         Documentation,
         RawImage,
+        EffectorGenesSection,
 
         CriterionFunctionGroup,
         CriterionListGroup,
