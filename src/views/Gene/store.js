@@ -29,6 +29,9 @@ export default new Vuex.Store({
         geneToQuery: "",
         aliasName: null,
         prior: 0.3696,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
         selectedAncestry: "",
         selectedTranscript: "",
         commonVariantsLength: 0,
@@ -45,6 +48,15 @@ export default new Vuex.Store({
         },
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         },
         setCommonVariantsLength(state, NUM) {
             state.commonVariantsLength = NUM;
@@ -94,6 +106,13 @@ export default new Vuex.Store({
     },
 
     actions: {
+        // For custom phenotypes
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
         commonVariantsLength(context, NUM) {
             context.commit("setCommonVariantsLength", NUM);
         },
@@ -107,6 +126,7 @@ export default new Vuex.Store({
                 context.dispatch("geneToTranscript/query", { q: name });
             }
         },
+        ///
 
         async queryGeneRegion(context, region) {
             //To match with HuGE cal +- 300000 to the region
@@ -152,6 +172,9 @@ export default new Vuex.Store({
         async get52KAssociationData(context) {
             let name = context.state.geneName;
             context.dispatch('associations52k/query', { q: name });
-        }
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
     }
 });

@@ -39,6 +39,9 @@ export default new Vuex.Store({
         pkgData: {},
         pkgDataSelected: [],
         sharedPlotXpos: null,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
     mutations: {
         setSharedPlotXpos(state, XPOS) {
@@ -105,6 +108,15 @@ export default new Vuex.Store({
                 state.pkgDataSelected = tempArray;
             }
         },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
+        }
     },
     getters: {},
     actions: {
@@ -149,6 +161,15 @@ export default new Vuex.Store({
         },
         pkgDataSelected(context, data) {
             context.commit("setPkgDataSelected", data);
+        },
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
         },
     }
 });

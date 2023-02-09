@@ -5,6 +5,7 @@
 			v-if="$parent.displayOnKP == true"
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
 		<!--  Research page Header -->
@@ -163,6 +164,7 @@
 							class="col-md-12"
 							v-if="
 								($parent.dataFilters != null &&
+									$parent.dataFilesLabels != null &&
 									$parent.researchData != null) ||
 								$parent.dataFiles.length > 1 ||
 								$parent.apiParameters != null
@@ -172,7 +174,7 @@
 								:dataFiles="$parent.dataFiles"
 								:filesListLabels="
 									$parent.dataFiles.length > 1 ||
-									$parent.dataFilesLabels != false
+									$parent.dataFilesLabels != null
 										? $parent.dataFilesLabels
 										: null
 								"

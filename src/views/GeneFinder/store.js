@@ -21,7 +21,10 @@ export default new Vuex.Store({
         geneFinderAssociations: {},
         phenotypelist: [],
         secondaryPhenotype: null,
-        filterbadges: false
+        filterbadges: false,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -55,7 +58,16 @@ export default new Vuex.Store({
         },
         setPhenotypelist(state, phenotypelist) {
             state.phenotypelist = phenotypelist
-        }
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
+        },
 
 
     },
@@ -70,11 +82,17 @@ export default new Vuex.Store({
             m[phenotyped] = data;
             return m;
         }
-
-
     },
     actions: {
-
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
 
     }
 });
