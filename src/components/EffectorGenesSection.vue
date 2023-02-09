@@ -1,29 +1,37 @@
 <template>
 	<div>
-		<div class="row" v-for="item in eglsList">
-			<div class="col-md-4" v-html="item['Effector list name']"></div>
-			<div
-				class="col-md-4"
-				v-html="item['Title'] + '. ' + item['Citation']"
-			></div>
-			<div
-				class="col-md-2"
-				v-html="
-					'<a target=\'_blank\'href=\'https://pubmed.ncbi.nlm.nih.gov/' +
-					item['PMID'] +
-					'\'>' +
-					item['PMID'] +
-					'</a>'
-				"
-			></div>
-			<div
-				class="col-md-2"
-				v-html="
-					'<a class=\'btn btn-sm btn-primary\' target=\'_blank\'href=\'\\research.html?pageid=' +
-					item['Page ID'] +
-					'\'>View genes</a>'
-				"
-			></div>
+		<div class="col-md-12 col">
+			<div class="row egls-list-header">
+				<div class="col-md-4">Name</div>
+				<div class="col-md-4">Reference</div>
+				<div class="col-md-2">PMID</div>
+				<div class="col-md-2">View Genes</div>
+			</div>
+			<div class="row egls-list" v-for="item in eglsList">
+				<div class="col-md-4" v-html="item['Effector list name']"></div>
+				<div
+					class="col-md-4"
+					v-html="item['Title'] + '. ' + item['Citation']"
+				></div>
+				<div
+					class="col-md-2"
+					v-html="
+						'<a target=\'_blank\'href=\'https://pubmed.ncbi.nlm.nih.gov/' +
+						item['PMID'] +
+						'\'>' +
+						item['PMID'] +
+						'</a>'
+					"
+				></div>
+				<div
+					class="col-md-2"
+					v-html="
+						'<a class=\'btn btn-sm btn-primary\' target=\'_blank\'href=\'\\research.html?pageid=' +
+						item['Page ID'] +
+						'\'>View genes</a>'
+					"
+				></div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -77,4 +85,15 @@ export default Vue.component("egls-section", {
 });
 </script>
 <style scoped>
+.egls-list-header {
+	font-weight: bold;
+	border-top: solid 2px #ddd;
+	border-bottom: solid 1px #ddd;
+	padding: 7px 0;
+}
+.egls-list {
+	border-top: solid 1px #ddd;
+	margin-bottom: 7px;
+	padding-top: 7px;
+}
 </style>
