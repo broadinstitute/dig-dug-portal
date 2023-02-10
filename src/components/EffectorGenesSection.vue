@@ -26,9 +26,9 @@
 				<div
 					class="col-md-2"
 					v-html="
-						'<a class=\'btn btn-sm btn-primary\' target=\'_blank\'href=\'\\research.html?pageid=' +
+						'<a class=\'btn btn-sm btn-primary view-genes\' target=\'_blank\'href=\'\\research.html?pageid=' +
 						item['Page ID'] +
-						'\'>View genes</a>'
+						'\' style=\'color: #ffffff !important;\'>View genes</a>'
 					"
 				></div>
 			</div>
