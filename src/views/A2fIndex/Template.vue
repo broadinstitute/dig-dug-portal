@@ -16,16 +16,16 @@
 						'kp front-top-banner'
 					"
 				>
-					<div class="container">
+					<div class="container" style="display: block !important">
 						<div class="row">
 							<div class="col-md-12">
 								<div class="front-logo-wrapper">
 									<img
-										class="front-logo-img"
 										v-if="
 											$parent.frontContents
 												.field_front_logo
 										"
+										class="front-logo-img"
 										:src="
 											'https://kp4cd.org/sites/default/files/vueportal/' +
 											$parent.frontContents
@@ -47,20 +47,20 @@
 						</div>
 						<!-- A2F only feature -->
 						<div
+							v-if="$parent.diseaseGroup.name == 'a2f'"
 							class="row"
 							style="margin-top: 25px"
-							v-if="$parent.diseaseGroup.name == 'a2f'"
 						>
 							<div class="col-md-8 offset-md-2">
 								<h4
 									style="color: #fff"
+									align="center"
 									v-html="
 										!!$parent.diseaseInSession
 											? '<small>Current focus:</small> ' +
 											  $parent.diseaseInSession
 											: 'Set system focus'
 									"
-									align="center"
 								></h4>
 
 								<div
@@ -89,17 +89,17 @@
 								</div>
 
 								<div
+									v-if="
+										$store.state.bioPortal.diseaseSystems
+											.length > 0 &&
+										$parent.phenotypes.length > 0
+									"
+									id="disease_systems_tree"
 									class="disease-systems-trees-wrapper"
 									:class="
 										!!$parent.diseaseInSession
 											? 'hidden'
 											: ''
-									"
-									id="disease_systems_tree"
-									v-if="
-										$store.state.bioPortal.diseaseSystems
-											.length > 0 &&
-										$parent.phenotypes.length > 0
 									"
 								>
 									<disease-systems
@@ -108,11 +108,11 @@
 											$store.state.bioPortal
 												.diseaseSystems
 										"
-										:diseaseGroups="
+										:disease-groups="
 											$store.state.bioPortal.diseaseGroups
 										"
 										:phenotypes="$parent.phenotypes"
-										:phenotypeCorrelation="
+										:phenotype-correlation="
 											$store.state.phenotypeCorrelation
 										"
 									></disease-systems>
@@ -121,8 +121,9 @@
 						</div>
 						<!-- end -->
 						<!-- search for CMD -->
-						<template
+						<div
 							v-if="$store.getters['bioPortal/isRootPortal']"
+							class="row"
 						>
 							<div class="col-md-12 portal-front-tabs">
 								<b-tabs content-class="mt-3" align="center">
@@ -136,7 +137,7 @@
 										>
 											<div class="single-search-wrapper">
 												<research-single-search
-													:singleSearchConfig="null"
+													:single-search-config="null"
 													:phenotypes="
 														$parent.phenotypesInSession
 													"
@@ -169,7 +170,7 @@
 									</b-tab>
 								</b-tabs>
 							</div>
-						</template>
+						</div>
 						<!-- end -->
 
 						<!-- search for all portals except CMD -->
@@ -187,7 +188,7 @@
 											phenotype
 										</h4>
 										<research-single-search
-											:singleSearchConfig="null"
+											:single-search-config="null"
 											:phenotypes="
 												$parent.phenotypesInSession
 											"
@@ -222,17 +223,17 @@
 				<div class="container static-content-section">
 					<div class="row">
 						<div
-							class="col-md-8"
 							v-if="!!$parent.kPortals"
+							class="col-md-8"
 							style="margin-left: -30px; margin-right: 30px"
 						>
 							<h2>Community Knowledge Portals</h2>
 							<p></p>
 							<div class="row">
 								<div
-									class="k-portal"
 									v-for="portal in $parent.kPortals"
 									:key="portal.title"
+									class="k-portal"
 								>
 									<div v-html="portal.body"></div>
 									<div
