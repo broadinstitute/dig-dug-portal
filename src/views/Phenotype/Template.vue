@@ -465,7 +465,8 @@
 				<div class="card mdkp-card" v-if="!!$store.state.phenotype">
 					<div class="card-body">
 						<h4 class="card-title">
-							EGLs
+							Effector gene predictions for
+							{{ $store.state.phenotype.description }}
 							<tooltip-documentation
 								name="phenotype.annot.tooltip"
 								:content-fill="$parent.documentationMap"
