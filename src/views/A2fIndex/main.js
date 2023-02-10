@@ -213,33 +213,35 @@ new Vue({
                 })
 
 
+                let filteredDGroups = {};
+
+                Object.keys(dGroups).map(dg => {
+                    if (dGroups[dg].datasets.length > 0) {
+                        filteredDGroups[dg] = dGroups[dg];
+                    }
+                })
 
                 //then create diagram content by disease groups
 
                 let dataContent = "";
 
 
-                let dGroupKeys = Object.keys(dGroups).sort();
+                let dGroupKeys = Object.keys(filteredDGroups).sort();
                 let dcountLength = dGroupKeys.length - 1;
 
                 let kIndex = 0;
 
                 dGroupKeys.map(k => {
+                    dataContent += '"' + k.replaceAll(" system", "").replaceAll(" & ", " / ") + '":' + filteredDGroups[k].datasets.length;
+                    dataContent += (kIndex < dcountLength) ? ',' : '';
 
-                    if (dGroups[k].datasets.length > 0) {
-                        dataContent += '"' + k.replaceAll(" system", "").replaceAll(" & ", " / ") + '":' + dGroups[k].datasets.length;
-
-                        dataContent += (kIndex < dcountLength) ? ',' : '';
-
-                    }
                     kIndex++;
                 })
 
                 let content = '<div class="plot">{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":100}</div>';
 
-
-
                 return content;
+
             } else {
                 return null;
             }
