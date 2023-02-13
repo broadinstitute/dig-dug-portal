@@ -16,7 +16,9 @@
 				<div
 					class="col-md-2"
 					v-html="
-						item['PMID'] != undefined || item['PMID'] == ''
+						item['PMID'] != 'undefined' &&
+						item['PMID'] != undefined &&
+						item['PMID'] != ''
 							? '<a target=\'_blank\'href=\'https://pubmed.ncbi.nlm.nih.gov/' +
 							  item['PMID'] +
 							  '\'>' +
@@ -28,7 +30,9 @@
 				<div
 					class="col-md-2"
 					v-html="
-						item['Page ID'] != undefined || item['Page ID'] == ''
+						item['Page ID'] != 'undefined' &&
+						item['Page ID'] != undefined &&
+						item['Page ID'] != ''
 							? '<a class=\'btn btn-sm btn-primary view-genes\' target=\'_blank\'href=\'\\research.html?pageid=' +
 							  item['Page ID'] +
 							  '\' style=\'color: #ffffff !important;\'>View genes</a>'
