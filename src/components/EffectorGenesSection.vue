@@ -16,19 +16,23 @@
 				<div
 					class="col-md-2"
 					v-html="
-						'<a target=\'_blank\'href=\'https://pubmed.ncbi.nlm.nih.gov/' +
-						item['PMID'] +
-						'\'>' +
-						item['PMID'] +
-						'</a>'
+						item['PMID'] != undefined || item['PMID'] == ''
+							? '<a target=\'_blank\'href=\'https://pubmed.ncbi.nlm.nih.gov/' +
+							  item['PMID'] +
+							  '\'>' +
+							  item['PMID'] +
+							  '</a>'
+							: ''
 					"
 				></div>
 				<div
 					class="col-md-2"
 					v-html="
-						'<a class=\'btn btn-sm btn-primary view-genes\' target=\'_blank\'href=\'\\research.html?pageid=' +
-						item['Page ID'] +
-						'\' style=\'color: #ffffff !important;\'>View genes</a>'
+						item['Page ID'] != undefined || item['Page ID'] == ''
+							? '<a class=\'btn btn-sm btn-primary view-genes\' target=\'_blank\'href=\'\\research.html?pageid=' +
+							  item['Page ID'] +
+							  '\' style=\'color: #ffffff !important;\'>View genes</a>'
+							: ''
 					"
 				></div>
 			</div>
