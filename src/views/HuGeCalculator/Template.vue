@@ -3,6 +3,7 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 		<div class="container-fluid mdkp-body">
 			<div class="card mdkp-card">

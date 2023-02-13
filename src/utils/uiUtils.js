@@ -285,6 +285,11 @@ function biDomain() {
     return content;
 }
 
+function getUrl() {
+    let url = parseUrl(window.location.href);
+    return url;
+}
+
 export default {
     popOutElement,
     hideElement,
@@ -304,5 +309,6 @@ export default {
     showTabContent,
     removeOnMouseOut,
     isIdFixed,
-    biDomain
+    biDomain,
+    getUrl
 };

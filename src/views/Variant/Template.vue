@@ -4,6 +4,7 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
 		<!-- Body -->
@@ -207,9 +208,7 @@
 						<filter-enumeration-control
 							:field="'phenotype'"
 							:options="
-								$store.state.bioPortal.phenotypes.map(
-									(p) => p.name
-								)
+								$parent.phenotypesInSession.map((p) => p.name)
 							"
 							:labelFormatter="
 								(phenotype) =>
@@ -266,12 +265,7 @@
 												.length > 0
 										"
 										canvasId=""
-										:phenotypesData="
-											!$store.state.ancestry
-												? $store.state.phewas.data
-												: $store.state.ancestryPhewas
-														.data
-										"
+										:phenotypesData="$parent.pheWasData"
 										:phenotypeMap="
 											$store.state.bioPortal.phenotypeMap
 										"
@@ -329,12 +323,7 @@
 											$store.state.ancestryPhewas.data
 												.length > 0
 										"
-										:forestPlotData="
-											!$store.state.ancestry
-												? $store.state.phewas.data
-												: $store.state.ancestryPhewas
-														.data
-										"
+										:forestPlotData="$parent.pheWasData"
 										:labelMap="
 											$store.state.bioPortal.phenotypeMap
 										"
@@ -358,11 +347,7 @@
 							></unauthorized-message>
 							<phewas-datasets
 								v-if="$store.state.phewas.data"
-								:associations="
-									!$store.state.ancestry
-										? $store.state.phewas.data
-										: $store.state.ancestryPhewas.data
-								"
+								:associations="$parent.pheWasData"
 								:ancestry="$store.state.ancestry"
 								:datasets="
 									$store.state.datasetAssociations.data

@@ -20,7 +20,10 @@ export default new Vuex.Store({
         geneOrRegionOrVariant: null,
         invalidGeneOrRegionOrVariant: false,
         userInput: null,
-        matchingGenes: null
+        matchingGenes: null,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
     mutations: {
         setInvalidGeneOrRegionOrVariant(state, flag) {
@@ -31,12 +34,28 @@ export default new Vuex.Store({
         },
         setMatchingGenes(state, genes) {
             state.matchingGenes = genes;
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         }
     },
 
     actions: {
-        async onPhenotypeChange(context, phenotype) {
-            window.location.href = "./phenotype.html?phenotype=" + phenotype.name;
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
         },
 
         async exploreRegionOrVariant(context, input) {
@@ -71,6 +90,7 @@ export default new Vuex.Store({
         async onDatasetChange(context, dataset) {
             window.location.href = "./dinspector.html?dataset=" + dataset.name;
         },
+
     },
 
 });

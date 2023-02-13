@@ -29,7 +29,10 @@ export default new Vuex.Store({
         leadPositions: {},
         phenotypes: [],
         ancestry: "",
-        selectedAncestry: ""
+        selectedAncestry: "",
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
     mutations: {
         setLeadPhenotype(state, phenotype) {
@@ -46,7 +49,7 @@ export default new Vuex.Store({
             state.leadPositions = {};
 
             // get the lead SNP position for each clump
-            if (state.ancestry == ""){
+            if (state.ancestry == "") {
                 state.globalAssociations.data.forEach(r => {
                     state.leadPositions[r.clump] = r.position;
                 });
@@ -88,7 +91,16 @@ export default new Vuex.Store({
                     (p, i) => i != index
                 );
             }
-        }
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
+        },
     },
     getters: {
         leadPhenotype(state) {
@@ -105,7 +117,7 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        querySignalSifter(context){
+        querySignalSifter(context) {
             context.state.ancestry = context.state.selectedAncestry;
         },
         async onPhenotypeChange(context, phenotype) {
@@ -128,7 +140,7 @@ export default new Vuex.Store({
 
         // fetch the lead (first) phenotype clumped associations
         async fetchLeadPhenotypeAssociations(context, phenotype) {
-            if (context.state.ancestry == ""){
+            if (context.state.ancestry == "") {
                 await context.dispatch("globalAssociations/query", {
                     q: phenotype.name
                 });
@@ -147,7 +159,7 @@ export default new Vuex.Store({
         async fetchAssociationsMatrix(context, phenotype) {
             let lead = context.state.phenotypes[0].phenotype.name;
 
-            if (context.state.ancestry == ""){
+            if (context.state.ancestry == "") {
                 // use the module to download
                 await context.dispatch("clumpedMatrix/query", {
                     q: `${lead},${phenotype.name}`
@@ -160,6 +172,15 @@ export default new Vuex.Store({
 
             // commit a copy of the data
             context.commit("addPhenotype", phenotype);
-        }
+        },
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
     }
 });
