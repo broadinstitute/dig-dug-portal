@@ -462,6 +462,26 @@
 						</criterion-function-group>
 					</div>
 				</div>
+				<div class="card mdkp-card" v-if="!!$store.state.phenotype">
+					<div class="card-body">
+						<h4 class="card-title">
+							Effector gene predictions for
+							{{ $store.state.phenotype.description }}
+							<tooltip-documentation
+								name="phenotype.annot.tooltip"
+								:content-fill="$parent.documentationMap"
+								:is-hover="true"
+								:no-icon="false"
+							></tooltip-documentation>
+						</h4>
+						<documentation
+							name="pheno.eglsSection.subheader"
+							:content-fill="$parent.documentationMap"
+						></documentation>
+						<egls-section :phenotype="$store.state.phenotype">
+						</egls-section>
+					</div>
+				</div>
 			</div>
 			<div v-else>
 				<div class="card mdkp-card">
