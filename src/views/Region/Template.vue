@@ -321,7 +321,48 @@
 						:content-fill="$parent.documentationMap"
 					></documentation>
 
-					<h6 v-if="$parent.selectedPhenotypes.length > 0">
+					<h5>Annotated tissues, gene-links & credible sets</h5>
+					<div class="filtering-ui-wrapper container-fluid">
+						<div class="row filtering-ui-content">
+							<div class="col filter-col-md filter-col-lg">
+								<div class="label">
+									Explore region in Variant Sifter
+									&nbsp;<tooltip-documentation
+										name="region.add.phenotypes.tooltip"
+										:is-hover="true"
+										:no-icon="false"
+									></tooltip-documentation>
+								</div>
+								<template
+									v-if="$parent.selectedPhenotypes.length > 0"
+								>
+									<a
+										v-for="item in $parent.selectedPhenotypes"
+										:key="item.description"
+										:href="
+											'/research.html?pageid=kp_variant_sifter&phenotype=' +
+											item.name +
+											'&region=' +
+											$store.state.chr +
+											':' +
+											$store.state.start +
+											'-' +
+											$store.state.end
+										"
+										target="_blank"
+										class="btn btn-primary"
+										style="
+											color: #ffffff !important;
+											margin: 0 5px;
+										"
+										>{{ item.description }}</a
+									>
+								</template>
+							</div>
+						</div>
+					</div>
+					<pre />
+					<h5 v-if="$parent.selectedPhenotypes.length > 0">
 						Add tracks &nbsp;<tooltip-documentation
 							name="region.add.phenotypes.tooltip"
 							:is-hover="true"
@@ -333,7 +374,7 @@
 							:is-hover="true"
 							:no-icon="false"
 						></tooltip-documentation>
-					</h6>
+					</h5>
 
 					<b-alert
 						class="text-center my-3"
@@ -468,7 +509,7 @@
 							></lz-catalog-annotations-panel>
 						</p>
 					</locuszoom>
-					<a
+					<!--<a
 						v-if="$parent.selectedPhenotypes.length > 0"
 						:href="
 							'/research.html?pageid=kp_variant_sifter&phenotype=' +
@@ -483,7 +524,7 @@
 						class="btn btn-primary link-to-vs"
 						style=""
 						>Prioritize variants in this region&nbsp;&nbsp;</a
-					>
+					>-->
 					<template
 						v-if="
 							$parent.selectedPhenotypes.length > 0 &&
