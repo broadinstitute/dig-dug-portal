@@ -34,6 +34,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotat
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import uiUtils from "@/utils/uiUtils";
+import dataConvert from "@/utils/dataConvert";
 import sessionUtils from "@/utils/sessionUtils";
 import $ from "jquery";
 import keyParams from "@/utils/keyParams";
@@ -420,6 +421,13 @@ new Vue({
                                     tempObj[c["field name"]] = -Math.log10(DATA[c["raw field"]]);
                                     break;
                             }
+                            break;
+
+                        case "js math":
+                            let calFunc = c["method"];
+                            tempObj[c["field name"]] = Math[calFunc](DATA[c["raw field"]]);
+
+                            console.log("test", tempObj[c["field name"]]);
                             break;
 
                         case "raw":
