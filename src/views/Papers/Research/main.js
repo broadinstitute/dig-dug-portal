@@ -427,7 +427,6 @@ new Vue({
                             let calFunc = c["method"];
                             tempObj[c["field name"]] = Math[calFunc](DATA[c["raw field"]]);
 
-                            console.log("test", tempObj[c["field name"]]);
                             break;
 
                         case "raw":
