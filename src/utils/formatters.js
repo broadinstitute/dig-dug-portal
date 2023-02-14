@@ -260,6 +260,11 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
         formatTypes.map((type) => {
             let linkString, linkLabel, fieldValue, weight, weightClasses;
             switch (type) {
+                case "js math":
+                    let calFunc = columnKeyObj["method"];
+
+                    cellValue = Math[calFunc](VALUE);
+                    break;
                 case "scientific notation":
                     cellValue = pValueFormatter(VALUE);
 
