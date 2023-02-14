@@ -41,9 +41,9 @@ export default Vue.component("research-multi-plot", {
                 }
             }
             let keyAttribute = configObject["render by"];
+            let valueAttribute = "expression";
             if (configObject["transpose data"] == "true" ){
-                rawData = this.collateGeneExpressionData(rawData, keyAttribute);
-                return;
+                rawData = this.collateGeneExpressionData(rawData, keyAttribute, valueAttribute);
             }
             
             
@@ -65,6 +65,7 @@ export default Vue.component("research-multi-plot", {
 
             let sumstat;
             // Use hardcoded fields summarizing statistics, if provided.
+            let numberViolins = 0;
             if (statFields != null){
                 sumstat = d3.nest()
                 .key(function(d){return d[keyAttribute];})
@@ -76,6 +77,7 @@ export default Vue.component("research-multi-plot", {
                     let min = d.map(g => g[statFields.min]);
                     let max = d.map(g => g[statFields.max]);
                     let mean = d.map(g => g[statFields.mean]);
+                    numberViolins++;
                     return({
                         q1: q1,
                         median: median,
@@ -86,17 +88,19 @@ export default Vue.component("research-multi-plot", {
                         mean: mean
                     });
                 }).entries(rawData);
-            } else {
+            } else if (configObject["transpose data"] == "true"){
                 sumstat = d3.nest()
                 .key(function(d){return d[keyAttribute];})
                 .rollup(function(d){
-                    let q1 = d3.quantile(d.entries.sort(d3.ascending),.25)
-                    let median = d.map(g => g[statFields.median]);
-                    let q3 = d.map(g => g[statFields.q3]);
+                    let q1 = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.25)
+                    let median = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.5)
+                    let q3 = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.75)
                     let interQuantileRange = q3-q1;
-                    let min = d.map(g => g[statFields.min]);
-                    let max = d.map(g => g[statFields.max]);
-                    let mean = d.map(g => g[statFields.mean]);
+                    let min = d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending)[0];
+                    let max = d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending).at(-1);
+                    let mean= d.map(function(g) { return g[valueAttribute];}).reduce((a, b) => a + b, 0) / d.length;
+
+                    numberViolins++;
                     return({
                         q1: q1,
                         median: median,
@@ -122,7 +126,7 @@ export default Vue.component("research-multi-plot", {
                 .style("text-anchor", "start")
                 .attr("transform", "rotate(45)");
             
-            let maxVal = rawData.map(item => item.max_TPM).reduce(
+            let maxVal = rawData.map(item => item[valueAttribute]).reduce(
                 (prev, next) => prev > next ? prev : next);
             var y = d3.scaleLinear()
                 .domain([0,maxVal])
@@ -140,7 +144,7 @@ export default Vue.component("research-multi-plot", {
                     .attr("stroke", "black")
                     .style("width", 40);
             
-            var boxWidth = (width / rawData.length) * 0.75;
+            var boxWidth = (width / numberViolins) * 0.75;
             svg.selectAll("boxes")
                 .data(sumstat)
                 .enter()
@@ -174,18 +178,18 @@ export default Vue.component("research-multi-plot", {
                     .attr("stroke", "white")
                     .style("width", 80);
         },
-        collateGeneExpressionData(inputData, keyAttribute){
+        collateGeneExpressionData(inputData, keyAttribute, outputAttribute="expression"){
             // Aggregates gene expression data by target ID.
             let outputEntryLabels = Object.keys(inputData[0]).filter(name => name != keyAttribute);
             let outputArray = [];
             outputEntryLabels.forEach(label => {
-                let outputObject = {};
-                outputObject[keyAttribute] = label;
-                let outputData = inputData.map(entry => entry[label]);
-                outputObject["datapoints"] = outputData;
-                outputArray.push(outputObject);
+                inputData.forEach(entry => {
+                    let outputEntry = {};
+                    outputEntry[keyAttribute] = label;
+                    outputEntry[outputAttribute] = entry[label];
+                    outputArray.push(outputEntry);
+                })
             });
-            console.log(outputArray);
             return outputArray;
         }        
     },
