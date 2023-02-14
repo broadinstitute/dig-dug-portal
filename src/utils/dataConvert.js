@@ -87,6 +87,12 @@ let convertData = function (CONVERT, DATA) {
                                 break;
                         }
                         break;
+                    case "js math":
+                        let calFunc = c["method"];
+                        tempObj[c["field name"]] = Math[calFunc](d[c["raw field"]]);
+
+                        console.log("test", tempObj[c["field name"]]);
+                        break;
 
                     case "raw":
                         tempObj[c["field name"]] = d[c["raw field"]];
