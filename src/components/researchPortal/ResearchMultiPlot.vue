@@ -32,6 +32,20 @@ export default Vue.component("research-multi-plot", {
         ...uiUtils,
         displayResults(configObject){
             let rawData = this.$props.rawData;
+
+            // Trimming extra headers which are included for display but not part of data.
+            if(!!configObject["extra header rows"]){
+                let numExtraHeaders = configObject["extra header rows"];
+                if (numExtraHeaders > 0){
+                    rawData = rawData.slice(numExtraHeaders);
+                }
+            }
+            if (configObject["transpose data"] == "true" ){
+                console.log("this dataset is in columns");
+                rawData = this.transposeRawData(rawData);
+                return;
+            }
+            
             let keyAttribute = configObject["render by"];
             let statFields = !!configObject["stat fields"] 
                 ? configObject["stat fields"] : null;
@@ -133,6 +147,9 @@ export default Vue.component("research-multi-plot", {
                     .attr("y2", d => y(d.value.mean))
                     .attr("stroke", "white")
                     .style("width", 80);
+        },
+        transposeRawData(inputData){
+            console.log(inputData[0]);
         }        
     },
 });
