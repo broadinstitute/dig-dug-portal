@@ -40,13 +40,13 @@ export default Vue.component("research-multi-plot", {
                     rawData = rawData.slice(numExtraHeaders);
                 }
             }
+            let keyAttribute = configObject["render by"];
             if (configObject["transpose data"] == "true" ){
-                console.log("this dataset is in columns");
-                rawData = this.transposeRawData(rawData);
+                rawData = this.collateGeneExpressionData(rawData, keyAttribute);
                 return;
             }
             
-            let keyAttribute = configObject["render by"];
+            
             let statFields = !!configObject["stat fields"] 
                 ? configObject["stat fields"] : null;
             let chart = document.getElementById("multi-chart");
@@ -63,7 +63,10 @@ export default Vue.component("research-multi-plot", {
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            var sumstat = d3.nest()
+            let sumstat;
+            // Use hardcoded fields summarizing statistics, if provided.
+            if (statFields != null){
+                sumstat = d3.nest()
                 .key(function(d){return d[keyAttribute];})
                 .rollup(function(d){
                     let q1 = d.map(g => g[statFields.q1]);
@@ -83,6 +86,29 @@ export default Vue.component("research-multi-plot", {
                         mean: mean
                     });
                 }).entries(rawData);
+            } else {
+                sumstat = d3.nest()
+                .key(function(d){return d[keyAttribute];})
+                .rollup(function(d){
+                    let q1 = d3.quantile(d.entries.sort(d3.ascending),.25)
+                    let median = d.map(g => g[statFields.median]);
+                    let q3 = d.map(g => g[statFields.q3]);
+                    let interQuantileRange = q3-q1;
+                    let min = d.map(g => g[statFields.min]);
+                    let max = d.map(g => g[statFields.max]);
+                    let mean = d.map(g => g[statFields.mean]);
+                    return({
+                        q1: q1,
+                        median: median,
+                        q3: q3,
+                        interQuantileRange: interQuantileRange,
+                        min: min,
+                        max: max,
+                        mean: mean
+                    });
+                }).entries(rawData);
+            }
+            
 
             var x = d3.scaleBand()
                 .range([0, width])
@@ -148,8 +174,19 @@ export default Vue.component("research-multi-plot", {
                     .attr("stroke", "white")
                     .style("width", 80);
         },
-        transposeRawData(inputData){
-            console.log(inputData[0]);
+        collateGeneExpressionData(inputData, keyAttribute){
+            // Aggregates gene expression data by target ID.
+            let outputEntryLabels = Object.keys(inputData[0]).filter(name => name != keyAttribute);
+            let outputArray = [];
+            outputEntryLabels.forEach(label => {
+                let outputObject = {};
+                outputObject[keyAttribute] = label;
+                let outputData = inputData.map(entry => entry[label]);
+                outputObject["datapoints"] = outputData;
+                outputArray.push(outputObject);
+            });
+            console.log(outputArray);
+            return outputArray;
         }        
     },
 });
