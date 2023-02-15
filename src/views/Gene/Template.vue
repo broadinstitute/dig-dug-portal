@@ -266,9 +266,9 @@
 					</span>
 					{{ $store.state.hugeScores }}
 					<research-phewas-plot
-						v-if="$parent.geneassociations.length > 0"
+						v-if="$store.state.hugeScores.data.length > 0"
 						canvasId="hugeScorePlot"
-						:phenotypesData="$parent.geneassociations"
+						:phenotypesData="$store.state.hugeScores.data"
 						:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 						:colors="[
 							'#007bff',
@@ -298,8 +298,8 @@
 						:renderConfig="{
 							type: 'phewas plot',
 							'render by': 'phenotype',
-							'group by': 'phenotype group',
-							'phenotype map': 'kp phenotype map',
+							'group by': 'phenotype',
+							'phenotype map': '',
 							'y axis field': 'huge',
 							'convert y -log10': 'false',
 							'y axis label': 'HuGE score',
