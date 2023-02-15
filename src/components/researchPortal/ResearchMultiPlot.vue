@@ -1,8 +1,14 @@
 <template>
 <div class="chart-wrapper">
     <div id="multi-chart">
-        <h4>Pending!</h4>
+        <h4 v-if="selectableGenes.length > 0">Make a selection to view the violin plot.</h4>
+        <h4 v-else>Pending!</h4>
     </div>
+    <select v-if="selectableGenes.length > 0" id="select-gene"
+        v-model="selectedGene">
+        <option value="">Select gene</option>
+        <option v-for="gene in selectableGenes" :value="gene">{{ gene }}</option>
+    </select>
 </div>
 </template>
 
@@ -14,23 +20,47 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("research-multi-plot", {
     props: ["rawData", "summaryPlot"],
     data(){
-        return {};
+        return {
+            selectableGenes: [],
+            selectedGene: ""
+        };
     },
     mounted: function () {
         if (this.$props.summaryPlot.type != "multi"){
-            console.error("Configuration error; multi plot not specified.")
+            console.error("Configuration error; multi plot not specified.");
         }
-        this.displayResults(this.$props.summaryPlot);
+        if (!!this.$props.summaryPlot["selectable genes"]){
+            this.selectableGenes = this.$props.summaryPlot["selectable genes"];
+        }
+        this.displayResults(this.selectedGene);
     },
 	computed: {},
 	watch: {
         rawData: function(){
-            this.displayResults(this.$props.summaryPlot);
+            this.displayResults();
+        },
+        selectedGene(){
+            this.displayResults();
         }
     },
     methods: {
         ...uiUtils,
-        displayResults(configObject){
+        displayResults(){
+            if (this.selectedGene == ""){
+                if (this.selectableGenes.length == 0){
+                    this.displayResultsNoSelectable();
+                } else {
+                    return;
+                }
+            } else {
+                this.displayResultsForGene();
+            }
+        },
+        displayResultsForGene(){
+            console.log(`Selected gene: ${this.selectedGene}`);
+        },
+        displayResultsNoSelectable(){
+            let configObject = this.$props.summaryPlot;
             let rawData = this.$props.rawData;
 
             // Trimming extra headers which are included for display but not part of data.
@@ -212,5 +242,8 @@ div{
 .all-charts{
     display: flex;
     margin: 20px;
+}
+#select-gene{
+    width: 200px;
 }
 </style>
