@@ -72,8 +72,7 @@ export default Vue.component("research-multi-plot", {
                     rawData = rawData.slice(numExtraHeaders);
                 }
             }
-            let keyAttribute = configObject["render by"];
-            let valueAttribute = "expression";            
+            let keyAttribute = configObject["render by"];           
             
             let chart = document.getElementById("multi-chart");
             chart.innerHTML = "";
@@ -101,90 +100,55 @@ export default Vue.component("research-multi-plot", {
                 .style("text-anchor", "start")
                 .attr("transform", "rotate(45)");
             
-            let maxVal = rawData.map(item => item[valueAttribute]).reduce(
+            let maxVal = rawData.map(item => item[selectedGene]).reduce(
                 (prev, next) => prev > next ? prev : next);
             var y = d3.scaleLinear()
                 .domain([0,maxVal])
                 .range([height,0]);
             svg.append("g").call(d3.axisLeft(y));
 
-            let sumstat;
-            let histogram;
-            // Use hardcoded fields summarizing statistics, if provided.
-            let numberViolins = 0;
-            if(!!configObject["force boxplot"]){
-                sumstat = d3.nest()
-                .key(function(d){return d[keyAttribute];})
-                .rollup(function(d){
-                    let q1 = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.25)
-                    let median = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.5)
-                    let q3 = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.75)
-                    let interQuantileRange = q3-q1;
-                    let min = d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending)[0];
-                    let max = d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending).at(-1);
-                    let mean= d.map(function(g) { return g[valueAttribute];}).reduce((a, b) => a + b, 0) / d.length;
-
-                    numberViolins++;
-                    return(bins);
-                }).entries(rawData);
-            } else {
-                let histogram = d3.histogram()
+            let histogram = d3.histogram()
                     .domain(y.domain())
                     .thresholds(y.ticks(configObject["buckets"]))
                     .value(d => d);
-                sumstat = d3.nest()
+            let sumstat = d3.nest()
                     .key(d => d[keyAttribute])
                     .rollup(function(d) {
-                        let input = d.map(g => g[valueAttribute]);
+                        let input = d.map(g => g[selectedGene]);
                         let bins = histogram(input);
                         return(bins);
                     }).entries(rawData);
+
+            //Maximum number of entries in a bin.
+            let maxNum = 0;
+            for(let i in sumstat){
+                let allBins = sumstat[i].value;
+                let lengths = allBins.map(a => a.length);
+                let longest = d3.max(lengths);
+                if(longest > maxNum){
+                    maxNum = longest;
+                }
             }
+            var xNum = d3.scaleLinear()
+                .range([0, x.bandwidth()])
+                .domain([-maxNum, maxNum]);
 
-            svg.selectAll("vertLines")
+            svg.selectAll("myViolin")
                 .data(sumstat)
                 .enter()
-                .append("line")
-                    .attr("x1", d => x(d.key))
-                    .attr("x2", d => x(d.key))
-                    .attr("y1", d => y(d.value.min))
-                    .attr("y2", d => y(d.value.max))
-                    .attr("stroke", "black")
-                    .style("width", 40);
-            
-            var boxWidth = (width / numberViolins) * 0.75;
-            svg.selectAll("boxes")
-                .data(sumstat)
-                .enter()
-                .append("rect")
-                    .attr("x", d => x(d.key) - boxWidth/2)
-                    .attr("y", d => y(d.value.q3))
-                    .attr("height", d => y(d.value.q1) - y(d.value.q3))
-                    .attr("width", boxWidth)
-                    .attr("stroke", "black")
-                    .style("fill", "#69b3a2");
-            
-            svg.selectAll("medianLines")
-                .data(sumstat)
-                .enter()
-                .append("line")
-                    .attr("x1", d => x(d.key) - boxWidth/2)
-                    .attr("x2", d => x(d.key) + boxWidth/2)
-                    .attr("y1", d => y(d.value.median))
-                    .attr("y2", d => y(d.value.median))
-                    .attr("stroke", "black")
-                    .style("width", 80);
+                .append("g")
+                    .attr("transform", d => `translate(${x(d.key)},0)`)
+                .append("path")
+                    .datum(d => d.value)
+                    .style("stroke", "none")
+                    .style("fill", "#69b3a2")
+                    .attr("d", d3.area()
+                        .x0(d => xNum(-d.length))
+                        .x1(d => xNum(d.length))
+                        .y(d => y(d.x0))
+                        .curve(d3.curveCatmullRom)
+                    );
 
-            svg.selectAll("meanLines")
-                .data(sumstat)
-                .enter()
-                .append("line")
-                    .attr("x1", d => x(d.key) - boxWidth/2)
-                    .attr("x2", d => x(d.key) + boxWidth/2)
-                    .attr("y1", d => y(d.value.mean))
-                    .attr("y2", d => y(d.value.mean))
-                    .attr("stroke", "white")
-                    .style("width", 80);
         },
         displayResultsNoSelectable(){
             let configObject = this.$props.summaryPlot;
