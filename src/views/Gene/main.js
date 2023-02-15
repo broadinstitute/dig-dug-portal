@@ -366,32 +366,6 @@ new Vue({
                 return this.selectedPhenotypes[0].name;
             } else return "T2D";
         },
-        /*eglData() {
-            let geneSymbol = this.$store.state.geneName;
-            if (this.selectedPhenotype == "T2D") {
-                if (!!this.$store.state.kp4cd.eglData.data) {
-                    let effectordata = this.$store.state.kp4cd.eglData.data;
-                    let effectorGeneData = {};
-
-                    for (var i = 0; i < effectordata.length; ++i) {
-                        if (
-                            effectordata[i].gene.toLowerCase() ===
-                            geneSymbol.toLowerCase()
-                        ) {
-                            effectorGeneData = effectordata[i];
-                            if (effectorGeneData.category == "(T2D_related)") {
-                                effectorGeneData.category = "No Evidence";
-                            }
-                            break;
-                        }
-                        //if the gene is in GWAS but not in mccarthy data
-                    }
-                    return effectorGeneData;
-                }
-            } else {
-                return { category: "in GWAS" };
-            }
-        },*/
 
         queries() {
             return [
@@ -528,8 +502,6 @@ new Vue({
                 this.pushCriterionPhenotype(topPhenotype);
 
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
-
-                //this.$store.dispatch("getEGLData");
             }
         },
 
@@ -545,7 +517,6 @@ new Vue({
                     phenotypes[0].name
                 );
             }
-            //this.$store.dispatch("getEGLData");
         },
 
         diseaseGroup(group) {
@@ -562,6 +533,7 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
+            this.$store.dispatch("getHugeScoresData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
             let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}` };
@@ -574,6 +546,9 @@ new Vue({
         },
         "$store.state.commonVariantsLength"(NUM) {
             this.onAncestrySet();
+        },
+        "$store.state.geneName"(NAME) {
+            this.$store.dispatch("getHugeScoresData");
         }
     }
 }).$mount("#app");

@@ -188,7 +188,7 @@
 					</b-tabs>
 				</div>
 			</div>
-			<div class="card mdkp-card">
+			<!--<div class="card mdkp-card">
 				<div class="card-body">
 					<h4 style="font-weight: bold" class="card-title">
 						HuGE Score
@@ -200,13 +200,13 @@
 							:content-fill="$parent.documentationMap"
 						></documentation>
 					</span>
-					<!-- Phenotype Selector -->
+					
 					<criterion-list-group
 						v-model="$parent.genePageSearchCriterion"
 						:header="''"
 						class="top-associations-section-phenotype-filter"
 					>
-						<!-- Phenotype Selector -->
+						
 						<filter-enumeration-control
 							:field="'phenotype'"
 							:options="$parent.phenotypeOptions"
@@ -252,6 +252,68 @@
 						:selectedPhenotype="$parent.selectedPhenotype"
 						:prior="$store.state.prior"
 					></hugecal-score-section>
+				</div>
+			</div>-->
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<h4 class="card-title">HuGE Scores</h4>
+
+					<span>
+						<documentation
+							name="gene.hugecal.subheader"
+							:content-fill="$parent.documentationMap"
+						></documentation>
+					</span>
+					{{ $store.state.hugeScores }}
+					<research-phewas-plot
+						v-if="$parent.geneassociations.length > 0"
+						canvasId="hugeScorePlot"
+						:phenotypesData="$parent.geneassociations"
+						:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+						:colors="[
+							'#007bff',
+							'#048845',
+							'#8490C8',
+							'#BF61A5',
+							'#EE3124',
+							'#FCD700',
+							'#5555FF',
+							'#7aaa1c',
+							'#9F78AC',
+							'#F88084',
+							'#F5A4C7',
+							'#CEE6C1',
+							'#cccc00',
+							'#6FC7B6',
+							'#D5A768',
+							'#d4d4d4',
+						]"
+						:plotMargin="{
+							leftMargin: 150,
+							rightMargin: 40,
+							topMargin: 20,
+							bottomMargin: 100,
+							bump: 11,
+						}"
+						:renderConfig="{
+							type: 'phewas plot',
+							'render by': 'phenotype',
+							'group by': 'phenotype group',
+							'phenotype map': 'kp phenotype map',
+							'y axis field': 'huge',
+							'convert y -log10': 'false',
+							'y axis label': 'HuGE score',
+							'x axis label': '',
+							'beta field': 'null',
+							'hover content': ['bf_common', 'bf_rare'],
+							thresholds: [],
+							height: '500',
+						}"
+						:pkgData="null"
+						:pkgDataSelected="null"
+						:filter="filter"
+						ref="rpPheWASPlot"
+					></research-phewas-plot>
 				</div>
 			</div>
 
