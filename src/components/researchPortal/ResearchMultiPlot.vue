@@ -42,8 +42,8 @@ export default Vue.component("research-multi-plot", {
             }
             let keyAttribute = configObject["render by"];
             let valueAttribute = "expression";
-            if (configObject["transpose data"] == "true" ){
-                rawData = this.collateGeneExpressionData(rawData, keyAttribute, valueAttribute);
+            if (configObject["orientation"] == "vertical" ){
+                rawData = this.collateVertical(rawData, keyAttribute, valueAttribute);
             }
             
             
@@ -63,7 +63,27 @@ export default Vue.component("research-multi-plot", {
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+            var x = d3.scaleBand()
+                .range([0, width])
+                .domain(rawData.map(entry => entry[keyAttribute]))
+                .paddingInner(1)
+                .paddingOuter(.5);
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .style("text-anchor", "start")
+                .attr("transform", "rotate(45)");
+            
+            let maxVal = rawData.map(item => item[valueAttribute]).reduce(
+                (prev, next) => prev > next ? prev : next);
+            var y = d3.scaleLinear()
+                .domain([0,maxVal])
+                .range([height,0]);
+            svg.append("g").call(d3.axisLeft(y));
+
             let sumstat;
+            let histogram;
             // Use hardcoded fields summarizing statistics, if provided.
             let numberViolins = 0;
             if (statFields != null){
@@ -88,7 +108,7 @@ export default Vue.component("research-multi-plot", {
                         mean: mean
                     });
                 }).entries(rawData);
-            } else if (configObject["transpose data"] == "true"){
+            } else if(!!configObject["force boxplot"]){
                 sumstat = d3.nest()
                 .key(function(d){return d[keyAttribute];})
                 .rollup(function(d){
@@ -101,37 +121,21 @@ export default Vue.component("research-multi-plot", {
                     let mean= d.map(function(g) { return g[valueAttribute];}).reduce((a, b) => a + b, 0) / d.length;
 
                     numberViolins++;
-                    return({
-                        q1: q1,
-                        median: median,
-                        q3: q3,
-                        interQuantileRange: interQuantileRange,
-                        min: min,
-                        max: max,
-                        mean: mean
-                    });
+                    return(bins);
                 }).entries(rawData);
+            } else {
+                let histogram = d3.histogram()
+                    .domain(y.domain())
+                    .thresholds(y.ticks(configObject["buckets"]))
+                    .value(d => d);
+                sumstat = d3.nest()
+                    .key(d => d[keyAttribute])
+                    .rollup(function(d) {
+                        let input = d.map(g => g[valueAttribute]);
+                        let bins = histogram(input);
+                        return(bins);
+                    }).entries(rawData);
             }
-            
-
-            var x = d3.scaleBand()
-                .range([0, width])
-                .domain(rawData.map(entry => entry[keyAttribute]))
-                .paddingInner(1)
-                .paddingOuter(.5);
-            svg.append("g")
-                .attr("transform", `translate(0,${height})`)
-                .call(d3.axisBottom(x))
-                .selectAll("text")
-                .style("text-anchor", "start")
-                .attr("transform", "rotate(45)");
-            
-            let maxVal = rawData.map(item => item[valueAttribute]).reduce(
-                (prev, next) => prev > next ? prev : next);
-            var y = d3.scaleLinear()
-                .domain([0,maxVal])
-                .range([height,0]);
-            svg.append("g").call(d3.axisLeft(y));
 
             svg.selectAll("vertLines")
                 .data(sumstat)
@@ -178,7 +182,7 @@ export default Vue.component("research-multi-plot", {
                     .attr("stroke", "white")
                     .style("width", 80);
         },
-        collateGeneExpressionData(inputData, keyAttribute, outputAttribute="expression"){
+        collateVertical(inputData, keyAttribute, outputAttribute="expression"){
             // Aggregates gene expression data by target ID.
             let outputEntryLabels = Object.keys(inputData[0]).filter(name => name != keyAttribute);
             let outputArray = [];
