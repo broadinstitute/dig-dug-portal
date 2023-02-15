@@ -264,11 +264,11 @@
 							:content-fill="$parent.documentationMap"
 						></documentation>
 					</span>
-					{{ $store.state.hugeScores }}
+					{{ $parent.hugeScores }}
 					<research-phewas-plot
-						v-if="$store.state.hugeScores.data.length > 0"
+						v-if="$parent.hugeScores.length > 0"
 						canvasId="hugeScorePlot"
-						:phenotypesData="$store.state.hugeScores.data"
+						:phenotypesData="$parent.hugeScores"
 						:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 						:colors="[
 							'#007bff',
@@ -298,8 +298,8 @@
 						:renderConfig="{
 							type: 'phewas plot',
 							'render by': 'phenotype',
-							'group by': 'phenotype',
-							'phenotype map': '',
+							'group by': 'group',
+							'phenotype map': 'kp phenotype map',
 							'y axis field': 'huge',
 							'convert y -log10': 'false',
 							'y axis label': 'HuGE score',
@@ -311,9 +311,15 @@
 						}"
 						:pkgData="null"
 						:pkgDataSelected="null"
-						:filter="filter"
+						:filter="null"
 						ref="rpPheWASPlot"
 					></research-phewas-plot>
+					<huge-scores-table
+						v-if="$parent.hugeScores.length > 0"
+						:gene="$store.state.gene.data[0]"
+						:hugeScores="$parent.hugeScores"
+						:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+					></huge-scores-table>
 				</div>
 			</div>
 

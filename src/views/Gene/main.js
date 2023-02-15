@@ -24,6 +24,7 @@ import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import HugeScoresTable from "@/components/HugeScoresTable.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -81,7 +82,8 @@ new Vue({
         VariantSearch,
         ColorBarPlot,
         GenePageCombinedEvidenceTable,
-        HugeCalScoreSection
+        HugeCalScoreSection,
+        HugeScoresTable
     },
 
     data() {
@@ -309,6 +311,33 @@ new Vue({
 
             // convert to an array, sorted by p-value
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            return x;
+        },
+
+        hugeScores() {
+            let data = this.$store.state.hugeScores.data;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
+            }
+
+            let hugeMap = {};
+
+            console.log(this.$store.state.bioPortal.phenotypeMap);
+            for (let i in data) {
+                const score = data[i];
+                score["group"] = this.$store.state.bioPortal.phenotypeMap[score.phenotype].group;
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[score.phenotype]) {
+                    continue;
+                }
+
+                hugeMap[score.phenotype] = score;
+            }
+
+            // convert to an array, sorted by p-value
+            let x = Object.values(hugeMap);
             return x;
         },
 
