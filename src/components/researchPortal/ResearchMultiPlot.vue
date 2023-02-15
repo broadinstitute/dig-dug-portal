@@ -53,11 +53,138 @@ export default Vue.component("research-multi-plot", {
                     return;
                 }
             } else {
-                this.displayResultsForGene();
+                this.displayResultsForGene(this.selectedGene);
             }
         },
-        displayResultsForGene(){
-            console.log(`Selected gene: ${this.selectedGene}`);
+        displayResultsForGene(selectedGene){
+            console.log(`Selected gene: ${selectedGene}`);
+            if(selectedGene == ""){
+                console.error("Missing gene selection.");
+                return;
+            }
+            let configObject = this.$props.summaryPlot;
+            let rawData = this.$props.rawData;
+
+            // Trimming extra headers which are included for display but not part of data.
+            if(!!configObject["extra header rows"]){
+                let numExtraHeaders = configObject["extra header rows"];
+                if (numExtraHeaders > 0){
+                    rawData = rawData.slice(numExtraHeaders);
+                }
+            }
+            let keyAttribute = configObject["render by"];
+            let valueAttribute = "expression";            
+            
+            let chart = document.getElementById("multi-chart");
+            chart.innerHTML = "";
+
+            var margin = { top: 10, right: 30, bottom: 65, left: 40 },
+                        width = configObject.width - margin.left - margin.right,
+                        height = configObject.height - margin.top - margin.bottom;
+            
+            let svg = d3.select("#multi-chart")
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var x = d3.scaleBand()
+                .range([0, width])
+                .domain(rawData.map(entry => entry[keyAttribute]))
+                .paddingInner(1)
+                .paddingOuter(.5);
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .style("text-anchor", "start")
+                .attr("transform", "rotate(45)");
+            
+            let maxVal = rawData.map(item => item[valueAttribute]).reduce(
+                (prev, next) => prev > next ? prev : next);
+            var y = d3.scaleLinear()
+                .domain([0,maxVal])
+                .range([height,0]);
+            svg.append("g").call(d3.axisLeft(y));
+
+            let sumstat;
+            let histogram;
+            // Use hardcoded fields summarizing statistics, if provided.
+            let numberViolins = 0;
+            if(!!configObject["force boxplot"]){
+                sumstat = d3.nest()
+                .key(function(d){return d[keyAttribute];})
+                .rollup(function(d){
+                    let q1 = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.25)
+                    let median = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.5)
+                    let q3 = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.75)
+                    let interQuantileRange = q3-q1;
+                    let min = d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending)[0];
+                    let max = d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending).at(-1);
+                    let mean= d.map(function(g) { return g[valueAttribute];}).reduce((a, b) => a + b, 0) / d.length;
+
+                    numberViolins++;
+                    return(bins);
+                }).entries(rawData);
+            } else {
+                let histogram = d3.histogram()
+                    .domain(y.domain())
+                    .thresholds(y.ticks(configObject["buckets"]))
+                    .value(d => d);
+                sumstat = d3.nest()
+                    .key(d => d[keyAttribute])
+                    .rollup(function(d) {
+                        let input = d.map(g => g[valueAttribute]);
+                        let bins = histogram(input);
+                        return(bins);
+                    }).entries(rawData);
+            }
+
+            svg.selectAll("vertLines")
+                .data(sumstat)
+                .enter()
+                .append("line")
+                    .attr("x1", d => x(d.key))
+                    .attr("x2", d => x(d.key))
+                    .attr("y1", d => y(d.value.min))
+                    .attr("y2", d => y(d.value.max))
+                    .attr("stroke", "black")
+                    .style("width", 40);
+            
+            var boxWidth = (width / numberViolins) * 0.75;
+            svg.selectAll("boxes")
+                .data(sumstat)
+                .enter()
+                .append("rect")
+                    .attr("x", d => x(d.key) - boxWidth/2)
+                    .attr("y", d => y(d.value.q3))
+                    .attr("height", d => y(d.value.q1) - y(d.value.q3))
+                    .attr("width", boxWidth)
+                    .attr("stroke", "black")
+                    .style("fill", "#69b3a2");
+            
+            svg.selectAll("medianLines")
+                .data(sumstat)
+                .enter()
+                .append("line")
+                    .attr("x1", d => x(d.key) - boxWidth/2)
+                    .attr("x2", d => x(d.key) + boxWidth/2)
+                    .attr("y1", d => y(d.value.median))
+                    .attr("y2", d => y(d.value.median))
+                    .attr("stroke", "black")
+                    .style("width", 80);
+
+            svg.selectAll("meanLines")
+                .data(sumstat)
+                .enter()
+                .append("line")
+                    .attr("x1", d => x(d.key) - boxWidth/2)
+                    .attr("x2", d => x(d.key) + boxWidth/2)
+                    .attr("y1", d => y(d.value.mean))
+                    .attr("y2", d => y(d.value.mean))
+                    .attr("stroke", "white")
+                    .style("width", 80);
         },
         displayResultsNoSelectable(){
             let configObject = this.$props.summaryPlot;
@@ -225,7 +352,7 @@ export default Vue.component("research-multi-plot", {
                 })
             });
             return outputArray;
-        }        
+        }
     },
 });
 </script>
