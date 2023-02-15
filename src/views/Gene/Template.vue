@@ -200,13 +200,12 @@
 							:content-fill="$parent.documentationMap"
 						></documentation>
 					</span>
-					
+
 					<criterion-list-group
 						v-model="$parent.genePageSearchCriterion"
 						:header="''"
 						class="top-associations-section-phenotype-filter"
 					>
-						
 						<filter-enumeration-control
 							:field="'phenotype'"
 							:options="$parent.phenotypeOptions"
@@ -264,7 +263,6 @@
 							:content-fill="$parent.documentationMap"
 						></documentation>
 					</span>
-					{{ $parent.hugeScores }}
 					<research-phewas-plot
 						v-if="$parent.hugeScores.length > 0"
 						canvasId="hugeScorePlot"

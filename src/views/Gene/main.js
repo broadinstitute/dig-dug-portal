@@ -323,10 +323,12 @@ new Vue({
 
             let hugeMap = {};
 
-            console.log(this.$store.state.bioPortal.phenotypeMap);
             for (let i in data) {
                 const score = data[i];
                 score["group"] = this.$store.state.bioPortal.phenotypeMap[score.phenotype].group;
+                let range = data[i].huge >= 350 ? "Compelling" : data[i].huge >= 100 ? "Extreme" : data[i].huge >= 30 ? "Very Strong" : data[i].huge >= 10 ? "Strong" : data[i].huge >= 3 ? "Moderate" : data[i].huge > 1 ? "Anecdotal" : "No Evidence";
+
+                score["range"] = range;
 
                 // skip associations not part of the disease group
                 if (!this.phenotypeMap[score.phenotype]) {
@@ -376,7 +378,7 @@ new Vue({
             // let x = data.sort(
             //     (a, b) => a.pValue - b.pValue
             // );
-
+    
             return "T2D";
         },*/
         selectedPhenotypes() {
