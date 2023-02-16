@@ -196,7 +196,7 @@ export default Vue.component("research-multi-plot", {
                 .style("text-anchor", "start")
                 .attr("transform", "rotate(45)");
             
-            let maxVal = rawData.map(item => item[valueAttribute]).reduce(
+            let maxVal = rawData.map(item => item.max_TPM).reduce(
                 (prev, next) => prev > next ? prev : next);
             var y = d3.scaleLinear()
                 .domain([0,maxVal])
@@ -218,6 +218,7 @@ export default Vue.component("research-multi-plot", {
                     let min = d.map(g => g[statFields.min]);
                     let max = d.map(g => g[statFields.max]);
                     let mean = d.map(g => g[statFields.mean]);
+                    console.log(q3);
                     numberViolins++;
                     return({
                         q1: q1,
@@ -275,7 +276,9 @@ export default Vue.component("research-multi-plot", {
                 .enter()
                 .append("rect")
                     .attr("x", d => x(d.key) - boxWidth/2)
-                    .attr("y", d => y(d.value.q3))
+                    .attr("y", d => {
+                        return y(d.value.q3);
+                    })
                     .attr("height", d => y(d.value.q1) - y(d.value.q3))
                     .attr("width", boxWidth)
                     .attr("stroke", "black")
