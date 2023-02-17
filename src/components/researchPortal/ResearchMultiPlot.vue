@@ -87,12 +87,10 @@ export default Vue.component("research-multi-plot", {
                     .attr("height", height + margin.top + margin.bottom)
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
             var x = d3.scaleBand()
                 .range([0, width])
                 .domain(rawData.map(entry => entry[keyAttribute]))
-                .paddingInner(1)
-                .paddingOuter(.5);
+                .padding(0.05);
             svg.append("g")
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x))
@@ -132,7 +130,6 @@ export default Vue.component("research-multi-plot", {
             var xNum = d3.scaleLinear()
                 .range([0, x.bandwidth()])
                 .domain([-maxNum, maxNum]);
-
             svg.selectAll("myViolin")
                 .data(sumstat)
                 .enter()
@@ -218,7 +215,6 @@ export default Vue.component("research-multi-plot", {
                     let min = d.map(g => g[statFields.min]);
                     let max = d.map(g => g[statFields.max]);
                     let mean = d.map(g => g[statFields.mean]);
-                    console.log(q3);
                     numberViolins++;
                     return({
                         q1: q1,
@@ -229,21 +225,6 @@ export default Vue.component("research-multi-plot", {
                         max: max,
                         mean: mean
                     });
-                }).entries(rawData);
-            } else if(!!configObject["force boxplot"]){
-                sumstat = d3.nest()
-                .key(function(d){return d[keyAttribute];})
-                .rollup(function(d){
-                    let q1 = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.25)
-                    let median = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.5)
-                    let q3 = d3.quantile(d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending),.75)
-                    let interQuantileRange = q3-q1;
-                    let min = d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending)[0];
-                    let max = d.map(function(g) { return g[valueAttribute];}).sort(d3.ascending).at(-1);
-                    let mean= d.map(function(g) { return g[valueAttribute];}).reduce((a, b) => a + b, 0) / d.length;
-
-                    numberViolins++;
-                    return(bins);
                 }).entries(rawData);
             } else {
                 let histogram = d3.histogram()
