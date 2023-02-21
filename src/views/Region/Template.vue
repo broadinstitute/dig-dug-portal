@@ -321,12 +321,13 @@
 						:content-fill="$parent.documentationMap"
 					></documentation>
 
-					<h5>Annotated tissues, gene-links & credible sets</h5>
 					<div class="filtering-ui-wrapper container-fluid">
 						<div class="row filtering-ui-content">
 							<div class="col filter-col-md filter-col-lg">
 								<div class="label">
-									Explore region in Variant Sifter
+									Go to the Variant Sifter to explore genetic
+									associations, credible sets, and epigenomic
+									annotations in this region
 									&nbsp;<tooltip-documentation
 										name="region.add.phenotypes.tooltip"
 										:is-hover="true"
@@ -362,7 +363,7 @@
 						</div>
 					</div>
 					<pre />
-					<h5 v-if="$parent.selectedPhenotypes.length > 0">
+					<!--<h5 v-if="$parent.selectedPhenotypes.length > 0">
 						Add tracks &nbsp;<tooltip-documentation
 							name="region.add.phenotypes.tooltip"
 							:is-hover="true"
@@ -374,7 +375,7 @@
 							:is-hover="true"
 							:no-icon="false"
 						></tooltip-documentation>
-					</h5>
+					</h5>-->
 
 					<b-alert
 						class="text-center my-3"
@@ -419,7 +420,7 @@
 						</b-tab>
 						<b-tab
 							key="associations"
-							title="filter variant associations"
+							title="Filter plots and table"
 							v-show="$parent.selectedPhenotypes.length"
 						>
 							<criterion-function-group
