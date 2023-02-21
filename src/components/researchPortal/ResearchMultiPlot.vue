@@ -72,14 +72,19 @@ export default Vue.component("research-multi-plot", {
                     rawData = rawData.slice(numExtraHeaders);
                 }
             }
-            let keyAttribute = configObject["render by"];           
+            let keyAttribute = configObject["render by"];
             
             let chart = document.getElementById("multi-chart");
             chart.innerHTML = "";
 
-            var margin = { top: 10, right: 30, bottom: 65, left: 40 },
-                        width = configObject.width - margin.left - margin.right,
-                        height = configObject.height - margin.top - margin.bottom;
+            var margin = { 
+                top: 10, 
+                right: 30, 
+                bottom: this.getBottomMargin(rawData, keyAttribute),
+                left: 40 
+            },
+                width = configObject.width - margin.left - margin.right,
+                height = configObject.height - margin.top - margin.bottom;
             
             let svg = d3.select("#multi-chart")
                     .append("svg")
@@ -179,9 +184,14 @@ export default Vue.component("research-multi-plot", {
             let chart = document.getElementById("multi-chart");
             chart.innerHTML = "";
 
-            var margin = { top: 10, right: 30, bottom: 65, left: 40 },
-                        width = configObject.width - margin.left - margin.right,
-                        height = configObject.height - margin.top - margin.bottom;
+            var margin = { 
+                top: 10, 
+                right: 30, 
+                bottom: this.getBottomMargin(rawData, keyAttribute), 
+                left: 40 
+            },
+                width = configObject.width - margin.left - margin.right,
+                height = configObject.height - margin.top - margin.bottom;
             
             let svg = d3.select("#multi-chart")
                     .append("svg")
@@ -309,6 +319,12 @@ export default Vue.component("research-multi-plot", {
                 })
             });
             return outputArray;
+        },
+        getBottomMargin(data, labelField){
+            let longestLabel = data.map(item => item[labelField].length).reduce(
+                (prev, next) => prev > next ? prev : next);
+            let margin = longestLabel < 10 ? 65 : 65 * longestLabel / 10;
+            return margin;
         }
     },
 });
