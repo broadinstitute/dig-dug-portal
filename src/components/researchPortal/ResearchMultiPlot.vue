@@ -17,6 +17,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import colors from "@/utils/colors";
 export default Vue.component("research-multi-plot", {
     props: ["rawData", "summaryPlot"],
     data(){
@@ -57,7 +58,6 @@ export default Vue.component("research-multi-plot", {
             }
         },
         displayResultsForGene(selectedGene){
-            console.log(`Selected gene: ${selectedGene}`);
             if(selectedGene == ""){
                 console.error("Missing gene selection.");
                 return;
@@ -130,6 +130,8 @@ export default Vue.component("research-multi-plot", {
             var xNum = d3.scaleLinear()
                 .range([0, x.bandwidth()])
                 .domain([-maxNum, maxNum]);
+            
+            let colorIndex = 0;
             svg.selectAll("myViolin")
                 .data(sumstat)
                 .enter()
@@ -138,7 +140,14 @@ export default Vue.component("research-multi-plot", {
                 .append("path")
                     .datum(d => d.value)
                     .style("stroke", "none")
-                    .style("fill", "#69b3a2")
+                    .style("fill", d => {
+                        let color = colors[colorIndex];
+                        colorIndex++;
+                        if (colorIndex >= colors.length){
+                            colorIndex = 0;
+                        }
+                        return color;
+                    })
                     .attr("d", d3.area()
                         .x0(d => xNum(-d.length))
                         .x1(d => xNum(d.length))
