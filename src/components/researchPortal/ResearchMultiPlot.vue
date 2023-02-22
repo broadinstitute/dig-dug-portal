@@ -38,7 +38,7 @@ export default Vue.component("research-multi-plot", {
         if (!!this.$props.summaryPlot["selectable genes"]){
             this.selectableGenes = this.$props.summaryPlot["selectable genes"];
         }
-        this.displayResults(this.selectedGene);
+        this.displayResults();
         addEventListener("resize", (event) => {
             this.chartWidth = this.chart.clientWidth;
             this.displayResults();
