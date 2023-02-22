@@ -6,6 +6,7 @@ import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
 import { query } from "@/utils/bioIndexUtils";
+import dataConvert from "@/utils/dataConvert";
 
 Vue.use(Vuex);
 
@@ -25,6 +26,8 @@ export default new Vuex.Store({
         phenotypesInSession: null,
         diseaseInSession: null,
         phenotypeCorrelation: null,
+        eglsFullList: [],
+        eglGenes: {},
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -69,6 +72,16 @@ export default new Vuex.Store({
             state.phenotypeCorrelation = Correlation;
         },
 
+        setEglsFullList(state, list) {
+            state.eglsFullList = list;
+        },
+
+        setEglGenes(state, GENES) {
+            if (!state.eglGenes[GENES.trait]) {
+                state.eglGenes[GENES.trait] = {}
+            }
+            state.eglGenes[GENES.trait][GENES.pageId] = GENES.genes;
+        }
 
     },
     getters: {
@@ -93,6 +106,42 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
+
+        async getEglsFullList(context) {
+            let dataPoint =
+                "https://hugeampkpncms.org/rest/data?pageid=egl_241";
+
+            let contJson = await fetch(dataPoint).then((resp) => resp.json());
+
+            if (contJson.error == null) {
+                let data = dataConvert.csv2Json(
+                    contJson[0]["field_data_points"]
+                );
+
+                console.log("data", data);
+
+                context.commit("setEglsFullList", data);
+            }
+        },
+
+        async getEglGenes(context, PARAMS) {
+            let dataPoint =
+                "https://hugeampkpncms.org/rest/data?pageid=" + PARAMS.pageId;
+
+            let contJson = await fetch(dataPoint).then((resp) => resp.json());
+
+            if (contJson.error == null) {
+                let data = dataConvert.csv2Json(
+                    contJson[0]["field_data_points"]
+                );
+
+                console.log("genes", data);
+
+                let genes = { pageId: PARAMS.pageId, trait: PARAMS.trait, genes: data }
+
+                context.commit("setEglGenes", genes);
+            }
+        }
 
     }
 });

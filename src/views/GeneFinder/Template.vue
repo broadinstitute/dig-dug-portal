@@ -63,6 +63,21 @@
 								<strong>P-Value (&le;)</strong>
 							</div>
 						</filter-pvalue-control>
+						<div class="col filter-col-lg" style="padding: 5px 7px">
+							<div><strong>Effector Genes List</strong></div>
+							<select
+								class="form-control"
+								@change="$parent.addEgl($event)"
+							>
+								<option value="">Select one</option>
+								<option
+									v-for="item in $parent.eglsOptions"
+									:value="item['Page ID']"
+									:trait="item['Trait ID']"
+									v-html="item['Effector list name']"
+								></option>
+							</select>
+						</div>
 					</criterion-list-group>
 
 					<div>

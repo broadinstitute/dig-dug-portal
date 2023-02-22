@@ -64,44 +64,8 @@ new Vue({
         };
     },
 
-    /* created() {
-         this.$store.dispatch("bioPortal/getDiseaseSystems");
-         this.$store.dispatch("bioPortal/getDiseaseGroups");
-         this.$store.dispatch("bioPortal/getPhenotypes");
-         this.$store.dispatch("bioPortal/getDatasets");
-     },*/
-
     render(createElement, context) {
         return createElement(Template);
-    },
-
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-        ...sessionUtils,
-
-        updateAssociations(updatedPhenotypes, pValue, flush) {
-            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-            let promises = updatedPhenotypes.map(phenotype => {
-                if (!!!this.geneFinderAssociationsMap[phenotype] || flush) {
-                    let alertId = postAlertNotice(`Loading ${phenotypeMap[phenotype].description} gene associations...`);
-                    return query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue })
-                        .then(bioIndexData => {
-                            closeAlert(alertId);
-                            Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
-                        })
-                } else {
-                    return Promise.resolve();
-                }
-            });
-
-            // may await on this in the future if needed...
-            Promise.all(promises);
-        }
-
     },
 
     computed: {
@@ -149,6 +113,24 @@ new Vue({
 
             return data;
         },
+        eglsOptions() {
+            if (this.$store.state.eglsFullList == null) {
+                return null;
+            } else {
+
+                let options = [];
+                this.geneFinderPhenotypes.map(p => {
+                    this.$store.state.eglsFullList.map(e => {
+
+                        if (e["Trait ID"] != undefined && e["Trait ID"].toLowerCase() == p.toLowerCase()) {
+                            options.push(e);
+                        }
+                    })
+                })
+
+                return options;
+            }
+        },
 
         geneFinderPhenotypes() {
             return (
@@ -160,6 +142,7 @@ new Vue({
         geneFinderPhenotype() {
             return this.geneFinderPhenotypes[0] || null;
         },
+
         combined() {
             return Object.entries(this.geneFinderAssociationsMap).flatMap(
                 (geneFinderItem) => geneFinderItem[1]
@@ -174,10 +157,18 @@ new Vue({
             }
             return pval;
         },
+        geneFinderEgls() {
+            return (
+                this.geneFinderSearchCriterion
+                    .filter((criterion) => criterion.field === "gene")
+                    .map((criterion) => criterion.threshold) || []
+            );
+        },
         criterion() {
             return {
                 pValue: this.geneFinderPValue,
                 phenotypes: this.geneFinderPhenotypes,
+                //egls: this.geneFinerEgls,
             };
         },
     },
@@ -226,6 +217,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("getEglsFullList");
         //check if parameter is passed, set criterion
         if (keyParams.phenotype) {
             keyParams.phenotype.split(",").forEach((phenotype) => {
@@ -276,6 +268,14 @@ new Vue({
             // may await on this in the future if needed...
             Promise.all(promises);
         },
+
+        addEgl(event) {
+            let pageId = event.target.value
+            let trait = event.target.trait
+            //console.log(val)
+
+            this.$store.dispatch("getEglGenes", { pageId: pageId, trait: trait });
+        }
     },
 
     render(createElement, context) {
