@@ -1,6 +1,5 @@
 <template>
 	<div>
-		{{ eglsList }}
 		<div class="col-md-12 col">
 			<div class="row egls-list-header">
 				<div class="col-md-4">Name</div>
@@ -48,32 +47,48 @@
 <script>
 import Vue from "vue";
 import dataConvert from "@/utils/dataConvert";
-import byorEffectorGenes from "@/utils/byorEffectorGenes";
 
 export default Vue.component("egls-section", {
 	props: ["phenotype"],
 	components: {},
-	modules: {},
 	data() {
 		return {
-			//eglsList: null,
+			eglsList: null,
 		};
 	},
 	created() {
-		//this.loadEglsList();
+		this.loadEglsList();
 	},
-	computed: {
-		eglsList() {
-			let eglsList = byorEffectorGenes.getEglsList(this.phenotype);
-
-			console.log("eglsList", eglsList);
-
-			return eglsList;
-		},
-	},
+	computed: {},
 	watch: {},
 	methods: {
-		loadEglsList() {},
+		async loadEglsList() {
+			let dataPoint =
+				"https://hugeampkpncms.org/rest/data?pageid=egl_241";
+
+			let contJson = await fetch(dataPoint).then((resp) => resp.json());
+
+			if (contJson.error == null) {
+				//console.log(contJson[0]["field_data_points"]);
+				let data = dataConvert.csv2Json(
+					contJson[0]["field_data_points"]
+				);
+
+				let eglList = [];
+
+				data.map((e) => {
+					//console.log(e);
+					if (
+						!!e["Trait ID"] &&
+						!!e["Trait ID"].includes(this.phenotype.name)
+					) {
+						eglList.push(e);
+					}
+				});
+				console.log("json data", eglList);
+				this.eglsList = eglList;
+			}
+		},
 	},
 });
 </script>
