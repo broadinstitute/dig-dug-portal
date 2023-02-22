@@ -40,9 +40,10 @@ export default Vue.component("research-multi-plot", {
         }
         this.displayResults();
         addEventListener("resize", (event) => {
-            this.chartWidth = this.chart.clientWidth;
-            this.displayResults();
-        });
+                    this.chartWidth = this.chart.clientWidth;
+                    this.displayResults();
+                });
+        
     },
 	computed: {},
 	watch: {
@@ -56,14 +57,10 @@ export default Vue.component("research-multi-plot", {
     methods: {
         ...uiUtils,
         displayResults(){
-            console.log("Displaying results.");
-            this.chart.innerHTML = "";
             if (this.selectedGene != ""){
                 this.displayResultsForGene(this.selectedGene);
             } else if (this.selectableGenes.length == 0){
                 this.displayResultsNoSelectable()
-            } else {
-                console.log("is this the holdup?");
             }
         },
         displayResultsForGene(selectedGene){
@@ -91,7 +88,7 @@ export default Vue.component("research-multi-plot", {
             },
                 width = this.chartWidth - margin.left - margin.right,
                 height = configObject.height - margin.top - margin.bottom;
-            
+            this.chart.innerHTML = "";
             let svg = d3.select("#multi-chart")
                     .append("svg")
                     .attr("width", width + margin.left + margin.right)
@@ -196,7 +193,7 @@ export default Vue.component("research-multi-plot", {
             },
                 width = this.chartWidth - margin.left - margin.right,
                 height = configObject.height - margin.top - margin.bottom;
-            
+            this.chart.innerHTML = "";
             let svg = d3.select("#multi-chart")
                     .append("svg")
                     .attr("width", width + margin.left + margin.right)
