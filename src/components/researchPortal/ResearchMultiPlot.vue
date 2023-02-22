@@ -31,12 +31,7 @@ export default Vue.component("research-multi-plot", {
     mounted: function () {
         this.chart = document.getElementById("multi-chart");
         this.chartWidth = this.chart.clientWidth;
-        const resizeObserver = new ResizeObserver((entry) => {
-            this.chartWidth = this.chart.clientWidth;
-            this.displayResults(this.selectedGene);
-        });
-        resizeObserver.observe(this.chart);
-        
+
         if (this.$props.summaryPlot.type != "multi"){
             console.error("Configuration error; multi plot not specified.");
         }
@@ -44,6 +39,10 @@ export default Vue.component("research-multi-plot", {
             this.selectableGenes = this.$props.summaryPlot["selectable genes"];
         }
         this.displayResults(this.selectedGene);
+        addEventListener("resize", (event) => {
+            this.chartWidth = this.chart.clientWidth;
+            this.displayResults();
+        });
     },
 	computed: {},
 	watch: {
@@ -57,15 +56,14 @@ export default Vue.component("research-multi-plot", {
     methods: {
         ...uiUtils,
         displayResults(){
+            console.log("Displaying results.");
             this.chart.innerHTML = "";
-            if (this.selectedGene == ""){
-                if (this.selectableGenes.length == 0){
-                    this.displayResultsNoSelectable();
-                } else {
-                    return;
-                }
-            } else {
+            if (this.selectedGene != ""){
                 this.displayResultsForGene(this.selectedGene);
+            } else if (this.selectableGenes.length == 0){
+                this.displayResultsNoSelectable()
+            } else {
+                console.log("is this the holdup?");
             }
         },
         displayResultsForGene(selectedGene){
