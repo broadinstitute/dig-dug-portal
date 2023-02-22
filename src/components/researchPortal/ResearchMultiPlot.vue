@@ -23,10 +23,20 @@ export default Vue.component("research-multi-plot", {
     data(){
         return {
             selectableGenes: [],
-            selectedGene: ""
+            selectedGene: "",
+            chart: null,
+            chartWidth: null
         };
     },
     mounted: function () {
+        this.chart = document.getElementById("multi-chart");
+        this.chartWidth = this.chart.clientWidth;
+        const resizeObserver = new ResizeObserver((entry) => {
+            this.chartWidth = this.chart.clientWidth;
+            this.displayResults(this.selectedGene);
+        });
+        resizeObserver.observe(this.chart);
+        
         if (this.$props.summaryPlot.type != "multi"){
             console.error("Configuration error; multi plot not specified.");
         }
@@ -47,6 +57,7 @@ export default Vue.component("research-multi-plot", {
     methods: {
         ...uiUtils,
         displayResults(){
+            this.chart.innerHTML = "";
             if (this.selectedGene == ""){
                 if (this.selectableGenes.length == 0){
                     this.displayResultsNoSelectable();
@@ -73,9 +84,6 @@ export default Vue.component("research-multi-plot", {
                 }
             }
             let keyAttribute = configObject["render by"];
-            
-            let chart = document.getElementById("multi-chart");
-            chart.innerHTML = "";
 
             var margin = { 
                 top: 10, 
@@ -83,7 +91,7 @@ export default Vue.component("research-multi-plot", {
                 bottom: this.getBottomMargin(rawData, keyAttribute),
                 left: 40 
             },
-                width = configObject.width - margin.left - margin.right,
+                width = this.chartWidth - margin.left - margin.right,
                 height = configObject.height - margin.top - margin.bottom;
             
             let svg = d3.select("#multi-chart")
@@ -181,8 +189,6 @@ export default Vue.component("research-multi-plot", {
             
             let statFields = !!configObject["stat fields"] 
                 ? configObject["stat fields"] : null;
-            let chart = document.getElementById("multi-chart");
-            chart.innerHTML = "";
 
             var margin = { 
                 top: 10, 
@@ -190,7 +196,7 @@ export default Vue.component("research-multi-plot", {
                 bottom: this.getBottomMargin(rawData, keyAttribute), 
                 left: 40 
             },
-                width = configObject.width - margin.left - margin.right,
+                width = this.chartWidth - margin.left - margin.right,
                 height = configObject.height - margin.top - margin.bottom;
             
             let svg = d3.select("#multi-chart")
