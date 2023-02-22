@@ -77,6 +77,7 @@ export default new Vuex.Store({
         },
 
         setEglGenes(state, GENES) {
+
             if (!state.eglGenes[GENES.trait]) {
                 state.eglGenes[GENES.trait] = {}
             }
@@ -135,7 +136,7 @@ export default new Vuex.Store({
                     contJson[0]["field_data_points"]
                 );
 
-                console.log("genes", data);
+                //console.log("genes", data);
 
                 let genes = { pageId: PARAMS.pageId, trait: PARAMS.trait, genes: data }
 

@@ -72,8 +72,9 @@
 								<option value="">Select one</option>
 								<option
 									v-for="item in $parent.eglsOptions"
-									:value="item['Page ID']"
-									:trait="item['Trait ID']"
+									:value="
+										item['Page ID'] + ',' + item['Trait ID']
+									"
 									v-html="item['Effector list name']"
 								></option>
 							</select>

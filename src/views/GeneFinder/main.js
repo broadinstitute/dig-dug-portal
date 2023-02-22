@@ -144,9 +144,13 @@ new Vue({
         },
 
         combined() {
-            return Object.entries(this.geneFinderAssociationsMap).flatMap(
+
+            let combinedData = Object.entries(this.geneFinderAssociationsMap).flatMap(
                 (geneFinderItem) => geneFinderItem[1]
             );
+
+            console.log("genes", this.$store.state.eglGenes);
+            return combinedData;
         },
         geneFinderPValue() {
             let pval = 0.05;
@@ -270,11 +274,10 @@ new Vue({
         },
 
         addEgl(event) {
-            let pageId = event.target.value
-            let trait = event.target.trait
-            //console.log(val)
 
-            this.$store.dispatch("getEglGenes", { pageId: pageId, trait: trait });
+            let value = event.target.value.split(',');
+
+            this.$store.dispatch("getEglGenes", { pageId: value[0], trait: value[1] });
         }
     },
 
