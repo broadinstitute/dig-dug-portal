@@ -84,7 +84,6 @@
 							</div>
 						</filter-pvalue-control>
 					</criterion-list-group>
-					{{ $parent.geneFinderSearchCriterion }}
 					<div>
 						<gene-finder-w-egl-table
 							v-show="
@@ -115,5 +114,10 @@
 .labelee:before {
 	content: "**";
 	color: red;
+}
+
+.filter-pill-collection.center {
+	display: block !important;
+	text-align: center !important;
 }
 </style>

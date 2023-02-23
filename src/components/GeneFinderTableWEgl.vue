@@ -166,6 +166,11 @@ export default Vue.component("gene-finder-w-egl-table", {
 				});
 			}
 
+			fields.push({
+				key: `egls`,
+				label: "EGLs",
+			});
+
 			// add phenotype-specific columns
 			for (let i in this.phenotypes) {
 				let p = this.phenotypes[i];
@@ -189,10 +194,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 						key: `${p}:subjects`,
 						label: "Samples",
 					},
-					{
-						key: `${p}:egls`,
-						label: "EGLs",
-					},
 				]);
 			}
 
@@ -204,7 +205,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 			let groups = {};
 			let associations = this.tableData;
 
-			//console.log("this.tableData.length", this.tableData);
+			console.log("this.tableData", this.tableData);
 
 			for (let i in associations) {
 				let r = associations[i];
@@ -213,6 +214,8 @@ export default Vue.component("gene-finder-w-egl-table", {
 				if (!(r.gene in groups)) {
 					dataIndex = data.length;
 					groups[r.gene] = dataIndex;
+
+					if (!!r.egls) console.log(i, r.egls.length);
 
 					data.push({
 						phenotypes: [],
@@ -233,7 +236,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 				data[dataIndex][`${r.phenotype}:zStat`] = r.zStat;
 				data[dataIndex][`${r.phenotype}:nParam`] = r.nParam;
 				data[dataIndex][`${r.phenotype}:subjects`] = r.subjects;
-				data[dataIndex][`${r.phenotype}:egls`] = r.egls;
 
 				// lowest p-value across all phenotypes
 				if (!!r.pValue && r.pValue < data[dataIndex].minP) {
@@ -251,10 +253,13 @@ export default Vue.component("gene-finder-w-egl-table", {
 			}
 
 			// calculate the chiSquared for each row
+
 			data.forEach((r) => (r.chiSquared = this.chiSquared(r)));
 
 			// sort all the records by combined p-value
 			data.sort((a, b) => a.chiSquared - b.chiSquared);
+
+			//console.log("formatted data", data);
 
 			return data;
 		},

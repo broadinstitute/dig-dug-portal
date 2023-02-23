@@ -173,7 +173,7 @@ new Vue({
                 let eglGenes = {}
 
                 this.$store.state.eglGenes.map(c => {
-                    let gene = !!c["byor_gene"] ? c["byor_gene"] : !!c["Gene"] ? c["Gene"] : c["gene"] ? c["gene"] : null;
+                    let gene = c["byor_gene"];
 
                     let tempObj = { "trait": c["traitId"], "eglId": c["pageId"] }  //pageId, traitId
 
@@ -182,6 +182,8 @@ new Vue({
                     }
                     eglGenes[gene]["egls"].push(tempObj);
                 })
+
+                console.log("eglGenes", eglGenes);
 
                 combinedData.map(c => {
 
@@ -193,7 +195,6 @@ new Vue({
 
                         filteredCombined.push(tempGene);
                     }
-
                 })
             } else {
                 filteredCombined = combinedData;
