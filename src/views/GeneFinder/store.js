@@ -27,7 +27,7 @@ export default new Vuex.Store({
         diseaseInSession: null,
         phenotypeCorrelation: null,
         eglsFullList: [],
-        eglGenes: {},
+        eglGenes: [],
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -78,10 +78,8 @@ export default new Vuex.Store({
 
         setEglGenes(state, GENES) {
 
-            if (!state.eglGenes[GENES.trait]) {
-                state.eglGenes[GENES.trait] = {}
-            }
-            state.eglGenes[GENES.trait][GENES.pageId] = GENES.genes;
+            state.eglGenes = GENES;
+
         }
 
     },
@@ -119,8 +117,6 @@ export default new Vuex.Store({
                     contJson[0]["field_data_points"]
                 );
 
-                console.log("data", data);
-
                 context.commit("setEglsFullList", data);
             }
         },
@@ -132,16 +128,26 @@ export default new Vuex.Store({
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
             if (contJson.error == null) {
+
                 let data = dataConvert.csv2Json(
                     contJson[0]["field_data_points"]
                 );
 
-                //console.log("genes", data);
+                data.map(d => {
+                    d["pageId"] = PARAMS.pageId;
+                    d["traitId"] = PARAMS.trait;
+                })
 
-                let genes = { pageId: PARAMS.pageId, trait: PARAMS.trait, genes: data }
+                let updatedList = this.state.eglGenes.concat(data);
 
-                context.commit("setEglGenes", genes);
+                context.commit("setEglGenes", updatedList);
             }
+        },
+
+        removeEglGenes(context, PARAMS) {
+
+            let updatedGenes = this.state.eglGenes.filter(g => g.pageId != PARAMS.pageId);
+            context.commit("setEglGenes", updatedGenes);
         }
 
     }

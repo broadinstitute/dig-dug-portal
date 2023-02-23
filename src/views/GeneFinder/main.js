@@ -13,7 +13,7 @@ import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypePicker from "@/components/PhenotypePicker.vue";
-import GeneFinderTable from "@/components/GeneFinderTable.vue";
+import GeneFinderTableWEgl from "@/components/GeneFinderTableWEgl.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -46,7 +46,7 @@ new Vue({
         Alert,
         PhenotypePicker,
         Documentation,
-        GeneFinderTable,
+        GeneFinderTableWEgl,
         UnauthorizedMessage,
         CriterionFunctionGroup,
         CriterionListGroup,
@@ -119,10 +119,11 @@ new Vue({
             } else {
 
                 let options = [];
+
                 this.geneFinderPhenotypes.map(p => {
                     this.$store.state.eglsFullList.map(e => {
 
-                        if (e["Trait ID"] != undefined && e["Trait ID"].toLowerCase() == p.toLowerCase()) {
+                        if (e["Trait ID"] != undefined && e["byor_gene"] == "TRUE" && e["Trait ID"].toLowerCase() == p.toLowerCase()) {
                             options.push(e);
                         }
                     })
@@ -130,6 +131,15 @@ new Vue({
 
                 return options;
             }
+        },
+
+        eglsMap() {
+            let eglsMap = {};
+            this.eglsOptions.map(o => {
+                eglsMap[o["Page ID"]] = o;
+            })
+
+            return eglsMap;
         },
 
         geneFinderPhenotypes() {
@@ -143,14 +153,53 @@ new Vue({
             return this.geneFinderPhenotypes[0] || null;
         },
 
+        eglGenes() {
+            return this.$store.state.eglGenes;
+        },
+
         combined() {
 
             let combinedData = Object.entries(this.geneFinderAssociationsMap).flatMap(
                 (geneFinderItem) => geneFinderItem[1]
             );
 
-            console.log("genes", this.$store.state.eglGenes);
-            return combinedData;
+
+
+            let filteredCombined = [];
+
+            if (this.$store.state.eglGenes.length > 0) {
+                // first make obj by egl genes by 1.trait 2.EGL id. !important propert name 'phenotype' is taken by combinedData
+
+                let eglGenes = {}
+
+                this.$store.state.eglGenes.map(c => {
+                    let gene = !!c["byor_gene"] ? c["byor_gene"] : !!c["Gene"] ? c["Gene"] : c["gene"] ? c["gene"] : null;
+
+                    let tempObj = { "trait": c["traitId"], "eglId": c["pageId"] }  //pageId, traitId
+
+                    if (!eglGenes[gene]) {
+                        eglGenes[gene] = { "egls": [] };
+                    }
+                    eglGenes[gene]["egls"].push(tempObj);
+                })
+
+                combinedData.map(c => {
+
+                    let geneId = c["gene"];
+
+                    if (!!eglGenes[geneId]) {
+                        let tempGene = { ...c };
+                        tempGene['egls'] = eglGenes[geneId]['egls'];
+
+                        filteredCombined.push(tempGene);
+                    }
+
+                })
+            } else {
+                filteredCombined = combinedData;
+            }
+
+            return filteredCombined;
         },
         geneFinderPValue() {
             let pval = 0.05;
@@ -164,7 +213,7 @@ new Vue({
         geneFinderEgls() {
             return (
                 this.geneFinderSearchCriterion
-                    .filter((criterion) => criterion.field === "gene")
+                    .filter((criterion) => criterion.field === "egl")
                     .map((criterion) => criterion.threshold) || []
             );
         },
@@ -214,6 +263,30 @@ new Vue({
                 });
             }
         },
+        geneFinderEgls(newEgls, oldEgls) {
+            if (!isEqual(newEgls, oldEgls)) {
+                //update phenotype parameters
+                /*keyParams.set({
+                    phenotype: newPhenotypes.join(","),
+                });*/
+
+                let differEgl = newEgls.filter(x => !oldEgls.includes(x));
+
+                if (differEgl.length > 0) {
+                    let egl = this.eglsMap[differEgl[0]];
+
+                    this.$store.dispatch("getEglGenes", { pageId: egl["Page ID"], trait: egl["Trait ID"] });
+                } else {
+                    let removedEgl = oldEgls.filter(x => !newEgls.includes(x));
+
+                    let egl = this.eglsMap[removedEgl[0]];
+
+                    this.$store.dispatch("removeEglGenes", { pageId: egl["Page ID"] });
+
+                }
+
+            }
+        }
     },
 
     created() {
@@ -272,13 +345,6 @@ new Vue({
             // may await on this in the future if needed...
             Promise.all(promises);
         },
-
-        addEgl(event) {
-
-            let value = event.target.value.split(',');
-
-            this.$store.dispatch("getEglGenes", { pageId: value[0], trait: value[1] });
-        }
     },
 
     render(createElement, context) {

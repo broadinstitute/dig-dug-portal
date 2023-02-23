@@ -53,6 +53,26 @@
 								<strong>Select phenotypes</strong>
 							</div>
 						</filter-enumeration-control>
+						<filter-enumeration-control
+							class="filter-col-lg"
+							:field="'egl'"
+							:options="
+								$parent.eglsOptions.map((egl) => egl['Page ID'])
+							"
+							:multiple="true"
+							:labelFormatter="
+								(egl) =>
+									!!$parent.eglsMap[egl]
+										? $parent.eglsMap[egl][
+												'Effector list name'
+										  ]
+										: egl
+							"
+						>
+							<div>
+								<strong>Select EGL</strong>
+							</div>
+						</filter-enumeration-control>
 
 						<!-- pValue filter -->
 						<filter-pvalue-control
@@ -63,26 +83,10 @@
 								<strong>P-Value (&le;)</strong>
 							</div>
 						</filter-pvalue-control>
-						<div class="col filter-col-lg" style="padding: 5px 7px">
-							<div><strong>Effector Genes List</strong></div>
-							<select
-								class="form-control"
-								@change="$parent.addEgl($event)"
-							>
-								<option value="">Select one</option>
-								<option
-									v-for="item in $parent.eglsOptions"
-									:value="
-										item['Page ID'] + ',' + item['Trait ID']
-									"
-									v-html="item['Effector list name']"
-								></option>
-							</select>
-						</div>
 					</criterion-list-group>
-
+					{{ $parent.geneFinderSearchCriterion }}
 					<div>
-						<gene-finder-table
+						<gene-finder-w-egl-table
 							v-show="
 								$parent.geneFinderPhenotypes.length > 0 &&
 								$parent.combined.length > 0
@@ -94,7 +98,7 @@
 							:exclusive="true"
 							:showPlot="true"
 							:showChiSquared="true"
-						></gene-finder-table>
+						></gene-finder-w-egl-table>
 					</div>
 				</div>
 			</div>
