@@ -197,7 +197,7 @@ new Vue({
 
                 })
 
-                console.log(eglGenes);
+                //console.log(eglGenes);
 
                 combinedData.map(c => {
 
@@ -208,7 +208,7 @@ new Vue({
 
                         let eglsContent = "";
 
-                        console.log(this.geneFinderPhenotypes)
+                        // console.log(this.geneFinderPhenotypes)
 
                         eglGenes[geneId]['egls'].map(e => {
                             let pIndex = this.geneFinderPhenotypes.indexOf(e.trait) + 1;

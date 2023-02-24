@@ -71,7 +71,7 @@
 							"
 						>
 							<div>
-								<strong>Select EGL</strong>
+								<strong>Select predicted effector genes</strong>
 							</div>
 						</filter-enumeration-control>
 
