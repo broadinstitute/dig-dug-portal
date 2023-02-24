@@ -182,7 +182,7 @@ new Vue({
                     let gene = c["byor_gene"];
                     let egl = this.eglsMap[c["pageId"]];
 
-                    let tempObj = { "trait": c["traitId"], "eglId": c["pageId"], "title": egl["Title"], "pmid": egl["PMID"], "name": egl["Effector list name"] }  //pageId, traitId
+                    let tempObj = { "trait": c["traitId"], "eglId": c["pageId"], "title": egl["Title"], "pmid": egl["PMID"], "name": egl["Effector list name"], "shortName": egl["short_name"] }  //pageId, traitId
 
                     if (!eglGenes[gene]) {
                         eglGenes[gene] = { "egls": [] };
@@ -212,7 +212,7 @@ new Vue({
 
                         eglGenes[geneId]['egls'].map(e => {
                             let pIndex = this.geneFinderPhenotypes.indexOf(e.trait) + 1;
-                            let eglLabel = !!e.pmid ? e.pmid : "Not published";
+                            let eglLabel = e.shortName;
                             eglsContent += "<span class='gene-finder-egl reference color-" + pIndex + "' title='" + e.name + "'>" + eglLabel + "<div class='egl-links'>";
                             eglsContent += (e.pmid != undefined) ? "<a target='_blank' href='https://pubmed.ncbi.nlm.nih.gov/" + e.pmid + "'>View paper</a><span class='spacer'>|</span>" : "";
                             eglsContent += "<a target='_blank' href='/research.html?pageid=" + e.eglId + "'>View effector genes list</a>";
