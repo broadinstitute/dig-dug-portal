@@ -12,6 +12,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 import PhenotypePicker from "@/components/PhenotypePicker.vue";
 import GeneFinderTableWEgl from "@/components/GeneFinderTableWEgl.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -120,6 +121,9 @@ new Vue({
 
                 let options = [];
 
+
+
+
                 this.geneFinderPhenotypes.map(p => {
                     this.$store.state.eglsFullList.map(e => {
 
@@ -129,7 +133,9 @@ new Vue({
                     })
                 })
 
-                return options;
+                let sorted = sortUtils.sortArrOfObjects(options, 'Effector list name', 'alphabetical', 'desc');
+
+                return sorted;
             }
         },
 
@@ -174,16 +180,24 @@ new Vue({
 
                 this.$store.state.eglGenes.map(c => {
                     let gene = c["byor_gene"];
+                    let egl = this.eglsMap[c["pageId"]];
 
-                    let tempObj = { "trait": c["traitId"], "eglId": c["pageId"] }  //pageId, traitId
+                    let tempObj = { "trait": c["traitId"], "eglId": c["pageId"], "title": egl["Title"], "pmid": egl["PMID"], "name": egl["Effector list name"] }  //pageId, traitId
 
                     if (!eglGenes[gene]) {
                         eglGenes[gene] = { "egls": [] };
+                        eglGenes[gene]["egls"].push(tempObj);
+                    } else {
+                        let ifExist = eglGenes[gene]["egls"].filter(e => e["eglId"] == c["pageId"]);
+
+                        if (ifExist.length == 0) {
+                            eglGenes[gene]["egls"].push(tempObj);
+                        }
                     }
-                    eglGenes[gene]["egls"].push(tempObj);
+
                 })
 
-                console.log("eglGenes", eglGenes);
+                console.log(eglGenes);
 
                 combinedData.map(c => {
 
@@ -191,7 +205,21 @@ new Vue({
 
                     if (!!eglGenes[geneId]) {
                         let tempGene = { ...c };
-                        tempGene['egls'] = eglGenes[geneId]['egls'];
+
+                        let eglsContent = "";
+
+                        console.log(this.geneFinderPhenotypes)
+
+                        eglGenes[geneId]['egls'].map(e => {
+                            let pIndex = this.geneFinderPhenotypes.indexOf(e.trait) + 1;
+                            let eglLabel = !!e.pmid ? e.pmid : "Not published";
+                            eglsContent += "<span class='gene-finder-egl reference color-" + pIndex + "' title='" + e.name + "'>" + eglLabel + "<div class='egl-links'>";
+                            eglsContent += (e.pmid != undefined) ? "<a target='_blank' href='https://pubmed.ncbi.nlm.nih.gov/" + e.pmid + "'>View paper</a><span class='spacer'>|</span>" : "";
+                            eglsContent += "<a target='_blank' href='/research.html?pageid=" + e.eglId + "'>View effector genes list</a>";
+                            eglsContent += "</div></span>"
+                        })
+
+                        tempGene['egls'] = eglsContent;
 
                         filteredCombined.push(tempGene);
                     }

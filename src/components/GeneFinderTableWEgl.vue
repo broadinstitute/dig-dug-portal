@@ -38,7 +38,7 @@
 				:current-page="currentPage"
 			>
 				<template v-slot:thead-top="data">
-					<b-th :colspan="!!showChiSquared ? 2 : 1">
+					<b-th :colspan="!!showChiSquared ? (!!ifEgls ? 3 : 2) : 1">
 						<span>
 							Matching genes:
 							{{ groupedAssociations.length }}
@@ -47,7 +47,7 @@
 					<b-th
 						v-for="(phenotype, i) in phenotypes"
 						:key="phenotype"
-						colspan="3"
+						colspan="2"
 						class="reference"
 						:class="'color-' + (i + 1)"
 					>
@@ -64,6 +64,9 @@
 					<a :href="`/gene.html?gene=${r.item.gene}`">{{
 						r.item.gene
 					}}</a>
+				</template>
+				<template v-slot:cell(egls)="r">
+					<div v-html="r.item.egls"></div>
 				</template>
 				<template
 					v-slot:[phenotypePValueColumn(p)]="r"
@@ -153,6 +156,13 @@ export default Vue.component("gene-finder-w-egl-table", {
 			}
 			return this.associations;
 		},
+		ifEgls() {
+			if (!!this.tableData[0]["egls"]) {
+				return true;
+			} else {
+				return null;
+			}
+		},
 
 		fields() {
 			let fields = this.baseFields;
@@ -166,10 +176,12 @@ export default Vue.component("gene-finder-w-egl-table", {
 				});
 			}
 
-			fields.push({
-				key: `egls`,
-				label: "EGLs",
-			});
+			if (!!this.ifEgls) {
+				fields.push({
+					key: `egls`,
+					label: "Predicted effector genes (PMID)",
+				});
+			}
 
 			// add phenotype-specific columns
 			for (let i in this.phenotypes) {
@@ -205,8 +217,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 			let groups = {};
 			let associations = this.tableData;
 
-			console.log("this.tableData", this.tableData);
-
 			for (let i in associations) {
 				let r = associations[i];
 				let dataIndex = groups[r.gene];
@@ -214,8 +224,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 				if (!(r.gene in groups)) {
 					dataIndex = data.length;
 					groups[r.gene] = dataIndex;
-
-					if (!!r.egls) console.log(i, r.egls.length);
 
 					data.push({
 						phenotypes: [],
@@ -336,4 +344,33 @@ export default Vue.component("gene-finder-w-egl-table", {
 
 <style>
 @import url("/css/effectorGenes.css");
+.gene-finder-egl {
+	display: block;
+	float: left;
+	font-size: 13px;
+	border-radius: 15px;
+	padding: 3px 10px;
+	margin-right: 5px;
+	color: #fff;
+}
+
+.gene-finder-egl .egl-links {
+	display: none;
+}
+
+.gene-finder-egl:hover .egl-links {
+	display: block;
+	position: absolute;
+	background-color: #000;
+	border-radius: 15px;
+	padding: 3px 10px;
+}
+
+.gene-finder-egl .egl-links > a {
+	color: #fff !important;
+}
+
+.gene-finder-egl .egl-links span.spacer {
+	margin: 0 8px;
+}
 </style>

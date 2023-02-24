@@ -60,6 +60,7 @@
 								$parent.eglsOptions.map((egl) => egl['Page ID'])
 							"
 							:multiple="true"
+							:disableSort="true"
 							:labelFormatter="
 								(egl) =>
 									!!$parent.eglsMap[egl]
