@@ -1,3 +1,6 @@
+
+import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpressionPlot.vue';
+
 <template>
 	<div>
 		<!-- Header -->
@@ -186,6 +189,12 @@
 							></translator-predicate-table>
 						</b-tab>
 					</b-tabs>
+				</div>
+			</div>
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<research-expression-plot v-if="$parent.geneExpression.length > 0">
+					</research-expression-plot>
 				</div>
 			</div>
 			<div class="card mdkp-card">

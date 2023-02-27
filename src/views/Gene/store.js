@@ -22,6 +22,7 @@ export default new Vuex.Store({
         associations52k: bioIndex("gene-associations-52k"),
         geneToTranscript: bioIndex("gene-to-transcript"),
         transcriptAssoc: bioIndex("transcript-associations"),
+        geneExpression: bioIndex("gene-expression"),
         uniprot
     },
     state: {
@@ -148,6 +149,7 @@ export default new Vuex.Store({
             let query = { q: context.state.geneName };
             context.dispatch("associations52k/query", query);
             context.dispatch("geneassociations/query", query);
+            context.dispatch("geneExpression/query", query);
         },
         async getVarAssociationsData(context, phenotype) {
             let gene = context.state.geneName;

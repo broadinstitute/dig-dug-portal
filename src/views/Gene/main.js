@@ -24,6 +24,7 @@ import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -340,6 +341,11 @@ new Vue({
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
 
+        },
+        geneExpression(){
+            let data = this.$store.state.geneExpression.data;
+            console.log(data.length);
+            return data;
         },
 
         /*smallestpValuePhenotype() {
