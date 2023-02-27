@@ -187,50 +187,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 			}
 		},
 
-		/*fields() {
-			let fields = this.baseFields;
-
-			// add the chi squared column
-			if (!!this.showChiSquared) {
-				fields.push({
-					key: "chiSquared",
-					label: "P-Value(Χ²)",
-					formatter: this.pValueFormatter,
-				});
-			}
-
-			if (this.egls.length > 0) {
-				fields.push({
-					key: `egls`,
-					label: "Predicted effector genes (PMID)",
-				});
-			}
-
-			// add phenotype-specific columns
-			for (let i in this.phenotypes) {
-				let p = this.phenotypes[i];
-
-				fields = fields.concat([
-					{
-						key: `${p}:pValue`,
-						label: `P-Value`,
-						tdClass(x) {
-							return !!x && x < 1e-5
-								? "variant-table-cell high"
-								: "";
-						},
-						sortable: true,
-					},
-					{
-						key: `${p}:subjects`,
-						label: "Samples",
-					},
-				]);
-			}
-
-			return fields;
-		},*/
-
 		groupedAssociations() {
 			let data = [];
 			let groups = {};
@@ -324,6 +280,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 			this.groupedAssociations.forEach((a) => {
 				a.phenotypes.forEach((phenotype) => {
 					groups.push({
+						gene: a.gene,
 						phenotype,
 						pValue: a[`${phenotype}:pValue`],
 						chromosome: a.chromosome,
@@ -340,18 +297,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 		intFormatter: Formatters.intFormatter,
 		floatFormatter: Formatters.floatFormatter,
 		pValueFormatter: Formatters.pValueFormatter,
-
-		phenotypePValueColumn(phenotype) {
-			return `cell(${phenotype}:pValue)`;
-		},
-
-		phenotypeVariantsColumn(phenotype) {
-			return `cell(${phenotype}:nParam)`;
-		},
-
-		phenotypeSubjectsColumn(phenotype) {
-			return `cell(${phenotype}:subjects)`;
-		},
 
 		chiSquared(row) {
 			let X = 0.0;
