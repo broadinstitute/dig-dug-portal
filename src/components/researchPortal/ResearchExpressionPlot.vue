@@ -41,7 +41,19 @@ export default Vue.component("research-expression-plot", {
         ...uiUtils,
         displayResults(){
             let rawData = this.$props.rawData;
-            let keyAttribute = "tissue";
+            let keyAttribute = "tissue"
+
+            // Flatten the data
+            let flatData = [];
+            for (let topLevelEntry of rawData){
+                for (let tpmVal of topLevelEntry.tpmForAllSamples){
+                    let flattenedEntry = {};
+                    flattenedEntry[keyAttribute] = topLevelEntry[keyAttribute];
+                    flattenedEntry["tpm"] = tpmVal;
+                    flatData.push(flattenedEntry);
+                }
+            }
+            console.log(`${flatData.length} entries`);
 
             var margin = { 
                 top: 10, 
@@ -72,7 +84,6 @@ export default Vue.component("research-expression-plot", {
             let maxVal = rawData.map(g => g.maxTpm).reduce(
                 (prev, next) => prev > next ? prev : next, 0
                 );
-            console.log(maxVal);
             var y = d3.scaleLinear()
                 .domain([0,maxVal])
                 .range([height,0]);
@@ -85,10 +96,11 @@ export default Vue.component("research-expression-plot", {
             let sumstat = d3.nest()
                     .key(d => d[keyAttribute])
                     .rollup(function(d) {
-                        let input = d.map(g => g.tpmForAllSamples).flatMap(x => x);
+                        // I think flatMap is the problem
+                        let input = d.map(g => g.tpm);
                         let bins = histogram(input);
                         return(bins);
-                    }).entries(rawData);
+                    }).entries(flatData);
 
             //Maximum number of entries in a bin.
             let maxNum = 0;

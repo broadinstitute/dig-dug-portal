@@ -344,7 +344,6 @@ new Vue({
         },
         geneExpression(){
             let data = this.$store.state.geneExpression.data;
-            console.log(data.length);
             return data;
         },
 
