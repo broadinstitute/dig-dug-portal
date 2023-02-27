@@ -10,11 +10,10 @@
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
-import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import colors from "@/utils/colors";
 export default Vue.component("research-expression-plot", {
-    props: ["rawData", "summaryPlot"],
+    props: ["rawData"],
     data(){
         return {
             chart: null,
@@ -40,7 +39,6 @@ export default Vue.component("research-expression-plot", {
     },
     methods: {
         ...uiUtils,
-        },
         displayResults(){
             let rawData = this.$props.rawData;
             let keyAttribute = "tissue";
@@ -71,14 +69,10 @@ export default Vue.component("research-expression-plot", {
                 .style("text-anchor", "start")
                 .attr("transform", "rotate(45)");
 
-            let maxVal = rawData[0].tpmForAllSamples[0];
-            rawData.forEach(entry => {
-                entry.tpmForAllSamples.forEach(value => {
-                    if(value > maxVal){
-                        maxVal = value;
-                    }
-                });
-            });
+            let maxVal = rawData.map(g => g.maxTpm).reduce(
+                (prev, next) => prev > next ? prev : next, 0
+                );
+            console.log(maxVal);
             var y = d3.scaleLinear()
                 .domain([0,maxVal])
                 .range([height,0]);
@@ -91,7 +85,7 @@ export default Vue.component("research-expression-plot", {
             let sumstat = d3.nest()
                     .key(d => d[keyAttribute])
                     .rollup(function(d) {
-                        let input = d.map(g => g[tpmForAllSamples]).flatMap(x => x);
+                        let input = d.map(g => g.tpmForAllSamples).flatMap(x => x);
                         let bins = histogram(input);
                         return(bins);
                     }).entries(rawData);
@@ -143,7 +137,7 @@ export default Vue.component("research-expression-plot", {
             return margin;
         },
     }
-);
+});
 </script>
 <style>
 div{
