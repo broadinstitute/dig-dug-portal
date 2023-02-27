@@ -22,7 +22,9 @@
 						name="tools.genefinder.subheader"
 					></documentation>
 
-					<h4 class="card-title">Build search criteria</h4>
+					<h4 class="card-title">
+						Build search criteria and filter results
+					</h4>
 
 					<criterion-list-group
 						v-model="$parent.geneFinderSearchCriterion"
@@ -53,6 +55,29 @@
 								<strong>Select phenotypes</strong>
 							</div>
 						</filter-enumeration-control>
+						<filter-enumeration-control
+							class="filter-col-lg"
+							:field="'egl'"
+							:options="
+								$parent.eglsOptions.map((egl) => egl['Page ID'])
+							"
+							:multiple="true"
+							:disableSort="true"
+							:labelFormatter="
+								(egl) =>
+									!!$parent.eglsMap[egl]
+										? $parent.eglsMap[egl][
+												'Effector list name'
+										  ]
+										: egl
+							"
+						>
+							<div>
+								<strong
+									>Filter by predicted effector genes</strong
+								>
+							</div>
+						</filter-enumeration-control>
 
 						<!-- pValue filter -->
 						<filter-pvalue-control
@@ -64,21 +89,21 @@
 							</div>
 						</filter-pvalue-control>
 					</criterion-list-group>
-
 					<div>
-						<gene-finder-table
+						<gene-finder-w-egl-table
 							v-show="
 								$parent.geneFinderPhenotypes.length > 0 &&
 								$parent.combined.length > 0
 							"
 							:phenotypes="$parent.geneFinderPhenotypes"
+							:egls="$parent.geneFinderEgls"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:associations="$parent.combined"
 							:rowsPerPage="20"
 							:exclusive="true"
 							:showPlot="true"
 							:showChiSquared="true"
-						></gene-finder-table>
+						></gene-finder-w-egl-table>
 					</div>
 				</div>
 			</div>
@@ -95,5 +120,10 @@
 .labelee:before {
 	content: "**";
 	color: red;
+}
+
+.filter-pill-collection.center {
+	display: block !important;
+	text-align: center !important;
 }
 </style>
