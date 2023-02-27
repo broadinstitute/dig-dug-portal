@@ -148,6 +148,10 @@ new Vue({
             return eglsMap;
         },
 
+        eglsMapKeys() {
+            return Object.keys(this.eglsMap);
+        },
+
         geneFinderPhenotypes() {
             return (
                 this.geneFinderSearchCriterion
@@ -256,6 +260,7 @@ new Vue({
     },
 
     watch: {
+
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
@@ -293,11 +298,12 @@ new Vue({
             }
         },
         geneFinderEgls(newEgls, oldEgls) {
+
             if (!isEqual(newEgls, oldEgls)) {
-                //update phenotype parameters
-                /*keyParams.set({
-                    phenotype: newPhenotypes.join(","),
-                });*/
+                //update egls parameters
+                keyParams.set({
+                    egl: newEgls.join(","),
+                });
 
                 let differEgl = newEgls.filter(x => !oldEgls.includes(x));
 
@@ -314,6 +320,11 @@ new Vue({
 
                 }
 
+            }
+        },
+        eglsMapKeys(KEYS) {
+            if (this.geneFinderEgls.length > 0) {
+                this.loadInitialEgls(this.geneFinderEgls);
             }
         }
     },
@@ -332,6 +343,18 @@ new Vue({
                     threshold: phenotype,
                 });
             });
+
+            keyParams.egl.split(",").forEach((e) => {
+                this.geneFinderSearchCriterion.push({
+                    field: "egl",
+                    threshold: e,
+                });
+            });
+
+            if (this.eglsMapKeys.length > 0) {
+                this.loadInitialEgls(this.geneFinderEgls);
+            }
+
             this.updateAssociations(
                 this.geneFinderPhenotypes,
                 this.geneFinderPValue,
@@ -374,7 +397,18 @@ new Vue({
             // may await on this in the future if needed...
             Promise.all(promises);
         },
+
+        loadInitialEgls(EGLS) {
+
+            EGLS.map(e => {
+                let egl = this.eglsMap[e];
+                this.$store.dispatch("getEglGenes", { pageId: egl["Page ID"], trait: egl["Trait ID"] });
+            })
+
+        }
     },
+
+
 
     render(createElement, context) {
         return createElement(Template);
