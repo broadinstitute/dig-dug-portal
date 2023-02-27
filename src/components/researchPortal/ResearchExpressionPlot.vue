@@ -1,7 +1,8 @@
 <template>
 <div class="chart-wrapper">
+    <h4>Gene Expression</h4>
     <div id="multi-chart">
-        <h4>Pending!</h4>
+        <p>Loading...</p>
     </div>
 </div>
 </template>
@@ -16,8 +17,6 @@ export default Vue.component("research-expression-plot", {
     props: ["rawData", "summaryPlot"],
     data(){
         return {
-            selectableGenes: [],
-            selectedGene: "",
             chart: null,
             chartWidth: null
         };
@@ -26,7 +25,7 @@ export default Vue.component("research-expression-plot", {
         this.chart = document.getElementById("multi-chart");
         this.chartWidth = this.chart.clientWidth;
 
-        //this.displayResults();
+        this.displayResults();
         //addEventListener("resize", (event) => {
                     //this.chartWidth = this.chart.clientWidth;
                     //this.displayResults();
@@ -38,23 +37,13 @@ export default Vue.component("research-expression-plot", {
         rawData: function(){
             this.displayResults();
         },
-        selectedGene(){
-            this.displayResults(selectedGene);
-        }
     },
     methods: {
         ...uiUtils,
         },
-        displayResults(gene){
-            if(gene == ""){
-                console.error("Missing gene selection.");
-                return;
-            }
-            let configObject = this.$props.summaryPlot;
+        displayResults(){
             let rawData = this.$props.rawData;
-
-
-            let keyAttribute = configObject["render by"];
+            let keyAttribute = "tissue";
 
             var margin = { 
                 top: 10, 
@@ -63,7 +52,7 @@ export default Vue.component("research-expression-plot", {
                 left: 40 
             },
                 width = this.chartWidth - margin.left - margin.right,
-                height = configObject.height - margin.top - margin.bottom;
+                height = 400 - margin.top - margin.bottom;
             this.chart.innerHTML = "";
             let svg = d3.select("#multi-chart")
                     .append("svg")
@@ -81,9 +70,15 @@ export default Vue.component("research-expression-plot", {
                 .selectAll("text")
                 .style("text-anchor", "start")
                 .attr("transform", "rotate(45)");
-            
-            let maxVal = rawData.map(item => item[selectedGene]).reduce(
-                (prev, next) => prev > next ? prev : next);
+
+            let maxVal = rawData[0].tpmForAllSamples[0];
+            rawData.forEach(entry => {
+                entry.tpmForAllSamples.forEach(value => {
+                    if(value > maxVal){
+                        maxVal = value;
+                    }
+                });
+            });
             var y = d3.scaleLinear()
                 .domain([0,maxVal])
                 .range([height,0]);
@@ -91,12 +86,12 @@ export default Vue.component("research-expression-plot", {
 
             let histogram = d3.histogram()
                     .domain(y.domain())
-                    .thresholds(y.ticks(configObject["buckets"]))
+                    .thresholds(y.ticks(100))
                     .value(d => d);
             let sumstat = d3.nest()
                     .key(d => d[keyAttribute])
                     .rollup(function(d) {
-                        let input = d.map(g => g[selectedGene]);
+                        let input = d.map(g => g[tpmForAllSamples]).flatMap(x => x);
                         let bins = histogram(input);
                         return(bins);
                     }).entries(rawData);
@@ -146,7 +141,7 @@ export default Vue.component("research-expression-plot", {
                 (prev, next) => prev > next ? prev : next);
             let margin = longestLabel < 10 ? 65 : 65 * longestLabel / 10;
             return margin;
-        }
+        },
     }
 );
 </script>

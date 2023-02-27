@@ -193,7 +193,8 @@ import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpr
 			</div>
 			<div class="card mdkp-card">
 				<div class="card-body">
-					<research-expression-plot v-if="$parent.geneExpression.length > 0">
+					<research-expression-plot v-if="$parent.geneExpression.length > 0"
+						:rawData = $parent.geneExpression>
 					</research-expression-plot>
 				</div>
 			</div>
