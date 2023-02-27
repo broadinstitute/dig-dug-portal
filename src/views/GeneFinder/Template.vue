@@ -22,7 +22,9 @@
 						name="tools.genefinder.subheader"
 					></documentation>
 
-					<h4 class="card-title">Build search criteria</h4>
+					<h4 class="card-title">
+						Build search criteria and filter results
+					</h4>
 
 					<criterion-list-group
 						v-model="$parent.geneFinderSearchCriterion"
@@ -71,7 +73,9 @@
 							"
 						>
 							<div>
-								<strong>Select predicted effector genes</strong>
+								<strong
+									>Filter by predicted effector genes</strong
+								>
 							</div>
 						</filter-enumeration-control>
 
@@ -92,6 +96,7 @@
 								$parent.combined.length > 0
 							"
 							:phenotypes="$parent.geneFinderPhenotypes"
+							:egls="$parent.geneFinderEgls"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:associations="$parent.combined"
 							:rowsPerPage="20"

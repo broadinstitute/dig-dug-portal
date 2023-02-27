@@ -28,62 +28,90 @@
 					filename="gene_table"
 				></csv-download>
 			</div>
-			<b-table
-				hover
-				small
-				responsive="sm"
-				:items="groupedAssociations"
-				:fields="fields"
-				:per-page="rowsPerPage"
-				:current-page="currentPage"
-			>
-				<template v-slot:thead-top="data">
-					<b-th :colspan="!!showChiSquared ? (!!ifEgls ? 3 : 2) : 1">
-						<span>
-							Matching genes:
-							{{ groupedAssociations.length }}
-						</span>
-					</b-th>
-					<b-th
-						v-for="(phenotype, i) in phenotypes"
-						:key="phenotype"
-						colspan="2"
-						class="reference"
-						:class="'color-' + (i + 1)"
-					>
-						<span
-							v-if="phenotypeMap[phenotype]"
-							style="color: white"
+			<table class="table b-table table-hover table-sm">
+				<thead>
+					<tr>
+						<th
+							:colspan="!!showChiSquared ? (!!ifEgls ? 3 : 2) : 1"
 						>
-							{{ phenotypeMap[phenotype].description
-							}}{{ ": " + genesPerPhenotypes[phenotype] }}
-						</span>
-					</b-th>
-				</template>
-				<template v-slot:cell(geneName)="r">
-					<a :href="`/gene.html?gene=${r.item.gene}`">{{
-						r.item.gene
-					}}</a>
-				</template>
-				<template v-slot:cell(egls)="r">
-					<div v-html="r.item.egls"></div>
-				</template>
-				<template
-					v-slot:[phenotypePValueColumn(p)]="r"
-					v-for="p in phenotypes"
-					>{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
-				>
-				<template
-					v-slot:[phenotypeVariantsColumn(p)]="r"
-					v-for="p in phenotypes"
-					>{{ intFormatter(r.item[`${p}:nParam`]) }}</template
-				>
-				<template
-					v-slot:[phenotypeSubjectsColumn(p)]="r"
-					v-for="p in phenotypes"
-					>{{ intFormatter(r.item[`${p}:subjects`]) }}</template
-				>
-			</b-table>
+							<span>
+								Matching genes:
+								{{ groupedAssociations.length }}
+							</span>
+						</th>
+						<th
+							v-for="(phenotype, i) in phenotypes"
+							:key="phenotype"
+							colspan="2"
+							class="reference"
+							:class="'color-' + (i + 1)"
+						>
+							<span
+								v-if="phenotypeMap[phenotype]"
+								style="color: white"
+							>
+								{{ phenotypeMap[phenotype].description
+								}}{{ ": " + genesPerPhenotypes[phenotype] }}
+							</span>
+						</th>
+					</tr>
+					<tr>
+						<th>Gene</th>
+						<th>P-Value(Χ²)</th>
+						<th v-if="egls.length > 0">Effector gene lists</th>
+						<template v-for="phenotype in phenotypes">
+							<th>P-Value</th>
+							<th>Samples</th>
+						</template>
+					</tr>
+				</thead>
+				<tbody>
+					<template
+						v-for="(
+							itemValue, itemIndex
+						) in groupedAssociationsDisplay"
+					>
+						<tr>
+							<td>
+								<a
+									:href="`/gene.html?gene=${itemValue.gene}`"
+									>{{ itemValue.gene }}</a
+								>
+							</td>
+							<td>
+								{{ pValueFormatter(itemValue.chiSquared) }}
+							</td>
+							<td
+								v-if="!!itemValue.egls"
+								v-html="itemValue.egls"
+							></td>
+							<template v-for="phenotype in phenotypes">
+								<td
+									:class="
+										itemValue[phenotype + ':pValue'] < 1e-5
+											? 'variant-table-cell high'
+											: ''
+									"
+								>
+									{{
+										pValueFormatter(
+											itemValue[phenotype + ":pValue"]
+										)
+									}}
+								</td>
+								<td>
+									{{
+										intFormatter(
+											itemValue[phenotype + ":subjects"]
+										)
+									}}
+								</td>
+							</template>
+						</tr>
+					</template>
+				</tbody>
+			</table>
+
 			<b-pagination
 				class="pagination-sm justify-content-center"
 				v-model="currentPage"
@@ -120,6 +148,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 	props: [
 		"associations",
 		"phenotypes",
+		"egls",
 		"phenotypeMap",
 		"filter",
 		"exclusive",
@@ -136,12 +165,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 	data() {
 		return {
 			currentPage: 1,
-			baseFields: [
-				{
-					key: "geneName",
-					label: "Gene",
-				},
-			],
 		};
 	},
 
@@ -157,14 +180,14 @@ export default Vue.component("gene-finder-w-egl-table", {
 			return this.associations;
 		},
 		ifEgls() {
-			if (!!this.tableData[0]["egls"]) {
+			if (this.egls.length > 0) {
 				return true;
 			} else {
 				return null;
 			}
 		},
 
-		fields() {
+		/*fields() {
 			let fields = this.baseFields;
 
 			// add the chi squared column
@@ -176,7 +199,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 				});
 			}
 
-			if (!!this.ifEgls) {
+			if (this.egls.length > 0) {
 				fields.push({
 					key: `egls`,
 					label: "Predicted effector genes (PMID)",
@@ -198,10 +221,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 						},
 						sortable: true,
 					},
-					/*{
-						key: `${p}:nParam`,
-						label: "Variants",
-					},*/
 					{
 						key: `${p}:subjects`,
 						label: "Samples",
@@ -210,7 +229,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 			}
 
 			return fields;
-		},
+		},*/
 
 		groupedAssociations() {
 			let data = [];
@@ -267,9 +286,21 @@ export default Vue.component("gene-finder-w-egl-table", {
 			// sort all the records by combined p-value
 			data.sort((a, b) => a.chiSquared - b.chiSquared);
 
-			//console.log("formatted data", data);
-
 			return data;
+		},
+
+		groupedAssociationsDisplay() {
+			let returnList = [];
+			let startIndex =
+				this.currentPage * this.rowsPerPage - this.rowsPerPage;
+			let endIndex = this.currentPage * this.rowsPerPage - 1;
+			for (let i = startIndex; i <= endIndex; i++) {
+				if (!!this.groupedAssociations[i]) {
+					returnList.push(this.groupedAssociations[i]);
+				}
+			}
+
+			return returnList;
 		},
 
 		genesPerPhenotypes() {
