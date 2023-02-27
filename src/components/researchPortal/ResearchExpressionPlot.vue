@@ -1,6 +1,5 @@
 <template>
 <div class="chart-wrapper">
-    <h4>Gene Expression</h4>
     <div id="multi-chart">
         <p>Loading...</p>
     </div>
@@ -53,8 +52,6 @@ export default Vue.component("research-expression-plot", {
                     flatData.push(flattenedEntry);
                 }
             }
-            console.log(`${flatData.length} entries`);
-
             var margin = { 
                 top: 10, 
                 right: 30, 
