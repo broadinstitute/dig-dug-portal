@@ -127,13 +127,17 @@ new Vue({
                 this.geneFinderPhenotypes.map(p => {
                     this.$store.state.eglsFullList.map(e => {
 
-                        if (e["Trait ID"] != undefined && e["byor_gene"] == "TRUE" && e["Trait ID"].toLowerCase() == p.toLowerCase()) {
+                        /*if (e["Trait ID"] != undefined && e["byor_gene"] == "TRUE" && e["Trait ID"].toLowerCase() == p.toLowerCase()) {
+                            options.push(e);
+                        }*/
+
+                        if (e["Trait ID"] != undefined && e["byor_gene"] == "TRUE") {
                             options.push(e);
                         }
                     })
                 })
 
-                let sorted = sortUtils.sortArrOfObjects(options, 'Effector list name', 'alphabetical', 'desc');
+                let sorted = sortUtils.sortArrOfObjects(options, 'Effector list name', 'alphabetical', 'asc');
 
                 return sorted;
             }
@@ -202,11 +206,13 @@ new Vue({
                 })
 
 
+                let GFEglsLength = this.geneFinderEgls.length;
+
                 combinedData.map(c => {
 
                     let geneId = c["gene"];
 
-                    if (!!eglGenes[geneId]) {
+                    if (!!eglGenes[geneId] && eglGenes[geneId]['egls'].length == GFEglsLength) {
                         let tempGene = { ...c };
 
                         let eglsContent = "";
