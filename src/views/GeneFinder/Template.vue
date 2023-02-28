@@ -78,6 +78,27 @@
 								>
 							</div>
 						</filter-enumeration-control>
+						<filter-enumeration-control
+							class="filter-col-lg"
+							:field="'ancestry'"
+							:options="
+								$parent.eglsOptions.map((egl) => egl['Page ID'])
+							"
+							:multiple="null"
+							:disableSort="true"
+							:labelFormatter="
+								(egl) =>
+									!!$parent.eglsMap[egl]
+										? $parent.eglsMap[egl][
+												'Effector list name'
+										  ]
+										: egl
+							"
+						>
+							<div>
+								<strong>Filter by ancestry</strong>
+							</div>
+						</filter-enumeration-control>
 
 						<!-- pValue filter -->
 						<filter-pvalue-control
