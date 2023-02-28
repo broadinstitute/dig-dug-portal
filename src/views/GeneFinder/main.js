@@ -203,11 +203,13 @@ new Vue({
                 })
 
 
+                let GFEglsLength = this.geneFinderEgls.length;
                 combinedData.map(c => {
 
                     let geneId = c["gene"];
 
-                    if (!!eglGenes[geneId]) {
+                    if (!!eglGenes[geneId] && eglGenes[geneId]['egls'].length == GFEglsLength) {
+
                         let tempGene = { ...c };
 
                         let eglsContent = "";
