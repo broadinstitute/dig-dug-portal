@@ -96,7 +96,10 @@
 								</div>
 								<div class="col-md-9 col filter-col-md">
 									<div class="label">
-										Data source<sup>*</sup>
+										Data source<sup class="optional"
+											>If data files wrapped in a
+											compressed file</sup
+										>
 									</div>
 									<input
 										type="text"
@@ -255,6 +258,7 @@
 									<a href="javascript:;">here</a>.
 								</div>
 							</div>
+							<!-- case of data files are not wrapped in .zip -->
 							<div class="row dr-phenotype-samples">
 								<div
 									class="
@@ -269,7 +273,7 @@
 								<div
 									class="
 										offset-md-1
-										col-md-5 col
+										col-md-2 col
 										filter-col-md
 									"
 								>
@@ -298,6 +302,116 @@
 										placeholder="Controls"
 									/>
 								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Data source</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Data source"
+									/>
+								</div>
+							</div>
+							<!-- case of data files zipped -->
+							<div class="row dr-phenotype-samples">
+								<div
+									class="
+										offset-md-1
+										col-md-11 col
+										filter-col-md
+										selected-phenotypes
+									"
+								>
+									Type 1 diabetes
+								</div>
+								<div
+									class="
+										offset-md-1
+										col-md-2 col
+										filter-col-md
+									"
+								>
+									<div class="label">
+										Sample size<sup>*</sup>
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Sample size"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Cases</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Cases"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Controls</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Controls"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">File name</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="File name"
+									/>
+								</div>
+							</div>
+							<!-- case of data files not zipped and data source type is 'File' -->
+							<div class="row dr-phenotype-samples">
+								<div
+									class="
+										offset-md-1
+										col-md-11 col
+										filter-col-md
+										selected-phenotypes
+									"
+								>
+									Type 1 diabetes
+								</div>
+								<div
+									class="
+										offset-md-1
+										col-md-2 col
+										filter-col-md
+									"
+								>
+									<div class="label">
+										Sample size<sup>*</sup>
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Sample size"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Cases</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Cases"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Controls</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Controls"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">Data file</div>
+									<button type="button">Choose file</button>
+								</div>
 							</div>
 							<div class="row dr-phenotype-samples">
 								<div
@@ -313,7 +427,7 @@
 								<div
 									class="
 										offset-md-1
-										col-md-5 col
+										col-md-2 col
 										filter-col-md
 									"
 								>
