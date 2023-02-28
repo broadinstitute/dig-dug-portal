@@ -894,6 +894,9 @@ export default Vue.component("research-region-plot", {
 
 			let bump = this.plotMargin.bump;
 
+			console.log("this.plotData", this.plotData);
+			console.log("this.assoData", this.assoData);
+			console.log("this.ldData", this.ldData);
 			this.plotsList.map((p) => {
 				// first asso plot
 				let c, ctx;
