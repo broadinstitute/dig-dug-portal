@@ -298,13 +298,13 @@
 							'render by': 'phenotype',
 							'group by': 'group',
 							'phenotype map': 'kp phenotype map',
-							'y axis field': 'huge',
+							'y axis field': 'renderScore',
 							'convert y -log10': 'false',
-							'y axis label': 'HuGE score',
+							'y axis label': 'Log(HuGE score)',
 							'x axis label': '',
 							'beta field': 'null',
-							'hover content': ['bf_common', 'bf_rare'],
-							thresholds: [],
+							'hover content': ['bf_common', 'bf_rare', 'huge'],
+							thresholds: [Math.log(3), Math.log(30)],
 							height: '500',
 						}"
 						:pkgData="null"

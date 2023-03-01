@@ -236,7 +236,7 @@ export default Vue.component("research-phewas-plot", {
 
 				phenotypeGroupsObj[group].push(p);
 			});
-
+			/*
 			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
 				value.sort((a, b) =>
 					a[this.renderConfig["y axis field"]] >
@@ -244,7 +244,7 @@ export default Vue.component("research-phewas-plot", {
 						? 1
 						: -1
 				);
-			}
+			}*/
 
 			return phenotypeGroupsObj;
 		},

@@ -14,6 +14,7 @@ import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
@@ -315,7 +316,9 @@ new Vue({
         },
 
         hugeScores() {
-            let data = this.$store.state.hugeScores.data;
+            let data = sortUtils.sortArrOfObjects(this.$store.state.hugeScores.data, 'huge', 'number', 'desc');
+
+            console.log(data);
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
                 data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
@@ -323,12 +326,17 @@ new Vue({
 
             let hugeMap = {};
 
+            console.log('3', Math.log(3))
+            console.log('30', Math.log(30))
+
             for (let i in data) {
                 const score = data[i];
-                score["group"] = this.$store.state.bioPortal.phenotypeMap[score.phenotype].group;
+                let phenotypeEntity = this.$store.state.bioPortal.phenotypeMap[score.phenotype];
+                score["group"] = !!phenotypeEntity ? phenotypeEntity.group : "No group info";
                 let range = data[i].huge >= 350 ? "Compelling" : data[i].huge >= 100 ? "Extreme" : data[i].huge >= 30 ? "Very Strong" : data[i].huge >= 10 ? "Strong" : data[i].huge >= 3 ? "Moderate" : data[i].huge > 1 ? "Anecdotal" : "No Evidence";
 
                 score["range"] = range;
+                score["renderScore"] = Math.log(data[i].huge);
 
                 // skip associations not part of the disease group
                 if (!this.phenotypeMap[score.phenotype]) {
