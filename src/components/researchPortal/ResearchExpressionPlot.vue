@@ -44,6 +44,7 @@ export default Vue.component("research-expression-plot", {
 	computed: {},
 	watch: {
         rawData: function(){
+            this.processData();
             this.displayResults();
         },
         logScale: function(){
@@ -123,7 +124,6 @@ export default Vue.component("research-expression-plot", {
             let sumstat = d3.nest()
                     .key(d => d[keyAttribute])
                     .rollup(function(d) {
-                        // I think flatMap is the problem
                         let input = d.map(g => g.tpm);
                         let bins = histogram(input);
                         return(bins);
@@ -166,7 +166,62 @@ export default Vue.component("research-expression-plot", {
                         .y(d => y(d.x0))
                         .curve(d3.curveCatmullRom)
                     );
-
+            let numberViolins = 0;
+            let sumstatBox = d3.nest()
+                    .key(d => d[keyAttribute])
+                    .rollup(d => {
+                        numberViolins++;
+                        let sortedData = d.map(g => g.tpm).sort(d3.ascending);
+                        let q1 = d3.quantile(sortedData, .25);
+                        let median = d3.quantile(sortedData, .5);
+                        let q3 = d3.quantile(sortedData, .75);
+                        let interQuantileRange = q3 - q1;
+                        let min = sortedData[0];
+                        let max = sortedData[sortedData.length - 1];
+                        return ({
+                            q1: q1,
+                            median: median,
+                            q3: q3,
+                            interQuantileRange: interQuantileRange,
+                            min: min,
+                            max: max
+                        });
+                    }).entries(flatData);
+            let offset = width / (2 * numberViolins);
+            // Superimpose boxplots
+            svg.selectAll("vertLines")
+                    .data(sumstatBox)
+                    .enter()
+                    .append("line")
+                        .attr("x1", x(0))
+                        .attr("x2", x(0))
+                        .attr("y1", d => y(d.value.min))
+                        .attr("y2", d => y(d.value.max))
+                        .attr("stroke", "#99999999")
+                        .style("width", 30)
+                        .attr("transform", d => `translate(${x(d.key) + offset},0)`);
+            
+            let boxHalfWidth = 3;
+            svg.selectAll("boxes")
+                    .data(sumstatBox)
+                    .enter()
+                    .append("rect")
+                        .attr("x", d => x(d.key) + offset - boxHalfWidth)
+                        .attr("y", d => y(d.value.q3))
+                        .attr("height", d=> y(d.value.q1) - y(d.value.q3))
+                        .attr("width", boxHalfWidth * 2)
+                        .attr("stroke", "none")
+                        .style("fill", "#99999999");
+            svg.selectAll("medianLines")
+                    .data(sumstatBox)
+                    .enter()
+                    .append("line")
+                        .attr("x1", d => x(d.key) + offset - boxHalfWidth)
+                        .attr("x2", d => x(d.key) + offset + boxHalfWidth)
+                        .attr("y1", d => y(d.value.median))
+                        .attr("y2", d => y(d.value.median))
+                        .attr("stroke", "white")
+                        .style("width", 50);
         },
 
         getBottomMargin(data, labelField){
