@@ -3,6 +3,13 @@
     <div id="multi-chart">
         <p>Loading...</p>
     </div>
+    <label>
+        Scale:
+        <select v-model="logScale">
+            <option value="no">Linear</option>
+            <option value="yes">Logarithmic: log10(TPM+1))</option>
+        </select>
+    </label>
 </div>
 </template>
 
@@ -16,46 +23,70 @@ export default Vue.component("research-expression-plot", {
     data(){
         return {
             chart: null,
-            chartWidth: null
+            chartWidth: null,
+            logScale: "no",
+            processedData: null,
+            flatLinear: null,
+            flatLog: null,
+            keyAttribute: "tissue"
         };
     },
     mounted: function () {
         this.chart = document.getElementById("multi-chart");
-        this.chartWidth = this.chart.clientWidth;
-
-        this.displayResults();
+        this.chartWidth = this.chart.clientWidth;       
         //addEventListener("resize", (event) => {
                     //this.chartWidth = this.chart.clientWidth;
                     //this.displayResults();
                 //});
-        
+        this.processData();
+        this.displayResults();
     },
 	computed: {},
 	watch: {
         rawData: function(){
             this.displayResults();
         },
+        logScale: function(){
+            this.displayResults();
+        }
     },
     methods: {
         ...uiUtils,
-        displayResults(){
-            let rawData = this.$props.rawData;
-            let keyAttribute = "tissue"
+        processData(){
+            let processedData = this.$props.rawData;
+            processedData.forEach(entry => { 
+                let tpms = entry.tpmForAllSamples.split(",")
+                    .map(i => parseFloat(i));
+                entry["tpmForAllSamples"] = tpms;
+            });
+            let flatLinear = [];
+            let flatLog = [];
+            for (let item of processedData){
+                for (let tpmVal of item.tpmForAllSamples){
+                    let flatLinearEntry = {};
+                    flatLinearEntry[this.keyAttribute] = item[this.keyAttribute];
+                    flatLinearEntry["tpm"] = tpmVal;
+                    flatLinear.push(flatLinearEntry);
 
-            // Flatten the data
-            let flatData = [];
-            for (let topLevelEntry of rawData){
-                for (let tpmVal of topLevelEntry.tpmForAllSamples){
-                    let flattenedEntry = {};
-                    flattenedEntry[keyAttribute] = topLevelEntry[keyAttribute];
-                    flattenedEntry["tpm"] = tpmVal;
-                    flatData.push(flattenedEntry);
+                    let flatLogEntry = {};
+                    flatLogEntry[this.keyAttribute] = item[this.keyAttribute];
+                    flatLogEntry["tpm"] = Math.log10(tpmVal + 1);
+                    flatLog.push(flatLogEntry);
                 }
             }
+            this.processedData = processedData;
+            this.flatLinear = flatLinear;
+            this.flatLog = flatLog;
+        },
+        displayResults(){
+            let inputData = this.processedData;
+            let keyAttribute = this.keyAttribute;
+
+            let flatData = this.logScale == "yes" ? this.flatLog : this.flatLinear;
             var margin = { 
                 top: 10, 
                 right: 30, 
-                bottom: this.getBottomMargin(rawData, keyAttribute),
+                bottom: this.getBottomMargin(flatData, keyAttribute),
                 left: 40 
             },
                 width = this.chartWidth - margin.left - margin.right,
@@ -69,7 +100,7 @@ export default Vue.component("research-expression-plot", {
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             var x = d3.scaleBand()
                 .range([0, width])
-                .domain(rawData.map(entry => entry[keyAttribute]))
+                .domain(flatData.map(entry => entry[keyAttribute]))
                 .padding(0.05);
             svg.append("g")
                 .attr("transform", `translate(0,${height})`)
@@ -78,8 +109,8 @@ export default Vue.component("research-expression-plot", {
                 .style("text-anchor", "start")
                 .attr("transform", "rotate(45)");
 
-            let maxVal = rawData.map(g => g.maxTpm).reduce(
-                (prev, next) => prev > next ? prev : next, 0
+            let maxVal = flatData.map(g => g.tpm).reduce(
+                    (prev, next) => prev > next ? prev : next, 0
                 );
             var y = d3.scaleLinear()
                 .domain([0,maxVal])
