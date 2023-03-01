@@ -236,7 +236,7 @@ export default Vue.component("research-phewas-plot", {
 
 				phenotypeGroupsObj[group].push(p);
 			});
-
+			/*
 			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
 				value.sort((a, b) =>
 					a[this.renderConfig["y axis field"]] >
@@ -244,7 +244,7 @@ export default Vue.component("research-phewas-plot", {
 						? 1
 						: -1
 				);
-			}
+			}*/
 
 			return phenotypeGroupsObj;
 		},
@@ -629,13 +629,31 @@ export default Vue.component("research-phewas-plot", {
 									labelXpos < maxWidthPerGroup
 								) {
 									ctx.font = "22px Arial";
-									ctx.fillStyle =
-										p.rawPValue <=
-										Number(
-											this.renderConfig["thresholds"][0]
-										)
-											? "#000000"
-											: "#00000050";
+									if (
+										!!this.renderConfig["label in black"] &&
+										this.renderConfig["label in black"] ==
+											"greater than"
+									) {
+										ctx.fillStyle =
+											p.rawPValue >=
+											Number(
+												this.renderConfig[
+													"thresholds"
+												][0]
+											)
+												? "#000000"
+												: "#00000050";
+									} else {
+										ctx.fillStyle =
+											p.rawPValue <=
+											Number(
+												this.renderConfig[
+													"thresholds"
+												][0]
+											)
+												? "#000000"
+												: "#00000050";
+									}
 
 									ctx.save();
 									ctx.translate(labelXpos + 10, yPos - 24);
