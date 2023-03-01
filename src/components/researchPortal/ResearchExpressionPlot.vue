@@ -34,10 +34,10 @@ export default Vue.component("research-expression-plot", {
     mounted: function () {
         this.chart = document.getElementById("multi-chart");
         this.chartWidth = this.chart.clientWidth;       
-        //addEventListener("resize", (event) => {
-                    //this.chartWidth = this.chart.clientWidth;
-                    //this.displayResults();
-                //});
+        addEventListener("resize", (event) => {
+                    this.chartWidth = this.chart.clientWidth;
+                    this.displayResults();
+                });
         this.processData();
         this.displayResults();
     },
@@ -79,7 +79,6 @@ export default Vue.component("research-expression-plot", {
             this.flatLog = flatLog;
         },
         displayResults(){
-            let inputData = this.processedData;
             let keyAttribute = this.keyAttribute;
 
             let flatData = this.logScale == "yes" ? this.flatLog : this.flatLinear;
