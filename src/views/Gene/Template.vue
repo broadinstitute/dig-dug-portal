@@ -305,6 +305,7 @@
 							'beta field': 'null',
 							'hover content': ['bf_common', 'bf_rare', 'huge'],
 							thresholds: [Math.log(3), Math.log(30)],
+							'label in black': 'greater than',
 							height: '500',
 						}"
 						:pkgData="null"
