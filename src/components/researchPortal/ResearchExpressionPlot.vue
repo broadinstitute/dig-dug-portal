@@ -79,6 +79,7 @@ export default Vue.component("research-expression-plot", {
             this.processedData = processedData;
             this.flatLinear = flatLinear;
             this.flatLog = flatLog;
+            this.mapColors();
         },
         displayResults(){
             let keyAttribute = this.keyAttribute;
@@ -154,6 +155,8 @@ export default Vue.component("research-expression-plot", {
                     .datum(d => d.value)
                     .style("stroke", "none")
                     .style("fill", d => {
+                        // I don't like reinventing the wheel, but I cannot
+                        // figure out how to access the key attribute as text
                         let color = colors[colorIndex];
                         colorIndex++;
                         if (colorIndex >= colors.length){
@@ -232,12 +235,24 @@ export default Vue.component("research-expression-plot", {
                             - (2*boxHalfWidth) + Math.random()*boxHalfWidth*4)
                         .attr("cy", d => y(d.tpm))
                         .attr("r", 1)
-                        .style("fill", "#99999999")
+                        .style("fill", 
+                            d => `${this.colorMap[d[keyAttribute]]}55`)
                         .attr("stroke", "none");
 
         },
         mapColors(){
-
+            let colorMap = {};
+            let colorIndex = 0;
+            this.processedData.forEach(entry => {
+                if (!colorMap[entry[this.keyAttribute]]){
+                    colorMap[entry[this.keyAttribute]] = colors[colorIndex];
+                    colorIndex++;
+                    if (colorIndex >= colors.length){
+                            colorIndex = 0;
+                    }
+                }
+            });
+            this.colorMap = colorMap;
         },
         getBottomMargin(data, labelField){
             let longestLabel = data.map(item => item[labelField].length).reduce(
