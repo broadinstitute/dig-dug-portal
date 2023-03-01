@@ -49,6 +49,15 @@
 				</a>
 				&nbsp;
 			</template>
+			<template v-slot:cell(link)="r">
+				<a
+					target="_blank"
+					class="btn btn-primary btn-sm"
+					style="color: #ffffff !important"
+					:href="`/hugecalculator.html?gene=${gene.name}&phenotype=${r.item.phenotype}&prior=0.3696`"
+					>Open</a
+				>
+			</template>
 		</b-table>
 		<div v-else>No data available for this query.</div>
 		<b-pagination
@@ -131,6 +140,10 @@ export default Vue.component("huge-scores-table", {
 				{
 					key: "range",
 					label: "Evidence Range",
+				},
+				{
+					key: "link",
+					label: "Open in HuGE Cal",
 				},
 			],
 		};
