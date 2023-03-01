@@ -191,7 +191,7 @@ import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpr
 					</b-tabs>
 				</div>
 			</div>
-			<!--<div class="card mdkp-card">
+			<div class="card mdkp-card">
 				<div class="card-body">
 					<h4 class="card-title">Gene Expression for {{ $store.state.geneName }}</h4>
 					<research-expression-plot v-if="$parent.geneExpression.length > 0"
@@ -199,7 +199,7 @@ import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpr
 					</research-expression-plot>
 				</div>
 			</div>
-			<div class="card mdkp-card">
+			<!--div class="card mdkp-card">
 				<div class="card-body">
 					<h4 style="font-weight: bold" class="card-title">
 						HuGE Score
