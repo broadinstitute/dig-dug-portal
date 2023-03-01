@@ -28,7 +28,8 @@ export default Vue.component("research-expression-plot", {
             processedData: null,
             flatLinear: null,
             flatLog: null,
-            keyAttribute: "tissue"
+            keyAttribute: "tissue",
+            colorMap: {}
         };
     },
     mounted: function () {
@@ -222,8 +223,22 @@ export default Vue.component("research-expression-plot", {
                         .attr("y2", d => y(d.value.median))
                         .attr("stroke", "white")
                         .style("width", 50);
-        },
+            
+            svg.selectAll("indPoints")
+                    .data(flatData)
+                    .enter()
+                    .append("circle")
+                        .attr("cx", d => x(d[keyAttribute]) + offset 
+                            - (2*boxHalfWidth) + Math.random()*boxHalfWidth*4)
+                        .attr("cy", d => y(d.tpm))
+                        .attr("r", 1)
+                        .style("fill", "#99999999")
+                        .attr("stroke", "none");
 
+        },
+        mapColors(){
+
+        },
         getBottomMargin(data, labelField){
             let longestLabel = data.map(item => item[labelField].length).reduce(
                 (prev, next) => prev > next ? prev : next);

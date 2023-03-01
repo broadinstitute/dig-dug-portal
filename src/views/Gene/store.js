@@ -173,7 +173,6 @@ export default new Vuex.Store({
         },
         async getHugeScoresData(context) {
             let name = context.state.geneName;
-            console.log("name", name);
             context.dispatch('hugeScores/query', { q: name });
         },
         phenotypeCorrelation(context, DATA) {

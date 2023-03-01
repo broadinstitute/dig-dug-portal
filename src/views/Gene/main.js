@@ -319,16 +319,11 @@ new Vue({
         hugeScores() {
             let data = sortUtils.sortArrOfObjects(this.$store.state.hugeScores.data, 'huge', 'number', 'desc');
 
-            console.log(data);
-
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
                 data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
             }
 
             let hugeMap = {};
-
-            console.log('3', Math.log(3))
-            console.log('30', Math.log(30))
 
             for (let i in data) {
                 const score = data[i];
