@@ -14,6 +14,7 @@ import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
@@ -24,6 +25,7 @@ import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -82,7 +84,8 @@ new Vue({
         VariantSearch,
         ColorBarPlot,
         GenePageCombinedEvidenceTable,
-        HugeCalScoreSection
+        HugeCalScoreSection,
+        HugeScoresTable
     },
 
     data() {
@@ -313,6 +316,42 @@ new Vue({
             return x;
         },
 
+        hugeScores() {
+            let data = sortUtils.sortArrOfObjects(this.$store.state.hugeScores.data, 'huge', 'number', 'desc');
+
+            console.log(data);
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
+            }
+
+            let hugeMap = {};
+
+            console.log('3', Math.log(3))
+            console.log('30', Math.log(30))
+
+            for (let i in data) {
+                const score = data[i];
+                let phenotypeEntity = this.$store.state.bioPortal.phenotypeMap[score.phenotype];
+                score["group"] = !!phenotypeEntity ? phenotypeEntity.group : "No group info";
+                let range = data[i].huge >= 350 ? "Compelling" : data[i].huge >= 100 ? "Extreme" : data[i].huge >= 30 ? "Very Strong" : data[i].huge >= 10 ? "Strong" : data[i].huge >= 3 ? "Moderate" : data[i].huge > 1 ? "Anecdotal" : "No Evidence";
+
+                score["range"] = range;
+                score["renderScore"] = Math.log(data[i].huge);
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[score.phenotype]) {
+                    continue;
+                }
+
+                hugeMap[score.phenotype] = score;
+            }
+
+            // convert to an array, sorted by p-value
+            let x = Object.values(hugeMap);
+            return x;
+        },
+
         associations52k() {
 
             let data = this.$store.state.associations52k.data;
@@ -352,7 +391,7 @@ new Vue({
             // let x = data.sort(
             //     (a, b) => a.pValue - b.pValue
             // );
-
+    
             return "T2D";
         },*/
         selectedPhenotypes() {
@@ -371,32 +410,6 @@ new Vue({
                 return this.selectedPhenotypes[0].name;
             } else return "T2D";
         },
-        /*eglData() {
-            let geneSymbol = this.$store.state.geneName;
-            if (this.selectedPhenotype == "T2D") {
-                if (!!this.$store.state.kp4cd.eglData.data) {
-                    let effectordata = this.$store.state.kp4cd.eglData.data;
-                    let effectorGeneData = {};
-
-                    for (var i = 0; i < effectordata.length; ++i) {
-                        if (
-                            effectordata[i].gene.toLowerCase() ===
-                            geneSymbol.toLowerCase()
-                        ) {
-                            effectorGeneData = effectordata[i];
-                            if (effectorGeneData.category == "(T2D_related)") {
-                                effectorGeneData.category = "No Evidence";
-                            }
-                            break;
-                        }
-                        //if the gene is in GWAS but not in mccarthy data
-                    }
-                    return effectorGeneData;
-                }
-            } else {
-                return { category: "in GWAS" };
-            }
-        },*/
 
         queries() {
             return [
@@ -533,8 +546,6 @@ new Vue({
                 this.pushCriterionPhenotype(topPhenotype);
 
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
-
-                //this.$store.dispatch("getEGLData");
             }
         },
 
@@ -550,7 +561,6 @@ new Vue({
                     phenotypes[0].name
                 );
             }
-            //this.$store.dispatch("getEGLData");
         },
 
         diseaseGroup(group) {
@@ -567,6 +577,7 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
+            this.$store.dispatch("getHugeScoresData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
             let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}` };
@@ -579,6 +590,9 @@ new Vue({
         },
         "$store.state.commonVariantsLength"(NUM) {
             this.onAncestrySet();
+        },
+        "$store.state.geneName"(NAME) {
+            this.$store.dispatch("getHugeScoresData");
         }
     }
 }).$mount("#app");

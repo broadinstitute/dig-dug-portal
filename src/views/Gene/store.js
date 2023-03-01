@@ -22,6 +22,7 @@ export default new Vuex.Store({
         associations52k: bioIndex("gene-associations-52k"),
         geneToTranscript: bioIndex("gene-to-transcript"),
         transcriptAssoc: bioIndex("transcript-associations"),
+        hugeScores: bioIndex("huge"),
         geneExpression: bioIndex("gene-expression"),
         uniprot
     },
@@ -166,14 +167,14 @@ export default new Vuex.Store({
             context.dispatch('varassociations/query', { q: phenoRegionQuery });
 
         },
-        /*async getEGLData(context) {
-            let dataset = "mccarthy";
-            let trait = "t2d";
-            context.dispatch("kp4cd/getEglData", { dataset, trait });
-        },*/
         async get52KAssociationData(context) {
             let name = context.state.geneName;
             context.dispatch('associations52k/query', { q: name });
+        },
+        async getHugeScoresData(context) {
+            let name = context.state.geneName;
+            console.log("name", name);
+            context.dispatch('hugeScores/query', { q: name });
         },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
