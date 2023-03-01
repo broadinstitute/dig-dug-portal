@@ -68,6 +68,21 @@
 							</select>
 						</div>
 					</div>
+					<div class="row dr-status-section">
+						<div class="col-md-12 col filter-col-md">
+							<div class="label">
+								Study<sup>*</sup
+								><sup class="optional"
+									>Maria to come up with text of guidence</sup
+								>
+							</div>
+							<input
+								type="text"
+								class="form-control input-default"
+								placeholder="Study"
+							/>
+						</div>
+					</div>
 					<div class="row dr-data-update-section">
 						<div class="col-md-12 col filter-col-md">
 							Portal:
@@ -303,7 +318,9 @@
 									/>
 								</div>
 								<div class="col-md-3 col filter-col-md">
-									<div class="label">Data source</div>
+									<div class="label">
+										Data source<sup>*</sup>
+									</div>
 									<input
 										type="text"
 										class="form-control input-default"
@@ -356,7 +373,9 @@
 									/>
 								</div>
 								<div class="col-md-3 col filter-col-md">
-									<div class="label">File name</div>
+									<div class="label">
+										File name<sup>*</sup>
+									</div>
 									<input
 										type="text"
 										class="form-control input-default"
@@ -409,8 +428,15 @@
 									/>
 								</div>
 								<div class="col-md-3 col filter-col-md">
-									<div class="label">Data file</div>
-									<button type="button">Choose file</button>
+									<div class="label">
+										Data file<sup>*</sup>
+									</div>
+									<button
+										type="button"
+										class="btn btn-default btn-primary"
+									>
+										Choose file
+									</button>
 								</div>
 							</div>
 							<div class="row dr-phenotype-samples">
@@ -524,6 +550,84 @@
 								<sup class="optional">optional</sup>
 							</h4>
 							<div class="row">
+								<div class="col-md-6 col filter-col-md">
+									<div class="label">
+										Phenotypes<sup>*</sup
+										><sup class="optional">
+											Start typing to search
+											phenotype</sup
+										>
+									</div>
+									<phenotype-combo
+										:phenotypes="$parent.fullPhenotypes"
+									>
+									</phenotype-combo>
+								</div>
+								<div class="col-md-6 col filter-col-md">
+									<div class="label">
+										If other phenotypes
+										<sup class="optional"
+											>separate with ','</sup
+										>
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder=""
+									/>
+								</div>
+							</div>
+							<pre />
+							<div class="row dr-phenotype-samples">
+								<div
+									class="
+										offset-md-1
+										col-md-11 col
+										filter-col-md
+										selected-phenotypes
+									"
+								>
+									Type 1 diabetes
+								</div>
+								<div
+									class="
+										offset-md-1
+										col-md-5 col
+										filter-col-md
+									"
+								>
+									<div class="label">
+										Credible set name<sup>*</sup>
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="Name"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">
+										Credible set ID<sup>* Admin only</sup>
+									</div>
+									<input
+										type="text"
+										class="form-control input-default"
+										placeholder="ID"
+									/>
+								</div>
+								<div class="col-md-3 col filter-col-md">
+									<div class="label">
+										Data file<sup>*</sup>
+									</div>
+									<button
+										type="button"
+										class="btn btn-default btn-primary"
+									>
+										Choose file
+									</button>
+								</div>
+							</div>
+							<!--<div class="row">
 								<div class="col-md-3 col filter-col-md">
 									<div class="label">Data source type</div>
 									<select class="form-control">
@@ -562,7 +666,7 @@
 										placeholder="Data source"
 									/>
 								</div>
-							</div>
+							</div>-->
 						</div>
 					</div>
 					<div class="row dr-description-section">
