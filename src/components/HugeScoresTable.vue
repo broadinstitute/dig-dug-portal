@@ -52,7 +52,7 @@
 			<template v-slot:cell(link)="r">
 				<a
 					target="_blank"
-					class="btn btn-primary btn-sm"
+					class="btn view-features-btn btn-secondary"
 					style="color: #ffffff !important"
 					:href="`/hugecalculator.html?gene=${gene.name}&phenotype=${r.item.phenotype}&prior=0.3696`"
 					>Open</a
