@@ -214,8 +214,8 @@ export default Vue.component("research-expression-plot", {
                         .attr("y", d => y(d.value.q3))
                         .attr("height", d=> y(d.value.q1) - y(d.value.q3))
                         .attr("width", boxHalfWidth * 2)
-                        .attr("stroke", "none")
-                        .style("fill", "#99999999");
+                        .attr("stroke", "#99999999")
+                        .style("fill", "#ffffffff");
             svg.selectAll("medianLines")
                     .data(sumstatBox)
                     .enter()
@@ -224,7 +224,7 @@ export default Vue.component("research-expression-plot", {
                         .attr("x2", d => x(d.key) + offset + boxHalfWidth)
                         .attr("y1", d => y(d.value.median))
                         .attr("y2", d => y(d.value.median))
-                        .attr("stroke", "white")
+                        .attr("stroke", "#99999999")
                         .style("width", 50);
             
             svg.selectAll("indPoints")
