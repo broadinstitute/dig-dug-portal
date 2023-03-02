@@ -7,7 +7,7 @@
         Scale:
         <select v-model="logScale">
             <option value="no">Linear</option>
-            <option value="yes">Logarithmic: log10(TPM+1))</option>
+            <option value="yes">Logarithmic: log10(TPM+1)</option>
         </select>
     </label>
 </div>
@@ -148,6 +148,17 @@ export default Vue.component("research-expression-plot", {
             let colorIndex = 0;
             var mouseover = function(d) {
                 console.log(d.key);
+                let boxHalfWidth = 3;
+                svg.selectAll("indPoints")
+                    .data(flatData.filter(entry => entry[keyAttribute] == d.key))
+                    .enter()
+                    .append("circle")
+                        .attr("cx", x(d.key) + offset 
+                            - (2*boxHalfWidth) + Math.random()*boxHalfWidth*4)
+                        .attr("cy", g => y(g.tpm))
+                        .attr("r", 1)
+                        .style("fill", `${this.colorMap[d.key]}55`)
+                        .attr("stroke", "none");
             };
             svg.selectAll("myViolin")
                 .data(sumstat)
@@ -230,19 +241,19 @@ export default Vue.component("research-expression-plot", {
                         .attr("y2", d => y(d.value.median))
                         .attr("stroke", "#99999999")
                         .style("width", 50);
-            
+
+        },
+        plotPoints(tissue_key, boxHalfWidth){
             svg.selectAll("indPoints")
-                    .data(flatData)
+                    .data(flatData.filter(entry => entry[keyAttribute] == tissue_key))
                     .enter()
                     .append("circle")
-                        .attr("cx", d => x(d[keyAttribute]) + offset 
+                        .attr("cx", x(tissue_key) + offset 
                             - (2*boxHalfWidth) + Math.random()*boxHalfWidth*4)
                         .attr("cy", d => y(d.tpm))
                         .attr("r", 1)
-                        .style("fill", 
-                            d => `${this.colorMap[d[keyAttribute]]}55`)
+                        .style("fill", `${this.colorMap[tissue_key]}55`)
                         .attr("stroke", "none");
-
         },
         mapColors(){
             let colorMap = {};
