@@ -146,6 +146,9 @@ export default Vue.component("research-expression-plot", {
                 .domain([-maxNum, maxNum]);
             
             let colorIndex = 0;
+            var mouseover = function(d) {
+                console.log(d.key);
+            };
             svg.selectAll("myViolin")
                 .data(sumstat)
                 .enter()
@@ -168,8 +171,7 @@ export default Vue.component("research-expression-plot", {
                         .x0(d => xNum(-d.length))
                         .x1(d => xNum(d.length))
                         .y(d => y(d.x0))
-                        .curve(d3.curveCatmullRom)
-                    );
+                        .curve(d3.curveCatmullRom));
             let numberViolins = 0;
             let sumstatBox = d3.nest()
                     .key(d => d[keyAttribute])
@@ -203,7 +205,8 @@ export default Vue.component("research-expression-plot", {
                         .attr("y2", d => y(d.value.max))
                         .attr("stroke", "#99999999")
                         .style("width", 30)
-                        .attr("transform", d => `translate(${x(d.key) + offset},0)`);
+                        .attr("transform", d => `translate(${x(d.key) + offset},0)`)
+                    .on("mouseover", mouseover);
             
             let boxHalfWidth = 3;
             svg.selectAll("boxes")
@@ -215,7 +218,8 @@ export default Vue.component("research-expression-plot", {
                         .attr("height", d=> y(d.value.q1) - y(d.value.q3))
                         .attr("width", boxHalfWidth * 2)
                         .attr("stroke", "#99999999")
-                        .style("fill", "#ffffffff");
+                        .style("fill", "#ffffffff")
+                    .on("mouseover", mouseover);
             svg.selectAll("medianLines")
                     .data(sumstatBox)
                     .enter()
