@@ -83,6 +83,7 @@ export default Vue.component("research-expression-plot", {
         },
         displayResults(){
             let keyAttribute = this.keyAttribute;
+            let colorMap = this.colorMap;
 
             let flatData = this.logScale == "yes" ? this.flatLog : this.flatLinear;
             var margin = { 
@@ -148,7 +149,7 @@ export default Vue.component("research-expression-plot", {
             let colorIndex = 0;
             var mouseover = function(d) {
                 console.log(d.key);
-                let boxHalfWidth = 3;
+                let boxHalfWidth = 6;
                 svg.selectAll("indPoints")
                     .data(flatData.filter(entry => entry[keyAttribute] == d.key))
                     .enter()
@@ -157,9 +158,13 @@ export default Vue.component("research-expression-plot", {
                             - (2*boxHalfWidth) + Math.random()*boxHalfWidth*4)
                         .attr("cy", g => y(g.tpm))
                         .attr("r", 1)
-                        .style("fill", `${this.colorMap[d.key]}55`)
+                        .style("fill", `${colorMap[d.key]}55`)
                         .attr("stroke", "none");
             };
+            var mouseleave = function(d){
+                console.log("mouseleave time");
+                svg.selectAll("circle").remove();
+            }
             svg.selectAll("myViolin")
                 .data(sumstat)
                 .enter()
@@ -217,7 +222,8 @@ export default Vue.component("research-expression-plot", {
                         .attr("stroke", "#99999999")
                         .style("width", 30)
                         .attr("transform", d => `translate(${x(d.key) + offset},0)`)
-                    .on("mouseover", mouseover);
+                    .on("mouseover", mouseover)
+                    .on("mouseleave", mouseleave);
             
             let boxHalfWidth = 3;
             svg.selectAll("boxes")
@@ -230,7 +236,8 @@ export default Vue.component("research-expression-plot", {
                         .attr("width", boxHalfWidth * 2)
                         .attr("stroke", "#99999999")
                         .style("fill", "#ffffffff")
-                    .on("mouseover", mouseover);
+                    .on("mouseover", mouseover)
+                    .on("mouseleave", mouseleave);
             svg.selectAll("medianLines")
                     .data(sumstatBox)
                     .enter()
