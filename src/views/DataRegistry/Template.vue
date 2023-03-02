@@ -277,21 +277,18 @@
 							<div class="row dr-phenotype-samples">
 								<div
 									class="
-										offset-md-1
-										col-md-11 col
+										col-md-12 col
 										filter-col-md
 										selected-phenotypes
 									"
 								>
 									Type 1 diabetes
 								</div>
-								<div
-									class="
-										offset-md-1
-										col-md-2 col
-										filter-col-md
-									"
-								>
+								<div class="col-md-2 col filter-col-md">
+									<div class="label">Is dichotomous?</div>
+									<input type="checkbox" checked />
+								</div>
+								<div class="col-md-3 col filter-col-md">
 									<div class="label">
 										Sample size<sup>*</sup>
 									</div>
@@ -301,7 +298,7 @@
 										placeholder="Sample size"
 									/>
 								</div>
-								<div class="col-md-3 col filter-col-md">
+								<div class="col-md-2 col filter-col-md">
 									<div class="label">Cases</div>
 									<input
 										type="text"
@@ -309,7 +306,7 @@
 										placeholder="Cases"
 									/>
 								</div>
-								<div class="col-md-3 col filter-col-md">
+								<div class="col-md-2 col filter-col-md">
 									<div class="label">Controls</div>
 									<input
 										type="text"
@@ -332,21 +329,18 @@
 							<div class="row dr-phenotype-samples">
 								<div
 									class="
-										offset-md-1
-										col-md-11 col
+										col-md-12 col
 										filter-col-md
 										selected-phenotypes
 									"
 								>
 									Type 1 diabetes
 								</div>
-								<div
-									class="
-										offset-md-1
-										col-md-2 col
-										filter-col-md
-									"
-								>
+								<div class="col-md-2 col filter-col-md">
+									<div class="label">Is dichotomous?</div>
+									<input type="checkbox" />
+								</div>
+								<div class="col-md-3 col filter-col-md">
 									<div class="label">
 										Sample size<sup>*</sup>
 									</div>
@@ -356,23 +350,14 @@
 										placeholder="Sample size"
 									/>
 								</div>
-								<div class="col-md-3 col filter-col-md">
-									<div class="label">Cases</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Cases"
-									/>
-								</div>
-								<div class="col-md-3 col filter-col-md">
-									<div class="label">Controls</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Controls"
-									/>
-								</div>
-								<div class="col-md-3 col filter-col-md">
+
+								<div
+									class="
+										offset-md-4
+										col-md-3 col
+										filter-col-md
+									"
+								>
 									<div class="label">
 										File name<sup>*</sup>
 									</div>
@@ -387,21 +372,18 @@
 							<div class="row dr-phenotype-samples">
 								<div
 									class="
-										offset-md-1
-										col-md-11 col
+										col-md-12 col
 										filter-col-md
 										selected-phenotypes
 									"
 								>
 									Type 1 diabetes
 								</div>
-								<div
-									class="
-										offset-md-1
-										col-md-2 col
-										filter-col-md
-									"
-								>
+								<div class="col-md-2 col filter-col-md">
+									<div class="label">Is dichotomous?</div>
+									<input type="checkbox" />
+								</div>
+								<div class="col-md-3 col filter-col-md">
 									<div class="label">
 										Sample size<sup>*</sup>
 									</div>
@@ -411,23 +393,14 @@
 										placeholder="Sample size"
 									/>
 								</div>
-								<div class="col-md-3 col filter-col-md">
-									<div class="label">Cases</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Cases"
-									/>
-								</div>
-								<div class="col-md-3 col filter-col-md">
-									<div class="label">Controls</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Controls"
-									/>
-								</div>
-								<div class="col-md-3 col filter-col-md">
+
+								<div
+									class="
+										offset-md-4
+										col-md-3 col
+										filter-col-md
+									"
+								>
 									<div class="label">
 										Data file<sup>*</sup>
 									</div>
@@ -437,50 +410,6 @@
 									>
 										Choose file
 									</button>
-								</div>
-							</div>
-							<div class="row dr-phenotype-samples">
-								<div
-									class="
-										offset-md-1
-										col-md-11 col
-										filter-col-md
-										selected-phenotypes
-									"
-								>
-									BMI adj type 1 diabetes
-								</div>
-								<div
-									class="
-										offset-md-1
-										col-md-2 col
-										filter-col-md
-									"
-								>
-									<div class="label">
-										Sample size<sup>*</sup>
-									</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Sample size"
-									/>
-								</div>
-								<div class="col-md-3 col filter-col-md">
-									<div class="label">Cases</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Cases"
-									/>
-								</div>
-								<div class="col-md-3 col filter-col-md">
-									<div class="label">Controls</div>
-									<input
-										type="text"
-										class="form-control input-default"
-										placeholder="Controls"
-									/>
 								</div>
 							</div>
 							<div class="row">
