@@ -47,11 +47,7 @@ import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpr
 					<div class="col-md-4 gene-page-header-body">
 						<div v-if="$parent.symbolName" class="input-group">
 							<button
-								class="
-									btn btn-primary
-									input-group-prepend
-									explore-region-btn
-								"
+								class="btn btn-primary input-group-prepend explore-region-btn"
 								style="margin-right: 20px"
 								:title="$parent.regionText"
 								@click="$parent.exploreRegion()"
@@ -59,11 +55,7 @@ import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpr
 								Explore Region
 							</button>
 							<button
-								class="
-									btn btn-primary
-									input-group-append
-									explore-region-btn
-								"
+								class="btn btn-primary input-group-append explore-region-btn"
 								:title="$parent.regionTextExpanded"
 								@click="$parent.exploreRegion(50000)"
 							>
@@ -567,6 +559,28 @@ import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpr
 							:associations="$parent.transcriptOr52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 						></gene-associations-masks>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<div v-if="$parent.dbReference">
+						<h4 class="card-title">
+							Predicted effector gene lists containing
+							{{ $store.state.gene.data[0].name }}
+							<tooltip-documentation
+								name="gene.effector.gene.tooltip.hover"
+								:content-fill="$parent.documentationMap"
+								:isHover="true"
+								:noIcon="false"
+							></tooltip-documentation>
+						</h4>
+						<egls-section-on-gene
+							v-if="$store.state.gene.data.length > 0"
+							:gene="$store.state.gene.data[0]"
+						>
+						</egls-section-on-gene>
 					</div>
 				</div>
 			</div>
