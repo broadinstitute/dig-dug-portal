@@ -187,8 +187,17 @@ import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpr
 				<div class="card-body">
 					<h4 class="card-title">Gene Expression for {{ $store.state.geneName }}</h4>
 					<research-expression-plot v-if="$parent.geneExpression.length > 0"
-						:rawData = $parent.geneExpression>
+						:rawData=$parent.geneExpression>
 					</research-expression-plot>
+					<research-data-table
+						:pageID="$store.state.geneName"
+						:dataset="$parent.geneExpression"
+						:tableFormat="$parent.geneExpressionConfig"
+						:initPerPageNumber="10"
+						:phenotypeMap="$store.state.bioPortal.phenotypeOptions"
+
+					>
+					</research-data-table>
 				</div>
 			</div>
 			<!--div class="card mdkp-card">
