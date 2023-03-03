@@ -54,7 +54,7 @@
 							eglsList[egl.field_page_id]['Page ID'] !=
 								undefined &&
 							eglsList[egl.field_page_id]['Page ID'] != ''
-								? '<a class=\'btn btn-sm btn-primary view-genes\' target=\'_blank\'href=\'\\research.html?pageid=' +
+								? '<a class=\'btn view-features-btn btn-secondary view-genes\' target=\'_blank\'href=\'\\research.html?pageid=' +
 								  eglsList[egl.field_page_id]['Page ID'] +
 								  '\' style=\'color: #ffffff !important;\'>View</a>'
 								: ''
@@ -108,7 +108,7 @@ export default Vue.component("egls-section-on-gene", {
 					eglsList[d["Page ID"]] = d;
 				});
 
-				console.log("full list", eglsList);
+				//console.log("full list", eglsList);
 				this.eglsList = eglsList;
 			}
 		},
@@ -119,7 +119,7 @@ export default Vue.component("egls-section-on-gene", {
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
 			if (contJson.error == null) {
-				console.log("with gene", contJson);
+				//console.log("with gene", contJson);
 				//{"field_page_id":"richards_t2d_266"}
 				this.eglsOnGene = contJson;
 			}
