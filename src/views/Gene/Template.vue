@@ -187,11 +187,12 @@ import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpr
 				<div class="card-body">
 					<h4 class="card-title">Gene Expression for {{ $store.state.geneName }}</h4>
 					<research-expression-plot v-if="$parent.geneExpression.length > 0"
-						:rawData=$parent.geneExpression>
+						:rawData=$parent.geneExpression 
+						@expression="(raw) => $parent.geneExpressionTable = JSON.parse(raw)">
 					</research-expression-plot>
 					<research-data-table
 						:pageID="$store.state.geneName"
-						:dataset="$parent.geneExpression"
+						:dataset="$parent.geneExpressionTable"
 						:tableFormat="$parent.geneExpressionConfig"
 						:initPerPageNumber="10"
 						:phenotypeMap="$store.state.bioPortal.phenotypeOptions"

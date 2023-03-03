@@ -51,6 +51,12 @@ export default Vue.component("research-expression-plot", {
         },
         logScale: function(){
             this.displayResults();
+        },
+        expressionTableData: function(){
+            if (this.expressionTableData.length > 0){
+                console.log("the data is ready!");
+                this.$emit('expression', JSON.stringify(this.expressionTableData));
+            }
         }
     },
     methods: {
@@ -266,7 +272,6 @@ export default Vue.component("research-expression-plot", {
                     .style("opacity", 0)
                     .on("mouseover", mouseover)
                     .on("mouseleave", mouseleave);
-            console.log(this.expressionTableData);
             svg.selectAll("medianLines")
                     .data(sumstatBox)
                     .enter()

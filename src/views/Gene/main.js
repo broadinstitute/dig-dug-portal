@@ -127,16 +127,86 @@ new Vue({
                 }
             },
             geneExpressionConfig: {
+                "data convert": [
+                    {
+                        "type": "raw",
+                        "field name": "Datasets",
+                        "raw field": "allDatasets"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Tissue",
+                        "raw field": "tissue"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Min TPM",
+                        "raw field": "minTpm"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Q1 TPM",
+                        "raw field": "firstQuTpm"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Median TPM",
+                        "raw field": "medianTpm"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Q3 TPM",
+                        "raw field": "thirdQuTPM"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Max TPM",
+                        "raw field": "maxTpm"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Total samples (all datasets)",
+                        "raw field": "totalSamples"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Number of samples",
+                        "raw field": "nSamples"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Biosample",
+                        "raw field": "biosample"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Dataset",
+                        "raw field": "dataset"
+                    }
+                ],
                 "top rows": [
-                    "tissue", 
-                    "biosample", 
-                    "dataset", 
-                    "maxTpm", 
-                    "medianTpm", 
-                    "minTpm", 
-                    "nSamples"
+                    "Tissue",
+                    "Min TPM",
+                    "Q1 TPM",
+                    "Median TPM",
+                    "Q3 TPM",
+                    "Max TPM",
+                    "Total samples"
+                ],
+                "features": [
+                    "Datasets"
+                ],
+                "Datasets": [
+                    "Biosample",
+                    "Dataset",
+                    "Min TPM",
+                    "Q1 TPM",
+                    "Median TPM",
+                    "Q3 TPM",
+                    "Max TPM"
                 ]
             },
+            geneExpressionTable : [],
         };
     },
 
@@ -562,6 +632,9 @@ new Vue({
 
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
             }
+        },
+        geneExpressionTable(){
+            console.log(this.geneExpressionTable);
         },
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {
