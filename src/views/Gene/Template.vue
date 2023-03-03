@@ -44,11 +44,7 @@
 					<div class="col-md-4 gene-page-header-body">
 						<div v-if="$parent.symbolName" class="input-group">
 							<button
-								class="
-									btn btn-primary
-									input-group-prepend
-									explore-region-btn
-								"
+								class="btn btn-primary input-group-prepend explore-region-btn"
 								style="margin-right: 20px"
 								:title="$parent.regionText"
 								@click="$parent.exploreRegion()"
@@ -56,11 +52,7 @@
 								Explore Region
 							</button>
 							<button
-								class="
-									btn btn-primary
-									input-group-append
-									explore-region-btn
-								"
+								class="btn btn-primary input-group-append explore-region-btn"
 								:title="$parent.regionTextExpanded"
 								@click="$parent.exploreRegion(50000)"
 							>
@@ -188,7 +180,7 @@
 					</b-tabs>
 				</div>
 			</div>
-			<div class="card mdkp-card">
+			<!--<div class="card mdkp-card">
 				<div class="card-body">
 					<h4 style="font-weight: bold" class="card-title">
 						HuGE Score
@@ -200,13 +192,12 @@
 							:content-fill="$parent.documentationMap"
 						></documentation>
 					</span>
-					<!-- Phenotype Selector -->
+
 					<criterion-list-group
 						v-model="$parent.genePageSearchCriterion"
 						:header="''"
 						class="top-associations-section-phenotype-filter"
 					>
-						<!-- Phenotype Selector -->
 						<filter-enumeration-control
 							:field="'phenotype'"
 							:options="$parent.phenotypeOptions"
@@ -252,6 +243,74 @@
 						:selectedPhenotype="$parent.selectedPhenotype"
 						:prior="$store.state.prior"
 					></hugecal-score-section>
+				</div>
+			</div>-->
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<h4 class="card-title">HuGE Scores</h4>
+
+					<span>
+						<documentation
+							name="gene.hugecal.subheader"
+							:content-fill="$parent.documentationMap"
+						></documentation>
+					</span>
+					<research-phewas-plot
+						v-if="$parent.hugeScores.length > 0"
+						canvasId="hugeScorePlot"
+						:phenotypesData="$parent.hugeScores"
+						:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+						:colors="[
+							'#007bff',
+							'#048845',
+							'#8490C8',
+							'#BF61A5',
+							'#EE3124',
+							'#FCD700',
+							'#5555FF',
+							'#7aaa1c',
+							'#9F78AC',
+							'#F88084',
+							'#F5A4C7',
+							'#CEE6C1',
+							'#cccc00',
+							'#6FC7B6',
+							'#D5A768',
+							'#d4d4d4',
+						]"
+						:plotMargin="{
+							leftMargin: 150,
+							rightMargin: 40,
+							topMargin: 20,
+							bottomMargin: 100,
+							bump: 11,
+						}"
+						:renderConfig="{
+							type: 'phewas plot',
+							'render by': 'phenotype',
+							'group by': 'group',
+							'phenotype map': 'kp phenotype map',
+							'y axis field': 'renderScore',
+							'convert y -log10': 'false',
+							'y axis label': 'Log(HuGE score)',
+							'x axis label': '',
+							'beta field': 'null',
+							'hover content': ['bf_common', 'bf_rare', 'huge'],
+							thresholds: [Math.log(3), Math.log(30)],
+							'label in black': 'greater than',
+							height: '500',
+						}"
+						:pkgData="null"
+						:pkgDataSelected="null"
+						:filter="null"
+						ref="rpPheWASPlot"
+					></research-phewas-plot>
+					<huge-scores-table
+						v-if="$parent.hugeScores.length > 0"
+						:gene="$store.state.gene.data[0]"
+						:hugeScores="$parent.hugeScores"
+						:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+					></huge-scores-table>
 				</div>
 			</div>
 
@@ -489,6 +548,28 @@
 							:associations="$parent.transcriptOr52k"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 						></gene-associations-masks>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<div v-if="$parent.dbReference">
+						<h4 class="card-title">
+							Predicted effector gene lists containing
+							{{ $store.state.gene.data[0].name }}
+							<tooltip-documentation
+								name="gene.effector.gene.tooltip.hover"
+								:content-fill="$parent.documentationMap"
+								:isHover="true"
+								:noIcon="false"
+							></tooltip-documentation>
+						</h4>
+						<egls-section-on-gene
+							v-if="$store.state.gene.data.length > 0"
+							:gene="$store.state.gene.data[0]"
+						>
+						</egls-section-on-gene>
 					</div>
 				</div>
 			</div>
