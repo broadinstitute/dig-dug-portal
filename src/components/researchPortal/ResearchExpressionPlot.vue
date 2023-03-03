@@ -29,7 +29,8 @@ export default Vue.component("research-expression-plot", {
             flatLinear: null,
             flatLog: null,
             keyAttribute: "tissue",
-            colorMap: {}
+            colorMap: {},
+            expressionTableData: []
         };
     },
     mounted: function () {
@@ -55,6 +56,7 @@ export default Vue.component("research-expression-plot", {
     methods: {
         ...uiUtils,
         processData(){
+            this.expressionTableData = [];
             let processedData = this.$props.rawData;
             processedData.forEach(entry => { 
                 let tpms = entry.tpmForAllSamples.split(",")
@@ -201,14 +203,16 @@ export default Vue.component("research-expression-plot", {
                         let interQuantileRange = q3 - q1;
                         let min = sortedData[0];
                         let max = sortedData[sortedData.length - 1];
-                        return ({
-                            q1: q1,
-                            median: median,
-                            q3: q3,
+                        let boxplotEntry = {
+                            firstQuTpm: q1,
+                            medianTpm: median,
+                            thirdQuTpm: q3,
                             interQuantileRange: interQuantileRange,
-                            min: min,
-                            max: max
-                        });
+                            minTpm: min,
+                            maxTpm: max,
+                            totalSamples: sortedData.length
+                        };
+                        return boxplotEntry;
                     }).entries(flatData);
             let offset = width / (2 * numberViolins);
             // Superimpose boxplots
@@ -218,8 +222,8 @@ export default Vue.component("research-expression-plot", {
                     .append("line")
                         .attr("x1", x(0))
                         .attr("x2", x(0))
-                        .attr("y1", d => y(d.value.min))
-                        .attr("y2", d => y(d.value.max))
+                        .attr("y1", d => y(d.value.minTpm))
+                        .attr("y2", d => y(d.value.maxTpm))
                         .attr("stroke", "#99999999")
                         .style("width", 30)
                         .attr("transform", d => `translate(${x(d.key) + offset},0)`);
@@ -230,32 +234,47 @@ export default Vue.component("research-expression-plot", {
                     .enter()
                     .append("rect")
                         .attr("x", d => x(d.key) + offset - boxHalfWidth)
-                        .attr("y", d => y(d.value.q3))
-                        .attr("height", d=> y(d.value.q1) - y(d.value.q3))
+                        .attr("y", d => y(d.value.thirdQuTpm))
+                        .attr("height", d=> y(d.value.firstQuTpm) - y(d.value.thirdQuTpm))
                         .attr("width", boxHalfWidth * 2)
                         .attr("stroke", "#99999999")
                         .style("fill", "#ffffffff");
+            
+            // Packaging data for export at the same time.
+            let collateTableData = this.expressionTableData.length == 0;
             svg.selectAll("zoneBoxes")
                     .data(sumstatBox)
                     .enter()
                     .append("rect")
-                        .attr("x", d => x(d.key))
-                        .attr("y", d => y(maxVal))
-                        .attr("height", d=> y(-maxVal) - y(0))
-                        .attr("width", offset * 2)
-                        .attr("stroke", "none")
-                        .style("fill", "white")
-                        .style("opacity", 0)
+                    .attr("x", d => {
+                            if (collateTableData){
+                                // Deep copy
+                                let tableEntry = JSON.parse(JSON.stringify(d.value));
+                                tableEntry[keyAttribute] = d.key;
+                                tableEntry["allDatasets"] = this.processedData.filter(
+                                    item => item[keyAttribute] == d.key
+                                );
+                                this.expressionTableData.push(tableEntry);
+                            }
+                            return x(d.key);
+                        })
+                    .attr("y", d => y(maxVal))
+                    .attr("height", d=> y(-maxVal) - y(0))
+                    .attr("width", offset * 2)
+                    .attr("stroke", "none")
+                    .style("fill", "white")
+                    .style("opacity", 0)
                     .on("mouseover", mouseover)
                     .on("mouseleave", mouseleave);
+            console.log(this.expressionTableData);
             svg.selectAll("medianLines")
                     .data(sumstatBox)
                     .enter()
                     .append("line")
                         .attr("x1", d => x(d.key) + offset - boxHalfWidth)
                         .attr("x2", d => x(d.key) + offset + boxHalfWidth)
-                        .attr("y1", d => y(d.value.median))
-                        .attr("y2", d => y(d.value.median))
+                        .attr("y1", d => y(d.value.medianTpm))
+                        .attr("y2", d => y(d.value.medianTpm))
                         .attr("stroke", "#99999999")
                         .style("width", 50);
 
