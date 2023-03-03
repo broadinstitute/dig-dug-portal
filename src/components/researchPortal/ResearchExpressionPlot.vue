@@ -10,6 +10,13 @@
             <option value="yes">Logarithmic: log10(TPM+1)</option>
         </select>
     </label>
+    <research-data-table
+		:pageID="$store.state.geneName"
+		:dataset="this.tableData"
+		:tableFormat="this.tableConfig"
+		:initPerPageNumber="10"
+		:phenotypeMap="$store.state.bioPortal.phenotypeOptions">
+	</research-data-table>
 </div>
 </template>
 
@@ -30,7 +37,87 @@ export default Vue.component("research-expression-plot", {
             flatLog: null,
             keyAttribute: "tissue",
             colorMap: {},
-            expressionTableData: []
+            tableData: [],
+            tableConfig: {
+                "data convert": [
+                    {
+                        "type": "raw",
+                        "field name": "Datasets",
+                        "raw field": "allDatasets"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Tissue",
+                        "raw field": "tissue"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Min TPM",
+                        "raw field": "minTpm"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Q1 TPM",
+                        "raw field": "firstQuTpm"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Median TPM",
+                        "raw field": "medianTpm"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Q3 TPM",
+                        "raw field": "thirdQuTPM"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Max TPM",
+                        "raw field": "maxTpm"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Total samples (all datasets)",
+                        "raw field": "totalSamples"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Number of samples",
+                        "raw field": "nSamples"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Biosample",
+                        "raw field": "biosample"
+                    },
+                    {
+                        "type": "raw",
+                        "field name": "Dataset",
+                        "raw field": "dataset"
+                    }
+                ],
+                "top rows": [
+                    "Tissue",
+                    "Min TPM",
+                    "Q1 TPM",
+                    "Median TPM",
+                    "Q3 TPM",
+                    "Max TPM",
+                    "Total samples"
+                ],
+                "features": [
+                    "Datasets"
+                ],
+                "Datasets": [
+                    "Biosample",
+                    "Dataset",
+                    "Min TPM",
+                    "Q1 TPM",
+                    "Median TPM",
+                    "Q3 TPM",
+                    "Max TPM"
+                ]
+            },
         };
     },
     mounted: function () {
@@ -52,17 +139,11 @@ export default Vue.component("research-expression-plot", {
         logScale: function(){
             this.displayResults();
         },
-        expressionTableData: function(){
-            if (this.expressionTableData.length > 0){
-                console.log("the data is ready!");
-                this.$emit('expression', JSON.stringify(this.expressionTableData));
-            }
-        }
     },
     methods: {
         ...uiUtils,
         processData(){
-            this.expressionTableData = [];
+            this.tableData = [];
             let processedData = this.$props.rawData;
             processedData.forEach(entry => { 
                 let tpms = entry.tpmForAllSamples.split(",")
@@ -247,7 +328,7 @@ export default Vue.component("research-expression-plot", {
                         .style("fill", "#ffffffff");
             
             // Packaging data for export at the same time.
-            let collateTableData = this.expressionTableData.length == 0;
+            let collateTableData = this.tableData.length == 0;
             svg.selectAll("zoneBoxes")
                     .data(sumstatBox)
                     .enter()
@@ -260,7 +341,7 @@ export default Vue.component("research-expression-plot", {
                                 tableEntry["allDatasets"] = this.processedData.filter(
                                     item => item[keyAttribute] == d.key
                                 );
-                                this.expressionTableData.push(tableEntry);
+                                this.tableData.push(tableEntry);
                             }
                             return x(d.key);
                         })

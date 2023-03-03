@@ -190,15 +190,6 @@ import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpr
 						:rawData=$parent.geneExpression 
 						@expression="(raw) => $parent.geneExpressionTable = JSON.parse(raw)">
 					</research-expression-plot>
-					<research-data-table
-						:pageID="$store.state.geneName"
-						:dataset="$parent.geneExpressionTable"
-						:tableFormat="$parent.geneExpressionConfig"
-						:initPerPageNumber="10"
-						:phenotypeMap="$store.state.bioPortal.phenotypeOptions"
-
-					>
-					</research-data-table>
 				</div>
 			</div>
 			<!--div class="card mdkp-card">
