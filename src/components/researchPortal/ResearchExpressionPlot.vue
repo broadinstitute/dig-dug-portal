@@ -10,13 +10,22 @@
             <option value="yes">Logarithmic: log10(TPM+1)</option>
         </select>
     </label>
-    <research-data-table v-if="this.tableData.length > 0"
+    <b-table v-if="this.tableData.length > 0"
+        hover
+        small
+        responsive="sm"
+        :items="this.tableData"
+        :fields="this.tableConfig['top rows']"
+        :per-page="this.tableData.length"
+        :current-page="1">
+    </b-table>
+    <!--research-data-table v-if="this.tableData.length > 0"
 		:pageID="$store.state.geneName"
 		:dataset="this.tableData"
 		:tableFormat="this.tableConfig"
 		:initPerPageNumber="10"
 		:phenotypeMap="$store.state.bioPortal.phenotypeOptions">
-	</research-data-table>
+	</research-data-table-->
 </div>
 </template>
 
@@ -37,7 +46,7 @@ export default Vue.component("research-expression-plot", {
             flatLog: null,
             keyAttribute: "tissue",
             colorMap: {},
-            tableData: [],
+            collatedData: [],
             tableConfig: {
                 "top rows": [
                     "Tissue",
@@ -73,7 +82,11 @@ export default Vue.component("research-expression-plot", {
         this.processData();
         this.displayResults();
     },
-	computed: {},
+	computed: {
+        tableData(){
+            return this.collatedData;
+        }
+    },
 	watch: {
         rawData: function(){
             this.processData();
@@ -86,7 +99,7 @@ export default Vue.component("research-expression-plot", {
     methods: {
         ...uiUtils,
         processData(){
-            this.tableData = [];
+            this.collatedData = [];
             let processedData = this.$props.rawData;
             processedData.forEach(entry => { 
                 let tpms = entry.tpmForAllSamples.split(",")
@@ -271,13 +284,13 @@ export default Vue.component("research-expression-plot", {
                         .style("fill", "#ffffffff");
             
             // Packaging data for export at the same time.
-            let collateTableData = this.tableData.length == 0;
+            let collateData = this.collatedData.length == 0;
             svg.selectAll("zoneBoxes")
                     .data(sumstatBox)
                     .enter()
                     .append("rect")
                     .attr("x", d => {
-                            if (collateTableData){
+                            if (collateData){
                                 // Deep copy
                                 let tableEntry = JSON.parse(JSON.stringify(d.value));
                                 tableEntry["Tissue"] = d.key.replaceAll("_", " ");
@@ -294,7 +307,7 @@ export default Vue.component("research-expression-plot", {
                                     editedEntry["Max TPM"] = datasetEntry.maxTpm;
                                     return editedEntry;
                                 });
-                                this.tableData.push(tableEntry);
+                                this.collatedData.push(tableEntry);
                             }
                             return x(d.key);
                         })
