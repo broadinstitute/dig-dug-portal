@@ -17,7 +17,20 @@
         :items="tableData"
         :fields="tableConfig['top rows']"
         :per-page="perPage"
-        :current-page="currentPage">
+        :current-page="currentPage"
+    >
+        <template #cell(show_datasets)="row">
+            <b-button size="sm" @click="row.toggleDetails" class="mr-2">
+                {{ row.detailsShowing ? "Hide": "Show" }} Datasets
+            </b-button>
+        </template>
+        <template #row-details="row">
+            <b-table
+                small
+                :items="row.item['Datasets']"
+                :fields="tableConfig['Datasets']">
+            </b-table>
+        </template>
     </b-table>
     <b-pagination
         class="pagination-sm justify-content-center"
@@ -56,7 +69,8 @@ export default Vue.component("research-expression-plot", {
                     "Median TPM",
                     "Q3 TPM",
                     "Max TPM",
-                    "Total samples"
+                    "Total samples",
+                    "show_datasets"
                 ],
                 "features": [
                     "Datasets"
