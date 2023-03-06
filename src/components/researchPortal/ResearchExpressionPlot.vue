@@ -10,7 +10,7 @@
             <option value="yes">Logarithmic: log10(TPM+1)</option>
         </select>
     </label>
-    <research-data-table
+    <research-data-table v-if="this.tableData.length > 0"
 		:pageID="$store.state.geneName"
 		:dataset="this.tableData"
 		:tableFormat="this.tableConfig"
@@ -39,63 +39,6 @@ export default Vue.component("research-expression-plot", {
             colorMap: {},
             tableData: [],
             tableConfig: {
-                "data convert": [
-                    {
-                        "type": "raw",
-                        "field name": "Datasets",
-                        "raw field": "allDatasets"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Tissue",
-                        "raw field": "tissue"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Min TPM",
-                        "raw field": "minTpm"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Q1 TPM",
-                        "raw field": "firstQuTpm"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Median TPM",
-                        "raw field": "medianTpm"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Q3 TPM",
-                        "raw field": "thirdQuTPM"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Max TPM",
-                        "raw field": "maxTpm"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Total samples (all datasets)",
-                        "raw field": "totalSamples"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Number of samples",
-                        "raw field": "nSamples"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Biosample",
-                        "raw field": "biosample"
-                    },
-                    {
-                        "type": "raw",
-                        "field name": "Dataset",
-                        "raw field": "dataset"
-                    }
-                ],
                 "top rows": [
                     "Tissue",
                     "Min TPM",
@@ -109,13 +52,13 @@ export default Vue.component("research-expression-plot", {
                     "Datasets"
                 ],
                 "Datasets": [
-                    "Biosample",
-                    "Dataset",
-                    "Min TPM",
-                    "Q1 TPM",
-                    "Median TPM",
-                    "Q3 TPM",
-                    "Max TPM"
+                    "biosample",
+                    "dataset",
+                    "minTpm",
+                    "firstQuTpm",
+                    "medianTpm",
+                    "thirdQuTpm",
+                    "maxTpm"
                 ]
             },
         };
@@ -291,13 +234,13 @@ export default Vue.component("research-expression-plot", {
                         let min = sortedData[0];
                         let max = sortedData[sortedData.length - 1];
                         let boxplotEntry = {
-                            firstQuTpm: q1,
-                            medianTpm: median,
-                            thirdQuTpm: q3,
-                            interQuantileRange: interQuantileRange,
-                            minTpm: min,
-                            maxTpm: max,
-                            totalSamples: sortedData.length
+                            "Q1 TPM": q1,
+                            "Median TPM": median,
+                            "Q3 TPM": q3,
+                            "interQuantileRange": interQuantileRange,
+                            "Min TPM": min,
+                            "Max TPM": max,
+                            "Total samples": sortedData.length
                         };
                         return boxplotEntry;
                     }).entries(flatData);
@@ -309,8 +252,8 @@ export default Vue.component("research-expression-plot", {
                     .append("line")
                         .attr("x1", x(0))
                         .attr("x2", x(0))
-                        .attr("y1", d => y(d.value.minTpm))
-                        .attr("y2", d => y(d.value.maxTpm))
+                        .attr("y1", d => y(d.value["Min TPM"]))
+                        .attr("y2", d => y(d.value["Max TPM"]))
                         .attr("stroke", "#99999999")
                         .style("width", 30)
                         .attr("transform", d => `translate(${x(d.key) + offset},0)`);
@@ -321,8 +264,8 @@ export default Vue.component("research-expression-plot", {
                     .enter()
                     .append("rect")
                         .attr("x", d => x(d.key) + offset - boxHalfWidth)
-                        .attr("y", d => y(d.value.thirdQuTpm))
-                        .attr("height", d=> y(d.value.firstQuTpm) - y(d.value.thirdQuTpm))
+                        .attr("y", d => y(d.value["Q3 TPM"]))
+                        .attr("height", d=> y(d.value["Q1 TPM"]) - y(d.value["Q3 TPM"]))
                         .attr("width", boxHalfWidth * 2)
                         .attr("stroke", "#99999999")
                         .style("fill", "#ffffffff");
@@ -337,8 +280,8 @@ export default Vue.component("research-expression-plot", {
                             if (collateTableData){
                                 // Deep copy
                                 let tableEntry = JSON.parse(JSON.stringify(d.value));
-                                tableEntry[keyAttribute] = d.key;
-                                tableEntry["allDatasets"] = this.processedData.filter(
+                                tableEntry["Tissue"] = d.key;
+                                tableEntry["Datasets"] = this.processedData.filter(
                                     item => item[keyAttribute] == d.key
                                 );
                                 this.tableData.push(tableEntry);
@@ -359,8 +302,8 @@ export default Vue.component("research-expression-plot", {
                     .append("line")
                         .attr("x1", d => x(d.key) + offset - boxHalfWidth)
                         .attr("x2", d => x(d.key) + offset + boxHalfWidth)
-                        .attr("y1", d => y(d.value.medianTpm))
-                        .attr("y2", d => y(d.value.medianTpm))
+                        .attr("y1", d => y(d.value["Median TPM"]))
+                        .attr("y2", d => y(d.value["Median TPM"]))
                         .attr("stroke", "#99999999")
                         .style("width", 50);
 
