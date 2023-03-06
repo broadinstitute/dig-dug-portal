@@ -14,18 +14,17 @@
         hover
         small
         responsive="sm"
-        :items="this.tableData"
-        :fields="this.tableConfig['top rows']"
-        :per-page="this.tableData.length"
-        :current-page="1">
+        :items="tableData"
+        :fields="tableConfig['top rows']"
+        :per-page="perPage"
+        :current-page="currentPage">
     </b-table>
-    <!--research-data-table v-if="this.tableData.length > 0"
-		:pageID="$store.state.geneName"
-		:dataset="this.tableData"
-		:tableFormat="this.tableConfig"
-		:initPerPageNumber="10"
-		:phenotypeMap="$store.state.bioPortal.phenotypeOptions">
-	</research-data-table-->
+    <b-pagination
+        class="pagination-sm justify-content-center"
+        v-model="currentPage"
+        :total-rows="rows"
+        :per-page="perPage"
+    ></b-pagination>
 </div>
 </template>
 
@@ -35,7 +34,7 @@ import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
 import colors from "@/utils/colors";
 export default Vue.component("research-expression-plot", {
-    props: ["rawData"],
+    props: ["rawData", "filter"],
     data(){
         return {
             chart: null,
@@ -46,6 +45,8 @@ export default Vue.component("research-expression-plot", {
             flatLog: null,
             keyAttribute: "tissue",
             colorMap: {},
+            currentPage: 1,
+            perPage: 10,
             collatedData: [],
             tableConfig: {
                 "top rows": [
@@ -84,7 +85,16 @@ export default Vue.component("research-expression-plot", {
     },
 	computed: {
         tableData(){
-            return this.collatedData;
+            let dataRows = this.collatedData;
+            if (!!this.filter) {
+                dataRows = dataRows.filter((dataset) => {
+                    return this.filter(dataset);
+                });
+            }
+            return dataRows;
+        },
+        rows(){
+            return this.tableData.length;
         }
     },
 	watch: {
