@@ -52,13 +52,13 @@ export default Vue.component("research-expression-plot", {
                     "Datasets"
                 ],
                 "Datasets": [
-                    "biosample",
-                    "dataset",
-                    "minTpm",
-                    "firstQuTpm",
-                    "medianTpm",
-                    "thirdQuTpm",
-                    "maxTpm"
+                    "Biosample",
+                    "Dataset",
+                    "Min TPM",
+                    "Q1 TPM",
+                    "Median TPM",
+                    "Q3 TPM",
+                    "Max TPM"
                 ]
             },
         };
@@ -280,10 +280,20 @@ export default Vue.component("research-expression-plot", {
                             if (collateTableData){
                                 // Deep copy
                                 let tableEntry = JSON.parse(JSON.stringify(d.value));
-                                tableEntry["Tissue"] = d.key;
+                                tableEntry["Tissue"] = d.key.replaceAll("_", " ");
                                 tableEntry["Datasets"] = this.processedData.filter(
                                     item => item[keyAttribute] == d.key
-                                );
+                                ).map(datasetEntry => {
+                                    let editedEntry = {};
+                                    editedEntry["Biosample"] = datasetEntry.biosample;
+                                    editedEntry["Dataset"] = datasetEntry.dataset;
+                                    editedEntry["Min TPM"] = datasetEntry.minTpm;
+                                    editedEntry["Q1 TPM"] = datasetEntry.firstQuTpm;
+                                    editedEntry["Median TPM"] = datasetEntry.medianTpm;
+                                    editedEntry["Q3 TPM"] = datasetEntry.thirdQuTpm;
+                                    editedEntry["Max TPM"] = datasetEntry.maxTpm;
+                                    return editedEntry;
+                                });
                                 this.tableData.push(tableEntry);
                             }
                             return x(d.key);
