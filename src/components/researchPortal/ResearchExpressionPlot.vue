@@ -115,6 +115,14 @@ export default Vue.component("research-expression-plot", {
                 let tpms = entry.tpmForAllSamples.split(",")
                     .map(i => parseFloat(i));
                 entry["tpmForAllSamples"] = tpms;
+                entry[this.keyAttribute] = entry[this.keyAttribute].replaceAll("_", " ");
+                entry["Biosample"] = entry.biosample;
+                entry["Dataset"] = entry.dataset;
+                entry["Min TPM"] = parseFloat(entry.minTpm);
+                entry["Q1 TPM"] = parseFloat(entry.firstQuTpm);
+                entry["Median TPM"] = parseFloat(entry.medianTpm);
+                entry["Q3 TPM"] = parseFloat(entry.thirdQuTpm);
+                entry["Max TPM"] = parseFloat(entry.maxTpm);
             });
             let flatLinear = [];
             let flatLog = [];
@@ -303,20 +311,10 @@ export default Vue.component("research-expression-plot", {
                             if (collateData){
                                 // Deep copy
                                 let tableEntry = JSON.parse(JSON.stringify(d.value));
-                                tableEntry["Tissue"] = d.key.replaceAll("_", " ");
+                                tableEntry["Tissue"] = d.key;
                                 tableEntry["Datasets"] = this.processedData.filter(
                                     item => item[keyAttribute] == d.key
-                                ).map(datasetEntry => {
-                                    let editedEntry = {};
-                                    editedEntry["Biosample"] = datasetEntry.biosample;
-                                    editedEntry["Dataset"] = datasetEntry.dataset;
-                                    editedEntry["Min TPM"] = datasetEntry.minTpm;
-                                    editedEntry["Q1 TPM"] = datasetEntry.firstQuTpm;
-                                    editedEntry["Median TPM"] = datasetEntry.medianTpm;
-                                    editedEntry["Q3 TPM"] = datasetEntry.thirdQuTpm;
-                                    editedEntry["Max TPM"] = datasetEntry.maxTpm;
-                                    return editedEntry;
-                                });
+                                );
                                 this.collatedData.push(tableEntry);
                             }
                             return x(d.key);
