@@ -471,7 +471,7 @@ new Vue({
             }
 
             if (CONVERT != "no convert") {
-                console.log(this.$store.state.bioPortal.phenotypeMap);
+                //console.log(this.$store.state.bioPortal.phenotypeMap);
                 let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
                 DATA.map(d => {
