@@ -854,6 +854,46 @@ export default Vue.component("research-region-plot", {
 					this.callForLDData();
 				}
 			} else {
+				for (var i = 0; i < this.plotsList.length; i++) {
+					if (this.plotsList[i] != "Combined") {
+						let plotID = this.plotsList[i];
+
+						Object.keys(this.plotData).map((k) => {
+							this.plotData[k]["LDS"] = !!this.plotData[k]["LDS"]
+								? this.plotData[k]["LDS"]
+								: {};
+
+							this.plotData[k]["LDS"][plotID] =
+								this.ldData[plotID].data[k];
+						});
+
+						break;
+					}
+				}
+
+				//console.log("this.plotData", this.plotData);
+				this.$store.dispatch("filteredData", this.plotData);
+
+				//console.log("this.plotData", this.plotData);
+
+				/*console.log("plotID", plotID);
+
+				
+
+				Object.keys(this.assoData[plotID].data).map((k) => {
+					this.assoData[plotID].data[k]["LDS"] =
+						this.ldData[plotID].data[k];
+				});
+
+				console.log(
+					"this.ldData[plotID].data",
+					this.ldData[plotID].data
+				);
+				console.log(
+					"this.assoData[plotID].data",
+					this.assoData[plotID].data
+				);*/
+
 				this.renderPlots();
 			}
 			this.$forceUpdate();
@@ -894,6 +934,9 @@ export default Vue.component("research-region-plot", {
 
 			let bump = this.plotMargin.bump;
 
+			//console.log("this.plotData", this.plotData);
+			//console.log("this.assoData", this.assoData);
+			//console.log("this.ldData", this.ldData);
 			this.plotsList.map((p) => {
 				// first asso plot
 				let c, ctx;

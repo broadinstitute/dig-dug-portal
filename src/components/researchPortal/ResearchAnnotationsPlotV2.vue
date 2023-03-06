@@ -385,7 +385,6 @@ export default Vue.component("research-annotations-plot-v2", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
-			//console.log(PARAM);
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -919,8 +918,6 @@ export default Vue.component("research-annotations-plot-v2", {
 					Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 				}
 
-				//console.log("this.pkgData", this.pkgData);
-
 				this.renderByAnnotations();
 				this.renderGE();
 			}
@@ -1167,8 +1164,6 @@ export default Vue.component("research-annotations-plot-v2", {
 							this.renderConfig["ancestry parameter"]
 				  ).value
 				: null;
-
-			//console.log("this.GEData", this.GEData);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
@@ -1926,7 +1921,6 @@ export default Vue.component("research-annotations-plot-v2", {
 					}
 				}
 
-				console.log("this.annoPosData", this.annoPosData);
 				// get ovelapping region
 				this.getOverlappingRegion();
 			}
