@@ -25,8 +25,10 @@
             </b-button>
         </template>
         <template #row-details="row">
-            <b-table
+            <b-table class="dataset-subtable"
+                hover
                 small
+                responsive="sm"
                 :items="row.item['Datasets']"
                 :fields="tableConfig['Datasets']">
             </b-table>
@@ -63,14 +65,14 @@ export default Vue.component("research-expression-plot", {
             collatedData: [],
             tableConfig: {
                 "top rows": [
-                    "Tissue",
-                    "Min TPM",
-                    "Q1 TPM",
-                    "Median TPM",
-                    "Q3 TPM",
-                    "Max TPM",
-                    "Total samples",
-                    "show_datasets"
+                    {key: "Tissue", sortable: true},
+                    {key: "Min TPM", sortable: true},
+                    {key: "Q1 TPM", sortable: true},
+                    {key: "Median TPM", sortable: true},
+                    {key: "Q3 TPM", sortable: true},
+                    {key: "Max TPM", sortable: true},
+                    {key: "Total samples", sortable: true},
+                    {key: "show_datasets", sortable: false}
                 ],
                 "features": [
                     "Datasets"
@@ -392,5 +394,8 @@ div{
 }
 #select-gene{
     width: 200px;
+}
+.dataset-subtable{
+    font-size: smaller;
 }
 </style>
