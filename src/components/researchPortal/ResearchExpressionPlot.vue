@@ -1,8 +1,5 @@
 <template>
 <div class="chart-wrapper">
-    <div id="multi-chart">
-        <p>Loading...</p>
-    </div>
     <label>
         Scale:
         <select v-model="logScale">
@@ -10,7 +7,10 @@
             <option value="yes">Logarithmic: log10(TPM+1)</option>
         </select>
     </label>
-    <b-table v-if="this.tableData.length > 0"
+    <div id="multi-chart">
+        <p>Loading...</p>
+    </div>
+    <b-table id="big-table" v-if="this.tableData.length > 0"
         hover
         small
         responsive="sm"
@@ -385,6 +385,9 @@ div{
 .chart-wrapper{
     display: block;
 }
+.chart-wrapper > label {
+    font-size: smaller;
+}
 .chart{
     flex: 1;
 }
@@ -397,5 +400,8 @@ div{
 }
 .dataset-subtable{
     font-size: smaller;
+}
+#big-table > thead > tr >th {
+    color: #007bff;;
 }
 </style>
