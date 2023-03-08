@@ -251,12 +251,7 @@
 					</div>
 					<b-badge
 						v-if="this.numberOfSearchParams() > 1"
-						class="
-							badge badge-secondary badge-pill
-							btn
-							search-bubble
-							clear-all-filters-bubble
-						"
+						class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
 						@click="removeAllSearchParams()"
 					>
 						Clear all filters
@@ -322,7 +317,7 @@
 						<input
 							type="text"
 							class="form-control"
-							:id="'filter_' + filter.field.replace(/ /g, '')"
+							:id="'filter_' + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -333,7 +328,7 @@
 							class="egl-filter-direction"
 							:id="
 								'filter_' +
-								filter.field.replace(/ /g, '') +
+								getColumnId(filter.field) +
 								'_direction'
 							"
 						>
@@ -345,7 +340,7 @@
 						<input
 							type="text"
 							class="form-control egl-filter-cd-input"
-							:id="'filter_' + filter.field.replace(/ /g, '')"
+							:id="'filter_' + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -353,7 +348,7 @@
 					</template>
 					<template v-else-if="filter.type == 'dropdown'">
 						<select
-							:id="'filter_' + filter.field.replace(/ /g, '')"
+							:id="'filter_' + getColumnId(filter.field)"
 							@change="
 								filterData(
 									$event,
@@ -404,12 +399,7 @@
 			</div>
 			<b-badge
 				v-if="this.numberOfSearches() > 1"
-				class="
-					badge badge-secondary badge-pill
-					btn
-					search-bubble
-					clear-all-filters-bubble
-				"
+				class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
 				@click="removeAllFilters()"
 			>
 				Clear all search
@@ -545,6 +535,9 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		getColumnId(LABEL) {
+			return LABEL.replace(/\W/g, "").toLowerCase();
+		},
 		resetAll() {
 			this.$store.state.pkgData = {};
 			this.$store.state.pkgDataSelected = [];
@@ -937,9 +930,9 @@ export default Vue.component("research-page-filters", {
 		},
 		filterData(EVENT, FIELD, TYPE, DATATYPE) {
 			let searchValue = document.getElementById(
-				"filter_" + FIELD.replace(/ /g, "")
+				"filter_" + this.getColumnId(FIELD)
 			).value; //EVENT.target.value;
-			let id = "#filter_" + FIELD.replace(/ /g, "");
+			let id = "#filter_" + this.getColumnId(FIELD);
 			let inputField = document.querySelector(id);
 
 			inputField.blur();
@@ -1068,9 +1061,8 @@ export default Vue.component("research-page-filters", {
 												let searchDirection =
 													document.getElementById(
 														"filter_" +
-															searchIndex.field.replace(
-																/ /g,
-																""
+															this.getColumnId(
+																searchIndex.field
 															) +
 															"_direction"
 													).value;
@@ -1371,9 +1363,8 @@ export default Vue.component("research-page-filters", {
 											let searchDirection =
 												document.getElementById(
 													"filter_" +
-														searchIndex.field.replace(
-															/ /g,
-															""
+														this.getColumnId(
+															searchIndex.field
 														) +
 														"_direction"
 												).value;
