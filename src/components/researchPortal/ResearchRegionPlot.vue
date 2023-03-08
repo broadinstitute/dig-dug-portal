@@ -289,6 +289,7 @@ export default Vue.component("research-region-plot", {
 			assoPos: {},
 			ldPos: {},
 			dotsClicked: [],
+			refProperties: { region: null, refVariants: {}, groups: [] },
 		};
 	},
 	modules: {
@@ -319,6 +320,22 @@ export default Vue.component("research-region-plot", {
 		},
 		plotsList() {
 			//used rebuild
+			let newRegion = false;
+
+			if (
+				!this.refProperties.region ||
+				this.refProperties.region != this.region
+			) {
+				this.refProperties = {
+					region: this.region,
+					refVariants: {},
+					groups: [],
+				};
+				newRegion = true;
+			}
+
+			console.log("newRegion", newRegion);
+
 			if (this.plotData != null) {
 				var plotsKeys = [];
 				if (this.dataComparisonConfig != null) {
@@ -343,6 +360,11 @@ export default Vue.component("research-region-plot", {
 					plotsKeys.push("default");
 				}
 
+				console.log("is it cancelling LD", this.plotData);
+
+				if (!!newRegion) {
+				}
+
 				this.assoData = {}; // reset assoData
 				this.ldData = {}; // reset ldData
 				this.recombData = ""; // reset recombData
@@ -360,11 +382,25 @@ export default Vue.component("research-region-plot", {
 						yAxLow: null,
 						data: {},
 					};
-					this.ldData[group] = {
-						refVariant: null,
-						population: [],
-						data: null,
-					};
+
+					if (!!this.ldData[group]) {
+						let refVariant = this.refProperties.refVariants[group];
+						if (!this.plotData[refVariant]) {
+							this.ldData[group] = {
+								refVariant: null,
+								population: [],
+								data: null,
+							};
+
+							this.refProperties.refVariants[group] = null;
+						}
+					} else {
+						this.ldData[group] = {
+							refVariant: null,
+							population: [],
+							data: null,
+						};
+					}
 
 					if (group != "Combined") {
 						this.assoPos[group] = {};
@@ -400,13 +436,23 @@ export default Vue.component("research-region-plot", {
 									}
 
 									// set initial refVarint
-									this.ldData[group].refVariant =
-										this.assoData[group].yAxHigh == null
-											? dKey
-											: yAxValue >
-											  this.assoData[group].yAxHigh
-											? dKey
-											: this.ldData[group].refVariant;
+
+									if (
+										!this.refProperties.refVariants[group]
+									) {
+										this.ldData[group].refVariant =
+											this.assoData[group].yAxHigh == null
+												? dKey
+												: yAxValue >
+												  this.assoData[group].yAxHigh
+												? dKey
+												: this.ldData[group].refVariant;
+									} else {
+										this.ldData[group].refVariant =
+											this.refProperties.refVariants[
+												group
+											];
+									}
 
 									// set high / low values of the group
 									this.assoData[group].yAxHigh =
@@ -479,14 +525,15 @@ export default Vue.component("research-region-plot", {
 									dValue[this.renderConfig["render by"]];
 
 								// set initial refVarint
-
-								this.ldData[group].refVariant =
-									this.assoData[group].yAxHigh == null
-										? dKey
-										: yAxValue >
-										  this.assoData[group].yAxHigh
-										? dKey
-										: this.ldData[group].refVariant;
+								if (!this.ldData[group].refVariant) {
+									this.ldData[group].refVariant =
+										this.assoData[group].yAxHigh == null
+											? dKey
+											: yAxValue >
+											  this.assoData[group].yAxHigh
+											? dKey
+											: this.ldData[group].refVariant;
+								}
 
 								// set high / low values of the group
 								this.assoData[group].yAxHigh =
@@ -643,11 +690,13 @@ export default Vue.component("research-region-plot", {
 			if (GROUP != "All") {
 				this.ldData[GROUP].refVariant = VARIANT;
 				this.ldData[GROUP].data = null;
+				this.refProperties.refVariants[GROUP] = VARIANT;
 			} else if (GROUP == "All") {
 				this.plotsList.map((p) => {
 					if (p != "combined") {
 						this.ldData[p].refVariant = VARIANT;
 						this.ldData[p].data = null;
+						this.refProperties.refVariants[p] = VARIANT;
 					}
 				});
 			}
@@ -807,6 +856,7 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		async callForLDData() {
+			console.log("LD called");
 			const plotWrappers = document.querySelectorAll(
 				".region-plots-wrapper"
 			);
@@ -854,6 +904,25 @@ export default Vue.component("research-region-plot", {
 					this.callForLDData();
 				}
 			} else {
+				for (var i = 0; i < this.plotsList.length; i++) {
+					if (this.plotsList[i] != "Combined") {
+						let plotID = this.plotsList[i];
+
+						Object.keys(this.plotData).map((k) => {
+							this.plotData[k]["LDS"] = !!this.plotData[k]["LDS"]
+								? this.plotData[k]["LDS"]
+								: {};
+
+							this.plotData[k]["LDS"][plotID] =
+								this.ldData[plotID].data[k];
+						});
+
+						break;
+					}
+				}
+
+				this.$store.dispatch("filteredData", this.plotData);
+
 				this.renderPlots();
 			}
 			this.$forceUpdate();
@@ -894,6 +963,9 @@ export default Vue.component("research-region-plot", {
 
 			let bump = this.plotMargin.bump;
 
+			//console.log("this.plotData", this.plotData);
+			//console.log("this.assoData", this.assoData);
+			//console.log("this.ldData", this.ldData);
 			this.plotsList.map((p) => {
 				// first asso plot
 				let c, ctx;

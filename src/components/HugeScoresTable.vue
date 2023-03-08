@@ -155,6 +155,7 @@ export default Vue.component("huge-scores-table", {
 		},
 
 		tableData() {
+			//console.log("this.hugeScores", this.hugeScores);
 			let assocs = this.hugeScores;
 			let phenotypeMap = this.phenotypeMap;
 
@@ -200,6 +201,6 @@ export default Vue.component("huge-scores-table", {
 	background-color: #a1f0a9;
 }
 .no-evidence {
-	background-color: #c4edc8;
+	background-color: #ffffff;
 }
 </style>

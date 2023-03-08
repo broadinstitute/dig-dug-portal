@@ -497,8 +497,14 @@ export default Vue.component("research-phewas-plot", {
 						this.renderConfig["convert y -log10"] == "true"
 							? -Math.log10(Number(t))
 							: Number(t);
+
+					let yFromMinYGuide = -minY + tValue;
+
 					let guidelineYpos =
-						canvasHeight - plotMargin.bottom - tValue * yStep;
+						canvasHeight -
+						plotMargin.bottom -
+						yFromMinYGuide * yStep;
+
 					ctx.setLineDash([20, 10]);
 					ctx.moveTo(
 						plotMargin.left - plotMargin.bump,
@@ -556,10 +562,12 @@ export default Vue.component("research-phewas-plot", {
 										  ]
 										: p[this.renderConfig["y axis field"]];
 
+								let yFromMinY = -minY + yValue;
+
 								let yPos =
 									canvasHeight -
 									plotMargin.bottom -
-									yValue * yStep;
+									yFromMinY * yStep;
 
 								let pName =
 									this.phenotypeMapConfig == null
