@@ -1206,6 +1206,17 @@ export default Vue.component("research-annotations-plot-v2", {
 						pValue = pValue == 0 ? 324 : -Math.log10(pValue);
 
 						let fold = g.SNPs / g.expectedSNPs;
+						if (fold < 0) {
+							console.log(
+								"fold:",
+								fold,
+								"g.SNPs:",
+								g.SNPs,
+								"g.expectedSNPs:",
+								g.expectedSNPs
+							);
+							console.log("g", g);
+						}
 
 						sortedGEData[phenotype].yMax =
 							sortedGEData[phenotype].yMax == null
