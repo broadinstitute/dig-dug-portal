@@ -1173,7 +1173,11 @@ export default Vue.component("research-annotations-plot-v2", {
 				  ).value
 				: null;
 
-			//console.log("this.GEData", this.GEData);
+			console.log("ancestry", ancestry);
+			console.log(
+				'this.renderConfig["ancestry parameter"]',
+				this.renderConfig
+			);
 
 			for (const [phenotype, GE] of Object.entries(this.GEData)) {
 				sortedGEData[phenotype] = {
@@ -1305,6 +1309,7 @@ export default Vue.component("research-annotations-plot-v2", {
 			ctx = c.getContext("2d");
 
 			let pIndex = 0;
+			console.log("sortedGEData", sortedGEData);
 			for (const [phenotype, GE] of Object.entries(sortedGEData)) {
 				let titleYPos = titleSize;
 
@@ -1349,6 +1354,9 @@ export default Vue.component("research-annotations-plot-v2", {
 				let xPosByPixel = plotWidth / (GE.xMax - GE.xMin);
 				let yPosByPixel = plotHeight / (GE.yMax - GE.yMin);
 
+				//console.log("foldArr", foldArr);
+				//console.log("pValArr", pValArr);
+
 				annotationsArr.map((annotation, annoIndex) => {
 					/*let dotColor =
 						!this.pkgData.selectedAnnos ||
@@ -1380,6 +1388,8 @@ export default Vue.component("research-annotations-plot-v2", {
 							this.plotMargin.topMargin +
 							plotHeight -
 							(tValue.fold - GE.yMin) * yPosByPixel;
+
+						//console.log("tValue.fold", tValue.fold, "yPos", yPos);
 
 						ctx.fillStyle = dotColor;
 						ctx.lineWidth = 0;
