@@ -1,6 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
-		{{ searchParameters }}
+		{{ searchingParameters }}
 		<div
 			class="col-md-12 annotations-plot-wrapper"
 			v-if="searchingRegion != null"
@@ -267,7 +267,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	computed: {
 		searchingParameters() {
 			let content = "";
-			if (
+			/*if (
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
@@ -287,7 +287,15 @@ export default Vue.component("research-annotations-plot-v2", {
 						"#search_param_" +
 							this.renderConfig["ancestry parameter"]
 				  ).value
-				: "";
+				: "";*/
+
+			let searchProperties = Object.keys(this.searchParameters);
+
+			searchProperties.map((p) => {
+				this.searchParameters[p].search.map((s) => {
+					content += s;
+				});
+			});
 
 			return content;
 		},
@@ -386,7 +394,14 @@ export default Vue.component("research-annotations-plot-v2", {
 		},
 	},
 	watch: {
+		searchParameters(PARAM) {
+			console.log("search update");
+			this.renderGE();
+			this.renderByAnnotations();
+		},
 		searchingParameters(PARAM) {
+			console.log("search update");
+
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -2315,66 +2330,6 @@ export default Vue.component("research-annotations-plot-v2", {
 										);
 									}
 								});
-
-								/*let pIndex = 0;
-								for (const [pKey, tissues] of Object.entries(
-									this.pkgData.GEByTissueData
-								)) {
-									if (
-										!!this.pkgData.GEByTissueData[pKey][
-											tissue
-										] &&
-										!!this.pkgData.GEByTissueData[pKey][
-											tissue
-										][annotation]
-									) {
-										let pvalueFold =
-											this.pkgData.GEByTissueData[pKey][
-												tissue
-											][annotation]["pValue"] +
-											" / " +
-											Number(
-												this.pkgData.GEByTissueData[
-													pKey
-												][tissue][annotation]["fold"]
-											).toFixed(3);
-
-										if (
-											this.pkgData.GEByTissueData[pKey][
-												tissue
-											][annotation]["rank"] < 5
-										) {
-											ctx.fillStyle =
-												this.getColorIndex(annotation);
-											ctx.lineWidth = 0;
-											ctx.beginPath();
-											ctx.arc(
-												canvasWidth +
-													pvalueFoldWidth * pIndex -
-													10,
-												renderHeight - 8,
-												6,
-												0,
-												2 * Math.PI
-											);
-											ctx.fill();
-										}
-
-										ctx.fillStyle = "#000000";
-										ctx.textAlign = "start";
-										ctx.textBaseline = "middle";
-										ctx.font = "22px Arial";
-
-										ctx.fillText(
-											pvalueFold,
-											canvasWidth +
-												pvalueFoldWidth * pIndex,
-											renderHeight - 8
-										);
-									}
-
-									pIndex++;
-								}*/
 							});
 							renderHeight += btwnAnnotations;
 						}
