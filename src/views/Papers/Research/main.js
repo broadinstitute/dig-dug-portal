@@ -934,9 +934,11 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         let pageID = keyParams.pageid || window.location.pathname.substring(3);
         console.log("pageID", pageID);
-        this.$store.dispatch("hugeampkpncms/getResearchMode", {
-            pageID,
-        });
+        if (pageID) {
+            this.$store.dispatch("hugeampkpncms/getResearchMode", {
+                pageID,
+            });
+        }
     },
 
     methods: {
