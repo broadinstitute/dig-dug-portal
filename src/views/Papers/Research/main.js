@@ -71,6 +71,7 @@ new Vue({
     },
     data() {
         return {
+            pageID: null,
             regionZoom: 0,
             regionViewArea: 0,
             devID: null,
@@ -328,9 +329,9 @@ new Vue({
             }
             return contents[0]["body"];
         },
-        pageID() {
-            return keyParams.pageid.trim();
-        },
+        // pageID() {
+        //     return keyParams.pageid.trim();
+        // },
         pageTitle() {
             let contents = this.researchPage;
 
@@ -710,7 +711,7 @@ new Vue({
 
             if (pageMode == "public") {
                 this.$store.dispatch("hugeampkpncms/getResearchPage", {
-                    pageID: keyParams.pageid,
+                    pageID: this.pageID,
                 });
             }
         },
@@ -932,8 +933,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
-        let pageID = keyParams.pageid || window.location.pathname.substring(3);
-        console.log("pageID", pageID);
+        this.pageID = keyParams.pageid || window.location.pathname.substring(3);
         if (pageID) {
             this.$store.dispatch("hugeampkpncms/getResearchMode", {
                 pageID,
@@ -991,7 +991,7 @@ new Vue({
             let devPW = this.devPW;
 
             this.$store.dispatch("hugeampkpncms/getResearchDevPage", {
-                pageID: keyParams.pageid,
+                pageID: this.pageID,
                 devID: devID,
                 devPW: devPW,
             });
