@@ -1,6 +1,5 @@
 <template>
 	<div class="mbm-plot-content row">
-		{{ searchingParameters }}
 		<div
 			class="col-md-12 annotations-plot-wrapper"
 			v-if="searchingRegion != null"
@@ -2317,10 +2316,41 @@ export default Vue.component("research-annotations-plot-v2", {
 											ctx.fill();
 										}
 
+										if (
+											this.pkgData.GEByTissueData[pKey][
+												tissue
+											][annotation].ancestries[aKey][
+												"pValue"
+											] < 0.05
+										) {
+											ctx.fillStyle = "#FF9999";
+											ctx.lineWidth = 0;
+											ctx.beginPath();
+											ctx.arc(
+												canvasWidth +
+													pvalueFoldWidth * gIndex -
+													20,
+												renderHeight - 8,
+												6,
+												0,
+												2 * Math.PI
+											);
+											ctx.fill();
+										}
+
 										ctx.fillStyle = "#000000";
 										ctx.textAlign = "start";
 										ctx.textBaseline = "middle";
 										ctx.font = "22px Arial";
+										/*ctx.font =
+											this.pkgData.GEByTissueData[pKey][
+												tissue
+											][annotation].ancestries[aKey][
+												"pValue"
+											] < 0.05
+												? "bold 24px Arial"
+												: "24px Arial";
+												*/
 
 										ctx.fillText(
 											pvalueFold,
