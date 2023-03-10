@@ -133,6 +133,7 @@
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
 				:sharedPlotXpos="sharedPlotXpos"
+				:searchParameters="this.$store.state.searchParameters"
 				ref="annotationsRef"
 			></research-annotations-plot-v2>
 			<div
