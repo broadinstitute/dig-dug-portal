@@ -932,8 +932,10 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
+        let pageID = keyParams.pageid || window.location.pathname.substring(3);
+        console.log("pageID", pageID);
         this.$store.dispatch("hugeampkpncms/getResearchMode", {
-            pageID: keyParams.pageid || window.location.pathname.substring(3),
+            pageID,
         });
     },
 
