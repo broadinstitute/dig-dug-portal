@@ -933,7 +933,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", {
-            pageID: keyParams.pageid || window.location.pathname,
+            pageID: keyParams.pageid || window.location.pathname.substring(3),
         });
     },
 
