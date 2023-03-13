@@ -973,8 +973,6 @@ export default Vue.component("research-annotations-plot-v2", {
 							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
 					}
 
-					console.log("phenotype", phenotype);
-
 					if (!annotations[phenotype][g.annotation][g.ancestry]) {
 						annotations[phenotype][g.annotation][g.ancestry] = [];
 					}
@@ -1152,8 +1150,6 @@ export default Vue.component("research-annotations-plot-v2", {
 					: group.phenotype;
 				let ancestry = group.ancestry;
 				let GE = this.GEData[phenotype];
-
-				console.log("this.GEData", this.GEData);
 
 				if (!sortedGEData[phenotype]) {
 					sortedGEData[phenotype] = {};
