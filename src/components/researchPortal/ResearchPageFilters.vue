@@ -484,6 +484,7 @@ export default Vue.component("research-page-filters", {
 			this.apiParameters.query.type == "array"
 		) {
 			let parametersArr = this.apiParameters.query.format;
+			let paramsSet = {};
 
 			parametersArr.map((param, index) => {
 				if (keyParams[param] != undefined) {
@@ -527,8 +528,17 @@ export default Vue.component("research-page-filters", {
 						"searchParameters",
 						this.searchParamsIndex
 					);
+
+					paramsSet[param] = keyParams[param];
 				}
 			});
+
+			if (Object.keys(paramsSet).length > 0) {
+				this.$store.dispatch("searchParametersArr", {
+					data: paramsSet,
+					action: "add",
+				});
+			}
 		}
 	},
 	computed: {},
@@ -761,6 +771,8 @@ export default Vue.component("research-page-filters", {
 				}
 			}
 
+			let paramsSet = {};
+
 			let queryParams = "";
 			if (this.apiParameters.query.type == "array") {
 				let parametersArr = this.apiParameters.query.format;
@@ -806,6 +818,10 @@ export default Vue.component("research-page-filters", {
 						);
 					}
 
+					paramsSet[param] = document.getElementById(
+						"search_param_" + param
+					).value;
+
 					this.$store.dispatch(
 						"searchParameters",
 						this.searchParamsIndex
@@ -819,6 +835,20 @@ export default Vue.component("research-page-filters", {
 					}
 
 					window.history.pushState(null, "", url.toString());
+				}
+			}
+
+			if (Object.keys(paramsSet).length > 0) {
+				if (this.$store.state.dataComparison == "newSearch") {
+					this.$store.dispatch("searchParametersArr", {
+						data: paramsSet,
+						action: "reset",
+					});
+				} else {
+					this.$store.dispatch("searchParametersArr", {
+						data: paramsSet,
+						action: "add",
+					});
 				}
 			}
 

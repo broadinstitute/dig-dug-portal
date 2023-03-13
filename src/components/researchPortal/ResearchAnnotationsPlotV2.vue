@@ -234,6 +234,7 @@ export default Vue.component("research-annotations-plot-v2", {
 		"regionZoom",
 		"regionViewArea",
 		"searchParameters",
+		"searchParametersArr",
 	],
 	data() {
 		return {
@@ -266,7 +267,7 @@ export default Vue.component("research-annotations-plot-v2", {
 	computed: {
 		searchingParameters() {
 			let content = "";
-			/*if (
+			if (
 				this.searchingRegion != null &&
 				this.searchingPhenotype != null
 			) {
@@ -286,15 +287,15 @@ export default Vue.component("research-annotations-plot-v2", {
 						"#search_param_" +
 							this.renderConfig["ancestry parameter"]
 				  ).value
-				: "";*/
+				: "";
 
-			let searchProperties = Object.keys(this.searchParameters);
+			/*let searchProperties = Object.keys(this.searchParameters);
 
 			searchProperties.map((p) => {
 				this.searchParameters[p].search.map((s) => {
 					content += s;
 				});
-			});
+			});*/
 
 			return content;
 		},
@@ -343,26 +344,6 @@ export default Vue.component("research-annotations-plot-v2", {
 				return returnObj;
 			}
 		},
-		/*searchingPhenotype() {
-			if (this.phenotype != null) {
-				uiUtils.showElement("annotationsPlotWrapper");
-				//this.getAnnotations(this.searchingRegion);
-
-				let returnPhenotype = !!this.renderConfig["phenotype match"]
-					? this.renderConfig["phenotype match"][this.phenotype]
-					: this.phenotype;
-
-				return returnPhenotype;
-			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
-					uiUtils.showElement("annotationsPlotWrapper");
-					//this.getAnnotations(this.searchingRegion);
-					return keyParams[this.renderConfig["phenotype parameter"]];
-				} else {
-					return null;
-				}
-			}
-		},*/
 		searchingPhenotype() {
 			if (this.phenotype != null) {
 				uiUtils.showElement("annotationsPlotWrapper");
@@ -393,14 +374,12 @@ export default Vue.component("research-annotations-plot-v2", {
 		},
 	},
 	watch: {
-		searchParameters(PARAM) {
-			console.log("search update");
+		///use searchParametersArr to rerender plots on search.
+		searchParametersArr(PARAM) {
 			this.renderGE();
 			this.renderByAnnotations();
 		},
 		searchingParameters(PARAM) {
-			console.log("search update");
-
 			this.getAnnotations(this.searchingRegion);
 		},
 		pkgDataSelected: {
@@ -1526,304 +1505,6 @@ export default Vue.component("research-annotations-plot-v2", {
 				pIndex++;
 			});
 		},
-		/*
-		//original renderGE()
-		renderGE() {
-			//working part
-
-			this.GEPosData = {};
-			let sortedGEData = {};
-			let ancestry = !!this.renderConfig["ancestry parameter"]
-				? document.querySelector(
-						"#search_param_" +
-							this.renderConfig["ancestry parameter"]
-				  ).value
-				: null;
-
-			for (const [phenotype, GE] of Object.entries(this.GEData)) {
-				sortedGEData[phenotype] = {
-					xMax: null,
-					xMin: null,
-					yMax: null,
-					yMin: null,
-				};
-
-				GE.map((g) => {
-					let meetCondition = null;
-
-					if (
-						!!ancestry &&
-						!!this.annoData[g.annotation][g.tissue] &&
-						!!this.annoData[g.annotation][g.tissue]["ancestries"][
-							ancestry
-						]
-					) {
-						meetCondition = true;
-					} else if (
-						!ancestry &&
-						!!this.annoData[g.annotation][g.tissue] &&
-						!!this.annoData[g.annotation][g.tissue]
-					) {
-						meetCondition = true;
-					}
-
-					if (!!meetCondition) {
-						if (!sortedGEData[phenotype][g.annotation]) {
-							sortedGEData[phenotype][g.annotation] = {};
-						}
-
-						let pValue = !!ancestry
-							? this.annoData[g.annotation][g.tissue][
-									"ancestries"
-							  ][ancestry][phenotype]
-							: g.pValue;
-
-						pValue = pValue == 0 ? 324 : -Math.log10(pValue);
-
-						let fold = g.SNPs / g.expectedSNPs;
-						if (fold < 0) {
-							console.log(
-								"fold:",
-								fold,
-								"g.SNPs:",
-								g.SNPs,
-								"g.expectedSNPs:",
-								g.expectedSNPs
-							);
-							console.log("g", g);
-						}
-
-						sortedGEData[phenotype].yMax =
-							sortedGEData[phenotype].yMax == null
-								? fold
-								: fold > sortedGEData[phenotype].yMax
-								? fold
-								: sortedGEData[phenotype].yMax;
-
-						sortedGEData[phenotype].yMin =
-							sortedGEData[phenotype].yMin == null
-								? fold
-								: fold < sortedGEData[phenotype].yMin
-								? fold
-								: sortedGEData[phenotype].yMin;
-
-						sortedGEData[phenotype].xMax =
-							sortedGEData[phenotype].xMax == null
-								? pValue
-								: pValue > sortedGEData[phenotype].xMax
-								? pValue
-								: sortedGEData[phenotype].xMax;
-
-						sortedGEData[phenotype].xMin =
-							sortedGEData[phenotype].xMin == null
-								? pValue
-								: pValue < sortedGEData[phenotype].xMin
-								? pValue
-								: sortedGEData[phenotype].xMin;
-
-						sortedGEData[phenotype][g.annotation][g.tissue] =
-							!sortedGEData[phenotype][g.annotation][g.tissue]
-								? { pValue: null, fold: null }
-								: sortedGEData[phenotype][g.annotation][
-										g.tissue
-								  ];
-
-						let currentPvalue =
-							sortedGEData[phenotype][g.annotation][g.tissue]
-								.pValue;
-
-						let currentFold =
-							sortedGEData[phenotype][g.annotation][g.tissue]
-								.fold;
-
-						sortedGEData[phenotype][g.annotation][g.tissue].pValue =
-							currentPvalue == null
-								? pValue
-								: pValue > currentPvalue
-								? pValue
-								: currentPvalue;
-
-						sortedGEData[phenotype][g.annotation][g.tissue].fold =
-							currentFold == null
-								? fold
-								: fold > currentFold
-								? fold
-								: currentFold;
-					}
-				});
-			}
-
-			let numOfPhenotypes = Object.keys(sortedGEData).length;
-
-			let canvasWidth =
-				document.querySelector("#GEPlotWrapper").clientWidth * 2 * 0.25;
-
-			let allCanvasWidth = canvasWidth * numOfPhenotypes;
-
-			let plotHeight = 260;
-			let titleSize = this.spaceBy * 2;
-			let canvasHeight =
-				this.plotMargin.topMargin +
-				this.plotMargin.bottomMargin +
-				plotHeight +
-				titleSize;
-
-			let plotWidth =
-				canvasWidth -
-				this.plotMargin.leftMargin -
-				this.plotMargin.rightMargin;
-			let bump = 11;
-
-			let c, ctx;
-			c = document.querySelector("#GEPlot");
-			c.setAttribute("width", allCanvasWidth);
-			c.setAttribute("height", canvasHeight);
-			c.setAttribute(
-				"style",
-				"width:" +
-					allCanvasWidth / 2 +
-					"px;height:" +
-					canvasHeight / 2 +
-					"px;"
-			);
-
-			ctx = c.getContext("2d");
-
-			let pIndex = 0;
-			for (const [phenotype, GE] of Object.entries(sortedGEData)) {
-				let titleYPos = titleSize;
-
-				let canvasLeft = bump + canvasWidth * pIndex;
-
-				ctx.font = "28px Arial";
-				ctx.textAlign = "left";
-				ctx.fillStyle = "#000000";
-				ctx.fillText(phenotype, canvasLeft, titleYPos);
-
-				this.renderGEAxis(
-					ctx,
-					plotWidth,
-					plotHeight,
-					GE.xMax,
-					GE.xMin,
-					GE.yMax,
-					GE.yMin,
-					canvasLeft,
-					titleYPos,
-					bump
-				);
-
-				let annotationsArr = Object.keys(this.annoData);
-				//let tissuesCount = 0;
-
-				let foldArr = [];
-				let pValArr = [];
-				annotationsArr.map((annotation) => {
-					for (const [tissue, tissueValue] of Object.entries(
-						GE[annotation]
-					)) {
-						//tissuesCount++;
-						pValArr.push(tissueValue.pValue);
-						foldArr.push(tissueValue.fold);
-					}
-				});
-
-				foldArr.sort((a, b) => b - a);
-				pValArr.sort((a, b) => b - a);
-
-				let xPosByPixel = plotWidth / (GE.xMax - GE.xMin);
-				let yPosByPixel = plotHeight / (GE.yMax - GE.yMin);
-
-				annotationsArr.map((annotation, annoIndex) => {
-					let dotColor =
-						this.annotationOnFocus == "null"
-							? this.compareGroupColors[annoIndex]
-							: annotation == this.annotationOnFocus
-							? this.compareGroupColors[annoIndex]
-							: "#00000030";
-
-					//let firstTissueInAnno = 0;
-					for (const [tissue, tValue] of Object.entries(
-						GE[annotation]
-					)) {
-						let xPos =
-							canvasLeft +
-							this.plotMargin.leftMargin +
-							(tValue.pValue - GE.xMin) * xPosByPixel;
-
-						let yPos =
-							titleYPos +
-							this.plotMargin.topMargin +
-							plotHeight -
-							(tValue.fold - GE.yMin) * yPosByPixel;
-
-						ctx.fillStyle = dotColor;
-						ctx.lineWidth = 0;
-						ctx.beginPath();
-						ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
-						ctx.fill();
-
-						if (
-							tValue.fold >= foldArr[2] ||
-							tValue.pValue >= pValArr[2]
-						) {
-							ctx.font = "24px Arial";
-							ctx.fillStyle =
-								!this.pkgData.selectedAnnos ||
-								this.pkgData.selectedAnnos.length == 0
-									? "#000000"
-									: !!this.pkgData.selectedAnnos &&
-									  !!this.pkgData.selectedAnnos.includes(
-											annotation
-									  )
-									? "#000000"
-									: "#00000050";
-							if (xPos > canvasWidth * 0.75) {
-								ctx.textAlign = "right";
-								ctx.fillText(tissue, xPos - 14, yPos + 6);
-							} else {
-								ctx.textAlign = "left";
-								ctx.fillText(tissue, xPos + 14, yPos + 6);
-							}
-						}
-
-						if (!this.GEPosData[Math.round(yPos / 2)]) {
-							this.GEPosData[Math.round(yPos / 2)] = {};
-						}
-						if (
-							!this.GEPosData[Math.round(yPos / 2)][
-								Math.round(xPos / 2)
-							]
-						) {
-							this.GEPosData[Math.round(yPos / 2)][
-								Math.round(xPos / 2)
-							] = {};
-						}
-
-						this.GEPosData[Math.round(yPos / 2)][
-							Math.round(xPos / 2)
-						][tissue] = { pValue: null, fold: null };
-
-						this.GEPosData[Math.round(yPos / 2)][
-							Math.round(xPos / 2)
-						][tissue]["pValue"] = tValue.pValue;
-
-						this.GEPosData[Math.round(yPos / 2)][
-							Math.round(xPos / 2)
-						][tissue]["fold"] = tValue.fold;
-
-						this.GEPosData[Math.round(yPos / 2)][
-							Math.round(xPos / 2)
-						][tissue]["annotationIndex"] = annoIndex;
-
-						//tissuesCount++;
-						//firstTissueInAnno++;
-					}
-				});
-
-				pIndex++;
-			}
-		},*/
 		renderGEAxis(
 			CTX,
 			WIDTH,
