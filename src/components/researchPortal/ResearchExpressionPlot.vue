@@ -2,7 +2,7 @@
 <div class="chart-wrapper">
     <label>
         Scale:
-        <select v-model="logScale">
+        <select class="form-control form-control-sm" v-model="logScale">
             <option value="no">Linear</option>
             <option value="yes">Logarithmic: log10(TPM+1)</option>
         </select>
