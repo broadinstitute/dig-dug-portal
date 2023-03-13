@@ -1127,6 +1127,12 @@ export default Vue.component("research-annotations-plot-v2", {
 		renderGE() {
 			//working part
 
+			/*let ancestries = [
+				...new Set(this.GEData["T2D"].map((d) => d.ancestry)),
+			];
+
+			console.log("ancestries", ancestries);*/
+
 			this.GEPosData = {};
 			let sortedGEData = {};
 			let searchGroups = [];
