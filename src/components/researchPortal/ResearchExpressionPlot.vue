@@ -20,7 +20,8 @@
         :current-page="currentPage"
     >
         <template #cell(show_datasets)="row">
-            <b-button size="sm" @click="row.toggleDetails" class="mr-2">
+            <b-button class="btn view-features-btn btn-secondary mr-2"
+            size="sm" @click="row.toggleDetails">
                 {{ row.detailsShowing ? "Hide": "Show" }} Datasets
             </b-button>
         </template>
