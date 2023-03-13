@@ -154,11 +154,13 @@ export default Vue.component("research-expression-plot", {
                     let flatLinearEntry = {};
                     flatLinearEntry[this.keyAttribute] = item[this.keyAttribute];
                     flatLinearEntry["tpm"] = tpmVal;
+                    flatLinearEntry["noise"] = Math.random();
                     flatLinear.push(flatLinearEntry);
 
                     let flatLogEntry = {};
                     flatLogEntry[this.keyAttribute] = item[this.keyAttribute];
                     flatLogEntry["tpm"] = Math.log10(tpmVal + 1);
+                    flatLogEntry["noise"] = Math.random();
                     flatLog.push(flatLogEntry);
                 }
             }
@@ -235,14 +237,14 @@ export default Vue.component("research-expression-plot", {
             
             let colorIndex = 0;
             let mouseover = (d) => {
+                svg.selectAll("circle").remove();
                 let boxHalfWidth = 6;
                 svg.selectAll("indPoints")
                     .data(flatData.filter(entry => entry[keyAttribute] == d.key))
                     .enter()
                     .append("circle")
                         .attr("cx", g => {
-                            let noise = Math.random();
-                            let dx = offset - (2*boxHalfWidth) + (noise * boxHalfWidth * 4)
+                            let dx = offset - (2*boxHalfWidth) + (g.noise * boxHalfWidth * 4)
                             return x(d.key) + dx;
                         })
                         .attr("cy", g => y(g.tpm))
@@ -275,7 +277,8 @@ export default Vue.component("research-expression-plot", {
                         .x0(d => xNum(-d.length))
                         .x1(d => xNum(d.length))
                         .y(d => y(d.x0))
-                        .curve(d3.curveCatmullRom));
+                        .curve(d3.curveCatmullRom))
+                    .on("mouseover", mouseover);
             let numberViolins = 0;
             let sumstatBox = d3.nest()
                     .key(d => d[keyAttribute])
@@ -312,7 +315,8 @@ export default Vue.component("research-expression-plot", {
                         .attr("stroke", "black")
                         .style("opacity", 0.5)
                         .style("width", 30)
-                        .attr("transform", d => `translate(${x(d.key) + offset},0)`);
+                        .attr("transform", d => `translate(${x(d.key) + offset},0)`)
+                        .on("mouseover", mouseover);
             // Boxplots bottom quartile
             svg.selectAll("vertLines")
                     .data(sumstatBox)
@@ -325,7 +329,8 @@ export default Vue.component("research-expression-plot", {
                         .attr("stroke", "black")
                         .style("opacity", 0.5)
                         .style("width", 30)
-                        .attr("transform", d => `translate(${x(d.key) + offset},0)`);
+                        .attr("transform", d => `translate(${x(d.key) + offset},0)`)
+                        .on("mouseover", mouseover);
             let boxHalfWidth = 3;
             svg.selectAll("boxes")
                     .data(sumstatBox)
@@ -337,7 +342,8 @@ export default Vue.component("research-expression-plot", {
                         .attr("width", boxHalfWidth * 2)
                         .attr("stroke", "black")
                         .style("fill", "white")
-                        .style("opacity", 0.5);
+                        .style("opacity", 0.5)
+                        .on("mouseover", mouseover);
             
             // Packaging data for export at the same time.
             let collateData = this.collatedData.length == 0;
@@ -363,8 +369,7 @@ export default Vue.component("research-expression-plot", {
                     .attr("stroke", "none")
                     .style("fill", "white")
                     .style("opacity", 0)
-                    .on("mouseover", mouseover)
-                    .on("mouseleave", mouseleave);
+                    .on("mouseover", mouseover);
             svg.selectAll("medianLines")
                     .data(sumstatBox)
                     .enter()
@@ -374,7 +379,8 @@ export default Vue.component("research-expression-plot", {
                         .attr("y1", d => y(d.value["Median TPM"]))
                         .attr("y2", d => y(d.value["Median TPM"]))
                         .attr("stroke", "#99999999")
-                        .style("width", 50);
+                        .style("width", 50)
+                        .on("mouseover", mouseover);
 
         },
         mapColors(){
