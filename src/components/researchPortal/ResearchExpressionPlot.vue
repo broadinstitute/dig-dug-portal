@@ -32,6 +32,12 @@
                 responsive="sm"
                 :items="row.item['Datasets']"
                 :fields="tableConfig['Datasets']">
+                <template #cell(dataset)="data">
+                    <a :href="`https://cmdga.org/annotations/${data.value}/`"
+                        target="_blank">
+                        {{ data.value }}
+                    </a>
+                </template>
             </b-table>
         </template>
     </b-table>
