@@ -1,3 +1,5 @@
+import ResearchExpressionPlot from '@/components/researchPortal/ResearchExpressionPlot.vue';
+
 <template>
 	<div>
 		<!-- Header -->
@@ -180,7 +182,16 @@
 					</b-tabs>
 				</div>
 			</div>
-			<!--<div class="card mdkp-card">
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<h4 class="card-title">Gene Expression for {{ $store.state.geneName }}</h4>
+					<research-expression-plot v-if="$parent.geneExpression.length > 0"
+						:rawData=$parent.geneExpression 
+						@expression="(raw) => $parent.geneExpressionTable = JSON.parse(raw)">
+					</research-expression-plot>
+				</div>
+			</div>
+			<!--div class="card mdkp-card">
 				<div class="card-body">
 					<h4 style="font-weight: bold" class="card-title">
 						HuGE Score
