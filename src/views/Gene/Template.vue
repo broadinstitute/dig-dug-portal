@@ -1,5 +1,4 @@
-
-import ResearchExpressionPlot from '../../components/researchPortal/ResearchExpressionPlot.vue';
+import ResearchExpressionPlot from '@/components/researchPortal/ResearchExpressionPlot.vue';
 
 <template>
 	<div>

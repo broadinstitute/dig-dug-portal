@@ -89,7 +89,7 @@ export default Vue.component("research-expression-plot", {
             },
         };
     },
-    mounted: function () {
+    mounted() {
         this.chart = document.getElementById("multi-chart");
         this.chartWidth = this.chart.clientWidth;       
         addEventListener("resize", (event) => {
@@ -114,11 +114,11 @@ export default Vue.component("research-expression-plot", {
         }
     },
 	watch: {
-        rawData: function(){
+        rawData(){
             this.processData();
             this.displayResults();
         },
-        logScale: function(){
+        logScale(){
             this.displayResults();
         },
     },
@@ -165,7 +165,7 @@ export default Vue.component("research-expression-plot", {
             let colorMap = this.colorMap;
 
             let flatData = this.logScale == "yes" ? this.flatLog : this.flatLinear;
-            var margin = { 
+            let margin = { 
                 top: 10, 
                 right: 30, 
                 bottom: this.getBottomMargin(flatData, keyAttribute),
@@ -180,7 +180,7 @@ export default Vue.component("research-expression-plot", {
                     .attr("height", height + margin.top + margin.bottom)
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-            var x = d3.scaleBand()
+            let x = d3.scaleBand()
                 .range([0, width])
                 .domain(flatData.map(entry => entry[keyAttribute]))
                 .padding(0.05);
@@ -194,7 +194,7 @@ export default Vue.component("research-expression-plot", {
             let maxVal = flatData.map(g => g.tpm).reduce(
                     (prev, next) => prev > next ? prev : next, 0
                 );
-            var y = d3.scaleLinear()
+            let y = d3.scaleLinear()
                 .domain([0,maxVal])
                 .range([height,0]);
             svg.append("g").call(d3.axisLeft(y));
@@ -205,7 +205,7 @@ export default Vue.component("research-expression-plot", {
                     .value(d => d);
             let sumstat = d3.nest()
                     .key(d => d[keyAttribute])
-                    .rollup(function(d) {
+                    .rollup(d => {
                         let input = d.map(g => g.tpm);
                         let bins = histogram(input);
                         return(bins);
@@ -221,12 +221,12 @@ export default Vue.component("research-expression-plot", {
                     maxNum = longest;
                 }
             }
-            var xNum = d3.scaleLinear()
+            let xNum = d3.scaleLinear()
                 .range([0, x.bandwidth()])
                 .domain([-maxNum, maxNum]);
             
             let colorIndex = 0;
-            var mouseover = function(d) {
+            let mouseover = (d) => {
                 let boxHalfWidth = 6;
                 svg.selectAll("indPoints")
                     .data(flatData.filter(entry => entry[keyAttribute] == d.key))
@@ -242,7 +242,7 @@ export default Vue.component("research-expression-plot", {
                         .style("fill", `${colorMap[d.key]}33`)
                         .attr("stroke", `${colorMap[d.key]}`);
             };
-            var mouseleave = function(d){
+            let mouseleave = (d) => {
                 svg.selectAll("circle").remove();
             }
             svg.selectAll("myViolin")

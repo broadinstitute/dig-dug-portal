@@ -2,8 +2,8 @@
 <div class="chart-wrapper">
     <div v-if="!!summaryPlot['title']"><h4>{{summaryPlot['title']}}</h4></div>
     <research-multi-plot v-if="summaryPlot.type == 'multi'"
-				v-bind:summaryPlot="summaryPlot"
-                v-bind:rawData="rawData">
+				:summaryPlot="summaryPlot"
+                :rawData="rawData">
 			</research-multi-plot>
     <div v-else class="all-charts">
     </div>
