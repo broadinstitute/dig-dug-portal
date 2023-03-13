@@ -471,7 +471,7 @@ new Vue({
             }
 
             if (CONVERT != "no convert") {
-                //console.log(this.$store.state.bioPortal.phenotypeMap);
+
                 let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
                 DATA.map(d => {
@@ -769,10 +769,10 @@ new Vue({
 
             if (contents === null || contents[0]["field_filters"] == false) {
                 return null;
+            } else {
+                return JSON.parse(contents[0]["field_filters"]);
             }
 
-
-            return JSON.parse(contents[0]["field_filters"]);
         },
         dataType() {
             let contents = this.researchPage;
@@ -1084,31 +1084,35 @@ new Vue({
             }
         },
         dataFilesLabels() {
-            let contents = this.researchPage;
-            let content;
-            if (contents === null || this.$store.state.bioPortal.phenotypes == null) {
-                return null;
-            } else {
-                if (contents[0]["field_data_points_list_labels"] == false) {
-                    content = {}
+
+
+            let content = null;
+
+            if (!!this.researchPage && !!this.$store.state.bioPortal.phenotypes && this.$store.state.bioPortal.phenotypes.length > 0) {
+
+
+
+                if (this.researchPage[0]["field_data_points_list_labels"] != false) {
+                    content = JSON.parse(this.researchPage[0]["field_data_points_list_labels"]);
                 } else {
-                    content = JSON.parse(contents[0]["field_data_points_list_labels"]);
-                }
-
-                if (this.apiParameters != null) {
-
-                    this.apiParameters["rawConfig"].parameters.map(pr => {
-                        if (pr.parameter == "phenotype" && pr.values == "kp phenotypes") {
-                            let kpPhenotypes = this.$store.state.bioPortal.phenotypes
-                            content["phenotype"] = {}
-
-                            kpPhenotypes.map(p => {
-                                content["phenotype"][p.name] = p.description;
-                            });
-                        }
+                    content = {};
+                    this.dataFiles.map(d => {
+                        content[d] = d;
                     })
                 }
+
+                if (!content["phenotype"]) {
+
+                    let kpPhenotypes = this.$store.state.bioPortal.phenotypes
+                    content["phenotype"] = {}
+
+                    kpPhenotypes.map(p => {
+                        content["phenotype"][p.name] = p.description;
+                    });
+
+                }
             }
+
 
             return content;
         },
@@ -1204,7 +1208,7 @@ new Vue({
                             })
                         }
 
-                        this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
+                        /*this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
 
                         if (isKPPhenotype == true) {
                             let kpPhenotypes = this.$store.state.bioPortal.phenotypes
@@ -1220,6 +1224,8 @@ new Vue({
                             this.dataFilesLabels["phenotype"] = tempObj;
 
                         }
+
+                        console.log("this.dataFilesLabels", this.dataFilesLabels);*/
 
 
                         let initialData = dataFiles[0];

@@ -86,7 +86,7 @@ export default new Vuex.Store({
             state.searchParameters = data;
         },
         setSearchParametersArr(state, data) {
-            console.log("paramsSet", data);
+
             switch (data.action) {
 
                 case "add":
@@ -98,8 +98,6 @@ export default new Vuex.Store({
                     state.searchParametersArr.push(data.data);
                     break;
             }
-
-            console.log("state.searchParametersArr", state.searchParametersArr);
 
         },
         setDataComparison(state, data) {

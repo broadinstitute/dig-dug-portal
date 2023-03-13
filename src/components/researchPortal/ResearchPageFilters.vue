@@ -508,10 +508,28 @@ export default Vue.component("research-page-filters", {
 					if (pType != "list" && !!ifValuesFromKP) {
 						this.geneSearch = keyParams[param];
 					} else if (pType == "list" && !!ifValuesFromKP) {
-						let label = this.getFileLabel(
-							keyParams[param].trim(),
-							param
+						let label;
+
+						console.log("0", this.filesListLabels);
+						console.log(
+							"1",
+							this.filesListLabels[keyParams[param].trim()]
 						);
+						console.log("2", this.filesListLabels[param]);
+
+						if (!!this.filesListLabels[keyParams[param].trim()]) {
+							label =
+								this.filesListLabels[keyParams[param].trim()];
+						} else if (
+							this.filesListLabels[param][keyParams[param].trim()]
+						) {
+							label =
+								this.filesListLabels[param][
+									keyParams[param].trim()
+								];
+						} else {
+							label = keyParams[param].trim();
+						}
 
 						let labelContent = label + "(" + keyParams[param] + ")";
 
@@ -579,7 +597,6 @@ export default Vue.component("research-page-filters", {
 				let url = new URL(window.location);
 				//for (const [key, value] of Object.entries(key2Update)) {
 				url.searchParams.set(PARAM.parameter, newRegion);
-				//}
 
 				window.history.pushState(null, "", url.toString());
 
@@ -597,26 +614,7 @@ export default Vue.component("research-page-filters", {
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
-		/*getPlaceHolder(PARAM) {
-			let content = "";
-			if (keyParams[PARAM] != undefined) {
-				let paramType = this.apiParameters.parameters.filter(
-					(v) => v.parameter == PARAM
-				)[0].type;
 
-				if (paramType == "list") {
-					let label = this.getFileLabel(keyParams[PARAM].trim());
-
-					content = label + "(" + keyParams[PARAM] + ")";
-				} else {
-					content = keyParams[PARAM];
-				}
-
-				return content;
-			} else {
-				return "";
-			}
-		},*/
 		getVisibleValues(VALUES, SEARCH, PARAMETER) {
 			var numOfVisible = 0;
 
@@ -696,15 +694,11 @@ export default Vue.component("research-page-filters", {
 		},
 		getFileLabel(file, PARAMETER) {
 			if (
-				this.filesListLabels != null &&
 				this.filesListLabels[PARAMETER] &&
 				this.filesListLabels[PARAMETER][file]
 			) {
 				return this.filesListLabels[PARAMETER][file];
-			} else if (
-				this.filesListLabels != null &&
-				this.filesListLabels[file]
-			) {
+			} else if (this.filesListLabels[file]) {
 				return this.filesListLabels[file];
 			} else {
 				return file;
