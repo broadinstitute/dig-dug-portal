@@ -189,6 +189,7 @@ export default Vue.component("research-expression-plot", {
                 .call(d3.axisBottom(x))
                 .selectAll("text")
                 .style("text-anchor", "start")
+                .style("font-size", "13px")
                 .attr("transform", "rotate(45)");
 
             let maxVal = flatData.map(g => g.tpm).reduce(
