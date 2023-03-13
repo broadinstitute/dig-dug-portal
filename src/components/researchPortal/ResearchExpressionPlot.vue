@@ -79,8 +79,8 @@ export default Vue.component("research-expression-plot", {
                     "Datasets"
                 ],
                 "Datasets": [
-                    "Biosample",
-                    "Dataset",
+                    "biosample",
+                    "dataset",
                     "Min TPM",
                     "Q1 TPM",
                     "Median TPM",
@@ -135,8 +135,6 @@ export default Vue.component("research-expression-plot", {
                     .map(i => parseFloat(i));
                 entry["tpmForAllSamples"] = tpms;
                 entry[this.keyAttribute] = entry[this.keyAttribute].replaceAll("_", " ");
-                entry["Biosample"] = entry.biosample;
-                entry["Dataset"] = entry.dataset;
                 entry["Min TPM"] = parseFloat(entry.minTpm);
                 entry["Q1 TPM"] = parseFloat(entry.firstQuTpm);
                 entry["Median TPM"] = parseFloat(entry.medianTpm);
