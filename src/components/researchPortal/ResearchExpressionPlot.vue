@@ -294,7 +294,20 @@ export default Vue.component("research-expression-plot", {
                         return boxplotEntry;
                     }).entries(flatData);
             let offset = width / (2 * numberViolins);
-            // Superimpose boxplots
+            // Boxplots top quartile
+            svg.selectAll("vertLines")
+                    .data(sumstatBox)
+                    .enter()
+                    .append("line")
+                        .attr("x1", x(0))
+                        .attr("x2", x(0))
+                        .attr("y1", d => y(d.value["Q3 TPM"]))
+                        .attr("y2", d => y(d.value["Max TPM"]))
+                        .attr("stroke", "black")
+                        .style("opacity", 0.5)
+                        .style("width", 30)
+                        .attr("transform", d => `translate(${x(d.key) + offset},0)`);
+            // Boxplots bottom quartile
             svg.selectAll("vertLines")
                     .data(sumstatBox)
                     .enter()
@@ -302,11 +315,11 @@ export default Vue.component("research-expression-plot", {
                         .attr("x1", x(0))
                         .attr("x2", x(0))
                         .attr("y1", d => y(d.value["Min TPM"]))
-                        .attr("y2", d => y(d.value["Max TPM"]))
-                        .attr("stroke", "#99999999")
+                        .attr("y2", d => y(d.value["Q1 TPM"]))
+                        .attr("stroke", "black")
+                        .style("opacity", 0.5)
                         .style("width", 30)
                         .attr("transform", d => `translate(${x(d.key) + offset},0)`);
-            
             let boxHalfWidth = 3;
             svg.selectAll("boxes")
                     .data(sumstatBox)
@@ -316,8 +329,9 @@ export default Vue.component("research-expression-plot", {
                         .attr("y", d => y(d.value["Q3 TPM"]))
                         .attr("height", d=> y(d.value["Q1 TPM"]) - y(d.value["Q3 TPM"]))
                         .attr("width", boxHalfWidth * 2)
-                        .attr("stroke", "#99999999")
-                        .style("fill", "#ffffffff");
+                        .attr("stroke", "black")
+                        .style("fill", "white")
+                        .style("opacity", 0.5);
             
             // Packaging data for export at the same time.
             let collateData = this.collatedData.length == 0;
