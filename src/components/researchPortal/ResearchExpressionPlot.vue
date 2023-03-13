@@ -55,7 +55,7 @@ export default Vue.component("research-expression-plot", {
         return {
             chart: null,
             chartWidth: null,
-            logScale: "yes",
+            logScale: "no",
             processedData: null,
             flatLinear: null,
             flatLog: null,
@@ -98,6 +98,8 @@ export default Vue.component("research-expression-plot", {
                     this.displayResults();
                 });
         this.processData();
+        this.displayResults();
+        this.logScale = "yes";
         this.displayResults();
     },
 	computed: {
