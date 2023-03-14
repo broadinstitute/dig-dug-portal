@@ -334,8 +334,6 @@ export default Vue.component("research-region-plot", {
 				newRegion = true;
 			}
 
-			console.log("newRegion", newRegion);
-
 			if (this.plotData != null) {
 				var plotsKeys = [];
 				if (this.dataComparisonConfig != null) {
@@ -359,8 +357,6 @@ export default Vue.component("research-region-plot", {
 				} else if (this.dataComparisonConfig == null) {
 					plotsKeys.push("default");
 				}
-
-				console.log("is it cancelling LD", this.plotData);
 
 				if (!!newRegion) {
 				}
@@ -856,7 +852,6 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		async callForLDData() {
-			console.log("LD called");
 			const plotWrappers = document.querySelectorAll(
 				".region-plots-wrapper"
 			);
@@ -963,9 +958,6 @@ export default Vue.component("research-region-plot", {
 
 			let bump = this.plotMargin.bump;
 
-			//console.log("this.plotData", this.plotData);
-			//console.log("this.assoData", this.assoData);
-			//console.log("this.ldData", this.ldData);
 			this.plotsList.map((p) => {
 				// first asso plot
 				let c, ctx;

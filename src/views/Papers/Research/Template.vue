@@ -157,41 +157,45 @@
 				</ul>
 			</div>
 			<!-- tabs content -->
+
 			<div class="kp-tabs-contents" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
 					<div class="row">
-						<div
-							class="col-md-12"
+						<template
 							v-if="
-								($parent.dataFilters != null &&
-									$parent.dataFilesLabels != null &&
-									$parent.researchData != null) ||
-								$parent.dataFiles.length > 1 ||
-								$parent.apiParameters != null
+								!!$store.state.bioPortal.phenotypes &&
+								$store.state.bioPortal.phenotypes.length > 0 &&
+								$parent.dataFilesLabels != null
 							"
 						>
-							<research-page-filters
-								:dataFiles="$parent.dataFiles"
-								:filesListLabels="
+							<div
+								class="col-md-12"
+								v-if="
+									($parent.dataFilters != null &&
+										$parent.researchData != null) ||
 									$parent.dataFiles.length > 1 ||
-									$parent.dataFilesLabels != null
-										? $parent.dataFilesLabels
-										: null
+									$parent.apiParameters != null
 								"
-								:apiParameters="$parent.apiParameters"
-								:dataComparisonConfig="
-									$parent.dataComparisonConfig
-								"
-								:dataType="$parent.dataType"
-								:isAPI="$parent.isAPI"
-								:uid="$parent.uid"
-								:filters="$parent.dataFilters"
-								:filterWidth="$parent.filterWidth"
-								:dataset="$store.state.filteredData"
-								:unfilteredDataset="$store.state.unfilteredData"
-							></research-page-filters>
-						</div>
-
+							>
+								<research-page-filters
+									:dataFiles="$parent.dataFiles"
+									:filesListLabels="$parent.dataFilesLabels"
+									:apiParameters="$parent.apiParameters"
+									:dataComparisonConfig="
+										$parent.dataComparisonConfig
+									"
+									:dataType="$parent.dataType"
+									:isAPI="$parent.isAPI"
+									:uid="$parent.uid"
+									:filters="$parent.dataFilters"
+									:filterWidth="$parent.filterWidth"
+									:dataset="$store.state.filteredData"
+									:unfilteredDataset="
+										$store.state.unfilteredData
+									"
+								></research-page-filters>
+							</div>
+						</template>
 						<!-- plots -->
 						<div
 							class="col-md-12 zoom-ui-wrapper"

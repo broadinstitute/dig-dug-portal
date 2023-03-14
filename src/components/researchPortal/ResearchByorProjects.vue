@@ -48,7 +48,7 @@ export default Vue.component("research-byor-projects", {
 	methods: {
 		async getByorProjects() {
 			let cmsServer =
-				"https://hugeampkpncms.org/rest/views/byor_projects";
+				"https://config.byor.science/rest/views/byor_projects";
 
 			let projectsJson = await fetch(cmsServer).then((resp) =>
 				resp.json()
