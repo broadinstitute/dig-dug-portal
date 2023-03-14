@@ -248,7 +248,6 @@ import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataT
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 
 import Formatters from "@/utils/formatters";
-
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
@@ -280,6 +279,7 @@ export default Vue.component("research-data-table", {
 
 	mounted() {
 		this.perPageNumber = this.initPerPageNumber;
+		console.log(this.dataset);
 	},
 	updated() {},
 	computed: {

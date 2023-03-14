@@ -23,6 +23,7 @@ export default new Vuex.Store({
         geneToTranscript: bioIndex("gene-to-transcript"),
         transcriptAssoc: bioIndex("transcript-associations"),
         hugeScores: bioIndex("huge"),
+        geneExpression: bioIndex("gene-expression"),
         uniprot
     },
     state: {
@@ -149,6 +150,7 @@ export default new Vuex.Store({
             let query = { q: context.state.geneName };
             context.dispatch("associations52k/query", query);
             context.dispatch("geneassociations/query", query);
+            context.dispatch("geneExpression/query", query);
         },
         async getVarAssociationsData(context, phenotype) {
             let gene = context.state.geneName;
@@ -171,7 +173,6 @@ export default new Vuex.Store({
         },
         async getHugeScoresData(context) {
             let name = context.state.geneName;
-            console.log("name", name);
             context.dispatch('hugeScores/query', { q: name });
         },
         phenotypeCorrelation(context, DATA) {

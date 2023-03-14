@@ -26,6 +26,8 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import HugeScoresTable from "@/components/HugeScoresTable.vue";
+import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
+import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue"
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -78,6 +80,8 @@ new Vue({
         LocusZoom,
         LocusZoomPhewasPanel,
         ResearchPheWAS,
+        ResearchExpressionPlot,
+        ResearchDataTable,
         SearchHeaderWrapper,
         ResultsDashboard,
         NCATSPredicateTable,
@@ -122,7 +126,6 @@ new Vue({
                     link: "https://www.uniprot.org/uniprot/"
                 }
             },
-
         };
     },
 
@@ -382,6 +385,10 @@ new Vue({
             return x;
 
         },
+        geneExpression(){
+            let data = this.$store.state.geneExpression.data;
+            return data;
+        },
 
         /*smallestpValuePhenotype() {
             // let data = this.$store.state.varassociations.data;
@@ -544,6 +551,9 @@ new Vue({
 
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
             }
+        },
+        geneExpressionTable(){
+            console.log(this.geneExpressionTable);
         },
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {
