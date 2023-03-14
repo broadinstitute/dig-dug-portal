@@ -34,6 +34,7 @@ export default new Vuex.Store({
         variantCorrelations: "",
         bioIndexContinue: [],
         searchParameters: null,
+        searchParametersArr: [],
         dataComparison: "newSearch",
         initialSearch: 1,
         pkgData: {},
@@ -83,6 +84,21 @@ export default new Vuex.Store({
         },
         setSearchParameters(state, data) {
             state.searchParameters = data;
+        },
+        setSearchParametersArr(state, data) {
+
+            switch (data.action) {
+
+                case "add":
+                    state.searchParametersArr.push(data.data);
+                    break;
+
+                case "reset":
+                    state.searchParametersArr = [];
+                    state.searchParametersArr.push(data.data);
+                    break;
+            }
+
         },
         setDataComparison(state, data) {
             state.dataComparison = data;
@@ -152,6 +168,10 @@ export default new Vuex.Store({
         },
         searchParameters(context, searchParameters) {
             context.commit("setSearchParameters", searchParameters);
+        },
+        searchParametersArr(context, data) {
+
+            context.commit("setSearchParametersArr", data);
         },
         dataComparison(context, dataComparison) {
             context.commit("setDataComparison", dataComparison);

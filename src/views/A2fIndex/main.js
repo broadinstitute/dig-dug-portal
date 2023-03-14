@@ -277,7 +277,7 @@ new Vue({
                 })
 
 
-                let content = '<div class="plot">{"type":"bar","data": { ' + groupContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":140}</div>';
+                let content = '<div class="plot">{"type":"bar","data": { ' + groupContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":175}</div>';
 
                 return content;
             } else {
