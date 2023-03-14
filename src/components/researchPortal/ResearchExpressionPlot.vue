@@ -86,13 +86,13 @@ export default Vue.component("research-expression-plot", {
                     "Datasets"
                 ],
                 "Datasets": [
-                    "biosample",
-                    "dataset",
-                    "Min TPM",
-                    "Q1 TPM",
-                    "Median TPM",
-                    "Q3 TPM",
-                    "Max TPM"
+                    {key: "biosample", formatter: value => Formatters.tissueFormatter(value)},
+                    {key: "dataset"},
+                    {key: "Min TPM", formatter: value => Formatters.floatFormatter(`${value}`)},
+                    {key: "Q1 TPM", formatter: value => Formatters.floatFormatter(`${value}`)},
+                    {key: "Median TPM", formatter: value => Formatters.floatFormatter(`${value}`)},
+                    {key: "Q3 TPM", formatter: value => Formatters.floatFormatter(`${value}`)},
+                    {key: "Max TPM", formatter: value => Formatters.floatFormatter(`${value}`)}
                 ]
             },
         };
@@ -134,7 +134,7 @@ export default Vue.component("research-expression-plot", {
     },
     methods: {
         ...uiUtils,
-        ...Formatters,
+        
         tpmFormat(value){
             return Formatters.floatFormatter(`${value}`);
         },
@@ -145,7 +145,7 @@ export default Vue.component("research-expression-plot", {
                 let tpms = entry.tpmForAllSamples.split(",")
                     .map(i => parseFloat(i));
                 entry["tpmForAllSamples"] = tpms;
-                entry[this.keyAttribute] = entry[this.keyAttribute].replaceAll("_", " ");
+                entry[this.keyAttribute] = Formatters.tissueFormatter(entry[this.keyAttribute]);
                 entry["Min TPM"] = parseFloat(entry.minTpm);
                 entry["Q1 TPM"] = parseFloat(entry.firstQuTpm);
                 entry["Median TPM"] = parseFloat(entry.medianTpm);
