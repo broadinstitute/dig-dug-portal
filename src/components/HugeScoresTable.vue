@@ -13,9 +13,16 @@
 				position: absolute;
 				top: 15px;
 			"
-			>Compelling: HuGE Score &gt;= 350 | Extreme: &gt;=100 | Very Strong:
-			&gt;=30 | Strong: &gt;=10 | Moderate: &gt;=3 | Anecdotal: &gt;1 | No
-			Evidence: &lt;=1</span
+			><span class="compelling">Compelling</span> HuGE Score &gt;= 350 |
+			<span class="extreme">Extreme</span> &gt;=100 |
+			<span class="very-strong">Very Strong</span>: &gt;=30 |
+			<span class="strong">Strong</span>: &gt;=10 |
+			<span class="moderate">Moderate</span>: &gt;=3 |<span
+				class="anecdotal"
+			>
+				Anecdotal</span
+			>: &gt;1 | <span class="no-evidence">No Evidence</span>:
+			&lt;=1</span
 		>
 		<b-table
 			v-if="gene && rows > 0"
