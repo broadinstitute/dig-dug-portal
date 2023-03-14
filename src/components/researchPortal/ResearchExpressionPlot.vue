@@ -55,6 +55,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
 import colors from "@/utils/colors";
+import Formatters from "@/utils/formatters";
 export default Vue.component("research-expression-plot", {
     props: ["rawData", "filter"],
     data(){
@@ -73,11 +74,11 @@ export default Vue.component("research-expression-plot", {
             tableConfig: {
                 "top rows": [
                     {key: "Tissue", sortable: true},
-                    {key: "Min TPM", sortable: true},
-                    {key: "Q1 TPM", sortable: true},
-                    {key: "Median TPM", sortable: true},
-                    {key: "Q3 TPM", sortable: true},
-                    {key: "Max TPM", sortable: true},
+                    {key: "Min TPM", sortable: true, formatter: "tpmFormat"},
+                    {key: "Q1 TPM", sortable: true, formatter: "tpmFormat"},
+                    {key: "Median TPM", sortable: true, formatter: "tpmFormat"},
+                    {key: "Q3 TPM", sortable: true, formatter: "tpmFormat"},
+                    {key: "Max TPM", sortable: true, formatter: "tpmFormat"},
                     {key: "Total samples", sortable: true},
                     {key: "show_datasets", sortable: false}
                 ],
@@ -133,6 +134,10 @@ export default Vue.component("research-expression-plot", {
     },
     methods: {
         ...uiUtils,
+        ...Formatters,
+        tpmFormat(value){
+            return Formatters.floatFormatter(`${value}`);
+        },
         processData(){
             this.collatedData = [];
             let processedData = this.$props.rawData;
