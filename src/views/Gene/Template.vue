@@ -566,6 +566,10 @@ import ResearchExpressionPlot from
                             :no-icon="false"
                         ></tooltip-documentation>
                     </h4>
+                    <documentation
+                        name="gene.gene-expression.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
                     <research-expression-plot
                         v-if="$parent.geneExpression.length > 0"
                         :rawData="$parent.geneExpression"
