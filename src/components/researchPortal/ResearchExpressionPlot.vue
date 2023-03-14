@@ -1,11 +1,16 @@
 <template>
 <div class="chart-wrapper">
     <label>
-        Scale:
+        Scale
         <select class="form-control form-control-sm" v-model="logScale">
             <option value="no">Linear</option>
             <option value="yes">Logarithmic: log10(TPM+1)</option>
         </select>
+    </label>
+    <label>
+        Filter datasets by minimum sample count
+            <input class="form-control form-control-sm" 
+                type="number" v-model="minSamples">
     </label>
     <div id="multi-chart">
         <p>Loading...</p>
@@ -55,6 +60,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
 import colors from "@/utils/colors";
+import Formatters from "@/utils/formatters";
 export default Vue.component("research-expression-plot", {
     props: ["rawData", "filter"],
     data(){
@@ -66,6 +72,7 @@ export default Vue.component("research-expression-plot", {
             flatLinear: null,
             flatLog: null,
             keyAttribute: "tissue",
+            minSamples: 0,
             colorMap: {},
             currentPage: 1,
             perPage: 10,
@@ -73,11 +80,11 @@ export default Vue.component("research-expression-plot", {
             tableConfig: {
                 "top rows": [
                     {key: "Tissue", sortable: true},
-                    {key: "Min TPM", sortable: true},
-                    {key: "Q1 TPM", sortable: true},
-                    {key: "Median TPM", sortable: true},
-                    {key: "Q3 TPM", sortable: true},
-                    {key: "Max TPM", sortable: true},
+                    {key: "Min TPM", sortable: true, formatter: "tpmFormat"},
+                    {key: "Q1 TPM", sortable: true, formatter: "tpmFormat"},
+                    {key: "Median TPM", sortable: true, formatter: "tpmFormat"},
+                    {key: "Q3 TPM", sortable: true, formatter: "tpmFormat"},
+                    {key: "Max TPM", sortable: true, formatter: "tpmFormat"},
                     {key: "Total samples", sortable: true},
                     {key: "show_datasets", sortable: false}
                 ],
@@ -85,13 +92,14 @@ export default Vue.component("research-expression-plot", {
                     "Datasets"
                 ],
                 "Datasets": [
-                    "biosample",
-                    "dataset",
-                    "Min TPM",
-                    "Q1 TPM",
-                    "Median TPM",
-                    "Q3 TPM",
-                    "Max TPM"
+                    {key: "biosample", formatter: value => Formatters.tissueFormatter(value)},
+                    {key: "dataset"},
+                    {key: "Min TPM", formatter: value => Formatters.floatFormatter(`${value}`)},
+                    {key: "Q1 TPM", formatter: value => Formatters.floatFormatter(`${value}`)},
+                    {key: "Median TPM", formatter: value => Formatters.floatFormatter(`${value}`)},
+                    {key: "Q3 TPM", formatter: value => Formatters.floatFormatter(`${value}`)},
+                    {key: "Max TPM", formatter: value => Formatters.floatFormatter(`${value}`)},
+                    {key: "nSamples", label: "Number of samples"}
                 ]
             },
         };
@@ -130,22 +138,33 @@ export default Vue.component("research-expression-plot", {
         logScale(){
             this.displayResults();
         },
+        minSamples(){
+            this.processData();
+            this.displayResults();
+        }
     },
     methods: {
         ...uiUtils,
+        
+        tpmFormat(value){
+            return Formatters.floatFormatter(`${value}`);
+        },
         processData(){
             this.collatedData = [];
-            let processedData = this.$props.rawData;
-            processedData.forEach(entry => { 
+            // Need a deep copy - the rawData is getting mutated.
+            let processedData = JSON.parse(JSON.stringify(this.$props.rawData));
+            processedData = processedData.filter(entry => parseInt(entry["nSamples"]) >= this.minSamples);
+            processedData.forEach(entry => {
                 let tpms = entry.tpmForAllSamples.split(",")
                     .map(i => parseFloat(i));
                 entry["tpmForAllSamples"] = tpms;
-                entry[this.keyAttribute] = entry[this.keyAttribute].replaceAll("_", " ");
+                entry[this.keyAttribute] = Formatters.tissueFormatter(entry[this.keyAttribute]);
                 entry["Min TPM"] = parseFloat(entry.minTpm);
                 entry["Q1 TPM"] = parseFloat(entry.firstQuTpm);
                 entry["Median TPM"] = parseFloat(entry.medianTpm);
                 entry["Q3 TPM"] = parseFloat(entry.thirdQuTpm);
-                entry["Max TPM"] = parseFloat(entry.maxTpm);
+                entry["Max TPM"] = parseFloat(entry.maxTpm)
+                entry["nSamples"] = parseInt(entry.nSamples);
             });
             let flatLinear = [];
             let flatLog = [];
@@ -414,7 +433,8 @@ div{
     display: block;
 }
 .chart-wrapper > label {
-    font-size: smaller;
+    /*font-size: smaller;*/
+    padding: 10px;
 }
 .chart{
     flex: 1;
