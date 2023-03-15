@@ -258,7 +258,8 @@ export default Vue.component("ResearchExpressionPlot", {
                 .style("background-color", "white")
                 .style("border", "2px solid gray")
                 .style("padding", "5px")
-                .style("border-radius", "5px");
+                .style("border-radius", "5px")
+                .style("font-size", "smaller");
 
             let x = d3
                 .scaleBand()
@@ -319,6 +320,7 @@ export default Vue.component("ResearchExpressionPlot", {
                     )
                     .enter()
                     .append("circle")
+                    .attr("class", (g) => g.dataset)
                     .attr("cx", (g) => {
                         let dx =
                             offset -
