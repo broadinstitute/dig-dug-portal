@@ -203,7 +203,15 @@ export default Vue.component("ResearchExpressionPlot", {
                 entry["Max TPM"] = parseFloat(entry.maxTpm);
                 entry["nSamples"] = parseInt(entry.nSamples);
             });
-            processedData.sort((a,b) => a.tissue > b.tissue);
+            processedData.sort((a,b) => {
+                if (a.tissue > b.tissue){
+                    return 1;
+                }
+                if (a.tissue < b.tissue){
+                    return -1;
+                }
+                return 0;
+            });
             let flatBoth = [];
             for (let item of processedData) {
                 for (let tpmVal of item.tpmForAllSamples) {
