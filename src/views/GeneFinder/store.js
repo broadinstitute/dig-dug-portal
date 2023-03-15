@@ -6,6 +6,7 @@ import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
 import { query } from "@/utils/bioIndexUtils";
+import dataConvert from "@/utils/dataConvert";
 
 Vue.use(Vuex);
 
@@ -21,7 +22,12 @@ export default new Vuex.Store({
         geneFinderAssociations: {},
         phenotypelist: [],
         secondaryPhenotype: null,
-        filterbadges: false
+        filterbadges: false,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
+        eglsFullList: [],
+        eglGenes: [],
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -55,8 +61,26 @@ export default new Vuex.Store({
         },
         setPhenotypelist(state, phenotypelist) {
             state.phenotypelist = phenotypelist
-        }
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
+        },
 
+        setEglsFullList(state, list) {
+            state.eglsFullList = list;
+        },
+
+        setEglGenes(state, GENES) {
+
+            state.eglGenes = GENES;
+
+        }
 
     },
     getters: {
@@ -70,11 +94,61 @@ export default new Vuex.Store({
             m[phenotyped] = data;
             return m;
         }
-
-
     },
     actions: {
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
 
+        async getEglsFullList(context) {
+            let dataPoint =
+                "https://config.byor.science/rest/data?pageid=egl_241";
+
+            let contJson = await fetch(dataPoint).then((resp) => resp.json());
+
+            if (contJson.error == null) {
+                let data = dataConvert.csv2Json(
+                    contJson[0]["field_data_points"]
+                );
+
+                context.commit("setEglsFullList", data);
+            }
+        },
+
+        async getEglGenes(context, PARAMS) {
+            let dataPoint =
+                "https://config.byor.science/rest/data?pageid=" + PARAMS.pageId;
+
+            let contJson = await fetch(dataPoint).then((resp) => resp.json());
+
+            if (contJson.error == null) {
+
+                let data = dataConvert.csv2Json(
+                    contJson[0]["field_data_points"]
+                );
+
+                data.map(d => {
+                    d["pageId"] = PARAMS.pageId;
+                    d["traitId"] = PARAMS.trait;
+                })
+
+                let updatedList = this.state.eglGenes.concat(data);
+
+                context.commit("setEglGenes", updatedList);
+            }
+        },
+
+        removeEglGenes(context, PARAMS) {
+
+            let updatedGenes = this.state.eglGenes.filter(g => g.pageId != PARAMS.pageId);
+            context.commit("setEglGenes", updatedGenes);
+        }
 
     }
 });

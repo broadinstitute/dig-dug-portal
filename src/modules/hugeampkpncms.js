@@ -48,7 +48,7 @@ export default {
     actions: {
         async getResearchMode(context, param) {
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_page_access?pageid=" + param.pageID
+                "https://config.byor.science/view/rest/get_research_page_access?pageid=" + param.pageID
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchMode", json);
@@ -56,7 +56,7 @@ export default {
         async getResearchMethod(context, param) {
 
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_method?method=" + param.methodID
+                "https://config.byor.science/view/rest/get_research_method?method=" + param.methodID
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchMethod", json);
@@ -64,14 +64,14 @@ export default {
         async getResearchMenu(context, param) {
 
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_menu?menu=" + param.menuID
+                "https://config.byor.science/view/rest/get_research_menu?menu=" + param.menuID
             ).then(resp => resp.json());
             context.commit("setResearchMenu", json);
         },
         async getResearchDevPage(context, param) {
             if (param.devID != "" && param.devPW != "") {
                 let json = await fetch(
-                    "https://hugeampkpncms.org/view/rest/get_research_page_dev?pageid=" + param.pageID + "&&devid=" + param.devID + "&&devpw=" + param.devPW
+                    "https://config.byor.science/view/rest/get_research_page_dev?pageid=" + param.pageID + "&&devid=" + param.devID + "&&devpw=" + param.devPW
                 ).then(resp => resp.json());
                 // set the data
                 context.commit("setResearchPage", json);
@@ -80,7 +80,7 @@ export default {
         },
         async getResearchPage(context, param) {
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_page?pageid=" + param.pageID
+                "https://config.byor.science/view/rest/get_research_page?pageid=" + param.pageID
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchPage", json);
@@ -90,7 +90,7 @@ export default {
         },
         async getResearchData(context, param) {
 
-            let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
+            let fetchUrl = (param.domain == "hugeampkpn") ? "https://config.byor.science/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
             let csv = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
             context.commit("setResearchData", csv);

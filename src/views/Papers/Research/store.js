@@ -34,11 +34,15 @@ export default new Vuex.Store({
         variantCorrelations: "",
         bioIndexContinue: [],
         searchParameters: null,
+        searchParametersArr: [],
         dataComparison: "newSearch",
         initialSearch: 1,
         pkgData: {},
         pkgDataSelected: [],
         sharedPlotXpos: null,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
     mutations: {
         setSharedPlotXpos(state, XPOS) {
@@ -81,6 +85,21 @@ export default new Vuex.Store({
         setSearchParameters(state, data) {
             state.searchParameters = data;
         },
+        setSearchParametersArr(state, data) {
+
+            switch (data.action) {
+
+                case "add":
+                    state.searchParametersArr.push(data.data);
+                    break;
+
+                case "reset":
+                    state.searchParametersArr = [];
+                    state.searchParametersArr.push(data.data);
+                    break;
+            }
+
+        },
         setDataComparison(state, data) {
             state.dataComparison = data;
         },
@@ -105,6 +124,15 @@ export default new Vuex.Store({
                 state.pkgDataSelected = tempArray;
             }
         },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
+        }
     },
     getters: {},
     actions: {
@@ -141,6 +169,10 @@ export default new Vuex.Store({
         searchParameters(context, searchParameters) {
             context.commit("setSearchParameters", searchParameters);
         },
+        searchParametersArr(context, data) {
+
+            context.commit("setSearchParametersArr", data);
+        },
         dataComparison(context, dataComparison) {
             context.commit("setDataComparison", dataComparison);
         },
@@ -149,6 +181,15 @@ export default new Vuex.Store({
         },
         pkgDataSelected(context, data) {
             context.commit("setPkgDataSelected", data);
+        },
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
         },
     }
 });

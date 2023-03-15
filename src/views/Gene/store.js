@@ -22,6 +22,8 @@ export default new Vuex.Store({
         associations52k: bioIndex("gene-associations-52k"),
         geneToTranscript: bioIndex("gene-to-transcript"),
         transcriptAssoc: bioIndex("transcript-associations"),
+        hugeScores: bioIndex("huge"),
+        geneExpression: bioIndex("gene-expression"),
         uniprot
     },
     state: {
@@ -29,6 +31,9 @@ export default new Vuex.Store({
         geneToQuery: "",
         aliasName: null,
         prior: 0.3696,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
         selectedAncestry: "",
         selectedTranscript: "",
         commonVariantsLength: 0,
@@ -45,6 +50,15 @@ export default new Vuex.Store({
         },
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         },
         setCommonVariantsLength(state, NUM) {
             state.commonVariantsLength = NUM;
@@ -94,6 +108,13 @@ export default new Vuex.Store({
     },
 
     actions: {
+        // For custom phenotypes
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
         commonVariantsLength(context, NUM) {
             context.commit("setCommonVariantsLength", NUM);
         },
@@ -107,6 +128,7 @@ export default new Vuex.Store({
                 context.dispatch("geneToTranscript/query", { q: name });
             }
         },
+        ///
 
         async queryGeneRegion(context, region) {
             //To match with HuGE cal +- 300000 to the region
@@ -128,6 +150,7 @@ export default new Vuex.Store({
             let query = { q: context.state.geneName };
             context.dispatch("associations52k/query", query);
             context.dispatch("geneassociations/query", query);
+            context.dispatch("geneExpression/query", query);
         },
         async getVarAssociationsData(context, phenotype) {
             let gene = context.state.geneName;
@@ -144,14 +167,16 @@ export default new Vuex.Store({
             context.dispatch('varassociations/query', { q: phenoRegionQuery });
 
         },
-        /*async getEGLData(context) {
-            let dataset = "mccarthy";
-            let trait = "t2d";
-            context.dispatch("kp4cd/getEglData", { dataset, trait });
-        },*/
         async get52KAssociationData(context) {
             let name = context.state.geneName;
             context.dispatch('associations52k/query', { q: name });
-        }
+        },
+        async getHugeScoresData(context) {
+            let name = context.state.geneName;
+            context.dispatch('hugeScores/query', { q: name });
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
     }
 });

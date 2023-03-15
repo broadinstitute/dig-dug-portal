@@ -25,6 +25,7 @@ export default {
             paperMenu: [],
             forestPlotData: {},
             staticContent: [],
+            portals: [],
             helpBook: [],
             helpBookSearch: [],
             contentByID: [],
@@ -81,6 +82,9 @@ export default {
         },
         setPaperMenu(state, menu) {
             state.paperMenu = menu;
+        },
+        setPortals(state, portals) {
+            state.portals = portals;
         },
         setHelpBook(state, book) {
             state.helpBook = book;
@@ -236,6 +240,13 @@ export default {
             ).then(resp => resp.json());
             // set the data
             context.commit("setPaperMenu", json);
+        },
+        async getPortals(context) {
+            let json = await fetch(
+                "https://kp4cd.org/rest/views/a2f_community_kps"
+            ).then(resp => resp.json());
+            // set the data
+            context.commit("setPortals", json);
         },
         async getHelpBook(context) {
             let json = await fetch(

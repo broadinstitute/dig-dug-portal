@@ -8,8 +8,17 @@
     <div class="row-charts"></div>
 </div>
 <div class="chart-wrapper">
+<<<<<<< HEAD
     <div><h4>Summary plot</h4></div>
     <div class="table-charts">
+=======
+    <div v-if="!!summaryPlot['title']"><h4>{{summaryPlot['title']}}</h4></div>
+    <research-multi-plot v-if="summaryPlot.type == 'multi'"
+				:summaryPlot="summaryPlot"
+                :rawData="rawData">
+			</research-multi-plot>
+    <div v-else class="all-charts">
+>>>>>>> master
     </div>
 </div>
 </div>
@@ -20,6 +29,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import ResearchMultiPlot from "./ResearchMultiPlot.vue";
 export default Vue.component("research-summary-plot", {
     props: ["rawData", "summaryPlot"],
     data(){
@@ -37,6 +47,7 @@ export default Vue.component("research-summary-plot", {
     methods: {
         ...uiUtils,
         displayResults(config){
+<<<<<<< HEAD
             let tableCharts = document.getElementsByClassName("table-charts")[0];
             tableCharts.innerHTML = "";
             let rowCharts = document.getElementsByClassName("row-charts")[0];
@@ -59,6 +70,19 @@ export default Vue.component("research-summary-plot", {
                     rowCharts.append(newChart);
                     this.renderChart(field, config, newChartName);
                 }
+=======
+            if (config.type == "multi"){
+                //multi plot is handled by its own component.
+                return;
+            }
+            let allCharts = document.getElementsByClassName("all-charts")[0];
+            allCharts.innerHTML = "";
+            config.fields.forEach(column => {
+                let newChart = document.createElement("div");
+                newChart.classList.add("chart");
+                newChart.classList.add(`${column}-chart`);
+                allCharts.append(newChart);
+>>>>>>> master
             });
             
         },        
@@ -67,7 +91,7 @@ export default Vue.component("research-summary-plot", {
             let nBuckets = configObject.buckets < dataset.length ? configObject.buckets : dataset.length;
             
             let attributeLabel = attribute;
-            if (configObject['data convert'][attribute] == "-log10"){
+            if (!!configObject['data convert'] && configObject['data convert'][attribute] == "-log10"){
                 dataset = dataset.map(data => -1 * Math.log10(data));
                 attributeLabel = `${attribute} (-log10)`;
             }

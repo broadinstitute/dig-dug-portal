@@ -164,10 +164,10 @@ export default Vue.component("research-score-plot", {
 				"#D5A76850",
 				"#d4d4d450",
 			],
-			leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			rightMargin: 0.5,
-			topMargin: 10.5, // -0.5 to draw crisp line
-			bottomMargin: 50.5,
+			leftMargin: 150, // adding space to the right incase dots go over the border
+			rightMargin: 1,
+			topMargin: 20,
+			bottomMargin: 100,
 			dotPosData: {},
 		};
 	},
@@ -501,12 +501,17 @@ export default Vue.component("research-score-plot", {
 			wrapper.classList.add("hidden");
 
 			let canvasRenderWidth = !!this.renderConfig.width
-				? this.renderConfig.width + this.leftMargin + this.rightMargin
-				: document.getElementById("scorePlotWrapper").clientWidth - 30; //
+				? this.renderConfig.width * 2 +
+				  this.leftMargin +
+				  this.rightMargin
+				: document.getElementById("scorePlotWrapper").clientWidth * 2 -
+				  60; //
 
 			let canvasRenderHeight = !!this.renderConfig.height
-				? this.renderConfig.height + this.topMargin + this.bottomMargin
-				: 400;
+				? this.renderConfig.height * 2 +
+				  this.topMargin +
+				  this.bottomMargin
+				: 800;
 
 			let xBump = canvasRenderWidth * 0.03;
 			let yBump = canvasRenderHeight * 0.03;
@@ -514,7 +519,7 @@ export default Vue.component("research-score-plot", {
 			let plotWidth =
 				canvasRenderWidth -
 				(this.leftMargin + this.rightMargin + xBump);
-			let plotRenderWidth = plotWidth - 5;
+			let plotRenderWidth = plotWidth - 10;
 			let plotHeight =
 				canvasRenderHeight -
 				(this.topMargin + yBump + this.bottomMargin);
@@ -522,6 +527,14 @@ export default Vue.component("research-score-plot", {
 			let c = document.getElementById("scorePlot");
 			c.setAttribute("width", canvasRenderWidth);
 			c.setAttribute("height", canvasRenderHeight);
+			c.setAttribute(
+				"style",
+				"width:" +
+					canvasRenderWidth / 2 +
+					"px;height:" +
+					canvasRenderHeight / 2 +
+					"px;"
+			);
 			let ctx = c.getContext("2d");
 
 			ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
@@ -596,12 +609,12 @@ export default Vue.component("research-score-plot", {
 			let yTickDistance = plotHeight / 4;
 			for (let i = 0; i < 5; i++) {
 				let tickYPos = this.topMargin + i * yTickDistance;
-				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
-				ctx.moveTo(this.leftMargin - 5, adjTickYPos);
+				let adjTickYPos = Math.floor(tickYPos);
+				ctx.moveTo(this.leftMargin - 10, adjTickYPos);
 				ctx.lineTo(this.leftMargin, adjTickYPos);
 				ctx.stroke();
 
-				ctx.font = "12px Arial";
+				ctx.font = "24px Arial";
 				ctx.textAlign = "right";
 				ctx.fillStyle = "#000000";
 
@@ -611,22 +624,22 @@ export default Vue.component("research-score-plot", {
 
 				ctx.fillText(
 					yTickText,
-					this.leftMargin - 10,
-					this.topMargin + plotHeight + 5 - i * yTickDistance
+					this.leftMargin - 20,
+					this.topMargin + plotHeight + 10 - i * yTickDistance
 				);
 			}
 
 			ctx.stroke();
 
 			//Render y axis label
-			ctx.font = "14px Arial";
+			ctx.font = "28px Arial";
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
 			ctx.rotate(-(Math.PI * 2) / 4);
 			ctx.fillText(
 				this.renderConfig["y axis label"],
 				-(this.topMargin + plotHeight / 2),
-				this.leftMargin - this.leftMargin / 2 - 14
+				this.leftMargin - this.leftMargin / 2 - 28
 			);
 
 			ctx.rotate((Math.PI * 2) / 4);
@@ -671,24 +684,24 @@ export default Vue.component("research-score-plot", {
 				let xStep = Math.ceil((chrLengthMax - chrLengthMin) / 4);
 
 				// X ticks
-				let xTickDistance = (plotWidth - 5) / 4;
+				let xTickDistance = (plotWidth - 10) / 4;
 
 				//console.log("xTickDistance", xTickDistance);
 
 				for (let i = 0; i < 5; i++) {
-					let tickXPos = this.leftMargin + i * xTickDistance + 5;
-					let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+					let tickXPos = this.leftMargin + i * xTickDistance + 10;
+					let adjTickXPos = Math.floor(tickXPos);
 					ctx.moveTo(
 						adjTickXPos,
 						this.topMargin + plotHeight + yBump
 					);
 					ctx.lineTo(
 						adjTickXPos,
-						this.topMargin + plotHeight + yBump + 5
+						this.topMargin + plotHeight + yBump + 10
 					);
 					ctx.stroke();
 
-					ctx.font = "12px Arial";
+					ctx.font = "24px Arial";
 					ctx.textAlign = "center";
 					ctx.fillStyle = "#000000";
 
@@ -697,7 +710,7 @@ export default Vue.component("research-score-plot", {
 					ctx.fillText(
 						posNum,
 						adjTickXPos,
-						this.topMargin + plotHeight + yBump + 15
+						this.topMargin + plotHeight + yBump + 30
 					);
 				}
 			} else {
@@ -720,7 +733,7 @@ export default Vue.component("research-score-plot", {
 
 			let chrByPixel = plotRenderWidth / dnaLength;
 
-			let xStart = this.leftMargin + 5;
+			let xStart = this.leftMargin + 10;
 			ctx.textAlign = "center";
 			if (chrs.length > 1) {
 				/*ctx.fillText(
@@ -743,7 +756,7 @@ export default Vue.component("research-score-plot", {
 					ctx.fillText(
 						chr,
 						chrPos,
-						this.topMargin + plotHeight + yBump + 14
+						this.topMargin + plotHeight + yBump + 28
 					);
 				});
 			}
@@ -753,7 +766,7 @@ export default Vue.component("research-score-plot", {
 			ctx.fillText(
 				this.renderConfig["x axis label"],
 				plotWidth / 2 + this.leftMargin,
-				this.topMargin + plotHeight + yBump + 44
+				this.topMargin + plotHeight + yBump + 88
 			);
 
 			//Render Dots
@@ -762,7 +775,7 @@ export default Vue.component("research-score-plot", {
 				let chr = chrs[0];
 				this.renderData.sorted[chr].map((g) => {
 					let xPos =
-						(g.locus - xStart) * chrByPixel + this.leftMargin + 5;
+						(g.locus - xStart) * chrByPixel + this.leftMargin + 10;
 
 					let yPosByPixel = plotHeight / (yMax - yMin);
 
@@ -814,11 +827,15 @@ export default Vue.component("research-score-plot", {
 
 								ctx.lineWidth = 0;
 								ctx.beginPath();
-								ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+								ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 								ctx.fill();
 
-								xLoc = xPos.toString().split(".")[0];
-								yLoc = yPos.toString().split(".")[0];
+								xLoc = Math.round(
+									xPos.toString().split(".")[0] / 2
+								);
+								yLoc = Math.round(
+									yPos.toString().split(".")[0] / 2
+								);
 
 								this.add2HoverContent(xLoc, yLoc, g);
 								break;
@@ -859,11 +876,15 @@ export default Vue.component("research-score-plot", {
 
 								ctx.lineWidth = 0;
 								ctx.beginPath();
-								ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+								ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 								ctx.fill();
 
-								xLoc = xPos.toString().split(".")[0];
-								yLoc = yPos.toString().split(".")[0];
+								xLoc = Math.round(
+									xPos.toString().split(".")[0] / 2
+								);
+								yLoc = Math.round(
+									yPos.toString().split(".")[0] / 2
+								);
 
 								this.add2HoverContent(xLoc, yLoc, g);
 								break;
@@ -888,11 +909,15 @@ export default Vue.component("research-score-plot", {
 
 									ctx.lineWidth = 0;
 									ctx.beginPath();
-									ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+									ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 									ctx.fill();
 
-									xLoc = xPos.toString().split(".")[0];
-									yLoc = yPos.toString().split(".")[0];
+									xLoc = Math.round(
+										xPos.toString().split(".")[0] / 2
+									);
+									yLoc = Math.round(
+										yPos.toString().split(".")[0] / 2
+									);
 
 									this.add2HoverContent(xLoc, yLoc, g);
 								}
@@ -930,11 +955,15 @@ export default Vue.component("research-score-plot", {
 
 						ctx.lineWidth = 0;
 						ctx.beginPath();
-						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+						ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 						ctx.fill();
 
-						let xLoc = xPos.toString().split(".")[0];
-						let yLoc = yPos.toString().split(".")[0];
+						let xLoc = Math.round(
+							xPos.toString().split(".")[0] / 2
+						);
+						let yLoc = Math.round(
+							yPos.toString().split(".")[0] / 2
+						);
 
 						this.add2HoverContent(xLoc, yLoc, g);
 					}
@@ -949,7 +978,7 @@ export default Vue.component("research-score-plot", {
 						let xPos =
 							(xStart + g.locus) * chrByPixel +
 							this.leftMargin +
-							5;
+							10;
 
 						let yPosByPixel = plotHeight / (yMax - yMin);
 
@@ -968,11 +997,15 @@ export default Vue.component("research-score-plot", {
 
 						ctx.lineWidth = 0;
 						ctx.beginPath();
-						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+						ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 						ctx.fill();
 
-						let xLoc = xPos.toString().split(".")[0];
-						let yLoc = yPos.toString().split(".")[0];
+						let xLoc = Math.round(
+							xPos.toString().split(".")[0] / 2
+						);
+						let yLoc = Math.round(
+							yPos.toString().split(".")[0] / 2
+						);
 						this.add2HoverContent(xLoc, yLoc, g);
 					});
 

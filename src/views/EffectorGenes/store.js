@@ -14,6 +14,9 @@ export default new Vuex.Store({
     state: {
         filteredData: "",
         unfilteredData: "",
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
     },
     mutations: {
         setFilteredData(state, data) {
@@ -22,6 +25,15 @@ export default new Vuex.Store({
         setUnfilteredData(state, data) {
 
             state.unfilteredData = data;
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         },
     },
     getters: {
@@ -32,6 +44,15 @@ export default new Vuex.Store({
         },
         unfilteredData(context, unfiltered) {
             context.commit("setUnfilteredData", unfiltered);
+        },
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
         },
     }
 });

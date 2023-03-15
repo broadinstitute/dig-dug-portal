@@ -4,6 +4,7 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
 		<!-- body -->
@@ -219,11 +220,11 @@
 									"
 									:colors="$parent.colors"
 									:plot-margin="{
-										leftMargin: 75,
-										rightMargin: 20,
-										topMargin: 10,
-										bottomMargin: 50,
-										bump: 5.5,
+										leftMargin: 150,
+										rightMargin: 40,
+										topMargin: 20,
+										bottomMargin: 100,
+										bump: 11,
 									}"
 									:render-config="{
 										type: 'phewas plot',
@@ -320,111 +321,61 @@
 						:content-fill="$parent.documentationMap"
 					></documentation>
 
-					<h6>
+					<div class="filtering-ui-wrapper container-fluid">
+						<div class="row filtering-ui-content">
+							<div class="col filter-col-md filter-col-lg">
+								<div class="label">
+									Go to the Variant Sifter to explore genetic
+									associations, credible sets, and epigenomic
+									annotations in this region
+									&nbsp;<tooltip-documentation
+										name="region.add.phenotypes.tooltip"
+										:is-hover="true"
+										:no-icon="false"
+									></tooltip-documentation>
+								</div>
+								<template
+									v-if="$parent.selectedPhenotypes.length > 0"
+								>
+									<a
+										v-for="item in $parent.selectedPhenotypes"
+										:key="item.description"
+										:href="
+											'/research.html?pageid=kp_variant_sifter&phenotype=' +
+											item.name +
+											'&region=' +
+											$store.state.chr +
+											':' +
+											$store.state.start +
+											'-' +
+											$store.state.end
+										"
+										target="_blank"
+										class="btn btn-primary"
+										style="
+											color: #ffffff !important;
+											margin: 0 5px;
+										"
+										>{{ item.description }}</a
+									>
+								</template>
+							</div>
+						</div>
+					</div>
+					<pre />
+					<!--<h5 v-if="$parent.selectedPhenotypes.length > 0">
 						Add tracks &nbsp;<tooltip-documentation
 							name="region.add.phenotypes.tooltip"
 							:is-hover="true"
 							:no-icon="false"
 						></tooltip-documentation>
-					</h6>
-
-					<criterion-list-group
-						v-model="$parent.regionPageSearchCriterion"
-						class="first"
-						:header="''"
-					>
-						<filter-enumeration-control
-							class="filter-col-lg"
-							:field="'phenotype'"
-							:options="$parent.allphenotypes"
-							:multiple="true"
-							:pill-formatter="
-								(filter) =>
-									$store.state.bioPortal.phenotypeMap[
-										filter.threshold
-									].description
-							"
-							:label-formatter="
-								(phenotype) =>
-									!!$store.state.bioPortal.phenotypeMap[
-										phenotype
-									]
-										? $store.state.bioPortal.phenotypeMap[
-												phenotype
-										  ].description
-										: phenotype
-							"
-							placeholder="Select one or more phenotypes"
-						>
-							<div class="label">Add Phenotypes</div>
-						</filter-enumeration-control>
-
-						<div class="col filter-col-md">
-							<div class="label" style="margin-bottom: 5px">
-								Add credible sets
-							</div>
-							<credible-sets-selectpicker
-								:credible-sets="$parent.credibleSets"
-								:clear-on-selected="true"
-								@credibleset="
-									$parent.addCredibleVariantsPanel($event)
-								"
-							/>
-						</div>
-
-						<div class="col filter-col-md">
-							<div class="label" style="margin-bottom: 5px">
-								Add tissues
-							</div>
-							<tissue-selectpicker
-								:tissues="$parent.globalEnrichmentTissues"
-								:clear-on-selected="true"
-								@tissue="
-									$parent.addTissueIntervalsPanel($event)
-								"
-							/>
-						</div>
-
-						<div class="col filter-col-md">
-							<div class="label" style="margin-bottom: 5px">
-								Add annotations
-							</div>
-							<annotation-selectpicker
-								:annotations="
-									$parent.globalEnrichmentAnnotations
-								"
-								:clear-on-selected="true"
-								@annotation="
-									$parent.addAnnotationIntervalsPanel($event)
-								"
-							/>
-						</div>
-
-						<b-col class="divider"></b-col>
-
-						<div class="col filter-col-md">
-							<div class="label" style="margin-bottom: 5px">
-								Add tissue loop track
-							</div>
-							<tissue-selectpicker
-								:tissues="$parent.globalEnrichmentTissues"
-								:clear-on-selected="true"
-								@tissue="
-									$parent.addTissueCoaccessibilityPanel(
-										$event
-									)
-								"
-							/>
-						</div>
-					</criterion-list-group>
-					<h6 v-if="$parent.selectedPhenotypes.length > 0">
-						Filter tracks and table &nbsp;
+						| Filter tracks and table &nbsp;
 						<tooltip-documentation
 							name="region.filter.topassoc.tooltip"
 							:is-hover="true"
 							:no-icon="false"
 						></tooltip-documentation>
-					</h6>
+					</h5>-->
 
 					<b-alert
 						class="text-center my-3"
@@ -434,8 +385,44 @@
 						to start viewing associations and annotations</b-alert
 					>
 
-					<b-tabs v-show="$parent.selectedPhenotypes.length"
-						><b-tab key="associations" title="Variant associations">
+					<b-tabs class="region-gem">
+						<b-tab key="phenotypes" title="Add phenotypes">
+							<criterion-list-group
+								v-model="$parent.regionPageSearchCriterion"
+								class="first"
+								:header="''"
+							>
+								<filter-enumeration-control
+									class="filter-col-lg"
+									:field="'phenotype'"
+									:options="$parent.allphenotypes"
+									:multiple="true"
+									:pill-formatter="
+										(filter) =>
+											$store.state.bioPortal.phenotypeMap[
+												filter.threshold
+											].description
+									"
+									:label-formatter="
+										(phenotype) =>
+											!!$store.state.bioPortal
+												.phenotypeMap[phenotype]
+												? $store.state.bioPortal
+														.phenotypeMap[phenotype]
+														.description
+												: phenotype
+									"
+									placeholder="Select one or more phenotypes"
+								>
+									<div class="label">Add Phenotypes</div>
+								</filter-enumeration-control>
+							</criterion-list-group>
+						</b-tab>
+						<b-tab
+							key="associations"
+							title="Filter plots and table"
+							v-show="$parent.selectedPhenotypes.length"
+						>
 							<criterion-function-group
 								v-if="$parent.selectedPhenotypes.length > 0"
 								v-model="$parent.associationsFilter"
@@ -468,7 +455,10 @@
 								</filter-effect-direction-control>
 							</criterion-function-group>
 						</b-tab>
-						<b-tab title="Annotations by global enrichment">
+						<!--<b-tab
+							title="Annotations by global enrichment"
+							v-show="$parent.selectedPhenotypes.length"
+						>
 							<div v-if="$parent.selectedPhenotypes.length > 0">
 								<criterion-function-group
 									v-model="$parent.annotationsFilter"
@@ -481,7 +471,7 @@
 									</filter-greater-control>
 								</criterion-function-group>
 							</div>
-						</b-tab>
+						</b-tab>-->
 					</b-tabs>
 
 					<locuszoom
@@ -520,7 +510,7 @@
 							></lz-catalog-annotations-panel>
 						</p>
 					</locuszoom>
-					<a
+					<!--<a
 						v-if="$parent.selectedPhenotypes.length > 0"
 						:href="
 							'/research.html?pageid=kp_variant_sifter&phenotype=' +
@@ -535,7 +525,7 @@
 						class="btn btn-primary link-to-vs"
 						style=""
 						>Prioritize variants in this region&nbsp;&nbsp;</a
-					>
+					>-->
 					<template
 						v-if="
 							$parent.selectedPhenotypes.length > 0 &&
@@ -605,6 +595,11 @@ ul.nav-tabs {
 }
 .first div.filtering-ui-wrapper {
 	background-color: #ddefff;
-	border: solid 1px #bbdfff;
+	border: solid 1px #ddefff;
+}
+
+.region-gem ul > li:first-child > a {
+	background-color: #ddefff !important;
+	border: solid 1px #ddefff !important;
 }
 </style>

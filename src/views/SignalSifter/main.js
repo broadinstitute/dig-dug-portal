@@ -28,6 +28,8 @@ import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 
+import sessionUtils from "@/utils/sessionUtils";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -72,6 +74,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
     },
 
     render(createElement, context) {
@@ -85,6 +88,7 @@ new Vue({
         postAlertError,
         closeAlert,
         ancestryFormatter: Formatters.ancestryFormatter,
+        ...sessionUtils,
 
         removePhenotype(index) {
             this.$store.commit("removePhenotype", index);
@@ -138,7 +142,12 @@ new Vue({
 
         //return only the phenotypes that haven't been selected yet, guard against duplicate selections
         phenotypeList() {
-            const all = this.$store.state.bioPortal.phenotypes;
+            let all = this.$store.state.bioPortal.phenotypes;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                all = sessionUtils.getInSession(all, this.phenotypesInSession, 'name');
+            }
+
             const selected = this.$store.state.phenotypes;
             if (selected.length) {
                 return all.filter(array =>
@@ -172,7 +181,25 @@ new Vue({
             let flattened = [].concat.apply([], clumped);
 
             return flattened;
-        }
+        },
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+
     },
 
     watch: {
@@ -190,9 +217,9 @@ new Vue({
         async "$store.state.ancestry"(ancestry) {
             let selectedPhenotypes = this.$store.state.phenotypes;
             this.$store.commit("removePhenotype", 0);
-            if (selectedPhenotypes.length){
+            if (selectedPhenotypes.length) {
                 await this.$store.dispatch("fetchLeadPhenotypeAssociations", selectedPhenotypes[0].phenotype);
-                selectedPhenotypes.slice(1).forEach(p => 
+                selectedPhenotypes.slice(1).forEach(p =>
                     this.$store.dispatch("fetchAssociationsMatrix", p.phenotype)
                 );
             }

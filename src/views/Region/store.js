@@ -44,6 +44,9 @@ export default new Vuex.Store({
         newEnd: keyParams.end,
         searchGene: null,
         matchingGenes: null,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
         geneToQuery: "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
@@ -84,6 +87,15 @@ export default new Vuex.Store({
         },
         setMatchingGenes(state, genes) {
             state.matchingGenes = genes;
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
         }
     },
     getters: {
@@ -150,7 +162,7 @@ export default new Vuex.Store({
                 context.dispatch("topAssociations/query", { q: newRegion });
 
                 // Search by ancestry if applicable
-                if (context.state.ancestry != ""){
+                if (context.state.ancestry != "") {
                     context.dispatch("ancestryTopAssoc/query", { q: `${context.state.ancestry},${newRegion}` });
                 }
             }
@@ -171,6 +183,15 @@ export default new Vuex.Store({
                 start: context.state.initial.start,
                 end: context.state.initial.end
             });
-        }
+        },
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
     }
 });

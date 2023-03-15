@@ -48,11 +48,11 @@ new Vue({
     data() {
         return {
             plotMargin: {
-                leftMargin: 75,
-                rightMargin: 20,
-                topMargin: 10,
-                bottomMargin: 50,
-                bump: 5.5,
+                leftMargin: 150,
+                rightMargin: 40,
+                topMargin: 20,
+                bottomMargin: 100,
+                bump: 11,
             },
             colors: {
                 mild: [
@@ -757,14 +757,14 @@ new Vue({
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
-                      this.selectedRegionType
-                  ].map((region) => {
-                      return {
-                          chrom: this.searchRegion.chrom,
-                          start: region.start,
-                          stop: region.end,
-                      };
-                  })
+                    this.selectedRegionType
+                ].map((region) => {
+                    return {
+                        chrom: this.searchRegion.chrom,
+                        start: region.start,
+                        stop: region.end,
+                    };
+                })
                 : [];
 
             //using hardcoded test samples
@@ -841,8 +841,8 @@ new Vue({
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
                     groups[
                         liftedRegions.regions[i].start +
-                            " - " +
-                            liftedRegions.regions[i].stop
+                        " - " +
+                        liftedRegions.regions[i].stop
                     ] = {
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop,
