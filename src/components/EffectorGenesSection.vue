@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div class="col-md-12 col">
+		<div class="col-md-12 col" v-if="eglsList.length > 0">
 			<div class="row egls-list-header">
 				<div class="col-md-4">Name</div>
 				<div class="col-md-4">Reference</div>
@@ -40,6 +40,14 @@
 					"
 				></div>
 			</div>
+		</div>
+		<div
+			v-else
+			class="well well-warning"
+			style="background-color: #ff000050"
+		>
+			No predicted effector genes list found associated with
+			{{ phenotype.description }}.
 		</div>
 	</div>
 </template>
@@ -85,7 +93,7 @@ export default Vue.component("egls-section", {
 						eglList.push(e);
 					}
 				});
-				console.log("json data", eglList);
+				//console.log("json data", eglList);
 				this.eglsList = eglList;
 			}
 		},
@@ -103,5 +111,9 @@ export default Vue.component("egls-section", {
 	border-top: solid 1px #ddd;
 	margin-bottom: 7px;
 	padding-top: 7px;
+}
+.well.well-warning {
+	padding: 15px;
+	border-radius: 15px;
 }
 </style>
