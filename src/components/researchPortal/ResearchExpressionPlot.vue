@@ -3,8 +3,8 @@
         <label>
             Scale
             <select v-model="logScale" class="form-control form-control-sm">
-                <option value="no">Linear</option>
-                <option value="yes">Logarithmic: log10(TPM+1)</option>
+                <option :value="false">Linear</option>
+                <option :value="true">Logarithmic: log10(TPM+1)</option>
             </select>
         </label>
         <label>
@@ -79,10 +79,9 @@ export default Vue.component("ResearchExpressionPlot", {
         return {
             chart: null,
             chartWidth: null,
-            logScale: "no",
+            logScale: false,
             processedData: null,
-            flatLinear: null,
-            flatLog: null,
+            flatBoth: null,
             keyAttribute: "tissue",
             minSamples: 0,
             colorMap: {},
@@ -177,8 +176,7 @@ export default Vue.component("ResearchExpressionPlot", {
         });
         this.processData();
         this.displayResults();
-        this.logScale = "yes";
-        this.displayResults();
+        this.logScale = true;
     },
     methods: {
         ...uiUtils,
@@ -208,35 +206,31 @@ export default Vue.component("ResearchExpressionPlot", {
                 entry["Max TPM"] = parseFloat(entry.maxTpm);
                 entry["nSamples"] = parseInt(entry.nSamples);
             });
-            let flatLinear = [];
-            let flatLog = [];
+            let flatBoth = [];
             for (let item of processedData) {
                 for (let tpmVal of item.tpmForAllSamples) {
-                    let flatLinearEntry = {};
-                    flatLinearEntry[this.keyAttribute] =
+                    let flatEntry = {};
+                    flatEntry[this.keyAttribute] =
                         item[this.keyAttribute];
-                    flatLinearEntry["tpm"] = tpmVal;
-                    flatLinearEntry["noise"] = Math.random();
-                    flatLinear.push(flatLinearEntry);
-
-                    let flatLogEntry = {};
-                    flatLogEntry[this.keyAttribute] = item[this.keyAttribute];
-                    flatLogEntry["tpm"] = Math.log10(tpmVal + 1);
-                    flatLogEntry["noise"] = Math.random();
-                    flatLog.push(flatLogEntry);
+                    flatEntry["linear"] = tpmVal;
+                    flatEntry["log"] = Math.log10(tpmVal + 1);
+                    flatEntry["noise"] = Math.random();
+                    flatEntry["biosample"] = Formatters.tissueFormatter(item.biosample);
+                    flatEntry["dataset"] = item.dataset;
+                    flatBoth.push(flatEntry);
                 }
             }
             this.processedData = processedData;
-            this.flatLinear = flatLinear;
-            this.flatLog = flatLog;
+            this.flatBoth = flatBoth;
             this.mapColors();
         },
         displayResults() {
             let keyAttribute = this.keyAttribute;
             let colorMap = this.colorMap;
 
-            let flatData =
-                this.logScale == "yes" ? this.flatLog : this.flatLinear;
+            let flatData = this.flatBoth;
+
+            let tpmField = this.logScale ? "log" : "linear";
             let margin = {
                     top: 10,
                     right: 30,
@@ -256,6 +250,16 @@ export default Vue.component("ResearchExpressionPlot", {
                     "transform",
                     "translate(" + margin.left + "," + margin.top + ")"
                 );
+            let tooltip = d3.select("#multi-chart")
+                .append("div")
+                .style("opacity", 0)
+                .attr("class", "tooltip")
+                .style("background-color", "white")
+                .style("border", "2px solid gray")
+                .style("padding", "5px")
+                .style("border-radius", "5px")
+                .style("font-size", "smaller");
+
             let x = d3
                 .scaleBand()
                 .range([0, width])
@@ -270,7 +274,7 @@ export default Vue.component("ResearchExpressionPlot", {
                 .attr("transform", "rotate(45)");
 
             let maxVal = flatData
-                .map((g) => g.tpm)
+                .map((g) => g[tpmField])
                 .reduce((prev, next) => (prev > next ? prev : next), 0);
             let y = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
             svg.append("g").call(d3.axisLeft(y));
@@ -284,7 +288,7 @@ export default Vue.component("ResearchExpressionPlot", {
                 .nest()
                 .key((d) => d[keyAttribute])
                 .rollup((d) => {
-                    let input = d.map((g) => g.tpm);
+                    let input = d.map((g) => g[tpmField]);
                     let bins = histogram(input);
                     return bins;
                 })
@@ -315,6 +319,7 @@ export default Vue.component("ResearchExpressionPlot", {
                     )
                     .enter()
                     .append("circle")
+                    .attr("class", (g) => g.dataset)
                     .attr("cx", (g) => {
                         let dx =
                             offset -
@@ -322,14 +327,30 @@ export default Vue.component("ResearchExpressionPlot", {
                             g.noise * boxHalfWidth * 4;
                         return x(d.key) + dx;
                     })
-                    .attr("cy", (g) => y(g.tpm))
+                    .attr("cy", (g) => y(g[tpmField]))
                     .attr("r", 2)
                     .style("fill", `${colorMap[d.key]}33`)
-                    .attr("stroke", `${colorMap[d.key]}`);
+                    .attr("stroke", `${colorMap[d.key]}`)
+                    .on("mouseover", hoverDot)
+                    .on("mouseleave", hideTooltip);
             };
-            let mouseleave = (d) => {
-                svg.selectAll("circle").remove();
-            };
+            let hoverDot = (g) => {
+                svg.selectAll("circle").style("stroke", "lightgray");
+                svg.selectAll(`.${g.dataset}`)
+                    .style("stroke", `${colorMap[g.tissue]}`);
+                // Tooltip content
+                let xcoord = `${d3.event.layerX + 35}px`;
+                let ycoord = `${d3.event.layerY}px`;
+                let tooltipContent = `Biosample: ${g.biosample}`;
+                tooltipContent = tooltipContent.concat(`<span>Dataset: ${g.dataset}</span>`);
+                tooltip.style("opacity", 1)
+                    .html(tooltipContent)
+                    .style("left", xcoord)
+                    .style("top", ycoord);
+            }
+            let hideTooltip = (g) => {
+                tooltip.style("opacity", 0);
+            }
             svg.selectAll("myViolin")
                 .data(sumstat)
                 .enter()
@@ -364,7 +385,7 @@ export default Vue.component("ResearchExpressionPlot", {
                 .key((d) => d[keyAttribute])
                 .rollup((d) => {
                     numberViolins++;
-                    let sortedData = d.map((g) => g.tpm).sort(d3.ascending);
+                    let sortedData = d.map((g) => g[tpmField]).sort(d3.ascending);
                     let q1 = d3.quantile(sortedData, 0.25);
                     let median = d3.quantile(sortedData, 0.5);
                     let q3 = d3.quantile(sortedData, 0.75);
@@ -516,5 +537,8 @@ div {
 }
 #big-table > thead > tr > th {
     color: #007bff;
+}
+.tooltip span {
+    display: block;
 }
 </style>
