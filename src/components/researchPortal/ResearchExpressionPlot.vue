@@ -249,6 +249,15 @@ export default Vue.component("ResearchExpressionPlot", {
                     "transform",
                     "translate(" + margin.left + "," + margin.top + ")"
                 );
+            let tooltip = d3.select("#multi-chart")
+                .append("div")
+                .style("opacity", 0)
+                .attr("class", "tooltip")
+                .style("background-color", "white")
+                .style("border", "solid")
+                .style("border-width", "2px")
+                .style("padding", "5px");
+
             let x = d3
                 .scaleBand()
                 .range([0, width])
@@ -319,10 +328,18 @@ export default Vue.component("ResearchExpressionPlot", {
                     .attr("r", 2)
                     .style("fill", `${colorMap[d.key]}33`)
                     .attr("stroke", `${colorMap[d.key]}`)
-                    .on("mouseover", hoverDot);
+                    .on("mouseover", hoverDot)
+                    .on("mouseleave", unhoverDot);
             };
             let hoverDot = (g) => {
                 console.log(JSON.stringify(g));
+                tooltip.style("opacity", 1)
+                    .html(`TPM: ${g[tpmField]}`)
+                    .style("left", `${d3.mouse(this)[0] + 70}px`)
+                    .style("top", `${d3.mouse(this)[1]}px`);
+            }
+            let unhoverDot = (g) => {
+                tooltip.style("opacity", 0);
             }
             svg.selectAll("myViolin")
                 .data(sumstat)
