@@ -1422,7 +1422,7 @@ export default Vue.component("research-annotations-plot", {
 				);
 
 				let GEByTissue = this.getGEByTissue();
-
+				console.log(" GEByTissue", GEByTissue);
 				if (this.pkgData != null) {
 					Vue.set(this.pkgData, "GEByTissueData", GEByTissue);
 					Vue.set(this.pkgData, "GEData", this.GEData);
@@ -1456,19 +1456,53 @@ export default Vue.component("research-annotations-plot", {
 						};
 					}
 
-					let pPerTissue =
-						GEByTissue[phenotype][g.tissue][g.annotation].pValue;
+					if (
+						!!this.renderConfig.ancestry &&
+						g.ancestry == this.renderConfig.ancestry
+					) {
+						let pPerTissue =
+							GEByTissue[phenotype][g.tissue][g.annotation]
+								.pValue;
 
-					if (pPerTissue == null) {
-						GEByTissue[phenotype][g.tissue][g.annotation].pValue =
-							Formatters.pValueFormatter(g.pValue);
-						GEByTissue[phenotype][g.tissue][g.annotation].fold =
-							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
-					} else if (g.pValue < pPerTissue) {
-						GEByTissue[phenotype][g.tissue][g.annotation].pValue =
-							Formatters.pValueFormatter(g.pValue);
-						GEByTissue[phenotype][g.tissue][g.annotation].fold =
-							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
+						if (pPerTissue == null) {
+							GEByTissue[phenotype][g.tissue][
+								g.annotation
+							].pValue = Formatters.pValueFormatter(g.pValue);
+							GEByTissue[phenotype][g.tissue][g.annotation].fold =
+								Formatters.pValueFormatter(
+									g.SNPs / g.expectedSNPs
+								);
+						} else if (g.pValue < pPerTissue) {
+							GEByTissue[phenotype][g.tissue][
+								g.annotation
+							].pValue = Formatters.pValueFormatter(g.pValue);
+							GEByTissue[phenotype][g.tissue][g.annotation].fold =
+								Formatters.pValueFormatter(
+									g.SNPs / g.expectedSNPs
+								);
+						}
+					} else {
+						let pPerTissue =
+							GEByTissue[phenotype][g.tissue][g.annotation]
+								.pValue;
+
+						if (pPerTissue == null) {
+							GEByTissue[phenotype][g.tissue][
+								g.annotation
+							].pValue = Formatters.pValueFormatter(g.pValue);
+							GEByTissue[phenotype][g.tissue][g.annotation].fold =
+								Formatters.pValueFormatter(
+									g.SNPs / g.expectedSNPs
+								);
+						} else if (g.pValue < pPerTissue) {
+							GEByTissue[phenotype][g.tissue][
+								g.annotation
+							].pValue = Formatters.pValueFormatter(g.pValue);
+							GEByTissue[phenotype][g.tissue][g.annotation].fold =
+								Formatters.pValueFormatter(
+									g.SNPs / g.expectedSNPs
+								);
+						}
 					}
 				});
 			}
@@ -1644,65 +1678,143 @@ export default Vue.component("research-annotations-plot", {
 						if (!sortedGEData[phenotype][g.annotation]) {
 							sortedGEData[phenotype][g.annotation] = {};
 						}
-						let pValue = -Math.log10(g.pValue);
-						let fold = g.SNPs / g.expectedSNPs;
 
-						sortedGEData[phenotype].yMax =
-							sortedGEData[phenotype].yMax == null
-								? fold
-								: fold > sortedGEData[phenotype].yMax
-								? fold
-								: sortedGEData[phenotype].yMax;
+						if (!!this.renderConfig.ancestry) {
+							if (g.ancestry == this.renderConfig.ancestry) {
+								let pValue = -Math.log10(g.pValue);
+								let fold = g.SNPs / g.expectedSNPs;
 
-						sortedGEData[phenotype].yMin =
-							sortedGEData[phenotype].yMin == null
-								? fold
-								: fold < sortedGEData[phenotype].yMin
-								? fold
-								: sortedGEData[phenotype].yMin;
+								sortedGEData[phenotype].yMax =
+									sortedGEData[phenotype].yMax == null
+										? fold
+										: fold > sortedGEData[phenotype].yMax
+										? fold
+										: sortedGEData[phenotype].yMax;
 
-						sortedGEData[phenotype].xMax =
-							sortedGEData[phenotype].xMax == null
-								? pValue
-								: pValue > sortedGEData[phenotype].xMax
-								? pValue
-								: sortedGEData[phenotype].xMax;
+								sortedGEData[phenotype].yMin =
+									sortedGEData[phenotype].yMin == null
+										? fold
+										: fold < sortedGEData[phenotype].yMin
+										? fold
+										: sortedGEData[phenotype].yMin;
 
-						sortedGEData[phenotype].xMin =
-							sortedGEData[phenotype].xMin == null
-								? pValue
-								: pValue < sortedGEData[phenotype].xMin
-								? pValue
-								: sortedGEData[phenotype].xMin;
+								sortedGEData[phenotype].xMax =
+									sortedGEData[phenotype].xMax == null
+										? pValue
+										: pValue > sortedGEData[phenotype].xMax
+										? pValue
+										: sortedGEData[phenotype].xMax;
 
-						sortedGEData[phenotype][g.annotation][g.tissue] =
-							!sortedGEData[phenotype][g.annotation][g.tissue]
-								? { pValue: null, fold: null }
-								: sortedGEData[phenotype][g.annotation][
+								sortedGEData[phenotype].xMin =
+									sortedGEData[phenotype].xMin == null
+										? pValue
+										: pValue < sortedGEData[phenotype].xMin
+										? pValue
+										: sortedGEData[phenotype].xMin;
+
+								sortedGEData[phenotype][g.annotation][
+									g.tissue
+								] = !sortedGEData[phenotype][g.annotation][
+									g.tissue
+								]
+									? { pValue: null, fold: null }
+									: sortedGEData[phenotype][g.annotation][
+											g.tissue
+									  ];
+
+								let currentPvalue =
+									sortedGEData[phenotype][g.annotation][
 										g.tissue
-								  ];
+									].pValue;
 
-						let currentPvalue =
-							sortedGEData[phenotype][g.annotation][g.tissue]
-								.pValue;
+								let currentFold =
+									sortedGEData[phenotype][g.annotation][
+										g.tissue
+									].fold;
 
-						let currentFold =
-							sortedGEData[phenotype][g.annotation][g.tissue]
-								.fold;
+								sortedGEData[phenotype][g.annotation][
+									g.tissue
+								].pValue =
+									currentPvalue == null
+										? pValue
+										: pValue > currentPvalue
+										? pValue
+										: currentPvalue;
 
-						sortedGEData[phenotype][g.annotation][g.tissue].pValue =
-							currentPvalue == null
-								? pValue
-								: pValue > currentPvalue
-								? pValue
-								: currentPvalue;
+								sortedGEData[phenotype][g.annotation][
+									g.tissue
+								].fold =
+									currentFold == null
+										? fold
+										: fold > currentFold
+										? fold
+										: currentFold;
+							}
+						} else {
+							let pValue = -Math.log10(g.pValue);
+							let fold = g.SNPs / g.expectedSNPs;
 
-						sortedGEData[phenotype][g.annotation][g.tissue].fold =
-							currentFold == null
-								? fold
-								: fold > currentFold
-								? fold
-								: currentFold;
+							sortedGEData[phenotype].yMax =
+								sortedGEData[phenotype].yMax == null
+									? fold
+									: fold > sortedGEData[phenotype].yMax
+									? fold
+									: sortedGEData[phenotype].yMax;
+
+							sortedGEData[phenotype].yMin =
+								sortedGEData[phenotype].yMin == null
+									? fold
+									: fold < sortedGEData[phenotype].yMin
+									? fold
+									: sortedGEData[phenotype].yMin;
+
+							sortedGEData[phenotype].xMax =
+								sortedGEData[phenotype].xMax == null
+									? pValue
+									: pValue > sortedGEData[phenotype].xMax
+									? pValue
+									: sortedGEData[phenotype].xMax;
+
+							sortedGEData[phenotype].xMin =
+								sortedGEData[phenotype].xMin == null
+									? pValue
+									: pValue < sortedGEData[phenotype].xMin
+									? pValue
+									: sortedGEData[phenotype].xMin;
+
+							sortedGEData[phenotype][g.annotation][g.tissue] =
+								!sortedGEData[phenotype][g.annotation][g.tissue]
+									? { pValue: null, fold: null }
+									: sortedGEData[phenotype][g.annotation][
+											g.tissue
+									  ];
+
+							let currentPvalue =
+								sortedGEData[phenotype][g.annotation][g.tissue]
+									.pValue;
+
+							let currentFold =
+								sortedGEData[phenotype][g.annotation][g.tissue]
+									.fold;
+
+							sortedGEData[phenotype][g.annotation][
+								g.tissue
+							].pValue =
+								currentPvalue == null
+									? pValue
+									: pValue > currentPvalue
+									? pValue
+									: currentPvalue;
+
+							sortedGEData[phenotype][g.annotation][
+								g.tissue
+							].fold =
+								currentFold == null
+									? fold
+									: fold > currentFold
+									? fold
+									: currentFold;
+						}
 					}
 				});
 			}
