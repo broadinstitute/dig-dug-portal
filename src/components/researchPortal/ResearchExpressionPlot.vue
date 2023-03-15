@@ -188,9 +188,9 @@ export default Vue.component("ResearchExpressionPlot", {
             this.collatedData = [];
             // Need a deep copy - the rawData is getting mutated.
             let processedData = JSON.parse(JSON.stringify(this.$props.rawData));
-            processedData = processedData.filter(
-                (entry) => parseInt(entry["nSamples"]) >= this.minSamples
-            );
+            processedData = processedData.sort(
+                    (a,b) => a.tissue.toLowerCase() > b.tissue.toLowerCase())
+                    .filter((entry) => parseInt(entry["nSamples"]) >= this.minSamples);
             processedData.forEach((entry) => {
                 let tpms = entry.tpmForAllSamples
                     .split(",")
