@@ -216,6 +216,8 @@ export default Vue.component("ResearchExpressionPlot", {
                     flatEntry["linear"] = tpmVal;
                     flatEntry["log"] = Math.log10(tpmVal + 1);
                     flatEntry["noise"] = Math.random();
+                    flatEntry["biosample"] = item.biosample;
+                    flatEntry["dataset"] = item.dataset;
                     flatBoth.push(flatEntry);
                 }
             }
@@ -254,9 +256,9 @@ export default Vue.component("ResearchExpressionPlot", {
                 .style("opacity", 0)
                 .attr("class", "tooltip")
                 .style("background-color", "white")
-                .style("border", "solid")
-                .style("border-width", "2px")
-                .style("padding", "5px");
+                .style("border", "2px solid gray")
+                .style("padding", "5px")
+                .style("border-radius", "5px");
 
             let x = d3
                 .scaleBand()
@@ -329,22 +331,20 @@ export default Vue.component("ResearchExpressionPlot", {
                     .style("fill", `${colorMap[d.key]}33`)
                     .attr("stroke", `${colorMap[d.key]}`)
                     .on("mouseover", hoverDot)
-                    .on("mouseleave", unhoverDot);
+                    .on("mouseleave", hideTooltip);
             };
             let hoverDot = (g) => {
                 console.log(JSON.stringify(g));
                 let xcoord = `${d3.event.layerX + 35}px`;
-                let ycoord = `${d3.event.pageY}px`;
-                let ycoord2 = `${d3.event.layerY}px`;
-                console.log(xcoord, ycoord, ycoord2);
-                console.log(d3.event);
+                let ycoord = `${d3.event.layerY}px`;
+                let tooltipContent = `<p>Biosample: ${g.biosample}</p>`;
                 tooltip.style("opacity", 1)
-                    .html(`TPM: ${g[tpmField]}`)
+                    .html(tooltipContent)
                     .style("left", xcoord)
-                    .style("top", ycoord2);
+                    .style("top", ycoord);
             }
-            let unhoverDot = (g) => {
-                //tooltip.style("opacity", 0);
+            let hideTooltip = (g) => {
+                tooltip.style("opacity", 0);
             }
             svg.selectAll("myViolin")
                 .data(sumstat)
