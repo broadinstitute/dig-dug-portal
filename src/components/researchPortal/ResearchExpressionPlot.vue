@@ -318,11 +318,12 @@ export default Vue.component("ResearchExpressionPlot", {
                     .attr("cy", (g) => y(g[tpmField]))
                     .attr("r", 2)
                     .style("fill", `${colorMap[d.key]}33`)
-                    .attr("stroke", `${colorMap[d.key]}`);
+                    .attr("stroke", `${colorMap[d.key]}`)
+                    .on("mouseover", hoverDot);
             };
-            let mouseleave = (d) => {
-                svg.selectAll("circle").remove();
-            };
+            let hoverDot = (g) => {
+                console.log(JSON.stringify(g));
+            }
             svg.selectAll("myViolin")
                 .data(sumstat)
                 .enter()
