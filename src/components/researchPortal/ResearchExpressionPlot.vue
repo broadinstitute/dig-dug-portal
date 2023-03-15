@@ -333,13 +333,17 @@ export default Vue.component("ResearchExpressionPlot", {
             };
             let hoverDot = (g) => {
                 console.log(JSON.stringify(g));
+                let xcoord = `${d3.event.pageX + 70}px`;
+                let ycoord = `${d3.event.pageY}px`;
+                let ycoord2 = `${d3.event.clientY}px`;
+                console.log(xcoord, ycoord, ycoord2);
                 tooltip.style("opacity", 1)
                     .html(`TPM: ${g[tpmField]}`)
-                    .style("left", `${d3.mouse(this)[0] + 70}px`)
-                    .style("top", `${d3.mouse(this)[1]}px`);
+                    .style("left", xcoord)
+                    .style("top", ycoord2);
             }
             let unhoverDot = (g) => {
-                tooltip.style("opacity", 0);
+                //tooltip.style("opacity", 0);
             }
             svg.selectAll("myViolin")
                 .data(sumstat)
