@@ -83,6 +83,7 @@ export default Vue.component("ResearchExpressionPlot", {
             processedData: null,
             flatLinear: null,
             flatLog: null,
+            flatBoth: null,
             keyAttribute: "tissue",
             minSamples: 0,
             colorMap: {},
@@ -210,33 +211,31 @@ export default Vue.component("ResearchExpressionPlot", {
             });
             let flatLinear = [];
             let flatLog = [];
+            let flatBoth = [];
             for (let item of processedData) {
                 for (let tpmVal of item.tpmForAllSamples) {
-                    let flatLinearEntry = {};
-                    flatLinearEntry[this.keyAttribute] =
+                    let flatEntry = {};
+                    flatEntry[this.keyAttribute] =
                         item[this.keyAttribute];
-                    flatLinearEntry["tpm"] = tpmVal;
-                    flatLinearEntry["noise"] = Math.random();
-                    flatLinear.push(flatLinearEntry);
-
-                    let flatLogEntry = {};
-                    flatLogEntry[this.keyAttribute] = item[this.keyAttribute];
-                    flatLogEntry["tpm"] = Math.log10(tpmVal + 1);
-                    flatLogEntry["noise"] = Math.random();
-                    flatLog.push(flatLogEntry);
+                    flatEntry["linear"] = tpmVal;
+                    flatEntry["log"] = Math.log10(tpmVal + 1);
+                    flatEntry["noise"] = Math.random();
+                    flatBoth.push(flatEntry);
                 }
             }
             this.processedData = processedData;
             this.flatLinear = flatLinear;
             this.flatLog = flatLog;
+            this.flatBoth = flatBoth;
             this.mapColors();
         },
         displayResults() {
             let keyAttribute = this.keyAttribute;
             let colorMap = this.colorMap;
 
-            let flatData =
-                this.logScale == "yes" ? this.flatLog : this.flatLinear;
+            let flatData = this.flatBoth;
+
+            let tpmField = this.logScale == "yes" ? "log" : "linear";
             let margin = {
                     top: 10,
                     right: 30,
@@ -270,7 +269,7 @@ export default Vue.component("ResearchExpressionPlot", {
                 .attr("transform", "rotate(45)");
 
             let maxVal = flatData
-                .map((g) => g.tpm)
+                .map((g) => g[tpmField])
                 .reduce((prev, next) => (prev > next ? prev : next), 0);
             let y = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
             svg.append("g").call(d3.axisLeft(y));
@@ -284,7 +283,7 @@ export default Vue.component("ResearchExpressionPlot", {
                 .nest()
                 .key((d) => d[keyAttribute])
                 .rollup((d) => {
-                    let input = d.map((g) => g.tpm);
+                    let input = d.map((g) => g[tpmField]);
                     let bins = histogram(input);
                     return bins;
                 })
@@ -322,7 +321,7 @@ export default Vue.component("ResearchExpressionPlot", {
                             g.noise * boxHalfWidth * 4;
                         return x(d.key) + dx;
                     })
-                    .attr("cy", (g) => y(g.tpm))
+                    .attr("cy", (g) => y(g[tpmField]))
                     .attr("r", 2)
                     .style("fill", `${colorMap[d.key]}33`)
                     .attr("stroke", `${colorMap[d.key]}`);
@@ -364,7 +363,7 @@ export default Vue.component("ResearchExpressionPlot", {
                 .key((d) => d[keyAttribute])
                 .rollup((d) => {
                     numberViolins++;
-                    let sortedData = d.map((g) => g.tpm).sort(d3.ascending);
+                    let sortedData = d.map((g) => g[tpmField]).sort(d3.ascending);
                     let q1 = d3.quantile(sortedData, 0.25);
                     let median = d3.quantile(sortedData, 0.5);
                     let q3 = d3.quantile(sortedData, 0.75);
