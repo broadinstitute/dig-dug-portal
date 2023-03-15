@@ -82,7 +82,6 @@ export default Vue.component("ResearchExpressionPlot", {
             logScale: false,
             processedData: null,
             flatBoth: null,
-            keyAttribute: "tissue",
             minSamples: 0,
             colorMap: {},
             currentPage: 1,
@@ -90,7 +89,7 @@ export default Vue.component("ResearchExpressionPlot", {
             collatedData: [],
             tableConfig: {
                 "top rows": [
-                    { key: "Tissue", sortable: true },
+                    { key: "tissue", sortable: true },
                     { key: "Min TPM", sortable: true, formatter: "tpmFormat" },
                     { key: "Q1 TPM", sortable: true, formatter: "tpmFormat" },
                     {
@@ -188,16 +187,14 @@ export default Vue.component("ResearchExpressionPlot", {
             this.collatedData = [];
             // Need a deep copy - the rawData is getting mutated.
             let processedData = JSON.parse(JSON.stringify(this.$props.rawData));
-            processedData = processedData.sort(
-                    (a,b) => a.tissue.toLowerCase() > b.tissue.toLowerCase())
-                    .filter((entry) => parseInt(entry["nSamples"]) >= this.minSamples);
+            processedData = processedData.filter((entry) => parseInt(entry["nSamples"]) >= this.minSamples);
             processedData.forEach((entry) => {
                 let tpms = entry.tpmForAllSamples
                     .split(",")
                     .map((i) => parseFloat(i));
                 entry["tpmForAllSamples"] = tpms;
-                entry[this.keyAttribute] = Formatters.tissueFormatter(
-                    entry[this.keyAttribute]
+                entry["tissue"] = Formatters.tissueFormatter(
+                    entry["tissue"]
                 );
                 entry["Min TPM"] = parseFloat(entry.minTpm);
                 entry["Q1 TPM"] = parseFloat(entry.firstQuTpm);
@@ -206,12 +203,13 @@ export default Vue.component("ResearchExpressionPlot", {
                 entry["Max TPM"] = parseFloat(entry.maxTpm);
                 entry["nSamples"] = parseInt(entry.nSamples);
             });
+            processedData.sort((a,b) => a.tissue > b.tissue);
             let flatBoth = [];
             for (let item of processedData) {
                 for (let tpmVal of item.tpmForAllSamples) {
                     let flatEntry = {};
-                    flatEntry[this.keyAttribute] =
-                        item[this.keyAttribute];
+                    flatEntry["tissue"] =
+                        item["tissue"];
                     flatEntry["linear"] = tpmVal;
                     flatEntry["log"] = Math.log10(tpmVal + 1);
                     flatEntry["noise"] = Math.random();
@@ -225,7 +223,6 @@ export default Vue.component("ResearchExpressionPlot", {
             this.mapColors();
         },
         displayResults() {
-            let keyAttribute = this.keyAttribute;
             let colorMap = this.colorMap;
 
             let flatData = this.flatBoth;
@@ -234,7 +231,7 @@ export default Vue.component("ResearchExpressionPlot", {
             let margin = {
                     top: 10,
                     right: 30,
-                    bottom: this.getBottomMargin(flatData, keyAttribute),
+                    bottom: this.getBottomMargin(flatData, "tissue"),
                     left: 40,
                 },
                 width = this.chartWidth - margin.left - margin.right,
@@ -263,7 +260,7 @@ export default Vue.component("ResearchExpressionPlot", {
             let x = d3
                 .scaleBand()
                 .range([0, width])
-                .domain(flatData.map((entry) => entry[keyAttribute]))
+                .domain(flatData.map((entry) => entry["tissue"]))
                 .padding(0.05);
             svg.append("g")
                 .attr("transform", `translate(0,${height})`)
@@ -286,7 +283,7 @@ export default Vue.component("ResearchExpressionPlot", {
                 .value((d) => d);
             let sumstat = d3
                 .nest()
-                .key((d) => d[keyAttribute])
+                .key((d) => d["tissue"])
                 .rollup((d) => {
                     let input = d.map((g) => g[tpmField]);
                     let bins = histogram(input);
@@ -315,7 +312,7 @@ export default Vue.component("ResearchExpressionPlot", {
                 let boxHalfWidth = 6;
                 svg.selectAll("indPoints")
                     .data(
-                        flatData.filter((entry) => entry[keyAttribute] == d.key)
+                        flatData.filter((entry) => entry["tissue"] == d.key)
                     )
                     .enter()
                     .append("circle")
@@ -382,7 +379,7 @@ export default Vue.component("ResearchExpressionPlot", {
             let numberViolins = 0;
             let sumstatBox = d3
                 .nest()
-                .key((d) => d[keyAttribute])
+                .key((d) => d["tissue"])
                 .rollup((d) => {
                     numberViolins++;
                     let sortedData = d.map((g) => g[tpmField]).sort(d3.ascending);
@@ -460,9 +457,9 @@ export default Vue.component("ResearchExpressionPlot", {
                     if (collateData) {
                         // Deep copy
                         let tableEntry = JSON.parse(JSON.stringify(d.value));
-                        tableEntry["Tissue"] = d.key;
+                        tableEntry["tissue"] = d.key;
                         tableEntry["Datasets"] = this.processedData.filter(
-                            (item) => item[keyAttribute] == d.key
+                            (item) => item["tissue"] == d.key
                         );
                         this.collatedData.push(tableEntry);
                     }
@@ -491,8 +488,8 @@ export default Vue.component("ResearchExpressionPlot", {
             let colorMap = {};
             let colorIndex = 0;
             this.processedData.forEach((entry) => {
-                if (!colorMap[entry[this.keyAttribute]]) {
-                    colorMap[entry[this.keyAttribute]] = colors[colorIndex];
+                if (!colorMap[entry["tissue"]]) {
+                    colorMap[entry["tissue"]] = colors[colorIndex];
                     colorIndex++;
                     if (colorIndex >= colors.length) {
                         colorIndex = 0;
