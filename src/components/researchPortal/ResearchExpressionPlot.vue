@@ -81,8 +81,6 @@ export default Vue.component("ResearchExpressionPlot", {
             chartWidth: null,
             logScale: "no",
             processedData: null,
-            flatLinear: null,
-            flatLog: null,
             flatBoth: null,
             keyAttribute: "tissue",
             minSamples: 0,
@@ -209,8 +207,6 @@ export default Vue.component("ResearchExpressionPlot", {
                 entry["Max TPM"] = parseFloat(entry.maxTpm);
                 entry["nSamples"] = parseInt(entry.nSamples);
             });
-            let flatLinear = [];
-            let flatLog = [];
             let flatBoth = [];
             for (let item of processedData) {
                 for (let tpmVal of item.tpmForAllSamples) {
@@ -224,8 +220,6 @@ export default Vue.component("ResearchExpressionPlot", {
                 }
             }
             this.processedData = processedData;
-            this.flatLinear = flatLinear;
-            this.flatLog = flatLog;
             this.flatBoth = flatBoth;
             this.mapColors();
         },
