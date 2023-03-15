@@ -216,7 +216,7 @@ export default Vue.component("ResearchExpressionPlot", {
                     flatEntry["linear"] = tpmVal;
                     flatEntry["log"] = Math.log10(tpmVal + 1);
                     flatEntry["noise"] = Math.random();
-                    flatEntry["biosample"] = item.biosample;
+                    flatEntry["biosample"] = Formatters.tissueFormatter(item.biosample);
                     flatEntry["dataset"] = item.dataset;
                     flatBoth.push(flatEntry);
                 }
@@ -337,7 +337,8 @@ export default Vue.component("ResearchExpressionPlot", {
                 console.log(JSON.stringify(g));
                 let xcoord = `${d3.event.layerX + 35}px`;
                 let ycoord = `${d3.event.layerY}px`;
-                let tooltipContent = `<p>Biosample: ${g.biosample}</p>`;
+                let tooltipContent = `Biosample: ${g.biosample}`;
+                tooltipContent = tooltipContent.concat(`<span>Dataset: ${g.dataset}</span>`);
                 tooltip.style("opacity", 1)
                     .html(tooltipContent)
                     .style("left", xcoord)
@@ -532,5 +533,8 @@ div {
 }
 #big-table > thead > tr > th {
     color: #007bff;
+}
+.tooltip span {
+    display: block;
 }
 </style>
