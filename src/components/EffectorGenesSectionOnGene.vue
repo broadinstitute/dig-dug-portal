@@ -63,7 +63,11 @@
 				</template>
 			</div>
 		</div>
-		<div v-else class="well" style="background-color: #ff000050">
+		<div
+			v-else
+			class="well well-warning"
+			style="background-color: #ff000050"
+		>
 			No predicted effector genes list found associated with
 			{{ gene.name }}.
 		</div>
@@ -138,5 +142,9 @@ export default Vue.component("egls-section-on-gene", {
 	border-top: solid 1px #ddd;
 	margin-bottom: 7px;
 	padding-top: 7px;
+}
+.well.well-warning {
+	padding: 15px;
+	border-radius: 15px;
 }
 </style>
