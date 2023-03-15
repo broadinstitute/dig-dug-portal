@@ -3,8 +3,8 @@
         <label>
             Scale
             <select v-model="logScale" class="form-control form-control-sm">
-                <option value="no">Linear</option>
-                <option value="yes">Logarithmic: log10(TPM+1)</option>
+                <option :value="false">Linear</option>
+                <option :value="true">Logarithmic: log10(TPM+1)</option>
             </select>
         </label>
         <label>
@@ -79,7 +79,7 @@ export default Vue.component("ResearchExpressionPlot", {
         return {
             chart: null,
             chartWidth: null,
-            logScale: "no",
+            logScale: false,
             processedData: null,
             flatBoth: null,
             keyAttribute: "tissue",
@@ -176,8 +176,7 @@ export default Vue.component("ResearchExpressionPlot", {
         });
         this.processData();
         this.displayResults();
-        this.logScale = "yes";
-        this.displayResults();
+        this.logScale = true;
     },
     methods: {
         ...uiUtils,
@@ -231,7 +230,7 @@ export default Vue.component("ResearchExpressionPlot", {
 
             let flatData = this.flatBoth;
 
-            let tpmField = this.logScale == "yes" ? "log" : "linear";
+            let tpmField = this.logScale ? "log" : "linear";
             let margin = {
                     top: 10,
                     right: 30,
