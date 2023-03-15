@@ -336,7 +336,10 @@ export default Vue.component("ResearchExpressionPlot", {
                     .on("mouseleave", hideTooltip);
             };
             let hoverDot = (g) => {
-                console.log(JSON.stringify(g));
+                svg.selectAll("circle").style("stroke", "lightgray");
+                svg.selectAll(`.${g.dataset}`)
+                    .style("stroke", `${colorMap[g.tissue]}`);
+                // Tooltip content
                 let xcoord = `${d3.event.layerX + 35}px`;
                 let ycoord = `${d3.event.layerY}px`;
                 let tooltipContent = `Biosample: ${g.biosample}`;
