@@ -1,20 +1,20 @@
 <template>
     <div class="chart-wrapper">
-        <label>
-            Scale
-            <select v-model="logScale" class="form-control form-control-sm">
-                <option :value="false">Linear</option>
-                <option :value="true">Logarithmic: log10(TPM+1)</option>
-            </select>
-        </label>
-        <label>
-            Filter datasets by minimum sample count
-            <input
-                v-model="minSamples"
-                class="form-control form-control-sm"
-                type="number"
-            />
-        </label>
+        <div class="filtering-ui-wrapper container-fluid">
+            <div class="row filtering-ui-content">
+                <div class="col filter-col-md">
+                    <div class="label">Scale</div>
+                    <select v-model="logScale">
+                        <option :value="false">Linear</option>
+                        <option :value="true">Logarithmic: log10(TPM+1)</option>
+                    </select>
+                </div>
+                <div class="col filter-col-md">
+                    <div class="label">Filter datasets by minimum sample count</div>
+                    <input v-model="minSamples" type="number"/>
+                </div>
+            </div>
+        </div>
         <div id="multi-chart">
             <p>Loading...</p>
         </div>
