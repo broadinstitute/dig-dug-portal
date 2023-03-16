@@ -84,18 +84,6 @@ export default Vue.component("correlation-table", {
 			let phenotypesInSession = !!this.phenotypesInSession
 				? this.phenotypesInSession.map((p) => p.name)
 				: null;
-			/*
-            
-
-			let filter = this.filter; // TODO: can we detect if not id=>true
-
-			let dataRows = !!phenotypesInSession
-				? this.groupedAnnotations.filter(
-						(a) => !!phenotypesInSession.includes(a.phenotype)
-				  )
-				: this.groupedAnnotations;
-
-            */
 
 			let correlationData = !!phenotypesInSession
 				? this.correlationData.filter(
