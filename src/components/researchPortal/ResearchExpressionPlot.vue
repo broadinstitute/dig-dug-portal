@@ -4,7 +4,7 @@
             <div class="row filtering-ui-content">
                 <div class="col filter-col-md">
                     <div class="label">Scale</div>
-                    <select v-model="logScale">
+                    <select v-model="logScale" class="form-control">
                         <option :value="false">Linear</option>
                         <option :value="true">Logarithmic: log10(TPM+1)</option>
                     </select>
