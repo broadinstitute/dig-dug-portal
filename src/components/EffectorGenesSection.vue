@@ -67,8 +67,16 @@ export default Vue.component("egls-section", {
 	created() {
 		this.loadEglsList();
 	},
-	computed: {},
-	watch: {},
+	computed: {
+		phenotypeName() {
+			return this.phenotype.name;
+		},
+	},
+	watch: {
+		phenotypeName(NAME) {
+			this.loadEglsList();
+		},
+	},
 	methods: {
 		async loadEglsList() {
 			let dataPoint =
