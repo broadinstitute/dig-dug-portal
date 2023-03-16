@@ -254,7 +254,8 @@ export default Vue.component("ResearchExpressionPlot", {
                 .attr(
                     "transform",
                     "translate(" + margin.left + "," + margin.top + ")"
-                );
+                )
+                .on("mouseleave", d => svg.selectAll("circle").remove());
             let tooltip = d3.select("#multi-chart")
                 .append("div")
                 .style("opacity", 0)
