@@ -1,7 +1,11 @@
 <template>
 <div class="chart-wrapper">
     <div v-if="!!summaryPlot['title']"><h4>{{summaryPlot['title']}}</h4></div>
-    <div class="all-charts">
+    <research-multi-plot v-if="summaryPlot.type == 'multi'"
+				:summaryPlot="summaryPlot"
+                :rawData="rawData">
+			</research-multi-plot>
+    <div v-else class="all-charts">
     </div>
 </div>
 </template>
@@ -11,6 +15,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import ResearchMultiPlot from "./ResearchMultiPlot.vue";
 export default Vue.component("research-summary-plot", {
     props: ["rawData", "summaryPlot", "isPlotByRow"],
     data(){
@@ -28,6 +33,10 @@ export default Vue.component("research-summary-plot", {
     methods: {
         ...uiUtils,
         displayResults(config){
+            if (config.type == "multi"){
+                //multi plot is handled by its own component.
+                return;
+            }
             let allCharts = document.getElementsByClassName("all-charts")[0];
             allCharts.innerHTML = "";
             config.fields.forEach(column => {

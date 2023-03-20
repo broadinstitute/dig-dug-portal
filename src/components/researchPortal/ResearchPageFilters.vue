@@ -251,12 +251,7 @@
 					</div>
 					<b-badge
 						v-if="this.numberOfSearchParams() > 1"
-						class="
-							badge badge-secondary badge-pill
-							btn
-							search-bubble
-							clear-all-filters-bubble
-						"
+						class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
 						@click="removeAllSearchParams()"
 					>
 						Clear all filters
@@ -322,7 +317,7 @@
 						<input
 							type="text"
 							class="form-control"
-							:id="'filter_' + filter.field.replace(/ /g, '')"
+							:id="'filter_' + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -333,7 +328,7 @@
 							class="egl-filter-direction"
 							:id="
 								'filter_' +
-								filter.field.replace(/ /g, '') +
+								getColumnId(filter.field) +
 								'_direction'
 							"
 						>
@@ -345,7 +340,7 @@
 						<input
 							type="text"
 							class="form-control egl-filter-cd-input"
-							:id="'filter_' + filter.field.replace(/ /g, '')"
+							:id="'filter_' + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -353,7 +348,7 @@
 					</template>
 					<template v-else-if="filter.type == 'dropdown'">
 						<select
-							:id="'filter_' + filter.field.replace(/ /g, '')"
+							:id="'filter_' + getColumnId(filter.field)"
 							@change="
 								filterData(
 									$event,
@@ -404,12 +399,7 @@
 			</div>
 			<b-badge
 				v-if="this.numberOfSearches() > 1"
-				class="
-					badge badge-secondary badge-pill
-					btn
-					search-bubble
-					clear-all-filters-bubble
-				"
+				class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
 				@click="removeAllFilters()"
 			>
 				Clear all search
@@ -494,6 +484,7 @@ export default Vue.component("research-page-filters", {
 			this.apiParameters.query.type == "array"
 		) {
 			let parametersArr = this.apiParameters.query.format;
+			let paramsSet = {};
 
 			parametersArr.map((param, index) => {
 				if (keyParams[param] != undefined) {
@@ -517,10 +508,28 @@ export default Vue.component("research-page-filters", {
 					if (pType != "list" && !!ifValuesFromKP) {
 						this.geneSearch = keyParams[param];
 					} else if (pType == "list" && !!ifValuesFromKP) {
-						let label = this.getFileLabel(
-							keyParams[param].trim(),
-							param
+						let label;
+
+						console.log("0", this.filesListLabels);
+						console.log(
+							"1",
+							this.filesListLabels[keyParams[param].trim()]
 						);
+						console.log("2", this.filesListLabels[param]);
+
+						if (!!this.filesListLabels[keyParams[param].trim()]) {
+							label =
+								this.filesListLabels[keyParams[param].trim()];
+						} else if (
+							this.filesListLabels[param][keyParams[param].trim()]
+						) {
+							label =
+								this.filesListLabels[param][
+									keyParams[param].trim()
+								];
+						} else {
+							label = keyParams[param].trim();
+						}
 
 						let labelContent = label + "(" + keyParams[param] + ")";
 
@@ -537,14 +546,26 @@ export default Vue.component("research-page-filters", {
 						"searchParameters",
 						this.searchParamsIndex
 					);
+
+					paramsSet[param] = keyParams[param];
 				}
 			});
+
+			if (Object.keys(paramsSet).length > 0) {
+				this.$store.dispatch("searchParametersArr", {
+					data: paramsSet,
+					action: "add",
+				});
+			}
 		}
 	},
 	computed: {},
 	watch: {},
 	methods: {
 		...uiUtils,
+		getColumnId(LABEL) {
+			return LABEL.replace(/\W/g, "").toLowerCase();
+		},
 		resetAll() {
 			this.$store.state.pkgData = {};
 			this.$store.state.pkgDataSelected = [];
@@ -576,7 +597,6 @@ export default Vue.component("research-page-filters", {
 				let url = new URL(window.location);
 				//for (const [key, value] of Object.entries(key2Update)) {
 				url.searchParams.set(PARAM.parameter, newRegion);
-				//}
 
 				window.history.pushState(null, "", url.toString());
 
@@ -594,26 +614,7 @@ export default Vue.component("research-page-filters", {
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
-		/*getPlaceHolder(PARAM) {
-			let content = "";
-			if (keyParams[PARAM] != undefined) {
-				let paramType = this.apiParameters.parameters.filter(
-					(v) => v.parameter == PARAM
-				)[0].type;
 
-				if (paramType == "list") {
-					let label = this.getFileLabel(keyParams[PARAM].trim());
-
-					content = label + "(" + keyParams[PARAM] + ")";
-				} else {
-					content = keyParams[PARAM];
-				}
-
-				return content;
-			} else {
-				return "";
-			}
-		},*/
 		getVisibleValues(VALUES, SEARCH, PARAMETER) {
 			var numOfVisible = 0;
 
@@ -693,15 +694,11 @@ export default Vue.component("research-page-filters", {
 		},
 		getFileLabel(file, PARAMETER) {
 			if (
-				this.filesListLabels != null &&
 				this.filesListLabels[PARAMETER] &&
 				this.filesListLabels[PARAMETER][file]
 			) {
 				return this.filesListLabels[PARAMETER][file];
-			} else if (
-				this.filesListLabels != null &&
-				this.filesListLabels[file]
-			) {
+			} else if (this.filesListLabels[file]) {
 				return this.filesListLabels[file];
 			} else {
 				return file;
@@ -768,6 +765,8 @@ export default Vue.component("research-page-filters", {
 				}
 			}
 
+			let paramsSet = {};
+
 			let queryParams = "";
 			if (this.apiParameters.query.type == "array") {
 				let parametersArr = this.apiParameters.query.format;
@@ -813,6 +812,10 @@ export default Vue.component("research-page-filters", {
 						);
 					}
 
+					paramsSet[param] = document.getElementById(
+						"search_param_" + param
+					).value;
+
 					this.$store.dispatch(
 						"searchParameters",
 						this.searchParamsIndex
@@ -826,6 +829,20 @@ export default Vue.component("research-page-filters", {
 					}
 
 					window.history.pushState(null, "", url.toString());
+				}
+			}
+
+			if (Object.keys(paramsSet).length > 0) {
+				if (this.$store.state.dataComparison == "newSearch") {
+					this.$store.dispatch("searchParametersArr", {
+						data: paramsSet,
+						action: "reset",
+					});
+				} else {
+					this.$store.dispatch("searchParametersArr", {
+						data: paramsSet,
+						action: "add",
+					});
 				}
 			}
 
@@ -878,7 +895,7 @@ export default Vue.component("research-page-filters", {
 				initialData.includes("http://") ||
 				initialData.includes("https://")
 					? initialData
-					: "https://hugeampkpncms.org/sites/default/files/users/user" +
+					: "https://config.byor.science/sites/default/files/users/user" +
 					  this.uid +
 					  "/" +
 					  initialData;
@@ -937,9 +954,9 @@ export default Vue.component("research-page-filters", {
 		},
 		filterData(EVENT, FIELD, TYPE, DATATYPE) {
 			let searchValue = document.getElementById(
-				"filter_" + FIELD.replace(/ /g, "")
+				"filter_" + this.getColumnId(FIELD)
 			).value; //EVENT.target.value;
-			let id = "#filter_" + FIELD.replace(/ /g, "");
+			let id = "#filter_" + this.getColumnId(FIELD);
 			let inputField = document.querySelector(id);
 
 			inputField.blur();
@@ -1068,9 +1085,8 @@ export default Vue.component("research-page-filters", {
 												let searchDirection =
 													document.getElementById(
 														"filter_" +
-															searchIndex.field.replace(
-																/ /g,
-																""
+															this.getColumnId(
+																searchIndex.field
 															) +
 															"_direction"
 													).value;
@@ -1371,9 +1387,8 @@ export default Vue.component("research-page-filters", {
 											let searchDirection =
 												document.getElementById(
 													"filter_" +
-														searchIndex.field.replace(
-															/ /g,
-															""
+														this.getColumnId(
+															searchIndex.field
 														) +
 														"_direction"
 												).value;

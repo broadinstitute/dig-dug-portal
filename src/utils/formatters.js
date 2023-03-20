@@ -434,6 +434,10 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 case "direction triangle":
                     cellValue = (cellValue > 0) ? '<span class="direction-positive">&#x25B2;</span>' + cellValue : '<span class="direction-negative">&#x25BC;</span>' + cellValue;
                     break;
+
+                case "direction triangle opposite":
+                    cellValue = (cellValue > 0) ? '<span class="direction-positive">&#x25BC;</span>' + cellValue : '<span class="direction-negative">&#x25B2;</span>' + cellValue;
+                    break;
             }
         });
 

@@ -63,7 +63,7 @@ export default new Vuex.Store({
             ).then(resp => resp.json());*/
 
             let json = await fetch(
-                `https://hugeampkpncms.org/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${config.dataset}/${config.dataset}_config.json`
+                `https://config.byor.science/servedata/dataset?dataset=https://config.byor.science/sites/default/files/users/user1/egl_data/${config.dataset}/${config.dataset}_config.json`
             ).then(resp => resp.json());
 
             let parsedJson = JSON.parse(json)
@@ -85,7 +85,7 @@ export default new Vuex.Store({
             /*context.commit("setTableData", json.data);
             context.commit("setFilteredData", json.data);*/
             let json = await fetch(
-                `https://hugeampkpncms.org/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${dataset.dataset}/${dataset.dataset}_${dataset.trait}.json`
+                `https://config.byor.science/servedata/dataset?dataset=https://config.byor.science/sites/default/files/users/user1/egl_data/${dataset.dataset}/${dataset.dataset}_${dataset.trait}.json`
             ).then(resp => resp.json());
 
             let parsedJson = JSON.parse(json)

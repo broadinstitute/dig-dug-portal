@@ -63,7 +63,11 @@
 				</template>
 			</div>
 		</div>
-		<div v-else class="well" style="background-color: #ff000050">
+		<div
+			v-else
+			class="well well-warning"
+			style="background-color: #ff000050"
+		>
 			No predicted effector genes list found associated with
 			{{ gene.name }}.
 		</div>
@@ -92,7 +96,7 @@ export default Vue.component("egls-section-on-gene", {
 	methods: {
 		async loadEglsList() {
 			let dataPoint =
-				"https://hugeampkpncms.org/rest/data?pageid=egl_241";
+				"https://config.byor.science/rest/data?pageid=egl_241";
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
@@ -114,7 +118,7 @@ export default Vue.component("egls-section-on-gene", {
 		},
 		async getEglsWithGene() {
 			let dataPoint =
-				"https://hugeampkpncms.org/rest/egls?gene=" + this.gene.name;
+				"https://config.byor.science/rest/egls?gene=" + this.gene.name;
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
@@ -138,5 +142,9 @@ export default Vue.component("egls-section-on-gene", {
 	border-top: solid 1px #ddd;
 	margin-bottom: 7px;
 	padding-top: 7px;
+}
+.well.well-warning {
+	padding: 15px;
+	border-radius: 15px;
 }
 </style>

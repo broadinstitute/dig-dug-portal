@@ -4,7 +4,7 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
-			:rawPhenotypes="$parent.rawPhenotypes"
+			:raw-phenotypes="$parent.rawPhenotypes"
 		></page-header>
 
 		<!-- Body -->
@@ -29,9 +29,9 @@
 						}}
 					</div>
 					<input
+						v-model="$parent.phenotypeSearchKey"
 						class="form-control phenotype-search-input"
 						type="text"
-						v-model="$parent.phenotypeSearchKey"
 					/>
 
 					<ul
@@ -49,9 +49,9 @@
 							"
 						>
 							<a
-								v-html="item.description"
-								@click="$parent.setSelectedPhenotype(item)"
 								href="javascript:;"
+								@click="$parent.setSelectedPhenotype(item)"
+								v-html="item.description"
 							></a>
 						</li>
 					</ul>
@@ -377,6 +377,9 @@
 									:phenotype-map="
 										$store.state.bioPortal.phenotypeMap
 									"
+									:phenotypesInSession="
+										$parent.phenotypesInSession
+									"
 									:filter="filter"
 								>
 								</correlation-table>
@@ -462,13 +465,13 @@
 						</criterion-function-group>
 					</div>
 				</div>
-				<div class="card mdkp-card" v-if="!!$store.state.phenotype">
+				<div v-if="!!$store.state.phenotype" class="card mdkp-card">
 					<div class="card-body">
 						<h4 class="card-title">
 							Effector gene predictions for
 							{{ $store.state.phenotype.description }}
 							<tooltip-documentation
-								name="phenotype.annot.tooltip"
+								name="phenotype.effector-gene.tooltip"
 								:content-fill="$parent.documentationMap"
 								:is-hover="true"
 								:no-icon="false"
