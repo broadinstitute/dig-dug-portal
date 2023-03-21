@@ -33,6 +33,7 @@ import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
+import kpGFPkg from "@/components/kpDataViewer/kpGFPkg.vue";
 import uiUtils from "@/utils/uiUtils";
 import dataConvert from "@/utils/dataConvert";
 import sessionUtils from "@/utils/sessionUtils";
@@ -67,6 +68,7 @@ new Vue({
         ResearchHeatmap,
         ResearchPheWAS,
         kpGEMPkg,
+        kpGFPkg,
         Documentation,
     },
     data() {

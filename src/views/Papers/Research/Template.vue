@@ -447,6 +447,24 @@
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
 							></kp-gem-pkg>
+							<kp-gene-finder-pkg
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] ==
+										'gene finder package'
+								"
+								:pkgConfig="$parent.plotConfig"
+								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
+								:sharedPlotXpos="$store.state.sharedPlotXpos"
+								:plotMargin="$parent.plotMargin"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:colors="$parent.colors"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
+							></kp-gene-finder-pkg>
 						</div>
 						<div
 							class="col-md-12"
@@ -499,6 +517,27 @@
 								:pkgDataSelected="$store.state.pkgDataSelected"
 							>
 							</research-gem-data-table>
+							<research-gene-finder-data-table
+								v-if="
+									!!$parent.dataTableFormat['custom table'] &&
+									$parent.dataTableFormat['custom table']
+										.name == 'gene finder package'
+								"
+								:pageID="$parent.pageID"
+								:dataset="$parent.filteredData"
+								:tableFormat="$parent.dataTableFormat"
+								:initPerPageNumber="$parent.tablePerPageNumber"
+								:tableLegend="$parent.tableLegend"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:searchParameters="
+									$store.state.searchParameters
+								"
+								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
+							>
+							</research-gene-finder-data-table>
 						</div>
 					</div>
 				</div>
