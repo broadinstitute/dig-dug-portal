@@ -1216,6 +1216,12 @@ new Vue({
 
             return content;
         },
+        researchDataEmpty() {
+            let content = this.$store.state.hugeampkpncms.researchDataEmpty;
+
+            return content;
+
+        }
     },
 
     watch: {
