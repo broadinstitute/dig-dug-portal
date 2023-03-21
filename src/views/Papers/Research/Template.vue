@@ -534,6 +534,16 @@
 			</div>
 		</div>
 
+		<div
+			class="no-data-warning"
+			id="noDataWarning"
+			v-if="
+				!!$parent.researchDataEmpty && $parent.researchDataEmpty == true
+			"
+		>
+			No data is available for the last search. Please try a new search.
+		</div>
+
 		<!-- Research portal Footer-->
 		<research-page-footer
 			v-if="$parent.displayOnKP == null"
@@ -552,6 +562,18 @@
 @import url("/css/tooltipDocumentation.css");
 html {
 	font-size: 14px !important;
+}
+.no-data-warning {
+	background-color: #ffaaaa;
+	position: fixed;
+	z-index: 10010;
+	bottom: 30px;
+	right: 30px;
+	width: 300px;
+	padding: 20px 20px;
+	border: solid 1px #dd6666;
+	border-radius: 5px;
+	color: #ffffff;
 }
 #alert_pop_up {
 	position: fixed;
