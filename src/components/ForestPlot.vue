@@ -44,7 +44,7 @@ export default Vue.component("forest-plot", {
 
             chart.data = data.map((item) => {
                 if (item.stdErr == "Infinity") {
-                    item.stdErr = 10 * Math.abs(item.beta);
+                    item.stdErr = 2 * Math.abs(item.beta);
                 }
                 return {
                     category: item.mask,
