@@ -1,5 +1,5 @@
 <template>
-    <div class="plots" :id="element"></div>
+    <div :id="element" class="plots" :style="height"></div>
 </template>
 
 <script>
@@ -26,6 +26,11 @@ export default Vue.component("forest-plot", {
             type: Boolean,
             required: false,
             default: false,
+        },
+    },
+    computed: {
+        height() {
+            return `height: ${this.data.length * 50 + 20}px`;
         },
     },
     mounted() {
@@ -139,5 +144,4 @@ export default Vue.component("forest-plot", {
 });
 </script>
 
-<style>
-</style>
+<style></style>
