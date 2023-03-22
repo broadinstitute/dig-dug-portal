@@ -10,17 +10,29 @@
 					</select>
 				</div>
 				<div class="col filter-col-md">
-					<div class="label">
-						Filter datasets by minimum sample count
-					</div>
+					<div class="label">Minimum sample count (>=)</div>
 					<input
 						class="form-control"
 						v-model="minSamples"
 						type="number"
 					/>
 				</div>
+				<div class="col filter-col-md">
+					<div class="label">Collection</div>
+					<select
+						class="form-control"
+						v-model="collection"
+						@change="applyFilter()"
+					>
+						<option value="all" selected>All</option>
+						<option value="DGA">DGA</option>
+						<option value="GTEx">GTEx</option>
+						<option value="T2DKP">T2DKP</option>
+					</select>
+				</div>
 			</div>
 		</div>
+
 		<div id="multi-chart">
 			<p>Loading...</p>
 		</div>
@@ -89,6 +101,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			processedData: null,
 			flatBoth: null,
 			minSamples: 0,
+			collection: "all",
 			colorMap: {},
 			currentPage: 1,
 			perPage: 10,
@@ -114,7 +127,13 @@ export default Vue.component("ResearchExpressionPlot", {
 						key: "biosample",
 						formatter: (value) => Formatters.tissueFormatter(value),
 					},
-					{ key: "dataset" },
+					{
+						key: "collection",
+						formatter: (value) => value.toString(", "),
+					},
+					{
+						key: "dataset",
+					},
 					{
 						key: "Min TPM",
 						formatter: (value) =>
@@ -153,6 +172,7 @@ export default Vue.component("ResearchExpressionPlot", {
 					return this.filter(dataset);
 				});
 			}
+
 			return dataRows;
 		},
 		rows() {
@@ -186,6 +206,11 @@ export default Vue.component("ResearchExpressionPlot", {
 	methods: {
 		...uiUtils,
 
+		applyFilter() {
+			this.processData();
+			this.displayResults();
+		},
+
 		tpmFormat(value) {
 			return Formatters.floatFormatter(`${value}`);
 		},
@@ -196,6 +221,18 @@ export default Vue.component("ResearchExpressionPlot", {
 			processedData = processedData.filter(
 				(entry) => parseInt(entry["nSamples"]) >= this.minSamples
 			);
+
+			processedData.map((d) => {
+				d.collection.map((c, cIndex) => {
+					d.collection[cIndex] = c.trim();
+				});
+			});
+			if (this.collection != "all") {
+				processedData = processedData.filter(
+					(d) => !!d.collection.includes(this.collection)
+				);
+			}
+
 			processedData.forEach((entry) => {
 				let tpms = entry.tpmForAllSamples
 					.split(",")
