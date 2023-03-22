@@ -239,9 +239,9 @@ function maskFormatter(mask) {
         "0of5_1pct": { description: "5/5 + 0/5 1%", sort: 6 },
         ns_strict_ns_1pct: { description: "5/5 + 0/5 1%", sort: 6 },
 
-        hclof_noflag_canonical: { description: "Rare LOF", sort: 7 },
+        hclof_noflag_canonical: { description: "Rare LoF", sort: 7 },
         "hclof_noflag_missense0.8_canonical": {
-            description: "Rare LOF + Missense",
+            description: "Rare LoF + Missense",
             sort: 7,
         },
         "missense0.5_canonical": {
