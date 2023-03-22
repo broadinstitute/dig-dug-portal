@@ -112,11 +112,13 @@ export default Vue.component("mask-table", {
             ],
         };
     },
-    created() {},
     computed: {
         formattedMasks() {
             let sorted = this.maskData.slice().sort((a, b) => {
-                return this.maskFormatter(a.mask).sort - this.maskFormatter(b.mask).sort
+                return (
+                    this.maskFormatter(a.mask).sort -
+                    this.maskFormatter(b.mask).sort
+                );
             });
             return sorted.map((m) => ({
                 ...m,
@@ -124,12 +126,13 @@ export default Vue.component("mask-table", {
             }));
         },
     },
+    created() {},
 
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
-        maskFormatter: Formatters.maskFormatter
+        maskFormatter: Formatters.maskFormatter,
     },
 });
 </script>
