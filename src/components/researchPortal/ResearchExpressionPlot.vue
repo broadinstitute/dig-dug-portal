@@ -25,9 +25,11 @@
 						@change="applyFilter()"
 					>
 						<option value="all" selected>All</option>
-						<option value="DGA">DGA</option>
-						<option value="GTEx">GTEx</option>
-						<option value="T2DKP">T2DKP</option>
+						<template v-for="collection in processedCollection">
+							<option :value="collection" :key="collection">
+								{{ collection }}
+							</option>
+						</template>
 					</select>
 				</div>
 			</div>
@@ -89,6 +91,7 @@
 import Vue from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 export default Vue.component("ResearchExpressionPlot", {
@@ -99,6 +102,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			chartWidth: null,
 			logScale: false,
 			processedData: null,
+			processedCollection: null,
 			flatBoth: null,
 			minSamples: 0,
 			collection: "all",
@@ -216,6 +220,7 @@ export default Vue.component("ResearchExpressionPlot", {
 		},
 		processData() {
 			this.collatedData = [];
+			let processedCollection = [];
 			// Need a deep copy - the rawData is getting mutated.
 			let processedData = JSON.parse(JSON.stringify(this.$props.rawData));
 			processedData = processedData.filter(
@@ -225,8 +230,12 @@ export default Vue.component("ResearchExpressionPlot", {
 			processedData.map((d) => {
 				d.collection.map((c, cIndex) => {
 					d.collection[cIndex] = c.trim();
+					processedCollection.push(c.trim());
 				});
 			});
+
+			this.processedCollection = [...new Set(processedCollection)].sort();
+
 			if (this.collection != "all") {
 				processedData = processedData.filter(
 					(d) => !!d.collection.includes(this.collection)
@@ -271,6 +280,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				}
 			}
 			this.processedData = processedData;
+
 			this.flatBoth = flatBoth;
 			this.mapColors();
 		},
