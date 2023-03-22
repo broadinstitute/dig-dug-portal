@@ -54,6 +54,7 @@
     "babel-loader": "^8.3.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "cache-loader": "^4.1.0",
+    "error-stack-parser": "^2.1.4",
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.27.5",
