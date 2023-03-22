@@ -386,10 +386,14 @@ import ResearchExpressionPlot from
                                     style="text-align: -webkit-center"
                                 ></div>
                                 <research-phewas-plot
-                                    v-if="$parent.geneassociations.length > 0"
-                                    canvasId="commonVariantPlot"
-                                    :phenotypesData="$parent.geneassociations"
-                                    :phenotypeMap="
+                                    v-if="
+                                        $parent.filteredAssociations.length > 0
+                                    "
+                                    canvas-id="commonVariantPlot"
+                                    :phenotypes-data="
+                                        $parent.filteredAssociations
+                                    "
+                                    :phenotype-map="
                                         $store.state.bioPortal.phenotypeMap
                                     "
                                     :colors="[

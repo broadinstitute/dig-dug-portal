@@ -222,7 +222,14 @@ new Vue({
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
         },
-
+        //filter associations that only exist in the phenotypeMap
+        filteredAssociations() {
+            return (
+                this.geneassociations.filter((row) => {
+                    return this.phenotypeMap[row.phenotype];
+                }) || []
+            );
+        },
         hugeScores() {
             let data = sortUtils.sortArrOfObjects(
                 this.$store.state.hugeScores.data,
