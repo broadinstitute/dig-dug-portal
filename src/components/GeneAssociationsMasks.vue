@@ -14,11 +14,11 @@
                 <b-col class="top-level-header-item" cols="2">Odds Ratio</b-col>
                 <b-col class="top-level-header-item" cols="2">View</b-col>
             </b-row>
-            <template v-for="(row, i) in associations">
+            <template v-for="(row, i) in paginatedAssociations">
                 <b-row
                     v-if="phenotypeMap[row.phenotype]"
-                    class="data top-level-value"
                     :key="row.phenotype + i"
+                    class="data top-level-value"
                 >
                     <b-col class="top-level-value-item" cols="4">
                         <a
@@ -68,27 +68,31 @@
                         </template>
                     </b-col>
                     <b-col class="top-level-value-item" cols="2">
-                        <b-button :disabled ="!row.masks.length"
-                            @click="showFeatures(i)"
+                        <b-button
+                            :disabled="!row.masks.length"
                             class="view-features-btn"
+                            @click="showFeatures(i)"
                             >Masks + Plot</b-button
                         >
                     </b-col>
                 </b-row>
                 <mask-table
                     v-if="!!phenotypeMap[row.phenotype]"
-                    :maskData="row.masks"
                     :key="i"
+                    :mask-data="row.masks"
                     :index="i"
                     :dichotomous="!!phenotypeMap[row.phenotype].dichotomous"
-                    :isHidden="true"
+                    :is-hidden="true"
                 ></mask-table>
-            </template>
-        </b-container>
+            </template> </b-container
+        ><b-pagination
+            v-model="currentPage"
+            class="pagination-sm justify-content-center"
+            :total-rows="associations.length"
+            :per-page="perPage"
+        ></b-pagination>
     </div>
-    <div v-else>
-        No data available for this query.
-    </div>
+    <div v-else>No data available for this query.</div>
 </template>
 
 <script>
@@ -101,13 +105,23 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import MaskTable from "@/components/MaskTable";
 import CsvDownload from "@/components/CsvDownload";
 
-export default Vue.component("gene-associations-masks", {
+export default Vue.component("GeneAssociationsMasks", {
     props: ["associations", "phenotypeMap"],
     component: { MaskTable, CsvDownload },
     data() {
         return {
             visible: false,
+            currentPage: 1,
+            perPage: 10,
         };
+    },
+    computed: {
+        paginatedAssociations() {
+            return this.associations.slice(
+                (this.currentPage - 1) * this.perPage,
+                this.currentPage * this.perPage
+            );
+        },
     },
     methods: {
         pValueFormatter: Formatters.pValueFormatter,

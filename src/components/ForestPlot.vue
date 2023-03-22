@@ -43,6 +43,9 @@ export default Vue.component("forest-plot", {
             let labelName = dichotomous ? "Odds Ratio" : "Beta";
 
             chart.data = data.map((item) => {
+                if (item.stdErr == "Infinity") {
+                    item.stdErr = 10 * Math.abs(item.beta);
+                }
                 return {
                     category: item.mask,
                     high: dichotomous
