@@ -87,8 +87,8 @@
             </template> </b-container
         ><b-pagination
             v-model="currentPage"
-            class="pagination-sm justify-content-center"
-            :total-rows="associations.length"
+            class="pagination-sm justify-content-center mt-3"
+            :total-rows="filteredAssociations.length"
             :per-page="perPage"
         ></b-pagination>
     </div>
@@ -117,9 +117,19 @@ export default Vue.component("GeneAssociationsMasks", {
     },
     computed: {
         paginatedAssociations() {
-            return this.associations.slice(
-                (this.currentPage - 1) * this.perPage,
-                this.currentPage * this.perPage
+            return (
+                this.filteredAssociations.slice(
+                    (this.currentPage - 1) * this.perPage,
+                    this.currentPage * this.perPage
+                ) || []
+            );
+        },
+        //filter associations that only exist in the phenotypeMap
+        filteredAssociations() {
+            return (
+                this.associations.filter((row) => {
+                    return this.phenotypeMap[row.phenotype];
+                }) || []
             );
         },
     },
