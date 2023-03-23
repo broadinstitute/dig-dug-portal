@@ -1,5 +1,5 @@
 <template>
-    <div class="plots" :id="element"></div>
+    <div :id="element" class="plots" :style="height"></div>
 </template>
 
 <script>
@@ -11,7 +11,7 @@ am4core.useTheme(am4themes_animated);
 am4core.options.autoDispose = true;
 
 let chart = null;
-export default Vue.component("forest-plot", {
+export default Vue.component("ForestPlot", {
     props: {
         data: {
             type: Array,
@@ -28,6 +28,13 @@ export default Vue.component("forest-plot", {
             default: false,
         },
     },
+    computed: {
+        height() {
+            return `height: ${
+                this.data.length ? this.data.length * 50 + 40 : 300
+            }px`;
+        },
+    },
     mounted() {
         this.createChart(this.data, this.element, this.dichotomous);
     },
@@ -38,6 +45,9 @@ export default Vue.component("forest-plot", {
             let labelName = dichotomous ? "Odds Ratio" : "Beta";
 
             chart.data = data.map((item) => {
+                if (item.stdErr == "Infinity") {
+                    item.stdErr = 2 * Math.abs(item.beta);
+                }
                 return {
                     category: item.mask,
                     high: dichotomous
@@ -139,5 +149,4 @@ export default Vue.component("forest-plot", {
 });
 </script>
 
-<style>
-</style>
+<style></style>
