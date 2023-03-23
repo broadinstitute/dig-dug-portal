@@ -97,10 +97,10 @@ import ResearchExpressionPlot from
                         ></tooltip-documentation>
                     </h4>
 
-                    <documentation
+                    <!-- <documentation
                         name="gene.translator.dashboard"
                         :content-fill="$parent.documentationMap"
-                    ></documentation>
+                    ></documentation> -->
                     <b-tabs>
                         <b-tab title="Function">
                             <div class="card-body row">
@@ -590,7 +590,11 @@ import ResearchExpressionPlot from
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
                             Predicted effector gene lists containing
-                            {{ $store.state.gene.data[0].name }}
+                            {{
+                                $store.state.gene.data.length
+                                    ? $store.state.gene.data[0].name
+                                    : ""
+                            }}
                             <tooltip-documentation
                                 name="gene.effector-gene.tooltip"
                                 :content-fill="$parent.documentationMap"
