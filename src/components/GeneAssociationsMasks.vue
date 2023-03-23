@@ -71,16 +71,18 @@
                         <b-button
                             :disabled="!row.masks.length"
                             class="view-features-btn"
-                            @click="showFeatures(i)"
+                            @click="
+                                showFeatures((currentPage - 1) * perPage + i)
+                            "
                             >Masks + Plot</b-button
                         >
                     </b-col>
                 </b-row>
                 <mask-table
                     v-if="!!phenotypeMap[row.phenotype]"
-                    :key="i"
+                    :key="(currentPage - 1) * perPage + i"
                     :mask-data="row.masks"
-                    :index="i"
+                    :index="(currentPage - 1) * perPage + i"
                     :dichotomous="!!phenotypeMap[row.phenotype].dichotomous"
                     :is-hidden="true"
                 ></mask-table>
