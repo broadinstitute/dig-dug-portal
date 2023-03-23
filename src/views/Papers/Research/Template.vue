@@ -674,4 +674,8 @@ html {
 	font-size: 20px;
 	margin-right: 20px;
 }
+
+.research-data-table td.multi-value-td span {
+	height: 27px !important;
+}
 </style>
