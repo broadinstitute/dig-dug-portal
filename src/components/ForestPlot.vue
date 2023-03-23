@@ -11,7 +11,7 @@ am4core.useTheme(am4themes_animated);
 am4core.options.autoDispose = true;
 
 let chart = null;
-export default Vue.component("forest-plot", {
+export default Vue.component("ForestPlot", {
     props: {
         data: {
             type: Array,
@@ -30,7 +30,9 @@ export default Vue.component("forest-plot", {
     },
     computed: {
         height() {
-            return `height: ${this.data.length * 50 + 20}px`;
+            return `height: ${
+                this.data.length ? this.data.length * 50 + 40 : 300
+            }px`;
         },
     },
     mounted() {
