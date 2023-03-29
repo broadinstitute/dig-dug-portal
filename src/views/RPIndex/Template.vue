@@ -12,9 +12,9 @@
 		</div>
 		<div class="front-page-menu">
 			<a href="/research.html?pageid=about_byor">About</a
-			><a href="https://config.byor.science/tutorial">Tutorial</a
+			><a href="https://hugeampkpncms.org/tutorial">Tutorial</a
 			><a href="/research.html?pageid=demo_home_70">Demo Portal</a
-			><a href="https://config.byor.science/user">Login to configure</a>
+			><a href="https://hugeampkpncms.org/user">Login to configure</a>
 		</div>
 		<div class="container-fluid front-page-banner">
 			<div class="banner-logo-wrapper">
@@ -53,7 +53,7 @@
 					simple configurations.
 					<br />
 					<a
-						href="https://config.byor.science/tutorial"
+						href="https://hugeampkpncms.org/tutorial"
 						style="color: #fff !important"
 						>— Learn more</a
 					>

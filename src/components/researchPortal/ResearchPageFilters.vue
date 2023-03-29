@@ -895,7 +895,7 @@ export default Vue.component("research-page-filters", {
 				initialData.includes("http://") ||
 				initialData.includes("https://")
 					? initialData
-					: "https://config.byor.science/sites/default/files/users/user" +
+					: "https://hugeampkpncms.org/sites/default/files/users/user" +
 					  this.uid +
 					  "/" +
 					  initialData;
