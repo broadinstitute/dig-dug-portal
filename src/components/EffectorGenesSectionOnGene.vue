@@ -96,7 +96,7 @@ export default Vue.component("egls-section-on-gene", {
 	methods: {
 		async loadEglsList() {
 			let dataPoint =
-				"https://config.byor.science/rest/data?pageid=egl_241";
+				"https://hugeampkpncms.org/rest/data?pageid=egl_241";
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
@@ -118,7 +118,7 @@ export default Vue.component("egls-section-on-gene", {
 		},
 		async getEglsWithGene() {
 			let dataPoint =
-				"https://config.byor.science/rest/egls?gene=" + this.gene.name;
+				"https://hugeampkpncms.org/rest/egls?gene=" + this.gene.name;
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 

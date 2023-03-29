@@ -80,7 +80,7 @@ export default Vue.component("egls-section", {
 	methods: {
 		async loadEglsList() {
 			let dataPoint =
-				"https://config.byor.science/rest/data?pageid=egl_241";
+				"https://hugeampkpncms.org/rest/data?pageid=egl_241";
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
