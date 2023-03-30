@@ -265,8 +265,11 @@ export default Vue.component("ResearchExpressionPlot", {
 				return 0;
 			});
 			let flatBoth = [];
+
 			for (let item of processedData) {
 				for (let tpmVal of item.tpmForAllSamples) {
+					tpmVal = !!isNaN(tpmVal) ? 0 : tpmVal;
+
 					let flatEntry = {};
 					flatEntry["tissue"] = item["tissue"];
 					flatEntry["linear"] = tpmVal;
@@ -326,6 +329,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				.range([0, width])
 				.domain(flatData.map((entry) => entry["tissue"]))
 				.padding(0.05);
+
 			svg.append("g")
 				.attr("transform", `translate(0,${height})`)
 				.call(d3.axisBottom(x))
@@ -338,6 +342,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				.map((g) => g[tpmField])
 				.reduce((prev, next) => (prev > next ? prev : next), 0);
 			let y = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
+
 			svg.append("g").call(d3.axisLeft(y));
 
 			let histogram = d3
