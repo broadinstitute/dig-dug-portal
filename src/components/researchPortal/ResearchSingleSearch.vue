@@ -75,12 +75,27 @@ export default Vue.component("research-single-search", {
 		singleSearchParam(PARAM) {
 			if (PARAM.length >= 2) {
 				this.lookupGenes(PARAM);
-				this.singleSearchResult.phenotypes = this.phenotypes.filter(
-					(p) =>
-						!!p.description
-							.toLowerCase()
-							.includes(PARAM.toLowerCase())
-				);
+				let paramWords = PARAM.split(" ");
+				let searchPhenotypes = [];
+
+				this.phenotypes.map((p) => {
+					let isInPhenotype = 0;
+					paramWords.map((w) => {
+						if (
+							!!p.description
+								.toLowerCase()
+								.includes(w.toLowerCase())
+						) {
+							isInPhenotype++;
+						}
+					});
+
+					if (isInPhenotype == paramWords.length) {
+						searchPhenotypes.push(p);
+					}
+				});
+
+				this.singleSearchResult.phenotypes = searchPhenotypes;
 			} else {
 				this.singleSearchResult.genes = [];
 				this.singleSearchResult.phenotypes = [];
