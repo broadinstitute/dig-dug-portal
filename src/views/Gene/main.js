@@ -264,16 +264,16 @@ new Vue({
                     data[i].huge >= 350
                         ? "Compelling"
                         : data[i].huge >= 100
-                        ? "Extreme"
-                        : data[i].huge >= 30
-                        ? "Very Strong"
-                        : data[i].huge >= 10
-                        ? "Strong"
-                        : data[i].huge >= 3
-                        ? "Moderate"
-                        : data[i].huge > 1
-                        ? "Anecdotal"
-                        : "No Evidence";
+                            ? "Extreme"
+                            : data[i].huge >= 30
+                                ? "Very Strong"
+                                : data[i].huge >= 10
+                                    ? "Strong"
+                                    : data[i].huge >= 3
+                                        ? "Moderate"
+                                        : data[i].huge > 1
+                                            ? "Anecdotal"
+                                            : "No Evidence";
 
                 score["range"] = range;
                 score["renderScore"] = Math.log(data[i].huge);
@@ -568,6 +568,7 @@ new Vue({
         closeAlert,
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
+
         onAncestrySet() {
             let ancestry = this.$store.state.selectedAncestry;
 
@@ -640,9 +641,8 @@ new Vue({
             let r = this.region;
 
             if (r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${r.chromosome
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
 

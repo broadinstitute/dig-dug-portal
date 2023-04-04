@@ -20,9 +20,15 @@
 				<div v-for="gene in singleSearchResult.genes" :key="gene">
 					{{ gene
 					}}<span class="search-word-group"
-						><a :href="'/gene.html?gene=' + gene">{{
-							"Search gene"
-						}}</a>
+						><a
+							class="search-gene-link"
+							@click="searchGene(gene)"
+							href="javascript:;"
+							>{{ "Search gene"
+							}}<span class="gene-link-tip"
+								>Alias names are converted to gene symbols</span
+							></a
+						>
 						|
 						<a @click="searchRegion(gene)" href="javascript:;">{{
 							"Search region"
@@ -131,12 +137,20 @@ export default Vue.component("research-single-search", {
 				}
 			}
 		},
+		async searchGene(KEY) {
+			let geneSymbol = await regionUtils.geneSymbol(KEY);
+
+			if (geneSymbol) {
+				let genePageUrl = "/gene.html?gene=" + geneSymbol;
+
+				location.href = genePageUrl;
+			}
+		},
 
 		async searchRegion(KEY) {
 			let region = await regionUtils.parseRegion(KEY, true, 50000);
 
 			if (region) {
-				console.log(region);
 				let regionPageUrl =
 					"/region.html?chr=" +
 					region.chr +
@@ -192,5 +206,27 @@ export default Vue.component("research-single-search", {
 	font-size: 12px;
 	display: block;
 	float: right;
+}
+
+.search-gene-link {
+	position: relative;
+}
+
+.search-gene-link .gene-link-tip {
+	display: none;
+	position: absolute;
+	text-decoration: none;
+	white-space: nowrap;
+	background-color: #00000099;
+	color: #ffffff !important;
+	font-size: 12px;
+	padding: 0px 4px;
+	border-radius: 5px;
+	top: -3px;
+	left: -220px;
+}
+
+.search-gene-link:hover .gene-link-tip {
+	display: block;
 }
 </style>
