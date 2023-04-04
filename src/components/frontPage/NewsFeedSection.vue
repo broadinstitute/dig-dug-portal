@@ -70,5 +70,6 @@ export default Vue.component("news-feed-section", {
 	border-radius: 5px;
 	border: solid 1px #ccc;
 	overflow: hidden;
+	text-align: center;
 }
 </style>

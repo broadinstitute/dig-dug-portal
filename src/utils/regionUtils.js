@@ -75,7 +75,23 @@ async function parseRegion(s, allowGeneLookup = true, geneRegionExpand = 0) {
     return null;
 }
 
+async function geneSymbol(KEY) {
+
+    let geneJson = await fetch(`${BIO_INDEX_HOST}/api/bio/query/gene?q=${KEY}`)
+        .then((resp) => resp.json())
+        .then(json => {
+            if (json.count == 0) {
+                return null;
+            }
+
+            return json.data[0].symbol;
+        });
+
+    return geneJson;
+}
+
 
 export default {
     parseRegion,
+    geneSymbol,
 }

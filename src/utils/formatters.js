@@ -300,7 +300,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         VALUE == "-"
                             ? 0
                             : Math.round(Number.parseFloat(VALUE) * 1000) /
-                              1000;
+                            1000;
                     break;
 
                 case "fixed 5":
@@ -308,7 +308,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         VALUE == "-"
                             ? 0
                             : Math.round(Number.parseFloat(VALUE) * 10000) /
-                              10000;
+                            10000;
                     break;
 
                 case "fixed 6":
@@ -316,7 +316,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         VALUE == "-"
                             ? 0
                             : Math.round(Number.parseFloat(VALUE) * 100000) /
-                              100000;
+                            100000;
                     break;
 
                 case "fixed 7":
@@ -324,7 +324,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         VALUE == "-"
                             ? 0
                             : Math.round(Number.parseFloat(VALUE) * 1000000) /
-                              1000000;
+                            1000000;
                     break;
 
                 case "fixed 8":
@@ -332,7 +332,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         VALUE == "-"
                             ? 0
                             : Math.round(Number.parseFloat(VALUE) * 10000000) /
-                              10000000;
+                            10000000;
                     break;
 
                 case "fixed 9":
@@ -340,7 +340,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         VALUE == "-"
                             ? 0
                             : Math.round(Number.parseFloat(VALUE) * 100000000) /
-                              100000000;
+                            100000000;
                     break;
 
                 case "fixed 10":
@@ -348,8 +348,8 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         VALUE == "-"
                             ? 0
                             : Math.round(
-                                  Number.parseFloat(VALUE) * 1000000000
-                              ) / 1000000000;
+                                Number.parseFloat(VALUE) * 1000000000
+                            ) / 1000000000;
                     break;
 
                 case "kp phenotype link":
@@ -361,7 +361,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
 
                     linkString +=
                         !!columnKeyObj["link type"] &&
-                        columnKeyObj["link type"] == "button"
+                            columnKeyObj["link type"] == "button"
                             ? "' class='btn btn-sm btn-outline-secondary link-button"
                             : "";
 
@@ -383,7 +383,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
 
                     linkString +=
                         !!columnKeyObj["link type"] &&
-                        columnKeyObj["link type"] == "button"
+                            columnKeyObj["link type"] == "button"
                             ? "' class='btn btn-sm btn-outline-secondary link-button"
                             : "";
 
@@ -408,7 +408,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     weight = Math.floor(
                         ((Number(fieldValue) - DATA_SCORES[KEY].low) /
                             (DATA_SCORES[KEY].high - DATA_SCORES[KEY].low)) *
-                            100
+                        100
                     );
 
                     weightClasses = "cell-weight-" + weight + " ";
@@ -436,7 +436,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                             ((Number(fieldValue) - DATA_SCORES[KEY].low) /
                                 (DATA_SCORES[KEY].high -
                                     DATA_SCORES[KEY].low)) *
-                                100
+                            100
                         );
 
                     weightClasses = "cell-weight-" + weight + " ";
@@ -456,18 +456,18 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     cellValue =
                         cellValue > 0
                             ? '<span class="direction-positive">&#x25B2;</span>' +
-                              cellValue
+                            cellValue
                             : '<span class="direction-negative">&#x25BC;</span>' +
-                              cellValue;
+                            cellValue;
                     break;
 
                 case "direction triangle opposite":
                     cellValue =
                         cellValue > 0
                             ? '<span class="direction-positive">&#x25BC;</span>' +
-                              cellValue
+                            cellValue
                             : '<span class="direction-negative">&#x25B2;</span>' +
-                              cellValue;
+                            cellValue;
                     break;
             }
         });
