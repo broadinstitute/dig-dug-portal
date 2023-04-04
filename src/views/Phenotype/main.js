@@ -99,6 +99,24 @@ new Vue({
             this.phenotypeSearchKey = null;
             this.$store.dispatch("selectedPhenotype", PHENOTYPE);
         },
+        ifPhenotypeInSearch(DESCRIPTION) {
+
+
+            let searchKeys = this.phenotypeSearchKey.split(" ");
+            let isInPhenotype = 0;
+
+            searchKeys.map((w) => {
+                if (
+                    !!DESCRIPTION
+                        .toLowerCase()
+                        .includes(w.toLowerCase())
+                ) {
+                    isInPhenotype++;
+                }
+            });
+
+            return (isInPhenotype == searchKeys.length) ? true : null;
+        }
     },
 
     computed: {
