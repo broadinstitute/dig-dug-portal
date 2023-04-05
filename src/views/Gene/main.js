@@ -45,6 +45,7 @@ import sessionUtils from "@/utils/sessionUtils";
 import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
 import Counter from "@/utils/idCounter";
+import regionUtils from "@/utils/regionUtils";
 
 import Alert, {
     postAlert,
@@ -557,6 +558,9 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
 
         this.pushCriterionPhenotype("T2D");
+
+        console.log("gene name", this.$store.state.geneName);
+        this.checkGeneName(this.$store.state.geneName);
     },
 
     methods: {
@@ -568,6 +572,24 @@ new Vue({
         closeAlert,
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
+
+        async checkGeneName(KEY) {
+            let gene = await regionUtils.geneSymbol(KEY);
+
+            if (!!gene && gene != KEY) {
+                console.log("gene", gene)
+                console.log("not a gene symbol!!")
+                document.getElementById("invalidGeneMessage").innerHTML = "Your search term is an alias name for gene symbol " + gene + ". Please enter a new search term above, or go to the " + gene + " Gene page"
+
+                document.getElementById("invalidGeneRedirect").setAttribute('href', '/gene.html?gene=' + gene)
+                uiUtils.showElement("invalidGeneWarning");
+                uiUtils.showElement("pageSearchHeaderContent");
+            }
+        },
+
+        hideGeneWarning() {
+            uiUtils.hideElement("invalidGeneWarning");
+        },
 
         onAncestrySet() {
             let ancestry = this.$store.state.selectedAncestry;
