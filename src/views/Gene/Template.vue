@@ -9,12 +9,28 @@ import ResearchExpressionPlot from
 			:front-contents="$parent.frontContents"
 			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
+		<!-- warning in case gene name isn't valid -->
+		<div class="invalid-gene-warning hidden" id="invalidGeneWarning">
+			<a
+				class="invalid-gene-hide-warning"
+				@click="$parent.hideGeneWarning()"
+				>X</a
+			>
+			<div id="invalidGeneMessage"></div>
+			<div>
+				<a id="invalidGeneRedirect" href="" class="btn btn-primary"
+					>GO</a
+				>
+			</div>
+		</div>
 
 		<!-- Body -->
 		<div class="container-fluid mdkp-body">
 			<search-header-wrapper>
 				<!-- Wrap page level searchs with "pageSearchParameters" div -->
-
+				<span class="gene-search-tip"
+					><sup>*</sup>Alias names are converted to gene symbols</span
+				>
 				<div class="col filter-col-md">
 					<div class="label">Gene</div>
 					<gene-selectpicker></gene-selectpicker>
@@ -836,5 +852,50 @@ import ResearchExpressionPlot from
 }
 .legend .awesome {
 	background-color: #fef8dc;
+}
+
+.invalid-gene-warning {
+	position: fixed;
+	z-index: 20000;
+	background-color: #ffcccc;
+	width: 500px;
+	padding: 15px 25px;
+	border: solid 1px #cccccc;
+	border-radius: 5px;
+	left: calc(50% - 275px);
+	top: calc(20% - 50px);
+	text-align: center;
+	box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
+	font-size: 20px;
+}
+
+.invalid-gene-hide-warning {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	width: 15px;
+	height: 15px;
+	border-radius: 15px;
+	font-size: 10px;
+	background-color: #666666;
+	color: #ffffff !important;
+}
+
+.invalid-gene-hide-warning:hover {
+	cursor: pointer;
+}
+
+#invalidGeneRedirect {
+	color: #ffffff !important;
+	margin-top: 15px;
+}
+
+.gene-search-tip {
+	position: absolute;
+	font-weight: 300;
+	font-size: 14px;
+	top: 10px;
+	left: 20px;
+	color: #28a745;
 }
 </style>
