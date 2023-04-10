@@ -38,7 +38,7 @@
 						v-if="!!$parent.phenotypeSearchKey"
 						class="page-phenotypes-list"
 					>
-						<li
+						<!--<li
 							v-for="item in $parent.phenotypesInSession"
 							v-if="
 								!!item.description
@@ -47,13 +47,23 @@
 										$parent.phenotypeSearchKey.toLowerCase()
 									)
 							"
-						>
-							<a
-								href="javascript:;"
-								@click="$parent.setSelectedPhenotype(item)"
-								v-html="item.description"
-							></a>
-						</li>
+						>-->
+						<template v-for="item in $parent.phenotypesInSession">
+							<li
+								v-if="
+									!!$parent.ifPhenotypeInSearch(
+										item.description
+									)
+								"
+								:key="item.name"
+							>
+								<a
+									href="javascript:;"
+									@click="$parent.setSelectedPhenotype(item)"
+									v-html="item.description"
+								></a>
+							</li>
+						</template>
 					</ul>
 				</div>
 				<div class="col filter-col-md hidden">

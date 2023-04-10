@@ -10,17 +10,31 @@
 					</select>
 				</div>
 				<div class="col filter-col-md">
-					<div class="label">
-						Filter datasets by minimum sample count
-					</div>
+					<div class="label">Minimum sample count (>=)</div>
 					<input
 						class="form-control"
 						v-model="minSamples"
 						type="number"
 					/>
 				</div>
+				<div class="col filter-col-md">
+					<div class="label">Collection</div>
+					<select
+						class="form-control"
+						v-model="collection"
+						@change="applyFilter()"
+					>
+						<option value="all" selected>All</option>
+						<template v-for="collection in processedCollection">
+							<option :value="collection" :key="collection">
+								{{ collection }}
+							</option>
+						</template>
+					</select>
+				</div>
 			</div>
 		</div>
+
 		<div id="multi-chart">
 			<p>Loading...</p>
 		</div>
@@ -77,6 +91,7 @@
 import Vue from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 export default Vue.component("ResearchExpressionPlot", {
@@ -87,8 +102,10 @@ export default Vue.component("ResearchExpressionPlot", {
 			chartWidth: null,
 			logScale: false,
 			processedData: null,
+			processedCollection: null,
 			flatBoth: null,
 			minSamples: 0,
+			collection: "all",
 			colorMap: {},
 			currentPage: 1,
 			perPage: 10,
@@ -114,7 +131,13 @@ export default Vue.component("ResearchExpressionPlot", {
 						key: "biosample",
 						formatter: (value) => Formatters.tissueFormatter(value),
 					},
-					{ key: "dataset" },
+					{
+						key: "collection",
+						formatter: (value) => value.toString(", "),
+					},
+					{
+						key: "dataset",
+					},
 					{
 						key: "Min TPM",
 						formatter: (value) =>
@@ -153,6 +176,7 @@ export default Vue.component("ResearchExpressionPlot", {
 					return this.filter(dataset);
 				});
 			}
+
 			return dataRows;
 		},
 		rows() {
@@ -186,16 +210,38 @@ export default Vue.component("ResearchExpressionPlot", {
 	methods: {
 		...uiUtils,
 
+		applyFilter() {
+			this.processData();
+			this.displayResults();
+		},
+
 		tpmFormat(value) {
 			return Formatters.floatFormatter(`${value}`);
 		},
 		processData() {
 			this.collatedData = [];
+			let processedCollection = [];
 			// Need a deep copy - the rawData is getting mutated.
 			let processedData = JSON.parse(JSON.stringify(this.$props.rawData));
 			processedData = processedData.filter(
 				(entry) => parseInt(entry["nSamples"]) >= this.minSamples
 			);
+
+			processedData.map((d) => {
+				d.collection.map((c, cIndex) => {
+					d.collection[cIndex] = c.trim();
+					processedCollection.push(c.trim());
+				});
+			});
+
+			this.processedCollection = [...new Set(processedCollection)].sort();
+
+			if (this.collection != "all") {
+				processedData = processedData.filter(
+					(d) => !!d.collection.includes(this.collection)
+				);
+			}
+
 			processedData.forEach((entry) => {
 				let tpms = entry.tpmForAllSamples
 					.split(",")
@@ -219,8 +265,11 @@ export default Vue.component("ResearchExpressionPlot", {
 				return 0;
 			});
 			let flatBoth = [];
+
 			for (let item of processedData) {
 				for (let tpmVal of item.tpmForAllSamples) {
+					tpmVal = !!isNaN(tpmVal) ? 0 : tpmVal;
+
 					let flatEntry = {};
 					flatEntry["tissue"] = item["tissue"];
 					flatEntry["linear"] = tpmVal;
@@ -234,6 +283,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				}
 			}
 			this.processedData = processedData;
+
 			this.flatBoth = flatBoth;
 			this.mapColors();
 		},
@@ -279,6 +329,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				.range([0, width])
 				.domain(flatData.map((entry) => entry["tissue"]))
 				.padding(0.05);
+
 			svg.append("g")
 				.attr("transform", `translate(0,${height})`)
 				.call(d3.axisBottom(x))
@@ -291,6 +342,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				.map((g) => g[tpmField])
 				.reduce((prev, next) => (prev > next ? prev : next), 0);
 			let y = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
+
 			svg.append("g").call(d3.axisLeft(y));
 
 			let histogram = d3

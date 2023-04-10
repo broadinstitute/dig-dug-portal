@@ -27,7 +27,7 @@ import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
-import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue"
+import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -45,12 +45,13 @@ import sessionUtils from "@/utils/sessionUtils";
 import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
 import Counter from "@/utils/idCounter";
+import regionUtils from "@/utils/regionUtils";
 
 import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
 Vue.config.productionTip = false;
@@ -90,7 +91,7 @@ new Vue({
         GenePageCombinedEvidenceTable,
         HugeCalScoreSection,
         HugeScoresTable,
-        EffectorGenesSectionOnGene
+        EffectorGenesSectionOnGene,
     },
 
     data() {
@@ -100,138 +101,30 @@ new Vue({
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
-                    link:
-                        "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g="
+                    link: "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
                 },
                 hgnc: {
                     title: "HUGO Gene Nomenclature Committee",
-                    link:
-                        "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/"
+                    link: "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 mgd: {
                     title: "Mouse Genome Database",
-                    link: "http://www.informatics.jax.org/marker/"
+                    link: "http://www.informatics.jax.org/marker/",
                 },
                 rgd: {
                     title: "Rat Genome Database",
-                    link: "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id="
+                    link: "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=",
                 },
                 ucsc: {
                     title: "USSC Genome Browser",
-                    link:
-                        "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
+                    link: "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene=",
                 },
                 uniprot: {
                     title: "Universal Protein Resource",
-                    link: "https://www.uniprot.org/uniprot/"
-                }
+                    link: "https://www.uniprot.org/uniprot/",
+                },
             },
         };
-    },
-
-    created() {
-        /// disease systems
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        ////
-        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
-        //this.$store.dispatch("queryAssociations");
-        // get the disease group and set of phenotypes available
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-
-        this.pushCriterionPhenotype("T2D");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    methods: {
-        ...uiUtils,
-        ...sessionUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-        ancestryFormatter: Formatters.ancestryFormatter,
-        pValueFormatter: Formatters.pValueFormatter,
-        onAncestrySet() {
-
-            let ancestry = this.$store.state.selectedAncestry;
-
-            let sectionWrapper = document.getElementById('common_variants');
-            let bubbleCollection = sectionWrapper.querySelectorAll('.filter-pill-collection');
-            let bubbleWrapper = document.getElementById('ancestry_set');
-
-            bubbleWrapper.innerHTML = "";
-
-            let ancestryBubble = document.getElementById('ancestry_bubble')
-            if (!!ancestryBubble) {
-                ancestryBubble.remove();
-            }
-
-            let bubble = document.createElement("span");
-            bubble.setAttribute("class", "badge btn search-bubble 3 badge-secondary badge-pill");
-            bubble.setAttribute("id", "ancestry_bubble");
-            bubble.textContent = 'Ancestry = ' + this.ancestryFormatter(ancestry);
-
-            if (!!ancestry && ancestry != undefined) {
-                if (bubbleCollection.length > 0) {
-                    bubbleCollection[0].append(bubble);
-                } else {
-                    bubbleWrapper.innerHTML = " Selected Filters:	 ";
-                    bubbleWrapper.append(bubble);
-                }
-            }
-        },
-        pushCriterionPhenotype(phenotypeName) {
-            this.genePageSearchCriterion.push({
-                field: "phenotype",
-                threshold: phenotypeName
-            });
-        },
-        biolinkQueryGraph(subjectCurie, { subject, predicate, object }) {
-            const uuid = Counter.getUniqueId;
-            const sid = uuid("s");
-            const oid = uuid("o");
-            const eid = uuid("e");
-            return {
-                query_graph: {
-                    nodes: {
-                        [sid]: {
-                            id: subjectCurie,
-                            category: subject
-                        },
-                        [oid]: {
-                            category: object
-                        }
-                    },
-                    edges: {
-                        [eid]: {
-                            subject: sid,
-                            object: oid,
-                            predicate: predicate
-                        }
-                    }
-                }
-            };
-        },
-
-        // go to region page
-        exploreRegion(expanded = 0) {
-            let r = this.region;
-
-            if (!!r) {
-                window.location.href = `./region.html?chr=${r.chromosome
-                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
-            }
-        },
-
-        topPhenotype(topAssocData) {
-            return topAssocData[0];
-        }
     },
 
     computed: {
@@ -256,8 +149,8 @@ new Vue({
         ///
         phenotypeOptions() {
             return this.phenotypesInSession
-                .filter(x => x.name != this.$store.state.phenotype)
-                .map(phenotype => phenotype.name);
+                .filter((x) => x.name != this.$store.state.phenotype)
+                .map((phenotype) => phenotype.name);
         },
 
         transcriptOr52k() {
@@ -267,7 +160,11 @@ new Vue({
             this.$store.state.restricted = endpoint.restricted;
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
-                endpoint.data = sessionUtils.getInSession(endpoint.data, this.phenotypesInSession, 'phenotype');
+                endpoint.data = sessionUtils.getInSession(
+                    endpoint.data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
             }
 
             let assocMap = {};
@@ -286,8 +183,11 @@ new Vue({
                 }
             }
 
-
-            endpoint.data.sort((a, b) => this.pValueFormatter(a.pValue) - this.pValueFormatter(b.pValue));
+            endpoint.data.sort(
+                (a, b) =>
+                    this.pValueFormatter(a.pValue) -
+                    this.pValueFormatter(b.pValue)
+            );
 
             return endpoint.data;
         },
@@ -296,7 +196,11 @@ new Vue({
             let data = this.$store.state.geneassociations.data;
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
-                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
+                data = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
             }
 
             let assocMap = {};
@@ -319,14 +223,30 @@ new Vue({
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
         },
-
+        //filter associations that only exist in the phenotypeMap
+        filteredAssociations() {
+            return (
+                this.geneassociations.filter((row) => {
+                    return this.phenotypeMap[row.phenotype];
+                }) || []
+            );
+        },
         hugeScores() {
-            let data = sortUtils.sortArrOfObjects(this.$store.state.hugeScores.data, 'huge', 'number', 'desc');
+            let data = sortUtils.sortArrOfObjects(
+                this.$store.state.hugeScores.data,
+                "huge",
+                "number",
+                "desc"
+            );
 
             //console.log(data);
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
-                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
+                data = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
             }
 
             let hugeMap = {};
@@ -336,9 +256,25 @@ new Vue({
 
             for (let i in data) {
                 const score = data[i];
-                let phenotypeEntity = this.$store.state.bioPortal.phenotypeMap[score.phenotype];
-                score["group"] = !!phenotypeEntity ? phenotypeEntity.group : "No group info";
-                let range = data[i].huge >= 350 ? "Compelling" : data[i].huge >= 100 ? "Extreme" : data[i].huge >= 30 ? "Very Strong" : data[i].huge >= 10 ? "Strong" : data[i].huge >= 3 ? "Moderate" : data[i].huge > 1 ? "Anecdotal" : "No Evidence";
+                let phenotypeEntity =
+                    this.$store.state.bioPortal.phenotypeMap[score.phenotype];
+                score["group"] = phenotypeEntity
+                    ? phenotypeEntity.group
+                    : "No group info";
+                let range =
+                    data[i].huge >= 350
+                        ? "Compelling"
+                        : data[i].huge >= 100
+                            ? "Extreme"
+                            : data[i].huge >= 30
+                                ? "Very Strong"
+                                : data[i].huge >= 10
+                                    ? "Strong"
+                                    : data[i].huge >= 3
+                                        ? "Moderate"
+                                        : data[i].huge > 1
+                                            ? "Anecdotal"
+                                            : "No Evidence";
 
                 score["range"] = range;
                 score["renderScore"] = Math.log(data[i].huge);
@@ -357,11 +293,14 @@ new Vue({
         },
 
         associations52k() {
-
             let data = this.$store.state.associations52k.data;
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
-                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
+                data = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
             }
 
             let assocMap = {};
@@ -383,9 +322,8 @@ new Vue({
             // convert to an array, sorted by p-value
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
-
         },
-        geneExpression(){
+        geneExpression() {
             let data = this.$store.state.geneExpression.data;
             return data;
         },
@@ -395,7 +333,7 @@ new Vue({
             // let x = data.sort(
             //     (a, b) => a.pValue - b.pValue
             // );
-    
+
             return "T2D";
         },*/
         selectedPhenotypes() {
@@ -405,8 +343,8 @@ new Vue({
             }
 
             return this.genePageSearchCriterion
-                .filter(criterion => criterion.field === "phenotype")
-                .map(criterion => phenotypeMap[criterion.threshold]);
+                .filter((criterion) => criterion.field === "phenotype")
+                .map((criterion) => phenotypeMap[criterion.threshold]);
         },
 
         selectedPhenotype() {
@@ -420,8 +358,8 @@ new Vue({
                 this.biolinkQueryGraph("NCBIGENE:1017", {
                     subject: "biolink:Gene",
                     predicate: "biolink:enables",
-                    object: "biolink:MolecularActivity"
-                })
+                    object: "biolink:MolecularActivity",
+                }),
             ];
         },
         frontContents() {
@@ -449,16 +387,16 @@ new Vue({
 
         aliasNames() {
             return this.$store.state.genes.data.filter(
-                g => g.source === "alias"
+                (g) => g.source === "alias"
             );
         },
 
         alternateNames() {
             let geneData = this.$store.state.gene.data;
             return this.$store.state.genes.data
-                .filter(g => g.start == geneData[0].start)
-                .filter(g => g.end == geneData[0].end)
-                .filter(g => g.source !== "symbol")
+                .filter((g) => g.start == geneData[0].start)
+                .filter((g) => g.end == geneData[0].end)
+                .filter((g) => g.source !== "symbol")
                 .sort((a, b) => {
                     if (a.source < b.source) return -1;
                     if (a.source > b.source) return 1;
@@ -493,7 +431,7 @@ new Vue({
         regionText() {
             let r = this.region;
 
-            if (!!r) {
+            if (r) {
                 return `${r.chromosome}:${Formatters.intFormatter(
                     r.start
                 )}-${Formatters.intFormatter(r.end)}`;
@@ -505,7 +443,7 @@ new Vue({
         regionTextExpanded() {
             let r = this.region;
 
-            if (!!r) {
+            if (r) {
                 return `${r.chromosome}:${Formatters.intFormatter(
                     r.start - 50000
                 )}-${Formatters.intFormatter(r.end + 50000)}`;
@@ -516,7 +454,7 @@ new Vue({
 
         associationPhenotypes() {
             return this.$store.state.geneassociations.data.map(
-                a => a.phenotype
+                (a) => a.phenotype
             );
         },
 
@@ -529,14 +467,14 @@ new Vue({
                     gene: symbol,
                     region: `${r.chromosome}:${Formatters.intFormatter(
                         r.start
-                    )}-${Formatters.intFormatter(r.end)}`
+                    )}-${Formatters.intFormatter(r.end)}`,
                 };
             }
         },
 
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
-        }
+        },
     },
 
     watch: {
@@ -552,14 +490,14 @@ new Vue({
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
             }
         },
-        geneExpressionTable(){
+        geneExpressionTable() {
             console.log(this.geneExpressionTable);
         },
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {
             const removedPhenotypes = _.difference(
-                oldPhenotypes.map(p => p.name),
-                phenotypes.map(p => p.name)
+                oldPhenotypes.map((p) => p.name),
+                phenotypes.map((p) => p.name)
             );
             this.$store.dispatch("get52KAssociationData");
             if (removedPhenotypes.length > 0) {
@@ -587,12 +525,16 @@ new Vue({
             this.$store.dispatch("getHugeScoresData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
-            let geneQuery = !newAncestry ? { q: this.$store.state.geneName } : { q: `${this.$store.state.geneName},${newAncestry}` };
+            let geneQuery = !newAncestry
+                ? { q: this.$store.state.geneName }
+                : { q: `${this.$store.state.geneName},${newAncestry}` };
             this.$store.dispatch("geneassociations/query", geneQuery);
         },
         "$store.state.selectedTranscript"(newTranscript) {
-            if (!!newTranscript) {
-                this.$store.dispatch("transcriptAssoc/query", { q: newTranscript });
+            if (newTranscript) {
+                this.$store.dispatch("transcriptAssoc/query", {
+                    q: newTranscript,
+                });
             }
         },
         "$store.state.commonVariantsLength"(NUM) {
@@ -600,6 +542,138 @@ new Vue({
         },
         "$store.state.geneName"(NAME) {
             this.$store.dispatch("getHugeScoresData");
-        }
-    }
+        },
+    },
+
+    created() {
+        /// disease systems
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        ////
+        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
+        //this.$store.dispatch("queryAssociations");
+        // get the disease group and set of phenotypes available
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+
+        this.pushCriterionPhenotype("T2D");
+
+        console.log("gene name", this.$store.state.geneName);
+        this.checkGeneName(this.$store.state.geneName);
+    },
+
+    methods: {
+        ...uiUtils,
+        ...sessionUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
+        ancestryFormatter: Formatters.ancestryFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
+
+        async checkGeneName(KEY) {
+            let gene = await regionUtils.geneSymbol(KEY);
+
+            if (!!gene && gene != KEY) {
+                console.log("gene", gene)
+                console.log("not a gene symbol!!")
+                document.getElementById("invalidGeneMessage").innerHTML = "Your search term is an alias name for gene symbol " + gene + ". Please enter a new search term above, or go to the " + gene + " Gene page"
+
+                document.getElementById("invalidGeneRedirect").setAttribute('href', '/gene.html?gene=' + gene)
+                uiUtils.showElement("invalidGeneWarning");
+                uiUtils.showElement("pageSearchHeaderContent");
+            }
+        },
+
+        hideGeneWarning() {
+            uiUtils.hideElement("invalidGeneWarning");
+        },
+
+        onAncestrySet() {
+            let ancestry = this.$store.state.selectedAncestry;
+
+            let sectionWrapper = document.getElementById("common_variants");
+            let bubbleCollection = sectionWrapper.querySelectorAll(
+                ".filter-pill-collection"
+            );
+            let bubbleWrapper = document.getElementById("ancestry_set");
+
+            bubbleWrapper.innerHTML = "";
+
+            let ancestryBubble = document.getElementById("ancestry_bubble");
+            if (ancestryBubble) {
+                ancestryBubble.remove();
+            }
+
+            let bubble = document.createElement("span");
+            bubble.setAttribute(
+                "class",
+                "badge btn search-bubble 3 badge-secondary badge-pill"
+            );
+            bubble.setAttribute("id", "ancestry_bubble");
+            bubble.textContent =
+                "Ancestry = " + this.ancestryFormatter(ancestry);
+
+            if (!!ancestry && ancestry != undefined) {
+                if (bubbleCollection.length > 0) {
+                    bubbleCollection[0].append(bubble);
+                } else {
+                    bubbleWrapper.innerHTML = " Selected Filters:	 ";
+                    bubbleWrapper.append(bubble);
+                }
+            }
+        },
+        pushCriterionPhenotype(phenotypeName) {
+            this.genePageSearchCriterion.push({
+                field: "phenotype",
+                threshold: phenotypeName,
+            });
+        },
+        biolinkQueryGraph(subjectCurie, { subject, predicate, object }) {
+            const uuid = Counter.getUniqueId;
+            const sid = uuid("s");
+            const oid = uuid("o");
+            const eid = uuid("e");
+            return {
+                query_graph: {
+                    nodes: {
+                        [sid]: {
+                            id: subjectCurie,
+                            category: subject,
+                        },
+                        [oid]: {
+                            category: object,
+                        },
+                    },
+                    edges: {
+                        [eid]: {
+                            subject: sid,
+                            object: oid,
+                            predicate: predicate,
+                        },
+                    },
+                },
+            };
+        },
+
+        // go to region page
+        exploreRegion(expanded = 0) {
+            let r = this.region;
+
+            if (r) {
+                window.location.href = `./region.html?chr=${r.chromosome
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
+            }
+        },
+
+        topPhenotype(topAssocData) {
+            return topAssocData[0];
+        },
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
+    },
 }).$mount("#app");
