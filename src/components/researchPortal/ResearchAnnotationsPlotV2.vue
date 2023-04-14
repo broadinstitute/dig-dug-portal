@@ -176,9 +176,8 @@
 							).length > 0
 						"
 					>
-						Clicking on a tissue track(s) filters the table to
-						display only variants located within that annotation
-						type(s) in the selected tissue categories.</strong
+						Click on a tissue track to see annotations in specific
+						cell types.</strong
 					>
 					<div id="tissueInfoBox" class="hidden"></div>
 

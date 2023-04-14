@@ -92,7 +92,11 @@ export default Vue.component("egls-section-on-gene", {
 		this.getEglsWithGene();
 	},
 	computed: {},
-	watch: {},
+	watch: {
+		gene(newGene, oldGene) {
+			this.getEglsWithGene();
+		},
+	},
 	methods: {
 		async loadEglsList() {
 			let dataPoint =
