@@ -181,7 +181,7 @@ new Vue({
 
             let filteredCombined = [];
 
-            if (this.$store.state.eglGenes.length > 0) {
+            if (combinedData.length > 0 && this.$store.state.eglGenes.length > 0) {
                 // first make obj by egl genes by 1.trait 2.EGL id. !important propert name 'phenotype' is taken by combinedData
 
                 let eglGenes = {}
@@ -263,6 +263,9 @@ new Vue({
     },
 
     watch: {
+        geneFinderPhenotype(newPhenotype, oldPhenotype) {
+            console.log("primary phenotype", newPhenotype);
+        },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);

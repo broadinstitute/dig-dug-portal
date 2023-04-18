@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<div v-show="showPlot">
-			<manhattan-plot
+			<!--<manhattan-plot
 				:associations="combinedAssociations"
 				:phenotypes="phenotypes"
 				:phenotypeMap="phenotypeMap"
@@ -18,9 +18,9 @@
 						>{{ phenotypeMap[p].description }}</a
 					>
 				</b>
-			</center>
+			</center>-->
 		</div>
-
+		{{ phenotypes }}
 		<div v-if="tableData.length > 0">
 			<div class="text-right mb-2">
 				<csv-download
