@@ -260,11 +260,20 @@ new Vue({
                 //egls: this.geneFinerEgls,
             };
         },
+        hugePhenotype() {
+            let data = this.$store.state.hugePhenotype.data;
+            return data;
+        }
     },
 
     watch: {
+        hugePhenotype(newData, oldData) {
+            console.log("newData", newData);
+        },
         geneFinderPhenotype(newPhenotype, oldPhenotype) {
-            console.log("primary phenotype", newPhenotype);
+            /*
+            this.$store.dispatch("getPrimaryPhCR", newPhenotype);
+            */
         },
 
         diseaseGroup(group) {
@@ -411,7 +420,7 @@ new Vue({
                 this.$store.dispatch("getEglGenes", { pageId: egl["Page ID"], trait: egl["Trait ID"] });
             })
 
-        }
+        },
     },
 
 

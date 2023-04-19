@@ -15,6 +15,7 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         geneFinder: bioIndex("gene-finder"),
+        hugePhenotype: bioIndex("huge-phenotype"),
     },
     state: {
         newPhenotype: null,
@@ -28,6 +29,8 @@ export default new Vuex.Store({
         phenotypeCorrelation: null,
         eglsFullList: [],
         eglGenes: [],
+        //primaryPhCR: {},
+        hugeScores: {},
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -80,7 +83,15 @@ export default new Vuex.Store({
 
             state.eglGenes = GENES;
 
-        }
+        },
+        setHugeScores(state, huge) {
+
+            state.hugeScores = huge;
+
+        },
+        /*setPrimaryPhCR(state, Correlation) {
+            state.primaryPhCR = Correlation;
+        },*/
 
     },
     getters: {
@@ -104,6 +115,15 @@ export default new Vuex.Store({
         },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
+        },
+        hugeScores(context, DATA) {
+            context.commit("setHugeScores", DATA);
+
+        },
+
+        async queryHugePhenotype(context, phenotype) {
+            let query = { q: phenotype }
+            context.dispatch("hugePhenotype/query", query);
         },
 
         async getEglsFullList(context) {
@@ -148,7 +168,32 @@ export default new Vuex.Store({
 
             let updatedGenes = this.state.eglGenes.filter(g => g.pageId != PARAMS.pageId);
             context.commit("setEglGenes", updatedGenes);
-        }
+        },
+
+        /*
+        /// leave it in case we decide to integrate phenotype correlations
+        async getPrimaryPhCR(context, primaryPhenotype) {
+
+
+            let searchPoint =
+                "https://bioindex-dev.hugeamp.org/api/bio/query/genetic-correlation?q=" +
+                primaryPhenotype;
+
+            var correlationJson = await fetch(searchPoint).then((resp) =>
+                resp.json()
+            );
+
+            if (correlationJson.error == null) {
+                //console.log("correlationJson", correlationJson)
+                let CRs = {};
+
+                correlationJson.data.map(p => {
+                    CRs[p.other_phnotype] = p;
+
+                })
+                context.commit("setPrimaryPhCR", CRs);
+            }
+        }*/
 
     }
 });
