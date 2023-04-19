@@ -287,7 +287,7 @@ export default Vue.component("research-volcano-plot", {
 			ctx.font = "28px Arial";
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
-			ctx.rotate(-(Math.PI * 2) / 8);
+			ctx.rotate(-(90 * Math.PI) / 180);
 			ctx.fillText(
 				this.renderConfig["y axis label"],
 				-(topMargin + canvasHeight / 2),
@@ -296,7 +296,7 @@ export default Vue.component("research-volcano-plot", {
 
 			//render dots
 
-			ctx.rotate((Math.PI * 2) / 8);
+			ctx.rotate((90 * Math.PI) / 180);
 			let xPosMax = xAxisTicks.lo + xAxisTicks.step * 5;
 			let yPosMax = yAxisTicks.lo + yAxisTicks.step * 5;
 

@@ -671,6 +671,12 @@ new Vue({
         topPhenotype(topAssocData) {
             return topAssocData[0];
         },
+        renderPhewas(REF) {
+            let refComponent = this.$children[0].$refs[REF];
+            setTimeout(function () {
+                refComponent.renderPheWas();
+            }, 500);
+        }
     },
 
     render(createElement, context) {
