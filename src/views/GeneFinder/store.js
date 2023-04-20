@@ -121,7 +121,7 @@ export default new Vuex.Store({
 
         },
 
-        async queryHugePhenotype(context, phenotype) {
+        async getHugePhenotype(context, phenotype) {
             let query = { q: phenotype }
             context.dispatch("hugePhenotype/query", query);
         },

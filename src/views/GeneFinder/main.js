@@ -163,9 +163,7 @@ new Vue({
                     .map((criterion) => criterion.threshold) || []
             );
         },
-        geneFinderPhenotype() {
-            return this.geneFinderPhenotypes[0] || null;
-        },
+
 
         eglGenes() {
             return this.$store.state.eglGenes;
@@ -220,7 +218,7 @@ new Vue({
                         eglGenes[geneId]['egls'].map(e => {
                             let pIndex = this.geneFinderPhenotypes.indexOf(e.trait) + 1;
                             let eglLabel = e.shortName;
-                            eglsContent += "<span class='gene-finder-egl reference color-" + pIndex + "' title='" + e.name + "'>" + eglLabel + "<div class='egl-links'>";
+                            eglsContent += "<span class='gene-finder-egl reference color-0' title='" + e.name + "'>" + eglLabel + "<div class='egl-links'>";
                             eglsContent += (e.pmid != undefined) ? "<a target='_blank' href='https://pubmed.ncbi.nlm.nih.gov/" + e.pmid + "'>View paper</a><span class='spacer'>|</span>" : "";
                             eglsContent += "<a target='_blank' href='/research.html?pageid=" + e.eglId + "'>View effector genes list</a>";
                             eglsContent += "</div></span>"
@@ -269,11 +267,25 @@ new Vue({
     watch: {
         hugePhenotype(newData, oldData) {
             console.log("newData", newData);
-        },
-        geneFinderPhenotype(newPhenotype, oldPhenotype) {
-            /*
-            this.$store.dispatch("getPrimaryPhCR", newPhenotype);
-            */
+            let newPhenotype = newData[0].phenotype
+
+            let dataByGene = {};
+
+            newData.map(d => {
+                dataByGene[d.gene] = d;
+            })
+
+            let tempObj = {};
+
+            for (const [hKey, hValue] of Object.entries(
+                this.$store.state.hugeScores
+            )) {
+                tempObj[hKey] = hValue;
+            }
+
+            tempObj[newPhenotype] = dataByGene;
+
+            this.$store.dispatch("hugeScores", tempObj);
         },
 
         diseaseGroup(group) {
@@ -304,6 +316,7 @@ new Vue({
             }
         },
         geneFinderPhenotypes(newPhenotypes, oldPhenotypes) {
+
             //if not the same, update keyparams
             if (!isEqual(newPhenotypes, oldPhenotypes)) {
                 //update phenotype parameters
@@ -311,6 +324,14 @@ new Vue({
                     phenotype: newPhenotypes.join(","),
                 });
             }
+
+            newPhenotypes.map(p => {
+                if (!this.$store.state.hugeScores[p]) {
+                    this.$store.dispatch("getHugePhenotype", p);
+                }
+            })
+
+
         },
         geneFinderEgls(newEgls, oldEgls) {
 

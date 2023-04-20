@@ -99,6 +99,7 @@
 							:egls="$parent.geneFinderEgls"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:associations="$parent.combined"
+							:hugeScores="$store.state.hugeScores"
 							:rowsPerPage="20"
 							:exclusive="true"
 							:showPlot="true"
