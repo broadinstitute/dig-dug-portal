@@ -272,6 +272,7 @@
 												'-' +
 												itemValue.end
 											"
+											class="vs-view"
 											>View</a
 										>
 									</div>
@@ -621,11 +622,11 @@ export default Vue.component("gene-finder-w-egl-table", {
 }
 
 .no-padding {
-	padding: 0 !important;
+	padding: 3px 0 !important;
 }
 
 .multi-values-div {
-	border-top: solid 1px #dddddd !important;
+	/*border-top: solid 1px #dddddd !important;*/
 	padding-left: 15px;
 	padding-right: 15px;
 }
@@ -633,6 +634,10 @@ export default Vue.component("gene-finder-w-egl-table", {
 .multi-values-div.reference {
 	padding-left: 0;
 	padding-right: 0;
+}
+
+.gf-table td > div.multi-values-div:nth-child(2) {
+	border-top: solid 1px #dddddd !important;
 }
 
 .gf-table td,
@@ -677,5 +682,9 @@ export default Vue.component("gene-finder-w-egl-table", {
 
 span.evidence-range {
 	font-size: 12px;
+}
+
+.vs-view {
+	font-size: 14px;
 }
 </style>
