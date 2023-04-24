@@ -71,6 +71,18 @@ new Vue({
 
     computed: {
 
+        tissueOptions() {
+            let tissues = [...new Set(this.$store.state.geneExpression.data.map(d => d.tissue))].sort();
+
+            let options = [];
+
+            tissues.map(t => {
+                options.push({ value: t, name: t.replace(/_/g, " ") })
+            })
+
+
+            return options;
+        },
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";
@@ -261,10 +273,17 @@ new Vue({
         hugePhenotype() {
             let data = this.$store.state.hugePhenotype.data;
             return data;
+        },
+        geneExpressionTissue() {
+            let data = this.$store.state.geneExpressionTissue.data;
+            return data;
         }
     },
 
     watch: {
+        geneExpressionTissue(newData, oldData) {
+            console.log("new data", newData.length)
+        },
         hugePhenotype(newData, oldData) {
             console.log("newData", newData);
             let newPhenotype = newData[0].phenotype
@@ -371,6 +390,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("getEglsFullList");
+        this.$store.dispatch("getGeneExpression", 'PCSK9');
         //check if parameter is passed, set criterion
         if (keyParams.phenotype) {
             keyParams.phenotype.split(",").forEach((phenotype) => {
@@ -442,6 +462,14 @@ new Vue({
             })
 
         },
+
+        loadGeneExpressionTissue(EVENT) {
+            console.log("tissue", EVENT.target.value)
+            if (EVENT.target.value != "") {
+                this.$store.dispatch("getGeneExpressionTissue", EVENT.target.value);
+            }
+
+        }
     },
 
 

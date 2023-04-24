@@ -25,7 +25,6 @@
 					<h4 class="card-title">
 						Build search criteria and filter results
 					</h4>
-
 					<criterion-list-group
 						v-model="$parent.geneFinderSearchCriterion"
 						:header="'Search Criterion'"
@@ -55,6 +54,26 @@
 								<strong>Select phenotypes</strong>
 							</div>
 						</filter-enumeration-control>
+						<!-- tissues -->
+						<div class="col filter-col-md">
+							<div><strong>Select tissues</strong></div>
+							<select
+								class="form-control"
+								@change="
+									$parent.loadGeneExpressionTissue($event)
+								"
+							>
+								<option value=""></option>
+								<template
+									v-for="tValue in $parent.tissueOptions"
+								>
+									<option :value="tValue.value">
+										{{ tValue.name }}
+									</option>
+								</template>
+							</select>
+						</div>
+						<!-- PEGL -->
 						<filter-enumeration-control
 							class="filter-col-lg"
 							:field="'egl'"

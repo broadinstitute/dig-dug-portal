@@ -16,6 +16,8 @@ export default new Vuex.Store({
         kp4cd,
         geneFinder: bioIndex("gene-finder"),
         hugePhenotype: bioIndex("huge-phenotype"),
+        geneExpression: bioIndex("gene-expression"),
+        geneExpressionTissue: bioIndex("gene-expression-tissue"),
     },
     state: {
         newPhenotype: null,
@@ -124,6 +126,16 @@ export default new Vuex.Store({
         async getHugePhenotype(context, phenotype) {
             let query = { q: phenotype }
             context.dispatch("hugePhenotype/query", query);
+        },
+
+        async getGeneExpression(context, gene) {
+            let query = { q: gene }
+            context.dispatch("geneExpression/query", query);
+        },
+
+        async getGeneExpressionTissue(context, TISSUE) {
+            let query = { q: TISSUE }
+            context.dispatch("geneExpressionTissue/query", query);
         },
 
         async getEglsFullList(context) {
