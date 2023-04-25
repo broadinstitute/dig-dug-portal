@@ -33,6 +33,7 @@ export default new Vuex.Store({
         eglGenes: [],
         //primaryPhCR: {},
         hugeScores: {},
+        tissueGeneExpression: {}
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -87,9 +88,10 @@ export default new Vuex.Store({
 
         },
         setHugeScores(state, huge) {
-
             state.hugeScores = huge;
-
+        },
+        setTissueGeneExpression(state, tissueGE) {
+            state.tissueGeneExpression = tissueGE;
         },
         /*setPrimaryPhCR(state, Correlation) {
             state.primaryPhCR = Correlation;
@@ -120,7 +122,9 @@ export default new Vuex.Store({
         },
         hugeScores(context, DATA) {
             context.commit("setHugeScores", DATA);
-
+        },
+        tissueGeneExpression(context, DATA) {
+            context.commit("setTissueGeneExpression", DATA);
         },
 
         async getHugePhenotype(context, phenotype) {
@@ -180,6 +184,14 @@ export default new Vuex.Store({
 
             let updatedGenes = this.state.eglGenes.filter(g => g.pageId != PARAMS.pageId);
             context.commit("setEglGenes", updatedGenes);
+        },
+
+        removeTissueGeneExpression(context, TISSUE) {
+
+            let newData = this.state.tissueGeneExpression;
+            delete newData[TISSUE];
+
+            context.commit("setTissueGeneExpression", newData);
         },
 
         /*

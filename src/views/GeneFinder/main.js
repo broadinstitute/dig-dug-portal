@@ -83,6 +83,14 @@ new Vue({
 
             return options;
         },
+        tissuesMap() {
+            let tissuesMap = {};
+            this.tissueOptions.map(t => {
+                tissuesMap[t.value] = t;
+            })
+
+            return tissuesMap;
+        },
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";
@@ -182,6 +190,7 @@ new Vue({
         },
 
         combined() {
+            console.log("this.geneFinderAssociationsMap", this.geneFinderAssociationsMap);
 
             let combinedData = Object.entries(this.geneFinderAssociationsMap).flatMap(
                 (geneFinderItem) => geneFinderItem[1]
@@ -222,6 +231,7 @@ new Vue({
 
                     let geneId = c["gene"];
 
+                    // Add EGL info
                     if (!!eglGenes[geneId] && eglGenes[geneId]['egls'].length == GFEglsLength) {
                         let tempGene = { ...c };
 
@@ -240,10 +250,30 @@ new Vue({
 
                         filteredCombined.push(tempGene);
                     }
+
                 })
             } else {
                 filteredCombined = combinedData;
             }
+
+            // Add Tissue Gene Expression info
+            let loadedTGE = this.$store.state.tissueGeneExpression;
+            let geneExpTissues = Object.keys(loadedTGE);
+            if (geneExpTissues.length > 0) {
+                filteredCombined.map(g => {
+                    geneExpTissues.map(t => {
+                        if (!!loadedTGE[t][g.gene]) {
+                            if (!g['tissues']) {
+                                g['tissues'] = []
+                            }
+                            g['tissues'].push(loadedTGE[t][g.gene]);
+                        }
+                    })
+                })
+            }
+
+            console.log("filteredCombined", filteredCombined)
+
 
             return filteredCombined;
         },
@@ -260,6 +290,13 @@ new Vue({
             return (
                 this.geneFinderSearchCriterion
                     .filter((criterion) => criterion.field === "egl")
+                    .map((criterion) => criterion.threshold) || []
+            );
+        },
+        geneFinderTissues() {
+            return (
+                this.geneFinderSearchCriterion
+                    .filter((criterion) => criterion.field === "tissue")
                     .map((criterion) => criterion.threshold) || []
             );
         },
@@ -282,29 +319,46 @@ new Vue({
 
     watch: {
         geneExpressionTissue(newData, oldData) {
-            console.log("new data", newData.length)
-        },
-        hugePhenotype(newData, oldData) {
-            console.log("newData", newData);
-            let newPhenotype = newData[0].phenotype
+            if (newData.length > 0) {
+                console.log("new data", newData[0])
+                let tissue = newData[0].tissue;
+                let tissueGeData = this.$store.state.tissueGeneExpression;
+                let tempObj = {};
 
-            let dataByGene = {};
+                newData.map(g => {
+                    tempObj[g.gene] = g;
+                })
 
-            newData.map(d => {
-                dataByGene[d.gene] = d;
-            })
+                tissueGeData[tissue] = tempObj;
 
-            let tempObj = {};
-
-            for (const [hKey, hValue] of Object.entries(
-                this.$store.state.hugeScores
-            )) {
-                tempObj[hKey] = hValue;
+                this.$store.dispatch("tissueGeneExpression", tissueGeData);
             }
 
-            tempObj[newPhenotype] = dataByGene;
 
-            this.$store.dispatch("hugeScores", tempObj);
+        },
+        hugePhenotype(newData, oldData) {
+            if (newData.length > 0) {
+                let newPhenotype = newData[0].phenotype
+
+                let dataByGene = {};
+
+                newData.map(d => {
+                    dataByGene[d.gene] = d;
+                })
+
+                let tempObj = {};
+
+                for (const [hKey, hValue] of Object.entries(
+                    this.$store.state.hugeScores
+                )) {
+                    tempObj[hKey] = hValue;
+                }
+
+                tempObj[newPhenotype] = dataByGene;
+
+                this.$store.dispatch("hugeScores", tempObj);
+            }
+
         },
 
         diseaseGroup(group) {
@@ -351,6 +405,30 @@ new Vue({
             })
 
 
+        },
+        geneFinderTissues(newTissues, oldTissues) {
+            if (!isEqual(newTissues, oldTissues)) {
+                //update egls parameters
+                keyParams.set({
+                    tissue: newTissues.join(","),
+                });
+
+                let differTissues = newTissues.filter(x => !oldTissues.includes(x));
+
+                if (differTissues.length > 0) {
+                    let tissue = this.tissuesMap[differTissues[0]];
+
+                    this.$store.dispatch("getGeneExpressionTissue", tissue.value);
+                } else {
+                    let removedTissue = oldTissues.filter(x => !newTissues.includes(x));
+
+                    let tissue = this.tissuesMap[removedTissue[0]];
+                    console.log("tissue", tissue.name)
+                    //this.$store.dispatch("removeEglGenes", { pageId: egl["Page ID"] });
+
+                }
+
+            }
         },
         geneFinderEgls(newEgls, oldEgls) {
 

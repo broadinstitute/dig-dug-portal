@@ -22,6 +22,7 @@
 						name="tools.genefinder.subheader"
 					></documentation>
 
+					{{ Object.keys($store.state.tissueGeneExpression) }}
 					<h4 class="card-title">
 						Build search criteria and filter results
 					</h4>
@@ -55,7 +56,25 @@
 							</div>
 						</filter-enumeration-control>
 						<!-- tissues -->
-						<div class="col filter-col-md">
+						<filter-enumeration-control
+							class="filter-col-lg"
+							:field="'tissue'"
+							:options="
+								$parent.tissueOptions.map(
+									(tissue) => tissue['value']
+								)
+							"
+							:multiple="true"
+							:disableSort="true"
+							:labelFormatter="
+								(tissue) => $parent.tissuesMap[tissue]['name']
+							"
+						>
+							<div>
+								<strong>View tissue gene expression</strong>
+							</div>
+						</filter-enumeration-control>
+						<!--<div class="col filter-col-md">
 							<div><strong>Select tissues</strong></div>
 							<select
 								class="form-control"
@@ -72,7 +91,7 @@
 									</option>
 								</template>
 							</select>
-						</div>
+						</div>-->
 						<!-- PEGL -->
 						<filter-enumeration-control
 							class="filter-col-lg"
