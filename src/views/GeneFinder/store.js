@@ -33,7 +33,7 @@ export default new Vuex.Store({
         eglGenes: [],
         //primaryPhCR: {},
         hugeScores: {},
-        tissueGeneExpression: {}
+        tissueGeneExpression: []
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -188,8 +188,7 @@ export default new Vuex.Store({
 
         removeTissueGeneExpression(context, TISSUE) {
 
-            let newData = this.state.tissueGeneExpression;
-            delete newData[TISSUE];
+            let newData = this.state.tissueGeneExpression.filter(g => g.tissue != TISSUE);
 
             context.commit("setTissueGeneExpression", newData);
         },

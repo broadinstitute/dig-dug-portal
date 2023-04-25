@@ -318,7 +318,7 @@ new Vue({
     },
 
     watch: {
-        geneExpressionTissue(newData, oldData) {
+        /*geneExpressionTissue(newData, oldData) {
             if (newData.length > 0) {
                 console.log("new data", newData[0])
                 let tissue = newData[0].tissue;
@@ -335,7 +335,7 @@ new Vue({
             }
 
 
-        },
+        },*/
         hugePhenotype(newData, oldData) {
             if (newData.length > 0) {
                 let newPhenotype = newData[0].phenotype
