@@ -105,11 +105,12 @@
 						<th class="thin-cell no-padding"></th>
 						<th>P-Value</th>
 						<!--<th class="thin-cell no-padding"></th>-->
-						<th>HuGE Score (Evidence Range)</th>
+						<th>HuGE Score <small>(Evidence Range)</small></th>
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>Samples</th>
 						<th v-if="tissues.length > 0">
 							Tissue Gene Expression
+							<small>(Mean TPM : Samples)</small>
 						</th>
 						<th>Variant Sifter</th>
 						<!--<template v-for="phenotype in phenotypes">
@@ -172,16 +173,7 @@
 									</div>
 								</template>
 							</td>
-							<!--<td class="thin-cell no-padding">
-								<template v-for="(phenotype, i) in phenotypes">
-									<div
-										class="multi-values-div reference"
-										:class="'color-' + (i + 1)"
-									>
-										&nbsp;
-									</div>
-								</template>
-							</td>-->
+
 							<td class="no-padding text-center">
 								<template v-for="phenotype in phenotypes">
 									<div
@@ -216,35 +208,7 @@
 									</div>
 								</template>
 							</td>
-							<!--<td class="no-padding text-center">
-								<template v-for="phenotype in phenotypes">
-									<div
-										class="multi-values-div"
-										:title="
-											+' ' +
-											phenotypeMap[phenotype].description
-										"
-									>
-										{{
-											hugeRange(
-												hugeScores[phenotype][
-													itemValue.gene
-												].huge
-											)
-										}}
-									</div>
-								</template>
-							</td>-->
-							<!--<td class="thin-cell no-padding">
-								<template v-for="(phenotype, i) in phenotypes">
-									<div
-										class="multi-values-div reference"
-										:class="'color-' + (i + 1)"
-									>
-										&nbsp;
-									</div>
-								</template>
-							</td>-->
+
 							<td class="no-padding text-right">
 								<template v-for="phenotype in phenotypes">
 									<div
@@ -263,9 +227,11 @@
 									</div>
 								</template>
 							</td>
-							<td v-if="tissues.length > 0">
-								{{ itemValue.tissue }}
-							</td>
+							<td
+								v-if="tissues.length > 0"
+								class="text-center"
+								v-html="itemValue.tissue"
+							></td>
 							<td class="no-padding text-center">
 								<template v-for="phenotype in phenotypes">
 									<div
@@ -291,28 +257,6 @@
 									</div>
 								</template>
 							</td>
-							<!--<template v-for="phenotype in phenotypes">
-								<td
-									:class="
-										itemValue[phenotype + ':pValue'] < 1e-5
-											? 'variant-table-cell high'
-											: ''
-									"
-								>
-									{{
-										pValueFormatter(
-											itemValue[phenotype + ":pValue"]
-										)
-									}}
-								</td>
-								<td>
-									{{
-										intFormatter(
-											itemValue[phenotype + ":subjects"]
-										)
-									}}
-								</td>
-							</template>-->
 						</tr>
 					</template>
 				</tbody>
@@ -395,50 +339,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 			}
 		},
 
-		/*fields() {
-			let fields = this.baseFields;
-
-			// add the chi squared column
-			if (!!this.showChiSquared) {
-				fields.push({
-					key: "chiSquared",
-					label: "P-Value(Χ²)",
-					formatter: this.pValueFormatter,
-				});
-			}
-
-			if (this.egls.length > 0) {
-				fields.push({
-					key: `egls`,
-					label: "Predicted effector genes (PMID)",
-				});
-			}
-
-			// add phenotype-specific columns
-			for (let i in this.phenotypes) {
-				let p = this.phenotypes[i];
-
-				fields = fields.concat([
-					{
-						key: `${p}:pValue`,
-						label: `P-Value`,
-						tdClass(x) {
-							return !!x && x < 1e-5
-								? "variant-table-cell high"
-								: "";
-						},
-						sortable: true,
-					},
-					{
-						key: `${p}:subjects`,
-						label: "Samples",
-					},
-				]);
-			}
-
-			return fields;
-		},*/
-
 		groupedAssociations() {
 			let data = [];
 			let groups = {};
@@ -452,6 +352,19 @@ export default Vue.component("gene-finder-w-egl-table", {
 					dataIndex = data.length;
 					groups[r.gene] = dataIndex;
 
+					let tissueInfo = "";
+					if (!!r.tissue && r.tissue.length > 0) {
+						r.tissue.map((t) => {
+							tissueInfo +=
+								t.tissue.replace("_", " ") +
+								" (" +
+								this.floatFormatter(t.meanTpm) +
+								": " +
+								t.nSamples +
+								") ";
+						});
+					}
+
 					data.push({
 						phenotypes: [],
 						gene: r.gene,
@@ -460,7 +373,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 						end: r.end,
 						minP: 1.0,
 						egls: r.egls,
-						tissue: r.tissue,
+						tissue: tissueInfo,
 					});
 				}
 

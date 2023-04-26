@@ -190,7 +190,7 @@ new Vue({
         },
 
         combined() {
-            console.log("this.geneFinderAssociationsMap", this.geneFinderAssociationsMap);
+            //console.log("this.geneFinderAssociationsMap", this.geneFinderAssociationsMap);
 
             let combinedData = Object.entries(this.geneFinderAssociationsMap).flatMap(
                 (geneFinderItem) => geneFinderItem[1]
@@ -262,13 +262,12 @@ new Vue({
                 let filteredGenes = {};
                 filteredCombined.map(f => {
                     filteredGenes[f.gene] = f
+                    filteredGenes[f.gene]['tissue'] = [];
                 });
 
                 loadedTGE.map(t => {
                     if (!!filteredGenes[t.gene]) {
-                        if (!filteredGenes[t.gene]['tissue']) {
-                            filteredGenes[t.gene]['tissue'] = [];
-                        }
+
 
                         filteredGenes[t.gene]['tissue'].push(t);
                     }
@@ -276,11 +275,6 @@ new Vue({
 
                 filteredCombined = [...new Set(Object.values(filteredGenes))];
             }
-
-
-
-            console.log("filteredCombined", filteredCombined)
-
 
             return filteredCombined;
         },
@@ -422,7 +416,7 @@ new Vue({
                     let removedTissue = oldTissues.filter(x => !newTissues.includes(x));
 
                     let tissue = this.tissuesMap[removedTissue[0]];
-                    console.log("tissue", tissue.name)
+                    //console.log("tissue", tissue.name)
                     this.$store.dispatch("removeTissueGeneExpression", tissue.value);
                 }
 
@@ -538,14 +532,6 @@ new Vue({
             })
 
         },
-
-        /*loadGeneExpressionTissue(EVENT) {
-            console.log("tissue", EVENT.target.value)
-            if (EVENT.target.value != "") {
-                this.$store.dispatch("getGeneExpressionTissue", EVENT.target.value);
-            }
-
-        }*/
     },
 
 
