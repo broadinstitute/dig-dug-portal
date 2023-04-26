@@ -20,7 +20,6 @@
 				</b>
 			</center>
 		</div>-->
-		{{ $store.state.tissueGeneExpression.length }}
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
@@ -113,10 +112,6 @@
 							<small>(Mean TPM : Samples)</small>
 						</th>
 						<th>Variant Sifter</th>
-						<!--<template v-for="phenotype in phenotypes">
-							<th>P-Value</th>
-							<th>Samples</th>
-						</template>-->
 					</tr>
 				</thead>
 				<tbody>
@@ -353,15 +348,22 @@ export default Vue.component("gene-finder-w-egl-table", {
 					groups[r.gene] = dataIndex;
 
 					let tissueInfo = "";
+
 					if (!!r.tissue && r.tissue.length > 0) {
-						r.tissue.map((t) => {
+						let tLength = r.tissue.length - 1;
+						r.tissue.map((t, tIndex) => {
+							let meanTPM = !t.meanTpm
+								? 0
+								: this.floatFormatter(t.meanTpm);
+
 							tissueInfo +=
 								t.tissue.replace("_", " ") +
-								" (" +
-								this.floatFormatter(t.meanTpm) +
-								": " +
+								" <small>(" +
+								meanTPM +
+								" : " +
 								t.nSamples +
-								") ";
+								")</small>";
+							tissueInfo += tIndex < tLength ? ", " : "";
 						});
 					}
 

@@ -91,6 +91,9 @@ new Vue({
 
             return tissuesMap;
         },
+        tissuesMapKeys() {
+            return Object.keys(this.tissuesMap);
+        },
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";
@@ -410,16 +413,13 @@ new Vue({
 
                 if (differTissues.length > 0) {
                     let tissue = this.tissuesMap[differTissues[0]];
-
                     this.$store.dispatch("getGeneExpressionTissue", tissue.value);
                 } else {
                     let removedTissue = oldTissues.filter(x => !newTissues.includes(x));
 
                     let tissue = this.tissuesMap[removedTissue[0]];
-                    //console.log("tissue", tissue.name)
                     this.$store.dispatch("removeTissueGeneExpression", tissue.value);
                 }
-
             }
         },
         geneFinderEgls(newEgls, oldEgls) {
@@ -451,6 +451,11 @@ new Vue({
             if (this.geneFinderEgls.length > 0) {
                 this.loadInitialEgls(this.geneFinderEgls);
             }
+        },
+        tissuesMapKeys(KEYS) {
+            if (this.geneFinderTissues.length > 0) {
+                this.loadInitialTissues(this.geneFinderTissues);
+            }
         }
     },
 
@@ -470,15 +475,31 @@ new Vue({
                 });
             });
 
-            keyParams.egl.split(",").forEach((e) => {
-                this.geneFinderSearchCriterion.push({
-                    field: "egl",
-                    threshold: e,
+            if (keyParams.egl) {
+                keyParams.egl.split(",").forEach((e) => {
+                    this.geneFinderSearchCriterion.push({
+                        field: "egl",
+                        threshold: e,
+                    });
                 });
-            });
+            }
+
 
             if (this.eglsMapKeys.length > 0) {
                 this.loadInitialEgls(this.geneFinderEgls);
+            }
+
+            if (keyParams.tissue) {
+                keyParams.tissue.split(",").forEach((e) => {
+                    this.geneFinderSearchCriterion.push({
+                        field: "tissue",
+                        threshold: e,
+                    });
+                });
+            }
+
+            if (this.tissuesMapKeys.length > 0) {
+                //this.loadInitialTissues(this.geneFinderTissues);
             }
 
             this.updateAssociations(
@@ -529,6 +550,14 @@ new Vue({
             EGLS.map(e => {
                 let egl = this.eglsMap[e];
                 this.$store.dispatch("getEglGenes", { pageId: egl["Page ID"], trait: egl["Trait ID"] });
+            })
+
+        },
+
+        loadInitialTissues(TISSUES) {
+            console.log("TISSUES", TISSUES);
+            TISSUES.map(t => {
+                this.$store.dispatch("getGeneExpressionTissue", t);
             })
 
         },
