@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div v-show="showPlot">
+		<!--<div v-show="showPlot">
 			<manhattan-plot
 				:associations="combinedAssociations"
 				:phenotypes="phenotypes"
@@ -19,28 +19,35 @@
 					>
 				</b>
 			</center>
-		</div>
+		</div>-->
+		{{ $store.state.tissueGeneExpression.length }}
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
-					<span>
-						Matching genes:
-						{{ groupedAssociations.length }}
-					</span>
-					<template v-for="(phenotype, i) in phenotypes">
-						<span
-							:key="phenotype"
-							class="badge badge-secondary badge-pill btn filter-pill-x reference"
-							:class="'color-' + (i + 1)"
-							v-if="phenotypeMap[phenotype]"
-							style="color: white"
-						>
-							{{ phenotypeMap[phenotype].description
-							}}{{ ": " + genesPerPhenotypes[phenotype] }}
+					<div class="col-md-12">
+						<span>
+							Matching genes:
+							{{ groupedAssociations.length }}
 						</span>
-					</template>
-					<span style="font-size: 12px; white-space: nowrap"
-						>HuGE Score: <span class="compelling">Compelling</span>
+						<template v-for="(phenotype, i) in phenotypes">
+							<span
+								:key="phenotype"
+								class="badge badge-secondary badge-pill btn filter-pill-x reference"
+								:class="'color-' + (i + 1)"
+								v-if="phenotypeMap[phenotype]"
+								style="color: white"
+							>
+								{{ phenotypeMap[phenotype].description
+								}}{{ ": " + genesPerPhenotypes[phenotype] }}
+							</span>
+						</template>
+					</div>
+
+					<div
+						class="col-md-12"
+						style="font-size: 12px; white-space: nowrap"
+					>
+						HuGE Score: <span class="compelling">Compelling</span>
 						&gt;= 350 |
 						<span class="extreme">Extreme</span> &gt;=100 |
 						<span class="very-strong">Very Strong</span>: &gt;=30 |
@@ -50,8 +57,8 @@
 						>
 							Anecdotal</span
 						>: &gt;1 | <span class="no-evidence">No Evidence</span>:
-						&lt;=1</span
-					>
+						&lt;=1
+					</div>
 				</div>
 				<div class="text-right col-md-2">
 					<csv-download
@@ -101,6 +108,9 @@
 						<th>HuGE Score (Evidence Range)</th>
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>Samples</th>
+						<th v-if="tissues.length > 0">
+							Tissue Gene Expression
+						</th>
 						<th>Variant Sifter</th>
 						<!--<template v-for="phenotype in phenotypes">
 							<th>P-Value</th>
@@ -253,6 +263,9 @@
 									</div>
 								</template>
 							</td>
+							<td v-if="tissues.length > 0">
+								{{ itemValue.tissue }}
+							</td>
 							<td class="no-padding text-center">
 								<template v-for="phenotype in phenotypes">
 									<div
@@ -343,6 +356,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 		"hugeScores",
 		"phenotypes",
 		"egls",
+		"tissues",
 		"phenotypeMap",
 		"filter",
 		"exclusive",
@@ -446,6 +460,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 						end: r.end,
 						minP: 1.0,
 						egls: r.egls,
+						tissue: r.tissue,
 					});
 				}
 

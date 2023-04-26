@@ -258,19 +258,26 @@ new Vue({
 
             // Add Tissue Gene Expression info
             let loadedTGE = this.$store.state.tissueGeneExpression;
-            let geneExpTissues = Object.keys(loadedTGE);
-            if (geneExpTissues.length > 0) {
-                filteredCombined.map(g => {
-                    geneExpTissues.map(t => {
-                        if (!!loadedTGE[t][g.gene]) {
-                            if (!g['tissues']) {
-                                g['tissues'] = []
-                            }
-                            g['tissues'].push(loadedTGE[t][g.gene]);
+            if (loadedTGE.length > 0) {
+                let filteredGenes = {};
+                filteredCombined.map(f => {
+                    filteredGenes[f.gene] = f
+                });
+
+                loadedTGE.map(t => {
+                    if (!!filteredGenes[t.gene]) {
+                        if (!filteredGenes[t.gene]['tissue']) {
+                            filteredGenes[t.gene]['tissue'] = [];
                         }
-                    })
+
+                        filteredGenes[t.gene]['tissue'].push(t);
+                    }
                 })
+
+                filteredCombined = [...new Set(Object.values(filteredGenes))];
             }
+
+
 
             console.log("filteredCombined", filteredCombined)
 
@@ -318,24 +325,16 @@ new Vue({
     },
 
     watch: {
-        /*geneExpressionTissue(newData, oldData) {
+        geneExpressionTissue(newData, oldData) {
             if (newData.length > 0) {
-                console.log("new data", newData[0])
-                let tissue = newData[0].tissue;
-                let tissueGeData = this.$store.state.tissueGeneExpression;
-                let tempObj = {};
 
-                newData.map(g => {
-                    tempObj[g.gene] = g;
-                })
+                let updatedList = this.$store.state.tissueGeneExpression.concat(newData);
 
-                tissueGeData[tissue] = tempObj;
-
-                this.$store.dispatch("tissueGeneExpression", tissueGeData);
+                this.$store.dispatch("tissueGeneExpression", updatedList);
             }
 
 
-        },*/
+        },
         hugePhenotype(newData, oldData) {
             if (newData.length > 0) {
                 let newPhenotype = newData[0].phenotype
@@ -424,8 +423,7 @@ new Vue({
 
                     let tissue = this.tissuesMap[removedTissue[0]];
                     console.log("tissue", tissue.name)
-                    //this.$store.dispatch("removeEglGenes", { pageId: egl["Page ID"] });
-
+                    this.$store.dispatch("removeTissueGeneExpression", tissue.value);
                 }
 
             }
@@ -541,13 +539,13 @@ new Vue({
 
         },
 
-        loadGeneExpressionTissue(EVENT) {
+        /*loadGeneExpressionTissue(EVENT) {
             console.log("tissue", EVENT.target.value)
             if (EVENT.target.value != "") {
                 this.$store.dispatch("getGeneExpressionTissue", EVENT.target.value);
             }
 
-        }
+        }*/
     },
 
 

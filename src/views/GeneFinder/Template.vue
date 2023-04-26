@@ -21,8 +21,6 @@
 						style="margin-bottom: 30px"
 						name="tools.genefinder.subheader"
 					></documentation>
-
-					{{ Object.keys($store.state.tissueGeneExpression) }}
 					<h4 class="card-title">
 						Build search criteria and filter results
 					</h4>
@@ -135,6 +133,7 @@
 							"
 							:phenotypes="$parent.geneFinderPhenotypes"
 							:egls="$parent.geneFinderEgls"
+							:tissues="$store.state.tissueGeneExpression"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:associations="$parent.combined"
 							:hugeScores="$store.state.hugeScores"
