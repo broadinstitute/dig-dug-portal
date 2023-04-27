@@ -36,8 +36,7 @@
 								v-if="phenotypeMap[phenotype]"
 								style="color: white"
 							>
-								{{ phenotypeMap[phenotype].description
-								}}{{ ": " + genesPerPhenotypes[phenotype] }}
+								{{ phenotypeMap[phenotype].description }}
 							</span>
 						</template>
 					</div>
@@ -172,6 +171,12 @@
 							<td class="no-padding text-center">
 								<template v-for="phenotype in phenotypes">
 									<div
+										v-if="
+											!!hugeScores[phenotype] &&
+											!!hugeScores[phenotype][
+												itemValue.gene
+											]
+										"
 										class="multi-values-div"
 										:class="
 											hugeRange(
@@ -335,73 +340,10 @@ export default Vue.component("gene-finder-w-egl-table", {
 		},
 
 		groupedAssociations() {
-			let data = [];
 			let groups = {};
 			let associations = this.tableData;
 
-			for (let i in associations) {
-				let r = associations[i];
-				let dataIndex = groups[r.gene];
-
-				if (!(r.gene in groups)) {
-					dataIndex = data.length;
-					groups[r.gene] = dataIndex;
-
-					let tissueInfo = "";
-
-					if (!!r.tissue && r.tissue.length > 0) {
-						let tLength = r.tissue.length - 1;
-						r.tissue.map((t, tIndex) => {
-							let meanTPM = !t.meanTpm
-								? 0
-								: this.floatFormatter(t.meanTpm);
-
-							tissueInfo +=
-								t.tissue.replace("_", " ") +
-								" <small>(" +
-								meanTPM +
-								" : " +
-								t.nSamples +
-								")</small>";
-							tissueInfo += tIndex < tLength ? ", " : "";
-						});
-					}
-
-					data.push({
-						phenotypes: [],
-						gene: r.gene,
-						chromosome: r.chromosome,
-						start: r.start,
-						end: r.end,
-						minP: 1.0,
-						egls: r.egls,
-						tissue: tissueInfo,
-					});
-				}
-
-				// push the phenotype
-				data[dataIndex].phenotypes.push(r.phenotype);
-
-				// add the phenotype columns
-				data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
-				data[dataIndex][`${r.phenotype}:zStat`] = r.zStat;
-				data[dataIndex][`${r.phenotype}:nParam`] = r.nParam;
-				data[dataIndex][`${r.phenotype}:subjects`] = r.subjects;
-
-				// lowest p-value across all phenotypes
-				if (!!r.pValue && r.pValue < data[dataIndex].minP) {
-					data[dataIndex].minP = r.pValue;
-				}
-			}
-
-			// remove entries with missing p-values
-			if (this.exclusive) {
-				let phenotypes = this.phenotypes;
-
-				data = data.filter((row) => {
-					return phenotypes.every((p) => !!row[`${p}:pValue`]);
-				});
-			}
+			let data = associations; //Object.values(groups);
 
 			// calculate the chiSquared for each row
 

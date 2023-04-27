@@ -30,7 +30,7 @@
 					>
 						<!-- Phenotype Selector -->
 						<filter-enumeration-control
-							class="filter-col-lg"
+							class="filter-col-md"
 							:field="'phenotype'"
 							:options="
 								$parent.secondaryPhenotypeOptions.map(
@@ -55,7 +55,7 @@
 						</filter-enumeration-control>
 						<!-- tissues -->
 						<filter-enumeration-control
-							class="filter-col-lg"
+							class="filter-col-md"
 							:field="'tissue'"
 							:options="
 								$parent.tissueOptions.map(
@@ -72,27 +72,10 @@
 								<strong>View tissue gene expression</strong>
 							</div>
 						</filter-enumeration-control>
-						<!--<div class="col filter-col-md">
-							<div><strong>Select tissues</strong></div>
-							<select
-								class="form-control"
-								@change="
-									$parent.loadGeneExpressionTissue($event)
-								"
-							>
-								<option value=""></option>
-								<template
-									v-for="tValue in $parent.tissueOptions"
-								>
-									<option :value="tValue.value">
-										{{ tValue.name }}
-									</option>
-								</template>
-							</select>
-						</div>-->
+
 						<!-- PEGL -->
 						<filter-enumeration-control
-							class="filter-col-lg"
+							class="filter-col-md"
 							:field="'egl'"
 							:options="
 								$parent.eglsOptions.map((egl) => egl['Page ID'])
@@ -115,6 +98,7 @@
 							</div>
 						</filter-enumeration-control>
 
+						<div class="col divider"></div>
 						<!-- pValue filter -->
 						<filter-pvalue-control
 							class="filter-col-sm"
@@ -124,6 +108,22 @@
 								<strong>P-Value (&le;)</strong>
 							</div>
 						</filter-pvalue-control>
+						<filter-greater-control
+							class="filter-col-sm"
+							:field="'HuGE'"
+						>
+							<div>
+								<strong>HuGE Score (&ge;)</strong>
+							</div>
+						</filter-greater-control>
+						<filter-greater-control
+							class="filter-col-sm"
+							:field="'TPM'"
+						>
+							<div>
+								<strong>Mean TPM (&ge;)</strong>
+							</div>
+						</filter-greater-control>
 					</criterion-list-group>
 					<div>
 						<gene-finder-w-egl-table

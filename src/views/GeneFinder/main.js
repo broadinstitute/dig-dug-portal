@@ -21,6 +21,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import keyParams from "@/utils/keyParams";
+import Formatters from "@/utils/formatters";
 
 import sessionUtils from "@/utils/sessionUtils";
 
@@ -76,9 +77,11 @@ new Vue({
 
             let options = [];
 
-            tissues.map(t => {
-                options.push({ value: t, name: t.replace(/_/g, " ") })
-            })
+            this.geneFinderPhenotypes.map(p => {//<-- this is to disable the EGLs option when there is no phenotype selected
+                tissues.map(t => {
+                    options.push({ value: t, name: t.replace(/_/g, " ") })
+                })
+            });
 
 
             return options;
@@ -138,6 +141,7 @@ new Vue({
             return data;
         },
         eglsOptions() {
+
             if (this.$store.state.eglsFullList == null) {
                 return null;
             } else {
@@ -145,14 +149,8 @@ new Vue({
                 let options = [];
 
 
-
-
-                this.geneFinderPhenotypes.map(p => {
+                this.geneFinderPhenotypes.map(p => { //<-- this is to disable the EGLs option when there is no phenotype selected
                     this.$store.state.eglsFullList.map(e => {
-
-                        /*if (e["Trait ID"] != undefined && e["byor_gene"] == "TRUE" && e["Trait ID"].toLowerCase() == p.toLowerCase()) {
-                            options.push(e);
-                        }*/
 
                         if (e["Trait ID"] != undefined && e["byor_gene"] == "TRUE") {
                             options.push(e);
@@ -192,6 +190,27 @@ new Vue({
             return this.$store.state.eglGenes;
         },
 
+        hugeScoreFilter() {
+
+            let hugeFilterArr = this.geneFinderSearchCriterion
+                .filter((f) => f.field === "HuGE")
+
+            let filter = hugeFilterArr.length > 0 ? hugeFilterArr[0].threshold : null;
+
+
+            return filter;
+        },
+
+        tpmFilter() {
+            let tpmFilterArr = this.geneFinderSearchCriterion
+                .filter((f) => f.field === "TPM")
+
+            let filter = tpmFilterArr.length > 0 ? tpmFilterArr[0].threshold : null;
+
+
+            return filter;
+        },
+
         combined() {
             //console.log("this.geneFinderAssociationsMap", this.geneFinderAssociationsMap);
 
@@ -199,85 +218,144 @@ new Vue({
                 (geneFinderItem) => geneFinderItem[1]
             );
 
+            let grouped = {}
 
 
-            let filteredCombined = [];
+            if (combinedData.length > 0) {
 
-            if (combinedData.length > 0 && this.$store.state.eglGenes.length > 0) {
-                // first make obj by egl genes by 1.trait 2.EGL id. !important propert name 'phenotype' is taken by combinedData
 
-                let eglGenes = {}
+                combinedData.map(r => {
+                    if (!grouped[r.gene]) {
+                        let tempObj = {
+                            phenotypes: [],
+                            gene: r.gene,
+                            chromosome: r.chromosome,
+                            start: r.start,
+                            end: r.end,
+                            minP: 1.0,
+                        };
 
-                this.$store.state.eglGenes.map(c => {
-                    let gene = c["byor_gene"];
-                    let egl = this.eglsMap[c["pageId"]];
-
-                    let tempObj = { "trait": c["traitId"], "eglId": c["pageId"], "title": egl["Title"], "pmid": egl["PMID"], "name": egl["Effector list name"], "shortName": egl["short_name"] }  //pageId, traitId
-
-                    if (!eglGenes[gene]) {
-                        eglGenes[gene] = { "egls": [] };
-                        eglGenes[gene]["egls"].push(tempObj);
-                    } else {
-                        let ifExist = eglGenes[gene]["egls"].filter(e => e["eglId"] == c["pageId"]);
-
-                        if (ifExist.length == 0) {
-                            eglGenes[gene]["egls"].push(tempObj);
-                        }
+                        grouped[r.gene] = tempObj;
                     }
 
-                })
+                    grouped[r.gene].phenotypes.push(r.phenotype);
+                    grouped[r.gene][r.phenotype + ":pValue"] = r.pValue;
+                    grouped[r.gene][r.phenotype + ":zStat"] = r.zStat;
+                    grouped[r.gene][r.phenotype + ":nParam"] = r.nParam;
+                    grouped[r.gene][r.phenotype + ":subjects"] = r.subjects;
 
-
-                let GFEglsLength = this.geneFinderEgls.length;
-
-                combinedData.map(c => {
-
-                    let geneId = c["gene"];
-
-                    // Add EGL info
-                    if (!!eglGenes[geneId] && eglGenes[geneId]['egls'].length == GFEglsLength) {
-                        let tempGene = { ...c };
-
-                        let eglsContent = "";
-
-                        eglGenes[geneId]['egls'].map(e => {
-                            let pIndex = this.geneFinderPhenotypes.indexOf(e.trait) + 1;
-                            let eglLabel = e.shortName;
-                            eglsContent += "<span class='gene-finder-egl reference color-0' title='" + e.name + "'>" + eglLabel + "<div class='egl-links'>";
-                            eglsContent += (e.pmid != undefined) ? "<a target='_blank' href='https://pubmed.ncbi.nlm.nih.gov/" + e.pmid + "'>View paper</a><span class='spacer'>|</span>" : "";
-                            eglsContent += "<a target='_blank' href='/research.html?pageid=" + e.eglId + "'>View effector genes list</a>";
-                            eglsContent += "</div></span>"
-                        })
-
-                        tempGene['egls'] = eglsContent;
-
-                        filteredCombined.push(tempGene);
+                    // lowest p-value across all phenotypes
+                    if (!!r.pValue && r.pValue < grouped[r.gene].minP) {
+                        grouped[r.gene].minP = r.pValue;
                     }
-
-                })
-            } else {
-                filteredCombined = combinedData;
-            }
-
-            // Add Tissue Gene Expression info
-            let loadedTGE = this.$store.state.tissueGeneExpression;
-            if (loadedTGE.length > 0) {
-                let filteredGenes = {};
-                filteredCombined.map(f => {
-                    filteredGenes[f.gene] = f
-                    filteredGenes[f.gene]['tissue'] = [];
                 });
 
-                loadedTGE.map(t => {
-                    if (!!filteredGenes[t.gene]) {
+                //console.log("grouped", grouped)
 
-
-                        filteredGenes[t.gene]['tissue'].push(t);
+                for (const [gKey, gValue] of Object.entries(
+                    grouped
+                )) {
+                    if (gValue.phenotypes.length != this.geneFinderPhenotypes.length) {
+                        delete grouped[gKey];
                     }
-                })
+                }
 
-                filteredCombined = [...new Set(Object.values(filteredGenes))];
+                // check if EGLs data is there.
+                if (this.$store.state.eglGenes.length > 0) {
+
+                    let eglGenes = {}
+
+                    this.$store.state.eglGenes.map(c => {
+                        let gene = c["byor_gene"];
+                        let egl = this.eglsMap[c["pageId"]];
+
+                        let tempObj = { "trait": c["traitId"], "eglId": c["pageId"], "title": egl["Title"], "pmid": egl["PMID"], "name": egl["Effector list name"], "shortName": egl["short_name"] }  //pageId, traitId
+
+                        if (!eglGenes[gene]) {
+                            eglGenes[gene] = { "egls": [] };
+                            eglGenes[gene]["egls"].push(tempObj);
+                        } else {
+                            let ifExist = eglGenes[gene]["egls"].filter(e => e["eglId"] == c["pageId"]);
+
+                            if (ifExist.length == 0) {
+                                eglGenes[gene]["egls"].push(tempObj);
+                            }
+                        }
+                    })
+
+                    for (const [gKey, gValue] of Object.entries(
+                        grouped
+                    )) {
+                        if (!!eglGenes[gKey]) {
+                            let eglsContent = "";
+
+                            eglGenes[gKey]['egls'].map(e => {
+                                let pIndex = this.geneFinderPhenotypes.indexOf(e.trait) + 1;
+                                let eglLabel = e.shortName;
+                                eglsContent += "<span class='gene-finder-egl reference color-0' title='" + e.name + "'>" + eglLabel + "<div class='egl-links'>";
+                                eglsContent += (e.pmid != undefined) ? "<a target='_blank' href='https://pubmed.ncbi.nlm.nih.gov/" + e.pmid + "'>View paper</a><span class='spacer'>|</span>" : "";
+                                eglsContent += "<a target='_blank' href='/research.html?pageid=" + e.eglId + "'>View effector genes list</a>";
+                                eglsContent += "</div></span>"
+                            })
+
+                            grouped[gKey]["egls"] = eglsContent;
+
+                        } else {
+
+                            delete grouped[gKey];
+
+                        }
+                    }
+                }
+
+                //check if tissues data is there
+                // Add Tissue Gene Expression info
+                let loadedTGE = this.$store.state.tissueGeneExpression;
+                if (loadedTGE.length > 0) {
+
+                    loadedTGE.map(t => {
+                        if (!!grouped[t.gene]) {
+                            if (!grouped[t.gene]['tissue']) {
+                                grouped[t.gene]['tissue'] = "";
+                                grouped[t.gene]['minTPM'] = null
+                            }
+
+                            let meanTPM = !t.meanTpm
+                                ? 0
+                                : this.floatFormatter(t.meanTpm);
+
+                            if (!grouped[t.gene].minTPM || (!!grouped[t.gene].minTPM && meanTPM < grouped[t.gene].minTPM)) {
+                                grouped[t.gene].minTPM = meanTPM;
+                            }
+
+                            let tissueInfo =
+                                t.tissue.replace("_", " ") +
+                                " <small>(" +
+                                meanTPM +
+                                " : " +
+                                t.nSamples +
+                                ")</small>  ";
+
+                            grouped[t.gene]['tissue'] += tissueInfo;
+                        }
+                    })
+
+
+                    if (!!this.tpmFilter) {
+
+                        for (const [gKey, gValue] of Object.entries(
+                            grouped
+                        )) {
+                            if ((!!gValue.minTPM && gValue.minTPM < this.tpmFilter) || !gValue.minTPM) {
+                                delete grouped[gKey];
+                            }
+                        }
+                    }
+                }
             }
+
+            let filteredCombined = Object.values(grouped);
+
 
             return filteredCombined;
         },
@@ -454,7 +532,7 @@ new Vue({
         },
         tissuesMapKeys(KEYS) {
             if (this.geneFinderTissues.length > 0) {
-                this.loadInitialTissues(this.geneFinderTissues);
+                //this.loadInitialTissues(this.geneFinderTissues);
             }
         }
     },
@@ -516,6 +594,9 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        intFormatter: Formatters.intFormatter,
+        floatFormatter: Formatters.floatFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
 
         updateAssociations(updatedPhenotypes, pValue, flush) {
             //let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
