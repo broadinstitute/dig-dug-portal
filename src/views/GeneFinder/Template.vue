@@ -24,7 +24,9 @@
 					<h4 class="card-title">
 						Build search criteria and filter results
 					</h4>
+
 					<criterion-list-group
+						v-if="$parent.eglsMap && $parent.tissuesMap"
 						v-model="$parent.geneFinderSearchCriterion"
 						:header="'Search Criterion'"
 					>

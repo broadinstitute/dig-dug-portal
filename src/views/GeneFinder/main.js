@@ -73,29 +73,40 @@ new Vue({
     computed: {
 
         tissueOptions() {
-            let tissues = [...new Set(this.$store.state.geneExpression.data.map(d => d.tissue))].sort();
 
-            let options = [];
+            let options = null;
 
-            this.geneFinderPhenotypes.map(p => {//<-- this is to disable the EGLs option when there is no phenotype selected
-                tissues.map(t => {
-                    options.push({ value: t, name: t.replace(/_/g, " ") })
-                })
-            });
+            if (this.$store.state.geneExpression.data.length > 0) {
+                let tissues = [...new Set(this.$store.state.geneExpression.data.map(d => d.tissue))].sort();
 
+                options = [];
+
+                this.geneFinderPhenotypes.map(p => {//<-- this is to disable the EGLs option when there is no phenotype selected
+                    tissues.map(t => {
+                        options.push({ value: t, name: t.replace(/_/g, " ") })
+                    })
+                });
+            }
 
             return options;
         },
         tissuesMap() {
-            let tissuesMap = {};
-            this.tissueOptions.map(t => {
-                tissuesMap[t.value] = t;
-            })
-
+            let tissuesMap = null;
+            if (!!this.tissueOptions) {
+                tissuesMap = {};
+                this.tissueOptions.map(t => {
+                    tissuesMap[t.value] = t;
+                })
+            }
             return tissuesMap;
         },
         tissuesMapKeys() {
-            return Object.keys(this.tissuesMap);
+            if (!!this.tissuesMap) {
+                return Object.keys(this.tissuesMap);
+            } else {
+                return [];
+            }
+
         },
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
