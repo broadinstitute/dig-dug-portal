@@ -165,12 +165,18 @@ new Vue({
         },
 
         eglsMap() {
-            let eglsMap = {};
-            this.eglsOptions.map(o => {
-                eglsMap[o["Page ID"]] = o;
-            })
+            if (!!this.eglsOptions) {
+                let eglsMap = {};
 
-            return eglsMap;
+                this.eglsOptions.map(o => {
+                    eglsMap[o["Page ID"]] = o;
+                })
+
+                return eglsMap;
+            } else {
+                return null;
+            }
+
         },
 
         eglsMapKeys() {
@@ -195,7 +201,7 @@ new Vue({
             let hugeFilterArr = this.geneFinderSearchCriterion
                 .filter((f) => f.field === "HuGE")
 
-            let filter = hugeFilterArr.length > 0 ? hugeFilterArr[0].threshold : null;
+            let filter = hugeFilterArr.length > 0 ? Number(hugeFilterArr[0].threshold) : null;
 
 
             return filter;
@@ -205,7 +211,7 @@ new Vue({
             let tpmFilterArr = this.geneFinderSearchCriterion
                 .filter((f) => f.field === "TPM")
 
-            let filter = tpmFilterArr.length > 0 ? tpmFilterArr[0].threshold : null;
+            let filter = tpmFilterArr.length > 0 ? Number(tpmFilterArr[0].threshold) : null;
 
 
             return filter;
@@ -257,6 +263,31 @@ new Vue({
                 )) {
                     if (gValue.phenotypes.length != this.geneFinderPhenotypes.length) {
                         delete grouped[gKey];
+                    }
+                }
+
+                //add HuGE Scores
+                if (Object.keys(this.$store.state.hugeScores).length > 0) {
+                    for (const [gKey, gValue] of Object.entries(
+                        grouped
+                    )) {
+                        gValue['minHuge'] = null;
+
+                        gValue.phenotypes.map(p => {
+                            if (!!this.$store.state.hugeScores[p] && !!this.$store.state.hugeScores[p][gValue.gene]) {
+                                gValue[p + ":huge"] = this.$store.state.hugeScores[p][gValue.gene].huge;
+
+                                if (!gValue['minHuge'] || (!!gValue['minHuge'] && gValue[p + ":huge"] < gValue['minHuge'])) {
+                                    gValue['minHuge'] = gValue[p + ":huge"];
+                                }
+                            }
+                        })
+
+                        if (!!this.hugeScoreFilter) {
+                            if ((gValue.minHuge < this.hugeScoreFilter || !gValue.minHuge)) {
+                                delete grouped[gKey];
+                            }
+                        }
                     }
                 }
 
@@ -342,11 +373,10 @@ new Vue({
 
 
                     if (!!this.tpmFilter) {
-
                         for (const [gKey, gValue] of Object.entries(
                             grouped
                         )) {
-                            if ((!!gValue.minTPM && gValue.minTPM < this.tpmFilter) || !gValue.minTPM) {
+                            if ((gValue.minTPM < this.tpmFilter || !gValue.minTPM)) {
                                 delete grouped[gKey];
                             }
                         }
@@ -354,8 +384,8 @@ new Vue({
                 }
             }
 
-            let filteredCombined = Object.values(grouped);
 
+            let filteredCombined = Object.values(grouped);
 
             return filteredCombined;
         },
@@ -404,8 +434,10 @@ new Vue({
             if (newData.length > 0) {
 
                 let updatedList = this.$store.state.tissueGeneExpression.concat(newData);
+                let tissues = this.$store.state.loadedTissues.concat(newData[0].tissue);
 
                 this.$store.dispatch("tissueGeneExpression", updatedList);
+                this.$store.dispatch("loadedTissues", tissues);
             }
 
 
@@ -490,13 +522,18 @@ new Vue({
                 let differTissues = newTissues.filter(x => !oldTissues.includes(x));
 
                 if (differTissues.length > 0) {
-                    let tissue = this.tissuesMap[differTissues[0]];
-                    this.$store.dispatch("getGeneExpressionTissue", tissue.value);
+                    differTissues.map(d => {
+                        if (!this.$store.state.loadedTissues.includes(d)) {
+                            this.$store.dispatch("getGeneExpressionTissue", d);
+                        }
+                    })
+
                 } else {
                     let removedTissue = oldTissues.filter(x => !newTissues.includes(x));
 
-                    let tissue = this.tissuesMap[removedTissue[0]];
-                    this.$store.dispatch("removeTissueGeneExpression", tissue.value);
+                    // let tissue = this.tissuesMap[removedTissue[0]];
+                    let tissue = removedTissue[0];
+                    this.$store.dispatch("removeTissueGeneExpression", tissue);
                 }
             }
         },
@@ -510,18 +547,21 @@ new Vue({
 
                 let differEgl = newEgls.filter(x => !oldEgls.includes(x));
 
-                if (differEgl.length > 0) {
-                    let egl = this.eglsMap[differEgl[0]];
+                if (!!this.eglsMap) {
+                    if (differEgl.length > 0) {
+                        let egl = this.eglsMap[differEgl[0]];
 
-                    this.$store.dispatch("getEglGenes", { pageId: egl["Page ID"], trait: egl["Trait ID"] });
-                } else {
-                    let removedEgl = oldEgls.filter(x => !newEgls.includes(x));
+                        this.$store.dispatch("getEglGenes", { pageId: egl["Page ID"], trait: egl["Trait ID"] });
+                    } else {
+                        let removedEgl = oldEgls.filter(x => !newEgls.includes(x));
 
-                    let egl = this.eglsMap[removedEgl[0]];
+                        let egl = this.eglsMap[removedEgl[0]];
 
-                    this.$store.dispatch("removeEglGenes", { pageId: egl["Page ID"] });
+                        this.$store.dispatch("removeEglGenes", { pageId: egl["Page ID"] });
 
+                    }
                 }
+
 
             }
         },
@@ -636,7 +676,7 @@ new Vue({
         },
 
         loadInitialTissues(TISSUES) {
-            console.log("TISSUES", TISSUES);
+            //console.log("TISSUES", TISSUES);
             TISSUES.map(t => {
                 this.$store.dispatch("getGeneExpressionTissue", t);
             })

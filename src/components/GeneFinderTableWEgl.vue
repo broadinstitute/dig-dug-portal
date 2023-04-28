@@ -99,6 +99,10 @@
 					<tr>
 						<th>Gene</th>
 						<th v-if="egls.length > 0">Effector gene lists</th>
+						<th v-if="tissues.length > 0">
+							Tissue Gene Expression
+							<small>(Mean TPM : Samples)</small>
+						</th>
 						<th>P-Value(Χ²)</th>
 						<th class="thin-cell no-padding"></th>
 						<th>P-Value</th>
@@ -106,10 +110,7 @@
 						<th>HuGE Score <small>(Evidence Range)</small></th>
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>Samples</th>
-						<th v-if="tissues.length > 0">
-							Tissue Gene Expression
-							<small>(Mean TPM : Samples)</small>
-						</th>
+
 						<th>Variant Sifter</th>
 					</tr>
 				</thead>
@@ -130,6 +131,11 @@
 								class="text-center"
 								v-if="!!itemValue.egls"
 								v-html="itemValue.egls"
+							></td>
+							<td
+								v-if="tissues.length > 0"
+								class="text-center"
+								v-html="itemValue.tissue"
 							></td>
 							<td class="text-center">
 								{{ pValueFormatter(itemValue.chiSquared) }}
@@ -171,18 +177,10 @@
 							<td class="no-padding text-center">
 								<template v-for="phenotype in phenotypes">
 									<div
-										v-if="
-											!!hugeScores[phenotype] &&
-											!!hugeScores[phenotype][
-												itemValue.gene
-											]
-										"
 										class="multi-values-div"
 										:class="
 											hugeRange(
-												hugeScores[phenotype][
-													itemValue.gene
-												].huge
+												itemValue[phenotype + ':huge']
 											)
 										"
 										:title="
@@ -191,17 +189,15 @@
 									>
 										{{
 											intFormatter(
-												hugeScores[phenotype][
-													itemValue.gene
-												].huge
+												itemValue[phenotype + ":huge"]
 											)
 										}}
 										<span class="evidence-range"
 											>({{
 												hugeRange(
-													hugeScores[phenotype][
-														itemValue.gene
-													].huge
+													itemValue[
+														phenotype + ":huge"
+													]
 												)
 											}})</span
 										>
@@ -227,11 +223,7 @@
 									</div>
 								</template>
 							</td>
-							<td
-								v-if="tissues.length > 0"
-								class="text-center"
-								v-html="itemValue.tissue"
-							></td>
+
 							<td class="no-padding text-center">
 								<template v-for="phenotype in phenotypes">
 									<div
