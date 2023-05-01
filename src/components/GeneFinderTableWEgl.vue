@@ -20,6 +20,7 @@
 				</b>
 			</center>
 		</div>-->
+		<div v-show="showPlot"></div>
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
@@ -40,7 +41,18 @@
 							</span>
 						</template>
 					</div>
-
+					<div
+						class="col-md-12"
+						style="font-size: 16px; white-space: nowrap"
+						v-if="!!minMaxTPM"
+						v-html="
+							'Tissue gene expression mean TPM: Min(' +
+							minMaxTPM.min +
+							') <span style=\'color:#70bfff;font-stretch: ultra-expanded;\'>&#9664;</span> Max(' +
+							minMaxTPM.max +
+							')'
+						"
+					></div>
 					<div
 						class="col-md-12"
 						style="font-size: 12px; white-space: nowrap"
@@ -121,7 +133,7 @@
 						) in groupedAssociationsDisplay"
 					>
 						<tr>
-							<td>
+							<td class="text-center">
 								<a
 									:href="`/gene.html?gene=${itemValue.gene}`"
 									>{{ itemValue.gene }}</a
@@ -134,7 +146,12 @@
 							></td>
 							<td
 								v-if="tissues.length > 0"
-								class="text-center"
+								class="text-center percentage-bg"
+								:style="
+									'background-image: url(../images/blue_block.png) !important; background-size: ' +
+									itemValue.tpmPercent +
+									'% 20px;'
+								"
 								v-html="itemValue.tissue"
 							></td>
 							<td class="text-center">
@@ -293,6 +310,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 		"phenotypes",
 		"egls",
 		"tissues",
+		"minMaxTPM",
 		"phenotypeMap",
 		"filter",
 		"exclusive",
@@ -346,7 +364,28 @@ export default Vue.component("gene-finder-w-egl-table", {
 
 			return data;
 		},
+		/*
+		minMaxTPM() {
+			let data = this.groupedAssociations;
 
+			//console.log(data);
+
+			let minMax = !data[0]
+				? null
+				: !data[0].minTPM
+				? null
+				: { min: Number(data[0].minTPM), max: Number(data[0].maxTPM) };
+
+			if (!!minMax) {
+				data.map((d) => {
+					minMax.min = d.minTPM < minMax.min ? d.minTPM : minMax.min;
+					minMax.max = d.maxTPM > minMax.max ? d.maxTPM : minMax.max;
+				});
+			}
+
+			return minMax;
+		},
+*/
 		groupedAssociationsDisplay() {
 			let returnList = [];
 			let startIndex =
@@ -354,6 +393,16 @@ export default Vue.component("gene-finder-w-egl-table", {
 			let endIndex = this.currentPage * this.rowsPerPage - 1;
 			for (let i = startIndex; i <= endIndex; i++) {
 				if (!!this.groupedAssociations[i]) {
+					if (!!this.minMaxTPM) {
+						let tpmPercent =
+							((this.groupedAssociations[i].maxTPM -
+								this.minMaxTPM.min) /
+								(this.minMaxTPM.max - this.minMaxTPM.min)) *
+							100;
+
+						this.groupedAssociations[i]["tpmPercent"] = tpmPercent;
+					}
+
 					returnList.push(this.groupedAssociations[i]);
 				}
 			}
@@ -550,5 +599,10 @@ span.evidence-range {
 
 .vs-view {
 	font-size: 14px;
+}
+
+.percentage-bg {
+	background-position: left center;
+	background-repeat: no-repeat;
 }
 </style>

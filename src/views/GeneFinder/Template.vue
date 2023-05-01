@@ -136,6 +136,7 @@
 							:phenotypes="$parent.geneFinderPhenotypes"
 							:egls="$parent.geneFinderEgls"
 							:tissues="$store.state.tissueGeneExpression"
+							:minMaxTPM="$parent.minMaxTPM"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:associations="$parent.combined"
 							:hugeScores="$store.state.hugeScores"

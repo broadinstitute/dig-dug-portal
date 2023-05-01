@@ -63,6 +63,7 @@ new Vue({
             phenotypelist: [],
             geneFinderSearchCriterion: [],
             geneFinderAssociationsMap: {},
+            minMaxTPM: null,
         };
     },
 
@@ -359,15 +360,20 @@ new Vue({
                         if (!!grouped[t.gene]) {
                             if (!grouped[t.gene]['tissue']) {
                                 grouped[t.gene]['tissue'] = "";
-                                grouped[t.gene]['minTPM'] = null
+                                grouped[t.gene]['minTPM'] = null;
+                                grouped[t.gene]['maxTPM'] = null;
                             }
 
                             let meanTPM = !t.meanTpm
                                 ? 0
-                                : this.floatFormatter(t.meanTpm);
+                                : Number(this.floatFormatter(t.meanTpm));
 
                             if (!grouped[t.gene].minTPM || (!!grouped[t.gene].minTPM && meanTPM < grouped[t.gene].minTPM)) {
                                 grouped[t.gene].minTPM = meanTPM;
+                            }
+
+                            if (!grouped[t.gene].maxTPM || (!!grouped[t.gene].maxTPM && meanTPM > grouped[t.gene].maxTPM)) {
+                                grouped[t.gene].maxTPM = meanTPM;
                             }
 
                             let tissueInfo =
@@ -382,6 +388,18 @@ new Vue({
                         }
                     })
 
+                    ///
+                    let data = Object.values(grouped);
+
+                    let minMax = { min: Number(data[0].minTPM), max: Number(data[0].maxTPM) };
+                    data.map((d) => {
+                        minMax.min = d.minTPM < minMax.min ? d.minTPM : minMax.min;
+                        minMax.max = d.maxTPM > minMax.max ? d.maxTPM : minMax.max;
+                    });
+
+                    this.minMaxTPM = minMax;
+
+                    ///
 
                     if (!!this.tpmFilter) {
                         for (const [gKey, gValue] of Object.entries(
@@ -392,6 +410,8 @@ new Vue({
                             }
                         }
                     }
+                } else {
+                    this.minMaxTPM = null;
                 }
             }
 
@@ -400,6 +420,26 @@ new Vue({
 
             return filteredCombined;
         },
+
+        /*minMaxTPM() {
+ 
+            let data = this.$store.state.tissueGeneExpression;
+            if (data.length > 0) {
+                let minMax = { min: Number(data[1].meanTpm), max: Number(data[1].meanTpm) };
+                data.map((d) => {
+                    minMax.min = d.meanTpm < minMax.min ? d.meanTpm : minMax.min;
+                    minMax.max = d.meanTpm > minMax.max ? d.meanTpm : minMax.max;
+                });
+ 
+                console.log(minMax, data);
+ 
+                return minMax;
+ 
+            } else {
+                return null
+            }
+        },*/
+
         geneFinderPValue() {
             let pval = 0.05;
             for (let i in this.geneFinderSearchCriterion) {
