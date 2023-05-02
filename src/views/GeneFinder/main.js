@@ -332,7 +332,12 @@ new Vue({
                         if (!!eglGenes[gKey]) {
                             let eglsContent = "";
 
+                            grouped[gKey]["eglsArr"] = [];// added to render plot
+
                             eglGenes[gKey]['egls'].map(e => {
+
+                                grouped[gKey]["eglsArr"].push(e);
+
                                 let pIndex = this.geneFinderPhenotypes.indexOf(e.trait) + 1;
                                 let eglLabel = e.shortName;
                                 eglsContent += "<span class='gene-finder-egl reference color-0' title='" + e.name + "'>" + eglLabel + "<div class='egl-links'>";
@@ -358,6 +363,11 @@ new Vue({
 
                     loadedTGE.map(t => {
                         if (!!grouped[t.gene]) {
+
+                            grouped[t.gene]["tissuesArr"] = (!grouped[t.gene]["tissuesArr"]) ? [] : grouped[t.gene]["tissuesArr"];
+
+                            grouped[t.gene]["tissuesArr"].push(t);
+
                             if (!grouped[t.gene]['tissue']) {
                                 grouped[t.gene]['tissue'] = "";
                                 grouped[t.gene]['minTPM'] = null;

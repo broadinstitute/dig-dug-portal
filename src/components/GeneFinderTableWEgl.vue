@@ -20,7 +20,14 @@
 				</b>
 			</center>
 		</div>-->
-		<div v-show="showPlot"></div>
+
+		<div v-show="showPlot">
+			<gene-finder-heatmap
+				v-if="tableData.length > 0"
+				:heatmapData="groupedAssociations"
+				:phenotypes="phenotypes"
+			></gene-finder-heatmap>
+		</div>
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
@@ -293,7 +300,7 @@ import Formatters from "@/utils/formatters";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
-import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot.vue";
+import GeneFinderHeatmap from "@/components/geneFinderHeatmap.vue";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -321,8 +328,8 @@ export default Vue.component("gene-finder-w-egl-table", {
 	components: {
 		Documentation,
 		TooltipDocumentation,
-		EffectorGenesMPlot,
 		CsvDownload,
+		GeneFinderHeatmap,
 	},
 	data() {
 		return {
@@ -364,28 +371,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 
 			return data;
 		},
-		/*
-		minMaxTPM() {
-			let data = this.groupedAssociations;
-
-			//console.log(data);
-
-			let minMax = !data[0]
-				? null
-				: !data[0].minTPM
-				? null
-				: { min: Number(data[0].minTPM), max: Number(data[0].maxTPM) };
-
-			if (!!minMax) {
-				data.map((d) => {
-					minMax.min = d.minTPM < minMax.min ? d.minTPM : minMax.min;
-					minMax.max = d.maxTPM > minMax.max ? d.maxTPM : minMax.max;
-				});
-			}
-
-			return minMax;
-		},
-*/
 		groupedAssociationsDisplay() {
 			let returnList = [];
 			let startIndex =
@@ -425,7 +410,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 			return content;
 		},
 
-		combinedAssociations() {
+		/*combinedAssociations() {
 			let groups = [];
 
 			this.groupedAssociations.forEach((a) => {
@@ -440,7 +425,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 			});
 
 			return groups;
-		},
+		},*/
 	},
 
 	methods: {
