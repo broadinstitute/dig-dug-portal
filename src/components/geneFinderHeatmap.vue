@@ -516,6 +516,24 @@ export default Vue.component("gene-finder-heatmap", {
 							}
 						}
 
+						if (rType == "egl") {
+							if (!!geneData[rValue]) {
+								let centerPos = renderBoxSize / 2;
+								let dotR = renderBoxSize / 8;
+
+								ctx.lineWidth = 0;
+								ctx.beginPath();
+								ctx.arc(
+									left + centerPos,
+									top + centerPos,
+									dotR,
+									0,
+									2 * Math.PI
+								);
+								ctx.fill();
+							}
+						}
+
 						rIndex++;
 					});
 				}
