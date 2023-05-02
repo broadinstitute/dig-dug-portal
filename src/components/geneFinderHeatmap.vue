@@ -1,7 +1,7 @@
 
 <template>
 	<div class="heatmap-wrapper">
-		{{ phenotypes }}
+		{{ minMaxTPM }}
 		<div id="clicked_cell_value" class="clicked-cell-value hidden">
 			<div id="clicked_cell_value_content"></div>
 		</div>
@@ -41,7 +41,7 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("gene-finder-heatmap", {
-	props: ["heatmapData", "phenotypes"],
+	props: ["heatmapData", "phenotypes", "minMaxTPM"],
 	data() {
 		return {
 			squareData: {},
@@ -77,19 +77,13 @@ export default Vue.component("gene-finder-heatmap", {
 					massagedData.columns.push(d.gene);
 					massagedData.data[d.gene] = {};
 
-					//if (!!d.phenotypes && d.phenotypes.length > 0) {
 					phenotypes.map((p) => {
 						massagedData.data[d.gene][p + ":pValue"] =
 							d[p + ":pValue"];
 						massagedData.data[d.gene][p + ":huge"] = !d[p + ":huge"]
 							? 0
 							: d[p + ":huge"];
-
-						/*if (!phenotypes.includes(p)) {
-							phenotypes.push(p);
-						}*/
 					});
-					//}
 					if (!!d.tissuesArr && d.tissuesArr.length > 0) {
 						d.tissuesArr.map((t) => {
 							massagedData.data[d.gene][t.tissue] = t.meanTpm;
@@ -326,6 +320,7 @@ export default Vue.component("gene-finder-heatmap", {
 				cLimit < renderData.columns.length
 					? cLimit
 					: renderData.columns.length;
+
 			let canvasWidth = this.fontSize * 1.5 * cLimit * 2;
 
 			let canvasHeight = this.boxSize * rowsArr.length * 2;
@@ -414,27 +409,113 @@ export default Vue.component("gene-finder-heatmap", {
 								? "#70bfff"
 								: "#007bff";
 
-						if (X == cIndex && Y == rIndex) {
-							ctx.beginPath();
-							ctx.rect(left, top, renderBoxSize, renderBoxSize);
-							ctx.fillStyle = "black";
-							ctx.fill();
+						if (rType == "phenotype") {
+							if (X == cIndex && Y == rIndex) {
+								ctx.beginPath();
+								ctx.rect(
+									left,
+									top,
+									renderBoxSize,
+									renderBoxSize
+								);
+								ctx.fillStyle = "black";
+								ctx.fill();
 
+								ctx.beginPath();
+								ctx.rect(
+									left + 2,
+									top + 2,
+									renderBoxSize - 4,
+									renderBoxSize - 4
+								);
+								ctx.fillStyle = colorString;
+								ctx.fill();
+							} else {
+								ctx.beginPath();
+								ctx.rect(
+									left,
+									top,
+									renderBoxSize,
+									renderBoxSize
+								);
+								ctx.fillStyle = colorString;
+								ctx.fill();
+							}
+
+							let steps = [0.001, 0.05];
+							let subDirection = "negative";
+							let dotMaxR = (renderBoxSize * 0.75) / 2;
+							let centerPos = renderBoxSize / 2;
+
+							let stepVal = 0;
+							let subValue = geneData[rValue + ":pValue"];
+							let dotR;
+
+							let dotRUnit = dotMaxR / steps.length;
+
+							for (let i = steps.length - 1; i >= 0; i--) {
+								stepVal += subValue <= steps[i] ? 1 : 0;
+							}
+							//}
+							dotR = dotRUnit * stepVal;
+
+							ctx.fillStyle = "#00000075";
+							ctx.lineWidth = 0;
 							ctx.beginPath();
-							ctx.rect(
-								left + 2,
-								top + 2,
-								renderBoxSize - 4,
-								renderBoxSize - 4
+							ctx.arc(
+								left + centerPos,
+								top + centerPos,
+								dotR,
+								0,
+								2 * Math.PI
 							);
-							ctx.fillStyle = colorString;
-							ctx.fill();
-						} else {
-							ctx.beginPath();
-							ctx.rect(left, top, renderBoxSize, renderBoxSize);
-							ctx.fillStyle = colorString;
 							ctx.fill();
 						}
+
+						if (rType == "tissue") {
+							let tpmPercent =
+								(geneData[rValue] - this.minMaxTPM.min) /
+								(this.minMaxTPM.max - this.minMaxTPM.min);
+
+							let boxHeight = renderBoxSize * tpmPercent;
+							boxHeight = boxHeight < 1 ? 1 : boxHeight;
+							let newTop = top + renderBoxSize - boxHeight;
+
+							console.log("boxHeight", boxHeight);
+
+							if (X == cIndex && Y == rIndex) {
+								ctx.beginPath();
+								ctx.rect(
+									left,
+									newTop,
+									renderBoxSize,
+									boxHeight
+								);
+								ctx.fillStyle = "black";
+								ctx.fill();
+
+								ctx.beginPath();
+								ctx.rect(
+									left + 2,
+									top + 2,
+									renderBoxSize - 4,
+									renderBoxSize - 4
+								);
+								ctx.fillStyle = colorString;
+								ctx.fill();
+							} else {
+								ctx.beginPath();
+								ctx.rect(
+									left,
+									newTop,
+									renderBoxSize,
+									boxHeight
+								);
+								ctx.fillStyle = colorString;
+								ctx.fill();
+							}
+						}
+
 						rIndex++;
 					});
 				}

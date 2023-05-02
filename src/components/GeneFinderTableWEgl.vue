@@ -26,6 +26,7 @@
 				v-if="tableData.length > 0"
 				:heatmapData="groupedAssociations"
 				:phenotypes="phenotypes"
+				:minMaxTPM="minMaxTPM"
 			></gene-finder-heatmap>
 		</div>
 		<div v-if="tableData.length > 0">
