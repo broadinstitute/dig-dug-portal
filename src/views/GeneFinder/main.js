@@ -64,7 +64,7 @@ new Vue({
             geneFinderSearchCriterion: [],
             geneFinderAssociationsMap: {},
             minMaxTPM: null,
-            pThresholdVal: "0.001, 0.01, 0.05"
+            pThresholdVal: "0.001, 0.05"
         };
     },
 
@@ -580,21 +580,21 @@ new Vue({
         },
         geneFinderPhenotypes(newPhenotypes, oldPhenotypes) {
 
-            //if not the same, update keyparams
-            if (!isEqual(newPhenotypes, oldPhenotypes)) {
-                //update phenotype parameters
-                keyParams.set({
-                    phenotype: newPhenotypes.join(","),
-                });
-            }
-
-            newPhenotypes.map(p => {
-                if (!this.$store.state.hugeScores[p]) {
-                    this.$store.dispatch("getHugePhenotype", p);
+            if (newPhenotypes.length > 0) {
+                //if not the same, update keyparams
+                if (!isEqual(newPhenotypes, oldPhenotypes)) {
+                    //update phenotype parameters
+                    keyParams.set({
+                        phenotype: newPhenotypes.join(","),
+                    });
                 }
-            })
 
-
+                newPhenotypes.map(p => {
+                    if (!this.$store.state.hugeScores[p]) {
+                        this.$store.dispatch("getHugePhenotype", p);
+                    }
+                })
+            }
         },
         geneFinderTissues(newTissues, oldTissues) {
             if (!isEqual(newTissues, oldTissues)) {

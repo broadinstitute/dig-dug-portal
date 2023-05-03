@@ -123,17 +123,29 @@
 							:field="'TPM'"
 						>
 							<div>
-								<strong>Mean TPM (&ge;)</strong>
+								<strong>Tissue mean TPM (&ge;)</strong>
 							</div>
 						</filter-greater-control>
-						<input type="text" v-model="$parent.pThresholdVal" />
+						<div
+							class="col filter-col-sm filter-col-sm"
+							style="padding: 5px 7px"
+						>
+							<div><strong>P-Value thresholds</strong></div>
+							<input
+								type="text"
+								class="form-control"
+								v-model="$parent.pThresholdVal"
+							/>
+						</div>
 					</criterion-list-group>
-					<div>
+					<pre></pre>
+					<div
+						v-if="
+							$parent.geneFinderPhenotypes.length > 0 &&
+							$parent.combined.length > 0
+						"
+					>
 						<gene-finder-w-egl-table
-							v-show="
-								$parent.geneFinderPhenotypes.length > 0 &&
-								$parent.combined.length > 0
-							"
 							:phenotypes="$parent.geneFinderPhenotypes"
 							:egls="$parent.geneFinderEgls"
 							:eglsMap="$parent.eglsMap"
