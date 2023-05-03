@@ -64,6 +64,7 @@ new Vue({
             geneFinderSearchCriterion: [],
             geneFinderAssociationsMap: {},
             minMaxTPM: null,
+            pThresholdVal: "0.001, 0.01, 0.05"
         };
     },
 
@@ -72,7 +73,27 @@ new Vue({
     },
 
     computed: {
+        pThreshold() {
 
+            let threshold = this.pThresholdVal.split(",").map(v => v.trim())
+
+            threshold = threshold.sort(function (a, b) {
+                let A = a;
+                let B = b;
+
+                let comparison = 0;
+                if (A > B) {
+                    comparison = 1;
+                } else if (A < B) {
+                    comparison = -1;
+                }
+
+                return comparison;
+
+            });
+
+            return threshold;
+        },
         tissueOptions() {
 
             let options = null;
@@ -183,6 +204,8 @@ new Vue({
                 this.eglsOptions.map(o => {
                     eglsMap[o["Page ID"]] = o;
                 })
+
+                console.log(eglsMap)
 
                 return eglsMap;
             } else {

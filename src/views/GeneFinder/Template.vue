@@ -126,6 +126,7 @@
 								<strong>Mean TPM (&ge;)</strong>
 							</div>
 						</filter-greater-control>
+						<input type="text" v-model="$parent.pThresholdVal" />
 					</criterion-list-group>
 					<div>
 						<gene-finder-w-egl-table
@@ -135,6 +136,7 @@
 							"
 							:phenotypes="$parent.geneFinderPhenotypes"
 							:egls="$parent.geneFinderEgls"
+							:eglsMap="$parent.eglsMap"
 							:tissues="$store.state.tissueGeneExpression"
 							:minMaxTPM="$parent.minMaxTPM"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
@@ -144,6 +146,7 @@
 							:exclusive="true"
 							:showPlot="true"
 							:showChiSquared="true"
+							:pThreshold="$parent.pThreshold"
 						></gene-finder-w-egl-table>
 					</div>
 				</div>

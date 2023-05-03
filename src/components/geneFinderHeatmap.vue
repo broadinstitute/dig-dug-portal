@@ -1,7 +1,6 @@
 
 <template>
 	<div class="heatmap-wrapper">
-		{{ minMaxTPM }}
 		<div id="clicked_cell_value" class="clicked-cell-value hidden">
 			<div id="clicked_cell_value_content"></div>
 		</div>
@@ -14,19 +13,26 @@
 				></div>
 				<div class="heatmap-rows-wrapper" id="heatmapRowsWrapper"></div>
 				<div class="heatmap-canvas-wrapper" id="heatmapCanvasWrapper">
-					<canvas id="heatmap" width="" height=""> </canvas>
-					<!--<canvas
+					<canvas
 						id="heatmap"
 						@mouseleave="hidePanel"
 						@mousemove="checkPosition"
 						width=""
 						height=""
 					>
-					</canvas>-->
+					</canvas>
 				</div>
 			</div>
 			<div class="heatmap-label" v-html=""></div>
 		</div>
+		<pre></pre>
+		<b-pagination
+			class="pagination-sm justify-content-center"
+			v-model="plotCurrentPage"
+			:total-rows="renderData.columns.length"
+			:per-page="boxesPerPage"
+			size="sm"
+		></b-pagination>
 	</div>
 </template>
 
@@ -41,12 +47,14 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("gene-finder-heatmap", {
-	props: ["heatmapData", "phenotypes", "minMaxTPM"],
+	props: ["heatmapData", "phenotypes", "minMaxTPM", "eglsMap", "pThreshold"],
 	data() {
 		return {
 			squareData: {},
 			canvasHover: false,
-			fontSize: 12,
+			fontSize: 14,
+			plotCurrentPage: 1,
+			boxesPerPage: 0,
 		};
 	},
 	modules: {
@@ -55,7 +63,7 @@ export default Vue.component("gene-finder-heatmap", {
 	},
 	mounted: function () {
 		this.renderHeatmap();
-		//this.renderScaleLegend();
+		this.renderScaleLegend();
 	},
 	beforeDestroy() {},
 	computed: {
@@ -110,10 +118,27 @@ export default Vue.component("gene-finder-heatmap", {
 				}
 			});
 
-			//console.log("massagedData", massagedData);
-
 			return massagedData;
 		},
+
+		renderDataDisplay() {
+			let returnList = [];
+			let boxesPerPage = this.boxesPerPage();
+			let startIndex = this.plotCurrentPage * boxesPerPage - boxesPerPage;
+			let endIndex = this.plotCurrentPage * boxesPerPage - 1;
+			for (let i = startIndex; i <= endIndex; i++) {
+				if (!!this.renderData.columns[i]) {
+					returnList.push(this.renderData.columns[i]);
+				}
+			}
+
+			let displayData = this.renderData;
+
+			displayData.columns = returnList;
+
+			return displayData;
+		},
+
 		boxSize() {
 			return this.fontSize * 1.5;
 		},
@@ -121,10 +146,19 @@ export default Vue.component("gene-finder-heatmap", {
 	watch: {
 		renderData() {
 			this.renderHeatmap();
+			this.renderScaleLegend();
+		},
+		plotCurrentPage() {
+			this.renderHeatmap();
+		},
+		pThreshold() {
+			this.renderHeatmap();
+			this.renderScaleLegend();
 		},
 	},
 	methods: {
 		...uiUtils,
+
 		hidePanel() {
 			uiUtils.hideElement("clicked_cell_value");
 			this.renderHeatmap();
@@ -133,7 +167,88 @@ export default Vue.component("gene-finder-heatmap", {
 			let scaleLegendWrapper = document.getElementById(
 				"heatmap_scale_legend"
 			);
-			let scaleLegendContent =
+
+			let renderData = this.renderData;
+			let scaleLegendContent = "";
+
+			if (renderData.columns.length > 0) {
+				if (
+					renderData.rows.phenotypes &&
+					renderData.rows.phenotypes.length > 0
+				) {
+					if (this.pThreshold.length > 0) {
+						scaleLegendContent +=
+							'<div\
+						class="col-md-12"\
+						style="font-size: 12px; white-space: nowrap"\
+					><strong>P-Value:</strong>';
+
+						let dotMaxR = this.boxSize * 0.75;
+						let spanScale;
+						let steps = this.pThreshold;
+
+						steps.map((s, sindex) => {
+							spanScale =
+								dotMaxR *
+								((steps.length - sindex) / steps.length);
+							scaleLegendContent +=
+								"<div class='sub-legend-steps'> <= ";
+
+							scaleLegendContent +=
+								s +
+								": <span style = 'display: inline-block; background-color: #00000075; width:" +
+								spanScale +
+								"px; height:" +
+								spanScale +
+								"px; border-radius:" +
+								spanScale / 2 +
+								"px;'></span></div>";
+						});
+
+						scaleLegendContent += "</div>";
+					}
+
+					scaleLegendContent +=
+						'<div\
+						class="col-md-12"\
+						style="font-size: 12px; white-space: nowrap"\
+					>\
+						<strong>HuGE Score:</strong> <span class="compelling">Compelling</span>\
+						&gt;= 350 |\
+						<span class="extreme">Extreme</span> &gt;=100 |\
+						<span class="very-strong">Very Strong</span>: &gt;=30 |\
+						<span class="strong">Strong</span>: &gt;=10 |\
+						<span class="moderate">Moderate</span>: &gt;=3 |<span\
+							class="anecdotal"\
+						>\
+							Anecdotal</span\
+						>: &gt;1 | <span class="no-evidence">No Evidence</span>:\
+						&lt;=1\
+					</div>';
+				}
+
+				if (
+					renderData.rows.tissues &&
+					renderData.rows.tissues.length > 0
+				) {
+					scaleLegendContent +=
+						'<div class="col-md-12"\
+						style="font-size: 12px; white-space: nowrap"><strong>Tissue gene expression mean TPM: </strong>Min(' +
+						this.minMaxTPM.min +
+						") <span style='color:#70bfff;font-stretch: ultra-expanded;'>&#9664;</span> Max(" +
+						this.minMaxTPM.max +
+						")</div>";
+				}
+
+				if (renderData.rows.egls && renderData.rows.egls.length > 0) {
+					/*scaleLegendContent +=
+						"<div>Predicted effector genes:</div>";*/
+				}
+			}
+
+			/*
+
+
 				"<div class='scale-legend-main-field'><div class='field-label'>" +
 				this.renderConfig.main.label +
 				":</div> ";
@@ -161,7 +276,6 @@ export default Vue.component("gene-finder-heatmap", {
 					rAndG *= 255;
 					rAndG = rAndG == 0 ? 0 : Formatters.intFormatter(rAndG);
 
-					//console.log("rAndG", rAndG);
 					scaleLegendContent +=
 						"<div class='scale-color' style='background-color: rgb(255," +
 						rAndG +
@@ -208,7 +322,7 @@ export default Vue.component("gene-finder-heatmap", {
 				});
 
 				scaleLegendContent += "</div>";
-			}
+			}*/
 
 			scaleLegendWrapper.innerHTML = scaleLegendContent;
 		},
@@ -225,31 +339,10 @@ export default Vue.component("gene-finder-heatmap", {
 			if (
 				x >= 0 &&
 				y >= 0 &&
-				!!this.squareData[y] &&
-				!!this.squareData[y][x]
+				!!this.squareData[x] &&
+				!!this.squareData[x][y]
 			) {
-				clickedCellValue +=
-					'<span class="field-on-clicked-cell">' +
-					this.renderData.rows[y] +
-					"</sub>";
-				clickedCellValue +=
-					'<span class="field-on-clicked-cell">' +
-					this.renderData.columns[x] +
-					"</sub>";
-				clickedCellValue +=
-					'<span class="content-on-clicked-cell"><b>' +
-					this.renderConfig.main.label +
-					": </b>" +
-					this.squareData[y][x].main.value +
-					"</span>";
-				if (!!this.squareData[y][x].sub) {
-					clickedCellValue +=
-						'<span class="content-on-clicked-cell"><b>' +
-						this.renderConfig.sub.label +
-						": </b>" +
-						this.squareData[y][x].sub.value +
-						"</span>";
-				}
+				clickedCellValue += this.squareData[x][y];
 			}
 
 			let wrapper = document.getElementById("clicked_cell_value");
@@ -310,9 +403,7 @@ export default Vue.component("gene-finder-heatmap", {
 			});
 
 			let cLimit = Math.round(
-				(document.getElementById("heatmapContent").offsetWidth -
-					document.getElementById("heatmapRowsWrapper").offsetWidth -
-					100) /
+				(document.getElementById("heatmapContent").offsetWidth - 300) /
 					(this.fontSize * 1.5)
 			);
 
@@ -321,9 +412,7 @@ export default Vue.component("gene-finder-heatmap", {
 					? cLimit
 					: renderData.columns.length;
 
-			let canvasWidth = this.fontSize * 1.5 * cLimit * 2;
-
-			let canvasHeight = this.boxSize * rowsArr.length * 2;
+			this.boxesPerPage = cLimit;
 
 			document.getElementById("heatmapColumnsWrapper").style.fontSize =
 				this.fontSize + "px";
@@ -332,8 +421,21 @@ export default Vue.component("gene-finder-heatmap", {
 
 			let cIndex = 0;
 
+			let startIndex = this.plotCurrentPage * cLimit - cLimit;
+			let endIndex = this.plotCurrentPage * cLimit - 1;
+
+			endIndex =
+				endIndex >= renderData.columns.length
+					? renderData.columns.length - 1
+					: endIndex;
+
+			let canvasWidth =
+				this.fontSize * 1.5 * (endIndex + 1 - startIndex) * 2;
+
+			let canvasHeight = this.boxSize * rowsArr.length * 2;
+
 			renderData.columns.map((c) => {
-				if (cIndex < cLimit) {
+				if (cIndex >= startIndex && cIndex <= endIndex) {
 					var div = document.createElement("div");
 					var t = document.createTextNode(c);
 					div.appendChild(t);
@@ -344,8 +446,8 @@ export default Vue.component("gene-finder-heatmap", {
 					document
 						.getElementById("heatmapColumnsWrapper")
 						.appendChild(div);
-					cIndex++;
 				}
+				cIndex++;
 			});
 
 			let columnTopSpace =
@@ -379,13 +481,17 @@ export default Vue.component("gene-finder-heatmap", {
 			let renderBoxSize = this.boxSize * 2;
 
 			cIndex = 0;
+			let leftPosIndex = 0;
 
 			renderData.columns.map((c) => {
-				if (cIndex < cLimit) {
+				if (cIndex >= startIndex && cIndex <= endIndex) {
 					let geneData = renderData.data[c];
+					this.squareData[leftPosIndex] = {};
+
 					let rIndex = 0;
 					rowsArr.map((r) => {
-						let left = renderBoxSize * cIndex;
+						let boxContent = "";
+						let left = renderBoxSize * leftPosIndex;
 						let top = renderBoxSize * rIndex;
 
 						let rType = r.type;
@@ -409,40 +515,39 @@ export default Vue.component("gene-finder-heatmap", {
 								? "#70bfff"
 								: "#007bff";
 
+						if (X == cIndex && Y == rIndex) {
+							ctx.beginPath();
+							ctx.rect(left, top, renderBoxSize, renderBoxSize);
+							ctx.fillStyle = "black";
+							ctx.fill();
+
+							ctx.beginPath();
+							ctx.rect(
+								left + 2,
+								top + 2,
+								renderBoxSize - 4,
+								renderBoxSize - 4
+							);
+							ctx.fillStyle = "#ffffff";
+							ctx.fill();
+						}
+
 						if (rType == "phenotype") {
-							if (X == cIndex && Y == rIndex) {
-								ctx.beginPath();
-								ctx.rect(
-									left,
-									top,
-									renderBoxSize,
-									renderBoxSize
-								);
-								ctx.fillStyle = "black";
-								ctx.fill();
+							boxContent +=
+								"<div>P-Value: " +
+								geneData[rValue + ":pValue"] +
+								"</div>";
+							boxContent +=
+								"<div>HuGE Score: " +
+								geneData[rValue + ":huge"] +
+								"</div>";
 
-								ctx.beginPath();
-								ctx.rect(
-									left + 2,
-									top + 2,
-									renderBoxSize - 4,
-									renderBoxSize - 4
-								);
-								ctx.fillStyle = colorString;
-								ctx.fill();
-							} else {
-								ctx.beginPath();
-								ctx.rect(
-									left,
-									top,
-									renderBoxSize,
-									renderBoxSize
-								);
-								ctx.fillStyle = colorString;
-								ctx.fill();
-							}
+							ctx.beginPath();
+							ctx.rect(left, top, renderBoxSize, renderBoxSize);
+							ctx.fillStyle = colorString;
+							ctx.fill();
 
-							let steps = [0.001, 0.05];
+							let steps = this.pThreshold;
 							let subDirection = "negative";
 							let dotMaxR = (renderBoxSize * 0.75) / 2;
 							let centerPos = renderBoxSize / 2;
@@ -473,6 +578,10 @@ export default Vue.component("gene-finder-heatmap", {
 						}
 
 						if (rType == "tissue") {
+							boxContent +=
+								"<div>Mean TPM: " +
+								Formatters.pValueFormatter(geneData[rValue]) +
+								"</div>";
 							let tpmPercent =
 								(geneData[rValue] - this.minMaxTPM.min) /
 								(this.minMaxTPM.max - this.minMaxTPM.min);
@@ -481,46 +590,29 @@ export default Vue.component("gene-finder-heatmap", {
 							boxHeight = boxHeight < 1 ? 1 : boxHeight;
 							let newTop = top + renderBoxSize - boxHeight;
 
-							console.log("boxHeight", boxHeight);
+							//console.log("boxHeight", boxHeight);
 
-							if (X == cIndex && Y == rIndex) {
-								ctx.beginPath();
-								ctx.rect(
-									left,
-									newTop,
-									renderBoxSize,
-									boxHeight
-								);
-								ctx.fillStyle = "black";
-								ctx.fill();
-
-								ctx.beginPath();
-								ctx.rect(
-									left + 2,
-									top + 2,
-									renderBoxSize - 4,
-									renderBoxSize - 4
-								);
-								ctx.fillStyle = colorString;
-								ctx.fill();
-							} else {
-								ctx.beginPath();
-								ctx.rect(
-									left,
-									newTop,
-									renderBoxSize,
-									boxHeight
-								);
-								ctx.fillStyle = colorString;
-								ctx.fill();
-							}
+							ctx.beginPath();
+							ctx.rect(left, newTop, renderBoxSize, boxHeight);
+							ctx.fillStyle = colorString;
+							ctx.fill();
 						}
 
 						if (rType == "egl") {
+							if (!!this.eglsMap[geneData[rValue]]) {
+								// this condition needed in case egl data gets loaded later than rendering
+								boxContent +=
+									"<div>" +
+									this.eglsMap[geneData[rValue]]["Title"] +
+									". " +
+									this.eglsMap[geneData[rValue]]["Citation"] +
+									"</div>";
+							}
 							if (!!geneData[rValue]) {
 								let centerPos = renderBoxSize / 2;
 								let dotR = renderBoxSize / 8;
 
+								ctx.fillStyle = "#007bff";
 								ctx.lineWidth = 0;
 								ctx.beginPath();
 								ctx.arc(
@@ -534,8 +626,11 @@ export default Vue.component("gene-finder-heatmap", {
 							}
 						}
 
+						this.squareData[leftPosIndex][rIndex] = boxContent;
+
 						rIndex++;
 					});
+					leftPosIndex++;
 				}
 				cIndex++;
 			});

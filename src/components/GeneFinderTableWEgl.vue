@@ -27,8 +27,13 @@
 				:heatmapData="groupedAssociations"
 				:phenotypes="phenotypes"
 				:minMaxTPM="minMaxTPM"
+				:eglsMap="eglsMap"
+				:pThreshold="pThreshold"
 			></gene-finder-heatmap>
 		</div>
+
+		<pre></pre>
+
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
@@ -317,6 +322,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 		"hugeScores",
 		"phenotypes",
 		"egls",
+		"eglsMap",
 		"tissues",
 		"minMaxTPM",
 		"phenotypeMap",
@@ -325,6 +331,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 		"showPlot",
 		"showChiSquared",
 		"rowsPerPage",
+		"pThreshold",
 	],
 	components: {
 		Documentation,
