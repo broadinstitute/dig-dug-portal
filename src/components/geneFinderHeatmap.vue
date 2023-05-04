@@ -180,7 +180,7 @@ export default Vue.component("gene-finder-heatmap", {
 						scaleLegendContent +=
 							'<div\
 						class="col-md-12"\
-						style="font-size: 12px; white-space: nowrap"\
+						style="font-size: 14px; white-space: nowrap"\
 					><strong>P-Value:</strong>';
 
 						let dotMaxR = this.boxSize * 0.75;
@@ -211,7 +211,7 @@ export default Vue.component("gene-finder-heatmap", {
 					scaleLegendContent +=
 						'<div\
 						class="col-md-12"\
-						style="font-size: 12px; white-space: nowrap"\
+						style="font-size: 14px; white-space: nowrap"\
 					>\
 						<strong>HuGE Score:</strong> <span class="compelling">Compelling</span>\
 						&gt;= 350 |\
@@ -233,7 +233,7 @@ export default Vue.component("gene-finder-heatmap", {
 				) {
 					scaleLegendContent +=
 						'<div class="col-md-12"\
-						style="font-size: 12px; white-space: nowrap"><strong>Tissue gene expression mean TPM: </strong>Min(' +
+						style="font-size: 14px; white-space: nowrap"><strong>Tissue gene expression mean TPM: </strong>Min(' +
 						this.minMaxTPM.min +
 						") <span style='color:#70bfff;font-stretch: ultra-expanded;'>&#9664;</span> Max(" +
 						this.minMaxTPM.max +
@@ -245,84 +245,6 @@ export default Vue.component("gene-finder-heatmap", {
 						"<div>Predicted effector genes:</div>";*/
 				}
 			}
-
-			/*
-
-
-				"<div class='scale-legend-main-field'><div class='field-label'>" +
-				this.renderConfig.main.label +
-				":</div> ";
-
-			let lowValue = this.renderConfig.main.low;
-			let middleValue = this.renderConfig.main.middle;
-			let highValue = this.renderConfig.main.high;
-
-			if (lowValue != middleValue) {
-			}
-
-			if (highValue != middleValue) {
-				let colorStep = (highValue - middleValue) / 5;
-
-				let scaleMiddle =
-					middleValue == 0
-						? "0.00"
-						: Formatters.floatFormatter(middleValue);
-				scaleLegendContent +=
-					"<div class='scale-legend-main-colors'><div class='scale-color' style='background-color: rgb(255,255,255)'>" +
-					scaleMiddle +
-					"</div>";
-				for (let i = 1; i < 6; i++) {
-					let rAndG = 1 - i * 0.2;
-					rAndG *= 255;
-					rAndG = rAndG == 0 ? 0 : Formatters.intFormatter(rAndG);
-
-					scaleLegendContent +=
-						"<div class='scale-color' style='background-color: rgb(255," +
-						rAndG +
-						"," +
-						rAndG +
-						")'>" +
-						Formatters.floatFormatter(colorStep * i) +
-						"</div>";
-				}
-				scaleLegendContent += "</div></div>";
-			}
-
-			if (!!this.renderConfig.sub) {
-				scaleLegendContent +=
-					"<div class='scale-legend-sub-field'><div class='field-label'>" +
-					this.renderConfig.sub.label +
-					"</div>:";
-				let steps = this.renderConfig.sub["value range"];
-				let stepDirection = this.renderConfig.sub.direction;
-				let dotMaxR = this.boxSize * 0.75;
-				let spanScale;
-
-				steps.map((s, sindex) => {
-					if (stepDirection == "positive") {
-						spanScale = dotMaxR * ((sindex + 1) / steps.length);
-						scaleLegendContent +=
-							"<div class='sub-legend-steps'> >= ";
-					} else {
-						spanScale =
-							dotMaxR * ((steps.length - sindex) / steps.length);
-						scaleLegendContent +=
-							"<div class='sub-legend-steps'> <= ";
-					}
-
-					scaleLegendContent +=
-						s +
-						": <span style = 'display: inline-block; background-color: #00000075; width:" +
-						spanScale +
-						"px; height:" +
-						spanScale +
-						"px; border-radius:" +
-						spanScale / 2 +
-						"px;'></span></div>";
-				});
-
-				scaleLegendContent += "</div>";
-			}*/
 
 			scaleLegendWrapper.innerHTML = scaleLegendContent;
 		},
@@ -634,114 +556,6 @@ export default Vue.component("gene-finder-heatmap", {
 				}
 				cIndex++;
 			});
-
-			/*this.renderData.rows.map((r) => {
-				this.squareData[rIndex] = {};
-				let cIndex = 0;
-				this.renderData.columns.map((c) => {
-					let mainValue = this.renderData[r][c].main;
-					let left = renderBoxSize * cIndex;
-					let top = renderBoxSize * rIndex;
-
-					this.squareData[rIndex][cIndex] = {};
-					this.squareData[rIndex][cIndex]["main"] = {
-						field: this.renderConfig.main.field,
-						value: this.renderData[r][c].main,
-					};
-					if (!!this.renderConfig.sub) {
-						this.squareData[rIndex][cIndex]["sub"] = {
-							field: this.renderConfig.sub.field,
-							value: this.renderData[r][c].sub,
-						};
-					}
-					
-					let boxColors = {}
-
-					if (X == cIndex && Y == rIndex) {
-						ctx.beginPath();
-						ctx.rect(left, top, renderBoxSize, renderBoxSize);
-						ctx.fillStyle = "black";
-						ctx.fill();
-
-						ctx.beginPath();
-						ctx.rect(
-							left + 2,
-							top + 2,
-							renderBoxSize - 4,
-							renderBoxSize - 4
-						);
-						ctx.fillStyle = colorString;
-						ctx.fill();
-					} else {
-						ctx.beginPath();
-						ctx.rect(left, top, renderBoxSize, renderBoxSize);
-						ctx.fillStyle = colorString;
-						ctx.fill();
-					}
-
-					if (!!this.renderConfig.sub) {
-						let steps = this.renderConfig.sub["value range"];
-						let subDirection = this.renderConfig.sub.direction;
-						let dotMaxR = (renderBoxSize * 0.75) / 2;
-						let centerPos = renderBoxSize / 2;
-
-						let stepVal = 0;
-						let subValue = this.renderData[r][c].sub;
-						let dotR;
-
-						if (this.renderConfig.sub.type == "steps") {
-							let dotRUnit = dotMaxR / steps.length;
-							if (subDirection == "positive") {
-								for (let i = 0; i <= steps.length - 1; i++) {
-									stepVal += subValue >= steps[i] ? 1 : 0;
-								}
-							} else {
-								for (let i = steps.length - 1; i >= 0; i--) {
-									stepVal += subValue <= steps[i] ? 1 : 0;
-								}
-							}
-							dotR = dotRUnit * stepVal;
-						} else if (this.renderConfig.sub.type == "scale") {
-							let scaleRange = steps[1] - steps[0];
-							if (subDirection == "positive") {
-								subValue -= steps[0];
-								stepVal =
-									subValue <= steps[0]
-										? 0
-										: subValue >= steps[1]
-										? 1
-										: subValue / scaleRange;
-							} else {
-								subValue -= steps[0];
-								stepVal =
-									subValue >= steps[1]
-										? 0
-										: subValue <= steps[0]
-										? 1
-										: (steps[1] - subValue) / scaleRange;
-							}
-
-							dotR = dotMaxR * stepVal;
-						}
-						ctx.fillStyle = "#00000075";
-						ctx.lineWidth = 0;
-						ctx.beginPath();
-						ctx.arc(
-							left + centerPos,
-							top + centerPos,
-							dotR,
-							0,
-							2 * Math.PI
-						);
-						ctx.fill();
-					}
-
-					cIndex++;
-				});
-				rIndex++;
-			});*/
-
-			//console.log(this.squareData);
 		},
 	},
 });

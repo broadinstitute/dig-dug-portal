@@ -64,7 +64,7 @@ new Vue({
             geneFinderSearchCriterion: [],
             geneFinderAssociationsMap: {},
             minMaxTPM: null,
-            pThresholdVal: "0.001, 0.05"
+            pThresholdVal: "1e-5, 0.001, 0.05"
         };
     },
 
@@ -74,23 +74,27 @@ new Vue({
 
     computed: {
         pThreshold() {
+            let threshold = []
+            if (this.pThresholdVal != "") {
+                threshold = this.pThresholdVal.split(",").map(v => Number(v.trim()))
+                console.log(threshold);
+                threshold = threshold.sort(function (a, b) {
+                    let A = a;
+                    let B = b;
 
-            let threshold = this.pThresholdVal.split(",").map(v => v.trim())
+                    let comparison = 0;
+                    if (A > B) {
+                        comparison = 1;
+                    } else if (A < B) {
+                        comparison = -1;
+                    }
 
-            threshold = threshold.sort(function (a, b) {
-                let A = a;
-                let B = b;
 
-                let comparison = 0;
-                if (A > B) {
-                    comparison = 1;
-                } else if (A < B) {
-                    comparison = -1;
-                }
+                    return comparison;
 
-                return comparison;
+                });
+            }
 
-            });
 
             return threshold;
         },
@@ -455,7 +459,7 @@ new Vue({
         },
 
         /*minMaxTPM() {
- 
+         
             let data = this.$store.state.tissueGeneExpression;
             if (data.length > 0) {
                 let minMax = { min: Number(data[1].meanTpm), max: Number(data[1].meanTpm) };
@@ -463,11 +467,11 @@ new Vue({
                     minMax.min = d.meanTpm < minMax.min ? d.meanTpm : minMax.min;
                     minMax.max = d.meanTpm > minMax.max ? d.meanTpm : minMax.max;
                 });
- 
+         
                 console.log(minMax, data);
- 
+         
                 return minMax;
- 
+         
             } else {
                 return null
             }

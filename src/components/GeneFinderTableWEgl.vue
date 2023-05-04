@@ -31,9 +31,7 @@
 				:pThreshold="pThreshold"
 			></gene-finder-heatmap>
 		</div>
-
 		<pre></pre>
-
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
@@ -52,6 +50,22 @@
 							>
 								{{ phenotypeMap[phenotype].description }}
 							</span>
+						</template>
+					</div>
+					<div
+						class="col-md-12"
+						style="font-size: 12px; white-space: nowrap"
+						v-if="pThreshold.length > 0"
+					>
+						P-Value:
+						<template v-for="tValue in pThreshold">
+							<span
+								:style="
+									'margin-right:10px; background-color:' +
+									getPColor(tValue)
+								"
+								>&lt;={{ tValue }}</span
+							>
 						</template>
 					</div>
 					<div
@@ -183,13 +197,20 @@
 							</td>
 							<td class="no-padding text-center">
 								<template v-for="phenotype in phenotypes">
-									<div
-										class="multi-values-div"
-										:class="
+									<!--:class="
 											itemValue[phenotype + ':pValue'] <
 											1e-5
 												? 'variant-table-cell high'
 												: ''
+										"
+										-->
+									<div
+										class="multi-values-div"
+										:style="
+											'background-color:' +
+											getPColor(
+												itemValue[phenotype + ':pValue']
+											)
 										"
 										:title="
 											phenotypeMap[phenotype].description
@@ -440,7 +461,25 @@ export default Vue.component("gene-finder-w-egl-table", {
 		intFormatter: Formatters.intFormatter,
 		floatFormatter: Formatters.floatFormatter,
 		pValueFormatter: Formatters.pValueFormatter,
+		getPColor(P) {
+			//#70bfff
+			let thresholds = this.pThreshold;
+			let tUnit = 1 / thresholds.length;
+			let tMin = thresholds[0];
+			let tMax = thresholds[thresholds.length - 1];
 
+			let pNumber = 1;
+
+			thresholds.map((t) => {
+				pNumber -= P > t ? tUnit : 0;
+			});
+
+			let pColor = "rgba(112, 191, 255, " + pNumber + ")";
+
+			//console.log(pNumber, pColor);
+
+			return pColor;
+		},
 		phenotypePValueColumn(phenotype) {
 			return `cell(${phenotype}:pValue)`;
 		},

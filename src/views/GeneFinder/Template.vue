@@ -32,7 +32,7 @@
 					>
 						<!-- Phenotype Selector -->
 						<filter-enumeration-control
-							class="filter-col-md"
+							class="filter-col-sm"
 							:field="'phenotype'"
 							:options="
 								$parent.secondaryPhenotypeOptions.map(
@@ -57,7 +57,7 @@
 						</filter-enumeration-control>
 						<!-- tissues -->
 						<filter-enumeration-control
-							class="filter-col-md"
+							class="filter-col-sm"
 							:field="'tissue'"
 							:options="
 								$parent.tissueOptions.map(
@@ -71,13 +71,13 @@
 							"
 						>
 							<div>
-								<strong>View tissue gene expression</strong>
+								<strong>Tissue gene expression</strong>
 							</div>
 						</filter-enumeration-control>
 
 						<!-- PEGL -->
 						<filter-enumeration-control
-							class="filter-col-md"
+							class="filter-col-sm"
 							:field="'egl'"
 							:options="
 								$parent.eglsOptions.map((egl) => egl['Page ID'])
@@ -94,9 +94,7 @@
 							"
 						>
 							<div>
-								<strong
-									>Filter by predicted effector genes</strong
-								>
+								<strong>Predicted effector genes</strong>
 							</div>
 						</filter-enumeration-control>
 
@@ -110,6 +108,17 @@
 								<strong>P-Value (&le;)</strong>
 							</div>
 						</filter-pvalue-control>
+						<div
+							class="col filter-col-sm filter-col-sm"
+							style="padding: 5px 7px"
+						>
+							<div><strong>P-Value thresholds</strong></div>
+							<input
+								type="text"
+								class="form-control"
+								v-model="$parent.pThresholdVal"
+							/>
+						</div>
 						<filter-greater-control
 							class="filter-col-sm"
 							:field="'HuGE'"
@@ -126,17 +135,6 @@
 								<strong>Tissue mean TPM (&ge;)</strong>
 							</div>
 						</filter-greater-control>
-						<div
-							class="col filter-col-sm filter-col-sm"
-							style="padding: 5px 7px"
-						>
-							<div><strong>P-Value thresholds</strong></div>
-							<input
-								type="text"
-								class="form-control"
-								v-model="$parent.pThresholdVal"
-							/>
-						</div>
 					</criterion-list-group>
 					<pre></pre>
 					<div
