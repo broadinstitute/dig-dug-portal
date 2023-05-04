@@ -21,18 +21,18 @@
 						style="margin-bottom: 30px"
 						name="tools.genefinder.subheader"
 					></documentation>
-
 					<h4 class="card-title">
 						Build search criteria and filter results
 					</h4>
 
 					<criterion-list-group
+						v-if="$parent.eglsMap && $parent.tissuesMap"
 						v-model="$parent.geneFinderSearchCriterion"
 						:header="'Search Criterion'"
 					>
 						<!-- Phenotype Selector -->
 						<filter-enumeration-control
-							class="filter-col-lg"
+							class="filter-col-sm"
 							:field="'phenotype'"
 							:options="
 								$parent.secondaryPhenotypeOptions.map(
@@ -55,8 +55,29 @@
 								<strong>Select phenotypes</strong>
 							</div>
 						</filter-enumeration-control>
+						<!-- tissues -->
 						<filter-enumeration-control
-							class="filter-col-lg"
+							class="filter-col-sm"
+							:field="'tissue'"
+							:options="
+								$parent.tissueOptions.map(
+									(tissue) => tissue['value']
+								)
+							"
+							:multiple="true"
+							:disableSort="true"
+							:labelFormatter="
+								(tissue) => $parent.tissuesMap[tissue]['name']
+							"
+						>
+							<div>
+								<strong>Tissue gene expression</strong>
+							</div>
+						</filter-enumeration-control>
+
+						<!-- PEGL -->
+						<filter-enumeration-control
+							class="filter-col-sm"
 							:field="'egl'"
 							:options="
 								$parent.eglsOptions.map((egl) => egl['Page ID'])
@@ -73,12 +94,11 @@
 							"
 						>
 							<div>
-								<strong
-									>Filter by predicted effector genes</strong
-								>
+								<strong>Predicted effector genes</strong>
 							</div>
 						</filter-enumeration-control>
 
+						<div class="col divider"></div>
 						<!-- pValue filter -->
 						<filter-pvalue-control
 							class="filter-col-sm"
@@ -88,21 +108,55 @@
 								<strong>P-Value (&le;)</strong>
 							</div>
 						</filter-pvalue-control>
+						<div
+							class="col filter-col-sm filter-col-sm"
+							style="padding: 5px 7px"
+						>
+							<div><strong>P-Value thresholds</strong></div>
+							<input
+								type="text"
+								class="form-control"
+								v-model="$parent.pThresholdVal"
+							/>
+						</div>
+						<filter-greater-control
+							class="filter-col-sm"
+							:field="'HuGE'"
+						>
+							<div>
+								<strong>HuGE Score (&ge;)</strong>
+							</div>
+						</filter-greater-control>
+						<filter-greater-control
+							class="filter-col-sm"
+							:field="'TPM'"
+						>
+							<div>
+								<strong>Tissue mean TPM (&ge;)</strong>
+							</div>
+						</filter-greater-control>
 					</criterion-list-group>
-					<div>
+					<pre></pre>
+					<div
+						v-if="
+							$parent.geneFinderPhenotypes.length > 0 &&
+							$parent.combined.length > 0
+						"
+					>
 						<gene-finder-w-egl-table
-							v-show="
-								$parent.geneFinderPhenotypes.length > 0 &&
-								$parent.combined.length > 0
-							"
 							:phenotypes="$parent.geneFinderPhenotypes"
 							:egls="$parent.geneFinderEgls"
+							:eglsMap="$parent.eglsMap"
+							:tissues="$store.state.tissueGeneExpression"
+							:minMaxTPM="$parent.minMaxTPM"
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:associations="$parent.combined"
+							:hugeScores="$store.state.hugeScores"
 							:rowsPerPage="20"
 							:exclusive="true"
 							:showPlot="true"
 							:showChiSquared="true"
+							:pThreshold="$parent.pThreshold"
 						></gene-finder-w-egl-table>
 					</div>
 				</div>

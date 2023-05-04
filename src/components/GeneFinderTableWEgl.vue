@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div v-show="showPlot">
+		<!--<div v-show="showPlot">
 			<manhattan-plot
 				:associations="combinedAssociations"
 				:phenotypes="phenotypes"
@@ -19,18 +19,97 @@
 					>
 				</b>
 			</center>
-		</div>
+		</div>-->
 
+		<div v-show="showPlot">
+			<gene-finder-heatmap
+				v-if="tableData.length > 0"
+				:heatmapData="groupedAssociations"
+				:phenotypes="phenotypes"
+				:minMaxTPM="minMaxTPM"
+				:eglsMap="eglsMap"
+				:pThreshold="pThreshold"
+			></gene-finder-heatmap>
+		</div>
+		<pre></pre>
 		<div v-if="tableData.length > 0">
-			<div class="text-right mb-2">
-				<csv-download
-					:data="groupedAssociations"
-					filename="gene_table"
-				></csv-download>
+			<div class="row">
+				<div class="col-md-10">
+					<div class="col-md-12">
+						<span>
+							Matching genes:
+							{{ groupedAssociations.length }}
+						</span>
+						<template v-for="(phenotype, i) in phenotypes">
+							<span
+								:key="phenotype"
+								class="badge badge-secondary badge-pill btn filter-pill-x reference"
+								:class="'color-' + (i + 1)"
+								v-if="phenotypeMap[phenotype]"
+								style="color: white"
+							>
+								{{ phenotypeMap[phenotype].description }}
+							</span>
+						</template>
+					</div>
+					<div
+						class="col-md-12"
+						style="font-size: 12px; white-space: nowrap"
+						v-if="pThreshold.length > 0"
+					>
+						P-Value:
+						<template v-for="tValue in pThreshold">
+							<span
+								:style="
+									'margin-right:10px; background-color:' +
+									getPColor(tValue)
+								"
+								>&lt;={{ tValue }}</span
+							>
+						</template>
+					</div>
+					<div
+						class="col-md-12"
+						style="font-size: 16px; white-space: nowrap"
+						v-if="!!minMaxTPM"
+						v-html="
+							'Tissue gene expression mean TPM: Min(' +
+							minMaxTPM.min +
+							') <span style=\'color:#70bfff;font-stretch: ultra-expanded;\'>&#9664;</span> Max(' +
+							minMaxTPM.max +
+							')'
+						"
+					></div>
+					<div
+						class="col-md-12"
+						style="font-size: 12px; white-space: nowrap"
+					>
+						HuGE Score: <span class="compelling">Compelling</span>
+						&gt;= 350 |
+						<span class="extreme">Extreme</span> &gt;=100 |
+						<span class="very-strong">Very Strong</span>: &gt;=30 |
+						<span class="strong">Strong</span>: &gt;=10 |
+						<span class="moderate">Moderate</span>: &gt;=3 |<span
+							class="anecdotal"
+						>
+							Anecdotal</span
+						>: &gt;1 | <span class="no-evidence">No Evidence</span>:
+						&lt;=1
+					</div>
+				</div>
+				<div class="text-right col-md-2">
+					<csv-download
+						:data="groupedAssociations"
+						filename="gene_table"
+					></csv-download>
+				</div>
 			</div>
-			<table class="table b-table table-hover table-sm">
+
+			<table
+				class="table b-table table-hover table-sm table-striped gf-table"
+			>
 				<thead>
-					<tr>
+					<!--<tr>
 						<th
 							:colspan="!!showChiSquared ? (!!ifEgls ? 3 : 2) : 1"
 						>
@@ -38,6 +117,7 @@
 								Matching genes:
 								{{ groupedAssociations.length }}
 							</span>
+							
 						</th>
 						<th
 							v-for="(phenotype, i) in phenotypes"
@@ -54,15 +134,23 @@
 								}}{{ ": " + genesPerPhenotypes[phenotype] }}
 							</span>
 						</th>
-					</tr>
+					</tr>-->
 					<tr>
 						<th>Gene</th>
-						<th>P-Value(Χ²)</th>
 						<th v-if="egls.length > 0">Effector gene lists</th>
-						<template v-for="phenotype in phenotypes">
-							<th>P-Value</th>
-							<th>Samples</th>
-						</template>
+						<th v-if="tissues.length > 0">
+							Tissue Gene Expression
+							<small>(Mean TPM : Samples)</small>
+						</th>
+						<th>P-Value(Χ²)</th>
+						<th class="thin-cell no-padding"></th>
+						<th>P-Value</th>
+						<!--<th class="thin-cell no-padding"></th>-->
+						<th>HuGE Score <small>(Evidence Range)</small></th>
+						<!--<th class="thin-cell no-padding"></th>-->
+						<th>Samples</th>
+
+						<th>Variant Sifter</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -72,41 +160,146 @@
 						) in groupedAssociationsDisplay"
 					>
 						<tr>
-							<td>
+							<td class="text-center">
 								<a
 									:href="`/gene.html?gene=${itemValue.gene}`"
 									>{{ itemValue.gene }}</a
 								>
 							</td>
-							<td>
-								{{ pValueFormatter(itemValue.chiSquared) }}
-							</td>
 							<td
+								class="text-center"
 								v-if="!!itemValue.egls"
 								v-html="itemValue.egls"
 							></td>
-							<template v-for="phenotype in phenotypes">
-								<td
-									:class="
-										itemValue[phenotype + ':pValue'] < 1e-5
-											? 'variant-table-cell high'
-											: ''
-									"
-								>
-									{{
-										pValueFormatter(
-											itemValue[phenotype + ":pValue"]
-										)
-									}}
-								</td>
-								<td>
-									{{
-										intFormatter(
-											itemValue[phenotype + ":subjects"]
-										)
-									}}
-								</td>
-							</template>
+							<td
+								v-if="tissues.length > 0"
+								class="text-center percentage-bg"
+								:style="
+									'background-image: url(../images/blue_block.png) !important; background-size: ' +
+									itemValue.tpmPercent +
+									'% 20px;'
+								"
+								v-html="itemValue.tissue"
+							></td>
+							<td class="text-center">
+								{{ pValueFormatter(itemValue.chiSquared) }}
+							</td>
+
+							<td class="thin-cell no-padding">
+								<template v-for="(phenotype, i) in phenotypes">
+									<div
+										class="multi-values-div reference"
+										:class="'color-' + (i + 1)"
+									>
+										&nbsp;
+									</div>
+								</template>
+							</td>
+							<td class="no-padding text-center">
+								<template v-for="phenotype in phenotypes">
+									<!--:class="
+											itemValue[phenotype + ':pValue'] <
+											1e-5
+												? 'variant-table-cell high'
+												: ''
+										"
+										-->
+									<div
+										class="multi-values-div"
+										:style="
+											'background-color:' +
+											getPColor(
+												itemValue[phenotype + ':pValue']
+											)
+										"
+										:title="
+											phenotypeMap[phenotype].description
+										"
+									>
+										{{
+											pValueFormatter(
+												itemValue[phenotype + ":pValue"]
+											)
+										}}
+									</div>
+								</template>
+							</td>
+
+							<td class="no-padding text-center">
+								<template v-for="phenotype in phenotypes">
+									<div
+										class="multi-values-div"
+										:class="
+											hugeRange(
+												itemValue[phenotype + ':huge']
+											)
+										"
+										:title="
+											phenotypeMap[phenotype].description
+										"
+									>
+										{{
+											intFormatter(
+												itemValue[phenotype + ":huge"]
+											)
+										}}
+										<span class="evidence-range"
+											>({{
+												hugeRange(
+													itemValue[
+														phenotype + ":huge"
+													]
+												)
+											}})</span
+										>
+									</div>
+								</template>
+							</td>
+
+							<td class="no-padding text-right">
+								<template v-for="phenotype in phenotypes">
+									<div
+										class="multi-values-div"
+										:title="
+											phenotypeMap[phenotype].description
+										"
+									>
+										{{
+											intFormatter(
+												itemValue[
+													phenotype + ":subjects"
+												]
+											)
+										}}
+									</div>
+								</template>
+							</td>
+
+							<td class="no-padding text-center">
+								<template v-for="phenotype in phenotypes">
+									<div
+										class="multi-values-div"
+										:title="
+											phenotypeMap[phenotype].description
+										"
+									>
+										<a
+											:href="
+												'/research.html?pageid=kp_variant_sifter&phenotype=' +
+												phenotype +
+												'&region=' +
+												itemValue.chromosome +
+												':' +
+												itemValue.start +
+												'-' +
+												itemValue.end
+											"
+											class="vs-view"
+											>View</a
+										>
+									</div>
+								</template>
+							</td>
 						</tr>
 					</template>
 				</tbody>
@@ -134,7 +327,7 @@ import Formatters from "@/utils/formatters";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
-import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot.vue";
+import GeneFinderHeatmap from "@/components/geneFinderHeatmap.vue";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -147,20 +340,25 @@ import CsvDownload from "@/components/CsvDownload";
 export default Vue.component("gene-finder-w-egl-table", {
 	props: [
 		"associations",
+		"hugeScores",
 		"phenotypes",
 		"egls",
+		"eglsMap",
+		"tissues",
+		"minMaxTPM",
 		"phenotypeMap",
 		"filter",
 		"exclusive",
 		"showPlot",
 		"showChiSquared",
 		"rowsPerPage",
+		"pThreshold",
 	],
 	components: {
 		Documentation,
 		TooltipDocumentation,
-		EffectorGenesMPlot,
 		CsvDownload,
+		GeneFinderHeatmap,
 	},
 	data() {
 		return {
@@ -187,97 +385,11 @@ export default Vue.component("gene-finder-w-egl-table", {
 			}
 		},
 
-		/*fields() {
-			let fields = this.baseFields;
-
-			// add the chi squared column
-			if (!!this.showChiSquared) {
-				fields.push({
-					key: "chiSquared",
-					label: "P-Value(Χ²)",
-					formatter: this.pValueFormatter,
-				});
-			}
-
-			if (this.egls.length > 0) {
-				fields.push({
-					key: `egls`,
-					label: "Predicted effector genes (PMID)",
-				});
-			}
-
-			// add phenotype-specific columns
-			for (let i in this.phenotypes) {
-				let p = this.phenotypes[i];
-
-				fields = fields.concat([
-					{
-						key: `${p}:pValue`,
-						label: `P-Value`,
-						tdClass(x) {
-							return !!x && x < 1e-5
-								? "variant-table-cell high"
-								: "";
-						},
-						sortable: true,
-					},
-					{
-						key: `${p}:subjects`,
-						label: "Samples",
-					},
-				]);
-			}
-
-			return fields;
-		},*/
-
 		groupedAssociations() {
-			let data = [];
 			let groups = {};
 			let associations = this.tableData;
 
-			for (let i in associations) {
-				let r = associations[i];
-				let dataIndex = groups[r.gene];
-
-				if (!(r.gene in groups)) {
-					dataIndex = data.length;
-					groups[r.gene] = dataIndex;
-
-					data.push({
-						phenotypes: [],
-						gene: r.gene,
-						chromosome: r.chromosome,
-						start: r.start,
-						end: r.end,
-						minP: 1.0,
-						egls: r.egls,
-					});
-				}
-
-				// push the phenotype
-				data[dataIndex].phenotypes.push(r.phenotype);
-
-				// add the phenotype columns
-				data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
-				data[dataIndex][`${r.phenotype}:zStat`] = r.zStat;
-				data[dataIndex][`${r.phenotype}:nParam`] = r.nParam;
-				data[dataIndex][`${r.phenotype}:subjects`] = r.subjects;
-
-				// lowest p-value across all phenotypes
-				if (!!r.pValue && r.pValue < data[dataIndex].minP) {
-					data[dataIndex].minP = r.pValue;
-				}
-			}
-
-			// remove entries with missing p-values
-			if (this.exclusive) {
-				let phenotypes = this.phenotypes;
-
-				data = data.filter((row) => {
-					return phenotypes.every((p) => !!row[`${p}:pValue`]);
-				});
-			}
+			let data = associations; //Object.values(groups);
 
 			// calculate the chiSquared for each row
 
@@ -288,7 +400,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 
 			return data;
 		},
-
 		groupedAssociationsDisplay() {
 			let returnList = [];
 			let startIndex =
@@ -296,6 +407,16 @@ export default Vue.component("gene-finder-w-egl-table", {
 			let endIndex = this.currentPage * this.rowsPerPage - 1;
 			for (let i = startIndex; i <= endIndex; i++) {
 				if (!!this.groupedAssociations[i]) {
+					if (!!this.minMaxTPM) {
+						let tpmPercent =
+							((this.groupedAssociations[i].maxTPM -
+								this.minMaxTPM.min) /
+								(this.minMaxTPM.max - this.minMaxTPM.min)) *
+							100;
+
+						this.groupedAssociations[i]["tpmPercent"] = tpmPercent;
+					}
+
 					returnList.push(this.groupedAssociations[i]);
 				}
 			}
@@ -318,7 +439,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 			return content;
 		},
 
-		combinedAssociations() {
+		/*combinedAssociations() {
 			let groups = [];
 
 			this.groupedAssociations.forEach((a) => {
@@ -333,14 +454,32 @@ export default Vue.component("gene-finder-w-egl-table", {
 			});
 
 			return groups;
-		},
+		},*/
 	},
 
 	methods: {
 		intFormatter: Formatters.intFormatter,
 		floatFormatter: Formatters.floatFormatter,
 		pValueFormatter: Formatters.pValueFormatter,
+		getPColor(P) {
+			//#70bfff
+			let thresholds = this.pThreshold;
+			let tUnit = 1 / thresholds.length;
+			let tMin = thresholds[0];
+			let tMax = thresholds[thresholds.length - 1];
 
+			let pNumber = 1;
+
+			thresholds.map((t) => {
+				pNumber -= P > t ? tUnit : 0;
+			});
+
+			let pColor = "rgba(112, 191, 255, " + pNumber + ")";
+
+			//console.log(pNumber, pColor);
+
+			return pColor;
+		},
 		phenotypePValueColumn(phenotype) {
 			return `cell(${phenotype}:pValue)`;
 		},
@@ -368,6 +507,24 @@ export default Vue.component("gene-finder-w-egl-table", {
 			let pdf = Chi.pdf(X, 2 * this.phenotypes.length);
 
 			return 2 * pdf;
+		},
+		hugeRange(x) {
+			let range =
+				x >= 350
+					? "compelling"
+					: x >= 100
+					? "extreme"
+					: x >= 30
+					? "very-strong"
+					: x >= 10
+					? "strong"
+					: x >= 3
+					? "moderate"
+					: x > 1
+					? "anecdotal"
+					: "no-evidence";
+
+			return range;
 		},
 	},
 });
@@ -403,5 +560,81 @@ export default Vue.component("gene-finder-w-egl-table", {
 
 .gene-finder-egl .egl-links span.spacer {
 	margin: 0 8px;
+}
+
+.thin-cell {
+	width: 5px !important;
+}
+
+.no-padding {
+	padding: 3px 0 !important;
+}
+
+.multi-values-div {
+	/*border-top: solid 1px #dddddd !important;*/
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.multi-values-div.reference {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.gf-table td > div.multi-values-div:nth-child(2) {
+	border-top: solid 1px #dddddd !important;
+}
+
+.gf-table td,
+.gf-table th {
+	/*width: calc((100% - 45px) / 7);*/
+}
+
+.gf-table th {
+	text-align: center;
+}
+
+.gf-table td.thin-cell,
+.gf-table th.thin-cell {
+	width: 5px !important;
+}
+
+.gf-table td {
+	vertical-align: middle !important;
+}
+
+.compelling {
+	background-color: #4ebf59ff;
+}
+.extreme {
+	background-color: #4ebf59cf;
+}
+.very-strong {
+	background-color: #4ebf598f;
+}
+.strong {
+	background-color: #4ebf5966;
+}
+.moderate {
+	background-color: #4ebf5944;
+}
+.anecdotal {
+	background-color: #4ebf5922;
+}
+.no-evidence {
+	background-color: #4ebf5900;
+}
+
+span.evidence-range {
+	font-size: 12px;
+}
+
+.vs-view {
+	font-size: 14px;
+}
+
+.percentage-bg {
+	background-position: left center;
+	background-repeat: no-repeat;
 }
 </style>

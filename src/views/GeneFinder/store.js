@@ -15,6 +15,9 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         geneFinder: bioIndex("gene-finder"),
+        hugePhenotype: bioIndex("huge-phenotype"),
+        geneExpression: bioIndex("gene-expression"),
+        geneExpressionTissue: bioIndex("gene-expression-tissue"),
     },
     state: {
         newPhenotype: null,
@@ -28,6 +31,10 @@ export default new Vuex.Store({
         phenotypeCorrelation: null,
         eglsFullList: [],
         eglGenes: [],
+        //primaryPhCR: {},
+        hugeScores: {},
+        tissueGeneExpression: [],
+        loadedTissues: [],
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -80,7 +87,19 @@ export default new Vuex.Store({
 
             state.eglGenes = GENES;
 
-        }
+        },
+        setHugeScores(state, huge) {
+            state.hugeScores = huge;
+        },
+        setTissueGeneExpression(state, tissueGE) {
+            state.tissueGeneExpression = tissueGE;
+        },
+        setLoadedTissues(state, tissues) {
+            state.loadedTissues = tissues;
+        },
+        /*setPrimaryPhCR(state, Correlation) {
+            state.primaryPhCR = Correlation;
+        },*/
 
     },
     getters: {
@@ -104,6 +123,30 @@ export default new Vuex.Store({
         },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
+        },
+        hugeScores(context, DATA) {
+            context.commit("setHugeScores", DATA);
+        },
+        tissueGeneExpression(context, DATA) {
+            context.commit("setTissueGeneExpression", DATA);
+        },
+        loadedTissues(context, DATA) {
+            context.commit("setLoadedTissues", DATA);
+        },
+
+        async getHugePhenotype(context, phenotype) {
+            let query = { q: phenotype }
+            context.dispatch("hugePhenotype/query", query);
+        },
+
+        async getGeneExpression(context, gene) {
+            let query = { q: gene }
+            context.dispatch("geneExpression/query", query);
+        },
+
+        async getGeneExpressionTissue(context, TISSUE) {
+            let query = { q: TISSUE }
+            context.dispatch("geneExpressionTissue/query", query);
         },
 
         async getEglsFullList(context) {
@@ -148,7 +191,41 @@ export default new Vuex.Store({
 
             let updatedGenes = this.state.eglGenes.filter(g => g.pageId != PARAMS.pageId);
             context.commit("setEglGenes", updatedGenes);
-        }
+        },
+
+        removeTissueGeneExpression(context, TISSUE) {
+
+            let newData = this.state.tissueGeneExpression.filter(g => g.tissue != TISSUE);
+            let newTissues = this.state.loadedTissues.filter(t => t != TISSUE);
+
+            context.commit("setTissueGeneExpression", newData);
+            context.commit("setLoadedTissues", newTissues);
+        },
+
+        /*
+        /// leave it in case we decide to integrate phenotype correlations
+        async getPrimaryPhCR(context, primaryPhenotype) {
+
+
+            let searchPoint =
+                "https://bioindex-dev.hugeamp.org/api/bio/query/genetic-correlation?q=" +
+                primaryPhenotype;
+
+            var correlationJson = await fetch(searchPoint).then((resp) =>
+                resp.json()
+            );
+
+            if (correlationJson.error == null) {
+                //console.log("correlationJson", correlationJson)
+                let CRs = {};
+
+                correlationJson.data.map(p => {
+                    CRs[p.other_phnotype] = p;
+
+                })
+                context.commit("setPrimaryPhCR", CRs);
+            }
+        }*/
 
     }
 });

@@ -738,8 +738,8 @@ export default Vue.component("disease-systems", {
 		},
 		openPhenotypesBuilder(TYPE, PARAMS, EVENT) {
 			this.focusBy = TYPE;
-			console.log("TYPE", TYPE);
-			console.log("currentFocus", this.currentFocus());
+			//console.log("TYPE", TYPE);
+			//console.log("currentFocus", this.currentFocus());
 
 			let params = !!PARAMS ? PARAMS : this.currentFocus();
 

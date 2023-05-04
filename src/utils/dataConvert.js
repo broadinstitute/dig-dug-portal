@@ -91,7 +91,7 @@ let convertData = function (CONVERT, DATA) {
                         let calFunc = c["method"];
                         tempObj[c["field name"]] = Math[calFunc](d[c["raw field"]]);
 
-                        console.log("test", tempObj[c["field name"]]);
+                        //console.log("test", tempObj[c["field name"]]);
                         break;
 
                     case "raw":
@@ -115,7 +115,7 @@ let convertData = function (CONVERT, DATA) {
 
 let csv2Json = function (DATA) {
 
-    console.log("typeof DATA", typeof DATA)
+    //console.log("typeof DATA", typeof DATA)
 
     let csvArr = CSVToArray(DATA, ",");
 
