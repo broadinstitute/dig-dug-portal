@@ -152,6 +152,7 @@
 							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 							:associations="$parent.combined"
 							:hugeScores="$store.state.hugeScores"
+							:hugeFilter="$parent.hugeScoreFilter"
 							:rowsPerPage="20"
 							:exclusive="true"
 							:showPlot="true"

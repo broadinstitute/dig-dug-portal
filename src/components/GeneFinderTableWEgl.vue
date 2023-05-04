@@ -175,11 +175,23 @@
 											phenotypeMap[phenotype].description
 										"
 									>
-										{{
-											intFormatter(
-												itemValue[phenotype + ":huge"]
-											)
-										}}
+										<span
+											:class="
+												!!hugeFilter &&
+												itemValue[
+													phenotype + ':huge'
+												] >= hugeFilter
+													? 'text-bold'
+													: ''
+											"
+											>{{
+												intFormatter(
+													itemValue[
+														phenotype + ":huge"
+													]
+												)
+											}}</span
+										>
 										<span class="evidence-range"
 											>({{
 												hugeRange(
@@ -290,6 +302,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 		"showChiSquared",
 		"rowsPerPage",
 		"pThreshold",
+		"hugeFilter",
 	],
 	components: {
 		Documentation,
@@ -467,6 +480,9 @@ export default Vue.component("gene-finder-w-egl-table", {
 
 <style>
 @import url("/css/effectorGenes.css");
+span.text-bold {
+	font-weight: 600;
+}
 .gene-finder-egl {
 	display: block;
 	float: left;
