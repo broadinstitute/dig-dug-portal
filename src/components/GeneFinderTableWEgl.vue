@@ -35,72 +35,35 @@
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
-					<div class="col-md-12">
-						<span>
-							Matching genes:
-							{{ groupedAssociations.length }}
+					<template v-for="(phenotype, i) in phenotypes">
+						<span
+							:key="phenotype"
+							class="badge badge-secondary badge-pill btn filter-pill-x reference"
+							:class="'color-' + (i + 1)"
+							v-if="phenotypeMap[phenotype]"
+							style="color: white"
+						>
+							{{ phenotypeMap[phenotype].description }}
 						</span>
-						<template v-for="(phenotype, i) in phenotypes">
-							<span
-								:key="phenotype"
-								class="badge badge-secondary badge-pill btn filter-pill-x reference"
-								:class="'color-' + (i + 1)"
-								v-if="phenotypeMap[phenotype]"
-								style="color: white"
-							>
-								{{ phenotypeMap[phenotype].description }}
-							</span>
-						</template>
-					</div>
-					<div
-						class="col-md-12"
-						style="font-size: 12px; white-space: nowrap"
-						v-if="pThreshold.length > 0"
-					>
-						P-Value:
+					</template>
+					<span style="font-size: 13px"
+						>P-Value:
 						<template v-for="tValue in pThreshold">
 							<span
 								:style="
-									'margin-right:10px; background-color:' +
+									'margin-right:5px; background-color:' +
 									getPColor(tValue)
 								"
 								>&lt;={{ tValue }}</span
 							>
 						</template>
-					</div>
-					<div
-						class="col-md-12"
-						style="font-size: 16px; white-space: nowrap"
-						v-if="!!minMaxTPM"
-						v-html="
-							'Tissue gene expression mean TPM: Min(' +
-							minMaxTPM.min +
-							') <span style=\'color:#70bfff;font-stretch: ultra-expanded;\'>&#9664;</span> Max(' +
-							minMaxTPM.max +
-							')'
-						"
-					></div>
-					<div
-						class="col-md-12"
-						style="font-size: 12px; white-space: nowrap"
-					>
-						HuGE Score: <span class="compelling">Compelling</span>
-						&gt;= 350 |
-						<span class="extreme">Extreme</span> &gt;=100 |
-						<span class="very-strong">Very Strong</span>: &gt;=30 |
-						<span class="strong">Strong</span>: &gt;=10 |
-						<span class="moderate">Moderate</span>: &gt;=3 |<span
-							class="anecdotal"
-						>
-							Anecdotal</span
-						>: &gt;1 | <span class="no-evidence">No Evidence</span>:
-						&lt;=1
-					</div>
+					</span>
 				</div>
 				<div class="text-right col-md-2">
 					<csv-download
 						:data="groupedAssociations"
 						filename="gene_table"
+						style="margin-bottom: 5px"
 					></csv-download>
 				</div>
 			</div>
@@ -109,32 +72,6 @@
 				class="table b-table table-hover table-sm table-striped gf-table"
 			>
 				<thead>
-					<!--<tr>
-						<th
-							:colspan="!!showChiSquared ? (!!ifEgls ? 3 : 2) : 1"
-						>
-							<span>
-								Matching genes:
-								{{ groupedAssociations.length }}
-							</span>
-							
-						</th>
-						<th
-							v-for="(phenotype, i) in phenotypes"
-							:key="phenotype"
-							colspan="2"
-							class="reference"
-							:class="'color-' + (i + 1)"
-						>
-							<span
-								v-if="phenotypeMap[phenotype]"
-								style="color: white"
-							>
-								{{ phenotypeMap[phenotype].description
-								}}{{ ": " + genesPerPhenotypes[phenotype] }}
-							</span>
-						</th>
-					</tr>-->
 					<tr>
 						<th>Gene</th>
 						<th v-if="egls.length > 0">Effector gene lists</th>
@@ -173,7 +110,7 @@
 							></td>
 							<td
 								v-if="tissues.length > 0"
-								class="text-center percentage-bg"
+								class="text-center tissues-td percentage-bg"
 								:style="
 									'background-image: url(../images/blue_block.png) !important; background-size: ' +
 									itemValue.tpmPercent +
@@ -476,8 +413,6 @@ export default Vue.component("gene-finder-w-egl-table", {
 
 			let pColor = "rgba(112, 191, 255, " + pNumber + ")";
 
-			//console.log(pNumber, pColor);
-
 			return pColor;
 		},
 		phenotypePValueColumn(phenotype) {
@@ -538,8 +473,9 @@ export default Vue.component("gene-finder-w-egl-table", {
 	font-size: 13px;
 	border-radius: 15px;
 	padding: 3px 10px;
-	margin-right: 5px;
-	color: #fff;
+	margin: 0 5px 5px 0;
+	color: #007bff;
+	background-color: #009bff33;
 }
 
 .gene-finder-egl .egl-links {
@@ -549,13 +485,14 @@ export default Vue.component("gene-finder-w-egl-table", {
 .gene-finder-egl:hover .egl-links {
 	display: block;
 	position: absolute;
-	background-color: #000;
+	background-color: #fff;
 	border-radius: 15px;
 	padding: 3px 10px;
+	border: solid 1px #dddddd;
 }
 
 .gene-finder-egl .egl-links > a {
-	color: #fff !important;
+	color: #007bff !important;
 }
 
 .gene-finder-egl .egl-links span.spacer {
@@ -636,5 +573,10 @@ span.evidence-range {
 .percentage-bg {
 	background-position: left center;
 	background-repeat: no-repeat;
+}
+
+.tissues-td {
+	border-left: solid 0.75px #ddd;
+	border-right: solid 0.75px #ddd;
 }
 </style>

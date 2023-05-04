@@ -77,7 +77,6 @@ new Vue({
             let threshold = []
             if (this.pThresholdVal != "") {
                 threshold = this.pThresholdVal.split(",").map(v => Number(v.trim()))
-                console.log(threshold);
                 threshold = threshold.sort(function (a, b) {
                     let A = a;
                     let B = b;
@@ -209,8 +208,6 @@ new Vue({
                     eglsMap[o["Page ID"]] = o;
                 })
 
-                console.log(eglsMap)
-
                 return eglsMap;
             } else {
                 return null;
@@ -257,7 +254,6 @@ new Vue({
         },
 
         combined() {
-            //console.log("this.geneFinderAssociationsMap", this.geneFinderAssociationsMap);
 
             let combinedData = Object.entries(this.geneFinderAssociationsMap).flatMap(
                 (geneFinderItem) => geneFinderItem[1]
@@ -294,8 +290,6 @@ new Vue({
                         grouped[r.gene].minP = r.pValue;
                     }
                 });
-
-                //console.log("grouped", grouped)
 
                 for (const [gKey, gValue] of Object.entries(
                     grouped
@@ -367,7 +361,7 @@ new Vue({
 
                                 let pIndex = this.geneFinderPhenotypes.indexOf(e.trait) + 1;
                                 let eglLabel = e.shortName;
-                                eglsContent += "<span class='gene-finder-egl reference color-0' title='" + e.name + "'>" + eglLabel + "<div class='egl-links'>";
+                                eglsContent += "<span class='gene-finder-egl' title='" + e.name + "'>" + eglLabel + "<div class='egl-links'>";
                                 eglsContent += (e.pmid != undefined) ? "<a target='_blank' href='https://pubmed.ncbi.nlm.nih.gov/" + e.pmid + "'>View paper</a><span class='spacer'>|</span>" : "";
                                 eglsContent += "<a target='_blank' href='/research.html?pageid=" + e.eglId + "'>View effector genes list</a>";
                                 eglsContent += "</div></span>"
@@ -457,25 +451,6 @@ new Vue({
 
             return filteredCombined;
         },
-
-        /*minMaxTPM() {
-         
-            let data = this.$store.state.tissueGeneExpression;
-            if (data.length > 0) {
-                let minMax = { min: Number(data[1].meanTpm), max: Number(data[1].meanTpm) };
-                data.map((d) => {
-                    minMax.min = d.meanTpm < minMax.min ? d.meanTpm : minMax.min;
-                    minMax.max = d.meanTpm > minMax.max ? d.meanTpm : minMax.max;
-                });
-         
-                console.log(minMax, data);
-         
-                return minMax;
-         
-            } else {
-                return null
-            }
-        },*/
 
         geneFinderPValue() {
             let pval = 0.05;
@@ -764,7 +739,6 @@ new Vue({
         },
 
         loadInitialTissues(TISSUES) {
-            //console.log("TISSUES", TISSUES);
             TISSUES.map(t => {
                 this.$store.dispatch("getGeneExpressionTissue", t);
             })

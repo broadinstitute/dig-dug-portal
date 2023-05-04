@@ -176,6 +176,11 @@ export default Vue.component("gene-finder-heatmap", {
 					renderData.rows.phenotypes &&
 					renderData.rows.phenotypes.length > 0
 				) {
+					scaleLegendContent +=
+						"<div class='col-md-12' style='font-size: 16px; white-space: nowrap'><strong>Matching genes:</strong>" +
+						renderData.columns.length +
+						"</div>";
+
 					if (this.pThreshold.length > 0) {
 						scaleLegendContent +=
 							'<div\
@@ -512,8 +517,6 @@ export default Vue.component("gene-finder-heatmap", {
 							boxHeight = boxHeight < 1 ? 1 : boxHeight;
 							let newTop = top + renderBoxSize - boxHeight;
 
-							//console.log("boxHeight", boxHeight);
-
 							ctx.beginPath();
 							ctx.rect(left, newTop, renderBoxSize, boxHeight);
 							ctx.fillStyle = colorString;
@@ -564,6 +567,12 @@ $(function () {});
 </script>
 
 <style>
+div.filtering-ui-wrapper .list-group {
+	text-align: left;
+	width: fit-content !important;
+	white-space: nowrap !important;
+}
+
 .heatmap-content {
 	text-align: center;
 	overflow-x: auto;
