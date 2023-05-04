@@ -249,7 +249,6 @@ new Vue({
 
             let filter = tpmFilterArr.length > 0 ? Number(tpmFilterArr[0].threshold) : null;
 
-
             return filter;
         },
 
@@ -305,6 +304,7 @@ new Vue({
                         grouped
                     )) {
                         gValue['minHuge'] = null;
+                        gValue['maxHuge'] = null;
 
                         gValue.phenotypes.map(p => {
                             if (!!this.$store.state.hugeScores[p] && !!this.$store.state.hugeScores[p][gValue.gene]) {
@@ -313,11 +313,15 @@ new Vue({
                                 if (!gValue['minHuge'] || (!!gValue['minHuge'] && gValue[p + ":huge"] < gValue['minHuge'])) {
                                     gValue['minHuge'] = gValue[p + ":huge"];
                                 }
+                                if (!gValue['maxHuge'] || (!!gValue['maxHuge'] && gValue[p + ":huge"] > gValue['maxHuge'])) {
+                                    gValue['maxHuge'] = gValue[p + ":huge"];
+                                }
                             }
                         })
 
                         if (!!this.hugeScoreFilter) {
-                            if ((gValue.minHuge < this.hugeScoreFilter || !gValue.minHuge)) {
+
+                            if ((gValue.maxHuge < this.hugeScoreFilter || !gValue.maxHuge)) {
                                 delete grouped[gKey];
                             }
                         }
@@ -407,13 +411,16 @@ new Vue({
                                 grouped[t.gene].maxTPM = meanTPM;
                             }
 
-                            let tissueInfo =
+                            let tissueInfo = "";
+                            tissueInfo += (!!this.tpmFilter && meanTPM >= this.tpmFilter) ? "<strong>" : "";
+                            tissueInfo +=
                                 t.tissue.replace("_", " ") +
                                 " <small>(" +
                                 meanTPM +
                                 " : " +
                                 t.nSamples +
                                 ")</small>  ";
+                            tissueInfo += (!!this.tpmFilter && meanTPM >= this.tpmFilter) ? "</strong>" : "";
 
                             grouped[t.gene]['tissue'] += tissueInfo;
                         }
@@ -436,7 +443,7 @@ new Vue({
                         for (const [gKey, gValue] of Object.entries(
                             grouped
                         )) {
-                            if ((gValue.minTPM < this.tpmFilter || !gValue.minTPM)) {
+                            if ((gValue.maxTPM < this.tpmFilter || !gValue.maxTPM)) {
                                 delete grouped[gKey];
                             }
                         }
