@@ -30,111 +30,126 @@
 						v-model="$parent.geneFinderSearchCriterion"
 						:header="'Search Criterion'"
 					>
-						<!-- Phenotype Selector -->
-						<filter-enumeration-control
-							class="filter-col-sm"
-							:field="'phenotype'"
-							:options="
-								$parent.secondaryPhenotypeOptions.map(
-									(phenotype) => phenotype.name
-								)
-							"
-							:multiple="true"
-							:labelFormatter="
-								(phenotype) =>
-									!!$store.state.bioPortal.phenotypeMap[
-										phenotype
-									]
-										? $store.state.bioPortal.phenotypeMap[
-												phenotype
-										  ].description
-										: phenotype
-							"
-						>
-							<div>
-								<strong>Select phenotypes</strong>
-							</div>
-						</filter-enumeration-control>
-						<!-- tissues -->
-						<filter-enumeration-control
-							class="filter-col-sm"
-							:field="'tissue'"
-							:options="
-								$parent.tissueOptions.map(
-									(tissue) => tissue['value']
-								)
-							"
-							:multiple="true"
-							:disableSort="true"
-							:labelFormatter="
-								(tissue) => $parent.tissuesMap[tissue]['name']
-							"
-						>
-							<div>
-								<strong>Tissue gene expression</strong>
-							</div>
-						</filter-enumeration-control>
-
-						<!-- PEGL -->
-						<filter-enumeration-control
-							class="filter-col-sm"
-							:field="'egl'"
-							:options="
-								$parent.eglsOptions.map((egl) => egl['Page ID'])
-							"
-							:multiple="true"
-							:disableSort="true"
-							:labelFormatter="
-								(egl) =>
-									!!$parent.eglsMap[egl]
-										? $parent.eglsMap[egl][
-												'Effector list name'
-										  ]
-										: egl
-							"
-						>
-							<div>
-								<strong>Predicted effector genes</strong>
-							</div>
-						</filter-enumeration-control>
-
-						<div class="col divider"></div>
-						<!-- pValue filter -->
-						<filter-pvalue-control
-							class="filter-col-sm"
-							:field="'pValue'"
-						>
-							<div>
-								<strong>P-Value (&le;)</strong>
-							</div>
-						</filter-pvalue-control>
 						<div
-							class="col filter-col-sm filter-col-sm"
-							style="padding: 5px 7px"
+							class="text-center col-md-6 gf-filter-section-wrapper"
 						>
-							<div><strong>P-Value thresholds</strong></div>
-							<input
-								type="text"
-								class="form-control"
-								v-model="$parent.pThresholdVal"
-							/>
+							<strong class="GF-filter-ui-label">Select</strong>
+							<!-- Phenotype Selector -->
+							<filter-enumeration-control
+								class="filter-col-sm"
+								:field="'phenotype'"
+								:options="
+									$parent.secondaryPhenotypeOptions.map(
+										(phenotype) => phenotype.name
+									)
+								"
+								:multiple="true"
+								:labelFormatter="
+									(phenotype) =>
+										!!$store.state.bioPortal.phenotypeMap[
+											phenotype
+										]
+											? $store.state.bioPortal
+													.phenotypeMap[phenotype]
+													.description
+											: phenotype
+								"
+							>
+								<div>
+									<strong>Phenotypes</strong>
+								</div>
+							</filter-enumeration-control>
+							<!-- tissues -->
+							<filter-enumeration-control
+								class="filter-col-sm"
+								:field="'tissue'"
+								:options="
+									$parent.tissueOptions.map(
+										(tissue) => tissue['value']
+									)
+								"
+								:multiple="true"
+								:disableSort="true"
+								:labelFormatter="
+									(tissue) =>
+										$parent.tissuesMap[tissue]['name']
+								"
+							>
+								<div>
+									<strong>Tissues</strong>
+								</div>
+							</filter-enumeration-control>
+
+							<!-- PEGL -->
+							<filter-enumeration-control
+								class="filter-col-sm"
+								:field="'egl'"
+								:options="
+									$parent.eglsOptions.map(
+										(egl) => egl['Page ID']
+									)
+								"
+								:multiple="true"
+								:disableSort="true"
+								:labelFormatter="
+									(egl) =>
+										!!$parent.eglsMap[egl]
+											? $parent.eglsMap[egl][
+													'Effector list name'
+											  ]
+											: egl
+								"
+							>
+								<div>
+									<strong>PEG lists</strong>
+								</div>
+							</filter-enumeration-control>
 						</div>
-						<filter-greater-control
-							class="filter-col-sm"
-							:field="'HuGE'"
+
+						<!--<div class="col divider"></div>-->
+
+						<!-- pValue filter -->
+						<div
+							class="text-center col-md-6 gf-filter-section-wrapper"
+							style="border-left: solid 1px #ddd"
 						>
-							<div>
-								<strong>HuGE Score (&ge;)</strong>
+							<strong class="GF-filter-ui-label">Filter</strong>
+							<filter-pvalue-control
+								class="filter-col-sm"
+								:field="'pValue'"
+							>
+								<div>
+									<strong>P-Value (&le;)</strong>
+								</div>
+							</filter-pvalue-control>
+							<div
+								class="col filter-col-sm filter-col-sm"
+								style="padding: 5px 7px"
+							>
+								<div><strong>P-Val thresholds</strong></div>
+								<input
+									type="text"
+									class="form-control"
+									v-model="$parent.pThresholdVal"
+								/>
 							</div>
-						</filter-greater-control>
-						<filter-greater-control
-							class="filter-col-sm"
-							:field="'TPM'"
-						>
-							<div>
-								<strong>Tissue mean TPM (&ge;)</strong>
-							</div>
-						</filter-greater-control>
+							<filter-greater-control
+								class="filter-col-sm"
+								:field="'HuGE'"
+							>
+								<div>
+									<strong>HuGE Score (&ge;)</strong>
+								</div>
+							</filter-greater-control>
+							<filter-greater-control
+								class="filter-col-sm"
+								:field="'TPM'"
+							>
+								<div>
+									<strong>Tissue TPM (&ge;)</strong>
+								</div>
+							</filter-greater-control>
+						</div>
 					</criterion-list-group>
 					<pre></pre>
 					<div
@@ -180,5 +195,15 @@
 .filter-pill-collection.center {
 	display: block !important;
 	text-align: center !important;
+}
+.GF-filter-ui-label {
+	position: absolute;
+	left: 25px;
+	font-size: 12px;
+	color: #aaa;
+}
+.gf-filter-section-wrapper {
+	position: relative;
+	display: inline-block;
 }
 </style>

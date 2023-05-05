@@ -322,9 +322,32 @@ export default Vue.component("gene-finder-heatmap", {
 			document.getElementById("heatmapRowsWrapper").innerHTML = "";
 
 			rowsArr.map((r) => {
-				var div = document.createElement("div");
-				var t = document.createTextNode(r.value);
-				div.appendChild(t);
+				let div = document.createElement("div");
+				let a = document.createElement("a");
+				let t = document.createTextNode(r.value);
+				div.appendChild(a);
+				a.appendChild(t);
+
+				if (r.type == "phenotype") {
+					a.setAttribute(
+						"href",
+						"/phenotype.html?phenotype=" + r.value
+					);
+				}
+				if (r.type == "egl") {
+					let egl;
+					for (const [eKey, eValue] of Object.entries(this.eglsMap)) {
+						if (eValue.short_name == r.value) {
+							egl = eValue;
+						}
+					}
+
+					a.setAttribute(
+						"href",
+						"/research.html?pageid=" + egl["Page ID"]
+					);
+				}
+
 				div.setAttribute("style", "height: " + this.boxSize + "px;");
 				document.getElementById("heatmapRowsWrapper").appendChild(div);
 			});
@@ -363,9 +386,12 @@ export default Vue.component("gene-finder-heatmap", {
 
 			renderData.columns.map((c) => {
 				if (cIndex >= startIndex && cIndex <= endIndex) {
-					var div = document.createElement("div");
-					var t = document.createTextNode(c);
-					div.appendChild(t);
+					let div = document.createElement("div");
+					let a = document.createElement("a");
+					let t = document.createTextNode(c);
+					a.appendChild(t);
+					div.appendChild(a);
+					a.setAttribute("href", "/gene.html?gene=" + c);
 					div.setAttribute(
 						"style",
 						"height: " + this.boxSize + "px;"
@@ -377,10 +403,10 @@ export default Vue.component("gene-finder-heatmap", {
 				cIndex++;
 			});
 
-			let columnTopSpace =
+			/*let columnTopSpace =
 				document.getElementById("heatmapColumnsWrapper").offsetHeight -
 				document.getElementById("heatmapColumnsWrapper").offsetWidth -
-				10;
+				10;*/
 			let aboveColumnPadding =
 				document.getElementById("heatmapColumnsWrapper").offsetWidth +
 				20;
