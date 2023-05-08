@@ -1,5 +1,6 @@
 <template>
 	<div>
+		<span id="top"></span>
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
@@ -168,11 +169,13 @@
 							:associations="$parent.combined"
 							:hugeScores="$store.state.hugeScores"
 							:hugeFilter="$parent.hugeScoreFilter"
-							:rowsPerPage="20"
+							:rowsPerPage="$store.state.perPage"
+							:currentPage="$store.state.currentPage"
 							:exclusive="true"
 							:showPlot="true"
 							:showChiSquared="true"
 							:pThreshold="$parent.pThreshold"
+							:currentGene="$store.state.currentGene"
 						></gene-finder-w-egl-table>
 					</div>
 				</div>

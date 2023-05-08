@@ -580,6 +580,10 @@ new Vue({
                         this.$store.dispatch("getHugePhenotype", p);
                     }
                 })
+            } else {
+                keyParams.set({
+                    phenotype: "",
+                });
             }
         },
         geneFinderTissues(newTissues, oldTissues) {
