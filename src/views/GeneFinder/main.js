@@ -62,9 +62,11 @@ new Vue({
             counter: 0,
             phenotypelist: [],
             geneFinderSearchCriterion: [],
+            geneFinderFilterCriterion: [],
             geneFinderAssociationsMap: {},
             minMaxTPM: null,
-            pThresholdVal: "1e-5, 0.001, 0.05"
+            pThresholdVal: "2.5e-6, 1e-5, 0.001",
+            onlyEgl: true,
         };
     },
 
@@ -234,7 +236,7 @@ new Vue({
 
         hugeScoreFilter() {
 
-            let hugeFilterArr = this.geneFinderSearchCriterion
+            let hugeFilterArr = this.geneFinderFilterCriterion
                 .filter((f) => f.field === "HuGE")
 
             let filter = hugeFilterArr.length > 0 ? Number(hugeFilterArr[0].threshold) : null;
@@ -244,7 +246,7 @@ new Vue({
         },
 
         tpmFilter() {
-            let tpmFilterArr = this.geneFinderSearchCriterion
+            let tpmFilterArr = this.geneFinderFilterCriterion
                 .filter((f) => f.field === "TPM")
 
             let filter = tpmFilterArr.length > 0 ? Number(tpmFilterArr[0].threshold) : null;
@@ -373,7 +375,7 @@ new Vue({
 
                             grouped[gKey]["egls"] = eglsContent;
 
-                        } else {
+                        } else if (!!this.onlyEgl) {
 
                             delete grouped[gKey];
 
@@ -461,9 +463,9 @@ new Vue({
 
         geneFinderPValue() {
             let pval = 0.05;
-            for (let i in this.geneFinderSearchCriterion) {
-                if (this.geneFinderSearchCriterion[i].field == "pValue") {
-                    pval = Number(this.geneFinderSearchCriterion[i].threshold);
+            for (let i in this.geneFinderFilterCriterion) {
+                if (this.geneFinderFilterCriterion[i].field == "pValue") {
+                    pval = Number(this.geneFinderFilterCriterion[i].threshold);
                 }
             }
             return pval;

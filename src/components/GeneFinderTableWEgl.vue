@@ -36,7 +36,7 @@
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
-					<template v-for="(phenotype, i) in phenotypes">
+					<!--<template v-for="(phenotype, i) in phenotypes">
 						<span
 							:key="phenotype"
 							class="badge badge-secondary badge-pill btn filter-pill-x reference"
@@ -46,9 +46,9 @@
 						>
 							{{ phenotypeMap[phenotype].description }}
 						</span>
-					</template>
+					</template>-->
 					<span style="font-size: 13px"
-						>P-Value:
+						>MAGMA P-Value:
 						<template v-for="tValue in pThreshold">
 							<span
 								:style="
@@ -75,14 +75,15 @@
 				<thead>
 					<tr>
 						<th>Gene</th>
-						<th v-if="egls.length > 0">Effector gene lists</th>
+						<th v-if="egls.length > 0">PEG lists</th>
 						<th v-if="tissues.length > 0">
 							Tissue Gene Expression
 							<small>(Mean TPM : Samples)</small>
 						</th>
-						<th>P-Value(Χ²)</th>
-						<th class="thin-cell no-padding"></th>
-						<th>P-Value</th>
+						<th>MAGMA P-Value(Χ²)</th>
+						<!--<th class="thin-cell no-padding"></th>-->
+						<th>Trait</th>
+						<th>MAGMA P-Value</th>
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>HuGE Score <small>(Evidence Range)</small></th>
 						<!--<th class="thin-cell no-padding"></th>-->
@@ -122,7 +123,7 @@
 							</td>
 							<td
 								class="text-center"
-								v-if="!!itemValue.egls"
+								v-if="egls.length > 0"
 								v-html="itemValue.egls"
 							></td>
 							<td
@@ -139,13 +140,10 @@
 								{{ pValueFormatter(itemValue.chiSquared) }}
 							</td>
 
-							<td class="thin-cell no-padding">
+							<td class="no-padding text-center">
 								<template v-for="(phenotype, i) in phenotypes">
-									<div
-										class="multi-values-div reference"
-										:class="'color-' + (i + 1)"
-									>
-										&nbsp;
+									<div class="multi-values-div reference">
+										<small>{{ phenotype }}</small>
 									</div>
 								</template>
 							</td>
@@ -520,7 +518,7 @@ span.text-bold {
 	padding: 3px 10px;
 	margin: 0 5px 5px 0;
 	color: #007bff;
-	background-color: #009bff33;
+	background-color: #00000022;
 }
 
 .gene-finder-egl .egl-links {
