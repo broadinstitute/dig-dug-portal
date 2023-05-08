@@ -87,8 +87,11 @@ export default Vue.component("gene-finder-heatmap", {
 	mounted: function () {
 		this.renderHeatmap();
 		this.renderScaleLegend();
+		window.addEventListener("resize", this.onResize);
 	},
-	beforeDestroy() {},
+	beforeDestroy() {
+		window.removeEventListener("resize", this.onResize);
+	},
 	computed: {
 		renderData() {
 			let dataInOrder = sortUtils.sortArrOfObjects(
@@ -199,7 +202,9 @@ export default Vue.component("gene-finder-heatmap", {
 	},
 	methods: {
 		...uiUtils,
-
+		onResize(e) {
+			this.renderHeatmap();
+		},
 		setCurrentGene(COLUMN) {
 			console.log("got here");
 			this.$store.dispatch("currentGene", COLUMN);

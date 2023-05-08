@@ -112,8 +112,8 @@
 									class="to-the-top"
 									><b-icon
 										icon="arrow-up-circle-fill"
-									></b-icon
-									>Top</a
+									></b-icon>
+									Top</a
 								>
 								<a
 									:href="`/gene.html?gene=${itemValue.gene}`"

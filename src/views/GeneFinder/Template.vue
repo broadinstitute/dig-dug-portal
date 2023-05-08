@@ -1,6 +1,5 @@
 <template>
 	<div>
-		<span id="top"></span>
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
@@ -22,6 +21,7 @@
 						style="margin-bottom: 30px"
 						name="tools.genefinder.subheader"
 					></documentation>
+					<span id="top"></span>
 					<h4 class="card-title">
 						Build search criteria and filter results
 					</h4>
