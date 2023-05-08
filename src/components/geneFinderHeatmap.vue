@@ -23,10 +23,6 @@
 						</div>
 					</template>
 				</div>
-				<!--<div
-					class="heatmap-columns-wrapper"
-					id="heatmapColumnsWrapper"
-				></div>-->
 				<div class="heatmap-rows-wrapper" id="heatmapRowsWrapper"></div>
 				<div class="heatmap-canvas-wrapper" id="heatmapCanvasWrapper">
 					<canvas
@@ -158,22 +154,6 @@ export default Vue.component("gene-finder-heatmap", {
 				}
 			}
 
-			//let displayData = this.renderData;
-
-			//displayData.columns = returnList;
-
-			/*
-
-			let startIndex = this.plotCurrentPage * cLimit - cLimit;
-			let endIndex = this.plotCurrentPage * cLimit - 1;
-
-			endIndex =
-				endIndex >= renderData.columns.length
-					? renderData.columns.length - 1
-					: endIndex;
-					
-			*/
-
 			return returnList;
 		},
 
@@ -206,7 +186,6 @@ export default Vue.component("gene-finder-heatmap", {
 			this.renderHeatmap();
 		},
 		setCurrentGene(COLUMN) {
-			console.log("got here");
 			this.$store.dispatch("currentGene", COLUMN);
 		},
 
@@ -416,8 +395,6 @@ export default Vue.component("gene-finder-heatmap", {
 			this.boxesPerPage = cLimit;
 			this.$store.dispatch("perPage", cLimit);
 
-			/*document.getElementById("heatmapColumnsWrapper").style.fontSize =
-				this.fontSize + "px";*/
 			document.getElementById("heatmapRowsWrapper").style.fontSize =
 				this.fontSize + "px";
 
@@ -436,32 +413,6 @@ export default Vue.component("gene-finder-heatmap", {
 
 			let canvasHeight = this.boxSize * rowsArr.length * 2;
 
-			/*renderData.columns.map((c) => {
-				//this.displayColumns = [];
-				if (cIndex >= startIndex && cIndex <= endIndex) {
-					//this.displayColumns.push(c);
-					let div = document.createElement("div");
-					let a = document.createElement("a");
-					let t = document.createTextNode(c);
-					a.appendChild(t);
-					div.appendChild(a);
-					//a.setAttribute("href", "/gene.html?gene=" + c);
-					a.setAttribute("href", "#" + c);
-					div.setAttribute(
-						"style",
-						"height: " + this.boxSize + "px;"
-					);
-					document
-						.getElementById("heatmapColumnsWrapper")
-						.appendChild(div);
-				}
-				cIndex++;
-			});*/
-
-			/*let columnTopSpace =
-				document.getElementById("heatmapColumnsWrapper").offsetHeight -
-				document.getElementById("heatmapColumnsWrapper").offsetWidth -
-				10;*/
 			let aboveColumnPadding = !!document.getElementById(
 				"heatmapColumnsWrapper"
 			)
