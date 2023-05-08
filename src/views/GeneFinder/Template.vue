@@ -120,7 +120,6 @@
 						<!-- pValue filter -->
 						<div
 							class="text-center col-md-7 gf-filter-section-wrapper"
-							style="border-left: solid 1px #ddd"
 						>
 							<strong class="GF-filter-ui-label"
 								>Filter by</strong
