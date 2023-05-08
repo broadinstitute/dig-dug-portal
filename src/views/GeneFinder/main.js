@@ -374,8 +374,8 @@ new Vue({
                             grouped[gKey]["egls"] = eglsContent;
 
                         } else {
-
-                            delete grouped[gKey];
+                            grouped[gKey]["egls"] = "";
+                            //delete grouped[gKey];
 
                         }
                     }

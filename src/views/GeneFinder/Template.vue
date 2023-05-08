@@ -32,12 +32,12 @@
 						:header="'Search Criterion'"
 					>
 						<div
-							class="text-center col-md-6 gf-filter-section-wrapper"
+							class="text-center col-md-12 gf-filter-section-wrapper"
 						>
-							<strong class="GF-filter-ui-label">Select</strong>
+							<strong class="GF-filter-ui-label">Add data</strong>
 							<!-- Phenotype Selector -->
 							<filter-enumeration-control
-								class="filter-col-sm"
+								class="filter-col-md"
 								:field="'phenotype'"
 								:options="
 									$parent.secondaryPhenotypeOptions.map(
@@ -62,7 +62,7 @@
 							</filter-enumeration-control>
 							<!-- tissues -->
 							<filter-enumeration-control
-								class="filter-col-sm"
+								class="filter-col-md"
 								:field="'tissue'"
 								:options="
 									$parent.tissueOptions.map(
@@ -77,10 +77,9 @@
 								"
 							>
 								<div>
-									<strong>Tissues</strong>
+									<strong>Tissue Gene Expression</strong>
 								</div>
 							</filter-enumeration-control>
-
 							<!-- PEGL -->
 							<filter-enumeration-control
 								class="filter-col-sm"
@@ -106,34 +105,32 @@
 								</div>
 							</filter-enumeration-control>
 						</div>
-
-						<!--<div class="col divider"></div>-->
-
+					</criterion-list-group>
+					<criterion-list-group
+						v-if="$parent.eglsMap && $parent.tissuesMap"
+						v-model="$parent.geneFinderSearchCriterion"
+						:header="'Search Criterion'"
+					>
 						<!-- pValue filter -->
 						<div
-							class="text-center col-md-6 gf-filter-section-wrapper"
+							class="text-center col-md-7 gf-filter-section-wrapper"
 							style="border-left: solid 1px #ddd"
 						>
-							<strong class="GF-filter-ui-label">Filter</strong>
+							<strong class="GF-filter-ui-label"
+								>Filter by</strong
+							>
 							<filter-pvalue-control
 								class="filter-col-sm"
 								:field="'pValue'"
 							>
 								<div>
-									<strong>P-Value (&le;)</strong>
+									<strong
+										>P-Value:
+										<small>MAGMA</small> (&le;)</strong
+									>
 								</div>
 							</filter-pvalue-control>
-							<div
-								class="col filter-col-sm filter-col-sm"
-								style="padding: 5px 7px"
-							>
-								<div><strong>P-Val thresholds</strong></div>
-								<input
-									type="text"
-									class="form-control"
-									v-model="$parent.pThresholdVal"
-								/>
-							</div>
+
 							<filter-greater-control
 								class="filter-col-sm"
 								:field="'HuGE'"
@@ -151,7 +148,27 @@
 								</div>
 							</filter-greater-control>
 						</div>
+						<div
+							class="text-center col-md-5 gf-filter-section-wrapper"
+							style="border-left: solid 1px #ddd"
+						>
+							<strong class="GF-filter-ui-label">Settings</strong>
+							<div
+								class="col filter-col-md"
+								style="padding: 5px 7px"
+							>
+								<div>
+									<strong>MAGMA P-Val thresholds</strong>
+								</div>
+								<input
+									type="text"
+									class="form-control"
+									v-model="$parent.pThresholdVal"
+								/>
+							</div>
+						</div>
 					</criterion-list-group>
+
 					<pre></pre>
 					<div
 						v-if="

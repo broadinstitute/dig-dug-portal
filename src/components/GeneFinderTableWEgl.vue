@@ -75,14 +75,14 @@
 				<thead>
 					<tr>
 						<th>Gene</th>
-						<th v-if="egls.length > 0">Effector gene lists</th>
+						<th v-if="egls.length > 0">PEG lists</th>
 						<th v-if="tissues.length > 0">
 							Tissue Gene Expression
 							<small>(Mean TPM : Samples)</small>
 						</th>
-						<th>P-Value(Χ²)</th>
+						<th>MAGMA P-Value(Χ²)</th>
 						<th class="thin-cell no-padding"></th>
-						<th>P-Value</th>
+						<th>MAGMA P-Value</th>
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>HuGE Score <small>(Evidence Range)</small></th>
 						<!--<th class="thin-cell no-padding"></th>-->
@@ -122,7 +122,7 @@
 							</td>
 							<td
 								class="text-center"
-								v-if="!!itemValue.egls"
+								v-if="egls.length > 0"
 								v-html="itemValue.egls"
 							></td>
 							<td
