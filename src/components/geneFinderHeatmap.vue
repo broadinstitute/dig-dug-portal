@@ -477,8 +477,8 @@ export default Vue.component("gene-finder-heatmap", {
 									? "#4ebf5922"
 									: "#ffffff"
 								: rType == "tissue"
-								? "#70bfff"
-								: "#007bff";
+								? "#00000075"
+								: "#00000075";
 
 						if (X == cIndex && Y == rIndex) {
 							ctx.beginPath();
@@ -575,7 +575,7 @@ export default Vue.component("gene-finder-heatmap", {
 								let centerPos = renderBoxSize / 2;
 								let dotR = renderBoxSize / 8;
 
-								ctx.fillStyle = "#007bff";
+								ctx.fillStyle = "#00000075";
 								ctx.lineWidth = 0;
 								ctx.beginPath();
 								ctx.arc(
