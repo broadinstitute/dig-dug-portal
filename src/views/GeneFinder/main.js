@@ -580,6 +580,10 @@ new Vue({
                         this.$store.dispatch("getHugePhenotype", p);
                     }
                 })
+            } else {
+                keyParams.set({
+                    phenotype: "",
+                });
             }
         },
         geneFinderTissues(newTissues, oldTissues) {
@@ -617,7 +621,7 @@ new Vue({
 
                 let differEgl = newEgls.filter(x => !oldEgls.includes(x));
 
-                if (!!this.eglsMap) {
+                if (!!this.eglsMap && this.eglsMapKeys.length > 0) {
                     if (differEgl.length > 0) {
                         let egl = this.eglsMap[differEgl[0]];
 
@@ -636,7 +640,7 @@ new Vue({
             }
         },
         eglsMapKeys(KEYS) {
-            if (this.geneFinderEgls.length > 0) {
+            if (this.geneFinderEgls.length > 0 && this.eglsMapKeys.length > 0) {
                 this.loadInitialEgls(this.geneFinderEgls);
             }
         },

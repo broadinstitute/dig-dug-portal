@@ -29,6 +29,7 @@
 				:minMaxTPM="minMaxTPM"
 				:eglsMap="eglsMap"
 				:pThreshold="pThreshold"
+				:currentPage="currentPage"
 			></gene-finder-heatmap>
 		</div>
 		<pre></pre>
@@ -96,8 +97,24 @@
 							itemValue, itemIndex
 						) in groupedAssociationsDisplay"
 					>
-						<tr>
+						<tr
+							:id="itemValue.gene"
+							:class="
+								currentGene == itemValue.gene
+									? 'current-gene'
+									: ''
+							"
+						>
 							<td class="text-center">
+								<a
+									v-if="currentGene == itemValue.gene"
+									href="#top"
+									class="to-the-top"
+									><b-icon
+										icon="arrow-up-circle-fill"
+									></b-icon>
+									Top</a
+								>
 								<a
 									:href="`/gene.html?gene=${itemValue.gene}`"
 									>{{ itemValue.gene }}</a
@@ -256,7 +273,7 @@
 
 			<b-pagination
 				class="pagination-sm justify-content-center"
-				v-model="currentPage"
+				v-model="inComCurrentPage"
 				:total-rows="groupedAssociations.length"
 				:per-page="rowsPerPage"
 			></b-pagination>
@@ -303,6 +320,8 @@ export default Vue.component("gene-finder-w-egl-table", {
 		"rowsPerPage",
 		"pThreshold",
 		"hugeFilter",
+		"currentPage",
+		"currentGene",
 	],
 	components: {
 		Documentation,
@@ -312,8 +331,18 @@ export default Vue.component("gene-finder-w-egl-table", {
 	},
 	data() {
 		return {
-			currentPage: 1,
+			inComCurrentPage: 1,
 		};
+	},
+	watch: {
+		currentPage(newPage, oldPage) {
+			this.inComCurrentPage = newPage;
+		},
+		inComCurrentPage(newPage, oldPage) {
+			if (newPage != this.currentPage) {
+				this.$store.dispatch("currentPage", newPage);
+			}
+		},
 	},
 
 	computed: {
@@ -594,5 +623,17 @@ span.evidence-range {
 .tissues-td {
 	border-left: solid 0.75px #ddd;
 	border-right: solid 0.75px #ddd;
+}
+
+.current-gene {
+	border-bottom: solid 3px #ff6666;
+}
+
+.to-the-top {
+	display: block;
+	position: absolute;
+	left: 0;
+	color: #000 !important;
+	font-size: 12px;
 }
 </style>

@@ -21,6 +21,7 @@
 						style="margin-bottom: 30px"
 						name="tools.genefinder.subheader"
 					></documentation>
+					<span id="top"></span>
 					<h4 class="card-title">
 						Build search criteria and filter results
 					</h4>
@@ -168,11 +169,13 @@
 							:associations="$parent.combined"
 							:hugeScores="$store.state.hugeScores"
 							:hugeFilter="$parent.hugeScoreFilter"
-							:rowsPerPage="20"
+							:rowsPerPage="$store.state.perPage"
+							:currentPage="$store.state.currentPage"
 							:exclusive="true"
 							:showPlot="true"
 							:showChiSquared="true"
 							:pThreshold="$parent.pThreshold"
+							:currentGene="$store.state.currentGene"
 						></gene-finder-w-egl-table>
 					</div>
 				</div>

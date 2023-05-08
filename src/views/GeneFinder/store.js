@@ -35,6 +35,9 @@ export default new Vuex.Store({
         hugeScores: {},
         tissueGeneExpression: [],
         loadedTissues: [],
+        perPage: 20,
+        currentPage: 1,
+        currentGene: ""
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -97,9 +100,15 @@ export default new Vuex.Store({
         setLoadedTissues(state, tissues) {
             state.loadedTissues = tissues;
         },
-        /*setPrimaryPhCR(state, Correlation) {
-            state.primaryPhCR = Correlation;
-        },*/
+        setPerPage(state, PAGE) {
+            state.perPage = PAGE;
+        },
+        setCurrentPage(state, PAGE) {
+            state.currentPage = PAGE;
+        },
+        setCurrentGene(state, GENE) {
+            state.currentGene = GENE;
+        },
 
     },
     getters: {
@@ -115,6 +124,15 @@ export default new Vuex.Store({
         }
     },
     actions: {
+        currentGene(context, GENE) {
+            context.commit("setCurrentGene", GENE);
+        },
+        currentPage(context, PAGE) {
+            context.commit("setCurrentPage", PAGE);
+        },
+        perPage(context, PAGE) {
+            context.commit("setPerPage", PAGE);
+        },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
         },
