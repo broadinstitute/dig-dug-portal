@@ -567,7 +567,7 @@ span.text-bold {
 .gf-table td {
 	vertical-align: middle !important;
 	border-top: 1px solid #dddddd;
-	padding: 1px 0 !important;
+	padding: 2px 0 !important;
 }
 
 .evidence-tip {
