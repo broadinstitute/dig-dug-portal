@@ -260,6 +260,8 @@ new Vue({
                 (geneFinderItem) => geneFinderItem[1]
             );
 
+            //console.log("this.geneFinderAssociationsMap", Object.keys(this.geneFinderAssociationsMap))
+
             let grouped = {}
 
 
@@ -311,6 +313,8 @@ new Vue({
                         gValue.phenotypes.map(p => {
                             if (!!this.$store.state.hugeScores[p] && !!this.$store.state.hugeScores[p][gValue.gene]) {
                                 gValue[p + ":huge"] = this.$store.state.hugeScores[p][gValue.gene].huge;
+                                gValue[p + ":hugeCommon"] = this.$store.state.hugeScores[p][gValue.gene].bf_common;
+                                gValue[p + ":hugeRare"] = this.$store.state.hugeScores[p][gValue.gene].bf_rare;
 
                                 if (!gValue['minHuge'] || (!!gValue['minHuge'] && gValue[p + ":huge"] < gValue['minHuge'])) {
                                     gValue['minHuge'] = gValue[p + ":huge"];
@@ -488,7 +492,6 @@ new Vue({
             return {
                 pValue: this.geneFinderPValue,
                 phenotypes: this.geneFinderPhenotypes,
-                //egls: this.geneFinerEgls,
             };
         },
         hugePhenotype() {
@@ -558,6 +561,7 @@ new Vue({
                     newCriterion.phenotypes,
                     oldCriterion.phenotypes
                 );
+
                 if (updatingPhenotypes.length > 0) {
                     this.updateAssociations(
                         updatingPhenotypes,
@@ -577,15 +581,25 @@ new Vue({
                     });
                 }
 
-                newPhenotypes.map(p => {
-                    if (!this.$store.state.hugeScores[p]) {
-                        this.$store.dispatch("getHugePhenotype", p);
-                    }
-                })
+                let differPhenotypes = newPhenotypes.filter(x => !oldPhenotypes.includes(x));
+
+                if (differPhenotypes.length > 0) {
+                    differPhenotypes.map(p => {
+                        if (!this.$store.state.hugeScores[p]) {
+                            this.$store.dispatch("getHugePhenotype", p);
+                        }
+                    })
+
+                } else {
+                    let removedPhenotype = oldPhenotypes.filter(x => !newPhenotypes.includes(x));
+
+                    delete this.geneFinderAssociationsMap[removedPhenotype[0]]
+                }
             } else {
                 keyParams.set({
                     phenotype: "",
                 });
+                this.geneFinderAssociationsMap = {}
             }
         },
         geneFinderTissues(newTissues, oldTissues) {
@@ -715,7 +729,7 @@ new Vue({
         pValueFormatter: Formatters.pValueFormatter,
 
         updateAssociations(updatedPhenotypes, pValue, flush) {
-            //let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+
             let promises = updatedPhenotypes.map((phenotype) => {
                 if (!this.geneFinderAssociationsMap[phenotype] || flush) {
                     let alertId = postAlertNotice(

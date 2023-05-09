@@ -1,26 +1,5 @@
 <template>
 	<div>
-		<!--<div v-show="showPlot">
-			<manhattan-plot
-				:associations="combinedAssociations"
-				:phenotypes="phenotypes"
-				:phenotypeMap="phenotypeMap"
-				:colorByPhenotype="true"
-				style="margin-bottom: 10px"
-			></manhattan-plot>
-			<center style="margin-bottom: 30px">
-				<b v-show="!!this.showChiSquared">
-					Combined P-Value(Χ²) across
-					<a
-						v-for="p in phenotypes"
-						class="item"
-						:href="`/phenotype.html?phenotype=${p}`"
-						>{{ phenotypeMap[p].description }}</a
-					>
-				</b>
-			</center>
-		</div>-->
-
 		<div v-show="showPlot">
 			<gene-finder-heatmap
 				v-if="tableData.length > 0"
@@ -164,9 +143,6 @@
 												itemValue[phenotype + ':pValue']
 											)
 										"
-										:title="
-											phenotypeMap[phenotype].description
-										"
 									>
 										{{
 											pValueFormatter(
@@ -186,48 +162,62 @@
 												itemValue[phenotype + ':huge']
 											)
 										"
-										:title="
-											phenotypeMap[phenotype].description
-										"
 									>
-										<span
-											:class="
-												!!hugeFilter &&
-												itemValue[
-													phenotype + ':huge'
-												] >= hugeFilter
-													? 'text-bold'
-													: ''
+										<a
+											:href="
+												'/hugecalculator.html?gene=' +
+												itemValue.gene +
+												'&phenotype=' +
+												phenotype +
+												'&prior=0.3696'
 											"
-											>{{
-												intFormatter(
+											><span
+												:class="
+													!!hugeFilter &&
 													itemValue[
-														phenotype + ":huge"
-													]
-												)
-											}}</span
-										>
-										<span class="evidence-range"
-											>({{
-												hugeRange(
-													itemValue[
-														phenotype + ":huge"
-													]
-												)
-											}})</span
-										>
+														phenotype + ':huge'
+													] >= hugeFilter
+														? 'text-bold'
+														: ''
+												"
+												>{{
+													intFormatter(
+														itemValue[
+															phenotype + ":huge"
+														]
+													)
+												}}</span
+											>
+											<span class="evidence-range"
+												>({{
+													hugeRange(
+														itemValue[
+															phenotype + ":huge"
+														]
+													)
+												}})</span
+											>
+										</a>
+										<span class="evidence-tip"
+											>Common BF:
+											{{
+												itemValue[
+													phenotype + ":hugeCommon"
+												]
+											}}<br />
+											Rare BF:{{
+												itemValue[
+													phenotype + ":hugeRare"
+												]
+											}}
+										</span>
 									</div>
 								</template>
 							</td>
 
 							<td class="no-padding text-right">
 								<template v-for="phenotype in phenotypes">
-									<div
-										class="multi-values-div"
-										:title="
-											phenotypeMap[phenotype].description
-										"
-									>
+									<div class="multi-values-div">
 										{{
 											intFormatter(
 												itemValue[
@@ -241,12 +231,7 @@
 
 							<td class="no-padding text-center">
 								<template v-for="phenotype in phenotypes">
-									<div
-										class="multi-values-div"
-										:title="
-											phenotypeMap[phenotype].description
-										"
-									>
+									<div class="multi-values-div">
 										<a
 											:href="
 												'/research.html?pageid=kp_variant_sifter&phenotype=' +
@@ -562,7 +547,7 @@ span.text-bold {
 }
 
 .gf-table td > div.multi-values-div:nth-child(2) {
-	border-top: solid 1px #dddddd !important;
+	border-top: solid 0.5px #dddddd !important;
 }
 
 .gf-table td,
@@ -581,6 +566,30 @@ span.text-bold {
 
 .gf-table td {
 	vertical-align: middle !important;
+	border-top: 1px solid #bbbbbb;
+	padding: 1px 0 !important;
+}
+
+.evidence-tip {
+	display: none;
+}
+
+.gf-table td > div {
+	position: relative;
+}
+
+.gf-table td > div:hover .evidence-tip {
+	display: block;
+	position: absolute;
+	right: 3px;
+	top: 0;
+	text-align: left;
+	padding: 5px 10px;
+	background-color: #fff;
+	z-index: 100;
+	font-size: 14px;
+	border-radius: 5px;
+	border: solid 1px #dddddd;
 }
 
 .compelling {
