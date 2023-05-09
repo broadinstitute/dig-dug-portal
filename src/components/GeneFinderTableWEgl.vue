@@ -500,8 +500,8 @@ span.text-bold {
 	float: left;
 	font-size: 13px;
 	border-radius: 15px;
-	padding: 3px 10px;
-	margin: 0 5px 5px 0;
+	padding: 0px 10px;
+	margin: 2.5px 5px 2.5px 0;
 	color: #007bff;
 	background-color: #00000022;
 }
@@ -566,7 +566,7 @@ span.text-bold {
 
 .gf-table td {
 	vertical-align: middle !important;
-	border-top: 1px solid #bbbbbb;
+	border-top: 1px solid #dddddd;
 	padding: 1px 0 !important;
 }
 
@@ -633,7 +633,7 @@ span.evidence-range {
 }
 
 .current-gene {
-	border-bottom: solid 3px #ff6666;
+	border-bottom: solid 2px #ff6666;
 }
 
 .to-the-top {
