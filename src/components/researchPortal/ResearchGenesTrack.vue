@@ -178,6 +178,9 @@ export default Vue.component("research-genes-track", {
 				ctx.font = "italic bold 24px Arial";
 				ctx.textAlign = "center";
 				ctx.fillStyle = "#000000";
+
+				console.log(genesArray);
+
 				genesArray.map((gene, geneIndex) => {
 					if (gene.start <= xMax && gene.end >= xMin) {
 						let xStartPos =
