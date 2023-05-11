@@ -9,6 +9,7 @@
 				:minMaxTPM="minMaxTPM"
 				:eglsMap="eglsMap"
 				:pThreshold="pThreshold"
+				:rarePThreshold="rarePThreshold"
 				:currentPage="currentPage"
 			></gene-finder-heatmap>
 		</div>
@@ -138,14 +139,20 @@
 							</td>
 
 							<td class="no-padding text-center">
-								<template v-for="(phenotype, i) in phenotypes">
+								<template
+									v-for="(
+										phenotype, i
+									) in itemValue.phenotypes"
+								>
 									<div class="multi-values-div reference">
 										<small>{{ phenotype }}</small>
 									</div>
 								</template>
 							</td>
 							<td class="no-padding text-center">
-								<template v-for="phenotype in phenotypes">
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
 									<!--:class="
 											itemValue[phenotype + ':pValue'] <
 											1e-5
@@ -177,7 +184,9 @@
 								class="no-padding text-center"
 								v-if="Object.keys(rareVariantMap).length > 0"
 							>
-								<template v-for="phenotype in phenotypes">
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
 									<!--:class="
 											itemValue[phenotype + ':pValue'] <
 											1e-5
@@ -209,7 +218,9 @@
 							</td>
 
 							<td class="no-padding text-center">
-								<template v-for="phenotype in phenotypes">
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
 									<div
 										class="multi-values-div"
 										:class="
@@ -271,7 +282,9 @@
 							</td>
 
 							<td class="no-padding text-right">
-								<template v-for="phenotype in phenotypes">
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
 									<div class="multi-values-div">
 										{{
 											intFormatter(
@@ -285,7 +298,9 @@
 							</td>
 
 							<td class="no-padding text-center">
-								<template v-for="phenotype in phenotypes">
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
 									<div class="multi-values-div">
 										<a
 											:href="

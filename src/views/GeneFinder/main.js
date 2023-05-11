@@ -68,8 +68,8 @@ new Vue({
             minMaxTPM: null,
             pThresholdVal: "2.5e-6, 1e-5, 0.001",
             rarePThresholdVal: "2.5e-6, 1e-5, 0.001",
-            onlyEgl: true,
-            onlyRare: true,
+            onlyEgl: false,
+            onlyRare: false,
         };
     },
 
@@ -208,7 +208,6 @@ new Vue({
             let data = this.geneFinderSearchCriterion
                 .filter((criterion) => criterion.field === "phenotype")
                 .map((criterion) => criterion.threshold) || []
-            console.log(data);
             return data;
         },
         eglsOptions() {
@@ -266,7 +265,7 @@ new Vue({
             return (
                 this.geneFinderSearchCriterion
                     .filter((criterion) => criterion.field === "rareVariant")
-                    .map((criterion) => criterion.threshold) || []
+                    .map((criterion) => criterion.threshold.split("Rare")[0]) || []
             );
         },
 
@@ -444,8 +443,10 @@ new Vue({
                 if (combinedRareData.length > 0) {
 
                     combinedRareData.map(r => {
-                        if (!!grouped[r.gene] && !!grouped[r.gene].phenotypes.includes(r.phenotype)) {
-
+                        if (!!grouped[r.gene]) {
+                            if (!grouped[r.gene].phenotypes.includes(r.phenotype)) {
+                                grouped[r.gene].phenotypes.push(r.phenotype);
+                            }
                             grouped[r.gene][r.phenotype + ":rarePValue"] = r.pValue;
                         }
                     })
@@ -595,7 +596,7 @@ new Vue({
             let filteredCombined = Object.values(grouped);
 
 
-            //console.log("filteredCombined", filteredCombined)
+            console.log("filteredCombined", filteredCombined)
 
             return filteredCombined;
         },
@@ -633,6 +634,7 @@ new Vue({
             }
         },
         rareCriterion(newCriterion, oldCriterion) {
+            console.log("newCriterion", newCriterion)
             if (newCriterion.pValue !== oldCriterion.pValue) {
                 // if the pValue updates, all phenotype associations must be updated to reflect the new bound
                 // this will override all data in the geneFinderAssociationsMap
@@ -645,8 +647,8 @@ new Vue({
                 // if the phenotypes update, we only need to get new data based on latest phenotype
                 // NOTE: this will maintain some data in the the geneFinderAssociationsMap
                 const updatingPhenotypes = difference(
-                    newCriterion.rareVariant,
-                    oldCriterion.rareVariant
+                    newCriterion.phenotypes,
+                    oldCriterion.phenotypes
                 );
 
                 if (updatingPhenotypes.length > 0) {
@@ -693,6 +695,7 @@ new Vue({
         },
         //working part
         geneFinderRareVariant(newList, oldList) {
+            console.log("newList", newList);
             if (newList.length > 0) {
                 //if not the same, update keyparams
                 if (!isEqual(newList, oldList)) {

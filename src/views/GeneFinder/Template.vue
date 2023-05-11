@@ -16,7 +16,8 @@
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<h1 class="card-title">Gene Finder</h1>
-
+					{{ $parent.geneFinderSearchCriterion }}
+					{{ $parent.geneFinderRareVariant }}
 					<documentation
 						style="margin-bottom: 30px"
 						name="tools.genefinder.subheader"
@@ -63,18 +64,24 @@
 									class="filter-col-md"
 									:field="'rareVariant'"
 									:options="
-										$parent.rarePhenotypeOptions.map(
-											(phenotype) => phenotype
+										$parent.secondaryPhenotypeOptions.map(
+											(phenotype) =>
+												phenotype.name + 'Rare'
 										)
 									"
 									:multiple="true"
 									:labelFormatter="
 										(phenotype) =>
 											!!$store.state.bioPortal
-												.phenotypeMap[phenotype]
+												.phenotypeMap[
+												phenotype.split('Rare')[0]
+											]
 												? $store.state.bioPortal
-														.phenotypeMap[phenotype]
-														.description
+														.phenotypeMap[
+														phenotype.split(
+															'Rare'
+														)[0]
+												  ].description
 												: phenotype
 									"
 								>
@@ -136,7 +143,12 @@
 						Filter results
 					</h4>
 					<criterion-list-group
-						v-if="$parent.combined.length > 0"
+						v-if="
+							Object.keys($parent.geneFinderAssociationsMap)
+								.length > 0 ||
+							Object.keys($parent.geneFinderRareVariantMap)
+								.length > 0
+						"
 						v-model="$parent.geneFinderFilterCriterion"
 						:header="'Search Criterion'"
 					>
