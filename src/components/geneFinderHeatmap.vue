@@ -1,7 +1,6 @@
 
 <template>
 	<div class="heatmap-wrapper">
-		{{ rareVariantList }}
 		<div id="clicked_cell_value" class="clicked-cell-value hidden">
 			<div id="clicked_cell_value_content"></div>
 		</div>

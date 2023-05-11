@@ -257,7 +257,7 @@ new Vue({
             return (
                 this.geneFinderSearchCriterion
                     .filter((criterion) => criterion.field === "phenotype")
-                    .map((criterion) => criterion.threshold) || []
+                    .map((criterion) => criterion.threshold.split('MAGMA')[0]) || []
             );
         },
 

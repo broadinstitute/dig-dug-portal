@@ -16,8 +16,6 @@
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<h1 class="card-title">Gene Finder</h1>
-					{{ $parent.geneFinderSearchCriterion }}
-					{{ $parent.geneFinderRareVariant }}
 					<documentation
 						style="margin-bottom: 30px"
 						name="tools.genefinder.subheader"
@@ -42,17 +40,23 @@
 									:field="'phenotype'"
 									:options="
 										$parent.secondaryPhenotypeOptions.map(
-											(phenotype) => phenotype.name
+											(phenotype) =>
+												phenotype.name + 'MAGMA'
 										)
 									"
 									:multiple="true"
 									:labelFormatter="
 										(phenotype) =>
 											!!$store.state.bioPortal
-												.phenotypeMap[phenotype]
+												.phenotypeMap[
+												phenotype.split('MAGMA')[0]
+											]
 												? $store.state.bioPortal
-														.phenotypeMap[phenotype]
-														.description
+														.phenotypeMap[
+														phenotype.split(
+															'MAGMA'
+														)[0]
+												  ].description
 												: phenotype
 									"
 								>
@@ -203,33 +207,29 @@
 									<strong>Tissue TPM (&ge;)</strong>
 								</div>
 							</filter-greater-control>
-							<div
-								v-if="
-									Object.keys(
-										$parent.geneFinderRareVariantMap
-									).length > 0
-								"
-								class="col"
-								style="padding: 5px 7px"
-							>
-								<input
-									type="checkbox"
-									class="form-control only-egl-filter"
-									v-model="$parent.onlyRare"
-								/>
-								<strong>Only with rare variant</strong>
-							</div>
-							<div
-								v-if="$parent.geneFinderEgls.length > 0"
-								class="col"
-								style="padding: 5px 7px"
-							>
-								<input
-									type="checkbox"
-									class="form-control only-egl-filter"
-									v-model="$parent.onlyEgl"
-								/>
-								<strong>Only on PEG lists</strong>
+							<div class="col text-left" style="padding: 5px 7px">
+								<div
+									v-if="
+										Object.keys(
+											$parent.geneFinderRareVariantMap
+										).length > 0
+									"
+								>
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
+										v-model="$parent.onlyRare"
+									/>
+									<strong>Only with rare variant</strong>
+								</div>
+								<div v-if="$parent.geneFinderEgls.length > 0">
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
+										v-model="$parent.onlyEgl"
+									/>
+									<strong>Only on PEG lists</strong>
+								</div>
 							</div>
 						</div>
 						<div

@@ -496,7 +496,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 		floatFormatter: Formatters.floatFormatter,
 		pValueFormatter: Formatters.pValueFormatter,
 		getPColor(P, TYPE) {
-			let pColor = "#fff";
+			let pColor;
 			if (!!P) {
 				let thresholds =
 					TYPE == "MAGMA"
@@ -515,6 +515,8 @@ export default Vue.component("gene-finder-w-egl-table", {
 				});
 
 				pColor = "rgba(112, 191, 255, " + pNumber + ")";
+			} else {
+				pColor = "rgba(112, 191, 255, 0)";
 			}
 
 			return pColor;
