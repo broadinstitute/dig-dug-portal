@@ -56,7 +56,30 @@
 									"
 								>
 									<div>
-										<strong>Phenotypes</strong>
+										<strong>MAGMA</strong>
+									</div>
+								</filter-enumeration-control>
+								<filter-enumeration-control
+									class="filter-col-md"
+									:field="'rareVariant'"
+									:options="
+										$parent.rarePhenotypeOptions.map(
+											(phenotype) => phenotype
+										)
+									"
+									:multiple="true"
+									:labelFormatter="
+										(phenotype) =>
+											!!$store.state.bioPortal
+												.phenotypeMap[phenotype]
+												? $store.state.bioPortal
+														.phenotypeMap[phenotype]
+														.description
+												: phenotype
+									"
+								>
+									<div>
+										<strong>Rare Variant</strong>
 									</div>
 								</filter-enumeration-control>
 								<!-- tissues -->
@@ -119,7 +142,7 @@
 					>
 						<!-- pValue filter -->
 						<div
-							class="text-center col-md-7 gf-filter-section-wrapper"
+							class="text-center col-md-6 gf-filter-section-wrapper"
 						>
 							<strong class="GF-filter-ui-label"
 								>Filter by</strong
@@ -130,8 +153,20 @@
 							>
 								<div>
 									<strong
-										>P-Value:
+										>P-Val:
 										<small>MAGMA</small> (&le;)</strong
+									>
+								</div>
+							</filter-pvalue-control>
+							<filter-pvalue-control
+								class="filter-col-md"
+								:field="'rarePValue'"
+							>
+								<div>
+									<strong
+										>P-Val:
+										<small>Rare variant</small>
+										(&le;)</strong
 									>
 								</div>
 							</filter-pvalue-control>
@@ -157,6 +192,22 @@
 								</div>
 							</filter-greater-control>
 							<div
+								v-if="
+									Object.keys(
+										$parent.geneFinderRareVariantMap
+									).length > 0
+								"
+								class="col"
+								style="padding: 5px 7px"
+							>
+								<input
+									type="checkbox"
+									class="form-control only-egl-filter"
+									v-model="$parent.onlyRare"
+								/>
+								<strong>Only with rare variant</strong>
+							</div>
+							<div
 								v-if="$parent.geneFinderEgls.length > 0"
 								class="col"
 								style="padding: 5px 7px"
@@ -170,7 +221,7 @@
 							</div>
 						</div>
 						<div
-							class="text-center col-md-5 gf-filter-section-wrapper"
+							class="text-center col-md-6 gf-filter-section-wrapper"
 							style="border-left: solid 1px #ddd"
 						>
 							<strong class="GF-filter-ui-label">Settings</strong>
@@ -179,12 +230,32 @@
 								style="padding: 5px 7px"
 							>
 								<div>
-									<strong>MAGMA P-Value thresholds</strong>
+									<strong>MAGMA P-Val thresholds</strong>
 								</div>
 								<input
 									type="text"
 									class="form-control"
 									v-model="$parent.pThresholdVal"
+								/>
+							</div>
+							<div
+								class="col filter-col-md"
+								style="padding: 5px 7px"
+								v-if="
+									Object.keys(
+										$parent.geneFinderRareVariantMap
+									).length > 0
+								"
+							>
+								<div>
+									<strong
+										>Rare Variant P-Val thresholds</strong
+									>
+								</div>
+								<input
+									type="text"
+									class="form-control"
+									v-model="$parent.rarePThresholdVal"
 								/>
 							</div>
 						</div>
@@ -212,7 +283,9 @@
 							:showPlot="true"
 							:showChiSquared="true"
 							:pThreshold="$parent.pThreshold"
+							:rarePThreshold="$parent.rarePThreshold"
 							:currentGene="$store.state.currentGene"
+							:rareVariantMap="$parent.geneFinderRareVariantMap"
 						></gene-finder-w-egl-table>
 					</div>
 				</div>

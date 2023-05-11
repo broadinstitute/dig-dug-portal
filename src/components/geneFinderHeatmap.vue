@@ -1,6 +1,7 @@
 
 <template>
 	<div class="heatmap-wrapper">
+		{{ rareVariantList }}
 		<div id="clicked_cell_value" class="clicked-cell-value hidden">
 			<div id="clicked_cell_value_content"></div>
 		</div>
@@ -66,6 +67,7 @@ export default Vue.component("gene-finder-heatmap", {
 		"eglsMap",
 		"pThreshold",
 		"currentPage",
+		"rareVariantList",
 	],
 	data() {
 		return {
@@ -354,7 +356,10 @@ export default Vue.component("gene-finder-heatmap", {
 			rowsArr.map((r) => {
 				let div = document.createElement("div");
 				let a = document.createElement("a");
-				let t = document.createTextNode(r.value);
+				let t =
+					r.type == "phenotype"
+						? document.createTextNode(r.value + "(MAGMA)")
+						: document.createTextNode(r.value);
 				div.appendChild(a);
 				a.appendChild(t);
 
