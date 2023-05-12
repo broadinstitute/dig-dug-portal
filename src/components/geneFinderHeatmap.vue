@@ -273,7 +273,7 @@ export default Vue.component("gene-finder-heatmap", {
 
 							scaleLegendContent +=
 								s +
-								": <span style = 'display: inline-block; background-color: #FF000055; width:" +
+								": <span style = 'display: inline-block; border:solid 1px #FF0000; width:" +
 								spanScale +
 								"px; height:" +
 								spanScale +
@@ -610,7 +610,7 @@ export default Vue.component("gene-finder-heatmap", {
 								//}
 								dotR = dotRUnit * stepVal;
 
-								ctx.fillStyle = "#ff000055";
+								/*ctx.fillStyle = "#ff000055";
 								ctx.lineWidth = 0;
 								ctx.beginPath();
 								ctx.arc(
@@ -620,10 +620,10 @@ export default Vue.component("gene-finder-heatmap", {
 									0,
 									2 * Math.PI
 								);
-								ctx.fill();
+								ctx.fill();*/
 
-								/*ctx.lineWidth = 1.5;
-								ctx.strokeStyle = "#FF00005";
+								ctx.lineWidth = 2;
+								ctx.strokeStyle = "#FF0000";
 								ctx.beginPath();
 								ctx.arc(
 									left + centerPos,
@@ -632,7 +632,7 @@ export default Vue.component("gene-finder-heatmap", {
 									0,
 									2 * Math.PI
 								);
-								ctx.stroke();*/
+								ctx.stroke();
 							}
 						}
 
