@@ -24,7 +24,7 @@ export default new Vuex.Store({
         transcriptAssoc: bioIndex("transcript-associations"),
         hugeScores: bioIndex("huge"),
         geneExpression: bioIndex("gene-expression"),
-        uniprot
+        uniprot,
     },
     state: {
         geneName: keyParams.gene,
@@ -62,7 +62,7 @@ export default new Vuex.Store({
         },
         setCommonVariantsLength(state, NUM) {
             state.commonVariantsLength = NUM;
-        }
+        },
     },
 
     getters: {
@@ -75,20 +75,27 @@ export default new Vuex.Store({
                 return {
                     chromosome: gene.chromosome,
                     start: gene.start,
-                    end: gene.end
+                    end: gene.end,
                 };
             }
         },
 
-        canonicalSymbol(state) {
-            let data = state.genes.data;
-            let geneData = state.gene.data;
+        // canonicalSymbol(state) {
+        //     let data = state.genes.data;
+        //     let geneData = state.gene.data;
 
-            for (let i in data) {
-                if (data[i].source === "symbol") {
-                    return data[i].name;
-                }
+        //     for (let i in data) {
+        //         if (data[i].source === "symbol") {
+        //             return data[i].name;
+        //         }
+        //     }
+        // },
+        canonicalSymbol(state) {
+            let data = state.gene.data;
+            if (data.length > 0) {
+                return data[0].symbol;
             }
+            return null;
         },
 
         geneSymbol(state) {
@@ -96,15 +103,17 @@ export default new Vuex.Store({
             let geneData = state.gene.data;
 
             for (let i in data) {
-                if (data[i].chromosome == geneData[0].chromosome && data[i].start == geneData[0].start && data[i].end == geneData[0].end) {
+                if (
+                    data[i].chromosome == geneData[0].chromosome &&
+                    data[i].start == geneData[0].start &&
+                    data[i].end == geneData[0].end
+                ) {
                     if (data[i].source === "symbol") {
                         return data[i].name;
                     }
                 }
-
             }
         },
-
     },
 
     actions: {
@@ -157,26 +166,27 @@ export default new Vuex.Store({
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {
-                context.state.newChr = locus.chr
+                context.state.newChr = locus.chr;
                 context.state.newStart = locus.start;
                 context.state.newEnd = locus.end;
             }
 
-            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start - 50000}-${locus.end + 50000}`;
+            const phenoRegionQuery = `${phenotype},${locus.chr}:${
+                locus.start - 50000
+            }-${locus.end + 50000}`;
 
-            context.dispatch('varassociations/query', { q: phenoRegionQuery });
-
+            context.dispatch("varassociations/query", { q: phenoRegionQuery });
         },
         async get52KAssociationData(context) {
             let name = context.state.geneName;
-            context.dispatch('associations52k/query', { q: name });
+            context.dispatch("associations52k/query", { q: name });
         },
         async getHugeScoresData(context) {
             let name = context.state.geneName;
-            context.dispatch('hugeScores/query', { q: name });
+            context.dispatch("hugeScores/query", { q: name });
         },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
-    }
+    },
 });
