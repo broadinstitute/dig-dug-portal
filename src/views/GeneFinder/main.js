@@ -304,7 +304,7 @@ new Vue({
         },
 
         geneFinderPValue() {
-            let pval = 0.05;
+            let pval = null;
             for (let i in this.geneFinderFilterCriterion) {
                 if (this.geneFinderFilterCriterion[i].field == "pValue") {
                     pval = Number(this.geneFinderFilterCriterion[i].threshold);
@@ -406,6 +406,19 @@ new Vue({
                 )) {
                     if (gValue.phenotypes.length != this.geneFinderPhenotypes.length) {
                         delete grouped[gKey];
+                    }
+
+                    let pValueFilter = Number(this.geneFinderPValue);
+
+                    if (!!pValueFilter) {
+                        let pValueCount = 0;
+                        gValue.phenotypes.map(p => {
+                            pValueCount += (gValue[p + ":pValue"] <= pValueFilter) ? 1 : 0;
+                        })
+
+                        if (pValueCount == 0) {
+                            delete grouped[gKey];
+                        }
                     }
                 }
 
@@ -615,6 +628,7 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        /*
         criterion(newCriterion, oldCriterion) {
             if (newCriterion.pValue !== oldCriterion.pValue) {
                 // if the pValue updates, all phenotype associations must be updated to reflect the new bound
@@ -649,6 +663,27 @@ new Vue({
                     );
                 }
             }
+        },*/
+        criterion(newCriterion, oldCriterion) {
+
+            // if the phenotypes update, we only need to get new data based on latest phenotype
+            // NOTE: this will maintain some data in the the geneFinderAssociationsMap
+            const updatingPhenotypes = difference(
+                newCriterion.phenotypes,
+                oldCriterion.phenotypes
+            );
+
+            if (updatingPhenotypes.length > 0) {
+                this.updateAssociations(
+                    updatingPhenotypes,
+                    0.05
+                );
+                this.updateRareAssociations(
+                    updatingPhenotypes,
+                    0.05
+                );
+            }
+
         },
         /*rareCriterion(newCriterion, oldCriterion) {
             console.log("newCriterion", newCriterion)

@@ -165,7 +165,7 @@
 								href="javascript:;"
 								class="GF-filter-ui-label-right"
 								@click="$parent.showHideSetting()"
-								>Set p-value thresholds / Sow hide columns</a
+								>Set p-value thresholds / Show hide columns</a
 							>
 							<filter-greater-control
 								class="filter-col-md"
