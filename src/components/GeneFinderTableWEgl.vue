@@ -11,6 +11,7 @@
 				:pThreshold="pThreshold"
 				:rarePThreshold="rarePThreshold"
 				:currentPage="currentPage"
+				:showHide="showHide"
 			></gene-finder-heatmap>
 		</div>
 		<pre></pre>
@@ -78,12 +79,18 @@
 						<th>MAGMA P-Value(Χ²)</th>
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>Trait</th>
-						<th>MAGMA P-Value</th>
-						<th v-if="Object.keys(rareVariantMap).length > 0">
+						<th>HuGE Score <small>(Evidence Range)</small></th>
+						<th v-if="!!showHide.magma">MAGMA P-Value</th>
+						<th
+							v-if="
+								Object.keys(rareVariantMap).length > 0 &&
+								!!showHide.rare
+							"
+						>
 							Rare Variant P-Value
 						</th>
 						<!--<th class="thin-cell no-padding"></th>-->
-						<th>HuGE Score <small>(Evidence Range)</small></th>
+
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>Samples</th>
 
@@ -153,74 +160,6 @@
 								<template
 									v-for="phenotype in itemValue.phenotypes"
 								>
-									<!--:class="
-											itemValue[phenotype + ':pValue'] <
-											1e-5
-												? 'variant-table-cell high'
-												: ''
-										"
-										-->
-									<div
-										class="multi-values-div"
-										:style="
-											'background-color:' +
-											getPColor(
-												itemValue[
-													phenotype + ':pValue'
-												],
-												'MAGMA'
-											)
-										"
-									>
-										{{
-											pValueFormatter(
-												itemValue[phenotype + ":pValue"]
-											)
-										}}
-									</div>
-								</template>
-							</td>
-							<td
-								class="no-padding text-center"
-								v-if="Object.keys(rareVariantMap).length > 0"
-							>
-								<template
-									v-for="phenotype in itemValue.phenotypes"
-								>
-									<!--:class="
-											itemValue[phenotype + ':pValue'] <
-											1e-5
-												? 'variant-table-cell high'
-												: ''
-										"
-										-->
-									<div
-										class="multi-values-div"
-										:style="
-											'background-color:' +
-											getPColor(
-												itemValue[
-													phenotype + ':rarePValue'
-												],
-												'rare'
-											)
-										"
-									>
-										{{
-											pValueFormatter(
-												itemValue[
-													phenotype + ":rarePValue"
-												]
-											)
-										}}
-									</div>
-								</template>
-							</td>
-
-							<td class="no-padding text-center">
-								<template
-									v-for="phenotype in itemValue.phenotypes"
-								>
 									<div
 										class="multi-values-div"
 										:class="
@@ -277,6 +216,79 @@
 												]
 											}}
 										</span>
+									</div>
+								</template>
+							</td>
+							<td
+								v-if="!!showHide.magma"
+								class="no-padding text-center"
+							>
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
+									<!--:class="
+											itemValue[phenotype + ':pValue'] <
+											1e-5
+												? 'variant-table-cell high'
+												: ''
+										"
+										-->
+									<div
+										class="multi-values-div"
+										:style="
+											'background-color:' +
+											getPColor(
+												itemValue[
+													phenotype + ':pValue'
+												],
+												'MAGMA'
+											)
+										"
+									>
+										{{
+											pValueFormatter(
+												itemValue[phenotype + ":pValue"]
+											)
+										}}
+									</div>
+								</template>
+							</td>
+							<td
+								class="no-padding text-center"
+								v-if="
+									Object.keys(rareVariantMap).length > 0 &&
+									!!showHide.rare
+								"
+							>
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
+									<!--:class="
+											itemValue[phenotype + ':pValue'] <
+											1e-5
+												? 'variant-table-cell high'
+												: ''
+										"
+										-->
+									<div
+										class="multi-values-div"
+										:style="
+											'background-color:' +
+											getPColor(
+												itemValue[
+													phenotype + ':rarePValue'
+												],
+												'rare'
+											)
+										"
+									>
+										{{
+											pValueFormatter(
+												itemValue[
+													phenotype + ":rarePValue"
+												]
+											)
+										}}
 									</div>
 								</template>
 							</td>
@@ -377,6 +389,7 @@ export default Vue.component("gene-finder-w-egl-table", {
 		"currentGene",
 		"rareVariantMap",
 		"rarePThreshold",
+		"showHide",
 	],
 	components: {
 		Documentation,

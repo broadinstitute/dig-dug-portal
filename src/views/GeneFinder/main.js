@@ -70,6 +70,8 @@ new Vue({
             rarePThresholdVal: "2.5e-6, 1e-5, 0.001",
             onlyEgl: false,
             onlyRare: false,
+            turnOffMagma: true,
+            turnOffRare: true,
         };
     },
 
@@ -273,14 +275,14 @@ new Vue({
             return this.$store.state.eglGenes;
         },
 
-        /*rareVariantFilter() {
+        rareVariantFilter() {
             let rareVariantFilterArr = this.geneFinderFilterCriterion
                 .filter((f) => f.field === "rarePValue")
 
             let filter = rareVariantFilterArr.length > 0 ? Number(rareVariantFilterArr[0].threshold) : null;
 
             return filter;
-        },*/
+        },
 
         hugeScoreFilter() {
 
@@ -389,8 +391,8 @@ new Vue({
 
                     grouped[r.gene].phenotypes.push(r.phenotype);
                     grouped[r.gene][r.phenotype + ":pValue"] = r.pValue;
-                    grouped[r.gene][r.phenotype + ":zStat"] = r.zStat;
-                    grouped[r.gene][r.phenotype + ":nParam"] = r.nParam;
+                    //grouped[r.gene][r.phenotype + ":zStat"] = r.zStat;
+                    //grouped[r.gene][r.phenotype + ":nParam"] = r.nParam;
                     grouped[r.gene][r.phenotype + ":subjects"] = r.subjects;
 
                     // lowest p-value across all phenotypes
@@ -441,13 +443,16 @@ new Vue({
 
                 //check if rare variant data is there
                 if (combinedRareData.length > 0) {
-
                     combinedRareData.map(r => {
                         if (!!grouped[r.gene]) {
                             if (!grouped[r.gene].phenotypes.includes(r.phenotype)) {
                                 grouped[r.gene].phenotypes.push(r.phenotype);
                             }
                             grouped[r.gene][r.phenotype + ":rarePValue"] = r.pValue;
+
+                            if (!!this.rareVariantFilter && this.rareVariantFilter != "" && r.pValue > this.rareVariantFilter) {
+                                delete grouped[r.gene];
+                            }
                         }
                     })
                 }
@@ -565,38 +570,40 @@ new Vue({
                         }
                     })
 
-                    ///
+
                     let data = Object.values(grouped);
 
-                    let minMax = { min: Number(data[0].minTPM), max: Number(data[0].maxTPM) };
-                    data.map((d) => {
-                        minMax.min = d.minTPM < minMax.min ? d.minTPM : minMax.min;
-                        minMax.max = d.maxTPM > minMax.max ? d.maxTPM : minMax.max;
-                    });
+                    if (data.length > 0) {
+                        let minMax = { min: Number(data[0].minTPM), max: Number(data[0].maxTPM) };
+                        data.map((d) => {
+                            minMax.min = d.minTPM < minMax.min ? d.minTPM : minMax.min;
+                            minMax.max = d.maxTPM > minMax.max ? d.maxTPM : minMax.max;
+                        });
 
-                    this.minMaxTPM = minMax;
+                        this.minMaxTPM = minMax;
 
-                    ///
 
-                    if (!!this.tpmFilter) {
-                        for (const [gKey, gValue] of Object.entries(
-                            grouped
-                        )) {
-                            if ((gValue.maxTPM < this.tpmFilter || !gValue.maxTPM)) {
-                                delete grouped[gKey];
+
+                        if (!!this.tpmFilter) {
+                            for (const [gKey, gValue] of Object.entries(
+                                grouped
+                            )) {
+                                if ((gValue.maxTPM < this.tpmFilter || !gValue.maxTPM)) {
+                                    delete grouped[gKey];
+                                }
                             }
                         }
+                    } else {
+                        this.minMaxTPM = null;
                     }
+
+
                 } else {
                     this.minMaxTPM = null;
                 }
             }
 
-
             let filteredCombined = Object.values(grouped);
-
-
-            console.log("filteredCombined", filteredCombined)
 
             return filteredCombined;
         },
@@ -912,6 +919,9 @@ new Vue({
         intFormatter: Formatters.intFormatter,
         floatFormatter: Formatters.floatFormatter,
         pValueFormatter: Formatters.pValueFormatter,
+        showHideSetting() {
+            uiUtils.showHideElement("tableSetting");
+        },
 
         updateAssociations(updatedPhenotypes, pValue, flush) {
 

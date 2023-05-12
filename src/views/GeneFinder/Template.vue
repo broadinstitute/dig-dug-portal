@@ -156,35 +156,17 @@
 					>
 						<!-- pValue filter -->
 						<div
-							class="text-center col-md-6 gf-filter-section-wrapper"
+							class="text-center col-md-12 gf-filter-section-wrapper"
 						>
 							<strong class="GF-filter-ui-label"
 								>Filter by</strong
 							>
-							<filter-pvalue-control
-								class="filter-col-md"
-								:field="'pValue'"
+							<a
+								href="javascript:;"
+								class="GF-filter-ui-label-right"
+								@click="$parent.showHideSetting()"
+								>Set p-value thresholds / Sow hide columns</a
 							>
-								<div>
-									<strong
-										>P-Val:
-										<small>MAGMA</small> (&le;)</strong
-									>
-								</div>
-							</filter-pvalue-control>
-							<!--<filter-pvalue-control
-								class="filter-col-md"
-								:field="'rarePValue'"
-							>
-								<div>
-									<strong
-										>P-Val:
-										<small>Rare variant</small>
-										(&le;)</strong
-									>
-								</div>
-							</filter-pvalue-control>-->
-
 							<filter-greater-control
 								class="filter-col-md"
 								:field="'HuGE'"
@@ -193,6 +175,23 @@
 									<strong>HuGE Score (&ge;)</strong>
 								</div>
 							</filter-greater-control>
+							<filter-pvalue-control
+								class="filter-col-md"
+								:field="'pValue'"
+							>
+								<div>
+									<strong>MAGMA (&le;)</strong>
+								</div>
+							</filter-pvalue-control>
+							<filter-pvalue-control
+								class="filter-col-md"
+								:field="'rarePValue'"
+							>
+								<div>
+									<strong>Rare Variant (&le;)</strong>
+								</div>
+							</filter-pvalue-control>
+
 							<filter-greater-control
 								v-if="
 									this.$store.state.tissueGeneExpression
@@ -230,17 +229,163 @@
 								</div>
 							</div>
 						</div>
+						<!--<div
+							class="text-center col-md-3 gf-filter-section-wrapper"
+							style="border-left: solid 1px #ddd"
+						>
+							<strong class="GF-filter-ui-label"
+								>Thresholds</strong
+							>
+							<div
+								class="col filter-col-sm"
+								style="padding: 5px 7px"
+							>
+								<div>
+									<strong>MAGMA</strong>
+								</div>
+								<input
+									type="text"
+									class="form-control"
+									v-model="$parent.pThresholdVal"
+								/>
+							</div>
+							<div
+								class="col filter-col-sm"
+								style="padding: 5px 7px"
+								v-if="
+									Object.keys(
+										$parent.geneFinderRareVariantMap
+									).length > 0
+								"
+							>
+								<div>
+									<strong>Rare Variant</strong>
+								</div>
+								<input
+									type="text"
+									class="form-control"
+									v-model="$parent.rarePThresholdVal"
+								/>
+							</div>
+						</div>
+						<div
+							class="text-center col-md-3 gf-filter-section-wrapper"
+							style="border-left: solid 1px #ddd"
+						>
+							<strong class="GF-filter-ui-label"
+								>Show / Hide</strong
+							>
+							<div class="col text-left" style="padding: 5px 7px">
+								<div>
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
+										v-model="$parent.turnOffMagma"
+									/>
+									<strong>Show MAGMA</strong>
+								</div>
+								<div>
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
+										v-model="$parent.turnOffRare"
+									/>
+									<strong>Show Rare Variant</strong>
+								</div>
+							</div>
+						</div>-->
+					</criterion-list-group>
+					<criterion-list-group
+						v-if="
+							Object.keys($parent.geneFinderAssociationsMap)
+								.length > 0
+						"
+						id="tableSetting"
+						class="hidden"
+						:header="'Search Criterion'"
+					>
+						<!-- pValue filter -->
+						<!--<div
+							class="text-center col-md-12 gf-filter-section-wrapper"
+						>
+							<strong class="GF-filter-ui-label"
+								>Filter by</strong
+							>
+							<filter-greater-control
+								class="filter-col-md"
+								:field="'HuGE'"
+							>
+								<div>
+									<strong>HuGE Score (&ge;)</strong>
+								</div>
+							</filter-greater-control>
+							<filter-pvalue-control
+								class="filter-col-md"
+								:field="'pValue'"
+							>
+								<div>
+									<strong>MAGMA (&le;)</strong>
+								</div>
+							</filter-pvalue-control>
+							<filter-pvalue-control
+								class="filter-col-md"
+								:field="'rarePValue'"
+							>
+								<div>
+									<strong>Rare Variant (&le;)</strong>
+								</div>
+							</filter-pvalue-control>
+
+							<filter-greater-control
+								v-if="
+									this.$store.state.tissueGeneExpression
+										.length > 0
+								"
+								class="filter-col-md"
+								:field="'TPM'"
+							>
+								<div>
+									<strong>Tissue TPM (&ge;)</strong>
+								</div>
+							</filter-greater-control>
+							<div class="col text-left" style="padding: 5px 7px">
+								<div
+									v-if="
+										Object.keys(
+											$parent.geneFinderRareVariantMap
+										).length > 0
+									"
+								>
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
+										v-model="$parent.onlyRare"
+									/>
+									<strong>Only with rare variant</strong>
+								</div>
+								<div v-if="$parent.geneFinderEgls.length > 0">
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
+										v-model="$parent.onlyEgl"
+									/>
+									<strong>Only on PEG lists</strong>
+								</div>
+							</div>
+						</div>-->
 						<div
 							class="text-center col-md-6 gf-filter-section-wrapper"
 							style="border-left: solid 1px #ddd"
 						>
-							<strong class="GF-filter-ui-label">Settings</strong>
+							<strong class="GF-filter-ui-label"
+								>Thresholds</strong
+							>
 							<div
 								class="col filter-col-md"
 								style="padding: 5px 7px"
 							>
 								<div>
-									<strong>MAGMA P-Val thresholds</strong>
+									<strong>MAGMA</strong>
 								</div>
 								<input
 									type="text"
@@ -258,15 +403,39 @@
 								"
 							>
 								<div>
-									<strong
-										>Rare Variant P-Val thresholds</strong
-									>
+									<strong>Rare Variant</strong>
 								</div>
 								<input
 									type="text"
 									class="form-control"
 									v-model="$parent.rarePThresholdVal"
 								/>
+							</div>
+						</div>
+						<div
+							class="text-center col-md-6 gf-filter-section-wrapper"
+							style="border-left: solid 1px #ddd"
+						>
+							<strong class="GF-filter-ui-label"
+								>Show / Hide</strong
+							>
+							<div class="col text-left" style="padding: 5px 7px">
+								<div>
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
+										v-model="$parent.turnOffMagma"
+									/>
+									<strong>Show MAGMA</strong>
+								</div>
+								<div>
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
+										v-model="$parent.turnOffRare"
+									/>
+									<strong>Show Rare Variant</strong>
+								</div>
 							</div>
 						</div>
 					</criterion-list-group>
@@ -296,6 +465,10 @@
 							:rarePThreshold="$parent.rarePThreshold"
 							:currentGene="$store.state.currentGene"
 							:rareVariantMap="$parent.geneFinderRareVariantMap"
+							:showHide="{
+								magma: $parent.turnOffMagma,
+								rare: $parent.turnOffRare,
+							}"
 						></gene-finder-w-egl-table>
 					</div>
 				</div>
@@ -324,6 +497,11 @@
 	left: 25px;
 	font-size: 12px;
 	color: #aaa;
+}
+.GF-filter-ui-label-right {
+	position: absolute;
+	right: 25px;
+	font-size: 12px;
 }
 .gf-filter-section-wrapper {
 	position: relative;
