@@ -61,10 +61,10 @@
 									"
 								>
 									<div>
-										<strong>MAGMA</strong>
+										<strong>Phenotype</strong>
 									</div>
 								</filter-enumeration-control>
-								<filter-enumeration-control
+								<!--<filter-enumeration-control
 									class="filter-col-md"
 									:field="'rareVariant'"
 									:options="
@@ -92,7 +92,7 @@
 									<div>
 										<strong>Rare Variant</strong>
 									</div>
-								</filter-enumeration-control>
+								</filter-enumeration-control>-->
 								<!-- tissues -->
 								<filter-enumeration-control
 									class="filter-col-md"
@@ -149,8 +149,6 @@
 					<criterion-list-group
 						v-if="
 							Object.keys($parent.geneFinderAssociationsMap)
-								.length > 0 ||
-							Object.keys($parent.geneFinderRareVariantMap)
 								.length > 0
 						"
 						v-model="$parent.geneFinderFilterCriterion"
@@ -174,7 +172,7 @@
 									>
 								</div>
 							</filter-pvalue-control>
-							<filter-pvalue-control
+							<!--<filter-pvalue-control
 								class="filter-col-md"
 								:field="'rarePValue'"
 							>
@@ -185,7 +183,7 @@
 										(&le;)</strong
 									>
 								</div>
-							</filter-pvalue-control>
+							</filter-pvalue-control>-->
 
 							<filter-greater-control
 								class="filter-col-md"
