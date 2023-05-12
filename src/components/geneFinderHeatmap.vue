@@ -68,6 +68,7 @@ export default Vue.component("gene-finder-heatmap", {
 		"currentPage",
 		"rareVariantList",
 		"rarePThreshold",
+		"showHide",
 	],
 	data() {
 		return {
@@ -225,7 +226,7 @@ export default Vue.component("gene-finder-heatmap", {
 							'<div\
 						class="col-md-12"\
 						style="font-size: 14px; white-space: nowrap"\
-					><strong>P-Value:</strong>';
+					><strong>MAGMA P-Value:</strong>';
 
 						let dotMaxR = this.boxSize * 0.75;
 						let spanScale;
@@ -272,7 +273,7 @@ export default Vue.component("gene-finder-heatmap", {
 
 							scaleLegendContent +=
 								s +
-								": <span style = 'display: inline-block; background-color: #00000075; width:" +
+								": <span style = 'display: inline-block; background-color: #FF000055; width:" +
 								spanScale +
 								"px; height:" +
 								spanScale +
@@ -376,9 +377,9 @@ export default Vue.component("gene-finder-heatmap", {
 			renderData.rows.phenotypes.map((p) => {
 				rowsArr.push({ type: "phenotype", value: p });
 			});
-			this.rareVariantList.map((r) => {
+			/*this.rareVariantList.map((r) => {
 				rowsArr.push({ type: "rareVariant", value: r });
-			});
+			});*/
 
 			if (!!renderData.rows.tissues) {
 				renderData.rows.tissues.map((t) => {
@@ -400,9 +401,7 @@ export default Vue.component("gene-finder-heatmap", {
 				let a = document.createElement("a");
 				let t =
 					r.type == "phenotype"
-						? document.createTextNode(r.value + "(MAGMA)")
-						: r.type == "rareVariant"
-						? document.createTextNode(r.value + "(Rare Variant)")
+						? document.createTextNode(r.value)
 						: document.createTextNode(r.value);
 				div.appendChild(a);
 				a.appendChild(t);
@@ -531,19 +530,14 @@ export default Vue.component("gene-finder-heatmap", {
 
 						if (X == cIndex && Y == rIndex) {
 							ctx.beginPath();
-							ctx.rect(left, top, renderBoxSize, renderBoxSize);
-							ctx.fillStyle = "black";
-							ctx.fill();
-
-							ctx.beginPath();
-							ctx.rect(
-								left + 2,
-								top + 2,
-								renderBoxSize - 4,
-								renderBoxSize - 4
+							ctx.lineWidth = 2;
+							ctx.strokeStyle = "black";
+							ctx.strokeRect(
+								left,
+								top,
+								renderBoxSize,
+								renderBoxSize
 							);
-							ctx.fillStyle = "#ffffff";
-							ctx.fill();
 						}
 
 						if (rType == "phenotype") {
@@ -554,6 +548,10 @@ export default Vue.component("gene-finder-heatmap", {
 							boxContent +=
 								"<div>HuGE Score: " +
 								geneData[rValue + ":huge"] +
+								"</div>";
+							boxContent +=
+								"<div>Rare Variant P-Value: " +
+								geneData[rValue + ":rarePValue"] +
 								"</div>";
 
 							ctx.beginPath();
@@ -589,9 +587,56 @@ export default Vue.component("gene-finder-heatmap", {
 								2 * Math.PI
 							);
 							ctx.fill();
+
+							if (!!geneData[rValue + ":rarePValue"]) {
+								let steps = this.rarePThreshold;
+								let subDirection = "negative";
+								let dotMaxR = (renderBoxSize * 0.75) / 2;
+								let centerPos = renderBoxSize / 2;
+
+								let stepVal = 0;
+								let subValue = !!geneData[
+									rValue + ":rarePValue"
+								]
+									? geneData[rValue + ":rarePValue"]
+									: 1;
+								let dotR;
+
+								let dotRUnit = dotMaxR / steps.length;
+
+								for (let i = steps.length - 1; i >= 0; i--) {
+									stepVal += subValue <= steps[i] ? 1 : 0;
+								}
+								//}
+								dotR = dotRUnit * stepVal;
+
+								ctx.fillStyle = "#ff000055";
+								ctx.lineWidth = 0;
+								ctx.beginPath();
+								ctx.arc(
+									left + centerPos,
+									top + centerPos,
+									dotR,
+									0,
+									2 * Math.PI
+								);
+								ctx.fill();
+
+								/*ctx.lineWidth = 1.5;
+								ctx.strokeStyle = "#FF00005";
+								ctx.beginPath();
+								ctx.arc(
+									left + centerPos,
+									top + centerPos,
+									dotR,
+									0,
+									2 * Math.PI
+								);
+								ctx.stroke();*/
+							}
 						}
 
-						if (rType == "rareVariant") {
+						/*if (rType == "rareVariant") {
 							boxContent +=
 								"<div>P-Value: " +
 								geneData[rValue + ":rarePValue"] +
@@ -616,7 +661,7 @@ export default Vue.component("gene-finder-heatmap", {
 							//}
 							dotR = dotRUnit * stepVal;
 
-							ctx.fillStyle = "#00000075";
+							ctx.fillStyle = "#ff000075";
 							ctx.lineWidth = 0;
 							ctx.beginPath();
 							ctx.arc(
@@ -627,7 +672,7 @@ export default Vue.component("gene-finder-heatmap", {
 								2 * Math.PI
 							);
 							ctx.fill();
-						}
+						}*/
 
 						if (rType == "tissue") {
 							boxContent +=
