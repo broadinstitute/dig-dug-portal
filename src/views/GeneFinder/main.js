@@ -359,7 +359,7 @@ new Vue({
         },
 
         combined() {
-
+            console.log("point 4")
             let combinedData = Object.entries(this.geneFinderAssociationsMap).flatMap(
                 (geneFinderItem) => geneFinderItem[1]
             );
@@ -676,7 +676,7 @@ new Vue({
             }
         },*/
         criterion(newCriterion, oldCriterion) {
-
+            console.log("point 2")
             // if the phenotypes update, we only need to get new data based on latest phenotype
             // NOTE: this will maintain some data in the the geneFinderAssociationsMap
             const updatingPhenotypes = difference(
@@ -722,8 +722,9 @@ new Vue({
                 }
             }
         },*/
-        geneFinderPhenotypes(newPhenotypes, oldPhenotypes) {
 
+        geneFinderPhenotypes(newPhenotypes, oldPhenotypes) {
+            console.log("point 3")
             if (newPhenotypes.length > 0) {
                 //if not the same, update keyparams
                 if (!isEqual(newPhenotypes, oldPhenotypes)) {
@@ -898,9 +899,10 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("getEglsFullList");
-        this.$store.dispatch("getGeneExpression", 'PCSK9');
+        //this.$store.dispatch("getGeneExpression", 'PCSK9');
         //check if parameter is passed, set criterion
         if (keyParams.phenotypes) {
+            console.log("point 1")
             keyParams.phenotypes.split(",").forEach((phenotype) => {
                 this.geneFinderSearchCriterion.push({
                     field: "phenotype",
