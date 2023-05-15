@@ -5,10 +5,13 @@
 				v-if="tableData.length > 0"
 				:heatmapData="groupedAssociations"
 				:phenotypes="phenotypes"
+				:rareVariantList="Object.keys(rareVariantMap)"
 				:minMaxTPM="minMaxTPM"
 				:eglsMap="eglsMap"
 				:pThreshold="pThreshold"
+				:rarePThreshold="rarePThreshold"
 				:currentPage="currentPage"
+				:showHide="showHide"
 			></gene-finder-heatmap>
 		</div>
 		<pre></pre>
@@ -32,7 +35,21 @@
 							<span
 								:style="
 									'margin-right:5px; background-color:' +
-									getPColor(tValue)
+									getPColor(tValue, 'MAGMA')
+								"
+								>&lt;={{ tValue }}</span
+							>
+						</template>
+					</span>
+					<span
+						style="font-size: 13px"
+						v-if="Object.keys(rareVariantMap).length > 0"
+						>Rare Variant P-Value:
+						<template v-for="tValue in rarePThreshold">
+							<span
+								:style="
+									'margin-right:5px; background-color:' +
+									getPColor(tValue, 'rare')
 								"
 								>&lt;={{ tValue }}</span
 							>
@@ -62,9 +79,18 @@
 						<th>MAGMA P-Value(Χ²)</th>
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>Trait</th>
-						<th>MAGMA P-Value</th>
-						<!--<th class="thin-cell no-padding"></th>-->
 						<th>HuGE Score <small>(Evidence Range)</small></th>
+						<th v-if="!!showHide.magma">MAGMA P-Value</th>
+						<th
+							v-if="
+								Object.keys(rareVariantMap).length > 0 &&
+								!!showHide.rare
+							"
+						>
+							Rare Variant P-Value
+						</th>
+						<!--<th class="thin-cell no-padding"></th>-->
+
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>Samples</th>
 
@@ -120,41 +146,20 @@
 							</td>
 
 							<td class="no-padding text-center">
-								<template v-for="(phenotype, i) in phenotypes">
+								<template
+									v-for="(
+										phenotype, i
+									) in itemValue.phenotypes"
+								>
 									<div class="multi-values-div reference">
 										<small>{{ phenotype }}</small>
 									</div>
 								</template>
 							</td>
 							<td class="no-padding text-center">
-								<template v-for="phenotype in phenotypes">
-									<!--:class="
-											itemValue[phenotype + ':pValue'] <
-											1e-5
-												? 'variant-table-cell high'
-												: ''
-										"
-										-->
-									<div
-										class="multi-values-div"
-										:style="
-											'background-color:' +
-											getPColor(
-												itemValue[phenotype + ':pValue']
-											)
-										"
-									>
-										{{
-											pValueFormatter(
-												itemValue[phenotype + ":pValue"]
-											)
-										}}
-									</div>
-								</template>
-							</td>
-
-							<td class="no-padding text-center">
-								<template v-for="phenotype in phenotypes">
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
 									<div
 										class="multi-values-div"
 										:class="
@@ -214,9 +219,84 @@
 									</div>
 								</template>
 							</td>
+							<td
+								v-if="!!showHide.magma"
+								class="no-padding text-center"
+							>
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
+									<!--:class="
+											itemValue[phenotype + ':pValue'] <
+											1e-5
+												? 'variant-table-cell high'
+												: ''
+										"
+										-->
+									<div
+										class="multi-values-div"
+										:style="
+											'background-color:' +
+											getPColor(
+												itemValue[
+													phenotype + ':pValue'
+												],
+												'MAGMA'
+											)
+										"
+									>
+										{{
+											pValueFormatter(
+												itemValue[phenotype + ":pValue"]
+											)
+										}}
+									</div>
+								</template>
+							</td>
+							<td
+								class="no-padding text-center"
+								v-if="
+									Object.keys(rareVariantMap).length > 0 &&
+									!!showHide.rare
+								"
+							>
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
+									<!--:class="
+											itemValue[phenotype + ':pValue'] <
+											1e-5
+												? 'variant-table-cell high'
+												: ''
+										"
+										-->
+									<div
+										class="multi-values-div"
+										:style="
+											'background-color:' +
+											getPColor(
+												itemValue[
+													phenotype + ':rarePValue'
+												],
+												'rare'
+											)
+										"
+									>
+										{{
+											pValueFormatter(
+												itemValue[
+													phenotype + ":rarePValue"
+												]
+											)
+										}}
+									</div>
+								</template>
+							</td>
 
 							<td class="no-padding text-right">
-								<template v-for="phenotype in phenotypes">
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
 									<div class="multi-values-div">
 										{{
 											intFormatter(
@@ -230,7 +310,9 @@
 							</td>
 
 							<td class="no-padding text-center">
-								<template v-for="phenotype in phenotypes">
+								<template
+									v-for="phenotype in itemValue.phenotypes"
+								>
 									<div class="multi-values-div">
 										<a
 											:href="
@@ -305,6 +387,9 @@ export default Vue.component("gene-finder-w-egl-table", {
 		"hugeFilter",
 		"currentPage",
 		"currentGene",
+		"rareVariantMap",
+		"rarePThreshold",
+		"showHide",
 	],
 	components: {
 		Documentation,
@@ -423,20 +508,29 @@ export default Vue.component("gene-finder-w-egl-table", {
 		intFormatter: Formatters.intFormatter,
 		floatFormatter: Formatters.floatFormatter,
 		pValueFormatter: Formatters.pValueFormatter,
-		getPColor(P) {
-			//#70bfff
-			let thresholds = this.pThreshold;
-			let tUnit = 1 / thresholds.length;
-			let tMin = thresholds[0];
-			let tMax = thresholds[thresholds.length - 1];
+		getPColor(P, TYPE) {
+			let pColor;
+			if (!!P) {
+				let thresholds =
+					TYPE == "MAGMA"
+						? this.pThreshold
+						: TYPE == "rare"
+						? this.rarePThreshold
+						: [];
+				let tUnit = 1 / thresholds.length;
+				let tMin = thresholds[0];
+				let tMax = thresholds[thresholds.length - 1];
 
-			let pNumber = 1;
+				let pNumber = 1;
 
-			thresholds.map((t) => {
-				pNumber -= P > t ? tUnit : 0;
-			});
+				thresholds.map((t) => {
+					pNumber -= P > t ? tUnit : 0;
+				});
 
-			let pColor = "rgba(112, 191, 255, " + pNumber + ")";
+				pColor = "rgba(112, 191, 255, " + pNumber + ")";
+			} else {
+				pColor = "rgba(112, 191, 255, 0)";
+			}
 
 			return pColor;
 		},
