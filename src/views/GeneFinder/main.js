@@ -462,14 +462,23 @@ new Vue({
                                 grouped[r.gene].phenotypes.push(r.phenotype);
                             }
                             grouped[r.gene][r.phenotype + ":rarePValue"] = r.pValue;
-
-                            console.log("r.pValue", r.pValue)
-
-                            if ((!!this.rareVariantFilter && this.rareVariantFilter != "") && (r.pValue > this.rareVariantFilter || r.pValue == 0)) {
-                                delete grouped[r.gene];
-                            }
                         }
                     })
+                }
+
+                if (combinedRareData.length > 0 && !!this.rareVariantFilter && this.rareVariantFilter != "") {
+                    for (const [gKey, gValue] of Object.entries(
+                        grouped
+                    )) {
+                        let rarePcount = 0;
+                        gValue.phenotypes.map(p => {
+                            rarePcount += (!!gValue[p + ":rarePValue"] && gValue[p + ":rarePValue"] < this.rareVariantFilter) ? 1 : 0;
+                        })
+
+                        if (rarePcount == 0) {
+                            delete grouped[gKey];
+                        }
+                    }
                 }
 
                 if (combinedRareData.length > 0 && !!this.onlyRare) {
