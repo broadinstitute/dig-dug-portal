@@ -451,12 +451,7 @@
 						</div>
 					</criterion-list-group>
 					<pre></pre>
-					<div
-						v-if="
-							$parent.geneFinderPhenotypes.length > 0 &&
-							$parent.combined.length > 0
-						"
-					>
+					<div v-if="$parent.geneFinderPhenotypes.length > 0">
 						<gene-finder-w-egl-table
 							:phenotypes="$parent.geneFinderPhenotypes"
 							:egls="$parent.geneFinderEgls"

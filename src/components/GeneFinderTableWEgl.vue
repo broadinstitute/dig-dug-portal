@@ -72,28 +72,28 @@
 					<tr>
 						<th>
 							Gene
-							<tooltip-documentation
-								name="gf.gene.header.tooltip"
-								:is-hover="true"
-								:no-icon="false"
-							></tooltip-documentation>
+							<small
+								><tooltip-documentation
+									name="gf.gene.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
 						</th>
 						<th v-if="egls.length > 0">
 							PEG lists
-							<tooltip-documentation
-								name="gf.peg.header.tooltip"
-								:is-hover="true"
-								:no-icon="false"
-							></tooltip-documentation>
+							<small>
+								<tooltip-documentation
+									name="gf.peg.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
 						</th>
-						<th v-if="tissues.length > 0">
-							Gene expression
-							<small></small>
-						</th>
+						<th v-if="tissues.length > 0">Gene expression</th>
 						<th>
-							P-Value(Χ²)
-							<small
-								>Combined common variant
+							P-Val(Χ²)
+							<small>
 								<tooltip-documentation
 									name="gf.combinedCommon.header.tooltip"
 									:is-hover="true"
@@ -105,8 +105,7 @@
 						<th>Trait</th>
 						<th>
 							HuGE Score
-							<small
-								>(Evidence Range)
+							<small>
 								<tooltip-documentation
 									name="gf.huge.header.tooltip"
 									:is-hover="true"
@@ -115,9 +114,9 @@
 							></small>
 						</th>
 						<th v-if="!!showHide.magma">
-							P-value
+							P-val
 							<small
-								>(Common variant)
+								>(Common)
 								<tooltip-documentation
 									name="gf.commonVariant.header.tooltip"
 									:is-hover="true"
@@ -131,9 +130,9 @@
 								!!showHide.rare
 							"
 						>
-							P-value
+							P-val
 							<small
-								>(Rare variant)
+								>(Rare)
 								<tooltip-documentation
 									name="gf.rareVariant.header.tooltip"
 									:is-hover="true"
