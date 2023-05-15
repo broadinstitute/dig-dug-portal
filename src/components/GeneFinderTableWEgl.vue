@@ -71,14 +71,16 @@
 				<thead>
 					<tr>
 						<th>
-							Gene<tooltip-documentation
+							Gene
+							<tooltip-documentation
 								name="gf.gene.header.tooltip"
 								:is-hover="true"
 								:no-icon="false"
 							></tooltip-documentation>
 						</th>
 						<th v-if="egls.length > 0">
-							PEG lists<tooltip-documentation
+							PEG lists
+							<tooltip-documentation
 								name="gf.peg.header.tooltip"
 								:is-hover="true"
 								:no-icon="false"
@@ -89,29 +91,39 @@
 							<small></small>
 						</th>
 						<th>
-							Combined common variant
-							P-Value(Χ²)<tooltip-documentation
-								name="gf.combinedCommon.header.tooltip"
-								:is-hover="true"
-								:no-icon="false"
-							></tooltip-documentation>
+							P-Value(Χ²)
+							<small
+								>Combined common variant
+								<tooltip-documentation
+									name="gf.combinedCommon.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
 						</th>
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>Trait</th>
 						<th>
-							HuGE Score <small>(Evidence Range)</small
-							><tooltip-documentation
-								name="gf.huge.header.tooltip"
-								:is-hover="true"
-								:no-icon="false"
-							></tooltip-documentation>
+							HuGE Score
+							<small
+								>(Evidence Range)
+								<tooltip-documentation
+									name="gf.huge.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
 						</th>
 						<th v-if="!!showHide.magma">
-							Common variant p-value<tooltip-documentation
-								name="gf.commonVariant.header.tooltip"
-								:is-hover="true"
-								:no-icon="false"
-							></tooltip-documentation>
+							P-value
+							<small
+								>(Common variant)
+								<tooltip-documentation
+									name="gf.commonVariant.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
 						</th>
 						<th
 							v-if="
@@ -119,29 +131,36 @@
 								!!showHide.rare
 							"
 						>
-							Rare variant p-value<tooltip-documentation
-								name="gf.rareVariant.header.tooltip"
-								:is-hover="true"
-								:no-icon="false"
-							></tooltip-documentation>
+							P-value
+							<small
+								>(Rare variant)
+								<tooltip-documentation
+									name="gf.rareVariant.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
 						</th>
-						<!--<th class="thin-cell no-padding"></th>-->
-
-						<!--<th class="thin-cell no-padding"></th>-->
 						<th>
-							Samples<tooltip-documentation
-								name="gf.samples.header.tooltip"
-								:is-hover="true"
-								:no-icon="false"
-							></tooltip-documentation>
+							Samples
+							<small>
+								<tooltip-documentation
+									name="gf.samples.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
 						</th>
 
 						<th>
-							Variant Sifter<tooltip-documentation
-								name="gf.vs.header.tooltip"
-								:is-hover="true"
-								:no-icon="false"
-							></tooltip-documentation>
+							Variant Sifter
+							<small>
+								<tooltip-documentation
+									name="gf.vs.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
 						</th>
 					</tr>
 				</thead>

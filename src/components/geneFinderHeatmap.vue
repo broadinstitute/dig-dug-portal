@@ -192,6 +192,7 @@ export default Vue.component("gene-finder-heatmap", {
 	},
 	methods: {
 		...uiUtils,
+		pValueFormatter: Formatters.pValueFormatter,
 		onResize(e) {
 			this.renderHeatmap();
 		},
@@ -560,7 +561,9 @@ export default Vue.component("gene-finder-heatmap", {
 						if (rType == "phenotype") {
 							boxContent +=
 								"<div>P-Value: " +
-								geneData[rValue + ":pValue"] +
+								this.pValueFormatter(
+									geneData[rValue + ":pValue"]
+								) +
 								"</div>";
 							boxContent +=
 								"<div>HuGE Score: " +
@@ -568,7 +571,9 @@ export default Vue.component("gene-finder-heatmap", {
 								"</div>";
 							boxContent +=
 								"<div>Rare Variant P-Value: " +
-								geneData[rValue + ":rarePValue"] +
+								this.pValueFormatter(
+									geneData[rValue + ":rarePValue"]
+								) +
 								"</div>";
 
 							ctx.beginPath();
