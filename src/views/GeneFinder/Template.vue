@@ -110,7 +110,10 @@
 									"
 								>
 									<div>
-										<strong>Tissue Gene Expression</strong>
+										<strong
+											>Tissue-specific gene
+											expression</strong
+										>
 									</div>
 								</filter-enumeration-control>
 								<!-- PEGL -->
@@ -135,7 +138,7 @@
 								>
 									<div>
 										<strong
-											>Predicted Effector Genes</strong
+											>Effector gene predictions</strong
 										>
 									</div>
 								</filter-enumeration-control>
@@ -165,7 +168,8 @@
 								href="javascript:;"
 								class="GF-filter-ui-label-right"
 								@click="$parent.showHideSetting()"
-								>Set p-value thresholds / Show hide columns</a
+								>Set p-value thresholds / Show or hide
+								columns</a
 							>
 							<filter-greater-control
 								class="filter-col-md"
@@ -180,7 +184,9 @@
 								:field="'pValue'"
 							>
 								<div>
-									<strong>MAGMA (&le;)</strong>
+									<strong
+										>Common variant p-value (&le;)</strong
+									>
 								</div>
 							</filter-pvalue-control>
 							<filter-pvalue-control
@@ -188,7 +194,7 @@
 								:field="'rarePValue'"
 							>
 								<div>
-									<strong>Rare Variant (&le;)</strong>
+									<strong>Rare variant p-value (&le;)</strong>
 								</div>
 							</filter-pvalue-control>
 
@@ -201,7 +207,7 @@
 								:field="'TPM'"
 							>
 								<div>
-									<strong>Tissue TPM (&ge;)</strong>
+									<strong>Rare variant p-value (&ge;)</strong>
 								</div>
 							</filter-greater-control>
 							<div class="col text-left" style="padding: 5px 7px">
@@ -217,7 +223,9 @@
 										class="form-control only-egl-filter"
 										v-model="$parent.onlyRare"
 									/>
-									<strong>Only with rare variant</strong>
+									<strong
+										>Genes with rare variant results</strong
+									>
 								</div>
 								<div v-if="$parent.geneFinderEgls.length > 0">
 									<input
@@ -225,7 +233,10 @@
 										class="form-control only-egl-filter"
 										v-model="$parent.onlyEgl"
 									/>
-									<strong>Only on PEG lists</strong>
+									<strong
+										>Genes present on effector prediction
+										lists</strong
+									>
 								</div>
 							</div>
 						</div>

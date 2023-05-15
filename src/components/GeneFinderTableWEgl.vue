@@ -30,7 +30,7 @@
 						</span>
 					</template>-->
 					<span style="font-size: 13px"
-						>MAGMA P-Value:
+						>Common variant p-value:
 						<template v-for="tValue in pThreshold">
 							<span
 								:style="
@@ -44,7 +44,7 @@
 					<span
 						style="font-size: 13px"
 						v-if="Object.keys(rareVariantMap).length > 0"
-						>Rare Variant P-Value:
+						>Rare variant p-value:
 						<template v-for="tValue in rarePThreshold">
 							<span
 								:style="
@@ -70,31 +70,79 @@
 			>
 				<thead>
 					<tr>
-						<th>Gene</th>
-						<th v-if="egls.length > 0">PEG lists</th>
-						<th v-if="tissues.length > 0">
-							Tissue Gene Expression
-							<small>(Mean TPM : Samples)</small>
+						<th>
+							Gene<tooltip-documentation
+								name="gf.gene.header.tooltip"
+								:is-hover="true"
+								:no-icon="false"
+							></tooltip-documentation>
 						</th>
-						<th>MAGMA P-Value(Χ²)</th>
+						<th v-if="egls.length > 0">
+							PEG lists<tooltip-documentation
+								name="gf.peg.header.tooltip"
+								:is-hover="true"
+								:no-icon="false"
+							></tooltip-documentation>
+						</th>
+						<th v-if="tissues.length > 0">
+							Gene expression
+							<small></small>
+						</th>
+						<th>
+							Combined common variant
+							P-Value(Χ²)<tooltip-documentation
+								name="gf.combinedCommon.header.tooltip"
+								:is-hover="true"
+								:no-icon="false"
+							></tooltip-documentation>
+						</th>
 						<!--<th class="thin-cell no-padding"></th>-->
 						<th>Trait</th>
-						<th>HuGE Score <small>(Evidence Range)</small></th>
-						<th v-if="!!showHide.magma">MAGMA P-Value</th>
+						<th>
+							HuGE Score <small>(Evidence Range)</small
+							><tooltip-documentation
+								name="gf.huge.header.tooltip"
+								:is-hover="true"
+								:no-icon="false"
+							></tooltip-documentation>
+						</th>
+						<th v-if="!!showHide.magma">
+							Common variant p-value<tooltip-documentation
+								name="gf.commonVariant.header.tooltip"
+								:is-hover="true"
+								:no-icon="false"
+							></tooltip-documentation>
+						</th>
 						<th
 							v-if="
 								Object.keys(rareVariantMap).length > 0 &&
 								!!showHide.rare
 							"
 						>
-							Rare Variant P-Value
+							Rare variant p-value<tooltip-documentation
+								name="gf.rareVariant.header.tooltip"
+								:is-hover="true"
+								:no-icon="false"
+							></tooltip-documentation>
 						</th>
 						<!--<th class="thin-cell no-padding"></th>-->
 
 						<!--<th class="thin-cell no-padding"></th>-->
-						<th>Samples</th>
+						<th>
+							Samples<tooltip-documentation
+								name="gf.samples.header.tooltip"
+								:is-hover="true"
+								:no-icon="false"
+							></tooltip-documentation>
+						</th>
 
-						<th>Variant Sifter</th>
+						<th>
+							Variant Sifter<tooltip-documentation
+								name="gf.vs.header.tooltip"
+								:is-hover="true"
+								:no-icon="false"
+							></tooltip-documentation>
+						</th>
 					</tr>
 				</thead>
 				<tbody>

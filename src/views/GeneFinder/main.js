@@ -463,7 +463,9 @@ new Vue({
                             }
                             grouped[r.gene][r.phenotype + ":rarePValue"] = r.pValue;
 
-                            if (!!this.rareVariantFilter && this.rareVariantFilter != "" && r.pValue > this.rareVariantFilter) {
+                            console.log("r.pValue", r.pValue)
+
+                            if ((!!this.rareVariantFilter && this.rareVariantFilter != "") && (r.pValue > this.rareVariantFilter || r.pValue == 0)) {
                                 delete grouped[r.gene];
                             }
                         }

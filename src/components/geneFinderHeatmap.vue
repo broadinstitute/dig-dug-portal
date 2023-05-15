@@ -226,7 +226,7 @@ export default Vue.component("gene-finder-heatmap", {
 							'<div\
 						class="col-md-12"\
 						style="font-size: 14px; white-space: nowrap"\
-					><strong>MAGMA P-Value:</strong>';
+					><strong>Common variant p-value:</strong>';
 
 						let dotMaxR = this.boxSize * 0.75;
 						let spanScale;
@@ -236,18 +236,20 @@ export default Vue.component("gene-finder-heatmap", {
 							spanScale =
 								dotMaxR *
 								((steps.length - sindex) / steps.length);
-							scaleLegendContent +=
-								"<div class='sub-legend-steps'> <= ";
 
 							scaleLegendContent +=
-								s +
-								": <span style = 'display: inline-block; background-color: #00000075; width:" +
+								"<div class='sub-legend-steps'>";
+
+							scaleLegendContent +=
+								"<span style = 'display: inline-block; background-color: #00000075; width:" +
 								spanScale +
 								"px; height:" +
 								spanScale +
 								"px; border-radius:" +
 								spanScale / 2 +
-								"px;'></span></div>";
+								"px;'></span> <=" +
+								s +
+								"</div>";
 						});
 
 						scaleLegendContent += "</div>";
@@ -258,7 +260,7 @@ export default Vue.component("gene-finder-heatmap", {
 							'<div\
 						class="col-md-12"\
 						style="font-size: 14px; white-space: nowrap"\
-					><strong>Rare Variant P-Value:</strong>';
+					><strong>Rare variant p-value:</strong>';
 
 						let dotMaxR = this.boxSize * 0.75;
 						let spanScale;
@@ -268,7 +270,22 @@ export default Vue.component("gene-finder-heatmap", {
 							spanScale =
 								dotMaxR *
 								((steps.length - sindex) / steps.length);
+
 							scaleLegendContent +=
+								"<div class='sub-legend-steps'>";
+
+							scaleLegendContent +=
+								"<span style = 'display: inline-block; border:solid 1px #FF0000; width:" +
+								spanScale +
+								"px; height:" +
+								spanScale +
+								"px; border-radius:" +
+								spanScale / 2 +
+								"px;'></span> <=" +
+								s +
+								"</div>";
+
+							/*scaleLegendContent +=
 								"<div class='sub-legend-steps'> <= ";
 
 							scaleLegendContent +=
@@ -279,7 +296,7 @@ export default Vue.component("gene-finder-heatmap", {
 								spanScale +
 								"px; border-radius:" +
 								spanScale / 2 +
-								"px;'></span></div>";
+								"px;'></span></div>";*/
 						});
 
 						scaleLegendContent += "</div>";
@@ -310,7 +327,7 @@ export default Vue.component("gene-finder-heatmap", {
 				) {
 					scaleLegendContent +=
 						'<div class="col-md-12"\
-						style="font-size: 14px; white-space: nowrap"><strong>Tissue gene expression mean TPM: </strong>Min(' +
+						style="font-size: 14px; white-space: nowrap"><strong>Gene expression mean TPM: </strong>Min(' +
 						this.minMaxTPM.min +
 						") <span style='color:#70bfff;font-stretch: ultra-expanded;'>&#9664;</span> Max(" +
 						this.minMaxTPM.max +
