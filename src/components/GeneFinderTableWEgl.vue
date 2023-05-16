@@ -90,7 +90,16 @@
 								></tooltip-documentation
 							></small>
 						</th>
-						<th v-if="tissues.length > 0">Gene expression</th>
+						<th v-if="tissues.length > 0">
+							Gene expression
+							<small>
+								<tooltip-documentation
+									name="gf.geneExpression.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
+						</th>
 						<th>
 							P-Val(Χ²)
 							<small>
@@ -102,7 +111,16 @@
 							></small>
 						</th>
 						<!--<th class="thin-cell no-padding"></th>-->
-						<th>Trait</th>
+						<th>
+							Trait
+							<small>
+								<tooltip-documentation
+									name="gf.trait.header.tooltip"
+									:is-hover="true"
+									:no-icon="false"
+								></tooltip-documentation
+							></small>
+						</th>
 						<th>
 							HuGE Score
 							<small>
