@@ -1,10 +1,10 @@
 <template>
     <div style="position: relative">
         <div class="text-right mt-2 mb-2">
-            <csv-download
+            <data-download
                 :data="tableData"
                 filename="gene_associations"
-            ></csv-download>
+            ></data-download>
         </div>
         <span
             style="
@@ -34,21 +34,21 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
-            <template v-slot:cell(phenotype)="r">
+            <template #cell(phenotype)="r">
                 <a href="javascript:;" class="phenotype-gene-association">
                     {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
                     <div class="options-4-actions">
                         <div>
                             <a
-                                :href="`/phenotype.html?phenotype=${r.item.phenotype}`"
                                 v-if="phenotypeMap"
+                                :href="`/phenotype.html?phenotype=${r.item.phenotype}`"
                                 >Open phenotype page</a
                             >
                         </div>
                         <div>
                             <a
-                                :href="`/region.html?phenotype=${r.item.phenotype}&chr=${gene.chromosome}&start=${gene.start}&end=${gene.end}`"
                                 v-if="phenotypeMap"
+                                :href="`/region.html?phenotype=${r.item.phenotype}&chr=${gene.chromosome}&start=${gene.start}&end=${gene.end}`"
                                 >Open region page with selected phenotype</a
                             >
                         </div>
@@ -56,7 +56,7 @@
                 </a>
                 &nbsp;
             </template>
-            <template v-slot:cell(link)="r">
+            <template #cell(link)="r">
                 <a
                     target="_blank"
                     class="btn view-features-btn btn-secondary"
@@ -68,8 +68,8 @@
         </b-table>
         <div v-else>No data available for this query.</div>
         <b-pagination
-            class="pagination-sm justify-content-center"
             v-model="currentPage"
+            class="pagination-sm justify-content-center"
             :total-rows="rows"
             :per-page="perPage"
         ></b-pagination>
@@ -86,17 +86,13 @@ Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import Documentation from "@/components/Documentation";
-import TooltipDocumentation from "@/components/TooltipDocumentation";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 
-export default Vue.component("huge-scores-table", {
-    props: ["gene", "hugeScores", "phenotypeMap"],
+export default Vue.component("HugeScoresTable", {
     components: {
-        Documentation,
-        TooltipDocumentation,
-        CsvDownload,
+        DataDownload,
     },
+    props: ["gene", "hugeScores", "phenotypeMap"],
     data() {
         return {
             perPage: 10,
@@ -127,7 +123,7 @@ export default Vue.component("huge-scores-table", {
 
                     tdClass(x) {
                         //return !!x && x < 1e-5 ? "variant-table-cell high" : "";
-                        return !!x
+                        return x
                             ? x >= 350
                                 ? "compelling"
                                 : x >= 100
@@ -176,15 +172,15 @@ export default Vue.component("huge-scores-table", {
             return assocs;
         },
     },
-
-    methods: {
-        phenotypeFormatter: Formatters.phenotypeFormatter,
-        floatFormatter: Formatters.floatFormatter,
-    },
     watch: {
         tableData(DATA) {
             this.$store.dispatch("commonVariantsLength", DATA.length);
         },
+    },
+
+    methods: {
+        phenotypeFormatter: Formatters.phenotypeFormatter,
+        floatFormatter: Formatters.floatFormatter,
     },
 });
 </script>

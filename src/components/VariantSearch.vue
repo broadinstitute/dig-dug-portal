@@ -2,7 +2,7 @@
     <div id="variant-search">
         <b-row>
             <b-col cols="9">
-                <div class="legends" v-show="tableData.length">
+                <div v-show="tableData.length" class="legends">
                     <strong class="mr-2">Impact:</strong>
                     <b-btn
                         disabled
@@ -35,11 +35,11 @@
                 </div>
             </b-col>
             <b-col class="text-right mb-2">
-                <csv-download
+                <data-download
                     v-if="tableData.length"
                     :data="tableData"
                     filename="variants"
-                ></csv-download
+                ></data-download
             ></b-col>
         </b-row>
         <div v-show="tableData.length">
@@ -256,8 +256,8 @@
                 </template>
             </b-table>
             <b-pagination
-                size="sm"
                 v-model="currentPage"
+                size="sm"
                 :total-rows="rows"
                 :per-page="perPage"
                 aria-controls="my-table"
@@ -267,22 +267,13 @@
 </template>
 <script>
 import Vue from "vue";
-import { match, query } from "@/utils/bioIndexUtils";
-import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
-import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
-import Documentation from "@/components/Documentation";
-import TooltipDocumentation from "@/components/TooltipDocumentation";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 
-export default Vue.component("variant-search", {
+export default Vue.component("VariantSearch", {
     components: {
-        CriterionListGroup,
-        FilterEnumeration,
-        Documentation,
-        TooltipDocumentation,
-        Formatters,
-        CsvDownload,
+        DataDownload,
     },
     props: {
         gene: [String, Array],
@@ -437,19 +428,27 @@ export default Vue.component("variant-search", {
             if (this.tableData) return this.tableData.length;
         },
     },
+    watch: {
+        gene: {
+            handler(val) {
+                if (val) this.searchVariants();
+            },
+            immediate: true,
+        },
+    },
     methods: {
         async searchVariants() {
             this.currentPage = 1; //reset on new search
             this.variants = await query("gene-variants", this.gene);
         },
         async getTranscriptConsequences(varID) {
-            if (!!varID) {
+            if (varID) {
                 let data = await query("transcript-consequences", varID);
                 return data;
             }
         },
         consequenceFormatter(consequence) {
-            if (!!consequence) {
+            if (consequence) {
                 let trim = consequence
                     .replace("_prime_", "' ")
                     .replace("_variant", "");
@@ -471,7 +470,7 @@ export default Vue.component("variant-search", {
             }
         },
         escapedVarID(varID) {
-            if (!!varID) return varID.replace(/:\s*/g, "_");
+            if (varID) return varID.replace(/:\s*/g, "_");
             else {
                 return "";
             }
@@ -479,14 +478,6 @@ export default Vue.component("variant-search", {
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
             if (item.pick === 1) return "row-pick";
-        },
-    },
-    watch: {
-        gene: {
-            handler(val) {
-                if (!!val) this.searchVariants();
-            },
-            immediate: true,
         },
     },
 });

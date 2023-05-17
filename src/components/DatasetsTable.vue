@@ -2,10 +2,10 @@
     <div>
         <div v-if="tableData.length > 0">
             <div class="text-right mb-2">
-                <csv-download
+                <data-download
                     :data="tableData"
                     filename="datasets_associations"
-                ></csv-download>
+                ></data-download>
             </div>
             <b-table
                 hover
@@ -47,11 +47,11 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 
 export default Vue.component("datasets-table", {
+    components: { DataDownload },
     props: ["datasets", "phenotype", "filter"],
-    components: { CsvDownload },
     data() {
         return {
             fields: [
