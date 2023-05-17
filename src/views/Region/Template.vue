@@ -105,7 +105,7 @@
                         <expand-region> </expand-region>
                     </div>
                     <div class="col-md-2 text-right">
-                        <h7>Download associations</h7>
+                        <h6>Download associations</h6>
                         <b-link href="https://bioindex.hugeamp.org/">
                             <b-img
                                 src="/images/bioindex_logo.svg"
