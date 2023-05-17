@@ -1,5 +1,7 @@
 <template>
-    <b-dropdown variant="outline-primary" size="sm" text="Download">
+    <b-dropdown variant="secondary" right size="sm" text="Download">
+        <b-dropdown-text>Save file as</b-dropdown-text>
+        <b-dropdown-divider></b-dropdown-divider>
         <b-dropdown-item @click="downloadCsv()">CSV</b-dropdown-item>
         <b-dropdown-item @click="downloadJson()">JSON</b-dropdown-item>
     </b-dropdown>
@@ -14,17 +16,17 @@ export default Vue.component("DataDownload", {
     props: {
         data: {
             type: Array,
-            required: true
+            required: true,
         },
         filename: {
             type: String,
             required: false,
-            default: "data"
+            default: "data",
         },
         flatten: {
             type: Boolean,
-            default: false
-        }
+            default: false,
+        },
     },
     data() {
         return {};
@@ -47,7 +49,8 @@ export default Vue.component("DataDownload", {
             });
         },
         downloadJson() {
-            uiUtils.saveJason(this.data, this.filename);
+            uiUtils.saveJson(this.data, this.filename);
         },
     },
 });
+</script>

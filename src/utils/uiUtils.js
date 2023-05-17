@@ -209,7 +209,7 @@ let saveJson = function (DATA, FILENAME) {
     const downloadFilename = FILENAME || "download";
 
     let downloadLink = document.createElement("a");
-    let blob = new Blob(["\ufeff", JSON.stringify(DATA)]);
+    let blob = new Blob(["\ufeff", JSON.stringify(DATA), null, 4]);
     let url = URL.createObjectURL(blob);
     downloadLink.href = url;
     downloadLink.download = downloadFilename + ".json"; //Name the file here
