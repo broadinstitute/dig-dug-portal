@@ -57,7 +57,6 @@ let showHideElement = function (ELEMENT, SEARCHBOX) {
     if (!!element) {
         if (element.classList.contains("hidden")) {
             showElement(ELEMENT, SEARCHBOX);
-
         } else {
             hideElement(ELEMENT);
         }
@@ -189,11 +188,11 @@ let convertJson2Csv = function (DATA, FILENAME) {
     const header = Object.keys(items[0]);
     const csv = [
         header.join(","), // header row first
-        ...items.map(row =>
+        ...items.map((row) =>
             header
-                .map(fieldName => JSON.stringify(row[fieldName], replacer))
+                .map((fieldName) => JSON.stringify(row[fieldName], replacer))
                 .join(",")
-        )
+        ),
     ].join("\r\n");
 
     let downloadLink = document.createElement("a");
@@ -207,7 +206,6 @@ let convertJson2Csv = function (DATA, FILENAME) {
 };
 
 let saveJson = function (DATA, FILENAME) {
-    const items = DATA;
     const downloadFilename = FILENAME || "download";
 
     let downloadLink = document.createElement("a");
@@ -243,8 +241,12 @@ let getAxisTicks = function (lo, hi) {
 };
 
 let showTabContent = function (TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
-    let tabList = document.querySelectorAll('.kp-tabs#' + TAB_WRAPPER + ' .kp-tab');
-    let contentList = document.querySelectorAll('.kp-tabs-contents#' + CONTENT_WRAPPER + ' .kp-tab-content');
+    let tabList = document.querySelectorAll(
+        ".kp-tabs#" + TAB_WRAPPER + " .kp-tab"
+    );
+    let contentList = document.querySelectorAll(
+        ".kp-tabs-contents#" + CONTENT_WRAPPER + " .kp-tab-content"
+    );
 
     for (let i = 0; i < tabList.length; i++) {
         tabList[i].classList.remove("active");
@@ -269,18 +271,20 @@ let removeOnMouseOut = function (BOXID, TIME) {
 let isIdFixed = function (ID) {
     let element = document.querySelector(ID);
 
-    let isFixed = !!element && element.getAttribute(
-        'class'
-    ).includes('fixed') == true ? true : false;
+    let isFixed =
+        !!element && element.getAttribute("class").includes("fixed") == true
+            ? true
+            : false;
     return isFixed;
-}
+};
 
 function biDomain() {
     let url = parseUrl(window.location.href);
 
-    let content = url.port == ""
-        ? "https://bioindex.hugeamp.org"
-        : "https://bioindex-dev.hugeamp.org";
+    let content =
+        url.port == ""
+            ? "https://bioindex.hugeamp.org"
+            : "https://bioindex-dev.hugeamp.org";
 
     return content;
 }
@@ -310,5 +314,5 @@ export default {
     removeOnMouseOut,
     isIdFixed,
     biDomain,
-    getUrl
+    getUrl,
 };
