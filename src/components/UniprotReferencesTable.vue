@@ -1,10 +1,10 @@
 <template>
     <div>
         <div class="text-right mt-2 mb-2">
-            <csv-download
+            <data-download
                 :data="tableData"
                 filename="UniProt_table"
-            ></csv-download>
+            ></data-download>
         </div>
         <b-table
             hover
@@ -52,17 +52,12 @@ Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import Formatters from "@/utils/formatters";
 
-import Documentation from "@/components/Documentation";
-import TooltipDocumentation from "@/components/TooltipDocumentation";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 
 export default Vue.component("UniprotReferencesTable", {
     components: {
-        Documentation,
-        TooltipDocumentation,
-        CsvDownload,
+        DataDownload,
     },
     props: ["references", "filter"],
     data() {

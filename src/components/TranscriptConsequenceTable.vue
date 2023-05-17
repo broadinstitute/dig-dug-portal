@@ -3,7 +3,7 @@
         <div v-if="rows > 0">
             <b-row>
                 <b-col cols="9">
-                    <div class="legends" v-show="tableData.length">
+                    <div v-show="tableData.length" class="legends">
                         <strong class="mr-2">Impact:</strong>
                         <b-btn
                             disabled
@@ -36,11 +36,11 @@
                     </div>
                 </b-col>
                 <b-col class="text-right mb-2">
-                    <csv-download
+                    <data-download
                         v-if="tableData.length"
                         :data="tableData"
                         filename="variant-consequences"
-                    ></csv-download
+                    ></data-download
                 ></b-col>
             </b-row>
             <div v-show="tableData.length">
@@ -74,9 +74,7 @@
                     <template #cell(transcriptId)="data">
                         <a
                             v-if="data.item.transcriptId"
-                            :href="
-                                `https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`
-                            "
+                            :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
                             target="_blank"
                             rel="noopener noreferrer nofollow"
                             >{{ data.item.transcriptId }}</a
@@ -109,8 +107,8 @@
                 </b-table>
                 <b-pagination
                     v-if="rows > perPage"
-                    class="pagination-sm justify-content-center"
                     v-model="currentPage"
+                    class="pagination-sm justify-content-center"
                     :total-rows="rows"
                     :per-page="perPage"
                 ></b-pagination>
@@ -128,72 +126,75 @@
 <script>
 import Vue from "vue";
 import Formatters from "@/utils/formatters";
-
-export default Vue.component("transcript-consequence-table", {
+import DataDownload from "@/components/DataDownload.vue";
+export default Vue.component("TranscriptConsequenceTable", {
+    components: {
+        DataDownload,
+    },
     props: ["transcriptConsequences", "filter"],
     data() {
         return {
             fields: [
                 {
                     key: "transcriptId",
-                    label: "Feature"
+                    label: "Feature",
                 },
                 {
                     key: "position",
-                    label: "Position"
+                    label: "Position",
                 },
                 {
                     key: "aminoAcids",
-                    label: "Amino Acids"
+                    label: "Amino Acids",
                 },
                 {
                     key: "consequenceTerms",
                     label: "Consequence",
-                    tdClass: "border-color"
+                    tdClass: "border-color",
                 },
                 {
                     key: "hgncId",
-                    label: "HGNC"
+                    label: "HGNC",
                 },
                 {
                     key: "hgvsc",
-                    label: "HGVSc"
+                    label: "HGVSc",
                 },
                 {
                     key: "hgvsp",
-                    label: "HGVSp"
+                    label: "HGVSp",
                 },
                 {
                     key: "polyphen2HdivPred",
-                    label: "PolyPhen (HDIV)"
+                    label: "PolyPhen (HDIV)",
                 },
                 {
                     key: "polyphen2HvarPred",
-                    label: "PolyPhen (HVAR)"
+                    label: "PolyPhen (HVAR)",
                 },
                 {
                     key: "siftPrediction",
-                    label: "SIFT Prediction"
+                    label: "SIFT Prediction",
                 },
                 {
                     key: "lrtPred",
-                    label: "LRT"
+                    label: "LRT",
                 },
                 {
                     key: "mutationTaster",
-                    label: "Mutation Taster"
+                    label: "Mutation Taster",
                 },
                 {
                     key: "caddRawRankscore",
-                    label: "CADD-Phred Score"
+                    label: "CADD-Phred Score",
                 },
                 {
                     key: "gnomadGenomesPopmaxAf",
-                    label: "gnomAD AF"
-                }
+                    label: "gnomAD AF",
+                },
             ],
             perPage: 5,
-            currentPage: 1
+            currentPage: 1,
         };
     },
     computed: {
@@ -201,28 +202,30 @@ export default Vue.component("transcript-consequence-table", {
             return this.tableData.length;
         },
         sortedTranscriptConsequences() {
-            let picked = this.transcriptConsequences.filter(a => a.pick === 1);
-            let unpicked = this.transcriptConsequences.filter(a => !a.pick);
+            let picked = this.transcriptConsequences.filter(
+                (a) => a.pick === 1
+            );
+            let unpicked = this.transcriptConsequences.filter((a) => !a.pick);
 
             return picked
                 .concat(unpicked)
                 .sort((a, b) => a.pick === 1)
-                .map(cqs => {
+                .map((cqs) => {
                     return {
                         _rowVariant: cqs.pick === 1 ? "success" : null,
-                        ...cqs
+                        ...cqs,
                     };
                 });
         },
         tableData() {
             let dataRows = this.sortedTranscriptConsequences;
-            if (!!this.filter) {
-                dataRows = dataRows.filter(association => {
+            if (this.filter) {
+                dataRows = dataRows.filter((association) => {
                     return this.filter(association);
                 });
             }
             return dataRows;
-        }
+        },
     },
     methods: {
         consequenceFormatter: Formatters.consequenceFormatter,
@@ -232,8 +235,8 @@ export default Vue.component("transcript-consequence-table", {
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
             if (item.pick === 1) return "row-pick";
-        }
-    }
+        },
+    },
 });
 </script>
 <style>

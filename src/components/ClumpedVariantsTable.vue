@@ -25,10 +25,10 @@
                 </div>
             </b-col>
             <b-col class="text-right">
-                <csv-download
+                <data-download
                     :data="variants"
                     filename="clumped-variants"
-                ></csv-download>
+                ></data-download>
             </b-col>
         </b-row>
         <div class="text-right mb-2"></div>
@@ -270,8 +270,11 @@ import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
-
+import DataDownload from "@/components/DataDownload";
 export default Vue.component("clumped-variants-table", {
+    components: {
+        DataDownload,
+    },
     props: {
         variants: Array,
         phenotypeMap: Object,

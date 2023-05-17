@@ -6,10 +6,10 @@
             class="EGLT-table variant-datasets"
         >
             <div class="text-right mt-2">
-                <csv-download
+                <data-download
                     :data="downloadData"
                     filename="PheWAS_associations"
-                ></csv-download>
+                ></data-download>
             </div>
             <b-container
                 v-if="!!phenotypeMap && !!datasetMap"
@@ -215,9 +215,13 @@
                             >
                         </b-row>
                         <template v-for="i in 25">
-                            <b-row :key="`features_top25_${index}_${i}`"
+                            <b-row
+                                :key="`features_top25_${index}_${i}`"
                                 :id="`${index}_${item.phenotype.name}_variant_${
-                                i - 1 }`" class="feature-content hidden" >
+                                    i - 1
+                                }`"
+                                class="feature-content hidden"
+                            >
                                 <b-col
                                     :id="`${index}_${item.phenotype.name}_var${
                                         i - 1
@@ -314,9 +318,9 @@ import { BIO_INDEX_HOST } from "../utils/bioIndexUtils";
 import { orderBy, groupBy, cloneDeep } from "lodash";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 export default Vue.component("PhewasDatasets", {
-    components: { CsvDownload },
+    components: { DataDownload },
     props: [
         "associations",
         "datasets",
@@ -334,21 +338,21 @@ export default Vue.component("PhewasDatasets", {
     },
     computed: {
         groupedDatasets() {
-			let filteredDatasets = [];
-			if (!!this.ancestry){
-				for (let dataset of this.datasets){
-					let datasetKey = dataset.dataset;
-					if (!!this.datasetMap[datasetKey]){
-						let datasetAncestry = 
-							this.datasetMap[datasetKey].ancestry;
-						if (datasetAncestry == this.ancestry){
-							filteredDatasets.push(dataset);
-						}
-					}
-				}
-			} else {
-				filteredDatasets = this.datasets;
-			}
+            let filteredDatasets = [];
+            if (!!this.ancestry) {
+                for (let dataset of this.datasets) {
+                    let datasetKey = dataset.dataset;
+                    if (!!this.datasetMap[datasetKey]) {
+                        let datasetAncestry =
+                            this.datasetMap[datasetKey].ancestry;
+                        if (datasetAncestry == this.ancestry) {
+                            filteredDatasets.push(dataset);
+                        }
+                    }
+                }
+            } else {
+                filteredDatasets = this.datasets;
+            }
             let ordered = orderBy(filteredDatasets, ["pValue"], ["asc"]);
             return groupBy(ordered, "phenotype");
         },
