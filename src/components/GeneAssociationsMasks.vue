@@ -1,11 +1,11 @@
 <template>
-    <div class="EGLT-table fiftytwo" v-if="associations.length > 0">
+    <div v-if="associations.length > 0" class="EGLT-table fiftytwo">
         <b-container fluid>
             <div class="text-right mt-2 mb-2 border-0">
-                <csv-download
+                <data-download
                     :data="associations"
                     filename="rare_variant_gene_associations"
-                ></csv-download>
+                ></data-download>
             </div>
             <b-row class="top-level-header">
                 <b-col class="top-level-header-item" cols="4">Phenotype</b-col>
@@ -105,11 +105,11 @@ import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import MaskTable from "@/components/MaskTable";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 
 export default Vue.component("GeneAssociationsMasks", {
     props: ["associations", "phenotypeMap"],
-    component: { MaskTable, CsvDownload },
+    component: { MaskTable, DataDownload },
     data() {
         return {
             visible: false,

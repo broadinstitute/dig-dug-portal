@@ -2,10 +2,10 @@
     <div id="clump-associations">
         <b-row class="mb-2">
             <b-col class="text-right">
-                <csv-download
+                <data-download
                     :data="clumpedAssociations"
                     filename="clumped-associations"
-                ></csv-download
+                ></data-download
             ></b-col>
         </b-row>
         <div v-if="tableData.length">
@@ -18,13 +18,13 @@
                 :per-page="perPage"
                 :current-page="currentPage"
             >
-                <template v-slot:thead-top="data">
+                <template #thead-top="data">
                     <b-th colspan="1">
                         <span class="sr-only">Clump</span>
                     </b-th>
                     <b-th
-                        :key="phenotype"
                         v-for="(phenotype, i) in phenotypes"
+                        :key="phenotype"
                         colspan="3"
                         class="reference"
                         :class="'color-' + (i + 1)"
@@ -37,7 +37,7 @@
                         </span>
                     </b-th>
                 </template>
-                <template v-slot:cell(clumpRegion)="r">
+                <template #cell(clumpRegion)="r">
                     <a
                         :href="`/region.html?phenotype=${phenotypes.join(
                             ','
@@ -48,10 +48,11 @@
                     >
                 </template>
                 <template
-                    v-slot:[phenotypeVariantColumn(p)]="r"
                     v-for="p in phenotypes"
+                    #[phenotypeVariantColumn(p)]="r"
                 >
                     <a
+                        :key="p"
                         :href="`/variant.html?variant=${r.item[`${p}:varId`]}`"
                         >{{ r.item[`${p}:dbSNP`] || r.item[`${p}:varId`] }}</a
                     >
@@ -85,10 +86,7 @@
                     >
                 </template>
                 -->
-                <template
-                    v-slot:[phenotypeBetaColumn(p)]="r"
-                    v-for="p in phenotypes"
-                >
+                <template v-for="p in phenotypes" #[phenotypeBetaColumn(p)]="r">
                     <span
                         :class="`effect ${
                             alignedBeta(p, r.item) < 0 ? 'negative' : 'positive'
@@ -103,14 +101,14 @@
                     </span>
                 </template>
                 <template
-                    v-slot:[phenotypePValueColumn(p)]="r"
                     v-for="p in phenotypes"
+                    #[phenotypePValueColumn(p)]="r"
                     >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
                 >
             </b-table>
             <b-pagination
-                class="pagination-sm justify-content-center"
                 v-model="currentPage"
+                class="pagination-sm justify-content-center"
                 :total-rows="clumpedAssociations.length"
                 :per-page="perPage"
             ></b-pagination>
@@ -143,12 +141,15 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
-import TooltipDocumentation from "@/components/TooltipDocumentation";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 
 import { isEqual } from "lodash";
 
-export default Vue.component("clumped-associations-table", {
+export default Vue.component("ClumpedAssociationsTable", {
+    components: {
+        Documentation,
+        DataDownload,
+    },
     props: [
         "associations",
         "phenotypes",
@@ -156,11 +157,6 @@ export default Vue.component("clumped-associations-table", {
         "filter",
         "exclusive",
     ],
-    components: {
-        Documentation,
-        TooltipDocumentation,
-        CsvDownload,
-    },
     data() {
         return {
             perPage: 10,
@@ -197,7 +193,7 @@ export default Vue.component("clumped-associations-table", {
                     },
                     {
                         key: `${p}:beta`,
-                        label: !!dichotomous ? "Odds Ratio" : "Beta",
+                        label: dichotomous ? "Odds Ratio" : "Beta",
                     },
                 ]);
             }
@@ -274,10 +270,20 @@ export default Vue.component("clumped-associations-table", {
         },
         tableData() {
             let dataRows = this.associations;
-            if (!!this.filter) {
+            if (this.filter) {
                 dataRows = this.associations.filter(this.filter);
             }
             return dataRows;
+        },
+    },
+    watch: {
+        phenotypes: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.currentPage = 1;
+                }
+            },
+            deep: true,
         },
     },
     methods: {
@@ -325,16 +331,6 @@ export default Vue.component("clumped-associations-table", {
         },
         consequenceFormatter(consequence) {
             return Formatters.consequenceFormatter(consequence);
-        },
-    },
-    watch: {
-        phenotypes: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.currentPage = 1;
-                }
-            },
-            deep: true,
         },
     },
 });

@@ -359,7 +359,7 @@ new Vue({
         },
 
         combined() {
-
+            //console.log("point 4")
             let combinedData = Object.entries(this.geneFinderAssociationsMap).flatMap(
                 (geneFinderItem) => geneFinderItem[1]
             );
@@ -462,12 +462,23 @@ new Vue({
                                 grouped[r.gene].phenotypes.push(r.phenotype);
                             }
                             grouped[r.gene][r.phenotype + ":rarePValue"] = r.pValue;
-
-                            if (!!this.rareVariantFilter && this.rareVariantFilter != "" && r.pValue > this.rareVariantFilter) {
-                                delete grouped[r.gene];
-                            }
                         }
                     })
+                }
+
+                if (combinedRareData.length > 0 && !!this.rareVariantFilter && this.rareVariantFilter != "") {
+                    for (const [gKey, gValue] of Object.entries(
+                        grouped
+                    )) {
+                        let rarePcount = 0;
+                        gValue.phenotypes.map(p => {
+                            rarePcount += (!!gValue[p + ":rarePValue"] && gValue[p + ":rarePValue"] < this.rareVariantFilter) ? 1 : 0;
+                        })
+
+                        if (rarePcount == 0) {
+                            delete grouped[gKey];
+                        }
+                    }
                 }
 
                 if (combinedRareData.length > 0 && !!this.onlyRare) {
@@ -665,7 +676,7 @@ new Vue({
             }
         },*/
         criterion(newCriterion, oldCriterion) {
-
+            //console.log("point 2")
             // if the phenotypes update, we only need to get new data based on latest phenotype
             // NOTE: this will maintain some data in the the geneFinderAssociationsMap
             const updatingPhenotypes = difference(
@@ -711,8 +722,9 @@ new Vue({
                 }
             }
         },*/
-        geneFinderPhenotypes(newPhenotypes, oldPhenotypes) {
 
+        geneFinderPhenotypes(newPhenotypes, oldPhenotypes) {
+            //console.log("point 3")
             if (newPhenotypes.length > 0) {
                 //if not the same, update keyparams
                 if (!isEqual(newPhenotypes, oldPhenotypes)) {
@@ -887,9 +899,10 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("getEglsFullList");
-        this.$store.dispatch("getGeneExpression", 'PCSK9');
+        this.$store.dispatch("getGeneExpression", 'PCSK9');// don't remove this. It is added to get list of available tissues
         //check if parameter is passed, set criterion
         if (keyParams.phenotypes) {
+            //console.log("point 1")
             keyParams.phenotypes.split(",").forEach((phenotype) => {
                 this.geneFinderSearchCriterion.push({
                     field: "phenotype",

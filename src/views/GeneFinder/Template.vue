@@ -64,35 +64,7 @@
 										<strong>Phenotype</strong>
 									</div>
 								</filter-enumeration-control>
-								<!--<filter-enumeration-control
-									class="filter-col-md"
-									:field="'rareVariant'"
-									:options="
-										$parent.secondaryPhenotypeOptions.map(
-											(phenotype) =>
-												phenotype.name + 'Rare'
-										)
-									"
-									:multiple="true"
-									:labelFormatter="
-										(phenotype) =>
-											!!$store.state.bioPortal
-												.phenotypeMap[
-												phenotype.split('Rare')[0]
-											]
-												? $store.state.bioPortal
-														.phenotypeMap[
-														phenotype.split(
-															'Rare'
-														)[0]
-												  ].description
-												: phenotype
-									"
-								>
-									<div>
-										<strong>Rare Variant</strong>
-									</div>
-								</filter-enumeration-control>-->
+
 								<!-- tissues -->
 								<filter-enumeration-control
 									class="filter-col-md"
@@ -110,7 +82,10 @@
 									"
 								>
 									<div>
-										<strong>Tissue Gene Expression</strong>
+										<strong
+											>Tissue-specific gene
+											expression</strong
+										>
 									</div>
 								</filter-enumeration-control>
 								<!-- PEGL -->
@@ -135,7 +110,7 @@
 								>
 									<div>
 										<strong
-											>Predicted Effector Genes</strong
+											>Effector gene predictions</strong
 										>
 									</div>
 								</filter-enumeration-control>
@@ -165,7 +140,8 @@
 								href="javascript:;"
 								class="GF-filter-ui-label-right"
 								@click="$parent.showHideSetting()"
-								>Set p-value thresholds / Show hide columns</a
+								>Set p-value thresholds / Show or hide
+								columns</a
 							>
 							<filter-greater-control
 								class="filter-col-md"
@@ -180,7 +156,9 @@
 								:field="'pValue'"
 							>
 								<div>
-									<strong>MAGMA (&le;)</strong>
+									<strong
+										>Common variant p-value (&le;)</strong
+									>
 								</div>
 							</filter-pvalue-control>
 							<filter-pvalue-control
@@ -188,7 +166,7 @@
 								:field="'rarePValue'"
 							>
 								<div>
-									<strong>Rare Variant (&le;)</strong>
+									<strong>Rare variant p-value (&le;)</strong>
 								</div>
 							</filter-pvalue-control>
 
@@ -201,7 +179,7 @@
 								:field="'TPM'"
 							>
 								<div>
-									<strong>Tissue TPM (&ge;)</strong>
+									<strong>Rare variant p-value (&ge;)</strong>
 								</div>
 							</filter-greater-control>
 							<div class="col text-left" style="padding: 5px 7px">
@@ -217,7 +195,9 @@
 										class="form-control only-egl-filter"
 										v-model="$parent.onlyRare"
 									/>
-									<strong>Only with rare variant</strong>
+									<strong
+										>Genes with rare variant results</strong
+									>
 								</div>
 								<div v-if="$parent.geneFinderEgls.length > 0">
 									<input
@@ -225,75 +205,13 @@
 										class="form-control only-egl-filter"
 										v-model="$parent.onlyEgl"
 									/>
-									<strong>Only on PEG lists</strong>
+									<strong
+										>Genes present on effector prediction
+										lists</strong
+									>
 								</div>
 							</div>
 						</div>
-						<!--<div
-							class="text-center col-md-3 gf-filter-section-wrapper"
-							style="border-left: solid 1px #ddd"
-						>
-							<strong class="GF-filter-ui-label"
-								>Thresholds</strong
-							>
-							<div
-								class="col filter-col-sm"
-								style="padding: 5px 7px"
-							>
-								<div>
-									<strong>MAGMA</strong>
-								</div>
-								<input
-									type="text"
-									class="form-control"
-									v-model="$parent.pThresholdVal"
-								/>
-							</div>
-							<div
-								class="col filter-col-sm"
-								style="padding: 5px 7px"
-								v-if="
-									Object.keys(
-										$parent.geneFinderRareVariantMap
-									).length > 0
-								"
-							>
-								<div>
-									<strong>Rare Variant</strong>
-								</div>
-								<input
-									type="text"
-									class="form-control"
-									v-model="$parent.rarePThresholdVal"
-								/>
-							</div>
-						</div>
-						<div
-							class="text-center col-md-3 gf-filter-section-wrapper"
-							style="border-left: solid 1px #ddd"
-						>
-							<strong class="GF-filter-ui-label"
-								>Show / Hide</strong
-							>
-							<div class="col text-left" style="padding: 5px 7px">
-								<div>
-									<input
-										type="checkbox"
-										class="form-control only-egl-filter"
-										v-model="$parent.turnOffMagma"
-									/>
-									<strong>Show MAGMA</strong>
-								</div>
-								<div>
-									<input
-										type="checkbox"
-										class="form-control only-egl-filter"
-										v-model="$parent.turnOffRare"
-									/>
-									<strong>Show Rare Variant</strong>
-								</div>
-							</div>
-						</div>-->
 					</criterion-list-group>
 					<criterion-list-group
 						v-if="
@@ -304,75 +222,6 @@
 						class="hidden"
 						:header="'Search Criterion'"
 					>
-						<!-- pValue filter -->
-						<!--<div
-							class="text-center col-md-12 gf-filter-section-wrapper"
-						>
-							<strong class="GF-filter-ui-label"
-								>Filter by</strong
-							>
-							<filter-greater-control
-								class="filter-col-md"
-								:field="'HuGE'"
-							>
-								<div>
-									<strong>HuGE Score (&ge;)</strong>
-								</div>
-							</filter-greater-control>
-							<filter-pvalue-control
-								class="filter-col-md"
-								:field="'pValue'"
-							>
-								<div>
-									<strong>MAGMA (&le;)</strong>
-								</div>
-							</filter-pvalue-control>
-							<filter-pvalue-control
-								class="filter-col-md"
-								:field="'rarePValue'"
-							>
-								<div>
-									<strong>Rare Variant (&le;)</strong>
-								</div>
-							</filter-pvalue-control>
-
-							<filter-greater-control
-								v-if="
-									this.$store.state.tissueGeneExpression
-										.length > 0
-								"
-								class="filter-col-md"
-								:field="'TPM'"
-							>
-								<div>
-									<strong>Tissue TPM (&ge;)</strong>
-								</div>
-							</filter-greater-control>
-							<div class="col text-left" style="padding: 5px 7px">
-								<div
-									v-if="
-										Object.keys(
-											$parent.geneFinderRareVariantMap
-										).length > 0
-									"
-								>
-									<input
-										type="checkbox"
-										class="form-control only-egl-filter"
-										v-model="$parent.onlyRare"
-									/>
-									<strong>Only with rare variant</strong>
-								</div>
-								<div v-if="$parent.geneFinderEgls.length > 0">
-									<input
-										type="checkbox"
-										class="form-control only-egl-filter"
-										v-model="$parent.onlyEgl"
-									/>
-									<strong>Only on PEG lists</strong>
-								</div>
-							</div>
-						</div>-->
 						<div
 							class="text-center col-md-6 gf-filter-section-wrapper"
 							style="border-left: solid 1px #ddd"
@@ -385,7 +234,7 @@
 								style="padding: 5px 7px"
 							>
 								<div>
-									<strong>MAGMA</strong>
+									<strong>P-Val (Common)</strong>
 								</div>
 								<input
 									type="text"
@@ -403,7 +252,7 @@
 								"
 							>
 								<div>
-									<strong>Rare Variant</strong>
+									<strong>P-val (Rare)</strong>
 								</div>
 								<input
 									type="text"
@@ -426,7 +275,7 @@
 										class="form-control only-egl-filter"
 										v-model="$parent.turnOffMagma"
 									/>
-									<strong>Show MAGMA</strong>
+									<strong>P-Val (Common)</strong>
 								</div>
 								<div>
 									<input
@@ -434,18 +283,13 @@
 										class="form-control only-egl-filter"
 										v-model="$parent.turnOffRare"
 									/>
-									<strong>Show Rare Variant</strong>
+									<strong>P-Val (Rare)</strong>
 								</div>
 							</div>
 						</div>
 					</criterion-list-group>
 					<pre></pre>
-					<div
-						v-if="
-							$parent.geneFinderPhenotypes.length > 0 &&
-							$parent.combined.length > 0
-						"
-					>
+					<div v-if="$parent.geneFinderPhenotypes.length > 0">
 						<gene-finder-w-egl-table
 							:phenotypes="$parent.geneFinderPhenotypes"
 							:egls="$parent.geneFinderEgls"
