@@ -340,10 +340,7 @@ new Vue({
 
             let grouped = {}
 
-            console.log("combinedData", combinedData.length, "combinedRareData", combinedRareData.length, "huge", Object.keys(this.$store.state.hugeScores).length)
-
             if (combinedData.length > 0) {
-
 
                 combinedData.map(r => {
                     if (!grouped[r.gene]) {
@@ -657,8 +654,11 @@ new Vue({
                 } else {
                     let removedPhenotype = oldPhenotypes.filter(x => !newPhenotypes.includes(x));
 
-                    delete this.geneFinderAssociationsMap[removedPhenotype[0]]
-                    delete this.geneFinderRareVariantMap[removedPhenotype[0]]
+                    if (removedPhenotype.length > 0) {
+                        delete this.geneFinderAssociationsMap[removedPhenotype[0]]
+                        delete this.geneFinderRareVariantMap[removedPhenotype[0]]
+                    }
+
                 }
             } else {
 
@@ -780,7 +780,7 @@ new Vue({
         this.$store.dispatch("getGeneExpression", 'PCSK9');// don't remove this. It is added to get list of available tissues
         //check if parameter is passed, set criterion
         if (keyParams.phenotypes) {
-            //console.log("point 1")
+
             keyParams.phenotypes.split(",").forEach((phenotype) => {
                 this.geneFinderSearchCriterion.push({
                     field: "phenotype",
@@ -788,12 +788,19 @@ new Vue({
                 });
             });
 
+            let pValueLimit = 0.05;
+            this.updateAssociations(
+                this.geneFinderPhenotypes,
+                pValueLimit,
+                true
+            );
+
+            /*
             this.updateAssociations(
                 this.geneFinderPhenotypes,
                 this.geneFinderPValue,
                 true
             );
-
             if (keyParams.rareVariant) {
                 keyParams.rareVariant.split(",").forEach((e) => {
                     this.geneFinderSearchCriterion.push({
@@ -807,7 +814,7 @@ new Vue({
                     this.geneFinderRarePValue,
                     true
                 );
-            }
+            }*/
 
             if (keyParams.egl) {
                 keyParams.egl.split(",").forEach((e) => {
@@ -862,6 +869,7 @@ new Vue({
                         limitWhile: (record) => record.pValue < pValue,
                     }).then((bioIndexData) => {
                         closeAlert(alertId);
+
                         Vue.set(
                             this.geneFinderAssociationsMap,
                             phenotype,
