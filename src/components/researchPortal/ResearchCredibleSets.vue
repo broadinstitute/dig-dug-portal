@@ -44,12 +44,16 @@
 											credibleSet.phenotype
 										"
 										v-html="
-											credibleSet.credibleSetId +
-											'(' +
-											credibleSet.phenotype +
-											', ' +
-											credibleSet.dataset +
-											')'
+											renderConfig[
+												'credible sets server'
+											] == 'KP BioIndex'
+												? credibleSet.credibleSetId
+												: credibleSet.credibleSetId +
+												  '(' +
+												  credibleSet.phenotype +
+												  ', ' +
+												  credibleSet.dataset +
+												  ')'
 										"
 										:value="
 											credibleSet.credibleSetId +

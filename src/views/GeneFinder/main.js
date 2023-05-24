@@ -206,12 +206,7 @@ new Vue({
             return data;
         },
 
-        /* rarePhenotypeOptions() {
-             let data = this.geneFinderSearchCriterion
-                 .filter((criterion) => criterion.field === "phenotype")
-                 .map((criterion) => criterion.threshold) || []
-             return data;
-         },*/
+
         eglsOptions() {
 
             if (this.$store.state.eglsFullList == null) {
@@ -263,14 +258,6 @@ new Vue({
             );
         },
 
-        /*geneFinderRareVariant() {
-            return (
-                this.geneFinderSearchCriterion
-                    .filter((criterion) => criterion.field === "rareVariant")
-                    .map((criterion) => criterion.threshold.split("Rare")[0]) || []
-            );
-        },*/
-
         eglGenes() {
             return this.$store.state.eglGenes;
         },
@@ -312,15 +299,7 @@ new Vue({
             }
             return pval;
         },
-        /*geneFinderRarePValue() {
-            let pval = 0.05;
-            for (let i in this.geneFinderFilterCriterion) {
-                if (this.geneFinderFilterCriterion[i].field == "rarePValue") {
-                    pval = Number(this.geneFinderFilterCriterion[i].threshold);
-                }
-            }
-            return pval;
-        },*/
+
         geneFinderEgls() {
             return (
                 this.geneFinderSearchCriterion
@@ -342,13 +321,6 @@ new Vue({
             };
         },
 
-        /* rareCriterion() {
-             return {
-                 pValue: this.geneFinderRarePValue,
-                 phenotypes: this.geneFinderRareVariant,
-             };
-         },*/
-
         hugePhenotype() {
             let data = this.$store.state.hugePhenotype.data;
             return data;
@@ -359,7 +331,6 @@ new Vue({
         },
 
         combined() {
-            //console.log("point 4")
             let combinedData = Object.entries(this.geneFinderAssociationsMap).flatMap(
                 (geneFinderItem) => geneFinderItem[1]
             );
@@ -367,10 +338,9 @@ new Vue({
                 (geneFinderItem) => geneFinderItem[1]
             );
 
-            //console.log("this.geneFinderRareVariantMap", this.geneFinderRareVariantMap)
-
             let grouped = {}
 
+            console.log("combinedData", combinedData.length, "combinedRareData", combinedRareData.length, "huge", Object.keys(this.$store.state.hugeScores).length)
 
             if (combinedData.length > 0) {
 
@@ -629,6 +599,8 @@ new Vue({
 
             let filteredCombined = Object.values(grouped);
 
+
+
             return filteredCombined;
         },
     },
@@ -639,44 +611,8 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        /*
-        criterion(newCriterion, oldCriterion) {
-            if (newCriterion.pValue !== oldCriterion.pValue) {
-                // if the pValue updates, all phenotype associations must be updated to reflect the new bound
-                // this will override all data in the geneFinderAssociationsMap
-                this.updateAssociations(
-                    this.geneFinderPhenotypes,
-                    this.geneFinderPValue,
-                    true
-                );
 
-                this.updateRareAssociations(
-                    this.geneFinderPhenotypes,
-                    this.geneFinderPValue,
-                    true
-                );
-            } else {
-                // if the phenotypes update, we only need to get new data based on latest phenotype
-                // NOTE: this will maintain some data in the the geneFinderAssociationsMap
-                const updatingPhenotypes = difference(
-                    newCriterion.phenotypes,
-                    oldCriterion.phenotypes
-                );
-
-                if (updatingPhenotypes.length > 0) {
-                    this.updateAssociations(
-                        updatingPhenotypes,
-                        this.geneFinderPValue
-                    );
-                    this.updateRareAssociations(
-                        updatingPhenotypes,
-                        this.geneFinderPValue
-                    );
-                }
-            }
-        },*/
         criterion(newCriterion, oldCriterion) {
-            //console.log("point 2")
             // if the phenotypes update, we only need to get new data based on latest phenotype
             // NOTE: this will maintain some data in the the geneFinderAssociationsMap
             const updatingPhenotypes = difference(
@@ -696,35 +632,9 @@ new Vue({
             }
 
         },
-        /*rareCriterion(newCriterion, oldCriterion) {
-            console.log("newCriterion", newCriterion)
-            if (newCriterion.pValue !== oldCriterion.pValue) {
-                // if the pValue updates, all phenotype associations must be updated to reflect the new bound
-                // this will override all data in the geneFinderAssociationsMap
-                this.updateRareAssociations(
-                    this.geneFinderRareVariant,
-                    this.geneFinderRarePValue,
-                    true
-                );
-            } else {
-                // if the phenotypes update, we only need to get new data based on latest phenotype
-                // NOTE: this will maintain some data in the the geneFinderAssociationsMap
-                const updatingPhenotypes = difference(
-                    newCriterion.phenotypes,
-                    oldCriterion.phenotypes
-                );
-
-                if (updatingPhenotypes.length > 0) {
-                    this.updateRareAssociations(
-                        updatingPhenotypes,
-                        this.geneFinderRarePValue
-                    );
-                }
-            }
-        },*/
 
         geneFinderPhenotypes(newPhenotypes, oldPhenotypes) {
-            //console.log("point 3")
+
             if (newPhenotypes.length > 0) {
                 //if not the same, update keyparams
                 if (!isEqual(newPhenotypes, oldPhenotypes)) {
@@ -759,39 +669,7 @@ new Vue({
                 this.geneFinderRareVariantMap = {}
             }
         },
-        //working part
-        /*geneFinderRareVariant(newList, oldList) {
-            console.log("newList", newList);
-            if (newList.length > 0) {
-                //if not the same, update keyparams
-                if (!isEqual(newList, oldList)) {
-                    //update phenotype parameters
-                    keyParams.set({
-                        rareVariant: newList.join(","),
-                    });
-                }
 
-                let differPhenotypes = newList.filter(x => !oldList.includes(x));
-
-                if (differPhenotypes.length > 0) {
-                    differPhenotypes.map(p => {
-                        if (!this.$store.state.hugeScores[p]) {
-                            this.$store.dispatch("getHugePhenotype", p);
-                        }
-                    })
-
-                } else {
-                    let removedPhenotype = oldList.filter(x => !newList.includes(x));
-
-                    delete this.geneFinderRareVariantMap[removedPhenotype[0]]
-                }
-            } else {
-                keyParams.set({
-                    rareVariant: "",
-                });
-                this.geneFinderRareVariantMap = {}
-            }
-        },*/
         geneExpressionTissue(newData, oldData) {
             if (newData.length > 0) {
 
