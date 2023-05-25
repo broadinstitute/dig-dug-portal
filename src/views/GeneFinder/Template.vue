@@ -179,7 +179,7 @@
 								:field="'TPM'"
 							>
 								<div>
-									<strong>Rare variant p-value (&ge;)</strong>
+									<strong>Gene expression (&ge;)</strong>
 								</div>
 							</filter-greater-control>
 							<div class="col text-left" style="padding: 5px 7px">
