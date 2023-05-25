@@ -47,7 +47,12 @@
 											renderConfig[
 												'credible sets server'
 											] == 'KP BioIndex'
-												? credibleSet.credibleSetId
+												? credibleSet.credibleSetId +
+												  ' (Method:' +
+												  credibleSet.method +
+												  ', PMID:' +
+												  credibleSet.pmid +
+												  ')'
 												: credibleSet.credibleSetId +
 												  '(' +
 												  credibleSet.phenotype +
