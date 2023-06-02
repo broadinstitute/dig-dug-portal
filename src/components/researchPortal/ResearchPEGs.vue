@@ -18,7 +18,9 @@
 				<div
 					id="genesPEGWrapper"
 					:class="plotType == 'region plot' ? 'col-md-3' : ''"
-				></div>
+				>
+					{{ genesData }}
+				</div>
 			</div>
 		</div>
 	</div>
