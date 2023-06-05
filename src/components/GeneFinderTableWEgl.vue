@@ -59,11 +59,18 @@
 					</span>
 				</div>
 				<div class="text-right col-md-2">
-					<data-download
+					<button
+						class="btn btn-secondary btn-sm"
+						@click="getData4Download()"
+						style="margin-bottom: 5px"
+					>
+						Download
+					</button>
+					<!--<data-download
 						:data="data4Download"
 						filename="gene_table"
 						style="margin-bottom: 5px"
-					></data-download>
+					></data-download>-->
 				</div>
 			</div>
 
@@ -445,6 +452,7 @@ import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
+import uiUtils from "@/utils/uiUtils";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import GeneFinderHeatmap from "@/components/geneFinderHeatmap.vue";
 
@@ -777,7 +785,7 @@ export default Vue.component("GeneFinderWEglTable", {
 				downloadData.push(tempObj);
 			});
 
-			return downloadData;
+			uiUtils.convertJson2Csv(downloadData, "gene_finder_data");
 		},
 	},
 });
