@@ -224,7 +224,6 @@
 					>
 						<div
 							class="text-center col-md-6 gf-filter-section-wrapper"
-							style="border-left: solid 1px #ddd"
 						>
 							<strong class="GF-filter-ui-label"
 								>Thresholds</strong
