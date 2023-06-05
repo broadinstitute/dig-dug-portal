@@ -35,7 +35,7 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-genes-track", {
+export default Vue.component("research-predicted-effector-genes", {
 	props: [
 		"region",
 		"genesData",
