@@ -93,7 +93,7 @@
 <script>
 import Vue from "vue";
 import Formatters from "@/utils/formatters";
-import { match, query } from "@/utils/bioIndexUtils";
+import { query } from "@/utils/bioIndexUtils";
 
 export default Vue.component("variant-phenotype-table", {
     props: ["variantId", "filter"],
@@ -101,14 +101,18 @@ export default Vue.component("variant-phenotype-table", {
         return {
             HPOTerms: {
                 Healthy: "Healthy",
-                NephSyndSteroidSensitive:
-                    "Steroid Sensitive Nephrotic Syndrome",
-                NephSyndUncategorized: "Uncategorized Nephrotic Syndrome",
-                NephSyndSteroidResistant:
-                    "Steroid Resistant Nephrotic Syndrome",
-                AllNephroticSyndCases: "All Cases Nephrotic Syndrome",
-                FSGS: "Focal Segmental Glomerulosclerosis",
-                MCD: "Minimal Change Disease",
+                Sensitive: "Steroid Sensitive Nephrotic Syndrome",
+                AdultSensitive: "Steroid Sensitive Nephrotic Syndrome (Adult)",
+                PediatricSensitive:
+                    "Steroid Sensitive Nephrotic Syndrome (Pediatric)",
+                Uncategorized: "Uncategorized Nephrotic Syndrome",
+                AdultUncategorized: "Uncategorized Nephrotic Syndrome (Adult)",
+                PediatricUncategorized:
+                    "Uncategorized Nephrotic Syndrome (Pediatric)",
+                Resistant: "Steroid Resistant Nephrotic Syndrome",
+                AdultResistant: "Steroid Resistant Nephrotic Syndrome (Adult)",
+                PediatricResistant:
+                    "Steroid Resistant Nephrotic Syndrome (Pediatric)",
                 AllSamples: "All Samples",
             },
             fields: [
@@ -223,11 +227,15 @@ export default Vue.component("variant-phenotype-table", {
 
             let sortOrder = [
                 "AllSamples",
-                "FSGS",
-                "MCD",
-                "NephSyndSteroidResistant",
-                "NephSyndSteroidSensitive",
-                "NephSyndUncategorized",
+                "Resistant",
+                "AdultResistant",
+                "PediatricResistant",
+                "Sensitive",
+                "AdultSensitive",
+                "PediatricSensitive",
+                "Uncategorized",
+                "AdultUncategorized",
+                "PediatricUncategorized",
             ];
 
             //remove Healthy and AllNephroticSyndCases
