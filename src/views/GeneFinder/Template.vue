@@ -179,7 +179,7 @@
 								:field="'TPM'"
 							>
 								<div>
-									<strong>Gene expression (&ge;)</strong>
+									<strong>Gene expression (TPM &ge;)</strong>
 								</div>
 							</filter-greater-control>
 							<div class="col text-left" style="padding: 5px 7px">
