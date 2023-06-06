@@ -6,7 +6,8 @@
     margin-bottom: 50px;
 }
 
-.datasets-list-table th, .datasets-list-table.new th {
+.datasets-list-table th,
+.datasets-list-table.new th {
     font-size: 14px !important;
     color: #0097d6 !important;
     font-weight: 300 !important;
@@ -30,11 +31,11 @@
     width: 50%;
 }
 
-.datasets-list-table td.access{
+.datasets-list-table td.access {
     width: 12%;
 }
 
-.datasets-list-table td.access span{
+.datasets-list-table td.access span {
     color: #02ab02;
 }
 
@@ -45,9 +46,11 @@
 .datasets-list-table td.samples {
     width: 7%;
 }
+
 .datasets-list-table td.ancestry {
     width: 10%;
 }
+
 .datasets-list-table td.type {
     width: 20%;
 }
@@ -59,16 +62,21 @@
 .datasets-list-table.md td.access {
     width: 10%;
 }
+
 .datasets-list-table.md td.samples {
     width: 7%;
 }
+
 .datasets-list-table.md td.ancestry {
     width: 7%;
 }
+
 .datasets-list-table.md td.type {
     width: 16%;
 }
-.datasets-list-table.md td.disease-group, .datasets-list-table.md th.disease-group {
+
+.datasets-list-table.md td.disease-group,
+.datasets-list-table.md th.disease-group {
     width: 10%;
     text-align: center;
 }
@@ -92,6 +100,7 @@
     background-position: center;
     margin: auto;
 }
+
 .community-icon.t1d {
     background-image: url(../images/group_t1d.svg);
 }
@@ -100,11 +109,13 @@
     background-image: url(../images/group_t2d.svg);
 }
 
-.community-icon.stroke, .community-icon.cd {
+.community-icon.stroke,
+.community-icon.cd {
     background-image: url(../images/group_cd.svg);
 }
 
-.community-icon.cvd, .community-icon.mi {
+.community-icon.cvd,
+.community-icon.mi {
     background-image: url(../images/group_cvd.svg);
 }
 
@@ -112,11 +123,37 @@
     background-image: url(../images/group_sleep.svg);
 }
 
+.community-icon.ndkp {
+    background-image: url(../images/group_ndkp.svg);
+}
+
+.community-icon.msk {
+    background-image: url(../images/group_msk.svg);
+}
+
+.community-icon.lung {
+    background-image: url(../images/group_lung.svg);
+}
+
+.community-icon.autoimmune {
+    background-image: url(../images/group_autoimmune.svg);
+}
+
+.community-icon.reproductive {
+    background-image: url(../images/group_reproductive.svg);
+}
+
+.community-icon.ocular {
+    background-image: url(../images/group_ocular.svg);
+}
+
 .datasets-filter-wrapper {
     margin-top: 15px;
 }
 
-.btn-datatype, .btn-phenotype, .btn-disease-group {
+.btn-datatype,
+.btn-phenotype,
+.btn-disease-group {
     padding: 5px 10px;
     line-height: 1.5;
     border-radius: 3px;
@@ -141,18 +178,26 @@
     border: solid 1px #4EAFD4 !important;
 }
 
-.btn-disease-group:hover, .btn-disease-group.selected, .btn-disease-group.selected:active, .btn-disease-group.selected:focus {
+.btn-disease-group:hover,
+.btn-disease-group.selected,
+.btn-disease-group.selected:active,
+.btn-disease-group.selected:focus {
     background-color: rgb(43, 182, 115);
     color: rgb(255, 255, 255);
 }
 
-.btn-datatype:hover, .btn-datatype.selected, .btn-datatype.selected:active, .btn-datatype.selected:focus {
+.btn-datatype:hover,
+.btn-datatype.selected,
+.btn-datatype.selected:active,
+.btn-datatype.selected:focus {
     background-color: rgb(246, 137, 32);
     color: rgb(255, 255, 255);
 }
 
-.btn-phenotype:hover, .btn-phenotype.selected, .btn-phenotype.selected:active, .btn-phenotype.selected:focus {
+.btn-phenotype:hover,
+.btn-phenotype.selected,
+.btn-phenotype.selected:active,
+.btn-phenotype.selected:focus {
     background-color: rgb(52, 135, 175);
     color: rgb(255, 255, 255);
 }
-
