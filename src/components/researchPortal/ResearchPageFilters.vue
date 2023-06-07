@@ -290,6 +290,7 @@
 				</div>
 			</div>
 		</div>
+		{{ suggestions }}
 		<div
 			class="filtering-ui-wrapper"
 			v-if="
@@ -321,7 +322,19 @@
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
+							@input="buildSuggestions($event, filter.field)"
 						/>
+						<div v-if="filter.type == 'search'">
+							<template
+								v-for="suggestion in suggestions.suggestions"
+								v-if="
+									suggestions.field == filter.field &&
+									suggestions.suggestions.length > 0
+								"
+							>
+								<span>{{ suggestion }}</span>
+							</template>
+						</div>
 					</template>
 					<template v-if="filter.type == 'search change direction'">
 						<select
@@ -438,6 +451,7 @@ export default Vue.component("research-page-filters", {
 			geneSearch: "",
 			kpGenes: [],
 			lastFilter: { field: null, value: null },
+			suggestions: { field: null, suggestions: [] },
 		};
 	},
 	created() {
@@ -563,6 +577,156 @@ export default Vue.component("research-page-filters", {
 	watch: {},
 	methods: {
 		...uiUtils,
+		buildSuggestions(EVENT, FIELD) {
+			let searchVal = EVENT.target.value;
+			let suggestions = [];
+
+			if (searchVal.length > 2) {
+				let searchTerms = searchVal.split(" ");
+
+				let comparingFields =
+					this.dataComparisonConfig != null
+						? this.dataComparisonConfig["fields to compare"]
+						: null;
+				let targetData = this.unfilteredDataset;
+
+				if (comparingFields == null) {
+					if (suggestions.length < 11) {
+						targetData.map((d) => {
+							let matching = 0;
+							if (!!d[FIELD]) {
+								searchTerms.map((s) => {
+									matching += !!d[
+										FIELD
+									].toLowerCase().includes(s.toLowerCase())
+										? 1
+										: 0;
+								});
+								if (
+									matching == searchTerms.length &&
+									!suggestions.includes(d[FIELD])
+								) {
+									suggestions.push(d[FIELD]);
+								}
+							}
+						});
+					}
+				} else {
+				}
+
+				/*if (comparingFields == null) {
+									targetData.filter((row) => {
+										if (
+											!!row[searchIndex.field] &&
+											row[searchIndex.field] != undefined
+										) {
+											switch (searchIndex.type) {
+												
+												case "search":
+													row[searchIndex.field]
+														.toLowerCase()
+														.includes(
+															search.toLowerCase()
+														)
+														? tempFiltered.push(row)
+														: "";
+
+													break;
+												
+											}
+										}
+									});
+								} else {
+									for (var rowNum in targetData) {
+										let row = targetData[rowNum];
+										if (
+											!!row[searchIndex.field] &&
+											row[searchIndex.field] != undefined
+										) {
+											if  (
+												searchIndex.type == "search" ||
+												searchIndex.type ==
+													"dropdown word"
+											) {
+												//for (var rowNum in targetData) {
+												//let row = targetData[rowNum];
+												if (
+													comparingFields.includes(
+														searchIndex.field
+													) == true
+												) {
+													let meetSearch = false;
+													for (var cellNum in row[
+														searchIndex.field
+													]) {
+														if (
+															!!row[
+																searchIndex
+																	.field
+															][cellNum] &&
+															row[
+																searchIndex
+																	.field
+															][cellNum]
+																.toLowerCase()
+																.includes(
+																	search.toLowerCase()
+																)
+														) {
+															meetSearch = true;
+														}
+													}
+													if (meetSearch == true) {
+														tempFiltered[
+															row[
+																this.dataComparisonConfig[
+																	"key field"
+																]
+															]
+														] = row;
+													}
+												} else {
+													if (
+														!!row[
+															searchIndex.field
+														] &&
+														row[searchIndex.field]
+															.toLowerCase()
+															.includes(
+																search.toLowerCase()
+															)
+													) {
+														tempFiltered[
+															row[
+																this.dataComparisonConfig[
+																	"key field"
+																]
+															]
+														] = row;
+													}
+												}
+												//}
+											} 
+										}
+									}
+								}
+							});
+
+						filtered = tempFiltered;
+						tempFiltered = comparingFields == null ? [] : {};
+						i++;
+					}
+				}*/
+			}
+
+			if (suggestions.length > 0) {
+				this.suggestions.field = FIELD;
+				this.suggestions.suggestions = suggestions;
+			} else {
+				this.suggestions.field = null;
+				this.suggestions.suggestions = [];
+			}
+		},
 		getColumnId(LABEL) {
 			return LABEL.replace(/\W/g, "").toLowerCase();
 		},
