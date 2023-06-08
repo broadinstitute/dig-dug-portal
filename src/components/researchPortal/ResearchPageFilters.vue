@@ -290,7 +290,6 @@
 				</div>
 			</div>
 		</div>
-		{{ suggestions }}
 		<div
 			class="filtering-ui-wrapper"
 			v-if="
@@ -305,9 +304,63 @@
 					:key="filter.field"
 				>
 					<div class="label" v-html="filter.label"></div>
+					<template v-if="filter.type == 'search'">
+						<input
+							v-if="
+								!!filter.features &&
+								!!filter.features.includes('autocomplete')
+							"
+							type="text"
+							class="form-control"
+							:id="'filter_' + getColumnId(filter.field)"
+							@input="buildSuggestions($event, filter.field)"
+						/>
+						<input
+							v-if="
+								!filter.features ||
+								(!!filter.features &&
+									!filter.features.includes('autocomplete'))
+							"
+							type="text"
+							class="form-control"
+							:id="'filter_' + getColumnId(filter.field)"
+							@change="
+								filterData($event, filter.field, filter.type)
+							"
+						/>
+						<div
+							v-if="
+								!!filter.features &&
+								!!filter.features.includes('autocomplete')
+							"
+							class="autocomplete-options"
+						>
+							<ul>
+								<template
+									v-for="suggestion in suggestions.suggestions"
+									v-if="
+										suggestions.field == filter.field &&
+										suggestions.suggestions.length > 0
+									"
+								>
+									<li
+										@click="
+											filterData(
+												$event,
+												filter.field,
+												filter.type,
+												'',
+												suggestion
+											)
+										"
+										v-html="suggestion"
+									></li>
+								</template>
+							</ul>
+						</div>
+					</template>
 					<template
 						v-if="
-							filter.type == 'search' ||
 							filter.type == 'search exact' ||
 							filter.type == 'search greater than' ||
 							filter.type == 'search lower than' ||
@@ -322,19 +375,7 @@
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
-							@input="buildSuggestions($event, filter.field)"
 						/>
-						<div v-if="filter.type == 'search'">
-							<template
-								v-for="suggestion in suggestions.suggestions"
-								v-if="
-									suggestions.field == filter.field &&
-									suggestions.suggestions.length > 0
-								"
-							>
-								<span>{{ suggestion }}</span>
-							</template>
-						</div>
 					</template>
 					<template v-if="filter.type == 'search change direction'">
 						<select
@@ -452,6 +493,7 @@ export default Vue.component("research-page-filters", {
 			kpGenes: [],
 			lastFilter: { field: null, value: null },
 			suggestions: { field: null, suggestions: [] },
+			searchBySuggest: false,
 		};
 	},
 	created() {
@@ -581,7 +623,7 @@ export default Vue.component("research-page-filters", {
 			let searchVal = EVENT.target.value;
 			let suggestions = [];
 
-			if (searchVal.length > 2) {
+			if (searchVal.length >= 2) {
 				let searchTerms = searchVal.split(" ");
 
 				let comparingFields =
@@ -591,26 +633,24 @@ export default Vue.component("research-page-filters", {
 				let targetData = this.unfilteredDataset;
 
 				if (comparingFields == null) {
-					if (suggestions.length < 11) {
-						targetData.map((d) => {
-							let matching = 0;
-							if (!!d[FIELD]) {
-								searchTerms.map((s) => {
-									matching += !!d[
-										FIELD
-									].toLowerCase().includes(s.toLowerCase())
-										? 1
-										: 0;
-								});
-								if (
-									matching == searchTerms.length &&
-									!suggestions.includes(d[FIELD])
-								) {
-									suggestions.push(d[FIELD]);
-								}
+					targetData.map((d) => {
+						let matching = 0;
+						if (!!d[FIELD]) {
+							searchTerms.map((s) => {
+								matching += !!d[FIELD].toLowerCase().includes(
+									s.toLowerCase()
+								)
+									? 1
+									: 0;
+							});
+							if (
+								matching == searchTerms.length &&
+								!suggestions.includes(d[FIELD])
+							) {
+								suggestions.push(d[FIELD]);
 							}
-						});
-					}
+						}
+					});
 				} else {
 				}
 
@@ -1116,47 +1156,58 @@ export default Vue.component("research-page-filters", {
 				return unqOptions.sort();
 			}
 		},
-		filterData(EVENT, FIELD, TYPE, DATATYPE) {
-			let searchValue = document.getElementById(
-				"filter_" + this.getColumnId(FIELD)
-			).value; //EVENT.target.value;
+
+		filterData(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED) {
+			let searchValue = !!SUGGESTED
+				? SUGGESTED
+				: document.getElementById("filter_" + this.getColumnId(FIELD))
+						.value; //EVENT.target.value;
+
 			let id = "#filter_" + this.getColumnId(FIELD);
 			let inputField = document.querySelector(id);
-
 			inputField.blur();
 			inputField.value = "";
 
-			///Record the last filtering item
+			if (!!searchValue && searchValue != "") {
+				///Record the last filtering item
 
-			this.lastFilter = { field: FIELD, value: searchValue };
+				this.lastFilter = { field: FIELD, value: searchValue };
 
-			if (TYPE == "search" || TYPE == "search exact") {
-				let searchTerms = searchValue.split(",");
-				searchTerms.map((searchTerm) => {
-					this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
+				if (TYPE == "search" || TYPE == "search exact") {
+					let searchTerms = searchValue.split(",");
 
-					this.filtersIndex[FIELD]["search"] = this.filtersIndex[
-						FIELD
-					]["search"].filter((v, i, arr) => arr.indexOf(v) == i);
-				});
-			} else if (
-				TYPE == "search greater than" ||
-				TYPE == "search lower than" ||
-				TYPE == "search or" ||
-				TYPE == "search and"
-			) {
-				this.filtersIndex[FIELD]["search"] = [searchValue];
-			} else {
-				if (DATATYPE == "number") {
-					this.filtersIndex[FIELD]["search"].push(
-						Number(searchValue)
-					);
+					searchTerms.map((searchTerm) => {
+						this.filtersIndex[FIELD]["search"].push(
+							searchTerm.trim()
+						);
+
+						this.filtersIndex[FIELD]["search"] = this.filtersIndex[
+							FIELD
+						]["search"].filter((v, i, arr) => arr.indexOf(v) == i);
+					});
+
+					if (!!SUGGESTED) {
+						this.suggestions = { field: null, suggestions: [] }; // reset suggestions.
+					}
+				} else if (
+					TYPE == "search greater than" ||
+					TYPE == "search lower than" ||
+					TYPE == "search or" ||
+					TYPE == "search and"
+				) {
+					this.filtersIndex[FIELD]["search"] = [searchValue];
 				} else {
-					this.filtersIndex[FIELD]["search"].push(searchValue);
+					if (DATATYPE == "number") {
+						this.filtersIndex[FIELD]["search"].push(
+							Number(searchValue)
+						);
+					} else {
+						this.filtersIndex[FIELD]["search"].push(searchValue);
+					}
 				}
-			}
 
-			this.applyFilters();
+				this.applyFilters();
+			}
 		},
 		applyFilters() {
 			let comparingFields =
@@ -1202,7 +1253,6 @@ export default Vue.component("research-page-filters", {
 													)
 													? tempFiltered.push(row)
 													: "";
-
 												break;
 											case "search exact":
 												search.toLowerCase() ===
@@ -1879,5 +1929,33 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {
+}
+.autocomplete-options {
+	position: absolute;
+	z-index: 100;
+	height: 500px;
+	overflow: auto;
+}
+
+.autocomplete-options ul {
+	list-style: none;
+	border-bottom: solid 1px #ddd;
+	padding: 0;
+	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.autocomplete-options ul li {
+	list-style: none;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	white-space: nowrap;
+	text-align: left;
+	padding: 3px 10px;
+	border-bottom: none;
+}
+
+.autocomplete-options ul li:hover {
+	cursor: pointer;
+	color: #3399ff;
 }
 </style>
