@@ -246,7 +246,8 @@ export default Vue.component("ResearchExpressionPlot", {
 				let tpms = entry.tpmForAllSamples
 					.split(",")
 					.map((i) => parseFloat(i))
-				let sortedEntry = tpms.sort(d3.ascending);
+				let sortedEntry = tpms.map(i => Number.isNaN(i) ? 0 : i).sort(d3.ascending);
+				console.log(sortedEntry);
 				entry["nSamples"] = parseInt(entry.nSamples);
 				entry["tpmForAllSamples"] = tpms;
 				entry["tissue"] = Formatters.tissueFormatter(entry["tissue"]);
