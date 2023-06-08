@@ -245,15 +245,20 @@ export default Vue.component("ResearchExpressionPlot", {
 			processedData.forEach((entry) => {
 				let tpms = entry.tpmForAllSamples
 					.split(",")
-					.map((i) => parseFloat(i));
+					.map((i) => parseFloat(i))
+				let sortedEntry = tpms.sort(d3.ascending);
+				entry["nSamples"] = parseInt(entry.nSamples);
 				entry["tpmForAllSamples"] = tpms;
 				entry["tissue"] = Formatters.tissueFormatter(entry["tissue"]);
-				entry["Min TPM"] = parseFloat(entry.minTpm);
-				entry["Q1 TPM"] = parseFloat(entry.firstQuTpm);
-				entry["Median TPM"] = parseFloat(entry.medianTpm);
-				entry["Q3 TPM"] = parseFloat(entry.thirdQuTpm);
-				entry["Max TPM"] = parseFloat(entry.maxTpm);
-				entry["nSamples"] = parseInt(entry.nSamples);
+				entry["Min TPM"] = entry.minTpm === undefined ? sortedEntry[0] : parseFloat(entry.minTpm);
+				entry["Q1 TPM"] = entry.firstQuTpm === undefined ? d3.quantile(sortedEntry, 0.25) :
+					parseFloat(entry.firstQuTpm);
+				entry["Median TPM"] = entry.medianTpm === undefined ? d3.quantile(sortedEntry, 0.5) : 
+					parseFloat(entry.medianTpm);
+				entry["Q3 TPM"] = entry.thirdQuTpm === undefined ? d3.quantile(sortedEntry, 0.75) : 
+					parseFloat(entry.thirdQuTpm);
+				entry["Max TPM"] = entry.maxTpm === undefined ? sortedEntry[sortedEntry.length -1] : 
+					parseFloat(entry.maxTpm);
 			});
 			processedData.sort((a, b) => {
 				if (a.tissue > b.tissue) {
