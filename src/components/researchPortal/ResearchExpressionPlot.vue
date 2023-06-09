@@ -281,11 +281,6 @@ export default Vue.component("ResearchExpressionPlot", {
 
 			for (let item of processedData) {
 				for (let tpmVal of item.tpmForAllSamples) {
-					if (!!isNaN(tpmVal)){
-						console.log("we missed one");
-					}
-					tpmVal = !!isNaN(tpmVal) ? 0 : tpmVal;
-
 					let flatEntry = {};
 					flatEntry["tissue"] = item["tissue"];
 					flatEntry["linear"] = tpmVal;
