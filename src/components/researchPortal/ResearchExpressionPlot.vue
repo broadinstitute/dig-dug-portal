@@ -404,17 +404,16 @@ export default Vue.component("ResearchExpressionPlot", {
 					})
 					.attr("cy", (g) => y(g[tpmField]))
 					.attr("r", 2)
-					.style("fill", `${colorMap[d.key]}33`)
-					.attr("stroke", `${colorMap[d.key]}`)
+					.attr("fill", "none")
+					.attr("stroke", "lightgray")
+					.attr("opacity", 0.25)
 					.on("mouseover", hoverDot)
 					.on("mouseleave", hideTooltip);
 			};
 			let hoverDot = (g) => {
+				svg.selectAll("circle").style("fill", "none");
 				svg.selectAll("circle").style("stroke", "lightgray");
-				svg.selectAll(`.${g.dataset}`).style(
-					"stroke",
-					`${colorMap[g.tissue]}`
-				);
+				svg.selectAll(`.${g.dataset}`).style("fill",`${colorMap[g.tissue]}`);
 				// Tooltip content
 				let xcoord = `${d3.event.layerX + 35}px`;
 				let ycoord = `${d3.event.layerY}px`;
