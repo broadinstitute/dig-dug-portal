@@ -652,111 +652,32 @@ export default Vue.component("research-page-filters", {
 						}
 					});
 				} else {
-				}
-
-				/*if (comparingFields == null) {
-									targetData.filter((row) => {
-										if (
-											!!row[searchIndex.field] &&
-											row[searchIndex.field] != undefined
-										) {
-											switch (searchIndex.type) {
-												
-												case "search":
-													row[searchIndex.field]
-														.toLowerCase()
-														.includes(
-															search.toLowerCase()
-														)
-														? tempFiltered.push(row)
-														: "";
-
-													break;
-												
-											}
-										}
+					for (let rowKey in targetData) {
+						let row = targetData[rowKey];
+						if (!!row[FIELD] && row[FIELD] != undefined) {
+							for (let fieldKey in row[FIELD]) {
+								if (!!row[FIELD] && !!row[FIELD][fieldKey]) {
+									let matching = 0;
+									searchTerms.map((s) => {
+										matching += !!row[FIELD][fieldKey]
+											.toLowerCase()
+											.includes(s.toLowerCase())
+											? 1
+											: 0;
 									});
-								} else {
-									for (var rowNum in targetData) {
-										let row = targetData[rowNum];
-										if (
-											!!row[searchIndex.field] &&
-											row[searchIndex.field] != undefined
-										) {
-											if  (
-												searchIndex.type == "search" ||
-												searchIndex.type ==
-													"dropdown word"
-											) {
-												//for (var rowNum in targetData) {
-												//let row = targetData[rowNum];
-												if (
-													comparingFields.includes(
-														searchIndex.field
-													) == true
-												) {
-													let meetSearch = false;
-													for (var cellNum in row[
-														searchIndex.field
-													]) {
-														if (
-															!!row[
-																searchIndex
-																	.field
-															][cellNum] &&
-															row[
-																searchIndex
-																	.field
-															][cellNum]
-																.toLowerCase()
-																.includes(
-																	search.toLowerCase()
-																)
-														) {
-															meetSearch = true;
-														}
-													}
-													if (meetSearch == true) {
-														tempFiltered[
-															row[
-																this.dataComparisonConfig[
-																	"key field"
-																]
-															]
-														] = row;
-													}
-												} else {
-													if (
-														!!row[
-															searchIndex.field
-														] &&
-														row[searchIndex.field]
-															.toLowerCase()
-															.includes(
-																search.toLowerCase()
-															)
-													) {
-														tempFiltered[
-															row[
-																this.dataComparisonConfig[
-																	"key field"
-																]
-															]
-														] = row;
-													}
-												}
-												//}
-											} 
-										}
+									if (
+										matching == searchTerms.length &&
+										!suggestions.includes(
+											row[FIELD][fieldKey]
+										)
+									) {
+										suggestions.push(row[FIELD][fieldKey]);
 									}
 								}
-							});
-
-						filtered = tempFiltered;
-						tempFiltered = comparingFields == null ? [] : {};
-						i++;
+							}
+						}
 					}
-				}*/
+				}
 			}
 
 			if (suggestions.length > 0) {
