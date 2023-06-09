@@ -4,7 +4,7 @@
             <div class="text-right mb-2">
                 <data-download
                     :data="pathwayData"
-                    filename="genetic_correlations"
+                    filename="top_pathways"
                 ></data-download>
             </div>
             <b-table
