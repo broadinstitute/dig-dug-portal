@@ -1,52 +1,47 @@
-
 <template>
-    <div :class="this.wrapperClass + ' ' + contentID">
+    <div :class="wrapperClass + ' ' + contentID">
         <span
-            v-if="this.isHover == false"
-            :class="'help-content-caller no-icon-' + this.noIcon"
-            v-on:click="showHideHelpContent(contentID)"
+            v-if="isHover == false"
+            :class="'help-content-caller no-icon-' + noIcon"
+            @click="showHideHelpContent(contentID)"
         >
             <b-icon-plus-circle-fill></b-icon-plus-circle-fill>
         </span>
         <span
-            v-if="this.isHover == true"
-            :class="'help-content-caller hover no-icon-' + this.noIcon"
+            v-if="isHover == true"
+            :class="'help-content-caller hover no-icon-' + noIcon"
             @mouseover="getToolTipPosition(contentID)"
         >
             <b-icon-info-circle-fill></b-icon-info-circle-fill>
         </span>
         <div
-            v-if="this.isHover == false"
-            class="help-content-modal hidden"
+            v-if="isHover == false"
             :id="contentID"
+            class="help-content-modal hidden"
         >
             <span
                 class="help-content-close"
-                v-on:click="showHideHelpContent(contentID)"
+                @click="showHideHelpContent(contentID)"
                 >&#43;</span
             >
             <div
-                v-html="tooltipDocumentationContent"
                 class="help-content-wrapper"
+                v-html="tooltipDocumentationContent"
             ></div>
         </div>
 
         <div
-            v-if="this.isHover == true"
-            :class="'help-hover-content-modal no-icon-' + this.noIcon"
+            v-if="isHover == true"
             :id="contentID"
+            :class="'help-hover-content-modal no-icon-' + noIcon"
         >
             <div
-                v-html="tooltipDocumentationContent"
                 class="help-content-wrapper"
+                v-html="tooltipDocumentationContent"
             ></div>
         </div>
     </div>
 </template>
-
-<style>
-@import url("/css/tooltipDocumentation.css");
-</style>
 
 <script>
 import Vue from "vue";
@@ -61,11 +56,11 @@ import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("tooltip-documentation", {
-    props: ["name", "group", "contentFill", "isHover", "noIcon"],
+export default Vue.component("TooltipDocumentation", {
     components: {
         Documentation,
     },
+    props: ["name", "group", "contentFill", "isHover", "noIcon"],
     data: (context) => {
         return {
             content: null,
@@ -73,9 +68,43 @@ export default Vue.component("tooltip-documentation", {
             show: false,
         };
     },
+    computed: {
+        tooltipDocumentationContent() {
+            if (this.content) {
+                return this.converter.makeHtml(this.content);
+            } else {
+                return "";
+            }
+        },
+        contentID() {
+            if (this.name) {
+                let content = this.name + "_" + Math.random();
+
+                return content.split(".").join("_");
+            } else {
+                return "";
+            }
+        },
+        wrapperClass() {
+            let content =
+                this.isHover == true ? "help-content hover " : "help-content ";
+            content += this.noIcon == true ? "no-icon-true" : "no-icon-false";
+            return content;
+        },
+    },
+    watch: {
+        contentFill: function (newContentFill) {
+            //create a new convertor that overides the one we are storing in data
+            this.converter = documentationParser.makeConverter(
+                this.content,
+                newContentFill,
+                this.name
+            );
+        },
+    },
 
     mounted() {
-        if (!!this.name) {
+        if (this.name) {
             let docGroup = this.group || "md";
             let qs = queryString.stringify({
                 q: this.name,
@@ -115,36 +144,6 @@ export default Vue.component("tooltip-documentation", {
                 });
         }
     },
-    computed: {
-        tooltipDocumentationContent() {
-            if (!!this.content) {
-                return this.converter.makeHtml(this.content);
-            }
-        },
-        contentID() {
-            if (!!this.name) {
-                let content = this.name + "_" + Math.random();
-
-                return content.split(".").join("_");
-            }
-        },
-        wrapperClass() {
-            let content =
-                this.isHover == true ? "help-content hover " : "help-content ";
-            content += this.noIcon == true ? "no-icon-true" : "no-icon-false";
-            return content;
-        },
-    },
-    watch: {
-        contentFill: function (newContentFill) {
-            //create a new convertor that overides the one we are storing in data
-            this.converter = documentationParser.makeConverter(
-                this.content,
-                newContentFill,
-                this.name
-            );
-        },
-    },
 
     methods: {
         ...uiUtils,
@@ -157,3 +156,7 @@ export default Vue.component("tooltip-documentation", {
     },
 });
 </script>
+
+<style>
+@import url("/css/tooltipDocumentation.css");
+</style>
