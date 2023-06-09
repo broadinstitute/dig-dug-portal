@@ -101,6 +101,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			chart: null,
 			chartWidth: null,
 			logScale: true,
+			tissueList: [],
 			processedData: [],
 			processedCollection: null,
 			flatBoth: null,
@@ -192,6 +193,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				}
 				dataRows.push(tissueRow);
 			});
+			this.tissueList = allTissues;
 			return dataRows;
 		},
 		rows() {
@@ -387,7 +389,11 @@ export default Vue.component("ResearchExpressionPlot", {
 				.domain([-maxNum, maxNum]);
 
 			let colorIndex = 0;
+			let violinIndex = 0;
 			let mouseover = (d) => {
+				svg.selectAll(".violin").style("opacity", 1);
+				let violinNumber = this.tissueList.indexOf(d.key);
+				svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
 				svg.selectAll("circle").remove();
 				let boxHalfWidth = 6;
 				svg.selectAll("indPoints")
@@ -406,14 +412,12 @@ export default Vue.component("ResearchExpressionPlot", {
 					.attr("r", 2)
 					.attr("fill", "none")
 					.attr("stroke", "lightgray")
-					.attr("opacity", 0.25)
 					.on("mouseover", hoverDot)
 					.on("mouseleave", hideTooltip);
 			};
 			let hoverDot = (g) => {
-				svg.selectAll("circle").style("fill", "none");
 				svg.selectAll("circle").style("stroke", "lightgray");
-				svg.selectAll(`.${g.dataset}`).style("fill",`${colorMap[g.tissue]}`);
+				svg.selectAll(`.${g.dataset}`).style("stroke",`${colorMap[g.tissue]}`);
 				// Tooltip content
 				let xcoord = `${d3.event.layerX + 35}px`;
 				let ycoord = `${d3.event.layerY}px`;
@@ -437,6 +441,11 @@ export default Vue.component("ResearchExpressionPlot", {
 				.attr("transform", (d) => `translate(${x(d.key)},0)`)
 				.append("path")
 				.datum((d) => d.value)
+				.attr("class", (d) => {
+					let classString = `violin violin_${violinIndex}`;
+					violinIndex++;
+					return classString;
+				})
 				.style("stroke", "none")
 				.style("fill", (d) => {
 					// I don't like reinventing the wheel, but I cannot
