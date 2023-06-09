@@ -10,26 +10,45 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import documentationParser from "@/utils/documentationUtils";
 import queryString from "query-string";
 
-export default Vue.component("documentation", {
+export default Vue.component("Documentation", {
     props: ["name", "group", "contentFill"],
 
-    data: context => {
+    data: (context) => {
         return {
             content: null,
-            converter: null
+            converter: null,
         };
+    },
+    computed: {
+        documentationContent() {
+            if (this.content) {
+                return this.converter.makeHtml(this.content);
+            } else {
+                return "";
+            }
+        },
+    },
+    watch: {
+        contentFill: function (newContentFill) {
+            //create a new convertor that overides the one we are storing in data
+            this.converter = documentationParser.makeConverter(
+                this.content,
+                newContentFill,
+                this.name
+            );
+        },
     },
 
     mounted() {
-        if (!!this.name) {
+        if (this.name) {
             // fetch the documentation data and resolve it in data
-            let docGroup = !!this.group ? this.group : "md";
+            let docGroup = this.group ? this.group : "md";
             let qs = queryString.stringify({
                 q: this.name,
-                group: docGroup //get this from state
+                group: docGroup, //get this from state
             });
             let json = fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
-                .then(resp => {
+                .then((resp) => {
                     if (resp.status === 422) {
                         throw Error("missing parameters");
                         // throw Error("In Documentation"+' '+resp.json().detail[0].type+' '+resp.json().detail[0].msg+' '+resp.json().detail[0].loc);
@@ -38,8 +57,8 @@ export default Vue.component("documentation", {
                         return resp;
                     }
                 })
-                .then(resp => resp.json())
-                .then(json => {
+                .then((resp) => resp.json())
+                .then((json) => {
                     if (json.data.length > 0) {
                         this.converter = documentationParser.makeConverter(
                             json.data[0].content,
@@ -59,25 +78,8 @@ export default Vue.component("documentation", {
                 });
         }
     },
-    computed: {
-        documentationContent() {
-            if (!!this.content) {
-                return this.converter.makeHtml(this.content);
-            }
-        }
-    },
-    watch: {
-        contentFill: function(newContentFill) {
-            //create a new convertor that overides the one we are storing in data
-            this.converter = documentationParser.makeConverter(
-                this.content,
-                newContentFill,
-                this.name
-            );
-        }
-    },
 
-    methods: {}
+    methods: {},
 });
 </script>
 <style scoped>
