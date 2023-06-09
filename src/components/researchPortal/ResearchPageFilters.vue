@@ -683,7 +683,7 @@ export default Vue.component("research-page-filters", {
 
 			if (suggestions.length > 0) {
 				this.suggestions.field = FIELD;
-				this.suggestions.suggestions = suggestions;
+				this.suggestions.suggestions = suggestions.sort();
 			} else {
 				this.suggestions.field = null;
 				this.suggestions.suggestions = [];
