@@ -354,6 +354,7 @@
 											)
 										"
 										v-html="suggestion"
+										:title="suggestion"
 									></li>
 								</template>
 							</ul>
@@ -1866,13 +1867,17 @@ div.custom-select-search {
 }
 
 .autocomplete-options ul li {
+	display: block;
 	list-style: none;
 	background-color: #fff;
 	border: solid 1px #ddd;
-	white-space: nowrap;
 	text-align: left;
 	padding: 3px 10px;
 	border-bottom: none;
+	max-width: 400px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .autocomplete-options ul li:hover {
