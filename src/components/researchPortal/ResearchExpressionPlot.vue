@@ -462,12 +462,12 @@ export default Vue.component("ResearchExpressionPlot", {
 					.on("mouseleave", hideTooltip);
 			};
 			let hoverDot = (g) => {
+				let xcoord = `${d3.event.layerX + 35}px`;
+				let ycoord = `${d3.event.layerY}px`;
 				svg.selectAll("circle").remove();
 				redrawNonHoverDots(g);
 				redrawHoverDots(g);
 				// Tooltip content
-				let xcoord = `${d3.event.layerX + 35}px`;
-				let ycoord = `${d3.event.layerY}px`;
 				let tooltipContent = `Biosample: ${g.biosample}`;
 				tooltipContent = tooltipContent.concat(
 					`<span>Dataset: ${g.dataset}</span>`
