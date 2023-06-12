@@ -5,13 +5,13 @@
 			id="searchCriteria"
 			v-if="this.apiParameters != null"
 		>
-			<div
+			<!--<div
 				class="open-close-search-criteria"
 				id="openCloseSearch"
 				@click="showHideSearch()"
 			>
 				Close search
-			</div>
+			</div>-->
 			<h4 class="card-title">Build search criteria</h4>
 			<div class="filtering-ui-content row">
 				<div
@@ -116,15 +116,20 @@
 							></option>
 						</select>
 					</template>
-
-					<div
-						v-if="
-							parameter.type == 'input' &&
-							parameter.values == 'kp genes'
-						"
-						id="kp_gene_search_wrapper"
-					>
-						<!--<input
+					<div>
+						<div
+							v-if="
+								parameter.type == 'input' &&
+								parameter.values == 'kp genes'
+							"
+							id="kp_gene_search_wrapper"
+							:style="
+								!!parameter['expand region']
+									? 'display: inline-block;'
+									: ''
+							"
+						>
+							<!--<input
 							v-model="geneSearch"
 							:placeholder="getPlaceHolder(parameter.parameter)"
 							class="form-control"
@@ -132,40 +137,74 @@
 							:id="'search_param_' + parameter.parameter"
 						/>-->
 
-						<input
-							v-model="geneSearch"
-							class="form-control"
-							@keyup="getGenes($event)"
-							:id="'search_param_' + parameter.parameter"
-						/>
+							<input
+								v-model="geneSearch"
+								class="form-control"
+								@keyup="getGenes($event)"
+								:id="'search_param_' + parameter.parameter"
+							/>
 
-						<div
-							class="custom-select custom-select-search"
-							:size="kpGenes.length >= 5 ? 5 : 'auto'"
-							:style="
-								kpGenes.length == 0
-									? 'display:none !important;'
-									: ''
-							"
-						>
-							<template v-for="gene in kpGenes">
-								<a
-									href="javascript:;"
-									v-html="gene"
-									:key="gene"
-									@click="
-										parameter['convert to region'] &&
-										parameter['convert to region'] == 'true'
-											? getRegion(
-													gene,
-													parameter.parameter
-											  )
-											: setGene(gene)
-									"
-									class="custom-select-a-option"
-								></a>
-							</template>
+							<div
+								class="custom-select custom-select-search"
+								:size="kpGenes.length >= 5 ? 5 : 'auto'"
+								:style="
+									kpGenes.length == 0
+										? 'display:none !important;'
+										: ''
+								"
+							>
+								<template v-for="gene in kpGenes">
+									<a
+										href="javascript:;"
+										v-html="gene"
+										:key="gene"
+										@click="
+											parameter['convert to region'] &&
+											parameter['convert to region'] ==
+												'true'
+												? getRegion(
+														gene,
+														parameter.parameter
+												  )
+												: setGene(gene)
+										"
+										class="custom-select-a-option"
+									></a>
+								</template>
+							</div>
 						</div>
+						<!-- -->
+						<div
+							v-if="!!parameter['expand region']"
+							class="expand-region"
+						>
+							<select
+								id="region_expander"
+								class="expand-region-select-byor"
+								@change="expandRegion($event, parameter)"
+							>
+								<option selected="selected" value="null">
+									Expand region by:
+								</option>
+								<option value="50000">± 50 kb</option>
+								<option value="100000">± 100 kb</option>
+								<option value="150000">± 150 kb</option>
+							</select>
+							<span class="tip-wrapper">
+								<b-icon
+									class="tip-bigger warning"
+									icon="exclamation-circle-fill"
+								></b-icon>
+								<div class="tip-content">
+									This feature is in test! Expanding region
+									will refresh the page as a new search with
+									the last search parameters and the expanded
+									region. All filters and previously loaded
+									data will be removed.
+								</div>
+							</span>
+						</div>
+						<!-- -->
 					</div>
 					<!--<input
 						v-if="
@@ -186,33 +225,6 @@
 						class="form-control"
 						:id="'search_param_' + parameter.parameter"
 					/>
-					<div v-if="!!parameter['expand region']">
-						<select
-							id="region_expander"
-							class="expand-region-select-byor"
-							@change="expandRegion($event, parameter)"
-						>
-							<option selected="selected" value="null">
-								Expand region by:
-							</option>
-							<option value="50000">± 50 kb</option>
-							<option value="100000">± 100 kb</option>
-							<option value="150000">± 150 kb</option>
-						</select>
-						<span class="tip-wrapper">
-							<b-icon
-								class="tip-bigger warning"
-								icon="exclamation-circle-fill"
-							></b-icon>
-							<div class="tip-content">
-								This feature is in test! Expanding region will
-								refresh the page as a new search with the last
-								search parameters and the expanded region. All
-								filters and previously loaded data will be
-								removed.
-							</div>
-						</span>
-					</div>
 				</div>
 
 				<div
@@ -231,7 +243,7 @@
 						Search
 					</div>
 				</div>
-				<div class="col">
+				<!--<div class="col">
 					<div
 						v-for="(value, name, index) in this.searchParamsIndex"
 						:class="'search-field f-' + index"
@@ -256,7 +268,7 @@
 					>
 						Clear all filters
 					</b-badge>
-				</div>
+				</div>-->
 			</div>
 		</div>
 
@@ -265,13 +277,13 @@
 			id="searchCriteria"
 			v-if="!!this.dataFiles && this.dataFiles.length > 1"
 		>
-			<div
+			<!--<div
 				class="open-close-search-criteria"
 				id="openCloseSearch"
 				@click="showHideSearch()"
 			>
 				Close search
-			</div>
+			</div>-->
 			<h4 class="card-title">Select data</h4>
 			<div class="filtering-ui-content row">
 				<div class="col">
@@ -297,6 +309,7 @@
 				(!!this.dataFiles && this.dataFiles.length > 1)
 			"
 		>
+			<h4 class="card-title filter">Filter data</h4>
 			<div class="filtering-ui-content row">
 				<div
 					:class="getFilterWidthClasses()"
@@ -838,7 +851,7 @@ export default Vue.component("research-page-filters", {
 			this.$store.dispatch("dataComparison", ifCompareData);
 		},
 		queryAPI() {
-			this.showHideSearch();
+			//this.showHideSearch();
 			uiUtils.showElement("data-loading-indicator");
 
 			for (const FIELD in this.filtersIndex) {
@@ -1732,6 +1745,11 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
+.expand-region {
+	display: inline-block;
+	vertical-align: bottom;
+	margin-left: 5px;
+}
 .expand-region-select-byor {
 	background-color: #66bbff !important;
 	border: solid 1px #3399ff !important;
@@ -1760,6 +1778,10 @@ export default Vue.component("research-page-filters", {
 .custom-select-search.long-list {
 	width: auto !important;
 	min-width: 175px;
+	position: absolute;
+	z-index: 100;
+	left: 7px;
+	margin-top: 2px;
 }
 
 .custom-select-search.hidden,
@@ -1783,6 +1805,11 @@ div.custom-select-search {
 	overflow-y: auto;
 	height: auto;
 	max-height: 250px;
+	position: absolute;
+	z-index: 100;
+	left: 7px;
+	margin-top: 2px;
+	text-align: left;
 }
 
 .custom-select-a-option {
@@ -1804,21 +1831,21 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria {
-	position: absolute;
+	/*position: absolute;
 	z-index: 200;
 	width: 210px;
 	left: -25px;
 	top: 10px;
 	text-align: left;
 	padding: 15px;
-	padding-left: 25px;
+	padding-left: 25px;*/
 	transition: all 0.5s;
 	background-color: #ddefff;
 	border: solid 1px #bbdfff;
 }
 
 .filtering-ui-wrapper.search-criteria.closed {
-	left: -225px;
+	/*left: -225px;*/
 	transition: all 0.5s;
 }
 
@@ -1847,7 +1874,19 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria > h4.card-title {
-	margin-left: -7px;
+	position: absolute;
+	font-size: 13px;
+	font-weight: bold;
+	color: #77afcf;
+	left: 5px;
+}
+
+.filtering-ui-wrapper > h4.card-title {
+	position: absolute;
+	font-size: 13px;
+	font-weight: bold;
+	color: #aaaaaa;
+	left: 5px;
 }
 
 .filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {
