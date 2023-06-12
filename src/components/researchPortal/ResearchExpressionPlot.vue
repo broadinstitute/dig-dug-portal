@@ -302,8 +302,8 @@ export default Vue.component("ResearchExpressionPlot", {
 		},
 		displayResults() {
 			let colorMap = this.colorMap;
-
 			let flatData = this.flatBoth;
+			let dotBoxHalfWidth = 6;
 
 			let tpmField = this.logScale ? "log" : "linear";
 			let margin = {
@@ -395,7 +395,6 @@ export default Vue.component("ResearchExpressionPlot", {
 				let violinNumber = this.tissueList.indexOf(d.key);
 				svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
 				svg.selectAll("circle").remove();
-				let boxHalfWidth = 6;
 				svg.selectAll("indPoints")
 					.data(flatData.filter((entry) => entry["tissue"] == d.key))
 					.enter()
@@ -404,8 +403,8 @@ export default Vue.component("ResearchExpressionPlot", {
 					.attr("cx", (g) => {
 						let dx =
 							offset -
-							2 * boxHalfWidth +
-							g.noise * boxHalfWidth * 4;
+							2 * dotBoxHalfWidth +
+							g.noise * dotBoxHalfWidth * 4;
 						return x(d.key) + dx;
 					})
 					.attr("cy", (g) => y(g[tpmField]))
@@ -415,13 +414,57 @@ export default Vue.component("ResearchExpressionPlot", {
 					.on("mouseover", hoverDot)
 					.on("mouseleave", hideTooltip);
 			};
+			let redrawHoverDots = (g) => {
+				let hoverTissue = g.tissue;
+				let hoverDataset = g.dataset;
+				let hoverColor = `${colorMap[g.tissue]}`;
+				svg.selectAll("indPoints")
+					.data(flatData.filter((entry) => 
+						entry.tissue == hoverTissue && entry.dataset == hoverDataset))
+					.enter()
+					.append("circle")
+					.attr("class", (j) => j.dataset)
+					.attr("cx", (j) => {
+						let dx =
+							offset -
+							2 * dotBoxHalfWidth +
+							j.noise * dotBoxHalfWidth * 4;
+						return x(g.tissue) + dx;
+					})
+					.attr("cy", (j) => y(j[tpmField]))
+					.attr("r", 2)
+					.attr("fill", "none")
+					.attr("stroke", hoverColor)
+					.on("mouseover", hoverDot)
+					.on("mouseleave", hideTooltip);
+			};
+			let redrawNonHoverDots = (g) => {
+				let hoverTissue = g.tissue;
+				let hoverDataset = g.dataset;
+				svg.selectAll("indPoints")
+					.data(flatData.filter((entry) => 
+						entry.tissue == hoverTissue && entry.dataset != hoverDataset))
+					.enter()
+					.append("circle")
+					.attr("class", (j) => j.dataset)
+					.attr("cx", (j) => {
+						let dx =
+							offset -
+							2 * dotBoxHalfWidth +
+							j.noise * dotBoxHalfWidth * 4;
+						return x(g.tissue) + dx;
+					})
+					.attr("cy", (j) => y(j[tpmField]))
+					.attr("r", 2)
+					.attr("fill", "none")
+					.attr("stroke", "lightgray")
+					.on("mouseover", hoverDot)
+					.on("mouseleave", hideTooltip);
+			};
 			let hoverDot = (g) => {
-				svg.selectAll("circle")
-					.style("stroke", "lightgray")
-					.style("opacity", 0.5);
-				svg.selectAll(`.${g.dataset}`)
-					.style("stroke",`${colorMap[g.tissue]}`)
-					.style("opacity", 1);
+				svg.selectAll("circle").remove();
+				redrawNonHoverDots(g);
+				redrawHoverDots(g);
 				// Tooltip content
 				let xcoord = `${d3.event.layerX + 35}px`;
 				let ycoord = `${d3.event.layerY}px`;
