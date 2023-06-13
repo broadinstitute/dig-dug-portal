@@ -124,6 +124,7 @@ new Vue({
                     link: "https://www.uniprot.org/uniprot/",
                 },
             },
+            noTranscriptDataPortal: ["sleep", "lung", "ndkp", "autoimmune"]
         };
     },
 

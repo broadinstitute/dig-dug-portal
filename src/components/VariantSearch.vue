@@ -148,15 +148,7 @@
                                 <template #head(transcriptId)="data">
                                     <span class="external_source"
                                         >Feature
-                                        <b-badge
-                                            pill
-                                            disabled
-                                            class="ml-1"
-                                            variant="secondary"
-                                            title="Link to external source."
-                                            >E</b-badge
-                                        ></span
-                                    >
+                                    </span>
                                 </template>
                                 <template #cell(transcriptId)="data">
                                     <a
@@ -167,43 +159,7 @@
                                         >{{ data.item.transcriptId }}</a
                                     >
                                 </template>
-                                <!-- <template #cell(gene_symbol)="data">
-                                    <a
-                                        v-if="
-                                            data.item.gene_symbol_source ===
-                                            'HGNC'
-                                        "
-                                        :href="`/gene.html?gene=${data.item.gene_symbol}`"
-                                        >{{ data.item.gene_symbol }}</a
-                                    ><span
-                                        v-else-if="
-                                            data.item.gene_id &&
-                                            data.item.gene_id.indexOf(
-                                                'ENSG'
-                                            ) !== -1
-                                        "
-                                        class="external_source"
-                                    >
-                                        <a
-                                            :href="`https://grch37.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=${data.item.gene_id}`"
-                                            target="_blank"
-                                            >{{ data.item.gene_symbol }}</a
-                                        ><b-badge
-                                            pill
-                                            disabled
-                                            class="ml-1"
-                                            variant="secondary"
-                                            title="Link to external source."
-                                            >E</b-badge
-                                        ></span
-                                    >
 
-                                    <span
-                                        v-else
-                                        title="There's no data available for this gene."
-                                        >{{ data.item.gene_symbol }}</span
-                                    >
-                                </template> -->
                                 <template #cell(position)="data">
                                     {{
                                         data.item.proteinStart !==
