@@ -1,8 +1,5 @@
 <template>
 	<div class="research-data-table-wrapper">
-		{{ region }}
-		{{ regionZoom }}
-		{{ regionViewArea }}
 		<div v-html="tableLegend" class="data-table-legend"></div>
 
 		<div
