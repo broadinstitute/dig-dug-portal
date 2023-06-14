@@ -100,8 +100,8 @@ export default Vue.component("ResearchExpressionPlot", {
 		return {
 			chart: null,
 			chartWidth: null,
-			logScale: false,
-			processedData: null,
+			logScale: true,
+			processedData: [],
 			processedCollection: null,
 			flatBoth: null,
 			minSamples: 0,
@@ -109,7 +109,6 @@ export default Vue.component("ResearchExpressionPlot", {
 			colorMap: {},
 			currentPage: 1,
 			perPage: 10,
-			collatedData: [],
 			tableConfig: {
 				"top rows": [
 					{ key: "tissue", sortable: true },
@@ -170,13 +169,29 @@ export default Vue.component("ResearchExpressionPlot", {
 	},
 	computed: {
 		tableData() {
-			let dataRows = this.collatedData;
-			if (this.filter) {
-				dataRows = dataRows.filter((dataset) => {
-					return this.filter(dataset);
-				});
-			}
-
+			let allTissues = [];
+			this.processedData.forEach(item => {
+				if (!allTissues.includes(item.tissue)){
+					allTissues.push(item.tissue);
+				}
+			});
+			let dataRows = [];
+			allTissues.forEach(singleTissue => {
+				let tissueDatasets = this.processedData.filter(entry => entry.tissue == singleTissue);
+				let tpms = tissueDatasets.reduce((list, entry) => 
+					list.concat(entry.tpmForAllSamples), []).sort(d3.ascending);
+				let tissueRow = {
+					"tissue": singleTissue,
+					"Min TPM": tpms[0],
+					"Q1 TPM": d3.quantile(tpms, 0.25),
+					"Median TPM": d3.quantile(tpms, 0.5),
+					"Q3 TPM": d3.quantile(tpms, 0.75),
+					"Max TPM": tpms[tpms.length - 1],
+					"Total samples": tpms.length,
+					"Datasets": tissueDatasets,
+				}
+				dataRows.push(tissueRow);
+			});
 			return dataRows;
 		},
 		rows() {
@@ -205,7 +220,6 @@ export default Vue.component("ResearchExpressionPlot", {
 		});
 		this.processData();
 		this.displayResults();
-		this.logScale = true;
 	},
 	methods: {
 		...uiUtils,
@@ -219,7 +233,6 @@ export default Vue.component("ResearchExpressionPlot", {
 			return Formatters.floatFormatter(`${value}`);
 		},
 		processData() {
-			this.collatedData = [];
 			let processedCollection = [];
 			// Need a deep copy - the rawData is getting mutated.
 			let processedData = JSON.parse(JSON.stringify(this.$props.rawData));
@@ -245,7 +258,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			processedData.forEach((entry) => {
 				let tpms = entry.tpmForAllSamples
 					.split(",")
-					.map((i) => parseFloat(i));
+					.map((i) => !!Number.isNaN(parseFloat(i)) ? 0 : parseFloat(i));
 				entry["tpmForAllSamples"] = tpms;
 				entry["tissue"] = Formatters.tissueFormatter(entry["tissue"]);
 				entry["Min TPM"] = parseFloat(entry.minTpm);
@@ -268,8 +281,6 @@ export default Vue.component("ResearchExpressionPlot", {
 
 			for (let item of processedData) {
 				for (let tpmVal of item.tpmForAllSamples) {
-					tpmVal = !!isNaN(tpmVal) ? 0 : tpmVal;
-
 					let flatEntry = {};
 					flatEntry["tissue"] = item["tissue"];
 					flatEntry["linear"] = tpmVal;
@@ -522,23 +533,11 @@ export default Vue.component("ResearchExpressionPlot", {
 				.on("mouseover", mouseover);
 
 			// Packaging data for export at the same time.
-			let collateData = this.collatedData.length == 0;
 			svg.selectAll("zoneBoxes")
 				.data(sumstatBox)
 				.enter()
 				.append("rect")
-				.attr("x", (d) => {
-					if (collateData) {
-						// Deep copy
-						let tableEntry = JSON.parse(JSON.stringify(d.value));
-						tableEntry["tissue"] = d.key;
-						tableEntry["Datasets"] = this.processedData.filter(
-							(item) => item["tissue"] == d.key
-						);
-						this.collatedData.push(tableEntry);
-					}
-					return x(d.key);
-				})
+				.attr("x", (d) => x(d.key))
 				.attr("y", (d) => y(maxVal))
 				.attr("height", (d) => y(-maxVal) - y(0))
 				.attr("width", offset * 2)

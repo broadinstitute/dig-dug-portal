@@ -42,7 +42,10 @@
 						</th>
 						<th
 							class="column disease-group"
-							v-if="diseaseGroup.name == 'md'"
+							v-if="
+								diseaseGroup.name == 'md' ||
+								diseaseGroup.name == 'a2f'
+							"
 						>
 							Contributing community
 						</th>
@@ -65,9 +68,15 @@
 						<td class="column type">{{ row.data_type }}</td>
 						<td
 							class="column disease-group"
-							v-if="diseaseGroup.name == 'md'"
+							v-if="
+								diseaseGroup.name == 'md' ||
+								diseaseGroup.name == 'a2f'
+							"
 						>
-							<span class="community-icon" :class="row.community"
+							<span
+								class="community-icon"
+								:class="row.community"
+								:title="row.community"
 								>&nbsp;</span
 							>
 						</td>
@@ -117,7 +126,10 @@
 						</th>
 						<th
 							class="column disease-group"
-							v-if="diseaseGroup.name == 'md'"
+							v-if="
+								diseaseGroup.name == 'md' ||
+								diseaseGroup.name == 'a2f'
+							"
 						>
 							Contributing community
 						</th>
@@ -140,9 +152,15 @@
 						<td class="column type">{{ row.data_type }}</td>
 						<td
 							class="column disease-group"
-							v-if="diseaseGroup.name == 'md'"
+							v-if="
+								diseaseGroup.name == 'md' ||
+								diseaseGroup.name == 'a2f'
+							"
 						>
-							<span class="community-icon" :class="row.community"
+							<span
+								class="community-icon"
+								:class="row.community"
+								:title="row.community"
 								>&nbsp;</span
 							>
 						</td>
