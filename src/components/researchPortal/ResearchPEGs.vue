@@ -18,7 +18,9 @@
 				<div
 					id="genesPEGWrapper"
 					:class="plotType == 'region plot' ? 'col-md-3' : ''"
-				></div>
+				>
+					{{ genesData }}
+				</div>
 			</div>
 		</div>
 	</div>
@@ -33,7 +35,7 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-genes-track", {
+export default Vue.component("research-predicted-effector-genes", {
 	props: [
 		"region",
 		"genesData",

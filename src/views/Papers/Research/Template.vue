@@ -497,6 +497,9 @@
 								"
 								:pkgData="$store.state.pkgData"
 								:pkgDataSelected="$store.state.pkgDataSelected"
+								:region="$store.state.searchingRegion"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
 							>
 							</research-gem-data-table>
 						</div>
