@@ -172,12 +172,19 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "hugecalculator"]
     },
 
-    genefinder: {
+    /*genefinder: {
         entry: "src/views/GeneFinder/main.js",
         template: "public/index.html",
         filename: "genefinder.html",
         title: "Gene Finder",
         chunks: ["chunk-vendors", "chunk-common", "genefinder"]
+    },*/
+    genesifter: {
+        entry: "src/views/GeneSifter/main.js",
+        template: "public/index.html",
+        filename: "genesifter.html",
+        title: "Gene Sifter",
+        chunks: ["chunk-vendors", "chunk-common", "genesifter"]
     },
     signalsifter: {
         entry: "src/views/SignalSifter/main.js",
