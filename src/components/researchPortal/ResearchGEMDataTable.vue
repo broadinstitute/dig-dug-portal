@@ -1,5 +1,8 @@
 <template>
 	<div class="research-data-table-wrapper">
+		{{ region }}
+		{{ regionZoom }}
+		{{ regionViewArea }}
 		<div v-html="tableLegend" class="data-table-legend"></div>
 
 		<div
@@ -295,6 +298,9 @@ export default Vue.component("research-gem-data-table", {
 		"searchParameters",
 		"pkgData",
 		"pkgDataSelected",
+		"region",
+		"regionZoom",
+		"regionViewArea",
 	],
 	data() {
 		return {
@@ -320,6 +326,38 @@ export default Vue.component("research-gem-data-table", {
 	computed: {
 		filteredData() {
 			return this.$store.state.filteredData;
+		},
+		viewingRegion() {
+			if (this.region == null) {
+				return null;
+			} else {
+				let returnObj = {};
+
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
+
+				let regionArr = this.region.split(":")[1].split("-");
+				let chr = this.region.split(":")[0];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+					returnObj["chr"] = chr;
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["chr"] = chr;
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
+
+				return returnObj;
+			}
 		},
 		dataScores() {
 			if (
@@ -389,6 +427,22 @@ export default Vue.component("research-gem-data-table", {
 				});
 			} else {
 				rawData = { ...this.dataset }; //create copy of original data to avoid modifying original data which is shared with other components.
+			}
+
+			if (!!this.tableFormat["data zoom"]) {
+				let chrField = this.tableFormat["data zoom"].chromosome;
+				let posField = this.tableFormat["data zoom"].position;
+				let startPos = this.viewingRegion.start;
+				let endPos = this.viewingRegion.end;
+
+				for (const [vKey, vValue] of Object.entries(rawData)) {
+					if (
+						vValue[posField] < startPos ||
+						vValue[posField] > endPos
+					) {
+						delete rawData[vKey];
+					}
+				}
 			}
 
 			// Add original index to each items in the rawData, so it can be sorted back to original order after processing;
@@ -1342,8 +1396,6 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			//console.log("this.pkgData", this.pkgData);
-
 			return formattedData;
 		},
 
@@ -1369,7 +1421,7 @@ export default Vue.component("research-gem-data-table", {
 
 				return paged;
 			} else {
-				return this.rawData;
+				return this.dataInRegion;
 			}
 		},
 		topRows() {
