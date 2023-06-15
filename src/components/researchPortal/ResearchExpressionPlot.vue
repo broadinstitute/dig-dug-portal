@@ -101,6 +101,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			chart: null,
 			chartWidth: null,
 			logScale: true,
+			tissueList: [],
 			processedData: [],
 			processedCollection: null,
 			flatBoth: null,
@@ -192,6 +193,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				}
 				dataRows.push(tissueRow);
 			});
+			this.tissueList = allTissues;
 			return dataRows;
 		},
 		rows() {
@@ -300,8 +302,8 @@ export default Vue.component("ResearchExpressionPlot", {
 		},
 		displayResults() {
 			let colorMap = this.colorMap;
-
 			let flatData = this.flatBoth;
+			let dotBoxHalfWidth = 6;
 
 			let tpmField = this.logScale ? "log" : "linear";
 			let margin = {
@@ -387,9 +389,12 @@ export default Vue.component("ResearchExpressionPlot", {
 				.domain([-maxNum, maxNum]);
 
 			let colorIndex = 0;
+			let violinIndex = 0;
 			let mouseover = (d) => {
+				svg.selectAll(".violin").style("opacity", 1);
+				let violinNumber = this.tissueList.indexOf(d.key);
+				svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
 				svg.selectAll("circle").remove();
-				let boxHalfWidth = 6;
 				svg.selectAll("indPoints")
 					.data(flatData.filter((entry) => entry["tissue"] == d.key))
 					.enter()
@@ -398,26 +403,71 @@ export default Vue.component("ResearchExpressionPlot", {
 					.attr("cx", (g) => {
 						let dx =
 							offset -
-							2 * boxHalfWidth +
-							g.noise * boxHalfWidth * 4;
+							2 * dotBoxHalfWidth +
+							g.noise * dotBoxHalfWidth * 4;
 						return x(d.key) + dx;
 					})
 					.attr("cy", (g) => y(g[tpmField]))
 					.attr("r", 2)
-					.style("fill", `${colorMap[d.key]}33`)
-					.attr("stroke", `${colorMap[d.key]}`)
+					.attr("fill", "none")
+					.attr("stroke", "lightgray")
+					.on("mouseover", hoverDot)
+					.on("mouseleave", hideTooltip);
+			};
+			let redrawHoverDots = (g) => {
+				let hoverTissue = g.tissue;
+				let hoverDataset = g.dataset;
+				let hoverColor = `${colorMap[g.tissue]}`;
+				svg.selectAll("indPoints")
+					.data(flatData.filter((entry) => 
+						entry.tissue == hoverTissue && entry.dataset == hoverDataset))
+					.enter()
+					.append("circle")
+					.attr("class", (j) => j.dataset)
+					.attr("cx", (j) => {
+						let dx =
+							offset -
+							2 * dotBoxHalfWidth +
+							j.noise * dotBoxHalfWidth * 4;
+						return x(g.tissue) + dx;
+					})
+					.attr("cy", (j) => y(j[tpmField]))
+					.attr("r", 2)
+					.attr("fill", "none")
+					.attr("stroke", hoverColor)
+					.on("mouseover", hoverDot)
+					.on("mouseleave", hideTooltip);
+			};
+			let redrawNonHoverDots = (g) => {
+				let hoverTissue = g.tissue;
+				let hoverDataset = g.dataset;
+				svg.selectAll("indPoints")
+					.data(flatData.filter((entry) => 
+						entry.tissue == hoverTissue && entry.dataset != hoverDataset))
+					.enter()
+					.append("circle")
+					.attr("class", (j) => j.dataset)
+					.attr("cx", (j) => {
+						let dx =
+							offset -
+							2 * dotBoxHalfWidth +
+							j.noise * dotBoxHalfWidth * 4;
+						return x(g.tissue) + dx;
+					})
+					.attr("cy", (j) => y(j[tpmField]))
+					.attr("r", 2)
+					.attr("fill", "none")
+					.attr("stroke", "lightgray")
 					.on("mouseover", hoverDot)
 					.on("mouseleave", hideTooltip);
 			};
 			let hoverDot = (g) => {
-				svg.selectAll("circle").style("stroke", "lightgray");
-				svg.selectAll(`.${g.dataset}`).style(
-					"stroke",
-					`${colorMap[g.tissue]}`
-				);
-				// Tooltip content
 				let xcoord = `${d3.event.layerX + 35}px`;
 				let ycoord = `${d3.event.layerY}px`;
+				svg.selectAll("circle").remove();
+				redrawNonHoverDots(g);
+				redrawHoverDots(g);
+				// Tooltip content
 				let tooltipContent = `Biosample: ${g.biosample}`;
 				tooltipContent = tooltipContent.concat(
 					`<span>Dataset: ${g.dataset}</span>`
@@ -438,6 +488,11 @@ export default Vue.component("ResearchExpressionPlot", {
 				.attr("transform", (d) => `translate(${x(d.key)},0)`)
 				.append("path")
 				.datum((d) => d.value)
+				.attr("class", (d) => {
+					let classString = `violin violin_${violinIndex}`;
+					violinIndex++;
+					return classString;
+				})
 				.style("stroke", "none")
 				.style("fill", (d) => {
 					// I don't like reinventing the wheel, but I cannot
