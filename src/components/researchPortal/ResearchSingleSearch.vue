@@ -112,12 +112,11 @@ export default Vue.component("research-single-search", {
 		...uiUtils,
 
 		onSearch() {
+			let searchKey = this.singleSearchParam.replace(/,/g, "");
 			if (
 				!!this.singleSearchParam.includes("rs") ||
 				!!this.singleSearchParam.includes(":")
 			) {
-				let searchKey = this.singleSearchParam.replace(/,/g, "");
-
 				if (!!this.singleSearchParam.includes("-")) {
 					let chr = searchKey.split(":")[0];
 					let region = searchKey.split(":")[1].split("-");
@@ -135,6 +134,12 @@ export default Vue.component("research-single-search", {
 				} else {
 					location.href = "/variant.html?variant=" + searchKey;
 				}
+			} else if (
+				!!this.singleSearchParam.includes("_") &&
+				!!this.singleSearchParam.includes("-")
+			) {
+				//on search for a variant in chr3_12489012-C-T format
+				location.href = "/variant.html?variant=" + searchKey;
 			}
 		},
 		async searchGene(KEY) {
