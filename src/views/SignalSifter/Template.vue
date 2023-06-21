@@ -338,6 +338,9 @@
 .filter-options > span > div {
     display: inline-block;
 }
+#variant-finder .filter-pill-collection.center {
+    padding: unset;
+}
 .selected-phenotype .close {
     position: absolute;
     right: 0.1rem;
