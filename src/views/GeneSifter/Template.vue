@@ -291,6 +291,7 @@
 					<pre></pre>
 					<div v-if="$parent.geneFinderPhenotypes.length > 0">
 						<gene-finder-w-egl-table
+							:rawData="$parent.geneFinderAssociationsMap"
 							:phenotypes="$parent.geneFinderPhenotypes"
 							:egls="$parent.geneFinderEgls"
 							:eglsMap="$parent.eglsMap"
