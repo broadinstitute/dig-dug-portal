@@ -72,6 +72,7 @@ new Vue({
             onlyRare: false,
             turnOffMagma: true,
             turnOffRare: true,
+            filterAnd: false,
         };
     },
 
@@ -383,7 +384,10 @@ new Vue({
                             pValueCount += (gValue[p + ":pValue"] <= pValueFilter) ? 1 : 0;
                         })
 
-                        if (pValueCount == 0) {
+                        if (!!this.filterAnd && pValueCount < gValue.phenotypes.length) {
+                            delete grouped[gKey];
+                        }
+                        else if (pValueCount == 0) {
                             delete grouped[gKey];
                         }
                     }
@@ -413,8 +417,18 @@ new Vue({
                         })
 
                         if (!!this.hugeScoreFilter) {
+                            if (!!this.filterAnd) {
+                                let hugeValueCount = 0;
+                                gValue.phenotypes.map(p => {
+                                    hugeValueCount += (gValue[p + ":huge"] >= this.hugeScoreFilter) ? 1 : 0;
+                                })
 
-                            if ((gValue.maxHuge < this.hugeScoreFilter || !gValue.maxHuge)) {
+                                if (hugeValueCount < gValue.phenotypes.length) {
+                                    delete grouped[gKey];
+                                }
+                            }
+
+                            if (!this.filterAnd && (gValue.maxHuge < this.hugeScoreFilter || !gValue.maxHuge)) {
                                 delete grouped[gKey];
                             }
                         }
@@ -442,7 +456,12 @@ new Vue({
                             rarePcount += (!!gValue[p + ":rarePValue"] && gValue[p + ":rarePValue"] < this.rareVariantFilter) ? 1 : 0;
                         })
 
-                        if (rarePcount == 0) {
+
+
+                        if (!!this.filterAnd && rarePcount < gValue.phenotypes.length) {
+                            delete grouped[gKey];
+                        }
+                        else if (rarePcount == 0) {
                             delete grouped[gKey];
                         }
                     }
@@ -579,7 +598,11 @@ new Vue({
                             for (const [gKey, gValue] of Object.entries(
                                 grouped
                             )) {
-                                if ((gValue.maxTPM < this.tpmFilter || !gValue.maxTPM)) {
+                                if (!this.filterAnd && (gValue.maxTPM < this.tpmFilter || !gValue.maxTPM)) {
+                                    delete grouped[gKey];
+                                }
+
+                                if (!!this.filterAnd && (gValue.minTPM < this.tpmFilter || !gValue.minTPM)) {
                                     delete grouped[gKey];
                                 }
                             }

@@ -193,6 +193,22 @@
 									<input
 										type="checkbox"
 										class="form-control only-egl-filter"
+										v-model="$parent.filterAnd"
+									/>
+									<strong
+										>Filter logic: And (Default: Or)</strong
+									>
+								</div>
+								<div
+									v-if="
+										Object.keys(
+											$parent.geneFinderRareVariantMap
+										).length > 0
+									"
+								>
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
 										v-model="$parent.onlyRare"
 									/>
 									<strong
