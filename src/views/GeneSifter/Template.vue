@@ -129,20 +129,21 @@
 						v-model="$parent.geneFinderFilterCriterion"
 						:header="'Search Criterion'"
 					>
-						<!-- pValue filter -->
+						<!-- se threshold -->
+						<a
+							href="javascript:;"
+							class="GF-filter-ui-threshold-set"
+							@click="$parent.showHideSetting()"
+							>Set p-value thresholds / Show or hide columns</a
+						>
+
 						<div
 							class="text-center col-md-12 gf-filter-section-wrapper"
 						>
 							<strong class="GF-filter-ui-label"
 								>Filter by</strong
 							>
-							<a
-								href="javascript:;"
-								class="GF-filter-ui-label-right"
-								@click="$parent.showHideSetting()"
-								>Set p-value thresholds / Show or hide
-								columns</a
-							>
+
 							<filter-greater-control
 								class="filter-col-md"
 								:field="'HuGE'"
@@ -208,6 +209,24 @@
 									<strong
 										>Genes present on effector prediction
 										lists</strong
+									>
+								</div>
+							</div>
+							<div class="col text-left" style="padding: 5px 7px">
+								<div
+									v-if="
+										Object.keys(
+											$parent.geneFinderRareVariantMap
+										).length > 0
+									"
+								>
+									<input
+										type="checkbox"
+										class="form-control only-egl-filter"
+										v-model="$parent.filterAnd"
+									/>
+									<strong
+										>Filter logic: And (Default: Or)</strong
 									>
 								</div>
 							</div>
@@ -291,6 +310,7 @@
 					<pre></pre>
 					<div v-if="$parent.geneFinderPhenotypes.length > 0">
 						<gene-finder-w-egl-table
+							:rawData="$parent.geneFinderAssociationsMap"
 							:phenotypes="$parent.geneFinderPhenotypes"
 							:egls="$parent.geneFinderEgls"
 							:eglsMap="$parent.eglsMap"
@@ -342,10 +362,11 @@
 	font-size: 12px;
 	color: #aaa;
 }
-.GF-filter-ui-label-right {
+.GF-filter-ui-threshold-set {
 	position: absolute;
 	right: 25px;
 	font-size: 12px;
+	top: -25px;
 }
 .gf-filter-section-wrapper {
 	position: relative;
