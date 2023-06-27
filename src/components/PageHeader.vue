@@ -3,7 +3,7 @@
         <!-- uncomment in the final version-->
         <img v-if="bioindex_dev" src="/images/dev_flag.svg" class="dev-flag" />
         <!-- <img src="/images/dev_flag.svg" class="dev-flag" /> -->
-        <analytics></analytics>
+        <google-analytics></google-analytics>
         <alert></alert>
 
         <!-- Menu header-->
@@ -136,7 +136,8 @@
 import Vue from "vue";
 import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
-import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+//import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics4";
 import MenuItem from "@/components/MenuItem.vue";
 import DiseaseSystems from "@/components/DiseaseSystems.vue";
 
