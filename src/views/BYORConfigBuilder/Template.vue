@@ -19,10 +19,7 @@
 							<div class="col-md-7">
 								<input
 									type="text"
-									class="
-										form-control form-control-sm
-										input-default
-									"
+									class="form-control form-control-sm input-default"
 									placeholder="Page ID"
 								/>
 							</div>
@@ -218,10 +215,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 											<pre />
 											<div class="row">
 												<div
-													class="
-														col-md-12 col
-														filter-col-md
-													"
+													class="col-md-12 col filter-col-md"
 												>
 													<div class="label">
 														Place first few rows of
@@ -285,10 +279,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</div>
 													<input
 														type="text"
-														class="
-															form-control
-															input-default
-														"
+														class="form-control input-default"
 														placeholder="name"
 													/>
 												</div>
@@ -306,51 +297,35 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																Select field
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		CHR
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		POS</span
@@ -358,92 +333,64 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																</li>
 
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		REF
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		ALT
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		RSID
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		PVAL
@@ -468,51 +415,35 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																Select field
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		CHR
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		POS</span
@@ -520,92 +451,64 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																</li>
 
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		REF
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		ALT
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		RSID
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		PVAL
@@ -620,9 +523,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																Calculate
 															</div>
 															<select
-																class="
-																	form-control
-																"
+																class="form-control"
 															>
 																<option>
 																	-Log10
@@ -642,24 +543,18 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																Join | Select
 																field(s)
 																<sup
-																	class="
-																		optional
-																	"
+																	class="optional"
 																	>Set weight
 																	to select
 																</sup>
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li>
 																	CHR<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -676,9 +571,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	POS<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -695,9 +588,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	REF<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -714,9 +605,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	ALT<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -733,9 +622,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	RSID<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -752,9 +639,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	PVAL<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -777,18 +662,13 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																Join by
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li>
 																	CHR<label
 																		><input
 																			type="text"
-																			class="
-																				form-control
-																				input-default
-																			"
+																			class="form-control input-default"
 																		/>
 																	</label>
 																</li>
@@ -808,24 +688,18 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																Join multi |
 																Select field(s)
 																<sup
-																	class="
-																		optional
-																	"
+																	class="optional"
 																	>Set weight
 																	to select
 																</sup>
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li>
 																	CHR<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -854,9 +728,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	POS<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -885,9 +757,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	REF<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -916,9 +786,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	ALT<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -947,9 +815,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	RSID<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -978,9 +844,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	PVAL<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -1015,18 +879,13 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																Join by
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li>
 																	CHR<label
 																		><input
 																			type="text"
-																			class="
-																				form-control
-																				input-default
-																			"
+																			class="form-control input-default"
 																		/>
 																	</label>
 																</li>
@@ -1034,20 +893,14 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																	POS<label>
 																		<input
 																			type="text"
-																			class="
-																				form-control
-																				input-default
-																			"
+																			class="form-control input-default"
 																	/></label>
 																</li>
 																<li>
 																	REF<label>
 																		<input
 																			type="text"
-																			class="
-																				form-control
-																				input-default
-																			"
+																			class="form-control input-default"
 																	/></label>
 																</li>
 																<li>ALT</li>
@@ -1067,51 +920,35 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																| Select field
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		CHR
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		POS</span
@@ -1119,92 +956,64 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																</li>
 
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		REF
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		ALT
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		RSID
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		PVAL
@@ -1221,10 +1030,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															</div>
 															<input
 																type="text"
-																class="
-																	form-control
-																	input-default
-																"
+																class="form-control input-default"
 															/>
 														</div>
 													</div>
@@ -1242,51 +1048,35 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																Select field
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		CHR
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		POS</span
@@ -1294,92 +1084,64 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																</li>
 
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		REF
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		ALT
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		RSID
 																	</span>
 																</li>
 																<li
-																	class="
-																		form-check
-																		form-check-inline
-																	"
+																	class="form-check form-check-inline"
 																>
 																	<input
-																		class="
-																			form-check-input
-																		"
+																		class="form-check-input"
 																		type="radio"
 																		value=""
 																		id="flexCheckDefault"
 																	/>
 																	<span
-																		class="
-																			form-check-label
-																		"
+																		class="form-check-label"
 																		for="flexCheckDefault"
 																	>
 																		PVAL
@@ -1397,9 +1159,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															</div>
 															<textarea
 																rows="3"
-																class="
-																	form-control
-																"
+																class="form-control"
 																placeholder="example|replace"
 															>
 															</textarea>
@@ -1416,25 +1176,19 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															<div class="label">
 																Score columns
 																<sup
-																	class="
-																		optional
-																	"
+																	class="optional"
 																	>Select type
 																	to calculate
 																	score
 																</sup>
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li>
 																	CHR<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -1448,9 +1202,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	POS<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -1464,9 +1216,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	REF<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -1480,9 +1230,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	ALT<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -1496,9 +1244,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	RSID<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -1512,9 +1258,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																<li>
 																	PVAL<label>
 																		<select
-																			class="
-																				form-control
-																			"
+																			class="form-control"
 																		>
 																			<option>
 																				None
@@ -1537,27 +1281,19 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																by comma
 															</div>
 															<ul
-																class="
-																	dr-byor-data-columns
-																"
+																class="dr-byor-data-columns"
 															>
 																<li>
 																	CHR<input
 																		type="text"
-																		class="
-																			form-control
-																			input-default
-																		"
+																		class="form-control input-default"
 																		placeholder="true:1,false:0"
 																	/>
 																</li>
 																<li>
 																	POS<input
 																		type="text"
-																		class="
-																			form-control
-																			input-default
-																		"
+																		class="form-control input-default"
 																		placeholder="true:1,false:0"
 																	/>
 																</li>
@@ -1567,31 +1303,19 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 												</div>
 												<div class="col-md-1 col">
 													<button
-														class="
-															btn
-															btn-primary
-															btn-sm
-														"
+														class="btn btn-primary btn-sm"
 														type="button"
 													>
 														Save
 													</button>
 													<button
-														class="
-															btn
-															btn-warning
-															btn-sm
-														"
+														class="btn btn-warning btn-sm"
 														type="button"
 													>
 														Cancel
 													</button>
 													<button
-														class="
-															btn
-															btn-danger
-															btn-sm
-														"
+														class="btn btn-danger btn-sm"
 														type="button"
 													>
 														Delete
@@ -1600,11 +1324,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 											</div>
 											<div class="row">
 												<div
-													class="
-														col-md-12 col
-														text-center
-														dr-bubbles-wrapper
-													"
+													class="col-md-12 col text-center dr-bubbles-wrapper"
 												>
 													<div
 														class="dr-format-bubble"
@@ -1646,16 +1366,12 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</div>
 													<div class="form-check">
 														<input
-															class="
-																form-check-input
-															"
+															class="form-check-input"
 															type="radio"
 															value=""
 														/>
 														<label
-															class="
-																form-check-label
-															"
+															class="form-check-label"
 															for=""
 														>
 															Variant ID
@@ -1663,16 +1379,12 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</div>
 													<div class="form-check">
 														<input
-															class="
-																form-check-input
-															"
+															class="form-check-input"
 															type="radio"
 															value=""
 														/>
 														<label
-															class="
-																form-check-label
-															"
+															class="form-check-label"
 															for=""
 														>
 															P-Value
@@ -1684,16 +1396,12 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														Set formatting order
 													</div>
 													<ul
-														class="
-															dr-byor-data-columns
-														"
+														class="dr-byor-data-columns"
 													>
 														<li>
 															Link<label>
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		None
@@ -1717,9 +1425,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															Rander background
 															%<label>
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		None
@@ -1743,9 +1449,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															Rander background %
 															(negative)<label>
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		None
@@ -1769,9 +1473,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															Scientific
 															notation<label>
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		None
@@ -1795,9 +1497,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															Fixed after decimal
 															point<label>
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		None
@@ -1833,11 +1533,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 
 															<input
 																type="text"
-																class="
-																	form-control
-																	form-control-sm
-																	input-default
-																"
+																class="form-control form-control-sm input-default"
 																style="
 																	width: 80%;
 																	margin-left: 5px;
@@ -1848,45 +1544,33 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															class="form-inline"
 														>
 															<div
-																class="
-																	form-check
-																"
+																class="form-check"
 																style="
 																	margin-right: 10px;
 																"
 															>
 																<input
-																	class="
-																		form-check-input
-																	"
+																	class="form-check-input"
 																	type="checkbox"
 																	value=""
 																/>
 																<label
-																	class="
-																		form-check-label
-																	"
+																	class="form-check-label"
 																	for=""
 																>
 																	New tab
 																</label>
 															</div>
 															<div
-																class="
-																	form-check
-																"
+																class="form-check"
 															>
 																<input
-																	class="
-																		form-check-input
-																	"
+																	class="form-check-input"
 																	type="checkbox"
 																	value=""
 																/>
 																<label
-																	class="
-																		form-check-label
-																	"
+																	class="form-check-label"
 																	for=""
 																>
 																	As button
@@ -1902,11 +1586,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 
 															<input
 																type="text"
-																class="
-																	form-control
-																	form-control-sm
-																	input-default
-																"
+																class="form-control form-control-sm input-default"
 																style="
 																	width: 80%;
 																	margin-left: 5px;
@@ -1926,11 +1606,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 
 														<input
 															type="text"
-															class="
-																form-control
-																form-control-sm
-																input-default
-															"
+															class="form-control form-control-sm input-default"
 															style="
 																width: 50%;
 																margin-left: 5px;
@@ -1946,10 +1622,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														<span>Place </span>
 
 														<select
-															class="
-																form-control
-																form-control-sm
-															"
+															class="form-control form-control-sm"
 															style="
 																width: 50%;
 																margin-left: 5px;
@@ -1969,31 +1642,19 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 												</div>
 												<div class="col-md-1 col">
 													<button
-														class="
-															btn
-															btn-primary
-															btn-sm
-														"
+														class="btn btn-primary btn-sm"
 														type="button"
 													>
 														Save
 													</button>
 													<button
-														class="
-															btn
-															btn-warning
-															btn-sm
-														"
+														class="btn btn-warning btn-sm"
 														type="button"
 													>
 														Cancel
 													</button>
 													<button
-														class="
-															btn
-															btn-danger
-															btn-sm
-														"
+														class="btn btn-danger btn-sm"
 														type="button"
 													>
 														Delete
@@ -2002,11 +1663,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 											</div>
 											<div class="row">
 												<div
-													class="
-														col-md-12 col
-														text-center
-														dr-bubbles-wrapper
-													"
+													class="col-md-12 col text-center dr-bubbles-wrapper"
 												>
 													<div
 														class="dr-format-bubble"
@@ -2047,21 +1704,14 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														Set order
 													</div>
 													<ul
-														class="
-															dr-byor-data-columns
-															inline-list
-														"
+														class="dr-byor-data-columns inline-list"
 													>
 														<li>
 															<label
-																class="
-																	form-inline
-																"
+																class="form-inline"
 																>Variant ID:
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		None
@@ -2077,14 +1727,10 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														</li>
 														<li>
 															<label
-																class="
-																	form-inline
-																"
+																class="form-inline"
 																>P-Value:
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		None
@@ -2115,10 +1761,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</div>
 													<input
 														type="text"
-														class="
-															form-control
-															input-default
-														"
+														class="form-control input-default"
 														placeholder="name"
 													/>
 												</div>
@@ -2127,21 +1770,14 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														Set columns order
 													</div>
 													<ul
-														class="
-															dr-byor-data-columns
-															inline-list
-														"
+														class="dr-byor-data-columns inline-list"
 													>
 														<li>
 															<label
-																class="
-																	form-inline
-																"
+																class="form-inline"
 																>Variant ID:
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		None
@@ -2157,14 +1793,10 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 														</li>
 														<li>
 															<label
-																class="
-																	form-inline
-																"
+																class="form-inline"
 																>P-Value:
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		None
@@ -2182,31 +1814,19 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 												</div>
 												<div class="col-md-1 col">
 													<button
-														class="
-															btn
-															btn-primary
-															btn-sm
-														"
+														class="btn btn-primary btn-sm"
 														type="button"
 													>
 														Save
 													</button>
 													<button
-														class="
-															btn
-															btn-warning
-															btn-sm
-														"
+														class="btn btn-warning btn-sm"
 														type="button"
 													>
 														Cancel
 													</button>
 													<button
-														class="
-															btn
-															btn-danger
-															btn-sm
-														"
+														class="btn btn-danger btn-sm"
 														type="button"
 													>
 														Delete
@@ -2215,11 +1835,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 											</div>
 											<div class="row">
 												<div
-													class="
-														col-md-12 col
-														text-center
-														dr-bubbles-wrapper
-													"
+													class="col-md-12 col text-center dr-bubbles-wrapper"
 												>
 													<div
 														class="dr-format-bubble"
@@ -2251,16 +1867,11 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															Variant ID
 														</div>
 														<div
-															class="
-																col-md-10 col
-															"
+															class="col-md-10 col"
 														>
 															<input
 																type="text"
-																class="
-																	form-control
-																	input-default
-																"
+																class="form-control input-default"
 																placeholder="tool tip"
 															/>
 														</div>
@@ -2272,16 +1883,11 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 															P-Value
 														</div>
 														<div
-															class="
-																col-md-10 col
-															"
+															class="col-md-10 col"
 														>
 															<input
 																type="text"
-																class="
-																	form-control
-																	input-default
-																"
+																class="form-control input-default"
 																placeholder="tool tip"
 															/>
 														</div>
@@ -2297,10 +1903,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 											</h5>
 											<div class="row dr-builder-ui">
 												<div
-													class="
-														col-md-6 col
-														text-center
-													"
+													class="col-md-6 col text-center"
 												>
 													<div class="label">
 														Locus field
@@ -2316,10 +1919,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</select>
 												</div>
 												<div
-													class="
-														col-md-6 col
-														text-center
-													"
+													class="col-md-6 col text-center"
 												>
 													<div class="label">
 														Star column
@@ -2368,9 +1968,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 										<div class="col-md-4 col">
 											<div class="label">Key field</div>
 											<div
-												class="
-													form-check form-check-inline
-												"
+												class="form-check form-check-inline"
 											>
 												<input
 													class="form-check-input"
@@ -2386,9 +1984,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 												</label>
 											</div>
 											<div
-												class="
-													form-check form-check-inline
-												"
+												class="form-check form-check-inline"
 											>
 												<input
 													class="form-check-input"
@@ -2412,9 +2008,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 												</sup>
 											</div>
 											<div
-												class="
-													form-check form-check-inline
-												"
+												class="form-check form-check-inline"
 											>
 												<input
 													class="form-check-input"
@@ -2430,9 +2024,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 												</label>
 											</div>
 											<div
-												class="
-													form-check form-check-inline
-												"
+												class="form-check form-check-inline"
 											>
 												<input
 													class="form-check-input"
@@ -2448,9 +2040,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 												</label>
 											</div>
 											<div
-												class="
-													form-check form-check-inline
-												"
+												class="form-check form-check-inline"
 											>
 												<input
 													class="form-check-input"
@@ -2471,9 +2061,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 												Fields to compare
 											</div>
 											<div
-												class="
-													form-check form-check-inline
-												"
+												class="form-check form-check-inline"
 											>
 												<input
 													class="form-check-input"
@@ -2489,9 +2077,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 												</label>
 											</div>
 											<div
-												class="
-													form-check form-check-inline
-												"
+												class="form-check form-check-inline"
 											>
 												<input
 													class="form-check-input"
@@ -2583,39 +2169,24 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 
 													<input
 														type="text"
-														class="
-															form-control
-															input-default
-														"
+														class="form-control input-default"
 													/>
 												</div>
 												<div class="col-md-3 col">
 													<button
-														class="
-															btn
-															btn-primary
-															btn-sm
-														"
+														class="btn btn-primary btn-sm"
 														type="button"
 													>
 														Save
 													</button>
 													<button
-														class="
-															btn
-															btn-warning
-															btn-sm
-														"
+														class="btn btn-warning btn-sm"
 														type="button"
 													>
 														Cancel
 													</button>
 													<button
-														class="
-															btn
-															btn-danger
-															btn-sm
-														"
+														class="btn btn-danger btn-sm"
 														type="button"
 													>
 														Delete
@@ -2631,9 +2202,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 													</div>
 
 													<ul
-														class="
-															dr-byor-data-columns
-														"
+														class="dr-byor-data-columns"
 													>
 														<li>
 															Variant ID (<a
@@ -2641,9 +2210,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																>Edit</a
 															>)<label>
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		0
@@ -2660,9 +2227,7 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 																>Edit</a
 															>)<label>
 																<select
-																	class="
-																		form-control
-																	"
+																	class="form-control"
 																>
 																	<option>
 																		0
@@ -2710,10 +2275,254 @@ data_point1.csv,data_point2.csv,data_point3.csv,data_point4.csv</textarea
 									<div class="label">
 										Visualizer configuration
 									</div>
-									<textarea
-										rows="6"
-										class="form-control"
-									></textarea>
+									<pre />
+									<div class="row">
+										<div class="col-md-12">
+											<div class="row dr-builder-ui">
+												<div class="col-md-4 col">
+													<div class="label">
+														Select visualizer
+													</div>
+													<select
+														class="form-control"
+													>
+														<option>
+															Manhattan (vector)
+														</option>
+														<option>
+															Manhattan (bitmap)
+														</option>
+														<option>Heatmap</option>
+														<option>Phewas</option>
+														<option>Region</option>
+														<option>Score</option>
+														<option>Volcano</option>
+													</select>
+												</div>
+												<!-- Manhattan (vector) -->
+												<div class="col-md-6 col">
+													<div class="label">
+														Set parameters
+													</div>
+													<div class="row">
+														<div class="col-md-3">
+															X Axis field:
+														</div>
+														<div class="col-md-9">
+															<select
+																class="form-control form-control-sm"
+															>
+																<option>
+																	field 1
+																</option>
+																<option>
+																	field 2
+																</option>
+																<option>
+																	field 3
+																</option>
+															</select>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-md-3">
+															Y Axis field:
+														</div>
+														<div class="col-md-9">
+															<select
+																class="form-control form-control-sm"
+															>
+																<option>
+																	field 1
+																</option>
+																<option>
+																	field 2
+																</option>
+																<option>
+																	field 3
+																</option>
+															</select>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-md-3">
+															X Axis label:
+														</div>
+														<div class="col-md-9">
+															<input
+																type="text"
+																class="form-control input-default form-control-sm"
+															/>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-md-3">
+															Y Axis label:
+														</div>
+														<div class="col-md-9">
+															<input
+																type="text"
+																class="form-control input-default form-control-sm"
+															/>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-md-3">
+															Render by:
+														</div>
+														<div class="col-md-9">
+															<select
+																class="form-control form-control-sm"
+															>
+																<option>
+																	field 1
+																</option>
+																<option>
+																	field 2
+																</option>
+																<option>
+																	field 3
+																</option>
+															</select>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-md-3">
+															Hover content:
+														</div>
+														<div class="col-md-9">
+															<div
+																class="form-check form-check-inline"
+															>
+																<input
+																	class="form-check-input"
+																	type="checkbox"
+																	value=""
+																	id="flexCheckDefault"
+																/>
+																<label
+																	class="form-check-label"
+																	for="flexCheckDefault"
+																>
+																	Field 1
+																</label>
+															</div>
+															<div
+																class="form-check form-check-inline"
+															>
+																<input
+																	class="form-check-input"
+																	type="checkbox"
+																	value=""
+																	id="flexCheckDefault"
+																/>
+																<label
+																	class="form-check-label"
+																	for="flexCheckDefault"
+																>
+																	Field 2
+																</label>
+															</div>
+															<div
+																class="form-check form-check-inline"
+															>
+																<input
+																	class="form-check-input"
+																	type="checkbox"
+																	value=""
+																	id="flexCheckDefault"
+																/>
+																<label
+																	class="form-check-label"
+																	for="flexCheckDefault"
+																>
+																	Field 3
+																</label>
+															</div>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-md-3">
+															Link to:
+														</div>
+														<div class="col-md-9">
+															<input
+																type="text"
+																class="form-control input-default form-control-sm"
+															/>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-md-3">
+															Height:
+														</div>
+														<div class="col-md-9">
+															<input
+																type="text"
+																class="form-control input-default form-control-sm"
+															/>
+														</div>
+													</div>
+												</div>
+												<!--<div class="col-md-3 col">
+													<div class="label">
+														Filter type
+													</div>
+
+													<select
+														class="form-control"
+													>
+														<option>Search</option>
+														<option>
+															Search greater than
+														</option>
+														<option>
+															Search lower than
+														</option>
+														<option>
+															Search or
+														</option>
+														<option>
+															Search and
+														</option>
+														<option>
+															Dropdown
+														</option>
+													</select>
+												</div>
+												<div class="col-md-3 col">
+													<div class="label">
+														Label
+													</div>
+
+													<input
+														type="text"
+														class="form-control input-default"
+													/>
+												</div>-->
+												<div class="col-md-2 col">
+													<button
+														class="btn btn-primary btn-sm"
+														type="button"
+													>
+														Save
+													</button>
+													<button
+														class="btn btn-warning btn-sm"
+														type="button"
+													>
+														Cancel
+													</button>
+													<button
+														class="btn btn-danger btn-sm"
+														type="button"
+													>
+														Delete
+													</button>
+												</div>
+											</div>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
