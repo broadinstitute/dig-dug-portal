@@ -174,13 +174,14 @@ export default Vue.component("page-header", {
     watch: {
         diseaseGroup(group) {
             if (!!group && !!group.title) {
-                let s = document.title.split(" - ");
+                console.log("title before", document.title);
+                let s = document.title.split(" | ");
 
                 // NB: If the <title> changes in index.html to use a different
                 //     separator other than ' - ', please update this code.
-                s[0] = group.title;
-                document.title = s.join(" - ");
-
+                s[s.length - 1] = group.title;
+                document.title = s.join(" | ");
+                console.log("title", document.title);
                 // find the shortcut icon
                 let links = document.getElementsByTagName("link");
 
