@@ -180,7 +180,6 @@ export default Vue.component("page-header", {
                 //     separator other than ' - ', please update this code.
                 s[s.length - 1] = group.title;
                 document.title = s.join(" | ");
-
                 // find the shortcut icon
                 let links = document.getElementsByTagName("link");
 

@@ -7,7 +7,7 @@ import VueGtag from "vue-gtag";
 
 Vue.use(VueGtag, {
     config: {
-        id: process.env.GA4_ID || "G-D3G6XZYGBR",
+        id: process.env.VUE_APP_GA4_ID || "G-D3G6XZYGBR",
         params: { send_page_view: true },
     },
     appName: "HuGeAMP",
