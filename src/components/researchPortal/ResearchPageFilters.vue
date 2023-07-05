@@ -1015,7 +1015,6 @@ export default Vue.component("research-page-filters", {
 			} else if (this.dataType != "bioindex" && !!this.isAPI) {
 				APIPoint += queryParams;
 			}
-			console.log("APIPoint", APIPoint);
 
 			let fetchParam = { dataPoint: APIPoint, domain: "external" };
 
