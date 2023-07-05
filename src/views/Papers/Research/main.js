@@ -1109,8 +1109,8 @@ new Vue({
                                 : convertedData;
                     }
 
-                    console.log("typeof convertedData", typeof convertedData);
-                    console.log("returnData", returnData);
+                    //console.log("typeof convertedData", typeof convertedData);
+                    //console.log("returnData", returnData);
 
                     let processedData =
                         this.dataTableFormat != null &&
