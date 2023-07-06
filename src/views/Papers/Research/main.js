@@ -1105,9 +1105,12 @@ new Vue({
                     } else {
                         returnData =
                             this.dataType == "json"
-                                ? convertedData.data
+                                ? (!!convertedData.data) ? convertedData.data : convertedData
                                 : convertedData;
                     }
+
+                    //console.log("typeof convertedData", typeof convertedData);
+                    //console.log("returnData", returnData);
 
                     let processedData =
                         this.dataTableFormat != null &&
@@ -1398,6 +1401,8 @@ new Vue({
 
         researchData(content) {
             // reset searching region if applicable
+
+
 
             if (content != null && content.length > 0) {
                 let region, targetPlotConfig;

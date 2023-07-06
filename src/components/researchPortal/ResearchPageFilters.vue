@@ -969,6 +969,19 @@ export default Vue.component("research-page-filters", {
 
 					window.history.pushState(null, "", url.toString());
 				}
+			} else if (this.apiParameters.query.type == "parameters") {
+				queryParams += "?";
+				let parametersArr = this.apiParameters.parameters;
+				//let qParameters = {}
+
+				parametersArr.map((p) => {
+					//
+					let queryParamValue = document.getElementById(
+						"search_param_" + p.parameter
+					).value;
+
+					queryParams += p.parameter + "=" + queryParamValue + "&";
+				});
 			}
 
 			if (Object.keys(paramsSet).length > 0) {

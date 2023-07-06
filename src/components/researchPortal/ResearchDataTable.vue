@@ -279,7 +279,7 @@ export default Vue.component("research-data-table", {
 
 	mounted() {
 		this.perPageNumber = this.initPerPageNumber;
-		console.log(this.dataset);
+		//console.log(this.dataset);
 	},
 	updated() {},
 	computed: {
