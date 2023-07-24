@@ -21,21 +21,36 @@ let sort = function (data, key, isNumeric, isAscending) {
     });
 }
 
-let sortEGLTableData = function (data, key, isNumeric, isAscending) {
-    return data.sort(function (a, b) {
-        let A = (isNumeric) ? a[key] : a[key].toLowerCase();
-        let B = (isNumeric) ? b[key] : b[key].toLowerCase();
 
-        let comparison = 0;
-        if (A > B) {
-            comparison = 1;
-        } else if (A < B) {
-            comparison = -1;
+let sortEGLTableData = function (data, key, isNumeric, isAscending) {
+
+    let direction = (isAscending) ? "asc" : "desc";
+
+    if (isNumeric) {
+        return sortArrOfObjects(data, key, 'number', direction)
+    } else {
+        let withNumbers = [];
+        let withStrings = [];
+
+        data.map(d => {
+            if (typeof d[key] == "number" || d[key] === 0) {
+                withNumbers.push(d);
+            } else if (typeof d[key] == "string") {
+                withStrings.push(d);
+            }
+        })
+
+        let wNumbersSorted = sortArrOfObjects(withNumbers, key, 'number', direction)
+        let wStringsSorted = sortArrOfObjects(withStrings, key, 'alphabetical', direction)
+
+        if (direction == "asc") {
+            return wNumbersSorted.concat(wStringsSorted);
+        } else {
+            return wStringsSorted.concat(wNumbersSorted);
         }
 
-        return (isAscending) ? (isNumeric) ? (comparison * -1) : comparison : (isNumeric) ? comparison : (comparison * -1);
+    }
 
-    });
 }
 
 const uniqBy = (arr, predicate) => {

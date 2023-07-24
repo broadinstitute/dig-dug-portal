@@ -449,7 +449,9 @@ new Vue({
                             let sIndex = 0;
 
                             replaceArr.map(r => {
+
                                 newString = (sIndex == 0) ? rawString : newString;
+                                console.log("newString", newString);
                                 if (!!rawString) {
                                     newString = newString.replaceAll(r.from, r.to);
                                 }
@@ -1796,7 +1798,8 @@ new Vue({
 
                             replaceArr.map((r) => {
                                 newString = sIndex == 0 ? rawString : newString;
-                                if (rawString) {
+                                console.log("newString", newString);
+                                if (newString) {
                                     newString = newString.replaceAll(
                                         r.from,
                                         r.to
