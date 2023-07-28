@@ -279,7 +279,7 @@ export default Vue.component("research-data-table", {
 
 	mounted() {
 		this.perPageNumber = this.initPerPageNumber;
-		console.log(this.dataset);
+		//console.log(this.dataset);
 	},
 	updated() {},
 	computed: {
@@ -744,18 +744,19 @@ export default Vue.component("research-data-table", {
 		applySorting(key) {
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
+
 			if (key != this.tableFormat["locus field"]) {
 				let filtered =
 					this.dataComparisonConfig == null
 						? this.dataset
 						: this.object2Array(this.dataset, key, sortDirection);
 
-				// In case of the data with null values mixed, we separate it to withValues and WO values.
+				// In case of the data with null values mixed, we separate it to with Values and W/O values.
 				let filteredWValues = [];
 				let filteredWNull = [];
 
 				filtered.map((v) => {
-					if (!!v[key]) {
+					if (!!v[key] || v[key] === 0) {
 						filteredWValues.push(v);
 					} else {
 						filteredWNull.push(v);
@@ -763,6 +764,7 @@ export default Vue.component("research-data-table", {
 				});
 
 				let isNumeric = this.checkIfNumeric(filtered, key);
+				console.log("isNumeric",isNumeric)
 
 				//sort the data with values, then merge the data WO values to the sorted.
 				let sortedValues = sortUtils

@@ -969,6 +969,19 @@ export default Vue.component("research-page-filters", {
 
 					window.history.pushState(null, "", url.toString());
 				}
+			} else if (this.apiParameters.query.type == "parameters") {
+				queryParams += "?";
+				let parametersArr = this.apiParameters.parameters;
+				//let qParameters = {}
+
+				parametersArr.map((p) => {
+					//
+					let queryParamValue = document.getElementById(
+						"search_param_" + p.parameter
+					).value;
+
+					queryParams += p.parameter + "=" + queryParamValue + "&";
+				});
 			}
 
 			if (Object.keys(paramsSet).length > 0) {
@@ -1210,12 +1223,12 @@ export default Vue.component("research-page-filters", {
 												break;
 
 											case "search greater than":
-												row[searchIndex.field] >= search
+												typeof row[searchIndex.field] == 'number' && row[searchIndex.field] >= search
 													? tempFiltered.push(row)
 													: "";
 												break;
 											case "search lower than":
-												row[searchIndex.field] <= search
+											typeof row[searchIndex.field] == 'number' && row[searchIndex.field] <= search
 													? tempFiltered.push(row)
 													: "";
 
@@ -1223,10 +1236,10 @@ export default Vue.component("research-page-filters", {
 											case "search or":
 												searchVals = search.split(",");
 
-												row[searchIndex.field] <=
+												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] <=
 													searchVals[0].trim() ||
 												row[searchIndex.field] >=
-													searchVals[1].trim()
+													searchVals[1].trim())
 													? tempFiltered.push(row)
 													: "";
 												break;
@@ -1257,10 +1270,10 @@ export default Vue.component("research-page-filters", {
 											case "search and":
 												searchVals = search.split(",");
 
-												row[searchIndex.field] >=
+												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
 													searchVals[0].trim() &&
 												row[searchIndex.field] <=
-													searchVals[1].trim()
+													searchVals[1].trim())
 													? tempFiltered.push(row)
 													: "";
 												break;
@@ -1397,7 +1410,9 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														row[searchIndex.field][
+														typeof row[searchIndex.field][
+															cellNum
+														] == "number" && row[searchIndex.field][
 															cellNum
 														] >= search
 													) {
@@ -1415,7 +1430,7 @@ export default Vue.component("research-page-filters", {
 												}
 											} else {
 												if (
-													row[searchIndex.field] >=
+													typeof row[searchIndex.field] == "number" && row[searchIndex.field] >=
 													search
 												) {
 													tempFiltered[
@@ -1444,7 +1459,9 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														row[searchIndex.field][
+														typeof row[searchIndex.field][
+															cellNum
+														] == "number" && row[searchIndex.field][
 															cellNum
 														] <= search
 													) {
@@ -1462,7 +1479,7 @@ export default Vue.component("research-page-filters", {
 												}
 											} else {
 												if (
-													row[searchIndex.field] <=
+													typeof row[searchIndex.field] == "number" && row[searchIndex.field] <=
 													search
 												) {
 													tempFiltered[
@@ -1491,14 +1508,16 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														row[searchIndex.field][
+														typeof row[searchIndex.field][
+															cellNum
+														] == "number" && (row[searchIndex.field][
 															cellNum
 														] <=
 															searchVals[0].trim() ||
 														row[searchIndex.field][
 															cellNum
 														] >=
-															searchVals[1].trim()
+															searchVals[1].trim())
 													) {
 														meetSearch = true;
 													}
@@ -1514,10 +1533,10 @@ export default Vue.component("research-page-filters", {
 												}
 											} else {
 												if (
-													row[searchIndex.field] <=
+													typeof row[searchIndex.field] == "number" && (row[searchIndex.field] <=
 														searchVals[0].trim() ||
 													row[searchIndex.field] >=
-														searchVals[1].trim()
+														searchVals[1].trim())
 												) {
 													tempFiltered[
 														row[
@@ -1653,14 +1672,16 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														row[searchIndex.field][
+														typeof row[searchIndex.field][
+															cellNum
+														] == "number" && (row[searchIndex.field][
 															cellNum
 														] >=
 															searchVals[0].trim() &&
 														row[searchIndex.field][
 															cellNum
 														] <=
-															searchVals[1].trim()
+															searchVals[1].trim())
 													) {
 														meetSearch = true;
 													}
@@ -1676,10 +1697,10 @@ export default Vue.component("research-page-filters", {
 												}
 											} else {
 												if (
-													row[searchIndex.field] <=
+													typeof row[searchIndex.field] == "number" && (row[searchIndex.field] <=
 														searchVals[0].trim() ||
 													row[searchIndex.field] >=
-														searchVals[1].trim()
+														searchVals[1].trim())
 												) {
 													tempFiltered[
 														row[
