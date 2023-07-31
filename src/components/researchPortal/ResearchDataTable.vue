@@ -263,6 +263,7 @@ export default Vue.component("research-data-table", {
 		"pkgData",
 		"pkgDataSelected",
 		"phenotypeMap",
+		"multiSectionPage"
 	],
 	data() {
 		return {
@@ -781,7 +782,14 @@ export default Vue.component("research-data-table", {
 						? sortedValues
 						: this.array2Object(sortedValues, this.dataset, key);
 
-				this.$store.dispatch("filteredData", returnData);
+				
+
+				if(!!this.multiSectionPage) {
+					console.log("multi1")
+					this.$emit('clicked-sort', returnData);
+				} else {
+					this.$store.dispatch("filteredData", returnData);
+				}
 			} else if (key == this.tableFormat["locus field"]) {
 				let sortKey = this.tableFormat["locus field"];
 				let filtered = this.dataset;
@@ -820,7 +828,13 @@ export default Vue.component("research-data-table", {
 					true,
 					sortDirection
 				);
-				this.$store.dispatch("filteredData", filtered);
+
+				
+				if(!!this.multiSectionPage) {
+					console.log("multi2")
+				} else {
+					this.$store.dispatch("filteredData", filtered);
+				}
 			}
 		},
 	},

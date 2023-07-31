@@ -243,6 +243,13 @@ let pages = {
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"]
     },
+    byor: {
+        entry: "src/views/Byor/main.js",
+        template: "public/index.html",
+        filename: "byor.html",
+        title: "BYOR",
+        chunks: ["chunk-vendors", "chunk-common", "byor"]
+    },
     egggenerator: {
         entry: "src/views/EggGenerator/main.js",
         template: "public/index.html",
