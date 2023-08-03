@@ -5,6 +5,14 @@
 				<div class="col-md-12">
 					
 					<h4>{{ sectionConfig.header }}</h4>
+
+					<research-section-filters
+					v-if="!!sectionConfig.filters"
+						:filters="sectionConfig"
+						:filterWidth="sectionConfig"
+						:dataset="pageData"
+						:unfilteredDataset="originalData"
+					></research-section-filters>
 					
 					<research-data-table
 						v-if="!!tableFormat"
@@ -39,11 +47,14 @@ import Vue from "vue";
 import $ from "jquery";
 import bioIndex from "@/modules/bioIndex";
 
+
+import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-section", {
 	props: ["sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex"],
 	components: {
+		ResearchSectionFilters,
         ResearchDataTable,
     },
 	data() {
@@ -78,10 +89,7 @@ export default Vue.component("research-section", {
 	},
 	methods: {
 		updateData(data) {
-			this.originalData = this.pageData;
 			this.pageData = data;
-
-			console.log("o", this.originalData[0]);
 		},
 		async getData(continueToken) {
 			
@@ -133,21 +141,21 @@ export default Vue.component("research-section", {
 						data = this.dataConvert.convertData(convertConfig,data,this.phenotypeMap);
 					}
 
-					console.log(dataPoint.type, contJson.page,data.length)
-
 					if(dataPoint.type == "bioindex") {
 						if (contJson.page == 1) {
 							this.pageData = data;
+							this.originalData = this.pageData;
 						} else {
 							this.pageData = this.pageData.concat(data);
+							this.originalData = this.pageData;
 						}
 
 						if(!!contJson.continuation) {
 							this.getData(contJson.continuation);
 						}
-
 					} else {
 						this.pageData = data;
+						this.originalData = this.pageData;
 					}
 				}
 			}
