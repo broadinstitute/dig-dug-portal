@@ -25,17 +25,19 @@
         <div
             class="container-fluid mdkp-body"
         >
-            <div class="card mdkp-card dataset-page-header">
-                <div class="row card-body">
+            
 
 					<research-section
 						v-for="config,index in $parent.sectionConfigs"
+                        :sectionIndex="'section-'+index"
 						:sectionConfig="config"
+                        :keyParams="$parent.keyParamUtils"
+                        :dataConvert="$parent.dataConvertUtils"
+                        :phenotypeMap="$parent.phenotypeMap"
 						:key="index">
 					</research-section>	
 					
-				</div>
-			</div>
+
 		</div>
 
 

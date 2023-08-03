@@ -741,6 +741,13 @@ new Vue({
         },
     */
     computed: {
+        //sections setting start
+        keyParamUtils() {
+            return keyParams
+        },
+        dataConvertUtils() {
+            return dataConvert;
+        },
         sectionConfigs() {
             let contents = this.researchPage;
             console.log("contents", contents)
@@ -754,6 +761,10 @@ new Vue({
 
 
         },
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        },
+        /////sections setting end
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";

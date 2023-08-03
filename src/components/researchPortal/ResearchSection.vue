@@ -1,29 +1,36 @@
 <template>
-	<div>
-		{{ sectionConfig.header }}
-		
-		<research-data-table
-			v-if="!!tableFormat"
-			pageID="1"
-			:dataset="pageData"
-			:tableFormat="tableFormat"
-			:initPerPageNumber="20"
-			:tableLegend="''"
-			:dataComparisonConfig="
-				null
-			"
-			:searchParameters="
-				null
-			"
-			:pkgData="null"
-			:pkgDataSelected="null"
-			:phenotypeMap="
-				null
-			"
-			:multiSectionPage="true"
-			@clicked-sort="updateData"
-		>
-		</research-data-table>
+	<div :class="'wrapper-'+ sectionIndex ">
+		<div class="card mdkp-card dataset-page-header">
+			<div class="row card-body">
+				<div class="col-md-12">
+					
+					<h4>{{ sectionConfig.header }}</h4>
+					
+					<research-data-table
+						v-if="!!tableFormat"
+						:pageID="sectionIndex"
+						:dataset="pageData"
+						:tableFormat="tableFormat"
+						:initPerPageNumber="5"
+						:tableLegend="''"
+						:dataComparisonConfig="
+							null
+						"
+						:searchParameters="
+							null
+						"
+						:pkgData="null"
+						:pkgDataSelected="null"
+						:phenotypeMap="
+							null
+						"
+						:multiSectionPage="true"
+						@clicked-sort="updateData"
+					>
+					</research-data-table>
+				</div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -31,18 +38,18 @@
 import Vue from "vue";
 import $ from "jquery";
 import bioIndex from "@/modules/bioIndex";
-import dataConvert from "@/utils/dataConvert";
 
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-section", {
-	props: ["sectionConfig"],
+	props: ["sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex"],
 	components: {
         ResearchDataTable,
     },
 	data() {
 		return {
 			pageData: null,
+			originalData: null,
 		};
 	},
 	modules: {
@@ -54,20 +61,16 @@ export default Vue.component("research-section", {
 	computed: {
 		tableFormat() {
 			if(!!this.pageData) {
-
 				if(!!this.sectionConfig["table format"]) {
-
 					return this.sectionConfig["table format"];
-
 				} else {
-					let tableFormat = {"top rows":["title","body","field_page_id"]}
+					let topRows = Object.keys(this.pageData[0]);
+					let tableFormat = { "top rows": topRows };
 					return tableFormat;
 				}
 			} else {
 				return null
 			}
-			
-			
 		}
 	},
 	watch: {
@@ -75,47 +78,81 @@ export default Vue.component("research-section", {
 	},
 	methods: {
 		updateData(data) {
-			console.log(data);
+			this.originalData = this.pageData;
 			this.pageData = data;
+
+			console.log("o", this.originalData[0]);
 		},
-		async getData() {
+		async getData(continueToken) {
 			
 			let dataPoint = this.sectionConfig["data point"]
-			let dataUrl = (dataPoint.type == "api" || dataPoint.type == "bioindex")? dataPoint.url:"";
-			let queryParam = {gene: "pcsk9" ,phenotype:"t2d"}
+			let dataUrl = (dataPoint.type == "api" || dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :dataPoint.url+"query/"+ dataPoint.index +"?q=":"";
+			let queryParams = {}
+			let queryParamsSet = true;
 
+			dataPoint.parameters.map(p=>{
+				if(!!this.keyParams[p]) {
+					queryParams[p] = this.keyParams[p]
+				} else {
+					queryParamsSet = false;
+				}
+			})
 
-			let queryString = ""
+			if(!!queryParamsSet) {
+				let queryString = ""
 
-			if(dataPoint["parameters type"] == "parameters") {
-				dataPoint.parameters.map(p=>{
-					queryString += p + "=" + queryParam[p] + "&&";
-					
-				})
-			} else if (dataPoint["parameters type"] == "array") {
-				dataPoint.parameters.map(p => {
-					queryString += queryParam[p] + ",";
-				})
+				if (dataPoint["parameters type"] == "parameters") {
+					dataPoint.parameters.map(p => {
+						queryString += p + "=" + queryParams[p] + "&&";
 
-				queryString = queryString.substring(0, queryString.length - 1);
+					})
+				} else if (dataPoint["parameters type"] == "array") {
+					dataPoint.parameters.map(p => {
+						queryString += queryParams[p] + ",";
+					})
+
+					queryString = queryString.substring(0, queryString.length - 1);
+				}
+
+				if(!continueToken) {
+					if (dataPoint.type == "api") {
+						dataUrl += queryString;
+					} else if (dataPoint.type == "bioindex") {
+						dataUrl += queryString;
+					}
+				}
+				
+				let contJson = await fetch(dataUrl).then((resp) => resp.json());
+
+				if (contJson.error == null) {	
+					let data = (dataPoint.type == "bioindex") ? contJson.data : contJson;//dataConvert.csv2Json(contJson[0]["field_data_points"])
+					let tableFormat = this.sectionConfig["table format"];
+
+					if(!!tableFormat && !!tableFormat["data convert"]) {
+						let convertConfig = tableFormat["data convert"];
+						data = this.dataConvert.convertData(convertConfig,data,this.phenotypeMap);
+					}
+
+					console.log(dataPoint.type, contJson.page,data.length)
+
+					if(dataPoint.type == "bioindex") {
+						if (contJson.page == 1) {
+							this.pageData = data;
+						} else {
+							this.pageData = this.pageData.concat(data);
+						}
+
+						if(!!contJson.continuation) {
+							this.getData(contJson.continuation);
+						}
+
+					} else {
+						this.pageData = data;
+					}
+				}
 			}
-
-			dataUrl += queryString;
-
-			console.log("dataUrl",dataUrl);
-
-            let contJson = await fetch(dataUrl).then((resp) => resp.json());
-
-            if (contJson.error == null) {
-				console.log(contJson);
-                let data = (dataPoint.type == "bioindex")? contJson.data:contJson;//dataConvert.csv2Json(contJson[0]["field_data_points"])
-                
-				console.log("data",data);
-
-				this.pageData = data;
-                
-            }
-		}
+			
+		},
 		
 	},
 });
