@@ -8,10 +8,11 @@
 
 					<research-section-filters
 					v-if="!!sectionConfig.filters"
-						:filters="sectionConfig"
-						:filterWidth="sectionConfig"
+						:filters="sectionConfig.filters"
+						:filterWidth="sectionConfig['filter width']"
 						:dataset="pageData"
 						:unfilteredDataset="originalData"
+						@on-filtering="updateData"
 					></research-section-filters>
 					
 					<research-data-table
@@ -19,7 +20,7 @@
 						:pageID="sectionIndex"
 						:dataset="pageData"
 						:tableFormat="tableFormat"
-						:initPerPageNumber="5"
+						:initPerPageNumber="(!!tableFormat['rows per page'])? tableFormat['rows per page'] :10"
 						:tableLegend="''"
 						:dataComparisonConfig="
 							null
@@ -94,7 +95,7 @@ export default Vue.component("research-section", {
 		async getData(continueToken) {
 			
 			let dataPoint = this.sectionConfig["data point"]
-			let dataUrl = (dataPoint.type == "api" || dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :dataPoint.url+"query/"+ dataPoint.index +"?q=":"";
+			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :dataPoint.url+"query/"+ dataPoint.index +"?q=": dataPoint.type == "api"? dataPoint.url:"";
 			let queryParams = {}
 			let queryParamsSet = true;
 
@@ -129,11 +130,55 @@ export default Vue.component("research-section", {
 						dataUrl += queryString;
 					}
 				}
+
+				
 				
 				let contJson = await fetch(dataUrl).then((resp) => resp.json());
 
 				if (contJson.error == null) {	
-					let data = (dataPoint.type == "bioindex") ? contJson.data : contJson;//dataConvert.csv2Json(contJson[0]["field_data_points"])
+					let data = null;
+
+					let dataWrapper = dataPoint["data wrapper"];
+
+					
+
+					switch (dataPoint["data type"]) {
+						case "bioindex":
+							data = contJson.data;
+							break;
+						case "json":
+							if(!!dataWrapper) {
+								let dataEntity = contJson;
+
+								dataWrapper.map(w => {
+									dataEntity = dataEntity[w];
+								})
+
+								data = dataEntity;
+
+							} else {
+								data = contJson
+							}
+							break;
+						case "csv":
+							
+							if (!!dataWrapper) {
+								let dataEntity = contJson;
+
+								dataWrapper.map(w=>{
+									dataEntity = dataEntity[w];
+								})
+
+								data = this.dataConvert.csv2Json(dataEntity);
+
+							} else {
+								data = this.dataConvert.csv2Json(contJson);
+							}
+
+							
+							break;
+					}
+
 					let tableFormat = this.sectionConfig["table format"];
 
 					if(!!tableFormat && !!tableFormat["data convert"]) {
