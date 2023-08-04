@@ -59,7 +59,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
     let array2String = function (CONTENT, SEPARATOR) {
         let string = "";
-        console.log("CONTENT", CONTENT)
         CONTENT.map(c => {
             string += c + SEPARATOR;
         })
@@ -83,8 +82,8 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     case "join multi":
                         tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
                         break;
+
                     case "split":
-                        console.log(c)
 
                         let newFields = c["field name"];
                         let newFieldValues = [];
@@ -153,7 +152,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                         replaceArr.map(r => {
 
                             newString = (sIndex == 0) ? rawString : newString;
-                            console.log("newString", newString);
+
                             if (!!rawString) {
                                 newString = newString.replaceAll(r.from, r.to);
                             }
@@ -183,8 +182,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 };
 
 let csv2Json = function (DATA) {
-
-    //console.log("typeof DATA", typeof DATA)
 
     let csvArr = CSVToArray(DATA, ",");
 

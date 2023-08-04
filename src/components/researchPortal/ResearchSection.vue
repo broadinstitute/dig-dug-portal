@@ -7,13 +7,19 @@
 					<h4>{{ sectionConfig.header }}</h4>
 
 					<research-section-filters
-					v-if="!!sectionConfig.filters"
+						v-if="!!sectionConfig.filters"
 						:filters="sectionConfig.filters"
 						:filterWidth="sectionConfig['filter width']"
 						:dataset="pageData"
 						:unfilteredDataset="originalData"
 						@on-filtering="updateData"
 					></research-section-filters>
+					<research-section-visualizers
+						v-if="!!sectionConfig.visualizer"
+						:plotConfig="sectionConfig.visualizer"
+						:plotData="pageData"
+					>
+					</research-section-visualizers>
 					
 					<research-data-table
 						v-if="!!tableFormat"
@@ -50,12 +56,14 @@ import bioIndex from "@/modules/bioIndex";
 
 
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
+import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-section", {
 	props: ["sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex"],
 	components: {
 		ResearchSectionFilters,
+		ResearchSectionVisualizers,
         ResearchDataTable,
     },
 	data() {
