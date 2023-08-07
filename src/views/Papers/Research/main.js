@@ -33,6 +33,7 @@ import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
+import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
 import uiUtils from "@/utils/uiUtils";
 import dataConvert from "@/utils/dataConvert";
 import sessionUtils from "@/utils/sessionUtils";
@@ -68,6 +69,7 @@ new Vue({
         ResearchPheWAS,
         kpGEMPkg,
         Documentation,
+        ResearchSection
     },
     data() {
         return {
@@ -739,6 +741,28 @@ new Vue({
         },
     */
     computed: {
+        //sections setting start
+        keyParamUtils() {
+            return keyParams
+        },
+        dataConvertUtils() {
+            return dataConvert;
+        },
+        sectionConfigs() {
+            let contents = this.researchPage;
+            if (
+                contents === null
+            ) {
+                return null;
+            } else {
+                return JSON.parse(contents[0]["field_data_table_format"]);
+            }
+        },
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        },
+        /////sections setting end
+
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";

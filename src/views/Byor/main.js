@@ -750,7 +750,6 @@ new Vue({
         },
         sectionConfigs() {
             let contents = this.researchPage;
-            console.log("contents", contents)
             if (
                 contents === null
             ) {

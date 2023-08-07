@@ -503,6 +503,21 @@
 							>
 							</research-gem-data-table>
 						</div>
+						<!-- multi section test-->
+						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
+							<research-section
+								v-for="config, index in $parent.sectionConfigs.sections"
+								:sectionIndex="'section-' + index"
+								:uId="$parent.uid"
+								:sectionConfig="config"
+								:keyParams="$parent.keyParamUtils"
+								:dataConvert="$parent.dataConvertUtils"
+								:phenotypeMap="$parent.phenotypeMap"
+								:colors="$parent.colors"
+								:plotMargin="$parent.plotMargin"
+								:key="index">
+							</research-section>	
+						</div>
 					</div>
 				</div>
 

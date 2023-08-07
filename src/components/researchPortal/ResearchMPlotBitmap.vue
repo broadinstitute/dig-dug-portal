@@ -431,7 +431,6 @@ export default Vue.component("research-m-bitmap-plot", {
 				(this.topMargin + yBump + this.bottomMargin);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
-				console.log("renderData", dKey, dValue);
 				let c = document.getElementById("manhattanPlot" + dKey);
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
@@ -653,8 +652,6 @@ export default Vue.component("research-m-bitmap-plot", {
 								});
 							}
 						});
-
-						console.log(this.dotPosData);
 
 						xStart += this.chromosomeLength[chr];
 
