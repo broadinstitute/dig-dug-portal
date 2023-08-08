@@ -262,6 +262,7 @@ export default Vue.component("research-region-plot", {
 		"regionViewArea",
 		"pkgData",
 		"pkgDataSelected",
+		"isSectionPage"
 	],
 	data() {
 		return {
@@ -290,6 +291,7 @@ export default Vue.component("research-region-plot", {
 			ldPos: {},
 			dotsClicked: [],
 			refProperties: { region: null, refVariants: {}, groups: [] },
+			fixedRefVariants:{},
 		};
 	},
 	modules: {
@@ -493,6 +495,9 @@ export default Vue.component("research-region-plot", {
 							}
 						}
 					} else if (group == "default") {
+						
+						let refVariant = null;
+
 						this.plotData.map((dValue) => {
 							let yAxValue = dValue[yAxField];
 
@@ -521,15 +526,15 @@ export default Vue.component("research-region-plot", {
 									dValue[this.renderConfig["render by"]];
 
 								// set initial refVarint
-								if (!this.ldData[group].refVariant) {
-									this.ldData[group].refVariant =
+								//if (!this.fixedRefVariants[group]) {
+									refVariant =
 										this.assoData[group].yAxHigh == null
 											? dKey
 											: yAxValue >
 											  this.assoData[group].yAxHigh
 											? dKey
-											: this.ldData[group].refVariant;
-								}
+											: refVariant;
+								//}
 
 								// set high / low values of the group
 								this.assoData[group].yAxHigh =
@@ -572,6 +577,12 @@ export default Vue.component("research-region-plot", {
 								}
 							}
 						});
+
+						if (!!this.fixedRefVariants[group] && !!this.assoData[group].data[this.fixedRefVariants[group]]) {
+							this.ldData[group].refVariant = this.fixedRefVariants[group]
+						} else {
+							this.ldData[group].refVariant = refVariant;
+						}
 					}
 
 					// set LD population
@@ -685,12 +696,14 @@ export default Vue.component("research-region-plot", {
 			this.showHidePanel("#fixedInfoBox");
 			if (GROUP != "All") {
 				this.ldData[GROUP].refVariant = VARIANT;
+				this.fixedRefVariants[GROUP] = VARIANT;
 				this.ldData[GROUP].data = null;
 				this.refProperties.refVariants[GROUP] = VARIANT;
 			} else if (GROUP == "All") {
 				this.plotsList.map((p) => {
 					if (p != "combined") {
 						this.ldData[p].refVariant = VARIANT;
+						this.fixedRefVariants[p] = VARIANT;
 						this.ldData[p].data = null;
 						this.refProperties.refVariants[p] = VARIANT;
 					}
@@ -873,6 +886,7 @@ export default Vue.component("research-region-plot", {
 			}
 
 			if (plotID != null) {
+				
 				let ldURL =
 					"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
 					this.ldData[plotID].population +
@@ -916,7 +930,12 @@ export default Vue.component("research-region-plot", {
 					}
 				}
 
-				this.$store.dispatch("filteredData", this.plotData);
+				if(!!this.isSectionPage) {
+
+				} else {
+					this.$store.dispatch("filteredData", this.plotData);
+				}
+				
 
 				this.renderPlots();
 			}
@@ -1101,7 +1120,7 @@ export default Vue.component("research-region-plot", {
 								this.ldData[GROUP].data[key]
 							);
 							if (key == this.ldData[GROUP].refVariant) {
-								if (this.checkStared(key) == true) {
+								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 									plotUtils.renderStar(
 										CTX,
 										xPos,
@@ -1121,7 +1140,7 @@ export default Vue.component("research-region-plot", {
 									);
 								}
 							} else {
-								if (this.checkStared(key) == true) {
+								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 									plotUtils.renderStar(
 										CTX,
 										xPos,
@@ -1186,7 +1205,7 @@ export default Vue.component("research-region-plot", {
 									let dotColor =
 										this.compareGroupColors[pIndex];
 									if (key == this.ldData[pGroup].refVariant) {
-										if (this.checkStared(key) == true) {
+										if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 											plotUtils.renderStar(
 												CTX,
 												xPos,
@@ -1206,7 +1225,7 @@ export default Vue.component("research-region-plot", {
 											);
 										}
 									} else {
-										if (this.checkStared(key) == true) {
+										if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 											plotUtils.renderStar(
 												CTX,
 												xPos,
@@ -1279,7 +1298,7 @@ export default Vue.component("research-region-plot", {
 
 								let dotColor = this.getDotColor(value);
 								if (key == this.ldData[GROUP].refVariant) {
-									if (this.checkStared(key) == true) {
+									if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 										plotUtils.renderStar(
 											CTX,
 											xPos,
@@ -1299,7 +1318,7 @@ export default Vue.component("research-region-plot", {
 										);
 									}
 								} else {
-									if (this.checkStared(key) == true) {
+									if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 										plotUtils.renderStar(
 											CTX,
 											xPos,
@@ -1379,7 +1398,7 @@ export default Vue.component("research-region-plot", {
 											key ==
 											this.ldData[pGroup].refVariant
 										) {
-											if (this.checkStared(key) == true) {
+											if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 												plotUtils.renderStar(
 													CTX,
 													xPos,
@@ -1399,7 +1418,7 @@ export default Vue.component("research-region-plot", {
 												);
 											}
 										} else {
-											if (this.checkStared(key) == true) {
+											if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 												plotUtils.renderStar(
 													CTX,
 													xPos,

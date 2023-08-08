@@ -20,6 +20,8 @@
 					:phenotypeMap="phenotypeMap"
 					:colors="colors"
 					:plotMargin="plotMargin"
+					:plotLegend="sectionPlotLegend"
+					:keyParams="keyParams"
 				>
 				</research-section-visualizers>
 				
@@ -29,7 +31,7 @@
 					:dataset="pageData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="(!!tableFormat['rows per page'])? tableFormat['rows per page'] :10"
-					:tableLegend="''"
+					:tableLegend="sectionTableLegend"
 					:dataComparisonConfig="
 						null
 					"
@@ -43,6 +45,8 @@
 					@clicked-sort="updateData"
 				>
 				</research-data-table>
+				<div v-html="plotLegend" style="display:none;"></div>
+				<div v-html="tableLegend" style="display:none;"></div>
 			</div>
 		</div>
 	</div>
@@ -60,7 +64,7 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 
 
 export default Vue.component("research-section", {
-	props: ["uId","sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex", "plotMargin", "colors"],
+	props: ["uId","sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -92,6 +96,20 @@ export default Vue.component("research-section", {
 				return null
 			}
 		},
+		sectionTableLegend() {
+			let sectionID = this.sectionConfig["section id"]+"_table";
+			let legend = (!!document.getElementById(sectionID)) ? document.getElementById(sectionID).innerHTML : "";
+
+			return legend;
+		}
+		,
+		sectionPlotLegend() {
+			let sectionID = this.sectionConfig["section id"]+"_plot";
+			let legend = (!!document.getElementById(sectionID)) ? document.getElementById(sectionID).innerHTML : "";
+
+			return legend;
+		}
+
 	},
 	watch: {
 		
@@ -99,6 +117,20 @@ export default Vue.component("research-section", {
 	methods: {
 		updateData(data) {
 			this.pageData = data;
+		},
+		getPlotLegend(ID) {
+			if(!!this.plotLegend) {
+				console.log(this.plotLegend);
+				const newDiv = document.createElement("div");
+				const newContent = document.createTextNode(this.plotLegend);
+				newDiv.appendChild(newContent);
+
+				let legend = (!!document.getElementById(ID))?document.getElementById(ID).innerHTML:"";
+
+				return legend;
+			} else {
+				return null
+			}
 		},
 		async getData(continueToken) {
 			

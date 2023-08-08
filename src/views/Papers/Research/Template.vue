@@ -505,6 +505,9 @@
 						</div>
 						<!-- multi section test-->
 						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
+							
+							<research-multi-sections-search :searchParameters="$parent.sectionConfigs['search parameters']">
+							</research-multi-sections-search>
 							<research-section
 								v-for="config, index in $parent.sectionConfigs.sections"
 								:sectionIndex="'section-' + index"
@@ -515,6 +518,8 @@
 								:phenotypeMap="$parent.phenotypeMap"
 								:colors="$parent.colors"
 								:plotMargin="$parent.plotMargin"
+								:plotLegend="$parent.plotLegend"
+								:tableLegend="$parent.tableLegend"
 								:key="index">
 							</research-section>	
 						</div>

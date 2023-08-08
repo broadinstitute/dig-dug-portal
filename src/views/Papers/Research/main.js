@@ -34,6 +34,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotat
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
+import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import uiUtils from "@/utils/uiUtils";
 import dataConvert from "@/utils/dataConvert";
 import sessionUtils from "@/utils/sessionUtils";
@@ -69,7 +70,8 @@ new Vue({
         ResearchPheWAS,
         kpGEMPkg,
         Documentation,
-        ResearchSection
+        ResearchSection,
+        ResearchMultiSectionsSearch
     },
     data() {
         return {

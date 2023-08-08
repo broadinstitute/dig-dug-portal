@@ -368,7 +368,7 @@ export default Vue.component("research-data-table", {
 			if (this.dataComparisonConfig == null) {
 				rawData.map((d) => {
 					let tempObj = {};
-
+					
 					this.tableFormat["top rows"].map((t) => {
 						tempObj[t] = d[t];
 					});

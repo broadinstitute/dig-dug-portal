@@ -46,6 +46,7 @@ export default Vue.component("research-genes-track", {
 	data() {
 		return {
 			plotRendered: 0,
+			localGenesData: null,
 		};
 	},
 	modules: {
@@ -55,7 +56,11 @@ export default Vue.component("research-genes-track", {
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		this.renderTrack(this.genesData);
+		if(!!this.genesData) {
+			this.renderTrack(this.genesData);
+		} else {
+			this.getGenesInRegion(this.region)
+		}
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -123,10 +128,14 @@ export default Vue.component("research-genes-track", {
 	methods: {
 		...uiUtils,
 		onResize(e) {
-			this.renderTrack(this.genesData);
+			if(!this.genesData){
+				this.renderTrack(this.localGenesData);
+			} else {
+				this.renderTrack(this.genesData);
+			}
+			
 		},
 		renderTrack(GENES) {
-			console.log("this.genesData", this.genesData);
 
 			if (!!document.getElementById("genesTrackWrapper")) {
 				let genesArray = GENES;
@@ -256,6 +265,40 @@ export default Vue.component("research-genes-track", {
 						});
 					}
 				});
+			}
+		},
+		async getGenesInRegion(region) {
+
+			let fetchUrl = "https://bioindex.hugeamp.org/api/bio/query/genes?q=" + region;
+			let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+
+			if (genes.error == null) {
+				let genesInRegion = JSON.parse(genes);
+				let codingGenes = "";
+
+				if (!!genesInRegion["data"] && genesInRegion["data"].length > 1) {
+					genesInRegion["data"].map((gene) => {
+						if ((gene.type = "protein_coding")) {
+							codingGenes += "'" + gene.name + "',";
+						}
+					});
+
+					codingGenes = codingGenes.slice(0, -1);
+
+					if (codingGenes.length > 1) {
+						this.getGenesData(codingGenes);
+					}
+				}
+			}
+		},
+		async getGenesData(GENES) {
+
+			let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
+			let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+
+			if (genesData.error == null) {
+				this.localGenesData = JSON.parse(genesData).data;
+				this.renderTrack(this.localGenesData);
 			}
 		},
 	},

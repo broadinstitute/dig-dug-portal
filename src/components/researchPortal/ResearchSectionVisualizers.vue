@@ -2,7 +2,7 @@
 	<div class="col-md-12">
 		<div
 			class="plot-legend"
-			v-html="plotConfig.plotLegend"
+			v-html="plotLegend"
 		></div>
 		<!--m_plot-->
 		<research-m-plot
@@ -48,14 +48,26 @@
 			:renderConfig="plotConfig"
 			:searchParameters="null"
 			:dataComparisonConfig="null"
-			:region="null"
+			:region="keyParams.region"
 			:plotMargin="plotMargin"
 			:compareGroupColors="colors.moderate"
-			:regionZoom="null"
+			:regionZoom="0"
 			:regionViewArea="null"
 			:pkgData="null"
 			:pkgDataSelected="null"
+			:isSectionPage="true"
 		></research-region-plot>
+		<!-- genes track -->
+		<research-genes-track
+			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!plotConfig['genes track']"
+			:region="keyParams.region"
+			:genesData="null"
+			:plotConfig="plotConfig"
+			:plotType="plotConfig['type']"
+			:plotMargin="plotMargin"
+			:regionZoom="0"
+			:regionViewArea="null"
+		></research-genes-track>
 	</div>
 </template>
 
@@ -75,7 +87,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotat
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 export default Vue.component("research-section-visualizers", {
-	props: ["plotConfig","plotData","phenotypeMap","plotMargin","colors"],
+	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","keyParams"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchMPlotBitmap,
