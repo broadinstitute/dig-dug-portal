@@ -26,16 +26,30 @@
             class="container-fluid mdkp-body"
         >
             
-
-					<research-section
-						v-for="config,index in $parent.sectionConfigs"
-                        :sectionIndex="'section-'+index"
-						:sectionConfig="config"
-                        :keyParams="$parent.keyParamUtils"
-                        :dataConvert="$parent.dataConvertUtils"
-                        :phenotypeMap="$parent.phenotypeMap"
-						:key="index">
-					</research-section>	
+    <!-- multi section test-->
+            <div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
+            
+                <research-multi-sections-search 
+                v-if="!!$parent.multiSectionsSearchParameters"
+                    :searchParameters="$parent.multiSectionsSearchParameters"
+                    :phenotypesInUse="$parent.phenotypesInSession"
+                    :keyParams="$parent.keyParamUtils">
+                </research-multi-sections-search>
+                <research-section
+                    v-for="config, index in $parent.sectionConfigs.sections"
+                    :sectionIndex="'section-' + index"
+                    :uId="$parent.uid"
+                    :sectionConfig="config"
+                    :keyParams="$parent.keyParamUtils"
+                    :dataConvert="$parent.dataConvertUtils"
+                    :phenotypeMap="$parent.phenotypeMap"
+                    :colors="$parent.colors"
+                    :plotMargin="$parent.plotMargin"
+                    :plotLegend="$parent.plotLegend"
+                    :tableLegend="$parent.tableLegend"
+                    :key="index">
+                </research-section>	
+            </div>
 					
 
 		</div>

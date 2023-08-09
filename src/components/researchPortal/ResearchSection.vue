@@ -4,7 +4,6 @@
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				
 				<h4>{{ sectionConfig.header }}</h4>
-
 				<research-section-filters
 					v-if="!!sectionConfig.filters"
 					:filters="sectionConfig.filters"
@@ -56,12 +55,9 @@
 import Vue from "vue";
 import $ from "jquery";
 import bioIndex from "@/modules/bioIndex";
-
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
-
-
 
 export default Vue.component("research-section", {
 	props: ["uId","sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors"],
@@ -79,7 +75,10 @@ export default Vue.component("research-section", {
 	modules: {
 		bioIndex,
 	},
-	mounted: function () {
+	created() {
+		this.$root.$refs[this.sectionConfig["section id"]] = this;
+	},
+	mounted() {
 		this.getData();
 	},
 	computed: {
@@ -101,18 +100,31 @@ export default Vue.component("research-section", {
 			let legend = (!!document.getElementById(sectionID)) ? document.getElementById(sectionID).innerHTML : "";
 
 			return legend;
-		}
-		,
+		},
 		sectionPlotLegend() {
 			let sectionID = this.sectionConfig["section id"]+"_plot";
 			let legend = (!!document.getElementById(sectionID)) ? document.getElementById(sectionID).innerHTML : "";
 
 			return legend;
-		}
+		},
+		searchString() {
+			let paramString = "";
 
+			if (!!this.sectionConfig["data point"]) {
+				this.sectionConfig["data point"]['parameters'].map(p => {
+					if (!!this.keyParams[p]) {
+						paramString += this.keyParams[p];
+					}
+				})
+			}
+			console.log("paramString", paramString);
+			return paramString;
+		},
 	},
 	watch: {
-		
+		keyParams:function(NEW,OLD) {
+			console.log("changed");
+		}
 	},
 	methods: {
 		updateData(data) {
@@ -151,7 +163,6 @@ export default Vue.component("research-section", {
 
 			if(!!queryParamsSet) {
 				
-
 				if(!!dataPoint["parameters type"]){
 					let queryString = ""
 					if (dataPoint["parameters type"] == "parameters") {
@@ -250,12 +261,15 @@ export default Vue.component("research-section", {
 					}
 				}
 			} else {
-				let fetchUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;
-				let fileData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+				if(dataPoint.type == "file") {
+					let fetchUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;
+					let fileData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
-				if (fileData.error == null) {
-					console.log(fileData);
+					if (fileData.error == null) {
+						console.log(fileData);
+					}
 				}
+				
 			}
 		},		
 	},
