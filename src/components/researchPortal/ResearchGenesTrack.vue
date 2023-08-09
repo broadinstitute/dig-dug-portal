@@ -62,6 +62,9 @@ export default Vue.component("research-genes-track", {
 			this.getGenesInRegion(this.region)
 		}
 	},
+	created() {
+		//this.$root.$refs.genesTrack = this;
+	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
@@ -117,9 +120,12 @@ export default Vue.component("research-genes-track", {
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				//if (n.length > 0) {
-				this.renderTrack(this.genesData);
-				//}
+				
+				if(!!this.genesData){
+					this.renderTrack(this.genesData);
+				} else {
+					this.getGenesInRegion(n.chr+":"+n.start+"-"+n.end);
+				}
 			},
 			deep: true,
 			immediate: true,

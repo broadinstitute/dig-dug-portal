@@ -58,7 +58,7 @@
 			:isSectionPage="true"
 		></research-region-plot>
 		<!-- genes track -->
-		<!--<research-genes-track
+		<research-genes-track
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!plotConfig['genes track']"
 			:region="keyParams.region"
 			:genesData="null"
@@ -67,7 +67,7 @@
 			:plotMargin="plotMargin"
 			:regionZoom="0"
 			:regionViewArea="null"
-		></research-genes-track>-->
+		></research-genes-track>
 	</div>
 </template>
 

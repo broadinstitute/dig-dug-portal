@@ -244,7 +244,6 @@ export default Vue.component("research-multi-sections-search", {
 			this.sections.map(s=>{
 				this.$root.$refs[s['section id']].getData();
 			})
-
 		},
 		async setGene(KEY, PARAMETER,INDEX,CONVERT_REGION) {
 			if(!!CONVERT_REGION) {
