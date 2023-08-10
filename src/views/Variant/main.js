@@ -31,16 +31,16 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
-import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
-import FilterPValue from "@/components/criterion/FilterPValue.vue"
-import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
-import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
 new Vue({
     store,
@@ -70,46 +70,6 @@ new Vue({
         FilterGreaterThan,
 
         SearchHeaderWrapper,
-
-    },
-
-    created() {
-        /// disease systems
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        ////
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("queryVariant", keyParams.variant);
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    methods: {
-        ...uiUtils,
-        ...sessionUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-        ancestryFormatter: Formatters.ancestryFormatter,
-        consequenceFormatter: Formatters.consequenceFormatter,
-        consequenceMeaning: Formatters.consequenceMeaning,
-
-        exploreRegion(expanded = 50000) {
-            let pos = this.chromPos;
-
-            if (!!pos) {
-                window.location.href = `./region.html?chr=${pos.chromosome
-                    }&start=${pos.position - expanded}&end=${pos.position +
-                    expanded}&variant=${this.$store.state.variant.varId}`;
-            }
-        },
-        clearBadSearch() {
-            this.$store.state.badSearch = false;
-        }
     },
 
     computed: {
@@ -134,12 +94,16 @@ new Vue({
         },
 
         pheWasData() {
-
-            let data = (!this.$store.state.ancestry) ? this.$store.state.phewas.data : this.$store.state.ancestryPhewas
-                .data;
+            let data = !this.$store.state.ancestry
+                ? this.$store.state.phewas.data
+                : this.$store.state.ancestryPhewas.data;
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
-                data = sessionUtils.getInSession(data, this.phenotypesInSession, 'phenotype');
+                data = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
             }
 
             return data;
@@ -162,13 +126,18 @@ new Vue({
         chromPos() {
             let variant = this.$store.state.variant;
 
-            if (!!variant) {
+            if (variant) {
                 let chrom = variant.varId.split(":")[0];
                 let pos = variant.varId.split(":")[1];
 
                 return {
                     chromosome: chrom,
-                    position: parseInt(pos)
+                    position: parseInt(pos),
+                };
+            } else {
+                return {
+                    chromosome: "",
+                    position: null,
                 };
             }
         },
@@ -202,19 +171,19 @@ new Vue({
             let associations = this.$store.state.phewas.data;
 
             // filter associations w/ no phenotype data (not in portal!)
-            let portalAssociations = associations.filter(a => {
+            let portalAssociations = associations.filter((a) => {
                 return !!phenotypes[a.phenotype];
             });
 
             // transform from bio index to locuszoom
-            let phewas = portalAssociations.map(a => {
+            let phewas = portalAssociations.map((a) => {
                 let phenotype = phenotypes[a.phenotype];
 
                 return {
                     id: phenotype.name,
                     log_pvalue: -Math.log10(a.pValue),
                     trait_group: phenotype.group,
-                    trait_label: phenotype.description
+                    trait_label: phenotype.description,
                 };
             });
 
@@ -236,6 +205,47 @@ new Vue({
             if (data.length > 0) {
                 this.$store.commit("setVariant", data[0]); // only ever 1 result
             }
-        }
-    }
+        },
+    },
+
+    created() {
+        /// disease systems
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        ////
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("queryVariant", keyParams.variant);
+    },
+
+    methods: {
+        ...uiUtils,
+        ...sessionUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
+        ancestryFormatter: Formatters.ancestryFormatter,
+        consequenceFormatter: Formatters.consequenceFormatter,
+        consequenceMeaning: Formatters.consequenceMeaning,
+
+        exploreRegion(expanded = 50000) {
+            let pos = this.chromPos;
+
+            if (pos) {
+                window.location.href = `./region.html?chr=${
+                    pos.chromosome
+                }&start=${pos.position - expanded}&end=${
+                    pos.position + expanded
+                }&variant=${this.$store.state.variant.varId}`;
+            }
+        },
+        clearBadSearch() {
+            this.$store.state.badSearch = false;
+        },
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
+    },
 }).$mount("#app");
