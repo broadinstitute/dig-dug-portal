@@ -3,7 +3,9 @@
 		<div class="row card-body">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				
-				<h4>{{ sectionConfig.header }}</h4>
+				<h4>{{ sectionConfig.header }}
+				<small v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em">
+				{{ keyParams[parameter] + '  ' }}</small></h4>
 				<research-section-filters
 					v-if="!!sectionConfig.filters"
 					:filters="sectionConfig.filters"
@@ -21,6 +23,7 @@
 					:plotMargin="plotMargin"
 					:plotLegend="sectionPlotLegend"
 					:keyParams="keyParams"
+					:sectionId="sectionConfig['section id']"
 				>
 				</research-section-visualizers>
 				

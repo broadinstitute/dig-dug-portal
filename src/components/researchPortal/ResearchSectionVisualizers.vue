@@ -28,6 +28,7 @@
 			:renderConfig="plotConfig"
 			:pkgData="null"
 			:pkgDataSelected="null"
+			:canvasId="sectionId"
 		></research-phewas-plot>
 		<!-- Heatmap -->
 		<research-heatmap
@@ -67,6 +68,7 @@
 			:plotMargin="plotMargin"
 			:regionZoom="0"
 			:regionViewArea="null"
+			
 		></research-genes-track>
 	</div>
 </template>
@@ -87,7 +89,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotat
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 export default Vue.component("research-section-visualizers", {
-	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","keyParams"],
+	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","keyParams","sectionId"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchMPlotBitmap,

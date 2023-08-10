@@ -1,7 +1,7 @@
 <template>
 	<div class="mbm-plot-content row">
 		<div class="col-md-12 genes-plot-wrapper">
-			<div class="row">
+			<div class="">
 				<div
 					id="genesTrackWrapper"
 					:class="

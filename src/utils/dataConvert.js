@@ -135,6 +135,10 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                         tempObj[c["field name"]] = d[c["raw field"]];
                         break;
 
+                    case "string to number":
+                        tempObj[c["field name"]] = Number(d[c["raw field"]]);
+                        break;
+
                     case "score columns":
                         tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], d);
                         break;
@@ -177,6 +181,8 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
     } else {
         convertedData = DATA;
     }
+
+    console.log("convertedData", convertedData)
 
     return convertedData;
 };

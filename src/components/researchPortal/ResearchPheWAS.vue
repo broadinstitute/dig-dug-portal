@@ -108,6 +108,7 @@ export default Vue.component("research-phewas-plot", {
 		"plotMargin",
 		"filter",
 		"options",
+		"sectionId"
 	],
 	data() {
 		return {
@@ -152,6 +153,7 @@ export default Vue.component("research-phewas-plot", {
 
 			if (!!this.phenotypesData) {
 				let phenotypesData = cloneDeep(this.phenotypesData);
+
 				phenotypesData.map((d) => {
 					let pValue =
 						typeof d[this.renderConfig["y axis field"]] == "string"
@@ -178,7 +180,6 @@ export default Vue.component("research-phewas-plot", {
 				content.data = content.data.filter(this.filter);
 			}
 
-			//return phenotypeGroupsObj;
 			if (!!content.data && content.data.length > 0) {
 				return content;
 			} else {
@@ -315,8 +316,6 @@ export default Vue.component("research-phewas-plot", {
 					}
 				}
 
-				//console.log("this.hoverItems", this.hoverItems);
-
 				if (TYPE == "hover") {
 					if (infoContent == "") {
 						if (
@@ -398,6 +397,7 @@ export default Vue.component("research-phewas-plot", {
 				this.pheWasPosData = {};
 
 				let renderData = this.groupData(this.renderData);
+
 				let groups = {};
 				let totalNum = 0;
 
@@ -414,7 +414,7 @@ export default Vue.component("research-phewas-plot", {
 										this.renderConfig["y axis field"] +
 											"-log10"
 								  ]
-								: p[this.renderConfig["y axis field"]];
+								: Number(p[this.renderConfig["y axis field"]]);
 						minY =
 							minY == null
 								? yValue
@@ -429,10 +429,10 @@ export default Vue.component("research-phewas-plot", {
 								: maxY;
 					});
 				}
-
-				//console.log("minY", minY, "maxY", maxY);
 				minY = Math.floor(minY);
 				maxY = Math.ceil(maxY);
+
+				console.log(this.canvasId,minY,maxY);
 
 				ctx.stroke();
 				let plotMargin = {
@@ -549,7 +549,7 @@ export default Vue.component("research-phewas-plot", {
 										p[this.renderConfig["render by"]]
 									])
 							) {
-								//console.log("render");
+
 								let xPos = plotMargin.left + xStep * dotIndex;
 
 								let yValue =
