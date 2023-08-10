@@ -3,6 +3,7 @@ import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import variantUtils from "@/utils/variantUtils";
@@ -20,13 +21,14 @@ export default new Vuex.Store({
         ancestryPhewas: bioIndex("ancestry-phewas-associations"),
         //regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
+        varIDLookup: bioIndex("varIdLookup"),
     },
 
     state: {
         variant: null,
         newVariantId: null,
-        ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
-        selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        ancestry: keyParams.ancestry ? keyParams.ancestry : "",
+        selectedAncestry: keyParams.ancestry ? keyParams.ancestry : "",
         badSearch: false,
         phenotypesInSession: null,
         diseaseInSession: null,
@@ -52,7 +54,7 @@ export default new Vuex.Store({
         },
         setPhenotypeCorrelation(state, Correlation) {
             state.phenotypeCorrelation = Correlation;
-        }
+        },
     },
 
     actions: {
@@ -63,14 +65,24 @@ export default new Vuex.Store({
                 newVarId || context.state.newVariantId
             );
 
-            if (!!newVarId) {
+            if (newVarId) {
+                //if newVarId is a dbSNP, then we need to get the varId
+                if (newVarId.startsWith("rs")) {
+                    let varId = await fetch(
+                        BIO_INDEX_HOST + "/api/bio/varIdLookup/" + newVarId
+                    )
+                        .then((res) => res.json())
+                        .then((res) => res.data.varid);
+                    console.log("json varId", varId);
+                    varId ? (newVarId = varId) : null;
+                }
+
                 await context.dispatch("variantData/query", { q: newVarId });
                 context.state.badSearch = false;
                 context.dispatch("queryAll");
             } else {
                 context.state.badSearch = true;
             }
-
         },
         queryAll(context) {
             let ancestry = context.state.ancestry;
@@ -79,7 +91,9 @@ export default new Vuex.Store({
             let position = parseInt(varId.split(":")[1]);
             // phewas can be with or without ancestry
             if (!!ancestry) {
-                context.dispatch("ancestryPhewas/query", { q: `${ancestry},${varId}` });
+                context.dispatch("ancestryPhewas/query", {
+                    q: `${ancestry},${varId}`,
+                });
             } else {
                 context.dispatch("phewas/query", { q: varId });
             }
@@ -98,5 +112,5 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
-    }
+    },
 });
