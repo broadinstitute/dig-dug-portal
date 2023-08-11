@@ -25,7 +25,7 @@ export default new Vuex.Store({
     },
 
     state: {
-        variant: null,
+        pageVariant: null,
         newVariantId: null,
         ancestry: keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: keyParams.ancestry ? keyParams.ancestry : "",
@@ -38,10 +38,8 @@ export default new Vuex.Store({
     mutations: {
         setVariant(state, variant) {
             if (variant) {
-                let varId = variant.varId;
-
-                state.variant = variant;
-                state.newVariantId = variant.dbSNP || varId;
+                state.pageVariant = variant;
+                state.newVariantId = variant.varId || variant.dbSNP;
 
                 keyParams.set({ variant: state.newVariantId });
             }
@@ -64,17 +62,23 @@ export default new Vuex.Store({
             newVarId = await variantUtils.parseVariant(
                 newVarId || context.state.newVariantId
             );
-
+            console.log("out newVarId is ", newVarId);
             if (newVarId) {
                 //if newVarId is a dbSNP, then we need to get the varId
                 if (newVarId.startsWith("rs")) {
-                    let varId = await fetch(
+                    await fetch(
                         BIO_INDEX_HOST + "/api/bio/varIdLookup/" + newVarId
                     )
                         .then((res) => res.json())
-                        .then((res) => res.data.varid);
-                    console.log("json varId", varId);
-                    varId ? (newVarId = varId) : null;
+                        .then((res) => {
+                            console.log("res is ", res);
+                            context.commit("setVariant", {
+                                varId: res.data.varid,
+                                dbSNP: res.data.rsid,
+                            });
+                        });
+                } else {
+                    context.commit("setVariant", { varId: newVarId });
                 }
 
                 await context.dispatch("variantData/query", { q: newVarId });
@@ -86,11 +90,14 @@ export default new Vuex.Store({
         },
         queryAll(context) {
             let ancestry = context.state.ancestry;
-            let varId = context.state.variant.varId;
-            let chromosome = varId.split(":")[0];
-            let position = parseInt(varId.split(":")[1]);
+            let varId = context.state.pageVariant.varId;
+
+            //not currently using chromosome and position to search for regions
+            //let chromosome = varId.split(":")[0];
+            //let position = parseInt(varId.split(":")[1]);
+
             // phewas can be with or without ancestry
-            if (!!ancestry) {
+            if (ancestry) {
                 context.dispatch("ancestryPhewas/query", {
                     q: `${ancestry},${varId}`,
                 });

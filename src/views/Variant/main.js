@@ -112,11 +112,17 @@ new Vue({
             return this.$store.state.variantData.data;
         },
         varId() {
-            return this.$store.state.variant && this.$store.state.variant.varId;
+            return this.$store.state.pageVariant &&
+                this.$store.state.pageVariant.varId
+                ? this.$store.state.pageVariant.varId
+                : "";
         },
 
         dbSNP() {
-            return this.$store.state.variant && this.$store.state.variant.dbSNP;
+            return this.$store.state.pageVariant &&
+                this.$store.state.pageVariant.dbSNP
+                ? this.$store.state.pageVariant.dbSNP
+                : "";
         },
 
         variantName() {
@@ -200,22 +206,23 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 
-        variantData(data) {
-            //! data is an array
-            if (data.length > 0) {
-                this.$store.commit("setVariant", data[0]); // only ever 1 result
-            }
-        },
+        // variantData(data) {
+        //     //! data is an array
+        //     if (data.length > 0) {
+        //         this.$store.commit("setVariant", data[0]); // only ever 1 result
+        //     }
+        // },
     },
 
     created() {
-        /// disease systems
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        ////
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("queryVariant", keyParams.variant);
+        if (keyParams.variant) {
+            /// disease systems
+            this.$store.dispatch("bioPortal/getDiseaseSystems");
+            this.$store.dispatch("bioPortal/getDiseaseGroups");
+            this.$store.dispatch("bioPortal/getPhenotypes");
+            this.$store.dispatch("bioPortal/getDatasets");
+            this.$store.dispatch("queryVariant", keyParams.variant);
+        }
     },
 
     methods: {
