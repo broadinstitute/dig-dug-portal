@@ -156,20 +156,64 @@ export default Vue.component("research-genes-track", {
 							2 -
 					  60; // -30 for padding
 
-				canvasRenderHeight =
-					this.plotMargin.topMargin +
-					eachGeneTrackHeight * genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
-
-				let bump = this.plotMargin.bump;
-
 				let plotWidth =
 					this.plotType == "region plot"
 						? canvasRenderWidth - this.plotMargin.leftMargin * 2
 						: canvasRenderWidth -
-						  (this.plotMargin.leftMargin +
-								this.plotMargin.rightMargin);
+						(this.plotMargin.leftMargin +
+							this.plotMargin.rightMargin);
 
 				let plotHeight = eachGeneTrackHeight * genesArray.length;
+
+				let xMin = Number(this.viewingRegion.start),
+					xMax = Number(this.viewingRegion.end);
+
+				let xStart = this.plotMargin.leftMargin;
+				let yStart = this.plotMargin.topMargin;
+				let xPosByPixel = plotWidth / (xMax - xMin);
+
+				let takenGeneRegions = [];
+				let geneIndex = 0;
+
+				genesArray.map((gene) => {
+					if (gene.start <= xMax && gene.end >= xMin) {
+						let xStartPos =
+							gene.start > xMin
+								? xStart + (gene.start - xMin) * xPosByPixel
+								: xStart;
+						let xEndPos =
+							gene.end < xMax
+								? xStart + (gene.end - xMin) * xPosByPixel
+								: xStart + (xMax - xMin) * xPosByPixel;
+
+
+
+						let renderRegionTaken = false;
+
+						takenGeneRegions.map(r => {
+							if ((xStartPos >= r.start && xStartPos <= r.end)
+								|| (xEndPos >= r.start && xEndPos <= r.end)) {
+								renderRegionTaken = true;
+							}
+						})
+
+						if (takenGeneRegions.length != 0 && renderRegionTaken == true) {
+							takenGeneRegions = [];
+							geneIndex++;
+						}
+
+						takenGeneRegions.push({ start: xStartPos - 100, end: xEndPos + 100 });
+					}
+				})
+
+
+				canvasRenderHeight =
+					this.plotMargin.topMargin +
+					eachGeneTrackHeight * geneIndex//genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
+
+				let bump = this.plotMargin.bump;
+
+				
 
 				let c = document.getElementById("genesTrack");
 				c.setAttribute("width", canvasRenderWidth);
@@ -191,17 +235,13 @@ export default Vue.component("research-genes-track", {
 				ctx.strokeStyle = "#000000";
 				ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
-				let xMin = Number(this.viewingRegion.start),
-					xMax = Number(this.viewingRegion.end);
-
-				let xStart = this.plotMargin.leftMargin;
-				let yStart = this.plotMargin.topMargin;
-				let xPosByPixel = plotWidth / (xMax - xMin);
-
 				ctx.font = "italic bold 24px Arial";
 				ctx.textAlign = "center";
 				ctx.fillStyle = "#000000";
-				genesArray.map((gene, geneIndex) => {
+
+				takenGeneRegions = [];
+				geneIndex = 0;
+				genesArray.map((gene) => {
 					if (gene.start <= xMax && gene.end >= xMin) {
 						let xStartPos =
 							gene.start > xMin
@@ -212,11 +252,25 @@ export default Vue.component("research-genes-track", {
 								? xStart + (gene.end - xMin) * xPosByPixel
 								: xStart + (xMax - xMin) * xPosByPixel;
 
-						let yPos =
-							this.plotMargin.topMargin +
-							geneIndex * eachGeneTrackHeight;
+						
 
-						//yPos += yPos % 1 == 0 ? 0.5 : 0;
+						let renderRegionTaken = false;
+
+						takenGeneRegions.map(r=>{
+							if((xStartPos >= r.start && xStartPos <= r.end)
+								|| (xEndPos >= r.start && xEndPos <= r.end)) {
+							renderRegionTaken = true;
+							}
+						})
+
+						if (takenGeneRegions.length != 0 && renderRegionTaken == true) {
+							takenGeneRegions = [];
+							geneIndex ++;
+						}
+
+						takenGeneRegions.push({ start: xStartPos - 100, end: xEndPos + 100 });
+
+						let yPos = this.plotMargin.topMargin + geneIndex * eachGeneTrackHeight;
 
 						var left = "\u{2190}";
 						var right = "\u{2192}";
