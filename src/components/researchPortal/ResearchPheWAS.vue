@@ -432,8 +432,6 @@ export default Vue.component("research-phewas-plot", {
 				minY = Math.floor(minY);
 				maxY = Math.ceil(maxY);
 
-				console.log(this.canvasId,minY,maxY);
-
 				ctx.stroke();
 				let plotMargin = {
 					left: this.plotMargin.leftMargin,

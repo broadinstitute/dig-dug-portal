@@ -23,7 +23,7 @@
 							"
 							type="text"
 							class="form-control"
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' +sectionId+ getColumnId(filter.field)"
 							@input="buildSuggestions($event, filter.field)"
 						/>
 						<input
@@ -34,7 +34,7 @@
 							"
 							type="text"
 							class="form-control"
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' + sectionId + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -83,7 +83,7 @@
 						<input
 							type="text"
 							class="form-control"
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' + sectionId + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -93,7 +93,7 @@
 						<select
 							class="egl-filter-direction"
 							:id="
-								'filter_' +
+								'filter_' + sectionId +
 								getColumnId(filter.field) +
 								'_direction'
 							"
@@ -106,7 +106,7 @@
 						<input
 							type="text"
 							class="form-control egl-filter-cd-input"
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' + sectionId + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -114,7 +114,7 @@
 					</template>
 					<template v-else-if="filter.type == 'dropdown'">
 						<select
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' + sectionId + getColumnId(filter.field)"
 							@change="
 								filterData(
 									$event,
@@ -194,6 +194,7 @@ export default Vue.component("research-section-filters", {
 		"filterWidth",
 		"dataset",
 		"unfilteredDataset",
+		"sectionId"
 	],
 
 	data() {
@@ -806,10 +807,10 @@ export default Vue.component("research-section-filters", {
 		filterData(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED) {
 			let searchValue = !!SUGGESTED
 				? SUGGESTED
-				: document.getElementById("filter_" + this.getColumnId(FIELD))
+				: document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD))
 						.value; //EVENT.target.value;
 
-			let id = "#filter_" + this.getColumnId(FIELD);
+			let id = "#filter_" + this.sectionId + this.getColumnId(FIELD);
 			let inputField = document.querySelector(id);
 			inputField.blur();
 			inputField.value = "";
@@ -944,7 +945,7 @@ export default Vue.component("research-section-filters", {
 											case "search change direction":
 												let searchDirection =
 													document.getElementById(
-														"filter_" +
+														"filter_" + this.sectionId +
 															this.getColumnId(
 																searchIndex.field
 															) +
@@ -1252,7 +1253,7 @@ export default Vue.component("research-section-filters", {
 										) {
 											let searchDirection =
 												document.getElementById(
-													"filter_" +
+													"filter_" + this.sectionId +
 														this.getColumnId(
 															searchIndex.field
 														) +

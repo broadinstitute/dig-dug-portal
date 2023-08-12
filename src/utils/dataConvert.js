@@ -182,8 +182,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
         convertedData = DATA;
     }
 
-    console.log("convertedData", convertedData)
-
     return convertedData;
 };
 

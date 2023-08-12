@@ -176,7 +176,15 @@
 						"
 					>
 						<td
-							v-if="ifDataObject(tdValue) == false"
+							v-if="ifDataObject(tdValue) == false && !!ifSetParameterColumn(tdKey)"
+							:key="tdKey"
+							:class="getColumnId(tdKey)"
+							
+						>
+							<button class="btn btn-sm btn-outline-secondary link-button" v-html="'Set search'" @click="setParameter(tdValue, tdKey)" ></button>
+						</td>
+						<td
+							v-if="ifDataObject(tdValue) == false && !ifSetParameterColumn(tdKey)"
 							:key="tdKey"
 							v-html="formatValue(tdValue, tdKey)"
 							:class="getColumnId(tdKey)"
@@ -519,6 +527,19 @@ export default Vue.component("research-data-table", {
 	},
 	methods: {
 		...Formatters,
+		setParameter(VALUE,KEY){
+			let parameter = this.tableFormat['column formatting'][KEY]['parameter'];
+			document.getElementById("search_param_" + parameter).value = VALUE;
+			this.$root.$refs.multiSectionSearch.updateSearch(parameter);
+		},
+		ifSetParameterColumn(KEY){
+			if(!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+			 && !!this.tableFormat['column formatting'][KEY]['type'].includes('set parameter')) {
+				return true;
+			 } else {
+				return null;
+			 }
+		},
 		showHidePanel(PANEL) {
 			let wrapper = document.querySelector(PANEL);
 			if (wrapper.classList.contains("hidden")) {

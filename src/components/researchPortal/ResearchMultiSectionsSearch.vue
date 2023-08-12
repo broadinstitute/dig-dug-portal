@@ -181,10 +181,15 @@ export default Vue.component("research-multi-sections-search", {
 		};
 	},
 	created() {
+		this.$root.$refs.multiSectionSearch = this;
 		
 	},
 	mounted() {
-		
+		/*this.searchParameters.map(s => {
+			if (!!this.keyParams[s.parameter]) {
+				document.getElementById("search_param_" + s.parameter).value = this.keyParams[s.parameter];
+			}
+		})*/
 	},
 	computed: {},
 	watch: {
@@ -213,7 +218,6 @@ export default Vue.component("research-multi-sections-search", {
 			this.paramSearch[INDEX] = "-"+paramValue.label;
 		},
 		expandRegion(EVENT, PARAM, INDEX) {
-			console.log(EVENT.target.value, PARAM, INDEX)
 			let expandNumber = EVENT.target.value;
 
 			if (EVENT.target.value != "null") {
@@ -233,17 +237,37 @@ export default Vue.component("research-multi-sections-search", {
 				this.searchingValues[PARAM] = newRegion;
 			}
 		},
-		updateSearch() {
-			let paramsObj = {}
-			this.searchParameters.map(s=>{
-				let paramValue = document.getElementById("search_param_" + s.parameter).value;
-				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-			})
-			this.keyParams.set(paramsObj);
-			//location.reload();
-			this.sections.map(s=>{
-				this.$root.$refs[s['section id']].getData();
-			})
+		updateSearch(KEY) {
+			if(!KEY){
+				let paramsObj = {}
+				this.searchParameters.map(s => {
+					let paramValue = document.getElementById("search_param_" + s.parameter).value;
+					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+				})
+				this.keyParams.set(paramsObj);
+				//location.reload();
+				this.sections.map(s => {
+					this.$root.$refs[s['section id']].getData();
+				})
+			} else if(!!KEY) {
+				//console.log("point 1",KEY);
+
+				let paramsObj = {}
+				this.searchParameters.map(s => {
+					let paramValue = document.getElementById("search_param_" + s.parameter).value;
+					//console.log(s.parameter, paramValue);
+					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+				})
+				this.keyParams.set(paramsObj);
+				
+				this.sections.map(s => {
+					if(!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
+						console.log(s['section id']);
+						this.$root.$refs[s['section id']].getData();
+					}
+				})
+			}
+			
 		},
 		async setGene(KEY, PARAMETER,INDEX,CONVERT_REGION) {
 			if(!!CONVERT_REGION) {

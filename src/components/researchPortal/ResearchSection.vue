@@ -12,6 +12,7 @@
 					:filterWidth="sectionConfig['filter width']"
 					:dataset="pageData"
 					:unfilteredDataset="originalData"
+					:sectionId="sectionConfig['section id']"
 					@on-filtering="updateData"
 				></research-section-filters>
 				<research-section-visualizers
@@ -43,6 +44,7 @@
 					:pkgData="null"
 					:pkgDataSelected="null"
 					:phenotypeMap="phenotypeMap"
+					:sectionId="sectionConfig['section id']"
 					:multiSectionPage="true"
 					@clicked-sort="updateData"
 				>
@@ -110,7 +112,7 @@ export default Vue.component("research-section", {
 
 			return legend;
 		},
-		searchString() {
+		/*searchString() {
 			let paramString = "";
 
 			if (!!this.sectionConfig["data point"]) {
@@ -122,7 +124,7 @@ export default Vue.component("research-section", {
 			}
 			console.log("paramString", paramString);
 			return paramString;
-		},
+		},*/
 	},
 	watch: {
 		keyParams:function(NEW,OLD) {
@@ -148,7 +150,7 @@ export default Vue.component("research-section", {
 			}
 		},
 		async getData(continueToken) {
-			
+			//console.log("called"+ this.sectionConfig["section id"]);
 			let dataPoint = this.sectionConfig["data point"]
 			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :dataPoint.url+"query/"+ dataPoint.index +"?q=": dataPoint.type == "api"? dataPoint.url: dataPoint.type == "file" ? "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + dataPoint.file :"";
 			let queryParams = {}
@@ -239,28 +241,32 @@ export default Vue.component("research-section", {
 							break;
 					}
 
-					let tableFormat = this.sectionConfig["table format"];
+					if(data.length > 0){
+						let tableFormat = this.sectionConfig["table format"];
 
-					if(!!tableFormat && !!tableFormat["data convert"]) {
-						let convertConfig = tableFormat["data convert"];
-						data = this.dataConvert.convertData(convertConfig,data,this.phenotypeMap);
-					}
+						if (!!tableFormat && !!tableFormat["data convert"]) {
+							let convertConfig = tableFormat["data convert"];
+							data = this.dataConvert.convertData(convertConfig, data, this.phenotypeMap);
+						}
 
-					if(dataPoint.type == "bioindex") {
-						if (contJson.page == 1) {
+						if (dataPoint.type == "bioindex") {
+							if (contJson.page == 1) {
+								this.pageData = data;
+								this.originalData = this.pageData;
+							} else {
+								this.pageData = this.pageData.concat(data);
+								this.originalData = this.pageData;
+							}
+
+							if (!!contJson.continuation) {
+								this.getData(contJson.continuation);
+							}
+						} else {
 							this.pageData = data;
 							this.originalData = this.pageData;
-						} else {
-							this.pageData = this.pageData.concat(data);
-							this.originalData = this.pageData;
-						}
-
-						if(!!contJson.continuation) {
-							this.getData(contJson.continuation);
 						}
 					} else {
-						this.pageData = data;
-						this.originalData = this.pageData;
+						console.log("no returned data")
 					}
 				}
 			} else {
