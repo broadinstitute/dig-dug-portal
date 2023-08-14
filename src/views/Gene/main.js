@@ -124,7 +124,7 @@ new Vue({
                     link: "https://www.uniprot.org/uniprot/",
                 },
             },
-            noTranscriptDataPortal: ["sleep", "lung", "ndkp", "autoimmune"]
+            noTranscriptDataPortal: ["sleep", "lung", "ndkp", "autoimmune"],
         };
     },
 
@@ -266,16 +266,16 @@ new Vue({
                     data[i].huge >= 350
                         ? "Compelling"
                         : data[i].huge >= 100
-                            ? "Extreme"
-                            : data[i].huge >= 30
-                                ? "Very Strong"
-                                : data[i].huge >= 10
-                                    ? "Strong"
-                                    : data[i].huge >= 3
-                                        ? "Moderate"
-                                        : data[i].huge > 1
-                                            ? "Anecdotal"
-                                            : "No Evidence";
+                        ? "Extreme"
+                        : data[i].huge >= 30
+                        ? "Very Strong"
+                        : data[i].huge >= 10
+                        ? "Strong"
+                        : data[i].huge >= 3
+                        ? "Moderate"
+                        : data[i].huge > 1
+                        ? "Anecdotal"
+                        : "No Evidence";
 
                 score["range"] = range;
                 score["renderScore"] = Math.log(data[i].huge);
@@ -578,11 +578,18 @@ new Vue({
             let gene = await regionUtils.geneSymbol(KEY);
 
             if (!!gene && gene != KEY) {
-                console.log("gene", gene)
-                console.log("not a gene symbol!!")
-                document.getElementById("invalidGeneMessage").innerHTML = "Your search term is an alias name for gene symbol " + gene + ". Please enter a new search term above, or go to the " + gene + " Gene page"
+                console.log("gene", gene);
+                console.log("not a gene symbol!!");
+                document.getElementById("invalidGeneMessage").innerHTML =
+                    "Your search term is an alias name for gene symbol " +
+                    gene +
+                    ". Please enter a new search term above, or go to the " +
+                    gene +
+                    " Gene page";
 
-                document.getElementById("invalidGeneRedirect").setAttribute('href', '/gene.html?gene=' + gene)
+                document
+                    .getElementById("invalidGeneRedirect")
+                    .setAttribute("href", "/gene.html?gene=" + gene);
                 uiUtils.showElement("invalidGeneWarning");
                 uiUtils.showElement("pageSearchHeaderContent");
             }
@@ -664,8 +671,9 @@ new Vue({
             let r = this.region;
 
             if (r) {
-                window.location.href = `./region.html?chr=${r.chromosome
-                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${
+                    r.chromosome
+                }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
 
@@ -677,7 +685,7 @@ new Vue({
             setTimeout(function () {
                 refComponent.renderPheWas();
             }, 500);
-        }
+        },
     },
 
     render(createElement, context) {

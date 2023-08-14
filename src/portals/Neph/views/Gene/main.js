@@ -220,15 +220,19 @@ new Vue({
 
         alternateNames() {
             let geneData = this.$store.state.gene.data;
-            return this.$store.state.genes.data
-                .filter((g) => g.start == geneData[0].start)
-                .filter((g) => g.end == geneData[0].end)
-                .filter((g) => g.source !== "symbol")
-                .sort((a, b) => {
-                    if (a.source < b.source) return -1;
-                    if (a.source > b.source) return 1;
-                    return 0;
-                });
+            if (geneData.length > 0) {
+                return this.$store.state.genes.data
+                    .filter((g) => g.start == geneData[0].start)
+                    .filter((g) => g.end == geneData[0].end)
+                    .filter((g) => g.source !== "symbol")
+                    .sort((a, b) => {
+                        if (a.source < b.source) return -1;
+                        if (a.source > b.source) return 1;
+                        return 0;
+                    });
+            } else {
+                return [];
+            }
         },
 
         dbReference() {
@@ -317,7 +321,7 @@ new Vue({
 
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
 
-                this.$store.dispatch("getEGLData");
+                //this.$store.dispatch("getEGLData");
             }
 
             //this.pushCriterionPhenotype(newTopPhenotype)
@@ -348,8 +352,10 @@ new Vue({
 
         // the region for the gene was found
         region(region) {
-            this.hideElement("variangeneSearchHolder");
-            this.$store.dispatch("queryGeneRegion", region);
+            if (region) {
+                uiUtils.hideElement("pageSearchHeaderContent");
+                this.$store.dispatch("queryGeneRegion", region);
+            }
         },
 
         // the canonical symbol was found

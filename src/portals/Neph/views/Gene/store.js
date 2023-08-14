@@ -19,12 +19,12 @@ export default new Vuex.Store({
         geneassociations: bioIndex("gene-associations"),
         varassociations: bioIndex("associations"),
         associations52k: bioIndex("gene-associations-52k"),
-        uniprot
+        uniprot,
     },
     state: {
         geneName: keyParams.gene,
         aliasName: null,
-        prior: 0.3696
+        prior: 0.3696,
     },
 
     mutations: {
@@ -38,7 +38,7 @@ export default new Vuex.Store({
         },
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
-        }
+        },
     },
 
     getters: {
@@ -51,7 +51,7 @@ export default new Vuex.Store({
                 return {
                     chromosome: gene.chromosome,
                     start: gene.start,
-                    end: gene.end
+                    end: gene.end,
                 };
             }
         },
@@ -70,7 +70,9 @@ export default new Vuex.Store({
         geneSymbol(state) {
             let data = state.genes.data;
             let geneData = state.gene.data;
-
+            if (data.length === 0 || geneData.length === 0) {
+                return;
+            }
             for (let i in data) {
                 if (
                     data[i].chromosome == geneData[0].chromosome &&
@@ -82,7 +84,7 @@ export default new Vuex.Store({
                     }
                 }
             }
-        }
+        },
     },
 
     actions: {
@@ -137,6 +139,6 @@ export default new Vuex.Store({
         async get52KAssociationData(context) {
             let name = context.state.geneName;
             context.dispatch("associations52k/query", { q: name });
-        }
-    }
+        },
+    },
 });
