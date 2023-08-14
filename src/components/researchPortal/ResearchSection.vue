@@ -75,6 +75,7 @@ export default Vue.component("research-section", {
 		return {
 			pageData: null,
 			originalData: null,
+			remoteTableFormat:null,
 		};
 	},
 	modules: {
@@ -91,7 +92,9 @@ export default Vue.component("research-section", {
 			if(!!this.pageData) {
 				if(!!this.sectionConfig["table format"]) {
 					return this.sectionConfig["table format"];
-				} else {
+				} else if(!!this.remoteTableFormat) {
+					return this.remoteTableFormat;
+				}else {
 					let topRows = Object.keys(this.pageData[0]);
 					let tableFormat = { "top rows": topRows };
 					return tableFormat;
@@ -200,10 +203,15 @@ export default Vue.component("research-section", {
 				let contJson = await fetch(dataUrl).then((resp) => resp.json());
 
 				if (contJson.error == null) {	
+
+					
 					let data = null;
 
 					let dataWrapper = dataPoint["data wrapper"];
+					
+					this.remoteTableFormat = (!!contJson[0]["field_data_table_format"])? JSON.parse(contJson[0]["field_data_table_format"]):null;
 
+					
 					switch (dataPoint["data type"]) {
 						case "bioindex":
 							data = contJson.data;
@@ -242,7 +250,7 @@ export default Vue.component("research-section", {
 					}
 
 					if(data.length > 0){
-						let tableFormat = this.sectionConfig["table format"];
+						let tableFormat = (!!this.remoteTableFormat)? this.remoteTableFormat : this.sectionConfig["table format"];
 
 						if (!!tableFormat && !!tableFormat["data convert"]) {
 							let convertConfig = tableFormat["data convert"];

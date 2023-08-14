@@ -48,13 +48,13 @@
 			<div
 				v-if="dataComparisonConfig == null"
 				class="convert-2-csv btn-sm"
-				@click="convertJson2Csv(filteredData, pageID + '_filtered')"
+				@click="convertJson2Csv(filteredData, pageID + sectionId+ '_filtered')"
 			>
 				Save as CSV
 			</div>
 			<div
 				class="convert-2-csv btn-sm"
-				@click="saveJson(filteredData, pageID + '_filtered')"
+				@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
 			>
 				Save as JSON
 			</div>
@@ -271,7 +271,8 @@ export default Vue.component("research-data-table", {
 		"pkgData",
 		"pkgDataSelected",
 		"phenotypeMap",
-		"multiSectionPage"
+		"multiSectionPage",
+		"sectionId"
 	],
 	data() {
 		return {
@@ -293,7 +294,12 @@ export default Vue.component("research-data-table", {
 	updated() {},
 	computed: {
 		filteredData() {
-			return this.$store.state.filteredData;
+			if(!!this.multiSectionPage){
+				return this.dataset;
+			} else {
+				return this.$store.state.filteredData;
+			}
+			
 		},
 		dataScores() {
 			if (
