@@ -99,7 +99,7 @@
                             Phenotypes of variant carriers in NephKP
                         </h4>
                         <variant-phenotype-table
-                            :variant-id="$store.state.variant.varId"
+                            :variant-id="$store.state.pageVariant.varId"
                         ></variant-phenotype-table>
                     </div>
                 </div>
@@ -161,7 +161,9 @@
                         <h4 class="card-title">
                             gnomAD Population Frequencies
                         </h4>
-                        <gnominfo-card :variant-id="$store.state.variant.varId">
+                        <gnominfo-card
+                            :variant-id="$store.state.pageVariant.varId"
+                        >
                         </gnominfo-card>
                     </div>
                 </div>
