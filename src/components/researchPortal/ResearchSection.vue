@@ -27,7 +27,6 @@
 					:sectionId="sectionConfig['section id']"
 				>
 				</research-section-visualizers>
-				
 				<research-data-table
 					v-if="!!tableFormat"
 					:pageID="sectionIndex"
@@ -90,7 +89,8 @@ export default Vue.component("research-section", {
 	computed: {
 		tableFormat() {
 			if(!!this.pageData) {
-				if(!!this.sectionConfig["table format"]) {
+				if(!!this.sectionConfig["table format"] && 
+					(!this.sectionConfig["table format"]["type"] || this.sectionConfig["table format"]["type"]!="remote")) {
 					return this.sectionConfig["table format"];
 				} else if(!!this.remoteTableFormat) {
 					return this.remoteTableFormat;
@@ -208,9 +208,21 @@ export default Vue.component("research-section", {
 					let data = null;
 
 					let dataWrapper = dataPoint["data wrapper"];
-					
-					this.remoteTableFormat = (!!contJson[0]["field_data_table_format"])? JSON.parse(contJson[0]["field_data_table_format"]):null;
 
+					if(!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"] 
+						&& this.sectionConfig["table format"]["type"] == "remote") {
+							let tableFormatWrapper = this.sectionConfig["table format"]["format wrapper"];
+							let tableFormats = contJson;
+
+							tableFormatWrapper.map(w => {
+								tableFormats = tableFormats[w];
+							})
+
+							this.remoteTableFormat = JSON.parse(tableFormats);
+
+					}
+					
+					console.log("this.remoteTableFormat", this.remoteTableFormat);
 					
 					switch (dataPoint["data type"]) {
 						case "bioindex":
