@@ -52,11 +52,11 @@
                 >
             </b-col>
             <b-col class="text-right mb-2">
-                <csv-download
+                <data-download
                     v-if="tableData.length"
                     :data="tableData"
                     filename="variants"
-                ></csv-download
+                ></data-download
             ></b-col>
         </b-row>
         <b-row>
@@ -414,7 +414,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import Formatters from "@/utils/formatters";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("VariantSearch", {
@@ -424,7 +424,7 @@ export default Vue.component("VariantSearch", {
         Documentation,
         TooltipDocumentation,
         Formatters,
-        CsvDownload,
+        DataDownload,
     },
     props: {
         gene: [String, Array],
