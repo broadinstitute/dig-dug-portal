@@ -2,10 +2,10 @@
     <div>
         <div v-if="rows > 0">
             <div class="text-right mb-2">
-                <csv-download
+                <data-download
                     :data="tableData"
                     filename="enriched_annotations"
-                ></csv-download>
+                ></data-download>
             </div>
             <b-table
                 hover
@@ -13,16 +13,18 @@
                 responsive="sm"
                 :items="tableData"
                 :fields="fields"
+                :sort-by="sortBy"
+                :sort-desc="false"
                 :per-page="perPage"
                 :current-page="currentPage"
             >
-                <template v-slot:thead-top="data">
+                <template #thead-top="data">
                     <b-th colspan="3">
                         <span class="sr-only">Tissue</span>
                     </b-th>
                     <b-th
-                        :key="phenotype.name"
                         v-for="(phenotype, i) in phenotypes"
+                        :key="phenotype.name"
                         colspan="2"
                         class="reference"
                         :class="'color-' + (i + 1)"
@@ -34,8 +36,8 @@
                 </template>
             </b-table>
             <b-pagination
-                class="pagination-sm justify-content-center"
                 v-model="currentPage"
+                class="pagination-sm justify-content-center"
                 :total-rows="rows"
                 :per-page="perPage"
             ></b-pagination>
@@ -55,7 +57,7 @@ import c3 from "c3";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
@@ -65,9 +67,9 @@ import { decodeNamespace } from "@/utils/filterHelpers";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-export default Vue.component("enrichment-table", {
+export default Vue.component("EnrichmentTable", {
     props: ["phenotypes", "annotations", "filter"],
-    component: { CsvDownload },
+    component: { DataDownload },
     data() {
         return {
             perPage: 10,
@@ -103,21 +105,27 @@ export default Vue.component("enrichment-table", {
                     {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
-                        formatter: Formatters.pValueFormatter
+                        formatter: Formatters.pValueFormatter,
                         //, tdClass(x) { return !!x && x < 1e-5 ? "variant-table-cell high" : "";},
+                        sortable: true,
                     },
                     {
                         key: `${p.name}_fold`,
                         label: `Fold`,
                         formatter: Formatters.floatFormatter,
                         tdClass(x) {
-                            return !!x && x > 2 ? "variant-table-cell high" : "";
-                        }
+                            return !!x && x > 2
+                                ? "variant-table-cell high"
+                                : "";
+                        },
                     },
                 ]);
             }
 
             return fields;
+        },
+        sortBy() {
+            return this.phenotypes[0].name + "_pValue" || "";
         },
 
         rows() {
@@ -131,7 +139,7 @@ export default Vue.component("enrichment-table", {
             // get all the data from all phenotypes
             for (let i in annotations) {
                 let r = annotations[i];
-                if (!!r.pValue) {
+                if (r.pValue) {
                     let group = `${r.tissue}___${r.annotation}___${r.ancestry}`;
                     let dataIndex = groups[group];
                     let fold = r.SNPs / r.expectedSNPs;
@@ -177,9 +185,10 @@ export default Vue.component("enrichment-table", {
             return data;
         },
         tableData() {
-            let dataRows = this.groupedAnnotations;
             let filter = this.filter; // TODO: can we detect if not id=>true
-            if (!!filter) {
+            let dataRows = this.groupedAnnotations;
+
+            if (filter) {
                 dataRows = dataRows.filter((row) => {
                     const regularizedRow = decodeNamespace(row, {
                         prefix: `${row.phenotype}_`,

@@ -926,7 +926,7 @@ span.weight-blue {
 }
 .fiftytwo .plots,
 .datasets .plots {
-    min-height: 350px;
+    min-height: 100px;
     padding-right: 15px;
     background-color: #f9f9f9;
 }

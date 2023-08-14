@@ -129,13 +129,47 @@ export default Vue.component("research-data-table-features", {
 	methods: {
 		...Formatters,
 		formatValue(tdValue, tdKey) {
-			let content = Formatters.BYORColumnFormatter(
-				tdValue,
-				tdKey,
-				this.featuresFormat,
-				this.phenotypeMap,
-				this.dataScores
-			);
+			let content;
+
+			if (
+				!!this.featuresFormat &&
+				!!this.featuresFormat["column formatting"] &&
+				!!this.featuresFormat["column formatting"][tdKey]
+			) {
+				let types =
+					this.featuresFormat["column formatting"][tdKey].type;
+
+				if (
+					!!types.includes("render background percent") ||
+					!!types.includes("render background percent negative")
+				) {
+					content = Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.featuresFormat,
+						null,
+						this.dataScores
+					);
+				} else if (!!types.includes("kp phenotype link")) {
+					content = Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.featuresFormat,
+						this.phenotypeMap,
+						null
+					);
+				} else {
+					content = Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.featuresFormat,
+						null,
+						null
+					);
+				}
+			} else {
+				content = tdValue;
+			}
 
 			return content;
 		},

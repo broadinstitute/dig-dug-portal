@@ -234,7 +234,7 @@ export default Vue.component("research-gene-links-plot", {
 	],
 	data() {
 		return {
-			spaceBy: 10,
+			spaceBy: 20,
 			GEData: {},
 			trigger: 0,
 			GLPosData: {},
@@ -540,7 +540,6 @@ export default Vue.component("research-gene-links-plot", {
 			let rawY = e.clientY - rect.top;
 
 			let y = Math.ceil(e.clientY - rect.top);
-			/*Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy) - 1;*/
 
 			const infoBox = document.querySelector("#GLInfoBox");
 			const infoBoxContent = document.querySelector("#GLInfoBoxContent");
@@ -548,8 +547,8 @@ export default Vue.component("research-gene-links-plot", {
 			let infoContent = "";
 
 			if (
-				x >= this.plotMargin.leftMargin &&
-				x <= rect.width - this.plotMargin.leftMargin
+				x >= this.plotMargin.leftMargin / 2 &&
+				x <= rect.width - this.plotMargin.leftMargin / 2
 			) {
 				for (const [vKey, vValue] of Object.entries(this.GLPosData)) {
 					let vLoc = vKey.split("-");
@@ -602,7 +601,7 @@ export default Vue.component("research-gene-links-plot", {
 						infoBoxContent.innerHTML = infoContent;
 						infoBox.setAttribute("class", "");
 						infoBox.style.left = rawX + 25 + "px";
-						infoBox.style.top = rawY + this.spaceBy + "px";
+						infoBox.style.top = rawY + this.spaceBy / 2 + "px";
 						infoBoxClose.setAttribute("class", "hidden");
 					}
 				}
@@ -617,7 +616,7 @@ export default Vue.component("research-gene-links-plot", {
 					infoBoxContent.innerHTML = infoContent;
 					infoBox.setAttribute("class", "fixed");
 					infoBox.style.left = rawX + 25 + "px";
-					infoBox.style.top = rawY + this.spaceBy + "px";
+					infoBox.style.top = rawY + this.spaceBy / 2 + "px";
 				}
 			}
 		},
@@ -691,9 +690,9 @@ export default Vue.component("research-gene-links-plot", {
 			bump
 		) {
 			CTX.beginPath();
-			CTX.lineWidth = 1;
+			CTX.lineWidth = 2;
 			CTX.strokeStyle = "#FFAA00";
-			CTX.setLineDash([3, 3]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([6, 6]); // cancel dashed line incase dashed lines rendered some where
 
 			// render dased lines
 			STARED.map((s) => {
@@ -763,19 +762,17 @@ export default Vue.component("research-gene-links-plot", {
 				let canvas = document.querySelector("#geneLinksPlot");
 
 				if (!!canvas && !!wrapper) {
-					let canvasWidth = document.querySelector(
-						"#geneLinksPlotWrapper"
-					).clientWidth;
-
-					//console.log("GL canvas", canvasWidth);
+					let canvasWidth =
+						document.querySelector("#geneLinksPlotWrapper")
+							.clientWidth * 2;
 
 					let canvasHeight = tempHeight + topMargin + bottomMargin;
 
 					let plotWidth =
 						canvasWidth - this.plotMargin.leftMargin * 2;
 
-					let plotHeight = tempHeight;
-					let bump = 5.5;
+					//let plotHeight = tempHeight;
+					let bump = 11;
 
 					let xPerPixel = plotWidth / (regionEnd - regionStart);
 
@@ -783,6 +780,14 @@ export default Vue.component("research-gene-links-plot", {
 					c = document.querySelector("#geneLinksPlot");
 					c.setAttribute("width", canvasWidth);
 					c.setAttribute("height", canvasHeight);
+					c.setAttribute(
+						"style",
+						"width:" +
+							canvasWidth / 2 +
+							"px;height:" +
+							canvasHeight / 2 +
+							"px;"
+					);
 					ctx = c.getContext("2d");
 
 					ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -797,7 +802,7 @@ export default Vue.component("research-gene-links-plot", {
 					tissues.map((tKey) => {
 						let tValue = this.renderData[tKey];
 
-						ctx.font = "14px Arial";
+						ctx.font = "28px Arial";
 						ctx.textAlign = "left";
 						ctx.fillStyle = "#00000075";
 						ctx.fillText(tKey, bump, renderHeight);
@@ -811,7 +816,7 @@ export default Vue.component("research-gene-links-plot", {
 						this.genesArr.map((gKey) => {
 							if (!!tValue[gKey]) {
 								let gValue = tValue[gKey];
-								ctx.font = "12px Arial";
+								ctx.font = "24px Arial";
 								ctx.textAlign = "left";
 								ctx.fillStyle = "#000000";
 								ctx.fillText(
@@ -830,9 +835,6 @@ export default Vue.component("research-gene-links-plot", {
 									);
 								}
 
-								/*for (const [mKey, mValue] of Object.entries(
-									gValue
-								)) {*/
 								this.methodsArr.map((mKey) => {
 									if (!!gValue[mKey]) {
 										let mValue = gValue[mKey];
@@ -844,10 +846,11 @@ export default Vue.component("research-gene-links-plot", {
 										mValue.map((m) => {
 											/// add vertical locations of each method tracks to GLPosdata to check back on hover
 											let yPosBtn =
-												Math.ceil(renderHeight) +
+												Math.ceil(renderHeight / 2) +
 												"-" +
 												Math.ceil(
-													renderHeight + perMethod
+													(renderHeight + perMethod) /
+														2
 												);
 
 											if (!this.GLPosData[yPosBtn]) {
@@ -895,7 +898,7 @@ export default Vue.component("research-gene-links-plot", {
 
 												let xPosWidth =
 													xPosEnd - xPosStart < 1
-														? 1
+														? 2
 														: xPosEnd - xPosStart;
 
 												ctx.fillStyle = methodColor;
@@ -904,17 +907,20 @@ export default Vue.component("research-gene-links-plot", {
 													xPosStart,
 													renderHeight,
 													xPosWidth,
-													perMethod - 1
+													perMethod - 2
 												);
 
 												/// add vertical locations of each method tracks to GLPosdata to check back on hover
 
 												let xPosBtn =
-													Math.ceil(xPosStart) +
+													Math.ceil(xPosStart / 2) +
 													"-" +
 													Math.ceil(
-														xPosStart + xPosWidth
+														(xPosStart +
+															xPosWidth) /
+															2
 													);
+
 												if (
 													!this.GLPosData[yPosBtn]
 														.region[xPosBtn]
@@ -994,7 +1000,7 @@ export default Vue.component("research-gene-links-plot", {
 		renderGLAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
-			CTX.strokeStyle = "#999999";
+			CTX.strokeStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
@@ -1029,8 +1035,8 @@ export default Vue.component("research-gene-links-plot", {
 
 				CTX.textAlign = "center";
 				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
-				CTX.font = "12px Arial";
-				CTX.fillStyle = "#999999";
+				CTX.font = "24px Arial";
+				CTX.fillStyle = "#000000";
 
 				let xMaxMinGap = xMax - xMin;
 				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;

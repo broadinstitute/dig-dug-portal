@@ -381,7 +381,7 @@ export default Vue.component("research-biosamples-plot", {
 			GEPosData: {},
 			tissuesData: {},
 			biosamplesPosData: {},
-			spaceBy: 12,
+			spaceBy: 24,
 			annotationOnFocus: "null",
 			tissueOnFocus: "null",
 			trigger: 0,
@@ -430,20 +430,6 @@ export default Vue.component("research-biosamples-plot", {
 			) {
 				return this.searchingRegion + "," + this.searchingPhenotype;
 			}
-			/*if (
-				this.searchingRegion != null &&
-				this.searchingPhenotype != null
-			) {
-				return (
-					this.searchingRegion.chr +
-					":" +
-					this.searchingRegion.start +
-					"-" +
-					this.searchingRegion.end +
-					"," +
-					this.searchingPhenotype
-				);
-			}*/
 		},
 		searchingRegion() {
 			let returnObj = {};
@@ -488,24 +474,7 @@ export default Vue.component("research-biosamples-plot", {
 				return returnObj;
 			}
 		},
-		/*searchingPhenotype() {
-			if (this.phenotype != null) {
-				uiUtils.showElement("biosamplesPlotWrapper");
 
-				let returnPhenotype = !!this.renderConfig["phenotype match"]
-					? this.renderConfig["phenotype match"][this.phenotype]
-					: this.phenotype;
-
-				return returnPhenotype;
-			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
-					uiUtils.showElement("biosamplesPlotWrapper");
-					return keyParams[this.renderConfig["phenotype parameter"]];
-				} else {
-					return null;
-				}
-			}
-		},*/
 		searchingPhenotype() {
 			if (this.phenotype != null) {
 				uiUtils.showElement("annotationsPlotWrapper");
@@ -958,6 +927,7 @@ export default Vue.component("research-biosamples-plot", {
 			let rect = e.target.getBoundingClientRect();
 			let x = Math.floor(e.clientX - rect.left);
 			let y = Math.floor(e.clientY - rect.top);
+			let localSpaceBy = Math.round(this.spaceBy / 2);
 
 			const infoBox = document.querySelector("#BSGEInfoBox");
 
@@ -989,11 +959,11 @@ export default Vue.component("research-biosamples-plot", {
 				if (x < rect.width * 0.75) {
 					infoBox.style.width = "auto";
 					infoBox.style.left = x + 15 + "px";
-					infoBox.style.top = y + this.spaceBy + "px";
+					infoBox.style.top = y + localSpaceBy + "px";
 				} else {
 					infoBox.style.width = "200px";
 					infoBox.style.left = x - (200 + 15) + "px";
-					infoBox.style.top = y + this.spaceBy + "px";
+					infoBox.style.top = y + localSpaceBy + "px";
 				}
 			} else {
 				infoBox.setAttribute("class", "hidden");
@@ -1006,17 +976,18 @@ export default Vue.component("research-biosamples-plot", {
 			let x = Math.floor(e.clientX - rect.left);
 			let rawX = e.clientX - rect.left;
 			let rawY = e.clientY - rect.top;
+			let localSpaceBy = Math.round(this.spaceBy / 2);
 
 			let y =
-				Math.ceil(Math.floor(e.clientY - rect.top) / this.spaceBy) - 1;
+				Math.ceil(Math.floor(e.clientY - rect.top) / localSpaceBy) - 1;
 
 			const infoBox = document.querySelector("#biosampleInfoBox");
 			let infoContent = "";
 
 			if (TYPE == "hover") {
 				if (
-					x >= this.plotMargin.leftMargin &&
-					x <= rect.width - this.plotMargin.leftMargin
+					x >= this.plotMargin.leftMargin / 2 &&
+					x <= rect.width - this.plotMargin.leftMargin / 2
 				) {
 					if (!!this.biosamplesPosData[y]) {
 						//this.$store.dispatch("sharedPlotXpos", rawX);
@@ -1042,17 +1013,20 @@ export default Vue.component("research-biosamples-plot", {
 									"<br />" +
 									"method: " +
 									regionValue.method +
+									"<br />" +
+									"state: " +
+									regionValue.state +
 									"<br />";
 							}
 						}
 					}
 				} else if (
-					x >= rect.width - this.plotMargin.leftMargin &&
+					x >= rect.width - this.plotMargin.leftMargin / 2 &&
 					x <= rect.width
 				) {
 					let floorY = Math.floor(rawY);
-					let yStart = floorY - 4;
-					let yEnd = floorY + 4;
+					let yStart = floorY - 8;
+					let yEnd = floorY + 8;
 					for (let i = yStart; i <= yEnd; i++) {
 						if (
 							!!this.biosamplesPosData[i] &&
@@ -1075,8 +1049,8 @@ export default Vue.component("research-biosamples-plot", {
 
 			if (TYPE == "click") {
 				if (
-					x >= this.plotMargin.leftMargin &&
-					x <= rect.width - this.plotMargin.leftMargin
+					x >= this.plotMargin.leftMargin / 2 &&
+					x <= rect.width - this.plotMargin.leftMargin / 2
 				) {
 					if (!!this.biosamplesPosData[y]) {
 						infoContent +=
@@ -1097,7 +1071,7 @@ export default Vue.component("research-biosamples-plot", {
 					infoBox.innerHTML = infoContent;
 					infoBox.setAttribute("class", "");
 					infoBox.style.left = rawX + 15 + "px";
-					infoBox.style.top = rawY + this.spaceBy + "px";
+					infoBox.style.top = rawY + localSpaceBy + "px";
 				}
 			}
 
@@ -1425,7 +1399,6 @@ export default Vue.component("research-biosamples-plot", {
 		},
 
 		renderBiosamplesTrack(WHERE) {
-			//console.log("render", WHERE);
 			this.biosamplesPosData = {};
 
 			let staredPositions = [];
@@ -1457,7 +1430,7 @@ export default Vue.component("research-biosamples-plot", {
 			let bottomMargin = this.spaceBy * 2;
 			let regionStart = this.viewingRegion.start;
 			let regionEnd = this.viewingRegion.end;
-			let pvalueFoldWidth = 120;
+			//let pvalueFoldWidth = 240;
 
 			let selectedBiosamples = this.pkgDataSelected
 				.filter((s) => s.type == "Biosample")
@@ -1483,11 +1456,11 @@ export default Vue.component("research-biosamples-plot", {
 			let canvas = document.querySelector("#biosamplesPlot");
 
 			if (!!canvas && !!wrapper) {
-				let canvasWidth = wrapper.clientWidth;
+				let canvasWidth = wrapper.clientWidth * 2;
 				let canvasHeight = tempHeight + topMargin + bottomMargin;
 				let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
-				let plotHeight = tempHeight;
-				let bump = 5.5;
+				//let plotHeight = tempHeight;
+				let bump = 11;
 
 				let xPerPixel = plotWidth / (regionEnd - regionStart);
 
@@ -1495,13 +1468,21 @@ export default Vue.component("research-biosamples-plot", {
 				c = canvas;
 				c.setAttribute("width", canvasWidth);
 				c.setAttribute("height", canvasHeight);
+				c.setAttribute(
+					"style",
+					"width:" +
+						canvasWidth / 2 +
+						"px;height:" +
+						canvasHeight / 2 +
+						"px;"
+				);
 				ctx = c.getContext("2d");
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
 				let renderHeight = annotationTitleH;
 
 				annotationTissueArr.map((at) => {
-					ctx.font = "14px Arial";
+					ctx.font = "28px Arial";
 					ctx.textAlign = "left";
 					ctx.fillStyle = "#000000";
 					ctx.fillText(at, bump, renderHeight);
@@ -1618,8 +1599,14 @@ export default Vue.component("research-biosamples-plot", {
 									xPosWidth,
 									perBiosample - 1
 								);
+								/*let xPosBtn =
+									xPosStart + "_" + (xPosStart + xPosWidth);*/
+
 								let xPosBtn =
-									xPosStart + "_" + (xPosStart + xPosWidth);
+									Math.round(xPosStart / 2) +
+									"_" +
+									Math.round((xPosStart + xPosWidth) / 2);
+
 								this.biosamplesPosData[yPosBtn].regions[
 									xPosBtn
 								] = {
@@ -1628,6 +1615,7 @@ export default Vue.component("research-biosamples-plot", {
 									dataset: p.dataset,
 									method: p.method,
 									source: p.source,
+									state: p.state,
 								};
 							}
 						});
@@ -1637,8 +1625,8 @@ export default Vue.component("research-biosamples-plot", {
 						ctx.fillStyle = "#000000";
 						ctx.textAlign = "start";
 						ctx.textBaseline = "middle";
-						ctx.font = "12px Arial";
-						ctx.fillText(bKey, 5, renderHeight - 4);
+						ctx.font = "24px Arial";
+						ctx.fillText(bKey, 10, renderHeight - 8);
 					}
 
 					renderHeight += btwnAnnotations;
@@ -1808,11 +1796,13 @@ export default Vue.component("research-biosamples-plot", {
 			let numOfPhenotypes = Object.keys(sortedGEData).length;
 
 			let canvasWidth =
-				document.querySelector("#BSGEPlotWrapper").clientWidth * 0.25;
+				document.querySelector("#BSGEPlotWrapper").clientWidth *
+				2 *
+				0.25;
 
 			let allCanvasWidth = canvasWidth * numOfPhenotypes;
 
-			let plotHeight = 130;
+			let plotHeight = 260;
 			let titleSize = this.spaceBy * 2;
 			let canvasHeight =
 				this.plotMargin.topMargin +
@@ -1824,12 +1814,20 @@ export default Vue.component("research-biosamples-plot", {
 				canvasWidth -
 				this.plotMargin.leftMargin -
 				this.plotMargin.rightMargin;
-			let bump = 5.5;
+			let bump = 11;
 
 			let c, ctx;
 			c = document.querySelector("#BSGEPlot");
 			c.setAttribute("width", allCanvasWidth);
 			c.setAttribute("height", canvasHeight);
+			c.setAttribute(
+				"style",
+				"width:" +
+					allCanvasWidth / 2 +
+					"px;height:" +
+					canvasHeight / 2 +
+					"px;"
+			);
 			ctx = c.getContext("2d");
 
 			let pIndex = 0;
@@ -1839,7 +1837,7 @@ export default Vue.component("research-biosamples-plot", {
 
 				let canvasLeft = bump + canvasWidth * pIndex;
 
-				ctx.font = "14px Arial";
+				ctx.font = "28px Arial";
 				ctx.textAlign = "left";
 				ctx.fillStyle = "#000000";
 				ctx.fillText(phenotype, canvasLeft, titleYPos);
@@ -1904,14 +1902,14 @@ export default Vue.component("research-biosamples-plot", {
 						ctx.fillStyle = dotColor;
 						ctx.lineWidth = 0;
 						ctx.beginPath();
-						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+						ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 						ctx.fill();
 
 						if (
 							tValue.fold >= foldArr[2] ||
 							tValue.pValue >= pValArr[2]
 						) {
-							ctx.font = "12px Arial";
+							ctx.font = "24px Arial";
 							ctx.fillStyle =
 								this.annotationOnFocus == "null" ||
 								this.annotationOnFocus == annotation
@@ -1919,41 +1917,41 @@ export default Vue.component("research-biosamples-plot", {
 									: "#00000050";
 							if (xPos > canvasWidth * 0.75) {
 								ctx.textAlign = "right";
-								ctx.fillText(tissue, xPos - 7, yPos + 3);
+								ctx.fillText(tissue, xPos - 14, yPos + 6);
 							} else {
 								ctx.textAlign = "left";
-								ctx.fillText(tissue, xPos + 7, yPos + 3);
+								ctx.fillText(tissue, xPos + 14, yPos + 6);
 							}
 						}
 
-						if (!this.GEPosData[Math.round(yPos)]) {
-							this.GEPosData[Math.round(yPos)] = {};
+						if (!this.GEPosData[Math.round(yPos / 2)]) {
+							this.GEPosData[Math.round(yPos / 2)] = {};
 						}
 						if (
-							!this.GEPosData[Math.round(yPos)][Math.round(xPos)]
+							!this.GEPosData[Math.round(yPos / 2)][
+								Math.round(xPos / 2)
+							]
 						) {
-							this.GEPosData[Math.round(yPos)][Math.round(xPos)] =
-								{};
+							this.GEPosData[Math.round(yPos / 2)][
+								Math.round(xPos / 2)
+							] = {};
 						}
 
-						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
-							tissue
-						] = { pValue: null, fold: null };
+						this.GEPosData[Math.round(yPos / 2)][
+							Math.round(xPos / 2)
+						][tissue] = { pValue: null, fold: null };
 
-						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
-							tissue
-						]["pValue"] = tValue.pValue;
+						this.GEPosData[Math.round(yPos / 2)][
+							Math.round(xPos / 2)
+						][tissue]["pValue"] = tValue.pValue;
 
-						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
-							tissue
-						]["fold"] = tValue.fold;
+						this.GEPosData[Math.round(yPos / 2)][
+							Math.round(xPos / 2)
+						][tissue]["fold"] = tValue.fold;
 
-						this.GEPosData[Math.round(yPos)][Math.round(xPos)][
-							tissue
-						]["annotationIndex"] = annoIndex;
-
-						//tissuesCount++;
-						//firstTissueInAnno++;
+						this.GEPosData[Math.round(yPos / 2)][
+							Math.round(xPos / 2)
+						][tissue]["annotationIndex"] = annoIndex;
 					}
 				});
 
@@ -1978,8 +1976,9 @@ export default Vue.component("research-biosamples-plot", {
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
-			let yAxisXPos =
-				Math.round(XPOS + this.plotMargin.leftMargin - BUMP) - 0.5;
+			let yAxisXPos = Math.round(
+				XPOS + this.plotMargin.leftMargin - BUMP
+			);
 			CTX.moveTo(yAxisXPos, YPOS + this.plotMargin.topMargin);
 			CTX.lineTo(
 				yAxisXPos,
@@ -1994,7 +1993,7 @@ export default Vue.component("research-biosamples-plot", {
 				let tickYPos =
 					YPOS + this.plotMargin.topMargin + i * yTickDistance;
 
-				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickYPos = Math.floor(tickYPos);
 
 				CTX.moveTo(
 					XPOS + this.plotMargin.leftMargin - BUMP * 2,
@@ -2007,7 +2006,7 @@ export default Vue.component("research-biosamples-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "right";
-				CTX.font = "12px Arial";
+				CTX.font = "24px Arial";
 
 				let yMaxMinGap = YMAX - YMIN;
 				let yDecimal = yMaxMinGap <= 1 ? 2 : yMaxMinGap <= 50 ? 1 : 0;
@@ -2065,7 +2064,7 @@ export default Vue.component("research-biosamples-plot", {
 				let tickXPos =
 					XPOS + this.plotMargin.leftMargin + i * xTickDistance;
 
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos);
 
 				CTX.moveTo(
 					adjTickXPos,
@@ -2078,7 +2077,7 @@ export default Vue.component("research-biosamples-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				CTX.font = "12px Arial";
+				CTX.font = "24px Arial";
 
 				let xMaxMinGap = XMAX - XMIN;
 				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
@@ -2108,7 +2107,7 @@ export default Vue.component("research-biosamples-plot", {
 			CTX.fillText(
 				xLabel,
 				XPOS + this.plotMargin.leftMargin + WIDTH / 2,
-				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 12
+				YPOS + HEIGHT + BUMP * 6 + this.plotMargin.topMargin + 24
 			);
 		},
 		array2Object(KEY, ARRAY) {
@@ -2123,7 +2122,7 @@ export default Vue.component("research-biosamples-plot", {
 		renderAnnoAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
-			CTX.strokeStyle = "#999999";
+			CTX.strokeStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
@@ -2132,8 +2131,9 @@ export default Vue.component("research-biosamples-plot", {
 			CTX.stroke();
 
 			// render recombination Rate y axis
-			let recomXpos =
-				Math.round(this.plotMargin.leftMargin + WIDTH + bump) + 0.5;
+			let recomXpos = Math.round(
+				this.plotMargin.leftMargin + WIDTH + bump
+			);
 
 			CTX.moveTo(recomXpos, yPos);
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
@@ -2151,15 +2151,15 @@ export default Vue.component("research-biosamples-plot", {
 
 			for (let i = 0; i < 6; i++) {
 				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos);
 				CTX.moveTo(adjTickXPos, yPos + HEIGHT + bump);
 				CTX.lineTo(adjTickXPos, yPos + HEIGHT + bump * 2);
 				CTX.stroke();
 
 				CTX.textAlign = "center";
 				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
-				CTX.font = "12px Arial";
-				CTX.fillStyle = "#999999";
+				CTX.font = "24px Arial";
+				CTX.fillStyle = "#000000";
 
 				let xMaxMinGap = xMax - xMin;
 				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
@@ -2177,7 +2177,7 @@ export default Vue.component("research-biosamples-plot", {
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
-					yPos + HEIGHT + bump * 4
+					yPos + HEIGHT + bump * 8
 				);
 			}
 		},
@@ -2193,9 +2193,9 @@ export default Vue.component("research-biosamples-plot", {
 			bump
 		) {
 			CTX.beginPath();
-			CTX.lineWidth = 1;
+			CTX.lineWidth = 2;
 			CTX.strokeStyle = "#FFAA00";
-			CTX.setLineDash([3, 3]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([6, 6]); // cancel dashed line incase dashed lines rendered some where
 
 			// render dased lines
 			STARED.map((s) => {

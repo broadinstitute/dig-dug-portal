@@ -1,16 +1,24 @@
 <template>
 	<div class="mbm-plot-content row">
 		<div class="col-md-12 genes-plot-wrapper">
-			<div
-				id="genesTrackWrapper"
-				:class="plotType == 'region plot' ? 'col-md-9' : 'col-md-12'"
-			>
-				<canvas
-					id="genesTrack"
-					@resize="onResize"
-					width=""
-					height=""
-				></canvas>
+			<div class="row">
+				<div
+					id="genesTrackWrapper"
+					:class="
+						plotType == 'region plot' ? 'col-md-9' : 'col-md-12'
+					"
+				>
+					<canvas
+						id="genesTrack"
+						@resize="onResize"
+						width=""
+						height=""
+					></canvas>
+				</div>
+				<div
+					id="genesPEGWrapper"
+					:class="plotType == 'region plot' ? 'col-md-3' : ''"
+				></div>
 			</div>
 		</div>
 	</div>
@@ -118,19 +126,20 @@ export default Vue.component("research-genes-track", {
 			this.renderTrack(this.genesData);
 		},
 		renderTrack(GENES) {
-			//console.log("GENES", GENES);
+			console.log("this.genesData", this.genesData);
 
 			if (!!document.getElementById("genesTrackWrapper")) {
 				let genesArray = GENES;
 				let canvasRenderWidth, canvasRenderHeight;
-				let eachGeneTrackHeight = 30; //15: gene name, 10: gene track, 5: space between tracks
+				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
 
 				canvasRenderWidth = !!this.plotConfig.width
-					? this.plotConfig.width +
+					? this.plotConfig.width * 2 +
 					  this.plotMargin.leftMargin +
 					  this.plotMargin.rightMargin
-					: document.getElementById("genesTrackWrapper").clientWidth -
-					  30; // -30 for padding
+					: document.getElementById("genesTrackWrapper").clientWidth *
+							2 -
+					  60; // -30 for padding
 
 				canvasRenderHeight =
 					this.plotMargin.topMargin +
@@ -150,6 +159,14 @@ export default Vue.component("research-genes-track", {
 				let c = document.getElementById("genesTrack");
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
+				c.setAttribute(
+					"style",
+					"width:" +
+						canvasRenderWidth / 2 +
+						"px;height:" +
+						canvasRenderHeight / 2 +
+						"px;"
+				);
 				let ctx = c.getContext("2d");
 
 				ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
@@ -166,7 +183,7 @@ export default Vue.component("research-genes-track", {
 				let yStart = this.plotMargin.topMargin;
 				let xPosByPixel = plotWidth / (xMax - xMin);
 
-				ctx.font = "italic bold 12px Arial";
+				ctx.font = "italic bold 24px Arial";
 				ctx.textAlign = "center";
 				ctx.fillStyle = "#000000";
 				genesArray.map((gene, geneIndex) => {
@@ -184,10 +201,7 @@ export default Vue.component("research-genes-track", {
 							this.plotMargin.topMargin +
 							geneIndex * eachGeneTrackHeight;
 
-						yPos += yPos % 1 == 0 ? 0.5 : 0;
-
-						//var left = '"\\u' + "2190" + '"';
-						//var right = '"\\u' + "2192" + '"';
+						//yPos += yPos % 1 == 0 ? 0.5 : 0;
 
 						var left = "\u{2190}";
 						var right = "\u{2192}";
@@ -208,8 +222,8 @@ export default Vue.component("research-genes-track", {
 						ctx.strokeStyle = "#000000";
 						ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
-						ctx.moveTo(xStartPos, yPos + 10);
-						ctx.lineTo(xEndPos, yPos + 10);
+						ctx.moveTo(xStartPos, yPos + 20);
+						ctx.lineTo(xEndPos, yPos + 20);
 						ctx.stroke();
 
 						gene.exons.map((exon) => {
@@ -227,13 +241,16 @@ export default Vue.component("research-genes-track", {
 										  (exon.end - xMin) * xPosByPixel
 										: xStart + (xMax - xMin) * xPosByPixel;
 
-								let xonWidth = xonEndPos - xonStartPos;
+								let xonWidth =
+									xonEndPos - xonStartPos <= 1
+										? 1
+										: xonEndPos - xonStartPos;
 
 								ctx.fillRect(
 									xonStartPos,
-									yPos + 5,
-									xonWidth - 0.5,
-									9.5
+									yPos + 10,
+									xonWidth,
+									20
 								);
 							}
 						});

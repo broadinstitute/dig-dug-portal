@@ -44,12 +44,21 @@
 											credibleSet.phenotype
 										"
 										v-html="
-											credibleSet.credibleSetId +
-											'(' +
-											credibleSet.phenotype +
-											', ' +
-											credibleSet.dataset +
-											')'
+											renderConfig[
+												'credible sets server'
+											] == 'KP BioIndex'
+												? credibleSet.credibleSetId +
+												  ' (Method:' +
+												  credibleSet.method +
+												  ', PMID:' +
+												  credibleSet.pmid +
+												  ')'
+												: credibleSet.credibleSetId +
+												  '(' +
+												  credibleSet.phenotype +
+												  ', ' +
+												  credibleSet.dataset +
+												  ')'
 										"
 										:value="
 											credibleSet.credibleSetId +
@@ -181,7 +190,7 @@ export default Vue.component("research-credible-sets-plot", {
 			credibleSets: [],
 			CSData: {},
 			CSPosData: {},
-			spaceBy: 7,
+			spaceBy: 14,
 			test: null,
 		};
 	},
@@ -604,12 +613,12 @@ export default Vue.component("research-credible-sets-plot", {
 			let canvas = document.querySelector("#CSPlot");
 			let wrapper = document.querySelector("#CSPlotWrapper");
 			if (!!canvas && !!wrapper) {
-				let perPhenotype = 50;
+				let perPhenotype = 100;
 				let phenotypeTitleH = this.spaceBy * 2;
 				let btwnPhenotype = this.spaceBy * 7;
 				let bump = this.plotMargin.bump;
 
-				let canvasWidth = wrapper.clientWidth;
+				let canvasWidth = wrapper.clientWidth * 2;
 				let canvasHeight = this.plotMargin.topMargin;
 
 				let plotWidth =
@@ -628,6 +637,14 @@ export default Vue.component("research-credible-sets-plot", {
 
 				canvas.setAttribute("width", canvasWidth);
 				canvas.setAttribute("height", canvasHeight);
+				canvas.setAttribute(
+					"style",
+					"margin-left: -15px; width:" +
+						canvasWidth / 2 +
+						"px;height:" +
+						canvasHeight / 2 +
+						"px;"
+				);
 
 				let c, ctx;
 				c = canvas;
@@ -640,7 +657,7 @@ export default Vue.component("research-credible-sets-plot", {
 						for (const [phenotype, credibleSets] of Object.entries(
 							this.CSData
 						)) {
-							ctx.font = "14px Arial";
+							ctx.font = "24px Arial";
 							ctx.textAlign = "left";
 							ctx.fillStyle = "#000000";
 							ctx.fillText(
@@ -711,8 +728,8 @@ export default Vue.component("research-credible-sets-plot", {
 												xPos,
 												yPos,
 												5,
+												10,
 												6,
-												3,
 												dotColor,
 												dotColor
 											);
@@ -725,18 +742,23 @@ export default Vue.component("research-credible-sets-plot", {
 											);
 										}
 
-										if (!this.CSPosData[Math.round(yPos)]) {
-											this.CSPosData[Math.round(yPos)] =
-												{};
-										}
 										if (
-											!this.CSPosData[Math.round(yPos)][
-												Math.round(xPos)
+											!this.CSPosData[
+												Math.round(yPos / 2)
 											]
 										) {
-											this.CSPosData[Math.round(yPos)][
-												Math.round(xPos)
+											this.CSPosData[
+												Math.round(yPos / 2)
 											] = {};
+										}
+										if (
+											!this.CSPosData[
+												Math.round(yPos / 2)
+											][Math.round(xPos / 2)]
+										) {
+											this.CSPosData[
+												Math.round(yPos / 2)
+											][Math.round(xPos / 2)] = {};
 										}
 
 										let tempObj = {};
@@ -755,8 +777,8 @@ export default Vue.component("research-credible-sets-plot", {
 											}
 										);
 
-										this.CSPosData[Math.round(yPos)][
-											Math.round(xPos)
+										this.CSPosData[Math.round(yPos / 2)][
+											Math.round(xPos / 2)
 										][v[this.renderConfig["render by"]]] =
 											tempObj;
 
@@ -766,7 +788,7 @@ export default Vue.component("research-credible-sets-plot", {
 								});
 
 								if (inRegion == 0) {
-									ctx.font = "14px Arial";
+									ctx.font = "28px Arial";
 									ctx.textAlign = "center";
 									ctx.fillStyle = "#000000";
 									ctx.fillText(
@@ -826,13 +848,13 @@ export default Vue.component("research-credible-sets-plot", {
 			CTX.fillStyle = DOT_COLOR;
 			CTX.lineWidth = 0;
 			CTX.beginPath();
-			CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
+			CTX.arc(XPOS, YPOS, 8, 0, 2 * Math.PI);
 			CTX.fill();
 		},
 		renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
-			CTX.strokeStyle = "#999999";
+			CTX.strokeStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 			// render y axis
@@ -841,28 +863,26 @@ export default Vue.component("research-credible-sets-plot", {
 			CTX.stroke();
 
 			// render recombination Rate y axis
-			let recomXpos =
-				Math.round(this.plotMargin.leftMargin + WIDTH + bump) + 0.5;
+			let recomXpos = Math.round(
+				this.plotMargin.leftMargin + WIDTH + bump
+			);
 
 			CTX.moveTo(recomXpos, yPos);
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
 
 			// Y ticks
-			CTX.moveTo(this.plotMargin.leftMargin - bump * 2, yPos + 0.5);
-			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + 0.5);
+			CTX.moveTo(this.plotMargin.leftMargin - bump * 2, yPos);
+			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos);
 			CTX.stroke();
 
-			CTX.moveTo(
-				this.plotMargin.leftMargin - bump * 2,
-				yPos + HEIGHT + 0.5
-			);
-			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + 0.5);
+			CTX.moveTo(this.plotMargin.leftMargin - bump * 2, yPos + HEIGHT);
+			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT);
 			CTX.stroke();
 
 			CTX.textAlign = "right";
-			CTX.font = "12px Arial";
-			CTX.fillStyle = "#999999";
+			CTX.font = "24px Arial";
+			CTX.fillStyle = "#000000";
 			CTX.fillText(
 				"1",
 				this.plotMargin.leftMargin - bump * 3,
@@ -886,7 +906,7 @@ export default Vue.component("research-credible-sets-plot", {
 
 			for (let i = 0; i < 6; i++) {
 				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
 				CTX.moveTo(adjTickXPos, yPos + HEIGHT + bump);
 				CTX.lineTo(adjTickXPos, yPos + HEIGHT + bump * 2);
 				CTX.stroke();
@@ -900,8 +920,8 @@ export default Vue.component("research-credible-sets-plot", {
 						? Math.round(positionLabel * 0.001) + "k"
 						: positionLabel;
 
-				CTX.font = "12px Arial";
-				CTX.fillStyle = "#999999";
+				CTX.font = "24px Arial";
+				CTX.fillStyle = "#000000";
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,

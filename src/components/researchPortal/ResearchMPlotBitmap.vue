@@ -95,10 +95,10 @@ export default Vue.component("research-m-bitmap-plot", {
 				"#3f007d",
 				"#cb181d",
 			],
-			leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			rightMargin: 0.5,
-			topMargin: 10.5, // -0.5 to draw crisp line
-			bottomMargin: 50.5,
+			leftMargin: 150, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
+			rightMargin: 1,
+			topMargin: 20, // -0.5 to draw crisp line
+			bottomMargin: 100,
 			dotPosData: {},
 			compareGroups: null,
 		};
@@ -408,16 +408,20 @@ export default Vue.component("research-m-bitmap-plot", {
 			wrapper.classList.add("hidden");
 
 			let canvasRenderWidth = !!this.renderConfig.width
-				? this.renderConfig.width + this.leftMargin + this.rightMargin
-				: window.innerWidth - 115;
+				? this.renderConfig.width * 2 +
+				  this.leftMargin +
+				  this.rightMargin
+				: (window.innerWidth - 115) * 2;
 
 			let canvasRenderHeight = !!this.renderConfig.height
-				? this.renderConfig.height + this.topMargin + this.bottomMargin
-				: 400;
+				? this.renderConfig.height * 2 +
+				  this.topMargin +
+				  this.bottomMargin
+				: 800;
 
 			let xBump = canvasRenderWidth * 0.02;
 			let yBump = canvasRenderHeight * 0.02;
-			let bump = 5;
+			let bump = 10;
 
 			let plotWidth =
 				canvasRenderWidth -
@@ -432,6 +436,14 @@ export default Vue.component("research-m-bitmap-plot", {
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
 					c.setAttribute("height", canvasRenderHeight);
+					c.setAttribute(
+						"style",
+						"width:" +
+							canvasRenderWidth / 2 +
+							"px;height:" +
+							canvasRenderHeight / 2 +
+							"px;"
+					);
 					let ctx = c.getContext("2d");
 
 					ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
@@ -491,12 +503,12 @@ export default Vue.component("research-m-bitmap-plot", {
 
 					for (let i = 0; i < 5; i++) {
 						let tickYPos = this.topMargin + i * yTickDistance;
-						let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+						let adjTickYPos = Math.floor(tickYPos);
 						ctx.moveTo(this.leftMargin - bump * 2, adjTickYPos);
 						ctx.lineTo(this.leftMargin - bump, adjTickYPos);
 						ctx.stroke();
 
-						ctx.font = "12px Arial";
+						ctx.font = "24px Arial";
 						ctx.textAlign = "right";
 						ctx.fillStyle = "#000000";
 
@@ -509,21 +521,21 @@ export default Vue.component("research-m-bitmap-plot", {
 						ctx.fillText(
 							yTickText,
 							this.leftMargin - bump * 3,
-							this.topMargin + plotHeight + 5 - i * yTickDistance
+							this.topMargin + plotHeight + 10 - i * yTickDistance
 						);
 					}
 
 					ctx.stroke();
 
 					//Render y axis label
-					ctx.font = "14px Arial";
+					ctx.font = "28px Arial";
 					ctx.textAlign = "center";
 					ctx.fillStyle = "#000000";
 					ctx.rotate(-(Math.PI * 2) / 4);
 					ctx.fillText(
 						this.renderConfig["y axis label"],
 						-(this.topMargin + plotHeight / 2),
-						this.leftMargin - this.leftMargin / 2 - 14
+						this.leftMargin - this.leftMargin / 2 - 28
 					);
 
 					let dnaLength = 0;
@@ -566,7 +578,7 @@ export default Vue.component("research-m-bitmap-plot", {
 						ctx.fillText(
 							chr,
 							chrPos,
-							this.topMargin + plotHeight + yBump + 14 + bump
+							this.topMargin + plotHeight + yBump + 28 + bump
 						);
 					});
 
@@ -575,7 +587,7 @@ export default Vue.component("research-m-bitmap-plot", {
 					ctx.fillText(
 						this.renderConfig["x axis label"],
 						plotWidth / 2 + this.leftMargin,
-						this.topMargin + plotHeight + yBump + 44
+						this.topMargin + plotHeight + yBump + 88
 					);
 
 					//Render Dots
@@ -607,11 +619,15 @@ export default Vue.component("research-m-bitmap-plot", {
 
 							ctx.lineWidth = 0;
 							ctx.beginPath();
-							ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+							ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 							ctx.fill();
 
-							let xLoc = xPos.toString().split(".")[0];
-							let yLoc = yPos.toString().split(".")[0];
+							let xLoc = Math.round(
+								xPos.toString().split(".")[0] / 2
+							);
+							let yLoc = Math.round(
+								yPos.toString().split(".")[0] / 2
+							);
 
 							let hoverContent;
 
@@ -637,6 +653,8 @@ export default Vue.component("research-m-bitmap-plot", {
 								});
 							}
 						});
+
+						console.log(this.dotPosData);
 
 						xStart += this.chromosomeLength[chr];
 

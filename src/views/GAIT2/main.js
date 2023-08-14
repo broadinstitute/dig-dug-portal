@@ -48,11 +48,11 @@ new Vue({
     data() {
         return {
             plotMargin: {
-                leftMargin: 75,
-                rightMargin: 20,
-                topMargin: 10,
-                bottomMargin: 50,
-                bump: 5.5,
+                leftMargin: 150,
+                rightMargin: 40,
+                topMargin: 20,
+                bottomMargin: 100,
+                bump: 11,
             },
             colors: {
                 mild: [
@@ -149,6 +149,7 @@ new Vue({
             matchingGenes: [],
             showAnnotations: false,
             showVariants: false,
+            noVariants: false,
             showCovariances: false,
             loadingAnnotations: false,
             loadingVariants: false,
@@ -754,6 +755,7 @@ new Vue({
             //parse the region string
             this.loadingVariants = true;
             this.showVariants = true;
+            this.noVariants = false;
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
@@ -766,6 +768,15 @@ new Vue({
                       };
                   })
                 : [];
+
+            if (regions.length === 0) {
+                this.loadingVariants = false;
+                this.showVariants = false;
+                console.log("no regions found");
+                this.noVariants = true;
+                this.pageCovariances = [];
+                return;
+            }
 
             //using hardcoded test samples
             let input = {

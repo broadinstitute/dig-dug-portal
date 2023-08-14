@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-show="showPlot && phenotypeMap">
+        <div v-show="showPlot">
             <manhattan-plot
                 :associations="combinedAssociations"
                 :phenotypes="phenotypes"
@@ -13,7 +13,6 @@
                     Combined P-Value(Χ²) across
                     <a
                         v-for="p in phenotypes"
-                        :key="p"
                         class="item"
                         :href="`/phenotype.html?phenotype=${p}`"
                         >{{ phenotypeMap[p].description }}</a
@@ -24,10 +23,10 @@
 
         <div v-if="tableData.length > 0">
             <div class="text-right mb-2">
-                <csv-download
+                <data-download
                     :data="groupedAssociations"
                     filename="gene_table"
-                ></csv-download>
+                ></data-download>
             </div>
             <b-table
                 hover
@@ -48,7 +47,7 @@
                     <b-th
                         v-for="(phenotype, i) in phenotypes"
                         :key="phenotype"
-                        colspan="2"
+                        colspan="3"
                         class="reference"
                         :class="'color-' + (i + 1)"
                     >
@@ -71,11 +70,11 @@
                     #[phenotypePValueColumn(p)]="r"
                     >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
                 >
-                <!-- <template
-                    v-slot:[phenotypeVariantsColumn(p)]="r"
+                <template
                     v-for="p in phenotypes"
+                    #[phenotypeVariantsColumn(p)]="r"
                     >{{ intFormatter(r.item[`${p}:nParam`]) }}</template
-                > -->
+                >
                 <template
                     v-for="p in phenotypes"
                     #[phenotypeSubjectsColumn(p)]="r"
@@ -101,7 +100,6 @@ import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -109,12 +107,11 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 
 export default Vue.component("GeneFinderTable", {
     components: {
-        CsvDownload,
-        ManhattanPlot,
+        DataDownload,
     },
     props: [
         "associations",
@@ -177,10 +174,10 @@ export default Vue.component("GeneFinderTable", {
                         },
                         sortable: true,
                     },
-                    // {
-                    //     key: `${p}:nParam`,
-                    //     label: "Variants"
-                    // },
+                    {
+                        key: `${p}:nParam`,
+                        label: "Variants",
+                    },
                     {
                         key: `${p}:subjects`,
                         label: "Samples",

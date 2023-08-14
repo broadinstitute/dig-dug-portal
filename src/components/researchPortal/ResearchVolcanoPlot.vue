@@ -9,8 +9,15 @@
 			@mouseleave="hidePanel"
 			@mousemove="checkPosition"
 			@click="filterTable"
-			:width="renderConfig.width + 120"
-			:height="renderConfig.height + 120"
+			:width="renderConfig.width * 2 + 240"
+			:height="renderConfig.height * 2 + 240"
+			:style="
+				'width:' +
+				(renderConfig.width + 120) +
+				'px;height:' +
+				(renderConfig.height + 120) +
+				'px;'
+			"
 		>
 		</canvas>
 		<!--<div id="clicked_dot_indicator" class=""></div>-->
@@ -34,7 +41,7 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("research-volcano-plot", {
 	props: ["plotData", "renderConfig", "geneOfInterest"],
 	data() {
-		return {};
+		return { posData: {} };
 	},
 	modules: {
 		uiUtils,
@@ -64,72 +71,6 @@ export default Vue.component("research-volcano-plot", {
 			});
 
 			return massagedData;
-		},
-		volcanoDotPos() {
-			let xAxisData = [];
-			let yAxisData = [];
-			let canvasWidth = this.renderConfig.width;
-			let canvasHeight = this.renderConfig.height;
-			let leftMargin = 74.5; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			let topMargin = 44.5; // -0.5 to draw crisp line
-
-			let xBump = this.renderConfig.width * 0.02;
-			let yBump = this.renderConfig.height * 0.02;
-			this.renderData.map((d) => {
-				xAxisData.push(d[this.renderConfig["x axis field"]]);
-				yAxisData.push(d[this.renderConfig["y axis field"]]);
-			});
-
-			let xMin = Math.min.apply(Math, xAxisData);
-			let xMax = Math.max.apply(Math, xAxisData);
-
-			let yMin = Math.min.apply(Math, yAxisData);
-			let yMax = Math.max.apply(Math, yAxisData);
-
-			let xAxisTicks = uiUtils.getAxisTicks(xMin, xMax);
-			let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
-			let xPosMax = xAxisTicks.lo + xAxisTicks.step * 5;
-			let yPosMax = yAxisTicks.lo + yAxisTicks.step * 5;
-			let dotPos = {};
-
-			this.renderData.map((d) => {
-				//Actual rendering position
-				let xPos =
-					leftMargin +
-					xBump +
-					canvasWidth *
-						((d[this.renderConfig["x axis field"]] -
-							xAxisTicks.lo) /
-							(xPosMax - xAxisTicks.lo));
-				let yPos =
-					topMargin +
-					canvasHeight -
-					canvasHeight *
-						((d[this.renderConfig["y axis field"]] -
-							yAxisTicks.lo) /
-							(yPosMax - yAxisTicks.lo));
-
-				dotPos[
-					Formatters.intFormatter(xPos) +
-						"_" +
-						Formatters.intFormatter(yPos)
-				] = d[this.renderConfig["render by"]];
-
-				if (!!dotPos[Formatters.intFormatter(xPos)]) {
-					dotPos[Formatters.intFormatter(xPos)][
-						Formatters.intFormatter(yPos)
-					] = d[this.renderConfig["render by"]];
-				} else {
-					dotPos[Formatters.intFormatter(xPos)] = {};
-					dotPos[Formatters.intFormatter(xPos)][
-						Formatters.intFormatter(yPos)
-					] = d[this.renderConfig["render by"]];
-				}
-			});
-
-			//console.log("dotPos", dotPos);
-
-			return dotPos;
 		},
 	},
 	watch: {
@@ -175,6 +116,7 @@ export default Vue.component("research-volcano-plot", {
 			var x = Math.floor(e.clientX - rect.left);
 			var y = Math.floor(e.clientY - rect.top);
 
+			//console.log(x, y);
 			let canvas = document.getElementById("volcanoPlot");
 
 			wrapper.style.top = y + canvas.offsetTop + "px";
@@ -184,20 +126,21 @@ export default Vue.component("research-volcano-plot", {
 			let redDotsArr = [];
 
 			for (let h = -3; h <= 3; h++) {
-				for (let v = -3; v <= 3; v++) {
-					if (this.volcanoDotPos[x + h] != undefined) {
-						if (this.volcanoDotPos[x + h][y + v] != undefined) {
-							//console.log(this.volcanoDotPos[x + h][y + v]);
+				if (!!this.posData[x + h]) {
+					for (let v = -3; v <= 3; v++) {
+						if (!!this.posData[x + h][y + v]) {
 							let tempObj = {};
 							tempObj["x"] = x + h;
 							tempObj["y"] = y + v;
 
 							redDotsArr.push(tempObj);
 
-							clickedDotValue +=
-								'<span class="gene-on-clicked-dot-volcano">' +
-								this.volcanoDotPos[x + h][y + v] +
-								"</span>";
+							this.posData[x + h][y + v].map((g) => {
+								clickedDotValue +=
+									'<span class="gene-on-clicked-dot-volcano">' +
+									g +
+									"</span>";
+							});
 						}
 					}
 				}
@@ -221,30 +164,25 @@ export default Vue.component("research-volcano-plot", {
 			ctx.clearRect(
 				0,
 				0,
-				this.renderConfig.width + 120,
-				this.renderConfig.height + 120
+				this.renderConfig.width * 2 + 240,
+				this.renderConfig.height * 2 + 240
 			);
 		},
 		renderPlot(REDDOTS) {
 			let xAxisData = [];
 			let yAxisData = [];
 
-			let canvasWidth = this.renderConfig.width;
-			let canvasHeight = this.renderConfig.height;
-			let leftMargin = 74.5; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			let topMargin = 44.5; // -0.5 to draw crisp line
+			let canvasWidth = this.renderConfig.width * 2;
+			let canvasHeight = this.renderConfig.height * 2;
+			let leftMargin = 74.5 * 2; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
+			let topMargin = 44.5 * 2; // -0.5 to draw crisp line
 
-			let xBump = this.renderConfig.width * 0.02;
-			let yBump = this.renderConfig.height * 0.02;
+			let xBump = canvasWidth * 0.04;
+			let yBump = canvasHeight * 0.04;
 
 			var c = document.getElementById("volcanoPlot");
 			var ctx = c.getContext("2d");
-			ctx.clearRect(
-				0,
-				0,
-				this.renderConfig.width + 120,
-				this.renderConfig.height + 120
-			);
+			ctx.clearRect(0, 0, canvasWidth + 240, canvasHeight + 240);
 
 			ctx.beginPath();
 			ctx.lineWidth = 1;
@@ -280,11 +218,11 @@ export default Vue.component("research-volcano-plot", {
 				);
 				ctx.lineTo(
 					leftMargin + i * xTickDistance + xBump,
-					canvasHeight + topMargin + 5 + yBump
+					canvasHeight + topMargin + 10 + yBump
 				);
 				ctx.stroke();
 
-				ctx.font = "12px Arial";
+				ctx.font = "24px Arial";
 				ctx.textAlign = "center";
 				ctx.fillStyle = "#000000";
 
@@ -292,7 +230,7 @@ export default Vue.component("research-volcano-plot", {
 					ctx.fillText(
 						0,
 						leftMargin + i * xTickDistance + xBump,
-						topMargin + canvasHeight + 17 + yBump
+						topMargin + canvasHeight + 34 + yBump
 					);
 				} else {
 					ctx.fillText(
@@ -300,18 +238,18 @@ export default Vue.component("research-volcano-plot", {
 							xAxisTicks.lo + i * xAxisTicks.step
 						),
 						leftMargin + i * xTickDistance + xBump,
-						topMargin + canvasHeight + 17 + yBump
+						topMargin + canvasHeight + 34 + yBump
 					);
 				}
 			}
 			//Render x axis label
-			ctx.font = "14px Arial";
+			ctx.font = "28px Arial";
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
 			ctx.fillText(
 				this.renderConfig["x axis label"],
 				leftMargin + canvasWidth / 2,
-				topMargin + canvasHeight + 45 + yBump
+				topMargin + canvasHeight + 70 + yBump
 			);
 
 			// render y axis
@@ -324,14 +262,14 @@ export default Vue.component("research-volcano-plot", {
 				ctx.lineTo(leftMargin, topMargin + i * yTickDistance);
 				ctx.stroke();
 
-				ctx.font = "12px Arial";
+				ctx.font = "24px Arial";
 				ctx.textAlign = "right";
 				ctx.fillStyle = "#000000";
 
 				if (yAxisTicks.lo + yAxisTicks.step * i == 0) {
 					ctx.fillText(
 						0,
-						leftMargin - 7,
+						leftMargin - 14,
 						topMargin + (5 - i) * yTickDistance + 3
 					);
 				} else {
@@ -339,26 +277,26 @@ export default Vue.component("research-volcano-plot", {
 						Formatters.floatFormatter(
 							yAxisTicks.lo + yAxisTicks.step * i
 						),
-						leftMargin - 7,
+						leftMargin - 14,
 						topMargin + (5 - i) * yTickDistance + 3
 					);
 				}
 			}
 
 			//Render y axis label
-			ctx.font = "14px Arial";
+			ctx.font = "28px Arial";
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
-			ctx.rotate(-(Math.PI * 2) / 4);
+			ctx.rotate(-(90 * Math.PI) / 180);
 			ctx.fillText(
 				this.renderConfig["y axis label"],
 				-(topMargin + canvasHeight / 2),
-				leftMargin - 55
+				leftMargin - 110
 			);
 
 			//render dots
 
-			ctx.rotate((Math.PI * 2) / 4);
+			ctx.rotate((90 * Math.PI) / 180);
 			let xPosMax = xAxisTicks.lo + xAxisTicks.step * 5;
 			let yPosMax = yAxisTicks.lo + yAxisTicks.step * 5;
 
@@ -380,6 +318,20 @@ export default Vue.component("research-volcano-plot", {
 						((d[this.renderConfig["y axis field"]] -
 							yAxisTicks.lo) /
 							(yPosMax - yAxisTicks.lo));
+
+				///Feed posData
+
+				if (!this.posData[Math.round(xPos / 2)]) {
+					this.posData[Math.round(xPos / 2)] = {};
+				}
+				if (!this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)]) {
+					this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)] =
+						[];
+				}
+
+				this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)].push(
+					d[this.renderConfig["render by"]]
+				);
 
 				let fillScore = 0;
 
@@ -479,26 +431,25 @@ export default Vue.component("research-volcano-plot", {
 
 				ctx.lineWidth = 0;
 				ctx.beginPath();
-				ctx.arc(xPos, yPos, 3, 0, 2 * Math.PI);
+				ctx.arc(xPos, yPos, 6, 0, 2 * Math.PI);
 				ctx.fill();
 
 				if (
 					!!this.renderConfig["dot label score"] &&
 					fillScore >= this.renderConfig["dot label score"]
 				) {
-					ctx.font = "12px Arial";
+					ctx.font = "24px Arial";
 					ctx.textAlign = "center";
 					ctx.fillStyle = "#000000";
 					ctx.fillText(
 						d[this.renderConfig["render by"]],
 						xPos,
-						yPos - 4
+						yPos - 8
 					);
 				}
 			});
 
 			// reder hovering dots in red
-			//console.log(!!this.volcanoDotPos);
 
 			if (REDDOTS != undefined) {
 				REDDOTS.map((dot) => {
@@ -507,7 +458,7 @@ export default Vue.component("research-volcano-plot", {
 					ctx.fillStyle = "#ff0000";
 					ctx.lineWidth = 0;
 					ctx.beginPath();
-					ctx.arc(redXPos, redYPos, 4, 0, 2 * Math.PI);
+					ctx.arc(redXPos, redYPos, 8, 0, 2 * Math.PI);
 					ctx.fill();
 				});
 			}
@@ -545,13 +496,13 @@ export default Vue.component("research-volcano-plot", {
 						ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
 						ctx.fill();
 
-						ctx.font = "12px Arial";
+						ctx.font = "24px Arial";
 						ctx.textAlign = "center";
 						ctx.fillStyle = "#FF0000";
 						ctx.fillText(
 							d[this.renderConfig["render by"]],
 							xPos,
-							yPos - 6
+							yPos - 12
 						);
 					}
 				});

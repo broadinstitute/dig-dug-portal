@@ -19,6 +19,7 @@ export default {
     state() {
         return {
             host,
+            diseaseSystems: [],
             diseaseGroups: [],
             phenotypes: [],
             ancestries: [],
@@ -34,6 +35,9 @@ export default {
     },
 
     mutations: {
+        setDiseaseSystems(state, data) {
+            state.diseaseSystems = data;
+        },
         setDiseaseGroups(state, data) {
             state.diseaseGroups = data;
         },
@@ -117,6 +121,15 @@ export default {
     },
 
     actions: {
+        // fetch all disease systems with phenotypes
+        async getDiseaseSystems({ commit }) {
+            let json = await fetch(
+                `${BIO_INDEX_HOST}/api/portal/systems`
+            ).then(resp => resp.json());
+
+            // set the portal list
+            commit("setDiseaseSystems", json.data);
+        },
         // fetch all disease groups from the bio index
         async getDiseaseGroups({ commit }) {
             let json = await fetch(
@@ -182,7 +195,7 @@ export default {
         async getUser(context, access_token) {
             let data = await fetch(
                 "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                    access_token
+                access_token
             ).then(response => response.json());
 
             context.commit("setUser", data.email);

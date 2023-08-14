@@ -5,6 +5,7 @@
 			v-if="$parent.displayOnKP == true"
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
 		<!--  Research page Header -->
@@ -95,6 +96,16 @@
 				<div class="row card-body">
 					<div class="col-md-12">
 						<h3 v-html="$parent.pageTitle"></h3>
+						<div
+							v-if="
+								!!$parent.apiParameters &&
+								!!$parent.apiParameters[
+									'parameters in sub header'
+								]
+							"
+							id="rpSubHeader"
+							class="rp-sub-header"
+						></div>
 					</div>
 				</div>
 			</div>
@@ -146,40 +157,45 @@
 				</ul>
 			</div>
 			<!-- tabs content -->
+
 			<div class="kp-tabs-contents" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
 					<div class="row">
-						<div
-							class="col-md-12"
+						<template
 							v-if="
-								($parent.dataFilters != null &&
-									$parent.researchData != null) ||
-								$parent.dataFiles.length > 1 ||
-								$parent.apiParameters != null
+								!!$store.state.bioPortal.phenotypes &&
+								$store.state.bioPortal.phenotypes.length > 0 &&
+								$parent.dataFilesLabels != null
 							"
 						>
-							<research-page-filters
-								:dataFiles="$parent.dataFiles"
-								:filesListLabels="
+							<div
+								class="col-md-12"
+								v-if="
+									($parent.dataFilters != null &&
+										$parent.researchData != null) ||
 									$parent.dataFiles.length > 1 ||
-									$parent.dataFilesLabels != false
-										? $parent.dataFilesLabels
-										: null
+									$parent.apiParameters != null
 								"
-								:apiParameters="$parent.apiParameters"
-								:dataComparisonConfig="
-									$parent.dataComparisonConfig
-								"
-								:dataType="$parent.dataType"
-								:isAPI="$parent.isAPI"
-								:uid="$parent.uid"
-								:filters="$parent.dataFilters"
-								:filterWidth="$parent.filterWidth"
-								:dataset="$store.state.filteredData"
-								:unfilteredDataset="$store.state.unfilteredData"
-							></research-page-filters>
-						</div>
-
+							>
+								<research-page-filters
+									:dataFiles="$parent.dataFiles"
+									:filesListLabels="$parent.dataFilesLabels"
+									:apiParameters="$parent.apiParameters"
+									:dataComparisonConfig="
+										$parent.dataComparisonConfig
+									"
+									:dataType="$parent.dataType"
+									:isAPI="$parent.isAPI"
+									:uid="$parent.uid"
+									:filters="$parent.dataFilters"
+									:filterWidth="$parent.filterWidth"
+									:dataset="$store.state.filteredData"
+									:unfilteredDataset="
+										$store.state.unfilteredData
+									"
+								></research-page-filters>
+							</div>
+						</template>
 						<!-- plots -->
 						<div
 							class="col-md-12 zoom-ui-wrapper"
@@ -481,6 +497,9 @@
 								"
 								:pkgData="$store.state.pkgData"
 								:pkgDataSelected="$store.state.pkgDataSelected"
+								:region="$store.state.searchingRegion"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
 							>
 							</research-gem-data-table>
 						</div>
@@ -518,6 +537,16 @@
 			</div>
 		</div>
 
+		<div
+			class="no-data-warning"
+			id="noDataWarning"
+			v-if="
+				!!$parent.researchDataEmpty && $parent.researchDataEmpty == true
+			"
+		>
+			No data is available for the last search. Please try a new search.
+		</div>
+
 		<!-- Research portal Footer-->
 		<research-page-footer
 			v-if="$parent.displayOnKP == null"
@@ -536,6 +565,18 @@
 @import url("/css/tooltipDocumentation.css");
 html {
 	font-size: 14px !important;
+}
+.no-data-warning {
+	background-color: #ffaaaa;
+	position: fixed;
+	z-index: 10010;
+	bottom: 30px;
+	right: 30px;
+	width: 300px;
+	padding: 20px 20px;
+	border: solid 1px #dd6666;
+	border-radius: 5px;
+	color: #ffffff;
 }
 #alert_pop_up {
 	position: fixed;
@@ -604,5 +645,40 @@ html {
 }
 .direction-negative {
 	color: #ff0000;
+}
+
+.rp-sub-header {
+	position: relative;
+	border-top: solid 1px #dddddd;
+	font-size: 16px;
+	margin-top: 15px;
+}
+
+.rp-sub-header-label {
+	display: block;
+	position: absolute;
+	font-size: 10px;
+	color: #eeeeee;
+	top: -1px;
+	background-color: #666666;
+	padding: 0 5px;
+	right: 0;
+}
+
+.rp-sub-header span.rp-sub-header-search-param-label,
+.rp-sub-header span.rp-sub-header-search-param {
+	display: inline-block;
+}
+.rp-sub-header span.rp-sub-header-search-param-label:first-letter {
+	text-transform: uppercase;
+}
+
+.rp-sub-header span.rp-sub-header-search-param {
+	font-size: 20px;
+	margin-right: 20px;
+}
+
+.research-data-table td.multi-value-td span {
+	height: 27px !important;
 }
 </style>

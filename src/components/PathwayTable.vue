@@ -2,10 +2,10 @@
     <div id="pathways">
         <div v-if="rows > 0">
             <div class="text-right mb-2">
-                <csv-download
+                <data-download
                     :data="pathwayData"
-                    filename="genetic_correlations"
-                ></csv-download>
+                    filename="top_pathways"
+                ></data-download>
             </div>
             <b-table
                 hover
@@ -18,8 +18,8 @@
             >
             </b-table>
             <b-pagination
-                class="pagination-sm justify-content-center"
                 v-model="currentPage"
+                class="pagination-sm justify-content-center"
                 :total-rows="rows"
                 :per-page="perPage"
             ></b-pagination>
@@ -30,7 +30,11 @@
 <script>
 import Vue from "vue";
 import Formatters from "@/utils/formatters";
-export default Vue.component("pathway-table", {
+import DataDownload from "@/components/DataDownload.vue";
+export default Vue.component("PathwayTable", {
+    components: {
+        DataDownload,
+    },
     props: ["pathwayData", "filter"],
     data() {
         return {
@@ -40,17 +44,15 @@ export default Vue.component("pathway-table", {
             fields: [
                 {
                     key: "pathwayName",
-                    label: "Pathway"
+                    label: "Pathway",
                 },
                 {
                     key: "pValue",
                     label: "P-Value",
                     formatter: Formatters.pValueFormatter,
                     tdClass(x) {
-							return !!x && x < 1e-5
-								? "variant-table-cell high"
-								: "";
-						}
+                        return !!x && x < 1e-5 ? "variant-table-cell high" : "";
+                    },
                 },
                 {
                     key: "beta",
@@ -60,19 +62,19 @@ export default Vue.component("pathway-table", {
                 {
                     key: "stdErr",
                     label: "Standard error",
-                    formatter: Formatters.effectFormatter
-                }
-            ]
+                    formatter: Formatters.effectFormatter,
+                },
+            ],
         };
     },
     computed: {
-        rows(){
+        rows() {
             return this.tableData.length;
         },
         tableData() {
             let dataRows = this.pathwayData;
             let filter = this.filter;
-            if (!!filter) {
+            if (filter) {
                 dataRows = dataRows.filter((row) => filter(row));
             }
             return dataRows;
@@ -82,16 +84,14 @@ export default Vue.component("pathway-table", {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
-        getDescription(phenotypeCode){
+        getDescription(phenotypeCode) {
             let phenotypeEntry = this.phenotypeMap[phenotypeCode];
-            if (!phenotypeEntry || !phenotypeEntry.description){
+            if (!phenotypeEntry || !phenotypeEntry.description) {
                 return phenotypeCode;
             }
             return phenotypeEntry.description;
-        }
+        },
     },
-    watch: {
-    }
 });
 </script>
 <style>
@@ -101,4 +101,3 @@ label {
     margin: 10px;
 }
 </style>
-

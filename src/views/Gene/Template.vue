@@ -4,13 +4,30 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
+			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
+		<!-- warning in case gene name isn't valid -->
+		<div class="invalid-gene-warning hidden" id="invalidGeneWarning">
+			<a
+				class="invalid-gene-hide-warning"
+				@click="$parent.hideGeneWarning()"
+				>X</a
+			>
+			<div id="invalidGeneMessage"></div>
+			<div>
+				<a id="invalidGeneRedirect" href="" class="btn btn-primary"
+					>GO</a
+				>
+			</div>
+		</div>
 
 		<!-- Body -->
 		<div class="container-fluid mdkp-body">
 			<search-header-wrapper>
 				<!-- Wrap page level searchs with "pageSearchParameters" div -->
-
+				<span class="gene-search-tip"
+					><sup>*</sup>Alias names are converted to gene symbols</span
+				>
 				<div class="col filter-col-md">
 					<div class="label">Gene</div>
 					<gene-selectpicker></gene-selectpicker>
@@ -43,11 +60,7 @@
 					<div class="col-md-4 gene-page-header-body">
 						<div v-if="$parent.symbolName" class="input-group">
 							<button
-								class="
-									btn btn-primary
-									input-group-prepend
-									explore-region-btn
-								"
+								class="btn btn-primary input-group-prepend explore-region-btn"
 								style="margin-right: 20px"
 								:title="$parent.regionText"
 								@click="$parent.exploreRegion()"
@@ -55,11 +68,7 @@
 								Explore Region
 							</button>
 							<button
-								class="
-									btn btn-primary
-									input-group-append
-									explore-region-btn
-								"
+								class="btn btn-primary input-group-append explore-region-btn"
 								:title="$parent.regionTextExpanded"
 								@click="$parent.exploreRegion(50000)"
 							>
@@ -101,10 +110,10 @@
 						></tooltip-documentation>
 					</h4>
 
-					<documentation
-						name="gene.translator.dashboard"
-						:content-fill="$parent.documentationMap"
-					></documentation>
+					<!-- <documentation
+                        name="gene.translator.dashboard"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation> -->
 					<b-tabs>
 						<b-tab title="Function">
 							<div class="card-body row">
@@ -187,7 +196,7 @@
 					</b-tabs>
 				</div>
 			</div>
-			<div class="card mdkp-card">
+			<!--div class="card mdkp-card">
 				<div class="card-body">
 					<h4 style="font-weight: bold" class="card-title">
 						HuGE Score
@@ -199,13 +208,12 @@
 							:content-fill="$parent.documentationMap"
 						></documentation>
 					</span>
-					<!-- Phenotype Selector -->
+
 					<criterion-list-group
 						v-model="$parent.genePageSearchCriterion"
 						:header="''"
 						class="top-associations-section-phenotype-filter"
 					>
-						<!-- Phenotype Selector -->
 						<filter-enumeration-control
 							:field="'phenotype'"
 							:options="$parent.phenotypeOptions"
@@ -234,292 +242,459 @@
 							<div class="label">Change Phenotype:</div>
 						</filter-enumeration-control>
 					</criterion-list-group>
-					<div>
-						<br />
-
-						<genepage-combinedevidence-table
-							:commonBF="
-								parseFloat($parent.bayesFactorCommonVariation)
-							"
-							:combinedBF="parseFloat($parent.combinedScore)"
-							:rareBF="
-								parseFloat($parent.bayesFactorRareVariation)
-							"
-						></genepage-combinedevidence-table>
-					</div>
-					<div style="margin-bottom: 25px" class="container">
-						<ul class="legend center" style="white-space: nowrap">
-							<li>
-								<span class="superawesome"></span> Common
-								Variation Bayes Factor
-							</li>
-							<li>
-								<span class="awesome"></span> Rare Variation
-								Bayes Factor
-							</li>
-							<li>
-								<a
-									:href="`/hugecalculator.html?gene=${$store.state.geneName}&phenotype=${$parent.selectedPhenotype}`"
-									>View evidence in HuGE calculator >></a
-								>
-							</li>
-						</ul>
-						<br />
-					</div>
-
-					<div class="container">
-						<color-bar-plot
-							:category="
-								$parent.determineCategory($parent.combinedScore)
-							"
-							:elementid="'combinedVariation'"
-							:score="$parent.combinedScore"
-						></color-bar-plot>
-					</div>
+					<hugecal-score-section
+						v-if="
+							$store.state.varassociations.data.length > 0 &&
+							$parent.selectedPhenotypes.length > 0 &&
+							$store.state.geneName != 0 &&
+							$store.state.gene.data.length > 0
+						"
+						currentPage="gene"
+						:documentationMap="null"
+						:commonAssociations="$store.state.varassociations.data"
+						:geneData="$store.state.gene.data"
+						:genesInARegion="$store.state.genes.data"
+						:rareAssociations="$store.state.associations52k.data"
+						:selectedGene="$store.state.geneName"
+						:selectedPhenotype="$parent.selectedPhenotype"
+						:prior="$store.state.prior"
+					></hugecal-score-section>
 				</div>
+			</div>-->
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<h4>
+						{{
+							`Gene-level associations for ${$store.state.geneName.toUpperCase()}`
+						}}
+						<tooltip-documentation
+							name="gene.level.association.tooltip.hover"
+							:content-fill="$parent.documentationMap"
+							:isHover="true"
+							:noIcon="false"
+						></tooltip-documentation>
+					</h4>
+					<span>
+						<documentation
+							name="gene.level.association.subheader"
+							:content-fill="$parent.documentationMap"
+						></documentation>
+					</span>
+					<b-tabs>
+						<b-tab
+							title="HuGE Scores"
+							@click="$parent.renderPhewas('hugeScorePheWASPlot')"
+						>
+							<pre></pre>
+							<h4 class="card-title">HuGE Scores</h4>
+
+							<span>
+								<documentation
+									name="gene.hugecal.subheader"
+									:content-fill="$parent.documentationMap"
+								></documentation>
+							</span>
+							<research-phewas-plot
+								v-if="$parent.hugeScores.length > 0"
+								canvasId="hugeScorePlot"
+								:phenotypesData="$parent.hugeScores"
+								:phenotypeMap="
+									$store.state.bioPortal.phenotypeMap
+								"
+								:colors="[
+									'#007bff',
+									'#048845',
+									'#8490C8',
+									'#BF61A5',
+									'#EE3124',
+									'#FCD700',
+									'#5555FF',
+									'#7aaa1c',
+									'#9F78AC',
+									'#F88084',
+									'#F5A4C7',
+									'#CEE6C1',
+									'#cccc00',
+									'#6FC7B6',
+									'#D5A768',
+									'#d4d4d4',
+								]"
+								:plotMargin="{
+									leftMargin: 150,
+									rightMargin: 40,
+									topMargin: 20,
+									bottomMargin: 100,
+									bump: 11,
+								}"
+								:renderConfig="{
+									type: 'phewas plot',
+									'render by': 'phenotype',
+									'group by': 'group',
+									'phenotype map': 'kp phenotype map',
+									'y axis field': 'renderScore',
+									'convert y -log10': 'false',
+									'y axis label': 'Log(HuGE score)',
+									'x axis label': '',
+									'beta field': 'null',
+									'hover content': [
+										'bf_common',
+										'bf_rare',
+										'huge',
+									],
+									thresholds: [Math.log(3), Math.log(30)],
+									'label in black': 'greater than',
+									height: '500',
+								}"
+								:pkgData="null"
+								:pkgDataSelected="null"
+								:filter="null"
+								ref="hugeScorePheWASPlot"
+							></research-phewas-plot>
+							<huge-scores-table
+								v-if="$parent.hugeScores.length > 0"
+								:gene="$store.state.gene.data[0]"
+								:hugeScores="$parent.hugeScores"
+								:phenotypeMap="
+									$store.state.bioPortal.phenotypeMap
+								"
+							></huge-scores-table>
+						</b-tab>
+						<!--</div>
 			</div>
 
 			<div class="card mdkp-card">
 				<div class="card-body">
-					<div v-if="$parent.dbReference">
-						<h4 class="card-title">
-							Common variant gene-level associations for
-							{{ $store.state.geneName.toUpperCase() }}
-							(Ancestry:
-							{{
-								$store.state.selectedAncestry == ""
-									? "All"
-									: $parent.ancestryFormatter(
-											$store.state.selectedAncestry
-									  )
-							}})
-							<tooltip-documentation
-								name="gene.associations.tooltip.hover"
-								:content-fill="$parent.documentationMap"
-								:isHover="true"
-								:noIcon="false"
-							></tooltip-documentation>
-						</h4>
+					<div v-if="$parent.dbReference">-->
 
-						<criterion-function-group id="common_variants">
-							<div class="col filter-col-md">
-								<div class="label">Ancestry</div>
-								<ancestry-selectpicker
-									:ancestries="
-										$store.state.bioPortal.datasets.map(
-											(dataset) => dataset.ancestry
+						<b-tab
+							title="Common variant associations"
+							@click="
+								$parent.renderPhewas('commonVariantPheWASPlot')
+							"
+						>
+							<pre></pre>
+							<h4 class="card-title">
+								Common variant gene-level associations for
+								{{ $store.state.geneName.toUpperCase() }}
+								(Ancestry:
+								{{
+									$store.state.selectedAncestry == ""
+										? "All"
+										: $parent.ancestryFormatter(
+												$store.state.selectedAncestry
+										  )
+								}})
+								<tooltip-documentation
+									name="gene.associations.tooltip.hover"
+									:content-fill="$parent.documentationMap"
+									:isHover="true"
+									:noIcon="false"
+								></tooltip-documentation>
+							</h4>
+
+							<criterion-function-group id="common_variants">
+								<div class="col filter-col-md">
+									<div class="label">Ancestry</div>
+									<ancestry-selectpicker
+										:ancestries="
+											$store.state.bioPortal.datasets.map(
+												(dataset) => dataset.ancestry
+											)
+										"
+									></ancestry-selectpicker>
+								</div>
+								<filter-enumeration-control
+									:field="'phenotype'"
+									placeholder="Select a phenotype ..."
+									:options="
+										$parent.geneassociations.map(
+											(association) =>
+												association.phenotype
 										)
 									"
-								></ancestry-selectpicker>
-							</div>
-							<filter-enumeration-control
-								:field="'phenotype'"
-								placeholder="Select a phenotype ..."
-								:options="
-									$store.state.geneassociations.data.map(
-										(association) => association.phenotype
+									:labelFormatter="
+										(phenotype) =>
+											!!$store.state.bioPortal
+												.phenotypeMap[phenotype]
+												? $store.state.bioPortal
+														.phenotypeMap[phenotype]
+														.description
+												: phenotype
+									"
+									:multiple="true"
+								>
+									<div class="label">Phenotypes</div>
+								</filter-enumeration-control>
+								<filter-pvalue-control
+									:field="'pValue'"
+									placeholder="Set P-Value ..."
+								>
+									<div class="label">P-Value (&le;)</div>
+								</filter-pvalue-control>
+
+								<template
+									slot="filtered"
+									slot-scope="{ filter }"
+								>
+									<div
+										align="center"
+										id="ancestry_set"
+										style="text-align: -webkit-center"
+									></div>
+									<research-phewas-plot
+										v-if="
+											$parent.filteredAssociations
+												.length > 0
+										"
+										canvas-id="commonVariantPlot"
+										:phenotypes-data="
+											$parent.filteredAssociations
+										"
+										:phenotype-map="
+											$store.state.bioPortal.phenotypeMap
+										"
+										:colors="[
+											'#007bff',
+											'#048845',
+											'#8490C8',
+											'#BF61A5',
+											'#EE3124',
+											'#FCD700',
+											'#5555FF',
+											'#7aaa1c',
+											'#9F78AC',
+											'#F88084',
+											'#F5A4C7',
+											'#CEE6C1',
+											'#cccc00',
+											'#6FC7B6',
+											'#D5A768',
+											'#d4d4d4',
+										]"
+										:plotMargin="{
+											leftMargin: 150,
+											rightMargin: 40,
+											topMargin: 20,
+											bottomMargin: 100,
+											bump: 11,
+										}"
+										:renderConfig="{
+											type: 'phewas plot',
+											'render by': 'phenotype',
+											'group by': 'phenotype group',
+											'phenotype map': 'kp phenotype map',
+											'y axis field': 'pValue',
+											'convert y -log10': 'true',
+											'y axis label': '-Log10(p-value)',
+											'x axis label': 'beta',
+											'beta field': 'null',
+											'hover content': ['pValue'],
+											thresholds: ['2.5e-6'],
+											height: '500',
+										}"
+										:pkgData="null"
+										:pkgDataSelected="null"
+										:filter="filter"
+										ref="commonVariantPheWASPlot"
+									></research-phewas-plot>
+									<unauthorized-message
+										:restricted="
+											$store.state.varassociations
+												.restricted
+										"
+									></unauthorized-message>
+									<gene-associations-table
+										v-if="$store.state.gene.data.length > 0"
+										:gene="$store.state.gene.data[0]"
+										:associations="$parent.geneassociations"
+										:phenotypeMap="
+											$store.state.bioPortal.phenotypeMap
+										"
+										:filter="filter"
+									></gene-associations-table>
+								</template>
+							</criterion-function-group>
+						</b-tab>
+						<!--</div>
+				</div>
+			</div>
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<div v-if="$parent.dbReference">-->
+						<b-tab
+							title="Rare variant associations"
+							@click="
+								$parent.renderPhewas('rareVariantPheWASPlot')
+							"
+						>
+							<pre></pre>
+							<h4 class="card-title">
+								Rare variant
+								{{
+									!$store.state.selectedTranscript
+										? `gene-level associations for ${$store.state.geneName.toUpperCase()}`
+										: `transcript-level associations for ${$store.state.selectedTranscript}`
+								}}
+
+								<tooltip-documentation
+									name="gene.52k.tooltip.hover"
+									:content-fill="$parent.documentationMap"
+									:isHover="true"
+									:noIcon="false"
+								></tooltip-documentation>
+							</h4>
+
+							<div
+								class="filtering-ui-wrapper container-fluid"
+								v-if="
+									!$parent.noTranscriptDataPortal.includes(
+										$parent.diseaseGroup.name
 									)
 								"
-								:labelFormatter="
-									(phenotype) =>
-										!!$store.state.bioPortal.phenotypeMap[
-											phenotype
-										]
-											? $store.state.bioPortal
-													.phenotypeMap[phenotype]
-													.description
-											: phenotype
+							>
+								<div class="row filtering-ui-content">
+									<div class="col filter-col-md">
+										<div class="label">Transcript</div>
+										<transcript-selectpicker
+											:transcripts="
+												$store.state.geneToTranscript
+													.data
+											"
+										>
+										</transcript-selectpicker>
+									</div>
+								</div>
+							</div>
+							<!-- Cheating to add search bubble here-->
+							<div
+								v-if="
+									!$parent.noTranscriptDataPortal.includes(
+										$parent.diseaseGroup
+									)
 								"
-								:multiple="true"
+								align="center"
+								style="text-align: -webkit-center"
 							>
-								<div class="label">Phenotypes</div>
-							</filter-enumeration-control>
-							<filter-pvalue-control
-								:field="'pValue'"
-								placeholder="Set P-Value ..."
-							>
-								<div class="label">P-Value (&le;)</div>
-							</filter-pvalue-control>
-
-							<template slot="filtered" slot-scope="{ filter }">
-								<div
-									align="center"
-									id="ancestry_set"
-									style="text-align: -webkit-center"
-								></div>
-								<research-phewas-plot
-									v-if="
-										$store.state.geneassociations.data
-											.length > 0
-									"
-									canvasId="commonVariantPlot"
-									:phenotypesData="
-										$store.state.geneassociations.data
-									"
-									:phenotypeMap="
-										$store.state.bioPortal.phenotypeMap
-									"
-									:colors="[
-										'#007bff',
-										'#048845',
-										'#8490C8',
-										'#BF61A5',
-										'#EE3124',
-										'#FCD700',
-										'#5555FF',
-										'#7aaa1c',
-										'#9F78AC',
-										'#F88084',
-										'#F5A4C7',
-										'#CEE6C1',
-										'#cccc00',
-										'#6FC7B6',
-										'#D5A768',
-										'#d4d4d4',
-									]"
-									:plotMargin="{
-										leftMargin: 75,
-										rightMargin: 20,
-										topMargin: 10,
-										bottomMargin: 50,
-										bump: 5.5,
-									}"
-									:renderConfig="{
-										type: 'phewas plot',
-										'render by': 'phenotype',
-										'group by': 'phenotype group',
-										'phenotype map': 'kp phenotype map',
-										'y axis field': 'pValue',
-										'convert y -log10': 'true',
-										'y axis label': '-Log10(p-value)',
-										'x axis label': 'beta',
-										'beta field': 'null',
-										'hover content': ['pValue'],
-										thresholds: ['2.5e-6'],
-										height: '500',
-									}"
-									:pkgData="null"
-									:pkgDataSelected="null"
-									:filter="filter"
-									ref="rpPheWASPlot"
-								></research-phewas-plot>
-
-								<unauthorized-message
-									:restricted="
-										$store.state.varassociations.restricted
-									"
-								></unauthorized-message>
-								<gene-associations-table
-									v-if="$store.state.gene.data.length > 0"
-									:gene="$store.state.gene.data[0]"
-									:associations="
-										$store.state.geneassociations.data
-									"
-									:phenotypeMap="
-										$store.state.bioPortal.phenotypeMap
-									"
-									:filter="filter"
-								></gene-associations-table>
-							</template>
-						</criterion-function-group>
-					</div>
+								<b-badge
+									pill
+									v-if="!!$store.state.selectedTranscript"
+									class="btn search-bubble 1"
+									v-html="$store.state.selectedTranscript"
+								></b-badge>
+							</div>
+							<research-phewas-plot
+								v-if="$parent.transcriptOr52k.length > 0"
+								canvasId="rareVariantPlot"
+								:phenotypesData="$parent.transcriptOr52k"
+								:phenotypeMap="
+									$store.state.bioPortal.phenotypeMap
+								"
+								:colors="[
+									'#007bff',
+									'#048845',
+									'#8490C8',
+									'#BF61A5',
+									'#EE3124',
+									'#FCD700',
+									'#5555FF',
+									'#7aaa1c',
+									'#9F78AC',
+									'#F88084',
+									'#F5A4C7',
+									'#CEE6C1',
+									'#cccc00',
+									'#6FC7B6',
+									'#D5A768',
+									'#d4d4d4',
+								]"
+								:plotMargin="{
+									leftMargin: 150,
+									rightMargin: 40,
+									topMargin: 20,
+									bottomMargin: 100,
+									bump: 11,
+								}"
+								:renderConfig="{
+									type: 'phewas plot',
+									'group by': 'phenotype group',
+									'render by': 'phenotype',
+									'phenotype map': 'kp phenotype map',
+									'y axis field': 'pValue',
+									'convert y -log10': 'true',
+									'y axis label': '-Log10(p-value)',
+									'x axis label': 'beta',
+									'beta field': 'beta',
+									'hover content': ['pValue', 'beta'],
+									thresholds: ['2.5e-6', '0.05'],
+									height: '500',
+								}"
+								:pkgData="null"
+								:pkgDataSelected="null"
+								ref="rareVariantPheWASPlot"
+							></research-phewas-plot>
+							<unauthorized-message
+								:restricted="$store.state.restricted"
+							></unauthorized-message>
+							<gene-associations-masks
+								:associations="$parent.transcriptOr52k"
+								:phenotypeMap="
+									$store.state.bioPortal.phenotypeMap
+								"
+							></gene-associations-masks>
+						</b-tab>
+					</b-tabs>
+					<!--</div>-->
+				</div>
+			</div>
+			<div class="card mdkp-card">
+				<div class="card-body">
+					<h4 class="card-title">
+						Tissue-specific gene expression for
+						{{ $store.state.geneName }}
+						<tooltip-documentation
+							name="gene.gene-expression.tooltip"
+							:content-fill="$parent.documentationMap"
+							:is-hover="true"
+							:no-icon="false"
+						></tooltip-documentation>
+					</h4>
+					<documentation
+						name="gene.gene-expression.subheader"
+						:content-fill="$parent.documentationMap"
+					></documentation>
+					<research-expression-plot
+						v-if="$parent.geneExpression.length > 0"
+						:rawData="$parent.geneExpression"
+						@expression="
+							(raw) =>
+								($parent.geneExpressionTable = JSON.parse(raw))
+						"
+					>
+					</research-expression-plot>
 				</div>
 			</div>
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
-							Rare variant
+							Predicted effector gene lists containing
 							{{
-								!$store.state.selectedTranscript
-									? `gene-level associations for ${$store.state.geneName.toUpperCase()}`
-									: `transcript-level associations for ${$store.state.selectedTranscript}`
+								$store.state.gene.data.length
+									? $store.state.gene.data[0].name
+									: ""
 							}}
-
 							<tooltip-documentation
-								name="gene.52k.tooltip.hover"
+								name="gene.effector-gene.tooltip"
 								:content-fill="$parent.documentationMap"
 								:isHover="true"
 								:noIcon="false"
 							></tooltip-documentation>
 						</h4>
-						<div class="filtering-ui-wrapper container-fluid">
-							<div class="row filtering-ui-content">
-								<div class="col filter-col-md">
-									<div class="label">Transcript</div>
-									<transcript-selectpicker
-										:transcripts="
-											$store.state.geneToTranscript.data
-										"
-									>
-									</transcript-selectpicker>
-								</div>
-							</div>
-						</div>
-						<!-- Cheating to add search bubble here-->
-						<div align="center" style="text-align: -webkit-center">
-							<b-badge
-								pill
-								v-if="!!$store.state.selectedTranscript"
-								class="btn search-bubble 1"
-								v-html="$store.state.selectedTranscript"
-							></b-badge>
-						</div>
-						<research-phewas-plot
-							v-if="$parent.transcriptOr52k.length > 0"
-							canvasId="rareVariantPlot"
-							:phenotypesData="$parent.transcriptOr52k"
-							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-							:colors="[
-								'#007bff',
-								'#048845',
-								'#8490C8',
-								'#BF61A5',
-								'#EE3124',
-								'#FCD700',
-								'#5555FF',
-								'#7aaa1c',
-								'#9F78AC',
-								'#F88084',
-								'#F5A4C7',
-								'#CEE6C1',
-								'#cccc00',
-								'#6FC7B6',
-								'#D5A768',
-								'#d4d4d4',
-							]"
-							:plotMargin="{
-								leftMargin: 75,
-								rightMargin: 20,
-								topMargin: 10,
-								bottomMargin: 50,
-								bump: 5.5,
-							}"
-							:renderConfig="{
-								type: 'phewas plot',
-								'group by': 'phenotype group',
-								'render by': 'phenotype',
-								'phenotype map': 'kp phenotype map',
-								'y axis field': 'pValue',
-								'convert y -log10': 'true',
-								'y axis label': '-Log10(p-value)',
-								'x axis label': 'beta',
-								'beta field': 'beta',
-								'hover content': ['pValue', 'beta'],
-								thresholds: ['2.5e-6', '0.05'],
-								height: '500',
-							}"
-							:pkgData="null"
-							:pkgDataSelected="null"
-							ref="rareVariantPheWASPlot"
-						></research-phewas-plot>
-						<unauthorized-message
-							:restricted="$store.state.restricted"
-						></unauthorized-message>
-						<gene-associations-masks
-							:associations="$parent.transcriptOr52k"
-							:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-						></gene-associations-masks>
+						<egls-section-on-gene
+							v-if="$store.state.gene.data.length > 0"
+							:gene="$store.state.gene.data[0]"
+						>
+						</egls-section-on-gene>
 					</div>
 				</div>
 			</div>
@@ -549,18 +724,6 @@
 							>
 								<div class="label">Sources</div>
 							</filter-enumeration-control>
-							<filter-enumeration-control
-								:field="'moleculeType'"
-								:options="
-									$parent.dbReference.map(
-										(reference) => reference.moleculeType
-									)
-								"
-								:inclusive="true"
-							>
-								<div class="label">Molecule Type</div>
-							</filter-enumeration-control>
-
 							<template slot="filtered" slot-scope="{ filter }">
 								<uniprot-references-table
 									:references="$parent.dbReference"
@@ -748,5 +911,50 @@
 }
 .legend .awesome {
 	background-color: #fef8dc;
+}
+
+.invalid-gene-warning {
+	position: fixed;
+	z-index: 20000;
+	background-color: #ffcccc;
+	width: 500px;
+	padding: 15px 25px;
+	border: solid 1px #cccccc;
+	border-radius: 5px;
+	left: calc(50% - 275px);
+	top: calc(20% - 50px);
+	text-align: center;
+	box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
+	font-size: 20px;
+}
+
+.invalid-gene-hide-warning {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	width: 15px;
+	height: 15px;
+	border-radius: 15px;
+	font-size: 10px;
+	background-color: #666666;
+	color: #ffffff !important;
+}
+
+.invalid-gene-hide-warning:hover {
+	cursor: pointer;
+}
+
+#invalidGeneRedirect {
+	color: #ffffff !important;
+	margin-top: 15px;
+}
+
+.gene-search-tip {
+	position: absolute;
+	font-weight: 300;
+	font-size: 14px;
+	top: 10px;
+	left: 20px;
+	color: #28a745;
 }
 </style>

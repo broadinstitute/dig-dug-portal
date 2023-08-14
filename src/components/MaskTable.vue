@@ -1,27 +1,27 @@
 <template>
     <div>
         <div
+            :key="`features_${index}`"
             :class="[`feature-headers-${index}`, isHidden ? 'hidden' : '']"
             class="feature-content-wrapper"
-            :key="`features_${index}`"
         >
             <b-row class="feature-header">
                 <b-col
-                    class="feature-header-item"
                     v-for="col in colNames"
                     :key="col"
+                    class="feature-header-item"
                     >{{ col }}</b-col
                 >
-                <b-col class="feature-header-item" v-if="!dichotomous"
+                <b-col v-if="!dichotomous" class="feature-header-item"
                     >Beta</b-col
                 >
-                <b-col class="feature-header-item" v-else>Odds Ratio</b-col>
+                <b-col v-else class="feature-header-item">Odds Ratio</b-col>
             </b-row>
             <template v-for="(mask, j) in formattedMasks">
                 <b-row
+                    :key="`features_${index}_${j}`"
                     class="features"
                     :class="`features_${index}_${j}`"
-                    :key="`features_${index}_${j}`"
                 >
                     <b-col class="feature-content-item">{{ mask.mask }}</b-col>
                     <b-col class="feature-content-item">{{
@@ -42,7 +42,7 @@
                     <b-col class="feature-content-item">{{
                         intFormatter(mask.n)
                     }}</b-col>
-                    <b-col class="feature-content-item" v-if="!dichotomous">
+                    <b-col v-if="!dichotomous" class="feature-content-item">
                         <span
                             :class="
                                 mask.beta < 0
@@ -53,7 +53,7 @@
                         >
                         {{ effectFormatter(mask.beta) }}
                     </b-col>
-                    <b-col class="feature-content-item" v-else>
+                    <b-col v-else class="feature-content-item">
                         <span
                             :class="
                                 Math.exp(mask.beta) < 1
@@ -70,17 +70,17 @@
             </template>
         </div>
         <div
+            :key="`plot_${index}`"
             class="feature-plot-wrapper"
             :class="[`feature-plot-${index}`, isHidden ? 'hidden' : '']"
-            :key="`plot_${index}`"
         >
             <b-col>Forest Plot</b-col>
             <forest-plot
-                :data="formattedMasks"
                 :id="`fplot_${index}`"
+                :ref="`fplot_${index}`"
+                :data="formattedMasks"
                 :element="`fplot_${index}`"
                 :dichotomous="dichotomous"
-                :ref="`fplot_${index}`"
             ></forest-plot>
         </div>
     </div>
@@ -91,7 +91,7 @@ import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import ForestPlot from "@/components/ForestPlot";
 
-export default Vue.component("mask-table", {
+export default Vue.component("MaskTable", {
     props: {
         maskData: Array,
         index: [String, Number],
@@ -112,11 +112,13 @@ export default Vue.component("mask-table", {
             ],
         };
     },
-    created() {},
     computed: {
         formattedMasks() {
             let sorted = this.maskData.slice().sort((a, b) => {
-                return this.maskFormatter(a.mask).sort - this.maskFormatter(b.mask).sort
+                return (
+                    this.maskFormatter(a.mask).sort -
+                    this.maskFormatter(b.mask).sort
+                );
             });
             return sorted.map((m) => ({
                 ...m,
@@ -124,12 +126,13 @@ export default Vue.component("mask-table", {
             }));
         },
     },
+    created() {},
 
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
-        maskFormatter: Formatters.maskFormatter
+        maskFormatter: Formatters.maskFormatter,
     },
 });
 </script>

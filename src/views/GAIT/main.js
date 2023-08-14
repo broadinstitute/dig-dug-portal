@@ -309,6 +309,23 @@ new Vue({
                     .map((v) => v.threshold) || []
             );
         },
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
     },
     watch: {
         diseaseGroup(group) {
@@ -417,6 +434,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
         this.initCriteria();
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
     },
     methods: {
         intFormatter: Formatters.intFormatter,

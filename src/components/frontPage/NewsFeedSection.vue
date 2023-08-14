@@ -1,30 +1,28 @@
 <template>
-    <div id="news-feed">
-        <h2 style="font-family:'Oswald'; font-size: 30px; margin-top:5px;">What's new</h2>
-        <ul class="news-items">
-            <li v-for="item in filteredNews" v-on:click="onSwitchNews(item.news_number)">
-                <span v-html="item.title" style="font-weight:600;">{{ item.title }}</span>
-                <span v-html="item.body">{{ item.body }}</span>
-                <span>
-                    ...
-                    <a :href="'news.html?nid='+item.nid" target="_blank">Read more</a>
-                </span>
-            </li>
-        </ul>
-        <div class="news-items-ui">
-            <a
-                href="javascript:;"
-                v-for="item in this.newsIndex"
-                v-on:click="onSwitchNews(item)"
-                :class="item == 1? 'on-view':''"
-            >{{ item }}</a>
-        </div>
-        <a
-            href="/news.html"
-            target="_blank"
-            style="display: block; position: absolute; bottom: -5px; font-weight: 600;"
-        >View news archive ></a>
-    </div>
+	<div class="row">
+		<div
+			class="news"
+			v-for="(item, itemIndex) in recentNews"
+			:key="item.nid"
+		>
+			<template v-if="itemIndex < 5">
+				<div class="thumbnail">
+					<img
+						:src="item.field_image"
+						v-if="item.field_image != ''"
+					/>
+				</div>
+				<h5>{{ item.title }}</h5>
+				<div class="news-body">{{ item.body }}</div>
+				<span>
+					...
+					<a :href="'news.html?nid=' + item.nid" target="_blank"
+						>Read more</a
+					>
+				</span>
+			</template>
+		</div>
+	</div>
 </template>
 
 <script>
@@ -32,66 +30,46 @@ import Vue from "vue";
 import $ from "jquery";
 
 export default Vue.component("news-feed-section", {
-    props: ["diseaseGroup", "newsFeed"],
-    data() {
-        return {
-            newsIndex: []
-        };
-    },
-    methods: {
-        onSwitchNews: function(NEWSINDEX) {
-            let newsItemsNum = this.newsIndex.length + 1;
-            let newsNum = NEWSINDEX == newsItemsNum ? 1 : NEWSINDEX;
+	props: ["diseaseGroup", "newsFeed"],
+	data() {
+		return {};
+	},
+	methods: {},
+	computed: {
+		recentNews() {
+			let content = [];
 
-            $(".news-items-ui")
-                .find("a")
-                .each(function() {
-                    $(this).removeClass("on-view");
-                });
+			let nIndex = 0;
+			this.newsFeed.map((n) => {
+				if (nIndex < 5) {
+					content.push(n);
+				}
+				nIndex++;
+			});
 
-            $(".news-items-ui")
-                .find("a")
-                .eq(newsNum - 1)
-                .addClass("on-view");
-
-            $(".news-items")
-                .find("li")
-                .each(function() {
-                    $(this).css("display", "none");
-                });
-
-            $(".news-items")
-                .find("li")
-                .eq(newsNum - 1)
-                .toggle("slow");
-        }
-    },
-    computed: {
-        filteredNews() {
-            let filteredPortalNews = [];
-            let portal = this.diseaseGroup.kp4cd;
-            let newsUIIndex = this.newsIndex;
-            let newsNum = 0;
-            $.each(this.newsFeed, function(index, news) {
-                if (newsNum < 4) {
-                    let newsBody = news.body.split(" ").slice(0, 12);
-                    let numWords = 10;
-                    let joinedNewsBody = newsBody.join(" ");
-
-                    let tempNews = {
-                        title: news.title + ": ",
-                        body: joinedNewsBody,
-                        nid: news.nid,
-                        news_number: newsNum + 2
-                    };
-
-                    filteredPortalNews.push(tempNews);
-                    newsNum++;
-                    newsUIIndex.push(newsNum);
-                }
-            });
-            return filteredPortalNews;
-        }
-    }
+			return content;
+		},
+	},
 });
 </script>
+<style scoped>
+.news {
+	width: 100%;
+	text-align: left;
+	font-size: 14px;
+	border-bottom: solid 1px #eeeeee;
+	padding: 15px 10px;
+}
+.thumbnail {
+	width: 100px;
+	height: 100px;
+	margin-right: 15px;
+	float: left;
+	background-color: #eeeeee;
+	background-image: url("https://kp4cd.org/sites/default/files/images/news.svg");
+	border-radius: 5px;
+	border: solid 1px #ccc;
+	overflow: hidden;
+	text-align: center;
+}
+</style>

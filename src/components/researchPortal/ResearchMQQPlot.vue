@@ -143,10 +143,10 @@ export default Vue.component("research-m-qq-plot", {
 				"#3f007d",
 				"#cb181d",
 			],
-			leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			rightMargin: 0.5,
-			topMargin: 10.5, // -0.5 to draw crisp line
-			bottomMargin: 50.5,
+			leftMargin: 150,
+			rightMargin: 1,
+			topMargin: 20,
+			bottomMargin: 100,
 			mDotPosData: {},
 			qqDotPosData: {},
 			compareGroups: null,
@@ -193,9 +193,14 @@ export default Vue.component("research-m-qq-plot", {
 			let compareGroups = [];
 			let massagedData = {};
 			let plotsList = [...this.plotsList];
+			let lambdaValue = !!this.plotData[0].lambda
+				? this.plotData[0].lambda
+				: null;
+
+			//console.log("lambdaValue", lambdaValue);
 
 			plotsList.map((c) => {
-				let tempObj = { sorted: {}, unsorted: [] };
+				let tempObj = { lambda: lambdaValue, sorted: {}, unsorted: [] };
 				massagedData[c] = tempObj;
 			});
 
@@ -299,6 +304,8 @@ export default Vue.component("research-m-qq-plot", {
 					}
 				});
 			}
+
+			//console.log("massagedData", massagedData);
 
 			return massagedData;
 		},
@@ -474,16 +481,20 @@ export default Vue.component("research-m-qq-plot", {
 			let canvasWrapper = document.getElementById("qqPlotWrapper");
 
 			let canvasRenderWidth = !!this.renderConfig.width
-				? this.renderConfig.width + this.leftMargin + this.rightMargin
-				: canvasWrapper.clientWidth - 30;
+				? this.renderConfig.width * 2 +
+				  this.leftMargin +
+				  this.rightMargin
+				: canvasWrapper.clientWidth * 2 - 60;
 
 			let canvasRenderHeight = !!this.renderConfig.height
-				? this.renderConfig.height + this.topMargin + this.bottomMargin
-				: 400;
+				? this.renderConfig.height * 2 +
+				  this.topMargin +
+				  this.bottomMargin
+				: 800;
 
 			let xBump = canvasRenderWidth * 0.02;
 			let yBump = canvasRenderHeight * 0.02;
-			let bump = 5;
+			let bump = 10;
 
 			let plotWidth =
 				canvasRenderWidth -
@@ -494,10 +505,19 @@ export default Vue.component("research-m-qq-plot", {
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
 				//console.log("renderData", dKey, dValue);
+
 				let c = document.getElementById("qqPlot" + dKey);
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
 					c.setAttribute("height", canvasRenderHeight);
+					c.setAttribute(
+						"style",
+						"margin-left: -15px; width:" +
+							canvasRenderWidth / 2 +
+							"px;height:" +
+							canvasRenderHeight / 2 +
+							"px;"
+					);
 					let ctx = c.getContext("2d");
 
 					ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
@@ -538,6 +558,18 @@ export default Vue.component("research-m-qq-plot", {
 						"desc"
 					);
 
+					//console.log("DATA.lambda", dValue.lambda);
+
+					if (!!dValue.lambda) {
+						ctx.font = "26px Arial";
+						ctx.textAlign = "end";
+						ctx.fillText(
+							"lambda(0.95): " + dValue.lambda.toFixed(4),
+							plotWidth + this.leftMargin + bump,
+							plotHeight + this.topMargin + yBump
+						);
+					}
+
 					qqData.map((d) => {
 						let yValue = d[this.renderConfig["y axis field"]];
 
@@ -564,12 +596,12 @@ export default Vue.component("research-m-qq-plot", {
 
 					for (let i = 0; i < 5; i++) {
 						let tickYPos = this.topMargin + i * yTickDistance;
-						let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+						let adjTickYPos = Math.floor(tickYPos);
 						ctx.moveTo(this.leftMargin - bump * 2, adjTickYPos);
 						ctx.lineTo(this.leftMargin - bump, adjTickYPos);
 						ctx.stroke();
 
-						ctx.font = "11px Arial";
+						ctx.font = "22px Arial";
 						ctx.textAlign = "right";
 						ctx.fillStyle = "#000000";
 
@@ -582,21 +614,21 @@ export default Vue.component("research-m-qq-plot", {
 						ctx.fillText(
 							yTickText,
 							this.leftMargin - bump * 3,
-							this.topMargin + plotHeight + 5 - i * yTickDistance
+							this.topMargin + plotHeight + 10 - i * yTickDistance
 						);
 					}
 
 					ctx.stroke();
 
 					//Render y axis label
-					ctx.font = "12px Arial";
+					ctx.font = "24px Arial";
 					ctx.textAlign = "center";
 					ctx.fillStyle = "#000000";
 					ctx.rotate(-(Math.PI * 2) / 4);
 					ctx.fillText(
 						this.renderConfig["qq-plot y axis label"],
 						-(this.topMargin + plotHeight / 2),
-						this.leftMargin - this.leftMargin / 2 - 14
+						this.leftMargin - this.leftMargin / 2 - 28
 					);
 
 					//render xAxis
@@ -613,14 +645,14 @@ export default Vue.component("research-m-qq-plot", {
 						ctx.fillText(
 							i,
 							segPos,
-							this.topMargin + plotHeight + yBump + 14 + bump
+							this.topMargin + plotHeight + yBump + 28 + bump
 						);
 					}
 
 					ctx.fillText(
 						this.renderConfig["qq-plot x axis label"],
 						plotWidth / 2 + this.leftMargin,
-						this.topMargin + plotHeight + yBump + 44
+						this.topMargin + plotHeight + yBump + 88
 					);
 
 					//Render Dots
@@ -631,9 +663,13 @@ export default Vue.component("research-m-qq-plot", {
 						expected.push(Math.log10(i + 1 / qqData.length));
 					}
 
+					let maxExpPxLoc =
+						plotWidth *
+						((expected[expected.length - 1] - expected[0]) / 8);
+
 					let yPosByPixel = plotHeight / (yMax - yMin);
 					let xPosByPixel =
-						plotWidth /
+						maxExpPxLoc /
 						(expected[expected.length - 1] - expected[0]);
 
 					/// render expected p-value line to 8;
@@ -655,8 +691,9 @@ export default Vue.component("research-m-qq-plot", {
 
 						let xPos =
 							this.leftMargin +
-							plotWidth -
-							expected[gIndex] * xPosByPixel;
+							maxExpPxLoc -
+							(expected[gIndex] * xPosByPixel +
+								expected[0] * xPosByPixel);
 
 						let dotColor = "#0066FF";
 
@@ -664,11 +701,15 @@ export default Vue.component("research-m-qq-plot", {
 
 						ctx.lineWidth = 0;
 						ctx.beginPath();
-						ctx.arc(xPos, yPos, 2, 0, 2 * Math.PI);
+						ctx.arc(xPos, yPos, 4, 0, 2 * Math.PI);
 						ctx.fill();
 
-						let xLoc = xPos.toString().split(".")[0];
-						let yLoc = yPos.toString().split(".")[0];
+						let xLoc = Math.round(
+							xPos.toString().split(".")[0] / 2
+						);
+						let yLoc = Math.round(
+							yPos.toString().split(".")[0] / 2
+						);
 
 						let hoverContent;
 
@@ -707,16 +748,20 @@ export default Vue.component("research-m-qq-plot", {
 			let canvasWrapper = document.getElementById("mPlotWrapper");
 
 			let canvasRenderWidth = !!this.renderConfig.width
-				? this.renderConfig.width + this.leftMargin + this.rightMargin
-				: canvasWrapper.clientWidth - 30;
+				? this.renderConfig.width * 2 +
+				  this.leftMargin +
+				  this.rightMargin
+				: canvasWrapper.clientWidth * 2 - 60;
 
 			let canvasRenderHeight = !!this.renderConfig.height
-				? this.renderConfig.height + this.topMargin + this.bottomMargin
-				: 400;
+				? this.renderConfig.height * 2 +
+				  this.topMargin +
+				  this.bottomMargin
+				: 800;
 
 			let xBump = canvasRenderWidth * 0.02;
 			let yBump = canvasRenderHeight * 0.02;
-			let bump = 5;
+			let bump = 10;
 
 			let plotWidth =
 				canvasRenderWidth -
@@ -731,6 +776,14 @@ export default Vue.component("research-m-qq-plot", {
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
 					c.setAttribute("height", canvasRenderHeight);
+					c.setAttribute(
+						"style",
+						"margin-left: -15px; width:" +
+							canvasRenderWidth / 2 +
+							"px;height:" +
+							canvasRenderHeight / 2 +
+							"px;"
+					);
 					let ctx = c.getContext("2d");
 
 					ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
@@ -790,12 +843,12 @@ export default Vue.component("research-m-qq-plot", {
 
 					for (let i = 0; i < 5; i++) {
 						let tickYPos = this.topMargin + i * yTickDistance;
-						let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+						let adjTickYPos = Math.floor(tickYPos);
 						ctx.moveTo(this.leftMargin - bump * 2, adjTickYPos);
 						ctx.lineTo(this.leftMargin - bump, adjTickYPos);
 						ctx.stroke();
 
-						ctx.font = "11px Arial";
+						ctx.font = "22px Arial";
 						ctx.textAlign = "right";
 						ctx.fillStyle = "#000000";
 
@@ -815,14 +868,14 @@ export default Vue.component("research-m-qq-plot", {
 					ctx.stroke();
 
 					//Render y axis label
-					ctx.font = "12px Arial";
+					ctx.font = "24px Arial";
 					ctx.textAlign = "center";
 					ctx.fillStyle = "#000000";
 					ctx.rotate(-(Math.PI * 2) / 4);
 					ctx.fillText(
 						this.renderConfig["m-plot y axis label"],
 						-(this.topMargin + plotHeight / 2),
-						this.leftMargin - this.leftMargin / 2 - 14
+						this.leftMargin - this.leftMargin / 2 - 28
 					);
 
 					let dnaLength = 0;
@@ -865,7 +918,7 @@ export default Vue.component("research-m-qq-plot", {
 						ctx.fillText(
 							chr,
 							chrPos,
-							this.topMargin + plotHeight + yBump + 14 + bump
+							this.topMargin + plotHeight + yBump + 28 + bump
 						);
 					});
 
@@ -874,7 +927,7 @@ export default Vue.component("research-m-qq-plot", {
 					ctx.fillText(
 						this.renderConfig["m-plot x axis label"],
 						plotWidth / 2 + this.leftMargin,
-						this.topMargin + plotHeight + yBump + 44
+						this.topMargin + plotHeight + yBump + 88
 					);
 
 					//Render Dots
@@ -906,11 +959,15 @@ export default Vue.component("research-m-qq-plot", {
 
 							ctx.lineWidth = 0;
 							ctx.beginPath();
-							ctx.arc(xPos, yPos, 3, 0, 2 * Math.PI);
+							ctx.arc(xPos, yPos, 6, 0, 2 * Math.PI);
 							ctx.fill();
 
-							let xLoc = xPos.toString().split(".")[0];
-							let yLoc = yPos.toString().split(".")[0];
+							let xLoc = Math.round(
+								xPos.toString().split(".")[0] / 2
+							);
+							let yLoc = Math.round(
+								yPos.toString().split(".")[0] / 2
+							);
 
 							let hoverContent;
 
@@ -942,6 +999,36 @@ export default Vue.component("research-m-qq-plot", {
 
 						chrNum++;
 					});
+
+					/// render guide line
+					if (!!this.renderConfig["m-plot thresholds"]) {
+						this.renderConfig["m-plot thresholds"].map((t) => {
+							let tValue = -Math.log10(Number(t));
+
+							//console.log("thresholds", t, tValue);
+
+							let yPosByPixel = plotHeight / (yMax - yMin);
+
+							let guidelineYpos =
+								this.topMargin +
+								plotHeight -
+								(tValue - yMin) * yPosByPixel;
+
+							ctx.beginPath();
+
+							ctx.setLineDash([10, 5]);
+							ctx.lineWidth = 2;
+							ctx.moveTo(this.leftMargin - yBump, guidelineYpos);
+							ctx.lineTo(
+								canvasRenderWidth + yBump - this.rightMargin,
+								guidelineYpos
+							);
+							ctx.strokeStyle = "#FFAA00";
+							ctx.stroke();
+
+							ctx.closePath();
+						});
+					}
 				}
 			}
 		},

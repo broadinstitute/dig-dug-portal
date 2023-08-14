@@ -8,14 +8,17 @@
                 <div style="margin-top: 5px; margin-bottom: 5px">
                     <div class="label">Search</div>
                     <input
+                        v-model="filterString"
                         class="filter-col-lg"
                         style="display: inline; height: 30px"
-                        v-model="filterString"
                     />
                 </div>
             </criterion-list-group>
             <div class="text-right mt-2 mb-2">
-                <csv-download :data="geneInfo" :filename="title"></csv-download>
+                <data-download
+                    :data="geneInfo"
+                    :filename="title"
+                ></data-download>
             </div>
             <b-table
                 v-if="context"
@@ -30,12 +33,12 @@
                 <!-- Custom rendering for known special cases -->
                 <template #cell(id)="data">
                     <div
-                        :key="data.item.id"
                         v-if="
                             typeof context[
                                 supportedPrefix(data.item.source, context)
                             ] !== 'undefined'
                         "
+                        :key="data.item.id"
                     >
                         <resolved-curie-link
                             :id="data.item.id"
@@ -64,7 +67,7 @@
                             v-for="pmid in [].concat(data.item.pubmed)"
                             :key="pmid"
                         >
-                            <resolved-curie-link :prefix="'pmid'" :id="pmid">
+                            <resolved-curie-link :id="pmid" :prefix="'pmid'">
                             </resolved-curie-link>
                         </li>
                     </ul>
@@ -89,17 +92,17 @@ import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink";
 import trapi from "@/components/NCATS/trapi";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
-import CsvDownload from "@/components/CsvDownload";
+import DataDownload from "@/components/DataDownload";
 
 const myGeneAPI = "https://mygene.info/v3";
 
-export default Vue.component("translator-predicate-table", {
+export default Vue.component("TranslatorPredicateTable", {
     props: ["title", "geneSymbol", "field", "filter"],
     component: {
         ResolvedCurie,
         CriterionFunctionGroup,
         FilterEnumeration,
-        CsvDownload,
+        DataDownload,
     },
     data() {
         return {
@@ -111,38 +114,6 @@ export default Vue.component("translator-predicate-table", {
             context: null,
             filterString: "",
         };
-    },
-    async created() {
-        this.context = await fetch(
-            "https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld"
-        )
-            .then((response) => response.json())
-            .then((json) => json["@context"]);
-
-        let qs = queryString.stringify(
-            {
-                q: this.geneSymbol,
-                fields: this.field,
-            },
-            { arrayFormat: "comma" }
-        );
-        await fetch(`${myGeneAPI}/query?${qs}`, {
-            contentType: "application/json",
-        })
-            .then(async (resp) => {
-                if (resp.status === 200) {
-                    const geneSymbolMatches = await resp.json();
-                    return geneSymbolMatches.hits;
-                } else {
-                    throw new Error(
-                        `MyGene Info returning non-successful code ${resp.status}`
-                    );
-                }
-            })
-            .then((json) => {
-                this.rawGeneInfo = json;
-            })
-            .catch((error) => console.error(error));
     },
     computed: {
         geneInfo() {
@@ -179,6 +150,66 @@ export default Vue.component("translator-predicate-table", {
                 filterByFormatted: true,
             }));
         },
+    },
+    watch: {
+        geneSymbol() {
+            let qs = queryString.stringify(
+                {
+                    q: this.geneSymbol,
+                    fields: this.field,
+                },
+                { arrayFormat: "comma" }
+            );
+            fetch(`${myGeneAPI}/query?${qs}`, {
+                contentType: "application/json",
+            })
+                .then(async (resp) => {
+                    if (resp.status === 200) {
+                        const geneSymbolMatches = await resp.json();
+                        return geneSymbolMatches.hits;
+                    } else {
+                        throw new Error(
+                            `MyGene Info returning non-successful code ${resp.status}`
+                        );
+                    }
+                })
+                .then((json) => {
+                    this.rawGeneInfo = json;
+                })
+                .catch((error) => console.error(error));
+        },
+    },
+    async created() {
+        this.context = await fetch(
+            "https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld"
+        )
+            .then((response) => response.json())
+            .then((json) => json["@context"]);
+
+        let qs = queryString.stringify(
+            {
+                q: this.geneSymbol,
+                fields: this.field,
+            },
+            { arrayFormat: "comma" }
+        );
+        await fetch(`${myGeneAPI}/query?${qs}`, {
+            contentType: "application/json",
+        })
+            .then(async (resp) => {
+                if (resp.status === 200) {
+                    const geneSymbolMatches = await resp.json();
+                    return geneSymbolMatches.hits;
+                } else {
+                    throw new Error(
+                        `MyGene Info returning non-successful code ${resp.status}`
+                    );
+                }
+            })
+            .then((json) => {
+                this.rawGeneInfo = json;
+            })
+            .catch((error) => console.error(error));
     },
     methods: {
         supportedPrefix: trapi.identifiers.supportedPrefix,
@@ -218,34 +249,6 @@ export default Vue.component("translator-predicate-table", {
             } else {
                 return cellValue;
             }
-        },
-    },
-    watch: {
-        geneSymbol() {
-            let qs = queryString.stringify(
-                {
-                    q: this.geneSymbol,
-                    fields: this.field,
-                },
-                { arrayFormat: "comma" }
-            );
-            fetch(`${myGeneAPI}/query?${qs}`, {
-                contentType: "application/json",
-            })
-                .then(async (resp) => {
-                    if (resp.status === 200) {
-                        const geneSymbolMatches = await resp.json();
-                        return geneSymbolMatches.hits;
-                    } else {
-                        throw new Error(
-                            `MyGene Info returning non-successful code ${resp.status}`
-                        );
-                    }
-                })
-                .then((json) => {
-                    this.rawGeneInfo = json;
-                })
-                .catch((error) => console.error(error));
         },
     },
 });

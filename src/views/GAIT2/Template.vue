@@ -530,6 +530,7 @@
                                                         'KP BioIndex',
                                                     'phenotype parameter':
                                                         'phenotype',
+                                                    ancestry: 'Mixed',
                                                     'overlapping regions':
                                                         'true',
                                                 }"
@@ -623,6 +624,18 @@
                                                     >Search Variants</b-button
                                                 >
                                             </div>
+
+                                            <b-alert
+                                                v-if="$parent.noVariants"
+                                                show
+                                                variant="warning"
+                                                ><b-icon
+                                                    icon="exclamation-triangle"
+                                                ></b-icon>
+                                                No overlapping regions found for
+                                                selected criteria. Please try
+                                                again with different options.
+                                            </b-alert>
                                         </b-card>
                                     </b-skeleton-wrapper>
                                 </b-card-body>

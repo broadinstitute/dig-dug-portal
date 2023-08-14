@@ -16,6 +16,7 @@ export default {
             researchData: [],
             genesInRegion: [],
             genesData: null,
+            researchDataEmpty: null,
         };
     },
 
@@ -35,6 +36,17 @@ export default {
         },
         setResearchData(state, data) {
             state.researchData = data;
+
+            let parsedData = (typeof data == 'object') ? data : (data.charAt(0) == '{') ? JSON.parse(data) : data;
+
+            if (typeof parsedData == 'object' && !!parsedData.data) {
+                console.log("R data", parsedData.data.length);
+                if (parsedData.data.length > 0) {
+                    state.researchDataEmpty = false;
+                } else if (parsedData.data.length == 0) {
+                    state.researchDataEmpty = true;
+                }
+            }
         },
         setGenesInRegion(state, data) {
             state.genesInRegion = data;

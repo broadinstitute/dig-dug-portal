@@ -3,6 +3,7 @@
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
+            :raw-phenotypes="$parent.rawPhenotypes"
         ></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
@@ -35,44 +36,62 @@
                                             ? 'Select lead phenotype'
                                             : 'Select additional phenotype'
                                     "
-                                    :clearOnSelected="true"
+                                    :clear-on-selected="true"
                                 >
                                 </phenotype-selectpicker>
                             </b-col>
                             <b-col class="col-md-5 mx-auto ancestry-field">
                                 <div class="label">Select Ancestry</div>
-                                <ancestry-selectpicker :ancestries="$store.state.bioPortal.datasets.map(
-                                        (dataset) => dataset.ancestry
-                                    )"></ancestry-selectpicker>
+                                <ancestry-selectpicker
+                                    :ancestries="
+                                        $store.state.bioPortal.datasets.map(
+                                            (dataset) => dataset.ancestry
+                                        )
+                                    "
+                                ></ancestry-selectpicker>
                             </b-col>
                             <b-col class="col-md-5 mx-auto search-field">
-						            <div class="label">Search</div>
-						                <button class="btn btn-light btn-sm go"
-							                type="button" @click="$store.dispatch('querySignalSifter')">
-						                	GO
-						                </button>
+                                <div class="label">Search</div>
+                                <button
+                                    class="btn btn-light btn-sm go"
+                                    type="button"
+                                    @click="
+                                        $store.dispatch('querySignalSifter')
+                                    "
+                                >
+                                    GO
+                                </button>
                             </b-col>
                         </b-row>
                     </b-container>
-                    <h4>Associations (Ancestry: {{$store.state.ancestry == "" ? "All" : $parent.ancestryFormatter($store.state.ancestry)}})</h4>
+                    <h4>
+                        Associations (Ancestry:
+                        {{
+                            $store.state.ancestry == ""
+                                ? "All"
+                                : $parent.ancestryFormatter(
+                                      $store.state.ancestry
+                                  )
+                        }})
+                    </h4>
                     <!-- phenotype criterion -->
                     <div class="row">
                         <div class="col-md-10 mx-auto">
                             <div
-                                class="selected-phenotype text"
-                                :class="`color-${index + 1}-bg`"
                                 v-for="(p, index) in $store.state.phenotypes"
                                 :key="index"
+                                class="selected-phenotype text"
+                                :class="`color-${index + 1}-bg`"
                             >
                                 <div class="lead">
                                     <small
                                         ><span
                                             v-if="index === 0"
-                                            class="lead-icon"
-                                            title="Lead Phenotype"
                                             v-b-tooltip.hover="{
                                                 variant: 'light',
                                             }"
+                                            class="lead-icon"
+                                            title="Lead Phenotype"
                                             ><b-icon-check2-circle
                                                 variant="light"
                                             ></b-icon-check2-circle></span
@@ -89,14 +108,14 @@
                                     >
                                 </div>
                                 <div
-                                    class="filter-options"
-                                    :key="index"
                                     v-show="true"
+                                    :key="index"
+                                    class="filter-options"
                                 >
                                     <criterion-function-group
                                         v-model="p.filter"
-                                        :noPills="true"
-                                        :filterList.sync="
+                                        :no-pills="true"
+                                        :filter-list.sync="
                                             $parent.displayedFilterList[
                                                 p.phenotype.name
                                             ]
@@ -105,7 +124,7 @@
                                         <filter-pvalue-control
                                             :field="'pValue'"
                                             :placeholder="`P-Value (\u2264)`"
-                                            :pillFormatter="
+                                            :pill-formatter="
                                                 (filter) => filter.threshold
                                             "
                                             ><span></span>
@@ -114,10 +133,12 @@
                                         <filter-effect-direction-control
                                             placeholder="Effect (+/-)"
                                             field="effect"
-                                            :pillFormatter="
+                                            :pill-formatter="
                                                 (filter) => filter.threshold
                                             "
-                                            :computedField="$parent.alignedBeta"
+                                            :computed-field="
+                                                $parent.alignedBeta
+                                            "
                                             ><span></span>
                                         </filter-effect-direction-control>
                                     </criterion-function-group>
@@ -125,6 +146,11 @@
 
                                 <criterion-pills
                                     :clearable="true"
+                                    :filter-list="
+                                        $parent.displayedFilterList[
+                                            p.phenotype.name
+                                        ]
+                                    "
                                     @unset="
                                         $parent.displayedFilterList[
                                             p.phenotype.name
@@ -138,11 +164,6 @@
                                                         $event.threshold
                                                 )
                                         )
-                                    "
-                                    :filterList="
-                                        $parent.displayedFilterList[
-                                            p.phenotype.name
-                                        ]
                                     "
                                 ></criterion-pills>
 
@@ -163,18 +184,18 @@
                                     ></span>
                                 </button>-->
                                 <button
-                                    type="button"
-                                    class="mr-2 close remove"
-                                    aria-label="Filter"
                                     v-b-tooltip.hover.html="{
                                         variant: 'light',
                                     }"
+                                    type="button"
+                                    class="mr-2 close remove"
+                                    aria-label="Filter"
                                     :title="
                                         index === 0
                                             ? 'Click to clear phenotype list'
                                             : 'Click to remove this phenotype from list'
                                     "
-                                    v-on:click="$parent.removePhenotype(index)"
+                                    @click="$parent.removePhenotype(index)"
                                 >
                                     <span style="color: #ffffff"
                                         ><b-icon-x-circle-fill></b-icon-x-circle-fill
@@ -193,8 +214,8 @@
                         "
                         :associations="$parent.clumpedAssociations"
                         :phenotypes="$parent.phenotypes"
-                        :phenotypeMap="$parent.phenotypeMap"
-                        :colorByPhenotype="true"
+                        :phenotype-map="$parent.phenotypeMap"
+                        :color-by-phenotype="true"
                         class="mt-2 mb-2"
                     ></manhattan-plot>
 
@@ -206,9 +227,9 @@
                             $parent.clumpedAssociations.length > 0
                         "
                         :phenotypes="$parent.phenotypes"
-                        :phenotypeMap="$parent.phenotypeMap"
+                        :phenotype-map="$parent.phenotypeMap"
                         :associations="$parent.clumpedAssociations"
-                        :rowsPerPage="30"
+                        :rows-per-page="30"
                         :exclusive="true"
                     ></clumped-associations-table>
 
@@ -317,6 +338,9 @@
 .filter-options > span > div {
     display: inline-block;
 }
+#variant-finder .filter-pill-collection.center {
+    padding: unset;
+}
 .selected-phenotype .close {
     position: absolute;
     right: 0.1rem;
@@ -341,6 +365,7 @@ div.lead .lead-icon {
     left: 0.6rem;
     top: 0.3rem;*/
     font-size: 1.4rem;
+    margin-right: 9px;
 }
 .filters-wrapper {
     border: solid 1px #ddd;
@@ -399,6 +424,5 @@ button.go {
     display: block !important;
     margin-top: 5px;
     border: #ced4da solid 1px;
-
 }
 </style>

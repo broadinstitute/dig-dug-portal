@@ -5,13 +5,13 @@
 			id="searchCriteria"
 			v-if="this.apiParameters != null"
 		>
-			<div
+			<!--<div
 				class="open-close-search-criteria"
 				id="openCloseSearch"
 				@click="showHideSearch()"
 			>
 				Close search
-			</div>
+			</div>-->
 			<h4 class="card-title">Build search criteria</h4>
 			<div class="filtering-ui-content row">
 				<div
@@ -116,15 +116,20 @@
 							></option>
 						</select>
 					</template>
-
-					<div
-						v-if="
-							parameter.type == 'input' &&
-							parameter.values == 'kp genes'
-						"
-						id="kp_gene_search_wrapper"
-					>
-						<!--<input
+					<div>
+						<div
+							v-if="
+								parameter.type == 'input' &&
+								parameter.values == 'kp genes'
+							"
+							id="kp_gene_search_wrapper"
+							:style="
+								!!parameter['expand region']
+									? 'display: inline-block;'
+									: ''
+							"
+						>
+							<!--<input
 							v-model="geneSearch"
 							:placeholder="getPlaceHolder(parameter.parameter)"
 							class="form-control"
@@ -132,40 +137,74 @@
 							:id="'search_param_' + parameter.parameter"
 						/>-->
 
-						<input
-							v-model="geneSearch"
-							class="form-control"
-							@keyup="getGenes($event)"
-							:id="'search_param_' + parameter.parameter"
-						/>
+							<input
+								v-model="geneSearch"
+								class="form-control"
+								@keyup="getGenes($event)"
+								:id="'search_param_' + parameter.parameter"
+							/>
 
-						<div
-							class="custom-select custom-select-search"
-							:size="kpGenes.length >= 5 ? 5 : 'auto'"
-							:style="
-								kpGenes.length == 0
-									? 'display:none !important;'
-									: ''
-							"
-						>
-							<template v-for="gene in kpGenes">
-								<a
-									href="javascript:;"
-									v-html="gene"
-									:key="gene"
-									@click="
-										parameter['convert to region'] &&
-										parameter['convert to region'] == 'true'
-											? getRegion(
-													gene,
-													parameter.parameter
-											  )
-											: setGene(gene)
-									"
-									class="custom-select-a-option"
-								></a>
-							</template>
+							<div
+								class="custom-select custom-select-search"
+								:size="kpGenes.length >= 5 ? 5 : 'auto'"
+								:style="
+									kpGenes.length == 0
+										? 'display:none !important;'
+										: ''
+								"
+							>
+								<template v-for="gene in kpGenes">
+									<a
+										href="javascript:;"
+										v-html="gene"
+										:key="gene"
+										@click="
+											parameter['convert to region'] &&
+											parameter['convert to region'] ==
+												'true'
+												? getRegion(
+														gene,
+														parameter.parameter
+												  )
+												: setGene(gene)
+										"
+										class="custom-select-a-option"
+									></a>
+								</template>
+							</div>
 						</div>
+						<!-- -->
+						<div
+							v-if="!!parameter['expand region']"
+							class="expand-region"
+						>
+							<select
+								id="region_expander"
+								class="expand-region-select-byor"
+								@change="expandRegion($event, parameter)"
+							>
+								<option selected="selected" value="null">
+									Expand region by:
+								</option>
+								<option value="50000">± 50 kb</option>
+								<option value="100000">± 100 kb</option>
+								<option value="150000">± 150 kb</option>
+							</select>
+							<span class="tip-wrapper">
+								<b-icon
+									class="tip-bigger warning"
+									icon="exclamation-circle-fill"
+								></b-icon>
+								<div class="tip-content">
+									This feature is in test! Expanding region
+									will refresh the page as a new search with
+									the last search parameters and the expanded
+									region. All filters and previously loaded
+									data will be removed.
+								</div>
+							</span>
+						</div>
+						<!-- -->
 					</div>
 					<!--<input
 						v-if="
@@ -186,33 +225,6 @@
 						class="form-control"
 						:id="'search_param_' + parameter.parameter"
 					/>
-					<div v-if="!!parameter['expand region']">
-						<select
-							id="region_expander"
-							class="expand-region-select-byor"
-							@change="expandRegion($event, parameter)"
-						>
-							<option selected="selected" value="null">
-								Expand region by:
-							</option>
-							<option value="50000">± 50 kb</option>
-							<option value="100000">± 100 kb</option>
-							<option value="150000">± 150 kb</option>
-						</select>
-						<span class="tip-wrapper">
-							<b-icon
-								class="tip-bigger warning"
-								icon="exclamation-circle-fill"
-							></b-icon>
-							<div class="tip-content">
-								This feature is in test! Expanding region will
-								refresh the page as a new search with the last
-								search parameters and the expanded region. All
-								filters and previously loaded data will be
-								removed.
-							</div>
-						</span>
-					</div>
 				</div>
 
 				<div
@@ -231,7 +243,7 @@
 						Search
 					</div>
 				</div>
-				<div class="col">
+				<!--<div class="col">
 					<div
 						v-for="(value, name, index) in this.searchParamsIndex"
 						:class="'search-field f-' + index"
@@ -251,17 +263,12 @@
 					</div>
 					<b-badge
 						v-if="this.numberOfSearchParams() > 1"
-						class="
-							badge badge-secondary badge-pill
-							btn
-							search-bubble
-							clear-all-filters-bubble
-						"
+						class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
 						@click="removeAllSearchParams()"
 					>
 						Clear all filters
 					</b-badge>
-				</div>
+				</div>-->
 			</div>
 		</div>
 
@@ -270,13 +277,13 @@
 			id="searchCriteria"
 			v-if="!!this.dataFiles && this.dataFiles.length > 1"
 		>
-			<div
+			<!--<div
 				class="open-close-search-criteria"
 				id="openCloseSearch"
 				@click="showHideSearch()"
 			>
 				Close search
-			</div>
+			</div>-->
 			<h4 class="card-title">Select data</h4>
 			<div class="filtering-ui-content row">
 				<div class="col">
@@ -302,6 +309,7 @@
 				(!!this.dataFiles && this.dataFiles.length > 1)
 			"
 		>
+			<h4 class="card-title filter">Filter data</h4>
 			<div class="filtering-ui-content row">
 				<div
 					:class="getFilterWidthClasses()"
@@ -309,9 +317,64 @@
 					:key="filter.field"
 				>
 					<div class="label" v-html="filter.label"></div>
+					<template v-if="filter.type == 'search'">
+						<input
+							v-if="
+								!!filter.features &&
+								!!filter.features.includes('autocomplete')
+							"
+							type="text"
+							class="form-control"
+							:id="'filter_' + getColumnId(filter.field)"
+							@input="buildSuggestions($event, filter.field)"
+						/>
+						<input
+							v-if="
+								!filter.features ||
+								(!!filter.features &&
+									!filter.features.includes('autocomplete'))
+							"
+							type="text"
+							class="form-control"
+							:id="'filter_' + getColumnId(filter.field)"
+							@change="
+								filterData($event, filter.field, filter.type)
+							"
+						/>
+						<div
+							v-if="
+								!!filter.features &&
+								!!filter.features.includes('autocomplete')
+							"
+							class="autocomplete-options"
+						>
+							<ul>
+								<template
+									v-for="suggestion in suggestions.suggestions"
+									v-if="
+										suggestions.field == filter.field &&
+										suggestions.suggestions.length > 0
+									"
+								>
+									<li
+										@click="
+											filterData(
+												$event,
+												filter.field,
+												filter.type,
+												'',
+												suggestion
+											)
+										"
+										v-html="suggestion"
+										:title="suggestion"
+									></li>
+								</template>
+							</ul>
+						</div>
+					</template>
 					<template
 						v-if="
-							filter.type == 'search' ||
 							filter.type == 'search exact' ||
 							filter.type == 'search greater than' ||
 							filter.type == 'search lower than' ||
@@ -322,7 +385,7 @@
 						<input
 							type="text"
 							class="form-control"
-							:id="'filter_' + filter.field.replace(/ /g, '')"
+							:id="'filter_' + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -333,7 +396,7 @@
 							class="egl-filter-direction"
 							:id="
 								'filter_' +
-								filter.field.replace(/ /g, '') +
+								getColumnId(filter.field) +
 								'_direction'
 							"
 						>
@@ -345,7 +408,7 @@
 						<input
 							type="text"
 							class="form-control egl-filter-cd-input"
-							:id="'filter_' + filter.field.replace(/ /g, '')"
+							:id="'filter_' + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -353,7 +416,7 @@
 					</template>
 					<template v-else-if="filter.type == 'dropdown'">
 						<select
-							:id="'filter_' + filter.field.replace(/ /g, '')"
+							:id="'filter_' + getColumnId(filter.field)"
 							@change="
 								filterData(
 									$event,
@@ -404,12 +467,7 @@
 			</div>
 			<b-badge
 				v-if="this.numberOfSearches() > 1"
-				class="
-					badge badge-secondary badge-pill
-					btn
-					search-bubble
-					clear-all-filters-bubble
-				"
+				class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
 				@click="removeAllFilters()"
 			>
 				Clear all search
@@ -448,6 +506,8 @@ export default Vue.component("research-page-filters", {
 			geneSearch: "",
 			kpGenes: [],
 			lastFilter: { field: null, value: null },
+			suggestions: { field: null, suggestions: [] },
+			searchBySuggest: false,
 		};
 	},
 	created() {
@@ -494,6 +554,7 @@ export default Vue.component("research-page-filters", {
 			this.apiParameters.query.type == "array"
 		) {
 			let parametersArr = this.apiParameters.query.format;
+			let paramsSet = {};
 
 			parametersArr.map((param, index) => {
 				if (keyParams[param] != undefined) {
@@ -517,10 +578,28 @@ export default Vue.component("research-page-filters", {
 					if (pType != "list" && !!ifValuesFromKP) {
 						this.geneSearch = keyParams[param];
 					} else if (pType == "list" && !!ifValuesFromKP) {
-						let label = this.getFileLabel(
-							keyParams[param].trim(),
-							param
+						let label;
+
+						console.log("0", this.filesListLabels);
+						console.log(
+							"1",
+							this.filesListLabels[keyParams[param].trim()]
 						);
+						console.log("2", this.filesListLabels[param]);
+
+						if (!!this.filesListLabels[keyParams[param].trim()]) {
+							label =
+								this.filesListLabels[keyParams[param].trim()];
+						} else if (
+							this.filesListLabels[param][keyParams[param].trim()]
+						) {
+							label =
+								this.filesListLabels[param][
+									keyParams[param].trim()
+								];
+						} else {
+							label = keyParams[param].trim();
+						}
 
 						let labelContent = label + "(" + keyParams[param] + ")";
 
@@ -537,14 +616,95 @@ export default Vue.component("research-page-filters", {
 						"searchParameters",
 						this.searchParamsIndex
 					);
+
+					paramsSet[param] = keyParams[param];
 				}
 			});
+
+			if (Object.keys(paramsSet).length > 0) {
+				this.$store.dispatch("searchParametersArr", {
+					data: paramsSet,
+					action: "add",
+				});
+			}
 		}
 	},
 	computed: {},
 	watch: {},
 	methods: {
 		...uiUtils,
+		buildSuggestions(EVENT, FIELD) {
+			let searchVal = EVENT.target.value;
+			let suggestions = [];
+
+			if (searchVal.length >= 2) {
+				let searchTerms = searchVal.split(" ");
+
+				let comparingFields =
+					this.dataComparisonConfig != null
+						? this.dataComparisonConfig["fields to compare"]
+						: null;
+				let targetData = this.unfilteredDataset;
+
+				if (comparingFields == null) {
+					targetData.map((d) => {
+						let matching = 0;
+						if (!!d[FIELD]) {
+							searchTerms.map((s) => {
+								matching += !!d[FIELD].toLowerCase().includes(
+									s.toLowerCase()
+								)
+									? 1
+									: 0;
+							});
+							if (
+								matching == searchTerms.length &&
+								!suggestions.includes(d[FIELD])
+							) {
+								suggestions.push(d[FIELD]);
+							}
+						}
+					});
+				} else {
+					for (let rowKey in targetData) {
+						let row = targetData[rowKey];
+						if (!!row[FIELD] && row[FIELD] != undefined) {
+							for (let fieldKey in row[FIELD]) {
+								if (!!row[FIELD] && !!row[FIELD][fieldKey]) {
+									let matching = 0;
+									searchTerms.map((s) => {
+										matching += !!row[FIELD][fieldKey]
+											.toLowerCase()
+											.includes(s.toLowerCase())
+											? 1
+											: 0;
+									});
+									if (
+										matching == searchTerms.length &&
+										!suggestions.includes(
+											row[FIELD][fieldKey]
+										)
+									) {
+										suggestions.push(row[FIELD][fieldKey]);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (suggestions.length > 0) {
+				this.suggestions.field = FIELD;
+				this.suggestions.suggestions = suggestions.sort();
+			} else {
+				this.suggestions.field = null;
+				this.suggestions.suggestions = [];
+			}
+		},
+		getColumnId(LABEL) {
+			return LABEL.replace(/\W/g, "").toLowerCase();
+		},
 		resetAll() {
 			this.$store.state.pkgData = {};
 			this.$store.state.pkgDataSelected = [];
@@ -576,7 +736,6 @@ export default Vue.component("research-page-filters", {
 				let url = new URL(window.location);
 				//for (const [key, value] of Object.entries(key2Update)) {
 				url.searchParams.set(PARAM.parameter, newRegion);
-				//}
 
 				window.history.pushState(null, "", url.toString());
 
@@ -594,26 +753,7 @@ export default Vue.component("research-page-filters", {
 		showHideElement(ELEMENT) {
 			uiUtils.showHideElement(ELEMENT);
 		},
-		/*getPlaceHolder(PARAM) {
-			let content = "";
-			if (keyParams[PARAM] != undefined) {
-				let paramType = this.apiParameters.parameters.filter(
-					(v) => v.parameter == PARAM
-				)[0].type;
 
-				if (paramType == "list") {
-					let label = this.getFileLabel(keyParams[PARAM].trim());
-
-					content = label + "(" + keyParams[PARAM] + ")";
-				} else {
-					content = keyParams[PARAM];
-				}
-
-				return content;
-			} else {
-				return "";
-			}
-		},*/
 		getVisibleValues(VALUES, SEARCH, PARAMETER) {
 			var numOfVisible = 0;
 
@@ -693,15 +833,11 @@ export default Vue.component("research-page-filters", {
 		},
 		getFileLabel(file, PARAMETER) {
 			if (
-				this.filesListLabels != null &&
 				this.filesListLabels[PARAMETER] &&
 				this.filesListLabels[PARAMETER][file]
 			) {
 				return this.filesListLabels[PARAMETER][file];
-			} else if (
-				this.filesListLabels != null &&
-				this.filesListLabels[file]
-			) {
+			} else if (this.filesListLabels[file]) {
 				return this.filesListLabels[file];
 			} else {
 				return file;
@@ -715,7 +851,7 @@ export default Vue.component("research-page-filters", {
 			this.$store.dispatch("dataComparison", ifCompareData);
 		},
 		queryAPI() {
-			this.showHideSearch();
+			//this.showHideSearch();
 			uiUtils.showElement("data-loading-indicator");
 
 			for (const FIELD in this.filtersIndex) {
@@ -768,6 +904,8 @@ export default Vue.component("research-page-filters", {
 				}
 			}
 
+			let paramsSet = {};
+
 			let queryParams = "";
 			if (this.apiParameters.query.type == "array") {
 				let parametersArr = this.apiParameters.query.format;
@@ -813,6 +951,10 @@ export default Vue.component("research-page-filters", {
 						);
 					}
 
+					paramsSet[param] = document.getElementById(
+						"search_param_" + param
+					).value;
+
 					this.$store.dispatch(
 						"searchParameters",
 						this.searchParamsIndex
@@ -826,6 +968,33 @@ export default Vue.component("research-page-filters", {
 					}
 
 					window.history.pushState(null, "", url.toString());
+				}
+			} else if (this.apiParameters.query.type == "parameters") {
+				queryParams += "?";
+				let parametersArr = this.apiParameters.parameters;
+				//let qParameters = {}
+
+				parametersArr.map((p) => {
+					//
+					let queryParamValue = document.getElementById(
+						"search_param_" + p.parameter
+					).value;
+
+					queryParams += p.parameter + "=" + queryParamValue + "&";
+				});
+			}
+
+			if (Object.keys(paramsSet).length > 0) {
+				if (this.$store.state.dataComparison == "newSearch") {
+					this.$store.dispatch("searchParametersArr", {
+						data: paramsSet,
+						action: "reset",
+					});
+				} else {
+					this.$store.dispatch("searchParametersArr", {
+						data: paramsSet,
+						action: "add",
+					});
 				}
 			}
 
@@ -935,47 +1104,58 @@ export default Vue.component("research-page-filters", {
 				return unqOptions.sort();
 			}
 		},
-		filterData(EVENT, FIELD, TYPE, DATATYPE) {
-			let searchValue = document.getElementById(
-				"filter_" + FIELD.replace(/ /g, "")
-			).value; //EVENT.target.value;
-			let id = "#filter_" + FIELD.replace(/ /g, "");
-			let inputField = document.querySelector(id);
 
+		filterData(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED) {
+			let searchValue = !!SUGGESTED
+				? SUGGESTED
+				: document.getElementById("filter_" + this.getColumnId(FIELD))
+						.value; //EVENT.target.value;
+
+			let id = "#filter_" + this.getColumnId(FIELD);
+			let inputField = document.querySelector(id);
 			inputField.blur();
 			inputField.value = "";
 
-			///Record the last filtering item
+			if (!!searchValue && searchValue != "") {
+				///Record the last filtering item
 
-			this.lastFilter = { field: FIELD, value: searchValue };
+				this.lastFilter = { field: FIELD, value: searchValue };
 
-			if (TYPE == "search" || TYPE == "search exact") {
-				let searchTerms = searchValue.split(",");
-				searchTerms.map((searchTerm) => {
-					this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
+				if (TYPE == "search" || TYPE == "search exact") {
+					let searchTerms = searchValue.split(",");
 
-					this.filtersIndex[FIELD]["search"] = this.filtersIndex[
-						FIELD
-					]["search"].filter((v, i, arr) => arr.indexOf(v) == i);
-				});
-			} else if (
-				TYPE == "search greater than" ||
-				TYPE == "search lower than" ||
-				TYPE == "search or" ||
-				TYPE == "search and"
-			) {
-				this.filtersIndex[FIELD]["search"] = [searchValue];
-			} else {
-				if (DATATYPE == "number") {
-					this.filtersIndex[FIELD]["search"].push(
-						Number(searchValue)
-					);
+					searchTerms.map((searchTerm) => {
+						this.filtersIndex[FIELD]["search"].push(
+							searchTerm.trim()
+						);
+
+						this.filtersIndex[FIELD]["search"] = this.filtersIndex[
+							FIELD
+						]["search"].filter((v, i, arr) => arr.indexOf(v) == i);
+					});
+
+					if (!!SUGGESTED) {
+						this.suggestions = { field: null, suggestions: [] }; // reset suggestions.
+					}
+				} else if (
+					TYPE == "search greater than" ||
+					TYPE == "search lower than" ||
+					TYPE == "search or" ||
+					TYPE == "search and"
+				) {
+					this.filtersIndex[FIELD]["search"] = [searchValue];
 				} else {
-					this.filtersIndex[FIELD]["search"].push(searchValue);
+					if (DATATYPE == "number") {
+						this.filtersIndex[FIELD]["search"].push(
+							Number(searchValue)
+						);
+					} else {
+						this.filtersIndex[FIELD]["search"].push(searchValue);
+					}
 				}
-			}
 
-			this.applyFilters();
+				this.applyFilters();
+			}
 		},
 		applyFilters() {
 			let comparingFields =
@@ -1021,7 +1201,6 @@ export default Vue.component("research-page-filters", {
 													)
 													? tempFiltered.push(row)
 													: "";
-
 												break;
 											case "search exact":
 												search.toLowerCase() ===
@@ -1044,12 +1223,12 @@ export default Vue.component("research-page-filters", {
 												break;
 
 											case "search greater than":
-												row[searchIndex.field] >= search
+												typeof row[searchIndex.field] == 'number' && row[searchIndex.field] >= search
 													? tempFiltered.push(row)
 													: "";
 												break;
 											case "search lower than":
-												row[searchIndex.field] <= search
+											typeof row[searchIndex.field] == 'number' && row[searchIndex.field] <= search
 													? tempFiltered.push(row)
 													: "";
 
@@ -1057,10 +1236,10 @@ export default Vue.component("research-page-filters", {
 											case "search or":
 												searchVals = search.split(",");
 
-												row[searchIndex.field] <=
+												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] <=
 													searchVals[0].trim() ||
 												row[searchIndex.field] >=
-													searchVals[1].trim()
+													searchVals[1].trim())
 													? tempFiltered.push(row)
 													: "";
 												break;
@@ -1068,9 +1247,8 @@ export default Vue.component("research-page-filters", {
 												let searchDirection =
 													document.getElementById(
 														"filter_" +
-															searchIndex.field.replace(
-																/ /g,
-																""
+															this.getColumnId(
+																searchIndex.field
 															) +
 															"_direction"
 													).value;
@@ -1092,10 +1270,10 @@ export default Vue.component("research-page-filters", {
 											case "search and":
 												searchVals = search.split(",");
 
-												row[searchIndex.field] >=
+												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
 													searchVals[0].trim() &&
 												row[searchIndex.field] <=
-													searchVals[1].trim()
+													searchVals[1].trim())
 													? tempFiltered.push(row)
 													: "";
 												break;
@@ -1232,7 +1410,9 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														row[searchIndex.field][
+														typeof row[searchIndex.field][
+															cellNum
+														] == "number" && row[searchIndex.field][
 															cellNum
 														] >= search
 													) {
@@ -1250,7 +1430,7 @@ export default Vue.component("research-page-filters", {
 												}
 											} else {
 												if (
-													row[searchIndex.field] >=
+													typeof row[searchIndex.field] == "number" && row[searchIndex.field] >=
 													search
 												) {
 													tempFiltered[
@@ -1279,7 +1459,9 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														row[searchIndex.field][
+														typeof row[searchIndex.field][
+															cellNum
+														] == "number" && row[searchIndex.field][
 															cellNum
 														] <= search
 													) {
@@ -1297,7 +1479,7 @@ export default Vue.component("research-page-filters", {
 												}
 											} else {
 												if (
-													row[searchIndex.field] <=
+													typeof row[searchIndex.field] == "number" && row[searchIndex.field] <=
 													search
 												) {
 													tempFiltered[
@@ -1326,14 +1508,16 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														row[searchIndex.field][
+														typeof row[searchIndex.field][
+															cellNum
+														] == "number" && (row[searchIndex.field][
 															cellNum
 														] <=
 															searchVals[0].trim() ||
 														row[searchIndex.field][
 															cellNum
 														] >=
-															searchVals[1].trim()
+															searchVals[1].trim())
 													) {
 														meetSearch = true;
 													}
@@ -1349,10 +1533,10 @@ export default Vue.component("research-page-filters", {
 												}
 											} else {
 												if (
-													row[searchIndex.field] <=
+													typeof row[searchIndex.field] == "number" && (row[searchIndex.field] <=
 														searchVals[0].trim() ||
 													row[searchIndex.field] >=
-														searchVals[1].trim()
+														searchVals[1].trim())
 												) {
 													tempFiltered[
 														row[
@@ -1371,9 +1555,8 @@ export default Vue.component("research-page-filters", {
 											let searchDirection =
 												document.getElementById(
 													"filter_" +
-														searchIndex.field.replace(
-															/ /g,
-															""
+														this.getColumnId(
+															searchIndex.field
 														) +
 														"_direction"
 												).value;
@@ -1489,14 +1672,16 @@ export default Vue.component("research-page-filters", {
 													searchIndex.field
 												]) {
 													if (
-														row[searchIndex.field][
+														typeof row[searchIndex.field][
+															cellNum
+														] == "number" && (row[searchIndex.field][
 															cellNum
 														] >=
 															searchVals[0].trim() &&
 														row[searchIndex.field][
 															cellNum
 														] <=
-															searchVals[1].trim()
+															searchVals[1].trim())
 													) {
 														meetSearch = true;
 													}
@@ -1512,10 +1697,10 @@ export default Vue.component("research-page-filters", {
 												}
 											} else {
 												if (
-													row[searchIndex.field] <=
+													typeof row[searchIndex.field] == "number" && (row[searchIndex.field] <=
 														searchVals[0].trim() ||
 													row[searchIndex.field] >=
-														searchVals[1].trim()
+														searchVals[1].trim())
 												) {
 													tempFiltered[
 														row[
@@ -1581,6 +1766,11 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
+.expand-region {
+	display: inline-block;
+	vertical-align: bottom;
+	margin-left: 5px;
+}
 .expand-region-select-byor {
 	background-color: #66bbff !important;
 	border: solid 1px #3399ff !important;
@@ -1609,6 +1799,10 @@ export default Vue.component("research-page-filters", {
 .custom-select-search.long-list {
 	width: auto !important;
 	min-width: 175px;
+	position: absolute;
+	z-index: 100;
+	left: 7px;
+	margin-top: 2px;
 }
 
 .custom-select-search.hidden,
@@ -1632,6 +1826,11 @@ div.custom-select-search {
 	overflow-y: auto;
 	height: auto;
 	max-height: 250px;
+	position: absolute;
+	z-index: 100;
+	left: 7px;
+	margin-top: 2px;
+	text-align: left;
 }
 
 .custom-select-a-option {
@@ -1653,21 +1852,21 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria {
-	position: absolute;
+	/*position: absolute;
 	z-index: 200;
 	width: 210px;
 	left: -25px;
 	top: 10px;
 	text-align: left;
 	padding: 15px;
-	padding-left: 25px;
+	padding-left: 25px;*/
 	transition: all 0.5s;
 	background-color: #ddefff;
 	border: solid 1px #bbdfff;
 }
 
 .filtering-ui-wrapper.search-criteria.closed {
-	left: -225px;
+	/*left: -225px;*/
 	transition: all 0.5s;
 }
 
@@ -1696,9 +1895,53 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria > h4.card-title {
-	margin-left: -7px;
+	position: absolute;
+	font-size: 13px;
+	font-weight: bold;
+	color: #77afcf;
+	left: 5px;
+}
+
+.filtering-ui-wrapper > h4.card-title {
+	position: absolute;
+	font-size: 13px;
+	font-weight: bold;
+	color: #aaaaaa;
+	left: 5px;
 }
 
 .filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {
+}
+.autocomplete-options {
+	position: absolute;
+	z-index: 100;
+	height: 500px;
+	overflow: auto;
+}
+
+.autocomplete-options ul {
+	list-style: none;
+	border-bottom: solid 1px #ddd;
+	padding: 0;
+	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.autocomplete-options ul li {
+	display: block;
+	list-style: none;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	text-align: left;
+	padding: 3px 10px;
+	border-bottom: none;
+	max-width: 400px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.autocomplete-options ul li:hover {
+	cursor: pointer;
+	color: #3399ff;
 }
 </style>

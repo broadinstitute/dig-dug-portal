@@ -43,6 +43,7 @@ new Vue({
     },
 
     created() {
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -61,6 +62,25 @@ new Vue({
     },
 
     computed: {
+        /// for disease systems
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+        ///
 
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
@@ -99,8 +119,26 @@ new Vue({
             return content;
         },
 
+        datasetsInSession() {
+            let allDatasets = this.$store.state.bioPortal.datasets;
+
+            let datasetsInSession = [];
+
+            allDatasets.map(d => {
+                let inSession = 0;
+                this.phenotypesInSession.map(p => {
+                    if (!!d.phenotypes.includes(p.name) && inSession == 0) {
+                        datasetsInSession.push(d);
+                        inSession = 1;
+                    }
+                })
+            })
+
+            return datasetsInSession;
+        },
+
         datasetsList() {
-            let contents = this.$store.state.bioPortal.datasets;
+            let contents = this.datasetsInSession;
 
             if (contents.length === 0) {
                 return null;
@@ -146,7 +184,9 @@ new Vue({
 
         datasetsPhenotypeOptions() {
 
-            let uniqueOptions = [...new Set(this.$store.state.bioPortal.phenotypes.map(p => p.name).sort())]
+            //let uniqueOptions = [...new Set(this.$store.state.bioPortal.phenotypes.map(p => p.name).sort())]
+
+            let uniqueOptions = [...new Set(this.phenotypesInSession.map(p => p.name).sort())]
 
             return uniqueOptions;
         },

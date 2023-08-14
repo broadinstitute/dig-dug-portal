@@ -32,6 +32,8 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
     render(createElement, context) {
@@ -65,12 +67,28 @@ new Vue({
             let contents = this.$store.state.kp4cd.pageInfo;
 
             if (contents.length === 0) {
-                return {};
+                return null;
             }
             return contents;
         },
 
-
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
 
 
     },

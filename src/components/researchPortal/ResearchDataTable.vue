@@ -1,11 +1,7 @@
 <template>
 	<div class="research-data-table-wrapper">
 		<div v-html="tableLegend" class="data-table-legend"></div>
-		<div
-			v-if="!!dataset"
-			v-html="'Total rows: ' + this.rows"
-			class="table-total-rows"
-		></div>
+
 		<div
 			v-if="
 				!!searchParameters &&
@@ -21,6 +17,21 @@
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
 			></span>
 		</div>
+		<research-summary-plot
+			v-if="
+				!!tableFormat['summary plot'] &&
+				tableFormat['summary plot']['plots'].includes('table')
+			"
+			v-bind:summaryPlot="tableFormat['summary plot']"
+			v-bind:rawData="dataset"
+			v-bind:isPlotByRow="false"
+		>
+		</research-summary-plot>
+		<div
+			v-if="!!dataset"
+			v-html="'Total rows: ' + this.rows"
+			class="table-total-rows"
+		></div>
 		<div class="table-ui-wrapper">
 			<label
 				>Rows per page:
@@ -234,9 +245,9 @@
 <script>
 import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
+import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 
 import Formatters from "@/utils/formatters";
-
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
@@ -262,12 +273,13 @@ export default Vue.component("research-data-table", {
 		};
 	},
 	modules: {},
-	components: { ResearchDataTableFeatures },
+	components: { ResearchDataTableFeatures, ResearchSummaryPlot },
 	created() {},
 	beforeMount() {},
 
 	mounted() {
 		this.perPageNumber = this.initPerPageNumber;
+		//console.log(this.dataset);
 	},
 	updated() {},
 	computed: {
@@ -609,13 +621,36 @@ export default Vue.component("research-data-table", {
 				!!this.tableFormat["column formatting"] &&
 				!!this.tableFormat["column formatting"][tdKey]
 			) {
-				content = Formatters.BYORColumnFormatter(
-					tdValue,
-					tdKey,
-					this.tableFormat,
-					this.phenotypeMap,
-					this.dataScores
-				);
+				let types = this.tableFormat["column formatting"][tdKey].type;
+
+				if (
+					!!types.includes("render background percent") ||
+					!!types.includes("render background percent negative")
+				) {
+					content = Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						null,
+						this.dataScores
+					);
+				} else if (!!types.includes("kp phenotype link")) {
+					content = Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						this.phenotypeMap,
+						null
+					);
+				} else {
+					content = Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						null,
+						null
+					);
+				}
 			} else {
 				content = tdValue;
 			}
@@ -709,18 +744,19 @@ export default Vue.component("research-data-table", {
 		applySorting(key) {
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
+
 			if (key != this.tableFormat["locus field"]) {
 				let filtered =
 					this.dataComparisonConfig == null
 						? this.dataset
 						: this.object2Array(this.dataset, key, sortDirection);
 
-				// In case of the data with null values mixed, we separate it to withValues and WO values.
+				// In case of the data with null values mixed, we separate it to with Values and W/O values.
 				let filteredWValues = [];
 				let filteredWNull = [];
 
 				filtered.map((v) => {
-					if (!!v[key]) {
+					if (!!v[key] || v[key] === 0) {
 						filteredWValues.push(v);
 					} else {
 						filteredWNull.push(v);
@@ -728,6 +764,7 @@ export default Vue.component("research-data-table", {
 				});
 
 				let isNumeric = this.checkIfNumeric(filtered, key);
+				console.log("isNumeric",isNumeric)
 
 				//sort the data with values, then merge the data WO values to the sorted.
 				let sortedValues = sortUtils
