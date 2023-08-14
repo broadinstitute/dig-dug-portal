@@ -76,11 +76,17 @@ new Vue({
         },
 
         varId() {
-            return this.$store.state.variant && this.$store.state.variant.varId;
+            return this.$store.state.pageVariant &&
+                this.$store.state.pageVariant.varId
+                ? this.$store.state.pageVariant.varId
+                : "";
         },
 
         dbSNP() {
-            return this.$store.state.variant && this.$store.state.variant.dbSNP;
+            return this.$store.state.pageVariant &&
+                this.$store.state.pageVariant.dbSNP
+                ? this.$store.state.pageVariant.dbSNP
+                : "";
         },
 
         variantName() {
@@ -161,32 +167,32 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 
-        variantData(data) {
-            //! data is an array
-            if (data.length > 0) {
-                this.$store.commit("setVariant", data[0]); // only ever 1 result
-            }
-        },
+        // variantData(data) {
+        //     //! data is an array
+        //     if (data.length > 0) {
+        //         this.$store.commit("setVariant", data[0]); // only ever 1 result
+        //     }
+        // },
 
-        "$store.state.variant"(variant) {
-            if (variant) {
-                let p = this.chromPos;
+        // "$store.state.variant"(variant) {
+        //     if (variant) {
+        //         let p = this.chromPos;
 
-                this.$store.dispatch("phewas/query", { q: variant.varId });
-                this.$store.dispatch("transcriptConsequences/query", {
-                    q: variant.varId,
-                });
-                this.$store.dispatch("transcriptionFactors/query", {
-                    q: variant.varId,
-                });
-                this.$store.dispatch("regions/query", {
-                    q: `${p.chromosome}:${p.position}`,
-                });
-                this.$store.dispatch("datasetAssociations/query", {
-                    q: variant.varId,
-                });
-            }
-        },
+        //         this.$store.dispatch("phewas/query", { q: variant.varId });
+        //         this.$store.dispatch("transcriptConsequences/query", {
+        //             q: variant.varId,
+        //         });
+        //         this.$store.dispatch("transcriptionFactors/query", {
+        //             q: variant.varId,
+        //         });
+        //         this.$store.dispatch("regions/query", {
+        //             q: `${p.chromosome}:${p.position}`,
+        //         });
+        //         this.$store.dispatch("datasetAssociations/query", {
+        //             q: variant.varId,
+        //         });
+        //     }
+        // },
     },
 
     created() {
