@@ -36,11 +36,11 @@
                     </div>
                 </b-col>
                 <b-col class="text-right mb-2">
-                    <csv-download
+                    <data-download
                         v-if="tableData.length"
                         :data="tableData"
                         filename="variant-consequences"
-                    ></csv-download
+                    ></data-download
                 ></b-col>
             </b-row>
             <div v-show="tableData.length">
@@ -132,8 +132,11 @@
 <script>
 import Vue from "vue";
 import Formatters from "@/utils/formatters";
-
+import DataDownload from "@/components/DataDownload.vue";
 export default Vue.component("TranscriptConsequenceTable", {
+    components: {
+        DataDownload,
+    },
     props: ["transcriptConsequences", "filter"],
     data() {
         return {

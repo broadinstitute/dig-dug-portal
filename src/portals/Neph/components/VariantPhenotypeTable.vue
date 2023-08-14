@@ -3,11 +3,11 @@
         <div v-if="rows > 0">
             <b-row>
                 <b-col class="text-right mb-2">
-                    <csv-download
+                    <data-download
                         v-if="tableData.length"
                         :data="tableData"
                         filename="phenotypes-table"
-                    ></csv-download
+                    ></data-download
                 ></b-col>
             </b-row>
             <div v-show="tableData.length">
@@ -93,9 +93,13 @@
 <script>
 import Vue from "vue";
 import Formatters from "@/utils/formatters";
+import DataDownload from "@/components/DataDownload.vue";
 import { query } from "@/utils/bioIndexUtils";
 
 export default Vue.component("variant-phenotype-table", {
+    components: {
+        DataDownload,
+    },
     props: ["variantId", "filter"],
     data() {
         return {

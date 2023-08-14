@@ -10,11 +10,11 @@
                         size="sm"
                         >View in gnomAD browser</b-button
                     >
-                    <csv-download
+                    <data-download
                         v-if="tableData.length"
                         :data="tableData"
                         filename="gnomAD-info"
-                    ></csv-download
+                    ></data-download
                 ></b-col>
             </b-row>
             <div v-show="tableData.length">
@@ -41,9 +41,13 @@
 <script>
 import Vue from "vue";
 import Formatters from "@/utils/formatters";
+import DataDownload from "@/components/DataDownload";
 import { match, query } from "@/utils/bioIndexUtils";
 
 export default Vue.component("GnominfoCard", {
+    components: {
+        DataDownload,
+    },
     props: ["variantId"],
     data() {
         return {
