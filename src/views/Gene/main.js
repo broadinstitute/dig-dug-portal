@@ -515,8 +515,10 @@ new Vue({
 
         // the region for the gene was found
         region(region) {
-            this.hideElement("variangeneSearchHolder");
-            this.$store.dispatch("queryGeneRegion", region);
+            if (region) {
+                uiUtils.hideElement("pageSearchHeaderContent");
+                this.$store.dispatch("queryGeneRegion", region);
+            }
         },
 
         // the canonical symbol was found
