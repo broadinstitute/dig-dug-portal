@@ -181,6 +181,9 @@ new Vue({
     },
     computed: {
         //sections setting start
+        uiUtilsUtils() {
+            return uiUtils
+        },
         keyParamUtils() {
             return keyParams
         },

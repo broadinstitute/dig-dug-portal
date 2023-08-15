@@ -60,14 +60,14 @@
 			</div>
 			<div
 				class="convert-2-csv btn-sm"
-				@click="showHidePanel('#showHideColumnsBox')"
+				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
 			>
 				show/hide columns
 			</div>
-			<div v-if="!!tableFormat" id="showHideColumnsBox" class="hidden">
+			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="hidden">
 				<div
 					class="show-hide-columns-box-close"
-					@click="showHidePanel('#showHideColumnsBox')"
+					@click="showHidePanel('#showHideColumnsBox'+sectionId)"
 				>
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
@@ -213,7 +213,7 @@
 					<td v-if="tableFormat['features'] != undefined">
 						<span
 							href="javascript:;"
-							@click="showHideFeature('feature_' + index)"
+							@click="showHideFeature('feature_' + sectionId + index)"
 							class="show-evidence-btn btn"
 							>View</span
 						>
@@ -221,7 +221,7 @@
 				</tr>
 				<tr
 					v-if="!!tableFormat['features']"
-					:id="'feature_' + index"
+					:id="'feature_' + sectionId + index"
 					:class="'hidden'"
 				>
 					<td :colspan="topRowNumber" class="features-td">
@@ -256,7 +256,7 @@ import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataT
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 
 import Formatters from "@/utils/formatters";
-import uiUtils from "@/utils/uiUtils";
+//import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
 export default Vue.component("research-data-table", {
@@ -272,7 +272,8 @@ export default Vue.component("research-data-table", {
 		"pkgDataSelected",
 		"phenotypeMap",
 		"multiSectionPage",
-		"sectionId"
+		"sectionId",
+		"uiUtils"
 	],
 	data() {
 		return {
@@ -633,13 +634,13 @@ export default Vue.component("research-data-table", {
 			}
 		},
 		showHideFeature(ELEMENT) {
-			uiUtils.showHideElement(ELEMENT);
+			this.uiUtils.showHideElement(ELEMENT);
 		},
 		convertJson2Csv(DATA, FILENAME) {
-			uiUtils.convertJson2Csv(DATA, FILENAME);
+			this.uiUtils.convertJson2Csv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
-			uiUtils.saveJson(DATA, FILENAME);
+			this.uiUtils.saveJson(DATA, FILENAME);
 		},
 		formatValue(tdValue, tdKey) {
 			let content;
@@ -880,7 +881,7 @@ export default Vue.component("research-data-table", {
 .show-hide-columns-box-close:hover {
 	color: #36c;
 }
-#showHideColumnsBox {
+/*#showHideColumnsBox {
 	position: fixed;
 	background-color: #fff;
 	border: solid 1px #ddd;
@@ -904,6 +905,32 @@ export default Vue.component("research-data-table", {
 
 #showHideColumnsBox th,
 #showHideColumnsBox td {
+	border: none;
+}*/
+[id*="showHideColumnsBox"] {
+	position: fixed;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	z-index: 11;
+	font-size: 14px;
+	width: 400px;
+	height: 50%;
+	text-align: left;
+	top: 25%;
+	left: calc(50% - 200px);
+	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
+	padding: 20px;
+}
+
+[id*="showHideColumnsBox"] .table-wrapper {
+	overflow: auto !important;
+	padding: 0;
+	height: calc(100% - 35px);
+}
+
+[id*="showHideColumnsBox"] th,
+[id*="showHideColumnsBox"] td {
 	border: none;
 }
 .group-item-bubble {

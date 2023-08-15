@@ -1,14 +1,15 @@
 <template>
 	<div class="multi-section" :class="'wrapper-' + sectionIndex">
-		<div class="row card-body">
+		<span @click="uiUtils.showHideElement('section_' + sectionConfig['section id'])">ShowHide section</span>
+		<div class="row card-body" :id="'section_' + sectionConfig['section id']">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				
 				<h4>{{ sectionConfig.header }}
 				<small v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em">
 				{{ keyParams[parameter] + '  ' }}</small></h4>
 				<research-section-filters
-					v-if="!!sectionConfig.filters"
-					:filters="sectionConfig.filters"
+					v-if="!!filters"
+					:filters="filters"
 					:filterWidth="sectionConfig['filter width']"
 					:dataset="pageData"
 					:unfilteredDataset="originalData"
@@ -16,8 +17,8 @@
 					@on-filtering="updateData"
 				></research-section-filters>
 				<research-section-visualizers
-					v-if="!!sectionConfig.visualizer && !!pageData"
-					:plotConfig="sectionConfig.visualizer"
+					v-if="!!visualizer && !!pageData"
+					:plotConfig="visualizer"
 					:plotData="pageData"
 					:phenotypeMap="phenotypeMap"
 					:colors="colors"
@@ -45,6 +46,7 @@
 					:phenotypeMap="phenotypeMap"
 					:sectionId="sectionConfig['section id']"
 					:multiSectionPage="true"
+					:uiUtils="uiUtils"
 					@clicked-sort="updateData"
 				>
 				</research-data-table>
@@ -64,7 +66,7 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-section", {
-	props: ["uId","sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors"],
+	props: ["uId","sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors","uiUtils"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -75,6 +77,8 @@ export default Vue.component("research-section", {
 			pageData: null,
 			originalData: null,
 			remoteTableFormat:null,
+			remoteFilters:null,
+			remoteVisualizer:null,
 		};
 	},
 	modules: {
@@ -103,6 +107,34 @@ export default Vue.component("research-section", {
 				return null
 			}
 		},
+		filters() {
+			if (!!this.pageData) {
+				if (!!this.sectionConfig["filters"] &&
+					(!this.sectionConfig["filters"]["type"] || this.sectionConfig["filters"]["type"] != "remote")) {
+					return this.sectionConfig["filters"];
+				} else if (!!this.remoteFilters) {
+					return this.remoteFilters;
+				} else {
+					return null;
+				}
+			} else {
+				return null
+			}
+		},
+		visualizer() {
+			if (!!this.pageData) {
+				if (!!this.sectionConfig["visualizer"] &&
+					(!this.sectionConfig["visualizer"]["type"] || this.sectionConfig["visualizer"]["type"] != "remote")) {
+					return this.sectionConfig["visualizer"];
+				} else if (!!this.remoteVisualizer) {
+					return this.remoteVisualizer;
+				} else {
+					return null;
+				}
+			} else {
+				return null
+			}
+		},
 		sectionTableLegend() {
 			let sectionID = this.sectionConfig["section id"]+"_table";
 			let legend = (!!document.getElementById(sectionID)) ? document.getElementById(sectionID).innerHTML : "";
@@ -115,19 +147,6 @@ export default Vue.component("research-section", {
 
 			return legend;
 		},
-		/*searchString() {
-			let paramString = "";
-
-			if (!!this.sectionConfig["data point"]) {
-				this.sectionConfig["data point"]['parameters'].map(p => {
-					if (!!this.keyParams[p]) {
-						paramString += this.keyParams[p];
-					}
-				})
-			}
-			console.log("paramString", paramString);
-			return paramString;
-		},*/
 	},
 	watch: {
 		keyParams:function(NEW,OLD) {
@@ -203,26 +222,44 @@ export default Vue.component("research-section", {
 				let contJson = await fetch(dataUrl).then((resp) => resp.json());
 
 				if (contJson.error == null) {	
-
-					
 					let data = null;
-
 					let dataWrapper = dataPoint["data wrapper"];
 
+					// remote table format
 					if(!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"] 
 						&& this.sectionConfig["table format"]["type"] == "remote") {
-							let tableFormatWrapper = this.sectionConfig["table format"]["format wrapper"];
+							let tableFormatWrapper = this.sectionConfig["table format"]["config wrapper"];
 							let tableFormats = contJson;
 
 							tableFormatWrapper.map(w => {
 								tableFormats = tableFormats[w];
 							})
-
 							this.remoteTableFormat = JSON.parse(tableFormats);
+					}
 
+					// remote filters
+					if (!!this.sectionConfig["filters"] && !!this.sectionConfig["filters"]["type"]
+						&& this.sectionConfig["filters"]["type"] == "remote") {
+						let filtersWrapper = this.sectionConfig["filters"]["config wrapper"];
+						let filters = contJson;
+
+						filtersWrapper.map(w => {
+							filters = filters[w];
+						})
+						this.remoteFilters = JSON.parse(filters);
 					}
 					
-					console.log("this.remoteTableFormat", this.remoteTableFormat);
+					// remote visualizer
+					if (!!this.sectionConfig["visualizer"] && !!this.sectionConfig["visualizer"]["type"]
+						&& this.sectionConfig["visualizer"]["type"] == "remote") {
+						let visualizerWrapper = this.sectionConfig["visualizer"]["config wrapper"];
+						let visualizer = contJson;
+
+						visualizerWrapper.map(w => {
+							visualizer = visualizer[w];
+						})
+						this.remoteVisualizer = JSON.parse(visualizer);
+					}
 					
 					switch (dataPoint["data type"]) {
 						case "bioindex":

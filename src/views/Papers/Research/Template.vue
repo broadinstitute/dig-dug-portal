@@ -476,6 +476,7 @@
 								:phenotypeMap="
 									$store.state.bioPortal.phenotypeMap
 								"
+								:uiUtils="$parent.uiUtilsUtils"
 							>
 							</research-data-table>
 							<research-gem-data-table
@@ -525,6 +526,7 @@
 	                    :plotMargin="$parent.plotMargin"
 	                    :plotLegend="$parent.plotLegend"
 	                    :tableLegend="$parent.tableLegend"
+						:uiUtils="$parent.uiUtilsUtils"
 	                    :key="index">
 	                </research-section>	
 	            </div>
