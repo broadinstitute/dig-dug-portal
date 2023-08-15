@@ -1,12 +1,19 @@
 <template>
 	<div class="multi-section" :class="'wrapper-' + sectionIndex">
-		<span @click="uiUtils.showHideElement('section_' + sectionConfig['section id'])">ShowHide section</span>
+		<div class="row">
+			<div class="col-md-12">
+								<button class="btn btn-sm btn-light capture-data">Capture data in section</button>
+	 <button class="btn btn-sm btn-light show-hide-section" @click="uiUtils.showHideElement('section_' + sectionConfig['section id'])">Show / Hide section</button>
+				<h4>{{ sectionConfig.header }}
+					<small v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
+					v-html="!!keyParams[parameter]? keyParams[parameter] + '  ' : parameter+' not set. '"></small></h4>
+			</div>
+		</div>
 		<div class="row card-body" :id="'section_' + sectionConfig['section id']">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				
-				<h4>{{ sectionConfig.header }}
-				<small v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em">
-				{{ keyParams[parameter] + '  ' }}</small></h4>
+				
+				
 				<research-section-filters
 					v-if="!!filters"
 					:filters="filters"
@@ -346,5 +353,20 @@ $(function () {});
 <style>
 .multi-section {
 	border-bottom: solid 1px #ddd;
+	position: relative;
+}
+
+button.show-hide-section, button.capture-data {
+	position: absolute;
+    z-index: 10;
+    right: 15px;
+    top: 5px;
+    padding: 0 10px !important;
+    font-size: 11px;
+	border: solid 1px #cccccc;
+}
+
+button.capture-data {
+	right: 140px;
 }
 </style>
