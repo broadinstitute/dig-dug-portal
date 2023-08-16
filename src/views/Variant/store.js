@@ -3,6 +3,7 @@ import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import variantUtils from "@/utils/variantUtils";
@@ -20,13 +21,14 @@ export default new Vuex.Store({
         ancestryPhewas: bioIndex("ancestry-phewas-associations"),
         //regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
+        varIDLookup: bioIndex("varIdLookup"),
     },
 
     state: {
-        variant: null,
+        pageVariant: null,
         newVariantId: null,
-        ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
-        selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        ancestry: keyParams.ancestry ? keyParams.ancestry : "",
+        selectedAncestry: keyParams.ancestry ? keyParams.ancestry : "",
         badSearch: false,
         phenotypesInSession: null,
         diseaseInSession: null,
@@ -36,10 +38,8 @@ export default new Vuex.Store({
     mutations: {
         setVariant(state, variant) {
             if (variant) {
-                let varId = variant.varId;
-
-                state.variant = variant;
-                state.newVariantId = variant.dbSNP || varId;
+                state.pageVariant = variant;
+                state.newVariantId = variant.varId || variant.dbSNP;
 
                 keyParams.set({ variant: state.newVariantId });
             }
@@ -52,7 +52,7 @@ export default new Vuex.Store({
         },
         setPhenotypeCorrelation(state, Correlation) {
             state.phenotypeCorrelation = Correlation;
-        }
+        },
     },
 
     actions: {
@@ -62,24 +62,45 @@ export default new Vuex.Store({
             newVarId = await variantUtils.parseVariant(
                 newVarId || context.state.newVariantId
             );
+            console.log("out newVarId is ", newVarId);
+            if (newVarId) {
+                //if newVarId is a dbSNP, then we need to get the varId
+                if (newVarId.startsWith("rs")) {
+                    await fetch(
+                        BIO_INDEX_HOST + "/api/bio/varIdLookup/" + newVarId
+                    )
+                        .then((res) => res.json())
+                        .then((res) => {
+                            console.log("res is ", res);
+                            context.commit("setVariant", {
+                                varId: res.data.varid,
+                                dbSNP: res.data.rsid,
+                            });
+                        });
+                } else {
+                    context.commit("setVariant", { varId: newVarId });
+                }
 
-            if (!!newVarId) {
                 await context.dispatch("variantData/query", { q: newVarId });
                 context.state.badSearch = false;
                 context.dispatch("queryAll");
             } else {
                 context.state.badSearch = true;
             }
-
         },
         queryAll(context) {
             let ancestry = context.state.ancestry;
-            let varId = context.state.variant.varId;
-            let chromosome = varId.split(":")[0];
-            let position = parseInt(varId.split(":")[1]);
+            let varId = context.state.pageVariant.varId;
+
+            //not currently using chromosome and position to search for regions
+            //let chromosome = varId.split(":")[0];
+            //let position = parseInt(varId.split(":")[1]);
+
             // phewas can be with or without ancestry
-            if (!!ancestry) {
-                context.dispatch("ancestryPhewas/query", { q: `${ancestry},${varId}` });
+            if (ancestry) {
+                context.dispatch("ancestryPhewas/query", {
+                    q: `${ancestry},${varId}`,
+                });
             } else {
                 context.dispatch("phewas/query", { q: varId });
             }
@@ -98,5 +119,5 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
-    }
+    },
 });
