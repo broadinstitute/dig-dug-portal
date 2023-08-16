@@ -2,8 +2,12 @@
 	<div class="multi-section" :class="'wrapper-' + sectionIndex">
 		<div class="row">
 			<div class="col-md-12">
-								<button class="btn btn-sm btn-light capture-data">Capture data in section</button>
-	 <button class="btn btn-sm btn-light show-hide-section" @click="uiUtils.showHideElement('section_' + sectionConfig['section id'])">Show / Hide section</button>
+				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()" title="Capture data in section"><b-icon
+												icon="cart-check-fill"
+											></b-icon></button>
+	 			<button class="btn btn-sm show-evidence-btn show-hide-section" @click="uiUtils.showHideElement('section_' + sectionConfig['section id'])" title="Show / hide section"><b-icon
+											icon="eye-fill"
+										></b-icon></button>
 				<h4>{{ sectionConfig.header }}
 					<small v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
 					v-html="!!keyParams[parameter]? keyParams[parameter] + '  ' : parameter+' not set. '"></small></h4>
@@ -18,15 +22,15 @@
 					v-if="!!filters"
 					:filters="filters"
 					:filterWidth="sectionConfig['filter width']"
-					:dataset="pageData"
+					:dataset="sectionData"
 					:unfilteredDataset="originalData"
 					:sectionId="sectionConfig['section id']"
 					@on-filtering="updateData"
 				></research-section-filters>
 				<research-section-visualizers
-					v-if="!!visualizer && !!pageData"
+					v-if="!!visualizer && !!sectionData"
 					:plotConfig="visualizer"
-					:plotData="pageData"
+					:plotData="sectionData"
 					:phenotypeMap="phenotypeMap"
 					:colors="colors"
 					:plotMargin="plotMargin"
@@ -38,7 +42,7 @@
 				<research-data-table
 					v-if="!!tableFormat"
 					:pageID="sectionIndex"
-					:dataset="pageData"
+					:dataset="sectionData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="(!!tableFormat['rows per page'])? tableFormat['rows per page'] :10"
 					:tableLegend="sectionTableLegend"
@@ -81,7 +85,7 @@ export default Vue.component("research-section", {
     },
 	data() {
 		return {
-			pageData: null,
+			sectionData: null,
 			originalData: null,
 			remoteTableFormat:null,
 			remoteFilters:null,
@@ -99,14 +103,14 @@ export default Vue.component("research-section", {
 	},
 	computed: {
 		tableFormat() {
-			if(!!this.pageData) {
+			if(!!this.sectionData) {
 				if(!!this.sectionConfig["table format"] && 
 					(!this.sectionConfig["table format"]["type"] || this.sectionConfig["table format"]["type"]!="remote")) {
 					return this.sectionConfig["table format"];
 				} else if(!!this.remoteTableFormat) {
 					return this.remoteTableFormat;
 				}else {
-					let topRows = Object.keys(this.pageData[0]);
+					let topRows = Object.keys(this.sectionData[0]);
 					let tableFormat = { "top rows": topRows };
 					return tableFormat;
 				}
@@ -115,7 +119,7 @@ export default Vue.component("research-section", {
 			}
 		},
 		filters() {
-			if (!!this.pageData) {
+			if (!!this.sectionData) {
 				if (!!this.sectionConfig["filters"] &&
 					(!this.sectionConfig["filters"]["type"] || this.sectionConfig["filters"]["type"] != "remote")) {
 					return this.sectionConfig["filters"];
@@ -129,7 +133,7 @@ export default Vue.component("research-section", {
 			}
 		},
 		visualizer() {
-			if (!!this.pageData) {
+			if (!!this.sectionData) {
 				if (!!this.sectionConfig["visualizer"] &&
 					(!this.sectionConfig["visualizer"]["type"] || this.sectionConfig["visualizer"]["type"] != "remote")) {
 					return this.sectionConfig["visualizer"];
@@ -162,7 +166,20 @@ export default Vue.component("research-section", {
 	},
 	methods: {
 		updateData(data) {
-			this.pageData = data;
+			this.sectionData = data;
+		},
+		captureData() {
+			let title = [this.sectionConfig.header];
+
+			if(!!this.sectionConfig['data point']['parameters']) {
+				this.sectionConfig['data point']['parameters'].map(p => {
+					title.push(this.keyParams[p])
+				})
+			}
+
+			title= title.join(":");
+
+			this.$store.dispatch("capturedData", {action:'add',title: title,data:this.sectionData});
 		},
 		getPlotLegend(ID) {
 			if(!!this.plotLegend) {
@@ -315,19 +332,19 @@ export default Vue.component("research-section", {
 
 						if (dataPoint.type == "bioindex") {
 							if (contJson.page == 1) {
-								this.pageData = data;
-								this.originalData = this.pageData;
+								this.sectionData = data;
+								this.originalData = this.sectionData;
 							} else {
-								this.pageData = this.pageData.concat(data);
-								this.originalData = this.pageData;
+								this.sectionData = this.sectionData.concat(data);
+								this.originalData = this.sectionData;
 							}
 
 							if (!!contJson.continuation) {
 								this.getData(contJson.continuation);
 							}
 						} else {
-							this.pageData = data;
-							this.originalData = this.pageData;
+							this.sectionData = data;
+							this.originalData = this.sectionData;
 						}
 					} else {
 						console.log("no returned data")
@@ -361,12 +378,9 @@ button.show-hide-section, button.capture-data {
     z-index: 10;
     right: 15px;
     top: 5px;
-    padding: 0 10px !important;
-    font-size: 11px;
-	border: solid 1px #cccccc;
 }
 
 button.capture-data {
-	right: 140px;
+	right: 55px;
 }
 </style>

@@ -1034,6 +1034,20 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        /// multi-sections use
+        saveCapturedData(TYPE, TITLE) {
+            let data = this.$store.state.capturedData.filter(d => d.title == TITLE);
+
+            switch (TYPE) {
+                case 'json':
+                    uiUtils.saveJson(data[0].data, TITLE)
+                    break;
+                case 'csv':
+                    uiUtils.convertJson2Csv(data[0].data, TITLE)
+                    break;
+            }
+        },
+        ///
         getSubHeader() {
             if (
                 !!this.apiParameters &&

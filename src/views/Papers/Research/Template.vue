@@ -94,7 +94,7 @@
 		>
 			<div class="card mdkp-card dataset-page-header">
 				<div class="row card-body">
-					<div class="col-md-12">
+					<div class="col-md-8">
 						<h3 v-html="$parent.pageTitle"></h3>
 						<div
 							v-if="
@@ -106,6 +106,47 @@
 							id="rpSubHeader"
 							class="rp-sub-header"
 						></div>
+						
+					</div>
+					<div class="col-md-4 text-right" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
+						<button class="btn btn-sm btn-primary" @click="$parent.uiUtilsUtils.showHideElement('captured_data_panel')" title="Show / hide captured data list"><b-icon
+													icon="cart-fill"
+												></b-icon></button>
+					</div>
+				</div>
+			</div>
+
+			<div id="captured_data_panel" class="card mdkp-card hidden">
+				<div class="row card-body">
+					<div class="col-md-12">
+						<h4>Captured data</h4>
+						<table class="table table-sm research-data-table">
+							<thead>
+								<tr>
+									<th>Section / Parameters</th><th>Save section data in CSV</th><th>Save section data in JSON</th><th>Remove section data</th>
+								</tr>
+							</thead>
+							<tbody>
+	<tr v-for="data  in $store.state.capturedData">
+		
+								<td v-html="data.title"></td>
+								<td>
+									<button class="btn btn-sm btn-primary save-remove-section-data" @click="$parent.saveCapturedData('csv', data.title)">Save CSV</button>
+									</td>
+									<td>
+										<button class="btn btn-sm btn-primary save-remove-section-data" @click="$parent.saveCapturedData('json', data.title)">Save JSON</button>
+										</td>
+									<td>
+									<button class="btn btn-sm btn-warning" @click="$store.dispatch('capturedData', {action:'remove',title:data.title})">Remove</button>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+						
+						<div class="col-md-12 text-center">
+							<button class="btn btn-primary" @click="$parent.uiUtilsUtils.saveJson($store.state.capturedData, $parent.pageTitle+' sections data')">Save all (JSON)</button>
+						</div>
+						
 					</div>
 				</div>
 			</div>
@@ -591,6 +632,9 @@
 @import url("/css/tooltipDocumentation.css");
 html {
 	font-size: 14px !important;
+}
+.card.hidden {
+	display: none !important;
 }
 .no-data-warning {
 	background-color: #ffaaaa;
