@@ -52,6 +52,7 @@
                     :items="tableData"
                     :fields="fields"
                     :per-page="perPage"
+                    :current-page="currentPage"
                     :tbody-tr-class="rowPickClass"
                     ><template #cell(varId)="data">
                         <a :href="`/variant.html?variant=${data.item.varId}`">{{

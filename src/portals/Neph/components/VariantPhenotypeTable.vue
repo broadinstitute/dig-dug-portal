@@ -18,6 +18,7 @@
                     :items="tableData"
                     :fields="fields"
                     :per-page="perPage"
+                    :current-page="currentPage"
                     :tbody-tr-class="rowPickClass"
                 >
                     <template #cell(varId)="data">
@@ -156,6 +157,7 @@ export default Vue.component("variant-phenotype-table", {
             hprecords: [],
             perPage: 24,
             currentPage: 1,
+            variant: [],
         };
     },
     computed: {
