@@ -19,6 +19,7 @@ import PathwayTable from "@/components/PathwayTable.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
@@ -29,17 +30,17 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
-import FilterPValue from "@/components/criterion/FilterPValue.vue"
-import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
-import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
-import CriterionListGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
-import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import CriterionListGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 
-import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 new Vue({
     store,
 
@@ -56,17 +57,16 @@ new Vue({
         CorrelationTable,
         PathwayTable,
         Documentation,
+        TooltipDocumentation,
         RawImage,
         EffectorGenesSection,
-
         CriterionFunctionGroup,
         CriterionListGroup,
         FilterPValue,
         FilterGreaterThan,
         FilterEnumeration,
         FilterEffectDirection,
-
-        SearchHeaderWrapper
+        SearchHeaderWrapper,
     },
 
     created() {
@@ -82,8 +82,8 @@ new Vue({
     data() {
         return {
             phenotypeSearchKey: null,
-            newPhenotypeSearchKey: null
-        }
+            newPhenotypeSearchKey: null,
+        };
     },
     methods: {
         ...uiUtils,
@@ -100,27 +100,20 @@ new Vue({
             this.$store.dispatch("selectedPhenotype", PHENOTYPE);
         },
         ifPhenotypeInSearch(DESCRIPTION) {
-
-
             let searchKeys = this.phenotypeSearchKey.split(" ");
             let isInPhenotype = 0;
 
             searchKeys.map((w) => {
-                if (
-                    !!DESCRIPTION
-                        .toLowerCase()
-                        .includes(w.toLowerCase())
-                ) {
+                if (!!DESCRIPTION.toLowerCase().includes(w.toLowerCase())) {
                     isInPhenotype++;
                 }
             });
 
-            return (isInPhenotype == searchKeys.length) ? true : null;
-        }
+            return isInPhenotype == searchKeys.length ? true : null;
+        },
     },
 
     computed: {
-
         /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -144,13 +137,18 @@ new Vue({
             if (!this.$store.state.ancestry) {
                 return this.$store.state.bioPortal.datasets;
             }
-            return this.$store.state.bioPortal.datasets.filter(dataset => dataset.ancestry == this.$store.state.ancestry);
+            return this.$store.state.bioPortal.datasets.filter(
+                (dataset) => dataset.ancestry == this.$store.state.ancestry
+            );
         },
         ancestryAnnotations() {
             if (!this.$store.state.ancestry) {
                 return this.$store.state.annotations.data;
             }
-            return this.$store.state.annotations.data.filter(annotation => annotation.ancestry == this.$store.state.ancestry);
+            return this.$store.state.annotations.data.filter(
+                (annotation) =>
+                    annotation.ancestry == this.$store.state.ancestry
+            );
         },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -192,18 +190,21 @@ new Vue({
             }
         },
         geneticCorrelationData() {
-
             let data = this.$store.state.geneticCorrelation.data;
             let focusedData;
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
-                focusedData = sessionUtils.getInSession(data, this.phenotypesInSession, 'other_phenotype');
+                focusedData = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "other_phenotype"
+                );
             } else {
                 focusedData = data;
             }
 
             return focusedData;
-        }
+        },
     },
 
     watch: {
@@ -229,6 +230,6 @@ new Vue({
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        }
-    }
+        },
+    },
 }).$mount("#app");
