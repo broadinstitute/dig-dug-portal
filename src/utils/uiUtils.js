@@ -182,6 +182,71 @@ let onScroll = function (e) {
 };
 
 let convertJson2Csv = function (DATA, FILENAME) {
+    console.log("j2c data", DATA);
+    let topRows = [];
+    let features = [];
+    let fColumnKeys = []
+    DATA.map(d => {
+        for (let [key, value] of Object.entries(d)) {
+            if (key != "features") {
+
+                if (typeof value == "object" && !value.length) {
+                    for (let [vKey, vValue] of Object.entries(value)) {
+                        let headerKey = key + "__" + vKey;
+                        if (!topRows.includes(headerKey)) {
+                            topRows.push(headerKey);
+                        }
+
+                    }
+                } else {
+                    if (!topRows.includes(key)) {
+                        topRows.push(key);
+                    }
+                }
+            } else {
+                for (let [fKey, fValue] of Object.entries(value)) {
+
+                    if (!features.includes(fKey)) {
+                        features.push(fKey);
+                    }
+
+                    for (let [fVKey, fVValue] of Object.entries(fValue[0])) {
+                        let headerFKey = "features" + "__" + fKey + "__" + fVKey;
+
+                        if (!fColumnKeys.includes(headerFKey)) {
+                            fColumnKeys.push(headerFKey);
+                        }
+
+                    }
+                }
+            }
+        }
+    })
+
+
+    console.log(topRows, features, fColumnKeys);
+    let csvData = [];
+
+    DATA.map(d => {
+
+
+        let fMaxLength = null;
+
+        features.map(f => {
+            fMaxLength = !fMaxLength ? d.features[f].length : fMaxLength >= d.features[f].length ? fMaxLength : d.features[f].length;
+        })
+
+        console.log("fMaxLength", fMaxLength);
+
+        for (let i = 0; i < fMaxLength; i++) {
+            let dArr = [];
+
+        }
+
+    })
+};
+
+let convertJson2Csv2 = function (DATA, FILENAME) {
     const items = DATA;
     const downloadFilename = FILENAME || "download";
     const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here

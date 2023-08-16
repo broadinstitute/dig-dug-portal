@@ -43,9 +43,9 @@
 				</select>
 			</label>
 			<div
-				v-if="dataComparisonConfig == null"
+				
 				class="convert-2-csv btn-sm"
-				@click="convertJson2Csv2(filteredData, pageID + '_filtered')"
+				@click="convertJson2Csv(rawData, pageID + '_filtered')"
 			>
 				Save as CSV
 			</div>
