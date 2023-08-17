@@ -1166,118 +1166,121 @@ export default Vue.component("research-annotations-plot-v2", {
 					yMax: null,
 					yMin: null,
 				};
+				if(!!GE) {
+					GE.map((g) => {
+						if (g.ancestry == ancestry) {
+							let meetCondition = null;
 
-				GE.map((g) => {
-					if (g.ancestry == ancestry) {
-						let meetCondition = null;
-
-						if (
-							!!ancestry &&
-							!!this.annoData[g.annotation][g.tissue] &&
-							!!this.annoData[g.annotation][g.tissue][
-								"ancestries"
-							][ancestry]
-						) {
-							meetCondition = true;
-						} else if (
-							!ancestry &&
-							!!this.annoData[g.annotation][g.tissue] &&
-							!!this.annoData[g.annotation][g.tissue]
-						) {
-							meetCondition = true;
-						}
-
-						if (!!meetCondition) {
 							if (
-								!sortedGEData[phenotype][ancestry][g.annotation]
+								!!ancestry &&
+								!!this.annoData[g.annotation][g.tissue] &&
+								!!this.annoData[g.annotation][g.tissue][
+								"ancestries"
+								][ancestry]
 							) {
-								sortedGEData[phenotype][ancestry][
-									g.annotation
-								] = {};
+								meetCondition = true;
+							} else if (
+								!ancestry &&
+								!!this.annoData[g.annotation][g.tissue] &&
+								!!this.annoData[g.annotation][g.tissue]
+							) {
+								meetCondition = true;
 							}
 
-							let pValue = !!ancestry
-								? this.annoData[g.annotation][g.tissue][
-										"ancestries"
-								  ][ancestry][phenotype]
-								: g.pValue;
-
-							pValue = pValue == 0 ? 324 : -Math.log10(pValue);
-
-							let fold = g.SNPs / g.expectedSNPs;
-
-							sortedGEData[phenotype][ancestry].yMax =
-								sortedGEData[phenotype][ancestry].yMax == null
-									? fold
-									: fold >
-									  sortedGEData[phenotype][ancestry].yMax
-									? fold
-									: sortedGEData[phenotype][ancestry].yMax;
-
-							sortedGEData[phenotype][ancestry].yMin =
-								sortedGEData[phenotype][ancestry].yMin == null
-									? fold
-									: fold <
-									  sortedGEData[phenotype][ancestry].yMin
-									? fold
-									: sortedGEData[phenotype][ancestry].yMin;
-
-							sortedGEData[phenotype][ancestry].xMax =
-								sortedGEData[phenotype][ancestry].xMax == null
-									? pValue
-									: pValue >
-									  sortedGEData[phenotype][ancestry].xMax
-									? pValue
-									: sortedGEData[phenotype][ancestry].xMax;
-
-							sortedGEData[phenotype][ancestry].xMin =
-								sortedGEData[phenotype][ancestry].xMin == null
-									? pValue
-									: pValue <
-									  sortedGEData[phenotype][ancestry].xMin
-									? pValue
-									: sortedGEData[phenotype][ancestry].xMin;
-
-							sortedGEData[phenotype][ancestry][g.annotation][
-								g.tissue
-							] = !sortedGEData[phenotype][ancestry][
-								g.annotation
-							][g.tissue]
-								? { pValue: null, fold: null }
-								: sortedGEData[phenotype][ancestry][
+							if (!!meetCondition) {
+								if (
+									!sortedGEData[phenotype][ancestry][g.annotation]
+								) {
+									sortedGEData[phenotype][ancestry][
 										g.annotation
-								  ][g.tissue];
+									] = {};
+								}
 
-							let currentPvalue =
+								let pValue = !!ancestry
+									? this.annoData[g.annotation][g.tissue][
+									"ancestries"
+									][ancestry][phenotype]
+									: g.pValue;
+
+								pValue = pValue == 0 ? 324 : -Math.log10(pValue);
+
+								let fold = g.SNPs / g.expectedSNPs;
+
+								sortedGEData[phenotype][ancestry].yMax =
+									sortedGEData[phenotype][ancestry].yMax == null
+										? fold
+										: fold >
+											sortedGEData[phenotype][ancestry].yMax
+											? fold
+											: sortedGEData[phenotype][ancestry].yMax;
+
+								sortedGEData[phenotype][ancestry].yMin =
+									sortedGEData[phenotype][ancestry].yMin == null
+										? fold
+										: fold <
+											sortedGEData[phenotype][ancestry].yMin
+											? fold
+											: sortedGEData[phenotype][ancestry].yMin;
+
+								sortedGEData[phenotype][ancestry].xMax =
+									sortedGEData[phenotype][ancestry].xMax == null
+										? pValue
+										: pValue >
+											sortedGEData[phenotype][ancestry].xMax
+											? pValue
+											: sortedGEData[phenotype][ancestry].xMax;
+
+								sortedGEData[phenotype][ancestry].xMin =
+									sortedGEData[phenotype][ancestry].xMin == null
+										? pValue
+										: pValue <
+											sortedGEData[phenotype][ancestry].xMin
+											? pValue
+											: sortedGEData[phenotype][ancestry].xMin;
+
 								sortedGEData[phenotype][ancestry][g.annotation][
 									g.tissue
-								].pValue;
+								] = !sortedGEData[phenotype][ancestry][
+									g.annotation
+								][g.tissue]
+										? { pValue: null, fold: null }
+										: sortedGEData[phenotype][ancestry][
+										g.annotation
+										][g.tissue];
 
-							let currentFold =
+								let currentPvalue =
+									sortedGEData[phenotype][ancestry][g.annotation][
+										g.tissue
+									].pValue;
+
+								let currentFold =
+									sortedGEData[phenotype][ancestry][g.annotation][
+										g.tissue
+									].fold;
+
 								sortedGEData[phenotype][ancestry][g.annotation][
 									g.tissue
-								].fold;
+								].pValue =
+									currentPvalue == null
+										? pValue
+										: pValue > currentPvalue
+											? pValue
+											: currentPvalue;
 
-							sortedGEData[phenotype][ancestry][g.annotation][
-								g.tissue
-							].pValue =
-								currentPvalue == null
-									? pValue
-									: pValue > currentPvalue
-									? pValue
-									: currentPvalue;
-
-							sortedGEData[phenotype][ancestry][g.annotation][
-								g.tissue
-							].fold =
-								currentFold == null
-									? fold
-									: fold > currentFold
-									? fold
-									: currentFold;
+								sortedGEData[phenotype][ancestry][g.annotation][
+									g.tissue
+								].fold =
+									currentFold == null
+										? fold
+										: fold > currentFold
+											? fold
+											: currentFold;
+							}
 						}
-					}
-				});
+					});
+
+				}
+				
 			});
 
 			let numOfPlots = 0;
@@ -1357,12 +1360,14 @@ export default Vue.component("research-annotations-plot-v2", {
 				let foldArr = [];
 				let pValArr = [];
 				annotationsArr.map((annotation) => {
-					for (const [tissue, tissueValue] of Object.entries(
-						GE[annotation]
-					)) {
-						//tissuesCount++;
-						pValArr.push(tissueValue.pValue);
-						foldArr.push(tissueValue.fold);
+					if(!!GE[annotation]){
+						for (const [tissue, tissueValue] of Object.entries(
+							GE[annotation]
+						)) {
+							//tissuesCount++;
+							pValArr.push(tissueValue.pValue);
+							foldArr.push(tissueValue.fold);
+						}
 					}
 				});
 
@@ -1381,78 +1386,80 @@ export default Vue.component("research-annotations-plot-v2", {
 							: "#00000030";
 
 					//let firstTissueInAnno = 0;
-					for (const [tissue, tValue] of Object.entries(
-						GE[annotation]
-					)) {
-						let xPos =
-							canvasLeft +
-							this.plotMargin.leftMargin +
-							(tValue.pValue - GE.xMin) * xPosByPixel;
+					if (!!GE[annotation]) {
+						for (const [tissue, tValue] of Object.entries(
+							GE[annotation]
+						)) {
+							let xPos =
+								canvasLeft +
+								this.plotMargin.leftMargin +
+								(tValue.pValue - GE.xMin) * xPosByPixel;
 
-						let yPos =
-							titleYPos +
-							this.plotMargin.topMargin +
-							plotHeight -
-							(tValue.fold - GE.yMin) * yPosByPixel;
+							let yPos =
+								titleYPos +
+								this.plotMargin.topMargin +
+								plotHeight -
+								(tValue.fold - GE.yMin) * yPosByPixel;
 
-						ctx.fillStyle = dotColor;
-						ctx.lineWidth = 0;
-						ctx.beginPath();
-						ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
-						ctx.fill();
+							ctx.fillStyle = dotColor;
+							ctx.lineWidth = 0;
+							ctx.beginPath();
+							ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
+							ctx.fill();
 
-						if (
-							tValue.fold >= foldArr[2] ||
-							tValue.pValue >= pValArr[2]
-						) {
-							ctx.font = "24px Arial";
-							ctx.fillStyle =
-								!this.pkgData.selectedAnnos ||
-								this.pkgData.selectedAnnos.length == 0
-									? "#000000"
-									: !!this.pkgData.selectedAnnos &&
-									  !!this.pkgData.selectedAnnos.includes(
-											annotation
-									  )
-									? "#000000"
-									: "#00000050";
-							if (xPos > canvasWidth * 0.75) {
-								ctx.textAlign = "right";
-								ctx.fillText(tissue, xPos - 14, yPos + 6);
-							} else {
-								ctx.textAlign = "left";
-								ctx.fillText(tissue, xPos + 14, yPos + 6);
+							if (
+								tValue.fold >= foldArr[2] ||
+								tValue.pValue >= pValArr[2]
+							) {
+								ctx.font = "24px Arial";
+								ctx.fillStyle =
+									!this.pkgData.selectedAnnos ||
+									this.pkgData.selectedAnnos.length == 0
+										? "#000000"
+										: !!this.pkgData.selectedAnnos &&
+										!!this.pkgData.selectedAnnos.includes(
+												annotation
+										)
+										? "#000000"
+										: "#00000050";
+								if (xPos > canvasWidth * 0.75) {
+									ctx.textAlign = "right";
+									ctx.fillText(tissue, xPos - 14, yPos + 6);
+								} else {
+									ctx.textAlign = "left";
+									ctx.fillText(tissue, xPos + 14, yPos + 6);
+								}
 							}
-						}
 
-						if (!this.GEPosData[Math.round(yPos / 2)]) {
-							this.GEPosData[Math.round(yPos / 2)] = {};
-						}
-						if (
-							!this.GEPosData[Math.round(yPos / 2)][
-								Math.round(xPos / 2)
-							]
-						) {
+							if (!this.GEPosData[Math.round(yPos / 2)]) {
+								this.GEPosData[Math.round(yPos / 2)] = {};
+							}
+							if (
+								!this.GEPosData[Math.round(yPos / 2)][
+									Math.round(xPos / 2)
+								]
+							) {
+								this.GEPosData[Math.round(yPos / 2)][
+									Math.round(xPos / 2)
+								] = {};
+							}
+
 							this.GEPosData[Math.round(yPos / 2)][
 								Math.round(xPos / 2)
-							] = {};
+							][tissue] = { pValue: null, fold: null };
+
+							this.GEPosData[Math.round(yPos / 2)][
+								Math.round(xPos / 2)
+							][tissue]["pValue"] = tValue.pValue;
+
+							this.GEPosData[Math.round(yPos / 2)][
+								Math.round(xPos / 2)
+							][tissue]["fold"] = tValue.fold;
+
+							this.GEPosData[Math.round(yPos / 2)][
+								Math.round(xPos / 2)
+							][tissue]["annotationIndex"] = annoIndex;
 						}
-
-						this.GEPosData[Math.round(yPos / 2)][
-							Math.round(xPos / 2)
-						][tissue] = { pValue: null, fold: null };
-
-						this.GEPosData[Math.round(yPos / 2)][
-							Math.round(xPos / 2)
-						][tissue]["pValue"] = tValue.pValue;
-
-						this.GEPosData[Math.round(yPos / 2)][
-							Math.round(xPos / 2)
-						][tissue]["fold"] = tValue.fold;
-
-						this.GEPosData[Math.round(yPos / 2)][
-							Math.round(xPos / 2)
-						][tissue]["annotationIndex"] = annoIndex;
 					}
 				});
 
