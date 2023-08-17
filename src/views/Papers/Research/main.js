@@ -1043,7 +1043,7 @@ new Vue({
                     uiUtils.saveJson(data[0].data, TITLE)
                     break;
                 case 'csv':
-                    uiUtils.convertJson2Csv(data[0].data, TITLE)
+                    uiUtils.saveByorCsv(data[0].data, TITLE)
                     break;
             }
         },

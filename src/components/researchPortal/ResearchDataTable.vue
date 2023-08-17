@@ -46,7 +46,6 @@
 				</select>
 			</label>
 			<div
-				v-if="dataComparisonConfig == null"
 				class="convert-2-csv btn-sm"
 				@click="convertJson2Csv(filteredData, pageID + sectionId+ '_filtered')"
 			>
@@ -637,7 +636,7 @@ export default Vue.component("research-data-table", {
 			this.uiUtils.showHideElement(ELEMENT);
 		},
 		convertJson2Csv(DATA, FILENAME) {
-			this.uiUtils.convertJson2Csv(DATA, FILENAME);
+			this.uiUtils.saveByorCsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
 			this.uiUtils.saveJson(DATA, FILENAME);
