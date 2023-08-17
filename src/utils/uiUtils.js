@@ -181,11 +181,11 @@ let onScroll = function (e) {
     }
 };
 
-let convertJson2Csv = function (DATA, FILENAME) {
-    console.log("j2c data", DATA);
+let saveByorCsv = function (DATA, FILENAME) {
     let topRows = [];
-    let features = [];
-    let fColumnKeys = []
+    let features = {};
+    const downloadFilename = FILENAME || "download";
+
     DATA.map(d => {
         for (let [key, value] of Object.entries(d)) {
             if (key != "features") {
@@ -196,7 +196,6 @@ let convertJson2Csv = function (DATA, FILENAME) {
                         if (!topRows.includes(headerKey)) {
                             topRows.push(headerKey);
                         }
-
                     }
                 } else {
                     if (!topRows.includes(key)) {
@@ -206,47 +205,101 @@ let convertJson2Csv = function (DATA, FILENAME) {
             } else {
                 for (let [fKey, fValue] of Object.entries(value)) {
 
-                    if (!features.includes(fKey)) {
-                        features.push(fKey);
+                    if (!features[fKey]) {
+                        features[fKey] = [];
                     }
 
                     for (let [fVKey, fVValue] of Object.entries(fValue[0])) {
-                        let headerFKey = "features" + "__" + fKey + "__" + fVKey;
 
-                        if (!fColumnKeys.includes(headerFKey)) {
-                            fColumnKeys.push(headerFKey);
+                        if (!features[fKey].includes(fVKey)) {
+                            features[fKey].push(fVKey)
                         }
-
                     }
                 }
             }
         }
     })
 
-
-    console.log(topRows, features, fColumnKeys);
     let csvData = [];
 
-    DATA.map(d => {
+    if (Object.keys(features).length > 0) {
+        DATA.map(d => {
 
+            for (let [fKey, fValue] of Object.entries(features)) {
+                for (let i = 0; i < d.features[fKey].length; i++) {
+                    let dArr = [];
 
-        let fMaxLength = null;
+                    topRows.map(t => {
+                        let path = t.split("__");
+                        if (path.length == 2) {
+                            let cValue = d[path[0]][path[1]] !== null ? d[path[0]][path[1]] === 0 ? 0 : d[path[0]][path[1]] : "";
+                            dArr.push(cValue);
+                        } else {
+                            let cValue = d[path[0]] !== null ? d[path[0]] === 0 ? 0 : d[path[0]] : "";
+                            dArr.push(cValue);
+                        }
+                    })
 
-        features.map(f => {
-            fMaxLength = !fMaxLength ? d.features[f].length : fMaxLength >= d.features[f].length ? fMaxLength : d.features[f].length;
+                    for (let [fRKey, fRValue] of Object.entries(features)) {
+                        if (fRKey == fKey) {
+                            features[fRKey].map(cKey => {
+                                dArr.push(d.features[fRKey][i][cKey]);
+                            })
+                        } else {
+                            features[fRKey].map(cKey => {
+                                dArr.push("")
+                            })
+                        }
+                    }
+                    csvData.push(dArr);
+                }
+            }
         })
-
-        console.log("fMaxLength", fMaxLength);
-
-        for (let i = 0; i < fMaxLength; i++) {
+    } else if (Object.keys(features).length == 0) {
+        DATA.map(d => {
             let dArr = [];
+            topRows.map(t => {
+                let path = t.split("__");
+                if (path.length == 2) {
+                    let cValue = d[path[0]][path[1]] !== null ? d[path[0]][path[1]] === 0 ? 0 : d[path[0]][path[1]] : "";
+                    dArr.push(cValue);
+                } else {
+                    let cValue = d[path[0]] !== null ? d[path[0]] === 0 ? 0 : d[path[0]] : "";
+                    dArr.push(cValue);
+                }
+            })
+            csvData.push(dArr);
+        })
+    }
 
-        }
+    console.log("DATA", DATA);
+    console.log("csvData", csvData);
+    let header = topRows;
 
-    })
+    for (let [fKey, fValue] of Object.entries(features)) {
+        fValue.map(fCKey => {
+            header.push('feature__' + fKey + '__' + fCKey);
+        })
+    }
+
+    let csv = [
+        header.join(","), // header row first
+        ...csvData.map((row) =>
+            row.join(",")
+        ),
+    ].join("\r\n");
+
+    let downloadLink = document.createElement("a");
+    let blob = new Blob(["\ufeff", csv]);
+    let url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = downloadFilename + ".csv"; //Name the file here
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
 };
 
-let convertJson2Csv2 = function (DATA, FILENAME) {
+let convertJson2Csv = function (DATA, FILENAME) {
     const items = DATA;
     const downloadFilename = FILENAME || "download";
     const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
@@ -373,6 +426,7 @@ export default {
     getToolTipPosition,
     onScroll,
     convertJson2Csv,
+    saveByorCsv,
     saveJson,
     getAxisTicks,
     showTabContent,

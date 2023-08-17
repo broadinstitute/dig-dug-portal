@@ -1614,7 +1614,7 @@ export default Vue.component("research-gem-data-table", {
 			uiUtils.showHideElement(ELEMENT);
 		},
 		convertJson2Csv(DATA, FILENAME) {
-			uiUtils.convertJson2Csv(DATA, FILENAME);
+			uiUtils.saveByorCsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
 			uiUtils.saveJson(DATA, FILENAME);
