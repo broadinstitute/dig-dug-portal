@@ -3,11 +3,19 @@ import Template from "./Template.vue";
 import store from "./store.js";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
+import Documentation from "@/components/Documentation.vue";
+import keyParams from "@/utils/keyParams";
 new Vue({
     store,
     components: {
         PageHeader,
         PageFooter,
+        Documentation,
+    },
+    data() {
+        return {
+            tissue: keyParams.tissue || "",
+        };
     },
     computed: {
         rawPhenotypes() {
@@ -35,6 +43,9 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
+        if (this.tissue) {
+            this.$store.dispatch("getTissue");
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");

@@ -25,4 +25,14 @@ export default new Vuex.Store({
             keyParams.set({ tissue: state.tissueName });
         },
     },
+    actions: {
+        getTissue(context) {
+            context.dispatch("tissue/query", { q: context.state.tissueName });
+        },
+    },
+    getters: {
+        tissueData(state) {
+            return state.tissue.data || [];
+        },
+    },
 });
