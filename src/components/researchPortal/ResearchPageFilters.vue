@@ -1225,15 +1225,21 @@ export default Vue.component("research-page-filters", {
 												break;
 
 											case "search greater than":
+												
 												typeof row[searchIndex.field] == 'number' && row[searchIndex.field] >= search
 													? tempFiltered.push(row)
 													: "";
 												break;
 											case "search lower than":
-											typeof row[searchIndex.field] == 'number' && row[searchIndex.field] <= search
-													? tempFiltered.push(row)
-													: "";
+												let typeofValue = typeof row[searchIndex.field];
+												let isNumber = this.uiUtils.checkIfNumeric(row[searchIndex.field]);
 
+												let numValue = (typeofValue == "string" && !!isNumber)? Number(row[searchIndex.field])
+													: (typeofValue == "number")? row[searchIndex.field]:'wrong value';
+
+												if(numValue != 'wrong value' && numValue <= search) {
+													tempFiltered.push(row);
+												}
 												break;
 											case "search or":
 												searchVals = search.split(",");

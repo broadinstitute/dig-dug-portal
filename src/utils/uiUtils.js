@@ -439,11 +439,13 @@ function checkIfNumeric(VALUE) {
     ];
     let ifNumber = true;
 
-    VALUE.map((d) => {
-        if (!checkNumbers.includes(d)) {
-            ifNumber = false;
-        }
-    });
+    if (typeof VALUE == "string") {
+        VALUE.split("").map((d) => {
+            if (!checkNumbers.includes(d)) {
+                ifNumber = false;
+            }
+        });
+    }
 
     return ifNumber;
 }
