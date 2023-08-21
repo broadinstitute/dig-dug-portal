@@ -234,6 +234,8 @@
 									:unfilteredDataset="
 										$store.state.unfilteredData
 									"
+									:keyParams="$parent.keyParamUtils"
+									:uiUtils="$parent.uiUtilsUtils"
 								></research-page-filters>
 							</div>
 						</template>

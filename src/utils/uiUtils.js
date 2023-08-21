@@ -272,8 +272,6 @@ let saveByorCsv = function (DATA, FILENAME) {
         })
     }
 
-    console.log("DATA", DATA);
-    console.log("csvData", csvData);
     let header = topRows;
 
     for (let [fKey, fValue] of Object.entries(features)) {
@@ -412,6 +410,44 @@ function getUrl() {
     return url;
 }
 
+function checkIfNumeric(VALUE) {
+    let checkNumbers = [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        "e",
+        "E",
+        "-",
+        ".",
+    ];
+    let ifNumber = true;
+
+    VALUE.map((d) => {
+        if (!checkNumbers.includes(d)) {
+            ifNumber = false;
+        }
+    });
+
+    return ifNumber;
+}
+
 export default {
     popOutElement,
     hideElement,
@@ -434,4 +470,5 @@ export default {
     isIdFixed,
     biDomain,
     getUrl,
+    checkIfNumeric
 };

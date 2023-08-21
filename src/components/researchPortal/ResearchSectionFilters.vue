@@ -177,9 +177,9 @@
 <script>
 import Vue from "vue";
 
-import uiUtils from "@/utils/uiUtils";
+//import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
-import keyParams from "@/utils/keyParams";
+//import keyParams from "@/utils/keyParams";
 
 export default Vue.component("research-section-filters", {
 	props: [
@@ -194,7 +194,9 @@ export default Vue.component("research-section-filters", {
 		"filterWidth",
 		"dataset",
 		"unfilteredDataset",
-		"sectionId"
+		"sectionId",
+		"uiUtils",
+		"keyParams",
 	],
 
 	data() {
@@ -256,7 +258,7 @@ export default Vue.component("research-section-filters", {
 			let paramsSet = {};
 
 			parametersArr.map((param, index) => {
-				if (keyParams[param] != undefined) {
+				if (this.keyParams[param] != undefined) {
 					let pType = this.apiParameters.parameters.filter(
 						(p) => p.parameter == param
 					)[0].type;
@@ -275,48 +277,48 @@ export default Vue.component("research-section-filters", {
 						: null;
 
 					if (pType != "list" && !!ifValuesFromKP) {
-						this.geneSearch = keyParams[param];
+						this.geneSearch = this.keyParams[param];
 					} else if (pType == "list" && !!ifValuesFromKP) {
 						let label;
 
 						console.log("0", this.filesListLabels);
 						console.log(
 							"1",
-							this.filesListLabels[keyParams[param].trim()]
+							this.filesListLabels[this.keyParams[param].trim()]
 						);
 						console.log("2", this.filesListLabels[param]);
 
-						if (!!this.filesListLabels[keyParams[param].trim()]) {
+						if (!!this.filesListLabels[this.keyParams[param].trim()]) {
 							label =
-								this.filesListLabels[keyParams[param].trim()];
+								this.filesListLabels[this.keyParams[param].trim()];
 						} else if (
-							this.filesListLabels[param][keyParams[param].trim()]
+							this.filesListLabels[param][this.keyParams[param].trim()]
 						) {
 							label =
 								this.filesListLabels[param][
-									keyParams[param].trim()
+									this.keyParams[param].trim()
 								];
 						} else {
-							label = keyParams[param].trim();
+							label = this.keyParams[param].trim();
 						}
 
-						let labelContent = label + "(" + keyParams[param] + ")";
+						let labelContent = label + "(" + this.keyParams[param] + ")";
 
 						this.paramSearch = labelContent;
 						document.getElementById("search_param_" + param).value =
-							keyParams[param];
+							this.keyParams[param];
 					} else {
 						document.getElementById("search_param_" + param).value =
-							keyParams[param];
+							this.keyParams[param];
 					}
 
-					this.searchParamsIndex[param].search.push(keyParams[param]);
+					this.searchParamsIndex[param].search.push(this.keyParams[param]);
 					this.$store.dispatch(
 						"searchParameters",
 						this.searchParamsIndex
 					);
 
-					paramsSet[param] = keyParams[param];
+					paramsSet[param] = this.keyParams[param];
 				}
 			});
 
@@ -331,7 +333,7 @@ export default Vue.component("research-section-filters", {
 	computed: {},
 	watch: {},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		buildSuggestions(EVENT, FIELD) {
 			let searchVal = EVENT.target.value;
 			let suggestions = [];
@@ -450,7 +452,7 @@ export default Vue.component("research-section-filters", {
 		},
 
 		showHideElement(ELEMENT) {
-			uiUtils.showHideElement(ELEMENT);
+			this.uiUtils.showHideElement(ELEMENT);
 		},
 
 		getVisibleValues(VALUES, SEARCH, PARAMETER) {
@@ -476,7 +478,7 @@ export default Vue.component("research-section-filters", {
 
 		async getRegion(KEY, PARAM) {
 			let searchPoint =
-				uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+				this.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
 
 			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
@@ -495,7 +497,7 @@ export default Vue.component("research-section-filters", {
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
 				let searchPoint =
-					uiUtils.biDomain() +
+					this.uiUtils.biDomain() +
 					"/api/bio/match/gene?q=" +
 					EVENT.target.value;
 
@@ -551,7 +553,7 @@ export default Vue.component("research-section-filters", {
 		},
 		queryAPI() {
 			//this.showHideSearch();
-			uiUtils.showElement("data-loading-indicator");
+			this.uiUtils.showElement("data-loading-indicator");
 
 			for (const FIELD in this.filtersIndex) {
 				this.filtersIndex[FIELD].search = [];
@@ -734,7 +736,7 @@ export default Vue.component("research-section-filters", {
 			this.paramSearch = label + "(" + VALUE + ")";
 		},
 		switchData(event) {
-			uiUtils.showElement("data-loading-indicator");
+			this.uiUtils.showElement("data-loading-indicator");
 
 			for (const FIELD in this.filtersIndex) {
 				this.filtersIndex[FIELD].search = [];

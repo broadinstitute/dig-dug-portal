@@ -25,6 +25,8 @@
 					:dataset="sectionData"
 					:unfilteredDataset="originalData"
 					:sectionId="sectionConfig['section id']"
+					:uiUtils="uiUtils"
+					:keyParams="keyParams"
 					@on-filtering="updateData"
 				></research-section-filters>
 				<research-section-visualizers
