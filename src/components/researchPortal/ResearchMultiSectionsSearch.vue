@@ -161,15 +161,15 @@
 
 <script>
 import Vue from "vue";
-import uiUtils from "@/utils/uiUtils";
-import alertUtils from "@/utils/alertUtils";
+//import uiUtils from "@/utils/uiUtils";
+//import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-multi-sections-search", {
 	props: [
 		"searchParameters",
 		"phenotypesInUse",
-		"keyParams",
-		"sections"
+		"sections",
+		"utils",
 	],
 
 	data() {
@@ -186,8 +186,8 @@ export default Vue.component("research-multi-sections-search", {
 	},
 	mounted() {
 		/*this.searchParameters.map(s => {
-			if (!!this.keyParams[s.parameter]) {
-				document.getElementById("search_param_" + s.parameter).value = this.keyParams[s.parameter];
+			if (!!this.utils.keyParams[s.parameter]) {
+				document.getElementById("search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
 		})*/
 	},
@@ -195,7 +195,7 @@ export default Vue.component("research-multi-sections-search", {
 	watch: {
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		getVisibleValues(VALUES, SEARCH, PARAMETER) {
 			let numOfVisible = 0;
 
@@ -244,7 +244,7 @@ export default Vue.component("research-multi-sections-search", {
 					let paramValue = document.getElementById("search_param_" + s.parameter).value;
 					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 				})
-				this.keyParams.set(paramsObj);
+				this.utils.keyParams.set(paramsObj);
 				//location.reload();
 				this.sections.map(s => {
 					this.$root.$refs[s['section id']].getData();
@@ -258,7 +258,7 @@ export default Vue.component("research-multi-sections-search", {
 					//console.log(s.parameter, paramValue);
 					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 				})
-				this.keyParams.set(paramsObj);
+				this.utils.keyParams.set(paramsObj);
 				
 				this.sections.map(s => {
 					if(!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
@@ -272,7 +272,7 @@ export default Vue.component("research-multi-sections-search", {
 		async setGene(KEY, PARAMETER,INDEX,CONVERT_REGION) {
 			if(!!CONVERT_REGION) {
 				let searchPoint =
-					uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+					this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
 
 				var geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
@@ -297,7 +297,7 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
-				let searchPoint = uiUtils.biDomain() + "/api/bio/match/gene?q=" + EVENT.target.value;
+				let searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/match/gene?q=" + EVENT.target.value;
 
 				var geneJson = await fetch(searchPoint).then((resp) => resp.json());
 

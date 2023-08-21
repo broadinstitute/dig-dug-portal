@@ -553,7 +553,6 @@
 							v-if="!!$parent.multiSectionsSearchParameters"
 								:searchParameters="$parent.multiSectionsSearchParameters"
 								:phenotypesInUse="$parent.phenotypesInSession"
-								:keyParams="$parent.keyParamUtils"
 								:sections="$parent.sectionConfigs.sections"
 								:utils="$parent.utilsBox"
 								>
@@ -563,14 +562,11 @@
 								:sectionIndex="'section-' + index"
 								:uId="$parent.uid"
 								:sectionConfig="config"
-								:keyParams="$parent.keyParamUtils"
-								:dataConvert="$parent.dataConvertUtils"
 								:phenotypeMap="$parent.phenotypeMap"
 								:colors="$parent.colors"
 								:plotMargin="$parent.plotMargin"
 								:plotLegend="$parent.plotLegend"
 								:tableLegend="$parent.tableLegend"
-								:uiUtils="$parent.uiUtilsUtils"
 								:utils="$parent.utilsBox"
 								:key="index">
 							</research-section>	

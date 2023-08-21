@@ -36,8 +36,8 @@
 					:colors="colors"
 					:plotMargin="plotMargin"
 					:plotLegend="sectionPlotLegend"
-					:keyParams="keyParams"
 					:sectionId="sectionConfig['section id']"
+					:utils="utils"
 				>
 				</research-section-visualizers>
 				<research-data-table
@@ -77,7 +77,7 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-section", {
-	props: ["uId","sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors","uiUtils","utils"],
+	props: ["uId","sectionConfig","phenotypeMap","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors","utils"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -308,10 +308,10 @@ export default Vue.component("research-section", {
 									dataEntity = dataEntity[w];
 								})
 
-								data = this.dataConvert.csv2Json(dataEntity);
+								data = this.utils.dataConvert.csv2Json(dataEntity);
 
 							} else {
-								data = this.dataConvert.csv2Json(contJson);
+								data = this.utils.dataConvert.csv2Json(contJson);
 							}
 
 							
@@ -323,7 +323,7 @@ export default Vue.component("research-section", {
 
 						if (!!tableFormat && !!tableFormat["data convert"]) {
 							let convertConfig = tableFormat["data convert"];
-							data = this.dataConvert.convertData(convertConfig, data, this.phenotypeMap);
+							data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap);
 						}
 
 						if (dataPoint.type == "bioindex") {
