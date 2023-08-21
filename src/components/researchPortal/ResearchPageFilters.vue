@@ -1185,6 +1185,16 @@ export default Vue.component("research-page-filters", {
 										!!row[searchIndex.field] &&
 										row[searchIndex.field] != undefined
 									) {
+										let typeofValue, isNumber, numValue;
+										if(searchIndex.type == "search greater than" || searchIndex.type == "search lower than" || 
+										searchIndex.type == "search or" || searchIndex.type == "search and") {
+											typeofValue = typeof row[searchIndex.field];
+											isNumber = this.uiUtils.checkIfNumeric(row[searchIndex.field]);
+
+											numValue = (typeofValue == "string" && !!isNumber) ? Number(row[searchIndex.field])
+												: (typeofValue == "number") ? row[searchIndex.field] : 'wrong value';
+										}
+
 										switch (searchIndex.type) {
 											case "dropdown":
 												search ===
@@ -1225,18 +1235,12 @@ export default Vue.component("research-page-filters", {
 												break;
 
 											case "search greater than":
+												if (numValue != 'wrong value' && numValue >= search) {
+													tempFiltered.push(row);
+												}
 												
-												typeof row[searchIndex.field] == 'number' && row[searchIndex.field] >= search
-													? tempFiltered.push(row)
-													: "";
 												break;
 											case "search lower than":
-												let typeofValue = typeof row[searchIndex.field];
-												let isNumber = this.uiUtils.checkIfNumeric(row[searchIndex.field]);
-
-												let numValue = (typeofValue == "string" && !!isNumber)? Number(row[searchIndex.field])
-													: (typeofValue == "number")? row[searchIndex.field]:'wrong value';
-
 												if(numValue != 'wrong value' && numValue <= search) {
 													tempFiltered.push(row);
 												}
@@ -1244,12 +1248,9 @@ export default Vue.component("research-page-filters", {
 											case "search or":
 												searchVals = search.split(",");
 
-												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] <=
-													searchVals[0].trim() ||
-												row[searchIndex.field] >=
-													searchVals[1].trim())
-													? tempFiltered.push(row)
-													: "";
+												if(numValue != 'wrong value' && (numValue <= Number(searchVals[0].trim()) || numValue >= Number(searchVals[1].trim()))){
+													tempFiltered.push(row)
+												}
 												break;
 											case "search change direction":
 												let searchDirection =
@@ -1277,13 +1278,10 @@ export default Vue.component("research-page-filters", {
 
 											case "search and":
 												searchVals = search.split(",");
-
-												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
-													searchVals[0].trim() &&
-												row[searchIndex.field] <=
-													searchVals[1].trim())
-													? tempFiltered.push(row)
-													: "";
+												
+												if (numValue != 'wrong value' && (numValue >= Number(searchVals[0].trim()) && numValue <= Number(searchVals[1].trim()))) {
+													tempFiltered.push(row)
+												}
 												break;
 										}
 									}
