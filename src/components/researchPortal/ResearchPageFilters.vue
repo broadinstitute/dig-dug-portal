@@ -479,9 +479,7 @@
 <script>
 import Vue from "vue";
 
-//import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
-//import keyParams from "@/utils/keyParams";
 
 export default Vue.component("research-page-filters", {
 	props: [
@@ -1278,7 +1276,7 @@ export default Vue.component("research-page-filters", {
 
 											case "search and":
 												searchVals = search.split(",");
-												
+
 												if (numValue != 'wrong value' && (numValue >= Number(searchVals[0].trim()) && numValue <= Number(searchVals[1].trim()))) {
 													tempFiltered.push(row)
 												}

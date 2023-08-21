@@ -5,12 +5,12 @@
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()" title="Capture data in section"><b-icon
 												icon="cart-check-fill"
 											></b-icon></button>
-	 			<button class="btn btn-sm show-evidence-btn show-hide-section" @click="uiUtils.showHideElement('section_' + sectionConfig['section id'])" title="Show / hide section"><b-icon
+	 			<button class="btn btn-sm show-evidence-btn show-hide-section" @click="utils.uiUtils.showHideElement('section_' + sectionConfig['section id'])" title="Show / hide section"><b-icon
 											icon="eye-fill"
 										></b-icon></button>
 				<h4>{{ sectionConfig.header }}
 					<small v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
-					v-html="!!keyParams[parameter]? keyParams[parameter] + '  ' : parameter+' not set. '"></small></h4>
+					v-html="!!utils.keyParams[parameter]? utils.keyParams[parameter] + '  ' : parameter+' not set. '"></small></h4>
 			</div>
 		</div>
 		<div class="row card-body" :id="'section_' + sectionConfig['section id']">
@@ -25,8 +25,7 @@
 					:dataset="sectionData"
 					:unfilteredDataset="originalData"
 					:sectionId="sectionConfig['section id']"
-					:uiUtils="uiUtils"
-					:keyParams="keyParams"
+					:utils="utils"
 					@on-filtering="updateData"
 				></research-section-filters>
 				<research-section-visualizers
@@ -59,7 +58,7 @@
 					:phenotypeMap="phenotypeMap"
 					:sectionId="sectionConfig['section id']"
 					:multiSectionPage="true"
-					:uiUtils="uiUtils"
+					:utils="utils"
 					@clicked-sort="updateData"
 				>
 				</research-data-table>
@@ -73,13 +72,12 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import bioIndex from "@/modules/bioIndex";
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-section", {
-	props: ["uId","sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors","uiUtils"],
+	props: ["uId","sectionConfig","keyParams","dataConvert","phenotypeMap","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors","uiUtils","utils"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -95,7 +93,6 @@ export default Vue.component("research-section", {
 		};
 	},
 	modules: {
-		bioIndex,
 	},
 	created() {
 		this.$root.$refs[this.sectionConfig["section id"]] = this;
@@ -162,9 +159,6 @@ export default Vue.component("research-section", {
 		},
 	},
 	watch: {
-		keyParams:function(NEW,OLD) {
-			console.log("changed");
-		}
 	},
 	methods: {
 		updateData(data) {
@@ -175,7 +169,7 @@ export default Vue.component("research-section", {
 
 			if(!!this.sectionConfig['data point']['parameters']) {
 				this.sectionConfig['data point']['parameters'].map(p => {
-					title.push(this.keyParams[p])
+					title.push(this.utils.keyParams[p])
 				})
 			}
 
@@ -206,8 +200,8 @@ export default Vue.component("research-section", {
 
 			if(!!dataPoint.parameters) {
 				dataPoint.parameters.map(p => {
-					if (!!this.keyParams[p]) {
-						queryParams[p] = this.keyParams[p]
+					if (!!this.utils.keyParams[p]) {
+						queryParams[p] = this.utils.keyParams[p]
 					} else {
 						queryParamsSet = false;
 					}

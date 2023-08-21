@@ -519,7 +519,7 @@
 								:phenotypeMap="
 									$store.state.bioPortal.phenotypeMap
 								"
-								:uiUtils="$parent.uiUtilsUtils"
+								:utils="$parent.utilsBox"
 							>
 							</research-data-table>
 							<research-gem-data-table
@@ -554,7 +554,9 @@
 								:searchParameters="$parent.multiSectionsSearchParameters"
 								:phenotypesInUse="$parent.phenotypesInSession"
 								:keyParams="$parent.keyParamUtils"
-								:sections="$parent.sectionConfigs.sections">
+								:sections="$parent.sectionConfigs.sections"
+								:utils="$parent.utilsBox"
+								>
 							</research-multi-sections-search>
 							<research-section
 								v-for="config, index in $parent.sectionConfigs.sections"
@@ -569,6 +571,7 @@
 								:plotLegend="$parent.plotLegend"
 								:tableLegend="$parent.tableLegend"
 								:uiUtils="$parent.uiUtilsUtils"
+								:utils="$parent.utilsBox"
 								:key="index">
 							</research-section>	
 	            		</div>

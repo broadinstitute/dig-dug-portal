@@ -36,6 +36,9 @@ import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import sessionUtils from "@/utils/sessionUtils";
 import $ from "jquery";
@@ -181,6 +184,20 @@ new Vue({
     },
     computed: {
         //sections setting start
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+            }
+            return utils;
+        },
+        formattersUtils() {
+            return Formatters
+        },
         uiUtilsUtils() {
             return uiUtils
         },

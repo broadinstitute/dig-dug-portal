@@ -227,6 +227,7 @@
 						<research-data-table-features
 							:featuresData="value.features"
 							:featuresFormat="tableFormat"
+							:utils="utils"
 						></research-data-table-features>
 					</td>
 				</tr>
@@ -254,10 +255,6 @@ import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 
-import Formatters from "@/utils/formatters";
-//import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
-
 export default Vue.component("research-data-table", {
 	props: [
 		"pageID",
@@ -272,7 +269,7 @@ export default Vue.component("research-data-table", {
 		"phenotypeMap",
 		"multiSectionPage",
 		"sectionId",
-		"uiUtils"
+		"utils",
 	],
 	data() {
 		return {
@@ -532,7 +529,7 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	methods: {
-		...Formatters,
+		//...Formatters,
 		setParameter(VALUE,KEY){
 			let parameter = this.tableFormat['column formatting'][KEY]['parameter'];
 			document.getElementById("search_param_" + parameter).value = VALUE;
@@ -633,13 +630,13 @@ export default Vue.component("research-data-table", {
 			}
 		},
 		showHideFeature(ELEMENT) {
-			this.uiUtils.showHideElement(ELEMENT);
+			this.utils.uiUtils.showHideElement(ELEMENT);
 		},
 		convertJson2Csv(DATA, FILENAME) {
-			this.uiUtils.saveByorCsv(DATA, FILENAME);
+			this.utils.uiUtils.saveByorCsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
-			this.uiUtils.saveJson(DATA, FILENAME);
+			this.utils.uiUtils.saveJson(DATA, FILENAME);
 		},
 		formatValue(tdValue, tdKey) {
 			let content;
@@ -655,7 +652,7 @@ export default Vue.component("research-data-table", {
 					!!types.includes("render background percent") ||
 					!!types.includes("render background percent negative")
 				) {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.tableFormat,
@@ -663,7 +660,7 @@ export default Vue.component("research-data-table", {
 						this.dataScores
 					);
 				} else if (!!types.includes("kp phenotype link")) {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.tableFormat,
@@ -671,7 +668,7 @@ export default Vue.component("research-data-table", {
 						null
 					);
 				} else {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.tableFormat,
@@ -795,7 +792,7 @@ export default Vue.component("research-data-table", {
 				console.log("isNumeric",isNumeric)
 
 				//sort the data with values, then merge the data WO values to the sorted.
-				let sortedValues = sortUtils
+				let sortedValues = this.utils.sortUtils
 					.sortEGLTableData(
 						filteredWValues,
 						key,
@@ -848,8 +845,8 @@ export default Vue.component("research-data-table", {
 					g["bp"] = bpNum;
 				});
 
-				sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
-				sortUtils.sortEGLTableData(
+				this.utils.sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
+				this.utils.sortUtils.sortEGLTableData(
 					filtered,
 					"chr",
 					true,
