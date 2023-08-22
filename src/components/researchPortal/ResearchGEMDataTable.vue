@@ -254,6 +254,7 @@
 						<research-gem-table-features
 							:featuresData="value.features"
 							:featuresFormat="newTableFormat"
+							:utils="utils"
 						></research-gem-table-features>
 					</td>
 				</tr>
@@ -279,10 +280,10 @@
 import Vue from "vue";
 import ResearchGEMTableFeatures from "@/components/researchPortal/ResearchGEMTableFeatures.vue";
 
-import Formatters from "@/utils/formatters";
+//import Formatters from "@/utils/formatters";
 
-import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
+//import uiUtils from "@/utils/uiUtils";
+//import sortUtils from "@/utils/sortUtils";
 
 export default Vue.component("research-gem-data-table", {
 	props: [
@@ -298,6 +299,7 @@ export default Vue.component("research-gem-data-table", {
 		"region",
 		"regionZoom",
 		"regionViewArea",
+		"utils"
 	],
 	data() {
 		return {
@@ -1466,7 +1468,7 @@ export default Vue.component("research-gem-data-table", {
 		},
 	},
 	methods: {
-		...Formatters,
+		//...Formatters,
 		showHidePanel(PANEL) {
 			let wrapper = document.querySelector(PANEL);
 			if (wrapper.classList.contains("hidden")) {
@@ -1611,13 +1613,13 @@ export default Vue.component("research-gem-data-table", {
 			}
 		},
 		showHideFeature(ELEMENT) {
-			uiUtils.showHideElement(ELEMENT);
+			this.utils.uiUtils.showHideElement(ELEMENT);
 		},
 		convertJson2Csv(DATA, FILENAME) {
-			uiUtils.saveByorCsv(DATA, FILENAME);
+			this.utils.uiUtils.saveByorCsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
-			uiUtils.saveJson(DATA, FILENAME);
+			this.utils.uiUtils.saveJson(DATA, FILENAME);
 		},
 		formatValue(tdValue, tdKey) {
 			if (
@@ -1637,7 +1639,7 @@ export default Vue.component("research-gem-data-table", {
 
 				formatTypes.map((type) => {
 					if (type == "scientific notation") {
-						cellValue = Formatters.pValueFormatter(tdValue);
+						cellValue = this.utils.Formatters.pValueFormatter(tdValue);
 
 						cellValue = cellValue == "-" ? 0 : cellValue;
 					}
@@ -1807,7 +1809,7 @@ export default Vue.component("research-gem-data-table", {
 				let isNumeric = typeof keyData != "number" ? false : true;
 
 				//sort the data with values, then merge the data WO values to the sorted.
-				let sortedValues = sortUtils
+				let sortedValues = this.utils.sortUtils
 					.sortEGLTableData(
 						filteredWValues,
 						key,
@@ -1856,8 +1858,8 @@ export default Vue.component("research-gem-data-table", {
 					g["bp"] = bpNum;
 				});
 
-				sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
-				sortUtils.sortEGLTableData(
+				this.utils.sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
+				this.utils.sortUtils.sortEGLTableData(
 					filtered,
 					"chr",
 					true,

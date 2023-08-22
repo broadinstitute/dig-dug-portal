@@ -43,9 +43,9 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
+//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
+//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -55,6 +55,7 @@ export default Vue.component("research-m-bitmap-plot", {
 		"renderConfig",
 		"dataComparisonConfig",
 		"compareGroupColors",
+		"utils"
 	],
 	data() {
 		return {
@@ -104,8 +105,8 @@ export default Vue.component("research-m-bitmap-plot", {
 		};
 	},
 	modules: {
-		uiUtils,
-		Formatters,
+		//uiUtils,
+		//Formatters,
 	},
 	components: {},
 	mounted: function () {
@@ -263,9 +264,9 @@ export default Vue.component("research-m-bitmap-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		hidePanel(element) {
-			uiUtils.hideElement(element);
+			this.utils.uiUtils.hideElement(element);
 		},
 		onResize(e) {
 			this.renderPlot(this.renderData);
@@ -511,7 +512,7 @@ export default Vue.component("research-m-bitmap-plot", {
 						ctx.textAlign = "right";
 						ctx.fillStyle = "#000000";
 
-						let yTickText = Formatters.floatFormatter(
+						let yTickText = this.utils.Formatters.floatFormatter(
 							yMin + i * yStep
 						);
 

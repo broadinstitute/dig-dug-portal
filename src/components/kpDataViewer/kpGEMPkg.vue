@@ -15,6 +15,7 @@
 				:sharedPlotXpos="sharedPlotXpos"
 				:pkgData="pkgData"
 				:pkgDataSelected="pkgDataSelected"
+				:utils="utils"
 			></research-region-plot>
 			<research-genes-track
 				v-if="
@@ -28,6 +29,7 @@
 				:plotMargin="plotMargin"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
+				:utils="utils"
 			></research-genes-track>
 			<div
 				v-if="pkgConfig.viewers.includes('credible sets plot') == true"
@@ -61,6 +63,7 @@
 				:pkgDataSelected="pkgDataSelected"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
+				:utils="utils"
 			></research-credible-sets-plot>
 			<!--<button
 				id="external-button"
@@ -114,6 +117,7 @@
 				:regionViewArea="regionViewArea"
 				:sharedPlotXpos="sharedPlotXpos"
 				ref="annotationsRef"
+				:utils="utils"
 			></research-annotations-plot>
 
 			<research-annotations-plot-v2
@@ -136,6 +140,7 @@
 				:searchParameters="this.$store.state.searchParameters"
 				:searchParametersArr="this.$store.state.searchParametersArr"
 				ref="annotationsRef"
+				:utils="utils"
 			></research-annotations-plot-v2>
 			<div
 				v-if="
@@ -179,6 +184,7 @@
 				:regionViewArea="regionViewArea"
 				:sharedPlotXpos="sharedPlotXpos"
 				ref="biosamplesRef"
+				:utils="utils"
 			></research-biosamples-plot>
 
 			<div
@@ -213,6 +219,7 @@
 				:pkgDataSelected="pkgDataSelected"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
+				:utils="utils"
 			></research-gene-links-plot>
 		</div>
 	</div>
@@ -220,7 +227,7 @@
 
 <script>
 import Vue from "vue";
-import uiUtils from "@/utils/uiUtils";
+//import uiUtils from "@/utils/uiUtils";
 
 import { BootstrapVueIcons } from "bootstrap-vue";
 
@@ -245,12 +252,13 @@ export default Vue.component("kp-gem-pkg", {
 		"regionZoom",
 		"regionViewArea",
 		"sharedPlotXpos",
+		"utils"
 	],
 	data() {
 		return {};
 	},
 	modules: {
-		uiUtils,
+		//uiUtils,
 	},
 	components: {
 		ResearchRegionPlot,
@@ -284,7 +292,7 @@ export default Vue.component("kp-gem-pkg", {
 	},
 	watch: {},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		showHideSection(event, SECTION_ID, OPEN_LABEL, OPENER, LABEL) {
 			let element = document.getElementById(OPENER);
 
@@ -296,7 +304,7 @@ export default Vue.component("kp-gem-pkg", {
 				event.target.innerText = OPEN_LABEL;
 			}
 
-			uiUtils.showHideSvg(SECTION_ID);
+			this.utils.uiUtils.showHideSvg(SECTION_ID);
 		},
 	},
 });

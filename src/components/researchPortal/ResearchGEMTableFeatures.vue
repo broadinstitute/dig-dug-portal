@@ -72,10 +72,10 @@
 
 <script>
 import Vue from "vue";
-import Formatters from "@/utils/formatters";
+//import Formatters from "@/utils/formatters";
 
 export default Vue.component("research-gem-table-features", {
-	props: ["featuresData", "featuresFormat"],
+	props: ["featuresData", "featuresFormat","utils"],
 	data() {
 		return {};
 	},
@@ -137,7 +137,7 @@ export default Vue.component("research-gem-table-features", {
 
 				formatTypes.map((type) => {
 					if (type == "scientific notation") {
-						cellValue = Formatters.pValueFormatter(tdValue);
+						cellValue = this.utils.Formatters.pValueFormatter(tdValue);
 
 						cellValue = cellValue == "-" ? 0 : cellValue;
 					}

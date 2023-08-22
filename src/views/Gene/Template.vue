@@ -496,6 +496,7 @@
 										:pkgDataSelected="null"
 										:filter="filter"
 										ref="commonVariantPheWASPlot"
+										:utils="$parent.utilsBox"
 									></research-phewas-plot>
 									<unauthorized-message
 										:restricted="
@@ -631,6 +632,7 @@
 								:pkgData="null"
 								:pkgDataSelected="null"
 								ref="rareVariantPheWASPlot"
+								:utils="$parent.utilsBox"
 							></research-phewas-plot>
 							<unauthorized-message
 								:restricted="$store.state.restricted"

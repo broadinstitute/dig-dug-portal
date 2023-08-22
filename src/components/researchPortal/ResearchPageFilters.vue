@@ -479,7 +479,7 @@
 <script>
 import Vue from "vue";
 
-import alertUtils from "@/utils/alertUtils";
+//import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-page-filters", {
 	props: [
@@ -494,8 +494,7 @@ export default Vue.component("research-page-filters", {
 		"filterWidth",
 		"dataset",
 		"unfilteredDataset",
-		"uiUtils",
-		"keyParams",
+		'utils'
 	],
 
 	data() {
@@ -557,7 +556,7 @@ export default Vue.component("research-page-filters", {
 			let paramsSet = {};
 
 			parametersArr.map((param, index) => {
-				if (this.keyParams[param] != undefined) {
+				if (this.utils.keyParams[param] != undefined) {
 					let pType = this.apiParameters.parameters.filter(
 						(p) => p.parameter == param
 					)[0].type;
@@ -576,48 +575,48 @@ export default Vue.component("research-page-filters", {
 						: null;
 
 					if (pType != "list" && !!ifValuesFromKP) {
-						this.geneSearch = this.keyParams[param];
+						this.geneSearch = this.utils.keyParams[param];
 					} else if (pType == "list" && !!ifValuesFromKP) {
 						let label;
 
 						console.log("0", this.filesListLabels);
 						console.log(
 							"1",
-							this.filesListLabels[this.keyParams[param].trim()]
+							this.filesListLabels[this.utils.keyParams[param].trim()]
 						);
 						console.log("2", this.filesListLabels[param]);
 
-						if (!!this.filesListLabels[this.keyParams[param].trim()]) {
+						if (!!this.filesListLabels[this.utils.keyParams[param].trim()]) {
 							label =
-								this.filesListLabels[this.keyParams[param].trim()];
+								this.filesListLabels[this.utils.keyParams[param].trim()];
 						} else if (
-							this.filesListLabels[param][this.keyParams[param].trim()]
+							this.filesListLabels[param][this.utils.keyParams[param].trim()]
 						) {
 							label =
 								this.filesListLabels[param][
-									this.keyParams[param].trim()
+									this.utils.keyParams[param].trim()
 								];
 						} else {
-							label = this.keyParams[param].trim();
+							label = this.utils.keyParams[param].trim();
 						}
 
-						let labelContent = label + "(" + this.keyParams[param] + ")";
+						let labelContent = label + "(" + this.utils.keyParams[param] + ")";
 
 						this.paramSearch = labelContent;
 						document.getElementById("search_param_" + param).value =
-							this.keyParams[param];
+							this.utils.keyParams[param];
 					} else {
 						document.getElementById("search_param_" + param).value =
-							this.keyParams[param];
+							this.utils.keyParams[param];
 					}
 
-					this.searchParamsIndex[param].search.push(this.keyParams[param]);
+					this.searchParamsIndex[param].search.push(this.utils.keyParams[param]);
 					this.$store.dispatch(
 						"searchParameters",
 						this.searchParamsIndex
 					);
 
-					paramsSet[param] = this.keyParams[param];
+					paramsSet[param] = this.utils.keyParams[param];
 				}
 			});
 
@@ -751,7 +750,7 @@ export default Vue.component("research-page-filters", {
 		},
 
 		showHideElement(ELEMENT) {
-			this.uiUtils.showHideElement(ELEMENT);
+			this.utils.uiUtils.showHideElement(ELEMENT);
 		},
 
 		getVisibleValues(VALUES, SEARCH, PARAMETER) {
@@ -777,7 +776,7 @@ export default Vue.component("research-page-filters", {
 
 		async getRegion(KEY, PARAM) {
 			let searchPoint =
-				this.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+				this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
 
 			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
@@ -796,7 +795,7 @@ export default Vue.component("research-page-filters", {
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
 				let searchPoint =
-					this.uiUtils.biDomain() +
+					this.utils.uiUtils.biDomain() +
 					"/api/bio/match/gene?q=" +
 					EVENT.target.value;
 
@@ -852,7 +851,7 @@ export default Vue.component("research-page-filters", {
 		},
 		queryAPI() {
 			//this.showHideSearch();
-			this.uiUtils.showElement("data-loading-indicator");
+			this.utils.uiUtils.showElement("data-loading-indicator");
 
 			for (const FIELD in this.filtersIndex) {
 				this.filtersIndex[FIELD].search = [];
@@ -1035,7 +1034,7 @@ export default Vue.component("research-page-filters", {
 			this.paramSearch = label + "(" + VALUE + ")";
 		},
 		switchData(event) {
-			this.uiUtils.showElement("data-loading-indicator");
+			this.utils.uiUtils.showElement("data-loading-indicator");
 
 			for (const FIELD in this.filtersIndex) {
 				this.filtersIndex[FIELD].search = [];
@@ -1183,28 +1182,33 @@ export default Vue.component("research-page-filters", {
 										!!row[searchIndex.field] &&
 										row[searchIndex.field] != undefined
 									) {
-										let typeofValue, isNumber, numValue;
+										let typeofValue, isNumber, numValue, stringValue;
+
+										typeofValue = typeof row[searchIndex.field];
+										isNumber = this.utils.uiUtils.checkIfNumeric(row[searchIndex.field]);
+
 										if(searchIndex.type == "search greater than" || searchIndex.type == "search lower than" || 
 										searchIndex.type == "search or" || searchIndex.type == "search and") {
-											typeofValue = typeof row[searchIndex.field];
-											isNumber = this.uiUtils.checkIfNumeric(row[searchIndex.field]);
 
 											numValue = (typeofValue == "string" && !!isNumber) ? Number(row[searchIndex.field])
 												: (typeofValue == "number") ? row[searchIndex.field] : 'wrong value';
+										} else {
+											
+											search = (typeof search == 'number')? search.toString(): search;
+											
+											stringValue = (typeofValue == "number" && !!isNumber) ? row[searchIndex.field].toString()
+												: (typeofValue == "string") ? row[searchIndex.field] : 'wrong value';
 										}
 
 										switch (searchIndex.type) {
 											case "dropdown":
-												search ===
-												row[
-													searchIndex.field
-												].toString()
+												search === stringValue
 													? tempFiltered.push(row)
 													: "";
 
 												break;
 											case "search":
-												row[searchIndex.field]
+												stringValue
 													.toLowerCase()
 													.includes(
 														search.toLowerCase()
@@ -1214,7 +1218,7 @@ export default Vue.component("research-page-filters", {
 												break;
 											case "search exact":
 												search.toLowerCase() ===
-												row[searchIndex.field]
+												stringValue
 													.toString()
 													.toLowerCase()
 													? tempFiltered.push(row)
@@ -1222,7 +1226,7 @@ export default Vue.component("research-page-filters", {
 
 												break;
 											case "dropdown word":
-												row[searchIndex.field]
+												stringValue
 													.toLowerCase()
 													.includes(
 														search.toLowerCase()
@@ -1734,7 +1738,7 @@ export default Vue.component("research-page-filters", {
 					: Object.keys(filtered).length;
 
 			if (filteredLength == 0 || filteredLength == null) {
-				alertUtils.popAlert(
+				this.utils.alertUtils.popAlert(
 					"The last filtering item returns no data therefore removed."
 				);
 

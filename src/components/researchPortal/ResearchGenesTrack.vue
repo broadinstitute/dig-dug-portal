@@ -27,9 +27,9 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
+//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
+//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -42,6 +42,7 @@ export default Vue.component("research-genes-track", {
 		"plotMargin",
 		"regionZoom",
 		"regionViewArea",
+		"utils"
 	],
 	data() {
 		return {
@@ -50,8 +51,8 @@ export default Vue.component("research-genes-track", {
 		};
 	},
 	modules: {
-		uiUtils,
-		Formatters,
+		//uiUtils,
+		//Formatters,
 	},
 	components: {},
 	mounted: function () {
@@ -132,7 +133,7 @@ export default Vue.component("research-genes-track", {
 		},
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		onResize(e) {
 			if(!this.genesData){
 				this.renderTrack(this.localGenesData);

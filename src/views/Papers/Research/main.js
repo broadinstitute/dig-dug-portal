@@ -36,13 +36,15 @@ import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
 import $ from "jquery";
-import keyParams from "@/utils/keyParams";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -192,21 +194,22 @@ new Vue({
                 keyParams: keyParams,
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
+                plotUtils: plotUtils,
             }
             return utils;
         },
-        formattersUtils() {
-            return Formatters
-        },
-        uiUtilsUtils() {
-            return uiUtils
-        },
-        keyParamUtils() {
-            return keyParams
-        },
-        dataConvertUtils() {
-            return dataConvert;
-        },
+        /* formattersUtils() {
+             return Formatters
+         },
+         uiUtilsUtils() {
+             return uiUtils
+         },
+         keyParamUtils() {
+             return keyParams
+         },
+         dataConvertUtils() {
+             return dataConvert;
+         },*/
         sectionConfigs() {
             let contents = this.researchPage;
             if (

@@ -9,6 +9,7 @@
 			v-if="plotConfig != null && plotConfig['type'] == 'manhattan plot'"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
+			:utils="utils"
 		></research-m-plot>
 		<!--'mbm_plot-->
 		<research-m-bitmap-plot
@@ -17,6 +18,7 @@
 			:renderConfig="plotConfig"
 			:dataComparisonConfig="null"
 			:compareGroupColors="null"
+			:utils="utils"
 		></research-m-bitmap-plot>
 		<!-- PheWAS plot-->
 		<research-phewas-plot
@@ -29,18 +31,21 @@
 			:pkgData="null"
 			:pkgDataSelected="null"
 			:canvasId="sectionId"
+			:utils="utils"
 		></research-phewas-plot>
 		<!-- Heatmap -->
 		<research-heatmap
 			v-if="plotConfig != null && plotConfig['type'] == 'heat map'"
 			:heatmapData="plotData"
 			:renderConfig="plotConfig"
+			:utils="utils"
 		></research-heatmap>
 		<!-- volcano_plot -->
 		<research-volcano-plot
 			v-if="plotConfig != null && plotConfig['type'] == 'volcano plot'"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
+			:utils="utils"
 		></research-volcano-plot>
 		<!-- region_plot -->
 		<research-region-plot
@@ -57,6 +62,7 @@
 			:pkgData="null"
 			:pkgDataSelected="null"
 			:isSectionPage="true"
+			:utils="utils"
 		></research-region-plot>
 		<!-- genes track -->
 		<research-genes-track
@@ -68,7 +74,7 @@
 			:plotMargin="plotMargin"
 			:regionZoom="0"
 			:regionViewArea="null"
-			
+			:utils="utils"
 		></research-genes-track>
 	</div>
 </template>

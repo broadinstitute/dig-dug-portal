@@ -40,13 +40,13 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
+//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-m-plot", {
-	props: ["plotData", "renderConfig"],
+	props: ["plotData", "renderConfig","utils"],
 	data() {
 		return {};
 	},
@@ -60,7 +60,7 @@ export default Vue.component("research-m-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		renderPlot() {
 			if (this.plotData != null && this.renderConfig != null) {
 				let grouped =

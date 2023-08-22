@@ -14,7 +14,7 @@
 						:id="canvasId + 'info_box_close'"
 						class="fixed-info-box-close"
 						@click="
-							removeOnMouseOut(canvasId + 'pheWasInfoBox', 100)
+							utils.uiUtils.removeOnMouseOut(canvasId + 'pheWasInfoBox', 100)
 						"
 					>
 						<b-icon icon="x-circle-fill"></b-icon>
@@ -31,7 +31,7 @@
 						<template
 							v-if="
 								options != null &&
-								isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
+								utils.uiUtils.isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
 									true
 							"
 						>
@@ -58,7 +58,7 @@
 						<span
 							v-if="
 								options != null &&
-								isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
+								utils.uiUtils.isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
 									false
 							"
 							>Click for options</span
@@ -73,8 +73,8 @@
 					@mousemove="checkPosition($event, 'hover')"
 					@click="checkPosition($event, 'click')"
 					@mouseout="
-						!isIdFixed('#' + canvasId + 'pheWasInfoBox')
-							? removeOnMouseOut(canvasId + 'pheWasInfoBox', 1000)
+						!utils.uiUtils.isIdFixed('#' + canvasId + 'pheWasInfoBox')
+							? utils.uiUtils.removeOnMouseOut(canvasId + 'pheWasInfoBox', 1000)
 							: ''
 					"
 				></canvas>
@@ -87,12 +87,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "lodash";
-import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
-import dataConvert from "@/utils/dataConvert";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
-import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -108,7 +103,8 @@ export default Vue.component("research-phewas-plot", {
 		"plotMargin",
 		"filter",
 		"options",
-		"sectionId"
+		"sectionId",
+		"utils"
 	],
 	data() {
 		return {
@@ -120,11 +116,6 @@ export default Vue.component("research-phewas-plot", {
 		};
 	},
 	modules: {
-		uiUtils,
-		plotUtils,
-		Formatters,
-		keyParams,
-		dataConvert,
 	},
 	components: {},
 	created: function () {
@@ -193,11 +184,11 @@ export default Vue.component("research-phewas-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
-		isIdFixed: uiUtils.isIdFixed,
-		removeOnMouseOut: uiUtils.removeOnMouseOut,
+		//...uiUtils,
+		//isIdFixed: uiUtils.isIdFixed,
+		//removeOnMouseOut: uiUtils.removeOnMouseOut,
 		openPage(PAGE, PARAMETER) {
-			uiUtils.openPage(PAGE, PARAMETER);
+			this.utils.uiUtils.openPage(PAGE, PARAMETER);
 		},
 		addPhenotype(PHENOTYPE) {
 			this.$parent.$parent.pushCriterionPhenotype(PHENOTYPE);
@@ -441,7 +432,7 @@ export default Vue.component("research-phewas-plot", {
 					bump: 10,
 				};
 
-				plotUtils.renderAxisWBump(
+				this.utils.plotUtils.renderAxisWBump(
 					ctx,
 					canvasWidth,
 					canvasHeight,
@@ -453,7 +444,7 @@ export default Vue.component("research-phewas-plot", {
 					this.renderConfig["y axis label"]
 				);
 
-				plotUtils.renderAxisWBump(
+				this.utils.plotUtils.renderAxisWBump(
 					ctx,
 					canvasWidth,
 					canvasHeight,

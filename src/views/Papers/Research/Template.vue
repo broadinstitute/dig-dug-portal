@@ -156,6 +156,7 @@
 					<div class="col-md-12">
 						<research-page-description
 							:content="$parent.pageDescription"
+							:utils="$parent.utilsBox"
 						></research-page-description>
 					</div>
 				</div>
@@ -234,8 +235,7 @@
 									:unfilteredDataset="
 										$store.state.unfilteredData
 									"
-									:keyParams="$parent.keyParamUtils"
-									:uiUtils="$parent.uiUtilsUtils"
+									:utils="$parent.utilsBox"
 								></research-page-filters>
 							</div>
 						</template>
@@ -351,6 +351,7 @@
 								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
 							></research-m-plot>
 							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-bitmap-plot
@@ -365,6 +366,7 @@
 									$parent.dataComparisonConfig
 								"
 								:compareGroupColors="$parent.colors.moderate"
+								:utils="$parent.utilsBox"
 							></research-m-bitmap-plot>
 							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-qq-plot
@@ -379,6 +381,7 @@
 									$parent.dataComparisonConfig
 								"
 								:compareGroupColors="$parent.colors.moderate"
+								:utils="$parent.utilsBox"
 							></research-m-qq-plot>
 							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
@@ -401,6 +404,7 @@
 								:regionViewArea="$parent.regionViewArea"
 								:pkgData="$store.state.pkgData"
 								:pkgDataSelected="$store.state.pkgDataSelected"
+								:utils="$parent.utilsBox"
 							></research-region-plot>
 							<!--v-if="$parent.plotType == 'score_plot'"-->
 							<research-score-plot
@@ -417,6 +421,7 @@
 								:searchParameters="
 									$store.state.searchParameters
 								"
+								:utils="$parent.utilsBox"
 							></research-score-plot>
 
 							<research-genes-track
@@ -434,6 +439,7 @@
 								:plotMargin="$parent.plotMargin"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
 							></research-genes-track>
 							<!--v-if="$parent.plotType == 'volcano_plot'"-->
 							<research-volcano-plot
@@ -443,6 +449,7 @@
 								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
 							></research-volcano-plot>
 							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-heatmap
@@ -452,6 +459,7 @@
 								"
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
 							></research-heatmap>
 							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-phewas-plot
@@ -468,6 +476,7 @@
 								:renderConfig="$parent.plotConfig"
 								:pkgData="null"
 								:pkgDataSelected="null"
+								:utils="$parent.utilsBox"
 							></research-phewas-plot>
 							<!--v-if="
 									$parent.plotType == 'custom_pkg' &&
@@ -489,6 +498,7 @@
 								:colors="$parent.colors"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
 							></kp-gem-pkg>
 						</div>
 						<div
@@ -544,6 +554,7 @@
 								:region="$store.state.searchingRegion"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
 							>
 							</research-gem-data-table>
 						</div>

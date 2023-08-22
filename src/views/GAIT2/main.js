@@ -14,8 +14,6 @@ import ForestPlotSimple from "@/components/ForestPlotSimple";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
-import Formatters from "@/utils/formatters";
-import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, sumBy, cloneDeep } from "lodash";
@@ -23,6 +21,14 @@ import { postAlertError } from "@/components/Alert.vue";
 import regionUtils from "@/utils/regionUtils";
 import * as raremetal from "raremetal.js";
 import EventBus from "@/utils/eventBus";
+
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
@@ -372,6 +378,18 @@ new Vue({
         };
     },
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
         associationsData() {
             let DATA = this.$store.state.associations.data;
             if (DATA.length == 0) {
@@ -759,14 +777,14 @@ new Vue({
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
-                      this.selectedRegionType
-                  ].map((region) => {
-                      return {
-                          chrom: this.searchRegion.chrom,
-                          start: region.start,
-                          stop: region.end,
-                      };
-                  })
+                    this.selectedRegionType
+                ].map((region) => {
+                    return {
+                        chrom: this.searchRegion.chrom,
+                        start: region.start,
+                        stop: region.end,
+                    };
+                })
                 : [];
 
             if (regions.length === 0) {
@@ -852,8 +870,8 @@ new Vue({
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
                     groups[
                         liftedRegions.regions[i].start +
-                            " - " +
-                            liftedRegions.regions[i].stop
+                        " - " +
+                        liftedRegions.regions[i].stop
                     ] = {
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop,

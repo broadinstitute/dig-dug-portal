@@ -176,7 +176,6 @@
 
 <script>
 import Vue from "vue";
-import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-section-filters", {
 	props: [
@@ -1427,7 +1426,7 @@ export default Vue.component("research-section-filters", {
 					: Object.keys(filtered).length;
 
 			if (filteredLength == 0 || filteredLength == null) {
-				alertUtils.popAlert(
+				this.utils.alertUtils.popAlert(
 					"The last filtering item returns no data therefore removed."
 				);
 
