@@ -1289,7 +1289,7 @@ export default Vue.component("research-page-filters", {
 									}
 								});
 							} else {
-								for (var rowNum in targetData) {
+								for (let rowNum in targetData) {
 									let row = targetData[rowNum];
 									if (
 										!!row[searchIndex.field] &&
@@ -1305,7 +1305,7 @@ export default Vue.component("research-page-filters", {
 												) == true
 											) {
 												let meetSearch = false;
-												for (var cellNum in row[
+												for (let cellNum in row[
 													searchIndex.field
 												]) {
 													if (
@@ -1348,8 +1348,7 @@ export default Vue.component("research-page-filters", {
 											searchIndex.type == "search" ||
 											searchIndex.type == "dropdown word"
 										) {
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
+											
 											if (
 												comparingFields.includes(
 													searchIndex.field

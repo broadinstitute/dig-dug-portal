@@ -210,7 +210,7 @@ export default Vue.component("research-genes-track", {
 
 				canvasRenderHeight =
 					this.plotMargin.topMargin +
-					eachGeneTrackHeight * geneIndex//genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
+					eachGeneTrackHeight * (geneIndex+1)//genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
 
 				let bump = this.plotMargin.bump;
 

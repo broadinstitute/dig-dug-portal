@@ -58,7 +58,6 @@
 
 <script>
 import Vue from "vue";
-//import Formatters from "@/utils/formatters";
 
 export default Vue.component("research-data-table-features", {
 	props: ["featuresData", "featuresFormat", "phenotypeMap","utils"],
