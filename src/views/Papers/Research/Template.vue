@@ -109,7 +109,7 @@
 						
 					</div>
 					<div class="col-md-4 text-right" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
-						<button class="btn btn-sm btn-primary" @click="$parent.uiUtilsUtils.showHideElement('captured_data_panel')" title="Show / hide captured data list"><b-icon
+						<button class="btn btn-sm btn-primary" @click="$parent.utilsBox.uiUtils.showHideElement('captured_data_panel')" title="Show / hide captured data list"><b-icon
 													icon="cart-fill"
 												></b-icon></button>
 					</div>
@@ -144,7 +144,7 @@
 						</table>
 						
 						<div class="col-md-12 text-center">
-							<button class="btn btn-primary" @click="$parent.uiUtilsUtils.saveJson($store.state.capturedData, $parent.pageTitle+' sections data')">Save all (JSON)</button>
+							<button class="btn btn-primary" @click="$parent.utilsBox.uiUtils.saveJson($store.state.capturedData, $parent.pageTitle+' sections data')">Save all (JSON)</button>
 						</div>
 						
 					</div>
