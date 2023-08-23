@@ -349,6 +349,7 @@
 								:pkgDataSelected="null"
 								:filter="null"
 								ref="hugeScorePheWASPlot"
+								:utils="$parent.utilsBox"
 							></research-phewas-plot>
 							<huge-scores-table
 								v-if="$parent.hugeScores.length > 0"
