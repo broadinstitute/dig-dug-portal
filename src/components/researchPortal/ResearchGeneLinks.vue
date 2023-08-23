@@ -111,7 +111,7 @@
 						<div
 							id="info_box_close"
 							class="fixed-info-box-close"
-							@click="removeOnMouseOut('GLInfoBox', 100)"
+							@click="utils.uiUtils.removeOnMouseOut('GLInfoBox', 100)"
 						>
 							<b-icon icon="x-circle-fill"></b-icon>
 						</div>
@@ -124,8 +124,8 @@
 						@mousemove="checkPosition($event, 'hover')"
 						@click="checkPosition($event, 'click')"
 						@mouseout="
-							!isIdFixed('#GLInfoBox')
-								? removeOnMouseOut('GLInfoBox', 1000)
+							!utils.uiUtils.isIdFixed('#GLInfoBox')
+								? utils.uiUtils.removeOnMouseOut('GLInfoBox', 1000)
 								: ''
 						"
 						width=""
@@ -210,11 +210,11 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
-import alertUtils from "@/utils/alertUtils";
+//import uiUtils from "@/utils/uiUtils";
+//import alertUtils from "@/utils/alertUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
-import keyParams from "@/utils/keyParams";
+//import Formatters from "@/utils/formatters.js";
+//import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -231,6 +231,7 @@ export default Vue.component("research-gene-links-plot", {
 		"pkgDataSelected",
 		"regionZoom",
 		"regionViewArea",
+		"utils"
 	],
 	data() {
 		return {
@@ -242,9 +243,9 @@ export default Vue.component("research-gene-links-plot", {
 		};
 	},
 	modules: {
-		uiUtils,
-		Formatters,
-		keyParams,
+		//uiUtils,
+		//Formatters,
+		//keyParams,
 	},
 	components: {},
 	mounted: function () {
@@ -426,8 +427,8 @@ export default Vue.component("research-gene-links-plot", {
 
 				return returnPhenotype;
 			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
-					return keyParams[this.renderConfig["phenotype parameter"]];
+				if (!!this.utils.keyParams[this.renderConfig["phenotype parameter"]]) {
+					return this.utils.keyParams[this.renderConfig["phenotype parameter"]];
 				} else {
 					return null;
 				}
@@ -458,9 +459,9 @@ export default Vue.component("research-gene-links-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
-		isIdFixed: uiUtils.isIdFixed,
-		removeOnMouseOut: uiUtils.removeOnMouseOut,
+		//...utils,
+		//isIdFixed: this.utils.uiUtils.isIdFixed,
+		//removeOnMouseOut: this.utils.uiUtils.removeOnMouseOut,
 		resetAll() {
 			//this.GEData = {};
 			this.trigger = 0;
@@ -675,7 +676,7 @@ export default Vue.component("research-gene-links-plot", {
 			this.renderGLPlot();
 		},
 		onResize(e) {
-			uiUtils.showElement("geneLinksPlotWrapper");
+			this.utils.uiUtils.showElement("geneLinksPlotWrapper");
 			this.renderGLPlot();
 		},
 		renderStaredPositions(
@@ -1041,7 +1042,7 @@ export default Vue.component("research-gene-links-plot", {
 				let xMaxMinGap = xMax - xMin;
 				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
 
-				let positionLabel = Formatters.decimalFormatter(
+				let positionLabel = this.utils.Formatters.decimalFormatter(
 					xMin + i * xStep,
 					xDecimal
 				);
@@ -1087,7 +1088,7 @@ export default Vue.component("research-gene-links-plot", {
 			if (event.target.value != "") {
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
-						? uiUtils.biDomain() + "/api/bio"
+						? this.utils.uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["gene links server"];
 
 				let tissue = event.target.value.replaceAll(" ", "_");
@@ -1108,7 +1109,7 @@ export default Vue.component("research-gene-links-plot", {
 
 				if (GLJson.error == null) {
 					if (GLJson.data.length == 0) {
-						alertUtils.popAlert(tissue + " has no linked genes.");
+						this.utils.alertUtils.popAlert(tissue + " has no linked genes.");
 					} else {
 						if (GLJson.continuation == null) {
 							this.runAfterGLDataLoad(GLJson.data, tissue);
@@ -1123,7 +1124,7 @@ export default Vue.component("research-gene-links-plot", {
 		async loadContinue(CONTENT, TISSUE) {
 			let biosamplesServer =
 				this.renderConfig["gene links server"] == "KP BioIndex"
-					? uiUtils.biDomain() + "/api/bio"
+					? this.utils.uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["gene links server"];
 
 			let contURL =
@@ -1166,7 +1167,7 @@ export default Vue.component("research-gene-links-plot", {
 			if (!!event.target.value && event.target.value != "") {
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
-						? uiUtils.biDomain() + "/api/bio"
+						? this.utils.uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["gene links server"];
 
 				let region = this.searchingRegion;
@@ -1186,7 +1187,7 @@ export default Vue.component("research-gene-links-plot", {
 
 				if (S2GLJson.error == null) {
 					if (S2GLJson.data.length == 0) {
-						alertUtils.popAlert(
+						this.utils.alertUtils.popAlert(
 							"No SNP to gene data found in the region."
 						);
 					} else {
@@ -1222,7 +1223,7 @@ export default Vue.component("research-gene-links-plot", {
 			) {
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
-						? uiUtils.biDomain() + "/api/bio"
+						? this.utils.uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["gene links server"];
 
 				let phenotype = this.searchingPhenotype;

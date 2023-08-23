@@ -312,6 +312,7 @@
 										:pkgDataSelected="null"
 										:filter="filter"
 										ref="rpPheWASPlot"
+										:utils="$parent.utilsBox"
 									></research-phewas-plot>
 								</b-tab>
 								<b-tab title="Forest plot">

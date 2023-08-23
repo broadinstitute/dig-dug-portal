@@ -1,4 +1,5 @@
-let convertData = function (CONVERT, DATA) {
+let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
+
     let convertedData = [];
     let joinValues = function (FIELDS, jBy, fData) {
 
@@ -56,6 +57,15 @@ let convertData = function (CONVERT, DATA) {
         return locus;
     }
 
+    let array2String = function (CONTENT, SEPARATOR) {
+        let string = "";
+        CONTENT.map(c => {
+            string += c + SEPARATOR;
+        })
+
+        return string.slice(0, -1)
+    }
+
     if (CONVERT != "no convert") {
         DATA.map(d => {
             let tempObj = d;
@@ -71,6 +81,35 @@ let convertData = function (CONVERT, DATA) {
 
                     case "join multi":
                         tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
+                        break;
+
+                    case "split":
+
+                        let newFields = c["field name"];
+                        let newFieldValues = [];
+                        let string2Split = d;
+                        let loopIndex = 1;
+                        c["split by"].map(s => {
+
+                            let splittedValue = string2Split.split(s)
+
+                            if (loopIndex < c["split by"].length) {
+                                newFieldValues.push(splittedValue[0])
+                                splittedValue = splittedValue[1]
+                            } else if (loopIndex = c["split by"].length) {
+                                newFieldValues.push(splittedValue[0])
+                                newFieldValues.push(splittedValue[1])
+                            }
+                            loopIndex++;
+                        })
+
+                        loopIndex = 0;
+
+                        newFields.map(f => {
+                            tempObj[f] = newFieldValues[loopIndex];
+                            loopIndex++;
+                        })
+
                         break;
 
                     case "get locus":
@@ -90,17 +129,50 @@ let convertData = function (CONVERT, DATA) {
                     case "js math":
                         let calFunc = c["method"];
                         tempObj[c["field name"]] = Math[calFunc](d[c["raw field"]]);
-
-                        //console.log("test", tempObj[c["field name"]]);
                         break;
 
                     case "raw":
                         tempObj[c["field name"]] = d[c["raw field"]];
                         break;
 
+                    case "string to number":
+                        tempObj[c["field name"]] = Number(d[c["raw field"]]);
+                        break;
+
                     case "score columns":
                         tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], d);
                         break;
+
+                    case "array to string":
+                        tempObj[c["field name"]] = array2String(d[c["raw field"]], c["separate by"]);
+                        break;
+
+                    case "replace characters":
+                        let replaceArr = c["replace"]
+                        let rawString = d[c["raw field"]];
+                        let newString = "";
+                        let sIndex = 0;
+
+                        replaceArr.map(r => {
+
+                            newString = (sIndex == 0) ? rawString : newString;
+
+                            if (!!rawString) {
+                                newString = newString.replaceAll(r.from, r.to);
+                            }
+                            sIndex++;
+                        })
+
+                        tempObj[c["field name"]] = newString;
+                        break;
+
+                    case "kp phenotype name":
+
+                        let pID = d[c["raw field"]]
+
+                        tempObj[c["field name"]] = (!!PHENOTYPE_MAP[pID] ? PHENOTYPE_MAP[pID].description : pID);
+                        break;
+
                 }
             })
 
@@ -114,8 +186,6 @@ let convertData = function (CONVERT, DATA) {
 };
 
 let csv2Json = function (DATA) {
-
-    //console.log("typeof DATA", typeof DATA)
 
     let csvArr = CSVToArray(DATA, ",");
 

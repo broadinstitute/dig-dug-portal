@@ -547,6 +547,7 @@
                                                 "
                                                 :region-zoom="0"
                                                 :region-view-area="0"
+                                                :utils="$parent.utilsBox"
                                             ></research-annotations-plot>
                                             <!-- {{
                                                 $store.state.pkgData[
@@ -723,6 +724,7 @@
                                     :pkg-data-selected="
                                         $store.state.pkgDataSelected
                                     "
+                                    :utils="$parent.utilsBox"
                                 ></research-region-plot>
                                 <research-genes-track
                                     v-if="$store.state.codingGenesData != null"
@@ -733,6 +735,7 @@
                                     :plot-margin="$parent.plotMargin"
                                     :region-zoom="0"
                                     :region-view-area="0"
+                                    :utils="$parent.utilsBox"
                                 ></research-genes-track>
                             </div>
 

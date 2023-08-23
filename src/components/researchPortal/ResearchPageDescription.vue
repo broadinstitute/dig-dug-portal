@@ -4,11 +4,9 @@
 
 <script>
 import Vue from "vue";
-import Formatters from "@/utils/formatters.js";
-import PlotUtils from "@/utils/plotUtils.js";
 
 export default Vue.component("research-page-description", {
-	props: ["content"],
+	props: ["content","utils"],
 	components: {},
 
 	data() {
@@ -159,7 +157,7 @@ export default Vue.component("research-page-description", {
 				valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
 			}
 
-			PlotUtils.renderAxis(
+			this.utils.plotUtils.renderAxis(
 				CTX,
 				WIDTH,
 				HEIGHT,
@@ -170,7 +168,7 @@ export default Vue.component("research-page-description", {
 				valueHiLow.high
 			);
 
-			PlotUtils.renderGuideLine(
+			this.utils.plotUtils.renderGuideLine(
 				CTX,
 				WIDTH,
 				HEIGHT,
@@ -181,9 +179,9 @@ export default Vue.component("research-page-description", {
 				valueHiLow.high
 			);
 
-			PlotUtils.renderAxis(CTX, WIDTH, HEIGHT, margin, "x", null);
+			this.utils.plotUtils.renderAxis(CTX, WIDTH, HEIGHT, margin, "x", null);
 
-			PlotUtils.renderTicksByKeys(
+			this.utils.plotUtils.renderTicksByKeys(
 				CTX,
 				WIDTH,
 				HEIGHT,
@@ -195,7 +193,7 @@ export default Vue.component("research-page-description", {
 			);
 
 			///render bars
-			PlotUtils.renderBars(
+			this.utils.plotUtils.renderBars(
 				CTX,
 				WIDTH,
 				HEIGHT,
@@ -210,7 +208,7 @@ export default Vue.component("research-page-description", {
 			);
 		},
 		renderPiePlot(CTX, DATA, WIDTH, HEIGHT, COLOR) {
-			PlotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT, COLOR);
+			this.utils.plotUtils.renderPie(CTX, DATA, WIDTH, HEIGHT, COLOR);
 		},
 		renderLinePlot(
 			CTX,
@@ -255,7 +253,7 @@ export default Vue.component("research-page-description", {
 				valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
 			}
 
-			PlotUtils.renderAxis(
+			this.utils.plotUtils.renderAxis(
 				CTX,
 				WIDTH,
 				HEIGHT,
@@ -267,11 +265,11 @@ export default Vue.component("research-page-description", {
 				2
 			);
 
-			PlotUtils.renderAxis(CTX, WIDTH, HEIGHT, margin, "x", null);
+			this.utils.plotUtils.renderAxis(CTX, WIDTH, HEIGHT, margin, "x", null);
 
 			let keys = Object.keys(DATA[Object.keys(DATA)[0]]);
 
-			PlotUtils.renderTicksByKeys(
+			this.utils.plotUtils.renderTicksByKeys(
 				CTX,
 				WIDTH,
 				HEIGHT,
@@ -282,7 +280,7 @@ export default Vue.component("research-page-description", {
 				X_LBL_ANGLE
 			);
 
-			PlotUtils.renderGuideLine(
+			this.utils.plotUtils.renderGuideLine(
 				CTX,
 				WIDTH,
 				HEIGHT,
@@ -293,7 +291,7 @@ export default Vue.component("research-page-description", {
 				valueHiLow.high
 			);
 
-			PlotUtils.renderLine(
+			this.utils.plotUtils.renderLine(
 				CTX,
 				WIDTH,
 				HEIGHT,

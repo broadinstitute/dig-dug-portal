@@ -22,9 +22,15 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 //import DatasetAssociations from "@/components/DatasetAssociations";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import PheWASDatasets from "@/components/PheWASDatasets";
-import keyParams from "@/utils/keyParams";
-import Formatters from "@/utils/formatters";
+
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
+
 import sessionUtils from "@/utils/sessionUtils";
 
 import Alert, {
@@ -73,6 +79,18 @@ new Vue({
     },
 
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
         /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -240,11 +258,9 @@ new Vue({
             let pos = this.chromPos;
 
             if (pos) {
-                window.location.href = `./region.html?chr=${
-                    pos.chromosome
-                }&start=${pos.position - expanded}&end=${
-                    pos.position + expanded
-                }&variant=${this.$store.state.variant.varId}`;
+                window.location.href = `./region.html?chr=${pos.chromosome
+                    }&start=${pos.position - expanded}&end=${pos.position + expanded
+                    }&variant=${this.$store.state.variant.varId}`;
             }
         },
         clearBadSearch() {

@@ -13,15 +13,11 @@ import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
-import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
 import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
-import Formatters from "@/utils/formatters";
 import VariantSearch from "@/components/VariantSearch";
-import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -46,6 +42,14 @@ import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
 import Counter from "@/utils/idCounter";
 import regionUtils from "@/utils/regionUtils";
+
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
 
 import Alert, {
     postAlert,
@@ -129,6 +133,18 @@ new Vue({
     },
 
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
         /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -266,16 +282,16 @@ new Vue({
                     data[i].huge >= 350
                         ? "Compelling"
                         : data[i].huge >= 100
-                        ? "Extreme"
-                        : data[i].huge >= 30
-                        ? "Very Strong"
-                        : data[i].huge >= 10
-                        ? "Strong"
-                        : data[i].huge >= 3
-                        ? "Moderate"
-                        : data[i].huge > 1
-                        ? "Anecdotal"
-                        : "No Evidence";
+                            ? "Extreme"
+                            : data[i].huge >= 30
+                                ? "Very Strong"
+                                : data[i].huge >= 10
+                                    ? "Strong"
+                                    : data[i].huge >= 3
+                                        ? "Moderate"
+                                        : data[i].huge > 1
+                                            ? "Anecdotal"
+                                            : "No Evidence";
 
                 score["range"] = range;
                 score["renderScore"] = Math.log(data[i].huge);
@@ -673,9 +689,8 @@ new Vue({
             let r = this.region;
 
             if (r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${r.chromosome
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
 

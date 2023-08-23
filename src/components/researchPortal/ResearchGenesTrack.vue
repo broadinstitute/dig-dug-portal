@@ -1,7 +1,7 @@
 <template>
 	<div class="mbm-plot-content row">
 		<div class="col-md-12 genes-plot-wrapper">
-			<div class="row">
+			<div class="">
 				<div
 					id="genesTrackWrapper"
 					:class="
@@ -27,9 +27,9 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
+//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
+//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -42,20 +42,29 @@ export default Vue.component("research-genes-track", {
 		"plotMargin",
 		"regionZoom",
 		"regionViewArea",
+		"utils"
 	],
 	data() {
 		return {
 			plotRendered: 0,
+			localGenesData: null,
 		};
 	},
 	modules: {
-		uiUtils,
-		Formatters,
+		//uiUtils,
+		//Formatters,
 	},
 	components: {},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		this.renderTrack(this.genesData);
+		if(!!this.genesData) {
+			this.renderTrack(this.genesData);
+		} else {
+			this.getGenesInRegion(this.region)
+		}
+	},
+	created() {
+		//this.$root.$refs.genesTrack = this;
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -112,21 +121,28 @@ export default Vue.component("research-genes-track", {
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				//if (n.length > 0) {
-				this.renderTrack(this.genesData);
-				//}
+				
+				if(!!this.genesData){
+					this.renderTrack(this.genesData);
+				} else {
+					this.getGenesInRegion(n.chr+":"+n.start+"-"+n.end);
+				}
 			},
 			deep: true,
 			immediate: true,
 		},
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		onResize(e) {
-			this.renderTrack(this.genesData);
+			if(!this.genesData){
+				this.renderTrack(this.localGenesData);
+			} else {
+				this.renderTrack(this.genesData);
+			}
+			
 		},
 		renderTrack(GENES) {
-			console.log("this.genesData", this.genesData);
 
 			if (!!document.getElementById("genesTrackWrapper")) {
 				let genesArray = GENES;
@@ -141,20 +157,64 @@ export default Vue.component("research-genes-track", {
 							2 -
 					  60; // -30 for padding
 
-				canvasRenderHeight =
-					this.plotMargin.topMargin +
-					eachGeneTrackHeight * genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
-
-				let bump = this.plotMargin.bump;
-
 				let plotWidth =
 					this.plotType == "region plot"
 						? canvasRenderWidth - this.plotMargin.leftMargin * 2
 						: canvasRenderWidth -
-						  (this.plotMargin.leftMargin +
-								this.plotMargin.rightMargin);
+						(this.plotMargin.leftMargin +
+							this.plotMargin.rightMargin);
 
 				let plotHeight = eachGeneTrackHeight * genesArray.length;
+
+				let xMin = Number(this.viewingRegion.start),
+					xMax = Number(this.viewingRegion.end);
+
+				let xStart = this.plotMargin.leftMargin;
+				let yStart = this.plotMargin.topMargin;
+				let xPosByPixel = plotWidth / (xMax - xMin);
+
+				let takenGeneRegions = [];
+				let geneIndex = 0;
+
+				genesArray.map((gene) => {
+					if (gene.start <= xMax && gene.end >= xMin) {
+						let xStartPos =
+							gene.start > xMin
+								? xStart + (gene.start - xMin) * xPosByPixel
+								: xStart;
+						let xEndPos =
+							gene.end < xMax
+								? xStart + (gene.end - xMin) * xPosByPixel
+								: xStart + (xMax - xMin) * xPosByPixel;
+
+
+
+						let renderRegionTaken = false;
+
+						takenGeneRegions.map(r => {
+							if ((xStartPos >= r.start && xStartPos <= r.end)
+								|| (xEndPos >= r.start && xEndPos <= r.end)) {
+								renderRegionTaken = true;
+							}
+						})
+
+						if (takenGeneRegions.length != 0 && renderRegionTaken == true) {
+							takenGeneRegions = [];
+							geneIndex++;
+						}
+
+						takenGeneRegions.push({ start: xStartPos - 100, end: xEndPos + 100 });
+					}
+				})
+
+
+				canvasRenderHeight =
+					this.plotMargin.topMargin +
+					eachGeneTrackHeight * (geneIndex+1)//genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
+
+				let bump = this.plotMargin.bump;
+
+				
 
 				let c = document.getElementById("genesTrack");
 				c.setAttribute("width", canvasRenderWidth);
@@ -176,17 +236,13 @@ export default Vue.component("research-genes-track", {
 				ctx.strokeStyle = "#000000";
 				ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
-				let xMin = Number(this.viewingRegion.start),
-					xMax = Number(this.viewingRegion.end);
-
-				let xStart = this.plotMargin.leftMargin;
-				let yStart = this.plotMargin.topMargin;
-				let xPosByPixel = plotWidth / (xMax - xMin);
-
 				ctx.font = "italic bold 24px Arial";
 				ctx.textAlign = "center";
 				ctx.fillStyle = "#000000";
-				genesArray.map((gene, geneIndex) => {
+
+				takenGeneRegions = [];
+				geneIndex = 0;
+				genesArray.map((gene) => {
 					if (gene.start <= xMax && gene.end >= xMin) {
 						let xStartPos =
 							gene.start > xMin
@@ -197,11 +253,25 @@ export default Vue.component("research-genes-track", {
 								? xStart + (gene.end - xMin) * xPosByPixel
 								: xStart + (xMax - xMin) * xPosByPixel;
 
-						let yPos =
-							this.plotMargin.topMargin +
-							geneIndex * eachGeneTrackHeight;
+						
 
-						//yPos += yPos % 1 == 0 ? 0.5 : 0;
+						let renderRegionTaken = false;
+
+						takenGeneRegions.map(r=>{
+							if((xStartPos >= r.start && xStartPos <= r.end)
+								|| (xEndPos >= r.start && xEndPos <= r.end)) {
+							renderRegionTaken = true;
+							}
+						})
+
+						if (takenGeneRegions.length != 0 && renderRegionTaken == true) {
+							takenGeneRegions = [];
+							geneIndex ++;
+						}
+
+						takenGeneRegions.push({ start: xStartPos - 100, end: xEndPos + 100 });
+
+						let yPos = this.plotMargin.topMargin + geneIndex * eachGeneTrackHeight;
 
 						var left = "\u{2190}";
 						var right = "\u{2192}";
@@ -256,6 +326,40 @@ export default Vue.component("research-genes-track", {
 						});
 					}
 				});
+			}
+		},
+		async getGenesInRegion(region) {
+
+			let fetchUrl = "https://bioindex.hugeamp.org/api/bio/query/genes?q=" + region;
+			let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+
+			if (genes.error == null) {
+				let genesInRegion = JSON.parse(genes);
+				let codingGenes = "";
+
+				if (!!genesInRegion["data"] && genesInRegion["data"].length > 1) {
+					genesInRegion["data"].map((gene) => {
+						if ((gene.type = "protein_coding")) {
+							codingGenes += "'" + gene.name + "',";
+						}
+					});
+
+					codingGenes = codingGenes.slice(0, -1);
+
+					if (codingGenes.length > 1) {
+						this.getGenesData(codingGenes);
+					}
+				}
+			}
+		},
+		async getGenesData(GENES) {
+
+			let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
+			let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+
+			if (genesData.error == null) {
+				this.localGenesData = JSON.parse(genesData).data;
+				this.renderTrack(this.localGenesData);
 			}
 		},
 	},

@@ -64,6 +64,7 @@
 						:filterWidth="null"
 						:dataset="$parent.summaryData.data"
 						:unfilteredDataset="$parent.summaryData.data"
+						:utils="$parent.utilsBox"
 					></research-page-filters>
 					<div
 						class="row"

@@ -46,28 +46,27 @@
 				</select>
 			</label>
 			<div
-				v-if="dataComparisonConfig == null"
 				class="convert-2-csv btn-sm"
-				@click="convertJson2Csv(filteredData, pageID + '_filtered')"
+				@click="convertJson2Csv(filteredData, pageID + sectionId+ '_filtered')"
 			>
 				Save as CSV
 			</div>
 			<div
 				class="convert-2-csv btn-sm"
-				@click="saveJson(filteredData, pageID + '_filtered')"
+				@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
 			>
 				Save as JSON
 			</div>
 			<div
 				class="convert-2-csv btn-sm"
-				@click="showHidePanel('#showHideColumnsBox')"
+				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
 			>
 				show/hide columns
 			</div>
-			<div v-if="!!tableFormat" id="showHideColumnsBox" class="hidden">
+			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="hidden">
 				<div
 					class="show-hide-columns-box-close"
-					@click="showHidePanel('#showHideColumnsBox')"
+					@click="showHidePanel('#showHideColumnsBox'+sectionId)"
 				>
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
@@ -176,7 +175,15 @@
 						"
 					>
 						<td
-							v-if="ifDataObject(tdValue) == false"
+							v-if="ifDataObject(tdValue) == false && !!ifSetParameterColumn(tdKey)"
+							:key="tdKey"
+							:class="getColumnId(tdKey)"
+							
+						>
+							<button class="btn btn-sm btn-outline-secondary link-button" v-html="'Set search'" @click="setParameter(tdValue, tdKey)" ></button>
+						</td>
+						<td
+							v-if="ifDataObject(tdValue) == false && !ifSetParameterColumn(tdKey)"
 							:key="tdKey"
 							v-html="formatValue(tdValue, tdKey)"
 							:class="getColumnId(tdKey)"
@@ -205,7 +212,7 @@
 					<td v-if="tableFormat['features'] != undefined">
 						<span
 							href="javascript:;"
-							@click="showHideFeature('feature_' + index)"
+							@click="showHideFeature('feature_' + sectionId + index)"
 							class="show-evidence-btn btn"
 							>View</span
 						>
@@ -213,13 +220,14 @@
 				</tr>
 				<tr
 					v-if="!!tableFormat['features']"
-					:id="'feature_' + index"
+					:id="'feature_' + sectionId + index"
 					:class="'hidden'"
 				>
 					<td :colspan="topRowNumber" class="features-td">
 						<research-data-table-features
 							:featuresData="value.features"
 							:featuresFormat="tableFormat"
+							:utils="utils"
 						></research-data-table-features>
 					</td>
 				</tr>
@@ -247,10 +255,6 @@ import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 
-import Formatters from "@/utils/formatters";
-import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
-
 export default Vue.component("research-data-table", {
 	props: [
 		"pageID",
@@ -263,6 +267,9 @@ export default Vue.component("research-data-table", {
 		"pkgData",
 		"pkgDataSelected",
 		"phenotypeMap",
+		"multiSectionPage",
+		"sectionId",
+		"utils",
 	],
 	data() {
 		return {
@@ -284,7 +291,12 @@ export default Vue.component("research-data-table", {
 	updated() {},
 	computed: {
 		filteredData() {
-			return this.$store.state.filteredData;
+			if(!!this.multiSectionPage){
+				return this.dataset;
+			} else {
+				return this.$store.state.filteredData;
+			}
+			
 		},
 		dataScores() {
 			if (
@@ -367,7 +379,7 @@ export default Vue.component("research-data-table", {
 			if (this.dataComparisonConfig == null) {
 				rawData.map((d) => {
 					let tempObj = {};
-
+					
 					this.tableFormat["top rows"].map((t) => {
 						tempObj[t] = d[t];
 					});
@@ -517,7 +529,20 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	methods: {
-		...Formatters,
+		//...Formatters,
+		setParameter(VALUE,KEY){
+			let parameter = this.tableFormat['column formatting'][KEY]['parameter'];
+			document.getElementById("search_param_" + parameter).value = VALUE;
+			this.$root.$refs.multiSectionSearch.updateSearch(parameter);
+		},
+		ifSetParameterColumn(KEY){
+			if(!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+			 && !!this.tableFormat['column formatting'][KEY]['type'].includes('set parameter')) {
+				return true;
+			 } else {
+				return null;
+			 }
+		},
 		showHidePanel(PANEL) {
 			let wrapper = document.querySelector(PANEL);
 			if (wrapper.classList.contains("hidden")) {
@@ -605,13 +630,13 @@ export default Vue.component("research-data-table", {
 			}
 		},
 		showHideFeature(ELEMENT) {
-			uiUtils.showHideElement(ELEMENT);
+			this.utils.uiUtils.showHideElement(ELEMENT);
 		},
 		convertJson2Csv(DATA, FILENAME) {
-			uiUtils.convertJson2Csv(DATA, FILENAME);
+			this.utils.uiUtils.saveByorCsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
-			uiUtils.saveJson(DATA, FILENAME);
+			this.utils.uiUtils.saveJson(DATA, FILENAME);
 		},
 		formatValue(tdValue, tdKey) {
 			let content;
@@ -627,7 +652,7 @@ export default Vue.component("research-data-table", {
 					!!types.includes("render background percent") ||
 					!!types.includes("render background percent negative")
 				) {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.tableFormat,
@@ -635,7 +660,7 @@ export default Vue.component("research-data-table", {
 						this.dataScores
 					);
 				} else if (!!types.includes("kp phenotype link")) {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.tableFormat,
@@ -643,7 +668,7 @@ export default Vue.component("research-data-table", {
 						null
 					);
 				} else {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.tableFormat,
@@ -767,7 +792,7 @@ export default Vue.component("research-data-table", {
 				console.log("isNumeric",isNumeric)
 
 				//sort the data with values, then merge the data WO values to the sorted.
-				let sortedValues = sortUtils
+				let sortedValues = this.utils.sortUtils
 					.sortEGLTableData(
 						filteredWValues,
 						key,
@@ -781,7 +806,14 @@ export default Vue.component("research-data-table", {
 						? sortedValues
 						: this.array2Object(sortedValues, this.dataset, key);
 
-				this.$store.dispatch("filteredData", returnData);
+				
+
+				if(!!this.multiSectionPage) {
+					console.log("multi1")
+					this.$emit('clicked-sort', returnData);
+				} else {
+					this.$store.dispatch("filteredData", returnData);
+				}
 			} else if (key == this.tableFormat["locus field"]) {
 				let sortKey = this.tableFormat["locus field"];
 				let filtered = this.dataset;
@@ -813,14 +845,20 @@ export default Vue.component("research-data-table", {
 					g["bp"] = bpNum;
 				});
 
-				sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
-				sortUtils.sortEGLTableData(
+				this.utils.sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
+				this.utils.sortUtils.sortEGLTableData(
 					filtered,
 					"chr",
 					true,
 					sortDirection
 				);
-				this.$store.dispatch("filteredData", filtered);
+
+				
+				if(!!this.multiSectionPage) {
+					console.log("multi2")
+				} else {
+					this.$store.dispatch("filteredData", filtered);
+				}
 			}
 		},
 	},
@@ -839,7 +877,7 @@ export default Vue.component("research-data-table", {
 .show-hide-columns-box-close:hover {
 	color: #36c;
 }
-#showHideColumnsBox {
+/*#showHideColumnsBox {
 	position: fixed;
 	background-color: #fff;
 	border: solid 1px #ddd;
@@ -863,6 +901,32 @@ export default Vue.component("research-data-table", {
 
 #showHideColumnsBox th,
 #showHideColumnsBox td {
+	border: none;
+}*/
+[id*="showHideColumnsBox"] {
+	position: fixed;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	z-index: 11;
+	font-size: 14px;
+	width: 400px;
+	height: 50%;
+	text-align: left;
+	top: 25%;
+	left: calc(50% - 200px);
+	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
+	padding: 20px;
+}
+
+[id*="showHideColumnsBox"] .table-wrapper {
+	overflow: auto !important;
+	padding: 0;
+	height: calc(100% - 35px);
+}
+
+[id*="showHideColumnsBox"] th,
+[id*="showHideColumnsBox"] td {
 	border: none;
 }
 .group-item-bubble {
