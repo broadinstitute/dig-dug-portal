@@ -663,8 +663,10 @@ html {
 	border-radius: 5px;
 	color: #ffffff;
 }
-#alert_pop_up {
+
+.alert-pop-up {
 	position: fixed;
+	z-index: 200;
 	width: 400px;
 	top: 50%;
 	left: calc(50% - 200px);
@@ -675,6 +677,21 @@ html {
 	font-size: 1.15em;
 	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
+
+.section-alert-pop-up {
+	position: relative;
+	z-index: 200;
+	width: 400px;
+	top: 50%;
+	left: calc(50% - 200px);
+	background-color: #ffefef;
+	padding: 15px 30px;
+	border: solid 1px #ff8888;
+	border-radius: 5px;
+	font-size: 1.15em;
+	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
 .zoom-ui-wrapper {
 	font-size: 13px;
 	font-weight: 700;

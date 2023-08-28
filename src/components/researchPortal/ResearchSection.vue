@@ -179,20 +179,7 @@ export default Vue.component("research-section", {
 
 			this.$store.dispatch("capturedData", {action:'add',title: title,data:this.sectionData});
 		},
-		/*getPlotLegend(ID) {
-			if(!!this.plotLegend) {
-				console.log(this.plotLegend);
-				const newDiv = document.createElement("div");
-				const newContent = document.createTextNode(this.plotLegend);
-				newDiv.appendChild(newContent);
-
-				let legend = (!!document.getElementById(ID))?document.getElementById(ID).innerHTML:"";
-
-				return legend;
-			} else {
-				return null
-			}
-		},*/
+		
 		async getData(continueToken) {
 			//console.log("called"+ this.sectionConfig["section id"]);
 			let dataPoint = this.sectionConfig["data point"]
@@ -242,6 +229,8 @@ export default Vue.component("research-section", {
 				
 				
 				let contJson = await fetch(dataUrl).then((resp) => resp.json());
+
+				console.log(this.sectionConfig["section id"], contJson);
 
 				if (contJson.error == null) {	
 					let data = null;
@@ -345,7 +334,13 @@ export default Vue.component("research-section", {
 							this.originalData = this.sectionData;
 						}
 					} else {
-						console.log("no returned data")
+						console.log("no returned data for ", this.sectionConfig["section id"])
+						this.utils.alertUtils.popSectionAlert(
+							"No data is returned for "+ this.sectionConfig.header +" section.",
+							this.sectionConfig["section id"]
+						);
+						this.sectionData = null;
+						this.originalData = null;
 					}
 				}
 			} else {
