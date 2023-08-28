@@ -3,10 +3,10 @@
 		<div class="row">
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()" title="Capture data in section"><b-icon
-												icon="cart-check-fill"
+												icon="camera"
 											></b-icon></button>
 	 			<button class="btn btn-sm show-evidence-btn show-hide-section" @click="utils.uiUtils.showHideElement('section_' + sectionConfig['section id'])" title="Show / hide section"><b-icon
-											icon="eye-fill"
+											icon="eye"
 										></b-icon></button>
 				<h4>{{ sectionConfig.header }}
 					<small v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
@@ -62,8 +62,6 @@
 					@clicked-sort="updateData"
 				>
 				</research-data-table>
-				<div v-html="plotLegend" style="display:none;"></div>
-				<div v-html="tableLegend" style="display:none;"></div>
 			</div>
 		</div>
 	</div>
@@ -101,6 +99,7 @@ export default Vue.component("research-section", {
 		this.getData();
 	},
 	computed: {
+		
 		tableFormat() {
 			if(!!this.sectionData) {
 				if(!!this.sectionConfig["table format"] && 
@@ -146,17 +145,20 @@ export default Vue.component("research-section", {
 			}
 		},
 		sectionTableLegend() {
-			let sectionID = this.sectionConfig["section id"]+"_table";
-			let legend = (!!document.getElementById(sectionID)) ? document.getElementById(sectionID).innerHTML : "";
+			let sectionID = this.sectionConfig["section id"];
+			let legendContainer = document.querySelector('#tableLegend');
+			let legend = (!!legendContainer.querySelector('#' + sectionID)) ? legendContainer.querySelector('#' + sectionID).innerHTML : "";
 
 			return legend;
 		},
 		sectionPlotLegend() {
-			let sectionID = this.sectionConfig["section id"]+"_plot";
-			let legend = (!!document.getElementById(sectionID)) ? document.getElementById(sectionID).innerHTML : "";
+			let sectionID = this.sectionConfig["section id"];
+			let legendContainer = document.querySelector('#plotLegend');
+			let legend = (!!legendContainer.querySelector('#' + sectionID))?legendContainer.querySelector('#'+ sectionID).innerHTML:"";
 
 			return legend;
 		},
+		
 	},
 	watch: {
 	},
@@ -177,7 +179,7 @@ export default Vue.component("research-section", {
 
 			this.$store.dispatch("capturedData", {action:'add',title: title,data:this.sectionData});
 		},
-		getPlotLegend(ID) {
+		/*getPlotLegend(ID) {
 			if(!!this.plotLegend) {
 				console.log(this.plotLegend);
 				const newDiv = document.createElement("div");
@@ -190,7 +192,7 @@ export default Vue.component("research-section", {
 			} else {
 				return null
 			}
-		},
+		},*/
 		async getData(continueToken) {
 			//console.log("called"+ this.sectionConfig["section id"]);
 			let dataPoint = this.sectionConfig["data point"]
