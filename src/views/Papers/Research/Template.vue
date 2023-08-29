@@ -679,11 +679,10 @@ html {
 }
 
 .section-alert-pop-up {
-	position: relative;
+	position: fixed;
 	z-index: 200;
 	width: 400px;
-	top: 50%;
-	left: calc(50% - 200px);
+	right: 15px;
 	background-color: #ffefef;
 	padding: 15px 30px;
 	border: solid 1px #ff8888;

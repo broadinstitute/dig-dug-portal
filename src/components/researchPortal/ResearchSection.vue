@@ -230,9 +230,19 @@ export default Vue.component("research-section", {
 				
 				let contJson = await fetch(dataUrl).then((resp) => resp.json());
 
-				console.log(this.sectionConfig["section id"], contJson);
+				let isData = true;
 
-				if (contJson.error == null) {	
+				if (contJson.error == null) {
+					if(!!Array.isArray(contJson) && contJson.length == 0) {
+						isData = false
+					} else if(!Array.isArray(contJson)) {
+
+					}
+				} else {
+					isData = false
+				}
+
+				if (!!isData) {	
 					let data = null;
 					let dataWrapper = dataPoint["data wrapper"];
 
@@ -334,14 +344,13 @@ export default Vue.component("research-section", {
 							this.originalData = this.sectionData;
 						}
 					} else {
-						console.log("no returned data for ", this.sectionConfig["section id"])
-						this.utils.alertUtils.popSectionAlert(
-							"No data is returned for "+ this.sectionConfig.header +" section.",
-							this.sectionConfig["section id"]
-						);
+						
 						this.sectionData = null;
 						this.originalData = null;
 					}
+				} else {
+					this.sectionData = null;
+					this.originalData = null;
 				}
 			} else {
 				if(dataPoint.type == "file") {
@@ -353,6 +362,15 @@ export default Vue.component("research-section", {
 					}
 				}
 				
+			}
+
+			if(!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) {
+				
+				this.utils.alertUtils.popSectionAlert(
+					"No data is returned for " + this.sectionConfig.header + ".",
+					this.sectionConfig["section id"]
+				);
+
 			}
 		},		
 	},
