@@ -181,9 +181,11 @@ export default Vue.component("research-section", {
 		},
 		
 		async getData(continueToken) {
-			//console.log("called"+ this.sectionConfig["section id"]);
 			let dataPoint = this.sectionConfig["data point"]
-			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :dataPoint.url+"query/"+ dataPoint.index +"?q=": dataPoint.type == "api"? dataPoint.url: dataPoint.type == "file" ? "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + dataPoint.file :"";
+			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :
+				dataPoint.url+"query/"+ dataPoint.index +"?q=": 
+				dataPoint.type == "api"? dataPoint.url: 
+				dataPoint.type == "file" ? "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + dataPoint.file :"";
 			let queryParams = {}
 			let queryParamsSet = true;
 
