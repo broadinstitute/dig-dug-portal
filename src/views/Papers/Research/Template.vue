@@ -110,7 +110,7 @@
 					</div>
 					<div class="col-md-4 text-right" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
 						<button class="btn btn-sm btn-primary" @click="$parent.utilsBox.uiUtils.showHideElement('captured_data_panel')" title="Show / hide captured data list"><b-icon
-													icon="cart-fill"
+													icon="images"
 												></b-icon></button>
 					</div>
 				</div>
@@ -626,6 +626,9 @@
 			No data is available for the last search. Please try a new search.
 		</div>
 
+		<div id="plotLegend" v-html="$parent.plotLegend" style="display:none;"></div>
+		<div id="tableLegend" v-html="$parent.tableLegend" style="display:none;"></div>
+
 		<!-- Research portal Footer-->
 		<research-page-footer
 			v-if="$parent.displayOnKP == null"
@@ -660,8 +663,10 @@ html {
 	border-radius: 5px;
 	color: #ffffff;
 }
-#alert_pop_up {
+
+.alert-pop-up {
 	position: fixed;
+	z-index: 200;
 	width: 400px;
 	top: 50%;
 	left: calc(50% - 200px);
@@ -672,6 +677,20 @@ html {
 	font-size: 1.15em;
 	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
+
+.section-alert-pop-up {
+	position: fixed;
+	z-index: 200;
+	width: 400px;
+	right: 15px;
+	background-color: #ffefef;
+	padding: 15px 30px;
+	border: solid 1px #ff8888;
+	border-radius: 5px;
+	font-size: 1.15em;
+	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
 .zoom-ui-wrapper {
 	font-size: 13px;
 	font-weight: 700;

@@ -1,7 +1,7 @@
 <template>
-	<div>
+	<div class="multi-page-search-wrapper">
 		<div
-			class="filtering-ui-wrapper search-criteria"
+			class="filtering-ui-wrapper search-criteria multi-page-search"
 			id="searchCriteria"
 			v-if="searchParameters != null"
 		>
@@ -185,17 +185,47 @@ export default Vue.component("research-multi-sections-search", {
 		
 	},
 	mounted() {
-		/*this.searchParameters.map(s => {
+		window.addEventListener("scroll", this.onScroll);
+		this.searchParameters.map(s => {
 			if (!!this.utils.keyParams[s.parameter]) {
 				document.getElementById("search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
-		})*/
+		})
 	},
-	computed: {},
+	beforeDestroy() {
+		window.removeEventListener("scroll", this.onScroll);
+	},
+	computed: {
+		tableTop() {
+			let eglTable = document.getElementsByClassName("multi-page-search")[0];
+			let rect = eglTable.getBoundingClientRect();
+			let scrollTop = document.documentElement.scrollTop
+				? document.documentElement.scrollTop
+				: document.body.scrollTop;
+
+			let tableTop = rect.top + scrollTop;
+
+			return tableTop;
+		},
+	},
 	watch: {
 	},
 	methods: {
 		//...uiUtils,
+		onScroll(e) {
+			let windowTop = window.top.scrollY;
+
+			let element = document.getElementsByClassName("multi-page-search")[0];
+			if (windowTop > this.tableTop) {
+				if (!element.classList.contains("fixed-header")) {
+					element.classList.add("fixed-header");
+				}
+			} else {
+				if (element.classList.contains("fixed-header")) {
+					element.classList.remove("fixed-header");
+				}
+			}
+		},
 		getVisibleValues(VALUES, SEARCH, PARAMETER) {
 			let numOfVisible = 0;
 
@@ -313,6 +343,18 @@ export default Vue.component("research-multi-sections-search", {
 </script>
 
 <style>
+.multi-page-search-wrapper {
+	position: relative;
+    height: 100px;
+}
+.fixed-header {
+	position: fixed !important;
+    top: 0px;
+    width: 100%;
+    left: 0;
+    z-index: 200;
+	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
 .expand-region {
 	display: inline-block;
 	vertical-align: bottom;

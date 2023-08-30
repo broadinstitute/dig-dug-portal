@@ -3,10 +3,10 @@
 		<div class="row">
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()" title="Capture data in section"><b-icon
-												icon="cart-check-fill"
+												icon="camera"
 											></b-icon></button>
 	 			<button class="btn btn-sm show-evidence-btn show-hide-section" @click="utils.uiUtils.showHideElement('section_' + sectionConfig['section id'])" title="Show / hide section"><b-icon
-											icon="eye-fill"
+											icon="eye"
 										></b-icon></button>
 				<h4>{{ sectionConfig.header }}
 					<small v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
@@ -62,8 +62,6 @@
 					@clicked-sort="updateData"
 				>
 				</research-data-table>
-				<div v-html="plotLegend" style="display:none;"></div>
-				<div v-html="tableLegend" style="display:none;"></div>
 			</div>
 		</div>
 	</div>
@@ -101,6 +99,7 @@ export default Vue.component("research-section", {
 		this.getData();
 	},
 	computed: {
+		
 		tableFormat() {
 			if(!!this.sectionData) {
 				if(!!this.sectionConfig["table format"] && 
@@ -146,17 +145,20 @@ export default Vue.component("research-section", {
 			}
 		},
 		sectionTableLegend() {
-			let sectionID = this.sectionConfig["section id"]+"_table";
-			let legend = (!!document.getElementById(sectionID)) ? document.getElementById(sectionID).innerHTML : "";
+			let sectionID = this.sectionConfig["section id"];
+			let legendContainer = document.querySelector('#tableLegend');
+			let legend = (!!legendContainer.querySelector('#' + sectionID)) ? legendContainer.querySelector('#' + sectionID).innerHTML : "";
 
 			return legend;
 		},
 		sectionPlotLegend() {
-			let sectionID = this.sectionConfig["section id"]+"_plot";
-			let legend = (!!document.getElementById(sectionID)) ? document.getElementById(sectionID).innerHTML : "";
+			let sectionID = this.sectionConfig["section id"];
+			let legendContainer = document.querySelector('#plotLegend');
+			let legend = (!!legendContainer.querySelector('#' + sectionID))?legendContainer.querySelector('#'+ sectionID).innerHTML:"";
 
 			return legend;
 		},
+		
 	},
 	watch: {
 	},
@@ -177,24 +179,13 @@ export default Vue.component("research-section", {
 
 			this.$store.dispatch("capturedData", {action:'add',title: title,data:this.sectionData});
 		},
-		getPlotLegend(ID) {
-			if(!!this.plotLegend) {
-				console.log(this.plotLegend);
-				const newDiv = document.createElement("div");
-				const newContent = document.createTextNode(this.plotLegend);
-				newDiv.appendChild(newContent);
-
-				let legend = (!!document.getElementById(ID))?document.getElementById(ID).innerHTML:"";
-
-				return legend;
-			} else {
-				return null
-			}
-		},
+		
 		async getData(continueToken) {
-			//console.log("called"+ this.sectionConfig["section id"]);
 			let dataPoint = this.sectionConfig["data point"]
-			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :dataPoint.url+"query/"+ dataPoint.index +"?q=": dataPoint.type == "api"? dataPoint.url: dataPoint.type == "file" ? "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + dataPoint.file :"";
+			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :
+				dataPoint.url+"query/"+ dataPoint.index +"?q=": 
+				dataPoint.type == "api"? dataPoint.url: 
+				dataPoint.type == "file" ? "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + dataPoint.file :"";
 			let queryParams = {}
 			let queryParamsSet = true;
 
@@ -241,7 +232,19 @@ export default Vue.component("research-section", {
 				
 				let contJson = await fetch(dataUrl).then((resp) => resp.json());
 
-				if (contJson.error == null) {	
+				let isData = true;
+
+				if (contJson.error == null) {
+					if(!!Array.isArray(contJson) && contJson.length == 0) {
+						isData = false
+					} else if(!Array.isArray(contJson)) {
+
+					}
+				} else {
+					isData = false
+				}
+
+				if (!!isData) {	
 					let data = null;
 					let dataWrapper = dataPoint["data wrapper"];
 
@@ -343,8 +346,13 @@ export default Vue.component("research-section", {
 							this.originalData = this.sectionData;
 						}
 					} else {
-						console.log("no returned data")
+						
+						this.sectionData = null;
+						this.originalData = null;
 					}
+				} else {
+					this.sectionData = null;
+					this.originalData = null;
 				}
 			} else {
 				if(dataPoint.type == "file") {
@@ -356,6 +364,15 @@ export default Vue.component("research-section", {
 					}
 				}
 				
+			}
+
+			if(!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) {
+				
+				this.utils.alertUtils.popSectionAlert(
+					"No data is returned for " + this.sectionConfig.header + ".",
+					this.sectionConfig["section id"]
+				);
+
 			}
 		},		
 	},
