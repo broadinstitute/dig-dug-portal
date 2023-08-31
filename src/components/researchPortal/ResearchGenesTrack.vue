@@ -3,13 +3,13 @@
 		<div class="col-md-12 genes-plot-wrapper">
 			<div class="">
 				<div
-					id="genesTrackWrapper"
+					:id="'genesTrackWrapper' + sectionId"
 					:class="
 						plotType == 'region plot' ? 'col-md-9' : 'col-md-12'
 					"
 				>
 					<canvas
-						id="genesTrack"
+						:id="'genesTrack'+sectionId"
 						@resize="onResize"
 						width=""
 						height=""
@@ -42,7 +42,8 @@ export default Vue.component("research-genes-track", {
 		"plotMargin",
 		"regionZoom",
 		"regionViewArea",
-		"utils"
+		"utils",
+		"sectionId"
 	],
 	data() {
 		return {
@@ -144,7 +145,7 @@ export default Vue.component("research-genes-track", {
 		},
 		renderTrack(GENES) {
 
-			if (!!document.getElementById("genesTrackWrapper")) {
+			if (!!document.getElementById("genesTrackWrapper"+this.sectionId)) {
 				let genesArray = GENES;
 				let canvasRenderWidth, canvasRenderHeight;
 				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
@@ -153,7 +154,7 @@ export default Vue.component("research-genes-track", {
 					? this.plotConfig.width * 2 +
 					  this.plotMargin.leftMargin +
 					  this.plotMargin.rightMargin
-					: document.getElementById("genesTrackWrapper").clientWidth *
+					: document.getElementById("genesTrackWrapper" + this.sectionId).clientWidth *
 							2 -
 					  60; // -30 for padding
 
@@ -216,7 +217,7 @@ export default Vue.component("research-genes-track", {
 
 				
 
-				let c = document.getElementById("genesTrack");
+				let c = document.getElementById("genesTrack" + this.sectionId);
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
 				c.setAttribute(

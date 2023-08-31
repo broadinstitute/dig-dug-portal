@@ -62,6 +62,7 @@
 			:pkgData="null"
 			:pkgDataSelected="null"
 			:isSectionPage="true"
+			:sectionId="sectionId"
 			:utils="utils"
 		></research-region-plot>
 		<!-- genes track -->
@@ -75,6 +76,7 @@
 			:regionZoom="0"
 			:regionViewArea="null"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-genes-track>
 	</div>
 </template>
