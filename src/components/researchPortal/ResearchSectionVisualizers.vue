@@ -19,6 +19,7 @@
 			:dataComparisonConfig="null"
 			:compareGroupColors="null"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-m-bitmap-plot>
 		<!-- PheWAS plot-->
 		<research-phewas-plot
@@ -32,6 +33,7 @@
 			:pkgDataSelected="null"
 			:canvasId="sectionId"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-phewas-plot>
 		<!-- Heatmap -->
 		<research-heatmap
@@ -39,6 +41,7 @@
 			:heatmapData="plotData"
 			:renderConfig="plotConfig"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-heatmap>
 		<!-- volcano_plot -->
 		<research-volcano-plot
@@ -46,6 +49,7 @@
 			:plotData="plotData"
 			:renderConfig="plotConfig"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-volcano-plot>
 		<!-- region_plot -->
 		<research-region-plot
