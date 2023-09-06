@@ -43,8 +43,30 @@ export default new Vuex.Store({
         phenotypesInSession: null,
         diseaseInSession: null,
         phenotypeCorrelation: null,
+        /// muti-sections use
+        capturedData: [],
+        ///
     },
     mutations: {
+        /// multi-sections use
+        setCapturedData(state, data) {
+            switch (data.action) {
+
+                case "add":
+                    delete data.action;
+                    state.capturedData.push(data);
+                    break;
+
+                case "remove":
+
+                    state.capturedData = [...new Set(state.capturedData.filter(d => d.title != data.title))];
+
+                    break;
+            }
+
+            console.log("state.capturedData", state.capturedData);
+        },
+        ///
         setSharedPlotXpos(state, XPOS) {
             state.sharedPlotXpos = XPOS;
         },
@@ -136,6 +158,11 @@ export default new Vuex.Store({
     },
     getters: {},
     actions: {
+        /// multi-sections use
+        capturedData(context, data) {
+            context.commit("setCapturedData", data);
+        },
+        ///
         sharedPlotXpos(context, XPOS) {
             context.commit("setSharedPlotXpos", XPOS);
         },

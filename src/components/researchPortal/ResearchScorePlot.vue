@@ -92,9 +92,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -105,6 +103,7 @@ export default Vue.component("research-score-plot", {
 		"renderConfig",
 		"dataComparisonConfig",
 		"searchParameters",
+		"utils"
 	],
 	data() {
 		return {
@@ -172,8 +171,6 @@ export default Vue.component("research-score-plot", {
 		};
 	},
 	modules: {
-		uiUtils,
-		Formatters,
 	},
 	components: {},
 	mounted: function () {
@@ -264,7 +261,6 @@ export default Vue.component("research-score-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
 		calculateScore() {
 			let scoreColumns = function (row, scoreBy) {
 				let fieldValue = 0;
@@ -304,7 +300,7 @@ export default Vue.component("research-score-plot", {
 			this.$store.dispatch("filteredData", dataWithNewScore);
 		},
 		hidePanel(element) {
-			uiUtils.hideElement(element);
+			this.utils.uiUtils.hideElement(element);
 		},
 		onResize(e) {
 			this.renderPlot();
@@ -618,7 +614,7 @@ export default Vue.component("research-score-plot", {
 				ctx.textAlign = "right";
 				ctx.fillStyle = "#000000";
 
-				let yTickText = Formatters.floatFormatter(yMin + i * yStep);
+				let yTickText = this.utils.Formatters.floatFormatter(yMin + i * yStep);
 
 				yTickText = yTickText == "-" ? 0 : yTickText;
 

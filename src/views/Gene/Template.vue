@@ -349,6 +349,7 @@
 								:pkgDataSelected="null"
 								:filter="null"
 								ref="hugeScorePheWASPlot"
+								:utils="$parent.utilsBox"
 							></research-phewas-plot>
 							<huge-scores-table
 								v-if="$parent.hugeScores.length > 0"
@@ -496,6 +497,7 @@
 										:pkgDataSelected="null"
 										:filter="filter"
 										ref="commonVariantPheWASPlot"
+										:utils="$parent.utilsBox"
 									></research-phewas-plot>
 									<unauthorized-message
 										:restricted="
@@ -631,6 +633,7 @@
 								:pkgData="null"
 								:pkgDataSelected="null"
 								ref="rareVariantPheWASPlot"
+								:utils="$parent.utilsBox"
 							></research-phewas-plot>
 							<unauthorized-message
 								:restricted="$store.state.restricted"

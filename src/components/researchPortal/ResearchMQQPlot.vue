@@ -90,10 +90,10 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
+//import uiUtils from "@/utils/uiUtils";
+//import sortUtils from "@/utils/sortUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
+//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -103,6 +103,7 @@ export default Vue.component("research-m-qq-plot", {
 		"renderConfig",
 		"dataComparisonConfig",
 		"compareGroupColors",
+		"utils"
 	],
 	data() {
 		return {
@@ -153,8 +154,8 @@ export default Vue.component("research-m-qq-plot", {
 		};
 	},
 	modules: {
-		uiUtils,
-		Formatters,
+		//uiUtils,
+		//Formatters,
 	},
 	components: {},
 	mounted: function () {
@@ -319,9 +320,9 @@ export default Vue.component("research-m-qq-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		hidePanel(element) {
-			uiUtils.hideElement(element);
+			this.utils.uiUtils.hideElement(element);
 		},
 		onResize(e) {
 			this.renderPlot(this.renderData);
@@ -551,7 +552,7 @@ export default Vue.component("research-m-qq-plot", {
 
 					let vTotal = 0;
 
-					let qqData = sortUtils.sortArrOfObjects(
+					let qqData = this.utils.sortUtils.sortArrOfObjects(
 						dValue.unsorted,
 						this.renderConfig["y axis field"],
 						"number",
@@ -605,7 +606,7 @@ export default Vue.component("research-m-qq-plot", {
 						ctx.textAlign = "right";
 						ctx.fillStyle = "#000000";
 
-						let yTickText = Formatters.floatFormatter(
+						let yTickText = this.utils.Formatters.floatFormatter(
 							yMin + i * yStep
 						);
 
@@ -837,7 +838,7 @@ export default Vue.component("research-m-qq-plot", {
 
 					let yStep = (yMax - yMin) / 4;
 
-					//let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
+					//let yAxisTicks = this.utils.uiUtils.getAxisTicks(yMin, yMax);
 
 					let yTickDistance = plotHeight / 4;
 
@@ -852,7 +853,7 @@ export default Vue.component("research-m-qq-plot", {
 						ctx.textAlign = "right";
 						ctx.fillStyle = "#000000";
 
-						let yTickText = Formatters.floatFormatter(
+						let yTickText = this.utils.Formatters.floatFormatter(
 							yMin + i * yStep
 						);
 

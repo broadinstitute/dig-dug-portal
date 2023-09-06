@@ -72,10 +72,10 @@
 
 <script>
 import Vue from "vue";
-import Formatters from "@/utils/formatters";
+//import Formatters from "@/utils/formatters";
 
 export default Vue.component("research-gem-table-features", {
-	props: ["featuresData", "featuresFormat"],
+	props: ["featuresData", "featuresFormat","utils"],
 	data() {
 		return {};
 	},
@@ -120,7 +120,48 @@ export default Vue.component("research-gem-table-features", {
 			return content;
 		},
 		formatValue(tdValue, tdKey) {
+			let content;
 			if (
+				!!this.tableFormat &&
+				!!this.tableFormat["column formatting"] &&
+				!!this.tableFormat["column formatting"][tdKey]
+			) {
+				let types = this.tableFormat["column formatting"][tdKey].type;
+
+				if (
+					!!types.includes("render background percent") ||
+					!!types.includes("render background percent negative")
+				) {
+					content = this.utils.Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						null,
+						this.dataScores
+					);
+				} else if (!!types.includes("kp phenotype link")) {
+					content = this.utils.Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						this.phenotypeMap,
+						null
+					);
+				} else {
+					content = this.utils.Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						null,
+						null
+					);
+				}
+			} else {
+				content = tdValue;
+			}
+
+			return content;
+			/*if (
 				this.featuresFormat["column formatting"] != undefined &&
 				this.featuresFormat["column formatting"][tdKey] != undefined
 			) {
@@ -137,26 +178,12 @@ export default Vue.component("research-gem-table-features", {
 
 				formatTypes.map((type) => {
 					if (type == "scientific notation") {
-						cellValue = Formatters.pValueFormatter(tdValue);
+						cellValue = this.utils.Formatters.pValueFormatter(tdValue);
 
 						cellValue = cellValue == "-" ? 0 : cellValue;
 					}
 
-					/*if (type == "link") {
-						let linkString =
-							"<a href='" +
-							this.newTableFormat["column formatting"][tdKey][
-								"link to"
-							] +
-							cellValue;
-
-						linkString +=
-							linkToNewTab == "true"
-								? "' target='_blank'>" + cellValue + "</a>"
-								: "'>" + cellValue + "</a>";
-
-						cellValue = linkString;
-					}*/
+					
 					if (type == "link") {
 						let linkString =
 							"<a href='" +
@@ -223,7 +250,7 @@ export default Vue.component("research-gem-table-features", {
 				return cellValue;
 			} else {
 				return tdValue;
-			}
+			}*/
 		},
 	},
 	computed: {

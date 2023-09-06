@@ -12,7 +12,14 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
+
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -52,7 +59,18 @@ new Vue({
     },
 
     computed: {
-
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },

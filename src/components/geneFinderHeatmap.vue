@@ -60,6 +60,7 @@ Vue.use(BootstrapVueIcons);
 
 export default Vue.component("gene-finder-heatmap", {
 	props: [
+		"rawData",
 		"heatmapData",
 		"phenotypes",
 		"minMaxTPM",
@@ -219,8 +220,17 @@ export default Vue.component("gene-finder-heatmap", {
 				) {
 					scaleLegendContent +=
 						"<div class='col-md-12' style='font-size: 16px; white-space: nowrap'><strong>Matching genes:</strong>" +
-						renderData.columns.length +
-						"</div>";
+						renderData.columns.length;
+
+					this.phenotypes.map((p) => {
+						scaleLegendContent +=
+							", <strong>" +
+							p +
+							":</strong>" +
+							this.rawData[p].length;
+					});
+
+					scaleLegendContent += "</div>";
 
 					if (this.pThreshold.length > 0) {
 						scaleLegendContent +=

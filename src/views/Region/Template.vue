@@ -249,6 +249,7 @@
                                         'add phenotype',
                                         'open phenotype page',
                                     ]"
+                                    :utils="$parent.utilsBox"
                                 ></research-phewas-plot>
                             </div>
                             <div

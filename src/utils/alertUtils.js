@@ -1,5 +1,5 @@
 
-let colors = ["#007bff75",
+const colors = ["#007bff75",
     "#04884575",
     "#8490C875",
     "#BF61A575",
@@ -21,18 +21,43 @@ const popAlert = function (MESSAGE) {
     const el = document.createElement('div');
     el.classList.add('alert-pop-up');
     el.setAttribute("id", "alert_pop_up");
-
     el.textContent = MESSAGE;
 
     document.body.appendChild(el);
-    let wrapper = document.getElementById("alert_pop_up");
 
+    let wrapper = document.getElementById("alert_pop_up");
     setTimeout(function () {
         wrapper.remove();
     }, 2000);
 }
 
+const popSectionAlert = function (MESSAGE, ID) {
+    let poppedAlerts = document.querySelectorAll(".section-alert-pop-up");
+
+    let heights = 15;
+
+    for (let i = 0; i < poppedAlerts.length; ++i) {
+        heights += poppedAlerts[i].offsetHeight + 15
+    }
+
+    let popID = "alert_pop_up_" + ID;
+    let sectionID = "section_" + ID;
+    let el = document.createElement('div');
+    el.classList.add('section-alert-pop-up');
+    el.setAttribute("id", popID);
+    el.style.bottom = heights + "px"
+    el.textContent = MESSAGE;
+
+    document.getElementById(sectionID).appendChild(el)
+
+    let wrapper = document.getElementById(popID);
+    setTimeout(function () {
+        wrapper.remove();
+    }, 5000);
+}
+
 export default {
-    popAlert
+    popAlert,
+    popSectionAlert
 };
 

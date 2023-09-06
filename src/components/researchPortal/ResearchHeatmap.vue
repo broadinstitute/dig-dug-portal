@@ -41,14 +41,14 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
+//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
+//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-heatmap", {
-	props: ["heatmapData", "renderConfig"],
+	props: ["heatmapData", "renderConfig","utils"],
 	data() {
 		return {
 			squareData: {},
@@ -56,8 +56,8 @@ export default Vue.component("research-heatmap", {
 		};
 	},
 	modules: {
-		uiUtils,
-		Formatters,
+		//uiUtils,
+		//Formatters,
 	},
 	mounted: function () {
 		this.renderHeatmap();
@@ -118,9 +118,9 @@ export default Vue.component("research-heatmap", {
 		},
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		hidePanel() {
-			uiUtils.hideElement("clicked_cell_value");
+			this.utils.uiUtils.hideElement("clicked_cell_value");
 			this.renderHeatmap();
 		},
 		renderScaleLegend() {
@@ -145,7 +145,7 @@ export default Vue.component("research-heatmap", {
 				let scaleMiddle =
 					middleValue == 0
 						? "0.00"
-						: Formatters.floatFormatter(middleValue);
+						: this.utils.Formatters.floatFormatter(middleValue);
 				scaleLegendContent +=
 					"<div class='scale-legend-main-colors'><div class='scale-color' style='background-color: rgb(255,255,255)'>" +
 					scaleMiddle +
@@ -153,7 +153,7 @@ export default Vue.component("research-heatmap", {
 				for (let i = 1; i < 6; i++) {
 					let rAndG = 1 - i * 0.2;
 					rAndG *= 255;
-					rAndG = rAndG == 0 ? 0 : Formatters.intFormatter(rAndG);
+					rAndG = rAndG == 0 ? 0 : this.utils.Formatters.intFormatter(rAndG);
 
 					//console.log("rAndG", rAndG);
 					scaleLegendContent +=
@@ -162,7 +162,7 @@ export default Vue.component("research-heatmap", {
 						"," +
 						rAndG +
 						")'>" +
-						Formatters.floatFormatter(colorStep * i) +
+						this.utils.Formatters.floatFormatter(colorStep * i) +
 						"</div>";
 				}
 				scaleLegendContent += "</div></div>";

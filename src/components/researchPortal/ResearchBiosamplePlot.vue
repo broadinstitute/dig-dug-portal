@@ -352,10 +352,10 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
+//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
-import keyParams from "@/utils/keyParams";
+//import Formatters from "@/utils/formatters.js";
+//import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -372,6 +372,7 @@ export default Vue.component("research-biosamples-plot", {
 		"pkgDataSelected",
 		"regionZoom",
 		"regionViewArea",
+		"utils"
 	],
 	data() {
 		return {
@@ -388,9 +389,9 @@ export default Vue.component("research-biosamples-plot", {
 		};
 	},
 	modules: {
-		uiUtils,
-		Formatters,
-		keyParams,
+		//uiUtils,
+		//Formatters,
+		//keyParams,
 	},
 	components: {},
 	mounted: function () {
@@ -438,7 +439,7 @@ export default Vue.component("research-biosamples-plot", {
 			returnObj["start"] = regionArr[1].split("-")[0];
 			returnObj["end"] = regionArr[1].split("-")[1];
 
-			uiUtils.showElement("biosamplesPlotWrapper");
+			this.utils.uiUtils.showElement("biosamplesPlotWrapper");
 
 			return returnObj;
 		},
@@ -477,7 +478,7 @@ export default Vue.component("research-biosamples-plot", {
 
 		searchingPhenotype() {
 			if (this.phenotype != null) {
-				uiUtils.showElement("annotationsPlotWrapper");
+				this.utils.uiUtils.showElement("annotationsPlotWrapper");
 				//this.getAnnotations(this.searchingRegion);
 
 				let returnPhenotype = !!this.renderConfig["phenotype match"]
@@ -486,12 +487,12 @@ export default Vue.component("research-biosamples-plot", {
 
 				return returnPhenotype;
 			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
-					uiUtils.showElement("annotationsPlotWrapper");
+				if (!!this.utils.keyParams[this.renderConfig["phenotype parameter"]]) {
+					this.utils.uiUtils.showElement("annotationsPlotWrapper");
 					//this.getAnnotations(this.searchingRegion);
 
 					let phenotype =
-						keyParams[this.renderConfig["phenotype parameter"]];
+						this.utils.keyParams[this.renderConfig["phenotype parameter"]];
 
 					let returnPhenotype = !!this.renderConfig["phenotype match"]
 						? this.renderConfig["phenotype match"][phenotype]
@@ -541,7 +542,7 @@ export default Vue.component("research-biosamples-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		getSelectedParameters(PARAM) {
 			let arr = [
 				...new Set(
@@ -867,10 +868,10 @@ export default Vue.component("research-biosamples-plot", {
 			});
 		},
 		onMouseOut(BOXID) {
-			uiUtils.removeOnMouseOut(BOXID, 1000);
+			this.utils.uiUtils.removeOnMouseOut(BOXID, 1000);
 		},
 		onResize(e) {
-			uiUtils.showElement("biosamplesPlotWrapper");
+			this.utils.uiUtils.showElement("biosamplesPlotWrapper");
 			this.renderBiosamplesTrack("on resize");
 			if (
 				!this.renderConfig["with annotations viewer"] ||
@@ -1089,7 +1090,7 @@ export default Vue.component("research-biosamples-plot", {
 		async getGlobalEnrichment() {
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
-					? uiUtils.biDomain() + "/api/bio"
+					? this.utils.uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["biosamples server"];
 
 			let phenotype = this.searchingPhenotype;
@@ -1213,14 +1214,14 @@ export default Vue.component("research-biosamples-plot", {
 
 					if (pPerTissue == null) {
 						GEByTissue[phenotype][g.tissue][g.annotation].pValue =
-							Formatters.pValueFormatter(g.pValue);
+							this.utils.Formatters.pValueFormatter(g.pValue);
 						GEByTissue[phenotype][g.tissue][g.annotation].fold =
-							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
+							this.utils.Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
 					} else if (g.pValue < pPerTissue) {
 						GEByTissue[phenotype][g.tissue][g.annotation].pValue =
-							Formatters.pValueFormatter(g.pValue);
+							this.utils.Formatters.pValueFormatter(g.pValue);
 						GEByTissue[phenotype][g.tissue][g.annotation].fold =
-							Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
+							this.utils.Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
 					}
 
 					if (!!annotations[phenotype][g.annotation]) {
@@ -1290,7 +1291,7 @@ export default Vue.component("research-biosamples-plot", {
 			} else {
 				let biosamplesServer =
 					this.renderConfig["biosamples server"] == "KP BioIndex"
-						? uiUtils.biDomain() + "/api/bio"
+						? this.utils.uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["biosamples server"];
 
 				let biosamplesIndex = !!this.renderConfig["biosamples index"]
@@ -1335,7 +1336,7 @@ export default Vue.component("research-biosamples-plot", {
 		async loadContinue(CONTENT, ANNOTATION, TISSUE) {
 			let biosamplesServer =
 				this.renderConfig["biosamples server"] == "KP BioIndex"
-					? uiUtils.biDomain() + "/api/bio"
+					? this.utils.uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["biosamples server"];
 
 			let contURL =
@@ -1646,7 +1647,7 @@ export default Vue.component("research-biosamples-plot", {
 				///Update to 'uiUtils.biDomain() + "/api/bio"' before release
 				let biosamplesServer =
 					this.renderConfig["biosamples server"] == "KP BioIndex"
-						? uiUtils.biDomain() + "/api/bio"
+						? this.utils.uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["biosamples server"];
 
 				let biosamplesIndex = !!this.renderConfig["biosamples index"]
@@ -2011,7 +2012,7 @@ export default Vue.component("research-biosamples-plot", {
 				let yMaxMinGap = YMAX - YMIN;
 				let yDecimal = yMaxMinGap <= 1 ? 2 : yMaxMinGap <= 50 ? 1 : 0;
 
-				let yValue = Formatters.decimalFormatter(
+				let yValue = this.utils.Formatters.decimalFormatter(
 					YMIN + i * yStep,
 					yDecimal
 				);
@@ -2082,7 +2083,7 @@ export default Vue.component("research-biosamples-plot", {
 				let xMaxMinGap = XMAX - XMIN;
 				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
 
-				let xValue = Formatters.decimalFormatter(
+				let xValue = this.utils.Formatters.decimalFormatter(
 					XMIN + i * xStep,
 					xDecimal
 				);
@@ -2164,7 +2165,7 @@ export default Vue.component("research-biosamples-plot", {
 				let xMaxMinGap = xMax - xMin;
 				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
 
-				let positionLabel = Formatters.decimalFormatter(
+				let positionLabel = this.utils.Formatters.decimalFormatter(
 					xMin + i * xStep,
 					xDecimal
 				);

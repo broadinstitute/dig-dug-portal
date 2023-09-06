@@ -43,9 +43,9 @@
 				</select>
 			</label>
 			<div
-				v-if="dataComparisonConfig == null"
+				
 				class="convert-2-csv btn-sm"
-				@click="convertJson2Csv(filteredData, pageID + '_filtered')"
+				@click="convertJson2Csv(rawData, pageID + '_filtered')"
 			>
 				Save as CSV
 			</div>
@@ -254,6 +254,7 @@
 						<research-gem-table-features
 							:featuresData="value.features"
 							:featuresFormat="newTableFormat"
+							:utils="utils"
 						></research-gem-table-features>
 					</td>
 				</tr>
@@ -279,10 +280,10 @@
 import Vue from "vue";
 import ResearchGEMTableFeatures from "@/components/researchPortal/ResearchGEMTableFeatures.vue";
 
-import Formatters from "@/utils/formatters";
+//import Formatters from "@/utils/formatters";
 
-import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
+//import uiUtils from "@/utils/uiUtils";
+//import sortUtils from "@/utils/sortUtils";
 
 export default Vue.component("research-gem-data-table", {
 	props: [
@@ -295,6 +296,10 @@ export default Vue.component("research-gem-data-table", {
 		"searchParameters",
 		"pkgData",
 		"pkgDataSelected",
+		"region",
+		"regionZoom",
+		"regionViewArea",
+		"utils"
 	],
 	data() {
 		return {
@@ -320,6 +325,38 @@ export default Vue.component("research-gem-data-table", {
 	computed: {
 		filteredData() {
 			return this.$store.state.filteredData;
+		},
+		viewingRegion() {
+			if (this.region == null) {
+				return null;
+			} else {
+				let returnObj = {};
+
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
+
+				let regionArr = this.region.split(":")[1].split("-");
+				let chr = this.region.split(":")[0];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+					returnObj["chr"] = chr;
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["chr"] = chr;
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
+
+				return returnObj;
+			}
 		},
 		dataScores() {
 			if (
@@ -389,6 +426,22 @@ export default Vue.component("research-gem-data-table", {
 				});
 			} else {
 				rawData = { ...this.dataset }; //create copy of original data to avoid modifying original data which is shared with other components.
+			}
+
+			if (!!this.tableFormat["data zoom"]) {
+				let chrField = this.tableFormat["data zoom"].chromosome;
+				let posField = this.tableFormat["data zoom"].position;
+				let startPos = this.viewingRegion.start;
+				let endPos = this.viewingRegion.end;
+
+				for (const [vKey, vValue] of Object.entries(rawData)) {
+					if (
+						vValue[posField] < startPos ||
+						vValue[posField] > endPos
+					) {
+						delete rawData[vKey];
+					}
+				}
 			}
 
 			// Add original index to each items in the rawData, so it can be sorted back to original order after processing;
@@ -1342,8 +1395,6 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			//console.log("this.pkgData", this.pkgData);
-
 			return formattedData;
 		},
 
@@ -1369,7 +1420,7 @@ export default Vue.component("research-gem-data-table", {
 
 				return paged;
 			} else {
-				return this.rawData;
+				return this.dataInRegion;
 			}
 		},
 		topRows() {
@@ -1417,7 +1468,7 @@ export default Vue.component("research-gem-data-table", {
 		},
 	},
 	methods: {
-		...Formatters,
+		//...Formatters,
 		showHidePanel(PANEL) {
 			let wrapper = document.querySelector(PANEL);
 			if (wrapper.classList.contains("hidden")) {
@@ -1562,15 +1613,57 @@ export default Vue.component("research-gem-data-table", {
 			}
 		},
 		showHideFeature(ELEMENT) {
-			uiUtils.showHideElement(ELEMENT);
+			this.utils.uiUtils.showHideElement(ELEMENT);
 		},
 		convertJson2Csv(DATA, FILENAME) {
-			uiUtils.convertJson2Csv(DATA, FILENAME);
+			this.utils.uiUtils.saveByorCsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
-			uiUtils.saveJson(DATA, FILENAME);
+			this.utils.uiUtils.saveJson(DATA, FILENAME);
 		},
 		formatValue(tdValue, tdKey) {
+			let content;
+			if (
+				!!this.tableFormat &&
+				!!this.tableFormat["column formatting"] &&
+				!!this.tableFormat["column formatting"][tdKey]
+			) {
+				let types = this.tableFormat["column formatting"][tdKey].type;
+
+				if (
+					!!types.includes("render background percent") ||
+					!!types.includes("render background percent negative")
+				) {
+					content = this.utils.Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						null,
+						this.dataScores
+					);
+				} else if (!!types.includes("kp phenotype link")) {
+					content = this.utils.Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						this.phenotypeMap,
+						null
+					);
+				} else {
+					content = this.utils.Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						null,
+						null
+					);
+				}
+			} else {
+				content = tdValue;
+			}
+
+			return content;
+			/*
 			if (
 				this.newTableFormat["column formatting"] != undefined &&
 				this.newTableFormat["column formatting"][tdKey] != undefined
@@ -1588,26 +1681,11 @@ export default Vue.component("research-gem-data-table", {
 
 				formatTypes.map((type) => {
 					if (type == "scientific notation") {
-						cellValue = Formatters.pValueFormatter(tdValue);
+						cellValue = this.utils.Formatters.pValueFormatter(tdValue);
 
 						cellValue = cellValue == "-" ? 0 : cellValue;
 					}
 
-					/*if (type == "link") {
-						let linkString =
-							"<a href='" +
-							this.newTableFormat["column formatting"][tdKey][
-								"link to"
-							] +
-							cellValue;
-
-						linkString +=
-							linkToNewTab == "true"
-								? "' target='_blank'>" + cellValue + "</a>"
-								: "'>" + cellValue + "</a>";
-
-						cellValue = linkString;
-					}*/
 					if (type == "link") {
 						let linkString =
 							"<a href='" +
@@ -1674,7 +1752,7 @@ export default Vue.component("research-gem-data-table", {
 				return cellValue;
 			} else {
 				return tdValue;
-			}
+			}*/
 		},
 		object2Array(DATASET, KEY, SORT_DIRECTION) {
 			let arrayedObject = [];
@@ -1758,7 +1836,7 @@ export default Vue.component("research-gem-data-table", {
 				let isNumeric = typeof keyData != "number" ? false : true;
 
 				//sort the data with values, then merge the data WO values to the sorted.
-				let sortedValues = sortUtils
+				let sortedValues = this.utils.sortUtils
 					.sortEGLTableData(
 						filteredWValues,
 						key,
@@ -1807,8 +1885,8 @@ export default Vue.component("research-gem-data-table", {
 					g["bp"] = bpNum;
 				});
 
-				sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
-				sortUtils.sortEGLTableData(
+				this.utils.sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
+				this.utils.sortUtils.sortEGLTableData(
 					filtered,
 					"chr",
 					true,

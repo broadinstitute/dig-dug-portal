@@ -13,15 +13,11 @@ import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
-import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
 import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
-import Formatters from "@/utils/formatters";
 import VariantSearch from "@/components/VariantSearch";
-import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -46,6 +42,14 @@ import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
 import Counter from "@/utils/idCounter";
 import regionUtils from "@/utils/regionUtils";
+
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
 
 import Alert, {
     postAlert,
@@ -124,11 +128,23 @@ new Vue({
                     link: "https://www.uniprot.org/uniprot/",
                 },
             },
-            noTranscriptDataPortal: ["sleep", "lung", "ndkp", "autoimmune"]
+            noTranscriptDataPortal: ["sleep", "lung", "ndkp", "autoimmune"],
         };
     },
 
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
         /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -515,8 +531,10 @@ new Vue({
 
         // the region for the gene was found
         region(region) {
-            this.hideElement("variangeneSearchHolder");
-            this.$store.dispatch("queryGeneRegion", region);
+            if (region) {
+                uiUtils.hideElement("pageSearchHeaderContent");
+                this.$store.dispatch("queryGeneRegion", region);
+            }
         },
 
         // the canonical symbol was found
@@ -578,11 +596,18 @@ new Vue({
             let gene = await regionUtils.geneSymbol(KEY);
 
             if (!!gene && gene != KEY) {
-                console.log("gene", gene)
-                console.log("not a gene symbol!!")
-                document.getElementById("invalidGeneMessage").innerHTML = "Your search term is an alias name for gene symbol " + gene + ". Please enter a new search term above, or go to the " + gene + " Gene page"
+                console.log("gene", gene);
+                console.log("not a gene symbol!!");
+                document.getElementById("invalidGeneMessage").innerHTML =
+                    "Your search term is an alias name for gene symbol " +
+                    gene +
+                    ". Please enter a new search term above, or go to the " +
+                    gene +
+                    " Gene page";
 
-                document.getElementById("invalidGeneRedirect").setAttribute('href', '/gene.html?gene=' + gene)
+                document
+                    .getElementById("invalidGeneRedirect")
+                    .setAttribute("href", "/gene.html?gene=" + gene);
                 uiUtils.showElement("invalidGeneWarning");
                 uiUtils.showElement("pageSearchHeaderContent");
             }
@@ -677,7 +702,7 @@ new Vue({
             setTimeout(function () {
                 refComponent.renderPheWas();
             }, 500);
-        }
+        },
     },
 
     render(createElement, context) {

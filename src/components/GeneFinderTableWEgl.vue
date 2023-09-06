@@ -3,6 +3,7 @@
 		<div v-show="showPlot">
 			<gene-finder-heatmap
 				v-if="tableData.length > 0"
+				:rawData="rawData"
 				:heatmap-data="groupedAssociations"
 				:phenotypes="phenotypes"
 				:rare-variant-list="Object.keys(rareVariantMap)"
@@ -471,6 +472,7 @@ export default Vue.component("GeneFinderWEglTable", {
 		GeneFinderHeatmap,
 	},
 	props: [
+		"rawData",
 		"associations",
 		"hugeScores",
 		"phenotypes",
@@ -518,6 +520,7 @@ export default Vue.component("GeneFinderWEglTable", {
 		},
 
 		groupedAssociations() {
+			//console.log(this.associations);
 			let groups = {};
 			let associations = this.tableData;
 

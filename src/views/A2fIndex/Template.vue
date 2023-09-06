@@ -141,6 +141,7 @@
 													:phenotypes="
 														$parent.phenotypesInSession
 													"
+													:utils="$parent.utilsBox"
 												></research-single-search>
 												<div
 													class="
@@ -192,6 +193,7 @@
 											:phenotypes="
 												$parent.phenotypesInSession
 											"
+											:utils="$parent.utilsBox"
 										></research-single-search>
 										<div
 											class="
@@ -265,6 +267,7 @@
 							<research-page-description
 								v-if="$parent.pageDescription != null"
 								:content="$parent.pageDescription"
+								:utils="$parent.utilsBox"
 							></research-page-description>
 
 							<about-project-section
@@ -310,6 +313,7 @@
 							<research-page-description
 								v-if="$parent.pageDescription != null"
 								:content="$parent.pageDescription"
+								:utils="$parent.utilsBox"
 							></research-page-description>
 							<about-project-section
 								:front-contents="$parent.frontContents"

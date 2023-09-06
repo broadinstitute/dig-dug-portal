@@ -3,7 +3,7 @@
         <!-- uncomment in the final version-->
         <img v-if="bioindex_dev" src="/images/dev_flag.svg" class="dev-flag" />
         <!-- <img src="/images/dev_flag.svg" class="dev-flag" /> -->
-        <analytics></analytics>
+        <google-analytics></google-analytics>
         <alert></alert>
 
         <!-- Menu header-->
@@ -136,7 +136,8 @@
 import Vue from "vue";
 import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
-import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+//import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics4";
 import MenuItem from "@/components/MenuItem.vue";
 import DiseaseSystems from "@/components/DiseaseSystems.vue";
 
@@ -173,13 +174,12 @@ export default Vue.component("page-header", {
     watch: {
         diseaseGroup(group) {
             if (!!group && !!group.title) {
-                let s = document.title.split(" - ");
+                let s = document.title.split(" | ");
 
                 // NB: If the <title> changes in index.html to use a different
                 //     separator other than ' - ', please update this code.
-                s[0] = group.title;
-                document.title = s.join(" - ");
-
+                s[s.length - 1] = group.title;
+                document.title = s.join(" | ");
                 // find the shortcut icon
                 let links = document.getElementsByTagName("link");
 

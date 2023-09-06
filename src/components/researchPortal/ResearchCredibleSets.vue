@@ -163,12 +163,12 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
-import dataConvert from "@/utils/dataConvert";
+//import uiUtils from "@/utils/uiUtils";
+//import plotUtils from "@/utils/plotUtils";
+//import dataConvert from "@/utils/dataConvert";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
-import keyParams from "@/utils/keyParams";
+//import Formatters from "@/utils/formatters.js";
+//import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -184,6 +184,7 @@ export default Vue.component("research-credible-sets-plot", {
 		"pkgDataSelected",
 		"regionZoom",
 		"regionViewArea",
+		"utils"
 	],
 	data() {
 		return {
@@ -195,12 +196,12 @@ export default Vue.component("research-credible-sets-plot", {
 		};
 	},
 	modules: {
-		uiUtils,
-		plotUtils,
+		//uiUtils,
+		//plotUtils,
 
-		Formatters,
-		keyParams,
-		dataConvert,
+		//Formatters,
+		//keyParams,
+		//dataConvert,
 	},
 	components: {},
 	mounted: function () {
@@ -225,9 +226,9 @@ export default Vue.component("research-credible-sets-plot", {
 					? this.renderConfig["phenotype match"][this.phenotype]
 					: this.phenotype;
 			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
+				if (!!this.utils.keyParams[this.renderConfig["phenotype parameter"]]) {
 					phenotype =
-						keyParams[this.renderConfig["phenotype parameter"]];
+						this.utils.keyParams[this.renderConfig["phenotype parameter"]];
 				} else {
 					phenotype = null;
 				}
@@ -279,9 +280,9 @@ export default Vue.component("research-credible-sets-plot", {
 					? this.renderConfig["phenotype match"][this.phenotype]
 					: this.phenotype;
 			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
+				if (!!this.utils.keyParams[this.renderConfig["phenotype parameter"]]) {
 					phenotype =
-						keyParams[this.renderConfig["phenotype parameter"]];
+						this.utils.keyParams[this.renderConfig["phenotype parameter"]];
 				} else {
 					phenotype = null;
 				}
@@ -319,7 +320,7 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		resetAll() {
 			//this.credibleSets = [];
 			this.CSData = {};
@@ -380,7 +381,7 @@ export default Vue.component("research-credible-sets-plot", {
 			}
 		},
 		onMouseOut(BOXID) {
-			uiUtils.removeOnMouseOut(BOXID, 1000);
+			this.utils.uiUtils.removeOnMouseOut(BOXID, 1000);
 		},
 		onResize(e) {
 			this.renderCSPlot();
@@ -587,10 +588,10 @@ export default Vue.component("research-credible-sets-plot", {
 			}
 		},
 		getGregor(TISSUE, ANNO, PHENOTYPE) {
-			let pValue = Formatters.pValueFormatter(
+			let pValue = this.utils.Formatters.pValueFormatter(
 				this.pkgData.GEByTissueData[PHENOTYPE][TISSUE][ANNO].pValue
 			);
-			let fold = Formatters.pValueFormatter(
+			let fold = this.utils.Formatters.pValueFormatter(
 				this.pkgData.GEByTissueData[PHENOTYPE][TISSUE][ANNO].fold
 			);
 
@@ -723,7 +724,7 @@ export default Vue.component("research-credible-sets-plot", {
 												v[this.renderConfig["star key"]]
 											) == true
 										) {
-											plotUtils.renderStar(
+											this.utils.plotUtils.renderStar(
 												ctx,
 												xPos,
 												yPos,
@@ -950,7 +951,7 @@ export default Vue.component("research-credible-sets-plot", {
 
 				let CSServer =
 					this.renderConfig["credible sets server"] == "KP BioIndex"
-						? uiUtils.biDomain() + "/api/bio"
+						? this.utils.uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["credible sets server"];
 
 				let CSIndex = !!this.renderConfig["credible variants index"]
@@ -976,7 +977,7 @@ export default Vue.component("research-credible-sets-plot", {
 					this.CSData[phenotype][CSID] = !!this.renderConfig[
 						"data convert"
 					]
-						? dataConvert.convertData(
+						? this.utils.dataConvert.convertData(
 								this.renderConfig["data convert"],
 								CSJson.data
 						  )
@@ -1006,7 +1007,7 @@ export default Vue.component("research-credible-sets-plot", {
 		async getCredibleSetsList(REGION, PHENOTYPE) {
 			let CSServer =
 				this.renderConfig["credible sets server"] == "KP BioIndex"
-					? uiUtils.biDomain() + "/api/bio"
+					? this.utils.uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["credible sets server"];
 
 			let CSIndex = !!this.renderConfig["credible sets index"]

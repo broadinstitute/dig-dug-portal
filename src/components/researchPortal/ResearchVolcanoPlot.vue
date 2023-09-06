@@ -32,20 +32,16 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-volcano-plot", {
-	props: ["plotData", "renderConfig", "geneOfInterest"],
+	props: ["plotData", "renderConfig", "geneOfInterest","utils"],
 	data() {
 		return { posData: {} };
 	},
 	modules: {
-		uiUtils,
-		Formatters,
 	},
 	mounted: function () {
 		this.renderPlot();
@@ -84,9 +80,8 @@ export default Vue.component("research-volcano-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
 		hidePanel() {
-			uiUtils.hideElement("clicked_dot_value");
+			this.utils.uiUtils.hideElement("clicked_dot_value");
 			//this.renderPlot();
 		},
 		filterTable() {
@@ -200,8 +195,8 @@ export default Vue.component("research-volcano-plot", {
 			let yMin = Math.min.apply(Math, yAxisData);
 			let yMax = Math.max.apply(Math, yAxisData);
 
-			let xAxisTicks = uiUtils.getAxisTicks(xMin, xMax);
-			let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
+			let xAxisTicks = this.utils.uiUtils.getAxisTicks(xMin, xMax);
+			let yAxisTicks = this.utils.uiUtils.getAxisTicks(yMin, yMax);
 
 			ctx.moveTo(leftMargin, canvasHeight + topMargin + yBump);
 			ctx.lineTo(
@@ -234,7 +229,7 @@ export default Vue.component("research-volcano-plot", {
 					);
 				} else {
 					ctx.fillText(
-						Formatters.floatFormatter(
+						this.utils.Formatters.floatFormatter(
 							xAxisTicks.lo + i * xAxisTicks.step
 						),
 						leftMargin + i * xTickDistance + xBump,
@@ -274,7 +269,7 @@ export default Vue.component("research-volcano-plot", {
 					);
 				} else {
 					ctx.fillText(
-						Formatters.floatFormatter(
+						this.utils.Formatters.floatFormatter(
 							yAxisTicks.lo + yAxisTicks.step * i
 						),
 						leftMargin - 14,

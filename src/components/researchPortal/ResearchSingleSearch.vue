@@ -55,13 +55,10 @@
 
 <script>
 import Vue from "vue";
-
-import uiUtils from "@/utils/uiUtils";
-import regionUtils from "@/utils/regionUtils";
 import { match } from "@/utils/bioIndexUtils";
 
 export default Vue.component("research-single-search", {
-	props: ["singleSearchConfig", "phenotypes"],
+	props: ["singleSearchConfig", "phenotypes","utils"],
 	modules: {},
 
 	data() {
@@ -109,15 +106,13 @@ export default Vue.component("research-single-search", {
 		},
 	},
 	methods: {
-		...uiUtils,
 
 		onSearch() {
+			let searchKey = this.singleSearchParam.replace(/,/g, "");
 			if (
 				!!this.singleSearchParam.includes("rs") ||
 				!!this.singleSearchParam.includes(":")
 			) {
-				let searchKey = this.singleSearchParam.replace(/,/g, "");
-
 				if (!!this.singleSearchParam.includes("-")) {
 					let chr = searchKey.split(":")[0];
 					let region = searchKey.split(":")[1].split("-");
@@ -135,10 +130,16 @@ export default Vue.component("research-single-search", {
 				} else {
 					location.href = "/variant.html?variant=" + searchKey;
 				}
+			} else if (
+				!!this.singleSearchParam.includes("_") &&
+				!!this.singleSearchParam.includes("-")
+			) {
+				//on search for a variant in chr3_12489012-C-T format
+				location.href = "/variant.html?variant=" + searchKey;
 			}
 		},
 		async searchGene(KEY) {
-			let geneSymbol = await regionUtils.geneSymbol(KEY);
+			let geneSymbol = await this.utils.regionUtils.geneSymbol(KEY);
 
 			if (geneSymbol) {
 				let genePageUrl = "/gene.html?gene=" + geneSymbol;
@@ -148,7 +149,7 @@ export default Vue.component("research-single-search", {
 		},
 
 		async searchRegion(KEY) {
-			let region = await regionUtils.parseRegion(KEY, true, 50000);
+			let region = await this.utils.regionUtils.parseRegion(KEY, true, 50000);
 
 			if (region) {
 				let regionPageUrl =
