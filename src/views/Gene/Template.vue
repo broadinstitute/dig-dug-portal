@@ -234,7 +234,12 @@
 									:multiple="true">
 									<div class="label">Phenotypes</div>
 								</filter-enumeration-control>
-								<!--HERE IS WHERE WE FILTER BY HUGESCORE-->
+								<filter-greater-control
+									:field="'huge'">
+									<div>
+										<strong>HuGE Score (&ge;)</strong>
+									</div>
+								</filter-greater-control>
 								<template slot="filtered" slot-scope="{ filter }">
 									<research-phewas-plot
 										v-if="$parent.hugeScores.length > 0"
@@ -256,7 +261,8 @@
 										v-if="$parent.hugeScores.length > 0"
 										:gene="$store.state.gene.data[0]"
 										:hugeScores="$parent.hugeScores"
-										:phenotypeMap="$store.state.bioPortal.phenotypeMap">
+										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+										:filter="filter">
 									</huge-scores-table>
 								</template>
 							</criterion-function-group>
