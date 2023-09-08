@@ -350,44 +350,62 @@
 									:noIcon="false"
 								></tooltip-documentation>
 							</h4>
-							<div class="filtering-ui-wrapper container-fluid"
-								v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup.name)">
-								<div class="row filtering-ui-content">
-									<div class="col filter-col-md">
-										<div class="label">Transcript</div>
-										<transcript-selectpicker
-											:transcripts="$store.state.geneToTranscript.data">
-										</transcript-selectpicker>
-									</div>
+							<criterion-function-group id="common_variants">
+								<div class="col filter-col-md" v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup.name)">
+									<div class="label">Transcript</div>
+									<transcript-selectpicker
+										:transcripts="$store.state.geneToTranscript.data">
+									</transcript-selectpicker>
 								</div>
-							</div>
+								<filter-enumeration-control
+									:field="'phenotype'"
+									placeholder="Select a phenotype ..."
+									:options="$parent.geneassociations.map((association) => association.phenotype)"
+									:labelFormatter="(phenotype) => !!$store.state.bioPortal.phenotypeMap[phenotype]
+												? $store.state.bioPortal.phenotypeMap[phenotype].description
+												: phenotype"
+									:multiple="true">
+									<div class="label">Phenotypes</div>
+								</filter-enumeration-control>
+								<filter-pvalue-control
+									:field="'pValue'"
+									placeholder="Set P-Value ...">
+									<div class="label">P-Value (&le;)</div>
+								</filter-pvalue-control>
+								<template slot="filtered" slot-scope="{ filter }">
+									<div v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup)"
+										align="center" style="text-align: -webkit-center">
+										<b-badge pill v-if="!!$store.state.selectedTranscript"
+											class="btn search-bubble 1"
+											v-html="$store.state.selectedTranscript">
+										</b-badge>
+									</div>
+									<research-phewas-plot
+										v-if="$parent.transcriptOr52k.length > 0"
+										canvasId="rareVariantPlot"
+										:phenotypesData="$parent.transcriptOr52k"
+										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+										:colors="plotColors"
+										:plotMargin="phewasPlotMargin"
+										:renderConfig="rareVariantRenderConfig"
+										:pkgData="null"
+										:pkgDataSelected="null"
+										ref="rareVariantPheWASPlot"
+										:filter="filter"
+										:utils="$parent.utilsBox">
+									</research-phewas-plot>
+									<unauthorized-message :restricted="$store.state.restricted">
+									</unauthorized-message>
+									<gene-associations-masks
+										:associations="$parent.transcriptOr52k"
+										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+										:filter="filter">
+									</gene-associations-masks>
+								</template>
+							</criterion-function-group>
 							<!-- Cheating to add search bubble here-->
-							<div v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup)"
-								align="center" style="text-align: -webkit-center">
-								<b-badge pill v-if="!!$store.state.selectedTranscript"
-									class="btn search-bubble 1"
-									v-html="$store.state.selectedTranscript">
-								</b-badge>
-							</div>
-							<research-phewas-plot
-								v-if="$parent.transcriptOr52k.length > 0"
-								canvasId="rareVariantPlot"
-								:phenotypesData="$parent.transcriptOr52k"
-								:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-								:colors="plotColors"
-								:plotMargin="phewasPlotMargin"
-								:renderConfig="rareVariantRenderConfig"
-								:pkgData="null"
-								:pkgDataSelected="null"
-								ref="rareVariantPheWASPlot"
-								:utils="$parent.utilsBox">
-							</research-phewas-plot>
-							<unauthorized-message :restricted="$store.state.restricted">
-							</unauthorized-message>
-							<gene-associations-masks
-								:associations="$parent.transcriptOr52k"
-								:phenotypeMap="$store.state.bioPortal.phenotypeMap">
-							</gene-associations-masks>
+							
+							
 						</b-tab>
 					</b-tabs>
 					<!--</div>-->
