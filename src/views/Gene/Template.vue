@@ -4,57 +4,45 @@
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
-			:rawPhenotypes="$parent.rawPhenotypes"
-		></page-header>
+			:rawPhenotypes="$parent.rawPhenotypes">
+		</page-header>
 		<!-- warning in case gene name isn't valid -->
 		<div class="invalid-gene-warning hidden" id="invalidGeneWarning">
-			<a
-				class="invalid-gene-hide-warning"
-				@click="$parent.hideGeneWarning()"
-				>X</a
-			>
+			<a class="invalid-gene-hide-warning" @click="$parent.hideGeneWarning()">
+				X
+			</a>
 			<div id="invalidGeneMessage"></div>
 			<div>
-				<a id="invalidGeneRedirect" href="" class="btn btn-primary"
-					>GO</a
-				>
+				<a id="invalidGeneRedirect" href="" class="btn btn-primary">GO</a>
 			</div>
 		</div>
-
 		<!-- Body -->
 		<div class="container-fluid mdkp-body">
 			<search-header-wrapper>
 				<!-- Wrap page level searchs with "pageSearchParameters" div -->
-				<span class="gene-search-tip"
-					><sup>*</sup>Alias names are converted to gene symbols</span
-				>
+				<span class="gene-search-tip">
+					<sup>*</sup>
+					Alias names are converted to gene symbols
+				</span>
 				<div class="col filter-col-md">
 					<div class="label">Gene</div>
 					<gene-selectpicker></gene-selectpicker>
 				</div>
 				<div class="col filter-col-md">
 					<div class="label">Search</div>
-					<button
-						id="regionSearchGo"
-						class="btn btn-light btn-sm go"
-						type="button"
-						@click="$store.dispatch('queryGeneName')"
-					>
+					<button id="regionSearchGo" class="btn btn-light btn-sm go"
+						type="button" @click="$store.dispatch('queryGeneName')">
 						GO
 					</button>
 				</div>
 			</search-header-wrapper>
-
 			<div class="gene-page-header card mdkp-card">
 				<div class="row card-body">
 					<div class="col-md-8 gene-page-header-title">Gene</div>
 					<div class="col-md-4 gene-page-header-title">Navigate</div>
-
 					<div class="col-md-8 gene-page-header-body">
 						<div>
-							<span>{{
-								$store.state.geneName.toUpperCase()
-							}}</span>
+							<span>{{ $store.state.geneName.toUpperCase() }}</span>
 						</div>
 					</div>
 					<div class="col-md-4 gene-page-header-body">
@@ -63,57 +51,37 @@
 								class="btn btn-primary input-group-prepend explore-region-btn"
 								style="margin-right: 20px"
 								:title="$parent.regionText"
-								@click="$parent.exploreRegion()"
-							>
+								@click="$parent.exploreRegion()">
 								Explore Region
 							</button>
 							<button
 								class="btn btn-primary input-group-append explore-region-btn"
 								:title="$parent.regionTextExpanded"
-								@click="$parent.exploreRegion(50000)"
-							>
+								@click="$parent.exploreRegion(50000)">
 								Explore &plusmn; 50 kb
 							</button>
 						</div>
 					</div>
 				</div>
 			</div>
-
 			<div class="card mdkp-card">
 				<div class="card-body temporary-card">
-					<documentation
-						name="gene.explore.subheader"
-						:content-fill="$parent.documentationMap"
-					></documentation>
+					<documentation name="gene.explore.subheader"
+						:content-fill="$parent.documentationMap">
+					</documentation>
 				</div>
 			</div>
-
 			<div class="card mdkp-card">
-				<!-- <div class="card-body">
-                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
-                    <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
-                    <documentation name="gene.translator.dashboard"></documentation>
-                    <translator-results-dashboard
-                        :queries="$parent.queries"
-                    ></translator-results-dashboard>
-                </div>-->
 				<div class="card-body">
 					<h4>
-						{{
-							`Functional associations for ${$store.state.geneName.toUpperCase()}`
-						}}
+						{{ `Functional associations for ${$store.state.geneName.toUpperCase()}` }}
 						<tooltip-documentation
 							name="gene.translator.tooltip.hover"
 							:content-fill="$parent.documentationMap"
 							:isHover="true"
-							:noIcon="false"
-						></tooltip-documentation>
+							:noIcon="false">
+						</tooltip-documentation>
 					</h4>
-
-					<!-- <documentation
-                        name="gene.translator.dashboard"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation> -->
 					<b-tabs>
 						<b-tab title="Function">
 							<div class="card-body row">
@@ -123,14 +91,11 @@
 											Function
 											<tooltip-documentation
 												name="gene.function.tooltip.hover"
-												:content-fill="
-													$parent.documentationMap
-												"
+												:content-fill="$parent.documentationMap"
 												:isHover="true"
-												:noIcon="false"
-											></tooltip-documentation>
+												:noIcon="false">
+											</tooltip-documentation>
 										</h4>
-
 										<div>{{ $parent.geneFunction }}</div>
 									</div>
 									<div v-else>
@@ -139,19 +104,14 @@
 								</div>
 								<div class="col-md-4">
 									<h4>Info</h4>
-									<div
-										v-if="$parent.geneNames"
-										class="alternative-names"
-									>
-										<strong
-											>Alternative names:&nbsp;</strong
-										>
-										<span
-											v-for="gene in $parent.alternateNames"
+									<div v-if="$parent.geneNames" class="alternative-names">
+										<strong>Alternative names:&nbsp;</strong>
+										<span v-for="gene in $parent.alternateNames"
 											v-if="gene.source == 'alias'"
-											:key="gene.name"
-											>{{ gene.name }}</span
-										>&nbsp;
+											:key="gene.name">
+											{{ gene.name }}
+										</span>
+										&nbsp;
 									</div>
 									<div v-if="$parent.regionText">
 										<strong>Coding sequence:</strong>
@@ -159,22 +119,14 @@
 									</div>
 									<div v-if="$parent.region">
 										<strong>Length:</strong>
-										{{
-											" " +
-											(
-												$parent.region.end -
-												$parent.region.start
-											).toLocaleString()
-										}}
-										bp
+										{{ " " +
+											( $parent.region.end - $parent.region.start).toLocaleString()
+										}} bp
 									</div>
 									<div><strong>Assembly:</strong> GRCh37</div>
 									<div>
 										<strong>Gene sources:</strong>
-										<span
-											>&nbsp;Ensembl, HGNC, UCSC, RGD,
-											MGD</span
-										>
+										<span>&nbsp;Ensembl, HGNC, UCSC, RGD,MGD</span>
 									</div>
 								</div>
 							</div>
@@ -183,15 +135,15 @@
 							<translator-predicate-table
 								title="Gene Ontology (GO) Annotations"
 								:geneSymbol="$store.state.geneName"
-								:field="'go'"
-							></translator-predicate-table>
+								:field="'go'">
+							</translator-predicate-table>
 						</b-tab>
 						<b-tab title="Pathways">
 							<translator-predicate-table
 								title="Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)"
 								:geneSymbol="$store.state.geneName"
-								:field="'pathway'"
-							></translator-predicate-table>
+								:field="'pathway'">
+							</translator-predicate-table>
 						</b-tab>
 					</b-tabs>
 				</div>
@@ -199,21 +151,18 @@
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<h4>
-						{{
-							`Gene-level associations for ${$store.state.geneName.toUpperCase()}`
-						}}
+						{{ `Gene-level associations for ${$store.state.geneName.toUpperCase()}`}}
 						<tooltip-documentation
 							name="gene.level.association.tooltip.hover"
 							:content-fill="$parent.documentationMap"
 							:isHover="true"
-							:noIcon="false"
-						></tooltip-documentation>
+							:noIcon="false">
+						</tooltip-documentation>
 					</h4>
 					<span>
-						<documentation
-							name="gene.level.association.subheader"
-							:content-fill="$parent.documentationMap"
-						></documentation>
+						<documentation name="gene.level.association.subheader"
+							:content-fill="$parent.documentationMap">
+						</documentation>
 					</span>
 					<b-tabs>
 						<b-tab title="HuGE Scores" @click="$parent.renderPhewas('hugeScorePheWASPlot')">
@@ -229,8 +178,7 @@
 									placeholder="Select a phenotype ..."
 									:options="$parent.geneassociations.map((association) => association.phenotype)"
 									:labelFormatter="(phenotype) => !!$store.state.bioPortal.phenotypeMap[phenotype]
-												? $store.state.bioPortal.phenotypeMap[phenotype].description
-												: phenotype"
+										? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
 									:multiple="true">
 									<div class="label">Phenotypes</div>
 								</filter-enumeration-control>
@@ -266,8 +214,6 @@
 									</huge-scores-table>
 								</template>
 							</criterion-function-group>
-							
-
 						</b-tab>
 						<b-tab title="Common variant associations" @click=" $parent.renderPhewas('commonVariantPheWASPlot')">
 							<h4 class="card-title">
@@ -307,7 +253,7 @@
 									<div class="label">P-Value (&le;)</div>
 								</filter-pvalue-control>
 								<template slot="filtered" slot-scope="{ filter }">
-									<div align="center" id="ancestry_set" style="text-align: -webkit-center">
+									<div id="ancestry_set" style="text-align: -webkit-center">
 									</div>
 									<research-phewas-plot
 										v-if="$parent.filteredAssociations.length > 0"
@@ -362,8 +308,7 @@
 									placeholder="Select a phenotype ..."
 									:options="$parent.geneassociations.map((association) => association.phenotype)"
 									:labelFormatter="(phenotype) => !!$store.state.bioPortal.phenotypeMap[phenotype]
-												? $store.state.bioPortal.phenotypeMap[phenotype].description
-												: phenotype"
+										? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
 									:multiple="true">
 									<div class="label">Phenotypes</div>
 								</filter-enumeration-control>
@@ -374,7 +319,7 @@
 								</filter-pvalue-control>
 								<template slot="filtered" slot-scope="{ filter }">
 									<div v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup)"
-										align="center" style="text-align: -webkit-center">
+										style="text-align: -webkit-center">
 										<b-badge pill v-if="!!$store.state.selectedTranscript"
 											class="btn search-bubble 1"
 											v-html="$store.state.selectedTranscript">
@@ -403,38 +348,29 @@
 									</gene-associations-masks>
 								</template>
 							</criterion-function-group>
-							<!-- Cheating to add search bubble here-->
-							
-							
 						</b-tab>
 					</b-tabs>
-					<!--</div>-->
 				</div>
 			</div>
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<h4 class="card-title">
-						Tissue-specific gene expression for
-						{{ $store.state.geneName }}
+						Tissue-specific gene expression for {{ $store.state.geneName }}
 						<tooltip-documentation
 							name="gene.gene-expression.tooltip"
 							:content-fill="$parent.documentationMap"
 							:is-hover="true"
-							:no-icon="false"
-						></tooltip-documentation>
+							:no-icon="false">
+						</tooltip-documentation>
 					</h4>
 					<documentation
 						name="gene.gene-expression.subheader"
-						:content-fill="$parent.documentationMap"
-					></documentation>
+						:content-fill="$parent.documentationMap">
+					</documentation>
 					<research-expression-plot
 						v-if="$parent.geneExpression.length > 0"
 						:rawData="$parent.geneExpression"
-						@expression="
-							(raw) =>
-								($parent.geneExpressionTable = JSON.parse(raw))
-						"
-					>
+						@expression=" (raw) => ($parent.geneExpressionTable = JSON.parse(raw))">
 					</research-expression-plot>
 				</div>
 			</div>
@@ -443,27 +379,21 @@
 					<div v-if="$parent.dbReference">
 						<h4 class="card-title">
 							Predicted effector gene lists containing
-							{{
-								$store.state.gene.data.length
-									? $store.state.gene.data[0].name
-									: ""
-							}}
+							{{ $store.state.gene.data.length ? $store.state.gene.data[0].name : "" }}
 							<tooltip-documentation
 								name="gene.effector-gene.tooltip"
 								:content-fill="$parent.documentationMap"
 								:isHover="true"
-								:noIcon="false"
-							></tooltip-documentation>
+								:noIcon="false">
+							</tooltip-documentation>
 						</h4>
 						<egls-section-on-gene
 							v-if="$store.state.gene.data.length > 0"
-							:gene="$store.state.gene.data[0]"
-						>
+							:gene="$store.state.gene.data[0]">
 						</egls-section-on-gene>
 					</div>
 				</div>
 			</div>
-
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<div v-if="$parent.dbReference">
@@ -473,89 +403,59 @@
 								name="gene.xref.tooltip.hover"
 								:content-fill="$parent.documentationMap"
 								:isHover="true"
-								:noIcon="false"
-							></tooltip-documentation>
+								:noIcon="false">
+							</tooltip-documentation>
 						</h4>
-
 						<criterion-function-group :inclusive="true">
 							<filter-enumeration-control
 								:field="'source'"
-								:options="
-									$parent.dbReference.map(
-										(reference) => reference.source
-									)
-								"
-								:inclusive="false"
-							>
+								:options="$parent.dbReference.map((reference) => reference.source)"
+								:inclusive="false">
 								<div class="label">Sources</div>
 							</filter-enumeration-control>
 							<template slot="filtered" slot-scope="{ filter }">
 								<uniprot-references-table
 									:references="$parent.dbReference"
-									:filter="filter"
-								></uniprot-references-table>
+									:filter="filter">
+								</uniprot-references-table>
 							</template>
 						</criterion-function-group>
 					</div>
 				</div>
 			</div>
-
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<div v-if="$parent.geneNames">
 						<h4 class="card-title">External resources</h4>
-						<div
-							v-if="$parent.accession.length > 0"
-							class="gene-with-signal none"
-						>
-							<a
-								:href="
-									$parent.externalResources['uniprot'].link +
-									$parent.accession[0]
-								"
+						<div v-if="$parent.accession.length > 0" class="gene-with-signal none">
+							<a :href="$parent.externalResources['uniprot'].link +
+									$parent.accession[0]"
 								target="_blank"
-								:title="
-									$parent.externalResources['uniprot'].title
-								"
-								>UNIPROT</a
-							>
+								:title="$parent.externalResources['uniprot'].title">
+								UNIPROT
+							</a>
 						</div>
-						<div
-							v-for="gene in $parent.alternateNames"
+						<div v-for="gene in $parent.alternateNames"
 							v-if="gene.source != 'alias'"
 							class="gene-with-signal none"
-							:key="gene.name"
-						>
-							<a
-								v-if="gene.source != 'ucsc'"
-								:href="
-									$parent.externalResources[gene.source]
-										.link + gene.name
-								"
+							:key="gene.name">
+							<a v-if="gene.source != 'ucsc'"
+								:href="$parent.externalResources[gene.source].link + gene.name"
 								target="_blank"
-								:title="
-									$parent.externalResources[gene.source].title
-								"
-								>{{ gene.source.toUpperCase() }}</a
-							>
-							<a
-								v-else
-								:href="
-									$parent.externalResources[gene.source]
-										.link + $parent.symbolName
-								"
+								:title="$parent.externalResources[gene.source].title">
+								{{ gene.source.toUpperCase() }}
+							</a>
+							<a v-else 
+								:href="$parent.externalResources[gene.source].link + $parent.symbolName"
 								target="_blank"
-								:title="
-									$parent.externalResources[gene.source].title
-								"
-								>{{ gene.source.toUpperCase() }}</a
-							>
+								:title="$parent.externalResources[gene.source].title">
+								{{ gene.source.toUpperCase() }}
+							</a>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-
 		<!-- Footer-->
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
