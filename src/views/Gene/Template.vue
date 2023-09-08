@@ -196,71 +196,6 @@
 					</b-tabs>
 				</div>
 			</div>
-			<!--div class="card mdkp-card">
-				<div class="card-body">
-					<h4 style="font-weight: bold" class="card-title">
-						HuGE Score
-					</h4>
-
-					<span>
-						<documentation
-							name="gene.hugecal.subheader"
-							:content-fill="$parent.documentationMap"
-						></documentation>
-					</span>
-
-					<criterion-list-group
-						v-model="$parent.genePageSearchCriterion"
-						:header="''"
-						class="top-associations-section-phenotype-filter"
-					>
-						<filter-enumeration-control
-							:field="'phenotype'"
-							:options="$parent.phenotypeOptions"
-							:multiple="false"
-							:pillFormatter="
-								(filter) =>
-									!!$store.state.bioPortal.phenotypeMap[
-										filter.threshold
-									]
-										? $store.state.bioPortal.phenotypeMap[
-												filter.threshold
-										  ].description
-										: filter.threshold
-							"
-							:labelFormatter="
-								(phenotype) =>
-									!!$store.state.bioPortal.phenotypeMap[
-										phenotype
-									]
-										? $store.state.bioPortal.phenotypeMap[
-												phenotype
-										  ].description
-										: phenotype
-							"
-						>
-							<div class="label">Change Phenotype:</div>
-						</filter-enumeration-control>
-					</criterion-list-group>
-					<hugecal-score-section
-						v-if="
-							$store.state.varassociations.data.length > 0 &&
-							$parent.selectedPhenotypes.length > 0 &&
-							$store.state.geneName != 0 &&
-							$store.state.gene.data.length > 0
-						"
-						currentPage="gene"
-						:documentationMap="null"
-						:commonAssociations="$store.state.varassociations.data"
-						:geneData="$store.state.gene.data"
-						:genesInARegion="$store.state.genes.data"
-						:rareAssociations="$store.state.associations52k.data"
-						:selectedGene="$store.state.geneName"
-						:selectedPhenotype="$parent.selectedPhenotype"
-						:prior="$store.state.prior"
-					></hugecal-score-section>
-				</div>
-			</div>-->
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<h4>
@@ -281,92 +216,34 @@
 						></documentation>
 					</span>
 					<b-tabs>
-						<b-tab
-							title="HuGE Scores"
-							@click="$parent.renderPhewas('hugeScorePheWASPlot')"
-						>
-							<pre></pre>
+						<b-tab title="HuGE Scores" @click="$parent.renderPhewas('hugeScorePheWASPlot')">
 							<h4 class="card-title">HuGE Scores</h4>
-
 							<span>
-								<documentation
-									name="gene.hugecal.subheader"
-									:content-fill="$parent.documentationMap"
-								></documentation>
+								<documentation name="gene.hugecal.subheader"
+									:content-fill="$parent.documentationMap">
+								</documentation>
 							</span>
 							<research-phewas-plot
 								v-if="$parent.hugeScores.length > 0"
 								canvasId="hugeScorePlot"
 								:phenotypesData="$parent.hugeScores"
-								:phenotypeMap="
-									$store.state.bioPortal.phenotypeMap
-								"
-								:colors="[
-									'#007bff',
-									'#048845',
-									'#8490C8',
-									'#BF61A5',
-									'#EE3124',
-									'#FCD700',
-									'#5555FF',
-									'#7aaa1c',
-									'#9F78AC',
-									'#F88084',
-									'#F5A4C7',
-									'#CEE6C1',
-									'#cccc00',
-									'#6FC7B6',
-									'#D5A768',
-									'#d4d4d4',
-								]"
-								:plotMargin="{
-									leftMargin: 150,
-									rightMargin: 40,
-									topMargin: 20,
-									bottomMargin: 100,
-									bump: 11,
-								}"
-								:renderConfig="{
-									type: 'phewas plot',
-									'render by': 'phenotype',
-									'group by': 'group',
-									'phenotype map': 'kp phenotype map',
-									'y axis field': 'renderScore',
-									'convert y -log10': 'false',
-									'y axis label': 'Log(HuGE score)',
-									'x axis label': '',
-									'beta field': 'null',
-									'hover content': [
-										'bf_common',
-										'bf_rare',
-										'huge',
-									],
-									thresholds: [Math.log(3), Math.log(30)],
-									'label in black': 'greater than',
-									height: '500',
-								}"
+								:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+								:colors="hugeScoreColors"
+								:plotMargin="hugeScorePlotMargin"
+								:renderConfig="hugeScoreRenderConfig"
 								:pkgData="null"
 								:pkgDataSelected="null"
 								:filter="null"
 								ref="hugeScorePheWASPlot"
-								:utils="$parent.utilsBox"
-							></research-phewas-plot>
+								:utils="$parent.utilsBox">
+							</research-phewas-plot>
 							<huge-scores-table
 								v-if="$parent.hugeScores.length > 0"
 								:gene="$store.state.gene.data[0]"
 								:hugeScores="$parent.hugeScores"
-								:phenotypeMap="
-									$store.state.bioPortal.phenotypeMap
-								"
-							></huge-scores-table>
+								:phenotypeMap="$store.state.bioPortal.phenotypeMap">
+							</huge-scores-table>
 						</b-tab>
-						<!--</div>
-			</div>
-
-			<div class="card mdkp-card">
-				<div class="card-body">
-					<div v-if="$parent.dbReference">-->
-
 						<b-tab
 							title="Common variant associations"
 							@click="
@@ -517,12 +394,6 @@
 								</template>
 							</criterion-function-group>
 						</b-tab>
-						<!--</div>
-				</div>
-			</div>
-			<div class="card mdkp-card">
-				<div class="card-body">
-					<div v-if="$parent.dbReference">-->
 						<b-tab
 							title="Rare variant associations"
 							@click="
@@ -961,3 +832,46 @@
 	color: #28a745;
 }
 </style>
+<script setup>
+	const hugeScoreColors = [
+		'#007bff',
+		'#048845',
+		'#8490C8',
+		'#BF61A5',
+		'#EE3124',
+		'#FCD700',
+		'#5555FF',
+		'#7aaa1c',
+		'#9F78AC',
+		'#F88084',
+		'#F5A4C7',
+		'#CEE6C1',
+		'#cccc00',
+		'#6FC7B6',
+		'#D5A768',
+		'#d4d4d4'];
+	const hugeScorePlotMargin = {
+		leftMargin: 150,
+		rightMargin: 40,
+		topMargin: 20,
+		bottomMargin: 100,
+		bump: 11};
+	const hugeScoreRenderConfig = {
+		type: 'phewas plot',
+		'render by': 'phenotype',
+		'group by': 'group',
+		'phenotype map': 'kp phenotype map',
+		'y axis field': 'renderScore',
+		'convert y -log10': 'false',
+		'y axis label': 'Log(HuGE score)',
+		'x axis label': '',
+		'beta field': 'null',
+		'hover content': [
+			'bf_common',
+			'bf_rare',
+			'huge',
+		],
+		thresholds: [Math.log(3), Math.log(30)],
+		'label in black': 'greater than',
+		height: '500'};
+</script>
