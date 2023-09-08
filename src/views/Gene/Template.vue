@@ -335,13 +335,7 @@
 								</template>
 							</criterion-function-group>
 						</b-tab>
-						<b-tab
-							title="Rare variant associations"
-							@click="
-								$parent.renderPhewas('rareVariantPheWASPlot')
-							"
-						>
-							<pre></pre>
+						<b-tab title="Rare variant associations" @click=" $parent.renderPhewas('rareVariantPheWASPlot')">
 							<h4 class="card-title">
 								Rare variant
 								{{
@@ -349,7 +343,6 @@
 										? `gene-level associations for ${$store.state.geneName.toUpperCase()}`
 										: `transcript-level associations for ${$store.state.selectedTranscript}`
 								}}
-
 								<tooltip-documentation
 									name="gene.52k.tooltip.hover"
 									:content-fill="$parent.documentationMap"
@@ -357,105 +350,44 @@
 									:noIcon="false"
 								></tooltip-documentation>
 							</h4>
-
-							<div
-								class="filtering-ui-wrapper container-fluid"
-								v-if="
-									!$parent.noTranscriptDataPortal.includes(
-										$parent.diseaseGroup.name
-									)
-								"
-							>
+							<div class="filtering-ui-wrapper container-fluid"
+								v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup.name)">
 								<div class="row filtering-ui-content">
 									<div class="col filter-col-md">
 										<div class="label">Transcript</div>
 										<transcript-selectpicker
-											:transcripts="
-												$store.state.geneToTranscript
-													.data
-											"
-										>
+											:transcripts="$store.state.geneToTranscript.data">
 										</transcript-selectpicker>
 									</div>
 								</div>
 							</div>
 							<!-- Cheating to add search bubble here-->
-							<div
-								v-if="
-									!$parent.noTranscriptDataPortal.includes(
-										$parent.diseaseGroup
-									)
-								"
-								align="center"
-								style="text-align: -webkit-center"
-							>
-								<b-badge
-									pill
-									v-if="!!$store.state.selectedTranscript"
+							<div v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup)"
+								align="center" style="text-align: -webkit-center">
+								<b-badge pill v-if="!!$store.state.selectedTranscript"
 									class="btn search-bubble 1"
-									v-html="$store.state.selectedTranscript"
-								></b-badge>
+									v-html="$store.state.selectedTranscript">
+								</b-badge>
 							</div>
 							<research-phewas-plot
 								v-if="$parent.transcriptOr52k.length > 0"
 								canvasId="rareVariantPlot"
 								:phenotypesData="$parent.transcriptOr52k"
-								:phenotypeMap="
-									$store.state.bioPortal.phenotypeMap
-								"
-								:colors="[
-									'#007bff',
-									'#048845',
-									'#8490C8',
-									'#BF61A5',
-									'#EE3124',
-									'#FCD700',
-									'#5555FF',
-									'#7aaa1c',
-									'#9F78AC',
-									'#F88084',
-									'#F5A4C7',
-									'#CEE6C1',
-									'#cccc00',
-									'#6FC7B6',
-									'#D5A768',
-									'#d4d4d4',
-								]"
-								:plotMargin="{
-									leftMargin: 150,
-									rightMargin: 40,
-									topMargin: 20,
-									bottomMargin: 100,
-									bump: 11,
-								}"
-								:renderConfig="{
-									type: 'phewas plot',
-									'group by': 'phenotype group',
-									'render by': 'phenotype',
-									'phenotype map': 'kp phenotype map',
-									'y axis field': 'pValue',
-									'convert y -log10': 'true',
-									'y axis label': '-Log10(p-value)',
-									'x axis label': 'beta',
-									'beta field': 'beta',
-									'hover content': ['pValue', 'beta'],
-									thresholds: ['2.5e-6', '0.05'],
-									height: '500',
-								}"
+								:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+								:colors="plotColors"
+								:plotMargin="phewasPlotMargin"
+								:renderConfig="rareVariantRenderConfig"
 								:pkgData="null"
 								:pkgDataSelected="null"
 								ref="rareVariantPheWASPlot"
-								:utils="$parent.utilsBox"
-							></research-phewas-plot>
-							<unauthorized-message
-								:restricted="$store.state.restricted"
-							></unauthorized-message>
+								:utils="$parent.utilsBox">
+							</research-phewas-plot>
+							<unauthorized-message :restricted="$store.state.restricted">
+							</unauthorized-message>
 							<gene-associations-masks
 								:associations="$parent.transcriptOr52k"
-								:phenotypeMap="
-									$store.state.bioPortal.phenotypeMap
-								"
-							></gene-associations-masks>
+								:phenotypeMap="$store.state.bioPortal.phenotypeMap">
+							</gene-associations-masks>
 						</b-tab>
 					</b-tabs>
 					<!--</div>-->
@@ -791,7 +723,7 @@
 		'#6FC7B6',
 		'#D5A768',
 		'#d4d4d4'
-	];										
+	];
 	const phewasPlotMargin = {
 		leftMargin: 150,
 		rightMargin: 40,
@@ -830,6 +762,20 @@
 		'beta field': 'null',
 		'hover content': ['pValue'],
 		thresholds: ['2.5e-6'],
+		height: '500',
+	};
+	const rareVariantRenderConfig = {
+		type: 'phewas plot',
+		'group by': 'phenotype group',
+		'render by': 'phenotype',
+		'phenotype map': 'kp phenotype map',
+		'y axis field': 'pValue',
+		'convert y -log10': 'true',
+		'y axis label': '-Log10(p-value)',
+		'x axis label': 'beta',
+		'beta field': 'beta',
+		'hover content': ['pValue', 'beta'],
+		thresholds: ['2.5e-6', '0.05'],
 		height: '500',
 	};
 </script>
