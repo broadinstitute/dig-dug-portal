@@ -223,26 +223,45 @@
 									:content-fill="$parent.documentationMap">
 								</documentation>
 							</span>
-							<research-phewas-plot
-								v-if="$parent.hugeScores.length > 0"
-								canvasId="hugeScorePlot"
-								:phenotypesData="$parent.hugeScores"
-								:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-								:colors="plotColors"
-								:plotMargin="phewasPlotMargin"
-								:renderConfig="hugeScoreRenderConfig"
-								:pkgData="null"
-								:pkgDataSelected="null"
-								:filter="null"
-								ref="hugeScorePheWASPlot"
-								:utils="$parent.utilsBox">
-							</research-phewas-plot>
-							<huge-scores-table
-								v-if="$parent.hugeScores.length > 0"
-								:gene="$store.state.gene.data[0]"
-								:hugeScores="$parent.hugeScores"
-								:phenotypeMap="$store.state.bioPortal.phenotypeMap">
-							</huge-scores-table>
+							<criterion-function-group id="huge_scores">
+								<filter-enumeration-control
+									:field="'phenotype'"
+									placeholder="Select a phenotype ..."
+									:options="$parent.geneassociations.map((association) => association.phenotype)"
+									:labelFormatter="(phenotype) => !!$store.state.bioPortal.phenotypeMap[phenotype]
+												? $store.state.bioPortal.phenotypeMap[phenotype].description
+												: phenotype"
+									:multiple="true">
+									<div class="label">Phenotypes</div>
+								</filter-enumeration-control>
+								<!--HERE IS WHERE WE FILTER BY HUGESCORE-->
+								<template slot="filtered" slot-scope="{ filter }">
+									<research-phewas-plot
+										v-if="$parent.hugeScores.length > 0"
+										canvasId="hugeScorePlot"
+										:phenotypesData="$parent.hugeScores"
+										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+										:colors="plotColors"
+										:plotMargin="phewasPlotMargin"
+										:renderConfig="hugeScoreRenderConfig"
+										:pkgData="null"
+										:pkgDataSelected="null"
+										:filter="filter"
+										ref="hugeScorePheWASPlot"
+										:utils="$parent.utilsBox">
+									</research-phewas-plot>
+									<unauthorized-message :restricted="$store.state.varassociations.restricted">
+									</unauthorized-message>
+									<huge-scores-table
+										v-if="$parent.hugeScores.length > 0"
+										:gene="$store.state.gene.data[0]"
+										:hugeScores="$parent.hugeScores"
+										:phenotypeMap="$store.state.bioPortal.phenotypeMap">
+									</huge-scores-table>
+								</template>
+							</criterion-function-group>
+							
+
 						</b-tab>
 						<b-tab title="Common variant associations" @click=" $parent.renderPhewas('commonVariantPheWASPlot')">
 							<h4 class="card-title">
