@@ -24,6 +24,12 @@ a:hover {
 }
 
 /* front page */
+.front-top-banner-akp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/akp_front_bg.png),
+        linear-gradient(#75bee9, #20c4f4);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner-autoimmunekp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/autoimmunekp_front_bg.png),
         linear-gradient(#71cddd, #009bc8);
@@ -202,6 +208,10 @@ a:hover {
     float: left;
 }
 
+.front-logo-tagline-akp {
+    transform: translate(0%, 25%);
+}
+
 .front-logo-tagline-autoimmunekp {
     transform: translate(0%, 25%);
 }
@@ -321,6 +331,10 @@ a:hover {
     width: 500px;
 }
 
+.akp-logo {
+    height: 50px;
+}
+
 .autoimmunekp-logo {
     height: 50px;
 }
@@ -392,6 +406,12 @@ a:hover {
 
 .mdkp-footer .registered-mark {
     display: contents;
+}
+
+.akp-header,
+.akp-footer {
+    background-color: #75bee9;
+    height: 50px;
 }
 
 .autoimmunekp-header,
@@ -583,6 +603,7 @@ a:hover {
     font-weight: 300;
 }
 
+.akp-footer,
 .autoimmunekp-footer,
 .ocularkp-footer,
 .reproductivekp-footer,
@@ -607,6 +628,7 @@ a:hover {
     font-size: 14px;
 }
 
+.akp-body,
 .autoimmunekp-body,
 .ocularkp-body,
 .reproductivekp-body,
@@ -630,6 +652,7 @@ a:hover {
     padding-bottom: 10px;
 }
 
+.akp-card,
 .autoimmunekp-card,
 .ocularkp-card,
 .reproductivekp-card,
