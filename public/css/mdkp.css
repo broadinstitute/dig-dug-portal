@@ -24,9 +24,15 @@ a:hover {
 }
 
 /* front page */
-.front-top-banner-akp {
-    background-image: url(//kp4cd.org/sites/default/files/vueportal/akp_front_bg.png),
+.front-top-banner-agingkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/agingkp_front_bg.png),
         linear-gradient(#75bee9, #20c4f4);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-kidneykp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/kidneykp_front_bg.png),
+        linear-gradient(#96cbca, #619faf);
     background-position: 120% 100px, top left;
 }
 
@@ -208,7 +214,11 @@ a:hover {
     float: left;
 }
 
-.front-logo-tagline-akp {
+.front-logo-tagline-agingkp {
+    transform: translate(0%, 25%);
+}
+
+.front-logo-tagline-kidneykp {
     transform: translate(0%, 25%);
 }
 
@@ -331,7 +341,11 @@ a:hover {
     width: 500px;
 }
 
-.akp-logo {
+.agingkp-logo {
+    height: 50px;
+}
+
+.kidneykp-logo {
     height: 50px;
 }
 
@@ -408,9 +422,15 @@ a:hover {
     display: contents;
 }
 
-.akp-header,
-.akp-footer {
+.agingkp-header,
+.agingkp-footer {
     background-color: #75bee9;
+    height: 50px;
+}
+
+.kidneykp-header,
+.kidneykp-footer {
+    background-color: #96cbca;
     height: 50px;
 }
 
@@ -603,7 +623,8 @@ a:hover {
     font-weight: 300;
 }
 
-.akp-footer,
+.agingkp-footer,
+.kidneykp-footer,
 .autoimmunekp-footer,
 .ocularkp-footer,
 .reproductivekp-footer,
@@ -628,7 +649,8 @@ a:hover {
     font-size: 14px;
 }
 
-.akp-body,
+.agingkp-body,
+.kidneykp-body,
 .autoimmunekp-body,
 .ocularkp-body,
 .reproductivekp-body,
@@ -652,7 +674,8 @@ a:hover {
     padding-bottom: 10px;
 }
 
-.akp-card,
+.agingkp-card,
+.kidneykp-card,
 .autoimmunekp-card,
 .ocularkp-card,
 .reproductivekp-card,
