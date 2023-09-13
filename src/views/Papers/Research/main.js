@@ -228,22 +228,26 @@ new Vue({
                 let parameters = this.sectionConfigs['search parameters'];
                 let newParameters = [];
 
-                parameters.map(p => {
-                    if (p.values == 'kp phenotypes') {
-                        let values = [];
+                if (!!parameters) {
+                    parameters.map(p => {
+                        if (p.values == 'kp phenotypes') {
+                            let values = [];
 
 
-                        this.phenotypesInSession.map(pis => {
-                            let tempObj = { "label": pis.description, "value": pis.name };
-                            values.push(tempObj);
-                        })
-                        p.values = values;
+                            this.phenotypesInSession.map(pis => {
+                                let tempObj = { "label": pis.description, "value": pis.name };
+                                values.push(tempObj);
+                            })
+                            p.values = values;
 
-                        newParameters.push(p);
-                    } else {
-                        newParameters.push(p);
-                    }
-                })
+                            newParameters.push(p);
+                        } else {
+                            newParameters.push(p);
+                        }
+                    })
+                } else {
+                    newParameters = null;
+                }
 
                 return newParameters;
             } else {

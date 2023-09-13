@@ -10,6 +10,7 @@
 			:plotData="plotData"
 			:renderConfig="plotConfig"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-m-plot>
 		<!--'mbm_plot-->
 		<research-m-bitmap-plot
@@ -33,7 +34,6 @@
 			:pkgDataSelected="null"
 			:canvasId="sectionId"
 			:utils="utils"
-			:sectionId="sectionId"
 		></research-phewas-plot>
 		<!-- Heatmap -->
 		<research-heatmap
