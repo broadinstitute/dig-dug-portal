@@ -485,7 +485,7 @@
 								:pkgData="null"
 								:pkgDataSelected="null"
 								:utils="$parent.utilsBox"
-								sectionId=""
+								canvasId=""
 							></research-phewas-plot>
 							<!--v-if="
 									$parent.plotType == 'custom_pkg' &&
