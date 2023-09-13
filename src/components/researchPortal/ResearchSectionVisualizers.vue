@@ -5,13 +5,13 @@
 			v-html="plotLegend"
 		></div>
 		<!--m_plot-->
-		<research-m-plot
+		<!--<research-m-plot
 			v-if="plotConfig != null && plotConfig['type'] == 'manhattan plot'"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
 			:utils="utils"
 			:sectionId="sectionId"
-		></research-m-plot>
+		></research-m-plot>-->
 		<!--'mbm_plot-->
 		<research-m-bitmap-plot
 			v-if="plotConfig != null && plotConfig['type'] == 'manhattan bitmap plot'"
@@ -51,6 +51,16 @@
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-volcano-plot>
+
+		<research-m-qq-plot
+			v-if="
+				plotConfig != null && plotConfig['type'] == 'manhattan qq plot'
+			"
+			:plotData="plotData"
+			:renderConfig="plotConfig"
+			:utils="utils"
+			:sectionId="sectionId"
+		></research-m-qq-plot>
 		<!-- region_plot -->
 		<research-region-plot
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot'"
@@ -112,7 +122,7 @@ export default Vue.component("research-section-visualizers", {
 		ResearchMPlot,
 		ResearchVolcanoPlot,
 		ResearchHeatmap,
-		ResearchPheWAS,
+		ResearchPheWAS
     },
 	data() {
 		return {
