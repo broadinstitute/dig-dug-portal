@@ -5,12 +5,13 @@
 			v-html="plotLegend"
 		></div>
 		<!--m_plot-->
-		<research-m-plot
+		<!--<research-m-plot
 			v-if="plotConfig != null && plotConfig['type'] == 'manhattan plot'"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
 			:utils="utils"
-		></research-m-plot>
+			:sectionId="sectionId"
+		></research-m-plot>-->
 		<!--'mbm_plot-->
 		<research-m-bitmap-plot
 			v-if="plotConfig != null && plotConfig['type'] == 'manhattan bitmap plot'"
@@ -19,6 +20,7 @@
 			:dataComparisonConfig="null"
 			:compareGroupColors="null"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-m-bitmap-plot>
 		<!-- PheWAS plot-->
 		<research-phewas-plot
@@ -39,6 +41,7 @@
 			:heatmapData="plotData"
 			:renderConfig="plotConfig"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-heatmap>
 		<!-- volcano_plot -->
 		<research-volcano-plot
@@ -46,7 +49,18 @@
 			:plotData="plotData"
 			:renderConfig="plotConfig"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-volcano-plot>
+
+		<research-m-qq-plot
+			v-if="
+				plotConfig != null && plotConfig['type'] == 'manhattan qq plot'
+			"
+			:plotData="plotData"
+			:renderConfig="plotConfig"
+			:utils="utils"
+			:sectionId="sectionId"
+		></research-m-qq-plot>
 		<!-- region_plot -->
 		<research-region-plot
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot'"
@@ -62,6 +76,7 @@
 			:pkgData="null"
 			:pkgDataSelected="null"
 			:isSectionPage="true"
+			:sectionId="sectionId"
 			:utils="utils"
 		></research-region-plot>
 		<!-- genes track -->
@@ -75,6 +90,7 @@
 			:regionZoom="0"
 			:regionViewArea="null"
 			:utils="utils"
+			:sectionId="sectionId"
 		></research-genes-track>
 	</div>
 </template>
@@ -106,7 +122,7 @@ export default Vue.component("research-section-visualizers", {
 		ResearchMPlot,
 		ResearchVolcanoPlot,
 		ResearchHeatmap,
-		ResearchPheWAS,
+		ResearchPheWAS
     },
 	data() {
 		return {

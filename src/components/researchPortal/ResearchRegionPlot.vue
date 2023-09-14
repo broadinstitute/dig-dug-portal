@@ -178,21 +178,21 @@
 			</div>
 
 			<div class="col-md-9 asso-plots-wrapper">
-				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_')">
+				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId">
 					<h6
 						v-if="item != 'default'"
 						v-html="item"
 						:class="'text color-' + itemIndex"
 					></h6>
 					<canvas
-						:id="'asso_plot_' + item.replaceAll(' ', '_')"
+						:id="'asso_plot_' + item.replaceAll(' ', '_')+sectionId"
 						class="asso-plot"
 						width=""
 						height=""
 						@resize="onResize"
 						@click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
-						@mouseout="onMouseOut('assoInfoBox' + item)"
+						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"
 					></canvas>
 					<!--<span
 						v-if="sharedPlotXpos != null"
@@ -203,13 +203,13 @@
 						"
 					></span>-->
 					<div
-						:id="'assoInfoBox' + item.replaceAll(' ', '_')"
+						:id="'assoInfoBox' + item.replaceAll(' ', '_') + sectionId"
 						class="asso-info-box hidden"
 					></div>
 				</div>
 			</div>
 			<div
-				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_')"
+				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_') + sectionId"
 				class="col-md-3 ld-plots-wrapper reference-area"
 			>
 				<h6
@@ -221,18 +221,18 @@
 					:class="'text color-' + itemIndex"
 				></h6>
 				<canvas
-					:id="'ld_plot_' + item.replaceAll(' ', '_')"
+					:id="'ld_plot_' + item.replaceAll(' ', '_') + sectionId"
 					class="ld-plot"
 					width=""
 					height=""
 					@resize="onResize"
 					@click="checkPosition($event, item, 'LD', 'click')"
 					@mousemove="checkPosition($event, item, 'LD', 'move')"
-					@mouseout="onMouseOut('ldInfoBox' + item)"
+					@mouseout="onMouseOut('ldInfoBox' + item + sectionId)"
 				></canvas>
 
 				<div
-					:id="'ldInfoBox' + item.replaceAll(' ', '_')"
+					:id="'ldInfoBox' + item.replaceAll(' ', '_') + sectionId"
 					class="ld-info-box hidden"
 				></div>
 			</div>
@@ -260,6 +260,7 @@ export default Vue.component("research-region-plot", {
 		"pkgData",
 		"pkgDataSelected",
 		"isSectionPage",
+		"sectionId",
 		"utils"
 	],
 	data() {
@@ -757,13 +758,13 @@ export default Vue.component("research-region-plot", {
 
 			let infoBoxId =
 				TYPE == "asso"
-					? "#assoInfoBox" + GROUP.replaceAll(" ", "_")
-					: "#ldInfoBox" + GROUP.replaceAll(" ", "_");
+					? "#assoInfoBox" + GROUP.replaceAll(" ", "_")+this.sectionId
+					: "#ldInfoBox" + GROUP.replaceAll(" ", "_") + this.sectionId;
 
 			let canvasId =
 				TYPE == "asso"
-					? "#asso_plot_" + GROUP.replaceAll(" ", "_")
-					: "#ld_plot_" + GROUP.replaceAll(" ", "_");
+					? "#asso_plot_" + GROUP.replaceAll(" ", "_") + this.sectionId
+					: "#ld_plot_" + GROUP.replaceAll(" ", "_") + this.sectionId;
 
 			let wrapper = document.querySelector(infoBoxId);
 			let canvas = document.querySelector(canvasId);
@@ -976,7 +977,7 @@ export default Vue.component("research-region-plot", {
 				let c, ctx;
 
 				c = document.getElementById(
-					"asso_plot_" + p.replaceAll(" ", "_")
+					"asso_plot_" + p.replaceAll(" ", "_") + this.sectionId
 				);
 				c.setAttribute("width", assoCanvasWidth);
 				c.setAttribute("height", canvasHeight);
@@ -1028,7 +1029,7 @@ export default Vue.component("research-region-plot", {
 
 				// second LD plot
 				c = document.getElementById(
-					"ld_plot_" + p.replaceAll(" ", "_")
+					"ld_plot_" + p.replaceAll(" ", "_") + this.sectionId
 				);
 				c.setAttribute("width", ldCanvasWidth);
 				c.setAttribute("height", canvasHeight);

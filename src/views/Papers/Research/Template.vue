@@ -352,6 +352,7 @@
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-m-plot>
 							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-bitmap-plot
@@ -367,6 +368,7 @@
 								"
 								:compareGroupColors="$parent.colors.moderate"
 								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-m-bitmap-plot>
 							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-qq-plot
@@ -382,6 +384,7 @@
 								"
 								:compareGroupColors="$parent.colors.moderate"
 								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-m-qq-plot>
 							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
@@ -405,6 +408,7 @@
 								:pkgData="$store.state.pkgData"
 								:pkgDataSelected="$store.state.pkgDataSelected"
 								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-region-plot>
 							<!--v-if="$parent.plotType == 'score_plot'"-->
 							<research-score-plot
@@ -422,6 +426,7 @@
 									$store.state.searchParameters
 								"
 								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-score-plot>
 
 							<research-genes-track
@@ -440,6 +445,7 @@
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
 								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-genes-track>
 							<!--v-if="$parent.plotType == 'volcano_plot'"-->
 							<research-volcano-plot
@@ -450,6 +456,7 @@
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-volcano-plot>
 							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-heatmap
@@ -460,6 +467,7 @@
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
 								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-heatmap>
 							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-phewas-plot
@@ -477,6 +485,7 @@
 								:pkgData="null"
 								:pkgDataSelected="null"
 								:utils="$parent.utilsBox"
+								canvasId=""
 							></research-phewas-plot>
 							<!--v-if="
 									$parent.plotType == 'custom_pkg' &&
@@ -499,6 +508,7 @@
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
 								:utils="$parent.utilsBox"
+								
 							></kp-gem-pkg>
 						</div>
 						<div
