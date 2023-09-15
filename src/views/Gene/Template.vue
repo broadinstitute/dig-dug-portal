@@ -194,9 +194,9 @@
 										canvasId="hugeScorePlot"
 										:phenotypesData="$parent.hugeScores"
 										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-										:colors="plotColors"
-										:plotMargin="phewasPlotMargin"
-										:renderConfig="hugeScoreRenderConfig"
+										:colors="$parent.plotColors"
+										:plotMargin="$parent.phewasPlotMargin"
+										:renderConfig="$parent.hugeScoreRenderConfig"
 										:pkgData="null"
 										:pkgDataSelected="null"
 										:filter="filter"
@@ -260,9 +260,9 @@
 										canvas-id="commonVariantPlot"
 										:phenotypes-data="$parent.filteredAssociations"
 										:phenotype-map="$store.state.bioPortal.phenotypeMap"
-										:colors="plotColors"
-										:plotMargin="phewasPlotMargin"
-										:renderConfig="commonVariantRenderConfig"
+										:colors="$parent.plotColors"
+										:plotMargin="$parent.phewasPlotMargin"
+										:renderConfig="$parent.commonVariantRenderConfig"
 										:pkgData="null"
 										:pkgDataSelected="null"
 										:filter="filter"
@@ -330,9 +330,9 @@
 										canvasId="rareVariantPlot"
 										:phenotypesData="$parent.transcriptOr52k"
 										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-										:colors="plotColors"
-										:plotMargin="phewasPlotMargin"
-										:renderConfig="rareVariantRenderConfig"
+										:colors="$parent.plotColors"
+										:plotMargin="$parent.phewasPlotMargin"
+										:renderConfig="$parent.rareVariantRenderConfig"
 										:pkgData="null"
 										:pkgDataSelected="null"
 										ref="rareVariantPheWASPlot"
@@ -623,77 +623,3 @@
 	color: #28a745;
 }
 </style>
-<script setup>
-	const plotColors = [
-		'#007bff',
-		'#048845',
-		'#8490C8',
-		'#BF61A5',
-		'#EE3124',
-		'#FCD700',
-		'#5555FF',
-		'#7aaa1c',
-		'#9F78AC',
-		'#F88084',
-		'#F5A4C7',
-		'#CEE6C1',
-		'#cccc00',
-		'#6FC7B6',
-		'#D5A768',
-		'#d4d4d4'
-	];
-	const phewasPlotMargin = {
-		leftMargin: 150,
-		rightMargin: 40,
-		topMargin: 20,
-		bottomMargin: 100,
-		bump: 11
-	};
-	const hugeScoreRenderConfig = {
-		type: 'phewas plot',
-		'render by': 'phenotype',
-		'group by': 'group',
-		'phenotype map': 'kp phenotype map',
-		'y axis field': 'renderScore',
-		'convert y -log10': 'false',
-		'y axis label': 'Log(HuGE score)',
-		'x axis label': '',
-		'beta field': 'null',
-		'hover content': [
-			'bf_common',
-			'bf_rare',
-			'huge',
-		],
-		thresholds: [Math.log(3), Math.log(30)],
-		'label in black': 'greater than',
-		height: '500'
-	};
-	const commonVariantRenderConfig = {
-		type: 'phewas plot',
-		'render by': 'phenotype',
-		'group by': 'phenotype group',
-		'phenotype map': 'kp phenotype map',
-		'y axis field': 'pValue',
-		'convert y -log10': 'true',
-		'y axis label': '-Log10(p-value)',
-		'x axis label': 'beta',
-		'beta field': 'null',
-		'hover content': ['pValue'],
-		thresholds: ['2.5e-6'],
-		height: '500',
-	};
-	const rareVariantRenderConfig = {
-		type: 'phewas plot',
-		'group by': 'phenotype group',
-		'render by': 'phenotype',
-		'phenotype map': 'kp phenotype map',
-		'y axis field': 'pValue',
-		'convert y -log10': 'true',
-		'y axis label': '-Log10(p-value)',
-		'x axis label': 'beta',
-		'beta field': 'beta',
-		'hover content': ['pValue', 'beta'],
-		thresholds: ['2.5e-6', '0.05'],
-		height: '500',
-	};
-</script>
