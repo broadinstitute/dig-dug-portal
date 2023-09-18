@@ -1,17 +1,14 @@
 <template>
     <b-row no-gutters>
         <b-card-body :title="title">
-            <!-- <label for="search">Search</label>
-                <input id="search" v-model="filterString"/> -->
-
-            <criterion-list-group>
-                <div style="margin-top: 5px; margin-bottom: 5px">
-                    <div class="label">Search</div>
-                    <input
-                        v-model="filterString"
-                        class="filter-col-lg"
-                        style="display: inline; height: 30px"
-                    />
+            <criterion-list-group class="eglt-table-wrapper">
+                <div class="filtering-ui-wrapper container-fluid">
+                    <div class="row filtering-ui-content">
+                        <div class="col filter-col-md">
+                            <div class="label">Search</div>
+                            <input class="col filter-col-md form-control" v-model="filterString"/>
+                        </div>
+                    </div>
                 </div>
             </criterion-list-group>
             <div class="text-right mt-2 mb-2">
