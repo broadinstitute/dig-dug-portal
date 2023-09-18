@@ -1,20 +1,20 @@
 <template>
 	<div class="row">
-		<div class="m-plot-content col-md-6" id="mPlotWrapper">
-			<div id="m_clicked_dot_value" class="m-clicked-dot-value hidden">
-				<div id="m_clicked_dot_value_content"></div>
+		<div class="m-plot-content col-md-6" :id="'mPlotWrapper'+ sectionId">
+			<div :id="'m_clicked_dot_value' + sectionId" class="m-clicked-dot-value hidden">
+				<div :id="'m_clicked_dot_value_content' + sectionId"></div>
 			</div>
 			<div
-				id="m_dot_value_full_list"
+				:id="'m_dot_value_full_list' + sectionId"
 				class="m-dot-value-full-list hidden"
 			>
 				<div
 					class="m-clicked-dot-value-close"
-					@click="hidePanel('m_dot_value_full_list')"
+					@click="hidePanel('m_dot_value_full_list'+ sectionId)"
 				>
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
-				<div id="m_dot_value_full_list_content"></div>
+				<div :id="'m_dot_value_full_list_content' + sectionId"></div>
 			</div>
 			<div
 				v-if="!!renderConfig.legend"
@@ -26,7 +26,7 @@
 
 				<canvas
 					v-if="!!renderConfig"
-					:id="'mPlot' + item"
+					:id="'mPlot' + sectionId + item"
 					@mouseleave="hidePanel"
 					@mousemove="checkPosition($event, item, 'm')"
 					@resize="onResize"
@@ -42,21 +42,21 @@
 				v-html="renderConfig.label"
 			></div>
 		</div>
-		<div class="qq-plot-content col-md-6" id="qqPlotWrapper">
-			<div id="qq_clicked_dot_value" class="qq-clicked-dot-value hidden">
-				<div id="qq_clicked_dot_value_content"></div>
+		<div class="qq-plot-content col-md-6" :id="'qqPlotWrapper' + sectionId">
+			<div :id="'qq_clicked_dot_value' + sectionId" class="qq-clicked-dot-value hidden">
+				<div :id="'qq_clicked_dot_value_content' + sectionId"></div>
 			</div>
 			<div
-				id="qq_dot_value_full_list"
+				:id="'qq_dot_value_full_list' + sectionId"
 				class="qq-dot-value-full-list hidden"
 			>
 				<div
 					class="qq-clicked-dot-value-close"
-					@click="hidePanel('qq_dot_value_full_list')"
+					@click="hidePanel('qq_dot_value_full_list' + sectionId)"
 				>
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
-				<div id="qq_dot_value_full_list_content"></div>
+				<div :id="'qq_dot_value_full_list_content' + sectionId"></div>
 			</div>
 			<div
 				v-if="!!renderConfig.legend"
@@ -68,7 +68,7 @@
 
 				<canvas
 					v-if="!!renderConfig"
-					:id="'qqPlot' + item"
+					:id="'qqPlot' + sectionId + item"
 					@mouseleave="hidePanel"
 					@mousemove="checkPosition($event, item, 'qq')"
 					@resize="onResize"
@@ -103,7 +103,8 @@ export default Vue.component("research-m-qq-plot", {
 		"renderConfig",
 		"dataComparisonConfig",
 		"compareGroupColors",
-		"utils"
+		"utils",
+		"sectionId"
 	],
 	data() {
 		return {
@@ -329,9 +330,9 @@ export default Vue.component("research-m-qq-plot", {
 		},
 		getFullList(event, ID, PLOT) {
 			let wrapper = document.getElementById(
-				PLOT + "_dot_value_full_list"
+				PLOT + "_dot_value_full_list" + this.sectionId
 			);
-			let canvas = document.getElementById(PLOT + "Plot" + ID);
+			let canvas = document.getElementById(PLOT + "Plot" + this.sectionId + ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
 			var rect = e.target.getBoundingClientRect();
@@ -374,27 +375,27 @@ export default Vue.component("research-m-qq-plot", {
 				}
 			}
 			let contentWrapper = document.getElementById(
-				PLOT + "_dot_value_full_list_content"
+				PLOT + "_dot_value_full_list_content" + this.sectionId
 			);
 
 			if (clickedDotValue != "") {
 				contentWrapper.innerHTML = clickedDotValue;
 				document
-					.getElementById(PLOT + "Plot" + ID)
+					.getElementById(PLOT + "Plot" + this.sectionId + ID)
 					.classList.add("hover");
 				document
-					.getElementById(PLOT + "_clicked_dot_value")
+					.getElementById(PLOT + "_clicked_dot_value" + this.sectionId)
 					.classList.add("hidden");
 			} else {
 				wrapper.classList.add("hidden");
 				document
-					.getElementById(PLOT + "Plot" + ID)
+					.getElementById(PLOT + "Plot" + this.sectionId + ID)
 					.classList.remove("hover");
 			}
 		},
 		checkPosition(event, ID, PLOT) {
-			let wrapper = document.getElementById(PLOT + "_clicked_dot_value");
-			let canvas = document.getElementById(PLOT + "Plot" + ID);
+			let wrapper = document.getElementById(PLOT + "_clicked_dot_value" + this.sectionId);
+			let canvas = document.getElementById(PLOT + "Plot" + this.sectionId + ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
 			var rect = e.target.getBoundingClientRect();
@@ -451,19 +452,19 @@ export default Vue.component("research-m-qq-plot", {
 			}
 
 			let contentWrapper = document.getElementById(
-				PLOT + "_clicked_dot_value_content"
+				PLOT + "_clicked_dot_value_content" + this.sectionId
 			);
 
 			if (clickedDotValue != "") {
 				contentWrapper.innerHTML = clickedDotValue;
 
 				document
-					.getElementById(PLOT + "Plot" + ID)
+					.getElementById(PLOT + "Plot" + this.sectionId + ID)
 					.classList.add("hover");
 			} else {
 				wrapper.classList.add("hidden");
 				document
-					.getElementById(PLOT + "Plot" + ID)
+					.getElementById(PLOT + "Plot" + this.sectionId + ID)
 					.classList.remove("hover");
 			}
 		},
@@ -474,12 +475,12 @@ export default Vue.component("research-m-qq-plot", {
 		renderQQPlot(DATA) {
 			this.qqDotPosData = {};
 
-			let wrapper = document.getElementById("qq_clicked_dot_value");
+			let wrapper = document.getElementById("qq_clicked_dot_value" + this.sectionId);
 			wrapper.classList.add("hidden");
 
 			//mPlotWrapper
 
-			let canvasWrapper = document.getElementById("qqPlotWrapper");
+			let canvasWrapper = document.getElementById("qqPlotWrapper" + this.sectionId);
 
 			let canvasRenderWidth = !!this.renderConfig.width
 				? this.renderConfig.width * 2 +
@@ -507,7 +508,8 @@ export default Vue.component("research-m-qq-plot", {
 			for (const [dKey, dValue] of Object.entries(DATA)) {
 				//console.log("renderData", dKey, dValue);
 
-				let c = document.getElementById("qqPlot" + dKey);
+				let c = document.getElementById("qqPlot" + this.sectionId + dKey);
+
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
 					c.setAttribute("height", canvasRenderHeight);
@@ -741,12 +743,12 @@ export default Vue.component("research-m-qq-plot", {
 		renderMPlot(DATA) {
 			this.mDotPosData = {};
 
-			let wrapper = document.getElementById("m_clicked_dot_value");
+			let wrapper = document.getElementById("m_clicked_dot_value" + this.sectionId);
 			wrapper.classList.add("hidden");
 
 			//mPlotWrapper
 
-			let canvasWrapper = document.getElementById("mPlotWrapper");
+			let canvasWrapper = document.getElementById("mPlotWrapper" + this.sectionId);
 
 			let canvasRenderWidth = !!this.renderConfig.width
 				? this.renderConfig.width * 2 +
@@ -773,7 +775,7 @@ export default Vue.component("research-m-qq-plot", {
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
 				//console.log("renderData", dKey, dValue);
-				let c = document.getElementById("mPlot" + dKey);
+				let c = document.getElementById("mPlot" + this.sectionId + dKey);
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
 					c.setAttribute("height", canvasRenderHeight);
@@ -1041,7 +1043,7 @@ $(function () {});
 
 <style>
 #manhattanPlot.hover,
-#qqPlot.hover {
+#qqPlot.hover,.manhattan-plot:hover, .qq-plot:hover {
 	cursor: pointer;
 }
 .gene-on-clicked-dot-mplot,
@@ -1051,7 +1053,9 @@ $(function () {});
 }
 
 #m_clicked_dot_value,
-#qq_clicked_dot_value {
+#qq_clicked_dot_value,
+.m-clicked-dot-value,
+.qq-clicked-dot-value {
 	padding: 8px 20px 8px 10px !important;
 	position: absolute;
 	background-color: #fff;
@@ -1095,7 +1099,9 @@ $(function () {});
 }
 
 #m_dot_value_full_list_content,
-#qq_dot_value_full_list_content {
+#qq_dot_value_full_list_content,
+.m-dot-value-full-list-content,
+.qq-dot-value-full-list-content {
 	width: 100%;
 	height: 100%;
 	overflow-x: hidden;

@@ -1,16 +1,16 @@
 <template>
 	<div class="mbm-plot-content">
-		<div id="clicked_dot_value" class="clicked-dot-value hidden">
-			<div id="clicked_dot_value_content"></div>
+		<div :id="'clicked_dot_value_' + sectionId" class="clicked-dot-value hidden">
+			<div :id="'clicked_dot_value_content_' + sectionId" class="clicked-dot-value-content"></div>
 		</div>
-		<div id="dot_value_full_list" class="dot-value-full-list hidden">
+		<div :id="'dot_value_full_list_'+ sectionId " class="dot-value-full-list hidden">
 			<div
 				class="clicked-dot-value-close"
-				@click="hidePanel('dot_value_full_list')"
+				@click="hidePanel('dot_value_full_list_' + sectionId)"
 			>
 				<b-icon icon="x-circle-fill"></b-icon>
 			</div>
-			<div id="dot_value_full_list_content"></div>
+			<div :id="'dot_value_full_list_content_'+ sectionId" class="dot-value-full-list-content"></div>
 		</div>
 		<div
 			v-if="!!renderConfig.legend"
@@ -22,7 +22,8 @@
 
 			<canvas
 				v-if="!!renderConfig"
-				:id="'manhattanPlot' + item"
+				:id="'manhattanPlot_'+ sectionId + item"
+				class="manhattan-plot"
 				@mouseleave="hidePanel"
 				@mousemove="checkPosition($event, item)"
 				@resize="onResize"
@@ -55,7 +56,8 @@ export default Vue.component("research-m-bitmap-plot", {
 		"renderConfig",
 		"dataComparisonConfig",
 		"compareGroupColors",
-		"utils"
+		"utils",
+		"sectionId"
 	],
 	data() {
 		return {
@@ -272,15 +274,12 @@ export default Vue.component("research-m-bitmap-plot", {
 			this.renderPlot(this.renderData);
 		},
 		getFullList(event, ID) {
-			let wrapper = document.getElementById("dot_value_full_list");
-			let canvas = document.getElementById("manhattanPlot" + ID);
+			let wrapper = document.getElementById("dot_value_full_list_" + this.sectionId);
 			wrapper.classList.remove("hidden");
 			let e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
-			/*wrapper.style.top = y + canvas.offsetTop + "px";
-            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";*/
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let y = Math.floor(e.clientY - rect.top);
 
 			let clickedDotValue = "";
 
@@ -312,32 +311,33 @@ export default Vue.component("research-m-bitmap-plot", {
 				}
 			}
 			let contentWrapper = document.getElementById(
-				"dot_value_full_list_content"
+				"dot_value_full_list_content_" + this.sectionId
 			);
 
 			if (clickedDotValue != "") {
 				contentWrapper.innerHTML = clickedDotValue;
 				document
-					.getElementById("manhattanPlot" + ID)
+					.getElementById("manhattanPlot_" + this.sectionId + ID)
 					.classList.add("hover");
 				document
-					.getElementById("clicked_dot_value")
+					.getElementById("clicked_dot_value_" + this.sectionId)
 					.classList.add("hidden");
 			} else {
 				wrapper.classList.add("hidden");
 				document
-					.getElementById("manhattanPlot" + ID)
+					.getElementById("manhattanPlot_" + this.sectionId + ID)
 					.classList.remove("hover");
 			}
 		},
 		checkPosition(event, ID) {
-			let wrapper = document.getElementById("clicked_dot_value");
-			let canvas = document.getElementById("manhattanPlot" + ID);
+
+			let wrapper = document.getElementById("clicked_dot_value_" + this.sectionId);
+			let canvas = document.getElementById("manhattanPlot_" + this.sectionId + ID);
 			wrapper.classList.remove("hidden");
 			let e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let y = Math.floor(e.clientY - rect.top);
 			wrapper.style.top = y + canvas.offsetTop + "px";
 			wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
 
@@ -386,26 +386,26 @@ export default Vue.component("research-m-bitmap-plot", {
 			}
 
 			let contentWrapper = document.getElementById(
-				"clicked_dot_value_content"
+				"clicked_dot_value_content_" + this.sectionId
 			);
 
 			if (clickedDotValue != "") {
 				contentWrapper.innerHTML = clickedDotValue;
 
 				document
-					.getElementById("manhattanPlot" + ID)
+					.getElementById("manhattanPlot_" + this.sectionId + ID)
 					.classList.add("hover");
 			} else {
 				wrapper.classList.add("hidden");
 				document
-					.getElementById("manhattanPlot" + ID)
+					.getElementById("manhattanPlot_" + this.sectionId + ID)
 					.classList.remove("hover");
 			}
 		},
 		renderPlot(DATA) {
 			this.dotPosData = {};
 
-			let wrapper = document.getElementById("clicked_dot_value");
+			let wrapper = document.getElementById("clicked_dot_value_" + this.sectionId);
 			wrapper.classList.add("hidden");
 
 			let canvasRenderWidth = !!this.renderConfig.width
@@ -432,7 +432,7 @@ export default Vue.component("research-m-bitmap-plot", {
 				(this.topMargin + yBump + this.bottomMargin);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
-				let c = document.getElementById("manhattanPlot" + dKey);
+				let c = document.getElementById("manhattanPlot_" + this.sectionId + dKey);
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
 					c.setAttribute("height", canvasRenderHeight);
@@ -668,7 +668,7 @@ $(function () {});
 </script>
 
 <style>
-#manhattanPlot.hover {
+.manhattan-plot.hover {
 	cursor: pointer;
 }
 .gene-on-clicked-dot-mplot,
@@ -676,7 +676,16 @@ $(function () {});
 	display: block !important;
 }
 
-#clicked_dot_value {
+.clicked-dot-value {
+	position: absolute;
+    background-color: #fff;
+    border: solid 1px #aaa;
+    box-shadow: 0 0 5px #00000075;
+    font-size: 12px;
+    max-width: 300px;
+    border-radius: 5px;
+    z-index: 10;
+    width: auto;
 	padding: 8px 20px 8px 10px !important;
 }
 
@@ -705,7 +714,7 @@ $(function () {});
 	z-index: 100;
 }
 
-#dot_value_full_list_content {
+.dot-value-full-list-content {
 	width: 100%;
 	height: 100%;
 	overflow-x: hidden;

@@ -1,26 +1,21 @@
 
 <template>
 	<div class="heatmap-wrapper">
-		<div id="clicked_cell_value" class="clicked-cell-value hidden">
-			<div id="clicked_cell_value_content"></div>
+		<div :id="'clicked_cell_value'+sectionId" class="clicked-cell-value hidden">
+			<div :id="'clicked_cell_value_content' + sectionId"></div>
 		</div>
-		<div class="heatmap-content" id="heatmapContent">
-			<!--<div
-                v-if="!!renderConfig.legend"
-                class="heatmap-legend"
-                v-html="renderConfig.legend"
-            ></div>-->
-			<div class="heatmap-scale-legend" id="heatmap_scale_legend"></div>
-			<div class="heatmap-canvas-wrapper" id="heatmapPlotWrapper">
+		<div class="heatmap-content" :id="'heatmapContent' + sectionId">
+			<div class="heatmap-scale-legend" :id="'heatmap_scale_legend' + sectionId"></div>
+			<div class="heatmap-canvas-wrapper" :id="'heatmapPlotWrapper' + sectionId">
 				<div
 					class="heatmap-columns-wrapper"
-					id="heatmapColumnsWrapper"
+					:id="'heatmapColumnsWrapper' + sectionId"
 				></div>
-				<div class="heatmap-rows-wrapper" id="heatmapRowsWrapper"></div>
-				<div class="heatmap-canvas-wrapper" id="heatmapCanvasWrapper">
+				<div class="heatmap-rows-wrapper" :id="'heatmapRowsWrapper' + sectionId"></div>
+				<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
 						v-if="!!renderConfig"
-						id="heatmap"
+						:id="'heatmap'+ sectionId"
 						@mouseleave="hidePanel"
 						@mousemove="checkPosition"
 						width=""
@@ -48,7 +43,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-heatmap", {
-	props: ["heatmapData", "renderConfig","utils"],
+	props: ["heatmapData", "renderConfig","utils","sectionId"],
 	data() {
 		return {
 			squareData: {},
@@ -120,12 +115,12 @@ export default Vue.component("research-heatmap", {
 	methods: {
 		//...uiUtils,
 		hidePanel() {
-			this.utils.uiUtils.hideElement("clicked_cell_value");
+			this.utils.uiUtils.hideElement("clicked_cell_value" + this.sectionId);
 			this.renderHeatmap();
 		},
 		renderScaleLegend() {
 			let scaleLegendWrapper = document.getElementById(
-				"heatmap_scale_legend"
+				"heatmap_scale_legend" + this.sectionId
 			);
 			let scaleLegendContent =
 				"<div class='scale-legend-main-field'><div class='field-label'>" +
@@ -246,19 +241,19 @@ export default Vue.component("research-heatmap", {
 				}
 			}
 
-			let wrapper = document.getElementById("clicked_cell_value");
+			let wrapper = document.getElementById("clicked_cell_value" + this.sectionId);
 			let contentWrapper = document.getElementById(
-				"clicked_cell_value_content"
+				"clicked_cell_value_content" + this.sectionId
 			);
 
 			let wrapperRect = document
-				.getElementById("heatmapCanvasWrapper")
+				.getElementById("heatmapCanvasWrapper" + this.sectionId)
 				.getBoundingClientRect();
 			let wrapperXPos = wrapperRect.left;
 			let wrapperYPos =
-				document.getElementById("heatmapContent").offsetHeight -
-				document.getElementById("heatmapPlotWrapper").offsetHeight +
-				document.getElementById("heatmapColumnsWrapper").offsetWidth;
+				document.getElementById("heatmapContent" + this.sectionId).offsetHeight -
+				document.getElementById("heatmapPlotWrapper" + this.sectionId).offsetHeight +
+				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetWidth;
 
 			if (clickedCellValue != "") {
 				contentWrapper.innerHTML = clickedCellValue;
@@ -272,8 +267,8 @@ export default Vue.component("research-heatmap", {
 		},
 		renderHeatmap(X, Y) {
 			this.squareData = {};
-			document.getElementById("heatmapColumnsWrapper").innerHTML = "";
-			document.getElementById("heatmapRowsWrapper").innerHTML = "";
+			document.getElementById("heatmapColumnsWrapper" + this.sectionId).innerHTML = "";
+			document.getElementById("heatmapRowsWrapper" + this.sectionId).innerHTML = "";
 
 			let canvasWidth =
 				this.renderConfig["font size"] *
@@ -283,9 +278,9 @@ export default Vue.component("research-heatmap", {
 
 			let canvasHeight = this.boxSize * this.renderData.rows.length * 2;
 
-			document.getElementById("heatmapColumnsWrapper").style.fontSize =
+			document.getElementById("heatmapColumnsWrapper" + this.sectionId).style.fontSize =
 				this.renderConfig["font size"] + "px";
-			document.getElementById("heatmapRowsWrapper").style.fontSize =
+			document.getElementById("heatmapRowsWrapper" + this.sectionId).style.fontSize =
 				this.renderConfig["font size"] + "px";
 
 			this.renderData.columns.map((c) => {
@@ -294,7 +289,7 @@ export default Vue.component("research-heatmap", {
 				div.appendChild(t);
 				div.setAttribute("style", "height: " + this.boxSize + "px;");
 				document
-					.getElementById("heatmapColumnsWrapper")
+					.getElementById("heatmapColumnsWrapper" + this.sectionId)
 					.appendChild(div);
 			});
 
@@ -303,29 +298,28 @@ export default Vue.component("research-heatmap", {
 				var t = document.createTextNode(r);
 				div.appendChild(t);
 				div.setAttribute("style", "height: " + this.boxSize + "px;");
-				document.getElementById("heatmapRowsWrapper").appendChild(div);
+				document.getElementById("heatmapRowsWrapper" + this.sectionId).appendChild(div);
 			});
 
 			let columnTopSpace =
-				document.getElementById("heatmapColumnsWrapper").offsetHeight -
-				document.getElementById("heatmapColumnsWrapper").offsetWidth -
+				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetHeight -
+				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetWidth -
 				10;
 			let aboveColumnPadding =
-				document.getElementById("heatmapColumnsWrapper").offsetWidth +
+				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetWidth +
 				20;
 
 			let rIndex = 0;
 
-			/*document.getElementById("heatmapColumnsWrapper").style.top =
-                -columnTopSpace + "px";*/
-			document.getElementById("heatmapColumnsWrapper").style.left =
-				document.getElementById("heatmapRowsWrapper").offsetWidth +
+			
+			document.getElementById("heatmapColumnsWrapper" + this.sectionId).style.left =
+				document.getElementById("heatmapRowsWrapper" + this.sectionId).offsetWidth +
 				(this.boxSize - this.renderConfig["font size"]) / 2 +
 				"px";
-			document.getElementById("heatmapPlotWrapper").style.paddingTop =
+			document.getElementById("heatmapPlotWrapper" + this.sectionId).style.paddingTop =
 				aboveColumnPadding + "px";
 
-			let c = document.getElementById("heatmap");
+			let c = document.getElementById("heatmap" + this.sectionId);
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
 			c.setAttribute(
@@ -506,39 +500,49 @@ $(function () {});
 	background-color: #fff;
 }
 
-#heatmapColumnsWrapper {
+#heatmapColumnsWrapper, .heatmap-columns-wrapper {
 	transform-origin: left top;
 	transform: rotate(-90deg);
 	position: absolute;
 	/*left: 0;*/
 }
-#heatmapColumnsWrapper div {
+#heatmapColumnsWrapper div, .heatmap-columns-wrapper div{
 	/*transform-origin: left center;
     transform: rotate(45deg);*/
 	white-space: nowrap;
 	padding-left: 10px;
 }
-#heatmapRowsWrapper {
+#heatmapRowsWrapper, .heatmap-rows-wrapper {
 	padding-right: 10px;
 	display: inline-block;
 	vertical-align: top;
 	white-space: nowrap;
 	text-align: right;
 }
-#heatmapCanvasWrapper {
+#heatmapCanvasWrapper, .heatmap-canvas-wrapper {
 	display: inline-block;
 	vertical-align: top;
 }
 
-#heatmapCanvasWrapper canvas {
+#heatmapCanvasWrapper canvas, .heatmap-canvas-wrapper canvas {
 	border: solid 1px #aaa;
 }
 
-#heatmap:hover {
+#heatmap:hover, .heatmap:hover {
 	cursor: pointer;
 }
 
-#clicked_cell_value {
+#clicked_cell_value, .clicked-cell-value {
+	position: absolute;
+    background-color: #fff;
+    border: solid 1px #aaa;
+    box-shadow: 0 0 5px #00000075;
+    font-size: 12px;
+    padding: 0px 10px 5px 10px;
+    max-width: 300px;
+    border-radius: 5px;
+    z-index: 10;
+    width: auto;
 	text-align: left;
 	padding: 8px 20px 8px 10px !important;
 }

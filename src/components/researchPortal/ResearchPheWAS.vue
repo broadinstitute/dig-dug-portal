@@ -250,13 +250,23 @@ export default Vue.component("research-phewas-plot", {
 			let rawX = e.clientX - rect.left;
 			let rawY = e.clientY - rect.top;
 
-			let plotMargin = {
-				left: this.plotMargin.leftMargin / 2,
-				right: (this.plotMargin.leftMargin / 2) * 1.5,
-				top: (this.plotMargin.bottomMargin / 2) * 3.5,
-				bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
-				bump: 5,
-			};
+			let customPlotMargin = !!this.renderConfig["plot margin"]? this.renderConfig["plot margin"]:null;
+			let plotMargin = !!customPlotMargin?{
+						left: customPlotMargin.left,
+						right: customPlotMargin.right,
+						top: customPlotMargin.top,
+						bottom: customPlotMargin.bottom,
+						bump: 10,
+					}:
+					{
+						left: this.plotMargin.leftMargin / 2,
+						right: (this.plotMargin.leftMargin / 2) * 1.5,
+						top: (this.plotMargin.bottomMargin / 2) * 3.5,
+						bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
+						bump: 10,
+					};
+
+					
 
 			let y = Math.ceil(e.clientY - rect.top);
 			let x = Math.ceil(e.clientX - rect.left);
@@ -424,13 +434,29 @@ export default Vue.component("research-phewas-plot", {
 				maxY = Math.ceil(maxY);
 
 				ctx.stroke();
-				let plotMargin = {
+				/*let plotMargin = {
 					left: this.plotMargin.leftMargin,
 					right: this.plotMargin.leftMargin * 1.5,
 					top: this.plotMargin.bottomMargin * 3.5,
 					bottom: this.plotMargin.bottomMargin * 2.5,
 					bump: 10,
-				};
+				};*/
+
+				let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+				let plotMargin = !!customPlotMargin ? {
+					left: customPlotMargin.left,
+					right: customPlotMargin.right,
+					top: customPlotMargin.top,
+					bottom: customPlotMargin.bottom,
+					bump: 10,
+				} :
+					{
+						left: this.plotMargin.leftMargin / 2,
+						right: (this.plotMargin.leftMargin / 2) * 1.5,
+						top: (this.plotMargin.bottomMargin / 2) * 3.5,
+						bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
+						bump: 10,
+					};
 
 				this.utils.plotUtils.renderAxisWBump(
 					ctx,
