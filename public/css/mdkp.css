@@ -2168,12 +2168,14 @@ span.volcano-score-2 {
     margin-right: 10px;
 }
 
-.svg-wrapper {
+.svg-wrapper,
+.tab-content-wrapper {
     visibility: visible;
     height: auto;
 }
 
-.svg-wrapper.hidden-svg {
+.svg-wrapper.hidden-svg,
+.tab-content-wrapper.hidden-content {
     visibility: hidden;
     height: 25px;
 }

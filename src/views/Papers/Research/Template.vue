@@ -570,6 +570,7 @@
 						</div>
 						<!-- multi section test-->
 						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
+
 							<research-multi-sections-search 
 							v-if="!!$parent.multiSectionsSearchParameters"
 								:searchParameters="$parent.multiSectionsSearchParameters"
@@ -578,19 +579,71 @@
 								:utils="$parent.utilsBox"
 								>
 							</research-multi-sections-search>
-							<research-section
-								v-for="config, index in $parent.sectionConfigs.sections"
-								:sectionIndex="'section-' + index"
-								:uId="$parent.uid"
-								:sectionConfig="config"
-								:phenotypeMap="$parent.phenotypeMap"
-								:colors="$parent.colors"
-								:plotMargin="$parent.plotMargin"
-								:plotLegend="$parent.plotLegend"
-								:tableLegend="$parent.tableLegend"
-								:utils="$parent.utilsBox"
-								:key="index">
-							</research-section>	
+							<template v-if="!!$parent.sectionConfigs['tab groups']">
+								<template v-for="group, groupIndex in $parent.sectionConfigs['tab groups']">
+									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
+										<div v-for="tab, tabIndex in group" :id="'tabUi'+tab.section" class="tab-ui-tab" :class="tabIndex == 0?'active':''"
+											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
+												'tabContent' + tab.section,'tabContentGroup' + groupIndex)">
+											{{ tab.label }}
+										</div>
+									</div>
+									<div :id="'tabContentGroup'+groupIndex">
+										<template v-for="tab, tabIndex in group">
+											<div v-for="config, index in $parent.sectionConfigs.sections" 
+												v-if="config['section id'] == tab.section"
+												:id="'tabContent' + tab.section"
+												class="tab-content-wrapper"
+												:class="(tabIndex == 0)?'':'hidden-content'"
+												>
+												<research-section
+													:sectionIndex="'section-' + index"
+													:uId="$parent.uid"
+													:sectionConfig="config"
+													:phenotypeMap="$parent.phenotypeMap"
+													:colors="$parent.colors"
+													:plotMargin="$parent.plotMargin"
+													:plotLegend="$parent.plotLegend"
+													:tableLegend="$parent.tableLegend"
+													:utils="$parent.utilsBox"
+													:key="index">
+												</research-section>
+										</div>
+										</template>
+									</div>
+								</template>
+								<template v-for="config, index in $parent.sectionConfigs.sections">
+									<research-section
+										v-if="$parent.isInTabGroups(config['section id']) == false"
+										:sectionIndex="'section-' + index"
+										:uId="$parent.uid"
+										:sectionConfig="config"
+										:phenotypeMap="$parent.phenotypeMap"
+										:colors="$parent.colors"
+										:plotMargin="$parent.plotMargin"
+										:plotLegend="$parent.plotLegend"
+										:tableLegend="$parent.tableLegend"
+										:utils="$parent.utilsBox"
+										:key="index">
+									</research-section>	
+								</template>
+							</template>
+							<template v-else>
+								<research-section
+									v-for="config, index in $parent.sectionConfigs.sections"
+									:sectionIndex="'section-' + index"
+									:uId="$parent.uid"
+									:sectionConfig="config"
+									:phenotypeMap="$parent.phenotypeMap"
+									:colors="$parent.colors"
+									:plotMargin="$parent.plotMargin"
+									:plotLegend="$parent.plotLegend"
+									:tableLegend="$parent.tableLegend"
+									:utils="$parent.utilsBox"
+									:key="index">
+								</research-section>	
+							</template>
+							
 	            		</div>
 					</div>
 				</div>
@@ -791,5 +844,32 @@ html {
 
 .research-data-table td.multi-value-td span {
 	height: 27px !important;
+}
+
+.tab-ui-wrapper {
+	border-bottom: solid 1px #ddd;
+    margin: 25px 0;
+    padding: 0 25px;
+}
+
+.tab-ui-wrapper .tab-ui-tab {
+	padding: 10px 15px;
+    border: solid 1px #ddd;
+    display: inline-block;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    margin-right: 5px;
+    background-color: #eee;
+    margin-bottom: -1px;
+	color: #0069d9;
+}
+
+.tab-ui-wrapper .tab-ui-tab:hover {
+	cursor: pointer;
+}
+
+.tab-ui-wrapper .tab-ui-tab.active {
+	border-bottom: solid 1px #fff;
+	background-color: #fff;
 }
 </style>
