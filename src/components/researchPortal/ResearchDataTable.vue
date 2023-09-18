@@ -1,5 +1,6 @@
 <template>
-	<div class="research-data-table-wrapper">
+	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
+		{{tableFormat.display}}
 		<div v-html="tableLegend" class="data-table-legend"></div>
 
 		<div
@@ -180,7 +181,7 @@
 							:class="getColumnId(tdKey)"
 							
 						>
-							<button class="btn btn-sm btn-outline-secondary link-button" v-html="'Set search'" @click="setParameter(tdValue, tdKey)" ></button>
+							<button class="btn btn-sm btn-primary set-search-btn" v-html="'Set Search'" @click="setParameter(tdValue, tdKey)" ></button>
 						</td>
 						<td
 							v-if="ifDataObject(tdValue) == false && !ifSetParameterColumn(tdKey)"
@@ -1046,5 +1047,10 @@ table.research-data-table {
 .number-per-page:hover {
 	cursor: pointer;
 	background-color: #eee;
+}
+
+.set-search-btn {
+    font-size: 10px !important;
+    padding: 1px 10px !important;
 }
 </style>

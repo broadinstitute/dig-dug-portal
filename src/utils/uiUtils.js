@@ -450,6 +450,28 @@ function checkIfNumeric(VALUE) {
     return ifNumber;
 }
 
+let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPPERID) {
+
+    let tabsWrapper = document.getElementById(UIWRAPPERID),
+        tabsChildren = tabsWrapper.getElementsByClassName("tab-ui-tab");
+    for (let i = 0; i < tabsChildren.length; i++) {
+        let tab = tabsChildren[i];
+        tab.setAttribute("class", "tab-ui-tab");
+    }
+
+    document.getElementById(TARGETTAB).setAttribute("class", "tab-ui-tab active");
+
+    let contentsWrapper = document.getElementById(CONTENTWRAPPERID),
+        contentsChildren = contentsWrapper.getElementsByClassName("tab-content-wrapper");
+    for (let i = 0; i < contentsChildren.length; i++) {
+        let tab = contentsChildren[i];
+        tab.setAttribute("class", "tab-content-wrapper hidden-content");
+    }
+
+    document.getElementById(TARGETCONTENT).setAttribute("class", "tab-content-wrapper");
+
+}
+
 export default {
     popOutElement,
     hideElement,
@@ -472,5 +494,6 @@ export default {
     isIdFixed,
     biDomain,
     getUrl,
-    checkIfNumeric
+    checkIfNumeric,
+    setTabActive
 };

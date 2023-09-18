@@ -458,8 +458,6 @@ export default Vue.component("research-phewas-plot", {
 						bump: 10,
 					};
 
-				console.log("plotMargin", plotMargin)
-
 				this.utils.plotUtils.renderAxisWBump(
 					ctx,
 					canvasWidth,

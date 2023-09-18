@@ -1059,6 +1059,18 @@ new Vue({
         postAlertError,
         closeAlert,
         /// multi-sections use
+        isInTabGroups(SECTION) {
+            let sectionInGroup = false;
+            this.sectionConfigs['tab groups'].map(group => {
+                group.map(tab => {
+                    if (tab.section == SECTION) {
+                        sectionInGroup = true;
+                    }
+                })
+            })
+
+            return sectionInGroup;
+        },
         saveCapturedData(TYPE, TITLE) {
             let data = this.$store.state.capturedData.filter(d => d.title == TITLE);
 
