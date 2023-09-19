@@ -1,5 +1,5 @@
 <template>
-	<div class="multi-page-search-wrapper" :class="searchVisible==false?'hidden-search':''">
+	<div class="multi-page-search-wrapper">
 		<div
 			class="filtering-ui-wrapper search-criteria multi-page-search"
 			id="searchCriteria"
@@ -21,7 +21,7 @@
 						v-if="parameter.type == 'list' &&
 							parameter.values.length <= 10
 							"
-						:id="'search_param_' + parameter.parameter"
+						:id="'section_search_param' + parameter.parameter"
 						class="custom-select custom-select-search"
 						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)"
 					>
@@ -38,7 +38,7 @@
 					>
 						<input class="form-control" v-model="paramSearch[paramIndex]" />
 						<select
-							:id="'search_param_' + parameter.parameter"
+							:id="'section_search_param' + parameter.parameter"
 							class="custom-select custom-select-search long-list"
 							:class="(!!paramSearch[paramIndex] && paramSearch[paramIndex].length <= 2 )?'':
 								getVisibleValues(
@@ -86,7 +86,7 @@
 								v-model="paramSearch[paramIndex]"
 								class="form-control"
 								@keyup="getGenes($event)"
-								:id="'search_param_' + parameter.parameter"
+								:id="'section_search_param' + parameter.parameter"
 							/>
 
 							<div
@@ -147,7 +147,7 @@
 							"
 						type="text"
 						class="form-control"
-						:id="'search_param_' + parameter.parameter"
+						:id="'section_search_param' + parameter.parameter"
 					/>
 				</div>
 				<div class="col">
@@ -165,13 +165,12 @@ import Vue from "vue";
 //import uiUtils from "@/utils/uiUtils";
 //import alertUtils from "@/utils/alertUtils";
 
-export default Vue.component("research-multi-sections-search", {
+export default Vue.component("research-in-section-search", {
 	props: [
 		"searchParameters",
 		"phenotypesInUse",
-		"sections",
+		"section",
 		"utils",
-		"searchVisible"
 	],
 
 	data() {
@@ -183,14 +182,14 @@ export default Vue.component("research-multi-sections-search", {
 		};
 	},
 	created() {
-		this.$root.$refs.multiSectionSearch = this;
+		this.$root.$refs.inSectionSearch = this;
 		
 	},
 	mounted() {
 		window.addEventListener("scroll", this.onScroll);
 		this.searchParameters.map(s => {
 			if (!!this.utils.keyParams[s.parameter]) {
-				document.getElementById("search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
+				document.getElementById("section_search_param" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
 		})
 	},
@@ -273,31 +272,33 @@ export default Vue.component("research-multi-sections-search", {
 			if(!KEY){
 				let paramsObj = {}
 				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("search_param_" + s.parameter).value;
+					let paramValue = document.getElementById("section_search_param" + s.parameter).value;
 					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 				})
 				this.utils.keyParams.set(paramsObj);
 				//location.reload();
-				this.sections.map(s => {
+				//this.sections.map(s => {
+					let s = this.section;
 					this.$root.$refs[s['section id']].getData();
-				})
+				//})
 			} else if(!!KEY) {
 				//console.log("point 1",KEY);
 
 				let paramsObj = {}
 				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("search_param_" + s.parameter).value;
+					let paramValue = document.getElementById("section_search_param" + s.parameter).value;
 					//console.log(s.parameter, paramValue);
 					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 				})
 				this.utils.keyParams.set(paramsObj);
 				
-				this.sections.map(s => {
+				//this.sections.map(s => {
+					let s = this.section;
 					if(!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
 						console.log(s['section id']);
 						this.$root.$refs[s['section id']].getData();
 					}
-				})
+				//})
 			}
 			
 		},

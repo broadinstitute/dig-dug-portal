@@ -577,6 +577,7 @@
 								:phenotypesInUse="$parent.phenotypesInSession"
 								:sections="$parent.sectionConfigs.sections"
 								:utils="$parent.utilsBox"
+								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
 								>
 							</research-multi-sections-search>
 							<template v-if="!!$parent.sectionConfigs['tab groups']">
@@ -601,6 +602,7 @@
 													:uId="$parent.uid"
 													:sectionConfig="config"
 													:phenotypeMap="$parent.phenotypeMap"
+													:phenotypesInUse="$parent.phenotypesInSession"
 													:colors="$parent.colors"
 													:plotMargin="$parent.plotMargin"
 													:plotLegend="$parent.plotLegend"
@@ -619,6 +621,7 @@
 										:uId="$parent.uid"
 										:sectionConfig="config"
 										:phenotypeMap="$parent.phenotypeMap"
+										:phenotypesInUse="$parent.phenotypesInSession"
 										:colors="$parent.colors"
 										:plotMargin="$parent.plotMargin"
 										:plotLegend="$parent.plotLegend"
@@ -635,6 +638,7 @@
 									:uId="$parent.uid"
 									:sectionConfig="config"
 									:phenotypeMap="$parent.phenotypeMap"
+									:phenotypesInUse="$parent.phenotypesInSession"
 									:colors="$parent.colors"
 									:plotMargin="$parent.plotMargin"
 									:plotLegend="$parent.plotLegend"

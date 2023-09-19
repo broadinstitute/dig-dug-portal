@@ -225,10 +225,22 @@ new Vue({
         },
         multiSectionsSearchParameters() {
             if (this.phenotypesInSession.length > 0) {
-                let parameters = this.sectionConfigs['search parameters'];
+                let parameters = [];
                 let newParameters = [];
 
-                if (!!parameters) {
+                if (!!this.sectionConfigs['search parameters']) {
+                    parameters = this.sectionConfigs['search parameters'];
+                }
+
+                this.sectionConfigs.sections.map(section => {
+                    if (!!section["search parameters"]) {
+                        section["search parameters"].map(s => {
+                            parameters.push(s);
+                        })
+                    }
+                })
+
+                if (parameters.length > 0) {
                     parameters.map(p => {
                         if (p.values == 'kp phenotypes') {
                             let values = [];
