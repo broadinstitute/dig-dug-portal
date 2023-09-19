@@ -14,9 +14,12 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         tissue: bioIndex("gene-expression-tissue"),
+        geneExpression: bioIndex("gene-expression"),
+        geneLinks: bioIndex("gene-links"),
     },
     state: {
-        tissueName: keyParams.tissue,
+        tissueName: keyParams.tissue || "",
+        geneExpressionTissue: [],
     },
 
     mutations: {
