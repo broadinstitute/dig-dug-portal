@@ -1504,6 +1504,10 @@ div.filtering-ui-content div.col {
     padding: 5px 7px;
 }
 
+div.filtering-ui-content div.col.hidden-search {
+    display: none !important;
+}
+
 div.filtering-ui-content div.col .label {
     font-weight: 600;
 }

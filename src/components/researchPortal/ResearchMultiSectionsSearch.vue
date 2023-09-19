@@ -9,6 +9,7 @@
 			<div class="filtering-ui-content row">
 				<div
 					class="col"
+					:class="!!parameter.display && parameter.display == 'false'? 'hidden-search':''"
 					v-for="parameter,paramIndex in searchParameters"
 					:key="parameter.parameter"
 				>
@@ -343,6 +344,9 @@ export default Vue.component("research-multi-sections-search", {
 </script>
 
 <style>
+.hidden-search {
+	display: none !important;
+}
 .multi-page-search-wrapper {
 	position: relative;
     height: 100px;
