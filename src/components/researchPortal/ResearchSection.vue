@@ -16,7 +16,14 @@
 		<div class="row card-body" :id="'section_' + sectionConfig['section id']">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				
-				
+				<research-in-section-search 
+					v-if="!!sectionConfig['search parameters']"
+					:searchParameters="sectionConfig['search parameters']"
+					:phenotypesInUse="phenotypesInUse"
+					:section="sectionConfig"
+					:utils="utils"
+					>
+				</research-in-section-search>
 				
 				<research-section-filters
 					v-if="!!filters"
@@ -69,17 +76,19 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
+import $ from "jquery"; 
+import ResearchInSectionSearch from "@/components/researchPortal/ResearchInSectionSearch.vue";
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-section", {
-	props: ["uId","sectionConfig","phenotypeMap","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors","utils"],
+	props: ["uId","sectionConfig","phenotypeMap","phenotypesInUse","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors","utils"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
         ResearchDataTable,
+		ResearchInSectionSearch
     },
 	data() {
 		return {
