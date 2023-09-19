@@ -9,7 +9,7 @@
 											icon="eye"
 										></b-icon></button>
 				<h4>{{ sectionConfig.header }}
-					<small v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
+					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'" v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
 					v-html="!!utils.keyParams[parameter]? utils.keyParams[parameter] + '  ' : parameter+' not set. '"></small></h4>
 			</div>
 		</div>
@@ -395,5 +395,9 @@ button.show-hide-section, button.capture-data {
 
 button.capture-data {
 	right: 55px;
+}
+
+.no-search-value {
+	color: #ff0000 !important;
 }
 </style>
