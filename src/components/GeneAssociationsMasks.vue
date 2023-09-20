@@ -101,14 +101,13 @@
 import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import MaskTable from "@/components/MaskTable";
 import DataDownload from "@/components/DataDownload";
 
 export default Vue.component("GeneAssociationsMasks", {
-    props: ["associations", "phenotypeMap"],
+    props: ["associations", "phenotypeMap", "filter"],
     component: { MaskTable, DataDownload },
     data() {
         return {
@@ -128,8 +127,9 @@ export default Vue.component("GeneAssociationsMasks", {
         },
         //filter associations that only exist in the phenotypeMap
         filteredAssociations() {
+            let assocs = !this.filter ? this.associations : this.associations.filter(this.filter);
             return (
-                this.associations.filter((row) => {
+                assocs.filter((row) => {
                     return this.phenotypeMap[row.phenotype];
                 }) || []
             );
