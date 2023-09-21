@@ -775,6 +775,9 @@ new Vue({
                 refComponent.renderPheWas();
             }, 500);
         },
+        filterPhenotype(input){
+            console.log(JSON.stringify(input));
+        }
     },
 
     render(createElement, context) {

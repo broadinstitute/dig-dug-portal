@@ -164,6 +164,17 @@
 							:content-fill="$parent.documentationMap">
 						</documentation>
 					</span>
+					<criterion-function-group @input-change="(input) => $parent.filterPhenotype(input)">
+						<filter-enumeration-control
+							:field="'phenotype'"
+							placeholder="Select a phenotype ..."
+							:options="$parent.geneassociations.map((association) => association.phenotype)"
+							:labelFormatter="(phenotype) => !!$store.state.bioPortal.phenotypeMap[phenotype]
+								? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
+							:multiple="true">
+							<div class="label">Phenotypes</div>
+						</filter-enumeration-control>
+					</criterion-function-group>
 					<b-tabs>
 						<b-tab title="HuGE Scores" @click="$parent.renderPhewas('hugeScorePheWASPlot')">
 							<h4 class="card-title">HuGE Scores</h4>
@@ -179,6 +190,7 @@
 									:options="$parent.geneassociations.map((association) => association.phenotype)"
 									:labelFormatter="(phenotype) => !!$store.state.bioPortal.phenotypeMap[phenotype]
 										? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
+									:predicate="(item) => item === 'T2D'"
 									:multiple="true">
 									<div class="label">Phenotypes</div>
 								</filter-enumeration-control>
