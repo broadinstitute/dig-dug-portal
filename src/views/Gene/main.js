@@ -102,6 +102,7 @@ new Vue({
         return {
             counter: 0,
             genePageSearchCriterion: [],
+            phenotypeFilterList: [],
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
@@ -775,8 +776,9 @@ new Vue({
                 refComponent.renderPheWas();
             }, 500);
         },
-        filterPhenotype(input){
-            console.log(JSON.stringify(input));
+        filterPhenotype(newFilters){
+            this.phenotypeFilterList = newFilters;
+            console.log(JSON.stringify(this.phenotypeFilterList));
         }
     },
 

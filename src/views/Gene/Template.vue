@@ -164,7 +164,8 @@
 							:content-fill="$parent.documentationMap">
 						</documentation>
 					</span>
-					<criterion-function-group @input-change="(input) => $parent.filterPhenotype(input)">
+					<criterion-function-group
+						@update:filter-list="(newFilters) => $parent.filterPhenotype(newFilters)">
 						<filter-enumeration-control
 							:field="'phenotype'"
 							placeholder="Select a phenotype ..."
