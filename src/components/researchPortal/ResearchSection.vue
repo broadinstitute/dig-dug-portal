@@ -9,10 +9,13 @@
 											icon="eye"
 										></b-icon></button>
 				<h4>{{ sectionConfig.header }}
+					
 					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'" v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
-					v-html="!!utils.keyParams[parameter]? utils.keyParams[parameter] + '  ' : parameter+' not set. '"></small></h4>
+					v-html="!!utils.keyParams[parameter]? utils.keyParams[parameter] + '  ' : parameter+' not set. '"></small>
+					<small class="data-loading-flag hidden" :id="'flag_' + sectionConfig['section id']">Loading data...</small></h4>
 			</div>
 		</div>
+		
 		<div class="row card-body" :id="'section_' + sectionConfig['section id']">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				
@@ -24,6 +27,12 @@
 					:utils="utils"
 					>
 				</research-in-section-search>
+
+				<research-page-description
+					v-if="!!sectionDescription"
+					:content="sectionDescription"
+					:utils="utils"
+				></research-page-description>
 				
 				<research-section-filters
 					v-if="!!filters"
@@ -35,6 +44,40 @@
 					:utils="utils"
 					@on-filtering="updateData"
 				></research-section-filters>
+
+				<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
+					<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionConfig['section id']">
+						<div v-for="tab, tabIndex in multiVisualizers" 
+							:id="'tabUi' + sectionConfig['section id'] + tabIndex" class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''"
+							@click="utils.uiUtils.setTabActive('tabUi' + sectionConfig['section id'] + tabIndex,
+								 'tabUiGroup' + sectionConfig['section id'],
+								'tabContent' + sectionConfig['section id'] + tabIndex, 'tabContentGroup' + sectionConfig['section id'])">
+							{{ tab.label }}
+						</div>
+					</div>
+				</template>
+				<div  v-if="!!multiVisualizers && !!sectionData" 
+					:id="multiVisualizersType == 'tabs'?'tabContentGroup' + sectionConfig['section id']:''">
+					
+					<div v-for="plotConfig, plotIndex in multiVisualizers"
+						:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionConfig['section id'] + plotIndex:''"
+						class="tab-content-wrapper"
+						:class="(multiVisualizersType == 'tabs')?(plotIndex == 0) ? '' : 'hidden-content':''"
+						>
+						<h6 v-html="plotConfig.label"></h6>
+						<research-section-visualizers
+							:plotConfig="plotConfig"
+							:plotData="sectionData"
+							:phenotypeMap="phenotypeMap"
+							:colors="colors"
+							:plotMargin="plotMargin"
+							:plotLegend="sectionPlotLegend"
+							:sectionId="sectionConfig['section id'] + plotIndex"
+							:utils="utils"
+						>
+						</research-section-visualizers>
+					</div>
+				</div>
 				<research-section-visualizers
 					v-if="!!visualizer && !!sectionData"
 					:plotConfig="visualizer"
@@ -83,7 +126,7 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-section", {
-	props: ["uId","sectionConfig","phenotypeMap","phenotypesInUse","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors","utils"],
+	props: ["uId","sectionConfig","phenotypeMap","description","phenotypesInUse","sectionIndex", "plotMargin", "plotLegend", "tableLegend","colors","utils"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -97,6 +140,7 @@ export default Vue.component("research-section", {
 			remoteTableFormat:null,
 			remoteFilters:null,
 			remoteVisualizer:null,
+			remoteSectionDecription:null,
 		};
 	},
 	modules: {
@@ -125,6 +169,19 @@ export default Vue.component("research-section", {
 				return null
 			}
 		},
+		sectionDescription() {
+			if (!!this.sectionData) {
+				if (!!this.description) {
+					return this.description;
+				} else if (!!this.remoteSectionDecription) {
+					return this.remoteSectionDecription;
+				} else {
+					return null;
+				}
+			} else {
+				return null
+			}
+		},
 		filters() {
 			if (!!this.sectionData) {
 				if (!!this.sectionConfig["filters"] &&
@@ -146,6 +203,29 @@ export default Vue.component("research-section", {
 					return this.sectionConfig["visualizer"];
 				} else if (!!this.remoteVisualizer) {
 					return this.remoteVisualizer;
+				} else {
+					return null;
+				}
+			} else {
+				return null
+			}
+		},
+		multiVisualizers() {
+			if (!!this.sectionData) {
+				if (!!this.sectionConfig["visualizers"]) {
+
+					return this.sectionConfig["visualizers"]["visualizers"];
+				} else {
+					return null;
+				}
+			} else {
+				return null
+			}
+		},
+		multiVisualizersType() {
+			if (!!this.sectionData) {
+				if (!!this.sectionConfig["visualizers"]) {
+					return this.sectionConfig["visualizers"]["wrapper type"];
 				} else {
 					return null;
 				}
@@ -190,6 +270,8 @@ export default Vue.component("research-section", {
 		},
 		
 		async getData(continueToken) {
+			let flag = document.getElementById("flag_"+ this.sectionConfig["section id"]);
+			flag.classList.remove("hidden");
 			let dataPoint = this.sectionConfig["data point"]
 			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :
 				dataPoint.url+"query/"+ dataPoint.index +"?q=": 
@@ -292,6 +374,18 @@ export default Vue.component("research-section", {
 						})
 						this.remoteVisualizer = JSON.parse(visualizer);
 					}
+
+					// remote sectionDescription
+					if (!!this.sectionConfig["section description"] && !!this.sectionConfig["section description"]["type"]
+						&& this.sectionConfig["section description"]["type"] == "remote") {
+						let descriptionWrapper = this.sectionConfig["section description"]["config wrapper"];
+						let description = contJson;
+
+						descriptionWrapper.map(w => {
+							description = description[w];
+						})
+						this.remoteSectionDecription = description;
+					}
 					
 					switch (dataPoint["data type"]) {
 						case "bioindex":
@@ -363,6 +457,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 					this.originalData = null;
 				}
+				flag.classList.add("hidden");
 			} else {
 				if(dataPoint.type == "file") {
 					let fetchUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;
@@ -381,6 +476,8 @@ export default Vue.component("research-section", {
 					"No data is returned for " + this.sectionConfig.header + ".",
 					this.sectionConfig["section id"]
 				);
+
+				flag.classList.add("hidden");
 
 			}
 		},		
@@ -408,5 +505,48 @@ button.capture-data {
 
 .no-search-value {
 	color: #ff0000 !important;
+}
+
+.data-loading-flag {
+	font-size: 0.7em;
+    display: inline-block;
+    background-color: #bbffcc;
+    border: solid 1px #99ddbb;
+    border-radius: 3px;
+    padding: 0 15px;
+    margin-right: 10px;
+    color: #006633;
+}
+
+.data-loading-flag.hidden {
+	display: none;
+}
+
+.sub-tab-ui-wrapper {
+	border-bottom: solid 1px #ddd;
+    margin: 25px 0;
+    padding: 0 25px;
+}
+
+.sub-tab-ui-wrapper .tab-ui-tab {
+	padding: 5px 10px;
+    border: solid 1px #ddd;
+    display: inline-block;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    margin-right: 5px;
+    background-color: #eee;
+    margin-bottom: -1px;
+	color: #0069d9;
+	font-size: 13px;
+}
+
+.sub-tab-ui-wrapper .tab-ui-tab:hover {
+	cursor: pointer;
+}
+
+.sub-tab-ui-wrapper .tab-ui-tab.active {
+	border-bottom: solid 1px #fff;
+	background-color: #fff;
 }
 </style>

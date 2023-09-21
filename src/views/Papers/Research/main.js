@@ -220,6 +220,37 @@ new Vue({
                 return JSON.parse(contents[0]["field_data_table_format"]);
             }
         },
+        sectionDescriptions() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["body"] == false) {
+                return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let description = document.createElement('div');
+                    description.style.display = 'none';
+                    description.innerHTML = contents[0]["body"];
+                    document.body.appendChild(description);
+
+                    let sectionDescriptions = {};
+
+                    this.sectionConfigs.sections.map(section => {
+                        let sDescription = (!!document.getElementById(section["section id"] + "_description")) ?
+                            document.getElementById(section["section id"] + "_description").innerHTML : '';
+                        if (!!sDescription) {
+                            sectionDescriptions[section["section id"]] = sDescription;
+                        }
+                    })
+                    description.parentNode.removeChild(description);
+
+                    return sectionDescriptions;
+                } else {
+                    return null
+                }
+            }
+        },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
@@ -440,8 +471,24 @@ new Vue({
 
             if (contents === null || contents[0]["body"] == false) {
                 return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let description = document.createElement('div');
+                    description.style.display = 'none';
+                    description.innerHTML = contents[0]["body"];
+                    document.body.appendChild(description);
+
+                    let pageDescription = !!document.getElementById("body_description") ?
+                        document.getElementById("body_description") : '';
+                    description.parentNode.removeChild(description);
+
+                    return pageDescription.innerHTML;
+                } else {
+                    return contents[0]["body"];
+                }
             }
-            return contents[0]["body"];
         },
         // pageID() {
         //     return keyParams.pageid.trim();

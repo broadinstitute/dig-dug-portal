@@ -1,137 +1,79 @@
 <template>
-	<div class="multi-page-search-wrapper" :class="searchVisible==false?'hidden-search':''">
-		<div
-			class="filtering-ui-wrapper search-criteria multi-page-search"
-			id="searchCriteria"
-			v-if="searchParameters != null"
-		>
+	<div class="multi-page-search-wrapper" :class="searchVisible == false ? 'hidden-search' : ''">
+		<div class="filtering-ui-wrapper search-criteria multi-page-search" id="searchCriteria"
+			v-if="searchParameters != null">
 			<h4 class="card-title">Build search criteria</h4>
 			<div class="filtering-ui-content row">
-				<div
-					class="col"
-					:class="!!parameter.display && parameter.display == 'false'? 'hidden-search':''"
-					v-for="parameter,paramIndex in searchParameters"
-					:key="parameter.parameter"
-				>
+				<div class="col" :class="!!parameter.display && parameter.display == 'false' ? 'hidden-search' : ''"
+					v-for="parameter, paramIndex in searchParameters" :key="parameter.parameter">
 					<div class="label">
 						<span v-html="parameter.label"></span>
 					</div>
-						
-					<select
-						v-if="parameter.type == 'list' &&
-							parameter.values.length <= 10
-							"
-						:id="'search_param_' + parameter.parameter"
-						class="custom-select custom-select-search"
-						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)"
-					>
-						<option
-							v-for="param in parameter.values" :key="param.value"
-							:value="JSON.stringify(param)"
-							v-html="
-								param.label.trim()"
-							
-						></option>
+
+					<select v-if="parameter.type == 'list' &&
+						parameter.values.length <= 10
+						" :id="'search_param_' + parameter.parameter" class="custom-select custom-select-search"
+						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)">
+
+						<option v-for="param in parameter.values" :key="param.value" :value="param.value"
+							v-html="param.label.trim()"></option>
 					</select>
-					<template
-						v-if="parameter.type == 'list' && parameter.values.length > 10"
-					>
-						<input class="form-control" v-model="paramSearch[paramIndex]" />
-						<select
-							:id="'search_param_' + parameter.parameter"
-							class="custom-select custom-select-search long-list"
-							:class="(!!paramSearch[paramIndex] && paramSearch[paramIndex].length <= 2 )?'':
-								getVisibleValues(
-									parameter.values,
-									paramSearch[paramIndex],
-									parameter.parameter
-								)"
-							:size="parameter.values.length > 10
-									? !!paramSearch[paramIndex] && paramSearch[paramIndex].length > 2
-										? 5
-										: 1
-									: 'auto'
-								"
-							:style="parameter.values.length > 10 &&
-									!!paramSearch[paramIndex] && paramSearch[paramIndex].length <= 2
-									? 'display:none !important;'
-									: ''
-								"
-							v-if="parameter.type == 'list'"
-							@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)"
-						>
-							<option
-								v-for="param in parameter.values"
-								:value="JSON.stringify(param)"
-								v-html="param.label.trim()"
-								:key="param.label.trim()"
-								:class="parameter.values.length > 10 &&
-										!!paramSearch[paramIndex] && paramSearch[paramIndex].length > 2 &&
-										!param.label.toLowerCase()
-											.includes(paramSearch[paramIndex].toLowerCase())
-										? 'hidden'
-										: ''
-									"
-							></option>
-						</select>
+					<template v-if="parameter.type == 'list' && parameter.values.length > 10">
+						<input v-model="paramSearch[paramIndex]" class="form-control"
+							@keyup="getListOptions($event, parameter)" :id="'search_param_' + parameter.parameter" />
+
+						<div :id="'listOptions' + parameter.parameter" class="custom-select custom-select-search long-list"
+							:size="!!listOptions[parameter.parameter] && listOptions[parameter.parameter].length >= 5 ? 5 : 'auto'"
+							:style="!listOptions[parameter.parameter] || listOptions[parameter.parameter].length == 0
+								? 'display:none !important;'
+								: ''
+								">
+							<template v-for="option in listOptions[parameter.parameter]">
+								<a href="javascript:;" v-html="option.label" :key="option.value" @click="setListValue(
+									option.value,
+									parameter.parameter,
+									paramIndex,
+									true
+								)
+									" class="custom-select-a-option"></a>
+							</template>
+						</div>
 					</template>
-
 					<div>
-						<div
-								v-if="parameter.type == 'input' && parameter.values == 'kp genes'"
-								:id="'kp_gene_search_wrapper'+paramIndex"
-								:style="!!parameter['expand region']? 'display: inline-block;': ''">
-								
-							<input
-								v-model="paramSearch[paramIndex]"
-								class="form-control"
-								@keyup="getGenes($event)"
-								:id="'search_param_' + parameter.parameter"
-							/>
+						<div v-if="parameter.type == 'input' && parameter.values == 'kp genes'"
+							:id="'kp_gene_search_wrapper' + paramIndex"
+							:style="!!parameter['expand region'] ? 'display: inline-block;' : ''">
 
-							<div
-								class="custom-select custom-select-search"
-								:size="kpGenes.length >= 5 ? 5 : 'auto'"
-								:style="kpGenes.length == 0
-										? 'display:none !important;'
-										: ''
-									"
-							>
+							<input v-model="paramSearch[paramIndex]" class="form-control" @keyup="getGenes($event)"
+								:id="'search_param_' + parameter.parameter" />
+
+							<div class="custom-select custom-select-search" :size="kpGenes.length >= 5 ? 5 : 'auto'" :style="kpGenes.length == 0
+								? 'display:none !important;'
+								: ''
+								">
 								<template v-for="gene in kpGenes">
-									<a
-										href="javascript:;"
-										v-html="gene"
-										:key="gene"
-										@click="
-											parameter['convert to region'] &&
-												parameter['convert to region'] ==
-												'true'
-												? setGene(
-													gene,
-													parameter.parameter,
-													paramIndex,
-													true
-												)
-												: setGene(
-													gene,
-													parameter.parameter,
-													paramIndex
-												)
-											"
-										class="custom-select-a-option"
-									></a>
+									<a href="javascript:;" v-html="gene" :key="gene" @click="
+										parameter['convert to region'] &&
+											parameter['convert to region'] ==
+											'true'
+											? setGene(
+												gene,
+												parameter.parameter,
+												paramIndex,
+												true
+											)
+											: setGene(
+												gene,
+												parameter.parameter,
+												paramIndex
+											)
+										" class="custom-select-a-option"></a>
 								</template>
 							</div>
 						</div>
-						<div
-								v-if="!!parameter['expand region']"
-								class="expand-region"
-							>
-							<select
-								id="region_expander"
-								class="expand-region-select-byor"
-								@change="expandRegion($event, parameter.parameter,paramIndex)"
-							>
+						<div v-if="!!parameter['expand region']" class="expand-region">
+							<select id="region_expander" class="expand-region-select-byor"
+								@change="expandRegion($event, parameter.parameter, paramIndex)">
 								<option selected="selected" value="null">
 									Expand region by:
 								</option>
@@ -141,14 +83,9 @@
 							</select>
 						</div>
 					</div>
-					<input
-						v-if="parameter.type == 'input' &&
-							parameter.values != 'kp genes'
-							"
-						type="text"
-						class="form-control"
-						:id="'search_param_' + parameter.parameter"
-					/>
+					<input v-if="parameter.type == 'input' &&
+						parameter.values != 'kp genes'
+						" type="text" class="form-control" :id="'search_param_' + parameter.parameter" />
 				</div>
 				<div class="col">
 					<div @click="updateSearch()" class="btn btn-sm btn-primary">
@@ -162,8 +99,6 @@
 
 <script>
 import Vue from "vue";
-//import uiUtils from "@/utils/uiUtils";
-//import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-multi-sections-search", {
 	props: [
@@ -176,15 +111,26 @@ export default Vue.component("research-multi-sections-search", {
 
 	data() {
 		return {
-			paramSearch:{1:"",2:"",3:"",4:"",5:"",6:"",7:"",8:"",9:"",10:"", 
-				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: "" },
-			searchingValues:{},
-			kpGenes:[],
+			paramSearch: {
+				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
+				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
+			},
+			searchingValues: {},
+			kpGenes: [],
+			listOptions: {},
 		};
 	},
 	created() {
 		this.$root.$refs.multiSectionSearch = this;
-		
+
+
+
+	},
+	beforeUpdate() {
+
+	},
+	updated() {
+
 	},
 	mounted() {
 		window.addEventListener("scroll", this.onScroll);
@@ -193,6 +139,7 @@ export default Vue.component("research-multi-sections-search", {
 				document.getElementById("search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
 		})
+
 	},
 	beforeDestroy() {
 		window.removeEventListener("scroll", this.onScroll);
@@ -213,7 +160,6 @@ export default Vue.component("research-multi-sections-search", {
 	watch: {
 	},
 	methods: {
-		//...uiUtils,
 		onScroll(e) {
 			let windowTop = window.top.scrollY;
 
@@ -228,26 +174,39 @@ export default Vue.component("research-multi-sections-search", {
 				}
 			}
 		},
-		getVisibleValues(VALUES, SEARCH, PARAMETER) {
-			let numOfVisible = 0;
+		getListOptions(event, PARAM) {
 
-			if(!!SEARCH && SEARCH.length > 0) {
-				VALUES.map((v) => {
-					if (
-						!!v.label.toLowerCase().includes(SEARCH.toLowerCase())
-					) {
-						numOfVisible++;
+			let options = [];
+			if (event.target.value.length >= 2) {
+				let optionChrLength = 0;
+				PARAM.values.map(option => {
+					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
+						options.push(option);
+
+						optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
-				});
+				})
 
+				if (options.length > 1) {
+					document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
+				}
+				this.listOptions[PARAM.parameter] = options;
+			} else {
+				this.listOptions[PARAM.parameter] = [];
 			}
-			
-			return numOfVisible == 0 ? "hidden" : "";
+
+		},
+		setListValue(KEY, PARAMETER, INDEX) {
+
+			this.paramSearch[INDEX] = KEY;
+			this.searchingValues[PARAMETER] = KEY;
+
+			this.listOptions[PARAMETER] = [];
 		},
 		updateSearchInputByEvent(event, INDEX, PARAMETER) {
-			let paramValue = JSON.parse(event.target.value);
-			this.searchingValues[PARAMETER] = paramValue.value;
-			this.paramSearch[INDEX] = "-"+paramValue.label;
+			let paramValue = event.target.value;
+			this.searchingValues[PARAMETER] = paramValue;
+			this.paramSearch[INDEX] = paramValue;
 		},
 		expandRegion(EVENT, PARAM, INDEX) {
 			let expandNumber = EVENT.target.value;
@@ -270,7 +229,7 @@ export default Vue.component("research-multi-sections-search", {
 			}
 		},
 		updateSearch(KEY) {
-			if(!KEY){
+			if (!KEY) {
 				let paramsObj = {}
 				this.searchParameters.map(s => {
 					let paramValue = document.getElementById("search_param_" + s.parameter).value;
@@ -281,7 +240,7 @@ export default Vue.component("research-multi-sections-search", {
 				this.sections.map(s => {
 					this.$root.$refs[s['section id']].getData();
 				})
-			} else if(!!KEY) {
+			} else if (!!KEY) {
 				//console.log("point 1",KEY);
 
 				let paramsObj = {}
@@ -291,18 +250,18 @@ export default Vue.component("research-multi-sections-search", {
 					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 				})
 				this.utils.keyParams.set(paramsObj);
-				
+
 				this.sections.map(s => {
-					if(!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
+					if (!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
 						console.log(s['section id']);
 						this.$root.$refs[s['section id']].getData();
 					}
 				})
 			}
-			
+
 		},
-		async setGene(KEY, PARAMETER,INDEX,CONVERT_REGION) {
-			if(!!CONVERT_REGION) {
+		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION) {
+			if (!!CONVERT_REGION) {
 				let searchPoint =
 					this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
 
@@ -325,7 +284,7 @@ export default Vue.component("research-multi-sections-search", {
 			}
 
 			this.kpGenes = [];
-			
+
 		},
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
@@ -348,23 +307,27 @@ export default Vue.component("research-multi-sections-search", {
 .hidden-search {
 	display: none !important;
 }
+
 .multi-page-search-wrapper {
 	position: relative;
-    height: 100px;
+	height: 100px;
 }
+
 .fixed-header {
 	position: fixed !important;
-    top: 0px;
-    width: 100%;
-    left: 0;
-    z-index: 200;
+	top: 0px;
+	width: 100%;
+	left: 0;
+	z-index: 200;
 	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
+
 .expand-region {
 	display: inline-block;
 	vertical-align: bottom;
 	margin-left: 5px;
 }
+
 .expand-region-select-byor {
 	background-color: #66bbff !important;
 	border: solid 1px #3399ff !important;
@@ -385,6 +348,7 @@ export default Vue.component("research-multi-sections-search", {
 	z-index: 10;
 	left: 50px;*/
 }
+
 .custom-select-search {
 	width: 175px !important;
 	min-width: 175px;
@@ -441,6 +405,7 @@ div.custom-select-search {
 	background-color: #efefef;
 	text-decoration: none;
 }
+
 .clear-all-filters-bubble {
 	background-color: #ff0000;
 }
@@ -488,7 +453,7 @@ div.custom-select-search {
 	cursor: pointer;
 }
 
-.filtering-ui-wrapper.search-criteria > h4.card-title {
+.filtering-ui-wrapper.search-criteria>h4.card-title {
 	position: absolute;
 	font-size: 13px;
 	font-weight: bold;
@@ -496,7 +461,7 @@ div.custom-select-search {
 	left: 5px;
 }
 
-.filtering-ui-wrapper > h4.card-title {
+.filtering-ui-wrapper>h4.card-title {
 	position: absolute;
 	font-size: 13px;
 	font-weight: bold;
@@ -504,8 +469,8 @@ div.custom-select-search {
 	left: 5px;
 }
 
-.filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {
-}
+.filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {}
+
 .autocomplete-options {
 	position: absolute;
 	z-index: 100;

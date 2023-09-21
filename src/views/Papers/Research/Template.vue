@@ -601,6 +601,8 @@
 													:sectionIndex="'section-' + index"
 													:uId="$parent.uid"
 													:sectionConfig="config"
+													:description="!!$parent.sectionDescriptions? 
+														$parent.sectionDescriptions[config['section id']]:''"
 													:phenotypeMap="$parent.phenotypeMap"
 													:phenotypesInUse="$parent.phenotypesInSession"
 													:colors="$parent.colors"
@@ -620,6 +622,8 @@
 										:sectionIndex="'section-' + index"
 										:uId="$parent.uid"
 										:sectionConfig="config"
+										:description="!!$parent.sectionDescriptions ?
+											$parent.sectionDescriptions[config['section id']] : ''"
 										:phenotypeMap="$parent.phenotypeMap"
 										:phenotypesInUse="$parent.phenotypesInSession"
 										:colors="$parent.colors"
@@ -637,6 +641,8 @@
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
 									:sectionConfig="config"
+									:description="!!$parent.sectionDescriptions ?
+										$parent.sectionDescriptions[config['section id']] : ''"
 									:phenotypeMap="$parent.phenotypeMap"
 									:phenotypesInUse="$parent.phenotypesInSession"
 									:colors="$parent.colors"
