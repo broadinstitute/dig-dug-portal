@@ -234,8 +234,6 @@ new Vue({
                     description.innerHTML = contents[0]["body"];
                     document.body.appendChild(description);
 
-                    //let pageDescription = document.getElementById("body_description");
-
                     let sectionDescriptions = {};
 
                     this.sectionConfigs.sections.map(section => {
@@ -482,8 +480,10 @@ new Vue({
                     description.innerHTML = contents[0]["body"];
                     document.body.appendChild(description);
 
-                    let pageDescription = document.getElementById("body_description");
+                    let pageDescription = !!document.getElementById("body_description") ?
+                        document.getElementById("body_description") : '';
                     description.parentNode.removeChild(description);
+
                     return pageDescription.innerHTML;
                 } else {
                     return contents[0]["body"];

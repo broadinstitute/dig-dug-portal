@@ -27,53 +27,31 @@
 					>
 						<option
 							v-for="param in parameter.values" :key="param.value"
-							:value="JSON.stringify(param)"
-							v-html="
-								param.label.trim()"
-							
+							:value="param.value"
+							v-html="param.label.trim()"
+						
 						></option>
 					</select>
-					<template
-						v-if="parameter.type == 'list' && parameter.values.length > 10"
-					>
-						<input class="form-control" v-model="paramSearch[paramIndex]" />
-						<select
-							:id="'section_search_param' + parameter.parameter"
-							class="custom-select custom-select-search long-list"
-							:class="(!!paramSearch[paramIndex] && paramSearch[paramIndex].length <= 2 )?'':
-								getVisibleValues(
-									parameter.values,
-									paramSearch[paramIndex],
-									parameter.parameter
-								)"
-							:size="parameter.values.length > 10
-									? !!paramSearch[paramIndex] && paramSearch[paramIndex].length > 2
-										? 5
-										: 1
-									: 'auto'
-								"
-							:style="parameter.values.length > 10 &&
-									!!paramSearch[paramIndex] && paramSearch[paramIndex].length <= 2
-									? 'display:none !important;'
-									: ''
-								"
-							v-if="parameter.type == 'list'"
-							@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)"
-						>
-							<option
-								v-for="param in parameter.values"
-								:value="JSON.stringify(param)"
-								v-html="param.label.trim()"
-								:key="param.label.trim()"
-								:class="parameter.values.length > 10 &&
-										!!paramSearch[paramIndex] && paramSearch[paramIndex].length > 2 &&
-										!param.label.toLowerCase()
-											.includes(paramSearch[paramIndex].toLowerCase())
-										? 'hidden'
-										: ''
-									"
-							></option>
-						</select>
+					<template v-if="parameter.type == 'list' && parameter.values.length > 10">
+						<input v-model="paramSearch[paramIndex]" class="form-control"
+							@keyup="getListOptions($event, parameter)" :id="'search_param_' + parameter.parameter" />
+
+						<div :id="'listOptions' + parameter.parameter" class="custom-select custom-select-search long-list"
+							:size="!!listOptions[parameter.parameter] && listOptions[parameter.parameter].length >= 5 ? 5 : 'auto'"
+							:style="!listOptions[parameter.parameter] || listOptions[parameter.parameter].length == 0
+								? 'display:none !important;'
+								: ''
+								">
+							<template v-for="option in listOptions[parameter.parameter]">
+								<a href="javascript:;" v-html="option.label" :key="option.value" @click="setListValue(
+									option.value,
+									parameter.parameter,
+									paramIndex,
+									true
+								)
+									" class="custom-select-a-option"></a>
+							</template>
+						</div>
 					</template>
 
 					<div>
@@ -179,6 +157,7 @@ export default Vue.component("research-in-section-search", {
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: "" },
 			searchingValues:{},
 			kpGenes:[],
+			listOptions: {},
 		};
 	},
 	created() {
@@ -212,7 +191,6 @@ export default Vue.component("research-in-section-search", {
 	watch: {
 	},
 	methods: {
-		//...uiUtils,
 		onScroll(e) {
 			let windowTop = window.top.scrollY;
 
@@ -227,26 +205,39 @@ export default Vue.component("research-in-section-search", {
 				}
 			}
 		},
-		getVisibleValues(VALUES, SEARCH, PARAMETER) {
-			let numOfVisible = 0;
+		getListOptions(event, PARAM) {
 
-			if(!!SEARCH && SEARCH.length > 0) {
-				VALUES.map((v) => {
-					if (
-						!!v.label.toLowerCase().includes(SEARCH.toLowerCase())
-					) {
-						numOfVisible++;
+			let options = [];
+			if (event.target.value.length >= 2) {
+				let optionChrLength = 0;
+				PARAM.values.map(option => {
+					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
+						options.push(option);
+
+						optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
-				});
+				})
 
+				if (options.length > 1) {
+					document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
+				}
+				this.listOptions[PARAM.parameter] = options;
+			} else {
+				this.listOptions[PARAM.parameter] = [];
 			}
-			
-			return numOfVisible == 0 ? "hidden" : "";
+
+		},
+		setListValue(KEY, PARAMETER, INDEX) {
+
+			this.paramSearch[INDEX] = KEY;
+			this.searchingValues[PARAMETER] = KEY;
+
+			this.listOptions[PARAMETER] = [];
 		},
 		updateSearchInputByEvent(event, INDEX, PARAMETER) {
-			let paramValue = JSON.parse(event.target.value);
-			this.searchingValues[PARAMETER] = paramValue.value;
-			this.paramSearch[INDEX] = "-"+paramValue.label;
+			let paramValue = event.target.value;
+			this.searchingValues[PARAMETER] = paramValue;
+			this.paramSearch[INDEX] = paramValue;
 		},
 		expandRegion(EVENT, PARAM, INDEX) {
 			let expandNumber = EVENT.target.value;

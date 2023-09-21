@@ -225,8 +225,7 @@ export default Vue.component("research-section", {
 		multiVisualizersType() {
 			if (!!this.sectionData) {
 				if (!!this.sectionConfig["visualizers"]) {
-
-					return this.sectionConfig["visualizers"]["type"];
+					return this.sectionConfig["visualizers"]["wrapper type"];
 				} else {
 					return null;
 				}

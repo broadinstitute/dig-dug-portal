@@ -37,31 +37,38 @@ export default Vue.component("research-page-description", {
 			var plots = document.querySelectorAll("div.plot");
 
 			for (let i = 0; i < plots.length; ++i) {
-				let innerHtml = plots[i].innerHTML
-					.replace(/<p>/g, "")
-					.replace(/<\/p>/g, "")
-					.replace(/<br>/g, "");
-				this.plotData[i] = JSON.parse(innerHtml);
 
-				let labelSpace = !!this.plotData[i]["label space"]
-					? this.plotData[i]["label space"]
-					: 0;
+				if(!document.querySelector("canvas#plot"+i)) {
+					let innerHtml = plots[i].innerHTML
+						.replace(/<p>/g, "")
+						.replace(/<\/p>/g, "")
+						.replace(/<br>/g, "");
 
-				let plotContent =
-					"<canvas id='plot" +
-					i +
-					"' width='" +
-					this.plotData[i].width * 2 +
-					"' height='" +
-					(this.plotData[i].height + labelSpace) * 2 +
-					"' style='width:" +
-					this.plotData[i].width +
-					"px;height:" +
-					(this.plotData[i].height + labelSpace) +
-					"px;'></canvas>";
+					this.plotData[i] = JSON.parse(innerHtml);
 
-				plots[i].innerHTML = plotContent;
-				plots[i].setAttribute("style", "");
+
+
+					let labelSpace = !!this.plotData[i]["label space"]
+						? this.plotData[i]["label space"]
+						: 0;
+
+					let plotContent =
+						"<canvas id='plot" +
+						i +
+						"' width='" +
+						this.plotData[i].width * 2 +
+						"' height='" +
+						(this.plotData[i].height + labelSpace) * 2 +
+						"' style='width:" +
+						this.plotData[i].width +
+						"px;height:" +
+						(this.plotData[i].height + labelSpace) +
+						"px;'></canvas>";
+
+					plots[i].innerHTML = plotContent;
+					plots[i].setAttribute("style", "");
+				}
+				
 			}
 
 			this.plotData.map((p, pIndex) => {
