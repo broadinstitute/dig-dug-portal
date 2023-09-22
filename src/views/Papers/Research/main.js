@@ -43,6 +43,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
+import filterUtils from "@/utils/filterUtils";
 import $ from "jquery";
 
 import Alert, {
@@ -195,21 +196,10 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
+                filterUtils: filterUtils,
             }
             return utils;
         },
-        /* formattersUtils() {
-             return Formatters
-         },
-         uiUtilsUtils() {
-             return uiUtils
-         },
-         keyParamUtils() {
-             return keyParams
-         },
-         dataConvertUtils() {
-             return dataConvert;
-         },*/
         sectionConfigs() {
             let contents = this.researchPage;
             if (
