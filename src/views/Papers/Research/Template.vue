@@ -607,8 +607,8 @@
 													:phenotypesInUse="$parent.phenotypesInSession"
 													:colors="$parent.colors"
 													:plotMargin="$parent.plotMargin"
-													:plotLegend="$parent.plotLegend"
-													:tableLegend="$parent.tableLegend"
+													:plotLegend="$parent.multiPlotLegends"
+													:tableLegend="$parent.multiTableLegends"
 													:utils="$parent.utilsBox"
 													:key="index">
 												</research-section>

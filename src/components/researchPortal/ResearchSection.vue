@@ -51,7 +51,7 @@
 							:id="'tabUi' + sectionConfig['section id'] + tabIndex" class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''"
 							@click="utils.uiUtils.setTabActive('tabUi' + sectionConfig['section id'] + tabIndex,
 								 'tabUiGroup' + sectionConfig['section id'],
-								'tabContent' + sectionConfig['section id'] + tabIndex, 'tabContentGroup' + sectionConfig['section id'])">
+								'tabContent' + sectionConfig['section id'] + tabIndex, 'tabContentGroup' + sectionConfig['section id'],true)">
 							{{ tab.label }}
 						</div>
 					</div>
@@ -61,7 +61,7 @@
 					
 					<div v-for="plotConfig, plotIndex in multiVisualizers"
 						:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionConfig['section id'] + plotIndex:''"
-						class="tab-content-wrapper"
+						class="plot-tab-content-wrapper"
 						:class="(multiVisualizersType == 'tabs')?(plotIndex == 0) ? '' : 'hidden-content':''"
 						>
 						<h6 v-html="plotConfig.label"></h6>
@@ -71,13 +71,14 @@
 							:phenotypeMap="phenotypeMap"
 							:colors="colors"
 							:plotMargin="plotMargin"
-							:plotLegend="sectionPlotLegend"
+							:plotLegend="getSectionPlotLegend(sectionConfig['section id'] + plotIndex)"
 							:sectionId="sectionConfig['section id'] + plotIndex"
 							:utils="utils"
 						>
 						</research-section-visualizers>
 					</div>
 				</div>
+
 				<research-section-visualizers
 					v-if="!!visualizer && !!sectionData"
 					:plotConfig="visualizer"
@@ -85,11 +86,12 @@
 					:phenotypeMap="phenotypeMap"
 					:colors="colors"
 					:plotMargin="plotMargin"
-					:plotLegend="sectionPlotLegend"
+					:plotLegend="getSectionPlotLegend(sectionConfig['section id'])"
 					:sectionId="sectionConfig['section id']"
 					:utils="utils"
 				>
 				</research-section-visualizers>
+
 				<research-data-table
 					v-if="!!tableFormat"
 					:pageID="sectionIndex"
@@ -234,17 +236,11 @@ export default Vue.component("research-section", {
 			}
 		},
 		sectionTableLegend() {
-			let sectionID = this.sectionConfig["section id"];
-			let legendContainer = document.querySelector('#tableLegend');
-			let legend = (!!legendContainer.querySelector('#' + sectionID)) ? legendContainer.querySelector('#' + sectionID).innerHTML : "";
 
-			return legend;
-		},
-		sectionPlotLegend() {
 			let sectionID = this.sectionConfig["section id"];
-			let legendContainer = document.querySelector('#plotLegend');
-			let legend = (!!legendContainer.querySelector('#' + sectionID))?legendContainer.querySelector('#'+ sectionID).innerHTML:"";
-
+			let legend = (!!document.getElementById(sectionID + "_tableLegend")) ? 
+				document.getElementById(sectionID + "_tableLegend").innerHTML :null;
+			
 			return legend;
 		},
 		
@@ -252,6 +248,15 @@ export default Vue.component("research-section", {
 	watch: {
 	},
 	methods: {
+
+		getSectionPlotLegend(ID) {
+
+			
+			let legend = (!!document.getElementById(ID + "_plotLegend")) ?
+				document.getElementById(ID + "_plotLegend").innerHTML : null;
+
+			return legend;
+		},
 		updateData(data) {
 			this.sectionData = data;
 		},

@@ -1,8 +1,6 @@
 <template>
 	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
-		{{tableFormat.display}}
 		<div v-html="tableLegend" class="data-table-legend"></div>
-
 		<div
 			v-if="
 				!!searchParameters &&

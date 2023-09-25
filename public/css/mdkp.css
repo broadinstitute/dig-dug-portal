@@ -2173,13 +2173,16 @@ span.volcano-score-2 {
 }
 
 .svg-wrapper,
-.tab-content-wrapper {
+.tab-content-wrapper,
+.plot-tab-content-wrapper {
     visibility: visible;
     height: auto;
 }
 
 .svg-wrapper.hidden-svg,
-.tab-content-wrapper.hidden-content {
+.tab-content-wrapper.hidden-content,
+.plot-tab-content-wrapper.hidden-content,
+.tab-content-wrapper.hidden-content .plot-tab-content-wrapper {
     visibility: hidden;
     height: 25px;
 }

@@ -450,8 +450,8 @@ function checkIfNumeric(VALUE) {
     return ifNumber;
 }
 
-let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPPERID) {
-
+let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPPERID, IF_PLOT) {
+    // Set IF_PLOT parameter true if function calling tab is in Plots group 
     let tabsWrapper = document.getElementById(UIWRAPPERID),
         tabsChildren = tabsWrapper.getElementsByClassName("tab-ui-tab");
     for (let i = 0; i < tabsChildren.length; i++) {
@@ -462,13 +462,16 @@ let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPP
     document.getElementById(TARGETTAB).setAttribute("class", "tab-ui-tab active");
 
     let contentsWrapper = document.getElementById(CONTENTWRAPPERID),
-        contentsChildren = contentsWrapper.getElementsByClassName("tab-content-wrapper");
+        contentsChildren = (!!IF_PLOT) ? contentsWrapper.getElementsByClassName("plot-tab-content-wrapper")
+            : contentsWrapper.getElementsByClassName("tab-content-wrapper");
     for (let i = 0; i < contentsChildren.length; i++) {
         let tab = contentsChildren[i];
-        tab.setAttribute("class", "tab-content-wrapper hidden-content");
+        (!!IF_PLOT) ? tab.setAttribute("class", "plot-tab-content-wrapper hidden-content")
+            : tab.setAttribute("class", "tab-content-wrapper hidden-content");
     }
 
-    document.getElementById(TARGETCONTENT).setAttribute("class", "tab-content-wrapper");
+    (!!IF_PLOT) ? document.getElementById(TARGETCONTENT).setAttribute("class", "plot-tab-content-wrapper") :
+        document.getElementById(TARGETCONTENT).setAttribute("class", "tab-content-wrapper");
 
 }
 
