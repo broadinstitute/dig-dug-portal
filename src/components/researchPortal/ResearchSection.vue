@@ -432,6 +432,11 @@ export default Vue.component("research-section", {
 							data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap);
 						}
 
+						if(!!this.sectionConfig["pre filters"]) {
+							let filters = this.sectionConfig["pre filters"];
+							data = this.utils.filterUtils.applyFilters(filters,data);
+						}
+
 						if (dataPoint.type == "bioindex") {
 							if (contJson.page == 1) {
 								this.sectionData = data;
