@@ -78,6 +78,7 @@
 						</research-section-visualizers>
 					</div>
 				</div>
+
 				<research-section-visualizers
 					v-if="!!visualizer && !!sectionData"
 					:plotConfig="visualizer"
@@ -90,6 +91,7 @@
 					:utils="utils"
 				>
 				</research-section-visualizers>
+				
 				<research-data-table
 					v-if="!!tableFormat"
 					:pageID="sectionIndex"
@@ -234,16 +236,18 @@ export default Vue.component("research-section", {
 			}
 		},
 		sectionTableLegend() {
-			let sectionID = this.sectionConfig["section id"];
-			let legendContainer = document.querySelector('#tableLegend');
-			let legend = (!!legendContainer.querySelector('#' + sectionID)) ? legendContainer.querySelector('#' + sectionID).innerHTML : "";
 
+			let sectionID = this.sectionConfig["section id"];
+			let legend = (!!document.getElementById(sectionID + "_tableLegend")) ? 
+				document.getElementById(sectionID + "_tableLegend").innerHTML :null;
+			
 			return legend;
 		},
 		sectionPlotLegend() {
+
 			let sectionID = this.sectionConfig["section id"];
-			let legendContainer = document.querySelector('#plotLegend');
-			let legend = (!!legendContainer.querySelector('#' + sectionID))?legendContainer.querySelector('#'+ sectionID).innerHTML:"";
+			let legend = (!!document.getElementById(sectionID + "_plotLegend")) ?
+				document.getElementById(sectionID + "_plotLegend").innerHTML : null;
 
 			return legend;
 		},
