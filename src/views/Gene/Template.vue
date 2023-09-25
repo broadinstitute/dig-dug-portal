@@ -175,23 +175,32 @@
 							:multiple="true">
 							<div class="label">Phenotypes</div>
 						</filter-enumeration-control>
-						<filter-greater-control
-							:field="'huge'">
+						<filter-greater-control v-if="$parent.activeTab === 'hugeScorePheWASPlot'"
+							:field="'huge'"
+							placeholder="Set HuGE...">
 							<div>
 								<strong>HuGE Score (&ge;)</strong>
 							</div>
 						</filter-greater-control>
-						<div class="col filter-col-md">
+						<div class="col filter-col-md" v-if="$parent.activeTab === 'commonVariantPheWASPlot'">
 							<div class="label">Ancestry</div>
 							<ancestry-selectpicker
 								:ancestries="$store.state.bioPortal.datasets.map((dataset) => dataset.ancestry)">
 							</ancestry-selectpicker>
 						</div>
-						<filter-pvalue-control
+						<filter-pvalue-control v-if="$parent.activeTab !== 'hugeScorePheWASPlot'"
 							:field="'pValue'"
 							placeholder="Set P-Value ...">
 							<div class="label">P-Value (&le;)</div>
 						</filter-pvalue-control>
+						<div class="col filter-col-md" 
+							v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup.name)
+								&& $parent.activeTab === 'rareVariantPheWASPlot'">
+							<div class="label">Transcript</div>
+							<transcript-selectpicker
+								:transcripts="$store.state.geneToTranscript.data">
+							</transcript-selectpicker>
+						</div>
 						<template slot="filtered" slot-scope="{ filter }">
 							<b-tabs>
 								<b-tab title="HuGE Scores" @click="$parent.renderPhewas('hugeScorePheWASPlot')">
@@ -281,12 +290,6 @@
 											:noIcon="false"
 										></tooltip-documentation>
 									</h4>
-									<div class="col filter-col-md" v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup.name)">
-										<div class="label">Transcript</div>
-										<transcript-selectpicker
-											:transcripts="$store.state.geneToTranscript.data">
-										</transcript-selectpicker>
-									</div>
 									<div v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup)"
 										style="text-align: -webkit-center">
 										<b-badge pill v-if="!!$store.state.selectedTranscript"

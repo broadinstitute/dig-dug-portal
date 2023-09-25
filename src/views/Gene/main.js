@@ -103,6 +103,7 @@ new Vue({
             counter: 0,
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
+            activeTab: "hugeScorePheWASPlot",
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
@@ -771,6 +772,7 @@ new Vue({
             return topAssocData[0];
         },
         renderPhewas(REF) {
+            this.activeTab = REF;
             let refComponent = this.$children[0].$refs[REF];
             setTimeout(function () {
                 refComponent.renderPheWas();
