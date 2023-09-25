@@ -175,97 +175,71 @@
 							:multiple="true">
 							<div class="label">Phenotypes</div>
 						</filter-enumeration-control>
-					</criterion-function-group>
-					<b-tabs>
-						<b-tab title="HuGE Scores" @click="$parent.renderPhewas('hugeScorePheWASPlot')">
-							<h4 class="card-title">HuGE Scores</h4>
-							<span>
-								<documentation name="gene.hugecal.subheader"
-									:content-fill="$parent.documentationMap">
-								</documentation>
-							</span>
-							<criterion-function-group id="huge_scores">
-								<filter-enumeration-control
-									:field="'phenotype'"
-									placeholder="Select a phenotype ..."
-									:options="$parent.geneassociations.map((association) => association.phenotype)"
-									:labelFormatter="(phenotype) => !!$store.state.bioPortal.phenotypeMap[phenotype]
-										? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
-									:predicate="(item) => item === 'T2D'"
-									:multiple="true">
-									<div class="label">Phenotypes</div>
-								</filter-enumeration-control>
-								<filter-greater-control
-									:field="'huge'">
-									<div>
-										<strong>HuGE Score (&ge;)</strong>
-									</div>
-								</filter-greater-control>
-								<template slot="filtered" slot-scope="{ filter }">
-									<research-phewas-plot
-										v-if="$parent.hugeScores.length > 0"
-										canvasId="hugeScorePlot"
-										:phenotypesData="$parent.hugeScores"
-										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-										:colors="$parent.plotColors"
-										:plotMargin="$parent.phewasPlotMargin"
-										:renderConfig="$parent.hugeScoreRenderConfig"
-										:pkgData="null"
-										:pkgDataSelected="null"
-										:filter="filter"
-										ref="hugeScorePheWASPlot"
-										:utils="$parent.utilsBox">
-									</research-phewas-plot>
-									<unauthorized-message :restricted="$store.state.varassociations.restricted">
-									</unauthorized-message>
-									<huge-scores-table
-										v-if="$parent.hugeScores.length > 0"
-										:gene="$store.state.gene.data[0]"
-										:hugeScores="$parent.hugeScores"
-										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
-										:filter="filter">
-									</huge-scores-table>
-								</template>
-							</criterion-function-group>
-						</b-tab>
-						<b-tab title="Common variant associations" @click=" $parent.renderPhewas('commonVariantPheWASPlot')">
-							<h4 class="card-title">
-								Common variant gene-level associations for
-								{{ $store.state.geneName.toUpperCase() }}
-								(Ancestry:
-								{{ $store.state.selectedAncestry == "" ? "All"
-										: $parent.ancestryFormatter($store.state.selectedAncestry)
-								}})
-								<tooltip-documentation
-									name="gene.associations.tooltip.hover"
-									:content-fill="$parent.documentationMap"
-									:isHover="true"
-									:noIcon="false">
-								</tooltip-documentation>
-							</h4>
-							<criterion-function-group id="common_variants">
-								<div class="col filter-col-md">
-									<div class="label">Ancestry</div>
-									<ancestry-selectpicker
-										:ancestries="$store.state.bioPortal.datasets.map((dataset) => dataset.ancestry)">
-									</ancestry-selectpicker>
-								</div>
-								<filter-enumeration-control
-									:field="'phenotype'"
-									placeholder="Select a phenotype ..."
-									:options="$parent.geneassociations.map((association) => association.phenotype)"
-									:labelFormatter="(phenotype) => !!$store.state.bioPortal.phenotypeMap[phenotype]
-												? $store.state.bioPortal.phenotypeMap[phenotype].description
-												: phenotype"
-									:multiple="true">
-									<div class="label">Phenotypes</div>
-								</filter-enumeration-control>
-								<filter-pvalue-control
-									:field="'pValue'"
-									placeholder="Set P-Value ...">
-									<div class="label">P-Value (&le;)</div>
-								</filter-pvalue-control>
-								<template slot="filtered" slot-scope="{ filter }">
+						<filter-greater-control
+							:field="'huge'">
+							<div>
+								<strong>HuGE Score (&ge;)</strong>
+							</div>
+						</filter-greater-control>
+						<div class="col filter-col-md">
+							<div class="label">Ancestry</div>
+							<ancestry-selectpicker
+								:ancestries="$store.state.bioPortal.datasets.map((dataset) => dataset.ancestry)">
+							</ancestry-selectpicker>
+						</div>
+						<filter-pvalue-control
+							:field="'pValue'"
+							placeholder="Set P-Value ...">
+							<div class="label">P-Value (&le;)</div>
+						</filter-pvalue-control>
+						<template slot="filtered" slot-scope="{ filter }">
+							<b-tabs>
+								<b-tab title="HuGE Scores" @click="$parent.renderPhewas('hugeScorePheWASPlot')">
+									<h4 class="card-title">HuGE Scores</h4>
+									<span>
+										<documentation name="gene.hugecal.subheader"
+											:content-fill="$parent.documentationMap">
+										</documentation>
+									</span>
+										<research-phewas-plot
+											v-if="$parent.hugeScores.length > 0"
+											canvasId="hugeScorePlot"
+											:phenotypesData="$parent.hugeScores"
+											:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+											:colors="$parent.plotColors"
+											:plotMargin="$parent.phewasPlotMargin"
+											:renderConfig="$parent.hugeScoreRenderConfig"
+											:pkgData="null"
+											:pkgDataSelected="null"
+											:filter="filter"
+											ref="hugeScorePheWASPlot"
+											:utils="$parent.utilsBox">
+										</research-phewas-plot>
+										<unauthorized-message :restricted="$store.state.varassociations.restricted">
+										</unauthorized-message>
+										<huge-scores-table
+											v-if="$parent.hugeScores.length > 0"
+											:gene="$store.state.gene.data[0]"
+											:hugeScores="$parent.hugeScores"
+											:phenotypeMap="$store.state.bioPortal.phenotypeMap"
+											:filter="filter">
+										</huge-scores-table>
+								</b-tab>
+								<b-tab title="Common variant associations" @click=" $parent.renderPhewas('commonVariantPheWASPlot')">
+									<h4 class="card-title">
+										Common variant gene-level associations for
+										{{ $store.state.geneName.toUpperCase() }}
+										(Ancestry:
+										{{ $store.state.selectedAncestry == "" ? "All"
+												: $parent.ancestryFormatter($store.state.selectedAncestry)
+										}})
+										<tooltip-documentation
+											name="gene.associations.tooltip.hover"
+											:content-fill="$parent.documentationMap"
+											:isHover="true"
+											:noIcon="false">
+										</tooltip-documentation>
+									</h4>
 									<div id="ancestry_set" style="text-align: -webkit-center">
 									</div>
 									<research-phewas-plot
@@ -291,46 +265,28 @@
 										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 										:filter="filter">
 									</gene-associations-table>
-								</template>
-							</criterion-function-group>
-						</b-tab>
-						<b-tab title="Rare variant associations" @click=" $parent.renderPhewas('rareVariantPheWASPlot')">
-							<h4 class="card-title">
-								Rare variant
-								{{
-									!$store.state.selectedTranscript
-										? `gene-level associations for ${$store.state.geneName.toUpperCase()}`
-										: `transcript-level associations for ${$store.state.selectedTranscript}`
-								}}
-								<tooltip-documentation
-									name="gene.52k.tooltip.hover"
-									:content-fill="$parent.documentationMap"
-									:isHover="true"
-									:noIcon="false"
-								></tooltip-documentation>
-							</h4>
-							<criterion-function-group id="common_variants">
-								<div class="col filter-col-md" v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup.name)">
-									<div class="label">Transcript</div>
-									<transcript-selectpicker
-										:transcripts="$store.state.geneToTranscript.data">
-									</transcript-selectpicker>
-								</div>
-								<filter-enumeration-control
-									:field="'phenotype'"
-									placeholder="Select a phenotype ..."
-									:options="$parent.geneassociations.map((association) => association.phenotype)"
-									:labelFormatter="(phenotype) => !!$store.state.bioPortal.phenotypeMap[phenotype]
-										? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
-									:multiple="true">
-									<div class="label">Phenotypes</div>
-								</filter-enumeration-control>
-								<filter-pvalue-control
-									:field="'pValue'"
-									placeholder="Set P-Value ...">
-									<div class="label">P-Value (&le;)</div>
-								</filter-pvalue-control>
-								<template slot="filtered" slot-scope="{ filter }">
+								</b-tab>
+								<b-tab title="Rare variant associations" @click=" $parent.renderPhewas('rareVariantPheWASPlot')">
+									<h4 class="card-title">
+										Rare variant
+										{{
+											!$store.state.selectedTranscript
+												? `gene-level associations for ${$store.state.geneName.toUpperCase()}`
+												: `transcript-level associations for ${$store.state.selectedTranscript}`
+										}}
+										<tooltip-documentation
+											name="gene.52k.tooltip.hover"
+											:content-fill="$parent.documentationMap"
+											:isHover="true"
+											:noIcon="false"
+										></tooltip-documentation>
+									</h4>
+									<div class="col filter-col-md" v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup.name)">
+										<div class="label">Transcript</div>
+										<transcript-selectpicker
+											:transcripts="$store.state.geneToTranscript.data">
+										</transcript-selectpicker>
+									</div>
 									<div v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup)"
 										style="text-align: -webkit-center">
 										<b-badge pill v-if="!!$store.state.selectedTranscript"
@@ -359,10 +315,10 @@
 										:phenotypeMap="$store.state.bioPortal.phenotypeMap"
 										:filter="filter">
 									</gene-associations-masks>
-								</template>
-							</criterion-function-group>
-						</b-tab>
-					</b-tabs>
+								</b-tab>
+							</b-tabs>
+						</template>
+					</criterion-function-group>
 				</div>
 			</div>
 			<div class="card mdkp-card">
