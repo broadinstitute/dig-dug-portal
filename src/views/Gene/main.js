@@ -781,6 +781,16 @@ new Vue({
         filterPhenotype(newFilters){
             this.phenotypeFilterList = newFilters;
             console.log(JSON.stringify(this.phenotypeFilterList));
+        },
+        clearCriterion(criterion){
+            if (criterion === "transcript"){
+                this.$store.state.selectedTranscript = "";
+                return;
+            }
+            if (criterion === "ancestry"){
+                this.$store.state.selectedAncestry = "";
+                return;
+            }
         }
     },
 

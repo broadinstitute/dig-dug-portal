@@ -202,6 +202,25 @@
 							</transcript-selectpicker>
 						</div>
 						<template slot="filtered" slot-scope="{ filter }">
+							<span class="filter-pill-collection center">
+								<b-badge pill v-if="!!$store.state.selectedAncestry
+									&& $parent.activeTab === 'commonVariantPheWASPlot'"
+									class="btn btn-secondary search-bubble 1 pseudoFilter">
+									<strong>
+										Ancestry: {{$store.state.selectedAncestry}}
+										<a @click="$parent.clearCriterion('ancestry')">X</a>
+									</strong>
+									</b-badge>
+								<b-badge pill v-if="!!$store.state.selectedTranscript
+									&& !$parent.noTranscriptDataPortal.includes($parent.diseaseGroup)
+									&& $parent.activeTab === 'rareVariantPheWASPlot'"
+									class="btn search-bubble 1 pseudoFilter">
+									<strong>
+										Transcript: {{$store.state.selectedTranscript}}
+										<a @click="$parent.clearCriterion('transcript')">X</a>
+									</strong>
+								</b-badge>
+							</span>
 							<b-tabs>
 								<b-tab title="HuGE Scores" @click="$parent.renderPhewas('hugeScorePheWASPlot')">
 									<h4 class="card-title">HuGE Scores</h4>
@@ -249,8 +268,6 @@
 											:noIcon="false">
 										</tooltip-documentation>
 									</h4>
-									<div id="ancestry_set" style="text-align: -webkit-center">
-									</div>
 									<research-phewas-plot
 										v-if="$parent.filteredAssociations.length > 0"
 										canvas-id="commonVariantPlot"
@@ -290,13 +307,6 @@
 											:noIcon="false"
 										></tooltip-documentation>
 									</h4>
-									<div v-if="!$parent.noTranscriptDataPortal.includes($parent.diseaseGroup)"
-										style="text-align: -webkit-center">
-										<b-badge pill v-if="!!$store.state.selectedTranscript"
-											class="btn search-bubble 1"
-											v-html="$store.state.selectedTranscript">
-										</b-badge>
-									</div>
 									<research-phewas-plot
 										v-if="$parent.transcriptOr52k.length > 0"
 										canvasId="rareVariantPlot"
@@ -593,5 +603,14 @@
 	top: 10px;
 	left: 20px;
 	color: #28a745;
+}
+
+.pseudoFilter {
+	font-weight: bold !important;
+}
+
+.pseudoFilter a {
+	color: inherit !important;
+	text-decoration: inherit !important;
 }
 </style>
