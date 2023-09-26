@@ -678,7 +678,7 @@ new Vue({
                                 )
                                 : this.convertData("no convert", mergedData);
 
-                        if (!!this.dataTableFormat["pre filters"]) {
+                        if (this.dataTableFormat != null && !!this.dataTableFormat["pre filters"]) {
                             let filters = this.dataTableFormat["pre filters"];
                             processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
                         }
@@ -699,7 +699,7 @@ new Vue({
                                 )
                                 : this.convertData("no convert", returnData);
 
-                        if (!!this.dataTableFormat["pre filters"]) {
+                        if (this.dataTableFormat != null && !!this.dataTableFormat["pre filters"]) {
                             let filters = this.dataTableFormat["pre filters"];
                             processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
                         }
@@ -732,7 +732,7 @@ new Vue({
                             )
                             : this.convertData("no convert", returnData);
 
-                    if (!!this.dataTableFormat["pre filters"]) {
+                    if (this.dataTableFormat != null && !!this.dataTableFormat["pre filters"]) {
                         let filters = this.dataTableFormat["pre filters"];
                         processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
                     }
