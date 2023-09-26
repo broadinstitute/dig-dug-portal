@@ -207,7 +207,7 @@
 									&& $parent.activeTab === 'commonVariantPheWASPlot'"
 									class="btn btn-secondary search-bubble 1 pseudoFilter">
 									<strong>
-										Ancestry: {{$store.state.selectedAncestry}}
+										Ancestry = {{$parent.ancestryFormatter($store.state.selectedAncestry)}}
 										<a @click="$parent.clearCriterion('ancestry')">X</a>
 									</strong>
 									</b-badge>
@@ -216,7 +216,7 @@
 									&& $parent.activeTab === 'rareVariantPheWASPlot'"
 									class="btn search-bubble 1 pseudoFilter">
 									<strong>
-										Transcript: {{$store.state.selectedTranscript}}
+										Transcript = {{$store.state.selectedTranscript}}
 										<a @click="$parent.clearCriterion('transcript')">X</a>
 									</strong>
 								</b-badge>
