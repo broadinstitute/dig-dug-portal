@@ -220,7 +220,7 @@ new Vue({
                 if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
                     && !!this.sectionConfigs["is multi section"] == true) {
                     let description = document.createElement('div');
-                    description.style.display = 'none';
+                    description.setAttribute("style", "visibility: hidden;height: 1px")
                     description.innerHTML = contents[0]["body"];
                     document.body.appendChild(description);
 
@@ -470,8 +470,8 @@ new Vue({
                     description.innerHTML = contents[0]["body"];
                     document.body.appendChild(description);
 
-                    let pageDescription = !!document.getElementById("body_description") ?
-                        document.getElementById("body_description") : '';
+                    let pageDescription = !!document.getElementById("page_description") ?
+                        document.getElementById("page_description") : '';
                     description.parentNode.removeChild(description);
 
                     return pageDescription.innerHTML;
@@ -678,6 +678,11 @@ new Vue({
                                 )
                                 : this.convertData("no convert", mergedData);
 
+                        if (!!this.dataTableFormat["pre filters"]) {
+                            let filters = this.dataTableFormat["pre filters"];
+                            processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                        }
+
                         return processedData;
                     } else if (
                         convertedData.continuation == null &&
@@ -693,6 +698,11 @@ new Vue({
                                     returnData
                                 )
                                 : this.convertData("no convert", returnData);
+
+                        if (!!this.dataTableFormat["pre filters"]) {
+                            let filters = this.dataTableFormat["pre filters"];
+                            processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                        }
 
                         return processedData;
                     }
@@ -721,6 +731,11 @@ new Vue({
                                 returnData
                             )
                             : this.convertData("no convert", returnData);
+
+                    if (!!this.dataTableFormat["pre filters"]) {
+                        let filters = this.dataTableFormat["pre filters"];
+                        processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                    }
 
                     return processedData;
                 }
@@ -772,6 +787,70 @@ new Vue({
                 return null;
             }
             return contents[0]["field_data_table_legend"];
+        },
+        multiTableLegends() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_table_legend"] == false) {
+                return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let legends = document.createElement('div');
+                    //legends.style.display = 'none';
+                    legends.setAttribute("style", "visibility: hidden;height: 1px")
+                    legends.innerHTML = contents[0]["field_data_table_legend"];
+                    document.body.appendChild(legends);
+
+                    let sTableLegends = [];
+
+                    this.sectionConfigs.sections.map(section => {
+                        let sTableLegend = (!!document.getElementById(section["section id"] + "_tableLegend")) ?
+                            document.getElementById(section["section id"] + "_tableLegend").innerHTML : '';
+                        if (!!sTableLegend) {
+                            //sTableLegends[section["section id"]] = sTableLegend;
+                            sTableLegends.push({ "id": section["section id"], "content": sTableLegend });
+                        }
+                    })
+                    //legends.parentNode.removeChild(legends);
+                    return sTableLegends;
+                } else {
+                    return null
+                }
+            }
+        },
+        multiPlotLegends() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_visualizer_legend"] == false) {
+                return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let legends = document.createElement('div');
+                    //legends.style.display = 'none';
+                    legends.setAttribute("style", "visibility: hidden;height: 1px")
+                    legends.innerHTML = contents[0]["field_data_visualizer_legend"];
+                    document.body.appendChild(legends);
+
+                    let sPlotLegends = [];
+
+                    this.sectionConfigs.sections.map(section => {
+                        let sPlotLegend = (!!document.getElementById(section["section id"] + "_plotLegend")) ?
+                            document.getElementById(section["section id"] + "_plotLegend").innerHTML : '';
+                        if (!!sPlotLegend) {
+                            //sPlotLegends[section["section id"]] = sPlotLegend;
+                            sPlotLegends.push({ "id": section["section id"], "content": sPlotLegend })
+                        }
+                    })
+                    //legends.parentNode.removeChild(legends);
+                    return sPlotLegends;
+                } else {
+                    return null
+                }
+            }
         },
         searchingGenes() {
             let contents = this.$store.state.hugeampkpncms.genesInRegion;
