@@ -164,7 +164,8 @@
 												'true'
 												? getRegion(
 														gene,
-														parameter.parameter
+														parameter.parameter,
+														parameter['expand region by']
 												  )
 												: setGene(gene)
 										"
@@ -774,9 +775,11 @@ export default Vue.component("research-page-filters", {
 			this.kpGenes = [];
 		},
 
-		async getRegion(KEY, PARAM) {
+		async getRegion(KEY, PARAM, DEFALT_EXPAND) {
 			let searchPoint =
 				this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+
+			let regionExpand = !!DEFALT_EXPAND ? DEFALT_EXPAND / 2 : 0;
 
 			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
@@ -784,13 +787,26 @@ export default Vue.component("research-page-filters", {
 				let region =
 					geneJson.data[0].chromosome +
 					":" +
-					geneJson.data[0].start +
+					(Number(geneJson.data[0].start) - regionExpand) +
 					"-" +
-					geneJson.data[0].end;
+					(Number(geneJson.data[0].end) + regionExpand);
 
 				this.geneSearch = region;
 				this.kpGenes = [];
 			}
+			/*
+			if (geneJson.error == null) {
+					let region =
+						geneJson.data[0].chromosome +
+						":" +
+						(Number(geneJson.data[0].start) - regionExpand) +
+						"-" +
+						(Number(geneJson.data[0].end) + regionExpand);
+
+					this.paramSearch[INDEX] = region;
+					this.searchingValues[PARAMETER] = region;
+				}
+			*/
 		},
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
