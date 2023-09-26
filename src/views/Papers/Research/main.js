@@ -678,6 +678,11 @@ new Vue({
                                 )
                                 : this.convertData("no convert", mergedData);
 
+                        if (!!this.dataTableFormat["pre filters"]) {
+                            let filters = this.dataTableFormat["pre filters"];
+                            processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                        }
+
                         return processedData;
                     } else if (
                         convertedData.continuation == null &&
@@ -693,6 +698,11 @@ new Vue({
                                     returnData
                                 )
                                 : this.convertData("no convert", returnData);
+
+                        if (!!this.dataTableFormat["pre filters"]) {
+                            let filters = this.dataTableFormat["pre filters"];
+                            processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                        }
 
                         return processedData;
                     }
@@ -721,6 +731,11 @@ new Vue({
                                 returnData
                             )
                             : this.convertData("no convert", returnData);
+
+                    if (!!this.dataTableFormat["pre filters"]) {
+                        let filters = this.dataTableFormat["pre filters"];
+                        processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                    }
 
                     return processedData;
                 }

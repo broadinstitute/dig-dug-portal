@@ -60,7 +60,8 @@
 												gene,
 												parameter.parameter,
 												paramIndex,
-												true
+												true,
+												parameter['expand region by']
 											)
 											: setGene(
 												gene,
@@ -260,20 +261,22 @@ export default Vue.component("research-multi-sections-search", {
 			}
 
 		},
-		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION) {
+		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION, DEFALT_EXPAND) {
 			if (!!CONVERT_REGION) {
 				let searchPoint =
 					this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
 
-				var geneJson = await fetch(searchPoint).then((resp) => resp.json());
+				let regionExpand = !!DEFALT_EXPAND? DEFALT_EXPAND/2 : 0;
+
+				let geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
 				if (geneJson.error == null) {
 					let region =
 						geneJson.data[0].chromosome +
 						":" +
-						geneJson.data[0].start +
+						(Number(geneJson.data[0].start) - regionExpand) +
 						"-" +
-						geneJson.data[0].end;
+						(Number(geneJson.data[0].end) + regionExpand);
 
 					this.paramSearch[INDEX] = region;
 					this.searchingValues[PARAMETER] = region;

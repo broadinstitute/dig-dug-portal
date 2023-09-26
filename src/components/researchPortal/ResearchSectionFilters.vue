@@ -471,7 +471,7 @@ export default Vue.component("research-section-filters", {
 			this.kpGenes = [];
 		},
 
-		async getRegion(KEY, PARAM) {
+		/*async getRegion(KEY, PARAM) {
 			let searchPoint =
 				this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
 
@@ -504,7 +504,7 @@ export default Vue.component("research-section-filters", {
 					this.kpGenes = geneJson.data;
 				}
 			}
-		},
+		},*/
 		emptySearchInput(ID) {},
 		showHideSearch() {
 			let searchUIWrapper = document.getElementById("searchCriteria");
