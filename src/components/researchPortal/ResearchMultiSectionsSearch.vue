@@ -229,7 +229,7 @@ export default Vue.component("research-multi-sections-search", {
 				this.searchingValues[PARAM] = newRegion;
 			}
 		},
-		updateSearch(KEY) {
+		updateSearch(KEY,TARGET_SECTIONS) {
 			if (!KEY) {
 				let paramsObj = {}
 				this.searchParameters.map(s => {
@@ -242,7 +242,7 @@ export default Vue.component("research-multi-sections-search", {
 					this.$root.$refs[s['section id']].getData();
 				})
 			} else if (!!KEY) {
-				//console.log("point 1",KEY);
+				console.log(TARGET_SECTIONS);
 
 				let paramsObj = {}
 				this.searchParameters.map(s => {
@@ -252,12 +252,18 @@ export default Vue.component("research-multi-sections-search", {
 				})
 				this.utils.keyParams.set(paramsObj);
 
-				this.sections.map(s => {
-					if (!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
-						console.log(s['section id']);
-						this.$root.$refs[s['section id']].getData();
-					}
-				})
+				if(!!TARGET_SECTIONS) {
+					TARGET_SECTIONS.map(s=>{
+						this.$root.$refs[s].getData();
+					})
+				} else {
+					this.sections.map(s => {
+						if (!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
+							this.$root.$refs[s['section id']].getData();
+						}
+					})
+				}
+				
 			}
 
 		},

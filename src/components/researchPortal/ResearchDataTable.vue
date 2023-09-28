@@ -531,8 +531,9 @@ export default Vue.component("research-data-table", {
 		//...Formatters,
 		setParameter(VALUE,KEY){
 			let parameter = this.tableFormat['column formatting'][KEY]['parameter'];
+			let targetSections = this.tableFormat['column formatting'][KEY]['target sections'];
 			document.getElementById("search_param_" + parameter).value = VALUE;
-			this.$root.$refs.multiSectionSearch.updateSearch(parameter);
+			this.$root.$refs.multiSectionSearch.updateSearch(parameter,targetSections);
 		},
 		ifSetParameterColumn(KEY){
 			if(!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]

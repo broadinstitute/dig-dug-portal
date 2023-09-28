@@ -295,6 +295,14 @@ export default Vue.component("research-section", {
 				})
 			}
 
+			if (!!this.sectionConfig["pre filters"]) {
+				this.sectionConfig["pre filters"].map(f => {
+					if (f.value=="search parameter" && !this.utils.keyParams[f.parameter]) {
+						queryParamsSet = false;
+					}
+				})
+			}
+
 			if(!!queryParamsSet) {
 				
 				if(!!dataPoint["parameters type"]){

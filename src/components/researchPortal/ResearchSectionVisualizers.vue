@@ -92,6 +92,24 @@
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-genes-track>
+		<!-- Annotations plot-->
+		<!--<research-multi-annotations-plot
+			:region="utils.keyParams.region"
+			:phenotype="utils.keyParams.phenotype"
+			:ancestry=""
+			:renderConfig="plotConfig"
+			:plotMargin="plotMargin"
+			:compareGroupColors="colors.moderate"
+			:dataComparison=""
+			:plotData="plotData"
+			:pkgData="null"
+			:pkgDataSelected=""
+			:regionZoom=""
+			:regionViewArea=""
+			:searchParameters=""
+			:searchParametersArr=""
+			:utils=""
+			></research-multi-annotations-plot>-->
 	</div>
 </template>
 
@@ -104,10 +122,10 @@ import ResearchMQQPlot from "@/components/researchPortal/ResearchMQQPlot.vue";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
-import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
+//import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
-import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
+import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAnnotationsPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 export default Vue.component("research-section-visualizers", {
@@ -119,7 +137,7 @@ export default Vue.component("research-section-visualizers", {
 		ResearchRegionPlot,
 		ResearchScorePlot,
 		ResearchGenesTrack,
-		ResearchMPlot,
+		//ResearchMPlot,
 		ResearchVolcanoPlot,
 		ResearchHeatmap,
 		ResearchPheWAS
