@@ -15,7 +15,9 @@
 					<small class="data-loading-flag hidden" :id="'flag_' + sectionConfig['section id']">Loading data...</small></h4>
 			</div>
 		</div>
-		
+
+		<div v-if="!!getGroups()"><span v-for="key in getGroups()" @click="removeData(key)" class="btn section-search-bbl show-evidence-btn">{{ key + "  x"}}</span></div>
+
 		<div class="row card-body" :id="'section_' + sectionConfig['section id']">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				
@@ -249,8 +251,30 @@ export default Vue.component("research-section", {
 	},
 	methods: {
 
-		getSectionPlotLegend(ID) {
+		getGroups() {
+			let groups = null;
+			if(!!this.sectionData && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["group by"]){
+				groups = [];
+				let groupKeys = this.sectionConfig["table format"]["group by"];
 
+				this.sectionData.map(row=>{
+					let group = "";
+					let keyIndex = 1;
+					groupKeys.map(key => {
+						group += row[key];
+						group += (keyIndex < groupKeys.length)?", ":"";
+						keyIndex++;
+					})
+
+					if(!groups.includes(group)) {
+						groups.push(group);
+					}
+				})
+			}
+
+			return groups;
+		},
+		getSectionPlotLegend(ID) {
 			
 			let legend = (!!document.getElementById(ID + "_plotLegend")) ?
 				document.getElementById(ID + "_plotLegend").innerHTML : null;
@@ -259,6 +283,43 @@ export default Vue.component("research-section", {
 		},
 		updateData(data) {
 			this.sectionData = data;
+		},
+		removeData(KEY) {
+			let groupKeys = this.sectionConfig["table format"]["group by"];
+
+			let newSectionData = [];
+			this.sectionData.map(row => {
+				let group = "";
+				let keyIndex = 1;
+				groupKeys.map(key => {
+					group += row[key];
+					group += (keyIndex < groupKeys.length) ? ", " : "";
+					keyIndex++;
+				})
+
+				if (group != KEY) {
+					newSectionData.push(row);
+				}
+			});
+
+			this.sectionData = newSectionData;
+
+			let newOriginalData = [];
+			this.originalData.map(row => {
+				let group = "";
+				let keyIndex = 1;
+				groupKeys.map(key => {
+					group += row[key];
+					group += (keyIndex < groupKeys.length) ? ", " : "";
+					keyIndex++;
+				})
+
+				if (group != KEY) {
+					newOriginalData.push(row);
+				}
+			});
+
+			this.originalData = newOriginalData;
 		},
 		captureData() {
 			let title = [this.sectionConfig.header];
@@ -450,31 +511,62 @@ export default Vue.component("research-section", {
 							data = this.utils.filterUtils.applyFilters(filters,data);
 						}
 
-						if (dataPoint.type == "bioindex") {
-							if (contJson.page == 1) {
-								this.sectionData = data;
-								this.originalData = this.sectionData;
-							} else {
-								this.sectionData = this.sectionData.concat(data);
-								this.originalData = this.sectionData;
-							}
+						let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true")?
+							true : null;
 
-							if (!!contJson.continuation) {
-								this.getData(contJson.continuation);
+						let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0))?
+							true : null;
+
+						if (!!cumulateData) {
+							console.log("data cumulated")
+							if (dataPoint.type == "bioindex") {
+
+								if (contJson.page == 1) {
+									this.sectionData = !!isOriginalDataEmpty? data: this.sectionData.concat(data);
+								} else {
+									this.sectionData = this.sectionData.concat(data);
+								}
+
+								if (!!contJson.continuation) {
+									this.getData(contJson.continuation);
+								}
+							} else {
+								this.sectionData = !!isOriginalDataEmpty ? data : this.sectionData.concat(data);
 							}
 						} else {
-							this.sectionData = data;
-							this.originalData = this.sectionData;
+							if (dataPoint.type == "bioindex") {
+
+								if (contJson.page == 1) {
+									this.sectionData = data;
+								} else {
+									this.sectionData = this.sectionData.concat(data);
+								}
+
+								if (!!contJson.continuation) {
+									this.getData(contJson.continuation);
+								}
+							} else {
+								this.sectionData = data;
+							}
 						}
-					} else {
 						
+					} else {
 						this.sectionData = null;
-						this.originalData = null;
 					}
+
 				} else {
 					this.sectionData = null;
-					this.originalData = null;
 				}
+
+				
+
+				if(this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
+					let sortBy = this.sectionConfig["table format"]["initial sort by"]
+					this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, true, true);
+				} 
+
+				this.originalData = this.sectionData;
+
 				flag.classList.add("hidden");
 			} else {
 				if(dataPoint.type == "file") {
@@ -523,6 +615,18 @@ button.capture-data {
 
 .no-search-value {
 	color: #ff0000 !important;
+}
+
+.section-search-bbl {
+	font-size: 13px !important;
+    margin-right: 5px;
+    margin-bottom: 3px;
+    font-weight: 400;
+    line-height: 1;
+    text-align: center;
+    border: 1px solid transparent;
+    border-radius: 10rem;
+    display: inline-block;
 }
 
 .data-loading-flag {

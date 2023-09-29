@@ -80,6 +80,8 @@ const sortArrOfObjects = (DATA, PRPT, TYPE, DIRECTION) => {
             DATA.sort((a, b) => (a[PRPT] < b[PRPT]) ? 1 : ((b[PRPT] < a[PRPT]) ? -1 : 0));
     }
 
+
+
     return sorted;
 }
 
