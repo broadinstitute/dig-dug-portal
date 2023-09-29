@@ -5,20 +5,20 @@
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()" title="Capture data in section"><b-icon
 												icon="camera"
 											></b-icon></button>
-	 			<button class="btn btn-sm show-evidence-btn show-hide-section" @click="utils.uiUtils.showHideElement('section_' + sectionConfig['section id'])" title="Show / hide section"><b-icon
+	 			<button class="btn btn-sm show-evidence-btn show-hide-section" @click="utils.uiUtils.showHideElement('section_' + sectionID)" title="Show / hide section"><b-icon
 											icon="eye"
 										></b-icon></button>
 				<h4>{{ sectionConfig.header }}
 					
 					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'" v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
 					v-html="!!utils.keyParams[parameter]? utils.keyParams[parameter] + '  ' : parameter+' not set. '"></small>
-					<small class="data-loading-flag hidden" :id="'flag_' + sectionConfig['section id']">Loading data...</small></h4>
+					<small class="data-loading-flag hidden" :id="'flag_' + sectionID">Loading data...</small></h4>
 			</div>
 		</div>
 
 		<div v-if="!!getGroups()"><span v-for="key in getGroups()" @click="removeData(key)" class="btn section-search-bbl show-evidence-btn">{{ key + "  x"}}</span></div>
 
-		<div class="row card-body" :id="'section_' + sectionConfig['section id']">
+		<div class="row card-body" :id="'section_' + sectionID">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				
 				<research-in-section-search 
@@ -42,27 +42,27 @@
 					:filterWidth="sectionConfig['filter width']"
 					:dataset="sectionData"
 					:unfilteredDataset="originalData"
-					:sectionId="sectionConfig['section id']"
+					:sectionId="sectionID"
 					:utils="utils"
 					@on-filtering="updateData"
 				></research-section-filters>
 
 				<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
-					<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionConfig['section id']">
+					<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
 						<div v-for="tab, tabIndex in multiVisualizers" 
-							:id="'tabUi' + sectionConfig['section id'] + tabIndex" class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''"
-							@click="utils.uiUtils.setTabActive('tabUi' + sectionConfig['section id'] + tabIndex,
-								 'tabUiGroup' + sectionConfig['section id'],
-								'tabContent' + sectionConfig['section id'] + tabIndex, 'tabContentGroup' + sectionConfig['section id'],true)">
+							:id="'tabUi' + sectionID + tabIndex" class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''"
+							@click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
+								 'tabUiGroup' + sectionID,
+								'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID,true)">
 							{{ tab.label }}
 						</div>
 					</div>
 				</template>
 				<div  v-if="!!multiVisualizers && !!sectionData" 
-					:id="multiVisualizersType == 'tabs'?'tabContentGroup' + sectionConfig['section id']:''">
+					:id="multiVisualizersType == 'tabs'?'tabContentGroup' + sectionID:''">
 					
 					<div v-for="plotConfig, plotIndex in multiVisualizers"
-						:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionConfig['section id'] + plotIndex:''"
+						:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionID + plotIndex:''"
 						class="plot-tab-content-wrapper"
 						:class="(multiVisualizersType == 'tabs')?(plotIndex == 0) ? '' : 'hidden-content':''"
 						>
@@ -73,8 +73,8 @@
 							:phenotypeMap="phenotypeMap"
 							:colors="colors"
 							:plotMargin="plotMargin"
-							:plotLegend="getSectionPlotLegend(sectionConfig['section id'] + plotIndex)"
-							:sectionId="sectionConfig['section id'] + plotIndex"
+							:plotLegend="getSectionPlotLegend(sectionID + plotIndex)"
+							:sectionId="sectionID + plotIndex"
 							:utils="utils"
 						>
 						</research-section-visualizers>
@@ -88,8 +88,8 @@
 					:phenotypeMap="phenotypeMap"
 					:colors="colors"
 					:plotMargin="plotMargin"
-					:plotLegend="getSectionPlotLegend(sectionConfig['section id'])"
-					:sectionId="sectionConfig['section id']"
+					:plotLegend="getSectionPlotLegend(sectionID)"
+					:sectionId="sectionID"
 					:utils="utils"
 				>
 				</research-section-visualizers>
@@ -110,7 +110,7 @@
 					:pkgData="null"
 					:pkgDataSelected="null"
 					:phenotypeMap="phenotypeMap"
-					:sectionId="sectionConfig['section id']"
+					:sectionId="sectionID"
 					:multiSectionPage="true"
 					:utils="utils"
 					@clicked-sort="updateData"
@@ -156,7 +156,9 @@ export default Vue.component("research-section", {
 		this.getData();
 	},
 	computed: {
-		
+		sectionID() {
+			return this.sectionConfig["section id"];
+		},
 		tableFormat() {
 			if(!!this.sectionData) {
 				if(!!this.sectionConfig["table format"] && 
@@ -238,10 +240,8 @@ export default Vue.component("research-section", {
 			}
 		},
 		sectionTableLegend() {
-
-			let sectionID = this.sectionConfig["section id"];
-			let legend = (!!document.getElementById(sectionID + "_tableLegend")) ? 
-				document.getElementById(sectionID + "_tableLegend").innerHTML :null;
+			let legend = (!!document.getElementById(this.sectionID + "_tableLegend")) ? 
+				document.getElementById(this.sectionID + "_tableLegend").innerHTML :null;
 			
 			return legend;
 		},
@@ -250,17 +250,18 @@ export default Vue.component("research-section", {
 	watch: {
 		sectionData(DATA) {
 			if(!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["sections filters"]){
-				let sections = this.sectionConfig["table format"]["sections filters"]["sections"];
+				let sections = this.sectionConfig["table format"]["sections filters"]["target sections"];
 				console.log("data updated");
 				sections.map(section=>{
-					this.$root.$refs[section].filterAcrossSections(DATA, this.sectionConfig["table format"]["sections filters"]);
+					this.$root.$refs[section.section].filterAcrossSections(this.sectionID,DATA, section["filter by"]);
 				})
 			}
 		}
 	},
 	methods: {
 
-		filterAcrossSections(FILTER_DATA,FILTER_CONFIG) {
+		filterAcrossSections(FROM,FILTER_DATA,FILTER_CONFIG) {
+			console.log("FROM", FROM)
 			console.log("FILTER_DATA", FILTER_DATA)
 			console.log("FILTER_CONFIG", FILTER_CONFIG)
 		},
@@ -349,7 +350,7 @@ export default Vue.component("research-section", {
 		},
 		
 		async getData(continueToken) {
-			let flag = document.getElementById("flag_"+ this.sectionConfig["section id"]);
+			let flag = document.getElementById("flag_"+ this.sectionID);
 			flag.classList.remove("hidden");
 			let dataPoint = this.sectionConfig["data point"]
 			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :
@@ -597,7 +598,7 @@ export default Vue.component("research-section", {
 				
 				this.utils.alertUtils.popSectionAlert(
 					"No data is returned for " + this.sectionConfig.header + ".",
-					this.sectionConfig["section id"]
+					this.sectionID
 				);
 
 				flag.classList.add("hidden");
