@@ -248,9 +248,22 @@ export default Vue.component("research-section", {
 		
 	},
 	watch: {
+		sectionData(DATA) {
+			if(!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["sections filters"]){
+				let sections = this.sectionConfig["table format"]["sections filters"]["sections"];
+				console.log("data updated");
+				sections.map(section=>{
+					this.$root.$refs[section].filterAcrossSections(DATA, this.sectionConfig["table format"]["sections filters"]);
+				})
+			}
+		}
 	},
 	methods: {
 
+		filterAcrossSections(FILTER_DATA,FILTER_CONFIG) {
+			console.log("FILTER_DATA", FILTER_DATA)
+			console.log("FILTER_CONFIG", FILTER_CONFIG)
+		},
 		getGroups() {
 			let groups = null;
 			if(!!this.sectionData && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["group by"]){

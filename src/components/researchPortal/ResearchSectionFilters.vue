@@ -1230,7 +1230,6 @@ export default Vue.component("research-section-filters", {
 
 				this.applyFilters();
 			} else {
-				//this.$store.dispatch("filteredData", filtered);
 				this.$emit('on-filtering', filtered);
 			}
 		},

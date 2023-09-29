@@ -123,9 +123,6 @@ export default Vue.component("research-multi-sections-search", {
 	},
 	created() {
 		this.$root.$refs.multiSectionSearch = this;
-
-
-
 	},
 	beforeUpdate() {
 
