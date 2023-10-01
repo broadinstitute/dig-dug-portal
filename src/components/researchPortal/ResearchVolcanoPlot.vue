@@ -1,11 +1,11 @@
 <template>
 	<div class="volcano-plot-content">
-		<div id="clicked_dot_value" class="hidden"></div>
+		<div :id="'clicked_dot_value'+ sectionId" class="clicked-dot-value hidden"></div>
 
 		<canvas
 			v-if="!!renderConfig"
-			id="volcanoPlot"
-			class=""
+			:id="'volcanoPlot'+ sectionId"
+			class="volcano-plot"
 			@mouseleave="hidePanel"
 			@mousemove="checkPosition"
 			@click="filterTable"
@@ -20,7 +20,6 @@
 			"
 		>
 		</canvas>
-		<!--<div id="clicked_dot_indicator" class=""></div>-->
 		<div
 			v-if="!!renderConfig.label"
 			class="volcano-plot-label"
@@ -32,20 +31,16 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-volcano-plot", {
-	props: ["plotData", "renderConfig", "geneOfInterest"],
+	props: ["plotData", "renderConfig", "geneOfInterest","utils","sectionId"],
 	data() {
 		return { posData: {} };
 	},
 	modules: {
-		uiUtils,
-		Formatters,
 	},
 	mounted: function () {
 		this.renderPlot();
@@ -84,40 +79,33 @@ export default Vue.component("research-volcano-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
 		hidePanel() {
-			uiUtils.hideElement("clicked_dot_value");
+			this.utils.uiUtils.hideElement("clicked_dot_value"+this.sectionId);
 			//this.renderPlot();
 		},
 		filterTable() {
-			let wrapper = document.getElementById("clicked_dot_value");
+			let wrapper = document.getElementById("clicked_dot_value" + this.sectionId);
 
 			if (wrapper.innerText != "") {
 				let items = wrapper.innerText.split("\n");
 				document.getElementById(
 					"filter_" + this.renderConfig["render by"].replace(/ /g, "")
 				).value = items.join(", ");
-				// revisit this function
-				/*this.$parent.filterData(
-					"",
-					this.renderConfig["render by"],
-					"search"
-				);*/
 			}
 		},
 		checkPosition(event) {
-			let wrapper = document.getElementById("clicked_dot_value");
+			let wrapper = document.getElementById("clicked_dot_value" + this.sectionId);
 			wrapper.classList.remove("hidden");
 
 			let e = event;
 			var rect = document
-				.getElementById("volcanoPlot")
+				.getElementById("volcanoPlot" + this.sectionId)
 				.getBoundingClientRect();
 			var x = Math.floor(e.clientX - rect.left);
 			var y = Math.floor(e.clientY - rect.top);
 
 			//console.log(x, y);
-			let canvas = document.getElementById("volcanoPlot");
+			let canvas = document.getElementById("volcanoPlot" + this.sectionId);
 
 			wrapper.style.top = y + canvas.offsetTop + "px";
 			wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
@@ -148,18 +136,18 @@ export default Vue.component("research-volcano-plot", {
 
 			if (clickedDotValue != "") {
 				wrapper.innerHTML = clickedDotValue;
-				document.getElementById("volcanoPlot").classList.add("hover");
+				document.getElementById("volcanoPlot" + this.sectionId).classList.add("hover");
 				//this.renderPlot(redDotsArr);
 			} else {
 				wrapper.innerHTML = clickedDotValue;
 				wrapper.classList.add("hidden");
 				document
-					.getElementById("volcanoPlot")
+					.getElementById("volcanoPlot" + this.sectionId)
 					.classList.remove("hover");
 			}
 		},
 		clearPlot() {
-			var c = document.getElementById("volcanoPlot");
+			var c = document.getElementById("volcanoPlot" + this.sectionId);
 			var ctx = c.getContext("2d");
 			ctx.clearRect(
 				0,
@@ -180,7 +168,7 @@ export default Vue.component("research-volcano-plot", {
 			let xBump = canvasWidth * 0.04;
 			let yBump = canvasHeight * 0.04;
 
-			var c = document.getElementById("volcanoPlot");
+			var c = document.getElementById("volcanoPlot" + this.sectionId);
 			var ctx = c.getContext("2d");
 			ctx.clearRect(0, 0, canvasWidth + 240, canvasHeight + 240);
 
@@ -200,8 +188,8 @@ export default Vue.component("research-volcano-plot", {
 			let yMin = Math.min.apply(Math, yAxisData);
 			let yMax = Math.max.apply(Math, yAxisData);
 
-			let xAxisTicks = uiUtils.getAxisTicks(xMin, xMax);
-			let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
+			let xAxisTicks = this.utils.uiUtils.getAxisTicks(xMin, xMax);
+			let yAxisTicks = this.utils.uiUtils.getAxisTicks(yMin, yMax);
 
 			ctx.moveTo(leftMargin, canvasHeight + topMargin + yBump);
 			ctx.lineTo(
@@ -234,7 +222,7 @@ export default Vue.component("research-volcano-plot", {
 					);
 				} else {
 					ctx.fillText(
-						Formatters.floatFormatter(
+						this.utils.Formatters.floatFormatter(
 							xAxisTicks.lo + i * xAxisTicks.step
 						),
 						leftMargin + i * xTickDistance + xBump,
@@ -274,7 +262,7 @@ export default Vue.component("research-volcano-plot", {
 					);
 				} else {
 					ctx.fillText(
-						Formatters.floatFormatter(
+						this.utils.Formatters.floatFormatter(
 							yAxisTicks.lo + yAxisTicks.step * i
 						),
 						leftMargin - 14,
@@ -628,7 +616,7 @@ export default Vue.component("research-volcano-plot", {
 			}
 		},
 		renderDash(X1, X2, Y1, Y2, COLOR, WIDTH, DASH) {
-			var d = document.getElementById("volcanoPlot");
+			var d = document.getElementById("volcanoPlot" + this.sectionId);
 			var dtx = d.getContext("2d");
 			dtx.strokeStyle = COLOR;
 			dtx.lineWidth = WIDTH;
@@ -643,8 +631,22 @@ export default Vue.component("research-volcano-plot", {
 $(function () {});
 </script>
 <style>
-#volcanoPlot.hover {
+#volcanoPlot.hover, .volcano-plot:hover {
 	cursor: pointer;
+}
+
+.clicked-dot-value {
+	position: absolute;
+    background-color: #fff;
+    border: solid 1px #aaa;
+    box-shadow: 0 0 5px #00000075;
+    font-size: 12px;
+    padding: 0px 10px 5px 10px;
+    max-width: 300px;
+    border-radius: 5px;
+    z-index: 10;
+    width: auto;
+	padding: 8px 20px 8px 10px!important;
 }
 
 .gene-on-clicked-dot-volcano {

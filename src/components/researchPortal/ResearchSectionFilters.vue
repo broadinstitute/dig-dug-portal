@@ -1,309 +1,6 @@
 <template>
 	<div>
 		<div
-			class="filtering-ui-wrapper search-criteria"
-			id="searchCriteria"
-			v-if="this.apiParameters != null"
-		>
-			<!--<div
-				class="open-close-search-criteria"
-				id="openCloseSearch"
-				@click="showHideSearch()"
-			>
-				Close search
-			</div>-->
-			<h4 class="card-title">Build search criteria</h4>
-			<div class="filtering-ui-content row">
-				<div
-					class="col"
-					v-for="parameter in this.apiParameters.parameters"
-					:key="parameter.parameter"
-				>
-					<div class="label">
-						<span v-html="parameter.label"></span>
-					</div>
-					<template
-						v-if="
-							parameter.type == 'list' &&
-							parameter.values.length <= 10
-						"
-					>
-						<select
-							:id="'search_param_' + parameter.parameter"
-							class="custom-select custom-select-search"
-							v-if="parameter.type == 'list'"
-						>
-							<template v-for="param in parameter.values">
-								<option
-									:value="param.trim()"
-									v-html="
-										getFileLabel(
-											param.trim(),
-											parameter.parameter
-										)
-									"
-									:key="param.trim()"
-								></option>
-							</template>
-						</select>
-					</template>
-					<template
-						v-if="
-							parameter.type == 'list' &&
-							parameter.values.length > 10
-						"
-					>
-						<!--<input
-							v-model="paramSearch"
-							:placeholder="getPlaceHolder(parameter.parameter)"
-							class="form-control"
-						/>-->
-						<input v-model="paramSearch" class="form-control" />
-
-						<select
-							:id="'search_param_' + parameter.parameter"
-							:class="
-								'custom-select custom-select-search long-list ' +
-								getVisibleValues(
-									parameter.values,
-									paramSearch,
-									parameter.parameter
-								)
-							"
-							:size="
-								parameter.values.length > 10
-									? paramSearch.length > 2
-										? 5
-										: 1
-									: 'auto'
-							"
-							:style="
-								parameter.values.length > 10 &&
-								paramSearch.length <= 2
-									? 'display:none !important;'
-									: ''
-							"
-							v-if="parameter.type == 'list'"
-							@change="
-								updateSearchInputByEvent(
-									$event,
-									parameter.parameter
-								)
-							"
-						>
-							<option
-								v-for="param in parameter.values"
-								:value="param.trim()"
-								v-html="
-									getFileLabel(
-										param.trim(),
-										parameter.parameter
-									)
-								"
-								:key="param.trim()"
-								:class="
-									parameter.values.length > 10 &&
-									paramSearch.length > 2 &&
-									!getFileLabel(
-										param.trim(),
-										parameter.parameter
-									)
-										.toLowerCase()
-										.includes(paramSearch.toLowerCase())
-										? 'hidden'
-										: ''
-								"
-							></option>
-						</select>
-					</template>
-					<div>
-						<div
-							v-if="
-								parameter.type == 'input' &&
-								parameter.values == 'kp genes'
-							"
-							id="kp_gene_search_wrapper"
-							:style="
-								!!parameter['expand region']
-									? 'display: inline-block;'
-									: ''
-							"
-						>
-							<!--<input
-							v-model="geneSearch"
-							:placeholder="getPlaceHolder(parameter.parameter)"
-							class="form-control"
-							@keyup="getGenes($event)"
-							:id="'search_param_' + parameter.parameter"
-						/>-->
-
-							<input
-								v-model="geneSearch"
-								class="form-control"
-								@keyup="getGenes($event)"
-								:id="'search_param_' + parameter.parameter"
-							/>
-
-							<div
-								class="custom-select custom-select-search"
-								:size="kpGenes.length >= 5 ? 5 : 'auto'"
-								:style="
-									kpGenes.length == 0
-										? 'display:none !important;'
-										: ''
-								"
-							>
-								<template v-for="gene in kpGenes">
-									<a
-										href="javascript:;"
-										v-html="gene"
-										:key="gene"
-										@click="
-											parameter['convert to region'] &&
-											parameter['convert to region'] ==
-												'true'
-												? getRegion(
-														gene,
-														parameter.parameter,
-														parameter['expand region by']
-												  )
-												: setGene(gene)
-										"
-										class="custom-select-a-option"
-									></a>
-								</template>
-							</div>
-						</div>
-						<!-- -->
-						<div
-							v-if="!!parameter['expand region']"
-							class="expand-region"
-						>
-							<select
-								id="region_expander"
-								class="expand-region-select-byor"
-								@change="expandRegion($event, parameter)"
-							>
-								<option selected="selected" value="null">
-									Expand region by:
-								</option>
-								<option value="50000">± 50 kb</option>
-								<option value="100000">± 100 kb</option>
-								<option value="150000">± 150 kb</option>
-							</select>
-							<span class="tip-wrapper">
-								<b-icon
-									class="tip-bigger warning"
-									icon="exclamation-circle-fill"
-								></b-icon>
-								<div class="tip-content">
-									This feature is in test! Expanding region
-									will refresh the page as a new search with
-									the last search parameters and the expanded
-									region. All filters and previously loaded
-									data will be removed.
-								</div>
-							</span>
-						</div>
-						<!-- -->
-					</div>
-					<!--<input
-						v-if="
-							parameter.type == 'input' &&
-							parameter.values != 'kp genes'
-						"
-						type="text"
-						:placeholder="getPlaceHolder(parameter.parameter)"
-						class="form-control"
-						:id="'search_param_' + parameter.parameter"
-					/>-->
-					<input
-						v-if="
-							parameter.type == 'input' &&
-							parameter.values != 'kp genes'
-						"
-						type="text"
-						class="form-control"
-						:id="'search_param_' + parameter.parameter"
-					/>
-				</div>
-
-				<div
-					class="col"
-					v-if="!!this.dataset && dataComparisonConfig != null"
-				>
-					<div class="label" v-html="'Compare data'"></div>
-					<select id="ifMergeData" class="custom-select">
-						<option value="newSearch" selected>New search</option>
-						<option value="overlapping">Only overlapping</option>
-						<option value="all">All</option>
-					</select>
-				</div>
-				<div class="col">
-					<div @click="queryAPI()" class="btn btn-sm btn-primary">
-						Search
-					</div>
-				</div>
-				<!--<div class="col">
-					<div
-						v-for="(value, name, index) in this.searchParamsIndex"
-						:class="'search-field f-' + index"
-						:key="name"
-					>
-						<b-badge
-							pill
-							v-if="value.search.length > 0"
-							v-for="(v, i) in value.search.filter(
-								(v, i, arr) => arr.indexOf(v) == i
-							)"
-							:key="v"
-							:class="'btn search-bubble ' + i"
-							@click="removeSearch(value.field, i)"
-							v-html="v"
-						></b-badge>
-					</div>
-					<b-badge
-						v-if="this.numberOfSearchParams() > 1"
-						class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
-						@click="removeAllSearchParams()"
-					>
-						Clear all filters
-					</b-badge>
-				</div>-->
-			</div>
-		</div>
-
-		<div
-			class="filtering-ui-wrapper search-criteria"
-			id="searchCriteria"
-			v-if="!!this.dataFiles && this.dataFiles.length > 1"
-		>
-			<!--<div
-				class="open-close-search-criteria"
-				id="openCloseSearch"
-				@click="showHideSearch()"
-			>
-				Close search
-			</div>-->
-			<h4 class="card-title">Select data</h4>
-			<div class="filtering-ui-content row">
-				<div class="col">
-					<select
-						id="dataFiles"
-						@change="switchData($event)"
-						class="custom-select"
-					>
-						<option
-							v-for="file in this.dataFiles"
-							:value="file.trim()"
-							v-html="getFileLabel(file.trim())"
-							:key="file.trim()"
-						></option>
-					</select>
-				</div>
-			</div>
-		</div>
-		<div
 			class="filtering-ui-wrapper"
 			v-if="
 				(!!this.dataset && !!this.filters && this.filters.length > 0) ||
@@ -326,7 +23,7 @@
 							"
 							type="text"
 							class="form-control"
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' +sectionId+ getColumnId(filter.field)"
 							@input="buildSuggestions($event, filter.field)"
 						/>
 						<input
@@ -337,7 +34,7 @@
 							"
 							type="text"
 							class="form-control"
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' + sectionId + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -386,7 +83,7 @@
 						<input
 							type="text"
 							class="form-control"
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' + sectionId + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -396,7 +93,7 @@
 						<select
 							class="egl-filter-direction"
 							:id="
-								'filter_' +
+								'filter_' + sectionId +
 								getColumnId(filter.field) +
 								'_direction'
 							"
@@ -409,7 +106,7 @@
 						<input
 							type="text"
 							class="form-control egl-filter-cd-input"
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' + sectionId + getColumnId(filter.field)"
 							@change="
 								filterData($event, filter.field, filter.type)
 							"
@@ -417,7 +114,7 @@
 					</template>
 					<template v-else-if="filter.type == 'dropdown'">
 						<select
-							:id="'filter_' + getColumnId(filter.field)"
+							:id="'filter_' + sectionId + getColumnId(filter.field)"
 							@change="
 								filterData(
 									$event,
@@ -480,9 +177,7 @@
 <script>
 import Vue from "vue";
 
-//import alertUtils from "@/utils/alertUtils";
-
-export default Vue.component("research-page-filters", {
+export default Vue.component("research-section-filters", {
 	props: [
 		"apiParameters",
 		"dataComparisonConfig",
@@ -495,7 +190,8 @@ export default Vue.component("research-page-filters", {
 		"filterWidth",
 		"dataset",
 		"unfilteredDataset",
-		'utils'
+		"sectionId",
+		"utils",
 	],
 
 	data() {
@@ -775,11 +471,9 @@ export default Vue.component("research-page-filters", {
 			this.kpGenes = [];
 		},
 
-		async getRegion(KEY, PARAM, DEFALT_EXPAND) {
+		/*async getRegion(KEY, PARAM) {
 			let searchPoint =
 				this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
-
-			let regionExpand = !!DEFALT_EXPAND ? DEFALT_EXPAND / 2 : 0;
 
 			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
@@ -787,26 +481,13 @@ export default Vue.component("research-page-filters", {
 				let region =
 					geneJson.data[0].chromosome +
 					":" +
-					(Number(geneJson.data[0].start) - regionExpand) +
+					geneJson.data[0].start +
 					"-" +
-					(Number(geneJson.data[0].end) + regionExpand);
+					geneJson.data[0].end;
 
 				this.geneSearch = region;
 				this.kpGenes = [];
 			}
-			/*
-			if (geneJson.error == null) {
-					let region =
-						geneJson.data[0].chromosome +
-						":" +
-						(Number(geneJson.data[0].start) - regionExpand) +
-						"-" +
-						(Number(geneJson.data[0].end) + regionExpand);
-
-					this.paramSearch[INDEX] = region;
-					this.searchingValues[PARAMETER] = region;
-				}
-			*/
 		},
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
@@ -823,7 +504,7 @@ export default Vue.component("research-page-filters", {
 					this.kpGenes = geneJson.data;
 				}
 			}
-		},
+		},*/
 		emptySearchInput(ID) {},
 		showHideSearch() {
 			let searchUIWrapper = document.getElementById("searchCriteria");
@@ -865,217 +546,9 @@ export default Vue.component("research-page-filters", {
 
 			this.$store.dispatch("dataComparison", ifCompareData);
 		},
-		queryAPI() {
-			//this.showHideSearch();
-			this.utils.uiUtils.showElement("data-loading-indicator");
-
-			for (const FIELD in this.filtersIndex) {
-				this.filtersIndex[FIELD].search = [];
-			}
-			this.$store.state.initialSearch = 0;
-			this.$store.state.bioIndexContinue = [];
-
-			this.$store.dispatch("hugeampkpncms/cancelResearchData");
-			this.setDataComparison();
-
-			let regionFromVariant = null;
-
-			if (this.dataType == "bioindex") {
-				/// set store.searchingPhenotype if searching BioIndex
-				if (
-					this.apiParameters.query.format.includes("phenotype") ==
-					true
-				) {
-					let phenotype = document.getElementById(
-						"search_param_phenotype"
-					).value;
-
-					this.$store.dispatch("searchingPhenotype", phenotype);
-				}
-
-				///This part is for a case of the region being a variant
-				if (
-					this.apiParameters.query.format.includes("region") ==
-						true &&
-					!!this.testLetters(
-						document.getElementById("search_param_region").value
-					)
-				) {
-					let currentRegion = document
-						.getElementById("search_param_region")
-						.value.split(":");
-
-					let chr = currentRegion[0];
-					let pos = currentRegion[1].replace(/\D/g, "");
-
-					let regionStart = Number(pos) - 1;
-					let regionEnd = Number(pos) + 1;
-					let newRegion = chr + ":" + regionStart + "-" + regionEnd;
-
-					regionFromVariant = newRegion;
-
-					document.getElementById("search_param_region").value =
-						newRegion;
-				}
-			}
-
-			let paramsSet = {};
-
-			let queryParams = "";
-			if (this.apiParameters.query.type == "array") {
-				let parametersArr = this.apiParameters.query.format;
-				// key2Update to update the url in case of new search
-				let key2Update = {};
-
-				parametersArr.map((param, index) => {
-					let queryParamValue = document.getElementById(
-						"search_param_" + param
-					).value;
-
-					if (queryParamValue != "noValue") {
-						queryParams += queryParamValue;
-
-						if (index + 1 < parametersArr.length) {
-							queryParams += ",";
-						}
-					} else {
-						if (queryParams[queryParams.length - 1] == ",") {
-							let newQP = queryParams.slice(0, -1);
-							queryParams = newQP;
-						}
-					}
-
-					// add to search parameters index
-					if (this.$store.state.dataComparison == "newSearch") {
-						//reset pkgData and selected filters
-						this.resetAll();
-						this.searchParamsIndex[param].search = [];
-						let sValue = document.getElementById(
-							"search_param_" + param
-						).value;
-						this.searchParamsIndex[param].search.push(sValue);
-						key2Update[param] = sValue;
-						if (!!this.$store.state.pkgDataSelected.length > 0) {
-							this.$store.state.pkgDataSelected = [];
-							this.$store.state.pkgData = {};
-						}
-					} else {
-						this.searchParamsIndex[param].search.push(
-							document.getElementById("search_param_" + param)
-								.value
-						);
-					}
-
-					paramsSet[param] = document.getElementById(
-						"search_param_" + param
-					).value;
-
-					this.$store.dispatch(
-						"searchParameters",
-						this.searchParamsIndex
-					);
-				});
-
-				if (Object.keys(key2Update).length > 0) {
-					const url = new URL(window.location);
-					for (const [key, value] of Object.entries(key2Update)) {
-						url.searchParams.set(key, value);
-					}
-
-					window.history.pushState(null, "", url.toString());
-				}
-			} else if (this.apiParameters.query.type == "parameters") {
-				queryParams += "?";
-				let parametersArr = this.apiParameters.parameters;
-				//let qParameters = {}
-
-				parametersArr.map((p) => {
-					//
-					let queryParamValue = document.getElementById(
-						"search_param_" + p.parameter
-					).value;
-
-					queryParams += p.parameter + "=" + queryParamValue + "&";
-				});
-			}
-
-			if (Object.keys(paramsSet).length > 0) {
-				if (this.$store.state.dataComparison == "newSearch") {
-					this.$store.dispatch("searchParametersArr", {
-						data: paramsSet,
-						action: "reset",
-					});
-				} else {
-					this.$store.dispatch("searchParametersArr", {
-						data: paramsSet,
-						action: "add",
-					});
-				}
-			}
-
-			if (!!regionFromVariant) {
-				let url = new URL(window.location);
-				window.location.href = url;
-			}
-
-			let APIPoint = this.dataFiles[0];
-
-			if (this.dataType == "bioindex" && !!this.isAPI) {
-				/// set BioIndex API point
-				APIPoint +=
-					"query/" +
-					this.apiParameters.query.index +
-					"?q=" +
-					queryParams;
-			} else if (this.dataType != "bioindex" && !!this.isAPI) {
-				APIPoint += queryParams;
-			}
-
-			let fetchParam = { dataPoint: APIPoint, domain: "external" };
-
-			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
-		},
 		/// test if string contains letters
 		testLetters(STR) {
 			return /[a-zA-Z]/.test(STR);
-		},
-		updateSearchInputByEvent(event, PARAMETER) {
-			var label = this.getFileLabel(event.target.value.trim(), PARAMETER);
-
-			this.paramSearch = label + "(" + event.target.value + ")";
-		},
-		updateSearchInput(VALUE) {
-			var label = this.getFileLabel(VALUE.trim());
-
-			this.paramSearch = label + "(" + VALUE + ")";
-		},
-		switchData(event) {
-			this.utils.uiUtils.showElement("data-loading-indicator");
-
-			for (const FIELD in this.filtersIndex) {
-				this.filtersIndex[FIELD].search = [];
-			}
-
-			let initialData = event.target.value;
-
-			let dataPoint =
-				initialData.includes("http://") ||
-				initialData.includes("https://")
-					? initialData
-					: "https://hugeampkpncms.org/sites/default/files/users/user" +
-					  this.uid +
-					  "/" +
-					  initialData;
-
-			let domain =
-				initialData.includes("http://") ||
-				initialData.includes("https://")
-					? "external"
-					: "hugeampkpn";
-
-			let fetchParam = { dataPoint: dataPoint, domain: domain };
-
-			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
 		},
 		numberOfSearches() {
 			let numberOfBubbles = 0;
@@ -1123,10 +596,10 @@ export default Vue.component("research-page-filters", {
 		filterData(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED) {
 			let searchValue = !!SUGGESTED
 				? SUGGESTED
-				: document.getElementById("filter_" + this.getColumnId(FIELD))
+				: document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD))
 						.value; //EVENT.target.value;
 
-			let id = "#filter_" + this.getColumnId(FIELD);
+			let id = "#filter_" + this.sectionId + this.getColumnId(FIELD);
 			let inputField = document.querySelector(id);
 			inputField.blur();
 			inputField.value = "";
@@ -1198,33 +671,18 @@ export default Vue.component("research-page-filters", {
 										!!row[searchIndex.field] &&
 										row[searchIndex.field] != undefined
 									) {
-										let typeofValue, isNumber, numValue, stringValue;
-
-										typeofValue = typeof row[searchIndex.field];
-										isNumber = this.utils.uiUtils.checkIfNumeric(row[searchIndex.field]);
-
-										if(searchIndex.type == "search greater than" || searchIndex.type == "search lower than" || 
-										searchIndex.type == "search or" || searchIndex.type == "search and") {
-
-											numValue = (typeofValue == "string" && !!isNumber) ? Number(row[searchIndex.field])
-												: (typeofValue == "number") ? row[searchIndex.field] : 'wrong value';
-										} else {
-											
-											search = (typeof search == 'number')? search.toString(): search;
-											
-											stringValue = (typeofValue == "number" && !!isNumber) ? row[searchIndex.field].toString()
-												: (typeofValue == "string") ? row[searchIndex.field] : 'wrong value';
-										}
-
 										switch (searchIndex.type) {
 											case "dropdown":
-												search === stringValue
+												search ===
+												row[
+													searchIndex.field
+												].toString()
 													? tempFiltered.push(row)
 													: "";
 
 												break;
 											case "search":
-												stringValue
+												row[searchIndex.field]
 													.toLowerCase()
 													.includes(
 														search.toLowerCase()
@@ -1234,7 +692,7 @@ export default Vue.component("research-page-filters", {
 												break;
 											case "search exact":
 												search.toLowerCase() ===
-												stringValue
+												row[searchIndex.field]
 													.toString()
 													.toLowerCase()
 													? tempFiltered.push(row)
@@ -1242,7 +700,7 @@ export default Vue.component("research-page-filters", {
 
 												break;
 											case "dropdown word":
-												stringValue
+												row[searchIndex.field]
 													.toLowerCase()
 													.includes(
 														search.toLowerCase()
@@ -1253,27 +711,30 @@ export default Vue.component("research-page-filters", {
 												break;
 
 											case "search greater than":
-												if (numValue != 'wrong value' && numValue >= search) {
-													tempFiltered.push(row);
-												}
-												
+												typeof row[searchIndex.field] == 'number' && row[searchIndex.field] >= search
+													? tempFiltered.push(row)
+													: "";
 												break;
 											case "search lower than":
-												if(numValue != 'wrong value' && numValue <= search) {
-													tempFiltered.push(row);
-												}
+											typeof row[searchIndex.field] == 'number' && row[searchIndex.field] <= search
+													? tempFiltered.push(row)
+													: "";
+
 												break;
 											case "search or":
 												searchVals = search.split(",");
 
-												if(numValue != 'wrong value' && (numValue <= Number(searchVals[0].trim()) || numValue >= Number(searchVals[1].trim()))){
-													tempFiltered.push(row)
-												}
+												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] <=
+													searchVals[0].trim() ||
+												row[searchIndex.field] >=
+													searchVals[1].trim())
+													? tempFiltered.push(row)
+													: "";
 												break;
 											case "search change direction":
 												let searchDirection =
 													document.getElementById(
-														"filter_" +
+														"filter_" + this.sectionId +
 															this.getColumnId(
 																searchIndex.field
 															) +
@@ -1297,15 +758,18 @@ export default Vue.component("research-page-filters", {
 											case "search and":
 												searchVals = search.split(",");
 
-												if (numValue != 'wrong value' && (numValue >= Number(searchVals[0].trim()) && numValue <= Number(searchVals[1].trim()))) {
-													tempFiltered.push(row)
-												}
+												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
+													searchVals[0].trim() &&
+												row[searchIndex.field] <=
+													searchVals[1].trim())
+													? tempFiltered.push(row)
+													: "";
 												break;
 										}
 									}
 								});
 							} else {
-								for (let rowNum in targetData) {
+								for (var rowNum in targetData) {
 									let row = targetData[rowNum];
 									if (
 										!!row[searchIndex.field] &&
@@ -1321,7 +785,7 @@ export default Vue.component("research-page-filters", {
 												) == true
 											) {
 												let meetSearch = false;
-												for (let cellNum in row[
+												for (var cellNum in row[
 													searchIndex.field
 												]) {
 													if (
@@ -1364,7 +828,8 @@ export default Vue.component("research-page-filters", {
 											searchIndex.type == "search" ||
 											searchIndex.type == "dropdown word"
 										) {
-											
+											//for (var rowNum in targetData) {
+											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1577,7 +1042,7 @@ export default Vue.component("research-page-filters", {
 										) {
 											let searchDirection =
 												document.getElementById(
-													"filter_" +
+													"filter_" + this.sectionId +
 														this.getColumnId(
 															searchIndex.field
 														) +
@@ -1765,7 +1230,8 @@ export default Vue.component("research-page-filters", {
 
 				this.applyFilters();
 			} else {
-				this.$store.dispatch("filteredData", filtered);
+				//this.$store.dispatch("filteredData", filtered);
+				this.$emit('on-filtering', filtered);
 			}
 		},
 		removeAllFilters() {

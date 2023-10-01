@@ -94,7 +94,7 @@
 		>
 			<div class="card mdkp-card dataset-page-header">
 				<div class="row card-body">
-					<div class="col-md-12">
+					<div class="col-md-8">
 						<h3 v-html="$parent.pageTitle"></h3>
 						<div
 							v-if="
@@ -106,6 +106,47 @@
 							id="rpSubHeader"
 							class="rp-sub-header"
 						></div>
+						
+					</div>
+					<div class="col-md-4 text-right" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
+						<button class="btn btn-sm btn-primary" @click="$parent.utilsBox.uiUtils.showHideElement('captured_data_panel')" title="Show / hide captured data list"><b-icon
+													icon="images"
+												></b-icon></button>
+					</div>
+				</div>
+			</div>
+
+			<div id="captured_data_panel" class="card mdkp-card hidden">
+				<div class="row card-body">
+					<div class="col-md-12">
+						<h4>Captured data</h4>
+						<table class="table table-sm research-data-table">
+							<thead>
+								<tr>
+									<th>Section / Parameters</th><th>Save section data in CSV</th><th>Save section data in JSON</th><th>Remove section data</th>
+								</tr>
+							</thead>
+							<tbody>
+	<tr v-for="data  in $store.state.capturedData">
+		
+								<td v-html="data.title"></td>
+								<td>
+									<button class="btn btn-sm btn-primary save-remove-section-data" @click="$parent.saveCapturedData('csv', data.title)">Save CSV</button>
+									</td>
+									<td>
+										<button class="btn btn-sm btn-primary save-remove-section-data" @click="$parent.saveCapturedData('json', data.title)">Save JSON</button>
+										</td>
+									<td>
+									<button class="btn btn-sm btn-warning" @click="$store.dispatch('capturedData', {action:'remove',title:data.title})">Remove</button>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+						
+						<div class="col-md-12 text-center">
+							<button class="btn btn-primary" @click="$parent.utilsBox.uiUtils.saveJson($store.state.capturedData, $parent.pageTitle+' sections data')">Save all (JSON)</button>
+						</div>
+						
 					</div>
 				</div>
 			</div>
@@ -115,6 +156,7 @@
 					<div class="col-md-12">
 						<research-page-description
 							:content="$parent.pageDescription"
+							:utils="$parent.utilsBox"
 						></research-page-description>
 					</div>
 				</div>
@@ -193,6 +235,7 @@
 									:unfilteredDataset="
 										$store.state.unfilteredData
 									"
+									:utils="$parent.utilsBox"
 								></research-page-filters>
 							</div>
 						</template>
@@ -308,6 +351,8 @@
 								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-m-plot>
 							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-bitmap-plot
@@ -322,6 +367,8 @@
 									$parent.dataComparisonConfig
 								"
 								:compareGroupColors="$parent.colors.moderate"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-m-bitmap-plot>
 							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-qq-plot
@@ -336,6 +383,8 @@
 									$parent.dataComparisonConfig
 								"
 								:compareGroupColors="$parent.colors.moderate"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-m-qq-plot>
 							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
@@ -358,6 +407,8 @@
 								:regionViewArea="$parent.regionViewArea"
 								:pkgData="$store.state.pkgData"
 								:pkgDataSelected="$store.state.pkgDataSelected"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-region-plot>
 							<!--v-if="$parent.plotType == 'score_plot'"-->
 							<research-score-plot
@@ -374,6 +425,8 @@
 								:searchParameters="
 									$store.state.searchParameters
 								"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-score-plot>
 
 							<research-genes-track
@@ -391,6 +444,8 @@
 								:plotMargin="$parent.plotMargin"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-genes-track>
 							<!--v-if="$parent.plotType == 'volcano_plot'"-->
 							<research-volcano-plot
@@ -400,6 +455,8 @@
 								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-volcano-plot>
 							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-heatmap
@@ -409,6 +466,8 @@
 								"
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-heatmap>
 							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-phewas-plot
@@ -425,6 +484,8 @@
 								:renderConfig="$parent.plotConfig"
 								:pkgData="null"
 								:pkgDataSelected="null"
+								:utils="$parent.utilsBox"
+								canvasId=""
 							></research-phewas-plot>
 							<!--v-if="
 									$parent.plotType == 'custom_pkg' &&
@@ -446,6 +507,8 @@
 								:colors="$parent.colors"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
+								
 							></kp-gem-pkg>
 						</div>
 						<div
@@ -476,6 +539,7 @@
 								:phenotypeMap="
 									$store.state.bioPortal.phenotypeMap
 								"
+								:utils="$parent.utilsBox"
 							>
 							</research-data-table>
 							<research-gem-data-table
@@ -500,9 +564,97 @@
 								:region="$store.state.searchingRegion"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
 							>
 							</research-gem-data-table>
 						</div>
+						<!-- multi section test-->
+						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
+
+							<research-multi-sections-search 
+							v-if="!!$parent.multiSectionsSearchParameters"
+								:searchParameters="$parent.multiSectionsSearchParameters"
+								:phenotypesInUse="$parent.phenotypesInSession"
+								:sections="$parent.sectionConfigs.sections"
+								:utils="$parent.utilsBox"
+								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
+								>
+							</research-multi-sections-search>
+							<template v-if="!!$parent.sectionConfigs['tab groups']">
+								<template v-for="group, groupIndex in $parent.sectionConfigs['tab groups']">
+									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
+										<div v-for="tab, tabIndex in group" :id="'tabUi'+tab.section" class="tab-ui-tab" :class="tabIndex == 0?'active':''"
+											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
+												'tabContent' + tab.section,'tabContentGroup' + groupIndex)">
+											{{ tab.label }}
+										</div>
+									</div>
+									<div :id="'tabContentGroup'+groupIndex">
+										<template v-for="tab, tabIndex in group">
+											<div v-for="config, index in $parent.sectionConfigs.sections" 
+												v-if="config['section id'] == tab.section"
+												:id="'tabContent' + tab.section"
+												class="tab-content-wrapper"
+												:class="(tabIndex == 0)?'':'hidden-content'"
+												>
+												<research-section
+													:sectionIndex="'section-' + index"
+													:uId="$parent.uid"
+													:sectionConfig="config"
+													:description="!!$parent.sectionDescriptions? 
+														$parent.sectionDescriptions[config['section id']]:''"
+													:phenotypeMap="$parent.phenotypeMap"
+													:phenotypesInUse="$parent.phenotypesInSession"
+													:colors="$parent.colors"
+													:plotMargin="$parent.plotMargin"
+													:plotLegend="$parent.multiPlotLegends"
+													:tableLegend="$parent.multiTableLegends"
+													:utils="$parent.utilsBox"
+													:key="index">
+												</research-section>
+										</div>
+										</template>
+									</div>
+								</template>
+								<template v-for="config, index in $parent.sectionConfigs.sections">
+									<research-section
+										v-if="$parent.isInTabGroups(config['section id']) == false"
+										:sectionIndex="'section-' + index"
+										:uId="$parent.uid"
+										:sectionConfig="config"
+										:description="!!$parent.sectionDescriptions ?
+											$parent.sectionDescriptions[config['section id']] : ''"
+										:phenotypeMap="$parent.phenotypeMap"
+										:phenotypesInUse="$parent.phenotypesInSession"
+										:colors="$parent.colors"
+										:plotMargin="$parent.plotMargin"
+										:plotLegend="$parent.plotLegend"
+										:tableLegend="$parent.tableLegend"
+										:utils="$parent.utilsBox"
+										:key="index">
+									</research-section>	
+								</template>
+							</template>
+							<template v-else>
+								<research-section
+									v-for="config, index in $parent.sectionConfigs.sections"
+									:sectionIndex="'section-' + index"
+									:uId="$parent.uid"
+									:sectionConfig="config"
+									:description="!!$parent.sectionDescriptions ?
+										$parent.sectionDescriptions[config['section id']] : ''"
+									:phenotypeMap="$parent.phenotypeMap"
+									:phenotypesInUse="$parent.phenotypesInSession"
+									:colors="$parent.colors"
+									:plotMargin="$parent.plotMargin"
+									:plotLegend="$parent.plotLegend"
+									:tableLegend="$parent.tableLegend"
+									:utils="$parent.utilsBox"
+									:key="index">
+								</research-section>	
+							</template>
+							
+	            		</div>
 					</div>
 				</div>
 
@@ -547,6 +699,9 @@
 			No data is available for the last search. Please try a new search.
 		</div>
 
+		<div id="plotLegend" v-html="$parent.plotLegend" style="display:none;"></div>
+		<div id="tableLegend" v-html="$parent.tableLegend" style="display:none;"></div>
+
 		<!-- Research portal Footer-->
 		<research-page-footer
 			v-if="$parent.displayOnKP == null"
@@ -566,6 +721,9 @@
 html {
 	font-size: 14px !important;
 }
+.card.hidden {
+	display: none !important;
+}
 .no-data-warning {
 	background-color: #ffaaaa;
 	position: fixed;
@@ -578,8 +736,10 @@ html {
 	border-radius: 5px;
 	color: #ffffff;
 }
-#alert_pop_up {
+
+.alert-pop-up {
 	position: fixed;
+	z-index: 200;
 	width: 400px;
 	top: 50%;
 	left: calc(50% - 200px);
@@ -590,6 +750,20 @@ html {
 	font-size: 1.15em;
 	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
+
+.section-alert-pop-up {
+	position: fixed;
+	z-index: 200;
+	width: 400px;
+	right: 15px;
+	background-color: #ffefef;
+	padding: 15px 30px;
+	border: solid 1px #ff8888;
+	border-radius: 5px;
+	font-size: 1.15em;
+	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
 .zoom-ui-wrapper {
 	font-size: 13px;
 	font-weight: 700;
@@ -680,5 +854,32 @@ html {
 
 .research-data-table td.multi-value-td span {
 	height: 27px !important;
+}
+
+.tab-ui-wrapper {
+	border-bottom: solid 1px #ddd;
+    margin: 25px 0;
+    padding: 0 25px;
+}
+
+.tab-ui-wrapper .tab-ui-tab {
+	padding: 10px 15px;
+    border: solid 1px #ddd;
+    display: inline-block;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    margin-right: 5px;
+    background-color: #eee;
+    margin-bottom: -1px;
+	color: #0069d9;
+}
+
+.tab-ui-wrapper .tab-ui-tab:hover {
+	cursor: pointer;
+}
+
+.tab-ui-wrapper .tab-ui-tab.active {
+	border-bottom: solid 1px #fff;
+	background-color: #fff;
 }
 </style>

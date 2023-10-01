@@ -13,15 +13,11 @@ import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
-import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
 import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
-import Formatters from "@/utils/formatters";
 import VariantSearch from "@/components/VariantSearch";
-import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -46,6 +42,14 @@ import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
 import Counter from "@/utils/idCounter";
 import regionUtils from "@/utils/regionUtils";
+
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
 
 import Alert, {
     postAlert,
@@ -125,10 +129,94 @@ new Vue({
                 },
             },
             noTranscriptDataPortal: ["sleep", "lung", "ndkp", "autoimmune"],
+            plotColors: [
+                '#007bff',
+                '#048845',
+                '#8490C8',
+                '#BF61A5',
+                '#EE3124',
+                '#FCD700',
+                '#5555FF',
+                '#7aaa1c',
+                '#9F78AC',
+                '#F88084',
+                '#F5A4C7',
+                '#CEE6C1',
+                '#cccc00',
+                '#6FC7B6',
+                '#D5A768',
+                '#d4d4d4'
+            ],
+            phewasPlotMargin: {
+                leftMargin: 150,
+                rightMargin: 40,
+                topMargin: 20,
+                bottomMargin: 100,
+                bump: 11
+            },
+            hugeScoreRenderConfig: {
+                type: 'phewas plot',
+                'render by': 'phenotype',
+                'group by': 'group',
+                'phenotype map': 'kp phenotype map',
+                'y axis field': 'renderScore',
+                'convert y -log10': 'false',
+                'y axis label': 'Log(HuGE score)',
+                'x axis label': '',
+                'beta field': 'null',
+                'hover content': [
+                    'bf_common',
+                    'bf_rare',
+                    'huge',
+                ],
+                thresholds: [Math.log(3), Math.log(30)],
+                'label in black': 'greater than',
+                height: '500'
+            },
+            commonVariantRenderConfig: {
+                type: 'phewas plot',
+                'render by': 'phenotype',
+                'group by': 'phenotype group',
+                'phenotype map': 'kp phenotype map',
+                'y axis field': 'pValue',
+                'convert y -log10': 'true',
+                'y axis label': '-Log10(p-value)',
+                'x axis label': 'beta',
+                'beta field': 'null',
+                'hover content': ['pValue'],
+                thresholds: ['2.5e-6'],
+                height: '500',
+            },
+            rareVariantRenderConfig: {
+                type: 'phewas plot',
+                'group by': 'phenotype group',
+                'render by': 'phenotype',
+                'phenotype map': 'kp phenotype map',
+                'y axis field': 'pValue',
+                'convert y -log10': 'true',
+                'y axis label': '-Log10(p-value)',
+                'x axis label': 'beta',
+                'beta field': 'beta',
+                'hover content': ['pValue', 'beta'],
+                thresholds: ['2.5e-6', '0.05'],
+                height: '500',
+            },
         };
     },
 
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
         /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -266,16 +354,16 @@ new Vue({
                     data[i].huge >= 350
                         ? "Compelling"
                         : data[i].huge >= 100
-                        ? "Extreme"
-                        : data[i].huge >= 30
-                        ? "Very Strong"
-                        : data[i].huge >= 10
-                        ? "Strong"
-                        : data[i].huge >= 3
-                        ? "Moderate"
-                        : data[i].huge > 1
-                        ? "Anecdotal"
-                        : "No Evidence";
+                            ? "Extreme"
+                            : data[i].huge >= 30
+                                ? "Very Strong"
+                                : data[i].huge >= 10
+                                    ? "Strong"
+                                    : data[i].huge >= 3
+                                        ? "Moderate"
+                                        : data[i].huge > 1
+                                            ? "Anecdotal"
+                                            : "No Evidence";
 
                 score["range"] = range;
                 score["renderScore"] = Math.log(data[i].huge);
@@ -673,9 +761,8 @@ new Vue({
             let r = this.region;
 
             if (r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${r.chromosome
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
 

@@ -26,7 +26,7 @@ export default Vue.component("filter-greater-control", {
         pillFormatter: {
             type: Function,
             default: filterDefinition =>
-                `${filterDefinition.field} >= ${filterDefinition.threshold}`
+                `${filterDefinition.field} ≥ ${filterDefinition.threshold}`
         },
         color: {
             type: String
