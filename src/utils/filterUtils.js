@@ -1,4 +1,4 @@
-let applyFilters = function (FILTERS, DATA) {
+let applyFilters = function (FILTERS, DATA, PARAMS) {
     let returnData = [];
     let filterData = DATA;
 
@@ -6,8 +6,11 @@ let applyFilters = function (FILTERS, DATA) {
         let meetFilters = true;
 
         FILTERS.map(filter => {
+            /* let filterValue = (filter.value == 'search parameter') ?
+                 document.getElementById('search_param_' + filter.parameter).value : filter.value;*/
+
             let filterValue = (filter.value == 'search parameter') ?
-                document.getElementById('search_param_' + filter.parameter).value : filter.value;
+                PARAMS[filter.parameter] : filter.value;
 
             if (!!d[filter.field] && d[filter.field] != undefined && meetFilters == true) {
                 let filterVals;

@@ -281,23 +281,6 @@ export default Vue.component("research-section", {
 				this.interSectionsFilter.push(FILTER);
 			}
 			
-			
-			console.log("this.interSectionsFilter", this.interSectionsFilter)
-
-			//filter data
-			if(this.interSectionsFilter.length > 0) {
-				let filteredData = [];
-				this.originalData.map(d => {
-					this.interSectionsFilter.map(f=>{
-						if (!!f.data.includes(d[f["filter by"]["target field"]])) {
-							filteredData.push(d);
-						}
-					})
-				})
-
-				this.sectionData = filteredData;
-			}
-			
 		},
 		getGroups() {
 			let groups = null;
@@ -554,11 +537,6 @@ export default Vue.component("research-section", {
 							data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap);
 						}
 
-						if(!!this.sectionConfig["pre filters"]) {
-							let filters = this.sectionConfig["pre filters"];
-							data = this.utils.filterUtils.applyFilters(filters,data);
-						}
-
 						let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true")?
 							true : null;
 
@@ -566,7 +544,7 @@ export default Vue.component("research-section", {
 							true : null;
 
 						if (!!cumulateData) {
-							console.log("data cumulated")
+							
 							if (dataPoint.type == "bioindex") {
 
 								if (contJson.page == 1) {
@@ -605,6 +583,40 @@ export default Vue.component("research-section", {
 				} else {
 					this.sectionData = null;
 				}
+
+
+				if (this.sectionData != null && !!this.sectionConfig["pre filters"]) {
+					let filters = this.sectionConfig["pre filters"];
+					let filterValues = {}
+
+					filters.map(filter => {
+						filterValues[filter.parameter] = this.utils.keyParams[filter.parameter]
+					})
+
+					this.sectionData = this.utils.filterUtils.applyFilters(filters, this.sectionData, filterValues);
+				}
+
+				console.log("this.interSectionsFilter", this.interSectionsFilter);
+
+				/*
+
+				
+
+			//filter data
+			if(this.interSectionsFilter.length > 0) {
+				let filteredData = [];
+				this.originalData.map(d => {
+					this.interSectionsFilter.map(f=>{
+						if (!!f.data.includes(d[f["filter by"]["target field"]])) {
+							filteredData.push(d);
+						}
+					})
+				})
+
+				this.sectionData = filteredData;
+			}
+
+				*/
 
 				
 
