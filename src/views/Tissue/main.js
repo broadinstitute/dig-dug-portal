@@ -5,12 +5,14 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
 import keyParams from "@/utils/keyParams";
+import TissueTable from "@/components/TissueTable.vue";
 new Vue({
     store,
     components: {
         PageHeader,
         PageFooter,
         Documentation,
+        TissueTable,
     },
     data() {
         return {
