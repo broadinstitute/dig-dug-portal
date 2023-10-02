@@ -630,9 +630,6 @@ new Vue({
                 });
             }
         },
-        "$store.state.commonVariantsLength"(NUM) {
-            this.onAncestrySet();
-        },
         "$store.state.geneName"(NAME) {
             this.$store.dispatch("getHugeScoresData");
         },
@@ -691,40 +688,6 @@ new Vue({
             uiUtils.hideElement("invalidGeneWarning");
         },
 
-        onAncestrySet() {
-            let ancestry = this.$store.state.selectedAncestry;
-
-            let sectionWrapper = document.getElementById("common_variants");
-            let bubbleCollection = sectionWrapper.querySelectorAll(
-                ".filter-pill-collection"
-            );
-            let bubbleWrapper = document.getElementById("ancestry_set");
-
-            bubbleWrapper.innerHTML = "";
-
-            let ancestryBubble = document.getElementById("ancestry_bubble");
-            if (ancestryBubble) {
-                ancestryBubble.remove();
-            }
-
-            let bubble = document.createElement("span");
-            bubble.setAttribute(
-                "class",
-                "badge btn search-bubble 3 badge-secondary badge-pill"
-            );
-            bubble.setAttribute("id", "ancestry_bubble");
-            bubble.textContent =
-                "Ancestry = " + this.ancestryFormatter(ancestry);
-
-            if (!!ancestry && ancestry != undefined) {
-                if (bubbleCollection.length > 0) {
-                    bubbleCollection[0].append(bubble);
-                } else {
-                    bubbleWrapper.innerHTML = " Selected Filters:	 ";
-                    bubbleWrapper.append(bubble);
-                }
-            }
-        },
         pushCriterionPhenotype(phenotypeName) {
             this.genePageSearchCriterion.push({
                 field: "phenotype",
