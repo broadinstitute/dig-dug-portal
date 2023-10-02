@@ -488,7 +488,10 @@
             <div v-else>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        No data available for this query.
+                        <b-alert show variant="warning">
+                            <b-icon icon="exclamation-triangle"></b-icon>No data
+                            available for this query.
+                        </b-alert>
                     </div>
                 </div>
             </div>
