@@ -66,7 +66,7 @@
 					</span>
 				</div>
 
-				<canvas
+				<canvas :hidden="!showCanvas"
 					:id="canvasId + 'pheWasPlot'"
 					width=""
 					height=""
@@ -113,6 +113,7 @@ export default Vue.component("research-phewas-plot", {
 			spaceBy: 7,
 			trigger: 0,
 			hoverItems: {},
+			showCanvas: true
 		};
 	},
 	modules: {
@@ -139,6 +140,7 @@ export default Vue.component("research-phewas-plot", {
 			}
 		},
 		renderData() {
+			this.showCanvas = true;
 			let content = {};
 			content["data"] = [];
 
@@ -174,6 +176,7 @@ export default Vue.component("research-phewas-plot", {
 			if (!!content.data && content.data.length > 0) {
 				return content;
 			} else {
+				this.showCanvas = false;
 				return null;
 			}
 		},
