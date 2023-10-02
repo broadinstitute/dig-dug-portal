@@ -1,5 +1,5 @@
 <template>
-    <div v-if="associations.length > 0" class="EGLT-table fiftytwo">
+    <div v-if="filteredAssociations.length > 0" class="EGLT-table fiftytwo">
         <b-container fluid>
             <div class="text-right mt-2 mb-2 border-0">
                 <data-download
@@ -144,6 +144,7 @@ export default Vue.component("GeneAssociationsMasks", {
             uiUtils.showHideElement("feature-plot-" + index);
         },
     },
+
 });
 </script>
 
