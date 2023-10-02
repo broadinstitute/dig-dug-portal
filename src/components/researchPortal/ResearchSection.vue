@@ -145,6 +145,7 @@ export default Vue.component("research-section", {
 			remoteFilters:null,
 			remoteVisualizer:null,
 			remoteSectionDecription:null,
+			interSectionsFilter:[],
 		};
 	},
 	modules: {
@@ -249,21 +250,54 @@ export default Vue.component("research-section", {
 	},
 	watch: {
 		sectionData(DATA) {
-			if(!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["sections filters"]){
+			if(DATA.length > 0 && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["sections filters"]){
 				let sections = this.sectionConfig["table format"]["sections filters"]["target sections"];
-				console.log("data updated");
+
 				sections.map(section=>{
-					this.$root.$refs[section.section].filterAcrossSections(this.sectionID,DATA, section["filter by"]);
+					let filterData = DATA.map(d => d[section["filter by"]["filter field"]]);
+					this.$root.$refs[section.section].filterAcrossSections(this.sectionID, filterData, section);
 				})
 			}
 		}
 	},
 	methods: {
 
-		filterAcrossSections(FROM,FILTER_DATA,FILTER_CONFIG) {
-			console.log("FROM", FROM)
-			console.log("FILTER_DATA", FILTER_DATA)
-			console.log("FILTER_CONFIG", FILTER_CONFIG)
+		filterAcrossSections(FROM,FILTER_DATA,FILTER) {
+
+			FILTER["data"] = FILTER_DATA;
+			FILTER["from"] = FROM;
+
+			let isFilter = false;
+			if(this.interSectionsFilter.length > 0) {
+				this.interSectionsFilter.map(f=>{
+					if(f.from == FROM) {
+						f = FILTER;
+						isFilter = true;
+					}
+				})
+			}
+
+			if(!isFilter) {
+				this.interSectionsFilter.push(FILTER);
+			}
+			
+			
+			console.log("this.interSectionsFilter", this.interSectionsFilter)
+
+			//filter data
+			if(this.interSectionsFilter.length > 0) {
+				let filteredData = [];
+				this.originalData.map(d => {
+					this.interSectionsFilter.map(f=>{
+						if (!!f.data.includes(d[f["filter by"]["target field"]])) {
+							filteredData.push(d);
+						}
+					})
+				})
+
+				this.sectionData = filteredData;
+			}
+			
 		},
 		getGroups() {
 			let groups = null;
