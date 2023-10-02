@@ -94,7 +94,12 @@
             :per-page="perPage"
         ></b-pagination>
     </div>
-    <div v-else>No data available for this query.</div>
+    <div v-else>
+        <b-alert show variant="warning" class="text-center">
+            <b-icon icon="exclamation-triangle"></b-icon> No data available for
+            this query.
+        </b-alert>
+    </div>
 </template>
 
 <script>
@@ -127,7 +132,9 @@ export default Vue.component("GeneAssociationsMasks", {
         },
         //filter associations that only exist in the phenotypeMap
         filteredAssociations() {
-            let assocs = !this.filter ? this.associations : this.associations.filter(this.filter);
+            let assocs = !this.filter
+                ? this.associations
+                : this.associations.filter(this.filter);
             return (
                 assocs.filter((row) => {
                     return this.phenotypeMap[row.phenotype];
@@ -144,7 +151,6 @@ export default Vue.component("GeneAssociationsMasks", {
             uiUtils.showHideElement("feature-plot-" + index);
         },
     },
-
 });
 </script>
 
