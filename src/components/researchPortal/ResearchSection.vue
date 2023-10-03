@@ -69,7 +69,7 @@
 						<h6 v-html="plotConfig.label"></h6>
 						<research-section-visualizers
 							:plotConfig="plotConfig"
-							:plotData="sectionData"
+							:plotData="(!getGroups() || (!!getGroups() && getGroups().length<=1))?sectionData:filterSectionData(plotConfig.label)"
 							:phenotypeMap="phenotypeMap"
 							:colors="colors"
 							:plotMargin="plotMargin"
@@ -83,7 +83,7 @@
 				</div>
 
 				<research-section-visualizers
-					v-if="!!visualizer && !!sectionData"
+					v-if="!multiVisualizers && !!visualizer && !!sectionData"
 					:plotConfig="visualizer"
 					:plotData="sectionData"
 					:phenotypeMap="phenotypeMap"
@@ -103,7 +103,7 @@
 					:initPerPageNumber="(!!tableFormat['rows per page'])? tableFormat['rows per page'] :10"
 					:tableLegend="sectionTableLegend"
 					:dataComparisonConfig="
-						dataComparisonConfig
+						null
 					"
 					:searchParameters="
 						null
@@ -187,7 +187,6 @@ export default Vue.component("research-section", {
 					"fields group data key": this.tableFormat["group by"],
 					"fields to compare": this.tableFormat["compare data"]["fields to compare"]
 				}
-
 				return config;
 			} else {
 				return null
@@ -239,7 +238,24 @@ export default Vue.component("research-section", {
 				if (!!this.sectionConfig["visualizers"]) {
 
 					return this.sectionConfig["visualizers"]["visualizers"];
-				} else {
+				} else if(!!this.dataComparisonConfig) {
+					let plotConfigs =[]
+					let groups = this.getGroups();
+					groups.map(group =>{
+						let visualizer = Object.assign({},this.visualizer);
+						plotConfigs.push(visualizer);
+					})
+
+					for(let i=0; i < groups.length; i++) {
+						console.log(groups[i]);
+						plotConfigs[i]["label"] = groups[i];
+						if(i < groups.length-1 && !!plotConfigs[i]["genes track"]) {
+							delete plotConfigs[i]["genes track"]
+						}
+					}
+
+					return plotConfigs;
+				}else {
 					return null;
 				}
 			} else {
@@ -250,6 +266,8 @@ export default Vue.component("research-section", {
 			if (!!this.sectionData) {
 				if (!!this.sectionConfig["visualizers"]) {
 					return this.sectionConfig["visualizers"]["wrapper type"];
+				} else if (!!this.dataComparisonConfig) {
+					return "divs";
 				} else {
 					return null;
 				}
@@ -324,6 +342,27 @@ export default Vue.component("research-section", {
 			}
 
 			return groups;
+		},
+		filterSectionData(GROUP) {
+			let groupValues = GROUP.split(", ");
+			let groupKeys = this.sectionConfig["table format"]["group by"];
+
+			let filteredData = [];
+
+			this.sectionData.map(row => {
+				let dataFit = true;
+				let keyIndex = 0;
+				groupKeys.map(key => {
+					if(row[key] != groupValues[keyIndex]) (dataFit = false)
+					keyIndex++;
+				})
+
+				if (!!dataFit) {
+					filteredData.push(row);
+				}
+			})
+
+			return filteredData;
 		},
 		getSectionPlotLegend(ID) {
 			
@@ -649,11 +688,6 @@ export default Vue.component("research-section", {
 				} 
 
 				this.originalData = this.sectionData;
-
-				console.log("this.dataComparisonConfig",this.dataComparisonConfig);
-				if(!!this.dataComparisonConfig) {
-					console.log(this.dataComparisonConfig);
-				}
 
 				//flag.classList.add("hidden");
 
