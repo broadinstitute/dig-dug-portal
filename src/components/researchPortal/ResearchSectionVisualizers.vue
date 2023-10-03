@@ -129,7 +129,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAn
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 export default Vue.component("research-section-visualizers", {
-	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","sectionId","utils"],
+	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","sectionId","utils","dataComparisonConfig"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchMPlotBitmap,
@@ -154,7 +154,6 @@ export default Vue.component("research-section-visualizers", {
 		
 	},
 	watch: {
-		
 	},
 	methods: {
 		

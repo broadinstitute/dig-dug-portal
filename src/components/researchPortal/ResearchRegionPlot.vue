@@ -261,7 +261,7 @@ export default Vue.component("research-region-plot", {
 		"pkgDataSelected",
 		"isSectionPage",
 		"sectionId",
-		"utils"
+		"utils",
 	],
 	data() {
 		return {
@@ -334,9 +334,9 @@ export default Vue.component("research-region-plot", {
 			}
 
 			if (this.plotData != null) {
-				var plotsKeys = [];
+				let plotsKeys = [];
 				if (this.dataComparisonConfig != null) {
-					var field =
+					let field =
 						this.dataComparisonConfig["fields to compare"][0];
 					// get list of data groups
 					for (const [pKey, pValue] of Object.entries(
@@ -357,9 +357,6 @@ export default Vue.component("research-region-plot", {
 					plotsKeys.push("default");
 				}
 
-				if (!!newRegion) {
-				}
-
 				this.assoData = {}; // reset assoData
 				this.ldData = {}; // reset ldData
 				this.recombData = ""; // reset recombData
@@ -367,8 +364,8 @@ export default Vue.component("research-region-plot", {
 				this.ldPos = {};
 
 				//feed assoData + set initial reference variant
-				var yAxField = this.renderConfig["y axis field"];
-				var populationsType =
+				let yAxField = this.renderConfig["y axis field"];
+				let populationsType =
 					this.renderConfig["ld server"]["populations type"];
 
 				plotsKeys.map((group) => {
@@ -730,9 +727,9 @@ export default Vue.component("research-region-plot", {
 			});
 		},
 		getDotsOnPosition(TYPE, GROUP, X, Y) {
-			var posData =
+			let posData =
 				TYPE == "asso" ? this.assoPos[GROUP] : this.ldPos[GROUP];
-			var dotsList = [];
+			let dotsList = [];
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
@@ -747,13 +744,13 @@ export default Vue.component("research-region-plot", {
 			return dotsList;
 		},
 		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let y = Math.floor(e.clientY - rect.top);
 			let rawX = e.clientX;
 
-			var dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
+			let dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
 			dotsOnPosition = [...new Set(dotsOnPosition)];
 
 			let infoBoxId =
@@ -843,7 +840,7 @@ export default Vue.component("research-region-plot", {
 			this.callForRecombData();
 		},
 		async callForRecombData() {
-			var signalURL =
+			let signalURL =
 				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
 				this.searchingRegion.chr +
 				"' and position gt " +
@@ -851,7 +848,7 @@ export default Vue.component("research-region-plot", {
 				" and position lt " +
 				this.searchingRegion.end;
 
-			var signalJson = await fetch(signalURL).then((resp) => resp.json());
+			let signalJson = await fetch(signalURL).then((resp) => resp.json());
 			this.recombData = {};
 			if (signalJson.error == null) {
 				this.recombData["position"] = signalJson.data.position;
@@ -868,9 +865,9 @@ export default Vue.component("research-region-plot", {
 				plotWrapper.classList.remove("hidden");
 			});
 
-			var plotID = null;
+			let plotID = null;
 
-			for (var i = 0; i < this.plotsList.length; i++) {
+			for (let i = 0; i < this.plotsList.length; i++) {
 				if (
 					this.plotsList[i] != "Combined" &&
 					this.ldData[this.plotsList[i]].data == null
@@ -908,7 +905,7 @@ export default Vue.component("research-region-plot", {
 					this.callForLDData();
 				}
 			} else {
-				for (var i = 0; i < this.plotsList.length; i++) {
+				for (let i = 0; i < this.plotsList.length; i++) {
 					if (this.plotsList[i] != "Combined") {
 						let plotID = this.plotsList[i];
 
@@ -925,9 +922,7 @@ export default Vue.component("research-region-plot", {
 					}
 				}
 
-				if(!!this.isSectionPage) {
-
-				} else {
+				if(!this.isSectionPage) {
 					this.$store.dispatch("filteredData", this.plotData);
 				}
 				
@@ -1091,8 +1086,8 @@ export default Vue.component("research-region-plot", {
 
 			if (TYPE == "asso") {
 				this.assoPos[GROUP] = {};
-				var xField = this.renderConfig["x axis field"];
-				var yField = this.renderConfig["y axis field"];
+				let xField = this.renderConfig["x axis field"];
+				let yField = this.renderConfig["y axis field"];
 
 				if (GROUP != "Combined") {
 					for (const [key, value] of Object.entries(
@@ -1271,7 +1266,7 @@ export default Vue.component("research-region-plot", {
 							this.plotMargin.topMargin + HEIGHT / 2
 						);
 					} else {
-						var yField = this.renderConfig["y axis field"];
+						let yField = this.renderConfig["y axis field"];
 
 						for (const [key, value] of Object.entries(
 							this.ldData[GROUP].data
@@ -1340,7 +1335,7 @@ export default Vue.component("research-region-plot", {
 
 				if (GROUP == "Combined") {
 					let linesObj = {};
-					var yField = this.renderConfig["y axis field"];
+					let yField = this.renderConfig["y axis field"];
 
 					this.plotsList.map((pGroup, pIndex) => {
 						if (pGroup != "Combined") {
@@ -1544,9 +1539,9 @@ export default Vue.component("research-region-plot", {
 			CTX.restore();
 		},
 		renderRecombLine(CTX, PWIDTH, PHEIGHT, END, START) {
-			var DATA = this.recombData;
-			var xPixel = PWIDTH / (END - START);
-			var yPixel = PHEIGHT / 100;
+			let DATA = this.recombData;
+			let xPixel = PWIDTH / (END - START);
+			let yPixel = PHEIGHT / 100;
 
 			CTX.beginPath();
 			CTX.lineWidth = 1;

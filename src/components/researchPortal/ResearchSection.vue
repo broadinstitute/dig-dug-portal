@@ -12,7 +12,7 @@
 					
 					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'" v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter" style="font-size:0.7em"
 					v-html="!!utils.keyParams[parameter]? utils.keyParams[parameter] + '  ' : parameter+' not set. '"></small>
-					<small class="data-loading-flag hidden" :id="'flag_' + sectionID">Loading data...</small></h4>
+					<small :class="(loadingDataFlag == 'down')?'data-loading-flag hidden':'data-loading-flag'" :id="'flag_' + sectionID">Loading data...</small></h4>
 			</div>
 		</div>
 
@@ -76,6 +76,7 @@
 							:plotLegend="getSectionPlotLegend(sectionID + plotIndex)"
 							:sectionId="sectionID + plotIndex"
 							:utils="utils"
+							:dataComparisonConfig="dataComparisonConfig"
 						>
 						</research-section-visualizers>
 					</div>
@@ -91,9 +92,9 @@
 					:plotLegend="getSectionPlotLegend(sectionID)"
 					:sectionId="sectionID"
 					:utils="utils"
+					:dataComparisonConfig="dataComparisonConfig"
 				>
 				</research-section-visualizers>
-
 				<research-data-table
 					v-if="!!tableFormat"
 					:pageID="sectionIndex"
@@ -102,7 +103,7 @@
 					:initPerPageNumber="(!!tableFormat['rows per page'])? tableFormat['rows per page'] :10"
 					:tableLegend="sectionTableLegend"
 					:dataComparisonConfig="
-						null
+						dataComparisonConfig
 					"
 					:searchParameters="
 						null
@@ -146,6 +147,7 @@ export default Vue.component("research-section", {
 			remoteVisualizer:null,
 			remoteSectionDecription:null,
 			interSectionsFilter:[],
+			loadingDataFlag: "down"
 		};
 	},
 	modules: {
@@ -172,6 +174,21 @@ export default Vue.component("research-section", {
 					let tableFormat = { "top rows": topRows };
 					return tableFormat;
 				}
+			} else {
+				return null
+			}
+		},
+		dataComparisonConfig() {
+
+			let groupsLength = (!!this.getGroups())?this.getGroups().length:0;
+			if(!!this.tableFormat && !!this.tableFormat["group by"] && !!this.tableFormat["compare data"] && groupsLength > 1) {
+				let config = {
+					"key field": this.tableFormat["compare data"]["key field"],
+					"fields group data key": this.tableFormat["group by"],
+					"fields to compare": this.tableFormat["compare data"]["fields to compare"]
+				}
+
+				return config;
 			} else {
 				return null
 			}
@@ -250,14 +267,15 @@ export default Vue.component("research-section", {
 	},
 	watch: {
 		sectionData(DATA) {
-			if(DATA.length > 0 && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["sections filters"]){
+			// interSections data filtering part
+			/*if(DATA.length > 0 && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["sections filters"]){
 				let sections = this.sectionConfig["table format"]["sections filters"]["target sections"];
 
 				sections.map(section=>{
 					let filterData = DATA.map(d => d[section["filter by"]["filter field"]]);
 					this.$root.$refs[section.section].filterAcrossSections(this.sectionID, filterData, section);
 				})
-			}
+			}*/
 		}
 	},
 	methods: {
@@ -276,6 +294,8 @@ export default Vue.component("research-section", {
 					}
 				})
 			}
+
+
 
 			if(!isFilter) {
 				this.interSectionsFilter.push(FILTER);
@@ -365,10 +385,15 @@ export default Vue.component("research-section", {
 
 			this.$store.dispatch("capturedData", {action:'add',title: title,data:this.sectionData});
 		},
+
+		getData(TOKEN) {
+			this.loadingDataFlag = "up";
+			this.queryData(TOKEN);
+		},
 		
-		async getData(continueToken) {
-			let flag = document.getElementById("flag_"+ this.sectionID);
-			flag.classList.remove("hidden");
+		async queryData(continueToken) {
+			//let flag = document.getElementById("flag_"+ this.sectionID);
+			//flag.classList.remove("hidden");
 			let dataPoint = this.sectionConfig["data point"]
 			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :
 				dataPoint.url+"query/"+ dataPoint.index +"?q=": 
@@ -596,11 +621,9 @@ export default Vue.component("research-section", {
 					this.sectionData = this.utils.filterUtils.applyFilters(filters, this.sectionData, filterValues);
 				}
 
-				console.log("this.interSectionsFilter", this.interSectionsFilter);
+				//console.log("this.interSectionsFilter", this.interSectionsFilter);
 
 				/*
-
-				
 
 			//filter data
 			if(this.interSectionsFilter.length > 0) {
@@ -627,7 +650,14 @@ export default Vue.component("research-section", {
 
 				this.originalData = this.sectionData;
 
-				flag.classList.add("hidden");
+				console.log("this.dataComparisonConfig",this.dataComparisonConfig);
+				if(!!this.dataComparisonConfig) {
+					console.log(this.dataComparisonConfig);
+				}
+
+				//flag.classList.add("hidden");
+
+				this.loadingDataFlag = "down"
 			} else {
 				if(dataPoint.type == "file") {
 					let fetchUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;
@@ -647,7 +677,9 @@ export default Vue.component("research-section", {
 					this.sectionID
 				);
 
-				flag.classList.add("hidden");
+				//flag.classList.add("hidden");
+
+				this.loadingDataFlag = "down"
 
 			}
 		},		
