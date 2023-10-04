@@ -227,17 +227,7 @@ export default Vue.component("research-region-plot", {
 
 			if (this.plotData != null) {
 
-				let plotDataLocal = [...new Set(this.plotData)];
-
-				if (!!this.dataComparisonConfig && !!this.isSectionPage) {
-					plotDataLocal = {};
-					let dataKey = this.dataComparisonConfig["key field"];
-
-					this.plotData.map(row => {
-						plotDataLocal[row[dataKey]] = row;
-					})
-
-				}
+				let plotDataLocal = this.plotData;
 
 				var plotsKeys = [];
 				if (this.dataComparisonConfig != null) {

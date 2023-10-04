@@ -16,7 +16,7 @@
 			</div>
 		</div>
 
-		<div v-if="!!getGroups()"><span v-for="key in getGroups()" @click="removeData(key)" class="btn section-search-bbl show-evidence-btn">{{ key + "  x"}}</span></div>
+		<div v-if="!!groups"><span v-for="key in groups" @click="removeData(key)" class="btn section-search-bbl show-evidence-btn">{{ key + "  x"}}</span></div>
 
 		<div class="row card-body" :id="'section_' + sectionID">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
@@ -69,7 +69,7 @@
 						<h6 v-html="plotConfig.label"></h6>
 						<research-section-visualizers
 							:plotConfig="plotConfig"
-							:plotData="(!getGroups() || (!!getGroups() && getGroups().length<=1))?sectionData:mergedData"
+							:plotData="(!groups || (!!groups && groups.length<=1))?sectionData:mergedData"
 							:phenotypeMap="phenotypeMap"
 							:colors="colors"
 							:plotMargin="plotMargin"
@@ -86,7 +86,7 @@
 				<research-section-visualizers
 					v-if="!multiVisualizers && !!visualizer && !!sectionData"
 					:plotConfig="visualizer"
-					:plotData="(!getGroups() || (!!getGroups() && getGroups().length <= 1)) ? sectionData : mergedData"
+					:plotData="(!groups || (!!groups && groups.length <= 1)) ? sectionData : mergedData"
 					:phenotypeMap="phenotypeMap"
 					:colors="colors"
 					:plotMargin="plotMargin"
@@ -100,7 +100,7 @@
 				<research-data-table
 					v-if="!!tableFormat"
 					:pageID="sectionIndex"
-					:dataset="(!getGroups() || (!!getGroups() && getGroups().length <= 1)) ? sectionData : mergedData"
+					:dataset="(!groups || (!!groups && groups.length <= 1)) ? sectionData : mergedData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="(!!tableFormat['rows per page'])? tableFormat['rows per page'] :10"
 					:tableLegend="sectionTableLegend"
@@ -149,6 +149,7 @@ export default Vue.component("research-section", {
 			remoteVisualizer:null,
 			remoteSectionDecription:null,
 			interSectionsFilter:[],
+			groups:null,
 			loadingDataFlag: "down"
 		};
 	},
@@ -182,7 +183,7 @@ export default Vue.component("research-section", {
 		},
 		dataComparisonConfig() {
 
-			let groupsLength = (!!this.getGroups())?this.getGroups().length:0;
+			let groupsLength = (!!this.groups)?this.groups.length:0;
 			if(!!this.tableFormat && !!this.tableFormat["group by"] && !!this.tableFormat["compare data"] && groupsLength > 1) {
 				let config = {
 					"key field": this.tableFormat["compare data"]["key field"],
@@ -198,7 +199,7 @@ export default Vue.component("research-section", {
 			if(!!this.dataComparisonConfig) {
 				let comConfig = this.dataComparisonConfig;
 				let comFields = comConfig["fields to compare"];
-				let groups = this.getGroups();
+				let groups = this.groups;
 				let merged = {};
 
 				this.sectionData.map(row => {
@@ -226,7 +227,8 @@ export default Vue.component("research-section", {
 					}
 				})
 
-				return Object.values(merged);
+				//return Object.values(merged);
+				return merged;
 			}
 		},
 		groupSearchParameters() {
@@ -235,7 +237,7 @@ export default Vue.component("research-section", {
 
 				let params = {};
 				let tempObj={};
-				tempObj['search'] = this.getGroups();
+				tempObj['search'] = this.groups;
 
 				params[comConfig["fields group data key"]] = tempObj;
 
@@ -292,7 +294,7 @@ export default Vue.component("research-section", {
 					return this.sectionConfig["visualizers"]["visualizers"];
 				} /*else if(!!this.dataComparisonConfig) {
 					let plotConfigs =[]
-					let groups = this.getGroups();
+					let groups = this.groups;
 					groups.map(group =>{
 						let visualizer = Object.assign({},this.visualizer);
 						plotConfigs.push(visualizer);
@@ -379,7 +381,7 @@ export default Vue.component("research-section", {
 				let groupKeys = this.sectionConfig["table format"]["group by"];
 
 				console.log("this.sectionData", this.sectionData);
-				
+
 				this.sectionData.map(row=>{
 					let group = "";
 					let keyIndex = 1;
@@ -746,6 +748,26 @@ export default Vue.component("research-section", {
 					let sortBy = this.sectionConfig["table format"]["initial sort by"]
 					this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, true, true);
 				} 
+
+				if(this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["group by"]) {
+					let groups = [];
+					let groupKeys = this.sectionConfig["table format"]["group by"];
+					this.sectionData.map(row => {
+						let group = "";
+						let keyIndex = 1;
+						groupKeys.map(key => {
+							group += row[key];
+							group += (keyIndex < groupKeys.length) ? ", " : "";
+							keyIndex++;
+						})
+
+						if (!groups.includes(group)) {
+							groups.push(group);
+						}
+					})
+
+					this.groups = groups;
+				}
 
 				this.originalData = this.sectionData;
 			} else {
