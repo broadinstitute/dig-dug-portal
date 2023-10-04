@@ -506,6 +506,7 @@ export default Vue.component("research-data-table", {
 	},
 	watch: {
 		dataset(DATA) {
+			console.log("this.searchParameters", this.searchParameters);
 			if (this.dataComparisonConfig != null) {
 				this.compareGroups = [];
 				let loopNum =

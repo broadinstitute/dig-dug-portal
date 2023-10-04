@@ -66,8 +66,8 @@
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot'"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
-			:searchParameters="null"
-			:dataComparisonConfig="null"
+			:searchParameters="searchParameters"
+			:dataComparisonConfig="dataComparisonConfig"
 			:region="utils.keyParams.region"
 			:plotMargin="plotMargin"
 			:compareGroupColors="colors.moderate"
@@ -129,7 +129,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAn
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 export default Vue.component("research-section-visualizers", {
-	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","sectionId","utils","dataComparisonConfig"],
+	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","sectionId","utils","dataComparisonConfig","searchParameters"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchMPlotBitmap,
@@ -151,7 +151,18 @@ export default Vue.component("research-section-visualizers", {
 	mounted: function () {
 	},
 	computed: {
-		
+		groupedPlotData() {
+			if(!!this.plotData){
+				let grouped = {};
+				this.plotData.map(d=>{
+					grouped[this.dataComparisonConfig["key field"]] = d;
+				});
+				return grouped;
+			}  else {
+				return null
+			}
+			
+		}
 	},
 	watch: {
 	},

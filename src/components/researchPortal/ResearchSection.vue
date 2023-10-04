@@ -58,7 +58,7 @@
 						</div>
 					</div>
 				</template>
-				<div  v-if="!!multiVisualizers && !!sectionData" 
+				<div  v-if="!!multiVisualizers && !!sectionData" 	
 					:id="multiVisualizersType == 'tabs'?'tabContentGroup' + sectionID:''">
 					
 					<div v-for="plotConfig, plotIndex in multiVisualizers"
@@ -69,7 +69,7 @@
 						<h6 v-html="plotConfig.label"></h6>
 						<research-section-visualizers
 							:plotConfig="plotConfig"
-							:plotData="(!getGroups() || (!!getGroups() && getGroups().length<=1))?sectionData:filterSectionData(plotConfig.label)"
+							:plotData="(!getGroups() || (!!getGroups() && getGroups().length<=1))?sectionData:mergedData"
 							:phenotypeMap="phenotypeMap"
 							:colors="colors"
 							:plotMargin="plotMargin"
@@ -77,6 +77,7 @@
 							:sectionId="sectionID + plotIndex"
 							:utils="utils"
 							:dataComparisonConfig="dataComparisonConfig"
+							:searchParameters="groupSearchParameters"
 						>
 						</research-section-visualizers>
 					</div>
@@ -85,7 +86,7 @@
 				<research-section-visualizers
 					v-if="!multiVisualizers && !!visualizer && !!sectionData"
 					:plotConfig="visualizer"
-					:plotData="sectionData"
+					:plotData="(!getGroups() || (!!getGroups() && getGroups().length <= 1)) ? sectionData : mergedData"
 					:phenotypeMap="phenotypeMap"
 					:colors="colors"
 					:plotMargin="plotMargin"
@@ -93,20 +94,21 @@
 					:sectionId="sectionID"
 					:utils="utils"
 					:dataComparisonConfig="dataComparisonConfig"
+					:searchParameters="groupSearchParameters"
 				>
 				</research-section-visualizers>
 				<research-data-table
 					v-if="!!tableFormat"
 					:pageID="sectionIndex"
-					:dataset="sectionData"
+					:dataset="(!getGroups() || (!!getGroups() && getGroups().length <= 1)) ? sectionData : mergedData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="(!!tableFormat['rows per page'])? tableFormat['rows per page'] :10"
 					:tableLegend="sectionTableLegend"
 					:dataComparisonConfig="
-						null
+						dataComparisonConfig
 					"
 					:searchParameters="
-						null
+						groupSearchParameters
 					"
 					:pkgData="null"
 					:pkgDataSelected="null"
@@ -192,6 +194,57 @@ export default Vue.component("research-section", {
 				return null
 			}
 		},
+		mergedData(){
+			if(!!this.dataComparisonConfig) {
+				let comConfig = this.dataComparisonConfig;
+				let comFields = comConfig["fields to compare"];
+				let groups = this.getGroups();
+				let merged = {};
+
+				this.sectionData.map(row => {
+
+					let groupKey = row[comConfig["fields group data key"]];
+					let keyProp = row[comConfig["key field"]];
+
+					let isNewProp = !!merged[keyProp] ? false : true
+					merged[keyProp] = isNewProp == true ? {}:merged[keyProp];
+
+					for (const [fKey, fValue] of Object.entries(row)) {
+						if(isNewProp == true) {
+							if (!!comFields.includes(fKey)) {
+								merged[keyProp][fKey]={};
+								merged[keyProp][fKey][groupKey] = fValue;
+							} else {
+								merged[keyProp][fKey] = fValue;
+							}
+						} else {
+							if(!!comFields.includes(fKey)) {
+								
+								merged[keyProp][fKey][groupKey] = fValue;
+							}
+						}
+					}
+				})
+
+				return Object.values(merged);
+			}
+		},
+		groupSearchParameters() {
+			if (!!this.dataComparisonConfig) {
+				let comConfig = this.dataComparisonConfig;
+
+				let params = {};
+				let tempObj={};
+				tempObj['search'] = this.getGroups();
+
+				params[comConfig["fields group data key"]] = tempObj;
+
+				return params;
+
+			} else {
+				return null
+			}
+		},
 		sectionDescription() {
 			if (!!this.sectionData) {
 				if (!!this.description) {
@@ -236,9 +289,8 @@ export default Vue.component("research-section", {
 		multiVisualizers() {
 			if (!!this.sectionData) {
 				if (!!this.sectionConfig["visualizers"]) {
-
 					return this.sectionConfig["visualizers"]["visualizers"];
-				} else if(!!this.dataComparisonConfig) {
+				} /*else if(!!this.dataComparisonConfig) {
 					let plotConfigs =[]
 					let groups = this.getGroups();
 					groups.map(group =>{
@@ -255,7 +307,7 @@ export default Vue.component("research-section", {
 					}
 
 					return plotConfigs;
-				}else {
+				}*/else {
 					return null;
 				}
 			} else {
@@ -266,9 +318,9 @@ export default Vue.component("research-section", {
 			if (!!this.sectionData) {
 				if (!!this.sectionConfig["visualizers"]) {
 					return this.sectionConfig["visualizers"]["wrapper type"];
-				} else if (!!this.dataComparisonConfig) {
+				} /*else if (!!this.dataComparisonConfig) {
 					return "divs";
-				} else {
+				}*/ else {
 					return null;
 				}
 			} else {
@@ -326,6 +378,8 @@ export default Vue.component("research-section", {
 				groups = [];
 				let groupKeys = this.sectionConfig["table format"]["group by"];
 
+				console.log("this.sectionData", this.sectionData);
+				
 				this.sectionData.map(row=>{
 					let group = "";
 					let keyIndex = 1;
@@ -619,9 +673,12 @@ export default Vue.component("research-section", {
 
 								if (!!contJson.continuation) {
 									this.getData(contJson.continuation);
+								} else {
+									this.loadingDataFlag = "down"
 								}
 							} else {
 								this.sectionData = !!isOriginalDataEmpty ? data : this.sectionData.concat(data);
+								this.loadingDataFlag = "down"
 							}
 						} else {
 							if (dataPoint.type == "bioindex") {
@@ -634,9 +691,12 @@ export default Vue.component("research-section", {
 
 								if (!!contJson.continuation) {
 									this.getData(contJson.continuation);
+								} else {
+									this.loadingDataFlag = "down"
 								}
 							} else {
 								this.sectionData = data;
+								this.loadingDataFlag = "down"
 							}
 						}
 						
@@ -688,10 +748,6 @@ export default Vue.component("research-section", {
 				} 
 
 				this.originalData = this.sectionData;
-
-				//flag.classList.add("hidden");
-
-				this.loadingDataFlag = "down"
 			} else {
 				if(dataPoint.type == "file") {
 					let fetchUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;

@@ -226,13 +226,26 @@ export default Vue.component("research-region-plot", {
 			}
 
 			if (this.plotData != null) {
+
+				let plotDataLocal = [...new Set(this.plotData)];
+
+				if (!!this.dataComparisonConfig && !!this.isSectionPage) {
+					plotDataLocal = {};
+					let dataKey = this.dataComparisonConfig["key field"];
+
+					this.plotData.map(row => {
+						plotDataLocal[row[dataKey]] = row;
+					})
+
+				}
+
 				var plotsKeys = [];
 				if (this.dataComparisonConfig != null) {
 					var field =
 						this.dataComparisonConfig["fields to compare"][0];
 					// get list of data groups
 					for (const [pKey, pValue] of Object.entries(
-						this.plotData
+						plotDataLocal
 					)) {
 						for (const [key, value] of Object.entries(
 							pValue[field]
@@ -262,7 +275,7 @@ export default Vue.component("research-region-plot", {
 				var yAxField = this.renderConfig["y axis field"];
 				var populationsType =
 					this.renderConfig["ld server"]["populations type"];
-
+				
 				plotsKeys.map((group) => {
 					this.assoData[group] = {
 						yAxHigh: null,
@@ -272,7 +285,7 @@ export default Vue.component("research-region-plot", {
 
 					if (!!this.ldData[group]) {
 						let refVariant = this.refProperties.refVariants[group];
-						if (!this.plotData[refVariant]) {
+						if (!plotDataLocal[refVariant]) {
 							this.ldData[group] = {
 								refVariant: null,
 								population: [],
@@ -296,7 +309,7 @@ export default Vue.component("research-region-plot", {
 
 					if (group != "default") {
 						for (const [dKey, dValue] of Object.entries(
-							this.plotData
+							plotDataLocal
 						)) {
 							if (group != "Combined") {
 								let yAxValue = dValue[yAxField][group];
@@ -387,7 +400,7 @@ export default Vue.component("research-region-plot", {
 
 						let refVariant = null;
 
-						this.plotData.map((dValue) => {
+						plotDataLocal.map((dValue) => {
 							let yAxValue = dValue[yAxField];
 
 							if (!!yAxValue) {

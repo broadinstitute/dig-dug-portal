@@ -1446,6 +1446,7 @@ export default Vue.component("research-gem-data-table", {
 			immediate: true,
 		},
 		dataset(DATA) {
+			console.log("this.searchParameters", this.searchParameters);
 			if (!!this.dataComparisonConfig) {
 				this.compareGroups = [];
 				let loopNum =
