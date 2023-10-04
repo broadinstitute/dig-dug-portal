@@ -44,6 +44,7 @@
 					:unfilteredDataset="originalData"
 					:sectionId="sectionID"
 					:utils="utils"
+					:dataComparisonConfig="dataComparisonConfig"
 					@on-filtering="updateData"
 				></research-section-filters>
 
@@ -202,30 +203,34 @@ export default Vue.component("research-section", {
 				let groups = this.groups;
 				let merged = {};
 
-				this.sectionData.map(row => {
+				if(!!Array.isArray(this.sectionData)) {
+					this.sectionData.map(row => {
+						let groupKey = row[comConfig["fields group data key"]];
+						let keyProp = row[comConfig["key field"]];
 
-					let groupKey = row[comConfig["fields group data key"]];
-					let keyProp = row[comConfig["key field"]];
+						let isNewProp = !!merged[keyProp] ? false : true
+						merged[keyProp] = isNewProp == true ? {} : merged[keyProp];
 
-					let isNewProp = !!merged[keyProp] ? false : true
-					merged[keyProp] = isNewProp == true ? {}:merged[keyProp];
-
-					for (const [fKey, fValue] of Object.entries(row)) {
-						if(isNewProp == true) {
-							if (!!comFields.includes(fKey)) {
-								merged[keyProp][fKey]={};
-								merged[keyProp][fKey][groupKey] = fValue;
+						for (const [fKey, fValue] of Object.entries(row)) {
+							if (isNewProp == true) {
+								if (!!comFields.includes(fKey)) {
+									merged[keyProp][fKey] = {};
+									merged[keyProp][fKey][groupKey] = fValue;
+								} else {
+									merged[keyProp][fKey] = fValue;
+								}
 							} else {
-								merged[keyProp][fKey] = fValue;
-							}
-						} else {
-							if(!!comFields.includes(fKey)) {
-								
-								merged[keyProp][fKey][groupKey] = fValue;
+								if (!!comFields.includes(fKey)) {
+
+									merged[keyProp][fKey][groupKey] = fValue;
+								}
 							}
 						}
-					}
-				})
+					})
+				} else {
+					merged = this.sectionData;
+				}
+				
 
 				//return Object.values(merged);
 				return merged;
@@ -766,7 +771,7 @@ export default Vue.component("research-section", {
 						}
 					})
 
-					this.groups = groups;
+					this.groups = groups.sort();
 				}
 
 				this.originalData = this.sectionData;
