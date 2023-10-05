@@ -290,7 +290,6 @@ export default Vue.component("research-section", {
 			
 			return legend;
 		},
-		
 	},
 	watch: {
 		sectionData(DATA) {
@@ -303,31 +302,73 @@ export default Vue.component("research-section", {
 				this.mergedData = this.getMergedData();
 			}
 
-			// interSections data filtering part
-			if(!!DATA && DATA.length > 0 && !!this.tableFormat && !!this.tableFormat["sections filters"]){
-				let sections = this.tableFormat["sections filters"]["target sections"];
+			
+		},
+		originalData(DATA){
+			console.log(this.sectionID, this.loadingDataFlag,"original data updated")
+			if(this.loadingDataFlag == "down") {
+				/// filter data by interSectionsFilters
+				if (this.sectionData != null && this.interSectionsFilters.length > 0) {
+					this.interSectionsFilters.map(filter=>{
+						
+						let FilterKey = filter["filter by"]["filter field"], 
+							TargetKey = filter["filter by"]["target field"], 
+							TYPE = filter["filter by"]["type"], 
+							FilterData = filter["data"], 
+							TargetData = DATA;
+						this.sectionData = this.utils.filterUtils.filterMulti2Multi(FilterKey, TargetKey, TYPE, FilterData, TargetData);
+					});
+				}
 
-				sections.map(section=>{
-					this.$root.$refs[section.section].filterAcrossSections(this.sectionID, DATA, section,null);
-				})
-			} else if((!DATA || (!!DATA && DATA.length == 0)) && !!this.tableFormat && !!this.tableFormat["sections filters"]){
-				let sections = this.tableFormat["sections filters"]["target sections"];
-				
-				sections.map(section => {
-					this.$root.$refs[section.section].filterAcrossSections(this.sectionID, null, section,"reset");
-				})
+				/// fire interSectionsFilters
+
+				// interSections data filtering part
+				if (!!DATA && DATA.length > 0 && !!this.tableFormat && !!this.tableFormat["sections filters"]) {
+					let sections = this.tableFormat["sections filters"]["target sections"];
+
+					sections.map(section => {
+						this.$root.$refs[section.section].filterAcrossSections(this.sectionID, DATA, section, null);
+					})
+				} else if ((!DATA || (!!DATA && DATA.length == 0)) && !!this.tableFormat && !!this.tableFormat["sections filters"]) {
+					let sections = this.tableFormat["sections filters"]["target sections"];
+
+					sections.map(section => {
+						this.$root.$refs[section.section].filterAcrossSections(this.sectionID, null, section, "reset");
+					})
+				}
+			}
+		},
+		interSectionsFilters(FILTERS){
+			console.log("filters changed");
+			if (this.loadingDataFlag == "down") {
+				if (this.originalData != null && this.interSectionsFilters.length > 0) {
+					this.interSectionsFilters.map(filter => {
+
+						let FilterKey = filter["filter by"]["filter field"],
+							TargetKey = filter["filter by"]["target field"],
+							TYPE = filter["filter by"]["type"],
+							FilterData = filter["data"],
+							TargetData = this.originalData;
+						this.sectionData = this.utils.filterUtils.filterMulti2Multi(FilterKey, TargetKey, TYPE, FilterData, TargetData);
+					});
+				}
 			}
 		}
 	},
 	methods: {
 		filterAcrossSections(FROM,FILTER_DATA,FILTER,RESET) {
+
+			
+
+			let interSectionsFilters = [...new Set(this.interSectionsFilters)];
+			this.interSectionsFilters = [];
 			if(RESET != "reset") {
 				FILTER["data"] = FILTER_DATA;
 				FILTER["from"] = FROM;
 
 				let isFilter = false;
-				if (this.interSectionsFilters.length > 0) {
-					this.interSectionsFilters.map(f => {
+				if (interSectionsFilters.length > 0) {
+					interSectionsFilters.map(f => {
 						if (f.from == FROM) {
 							f = FILTER;
 							isFilter = true;
@@ -336,14 +377,18 @@ export default Vue.component("research-section", {
 				}
 
 				if (!isFilter) {
-					this.interSectionsFilters.push(FILTER);
+					interSectionsFilters.push(FILTER);
 				}
 
-			} else {
+
+			} else if(RESET == 'reset'){
+				interSectionsFilters = [];
 				this.sectionData = this.originalData;
 			}
 
-			console.log(this.interSectionsFilters);
+			this.interSectionsFilters = interSectionsFilters;
+
+			//console.log(this.interSectionsFilters);
 		},
 		getGroups() {
 			let groups = null;
@@ -790,18 +835,6 @@ export default Vue.component("research-section", {
 					this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, isNumeric, true);
 				} 
 
-				/*if (this.sectionData != null && this.interSectionsFilters.length > 0) {
-					this.interSectionsFilters.map(filter=>{
-						
-						let FilterKey = filter["filter by"]["filter field"], 
-							TargetKey = filter["filter by"]["target field"], 
-							TYPE = filter["filter by"]["type"], 
-							FilterData = filter["data"], 
-							TargetData = this.sectionData;
-						this.sectionData = this.utils.filterUtils.filterMulti2Multi(FilterKey, TargetKey, TYPE, FilterData, TargetData);
-					});
-				}*/
-
 				if(this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["group by"]) {
 					let groups = [];
 					let groupKeys = this.sectionConfig["table format"]["group by"];
@@ -823,18 +856,7 @@ export default Vue.component("research-section", {
 				}
 
 				this.originalData = this.sectionData;
-
-				if (this.sectionData != null && this.interSectionsFilters.length > 0) {
-					this.interSectionsFilters.map(filter => {
-
-						let FilterKey = filter["filter by"]["filter field"],
-							TargetKey = filter["filter by"]["target field"],
-							TYPE = filter["filter by"]["type"],
-							FilterData = filter["data"],
-							TargetData = this.sectionData;
-						this.sectionData = this.utils.filterUtils.filterMulti2Multi(FilterKey, TargetKey, TYPE, FilterData, TargetData);
-					});
-				}
+				
 
 			} else {
 				if(dataPoint.type == "file") {
