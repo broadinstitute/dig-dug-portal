@@ -119,7 +119,7 @@
 						<th
 							v-if="getIfChecked(value) == true"
 							:key="index"
-							@click="applySorting(value)"
+							@click="!!multiSectionPage?callFilter(value):applySorting(value)"
 							class="byor-tooltip"
 							:class="
 								'sortable-th ' +
@@ -506,7 +506,7 @@ export default Vue.component("research-data-table", {
 	},
 	watch: {
 		dataset(DATA) {
-			console.log("this.searchParameters", this.searchParameters);
+			//console.log("this.searchParameters", this.searchParameters);
 			if (this.dataComparisonConfig != null) {
 				this.compareGroups = [];
 				let loopNum =
@@ -767,20 +767,26 @@ export default Vue.component("research-data-table", {
 
 			return ifNumber;
 		},
+		callFilter(key){
+			let sortDirection = this.sortDirection == "asc" ? false : true;
+			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
+
+			this.$emit('clicked-sort', {"key":key,"direction": sortDirection});
+		},
 		applySorting(key) {
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
 
-			let filtered =
+			/*let filtered =
 				this.dataComparisonConfig == null
 					? this.dataset
-					: this.object2Array(this.dataset, key, sortDirection);
+					: this.object2Array(this.dataset, key, sortDirection);*/
 
 			if (key != this.tableFormat["locus field"]) {
-				/*let filtered =
+				let filtered =
 					this.dataComparisonConfig == null
 						? this.dataset
-						: this.object2Array(this.dataset, key, sortDirection);*/
+						: this.object2Array(this.dataset, key, sortDirection);
 
 				// In case of the data with null values mixed, we separate it to with Values and W/O values.
 				let filteredWValues = [];
@@ -795,7 +801,7 @@ export default Vue.component("research-data-table", {
 				});
 
 				let isNumeric = this.checkIfNumeric(filtered, key);
-				console.log("isNumeric",isNumeric)
+				//console.log("isNumeric",isNumeric)
 
 				//sort the data with values, then merge the data WO values to the sorted.
 				let sortedValues = this.utils.sortUtils
@@ -807,20 +813,22 @@ export default Vue.component("research-data-table", {
 					)
 					.concat(filteredWNull);
 
+					//console.log("sortedValues", sortedValues)
+
 				let returnData =
 					this.dataComparisonConfig == null
 						? sortedValues
 						: this.array2Object(sortedValues, this.dataset, key);
 
-				if(!!this.multiSectionPage) {
+				/*if(!!this.multiSectionPage) {
 					console.log("multi1")
 					this.$emit('clicked-sort', returnData);
-				} else {
+				} else {*/
 					this.$store.dispatch("filteredData", returnData);
-				}
+				//}
 			} else if (key == this.tableFormat["locus field"]) {
 				let sortKey = this.tableFormat["locus field"];
-				//let filtered = this.dataset;
+				let filtered = this.dataset;
 
 				filtered.map(function (g) {
 					let locusArr = g[sortKey].split(":");
@@ -859,7 +867,7 @@ export default Vue.component("research-data-table", {
 
 				
 				if(!!this.multiSectionPage) {
-					console.log("multi2")
+					//console.log("multi2")
 					this.$emit('clicked-sort', filtered);
 				} else {
 					this.$store.dispatch("filteredData", filtered);

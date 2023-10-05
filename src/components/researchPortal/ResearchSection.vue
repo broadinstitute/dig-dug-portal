@@ -44,7 +44,7 @@
 					:unfilteredDataset="originalData"
 					:sectionId="sectionID"
 					:utils="utils"
-					:dataComparisonConfig="dataComparisonConfig"
+					:dataComparisonConfig="null"
 					@on-filtering="updateData"
 				></research-section-filters>
 
@@ -117,7 +117,7 @@
 					:sectionId="sectionID"
 					:multiSectionPage="true"
 					:utils="utils"
-					@clicked-sort="updateData"
+					@clicked-sort="sortData"
 				>
 				</research-data-table>
 			</div>
@@ -144,12 +144,14 @@ export default Vue.component("research-section", {
 	data() {
 		return {
 			sectionData: null,
+			mergedData:null,
 			originalData: null,
+			tableFormat:null,
 			remoteTableFormat:null,
 			remoteFilters:null,
 			remoteVisualizer:null,
 			remoteSectionDecription:null,
-			interSectionsFilter:[],
+			interSectionsFilters:[],
 			groups:null,
 			loadingDataFlag: "down"
 		};
@@ -158,6 +160,12 @@ export default Vue.component("research-section", {
 	},
 	created() {
 		this.$root.$refs[this.sectionConfig["section id"]] = this;
+
+		if (!!this.sectionConfig["table format"] &&
+			(!this.sectionConfig["table format"]["type"] || this.sectionConfig["table format"]["type"] != "remote")) {
+			this.tableFormat = this.sectionConfig["table format"];
+		}
+
 	},
 	mounted() {
 		this.getData();
@@ -166,7 +174,7 @@ export default Vue.component("research-section", {
 		sectionID() {
 			return this.sectionConfig["section id"];
 		},
-		tableFormat() {
+		/*tableFormat() {
 			if(!!this.sectionData) {
 				if(!!this.sectionConfig["table format"] && 
 					(!this.sectionConfig["table format"]["type"] || this.sectionConfig["table format"]["type"]!="remote")) {
@@ -181,7 +189,7 @@ export default Vue.component("research-section", {
 			} else {
 				return null
 			}
-		},
+		},*/
 		dataComparisonConfig() {
 
 			let groupsLength = (!!this.groups)?this.groups.length:0;
@@ -196,46 +204,7 @@ export default Vue.component("research-section", {
 				return null
 			}
 		},
-		mergedData(){
-			if(!!this.dataComparisonConfig) {
-				let comConfig = this.dataComparisonConfig;
-				let comFields = comConfig["fields to compare"];
-				let groups = this.groups;
-				let merged = {};
-
-				if(!!Array.isArray(this.sectionData)) {
-					this.sectionData.map(row => {
-						let groupKey = row[comConfig["fields group data key"]];
-						let keyProp = row[comConfig["key field"]];
-
-						let isNewProp = !!merged[keyProp] ? false : true
-						merged[keyProp] = isNewProp == true ? {} : merged[keyProp];
-
-						for (const [fKey, fValue] of Object.entries(row)) {
-							if (isNewProp == true) {
-								if (!!comFields.includes(fKey)) {
-									merged[keyProp][fKey] = {};
-									merged[keyProp][fKey][groupKey] = fValue;
-								} else {
-									merged[keyProp][fKey] = fValue;
-								}
-							} else {
-								if (!!comFields.includes(fKey)) {
-
-									merged[keyProp][fKey][groupKey] = fValue;
-								}
-							}
-						}
-					})
-				} else {
-					merged = this.sectionData;
-				}
-				
-
-				//return Object.values(merged);
-				return merged;
-			}
-		},
+		
 		groupSearchParameters() {
 			if (!!this.dataComparisonConfig) {
 				let comConfig = this.dataComparisonConfig;
@@ -297,24 +266,7 @@ export default Vue.component("research-section", {
 			if (!!this.sectionData) {
 				if (!!this.sectionConfig["visualizers"]) {
 					return this.sectionConfig["visualizers"]["visualizers"];
-				} /*else if(!!this.dataComparisonConfig) {
-					let plotConfigs =[]
-					let groups = this.groups;
-					groups.map(group =>{
-						let visualizer = Object.assign({},this.visualizer);
-						plotConfigs.push(visualizer);
-					})
-
-					for(let i=0; i < groups.length; i++) {
-						console.log(groups[i]);
-						plotConfigs[i]["label"] = groups[i];
-						if(i < groups.length-1 && !!plotConfigs[i]["genes track"]) {
-							delete plotConfigs[i]["genes track"]
-						}
-					}
-
-					return plotConfigs;
-				}*/else {
+				} else {
 					return null;
 				}
 			} else {
@@ -325,9 +277,7 @@ export default Vue.component("research-section", {
 			if (!!this.sectionData) {
 				if (!!this.sectionConfig["visualizers"]) {
 					return this.sectionConfig["visualizers"]["wrapper type"];
-				} /*else if (!!this.dataComparisonConfig) {
-					return "divs";
-				}*/ else {
+				} else {
 					return null;
 				}
 			} else {
@@ -344,27 +294,34 @@ export default Vue.component("research-section", {
 	},
 	watch: {
 		sectionData(DATA) {
+			if(!this.tableFormat && !this.remoteTableFormat){
+				let topRows = Object.keys(this.sectionData[0]);
+				this.tableFormat = { "top rows": topRows };
+			}
+			if (!!this.dataComparisonConfig) {
+				this.mergedData = this.getMergedData();
+			}
+
 			// interSections data filtering part
-			/*if(DATA.length > 0 && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["sections filters"]){
-				let sections = this.sectionConfig["table format"]["sections filters"]["target sections"];
+			if(DATA.length > 0 && !!this.tableFormat && !!this.tableFormat["sections filters"]){
+				let sections = this.tableFormat["sections filters"]["target sections"];
 
 				sections.map(section=>{
 					let filterData = DATA.map(d => d[section["filter by"]["filter field"]]);
-					this.$root.$refs[section.section].filterAcrossSections(this.sectionID, filterData, section);
+					this.$root.$refs[section.section].filterAcrossSections(this.sectionID, DATA, section);
 				})
-			}*/
+			}
 		}
 	},
 	methods: {
-
 		filterAcrossSections(FROM,FILTER_DATA,FILTER) {
 
 			FILTER["data"] = FILTER_DATA;
 			FILTER["from"] = FROM;
 
 			let isFilter = false;
-			if(this.interSectionsFilter.length > 0) {
-				this.interSectionsFilter.map(f=>{
+			if(this.interSectionsFilters.length > 0) {
+				this.interSectionsFilters.map(f=>{
 					if(f.from == FROM) {
 						f = FILTER;
 						isFilter = true;
@@ -372,10 +329,8 @@ export default Vue.component("research-section", {
 				})
 			}
 
-
-
 			if(!isFilter) {
-				this.interSectionsFilter.push(FILTER);
+				this.interSectionsFilters.push(FILTER);
 			}
 			
 		},
@@ -385,7 +340,7 @@ export default Vue.component("research-section", {
 				groups = [];
 				let groupKeys = this.sectionConfig["table format"]["group by"];
 
-				console.log("this.sectionData", this.sectionData);
+			//console.log("this.sectionData", this.sectionData);
 
 				this.sectionData.map(row=>{
 					let group = "";
@@ -425,6 +380,44 @@ export default Vue.component("research-section", {
 
 			return filteredData;
 		},
+		getMergedData() {
+			if (!!this.dataComparisonConfig) {
+				let comConfig = this.dataComparisonConfig;
+				let comFields = comConfig["fields to compare"];
+				let groups = this.groups;
+				let merged = {};
+
+				if (!!Array.isArray(this.sectionData)) {
+					this.sectionData.map(row => {
+						let groupKey = row[comConfig["fields group data key"]];
+						let keyProp = row[comConfig["key field"]];
+
+						let isNewProp = !!merged[keyProp] ? false : true
+						merged[keyProp] = isNewProp == true ? {} : merged[keyProp];
+
+						for (const [fKey, fValue] of Object.entries(row)) {
+							if (isNewProp == true) {
+								if (!!comFields.includes(fKey)) {
+									merged[keyProp][fKey] = {};
+									merged[keyProp][fKey][groupKey] = fValue;
+								} else {
+									merged[keyProp][fKey] = fValue;
+								}
+							} else {
+								if (!!comFields.includes(fKey)) {
+
+									merged[keyProp][fKey][groupKey] = fValue;
+								}
+							}
+						}
+					})
+				} else {
+					merged = this.sectionData;
+				}
+
+				return merged;
+			}
+		},
 		getSectionPlotLegend(ID) {
 			
 			let legend = (!!document.getElementById(ID + "_plotLegend")) ?
@@ -433,7 +426,51 @@ export default Vue.component("research-section", {
 			return legend;
 		},
 		updateData(data) {
-			this.sectionData = data;
+				this.sectionData = data;			
+		},
+		sortData(KEY){
+			console.log("sort called", KEY);
+			let isNumeric = this.checkIfNumeric(this.sectionData, KEY.key);
+			this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, KEY.key, isNumeric, KEY.direction);
+		},
+		checkIfNumeric(DATA, KEY) {
+			let checkNumbers = [
+				"0",
+				"1",
+				"2",
+				"3",
+				"4",
+				"5",
+				"6",
+				"7",
+				"8",
+				"9",
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				"e",
+				"E",
+				"-",
+				".",
+			];
+			let ifNumber = true;
+
+			DATA.map((d) => {
+				for (let i in d[KEY]) {
+					if (!checkNumbers.includes(d[KEY][i])) {
+						ifNumber = false;
+					}
+				}
+			});
+
+			return ifNumber;
 		},
 		removeData(KEY) {
 			let groupKeys = this.sectionConfig["table format"]["group by"];
@@ -453,7 +490,7 @@ export default Vue.component("research-section", {
 				}
 			});
 
-			this.sectionData = newSectionData;
+			this.sectionData = (newSectionData.length === 0)?null:newSectionData;
 
 			let newOriginalData = [];
 			this.originalData.map(row => {
@@ -470,7 +507,11 @@ export default Vue.component("research-section", {
 				}
 			});
 
-			this.originalData = newOriginalData;
+			this.originalData = newOriginalData.length === 0?null:newOriginalData;
+
+			if(!this.originalData) {
+				this.groups = null;
+			}
 		},
 		captureData() {
 			let title = [this.sectionConfig.header];
@@ -579,6 +620,7 @@ export default Vue.component("research-section", {
 								tableFormats = tableFormats[w];
 							})
 							this.remoteTableFormat = JSON.parse(tableFormats);
+							this.tableFormat = this.remoteTableFormat;
 					}
 
 					// remote filters
@@ -726,28 +768,6 @@ export default Vue.component("research-section", {
 
 					this.sectionData = this.utils.filterUtils.applyFilters(filters, this.sectionData, filterValues);
 				}
-
-				//console.log("this.interSectionsFilter", this.interSectionsFilter);
-
-				/*
-
-			//filter data
-			if(this.interSectionsFilter.length > 0) {
-				let filteredData = [];
-				this.originalData.map(d => {
-					this.interSectionsFilter.map(f=>{
-						if (!!f.data.includes(d[f["filter by"]["target field"]])) {
-							filteredData.push(d);
-						}
-					})
-				})
-
-				this.sectionData = filteredData;
-			}
-
-				*/
-
-				
 
 				if(this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
 					let sortBy = this.sectionConfig["table format"]["initial sort by"]
