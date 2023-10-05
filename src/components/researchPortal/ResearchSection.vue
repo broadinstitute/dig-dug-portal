@@ -382,7 +382,7 @@ export default Vue.component("research-section", {
 
 
 			} else if(RESET == 'reset'){
-				interSectionsFilters = [];
+				interSectionsFilters = interSectionsFilters.filter(f=>f.from != FROM);
 				this.sectionData = this.originalData;
 			}
 

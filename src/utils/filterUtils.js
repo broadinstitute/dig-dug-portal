@@ -17,7 +17,7 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
                 switch (filter.type) {
                     case 'search':
 
-                        meetFilters = d[filter.field] == filterValue ? true : false;
+                        meetFilters = !!d[filter.field].toLowerCase().includes(filterValue.toLowerCase()) ? true : false;
 
                         break;
 
@@ -66,8 +66,8 @@ let filterMulti2Multi = function (FilterKey, TargetKey, TYPE, FilterData, Target
     if (!!FilterData && FilterData.length > 0) {
         switch (TYPE) {
             case "search":
-                let filterValues = [...new Set(FilterData.map(d => d[FilterKey]))];
-                returnData = [...new Set(TargetData.filter(d => !!filterValues.includes(d[TargetKey])))];
+                let filterValues = [...new Set(FilterData.map(d => d[FilterKey].toLowerCase()))];
+                returnData = [...new Set(TargetData.filter(d => !!filterValues.includes(d[TargetKey].toLowerCase())))];
 
                 break;
         }
