@@ -58,6 +58,26 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
     return returnData;
 }
 
+let filterMulti2Multi = function (FilterKey, TargetKey, TYPE, FilterData, TargetData) {
+    //console.log("From utils", FilterKey, TargetKey, TYPE, FilterData, TargetData);
+
+    let returnData = TargetData;
+
+    if (!!FilterData && FilterData.length > 0) {
+        switch (TYPE) {
+            case "search":
+                let filterValues = [...new Set(FilterData.map(d => d[FilterKey]))];
+                returnData = [...new Set(TargetData.filter(d => !!filterValues.includes(d[TargetKey])))];
+
+                break;
+        }
+
+    }
+
+    return returnData;
+}
+
 export default {
     applyFilters,
+    filterMulti2Multi,
 };

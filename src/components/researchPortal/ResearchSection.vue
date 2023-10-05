@@ -70,7 +70,7 @@
 						<h6 v-html="plotConfig.label"></h6>
 						<research-section-visualizers
 							:plotConfig="plotConfig"
-							:plotData="(!groups || (!!groups && groups.length<=1))?sectionData:mergedData"
+							:plotData="(!groups || (!!groups && groups.length<=1) || !dataComparisonConfig)?sectionData:mergedData"
 							:phenotypeMap="phenotypeMap"
 							:colors="colors"
 							:plotMargin="plotMargin"
@@ -87,7 +87,7 @@
 				<research-section-visualizers
 					v-if="!multiVisualizers && !!visualizer && !!sectionData"
 					:plotConfig="visualizer"
-					:plotData="(!groups || (!!groups && groups.length <= 1)) ? sectionData : mergedData"
+					:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 					:phenotypeMap="phenotypeMap"
 					:colors="colors"
 					:plotMargin="plotMargin"
@@ -101,7 +101,7 @@
 				<research-data-table
 					v-if="!!tableFormat"
 					:pageID="sectionIndex"
-					:dataset="(!groups || (!!groups && groups.length <= 1)) ? sectionData : mergedData"
+					:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="(!!tableFormat['rows per page'])? tableFormat['rows per page'] :10"
 					:tableLegend="sectionTableLegend"
@@ -294,6 +294,7 @@ export default Vue.component("research-section", {
 	},
 	watch: {
 		sectionData(DATA) {
+
 			if(!this.tableFormat && !this.remoteTableFormat){
 				let topRows = Object.keys(this.sectionData[0]);
 				this.tableFormat = { "top rows": topRows };
@@ -303,36 +304,46 @@ export default Vue.component("research-section", {
 			}
 
 			// interSections data filtering part
-			if(DATA.length > 0 && !!this.tableFormat && !!this.tableFormat["sections filters"]){
+			if(!!DATA && DATA.length > 0 && !!this.tableFormat && !!this.tableFormat["sections filters"]){
 				let sections = this.tableFormat["sections filters"]["target sections"];
 
 				sections.map(section=>{
-					let filterData = DATA.map(d => d[section["filter by"]["filter field"]]);
-					this.$root.$refs[section.section].filterAcrossSections(this.sectionID, DATA, section);
+					this.$root.$refs[section.section].filterAcrossSections(this.sectionID, DATA, section,null);
+				})
+			} else if((!DATA || (!!DATA && DATA.length == 0)) && !!this.tableFormat && !!this.tableFormat["sections filters"]){
+				let sections = this.tableFormat["sections filters"]["target sections"];
+				
+				sections.map(section => {
+					this.$root.$refs[section.section].filterAcrossSections(this.sectionID, null, section,"reset");
 				})
 			}
 		}
 	},
 	methods: {
-		filterAcrossSections(FROM,FILTER_DATA,FILTER) {
+		filterAcrossSections(FROM,FILTER_DATA,FILTER,RESET) {
+			if(RESET != "reset") {
+				FILTER["data"] = FILTER_DATA;
+				FILTER["from"] = FROM;
 
-			FILTER["data"] = FILTER_DATA;
-			FILTER["from"] = FROM;
+				let isFilter = false;
+				if (this.interSectionsFilters.length > 0) {
+					this.interSectionsFilters.map(f => {
+						if (f.from == FROM) {
+							f = FILTER;
+							isFilter = true;
+						}
+					})
+				}
 
-			let isFilter = false;
-			if(this.interSectionsFilters.length > 0) {
-				this.interSectionsFilters.map(f=>{
-					if(f.from == FROM) {
-						f = FILTER;
-						isFilter = true;
-					}
-				})
+				if (!isFilter) {
+					this.interSectionsFilters.push(FILTER);
+				}
+
+			} else {
+				this.sectionData = this.originalData;
 			}
 
-			if(!isFilter) {
-				this.interSectionsFilters.push(FILTER);
-			}
-			
+			console.log(this.interSectionsFilters);
 		},
 		getGroups() {
 			let groups = null;
@@ -511,6 +522,8 @@ export default Vue.component("research-section", {
 
 			if(!this.originalData) {
 				this.groups = null;
+			} else {
+				this.groups = this.groups.filter(g=>g!=KEY);
 			}
 		},
 		captureData() {
@@ -757,6 +770,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 
+				/// Here the data is fully loaded
 
 				if (this.sectionData != null && !!this.sectionConfig["pre filters"]) {
 					let filters = this.sectionConfig["pre filters"];
@@ -771,8 +785,22 @@ export default Vue.component("research-section", {
 
 				if(this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
 					let sortBy = this.sectionConfig["table format"]["initial sort by"]
-					this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, true, true);
+					let isNumeric = this.checkIfNumeric(this.sectionData, sortBy.field);
+
+					this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, isNumeric, true);
 				} 
+
+				/*if (this.sectionData != null && this.interSectionsFilters.length > 0) {
+					this.interSectionsFilters.map(filter=>{
+						
+						let FilterKey = filter["filter by"]["filter field"], 
+							TargetKey = filter["filter by"]["target field"], 
+							TYPE = filter["filter by"]["type"], 
+							FilterData = filter["data"], 
+							TargetData = this.sectionData;
+						this.sectionData = this.utils.filterUtils.filterMulti2Multi(FilterKey, TargetKey, TYPE, FilterData, TargetData);
+					});
+				}*/
 
 				if(this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["group by"]) {
 					let groups = [];
@@ -795,6 +823,19 @@ export default Vue.component("research-section", {
 				}
 
 				this.originalData = this.sectionData;
+
+				if (this.sectionData != null && this.interSectionsFilters.length > 0) {
+					this.interSectionsFilters.map(filter => {
+
+						let FilterKey = filter["filter by"]["filter field"],
+							TargetKey = filter["filter by"]["target field"],
+							TYPE = filter["filter by"]["type"],
+							FilterData = filter["data"],
+							TargetData = this.sectionData;
+						this.sectionData = this.utils.filterUtils.filterMulti2Multi(FilterKey, TargetKey, TYPE, FilterData, TargetData);
+					});
+				}
+
 			} else {
 				if(dataPoint.type == "file") {
 					let fetchUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;
@@ -804,7 +845,6 @@ export default Vue.component("research-section", {
 						console.log(fileData);
 					}
 				}
-				
 			}
 
 			if(!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) {
@@ -813,8 +853,6 @@ export default Vue.component("research-section", {
 					"No data is returned for " + this.sectionConfig.header + ".",
 					this.sectionID
 				);
-
-				//flag.classList.add("hidden");
 
 				this.loadingDataFlag = "down"
 
