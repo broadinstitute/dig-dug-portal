@@ -6,6 +6,7 @@ import {
 } from "@/components/Alert";
 
 import { merge } from "lodash";
+import { BIO_INDEX_HOST } from '@/utils/bioIndexUtils'
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -93,6 +94,17 @@ export default function (index, extend) {
                     let alertID = postAlertNotice(
                         `Loading ${index}; please wait ...`
                     );
+
+                    // if user is querying variant index with rsid, convert to varId
+                    if (index === "variant" && q.startsWith("rs")) {
+                        await fetch(
+                            `${BIO_INDEX_HOST}/api/bio/varIdLookup/${q}`
+                        )
+                            .then((res) => res.json())
+                            .then((res) => {
+                                q = res.data.varid;
+                            });
+                    }
 
                     // fetch the data
                     let data = await query(index, q, {
