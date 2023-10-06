@@ -16,7 +16,7 @@
 			</div>
 		</div>
 
-		<div v-if="!!groups"><span v-for="key in groups" @click="removeData(key)" class="btn section-search-bbl show-evidence-btn">{{ key + "  x"}}</span></div>
+		<div v-if="!!groups"><span v-for="key in groups" @click="removeData(key)" class="btn section-search-bbl show-evidence-btn">{{ key.label + "  x"}}</span></div>
 
 		<div class="row card-body" :id="'section_' + sectionID">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
@@ -153,6 +153,7 @@ export default Vue.component("research-section", {
 			remoteSectionDecription:null,
 			interSectionsFilters:[],
 			groups:null,
+			searched:[],
 			loadingDataFlag: "down"
 		};
 	},
@@ -211,7 +212,7 @@ export default Vue.component("research-section", {
 
 				let params = {};
 				let tempObj={};
-				tempObj['search'] = this.groups;
+				tempObj['search'] = [...new Set(this.groups.map(g=>g.label))];
 
 				params[comConfig["fields group data key"]] = tempObj;
 
@@ -293,7 +294,6 @@ export default Vue.component("research-section", {
 	},
 	watch: {
 		sectionData(DATA) {
-
 			if(!this.tableFormat && !this.remoteTableFormat){
 				let topRows = Object.keys(this.sectionData[0]);
 				this.tableFormat = { "top rows": topRows };
@@ -301,8 +301,6 @@ export default Vue.component("research-section", {
 			if (!!this.dataComparisonConfig) {
 				this.mergedData = this.getMergedData();
 			}
-
-			
 		},
 		originalData(DATA){
 			console.log(this.sectionID, this.loadingDataFlag,"original data updated")
@@ -356,10 +354,21 @@ export default Vue.component("research-section", {
 		}
 	},
 	methods: {
+		resetAll(){
+			this.sectionData= null,
+			this.mergedData= null,
+			this.originalData= null,
+			//this.tableFormat= null,
+			//this.remoteTableFormat= null,
+			//this.remoteFilters= null,
+			//this.remoteVisualizer= null,
+			//this.remoteSectionDecription= null,
+			this.interSectionsFilters= [],
+			this.groups= null,
+			this.searched= [],
+			this.loadingDataFlag= "down"
+		},
 		filterAcrossSections(FROM,FILTER_DATA,FILTER,RESET) {
-
-			
-
 			let interSectionsFilters = [...new Set(this.interSectionsFilters)];
 			this.interSectionsFilters = [];
 			if(RESET != "reset") {
@@ -389,31 +398,6 @@ export default Vue.component("research-section", {
 			this.interSectionsFilters = interSectionsFilters;
 
 			//console.log(this.interSectionsFilters);
-		},
-		getGroups() {
-			let groups = null;
-			if(!!this.sectionData && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["group by"]){
-				groups = [];
-				let groupKeys = this.sectionConfig["table format"]["group by"];
-
-			//console.log("this.sectionData", this.sectionData);
-
-				this.sectionData.map(row=>{
-					let group = "";
-					let keyIndex = 1;
-					groupKeys.map(key => {
-						group += row[key];
-						group += (keyIndex < groupKeys.length)?", ":"";
-						keyIndex++;
-					})
-
-					if(!groups.includes(group)) {
-						groups.push(group);
-					}
-				})
-			}
-
-			return groups;
 		},
 		filterSectionData(GROUP) {
 			let groupValues = GROUP.split(", ");
@@ -541,7 +525,7 @@ export default Vue.component("research-section", {
 					keyIndex++;
 				})
 
-				if (group != KEY) {
+				if (group != KEY.label) {
 					newSectionData.push(row);
 				}
 			});
@@ -558,7 +542,7 @@ export default Vue.component("research-section", {
 					keyIndex++;
 				})
 
-				if (group != KEY) {
+				if (group != KEY.label) {
 					newOriginalData.push(row);
 				}
 			});
@@ -567,8 +551,10 @@ export default Vue.component("research-section", {
 
 			if(!this.originalData) {
 				this.groups = null;
+				this.searched = [];
 			} else {
-				this.groups = this.groups.filter(g=>g!=KEY);
+				this.groups = this.groups.filter(g=>g.label!=KEY.label);
+				this.searched = this.searched.filter(params=>params != KEY.params)
 			}
 		},
 		captureData() {
@@ -599,14 +585,16 @@ export default Vue.component("research-section", {
 				dataPoint.type == "api"? dataPoint.url: 
 				dataPoint.type == "file" ? "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + dataPoint.file :"";
 			let queryParams = {}
+			let queryParamsString = "";
 			let queryParamsSet = true;
 
 			if(!!dataPoint.parameters) {
 				dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
-						queryParams[p] = this.utils.keyParams[p]
+						queryParams[p] = this.utils.keyParams[p];
+						queryParamsString += queryParams[p];
 					} else {
-						queryParamsSet = false;
+						queryParamsSet = null;
 					}
 				})
 			}
@@ -614,12 +602,14 @@ export default Vue.component("research-section", {
 			if (!!this.sectionConfig["pre filters"]) {
 				this.sectionConfig["pre filters"].map(f => {
 					if (f.value=="search parameter" && !this.utils.keyParams[f.parameter]) {
-						queryParamsSet = false;
+						queryParamsSet = null;
 					}
 				})
 			}
 
-			if(!!queryParamsSet) {
+			if((!!queryParamsSet && !this.searched.includes(queryParamsString)) || !!continueToken) {
+
+				this.searched.push(queryParamsString);
 				
 				if(!!dataPoint["parameters type"]){
 					let queryString = ""
@@ -779,7 +769,7 @@ export default Vue.component("research-section", {
 								}
 
 								if (!!contJson.continuation) {
-									this.getData(contJson.continuation);
+									this.queryData(contJson.continuation);
 								} else {
 									this.loadingDataFlag = "down"
 								}
@@ -797,7 +787,7 @@ export default Vue.component("research-section", {
 								}
 
 								if (!!contJson.continuation) {
-									this.getData(contJson.continuation);
+									this.queryData(contJson.continuation);
 								} else {
 									this.loadingDataFlag = "down"
 								}
@@ -836,7 +826,7 @@ export default Vue.component("research-section", {
 				} 
 
 				if(this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["group by"]) {
-					let groups = [];
+					let groups = (!!this.groups)?[...new Set(this.groups.map(g=>g.label))]:[];
 					let groupKeys = this.sectionConfig["table format"]["group by"];
 					this.sectionData.map(row => {
 						let group = "";
@@ -849,24 +839,33 @@ export default Vue.component("research-section", {
 
 						if (!groups.includes(group)) {
 							groups.push(group);
+							this.groups = (!!this.groups) ? this.groups : [];
+							this.groups.push({"label":group,"params": queryParamsString });
 						}
 					})
 
-					this.groups = groups.sort();
+					//this.groups = groups.sort();
 				}
 
 				this.originalData = this.sectionData;
 				
 
 			} else {
-				if(dataPoint.type == "file") {
+
+				/*this.utils.alertUtils.popSectionAlert(
+					"Data is returned for " + this.sectionConfig.header + ".",
+					this.sectionID
+				);*/
+
+				this.loadingDataFlag = "down"
+				/*if(dataPoint.type == "file") {
 					let fetchUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;
 					let fileData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
 					if (fileData.error == null) {
 						console.log(fileData);
 					}
-				}
+				}*/
 			}
 
 			if(!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) {

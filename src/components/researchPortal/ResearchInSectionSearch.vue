@@ -134,6 +134,11 @@
 						Search
 					</div>
 				</div>
+				<div class="col">
+					<div @click="resetSearch()" class="btn btn-sm btn-warning ">
+						Reset
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -287,12 +292,22 @@ export default Vue.component("research-in-section-search", {
 				//this.sections.map(s => {
 					let s = this.section;
 					if(!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
-						console.log(s['section id']);
+						//console.log(s['section id']);
 						this.$root.$refs[s['section id']].getData();
 					}
 				//})
 			}
 			
+		},
+		resetSearch() {
+			let paramsObj = {}
+			this.searchParameters.map(s => {
+				paramsObj[s.parameter] = "";
+			})
+			this.utils.keyParams.set(paramsObj);
+
+			let s = this.section;
+			this.$root.$refs[s['section id']].resetAll();
 		},
 		async setGene(KEY, PARAMETER,INDEX,CONVERT_REGION, DEFALT_EXPAND) {
 			if(!!CONVERT_REGION) {

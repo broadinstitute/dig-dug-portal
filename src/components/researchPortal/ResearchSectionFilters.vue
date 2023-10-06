@@ -135,6 +135,61 @@
 							</option>
 						</select>
 					</template>
+					<template v-else-if="filter.type == 'checkbox'">
+	<div class="chkbox-combo">
+		<div class="title">Title</div>
+		<div class="options">
+			<span v-for="value, vIndex in buildOptions(filter.field)"
+				:key="value">
+					<input type="checkbox" class="chkbox"
+						:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
+						:value="value"
+						@change="
+							filterDataChkbox(
+								$event,
+								filter.field,
+								filter.type,
+								filter.dataType,
+								vIndex
+							)
+							"
+						checked
+					/><label :for="value">{{ value }}</label>
+		</span>
+			
+		</div>
+	</div>
+						<!--<select
+							:id="'filter_' + sectionId + getColumnId(filter.field)"
+							@change="
+								filterData(
+									$event,
+									filter.field,
+									filter.type,
+									filter.dataType
+								)
+								"
+							class="custom-select"
+						>
+							<option></option>
+							<div v-for="value, vIndex in buildOptions(filter.field)"
+							:key="value">
+								<input type="checkbox"
+									:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
+									:value="value"
+									@change="
+										filterDataChkbox(
+											$event,
+											filter.field,
+											filter.type,
+											filter.dataType,
+											vIndex
+										)
+									"
+									checked
+								/><label :for="value">{{ value }}</label>
+							</div>-->
+					</template>
 				</div>
 			</div>
 		</div>
@@ -593,6 +648,9 @@ export default Vue.component("research-section-filters", {
 			}
 		},
 
+		filterDataChkbox(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED,INDEX) {
+			console.log(EVENT.target.value);
+		},
 		filterData(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED) {
 			let searchValue = !!SUGGESTED
 				? SUGGESTED
@@ -672,6 +730,15 @@ export default Vue.component("research-section-filters", {
 										row[searchIndex.field] != undefined
 									) {
 										switch (searchIndex.type) {
+											case "checkbox":
+												search ===
+													row[
+														searchIndex.field
+													].toString()
+													? tempFiltered.push(row)
+													: "";
+
+												break;
 											case "dropdown":
 												search ===
 												row[
@@ -1431,5 +1498,31 @@ div.custom-select-search {
 .autocomplete-options ul li:hover {
 	cursor: pointer;
 	color: #3399ff;
+}
+
+.chkbox-combo .options{
+	display: none;
+    position: absolute;
+    background-color: #ffffff;
+    border: solid 1px #dddddd;
+    border-radius: 5px;
+}
+
+.chkbox-combo .options span{
+	display: block;
+    text-align: left;
+    padding: 3px 10px 0 5px;
+    white-space: nowrap;
+    height: 22px;
+}
+
+.chkbox-combo .options .chkbox{
+	width: 13px;
+	height: 13px;
+	margin-right: 3px;
+}
+
+.chkbox-combo:hover .options{
+	display: block;
 }
 </style>
