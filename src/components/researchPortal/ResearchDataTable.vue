@@ -31,7 +31,7 @@
 			v-html="'Total rows: ' + this.rows"
 			class="table-total-rows"
 		></div>
-		<div class="table-ui-wrapper">
+		<div v-if="!!dataset" class="table-ui-wrapper">
 			<label
 				>Rows per page:
 				<select v-model="perPageNumber" class="number-per-page">
@@ -234,7 +234,7 @@
 		</table>
 		<b-container
 			v-if="
-				!!perPageNumber && perPageNumber != null && perPageNumber != 0
+				!!dataset && !!perPageNumber && perPageNumber != null && perPageNumber != 0
 			"
 			class="egl-table-page-ui-wrapper"
 		>

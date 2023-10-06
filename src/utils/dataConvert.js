@@ -68,7 +68,8 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
     if (CONVERT != "no convert") {
         DATA.map(d => {
-            let tempObj = d;
+            //let tempObj = d;
+            let tempObj = {};
             CONVERT.map(c => {
 
                 let cType = c.type;
