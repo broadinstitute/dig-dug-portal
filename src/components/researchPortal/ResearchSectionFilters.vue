@@ -139,22 +139,35 @@
 						<div class="chkbox-combo">
 							<div class="title">Select options</div>
 							<div class="options">
-								<span v-for="value, vIndex in buildOptions(filter.field)"
+								<span>
+									<input type="checkbox" class="chkbox"
+										:id="'filter_' + sectionId + getColumnId(filter.field) + 'all'"
+										@change="
+											filterDataChkbox(
+												$event,
+												filter.field,
+												filter.type,
+												'all'
+											)
+											"
+										checked
+									/><label>Check / Uncheck all</label>
+								</span>
+								<span v-for="value, vIndex in buildOptions(filter.field,'chkbox')"
 									:key="value">
-										<input type="checkbox" class="chkbox"
-											:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
-											:value="value"
-											@change="
-												filterDataChkbox(
-													$event,
-													filter.field,
-													filter.type,
-													filter.dataType,
-													vIndex
-												)
-												"
-											checked
-										/><label :for="value">{{ value }}</label>
+									<input type="checkbox" class="chkbox" :class="'filter-' + sectionId + getColumnId(filter.field)"
+										:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
+										:value="value"
+										@change="
+											filterDataChkbox(
+												$event,
+												filter.field,
+												filter.type,
+												vIndex
+											)
+											"
+										checked
+									/><label :for="value">{{ value }}</label>
 								</span>
 									
 								</div>
@@ -171,7 +184,7 @@
 			>
 				<b-badge
 					pill
-					v-if="value.search.length > 0"
+					v-if="value.type != 'checkbox' && value.search.length > 0"
 					v-for="(v, i) in value.search.filter(
 						(v, i, arr) => arr.indexOf(v) == i
 					)"
@@ -196,6 +209,7 @@
 				Clear all search
 			</b-badge>
 		</b-container>
+		{{ unfilteredDataset.length }};
 	</div>
 </template>
 
@@ -578,15 +592,16 @@ export default Vue.component("research-section-filters", {
 		numberOfSearches() {
 			let numberOfBubbles = 0;
 			for (const FIELD in this.filtersIndex) {
-				numberOfBubbles += this.filtersIndex[FIELD].search.length;
+				numberOfBubbles += (this.filtersIndex[FIELD].type !="checkbox")? this.filtersIndex[FIELD].search.length:0;
 			}
 
 			return numberOfBubbles;
 		},
 		numberOfSearchParams() {},
-		buildOptions(field) {
-			if (this.dataComparisonConfig == null) {
-				let options = this.dataset
+		buildOptions(field,TYPE) {
+			if (this.dataComparisonConfig == null || (!!TYPE && TYPE == "chkbox")) {
+				let data = (!!TYPE && TYPE == "chkbox") ? this.unfilteredDataset : this.dataset;
+				let options = data
 					.map((v) => v[field])
 					.filter((v, i, arr) => arr.indexOf(v) == i) //unique
 					.filter((v, i, arr) => v != ""); //remove blank
@@ -618,14 +633,48 @@ export default Vue.component("research-section-filters", {
 			}
 		},
 
-		filterDataChkbox(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED,INDEX) {
-			console.log(EVENT.target);
+		filterDataChkbox(EVENT, FIELD, TYPE, INDEX) {
+			
+			let searchValue = EVENT.target.value;
+			let searchId = EVENT.target.id;
 
-			if (document.getElementById(EVENT.target.id).checked) {
-				alert("checked");
+			this.lastFilter = { field: FIELD, value: searchValue };
+
+			if (document.getElementById(searchId).checked) {
+				if (INDEX == 'all') {
+					this.filtersIndex[FIELD]["search"] = [];
+
+					let className = '.filter-' + this.sectionId + this.getColumnId(FIELD);
+					let allArr = document.querySelectorAll(className);
+
+					for (let i = 0; i < allArr.length; ++i) {
+						allArr[i].checked = true;
+					}
+
+				} else {
+				this.filtersIndex[FIELD]["search"] = 
+					[...new Set(this.filtersIndex[FIELD]["search"].filter(s=>s != searchValue))];
+				}
+
 			} else {
-				alert("not checked");
+				if(INDEX == 'all') {
+					this.filtersIndex[FIELD]["search"] = [];
+
+					let className = '.filter-' + this.sectionId + this.getColumnId(FIELD);
+ 					let allArr = document.querySelectorAll(className);
+
+					for (let i = 0; i < allArr.length; ++i) {
+						allArr[i].checked = false;
+						this.filtersIndex[FIELD]["search"].push(allArr[i].value);
+					}
+
+				} else {
+					this.filtersIndex[FIELD]["search"].push(searchValue);
+				}
 			}
+
+			this.applyFilters();
+			
 		},
 		filterData(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED) {
 			let searchValue = !!SUGGESTED
@@ -688,10 +737,11 @@ export default Vue.component("research-section-filters", {
 			let tempFiltered = comparingFields == null ? [] : {};
 			let i = 0;
 
+			
 			for (var f in this.filtersIndex) {
 				let searchIndex = this.filtersIndex[f];
 
-				if (searchIndex.search.length > 0) {
+				if (searchIndex.type != "checkbox" && searchIndex.search.length > 0) {
 					searchIndex.search
 						.filter((v, i, arr) => arr.indexOf(v) == i)
 						.map((s) => {
@@ -706,15 +756,6 @@ export default Vue.component("research-section-filters", {
 										row[searchIndex.field] != undefined
 									) {
 										switch (searchIndex.type) {
-											case "checkbox":
-												search ===
-													row[
-														searchIndex.field
-													].toString()
-													? tempFiltered.push(row)
-													: "";
-
-												break;
 											case "dropdown":
 												search ===
 												row[
@@ -1260,6 +1301,28 @@ export default Vue.component("research-section-filters", {
 					? filtered.length
 					: Object.keys(filtered).length;
 
+			///Since checkBox filters work different from other filters run filter separately
+
+			
+
+			if (!!filteredLength && filteredLength > 0) {
+				if (comparingFields == null) {
+					
+					for (const [fKey, filter] of Object.entries(this.filtersIndex)) {
+						if(filter.type == 'checkbox') {
+							
+							filtered = filtered.filter(row => !filter.search.includes(row[filter.field]));
+
+						}
+					}
+				} else {
+
+				}
+			}
+			
+
+			
+
 			if (filteredLength == 0 || filteredLength == null) {
 				this.utils.alertUtils.popAlert(
 					"The last filtering item returns no data therefore removed."
@@ -1482,6 +1545,7 @@ div.custom-select-search {
     background-color: #ffffff;
     border: solid 1px #dddddd;
     border-radius: 5px;
+	z-index: 1001;
 }
 
 .chkbox-combo .options span{

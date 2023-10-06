@@ -303,7 +303,7 @@ export default Vue.component("research-section", {
 			}
 		},
 		originalData(DATA){
-			console.log(this.sectionID, this.loadingDataFlag,"original data updated")
+			//console.log(this.sectionID, this.loadingDataFlag,"original data updated")
 			if(this.loadingDataFlag == "down") {
 				/// filter data by interSectionsFilters
 				if (this.sectionData != null && this.interSectionsFilters.length > 0) {
@@ -337,7 +337,7 @@ export default Vue.component("research-section", {
 			}
 		},
 		interSectionsFilters(FILTERS){
-			console.log("filters changed");
+			//console.log("filters changed");
 			if (this.loadingDataFlag == "down") {
 				if (this.originalData != null && this.interSectionsFilters.length > 0) {
 					this.interSectionsFilters.map(filter => {
