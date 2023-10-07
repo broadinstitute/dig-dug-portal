@@ -571,23 +571,25 @@ export default Vue.component("research-section", {
 			this.$store.dispatch("capturedData", {action:'add',title: title,data:this.sectionData});
 		},
 
-		getData(TOKEN) {
+		getData() {
 			this.loadingDataFlag = "up";
-			this.queryData(TOKEN);
+			this.queryData();
 		},
 		
 		async queryData(continueToken) {
-			//let flag = document.getElementById("flag_"+ this.sectionID);
-			//flag.classList.remove("hidden");
+
+			/// First set data point. In case of bioindex continue token, set url to continue api
 			let dataPoint = this.sectionConfig["data point"]
 			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :
 				dataPoint.url+"query/"+ dataPoint.index +"?q=": 
 				dataPoint.type == "api"? dataPoint.url: 
 				dataPoint.type == "file" ? "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + dataPoint.file :"";
-			let queryParams = {}
-			let queryParamsString = "";
-			let queryParamsSet = true;
 
+			let queryParams = {}; // collect search parameters
+			let queryParamsString = ""; // search parameters into one string
+			let queryParamsSet = true; // if search requirements don't meet set it null
+
+			/// check if all required search parameters are there. If not set queryParamsSet null.
 			if(!!dataPoint.parameters) {
 				dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
@@ -599,6 +601,8 @@ export default Vue.component("research-section", {
 				})
 			}
 
+
+			/// check if one of the pre filters require a value from search parameters. If no value, set queryParamsSet null.
 			if (!!this.sectionConfig["pre filters"]) {
 				this.sectionConfig["pre filters"].map(f => {
 					if (f.value=="search parameter" && !this.utils.keyParams[f.parameter]) {
@@ -607,25 +611,31 @@ export default Vue.component("research-section", {
 				})
 			}
 
+			/// If all required search parameters are there and previously not queried, or url points to bioindex continue api
 			if((!!queryParamsSet && !this.searched.includes(queryParamsString)) || !!continueToken) {
 
+				/// add the query parameters to searched queries array as a string
 				this.searched.push(queryParamsString);
 				
+				/// Build query string (like, ?q=something) which will go after the api url. 
 				if(!!dataPoint["parameters type"]){
 					let queryString = ""
-					if (dataPoint["parameters type"] == "parameters") {
+
+					// if string type is ?parameter=value&&parameter=value
+					if (dataPoint["parameters type"] == "parameters") { 
 						dataPoint.parameters.map(p => {
 							queryString += p + "=" + queryParams[p] + "&&";
-
 						})
+
+						// if string type is ?q=parameter,parameter
 					} else if (dataPoint["parameters type"] == "array") {
 						dataPoint.parameters.map(p => {
 							queryString += queryParams[p] + ",";
 						})
-
 						queryString = queryString.substring(0, queryString.length - 1);
 					}
 
+					/// if url is not pointing bioindex continue api
 					if(!continueToken) {
 						if (dataPoint.type == "api") {
 							dataUrl += queryString;
@@ -635,32 +645,35 @@ export default Vue.component("research-section", {
 					}
 				}
 
+				/// if data point is static file
 				if(dataPoint.type == "file") {
 					dataUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;
 				}
-				
-				
+
+				/// fetch data
 				let contJson = await fetch(dataUrl).then((resp) => resp.json());
 
-				let isData = true;
+				let isData = true; /// set if there was error on fetch
 
 				if (contJson.error == null) {
+
+					// if data is returned but empty
 					if(!!Array.isArray(contJson) && contJson.length == 0) {
 						isData = false
-					} else if(!Array.isArray(contJson)) {
-
 					}
 				} else {
+					// fetch failed
 					isData = false
 				}
 
+				// if data fetch returned data
 				if (!!isData) {	
-					let data = null;
-					let dataWrapper = dataPoint["data wrapper"];
 
 					// remote table format
 					if(!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"] 
 						&& this.sectionConfig["table format"]["type"] == "remote") {
+
+							// often table format config is wrapped by multiple layers of wrappers
 							let tableFormatWrapper = this.sectionConfig["table format"]["config wrapper"];
 							let tableFormats = contJson;
 
@@ -674,6 +687,8 @@ export default Vue.component("research-section", {
 					// remote filters
 					if (!!this.sectionConfig["filters"] && !!this.sectionConfig["filters"]["type"]
 						&& this.sectionConfig["filters"]["type"] == "remote") {
+
+						// often filters config is wrapped by multiple layers of wrappers
 						let filtersWrapper = this.sectionConfig["filters"]["config wrapper"];
 						let filters = contJson;
 
@@ -686,6 +701,8 @@ export default Vue.component("research-section", {
 					// remote visualizer
 					if (!!this.sectionConfig["visualizer"] && !!this.sectionConfig["visualizer"]["type"]
 						&& this.sectionConfig["visualizer"]["type"] == "remote") {
+
+						// often visualizer config is wrapped by multiple layers of wrappers
 						let visualizerWrapper = this.sectionConfig["visualizer"]["config wrapper"];
 						let visualizer = contJson;
 
@@ -698,6 +715,8 @@ export default Vue.component("research-section", {
 					// remote sectionDescription
 					if (!!this.sectionConfig["section description"] && !!this.sectionConfig["section description"]["type"]
 						&& this.sectionConfig["section description"]["type"] == "remote") {
+
+						// often section description is wrapped by multiple layers of wrappers
 						let descriptionWrapper = this.sectionConfig["section description"]["config wrapper"];
 						let description = contJson;
 
@@ -706,11 +725,19 @@ export default Vue.component("research-section", {
 						})
 						this.remoteSectionDecription = description;
 					}
+
+					let data = null;
+
+					// often data is wrapped by multiple layers of wrappers
+					let dataWrapper = dataPoint["data wrapper"];
 					
+					// process data by data type
 					switch (dataPoint["data type"]) {
 						case "bioindex":
 							data = contJson.data;
+
 							break;
+
 						case "json":
 							if(!!dataWrapper) {
 								let dataEntity = contJson;
@@ -724,7 +751,9 @@ export default Vue.component("research-section", {
 							} else {
 								data = contJson
 							}
+
 							break;
+
 						case "csv":
 							
 							if (!!dataWrapper) {
@@ -734,26 +763,26 @@ export default Vue.component("research-section", {
 									dataEntity = dataEntity[w];
 								})
 
-								data = this.utils.dataConvert.csv2Json(dataEntity);
+								data = this.utils.dataConvert.csv2Json(dataEntity); // conver csv data to json format
 
 							} else {
-								data = this.utils.dataConvert.csv2Json(contJson);
+								data = this.utils.dataConvert.csv2Json(contJson); // conver csv data to json format
 							}
 
-							
 							break;
 					}
 
+					// if loaded data is processed
 					if(data.length > 0){
+
 						let tableFormat = (!!this.remoteTableFormat)? this.remoteTableFormat : this.sectionConfig["table format"];
 
 						if (!!tableFormat && !!tableFormat["data convert"]) {
 							let convertConfig = tableFormat["data convert"];
-							data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap);
+							data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
 						}
 
-						let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true")?
-							true : null;
+						let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true")? true : null;
 
 						let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0))?
 							true : null;
