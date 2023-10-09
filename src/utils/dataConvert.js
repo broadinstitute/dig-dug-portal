@@ -125,6 +125,12 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             case "-log10":
                                 tempObj[c["field name"]] = -Math.log10(d[c["raw field"]]);
                                 break;
+
+                            case "division":
+
+                                tempObj[c["field name"]] = d[c["dividend"]] / d[c["divisor"]];
+
+                                break;
                         }
                         break;
                     case "js math":

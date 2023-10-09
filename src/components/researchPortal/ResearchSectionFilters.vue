@@ -209,7 +209,6 @@
 				Clear all search
 			</b-badge>
 		</b-container>
-		{{ unfilteredDataset.length }};
 	</div>
 </template>
 
