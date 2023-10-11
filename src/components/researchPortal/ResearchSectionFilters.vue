@@ -1545,6 +1545,9 @@ div.custom-select-search {
     border: solid 1px #dddddd;
     border-radius: 5px;
 	z-index: 1001;
+	max-height: 400px;
+    overflow-y: auto;
+    padding: 10px 10px;
 }
 
 .chkbox-combo .options span{
