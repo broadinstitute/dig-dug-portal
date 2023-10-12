@@ -92,6 +92,24 @@
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-genes-track>
+		<!-- region_plot -->
+			<research-scatter-plot
+				v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
+				:plotData="plotData"
+				:renderConfig="plotConfig"
+				:searchParameters="searchParameters"
+				:dataComparisonConfig="dataComparisonConfig"
+				:region="utils.keyParams.region"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.moderate"
+				:regionZoom="0"
+				:regionViewArea="null"
+				:pkgData="null"
+				:pkgDataSelected="null"
+				:isSectionPage="true"
+				:sectionId="sectionId"
+				:utils="utils"
+			></research-scatter-plot>
 		<!-- Annotations plot-->
 		<!--<research-multi-annotations-plot
 			:region="utils.keyParams.region"
@@ -126,12 +144,14 @@ import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.v
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAnnotationsPlot.vue";
+import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","sectionId","utils","dataComparisonConfig","searchParameters"],
 	components: {
 		ResearchAnnotationsPlot,
+		ResearchScatterPlot,
 		ResearchMPlotBitmap,
 		ResearchMQQPlot,
 		ResearchRegionPlot,

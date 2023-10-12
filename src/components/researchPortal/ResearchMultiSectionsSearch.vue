@@ -244,7 +244,6 @@ export default Vue.component("research-multi-sections-search", {
 					this.$root.$refs[s['section id']].getData();
 				})
 			} else if (!!KEY) {
-				console.log(TARGET_SECTIONS);
 
 				let paramsObj = {}
 				this.searchParameters.map(s => {
@@ -255,6 +254,7 @@ export default Vue.component("research-multi-sections-search", {
 				this.utils.keyParams.set(paramsObj);
 
 				if(!!TARGET_SECTIONS) {
+					console.log("TARGET_SECTIONS",TARGET_SECTIONS)
 					TARGET_SECTIONS.map(s=>{
 						this.$root.$refs[s].getData();
 					})

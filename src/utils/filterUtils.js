@@ -6,8 +6,6 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
         let meetFilters = true;
 
         FILTERS.map(filter => {
-            /* let filterValue = (filter.value == 'search parameter') ?
-                 document.getElementById('search_param_' + filter.parameter).value : filter.value;*/
 
             let filterValue = (filter.value == 'search parameter') ?
                 PARAMS[filter.parameter] : filter.value;

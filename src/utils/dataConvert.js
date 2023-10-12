@@ -126,11 +126,16 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                                 tempObj[c["field name"]] = -Math.log10(d[c["raw field"]]);
                                 break;
 
-                            case "division":
+                            case "math":
+                                let calcString = "";
 
-                                tempObj[c["field name"]] = d[c["dividend"]] / d[c["divisor"]];
+                                c["expression"].map(e => {
+                                    let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : d[e];
+                                    calcString += eValue;
+                                });
 
-                                break;
+                                tempObj[c["field name"]] = eval(calcString);
+
                         }
                         break;
                     case "js math":
