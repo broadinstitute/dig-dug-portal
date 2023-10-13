@@ -92,24 +92,19 @@
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-genes-track>
-		<!-- region_plot -->
-			<research-scatter-plot
-				v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
-				:plotData="plotData"
-				:renderConfig="plotConfig"
-				:searchParameters="searchParameters"
-				:dataComparisonConfig="dataComparisonConfig"
-				:region="utils.keyParams.region"
-				:plotMargin="plotMargin"
-				:compareGroupColors="colors.moderate"
-				:regionZoom="0"
-				:regionViewArea="null"
-				:pkgData="null"
-				:pkgDataSelected="null"
-				:isSectionPage="true"
-				:sectionId="sectionId"
-				:utils="utils"
-			></research-scatter-plot>
+		<!-- scatter plot -->
+		<research-scatter-plot
+			v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
+			:plotData="plotData"
+			:renderConfig="plotConfig"
+			:searchParameters="searchParameters"
+			:dataComparisonConfig="dataComparisonConfig"
+			:plotMargin="plotMargin"
+			:compareGroupColors="colors.moderate"
+			:isSectionPage="true"
+			:sectionId="sectionId"
+			:utils="utils"
+		></research-scatter-plot>
 		<!-- Annotations plot-->
 		<!--<research-multi-annotations-plot
 			:region="utils.keyParams.region"

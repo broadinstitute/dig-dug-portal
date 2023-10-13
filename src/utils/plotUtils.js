@@ -456,11 +456,11 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                     let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
                     CTX.moveTo(
                         adjTickXPos,
-                        HEIGHT - MARGIN.bottom
+                        HEIGHT - MARGIN.bottom + MARGIN.bump
                     );
                     CTX.lineTo(
                         adjTickXPos,
-                        HEIGHT - MARGIN.bottom + MARGIN.bump
+                        (HEIGHT - MARGIN.bottom) + (MARGIN.bump * 2)
                     );
                     CTX.stroke();
 
@@ -474,9 +474,20 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                     CTX.fillText(
                         positionLabel,
                         adjTickXPos,
-                        HEIGHT - MARGIN.bottom + (MARGIN.bump * 4)
+                        HEIGHT - MARGIN.bottom + (MARGIN.bump * 5)
                     );
                 }
+            }
+
+            if (LABEL != null) {
+                let labelXPos = WIDTH / 2;
+                let labelYPos = HEIGHT - (MARGIN.bump * 2);
+                CTX.font = "24px Arial";
+                CTX.fillStyle = "#000000";
+                CTX.save();
+                CTX.textAlign = "center";
+                CTX.fillText(LABEL, labelXPos, labelYPos);
+                CTX.restore();
             }
             break;
         case "y":
@@ -603,6 +614,22 @@ const renderStar = function (CTX, CX, CY, SPIKES, OR, IR, SCOLOR, FCOLOR) {
 }
 
 
+const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA) {
+
+    let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
+    let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
+    let xStep = plotWidth / (XMAX - XMIN);
+    let yStep = plotHeight / (YMAX - YMIN);
+
+    DATA.map(d => {
+        let xPos = MARGIN.left + (xStep * (d.x - XMIN));
+        let yPos = MARGIN.top + (plotHeight - (d.y - YMIN) * yStep)
+        renderDot(CTX, xPos, yPos, COLOR);
+    })
+
+}
+
+
 
 export default {
     renderAxis,
@@ -612,5 +639,6 @@ export default {
     renderPie,
     renderGuideLine,
     renderLine,
-    renderStar
+    renderStar,
+    renderDots
 };
