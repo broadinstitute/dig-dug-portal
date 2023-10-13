@@ -194,9 +194,7 @@ export default Vue.component("research-scatter-plot", {
 			let topMargin = this.plotDimension.plotMargin.topMargin + 0.5; // -0.5 to draw crisp line
 			let rightMargin = this.plotDimension.plotMargin.rightMargin + 0.5; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
 			let bottomMargin = this.plotDimension.plotMargin.bottomMargin + 0.5; // -0.5 to draw crisp line
-
-			let xBump = this.plotDimension.plotMargin.bump;
-			let yBump = this.plotDimension.plotMargin.bump;
+			let bump = this.plotDimension.plotMargin.bump;
 
 			let c = document.getElementById(ID);
 			let ctx = c.getContext("2d");
@@ -213,11 +211,7 @@ export default Vue.component("research-scatter-plot", {
 			let yMin = Math.min.apply(Math, yAxisData);
 			let yMax = Math.max.apply(Math, yAxisData);
 
-			let xAxisTicks = this.utils.uiUtils.getAxisTicks(xMin, xMax);
-			let yAxisTicks = this.utils.uiUtils.getAxisTicks(yMin, yMax);
-
-			// render axis
-			let MARGIN = {top: topMargin,bottom: bottomMargin,left: leftMargin,right: rightMargin,bump:yBump }
+			let MARGIN = {top: topMargin,bottom: bottomMargin,left: leftMargin,right: rightMargin,bump:bump }
 			this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "x", 5, xMin, xMax, this.renderConfig["x axis label"]);
 			this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "y", 5, yMin, yMax, this.renderConfig["y axis label"]);
 			
@@ -225,15 +219,15 @@ export default Vue.component("research-scatter-plot", {
 
 				let cIndex = 0
 				this.colorsList.map(color =>{
-
 					let coloredData = DATA.filter(d=>d.color == color);
 					let dotColor = this.compareGroupColors[cIndex];
 					this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 					cIndex++;
 				})
+			} else {
+				let dotColor = this.compareGroupColors[0];
+				this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, DATA);
 			}
-			
-
 		},
 		renderPlot() {
 			if(this.renderData.length > 0) {
