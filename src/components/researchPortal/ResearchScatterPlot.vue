@@ -14,6 +14,7 @@
 				(plotDimension.height / 2) +
 				'px;'
 				"
+			@click="checkPosition($event)"
 		>
 		</canvas>
 		<template v-if="plotData.length > 0 && !!renderConfig && !!groupsList">
@@ -36,6 +37,7 @@
 					(plotDimension.height/2) +
 					'px;'
 					"
+				@click="checkPosition($event,group)"
 			>
 			</canvas>
 		</template>
@@ -178,6 +180,36 @@ export default Vue.component("research-scatter-plot", {
 			"color": "enhancer"
 		}
 		*/
+		getDotPosData(X, Y, DATA) {
+			
+			let dotsList = [];
+
+			for (let h = -5; h <= 5; h++) {
+				for (let v = -5; v <= 5; v++) {
+					if (DATA[Y + h] != undefined) {
+						if (DATA[Y + h][X + v] != undefined) {
+							dotsList = dotsList.concat(DATA[Y + h][X + v]);
+						}
+					}
+				}
+			}
+
+			return dotsList;
+		},
+
+		checkPosition(e,GROUP) {
+
+			let data = (!!GROUP)? this.posData[GROUP]: this.posData;
+
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let y = Math.floor(e.clientY - rect.top);
+
+			let posData = this.getDotPosData(x,y,data)
+
+			console.log(posData);
+
+		},
 		clearPlot() {
 			
 		},
@@ -240,9 +272,6 @@ export default Vue.component("research-scatter-plot", {
 			} else {
 				this.posData = this.utils.plotUtils.getDotsPosData(canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, DATA);
 			}
-
-			console.log(this.posData);
-
 		},
 		renderPlot() {
 			if(this.renderData.length > 0) {
