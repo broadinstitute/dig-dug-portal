@@ -629,6 +629,34 @@ const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX,
 
 }
 
+const getDotsPosData = function (WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, DATA) {
+
+    let posData = {}
+    let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
+    let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
+    let xStep = plotWidth / (XMAX - XMIN);
+    let yStep = plotHeight / (YMAX - YMIN);
+
+    DATA.map(d => {
+        let xPos = MARGIN.left + (xStep * (d.x - XMIN));
+        let yPos = MARGIN.top + (plotHeight - (d.y - YMIN) * yStep)
+
+        if (!posData[Math.round(yPos / 2)]) {
+            posData[Math.round(yPos / 2)] = {};
+        }
+        if (!posData[Math.round(yPos / 2)][Math.round(xPos / 2)]) {
+            posData[Math.round(yPos / 2)][Math.round(xPos / 2)] =
+                [];
+        }
+        posData[Math.round(yPos / 2)][Math.round(xPos / 2)].push(
+            { "key": d.key, "hover": d.hover }
+        );
+    })
+
+    return posData;
+
+}
+
 
 
 export default {
@@ -640,5 +668,6 @@ export default {
     renderGuideLine,
     renderLine,
     renderStar,
-    renderDots
+    renderDots,
+    getDotsPosData
 };

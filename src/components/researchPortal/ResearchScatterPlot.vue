@@ -12,11 +12,17 @@
 				(plotDimension.width / 2) +
 				'px;height:' +
 				(plotDimension.height / 2) +
-				'px; border:solid 1px #000'
+				'px;'
 				"
 		>
 		</canvas>
 		<template v-if="plotData.length > 0 && !!renderConfig && !!groupsList">
+			<div class="colors-list">
+				<div v-for="anno, annoIndex in colorsList" class="anno-bubble-wrapper">
+					<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
+					<span>{{ anno }}</span>
+				</div>
+			</div>
 			<canvas
 				v-for="group in groupsList"
 				:key="group"
@@ -28,7 +34,7 @@
 					(plotDimension.width/2) +
 					'px;height:' +
 					(plotDimension.height/2) +
-					'px; border:solid 1px #000'
+					'px;'
 					"
 			>
 			</canvas>
@@ -38,11 +44,6 @@
 			class="scatter-plot-label"
 			v-html="renderConfig.label"
 		></div>
-		{{ renderData.length }}
-		{{ renderConfig }}
-		{{ compareGroupColors }}
-		{{ groupsList }}
-		{{ colorsList }}
 	</div>
 </template>
 
@@ -163,7 +164,6 @@ export default Vue.component("research-scatter-plot", {
 	},
 	methods: {
 		/*
-
 		{
 			"key": "liver_enhancer",
 			"x": 2.9572775070200645,
@@ -177,23 +177,21 @@ export default Vue.component("research-scatter-plot", {
 			"group": "T2D_SA",
 			"color": "enhancer"
 		}
-
 		*/
 		clearPlot() {
 			
 		},
-		renderIndividualPlot(DATA, ID) {
-			
+		renderIndividualPlot(DATA, ID, GROUP) {
 
 			let xAxisData = [];
 			let yAxisData = [];
 
 			let canvasWidth = this.plotDimension.width;
 			let canvasHeight = this.plotDimension.height;
-			let leftMargin = this.plotDimension.plotMargin.leftMargin + 0.5; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			let topMargin = this.plotDimension.plotMargin.topMargin + 0.5; // -0.5 to draw crisp line
-			let rightMargin = this.plotDimension.plotMargin.rightMargin + 0.5; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			let bottomMargin = this.plotDimension.plotMargin.bottomMargin + 0.5; // -0.5 to draw crisp line
+			let leftMargin = this.plotDimension.plotMargin.leftMargin;
+			let topMargin = this.plotDimension.plotMargin.topMargin;
+			let rightMargin = this.plotDimension.plotMargin.rightMargin;
+			let bottomMargin = this.plotDimension.plotMargin.bottomMargin;
 			let bump = this.plotDimension.plotMargin.bump;
 
 			let c = document.getElementById(ID);
@@ -216,7 +214,6 @@ export default Vue.component("research-scatter-plot", {
 			this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "y", 5, yMin, yMax, this.renderConfig["y axis label"]);
 			
 			if(!!this.colorsList) {
-
 				let cIndex = 0
 				this.colorsList.map(color =>{
 					let coloredData = DATA.filter(d=>d.color == color);
@@ -228,17 +225,34 @@ export default Vue.component("research-scatter-plot", {
 				let dotColor = this.compareGroupColors[0];
 				this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, DATA);
 			}
+
+			if (!!GROUP) {
+				ctx.font = "26px Arial";
+				ctx.fillStyle = "#000000";
+				ctx.textAlign = "start";
+				ctx.fillText(
+					GROUP,
+					bump,
+					bump + 26
+				);
+
+				this.posData[GROUP] = this.utils.plotUtils.getDotsPosData(canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, DATA);
+			} else {
+				this.posData = this.utils.plotUtils.getDotsPosData(canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, DATA);
+			}
+
+			console.log(this.posData);
+
 		},
 		renderPlot() {
 			if(this.renderData.length > 0) {
 				if (!!this.groupsList) {
 
 					this.groupsList.map(group => {
-						let groupField = this.renderConfig["group by"];
 						let data = this.renderData.filter(d => d.group == group);
 						let id = 'scatterPlot' + this.sectionId + group;
 
-						this.renderIndividualPlot(data, id);
+						this.renderIndividualPlot(data, id, group);
 					})
 				} else {
 					this.renderIndividualPlot(this.renderData, 'scatterPlot' + this.sectionId);
@@ -256,7 +270,36 @@ $(function () { });
 </script>
 
 <style>
+.scatter-plot {
+	margin: 10px;
+}
 
+.colors-list {
+	display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.anno-bubble-wrapper {
+	width: auto;
+    display: inline-block;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-bottom: 3px;
+}
+
+.anno-bubble-wrapper span {
+    font-size: 13px;
+    display: inline-block;
+}
+
+.anno-bubble-wrapper span.anno-bubble {
+    border-radius: 12px;
+    margin-right: 3px;
+    width: 12px;
+    height: 12px;
+    vertical-align: -3px;
+}
 </style>
 
 
