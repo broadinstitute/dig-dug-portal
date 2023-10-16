@@ -1,7 +1,9 @@
 <template>
 	<div class="scatter-plot-content row" id="rp_scatter_plot">
 		
-		<div :id="'scatter_dot_value' + sectionId" class="scatter-dot-value" style="display:none"></div>
+		<div :id="'scatter_dot_value' + sectionId" 
+			class="scatter-dot-value" :class="!!isDotPanelClick? 'fixed-panel':''" 
+			style="display:none"></div>
 		<canvas
 			v-if="renderData.length > 0 && !!renderConfig && !groupsList"
 			:id="'scatterPlot' + sectionId"
@@ -75,6 +77,7 @@ export default Vue.component("research-scatter-plot", {
 			groupsList:null,
 			colorsList:null,
 			posData:{},
+			isDotPanelClick: false,
 		};
 	},
 	modules: {
@@ -259,6 +262,10 @@ export default Vue.component("research-scatter-plot", {
 		},
 		checkPosition(e, GROUP, EVENT_TYPE) {
 
+			if (EVENT_TYPE == 'click'){
+				this.isDotPanelClick = true;
+			}
+
 			let data = (!!GROUP) ? this.posData[GROUP] : this.posData;
 			let wrapper = document.querySelector('#scatter_dot_value' + this.sectionId);
 			let canvas = document.querySelector('#scatterPlot' + this.sectionId + GROUP);
@@ -270,7 +277,8 @@ export default Vue.component("research-scatter-plot", {
 			let posData = this.utils.plotUtils.getDotsInPos(x, y, data)
 
 			if (posData.length > 0) {
-				let posContent = "";
+				let posContent = posData.length > 5 && EVENT_TYPE == 'move'? 
+					'<strong>There are too many items to disply. <br />Click to view the full list.</strong><br /><br />' : "";
 
 				let cIndex = 0;
 				posData.map(d => {
@@ -279,30 +287,35 @@ export default Vue.component("research-scatter-plot", {
 
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
-							posContent += hValue + "</span><br />";
+							posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
 						}
 					} else if(EVENT_TYPE == 'click'){
 						posContent += "<strong>" + d.key + "</strong><br />";
 
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
-							posContent += hValue + "</span><br />";
+							posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
 						}
 					}
 					cIndex ++;
 				})
 
-				wrapper.style.top = x + canvas.offsetLeft + 150 > canvas.width
-					? y + canvas.offsetTop + 15 + "px" : y + canvas.offsetTop + "px";
-				wrapper.style.left =
-					x + canvas.offsetLeft + 150 > canvas.width
-						? x + canvas.offsetLeft + -215 + "px"
-						: x + canvas.offsetLeft + 15 + "px";
-				wrapper.style.width =
-					x + canvas.offsetLeft + 150 > canvas.width ? "auto" : "auto";
-				wrapper.style.display = "block";
+				if (EVENT_TYPE == 'move' && !this.isDotPanelClick){
+					wrapper.style.top = x + canvas.offsetLeft + 150 > canvas.width
+						? y + canvas.offsetTop + 15 + "px" : y + canvas.offsetTop + "px";
+					wrapper.style.left =
+						x + canvas.offsetLeft + 150 > canvas.width
+							? x + canvas.offsetLeft + -215 + "px"
+							: x + canvas.offsetLeft + 15 + "px";
+					wrapper.style.width =
+						x + canvas.offsetLeft + 150 > canvas.width ? "auto" : "auto";
+					wrapper.style.display = "block";
+				}
+				
 				wrapper.innerHTML = posContent;
 			} else {
+
+
 				wrapper.style.display = "none";
 				wrapper.innerHTML = "";
 			}
@@ -354,6 +367,11 @@ $(function () { });
     padding: 5px 15px;
     z-index: 11;
     font-size: 14px;
+}
+
+.scatter-dot-value.fixed-panel {
+	position: fixed;
+	display: block;
 }
 </style>
 
