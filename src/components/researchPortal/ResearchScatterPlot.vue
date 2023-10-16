@@ -262,9 +262,7 @@ export default Vue.component("research-scatter-plot", {
 		},
 		checkPosition(e, GROUP, EVENT_TYPE) {
 
-			if (EVENT_TYPE == 'click'){
-				this.isDotPanelClick = true;
-			}
+			
 
 			let data = (!!GROUP) ? this.posData[GROUP] : this.posData;
 			let wrapper = document.querySelector('#scatter_dot_value' + this.sectionId);
@@ -277,12 +275,12 @@ export default Vue.component("research-scatter-plot", {
 			let posData = this.utils.plotUtils.getDotsInPos(x, y, data)
 
 			if (posData.length > 0) {
-				let posContent = posData.length > 5 && EVENT_TYPE == 'move'? 
-					'<strong>There are too many items to disply. <br />Click to view the full list.</strong><br /><br />' : "";
+				let posContent = posData.length > 5 && EVENT_TYPE == 'move' && !this.isDotPanelClick ? 
+					'<strong>There are more items to disply. <br />Click to view the full list.</strong><br /><br />' : "";
 
 				let cIndex = 0;
 				posData.map(d => {
-					if(EVENT_TYPE == 'move' && cIndex < 6) {
+					if(EVENT_TYPE == 'move' && cIndex < 6 && !this.isDotPanelClick) {
 						posContent += "<strong>" + d.key + "</strong><br />";
 
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
@@ -310,14 +308,23 @@ export default Vue.component("research-scatter-plot", {
 					wrapper.style.width =
 						x + canvas.offsetLeft + 150 > canvas.width ? "auto" : "auto";
 					wrapper.style.display = "block";
+
+					wrapper.innerHTML = posContent;
 				}
-				
-				wrapper.innerHTML = posContent;
+
+				if (EVENT_TYPE == 'click') {
+					this.isDotPanelClick = true;
+					wrapper.innerHTML = posContent;
+				}
+
 			} else {
-
-
-				wrapper.style.display = "none";
-				wrapper.innerHTML = "";
+				if (EVENT_TYPE == 'click') {
+					this.isDotPanelClick = false;
+				}
+				if (EVENT_TYPE == 'move' && !this.isDotPanelClick) {
+					wrapper.style.display = "none";
+					wrapper.innerHTML = "";
+				}
 			}
 
 		},
@@ -371,7 +378,19 @@ $(function () { });
 
 .scatter-dot-value.fixed-panel {
 	position: fixed;
-	display: block;
+	width: auto;
+	height: auto;
+	max-width: 50%;
+	max-height: 50%;
+	left: calc(50% - 200px) !important;
+	top: calc(50% - 150px) !important;
+	padding: 20px 15px;
+	border-radius: 5px;
+	border: solid 1px #ddd;
+	background-color: #fff;
+	z-index: 100;
+	overflow: auto;
+	box-shadow: 0px 5px 15px #00000050;
 }
 </style>
 
