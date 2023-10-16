@@ -5,6 +5,7 @@
         :type="'number'"
         :predicate="predicate"
         :pillFormatter="pillFormatter"
+        :placeholder="placeholder"
         :color="color"
         :computedField="computedField"
         :multiple="false"
@@ -30,7 +31,8 @@ export default Vue.component("filter-greater-control", {
         },
         color: {
             type: String
-        }
+        },
+        placeholder: String
     },
     components: {
         FilterControlTemplate
