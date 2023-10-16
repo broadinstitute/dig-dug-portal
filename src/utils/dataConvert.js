@@ -313,8 +313,35 @@ let CSVToArray = function (strData, strDelimiter) {
     return (arrData);
 };
 
+const object2Array = function (DATASET, COMPARECONFIG, KEY) {
+    let arrayedObject = [];
+    let groupField = COMPARECONFIG["fields to compare"][0];
+    let comapredF = COMPARECONFIG["fields to compare"];
+
+    for (const [dKey, dValue] of Object.entries(DATASET)) {
+
+        let groups = Object.keys(dValue[groupField]);
+
+        groups.map(group => {
+
+            let tempObj = {};
+
+            for (const [iKey, iValue] of Object.entries(dValue)) {
+                if (!!comapredF.includes(iKey)) {
+                    tempObj[iKey] = iValue[group]
+                } else {
+                    tempObj[iKey] = iValue
+                }
+            }
+            arrayedObject.push(tempObj)
+        })
+    }
+    return arrayedObject;
+}
+
 
 export default {
     convertData,
     csv2Json,
+    object2Array
 };

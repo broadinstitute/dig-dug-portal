@@ -657,6 +657,23 @@ const getDotsPosData = function (WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, 
 
 }
 
+const getDotsInPos = function (X, Y, DATA) {
+
+    let dotsList = [];
+
+    for (let h = -5; h <= 5; h++) {
+        for (let v = -5; v <= 5; v++) {
+            if (DATA[Y + h] != undefined) {
+                if (DATA[Y + h][X + v] != undefined) {
+                    dotsList = dotsList.concat(DATA[Y + h][X + v]);
+                }
+            }
+        }
+    }
+
+    return dotsList;
+}
+
 
 
 export default {
@@ -669,5 +686,6 @@ export default {
     renderLine,
     renderStar,
     renderDots,
-    getDotsPosData
+    getDotsPosData,
+    getDotsInPos
 };

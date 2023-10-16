@@ -3,7 +3,7 @@
 		
 		<div :id="'clicked_dot_value' + sectionId" class="clicked-dot-value hidden"></div>
 		<canvas
-			v-if="plotData.length > 0 && !!renderConfig && !groupsList"
+			v-if="renderData.length > 0 && !!renderConfig && !groupsList"
 			:id="'scatterPlot' + sectionId"
 			class="scatter-plot"
 			:width="plotDimension.width"
@@ -14,10 +14,10 @@
 				(plotDimension.height / 2) +
 				'px;'
 				"
-			@click="checkPosition($event)"
+			@click="checkPosition($event,'click')"
 		>
 		</canvas>
-		<template v-if="plotData.length > 0 && !!renderConfig && !!groupsList">
+		<template v-if="renderData.length > 0 && !!renderConfig && !!groupsList">
 			<div class="colors-list">
 				<div v-for="anno, annoIndex in colorsList" class="anno-bubble-wrapper">
 					<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
@@ -78,8 +78,12 @@ export default Vue.component("research-scatter-plot", {
 	modules: {
 	},
 	components: {},
-	mounted: function () {
+	mounted() {
 		window.addEventListener("resize", this.onResize);
+		this.renderPlot();
+	},
+	updated() {
+		console.log("updated");
 		this.renderPlot();
 	},
 	beforeDestroy() {
@@ -116,10 +120,13 @@ export default Vue.component("research-scatter-plot", {
 			return dimension
 		},
 		renderData() {
-			let rawData = this.plotData;
+			let rawData = (!!this.dataComparisonConfig)? 
+					this.utils.dataConvert.object2Array(this.plotData, this.dataComparisonConfig,this.dataComparisonConfig["key field"]) : 
+					this.plotData;
 			let massagedData = [];
 			let groups = [];
 			let colors = [];
+
 
 			rawData.map((r) => {
 				let tempObj = {};
@@ -153,16 +160,21 @@ export default Vue.component("research-scatter-plot", {
 			this.groupsList = groups.length > 0? groups.sort(): null;
 			this.colorsList = colors.length > 0? colors.sort() : null;
 
+			console.log("groups",groups)
+			console.log("colors", colors)
+
 			return massagedData;
 		}
 	},
 	watch: {
 		renderData(DATA){
-			if(DATA.length > 0) {
-				this.clearPlot();
-				this.renderPlot();
-			}
+			
+		},
+
+		groupsList(LIST){
+			console.log(LIST);
 		}
+
 	},
 	methods: {
 		/*
@@ -180,22 +192,7 @@ export default Vue.component("research-scatter-plot", {
 			"color": "enhancer"
 		}
 		*/
-		getDotPosData(X, Y, DATA) {
-			
-			let dotsList = [];
-
-			for (let h = -5; h <= 5; h++) {
-				for (let v = -5; v <= 5; v++) {
-					if (DATA[Y + h] != undefined) {
-						if (DATA[Y + h][X + v] != undefined) {
-							dotsList = dotsList.concat(DATA[Y + h][X + v]);
-						}
-					}
-				}
-			}
-
-			return dotsList;
-		},
+		
 
 		checkPosition(e,GROUP) {
 
@@ -205,7 +202,7 @@ export default Vue.component("research-scatter-plot", {
 			let x = Math.floor(e.clientX - rect.left);
 			let y = Math.floor(e.clientY - rect.top);
 
-			let posData = this.getDotPosData(x,y,data)
+			let posData = this.utils.plotUtils.getDotsInPos(x,y,data)
 
 			console.log(posData);
 
@@ -281,7 +278,8 @@ export default Vue.component("research-scatter-plot", {
 						let data = this.renderData.filter(d => d.group == group);
 						let id = 'scatterPlot' + this.sectionId + group;
 
-						this.renderIndividualPlot(data, id, group);
+						
+						(!!document.getElementById(id))?this.renderIndividualPlot(data, id, group):'';
 					})
 				} else {
 					this.renderIndividualPlot(this.renderData, 'scatterPlot' + this.sectionId);
