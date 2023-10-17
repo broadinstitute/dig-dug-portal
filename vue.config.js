@@ -270,7 +270,7 @@ module.exports = {
     },
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
-        let bioindex_host = "https://bioindex.hugeamp.org"; // production by default
+        let bioindex_host = process.env.BIOINDEX_HOST || "https://bioindex.hugeamp.org"; // production by default
         //set private bioindex host if variable is defined, otherwise use default
         let bioindex_host_private =
             process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";
