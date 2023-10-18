@@ -108,7 +108,7 @@ export default Vue.component("research-single-search", {
 	methods: {
 
 		onSearch() {
-			let searchKey = this.singleSearchParam.replace(/,/g, "");
+			let searchKey = this.singleSearchParam.replace(/,/g, "").trim();
 			if (
 				!!this.singleSearchParam.includes("rs") ||
 				!!this.singleSearchParam.includes(":")
