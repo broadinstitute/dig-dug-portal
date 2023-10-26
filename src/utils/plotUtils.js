@@ -622,10 +622,13 @@ const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX,
     let yStep = plotHeight / (YMAX - YMIN);
 
     DATA.map(d => {
-        let xPos = MARGIN.left + (xStep * (d.x - XMIN));
-        let yPos = MARGIN.top + (plotHeight - (d.y - YMIN) * yStep)
+        let xVal = d.xValue ? d.xValue : d.x;
+        let yVal = d.yValue ? d.yValue : d.y;
+        let xPos = MARGIN.left + (xStep * (xVal - XMIN));
+        let yPos = MARGIN.top + (plotHeight - (yVal - YMIN) * yStep)
         renderDot(CTX, xPos, yPos, COLOR);
     })
+
 
 }
 
@@ -638,8 +641,11 @@ const getDotsPosData = function (WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, 
     let yStep = plotHeight / (YMAX - YMIN);
 
     DATA.map(d => {
-        let xPos = MARGIN.left + (xStep * (d.x - XMIN));
-        let yPos = MARGIN.top + (plotHeight - (d.y - YMIN) * yStep)
+        let xVal = d.x.length > 1 ? d.xValue : d.x;
+        let yVal = d.y.length > 1 ? d.yValue : d.y;
+
+        let xPos = MARGIN.left + (xStep * (xVal - XMIN));
+        let yPos = MARGIN.top + (plotHeight - (yVal - YMIN) * yStep)
 
         if (!posData[Math.round(yPos / 2)]) {
             posData[Math.round(yPos / 2)] = {};
