@@ -98,11 +98,10 @@
 						:width="plotDimension.width"
 						:height="plotDimension.height"
 						:style="'width:' +
-							(plotDimension.width/3) +
+							(plotDimension.width/2) +
 							'px;height:' +
-							(plotDimension.height/3) +
-							'px;'
-							"
+							(plotDimension.height/2) +
+							'px;'"
 						@click="checkPosition($event,color,'click')"
 						@mousemove="checkPosition($event, color, 'move')"
 					>
@@ -225,9 +224,6 @@ export default Vue.component("research-scatter-plot", {
 			let groups = [];
 			let colors = [];
 
-			//TODO: check if empy
-			let multipleColorsBy = !!this.renderConfig["color by"] ? ( this.renderConfig["color by"].constructor === Array ? true : false) : false;
-
 			//index of the values each field should display; default: 0
 			//TODO: these should get set after dropdown change
 			let xAxisFieldIndex = 0;
@@ -236,8 +232,7 @@ export default Vue.component("research-scatter-plot", {
 			let yAxisMultipleOptions = false;
 			this.renderConfig["x axis index"] = xAxisFieldIndex;
 			this.renderConfig["y axis index"] = yAxisFieldIndex;
-			this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"][0];
-
+			
 			console.log('alex raw data (premap)', rawData);
 			console.log('alex render config', this.renderConfig);
 
@@ -246,19 +241,20 @@ export default Vue.component("research-scatter-plot", {
 				if(!!this.renderConfig["x axis fields"]){
 					if(this.renderConfig["x axis fields"].length > 1){
 						//x field should have dropdown
-						console.log("alex x", this.renderConfig["x axis fields"].length);
 						xAxisMultipleOptions = true;
 					}
 				}
 				if(!!this.renderConfig["y axis fields"]){
 					if(this.renderConfig["y axis fields"].length > 1){
 						//y field should have dropdown
-						console.log("alex y", this.renderConfig["y axis fields"].length);
 						yAxisMultipleOptions = true;
 					}
 				}
 			}
 
+			//check if "color by" is an array of fields
+			//can also be just a string with one field
+			let multipleColorsBy = this.renderConfig["color by"] ? ( this.renderConfig["color by"].constructor === Array ? true : false) : false;
 			//create an object of objects for each field requested in "color by"
 			//to be filled with arrays of all possible values for each field
 			//eg: colorsBy: { "Sex": ["male", "female"], "Field": [1, 2, 3], ... }
@@ -268,6 +264,10 @@ export default Vue.component("research-scatter-plot", {
 				this.renderConfig["color by"].forEach(colorBy => {
 					colorsBy = { ...colorsBy, [colorBy]:[] };
 				})
+				this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"][0];
+			}else if(this.renderConfig["color by"]){
+				//"color by" is not an array, but does have a single string for a field
+				this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"];
 			}
 
 			rawData.map((r) => {
@@ -317,21 +317,18 @@ export default Vue.component("research-scatter-plot", {
 
 				if (!!this.renderConfig["color by"]) {
 					if(multipleColorsBy){
-						//create array of objects containing the fields and their values as requested in "color by"
+						//create object of objects containing the fields and their values as requested in "color by"
 						//eg: "color by": [ "Sex", "Time of Day" ]
-						//    >  "color": [ { "Sex": "male" }, { "Time of Day": "night" }, ...]
-						//TODO: should be adding to object not array
+						//    >  "color": { "Sex": "male", "Time of Day": "night", ...}
 						tempObj["color"] = {};
-						
 						this.renderConfig["color by"].forEach((colorBy, index) => {
-							//let col = {[colorBy]: r[ this.renderConfig["color by"][index] ] };
+							
 							tempObj["color"] = {...tempObj["color"], [colorBy]: r[ this.renderConfig["color by"][index] ] };
 
 							if( !colorsBy[colorBy].includes( r[ this.renderConfig["color by"][index] ] ) ){
 								colorsBy[colorBy].push( r[ this.renderConfig["color by"][index] ] )
 							}
 						})
-
 
 						//tempObj["color"] = r[this.renderConfig["color by"][this.renderConfig["color field"]];
 						//if (!colors.includes(tempObj["color"])) {
@@ -378,8 +375,7 @@ export default Vue.component("research-scatter-plot", {
 		clearPlot() {
 			
 		},
-		renderIndividualPlot(DATA, ID, GROUP) {
-
+		renderIndividualPlot(DATA, ID, GROUP, MINMAX_VALUES) {
 			let xAxisData = [];
 			let yAxisData = [];
 
@@ -395,28 +391,37 @@ export default Vue.component("research-scatter-plot", {
 			let ctx = c.getContext("2d");
 			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
+			/*
+			let filteredDATA = DATA.filter((d) => {
+				return typeof(d.xValue) !== 'string' && typeof(d.yValue) !== 'string';
+			})
+
+			console.log("alex filter", filteredDATA);
+			*/
+
 			DATA.map((d) => {
 				//check if data has muiltple x field properties
 				if(d.x.constructor === Array){
-					xAxisData.push(Object.values(d["x"][this.renderConfig["x axis index"]])[0])
-					d.xValue = Object.values(d["x"][this.renderConfig["x axis index"]])[0];
+					d.xValue = Object.values( d["x"][this.renderConfig["x axis index"]] )[0];
+					xAxisData.push(Object.values( d["x"][this.renderConfig["x axis index"]] )[0])
 				}else{
 					xAxisData.push(d.x);
 				}
 				//check if data has muiltple y field properties
 				if(d.y.constructor === Array){
-					yAxisData.push(Object.values(d["y"][this.renderConfig["y axis index"]])[0])
-					d.yValue = Object.values(d["y"][this.renderConfig["y axis index"]])[0];
+					d.yValue = Object.values( d["y"][this.renderConfig["y axis index"]] )[0];
+					yAxisData.push(Object.values( d["y"][this.renderConfig["y axis index"]] )[0]);
 				}else{
 					yAxisData.push(d.y);
 				}
 			});
 
-			let xMin = Math.min.apply(Math, xAxisData);
-			let xMax = Math.max.apply(Math, xAxisData);
+			//if MINMAX_VALUES have been passed to this function use those instead
+			let xMin = MINMAX_VALUES ? MINMAX_VALUES.xMin : Math.min.apply(Math, xAxisData);
+			let xMax = MINMAX_VALUES ? MINMAX_VALUES.xMax : Math.max.apply(Math, xAxisData);
 
-			let yMin = Math.min.apply(Math, yAxisData);
-			let yMax = Math.max.apply(Math, yAxisData);
+			let yMin = MINMAX_VALUES ? MINMAX_VALUES.yMin : Math.min.apply(Math, yAxisData);
+			let yMax = MINMAX_VALUES ? MINMAX_VALUES.yMax : Math.max.apply(Math, yAxisData);
 
 			let MARGIN = {top: topMargin,bottom: bottomMargin,left: leftMargin,right: rightMargin,bump:bump }
 			this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "x", 5, xMin, xMax, this.renderConfig["x axis fields"][this.renderConfig["x axis index"]]["label"]);
@@ -462,32 +467,42 @@ export default Vue.component("research-scatter-plot", {
 				console.log('alex posData '+ID+':', this.posData, DATA);
 				console.log('alex posData', xMin, xMax, yMin, yMax);
 			}
+
+			//return min/max values (used by combined + breakout plots)
+			return {xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax};
 		},
 		renderPlot() {
 			console.log('alex render data', this.renderData);
+
 			if(this.renderData.length > 0) {
+
 				if (!!this.groupsList) {
 					this.groupsList.map(group => {
 						let data = this.renderData.filter(d => d.group == group);
 						let id = 'scatterPlot' + this.sectionId + group;
 
-						
 						(!!document.getElementById(id))?this.renderIndividualPlot(data, id, group):'';
 					})
-				} else if(!!this.colorByList){
-					this.renderIndividualPlot(this.renderData, 'scatterPlot' + this.sectionId);
-					//create individual plots by color group
-					this.colorByList[ this.renderConfig["color field"] ].map(color => {
-						let data = this.renderData.filter(d => d.color[ this.renderConfig["color field"] ] === color);
-						let id = 'scatterPlot' + this.sectionId + color;
 
-						console.log('!!!', document.getElementById(id));
-						
-						(!!document.getElementById(id))?this.renderIndividualPlot(data, id, color):'';
+				} else if(!!this.colorByList){
+
+					//draw combined plot and save the min/max axis values
+					let maxAxisValues = this.renderIndividualPlot(this.renderData, 'scatterPlot' + this.sectionId);
+
+					//draw individual plots by color group
+					this.colorByList[ this.renderConfig["color field"] ].map(color => {
+							let data = this.renderData.filter(d => d.color[ this.renderConfig["color field"] ] === color);
+							let id = 'scatterPlot' + this.sectionId + color;
+							
+							//pass min/max axis values from combined plot
+							//so that the indivudual plots render using the same relative scale on each axis
+							(!!document.getElementById(id))?this.renderIndividualPlot(data, id, color, maxAxisValues):'';
 					})
-				}
-				else {
+
+				} else {
+
 					this.renderIndividualPlot(this.renderData, 'scatterPlot' + this.sectionId);
+
 				}
 			}
 			
