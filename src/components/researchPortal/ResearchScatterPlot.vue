@@ -1,28 +1,6 @@
 <template>
-	<div class="scatter-plot-content row" id="rp_scatter_plot">
-		
-		<div :id="'scatter_dot_value' + sectionId" 
-			class="scatter-dot-value" 
-			:class="!!isDotPanelClick? 'fixed-panel':''" 
-			style="display:none"></div>
-		<canvas
-			v-if="renderData.length > 0 && !!renderConfig && !groupsList"
-			:id="'scatterPlot' + sectionId"
-			class="scatter-plot"
-			:width="plotDimension.width"
-			:height="plotDimension.height"
-			:style="'width:' +
-				(plotDimension.width / 2) +
-				'px;height:' +
-				(plotDimension.height / 2) +
-				'px;'
-				"
-			@mousemove="checkPosition($event, '', 'move')"
-			@click="checkPosition($event,'','click')"
-		>
-		</canvas>
-
-		<div class="plot-extras">
+	<div class="scatter-plot-content row" id="rp_scatter_plot" style="display: flex; flex-direction: column;">
+		<div style="display:flex; flex-direction: row;">
 			<div style="display:flex; flex-direction: column;">
 				<label 
 					v-if="renderData.length > 0 && !!renderConfig && renderConfig['y axis fields'].length > 1"
@@ -57,7 +35,8 @@
 						</option>
 					</select>
 				</label>
-
+			</div>
+			<div style="display:flex; flex-direction: column;">
 				<label 
 					v-if="renderData.length > 0 && !!renderConfig && renderConfig['color by'].length > 1"
 				>
@@ -84,31 +63,57 @@
 						<span>{{ anno }}</span>
 					</div>
 				</div>
-
+			</div>
+		</div>
+		
+		<div class="" style="display: flex;">
+			<div class="">
+				<div :id="'scatter_dot_value' + sectionId" 
+					class="scatter-dot-value" 
+					:class="!!isDotPanelClick? 'fixed-panel':''" 
+					style="display:none"></div>
+				<canvas
+					v-if="renderData.length > 0 && !!renderConfig && !groupsList"
+					:id="'scatterPlot' + sectionId"
+					class="scatter-plot"
+					:width="plotDimension.width"
+					:height="plotDimension.height"
+					:style="'width:' +
+						(plotDimension.width / 2) +
+						'px;height:' +
+						(plotDimension.height / 2) +
+						'px;'
+						"
+					@mousemove="checkPosition($event, '', 'move')"
+					@click="checkPosition($event,'','click')"
+				>
+				</canvas>
 			</div>
 
-			<template v-if="renderData.length > 0 && !!renderConfig && !!colorByList">
-			<div class="scatter-plot-groups">
-				<div class="scatter-plot-group" v-for="color in colorByList[colorByField]">
-					<canvas
-						
-						:key="color"
-						:id="'scatterPlot' + sectionId + color"
-						class="scatter-plot"
-						:width="plotDimension.width"
-						:height="plotDimension.height"
-						:style="'width:' +
-							(plotDimension.width/2) +
-							'px;height:' +
-							(plotDimension.height/2) +
-							'px;'"
-						@click="checkPosition($event,color,'click')"
-						@mousemove="checkPosition($event, color, 'move')"
-					>
-					</canvas>
+			<div class="plot-extras">
+				<template v-if="renderData.length > 0 && !!renderConfig && !!colorByList">
+				<div class="scatter-plot-groups" style="display: flex; flex-wrap: wrap;">
+					<div class="scatter-plot-group" v-for="color in colorByList[colorByField]">
+						<canvas
+							
+							:key="color"
+							:id="'scatterPlot' + sectionId + color"
+							class="scatter-plot"
+							:width="plotDimension.width/2"
+							:height="plotDimension.height/2"
+							:style="'width:' +
+								(plotDimension.width/4) +
+								'px;height:' +
+								(plotDimension.height/4) +
+								'px;'"
+							@click="checkPosition($event,color,'click')"
+							@mousemove="checkPosition($event, color, 'move')"
+						>
+						</canvas>
+					</div>
 				</div>
+				</template>
 			</div>
-			</template>
 		</div>
 
 		<template v-if="renderData.length > 0 && !!renderConfig && !!groupsList">
@@ -379,8 +384,10 @@ export default Vue.component("research-scatter-plot", {
 			let xAxisData = [];
 			let yAxisData = [];
 
-			let canvasWidth = this.plotDimension.width;
-			let canvasHeight = this.plotDimension.height;
+			//if MINMAX_VALUES is present, it means we are rendering smaller breakout plots
+			//make those hald the size of the combined plot
+			let canvasWidth = MINMAX_VALUES ? this.plotDimension.width/2 : this.plotDimension.width;
+			let canvasHeight = MINMAX_VALUES ? this.plotDimension.height/2 : this.plotDimension.height;
 			let leftMargin = this.plotDimension.plotMargin.leftMargin;
 			let topMargin = this.plotDimension.plotMargin.topMargin;
 			let rightMargin = this.plotDimension.plotMargin.rightMargin;
@@ -422,6 +429,7 @@ export default Vue.component("research-scatter-plot", {
 
 			let yMin = MINMAX_VALUES ? MINMAX_VALUES.yMin : Math.min.apply(Math, yAxisData);
 			let yMax = MINMAX_VALUES ? MINMAX_VALUES.yMax : Math.max.apply(Math, yAxisData);
+
 
 			let MARGIN = {top: topMargin,bottom: bottomMargin,left: leftMargin,right: rightMargin,bump:bump }
 			this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "x", 5, xMin, xMax, this.renderConfig["x axis fields"][this.renderConfig["x axis index"]]["label"]);
