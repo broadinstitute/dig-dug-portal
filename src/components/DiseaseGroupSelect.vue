@@ -1,8 +1,8 @@
 <template>
     <div class="disease-group-select">
         <b-form-select
-            v-model="diseaseGroup"
-            @change="changeDiseaseGroup(diseaseGroup)"
+            v-model="selectedPortal"
+            @change="changeDiseaseGroup(selectedPortal)"
         >
             <option
                 v-for="group in visibleDiseaseGroups"
@@ -35,7 +35,9 @@ export default Vue.component("disease-group-select", {
             diseaseGroup:
                 this.$store.getters["bioPortal/diseaseGroup"].portalGroup ||
                 null,
+          selectedPortal: "",
         };
+
     },
 
     computed: {
