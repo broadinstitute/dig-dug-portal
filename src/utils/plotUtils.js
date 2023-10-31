@@ -628,8 +628,58 @@ const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX,
         let yPos = MARGIN.top + (plotHeight - (yVal - YMIN) * yStep)
         renderDot(CTX, xPos, yPos, COLOR);
     })
+}
 
+const renderDotsWithBestFit = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA) {
 
+    renderDots(CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA);
+
+    //x,y must have same amount of data points
+    //x,y cannot contain missing values
+
+    const sum = [0, 0, 0, 0];
+    let len = DATA.length;
+
+    for (let n = 0; n < len; n++) {
+        sum[0] += DATA[n].xValue;                   //x
+        sum[1] += DATA[n].yValue;                   //y
+        sum[2] += DATA[n].xValue * DATA[n].xValue;  //x^2
+        sum[3] += DATA[n].xValue * DATA[n].yValue;  //x*y
+    }
+
+    const meanX = sum[0] / len;
+    const meanY = sum[1] / len;
+    const slope = (sum[3] - (sum[0] * meanY)) / (sum[2] - (sum[0] * meanX));
+    const intcp = meanY - (slope * meanX);
+    const sX = XMIN;
+    const sY = slope * sX + intcp;
+    const eX = XMAX;
+    const eY = slope * eX + intcp
+
+    let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
+    let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
+    let xStep = plotWidth / (XMAX - XMIN);
+    let yStep = plotHeight / (YMAX - YMIN);
+
+    const startX =  MARGIN.left + (xStep * (sX - XMIN));
+    const startY = MARGIN.top + (plotHeight - (sY - YMIN) * yStep);
+    const endX =   MARGIN.left + (xStep * (eX - XMIN));
+    const endY =  MARGIN.top + (plotHeight - (eY - YMIN) * yStep);
+
+    CTX.strokeStyle = '#ffffff';
+    CTX.lineWidth = 8;
+    CTX.beginPath();
+    CTX.moveTo(startX, startY);
+    CTX.lineTo(endX, endY);
+    CTX.stroke();
+    CTX.strokeStyle = COLOR.length > 7 ? COLOR.slice(0, -2) : COLOR;
+    CTX.lineWidth = 7;
+    CTX.beginPath();
+    CTX.moveTo(startX, startY);
+    CTX.lineTo(endX, endY);
+    CTX.stroke();
+
+    //console.log("alex regress", slope, intcp, [startX, startY, endX, endY]);
 }
 
 const getDotsPosData = function (WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, DATA) {
@@ -641,8 +691,8 @@ const getDotsPosData = function (WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, 
     let yStep = plotHeight / (YMAX - YMIN);
 
     DATA.map(d => {
-        let xVal = d.x.length > 1 ? d.xValue : d.x;
-        let yVal = d.y.length > 1 ? d.yValue : d.y;
+        let xVal = d.xValue;
+        let yVal = d.yValue;
 
         let xPos = MARGIN.left + (xStep * (xVal - XMIN));
         let yPos = MARGIN.top + (plotHeight - (yVal - YMIN) * yStep)
@@ -692,6 +742,7 @@ export default {
     renderLine,
     renderStar,
     renderDots,
+    renderDotsWithBestFit,
     getDotsPosData,
     getDotsInPos
 };
