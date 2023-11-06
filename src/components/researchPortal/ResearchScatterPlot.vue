@@ -1,5 +1,5 @@
 <template>
-	<div class="scatter-plot-content row" id="rp_scatter_plot" style="display: flex; flex-direction: row;">
+	<div class="scatter-plot-content row" id="rp_scatter_plot" style="display: flex; flex-direction: row; justify-content: center;">
 		
 		
 		<div class="" style="display: flex;">
@@ -55,7 +55,7 @@
 						<label 
 							v-if="renderData.length > 0 && !!renderConfig && renderConfig['y axis fields'].length > 1"
 						>
-							Y Axis:
+							Y Axis
 						</label>
 						<select 
 							class="y-axis-select" 
@@ -72,7 +72,7 @@
 						<label 
 							v-if="renderData.length > 0 && !!renderConfig && renderConfig['x axis fields'].length > 1"
 						>
-							X Axis:
+							X Axis
 						</label>
 						<select 
 							class="x-axis-select" 
@@ -90,7 +90,7 @@
 						<label 
 							v-if="renderData.length > 0 && !!renderConfig && renderConfig['color by'].length > 1"
 						>
-							Color by:
+							Color by
 						</label>
 						<select 
 							class="color-by-select" 
@@ -108,9 +108,12 @@
 							class="color-key"
 							v-if="renderData.length > 0 && !!renderConfig && !!colorByList"
 						>
+							<div style="text-align: right; font-size: 10px; font-style: italic;">click key to highlight</div>
 							<div 
 								v-for="anno, annoIndex in colorByList[ colorByField ]" 
 								class="anno-bubble-wrapper"
+								@click="setHighlightField($event, anno)"
+								style="cursor:pointer;"
 							>
 								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
 								<span>{{ anno }}</span>
@@ -170,11 +173,13 @@
 			>
 			</canvas>
 		</template>
+		<!--
 		<div
 			v-if="!!renderConfig.label"
 			class="scatter-plot-label"
 			v-html="renderConfig.label"
 		></div>
+		-->
 	</div>
 </template>
 
@@ -330,6 +335,7 @@ export default Vue.component("research-scatter-plot", {
 				colorsBy = { ...colorsBy, [colorBy]:[] };
 			})
 			this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"][0];
+			this.renderConfig["color highlight"] = null;
 
 			console.log('alex render config', this.renderConfig);
 
@@ -540,11 +546,13 @@ export default Vue.component("research-scatter-plot", {
 				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "x", 5, xMin, xMax, GROUP[0]);
 				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "y", 5, yMin, yMax, GROUP[1]);
 			}else{
-				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "x", 5, xMin, xMax, [this.renderConfig["x axis field"]]["label"]);
-				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "y", 5, yMin, yMax, [this.renderConfig["y axis field"]]["label"]);
+				//single
+				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "x", 5, xMin, xMax, [this.renderConfig["x axis field"]]);
+				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "y", 5, yMin, yMax, [this.renderConfig["y axis field"]]);
 			}
 			
 			if(!!this.colorsList && !this.multiList) {
+				//single + group by
 				let cIndex = 0
 				this.colorsList.map(color =>{
 					let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] === color);
@@ -559,7 +567,7 @@ export default Vue.component("research-scatter-plot", {
 				if(GROUP){
 
 					if(GROUP.constructor === Array){
-
+						//multi
 						cIndex = 0
 						let colorField = this.renderConfig["color field"];
 						if(GROUP[2]) colorField = GROUP[2]; //GROUP var for 'multi plot' is multi
@@ -586,12 +594,24 @@ export default Vue.component("research-scatter-plot", {
 					}
 					
 				}else{
+					//single + options
 
 					cIndex = 0
-					//single + options
+					
+					let highlight = this.renderConfig["color highlight"];
+					let hi = '90';
+					let lo = '05';
+					
+					let arr = [...this.colorByList[ this.renderConfig["color field"] ]];
+					arr.push(arr.splice(arr.indexOf(highlight), 1)[0]);
+
 					this.colorByList[ this.renderConfig["color field"] ].map(color => {
 						let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
 						let dotColor = this.compareGroupColors[cIndex];
+						if(highlight){
+							dotColor = dotColor.substring(0, dotColor.length - 2);
+							dotColor += highlight === color ? hi : lo;
+						}
 						this.utils.plotUtils.renderDotsWithBestFit(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 						cIndex++;
 					});
@@ -625,7 +645,7 @@ export default Vue.component("research-scatter-plot", {
 
 				//this.posData[GROUP] = this.utils.plotUtils.getDotsPosData(canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, DATA);
 				this.posData[groupID] = this.utils.plotUtils.getDotsPosData(canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, DATA);
-				console.log('alex posData GROUP '+ID+':', GROUP.constructor === Array, this.renderConfig["group by"], GROUP, this.posData);
+				//console.log('alex posData GROUP '+ID+':', GROUP.constructor === Array, this.renderConfig["group by"], GROUP, this.posData);
 			} else {
 				this.posData = this.utils.plotUtils.getDotsPosData(canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, DATA);
 				//console.log('alex posData '+ID+':', this.posData);
@@ -689,9 +709,32 @@ export default Vue.component("research-scatter-plot", {
 			this.renderPlot();
 		},
 		setColorField(e){
+			e.target.parentNode.querySelector('.color-key').childNodes.forEach(node => {
+				node.classList.remove('selected');
+			})
+			this.renderConfig["color highlight"] = null;
+
 			this.colorByField = this.renderConfig["color field"] = e.target.value;
 			this.renderPlot();
 		},	
+		setHighlightField(e, highlight){
+			e.target.closest('.color-key').childNodes.forEach(node => {
+				node.classList.remove('selected');
+			})
+			
+			if(this.renderConfig["color highlight"]){
+				if(this.renderConfig["color highlight"] === highlight){
+					this.renderConfig["color highlight"] = null;
+				}else{
+					this.renderConfig["color highlight"] = highlight;
+					e.target.closest('.anno-bubble-wrapper').classList.add('selected');
+				}
+			}else{
+				this.renderConfig["color highlight"] = highlight;
+				e.target.closest('.anno-bubble-wrapper').classList.add('selected');
+			}
+			this.renderPlot();
+		},
 		onResize(e) {
 			this.renderPlot()
 		},
@@ -717,17 +760,26 @@ export default Vue.component("research-scatter-plot", {
 				posData.map(d => {
 					if(EVENT_TYPE == 'move' && cIndex < 6 && !this.isDotPanelClick) {
 						posContent += "<strong>" + d.key + "</strong><br />";
-
+						
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
-							posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
+								if(typeof hValue === Number){
+								posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
+							}else{
+								posContent += hValue + "</span><br />";
+							}
 						}
 					} else if(EVENT_TYPE == 'click'){
 						posContent += "<strong>" + d.key + "</strong><br />";
-
+						console.log('alex dot data:', d.hover);
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
-							posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
+							if(typeof hValue === Number){
+								posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
+							}else{
+								posContent += hValue + "</span><br />";
+							}
+							
 						}
 					}
 					cIndex ++;
@@ -782,23 +834,34 @@ $(function () { });
 
 .anno-bubble-wrapper {
 	width: auto;
-    display: inline-block;
-    margin-left: 3px;
+    display: flex;
+    align-items: center;
+    margin-left: 0;
     margin-right: 3px;
     margin-bottom: 3px;
+	color: #4e4e4e;
+	user-select: none;
 }
 
 .anno-bubble-wrapper span {
-    font-size: 13px;
+    font-size: 12px;
     display: inline-block;
 }
 
 .anno-bubble-wrapper span.anno-bubble {
     border-radius: 12px;
-    margin-right: 3px;
+    margin-right: 4px;
     width: 12px;
     height: 12px;
     vertical-align: -3px;
+}
+
+.anno-bubble-wrapper:hover .anno-bubble {
+    outline: 1px solid rgba(0,0,0,.5);
+}
+
+.anno-bubble-wrapper.selected span.anno-bubble {
+    background: radial-gradient(circle, rgba(0,0,0,.5) 30%, rgba(0, 0, 0, 0) 30%);
 }
 
 .scatter-dot-value {
@@ -832,13 +895,27 @@ $(function () { });
 /* */
 
 .plot-extras label {
-    margin: 5px 0 0 0;
+    margin: 10px 0 0 0;
     font-weight: bold;
+    text-transform: uppercase;
+    font-size: 10px;
+    color: #1c1c1c;
 }
 .plot-extras .color-key {
-    margin: 10px 0 0 0;
+    margin: 5px 0 0 0;
     display: flex;
     flex-direction: column;
+}
+
+select {
+    word-wrap: normal;
+    border: 1px solid rgba(0,0,0,.25);
+    color: #4e4e4e;
+    padding: 3px;
+    font-size: 12px;
+}
+select:hover {
+    border: 1px solid rgba(0,0,0,.5);
 }
 
 

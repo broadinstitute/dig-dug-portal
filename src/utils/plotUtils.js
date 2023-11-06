@@ -666,14 +666,19 @@ const renderDotsWithBestFit = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, 
     const endX =   MARGIN.left + (xStep * (eX - XMIN));
     const endY =  MARGIN.top + (plotHeight - (eY - YMIN) * yStep);
 
-    CTX.strokeStyle = '#ffffff';
-    CTX.lineWidth = 8;
+    const dimmed = COLOR.length > 7 ? Number(COLOR.slice(-2)) < 20 ? true : false : false;
+
+    /*
+    CTX.strokeStyle = '#ffffff50';
+    CTX.lineWidth = 7;
     CTX.beginPath();
     CTX.moveTo(startX, startY);
     CTX.lineTo(endX, endY);
     CTX.stroke();
+    */
     CTX.strokeStyle = COLOR.length > 7 ? COLOR.slice(0, -2) : COLOR;
-    CTX.lineWidth = 7;
+    CTX.strokeStyle = dimmed ? COLOR : CTX.strokeStyle;
+    CTX.lineWidth = 5;
     CTX.beginPath();
     CTX.moveTo(startX, startY);
     CTX.lineTo(endX, endY);
