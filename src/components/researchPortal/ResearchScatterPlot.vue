@@ -86,7 +86,7 @@
 							</option>
 						</select>
 					</div>
-					<div style="display:flex; flex-direction: column;">
+					<div class="color-key-options" style="display:flex; flex-direction: column;">
 						<label 
 							v-if="renderData.length > 0 && !!renderConfig && renderConfig['color by'].length > 1"
 						>
@@ -771,7 +771,7 @@ export default Vue.component("research-scatter-plot", {
 						}
 					} else if(EVENT_TYPE == 'click'){
 						posContent += "<strong>" + d.key + "</strong><br />";
-						console.log('alex dot data:', d.hover);
+						console.log('alex dot', d.key, d.hover);
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
 							if(typeof hValue === Number){
@@ -834,6 +834,27 @@ $(function () { });
 
 .anno-bubble-wrapper {
 	width: auto;
+    display: inline-block;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-bottom: 3px;
+}
+.anno-bubble-wrapper span {
+    font-size: 13px;
+    display: inline-block;
+}
+.anno-bubble-wrapper span.anno-bubble {
+    border-radius: 12px;
+    margin-right: 3px;
+    width: 12px;
+    height: 12px;
+    vertical-align: -3px;
+}
+
+/* */
+
+.color-key-options .anno-bubble-wrapper {
+	width: auto;
     display: flex;
     align-items: center;
     margin-left: 0;
@@ -843,12 +864,12 @@ $(function () { });
 	user-select: none;
 }
 
-.anno-bubble-wrapper span {
+.color-key-options .anno-bubble-wrapper span {
     font-size: 12px;
     display: inline-block;
 }
 
-.anno-bubble-wrapper span.anno-bubble {
+.color-key-options .anno-bubble-wrapper span.anno-bubble {
     border-radius: 12px;
     margin-right: 4px;
     width: 12px;
@@ -856,11 +877,11 @@ $(function () { });
     vertical-align: -3px;
 }
 
-.anno-bubble-wrapper:hover .anno-bubble {
+.color-key-options .anno-bubble-wrapper:hover .anno-bubble {
     outline: 1px solid rgba(0,0,0,.5);
 }
 
-.anno-bubble-wrapper.selected span.anno-bubble {
+.color-key-options .anno-bubble-wrapper.selected span.anno-bubble {
     background: radial-gradient(circle, rgba(0,0,0,.5) 30%, rgba(0, 0, 0, 0) 30%);
 }
 
@@ -892,7 +913,7 @@ $(function () { });
 }
 
 
-/* */
+
 
 .plot-extras label {
     margin: 10px 0 0 0;
