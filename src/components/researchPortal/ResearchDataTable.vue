@@ -1064,5 +1064,6 @@ table.research-data-table {
 .show-evidence-btn.set-search-btn {
     font-size: 12px !important;
     padding: 0px 5px !important;
+	display: inline !important;
 }
 </style>
