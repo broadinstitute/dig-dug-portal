@@ -179,7 +179,7 @@
 							:class="getColumnId(tdKey)"
 							
 						>
-							<button class="btn btn-sm btn-primary set-search-btn" v-html="'Set Search'" @click="setParameter(tdValue, tdKey)" ></button>
+							<button class="btn btn-sm show-evidence-btn set-search-btn" v-html="tdValue" @click="setParameter(tdValue, tdKey)" ></button>
 						</td>
 						<td
 							v-if="ifDataObject(tdValue) == false && !ifSetParameterColumn(tdKey)"
@@ -1061,8 +1061,8 @@ table.research-data-table {
 	background-color: #eee;
 }
 
-.set-search-btn {
-    font-size: 10px !important;
-    padding: 1px 10px !important;
+.show-evidence-btn.set-search-btn {
+    font-size: 12px !important;
+    padding: 0px 5px !important;
 }
 </style>

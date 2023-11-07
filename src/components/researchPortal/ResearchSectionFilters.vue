@@ -137,7 +137,7 @@
 					</template>
 					<template v-else-if="filter.type == 'checkbox'">
 						<div class="chkbox-combo">
-							<div class="title">Select options</div>
+							<div class="title btn btn-sm btn-light form-control chk-box-btn">View options &#9660;</div>
 							<div class="options">
 								<span>
 									<input type="checkbox" class="chkbox"
@@ -1566,5 +1566,9 @@ div.custom-select-search {
 
 .chkbox-combo:hover .options{
 	display: block;
+}
+
+.chk-box-btn {
+	border: 1px solid #ced4da;
 }
 </style>
