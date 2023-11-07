@@ -88,10 +88,9 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                         let newFields = c["field name"];
                         let newFieldValues = [];
-                        let string2Split = d;
+                        let string2Split = d[c["field to split"]];
                         let loopIndex = 1;
                         c["split by"].map(s => {
-
                             let splittedValue = string2Split.split(s)
 
                             if (loopIndex < c["split by"].length) {
