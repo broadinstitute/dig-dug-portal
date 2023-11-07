@@ -1448,20 +1448,21 @@ new Vue({
                             break;
 
                         case "split":
+
                             let newFields = c["field name"];
                             let newFieldValues = [];
                             let string2Split = DATA[c["field to split"]];
                             let loopIndex = 1;
                             c["split by"].map(s => {
 
-                                let splittedValue = string2Split.split(s)
+                                let [key, ...rest] = string2Split.split(s);
+                                string2Split = rest.join(s)
 
                                 if (loopIndex < c["split by"].length) {
-                                    newFieldValues.push(splittedValue[0])
-                                    string2Split = splittedValue[1]
+                                    newFieldValues.push(key)
                                 } else if (loopIndex = c["split by"].length) {
-                                    newFieldValues.push(splittedValue[0])
-                                    newFieldValues.push(splittedValue[1])
+                                    newFieldValues.push(key)
+                                    newFieldValues.push(rest.join(s))
                                 }
                                 loopIndex++;
                             })
