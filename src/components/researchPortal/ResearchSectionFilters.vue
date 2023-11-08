@@ -1,5 +1,6 @@
 <template>
 	<div>
+		{{ sliderRange }}
 		<div
 			class="filtering-ui-wrapper"
 			v-if="
@@ -96,17 +97,32 @@
 						<div v-if="filter['slider type'] == 'single'"></div>
 						<div v-if="filter['slider type'] == 'dual'">
 							<div class="slide-container">
-								<div class="sliders-control">
-									<input class="slider from-slider" id="fromSlider" type="range" value="0" min="0" max="100"
-									 oninput="rangeFromValue.innerText = this.value"/>
-									<input class="slider to-slider" id="toSlider" type="range" value="100" min="0" max="100" 
-									 oninput="rangeToValue.innerText = this.value"/>
-									 <span class="range-slider-tip" id="rangeFromValue">0</span>
-									<span class="range-slider-tip" id="rangeToValue">100</span>
+								<div class="sliders-control" :id="'filter_' + sectionId + getColumnId(filter.field)">
+									<input style="padding:0;" class="slider from-slider" type="range" 
+									 :id="'filter_' + sectionId + getColumnId(filter.field) + '_from_slider'"
+									 :value="sliderRange[filter.field].from" 
+									 :min="sliderRange[filter.field].min" 
+									 :max="sliderRange[filter.field].max" 
+									 :step="sliderRange[filter.field].step"
+									 @input="setSliderTip($event, 'filter_' + sectionId + getColumnId(filter.field) + '_from')" 
+									 @change="filterDataSlider($event, filter.field, 'dual')"/>
+									<input style="padding:0;" class="slider to-slider" type="range" 
+									 :id="'filter_' + sectionId + getColumnId(filter.field) + '_to_slider'"
+									 :value="sliderRange[filter.field].to" 
+									 :min="sliderRange[filter.field].min" 
+									 :max="sliderRange[filter.field].max" 
+									 :step="sliderRange[filter.field].step"
+									 @input="setSliderTip($event, 'filter_' + sectionId + getColumnId(filter.field) + '_to')" 
+									 @change="filterDataSlider($event, filter.field, 'dual')"/>
+									 <output class="range-slider-tip range-from-value" 
+									  :id="'filter_' + sectionId + getColumnId(filter.field)+'_from'" name="rangeFromValue"
+									  >{{ Math.round(sliderRange[filter.field].from * 10000) / 10000 }}</output>
+									 <output class="range-slider-tip range-to-value" 
+									  :id="'filter_' + sectionId + getColumnId(filter.field) + '_to'" name="rangeToValue"
+									  >{{ Math.round(sliderRange[filter.field].to * 10000) / 10000 }}</output>
 								</div>
 							</div>
 						</div>
-							
 					</template>
 					<template v-if="filter.type == 'search change direction'">
 						<select
@@ -262,6 +278,7 @@ export default Vue.component("research-section-filters", {
 			lastFilter: { field: null, value: null },
 			suggestions: { field: null, suggestions: [] },
 			searchBySuggest: false,
+			sliderRange: null
 		};
 	},
 	created() {
@@ -278,6 +295,10 @@ export default Vue.component("research-section-filters", {
 						? true
 						: false;
 				this.filtersIndex[f.field] = tempObj;
+
+				if(f.type == 'slider') {
+					this.getRange(f.field);
+				}
 			});
 		}
 
@@ -653,7 +674,30 @@ export default Vue.component("research-section-filters", {
 		},
 
 		getRange(FIELD) {
-			let range = {min:null, max:null}
+			let data = this.unfilteredDataset;
+				
+			if(!this.sliderRange) { this.sliderRange = {} };
+			let range = { min: null, max: null, step:0, from: null, to: null };
+
+			data.map(d=>{
+				if(!!d[FIELD]) {
+					range.min = (!range.min)? d[FIELD] : (d[FIELD] < range.min)? d[FIELD] : range.min;
+					range.max = (!range.max) ? d[FIELD] : (d[FIELD] > range.max) ? d[FIELD] : range.max;
+				}
+			})
+			range.from = range.min;
+			range.to = range.max;
+			range.step = (range.max - range.min) / 10000;
+
+			if(!!document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_from")) {
+				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_from").value = Math.round(range.from * 10000) / 10000;
+			}
+			if (!!document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to")) {
+				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value = Math.round(range.to * 10000) / 10000;
+			}
+
+			this.sliderRange[FIELD] = range;
+
 		},
 
 		filterDataChkbox(EVENT, FIELD, TYPE, INDEX) {
@@ -698,6 +742,27 @@ export default Vue.component("research-section-filters", {
 
 			this.applyFilters();
 			
+		},
+		setSliderTip(EVENT,ID) {
+			document.getElementById(ID).value = Math.round(EVENT.target.value * 10000) / 10000;
+		},
+		filterDataSlider(EVENT, FIELD, TYPE,) {
+			if(TYPE == "single") {
+
+			} else if (TYPE == "dual") {
+				let searchValueFrom = document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD)+"_from").value
+				let searchValueTo = document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value
+				let searchValue = searchValueFrom+","+ searchValueTo;
+
+				this.sliderRange[FIELD].from = Number(searchValueFrom);
+				this.sliderRange[FIELD].to = Number(searchValueTo);
+
+				this.lastFilter = { field: FIELD, value: searchValue };
+
+				this.filtersIndex[FIELD]["search"] = [searchValue];
+			}
+
+			this.applyFilters();
 		},
 		filterData(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED) {
 			let searchValue = !!SUGGESTED
@@ -871,6 +936,18 @@ export default Vue.component("research-section-filters", {
 													searchVals[1].trim())
 													? tempFiltered.push(row)
 													: "";
+												break;
+
+											case "slider":
+												searchVals = search.split(",");
+
+												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
+													searchVals[0].trim() &&
+													row[searchIndex.field] <=
+													searchVals[1].trim())
+													? tempFiltered.push(row)
+													: "";
+
 												break;
 										}
 									}
@@ -1252,7 +1329,7 @@ export default Vue.component("research-section-filters", {
 												//}
 											}
 										} else if (
-											searchIndex.type == "search and"
+											searchIndex.type == "search and" || searchIndex.type == "slider"
 										) {
 											let searchVals = search.split(",");
 											//for (var rowNum in targetData) {
@@ -1306,7 +1383,6 @@ export default Vue.component("research-section-filters", {
 													] = row;
 												}
 											}
-											//}
 										}
 									}
 								}
@@ -1373,10 +1449,9 @@ export default Vue.component("research-section-filters", {
 			this.filtersIndex[FIELD].search.splice(ITEM, 1);
 
 			this.applyFilters();
+			this.getRange(FIELD);
 		},
 		removeSearch(FIELD, ITEM) {
-			//this.filtersIndex[FIELD].search.splice(ITEM, 1);
-			//this.applyFilters();
 		},
 	},
 });
@@ -1393,18 +1468,21 @@ div.filtering-ui-content div.col {
 }
 
 .sliders-control {
-  position: relative;
-  min-height: 30px;
+    position: relative;
+    min-height: 30px;
+    border-top: solid 2px #cccccc;
+    margin-top: 10px;
+    margin-bottom: -10px;
 }
 
 .slider {
 	position: absolute;
 	left: 0;
-	top: 10px;
+	top: 5px;
   -webkit-appearance: none;
   width: 100%;
-  height: 5px !important;
-  background: #d3d3d3;
+  height: 2px !important;
+  background: #d3d3d300;
   outline: none;
   opacity: 0.7;
   -webkit-transition: .2s;
@@ -1422,24 +1500,33 @@ div.filtering-ui-content div.col {
   appearance: none;
   width: 15px;
   height: 15px;
+  margin-top: -15px;
   background: #666666;
   border-radius: 15px;
   cursor: pointer;
-  z-index:100;
 }
 
 .slider::-moz-range-thumb {
   width: 15px;
   height: 15px;
+  margin-top: -15px;
   background: #666666;
   border-radius: 15px;
   cursor: pointer;
-  z-index:100;
 }
 
 .range-slider-tip {
 	position: absolute;
-	top: 15px;
+	top: 5px;
+	font-size: 12px;
+}
+
+.range-from-value {
+	left: 0;
+}
+
+.range-to-value {
+	right: 0;
 }
 
 /* */
