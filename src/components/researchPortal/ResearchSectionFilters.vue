@@ -685,15 +685,15 @@ export default Vue.component("research-section-filters", {
 					range.max = (!range.max) ? d[FIELD] : (d[FIELD] > range.max) ? d[FIELD] : range.max;
 				}
 			})
-			range.from = range.min;
-			range.to = range.max;
+			range.from = Math.round(range.min * 10000) / 10000;
+			range.to = Math.round(range.max * 10000) / 10000;
 			range.step = (range.max - range.min) / 10000;
 
 			if(!!document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_from")) {
-				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_from").value = Math.round(range.from * 10000) / 10000;
+				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_from").value = range.from;
 			}
 			if (!!document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to")) {
-				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value = Math.round(range.to * 10000) / 10000;
+				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value = range.to * 10000;
 			}
 
 			this.sliderRange[FIELD] = range;
