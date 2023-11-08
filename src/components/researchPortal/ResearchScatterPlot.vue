@@ -29,6 +29,12 @@
 			<template v-if="renderData.length > 0 && !!renderConfig && !!multiList">
 				<div class="scatter-plot-groups" style="display: flex; flex-wrap: wrap;">
 					<div class="scatter-plot-group" v-for="(fieldpair, index) in multiList">
+						<div class="colors-list">
+							<div v-for="anno, annoIndex in colorsList" class="anno-bubble-wrapper">
+								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
+								<span>{{ anno }}</span>
+							</div>
+						</div>
 						<canvas
 							:key="sectionId + 'multi' + index"
 							:id="'scatterPlot' + sectionId + 'multi' + index"
@@ -106,7 +112,8 @@
 
 						<div 
 							class="color-key"
-							v-if="renderData.length > 0 && !!renderConfig && !!colorByList"
+							v-if="renderData.length > 0 && !!renderConfig && !!colorByList 
+							&& !colorByGradient"
 						>
 							<div style="text-align: right; font-size: 10px; font-style: italic;">click key to highlight</div>
 							<div 
@@ -117,6 +124,35 @@
 							>
 								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
 								<span>{{ anno }}</span>
+							</div>
+						</div>
+
+						<div 
+							class="color-key"
+							v-if="renderData.length > 0 && !!renderConfig && !!colorByList 
+							&& !!colorByGradient"
+						>
+							<div style="text-align: right; font-size: 10px; font-style: italic;">drag sliders to highlight in range</div>
+							<div 
+								class="color-gradient-wrapper"
+								@mousedown="gradientHandleDown($event)"
+								@mousemove="gradientHandleMove($event)"
+							>
+								<div class="color-gradient"
+									:style="colorGradient()"	
+								></div>
+								<div 
+									class="color-gradient-handle color-gradient-max"
+									data-val=""
+								>
+									{{ gradientMinMax.currMax }}
+								</div>
+								<div 
+									class="color-gradient-handle color-gradient-min"
+									data-val=""
+								>
+									{{ gradientMinMax.currMin }}
+								</div>
 							</div>
 						</div>
 					</div>
@@ -209,6 +245,8 @@ export default Vue.component("research-scatter-plot", {
 			colorsList:null,
 			colorByList:null,
 			colorByField:null,
+			colorByGradient:null,
+			gradientMinMax:{},
 			posData:{},
 			isDotPanelClick: false,
 		};
@@ -443,14 +481,17 @@ export default Vue.component("research-scatter-plot", {
 			console.log('alex data mapped (used for visuals)', massagedData);
 
 			//TODO: create gratient style legends for 'color by' fields
-			//if field has more than 10 unique values, and is numerical
+			//should be settable in JSON config
 			if(colorsBy){
 				let cb = Object.keys(colorsBy);
 				cb.forEach(colorBy => {
 					if(colorsBy[colorBy].length > 10){
 						console.log(`color field '${colorBy}' has ${colorsBy[colorBy].length} unique options`)
 						if(typeof colorsBy[colorBy][0] === 'number'){
-							console.log(`	it is numberical; make gradient`);
+							const numbersOnly = colorsBy[colorBy].filter(value => typeof value === 'number');
+							numbersOnly.sort( (a, b) => a - b );
+							colorsBy[colorBy] = numbersOnly;
+							console.log(`	it is numerical; make gradient`);
 						}
 					}
 				})
@@ -558,6 +599,7 @@ export default Vue.component("research-scatter-plot", {
 					let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] === color);
 					let dotColor = this.compareGroupColors[cIndex];
 					this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+					//this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 					cIndex++;
 				})
 			} else if(!!this.colorByList){
@@ -574,7 +616,8 @@ export default Vue.component("research-scatter-plot", {
 						this.colorByList[ colorField ].map(color => {
 							let coloredData = DATA.filter(d => d.color[ colorField ] === color);
 							let dotColor = this.compareGroupColors[cIndex];
-							this.utils.plotUtils.renderDotsWithBestFit(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
 						});
 
@@ -586,7 +629,8 @@ export default Vue.component("research-scatter-plot", {
 							if(GROUP === color){
 								let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
 								let dotColor = this.compareGroupColors[cIndex];
-								this.utils.plotUtils.renderDotsWithBestFit(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+								this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+								this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 								cIndex++;
 							}
 						})
@@ -596,26 +640,64 @@ export default Vue.component("research-scatter-plot", {
 				}else{
 					//single + options
 
-					cIndex = 0
-					
-					let highlight = this.renderConfig["color highlight"];
-					let hi = '90';
-					let lo = '05';
-					
-					let arr = [...this.colorByList[ this.renderConfig["color field"] ]];
-					arr.push(arr.splice(arr.indexOf(highlight), 1)[0]);
+					//if the color selector is gradient type
+					//there will usually be many more value groups
+					if(this.renderConfig["color field gradient"]) {
+						//map each value of selected color field option
+						//eg: field_v = ['v1', 'v2', 'v3']
+						this.colorByList[ this.renderConfig["color field"] ].map(color => {
+							//group all items that match current value ['v1', 'v1', 'v1',...]
+							//so we can color them together
+							const coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
+							//base hidden gruop color
+							let dotColor = '#00000001';
+							//if dot value is inside gradient range
+							if(color >= this.gradientMinMax.currMin && color <= this.gradientMinMax.currMax){
+								//color it based on the values position in the range of all values available
+								//value, min_value, max_value
+								dotColor = this.colorFromGradientByValue(
+									color, 
+									this.colorByList[ this.renderConfig["color field"] ][0], 
+									this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1]
+								);
+							}
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+						});
 
-					this.colorByList[ this.renderConfig["color field"] ].map(color => {
-						let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
-						let dotColor = this.compareGroupColors[cIndex];
-						if(highlight){
-							dotColor = dotColor.substring(0, dotColor.length - 2);
-							dotColor += highlight === color ? hi : lo;
-						}
-						this.utils.plotUtils.renderDotsWithBestFit(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
-						cIndex++;
-					});
+						const coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] >= this.gradientMinMax.currMin && d.color[ this.renderConfig["color field"] ] <= this.gradientMinMax.currMax);
+						const dotColor = '#00000050';
+						this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+						
+					}else{
 
+						let highlight = this.renderConfig["color highlight"];
+						
+						//let arr = [...this.colorByList[ this.renderConfig["color field"] ]];
+						//arr.push(arr.splice(arr.indexOf(highlight), 1)[0]);
+
+						cIndex = 0
+						//map each value of selected color field option
+						//eg: field_v = ['v1', 'v2', 'v3']
+						this.colorByList[ this.renderConfig["color field"] ].map(color => {
+							//group all items that match current value ['v1', 'v1', 'v1',...]
+							//so we can color them together
+							const coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
+							//default, get dot color for this group from preset color list
+							let dotColor = this.compareGroupColors[cIndex];
+							//if this value group was selected by user, change color opacities
+							//eg #ffffff50 > hi=#ffffff90, lo=#ffffff05
+							if(highlight){
+								dotColor = dotColor.substring(0, dotColor.length - 2);
+								dotColor += highlight === color ? '90' : '05';
+							}
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							cIndex++;
+						});
+
+					}
+
+					
 				}
 
 				
@@ -712,9 +794,20 @@ export default Vue.component("research-scatter-plot", {
 			e.target.parentNode.querySelector('.color-key').childNodes.forEach(node => {
 				node.classList.remove('selected');
 			})
-			this.renderConfig["color highlight"] = null;
+			this.colorByField = this.renderConfig["color highlight"] = null;
+			this.colorByGradient = this.renderConfig["color field gradient"] = null;
 
 			this.colorByField = this.renderConfig["color field"] = e.target.value;
+			//TEMP
+			//TODO
+			if(this.renderConfig["color field"] === "Ambient Temp. (C)") {
+				this.colorByGradient = this.renderConfig["color field gradient"] = this.renderConfig["color field"];
+				this.gradientMinMax.max = this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1];
+				this.gradientMinMax.min = this.colorByList[ this.renderConfig["color field"] ][0];
+				this.gradientMinMax.currMax = this.gradientMinMax.max;
+				this.gradientMinMax.currMin = this.gradientMinMax.min;
+				this.gradientMinMax.activeEl = null;
+			}
 			this.renderPlot();
 		},	
 		setHighlightField(e, highlight){
@@ -734,6 +827,92 @@ export default Vue.component("research-scatter-plot", {
 				e.target.closest('.anno-bubble-wrapper').classList.add('selected');
 			}
 			this.renderPlot();
+		},
+		colorGradient(){
+			//TODO
+			//TMP
+			//viridis gradient colors
+			const viridisColors = ['#450c54', '#481668', '#482677', '#453681', '#3e4788', '#39558c', '#31648d', '#2e708e', '#277d8e', '#218a8d', '#21968b', '#20a286', '#28af7f', '#3dbc75', '#56c667', '#75d056', '#94d841', '#b9de28', '#dce318', '#fde724'];
+			const gradientColors = viridisColors;
+			let gradientCSS = 'linear-gradient(0deg, ';
+			gradientColors.forEach((color, i) => {
+				gradientCSS += color;
+				gradientCSS += i < gradientColors.length-1 ? ',' : ')'
+			});
+			return { 
+				'width': '30px',
+				'height': '100px',
+				'background': gradientCSS
+			}
+		},
+		colorFromGradientByValue(value, min, max){
+			const viridisColors = ['#450c54', '#481668', '#482677', '#453681', '#3e4788', '#39558c', '#31648d', '#2e708e', '#277d8e', '#218a8d', '#21968b', '#20a286', '#28af7f', '#3dbc75', '#56c667', '#75d056', '#94d841', '#b9de28', '#dce318', '#fde724'];
+			const range = max - min;
+			const position = value - min;
+			const percentile = position / range * 100;
+			const index = Math.floor(percentile / 100 * (viridisColors.length - 1));
+			//console.log([value, min, max], [range, position, percentile], [index, viridisColors[index]])
+			return viridisColors[index];
+		},
+		gradientHandleDown(e){
+			//this event handler is set on the parent element containing the color gradient handles
+			//first, check if we clicked a handle and not the wrapper
+			if(e.target.classList.contains('color-gradient-handle')){
+				//set it as the current element
+				this.gradientMinMax.activeEl = e.target;
+				//calculate difference between where mouse is on handle, and where handle element y is
+				//so that theres no awkward snapping as we drag
+				this.gradientMinMax.yOffset = e.target.getBoundingClientRect().y - e.clientY; 
+				//set mouseup listener on the window
+				//so we can let go anywhere on the page
+				window.addEventListener('mouseup', this.gradientHandleUp);
+			}
+		},
+		gradientHandleMove(e){
+			//this event handler is set on the parent element containing the color gradient handles
+			//so that we can listen for mousemove the whole time
+			//gate check if weve clicked on a handle element
+			if(!this.gradientMinMax.activeEl){
+				return;
+			}
+
+			const el = this.gradientMinMax.activeEl;
+			const isMax = el.classList.contains('color-gradient-max') ? true : false;
+			
+			//get bounds of wrapper element
+			var rect = el.closest('.color-gradient-wrapper').getBoundingClientRect();
+			//calculate mouse y position within the parent element + adjust for yoffset
+			var y = (e.clientY - rect.top) + this.gradientMinMax.yOffset;
+			//clamp y to between 0 and 100
+			//TODO
+			//update clamp values based on position of handles
+			y = Math.min(Math.max(y, 0), 100); 
+
+			// calc gradient values range
+			const range = this.gradientMinMax.max - this.gradientMinMax.min;
+			// map percentage to value in range 
+			el.dataset.val = (this.gradientMinMax.min + range * ((100-y)/100)).toFixed(2);
+			if(isMax){
+				this.gradientMinMax.currMax = Number(el.dataset.val);
+			}else{
+				this.gradientMinMax.currMin = Number(el.dataset.val);
+			}
+			//set text
+			el.innerHTML = el.dataset.val;
+			  
+			//update position of handle to move with the mouse
+			if(isMax) 	el.style.top = `${y + 2}px`;
+			if(!isMax) 	el.style.bottom = `${(100-y) + 2}px`;
+		},
+		gradientHandleUp(){
+			//were we grabbing a handle?
+			if(this.gradientMinMax.activeEl){
+				//unset active handle
+				this.gradientMinMax.activeEl = null;
+				//stop listening for mousemove
+				window.removeEventListener('mouseup', this.gradientHandleUp);
+				this.renderPlot();
+			}
 		},
 		onResize(e) {
 			this.renderPlot()
@@ -883,6 +1062,49 @@ $(function () { });
 
 .color-key-options .anno-bubble-wrapper.selected span.anno-bubble {
     background: radial-gradient(circle, rgba(0,0,0,.5) 30%, rgba(0, 0, 0, 0) 30%);
+}
+
+.color-gradient-wrapper {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    padding: 10px 0;
+}
+.color-gradient-handle {
+    position: absolute;
+	cursor:grab;
+	user-select: none;
+    left: 40px;
+    height: 16px;
+    min-width: 30px;
+    border-left: 1px solid gray;
+    background: linear-gradient(90deg, #f1f1f1, transparent);
+    font-size: 12px;
+    line-height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 3px;
+}
+.color-gradient-handle:active{
+	cursor:grabbing;
+}
+.color-gradient-handle::after {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 1px;
+    position: absolute;
+    left: -10px;
+    border-style: solid;
+    border-width: 3px 10px 3px 0;
+    border-color: transparent gray transparent transparent;
+}
+.color-gradient-max {
+	top: 2px;
+}
+.color-gradient-min {
+	bottom: 2px;
 }
 
 .scatter-dot-value {

@@ -630,13 +630,11 @@ const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX,
     })
 }
 
-const renderDotsWithBestFit = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA) {
-
-    renderDots(CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA);
-
+const renderBestFitLine = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA) {
     //x,y must have same amount of data points
     //x,y cannot contain missing values
 
+    //calculate best fit line
     const sum = [0, 0, 0, 0];
     let len = DATA.length;
 
@@ -656,6 +654,7 @@ const renderDotsWithBestFit = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, 
     const eX = XMAX;
     const eY = slope * eX + intcp
 
+    //calculate line start/end coordinates based on plot dimentions
     let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
     let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
     let xStep = plotWidth / (XMAX - XMIN);
@@ -666,25 +665,39 @@ const renderDotsWithBestFit = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, 
     const endX =   MARGIN.left + (xStep * (eX - XMIN));
     const endY =  MARGIN.top + (plotHeight - (eY - YMIN) * yStep);
 
+    //check if color is dimmed
     const dimmed = COLOR.length > 7 ? Number(COLOR.slice(-2)) < 20 ? true : false : false;
 
-    /*
-    CTX.strokeStyle = '#ffffff50';
-    CTX.lineWidth = 7;
+    //we're going to draw a black line, with colored dots at the ends
+    //but since dot colors have transparency, the line overlaps the dots
+    //we need to calculate the direction of the line
+    //so we can shorten it without affecting its position
+    // Calculate vector from start to end
+    const dx = endX - startX;
+    const dy = endY - startY;
+    // Calculate unit vector
+    const length = Math.sqrt(dx*dx + dy*dy);
+    const udx = dx / length;
+    const udy = dy / length;
+    // Calculate new start position
+    const amountToSubtract = 8;
+    const newStartX = startX + udx * amountToSubtract;
+    const newStartY = startY + udy * amountToSubtract;
+
+    //draw the line
+    CTX.strokeStyle = dimmed ? '#00000005' : '#000000';
+    CTX.lineWidth = 2;
     CTX.beginPath();
-    CTX.moveTo(startX, startY);
-    CTX.lineTo(endX, endY);
-    CTX.stroke();
-    */
-    CTX.strokeStyle = COLOR.length > 7 ? COLOR.slice(0, -2) : COLOR;
-    CTX.strokeStyle = dimmed ? COLOR : CTX.strokeStyle;
-    CTX.lineWidth = 5;
-    CTX.beginPath();
-    CTX.moveTo(startX, startY);
+    CTX.moveTo(newStartX, newStartY);
     CTX.lineTo(endX, endY);
     CTX.stroke();
 
-    //console.log("alex regress", slope, intcp, [startX, startY, endX, endY]);
+    //draw dot at the start
+    CTX.beginPath();
+    CTX.arc(startX, startY, 10, 0, 2 * Math.PI);
+    CTX.fillStyle = COLOR; //COLOR.substring(0, COLOR.length-2);
+    CTX.fill();
+    CTX.stroke();
 }
 
 const getDotsPosData = function (WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, DATA) {
@@ -747,7 +760,7 @@ export default {
     renderLine,
     renderStar,
     renderDots,
-    renderDotsWithBestFit,
+    renderBestFitLine,
     getDotsPosData,
     getDotsInPos
 };
