@@ -89,6 +89,19 @@
 							"
 						/>
 					</template>
+					<template
+							v-if="filter.type == 'slider'
+								"
+						>
+							<input
+								type="text"
+								class="form-control"
+								:id="'filter_' + sectionId + getColumnId(filter.field)"
+								@change="
+									filterData($event, filter.field, filter.type)
+									"
+							/>
+						</template>
 					<template v-if="filter.type == 'search change direction'">
 						<select
 							class="egl-filter-direction"
