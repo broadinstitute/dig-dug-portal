@@ -93,15 +93,21 @@
 							v-if="filter.type == 'slider'
 								"
 						>
-							<input
-								type="text"
-								class="form-control"
-								:id="'filter_' + sectionId + getColumnId(filter.field)"
-								@change="
-									filterData($event, filter.field, filter.type)
-									"
-							/>
-						</template>
+						<div v-if="filter['slider type'] == 'single'"></div>
+						<div v-if="filter['slider type'] == 'dual'">
+							<div class="slide-container">
+								<div class="sliders-control">
+									<input class="slider from-slider" id="fromSlider" type="range" value="0" min="0" max="100"
+									 oninput="rangeFromValue.innerText = this.value"/>
+									<input class="slider to-slider" id="toSlider" type="range" value="100" min="0" max="100" 
+									 oninput="rangeToValue.innerText = this.value"/>
+									 <span class="range-slider-tip" id="rangeFromValue">0</span>
+									<span class="range-slider-tip" id="rangeToValue">100</span>
+								</div>
+							</div>
+						</div>
+							
+					</template>
 					<template v-if="filter.type == 'search change direction'">
 						<select
 							class="egl-filter-direction"
@@ -244,7 +250,8 @@ export default Vue.component("research-section-filters", {
 		"sectionId",
 		"utils",
 	],
-
+	components: {
+	},
 	data() {
 		return {
 			filtersIndex: {},
@@ -643,6 +650,10 @@ export default Vue.component("research-section-filters", {
 
 				return unqOptions.sort();
 			}
+		},
+
+		getRange(FIELD) {
+			let range = {min:null, max:null}
 		},
 
 		filterDataChkbox(EVENT, FIELD, TYPE, INDEX) {
@@ -1372,6 +1383,66 @@ export default Vue.component("research-section-filters", {
 </script>
 
 <style>
+div.filtering-ui-content div.col {
+    vertical-align: bottom !important;
+}
+/* slider UI */
+.slide-container {
+  width: 175px;
+    position: relative;
+}
+
+.sliders-control {
+  position: relative;
+  min-height: 30px;
+}
+
+.slider {
+	position: absolute;
+	left: 0;
+	top: 10px;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 5px !important;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+  border-radius: 5px;
+  z-index:1;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #666666;
+  border-radius: 15px;
+  cursor: pointer;
+  z-index:100;
+}
+
+.slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #666666;
+  border-radius: 15px;
+  cursor: pointer;
+  z-index:100;
+}
+
+.range-slider-tip {
+	position: absolute;
+	top: 15px;
+}
+
+/* */
 .expand-region {
 	display: inline-block;
 	vertical-align: bottom;
@@ -1584,4 +1655,7 @@ div.custom-select-search {
 .chk-box-btn {
 	border: 1px solid #ced4da;
 }
+
+
+
 </style>
