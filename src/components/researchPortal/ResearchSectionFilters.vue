@@ -89,6 +89,40 @@
 							"
 						/>
 					</template>
+					<template
+							v-if="filter.type == 'slider'
+								"
+						>
+						<div v-if="filter['slider type'] == 'single'"></div>
+						<div v-if="filter['slider type'] == 'dual'">
+							<div class="slide-container">
+								<div class="sliders-control" :id="'filter_' + sectionId + getColumnId(filter.field)">
+									<input style="padding:0;" class="slider from-slider" type="range" 
+									 :id="'filter_' + sectionId + getColumnId(filter.field) + '_from_slider'"
+									 :value="sliderRange[filter.field].from" 
+									 :min="sliderRange[filter.field].min" 
+									 :max="sliderRange[filter.field].max" 
+									 :step="sliderRange[filter.field].step"
+									 @input="setSliderTip($event, 'filter_' + sectionId + getColumnId(filter.field) + '_from')" 
+									 @change="filterDataSlider($event, filter.field, 'dual')"/>
+									<input style="padding:0;" class="slider to-slider" type="range" 
+									 :id="'filter_' + sectionId + getColumnId(filter.field) + '_to_slider'"
+									 :value="sliderRange[filter.field].to" 
+									 :min="sliderRange[filter.field].min" 
+									 :max="sliderRange[filter.field].max" 
+									 :step="sliderRange[filter.field].step"
+									 @input="setSliderTip($event, 'filter_' + sectionId + getColumnId(filter.field) + '_to')" 
+									 @change="filterDataSlider($event, filter.field, 'dual')"/>
+									 <output class="range-slider-tip range-from-value" 
+									  :id="'filter_' + sectionId + getColumnId(filter.field)+'_from'" name="rangeFromValue"
+									  >{{ Math.round(sliderRange[filter.field].from * 10000) / 10000 }}</output>
+									 <output class="range-slider-tip range-to-value" 
+									  :id="'filter_' + sectionId + getColumnId(filter.field) + '_to'" name="rangeToValue"
+									  >{{ Math.round(sliderRange[filter.field].to * 10000) / 10000 }}</output>
+								</div>
+							</div>
+						</div>
+					</template>
 					<template v-if="filter.type == 'search change direction'">
 						<select
 							class="egl-filter-direction"
@@ -137,7 +171,7 @@
 					</template>
 					<template v-else-if="filter.type == 'checkbox'">
 						<div class="chkbox-combo">
-							<div class="title">Select options</div>
+							<div class="title btn btn-sm btn-light form-control chk-box-btn">View options &#9660;</div>
 							<div class="options">
 								<span>
 									<input type="checkbox" class="chkbox"
@@ -231,7 +265,8 @@ export default Vue.component("research-section-filters", {
 		"sectionId",
 		"utils",
 	],
-
+	components: {
+	},
 	data() {
 		return {
 			filtersIndex: {},
@@ -242,6 +277,7 @@ export default Vue.component("research-section-filters", {
 			lastFilter: { field: null, value: null },
 			suggestions: { field: null, suggestions: [] },
 			searchBySuggest: false,
+			sliderRange: null
 		};
 	},
 	created() {
@@ -258,6 +294,10 @@ export default Vue.component("research-section-filters", {
 						? true
 						: false;
 				this.filtersIndex[f.field] = tempObj;
+
+				if(f.type == 'slider') {
+					this.getRange(f.field);
+				}
 			});
 		}
 
@@ -632,6 +672,35 @@ export default Vue.component("research-section-filters", {
 			}
 		},
 
+		getRange(FIELD) {
+
+			console.log(FIELD);
+			let data = this.unfilteredDataset;
+				
+			if(!this.sliderRange) { this.sliderRange = {} };
+			let range = { min: null, max: null, step:0, from: null, to: null };
+
+			data.map(d=>{
+				
+				if(!!d[FIELD] && typeof d[FIELD] === 'number') {
+					range.min = (!range.min)? d[FIELD] : (d[FIELD] < range.min)? d[FIELD] : range.min;
+					range.max = (!range.max) ? d[FIELD] : (d[FIELD] > range.max) ? d[FIELD] : range.max;
+				}
+			})
+			range.from = Math.round(range.min * 10000) / 10000;
+			range.to = Math.round(range.max * 10000) / 10000;
+			range.step = (range.max - range.min) / 10000;
+
+			if(!!document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_from")) {
+				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_from").value = range.from;
+			}
+			if (!!document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to")) {
+				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value = range.to;
+			}
+
+			this.sliderRange[FIELD] = range;
+		},
+
 		filterDataChkbox(EVENT, FIELD, TYPE, INDEX) {
 			
 			let searchValue = EVENT.target.value;
@@ -674,6 +743,27 @@ export default Vue.component("research-section-filters", {
 
 			this.applyFilters();
 			
+		},
+		setSliderTip(EVENT,ID) {
+			document.getElementById(ID).value = Math.round(EVENT.target.value * 10000) / 10000;
+		},
+		filterDataSlider(EVENT, FIELD, TYPE,) {
+			if(TYPE == "single") {
+
+			} else if (TYPE == "dual") {
+				let searchValueFrom = document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD)+"_from").value
+				let searchValueTo = document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value
+				let searchValue = searchValueFrom+","+ searchValueTo;
+
+				this.sliderRange[FIELD].from = Number(searchValueFrom);
+				this.sliderRange[FIELD].to = Number(searchValueTo);
+
+				this.lastFilter = { field: FIELD, value: searchValue };
+
+				this.filtersIndex[FIELD]["search"] = [searchValue];
+			}
+
+			this.applyFilters();
 		},
 		filterData(EVENT, FIELD, TYPE, DATATYPE, SUGGESTED) {
 			let searchValue = !!SUGGESTED
@@ -847,6 +937,18 @@ export default Vue.component("research-section-filters", {
 													searchVals[1].trim())
 													? tempFiltered.push(row)
 													: "";
+												break;
+
+											case "slider":
+												searchVals = search.split(",");
+
+												typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
+													searchVals[0].trim() &&
+													row[searchIndex.field] <=
+													searchVals[1].trim())
+													? tempFiltered.push(row)
+													: "";
+
 												break;
 										}
 									}
@@ -1228,7 +1330,7 @@ export default Vue.component("research-section-filters", {
 												//}
 											}
 										} else if (
-											searchIndex.type == "search and"
+											searchIndex.type == "search and" || searchIndex.type == "slider"
 										) {
 											let searchVals = search.split(",");
 											//for (var rowNum in targetData) {
@@ -1282,7 +1384,6 @@ export default Vue.component("research-section-filters", {
 													] = row;
 												}
 											}
-											//}
 										}
 									}
 								}
@@ -1302,25 +1403,18 @@ export default Vue.component("research-section-filters", {
 
 			///Since checkBox filters work different from other filters run filter separately
 
-			
-
 			if (!!filteredLength && filteredLength > 0) {
 				if (comparingFields == null) {
 					
 					for (const [fKey, filter] of Object.entries(this.filtersIndex)) {
 						if(filter.type == 'checkbox') {
-							
-							filtered = filtered.filter(row => !filter.search.includes(row[filter.field]));
-
+							filtered = filtered.filter(row => !filter.search.includes(row[filter.field].toString()));
 						}
 					}
 				} else {
 
 				}
 			}
-			
-
-			
 
 			if (filteredLength == 0 || filteredLength == null) {
 				this.utils.alertUtils.popAlert(
@@ -1349,16 +1443,87 @@ export default Vue.component("research-section-filters", {
 			this.filtersIndex[FIELD].search.splice(ITEM, 1);
 
 			this.applyFilters();
+			this.getRange(FIELD);
 		},
 		removeSearch(FIELD, ITEM) {
-			//this.filtersIndex[FIELD].search.splice(ITEM, 1);
-			//this.applyFilters();
 		},
 	},
 });
 </script>
 
 <style>
+div.filtering-ui-content div.col {
+    vertical-align: bottom !important;
+}
+/* slider UI */
+.slide-container {
+  width: 175px;
+    position: relative;
+}
+
+.sliders-control {
+    position: relative;
+    min-height: 30px;
+    border-top: solid 2px #cccccc;
+    margin-top: 10px;
+    margin-bottom: -10px;
+}
+
+.slider {
+	position: absolute;
+	left: 0;
+	top: 5px;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 2px !important;
+  background: #d3d3d300;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+  border-radius: 5px;
+  z-index:1;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  margin-top: -15px;
+  background: #666666;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  margin-top: -15px;
+  background: #666666;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.range-slider-tip {
+	position: absolute;
+	top: 5px;
+	font-size: 12px;
+}
+
+.range-from-value {
+	left: 0;
+}
+
+.range-to-value {
+	right: 0;
+}
+
+/* */
 .expand-region {
 	display: inline-block;
 	vertical-align: bottom;
@@ -1567,4 +1732,11 @@ div.custom-select-search {
 .chkbox-combo:hover .options{
 	display: block;
 }
+
+.chk-box-btn {
+	border: 1px solid #ced4da;
+}
+
+
+
 </style>
