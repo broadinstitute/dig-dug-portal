@@ -1,6 +1,5 @@
 <template>
 	<div>
-		{{ sliderRange }}
 		<div
 			class="filtering-ui-wrapper"
 			v-if="
@@ -674,13 +673,16 @@ export default Vue.component("research-section-filters", {
 		},
 
 		getRange(FIELD) {
+
+			console.log(FIELD);
 			let data = this.unfilteredDataset;
 				
 			if(!this.sliderRange) { this.sliderRange = {} };
 			let range = { min: null, max: null, step:0, from: null, to: null };
 
 			data.map(d=>{
-				if(!!d[FIELD]) {
+				
+				if(!!d[FIELD] && typeof d[FIELD] === 'number') {
 					range.min = (!range.min)? d[FIELD] : (d[FIELD] < range.min)? d[FIELD] : range.min;
 					range.max = (!range.max) ? d[FIELD] : (d[FIELD] > range.max) ? d[FIELD] : range.max;
 				}
@@ -693,11 +695,10 @@ export default Vue.component("research-section-filters", {
 				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_from").value = range.from;
 			}
 			if (!!document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to")) {
-				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value = range.to * 10000;
+				document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value = range.to;
 			}
 
 			this.sliderRange[FIELD] = range;
-
 		},
 
 		filterDataChkbox(EVENT, FIELD, TYPE, INDEX) {
@@ -1402,25 +1403,18 @@ export default Vue.component("research-section-filters", {
 
 			///Since checkBox filters work different from other filters run filter separately
 
-			
-
 			if (!!filteredLength && filteredLength > 0) {
 				if (comparingFields == null) {
 					
 					for (const [fKey, filter] of Object.entries(this.filtersIndex)) {
 						if(filter.type == 'checkbox') {
-							
-							filtered = filtered.filter(row => !filter.search.includes(row[filter.field]));
-
+							filtered = filtered.filter(row => !filter.search.includes(row[filter.field].toString()));
 						}
 					}
 				} else {
 
 				}
 			}
-			
-
-			
 
 			if (filteredLength == 0 || filteredLength == null) {
 				this.utils.alertUtils.popAlert(
