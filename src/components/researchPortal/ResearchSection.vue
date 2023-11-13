@@ -83,7 +83,6 @@
 						</research-section-visualizers>
 					</div>
 				</div>
-
 				<research-section-visualizers
 					v-if="!multiVisualizers && !!visualizer && !!sectionData"
 					:plotConfig="visualizer"
@@ -175,24 +174,7 @@ export default Vue.component("research-section", {
 		sectionID() {
 			return this.sectionConfig["section id"];
 		},
-		/*tableFormat() {
-			if(!!this.sectionData) {
-				if(!!this.sectionConfig["table format"] && 
-					(!this.sectionConfig["table format"]["type"] || this.sectionConfig["table format"]["type"]!="remote")) {
-					return this.sectionConfig["table format"];
-				} else if(!!this.remoteTableFormat) {
-					return this.remoteTableFormat;
-				}else {
-					let topRows = Object.keys(this.sectionData[0]);
-					let tableFormat = { "top rows": topRows };
-					return tableFormat;
-				}
-			} else {
-				return null
-			}
-		},*/
 		dataComparisonConfig() {
-
 			let groupsLength = (!!this.groups)?this.groups.length:0;
 			if(!!this.tableFormat && !!this.tableFormat["group by"] && !!this.tableFormat["compare data"] && groupsLength > 1) {
 				let config = {
@@ -200,6 +182,7 @@ export default Vue.component("research-section", {
 					"fields group data key": this.tableFormat["group by"],
 					"fields to compare": this.tableFormat["compare data"]["fields to compare"]
 				}
+
 				return config;
 			} else {
 				return null
@@ -876,12 +859,9 @@ export default Vue.component("research-section", {
 						}
 					})
 
-					//this.groups = groups.sort();
 				}
 
 				this.originalData = this.sectionData;
-				
-
 			} else {
 
 				/*this.utils.alertUtils.popSectionAlert(

@@ -17,8 +17,8 @@
 			v-if="plotConfig != null && plotConfig['type'] == 'manhattan bitmap plot'"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
-			:dataComparisonConfig="null"
-			:compareGroupColors="null"
+			:dataComparisonConfig="dataComparisonConfig"
+			:compareGroupColors="colors.moderate"
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-m-bitmap-plot>
