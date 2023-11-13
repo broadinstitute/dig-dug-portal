@@ -34,7 +34,7 @@
 					</select>
 					<template v-if="parameter.type == 'list' && parameter.values.length > 10">
 						<input v-model="paramSearch[paramIndex]" class="form-control"
-							@keyup="getListOptions($event, parameter)" :id="'search_param_' + parameter.parameter" />
+							@keyup="getListOptions($event, parameter)" :id="'section_search_param' + parameter.parameter" />
 
 						<div :id="'listOptions' + parameter.parameter" class="custom-select custom-select-search long-list"
 							:size="!!listOptions[parameter.parameter] && listOptions[parameter.parameter].length >= 5 ? 5 : 'auto'"
@@ -445,6 +445,7 @@ div.custom-select-search {
 	font-size: 14px;
 	color: #666666 !important;
 	background-color: #ffffff;
+	white-space: nowrap;
 }
 
 .custom-select-a-option:hover {
