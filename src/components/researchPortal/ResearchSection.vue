@@ -469,9 +469,12 @@ export default Vue.component("research-section", {
 				this.sectionData = data;			
 		},
 		sortData(KEY){
-			console.log("sort called", KEY);
-			let isNumeric = this.checkIfNumeric(this.sectionData, KEY.key);
-			this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, KEY.key, isNumeric, KEY.direction);
+			if(!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {
+				this.sectionData = this.utils.sortUtils.sortLocusField(this.sectionData, KEY.key, KEY.direction);
+			} else {
+				let isNumeric = this.checkIfNumeric(this.sectionData, KEY.key);
+				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, KEY.key, isNumeric, KEY.direction);
+			}
 		},
 		checkIfNumeric(DATA, KEY) {
 			let checkNumbers = [
