@@ -647,6 +647,7 @@ export default Vue.component("research-data-table", {
 				!!this.tableFormat["column formatting"] &&
 				!!this.tableFormat["column formatting"][tdKey]
 			) {
+				
 				let types = this.tableFormat["column formatting"][tdKey].type;
 
 				if (

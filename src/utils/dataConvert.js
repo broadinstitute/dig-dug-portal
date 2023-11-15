@@ -68,20 +68,21 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
     if (CONVERT != "no convert") {
         DATA.map(d => {
-            //let tempObj = d;
+
             let tempObj = {};
             CONVERT.map(c => {
 
                 let cType = c.type;
 
-
                 switch (cType) {
                     case "join":
                         tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                     case "join multi":
                         tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], d);
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                     case "split":
@@ -107,6 +108,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                         loopIndex = 0;
                         newFields.map(f => {
                             tempObj[f] = newFieldValues[loopIndex];
+                            d[f] = tempObj[f];
                             loopIndex++;
                         })
 
@@ -114,6 +116,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                     case "get locus":
                         tempObj[c["field name"]] = formatLocus(c["chromosome"], c["start"], c["end"], d);
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                     case "calculate":
@@ -123,39 +126,46 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                         switch (calType) {
                             case "-log10":
                                 tempObj[c["field name"]] = -Math.log10(d[c["raw field"]]);
+                                d[c["field name"]] = tempObj[c["field name"]];
                                 break;
 
                             case "math":
                                 let calcString = "";
 
                                 c["expression"].map(e => {
-                                    let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : d[e];
+                                    let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : (typeof e === 'number') ? e : d[e];
                                     calcString += eValue;
                                 });
 
                                 tempObj[c["field name"]] = eval(calcString);
+                                d[c["field name"]] = tempObj[c["field name"]];
 
                         }
                         break;
                     case "js math":
                         let calFunc = c["method"];
                         tempObj[c["field name"]] = Math[calFunc](d[c["raw field"]]);
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                     case "raw":
                         tempObj[c["field name"]] = d[c["raw field"]];
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                     case "string to number":
                         tempObj[c["field name"]] = Number(d[c["raw field"]]);
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                     case "score columns":
                         tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], d);
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                     case "array to string":
                         tempObj[c["field name"]] = array2String(d[c["raw field"]], c["separate by"]);
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                     case "replace characters":
@@ -175,6 +185,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                         })
 
                         tempObj[c["field name"]] = newString;
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                     case "kp phenotype name":
@@ -182,6 +193,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                         let pID = d[c["raw field"]]
 
                         tempObj[c["field name"]] = (!!PHENOTYPE_MAP[pID] ? PHENOTYPE_MAP[pID].description : pID);
+                        d[c["field name"]] = tempObj[c["field name"]];
                         break;
 
                 }

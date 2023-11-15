@@ -407,7 +407,6 @@ export default Vue.component("research-m-bitmap-plot", {
 		},
 		renderPlot(DATA) {
 
-			console.log(DATA);
 			this.dotPosData = {};
 
 			let wrapper = document.getElementById("clicked_dot_value_" + this.sectionId);
