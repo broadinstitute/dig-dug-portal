@@ -475,6 +475,16 @@ let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPP
 
 }
 
+let showHidePanel = function (PANEL) {
+    console.log(PANEL);
+    let wrapper = document.querySelector(PANEL);
+    if (wrapper.classList.contains("hidden")) {
+        wrapper.classList.remove("hidden");
+    } else {
+        wrapper.classList.add("hidden");
+    }
+}
+
 export default {
     popOutElement,
     hideElement,
@@ -498,5 +508,6 @@ export default {
     biDomain,
     getUrl,
     checkIfNumeric,
-    setTabActive
+    setTabActive,
+    showHidePanel
 };

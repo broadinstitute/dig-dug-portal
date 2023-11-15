@@ -5,9 +5,13 @@
 		<div class="" style="display: flex;">
 			<div class="">
 				<div :id="'scatter_dot_value' + sectionId" 
-					class="scatter-dot-value" 
-					:class="!!isDotPanelClick? 'fixed-panel':''" 
-					style="display:none"></div>
+					class="scatter-dot-value hidden"
+					>
+					<div :style="!!isDotPanelClick ? 'display:block' : 'display:none'" class="fixed-info-box-close" @click="utils.uiUtils.showHidePanel('#scatter_dot_value'+ sectionId)">
+						<b-icon icon="x-circle-fill"></b-icon>
+					</div>
+					<div :id="'scatter_dot_value_content' + sectionId"></div>
+				</div>
 				<canvas
 					v-if="renderData.length > 0 && !!renderConfig && !groupsList && !multiList"
 					:id="'scatterPlot' + sectionId"
@@ -921,6 +925,7 @@ export default Vue.component("research-scatter-plot", {
 
 			let data = (!!GROUP) ? this.posData[GROUP] : this.posData;
 			let wrapper = document.querySelector('#scatter_dot_value' + this.sectionId);
+			let wrapperContent = document.querySelector('#scatter_dot_value_content' + this.sectionId);
 			//let canvas = document.querySelector('#scatterPlot' + this.sectionId + GROUP);
 			let canvas = e.target;
 
@@ -973,14 +978,15 @@ export default Vue.component("research-scatter-plot", {
 							: x + canvas.offsetLeft + 15 + "px";
 					wrapper.style.width =
 						x + canvas.offsetLeft + 150 > canvas.width ? "auto" : "auto";
-					wrapper.style.display = "block";
+					wrapper.setAttribute("class", "scatter-dot-value")
 
-					wrapper.innerHTML = posContent;
+					wrapperContent.innerHTML = posContent;
 				}
 
 				if (EVENT_TYPE == 'click') {
 					this.isDotPanelClick = true;
-					wrapper.innerHTML = posContent;
+					wrapper.setAttribute("class", "scatter-dot-value fixed-panel");
+					wrapperContent.innerHTML = posContent;
 				}
 
 			} else {
@@ -988,8 +994,8 @@ export default Vue.component("research-scatter-plot", {
 					this.isDotPanelClick = false;
 				}
 				if (EVENT_TYPE == 'move' && !this.isDotPanelClick) {
-					wrapper.style.display = "none";
-					wrapper.innerHTML = "";
+					wrapperContent.innerHTML = "";
+					wrapper.setAttribute("class", "scatter-dot-value hidden")
 				}
 			}
 
@@ -1117,6 +1123,10 @@ $(function () { });
     font-size: 14px;
 }
 
+.scatter-dot-value.hidden {
+	display: none;
+}
+
 .scatter-dot-value.fixed-panel {
 	position: fixed;
 	width: auto;
@@ -1135,7 +1145,9 @@ $(function () { });
 }
 
 
-
+.fixed-info-box-close {
+	position: absolute;
+}
 
 .plot-extras label {
     margin: 10px 0 0 0;
