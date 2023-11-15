@@ -10,7 +10,7 @@
 					<div :style="!!isDotPanelClick ? 'display:block' : 'display:none'" class="fixed-info-box-close" @click="utils.uiUtils.showHidePanel('#scatter_dot_value'+ sectionId)">
 						<b-icon icon="x-circle-fill"></b-icon>
 					</div>
-					<div :id="'scatter_dot_value_content' + sectionId"></div>
+					<div class="scatter-dot-value-content" :id="'scatter_dot_value_content' + sectionId"></div>
 				</div>
 				<canvas
 					v-if="renderData.length > 0 && !!renderConfig && !groupsList && !multiList"
@@ -1118,7 +1118,7 @@ $(function () { });
     background-color: #fff;
     border: solid 1px #ddd;
     border-radius: 5px;
-    padding: 5px 15px;
+    padding: 20px 0 0 15px;
     z-index: 11;
     font-size: 14px;
 }
@@ -1135,15 +1135,18 @@ $(function () { });
 	max-height: 50%;
 	left: calc(50% - 200px) !important;
 	top: calc(50% - 150px) !important;
-	padding: 20px 15px;
+	padding: 20px 0 0 15px;
 	border-radius: 5px;
 	border: solid 1px #ddd;
 	background-color: #fff;
 	z-index: 100;
-	overflow: auto;
 	box-shadow: 0px 5px 15px #00000050;
 }
 
+.scatter-dot-value-content {
+	height: 450px;
+    overflow: auto;
+}
 
 .fixed-info-box-close {
 	position: absolute;
