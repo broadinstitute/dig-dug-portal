@@ -174,23 +174,23 @@
 						"
 					>
 						<td
-							v-if="ifDataObject(tdValue) == false && !!ifSetParameterColumn(tdKey)"
-							:key="tdKey"
-							:class="getColumnId(tdKey)"
+								v-if="ifDataObject(tdValue) == false"
+								:key="tdKey"
+								:class="getColumnId(tdKey)"
+							>
+							<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> {{ tdValue }}
+								<span class="btns-wrapper">
+									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
+										v-html="section" @click="setParameter(tdValue, tdKey, section)" ></button>
+								</span>
+								
+							</span>
 							
-						>
-							<button class="btn btn-sm show-evidence-btn set-search-btn" v-html="tdValue" @click="setParameter(tdValue, tdKey)" ></button>
+							<span v-else v-html="formatValue(tdValue, tdKey)"></span>
 						</td>
 						<td
-							v-if="ifDataObject(tdValue) == false && !ifSetParameterColumn(tdKey)"
-							:key="tdKey"
-							v-html="formatValue(tdValue, tdKey)"
-							:class="getColumnId(tdKey)"
-						></td>
-						<td
 							v-if="
-								ifDataObject(tdValue) == true &&
-								getIfChecked(tdKey) == true
+								ifDataObject(tdValue) == true
 							"
 							:key="tdKey"
 							class="multi-value-td"
@@ -203,9 +203,18 @@
 									' reference bg-color-' +
 									getColorIndex(sKey)
 								"
-								v-html="formatValue(sValue, tdKey)"
 								:key="sKey"
-							></span>
+							>
+								<!--<button v-if="!!ifSetParameterColumn(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
+									v-html="sValue" @click="setParameter(sValue, tdKey)" ></button>-->
+
+								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> {{ sValue }}
+									<span class="btns-wrapper">
+									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
+										v-html="section" @click="setParameter(sValue, tdKey, section)" ></button>
+										</span>
+								</span>
+								<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
 						</td>
 					</template>
 					<td v-if="tableFormat['features'] != undefined">
@@ -530,11 +539,27 @@ export default Vue.component("research-data-table", {
 	},
 	methods: {
 		//...Formatters,
-		setParameter(VALUE,KEY){
+		setParameter(VALUE,KEY,SECTION){
 			let parameter = this.tableFormat['column formatting'][KEY]['parameter'];
-			let targetSections = this.tableFormat['column formatting'][KEY]['target sections'];
-			document.getElementById("search_param_" + parameter).value = VALUE;
-			this.$root.$refs.multiSectionSearch.updateSearch(parameter,targetSections);
+			let targetSections = SECTION == "all" || !SECTION ? this.tableFormat['column formatting'][KEY]['target sections']:[SECTION];
+
+			if(typeof parameter === "object") {
+				console.log("here",VALUE, KEY, parameter, targetSections);
+
+				let values = VALUE.split(",");
+
+				let vIndex = 0;
+				parameter.map(p=>{
+					document.getElementById("search_param_" + p).value = values[vIndex];
+					this.$root.$refs.multiSectionSearch.updateSearch(p, targetSections);
+					vIndex++;
+				})
+
+			} else {
+				document.getElementById("search_param_" + parameter).value = VALUE;
+				this.$root.$refs.multiSectionSearch.updateSearch(parameter, targetSections);
+			}
+			
 		},
 		ifSetParameterColumn(KEY){
 			if(!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
@@ -543,6 +568,9 @@ export default Vue.component("research-data-table", {
 			 } else {
 				return null;
 			 }
+		},
+		getParameterTargets(KEY) {
+			return this.tableFormat['column formatting'][KEY]['target sections'];
 		},
 		showHidePanel(PANEL) {
 			let wrapper = document.querySelector(PANEL);
@@ -1062,9 +1090,32 @@ table.research-data-table {
 	background-color: #eee;
 }
 
-.show-evidence-btn.set-search-btn {
-    font-size: 12px !important;
+.set-parameter-options  {
+	position: relative;
+}
+
+.set-parameter-options .btns-wrapper {
+ display: none !important;
+}
+
+.set-parameter-options:hover .btns-wrapper {
+ display: block !important;
+ position:absolute;
+ background-color: #eeeeee;
+ border:solid 1px #dddddd;
+ padding: 10px 10px 7px 10px;
+ border-radius: 5px;
+ top: 15px;
+ left: 25px;
+ text-align: left;
+ width: auto;
+ z-index: 100;
+}
+
+.set-parameter-options .show-evidence-btn.set-search-btn {
+    font-size: 13px !important;
     padding: 0px 5px !important;
-	display: inline !important;
+    display: inline !important;
+    margin-bottom: 3px;
 }
 </style>

@@ -1,5 +1,10 @@
 <template>
-	<div class="multi-section" :class="'wrapper-' + sectionIndex">
+	<!--
+<div class="multi-section" :class="'wrapper-' + sectionIndex" 
+	:style="!!sectionData || sectionConfig['section type'] == 'primary'?'':'display:none;'">
+	-->
+
+	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
 		<div class="row">
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()" title="Capture data in section"><b-icon
@@ -864,20 +869,8 @@ export default Vue.component("research-section", {
 				this.originalData = this.sectionData;
 			} else {
 
-				/*this.utils.alertUtils.popSectionAlert(
-					"Data is returned for " + this.sectionConfig.header + ".",
-					this.sectionID
-				);*/
-
 				this.loadingDataFlag = "down"
-				/*if(dataPoint.type == "file") {
-					let fetchUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;
-					let fileData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
-
-					if (fileData.error == null) {
-						console.log(fileData);
-					}
-				}*/
+				
 			}
 
 			if(!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) {

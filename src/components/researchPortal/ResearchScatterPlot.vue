@@ -355,7 +355,7 @@ export default Vue.component("research-scatter-plot", {
 					filterFields.push(field)
 				});
 			*/
-			console.log('alex filters', filterFields);
+			//console.log('alex filters', filterFields);
 			//use collected field names from "x axis fields", "y axis fields", "color by"
 			//filter and exclude if any of those fields has 'NA' value
 			/*
@@ -379,7 +379,7 @@ export default Vue.component("research-scatter-plot", {
 			this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"][0];
 			this.renderConfig["color highlight"] = null;
 
-			console.log('alex render config', this.renderConfig);
+			//console.log('alex render config', this.renderConfig);
 
 			//use filtereredDATA here
 			//map data for rendering
@@ -482,7 +482,7 @@ export default Vue.component("research-scatter-plot", {
 				massagedData.push(tempObj);
 			});
 
-			console.log('alex data mapped (used for visuals)', massagedData);
+			//console.log('alex data mapped (used for visuals)', massagedData);
 
 			//TODO: create gratient style legends for 'color by' fields
 			//should be settable in JSON config
@@ -490,12 +490,12 @@ export default Vue.component("research-scatter-plot", {
 				let cb = Object.keys(colorsBy);
 				cb.forEach(colorBy => {
 					if(colorsBy[colorBy].length > 10){
-						console.log(`color field '${colorBy}' has ${colorsBy[colorBy].length} unique options`)
+						//console.log(`color field '${colorBy}' has ${colorsBy[colorBy].length} unique options`)
 						if(typeof colorsBy[colorBy][0] === 'number'){
 							const numbersOnly = colorsBy[colorBy].filter(value => typeof value === 'number');
 							numbersOnly.sort( (a, b) => a - b );
 							colorsBy[colorBy] = numbersOnly;
-							console.log(`	it is numerical; make gradient`);
+							//console.log(`	it is numerical; make gradient`);
 						}
 					}
 				})
@@ -506,12 +506,12 @@ export default Vue.component("research-scatter-plot", {
 			this.multiList = multi.length > 0 ? multi : null;
 			this.colorByList = Object.keys(colorsBy).length > 0 ? colorsBy : null;
 
-			console.log('alex groups list', this.groupsList);
+			/*console.log('alex groups list', this.groupsList);
 			console.log('alex colorsby list', this.colorByList );
 			console.log('alex colors list', this.colorsList);
 			console.log('alex multi', this.multiList);
 
-			console.log('\n- - - - - - - -\n\n')
+			console.log('\n- - - - - - - -\n\n')*/
 
 			return massagedData;
 		}
@@ -546,7 +546,7 @@ export default Vue.component("research-scatter-plot", {
 			let ctx = c.getContext("2d");
 			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-			console.log('alex has group '+ID+':', GROUP);
+			//console.log('alex has group '+ID+':', GROUP);
 
 			if(GROUP && GROUP.constructor === Array){
 				
@@ -742,7 +742,7 @@ export default Vue.component("research-scatter-plot", {
 			return {xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax};
 		},
 		renderPlot() {
-			console.log('alex render data', this.renderData);
+			//console.log('alex render data', this.renderData);
 
 			if(this.renderData.length > 0) {
 
@@ -955,7 +955,7 @@ export default Vue.component("research-scatter-plot", {
 						}
 					} else if(EVENT_TYPE == 'click'){
 						posContent += "<strong>" + d.key + "</strong><br />";
-						console.log('alex dot', d.key, d.hover);
+						//console.log('alex dot', d.key, d.hover);
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
 							if(typeof hValue === Number){
