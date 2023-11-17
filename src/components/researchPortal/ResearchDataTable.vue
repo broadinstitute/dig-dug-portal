@@ -181,7 +181,7 @@
 							<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> {{ tdValue }}
 								<span class="btns-wrapper">
 									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-										v-html="section" @click="setParameter(tdValue, tdKey, section)" ></button>
+										v-html="section.label" @click="setParameter(tdValue, tdKey, section.section)" ></button>
 								</span>
 								
 							</span>
@@ -211,7 +211,7 @@
 								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> {{ sValue }}
 									<span class="btns-wrapper">
 									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-										v-html="section" @click="setParameter(sValue, tdKey, section)" ></button>
+										v-html="section.label" @click="setParameter(sValue, tdKey, section.section)" ></button>
 										</span>
 								</span>
 								<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
@@ -1028,7 +1028,7 @@ table.research-data-table {
 	padding: 0 !important;
 }
 
-.research-data-table td.multi-value-td span {
+.research-data-table td.multi-value-td > span {
 	display: block;
 	padding: 0.3rem;
 	border-bottom: solid 1px #fff;
@@ -1090,32 +1090,46 @@ table.research-data-table {
 	background-color: #eee;
 }
 
-.set-parameter-options  {
+.set-parameter-options, .reference .set-parameter-options  {
 	position: relative;
+    background-color: #dddddd;
+    padding: 1px 7px;
+    border: solid 1px #cccccc;
+    border-radius: 3px;
+    font-size: 13px;
 }
 
-.set-parameter-options .btns-wrapper {
- display: none !important;
+.set-parameter-options:hover, .reference .set-parameter-options:hover  {
+    background-color: #333333;
+    border: solid 1px #000000;
+	color: #ffffff;
 }
 
-.set-parameter-options:hover .btns-wrapper {
+.set-parameter-options .btns-wrapper, .reference .set-parameter-options .btns-wrapper {
+	display: none !important;
+    position: absolute;
+    background-color: #ffffff;
+    padding: 5px 5px 2px 5px;
+    top: 25%;
+    left: 50%;
+    text-align: left;
+    width: auto;
+    z-index: 100;
+    border: solid 1px #dddddd;
+    box-shadow: 5px 5px 5px #00000050;
+}
+
+.set-parameter-options:hover .btns-wrapper, .reference .set-parameter-options:hover .btns-wrapper {
  display: block !important;
- position:absolute;
- background-color: #eeeeee;
- border:solid 1px #dddddd;
- padding: 10px 10px 7px 10px;
- border-radius: 5px;
- top: 15px;
- left: 25px;
- text-align: left;
- width: auto;
- z-index: 100;
 }
 
-.set-parameter-options .show-evidence-btn.set-search-btn {
+.set-parameter-options .show-evidence-btn.set-search-btn, .reference .set-parameter-options .show-evidence-btn.set-search-btn {
     font-size: 13px !important;
-    padding: 0px 5px !important;
+    padding: 3px 7px !important;
     display: inline !important;
     margin-bottom: 3px;
+	text-align: left;
+	white-space: nowrap;
 }
+
 </style>

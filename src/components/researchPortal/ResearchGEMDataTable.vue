@@ -1999,7 +1999,7 @@ table.research-data-table {
 	padding: 0 !important;
 }
 
-.research-data-table td.multi-value-td span {
+.research-data-table td.multi-value-td > span {
 	display: block;
 	padding: 0.3rem;
 	border-bottom: solid 1px #fff;

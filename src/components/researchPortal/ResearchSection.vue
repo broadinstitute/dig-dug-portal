@@ -1,10 +1,10 @@
 <template>
-	<!--
+	
 <div class="multi-section" :class="'wrapper-' + sectionIndex" 
 	:style="!!sectionData || sectionConfig['section type'] == 'primary'?'':'display:none;'">
-	-->
+	
 
-	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
+	<!--<div class="multi-section" :class="'wrapper-' + sectionIndex" >-->
 		<div class="row">
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()" title="Capture data in section"><b-icon
