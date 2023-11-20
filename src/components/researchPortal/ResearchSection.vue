@@ -648,23 +648,30 @@ export default Vue.component("research-section", {
 			let dataPoint = this.sectionConfig["data point"];
 			let dataUrl = dataPoint.url + "query/" + dataPoint.index + "?q="+QUERY;
 
-			
-
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
-			
-
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
-				this.processLoadedBI(contentJson);
+				this.processLoadedBI(contentJson, QUERY);
 			} else {
 				// fetch failed
 				this.sectionData = null;
+				this.loadingDataFlag = "down"
 			}
 		},
 
-		async queryBiContinue(TOKEN) {
+		async queryBiContinue(TOKEN,QUERY) {
 			let dataPoint = this.sectionConfig["data point"];
 			let dataUrl = dataPoint.url + "cont?token=" + TOKEN;
+
+			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
+				this.processLoadedBI(contentJson,QUERY);
+			} else {
+				// fetch failed
+				this.sectionData = null;
+				this.loadingDataFlag = "down"
+			}
 		},
 
 		async queryApi(QUERY, TYPE, PARAMS) {
@@ -677,10 +684,110 @@ export default Vue.component("research-section", {
 			let dataUrl = "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + FILE;
 		},
 
-		processLoadedBI(CONTENT) {
-			
+		processLoadedBI(CONTENT, QUERY) {
+
+			let data = CONTENT.data;
+			let dataPoint = this.sectionConfig["data point"];
+
+			// if loaded data is processed
+
+			let tableFormat = this.sectionConfig["table format"];
+
+			if (!!tableFormat && !!tableFormat["data convert"]) {
+				let convertConfig = tableFormat["data convert"];
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+			}
+
+			let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true") ? true : null;
+
+			let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
+				true : null;
+
+			if (!!cumulateData) {
+
+				if (CONTENT.page == 1) {
+					this.sectionData = !!isOriginalDataEmpty ? data : this.sectionData.concat(data);
+				} else {
+					this.sectionData = this.sectionData.concat(data);
+				}
+
+				if (!!CONTENT.continuation) {
+					this.queryBiContinue(CONTENT.continuation, QUERY);
+				} else {
+
+					this.loadingDataFlag = "down"
+					this.completeDataLoad(QUERY);
+				}
+				
+			} else {
+
+				if (CONTENT.page == 1) {
+					this.sectionData = data;
+				} else {
+					this.sectionData = this.sectionData.concat(data);
+				}
+
+				if (!!CONTENT.continuation) {
+					this.queryBiContinue(CONTENT.continuation, QUERY);
+				} else {
+					this.loadingDataFlag = "down"
+					this.completeDataLoad(QUERY);
+				}
+			}
+
+		},
+
+		processLoadedApi(CONTENT) {
+
 			console.log(CONTENT)
 		},
+
+		processLoadedFile(CONTENT) {
+
+			console.log(CONTENT)
+		},
+
+		completeDataLoad(QUERY) {
+			//Apply pre-filters
+			if (this.sectionData != null && !!this.sectionConfig["pre filters"]) {
+				let filters = this.sectionConfig["pre filters"];
+				let filterValues = {}
+
+				filters.map(filter => {
+					filterValues[filter.parameter] = this.utils.keyParams[filter.parameter]
+				})
+
+				this.sectionData = this.utils.filterUtils.applyFilters(filters, this.sectionData, filterValues);
+			}
+
+			if (this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
+				let sortBy = this.sectionConfig["table format"]["initial sort by"]
+				let isNumeric = this.checkIfNumeric(this.sectionData, sortBy.field);
+				/* implement sort direction */
+				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, isNumeric, true);
+			}
+
+			if (this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["group by"]) {
+				let groups = (!!this.groups) ? [...new Set(this.groups.map(g => g.label))] : [];
+				let groupKeys = this.sectionConfig["table format"]["group by"];
+				this.sectionData.map(row => {
+					let group = "";
+					let keyIndex = 1;
+					groupKeys.map(key => {
+						group += row[key];
+						group += (keyIndex < groupKeys.length) ? ", " : "";
+						keyIndex++;
+					})
+
+					if (!groups.includes(group)) {
+						groups.push(group);
+						this.groups = (!!this.groups) ? this.groups : [];
+						this.groups.push({ "label": group, "params": QUERY });
+					}
+				})
+			}
+			this.originalData = this.sectionData;
+		}
 
 	},
 });
