@@ -565,6 +565,8 @@ export default Vue.component("research-section", {
 			let queryParamsSet = true; // if search requirements don't meet set it null
 
 			/// check if all required search parameters are there. If not set queryParamsSet null.
+			//1. collect all parameters and put them in queryParams
+
 			if (!!dataPoint.parameters) {
 				dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
@@ -575,25 +577,41 @@ export default Vue.component("research-section", {
 				})
 			}
 
+			/// check if one of the pre filters require a value from search parameters. If no value, set queryParamsSet null.
+			if (!!this.sectionConfig["pre filters"]) {
+				this.sectionConfig["pre filters"].map(f => {
+					if (f.value == "search parameter" && !this.utils.keyParams[f.parameter]) {
+						queryParamsSet = null;
+					}
+				})
+			}
+
+			//2. build parameters sets from queryParams and put them in queryParamsString
+
 			if(!!queryParamsSet) {
 				let paramsLength = queryParams[dataPoint.parameters[0]].length;
 
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
 					dataPoint.parameters.map(p => {
-						pramsString += queryParams[p][i] + ","
+						pramsString += queryParams[p][i] + ",";
+						console.log("pramsString", pramsString);
 					})
 					queryParamsString.push(pramsString.slice(0, -1));
 				}
 			}
 
-			//1. collect all parameters and put them in queryParams
-
-			//2. build parameters sets from queryParams and put them in queryParamsString
-
 			//3. compare strigns in queryParamsString to this.searched and leave only the ones don't overlap
 
-			//4. return the first item in the queryParamsString
+			queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
+
+			//5. Check if return the first item in the queryParamsString
+
+			if(queryParamsString.length > 0) {
+				return queryParamsString[0];
+			} else {
+				return "invalid";
+			}
 
 		},
 		getData() {
@@ -603,28 +621,45 @@ export default Vue.component("research-section", {
 		
 		queryData() {
 			let queryType = this.sectionConfig["data point"]["type"];
+			let paramsType = this.sectionConfig["data point"]["parameters type"]
+			let params = this.sectionConfig["data point"]["parameters"]
 
 			let paramsString = this.getParamString();
 
 			if (paramsString != "invalid") {
 				switch (queryType) {
 					case "bioindex":
+						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
 						this.queryBioindex(paramsString);
 						break;
 					case "api":
-						this.queryApi(paramsString);
+						this.queryApi(paramsString, paramsType, params);
 						break;
-					case "bioindex":
-						this.queryFile(paramsString);
+					case "file":
+						this.queryFile(paramsString, paramsType, params);
 						break;
 				}
 			}
 			
 		},
 
-		async queryBioindex(PARAM) {
+		async queryBioindex(QUERY) {
+			
 			let dataPoint = this.sectionConfig["data point"];
-			let dataUrl = dataPoint.url + "query/" + dataPoint.index + "?q="+PARAM;
+			let dataUrl = dataPoint.url + "query/" + dataPoint.index + "?q="+QUERY;
+
+			
+
+			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+			
+
+			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
+				this.processLoadedBI(contentJson);
+			} else {
+				// fetch failed
+				this.sectionData = null;
+			}
 		},
 
 		async queryBiContinue(TOKEN) {
@@ -632,14 +667,19 @@ export default Vue.component("research-section", {
 			let dataUrl = dataPoint.url + "cont?token=" + TOKEN;
 		},
 
-		async queryApi(PARAM) {
+		async queryApi(QUERY, TYPE, PARAMS) {
 			let dataPoint = this.sectionConfig["data point"];
 			let dataUrl = dataPoint.url;
 		},
 
-		async queryFile(FILE) {
+		async queryFile(FILE, TYPE, PARAMS) {
 			let dataPoint = this.sectionConfig["data point"];
 			let dataUrl = "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + FILE;
+		},
+
+		processLoadedBI(CONTENT) {
+			
+			console.log(CONTENT)
 		},
 
 	},
