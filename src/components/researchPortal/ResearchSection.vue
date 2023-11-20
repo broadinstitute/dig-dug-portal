@@ -346,11 +346,6 @@ export default Vue.component("research-section", {
 			this.sectionData= null,
 			this.mergedData= null,
 			this.originalData= null,
-			//this.tableFormat= null,
-			//this.remoteTableFormat= null,
-			//this.remoteFilters= null,
-			//this.remoteVisualizer= null,
-			//this.remoteSectionDecription= null,
 			this.interSectionsFilters= [],
 			this.groups= null,
 			this.searched= [],
@@ -561,329 +556,92 @@ export default Vue.component("research-section", {
 
 			this.$store.dispatch("capturedData", {action:'add',title: title,data:this.sectionData});
 		},
+		
+		getParamString(){
+			let dataPoint = this.sectionConfig["data point"];
 
+			let queryParams = {}; // collect search parameters
+			let queryParamsString = []; // search parameters into one string
+			let queryParamsSet = true; // if search requirements don't meet set it null
+
+			/// check if all required search parameters are there. If not set queryParamsSet null.
+			if (!!dataPoint.parameters) {
+				dataPoint.parameters.map(p => {
+					if (!!this.utils.keyParams[p]) {
+						queryParams[p] = this.utils.keyParams[p].split(",");
+					} else {
+						queryParamsSet = null;
+					}
+				})
+			}
+
+			if(!!queryParamsSet) {
+				let paramsLength = queryParams[dataPoint.parameters[0]].length;
+
+				for (let i = 0; i < paramsLength; i++) {
+					let pramsString = ""
+					dataPoint.parameters.map(p => {
+						pramsString += queryParams[p][i] + ","
+					})
+					queryParamsString.push(pramsString.slice(0, -1));
+				}
+			}
+
+			//1. collect all parameters and put them in queryParams
+
+			//2. build parameters sets from queryParams and put them in queryParamsString
+
+			//3. compare strigns in queryParamsString to this.searched and leave only the ones don't overlap
+
+			//4. return the first item in the queryParamsString
+
+		},
 		getData() {
 			this.loadingDataFlag = "up";
 			this.queryData();
 		},
 		
-		async queryData(continueToken) {
+		queryData() {
+			let queryType = this.sectionConfig["data point"]["type"];
 
-			/// First set data point. In case of bioindex continue token, set url to continue api
-			let dataPoint = this.sectionConfig["data point"]
-			let dataUrl = (dataPoint.type == "bioindex")? (!!continueToken)? dataPoint.url + "cont?token="+ continueToken :
-				dataPoint.url+"query/"+ dataPoint.index +"?q=": 
-				dataPoint.type == "api"? dataPoint.url: 
-				dataPoint.type == "file" ? "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + dataPoint.file :"";
+			let paramsString = this.getParamString();
 
-			let queryParams = {}; // collect search parameters
-			let queryParamsString = ""; // search parameters into one string
-			let queryParamsSet = true; // if search requirements don't meet set it null
-
-			/// check if all required search parameters are there. If not set queryParamsSet null.
-			if(!!dataPoint.parameters) {
-				dataPoint.parameters.map(p => {
-					if (!!this.utils.keyParams[p]) {
-						queryParams[p] = this.utils.keyParams[p];
-						queryParamsString += queryParams[p];
-					} else {
-						queryParamsSet = null;
-					}
-				})
+			if (paramsString != "invalid") {
+				switch (queryType) {
+					case "bioindex":
+						this.queryBioindex(paramsString);
+						break;
+					case "api":
+						this.queryApi(paramsString);
+						break;
+					case "bioindex":
+						this.queryFile(paramsString);
+						break;
+				}
 			}
+			
+		},
 
+		async queryBioindex(PARAM) {
+			let dataPoint = this.sectionConfig["data point"];
+			let dataUrl = dataPoint.url + "query/" + dataPoint.index + "?q="+PARAM;
+		},
 
-			/// check if one of the pre filters require a value from search parameters. If no value, set queryParamsSet null.
-			if (!!this.sectionConfig["pre filters"]) {
-				this.sectionConfig["pre filters"].map(f => {
-					if (f.value=="search parameter" && !this.utils.keyParams[f.parameter]) {
-						queryParamsSet = null;
-					}
-				})
-			}
+		async queryBiContinue(TOKEN) {
+			let dataPoint = this.sectionConfig["data point"];
+			let dataUrl = dataPoint.url + "cont?token=" + TOKEN;
+		},
 
-			/// If all required search parameters are there and previously not queried, or url points to bioindex continue api
-			if((!!queryParamsSet && !this.searched.includes(queryParamsString)) || !!continueToken) {
+		async queryApi(PARAM) {
+			let dataPoint = this.sectionConfig["data point"];
+			let dataUrl = dataPoint.url;
+		},
 
-				/// add the query parameters to searched queries array as a string
-				this.searched.push(queryParamsString);
-				
-				/// Build query string (like, ?q=something) which will go after the api url. 
-				if(!!dataPoint["parameters type"]){
-					let queryString = ""
+		async queryFile(FILE) {
+			let dataPoint = this.sectionConfig["data point"];
+			let dataUrl = "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + FILE;
+		},
 
-					// if string type is ?parameter=value&&parameter=value
-					if (dataPoint["parameters type"] == "parameters") { 
-						dataPoint.parameters.map(p => {
-							queryString += p + "=" + queryParams[p] + "&&";
-						})
-
-						// if string type is ?q=parameter,parameter
-					} else if (dataPoint["parameters type"] == "array") {
-						dataPoint.parameters.map(p => {
-							queryString += queryParams[p] + ",";
-						})
-						queryString = queryString.substring(0, queryString.length - 1);
-					}
-
-					/// if url is not pointing bioindex continue api
-					if(!continueToken) {
-						if (dataPoint.type == "api") {
-							dataUrl += queryString;
-						} else if (dataPoint.type == "bioindex") {
-							dataUrl += queryString;
-						}
-					}
-				}
-
-				/// if data point is static file
-				if(dataPoint.type == "file") {
-					dataUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + dataUrl;
-				}
-
-				/// fetch data
-				let contJson = await fetch(dataUrl).then((resp) => resp.json());
-
-				let isData = true; /// set if there was error on fetch
-
-				if (contJson.error == null) {
-
-					// if data is returned but empty
-					if(!!Array.isArray(contJson) && contJson.length == 0) {
-						isData = false
-					}
-				} else {
-					// fetch failed
-					isData = false
-				}
-
-				// if data fetch returned data
-				if (!!isData) {	
-
-					// remote table format
-					if(!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"] 
-						&& this.sectionConfig["table format"]["type"] == "remote") {
-
-							// often table format config is wrapped by multiple layers of wrappers
-							let tableFormatWrapper = this.sectionConfig["table format"]["config wrapper"];
-							let tableFormats = contJson;
-
-							tableFormatWrapper.map(w => {
-								tableFormats = tableFormats[w];
-							})
-							this.remoteTableFormat = JSON.parse(tableFormats);
-							this.tableFormat = this.remoteTableFormat;
-					}
-
-					// remote filters
-					if (!!this.sectionConfig["filters"] && !!this.sectionConfig["filters"]["type"]
-						&& this.sectionConfig["filters"]["type"] == "remote") {
-
-						// often filters config is wrapped by multiple layers of wrappers
-						let filtersWrapper = this.sectionConfig["filters"]["config wrapper"];
-						let filters = contJson;
-
-						filtersWrapper.map(w => {
-							filters = filters[w];
-						})
-						this.remoteFilters = JSON.parse(filters);
-					}
-					
-					// remote visualizer
-					if (!!this.sectionConfig["visualizer"] && !!this.sectionConfig["visualizer"]["type"]
-						&& this.sectionConfig["visualizer"]["type"] == "remote") {
-
-						// often visualizer config is wrapped by multiple layers of wrappers
-						let visualizerWrapper = this.sectionConfig["visualizer"]["config wrapper"];
-						let visualizer = contJson;
-
-						visualizerWrapper.map(w => {
-							visualizer = visualizer[w];
-						})
-						this.remoteVisualizer = JSON.parse(visualizer);
-					}
-
-					// remote sectionDescription
-					if (!!this.sectionConfig["section description"] && !!this.sectionConfig["section description"]["type"]
-						&& this.sectionConfig["section description"]["type"] == "remote") {
-
-						// often section description is wrapped by multiple layers of wrappers
-						let descriptionWrapper = this.sectionConfig["section description"]["config wrapper"];
-						let description = contJson;
-
-						descriptionWrapper.map(w => {
-							description = description[w];
-						})
-						this.remoteSectionDecription = description;
-					}
-
-					let data = null;
-
-					// often data is wrapped by multiple layers of wrappers
-					let dataWrapper = dataPoint["data wrapper"];
-					
-					// process data by data type
-					switch (dataPoint["data type"]) {
-						case "bioindex":
-							data = contJson.data;
-
-							break;
-
-						case "json":
-							if(!!dataWrapper) {
-								let dataEntity = contJson;
-
-								dataWrapper.map(w => {
-									dataEntity = dataEntity[w];
-								})
-
-								data = dataEntity;
-
-							} else {
-								data = contJson
-							}
-
-							break;
-
-						case "csv":
-							
-							if (!!dataWrapper) {
-								let dataEntity = contJson;
-
-								dataWrapper.map(w=>{
-									dataEntity = dataEntity[w];
-								})
-
-								data = this.utils.dataConvert.csv2Json(dataEntity); // conver csv data to json format
-
-							} else {
-								data = this.utils.dataConvert.csv2Json(contJson); // conver csv data to json format
-							}
-
-							break;
-					}
-
-					// if loaded data is processed
-					if(data.length > 0){
-
-						let tableFormat = (!!this.remoteTableFormat)? this.remoteTableFormat : this.sectionConfig["table format"];
-
-						if (!!tableFormat && !!tableFormat["data convert"]) {
-							let convertConfig = tableFormat["data convert"];
-							data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
-						}
-
-						let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true")? true : null;
-
-						let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0))?
-							true : null;
-
-						if (!!cumulateData) {
-							
-							if (dataPoint.type == "bioindex") {
-
-								if (contJson.page == 1) {
-									this.sectionData = !!isOriginalDataEmpty? data: this.sectionData.concat(data);
-								} else {
-									this.sectionData = this.sectionData.concat(data);
-								}
-
-								if (!!contJson.continuation) {
-									this.queryData(contJson.continuation);
-								} else {
-									this.loadingDataFlag = "down"
-								}
-							} else {
-								this.sectionData = !!isOriginalDataEmpty ? data : this.sectionData.concat(data);
-								this.loadingDataFlag = "down"
-							}
-						} else {
-							if (dataPoint.type == "bioindex") {
-
-								if (contJson.page == 1) {
-									this.sectionData = data;
-								} else {
-									this.sectionData = this.sectionData.concat(data);
-								}
-
-								if (!!contJson.continuation) {
-									this.queryData(contJson.continuation);
-								} else {
-									this.loadingDataFlag = "down"
-								}
-							} else {
-								this.sectionData = data;
-								this.loadingDataFlag = "down"
-							}
-						}
-						
-					} else {
-						this.sectionData = null;
-					}
-
-				} else {
-					this.sectionData = null;
-				}
-
-				/// Here the data is fully loaded
-
-				if (this.sectionData != null && !!this.sectionConfig["pre filters"]) {
-					let filters = this.sectionConfig["pre filters"];
-					let filterValues = {}
-
-					filters.map(filter => {
-						filterValues[filter.parameter] = this.utils.keyParams[filter.parameter]
-					})
-
-					this.sectionData = this.utils.filterUtils.applyFilters(filters, this.sectionData, filterValues);
-				}
-
-				if(this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
-					let sortBy = this.sectionConfig["table format"]["initial sort by"]
-					let isNumeric = this.checkIfNumeric(this.sectionData, sortBy.field);
-					/* implement sort direction */
-					this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, isNumeric, true);
-				} 
-
-				if(this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["group by"]) {
-					let groups = (!!this.groups)?[...new Set(this.groups.map(g=>g.label))]:[];
-					let groupKeys = this.sectionConfig["table format"]["group by"];
-					this.sectionData.map(row => {
-						let group = "";
-						let keyIndex = 1;
-						groupKeys.map(key => {
-							group += row[key];
-							group += (keyIndex < groupKeys.length) ? ", " : "";
-							keyIndex++;
-						})
-
-						if (!groups.includes(group)) {
-							groups.push(group);
-							this.groups = (!!this.groups) ? this.groups : [];
-							this.groups.push({"label":group,"params": queryParamsString });
-						}
-					})
-
-				}
-
-				this.originalData = this.sectionData;
-			} else {
-
-				this.loadingDataFlag = "down"
-				
-			}
-
-			if(!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) {
-				
-				this.utils.alertUtils.popSectionAlert(
-					"No data is returned for " + this.sectionConfig.header + ".",
-					this.sectionID
-				);
-
-				this.loadingDataFlag = "down"
-
-			}
-		},		
 	},
 });
 

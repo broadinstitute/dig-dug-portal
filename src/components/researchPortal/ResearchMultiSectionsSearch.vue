@@ -239,7 +239,6 @@ export default Vue.component("research-multi-sections-search", {
 					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 				})
 				this.utils.keyParams.set(paramsObj);
-				//location.reload();
 				this.sections.map(s => {
 					this.$root.$refs[s['section id']].getData();
 				})
@@ -254,7 +253,6 @@ export default Vue.component("research-multi-sections-search", {
 				this.utils.keyParams.set(paramsObj);
 
 				if(!!TARGET_SECTIONS) {
-					console.log("TARGET_SECTIONS",TARGET_SECTIONS)
 					TARGET_SECTIONS.map(s=>{
 						this.$root.$refs[s].getData();
 					})
@@ -270,8 +268,13 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		resetSearch() {
 			let paramsObj = {}
+			this.paramSearch = {
+				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
+				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
+			};
 			this.searchParameters.map(s => {
 				paramsObj[s.parameter] = "";
+				document.getElementById("search_param_" + s.parameter).value = "";
 			})
 			this.utils.keyParams.set(paramsObj);
 
