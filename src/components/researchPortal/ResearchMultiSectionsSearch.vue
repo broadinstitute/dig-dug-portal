@@ -236,9 +236,10 @@ export default Vue.component("research-multi-sections-search", {
 			let paramsObj = {}
 			this.searchParameters.map(s => {
 				let paramValue = document.getElementById("search_param_" + s.parameter).value;
-				console.log("this.utils.keyParams[s.parameter", this.utils.keyParams[s.parameter]);
-
-				paramValue = this.utils.keyParams[s.parameter]+"," + paramValue;
+				
+				if(!!this.utils.keyParams[s.parameter]) {
+					paramValue = (!this.utils.keyParams[s.parameter].includes(paramValue)) ? this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];
+				}
 				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 			})
 			this.utils.keyParams.set(paramsObj);

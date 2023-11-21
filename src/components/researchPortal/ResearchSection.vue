@@ -552,6 +552,8 @@ export default Vue.component("research-section", {
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
 					dataPoint.parameters.map(p => {
+						if(!queryParams[p][i]) { queryParams[p][i]  = queryParams[p][i-1] }
+						
 						pramsString += queryParams[p][i] + ",";
 					})
 					queryParamsString.push(pramsString.slice(0, -1));
@@ -682,7 +684,7 @@ export default Vue.component("research-section", {
 						this.completeDataLoad(QUERY);
 					} else {
 						this.originalData = this.sectionData;
-						this.queryBioindex(paramsString,)
+						this.queryBioindex(paramsString)
 					}
 				}
 			} else {
