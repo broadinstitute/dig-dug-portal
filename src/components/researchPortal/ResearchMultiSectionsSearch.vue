@@ -181,18 +181,18 @@ export default Vue.component("research-multi-sections-search", {
 
 			let options = [];
 			if (event.target.value.length >= 2) {
-				let optionChrLength = 0;
+				//let optionChrLength = 0;
 				PARAM.values.map(option => {
 					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
 						options.push(option);
 
-						optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
+						//optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
 				})
 
-				if (options.length > 1) {
-					document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
-				}
+				//if (options.length > 1) {
+					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
+				//}
 				this.listOptions[PARAM.parameter] = options;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
@@ -232,25 +232,22 @@ export default Vue.component("research-multi-sections-search", {
 			}
 		},
 		updateSearch(KEY,TARGET_SECTIONS) {
+
+			let paramsObj = {}
+			this.searchParameters.map(s => {
+				let paramValue = document.getElementById("search_param_" + s.parameter).value;
+				console.log("this.utils.keyParams[s.parameter", this.utils.keyParams[s.parameter]);
+
+				paramValue = this.utils.keyParams[s.parameter]+"," + paramValue;
+				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+			})
+			this.utils.keyParams.set(paramsObj);
+
 			if (!KEY) {
-				let paramsObj = {}
-				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("search_param_" + s.parameter).value;
-					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-				})
-				this.utils.keyParams.set(paramsObj);
 				this.sections.map(s => {
 					this.$root.$refs[s['section id']].getData();
 				})
 			} else if (!!KEY) {
-
-				let paramsObj = {}
-				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("search_param_" + s.parameter).value;
-					//console.log(s.parameter, paramValue);
-					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-				})
-				this.utils.keyParams.set(paramsObj);
 
 				if(!!TARGET_SECTIONS) {
 					TARGET_SECTIONS.map(s=>{
@@ -264,7 +261,6 @@ export default Vue.component("research-multi-sections-search", {
 					})
 				}
 			}
-
 		},
 		resetSearch() {
 			let paramsObj = {}
@@ -425,6 +421,7 @@ div.custom-select-search {
 	font-size: 14px;
 	color: #666666 !important;
 	background-color: #ffffff;
+	white-space: nowrap;
 }
 
 .custom-select-a-option:hover {

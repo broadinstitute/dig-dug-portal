@@ -251,7 +251,6 @@ export default Vue.component("research-section", {
 			}
 		},
 		originalData(DATA) {
-			//console.log(this.sectionID, this.loadingDataFlag,"original data updated")
 			if (this.loadingDataFlag == "down") {
 				/// filter data by interSectionsFilters
 				if (this.sectionData != null && this.interSectionsFilters.length > 0) {
@@ -285,7 +284,6 @@ export default Vue.component("research-section", {
 			}
 		},
 		interSectionsFilters(FILTERS) {
-			//console.log("filters changed");
 			if (this.loadingDataFlag == "down") {
 				if (this.originalData != null && this.interSectionsFilters.length > 0) {
 					this.interSectionsFilters.map(filter => {
@@ -339,8 +337,6 @@ export default Vue.component("research-section", {
 			}
 
 			this.interSectionsFilters = interSectionsFilters;
-
-			//console.log(this.interSectionsFilters);
 		},
 		filterSectionData(GROUP) {
 			let groupValues = GROUP.split(", ");
@@ -459,6 +455,8 @@ export default Vue.component("research-section", {
 			return ifNumber;
 		},
 		removeData(KEY) {
+
+			console.log(KEY);
 			let groupKeys = this.sectionConfig["table format"]["group by"];
 
 			let newSectionData = [];
@@ -555,7 +553,6 @@ export default Vue.component("research-section", {
 					let pramsString = ""
 					dataPoint.parameters.map(p => {
 						pramsString += queryParams[p][i] + ",";
-						console.log("pramsString", pramsString);
 					})
 					queryParamsString.push(pramsString.slice(0, -1));
 				}
@@ -604,7 +601,8 @@ export default Vue.component("research-section", {
 		},
 
 		async queryBioindex(QUERY) {
-
+			console.log("QUERY", QUERY)
+			this.searched.push(QUERY);
 			let dataPoint = this.sectionConfig["data point"];
 			let dataUrl = dataPoint.url + "query/" + dataPoint.index + "?q=" + QUERY;
 
@@ -650,7 +648,6 @@ export default Vue.component("research-section", {
 			let dataPoint = this.sectionConfig["data point"];
 
 			// if loaded data is processed
-
 			let tableFormat = this.sectionConfig["table format"];
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
@@ -663,6 +660,8 @@ export default Vue.component("research-section", {
 			let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
 				true : null;
 
+				console.log("isOriginalDataEmpty", isOriginalDataEmpty);
+
 			if (!!cumulateData) {
 
 				if (CONTENT.page == 1) {
@@ -674,13 +673,19 @@ export default Vue.component("research-section", {
 				if (!!CONTENT.continuation) {
 					this.queryBiContinue(CONTENT.continuation, QUERY);
 				} else {
+					let paramsString = this.getParamString();
 
-					this.loadingDataFlag = "down"
-					this.completeDataLoad(QUERY);
+					console.log("paramsString 2", paramsString);
+
+					if (paramsString == "invalid") {
+						this.loadingDataFlag = "down"
+						this.completeDataLoad(QUERY);
+					} else {
+						this.originalData = this.sectionData;
+						this.queryBioindex(paramsString,)
+					}
 				}
-
 			} else {
-
 				if (CONTENT.page == 1) {
 					this.sectionData = data;
 				} else {
@@ -694,7 +699,6 @@ export default Vue.component("research-section", {
 					this.completeDataLoad(QUERY);
 				}
 			}
-
 		},
 
 		processLoadedApi(CONTENT) {

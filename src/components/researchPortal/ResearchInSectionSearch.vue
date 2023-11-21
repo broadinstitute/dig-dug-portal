@@ -1,5 +1,5 @@
 <template>
-	<div class="multi-page-search-wrapper">
+	<div class="multi-page-search-wrapper in-section-ui">
 		<div
 			class="filtering-ui-wrapper search-criteria multi-page-search"
 			id="searchCriteria"
@@ -215,18 +215,18 @@ export default Vue.component("research-in-section-search", {
 
 			let options = [];
 			if (event.target.value.length >= 2) {
-				let optionChrLength = 0;
+				//let optionChrLength = 0;
 				PARAM.values.map(option => {
 					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
 						options.push(option);
 
-						optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
+						//optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
 				})
 
-				if (options.length > 1) {
-					document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
-				}
+				//if (options.length > 1) {
+					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
+				//}
 				this.listOptions[PARAM.parameter] = options;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
@@ -266,38 +266,25 @@ export default Vue.component("research-in-section-search", {
 			}
 		},
 		updateSearch(KEY) {
-			if(!KEY){
-				let paramsObj = {}
-				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("section_search_param" + s.parameter).value;
-					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-				})
-				this.utils.keyParams.set(paramsObj);
-				//location.reload();
-				//this.sections.map(s => {
-					let s = this.section;
-					this.$root.$refs[s['section id']].getData();
-				//})
-			} else if(!!KEY) {
-				//console.log("point 1",KEY);
+			let paramsObj = {}
+			this.searchParameters.map(s => {
+				let paramValue = document.getElementById("search_param_" + s.parameter).value;
+				console.log("this.utils.keyParams[s.parameter", this.utils.keyParams[s.parameter]);
 
-				let paramsObj = {}
-				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("section_search_param" + s.parameter).value;
-					//console.log(s.parameter, paramValue);
-					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-				})
-				this.utils.keyParams.set(paramsObj);
-				
-				//this.sections.map(s => {
-					let s = this.section;
-					if(!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
-						//console.log(s['section id']);
-						this.$root.$refs[s['section id']].getData();
-					}
-				//})
+				paramValue = this.utils.keyParams[s.parameter] + "," + paramValue;
+				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+			})
+			this.utils.keyParams.set(paramsObj);
+
+			let s = this.section;
+
+			if(!KEY){
+				this.$root.$refs[s['section id']].getData();
+			} else if(!!KEY) {
+				if(!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
+					this.$root.$refs[s['section id']].getData();
+				}
 			}
-			
 		},
 		resetSearch() {
 			let paramsObj = {}
