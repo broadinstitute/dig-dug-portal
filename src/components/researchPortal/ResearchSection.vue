@@ -546,32 +546,35 @@ export default Vue.component("research-section", {
 
 			//2. build parameters sets from queryParams and put them in queryParamsString
 
-			if (!!queryParamsSet) {
+			if (!!queryParamsSet && !!dataPoint.parameters) {
 				let paramsLength = queryParams[dataPoint.parameters[0]].length;
 
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
 					dataPoint.parameters.map(p => {
 						if(!queryParams[p][i]) { queryParams[p][i]  = queryParams[p][i-1] }
-						
+
 						pramsString += queryParams[p][i] + ",";
 					})
 					queryParamsString.push(pramsString.slice(0, -1));
 				}
+
+				//3. compare strigns in queryParamsString to this.searched and leave only the ones don't overlap
+
+				queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
 			}
-
-			//3. compare strigns in queryParamsString to this.searched and leave only the ones don't overlap
-
-			queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
 
 			//5. Check if return the first item in the queryParamsString
 
 			if (queryParamsString.length > 0) {
 				return queryParamsString[0];
 			} else {
-				return "invalid";
+				if(!!dataPoint.parameters) {
+					return "invalid";
+				} else {
+					return "";
+				}
 			}
-
 		},
 		getData() {
 			this.loadingDataFlag = "up";
@@ -603,7 +606,7 @@ export default Vue.component("research-section", {
 		},
 
 		async queryBioindex(QUERY) {
-			console.log("QUERY", QUERY)
+
 			this.searched.push(QUERY);
 			let dataPoint = this.sectionConfig["data point"];
 			let dataUrl = dataPoint.url + "query/" + dataPoint.index + "?q=" + QUERY;
@@ -635,8 +638,37 @@ export default Vue.component("research-section", {
 		},
 
 		async queryApi(QUERY, TYPE, PARAMS) {
+
+			console.log(QUERY, TYPE, PARAMS);
+
+			if(QUERY != "") {
+				this.searched.push(QUERY);
+			}
+
 			let dataPoint = this.sectionConfig["data point"];
 			let dataUrl = dataPoint.url;
+			
+			if(!!PARAMS && TYPE == "parameters") {
+				let paramsArr = QUERY.split(",");
+
+				let i = 0;
+				PARAMS.map(p => {
+					dataUrl += p + "=" + paramsArr[i] + "&&";
+					i++;
+				})
+
+			} else if(!!PARAMS && TYPE == "array") {
+				dataUrl += QUERY;
+			}
+			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+			if (contentJson.error == null) {
+				this.processLoadedApi(contentJson);
+			} else {
+				// fetch failed
+				this.sectionData = null;
+				this.loadingDataFlag = "down"
+			}
 		},
 
 		async queryFile(FILE, TYPE, PARAMS) {
@@ -661,8 +693,6 @@ export default Vue.component("research-section", {
 
 			let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
 				true : null;
-
-				console.log("isOriginalDataEmpty", isOriginalDataEmpty);
 
 			if (!!cumulateData) {
 
@@ -753,6 +783,17 @@ export default Vue.component("research-section", {
 				})
 			}
 			this.originalData = this.sectionData;
+
+			if (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) {
+
+				this.utils.alertUtils.popSectionAlert(
+					"No data is returned for " + this.sectionConfig.header + ".",
+					this.sectionID
+				);
+
+				this.loadingDataFlag = "down"
+
+			}
 		}
 
 	},
