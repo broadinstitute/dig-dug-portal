@@ -1,9 +1,9 @@
 <template>
-	<div class="multi-section" :class="'wrapper-' + sectionIndex"
-		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">
+	<!--<div class="multi-section" :class="'wrapper-' + sectionIndex"
+		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
 
-		<!--<div class="multi-section" :class="'wrapper-' + sectionIndex" >-->
+		<div class="multi-section" :class="'wrapper-' + sectionIndex" >
 		<div class="row">
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
@@ -339,8 +339,9 @@ export default Vue.component("research-section", {
 			this.interSectionsFilters = interSectionsFilters;
 		},
 		filterSectionData(GROUP) {
+			let dataPoint = this.sectionConfig["data point"];
 			let groupValues = GROUP.split(", ");
-			let groupKeys = this.sectionConfig["table format"]["group by"];
+			let groupKeys = (!!dataPoint["cumulate data"] && this.sectionConfig["table format"]["group by"])? this.sectionConfig["table format"]["group by"];
 
 			let filteredData = [];
 
@@ -602,7 +603,6 @@ export default Vue.component("research-section", {
 						break;
 				}
 			}
-
 		},
 
 		async queryBioindex(QUERY) {
@@ -663,7 +663,7 @@ export default Vue.component("research-section", {
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
 			if (contentJson.error == null) {
-				this.processLoadedApi(contentJson);
+				this.processLoadedApi(contentJson,QUERY, TYPE, PARAMS);
 			} else {
 				// fetch failed
 				this.sectionData = null;
@@ -687,6 +687,9 @@ export default Vue.component("research-section", {
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
 				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				data.map(d=>{
+					d["queryKey"] = QUERY;
+				});
 			}
 
 			let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true") ? true : null;
@@ -706,8 +709,6 @@ export default Vue.component("research-section", {
 					this.queryBiContinue(CONTENT.continuation, QUERY);
 				} else {
 					let paramsString = this.getParamString();
-
-					console.log("paramsString 2", paramsString);
 
 					if (paramsString == "invalid") {
 						this.loadingDataFlag = "down"
@@ -733,17 +734,166 @@ export default Vue.component("research-section", {
 			}
 		},
 
-		processLoadedApi(CONTENT) {
+		processLoadedApi(CONTENT, QUERY, TYPE, PARAMS) {
 
-			console.log(CONTENT)
+			// remote table format
+			if (!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"]
+				&& this.sectionConfig["table format"]["type"] == "remote") {
+
+				// often table format config is wrapped by multiple layers of wrappers
+				let tableFormatWrapper = this.sectionConfig["table format"]["config wrapper"];
+				let tableFormats = CONTENT;
+
+				tableFormatWrapper.map(w => {
+					tableFormats = tableFormats[w];
+				})
+				this.remoteTableFormat = JSON.parse(tableFormats);
+				this.tableFormat = this.remoteTableFormat;
+			}
+
+			// remote filters
+			if (!!this.sectionConfig["filters"] && !!this.sectionConfig["filters"]["type"]
+				&& this.sectionConfig["filters"]["type"] == "remote") {
+
+				// often filters config is wrapped by multiple layers of wrappers
+				let filtersWrapper = this.sectionConfig["filters"]["config wrapper"];
+				let filters = CONTENT;
+
+				filtersWrapper.map(w => {
+					filters = filters[w];
+				})
+				this.remoteFilters = JSON.parse(filters);
+			}
+
+			// remote visualizer
+			if (!!this.sectionConfig["visualizer"] && !!this.sectionConfig["visualizer"]["type"]
+				&& this.sectionConfig["visualizer"]["type"] == "remote") {
+
+				// often visualizer config is wrapped by multiple layers of wrappers
+				let visualizerWrapper = this.sectionConfig["visualizer"]["config wrapper"];
+				let visualizer = CONTENT;
+
+				visualizerWrapper.map(w => {
+					visualizer = visualizer[w];
+				})
+				this.remoteVisualizer = JSON.parse(visualizer);
+			}
+
+			// remote sectionDescription
+			if (!!this.sectionConfig["section description"] && !!this.sectionConfig["section description"]["type"]
+				&& this.sectionConfig["section description"]["type"] == "remote") {
+
+				// often section description is wrapped by multiple layers of wrappers
+				let descriptionWrapper = this.sectionConfig["section description"]["config wrapper"];
+				let description = CONTENT;
+
+				descriptionWrapper.map(w => {
+					description = description[w];
+				})
+				this.remoteSectionDecription = description;
+			}
+
+			let dataPoint = this.sectionConfig["data point"];
+			let data = null;
+
+			// often data is wrapped by multiple layers of wrappers
+			let dataWrapper = dataPoint["data wrapper"];
+
+			// process data by data type
+			switch (dataPoint["data type"]) {
+				case "bioindex":
+					data = CONTENT.data;
+
+					break;
+
+				case "json":
+					if (!!dataWrapper) {
+						let dataEntity = CONTENT;
+
+						dataWrapper.map(w => {
+							dataEntity = dataEntity[w];
+						})
+
+						data = dataEntity;
+
+					} else {
+						data = CONTENT
+					}
+
+					break;
+
+				case "csv":
+
+					if (!!dataWrapper) {
+						let dataEntity = CONTENT;
+
+						dataWrapper.map(w => {
+							dataEntity = dataEntity[w];
+						})
+
+						data = this.utils.dataConvert.csv2Json(dataEntity); // conver csv data to json format
+
+					} else {
+						data = this.utils.dataConvert.csv2Json(CONTENT); // conver csv data to json format
+					}
+
+					break;
+			}
+
+			// if loaded data is processed
+			if (data.length > 0) {
+
+				let tableFormat = (!!this.remoteTableFormat) ? this.remoteTableFormat : this.sectionConfig["table format"];
+
+				if (!!tableFormat && !!tableFormat["data convert"]) {
+					let convertConfig = tableFormat["data convert"];
+					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				}
+
+				data.map(d => {
+					d["queryKey"] = QUERY;
+				});
+
+				let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true") ? true : null;
+
+				let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
+					true : null;
+
+				if (!!cumulateData) {
+					let paramsString = this.getParamString();
+
+					if (paramsString == "invalid") {
+
+						this.sectionData = !!isOriginalDataEmpty ? data : this.sectionData.concat(data);
+						this.loadingDataFlag = "down";
+						this.completeDataLoad(QUERY);
+
+					} else {
+						this.sectionData = (!this.sectionData)? data: this.sectionData.concat(data);
+						this.originalData = this.sectionData;
+						this.queryApi(paramsString, TYPE, PARAMS)
+					}
+				} else {
+					this.sectionData = data;
+					this.loadingDataFlag = "down";
+					this.completeDataLoad(QUERY);
+				}
+
+			} else {
+				this.sectionData = null;
+			}
+
 		},
 
 		processLoadedFile(CONTENT) {
 
 			console.log(CONTENT)
+
+			
 		},
 
 		completeDataLoad(QUERY) {
+
 			//Apply pre-filters
 			if (this.sectionData != null && !!this.sectionConfig["pre filters"]) {
 				let filters = this.sectionConfig["pre filters"];
@@ -782,9 +932,12 @@ export default Vue.component("research-section", {
 					}
 				})
 			}
+
+			console.log("this.sectionData ", this.sectionData);
+
 			this.originalData = this.sectionData;
 
-			if (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) {
+			if (!this.originalData || (!!this.originalData && this.originalData.length == 0)) {
 
 				this.utils.alertUtils.popSectionAlert(
 					"No data is returned for " + this.sectionConfig.header + ".",

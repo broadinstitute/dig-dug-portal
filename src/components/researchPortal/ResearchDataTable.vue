@@ -205,14 +205,12 @@
 								"
 								:key="sKey"
 							>
-								<!--<button v-if="!!ifSetParameterColumn(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-									v-html="sValue" @click="setParameter(sValue, tdKey)" ></button>-->
 
 								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> {{ sValue }}
 									<span class="btns-wrapper">
-									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-										v-html="section.label" @click="setParameter(sValue, tdKey, section.section)" ></button>
-										</span>
+										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
+											v-html="section.label" @click="setParameter(sValue, tdKey, section.section)" ></button>
+									</span>
 								</span>
 								<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
 						</td>

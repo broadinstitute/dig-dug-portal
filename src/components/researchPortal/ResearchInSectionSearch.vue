@@ -21,7 +21,7 @@
 						v-if="parameter.type == 'list' &&
 							parameter.values.length <= 10
 							"
-						:id="'section_search_param' + parameter.parameter"
+						:id="'section_search_param_' + parameter.parameter"
 						class="custom-select custom-select-search"
 						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)"
 					>
@@ -34,7 +34,7 @@
 					</select>
 					<template v-if="parameter.type == 'list' && parameter.values.length > 10">
 						<input v-model="paramSearch[paramIndex]" class="form-control"
-							@keyup="getListOptions($event, parameter)" :id="'section_search_param' + parameter.parameter" />
+							@keyup="getListOptions($event, parameter)" :id="'section_search_param_' + parameter.parameter" />
 
 						<div :id="'listOptions' + parameter.parameter" class="custom-select custom-select-search long-list"
 							:size="!!listOptions[parameter.parameter] && listOptions[parameter.parameter].length >= 5 ? 5 : 'auto'"
@@ -64,7 +64,7 @@
 								v-model="paramSearch[paramIndex]"
 								class="form-control"
 								@keyup="getGenes($event)"
-								:id="'section_search_param' + parameter.parameter"
+								:id="'section_search_param_' + parameter.parameter"
 							/>
 
 							<div
@@ -126,7 +126,7 @@
 							"
 						type="text"
 						class="form-control"
-						:id="'section_search_param' + parameter.parameter"
+						:id="'section_search_param_' + parameter.parameter"
 					/>
 				</div>
 				<div class="col">
@@ -174,7 +174,7 @@ export default Vue.component("research-in-section-search", {
 		window.addEventListener("scroll", this.onScroll);
 		this.searchParameters.map(s => {
 			if (!!this.utils.keyParams[s.parameter]) {
-				document.getElementById("section_search_param" + s.parameter).value = this.utils.keyParams[s.parameter];
+				document.getElementById("section_search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
 		})
 	},
@@ -268,10 +268,13 @@ export default Vue.component("research-in-section-search", {
 		updateSearch(KEY) {
 			let paramsObj = {}
 			this.searchParameters.map(s => {
-				let paramValue = document.getElementById("search_param_" + s.parameter).value;
-				console.log("this.utils.keyParams[s.parameter", this.utils.keyParams[s.parameter]);
+				let paramValue = document.getElementById("section_search_param_" + s.parameter).value;
 
-				paramValue = this.utils.keyParams[s.parameter] + "," + paramValue;
+				console.log(s.parameter, paramValue)
+
+				if (!!this.utils.keyParams[s.parameter]) {
+					paramValue = (!this.utils.keyParams[s.parameter].includes(paramValue)) ? this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];
+				}
 				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 			})
 			this.utils.keyParams.set(paramsObj);
