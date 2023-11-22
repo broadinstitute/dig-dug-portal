@@ -29,12 +29,6 @@
 			<template v-if="renderData.length > 0 && !!renderConfig && !!multiList">
 				<div class="scatter-plot-groups" style="display: flex; flex-wrap: wrap;">
 					<div class="scatter-plot-group" v-for="(fieldpair, index) in multiList">
-						<div class="colors-list">
-							<div v-for="anno, annoIndex in colorsList" class="anno-bubble-wrapper">
-								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
-								<span>{{ anno }}</span>
-							</div>
-						</div>
 						<canvas
 							:key="sectionId + 'multi' + index"
 							:id="'scatterPlot' + sectionId + 'multi' + index"
@@ -50,6 +44,15 @@
 							@mousemove="checkPosition($event, 'multi'+index, 'move')"
 						>
 						</canvas>
+						<div class="color-key" v-if="fieldpair[2]">
+							<div class="anno-bubble-wrapper" 
+								v-for="anno, annoIndex in colorByList[fieldpair[2]]"
+								@click="setHighlightField($event, anno)"
+							>
+								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
+								<span>{{ anno }}</span>
+							</div>
+						</div>
 					</div>
 				</div>
 			</template>
@@ -186,7 +189,7 @@
 
 		<template v-if="renderData.length > 0 && !!renderConfig && !!groupsList">
 			<div class="colors-list">
-				<div v-for="anno, annoIndex in colorsList" class="anno-bubble-wrapper">
+				<div v-for="anno, annoIndex in colorByList[ colorByField ]" class="anno-bubble-wrapper">
 					<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
 					<span>{{ anno }}</span>
 				</div>
@@ -305,8 +308,12 @@ export default Vue.component("research-scatter-plot", {
 			let colors = [];
 			let multi = [];
 			let colorsBy = {};
-			let filterFields = [];
 
+			//
+			// pre-process renderConfig settings for rendering
+			//
+
+			//fields and labels
 			//check render type
 			if(this.renderConfig["render type"] === 'single plot'){
 
@@ -318,52 +325,23 @@ export default Vue.component("research-scatter-plot", {
 					this.renderConfig["x axis fields"] = [this.renderConfig["x axis field"]]
 					this.renderConfig["y axis fields"] = [this.renderConfig["y axis field"]]
 				}
-				
-				//save field labels
-				this.renderConfig["x axis fields"].forEach(field => {
-					filterFields.push(field)
-				});
-				//save field labels
-				this.renderConfig["y axis fields"].forEach(field => {
-					filterFields.push(field)
-				});
 
 			}else if (this.renderConfig["render type"] === 'multi plot'){
 
 				//save array of x,y field pairs for each plot
 				this.renderConfig["axis fields"].forEach(fieldpair => {
 					//TODO: should be object
-					multi.push( [ fieldpair["x axis field"], fieldpair["y axis field"], fieldpair["color by"] ] );
+					const colorby = fieldpair["color by"] ? fieldpair["color by"] : this.renderConfig["color by"] ? this.renderConfig["color by"] : undefined;
+					multi.push( [ fieldpair["x axis field"], fieldpair["y axis field"], colorby ] );
 				});
-
 			}
 
+			//color groupings
 			//check if "color by" is array, if not make it one
 			//allows users to enter a string or an array in config without having to condition check later
 			if(this.renderConfig["color by"].constructor !== Array){
 				this.renderConfig["color by"] = [this.renderConfig["color by"]];
 			}
-
-			/*
-				//save field labels
-				//TODO: cleanup
-				this.renderConfig["color by"].forEach(field => {
-					filterFields.push(field)
-				});
-			*/
-			console.log('alex filters', filterFields);
-			//use collected field names from "x axis fields", "y axis fields", "color by"
-			//filter and exclude if any of those fields has 'NA' value
-			/*
-			const filteredDATA = rawData.filter(d => {
-				for (const field of filterFields) {
-					if(d[field] === 'NA') return false;
-				}
-				return true;
-			})
-
-			console.log("alex filtered (remove rows with NA values)", rawData.length, filteredDATA.length);
-			*/
 			
 			//create an object of objects for each field requested in "color by"
 			//to be filled with arrays of all possible values for each field
@@ -374,66 +352,73 @@ export default Vue.component("research-scatter-plot", {
 			})
 			this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"][0];
 			this.renderConfig["color highlight"] = null;
+			this.renderConfig["target plot"] = null;
 
 			console.log('alex render config', this.renderConfig);
 
-			//use filtereredDATA here
+
 			//map data for rendering
 			rawData.map((r) => {
 				let tempObj = {};
 				
 				if(this.renderConfig["render type"] === 'single plot'){
-					//single plot
+					//single plots
 
 					tempObj["x"] = {};
 					this.renderConfig["x axis fields"].forEach((field) => {
 						let key = field;
-						let value = typeof(r[field]) == 'string' ? 0 : r[field]; //TODO: filter out? not here though
+						let value = typeof(r[field]) == 'string' ? 0 : r[field]; //if data point is string, set to 0
 						tempObj["x"] = { ...tempObj["x"], [key]:value }
 					})
 					
 					tempObj["y"] = {};
 					this.renderConfig["y axis fields"].forEach((field) => {
 						let key = field;
-						let value = typeof(r[field]) == 'string' ? 0 : r[field]; //TODO: filter out? not here though
+						let value = typeof(r[field]) == 'string' ? 0 : r[field]; //if data point is string, set to 0
 						tempObj["y"] = { ...tempObj["y"], [key]:value }
 					})
 
+					tempObj["color"] = {};
+					this.renderConfig["color by"].forEach((colorBy, index) => {
+						tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ this.renderConfig["color by"][index] ] };
+
+						if( !colorsBy[colorBy].includes( r[ this.renderConfig["color by"][index] ] ) ){
+							colorsBy[colorBy].push( r[ this.renderConfig["color by"][index] ] )
+						}
+					});
+
 				}else if(this.renderConfig["render type"] === 'multi plot'){
-					//multi plot
+					//multi plots
 
 					tempObj["x"] = {};
 					tempObj["y"] = {};
 					tempObj["color"] = {};
+
 					//loop through each axis fields pair
 					this.renderConfig["axis fields"].forEach(fieldpair => {
 						//get x,y values for each pair
-						let xvalue = typeof(r[fieldpair["x axis field"]]) == 'string' ? 0 : r[fieldpair["x axis field"]]; //TODO: filter out? not here though
-						let yvalue = typeof(r[fieldpair["y axis field"]]) == 'string' ? 0 : r[fieldpair["y axis field"]]; //TODO: filter out? not here though
+						let xvalue = typeof(r[fieldpair["x axis field"]]) == 'string' ? 0 : r[fieldpair["x axis field"]]; //if data point is string, set to 0
+						let yvalue = typeof(r[fieldpair["y axis field"]]) == 'string' ? 0 : r[fieldpair["y axis field"]]; //if data point is string, set to 0
 						tempObj["x"] = { ...tempObj["x"], [fieldpair["x axis field"]]:xvalue };
 						tempObj["y"] = { ...tempObj["y"], [fieldpair["y axis field"]]:yvalue };
 
-						//optional 'color by' param available for each color fields pair
-						//if there is one, add it to the color by options
-						//this will override the global 'color by' param if there is one
-						if( fieldpair["color by"] ){
-							const key = fieldpair["color by"];
-							const value = r[ key ];
-							tempObj["color"] = {...tempObj["color"], [key]: value };
-							//console.log(tempObj["color"])
-							if(!colorsBy[key]){
-								colorsBy = { ...colorsBy, [key]:[value] };
-							}else{
-								if( !colorsBy[key].includes( value ) ){
-									colorsBy[key].push( value )
-								}
+						if(!this.renderConfig["color by"] && !fieldpair["color by"]) return;
+
+						//optional 'color by' param available for each fields pair
+						//if there is one, add it to the "color by" options
+						//otherwise use the global 'color by' param if there is one
+						const key = fieldpair["color by"] ? fieldpair["color by"] : this.renderConfig["color by"];
+						const value = r[ key ];
+						tempObj["color"] = {...tempObj["color"], [key]: value };
+						if(!colorsBy[key]){
+							colorsBy = { ...colorsBy, [key]:[value] };
+						}else{
+							if( !colorsBy[key].includes( value ) ){
+								colorsBy[key].push( value )
 							}
 						}
 					})
 				}
-				
-
-				tempObj["key"] = r[this.renderConfig["render by"]];
 
 				tempObj["hover"] = {};
 
@@ -441,32 +426,6 @@ export default Vue.component("research-scatter-plot", {
 					tempObj["group"] = r[this.renderConfig["group by"]];
 					if(!groups.includes(tempObj["group"])) {
 						groups.push(tempObj["group"]);
-					}
-				}
-
-				if (!!this.renderConfig["color by"] && !tempObj["color"]) {
-
-					tempObj["color"] = {};
-					if(this.renderConfig["color by"].length > 1){
-						//create object of objects containing the fields and their values as requested in "color by"
-						//renderConfig["color by"]: [ "Sex", "Time of Day" ]
-						//   >    tempObj["color"]: { "Sex": ["male", "female"], "Time of Day": ["night", "day", "all day"], ...}
-						
-						this.renderConfig["color by"].forEach((colorBy, index) => {
-							tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ this.renderConfig["color by"][index] ] };
-	
-							if( !colorsBy[colorBy].includes( r[ this.renderConfig["color by"][index] ] ) ){
-								colorsBy[colorBy].push( r[ this.renderConfig["color by"][index] ] )
-							}
-						});
-					}else{
-						this.renderConfig["color by"].forEach((colorBy, index) => {
-							tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ colorBy ] };
-	
-							if( !colors.includes( r[ colorBy ] ) ){
-								colors.push( r[ colorBy ] )
-							}
-						});
 					}
 				}
 
@@ -498,13 +457,13 @@ export default Vue.component("research-scatter-plot", {
 			}
 
 			this.groupsList = groups.length > 0? groups.sort(): null;
-			this.colorsList = colors.length > 0? colors.sort() : null;
+			//this.colorsList = colors.length > 0? colors.sort() : null;
 			this.multiList = multi.length > 0 ? multi : null;
 			this.colorByList = Object.keys(colorsBy).length > 0 ? colorsBy : null;
 
 			console.log('alex groups list', this.groupsList);
 			console.log('alex colorsby list', this.colorByList );
-			console.log('alex colors list', this.colorsList);
+			//console.log('alex colors list', this.colorsList);
 			console.log('alex multi', this.multiList);
 
 			console.log('\n- - - - - - - -\n\n')
@@ -592,47 +551,42 @@ export default Vue.component("research-scatter-plot", {
 				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "y", 5, yMin, yMax, [this.renderConfig["y axis field"]]);
 			}
 			
-			if(!!this.colorsList && !this.multiList) {
-				//single + group by
+			if(!!this.colorByList){
 				let cIndex = 0
-				this.colorsList.map(color =>{
-					let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] === color);
-					let dotColor = this.compareGroupColors[cIndex];
-					this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
-					//this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
-					cIndex++;
-				})
-			} else if(!!this.colorByList){
-				//TODO: combine with above, clean up
-				let cIndex = 0
-
 				if(GROUP){
-
 					if(GROUP.constructor === Array){
 						//multi
+
+						//TODO: highlight works, but end up applying to all multi plots vs just the one we want
+						//need to check plot id or something to target just one plot
 						cIndex = 0
 						let colorField = this.renderConfig["color field"];
+						//let highlight = this.renderConfig["color highlight"];
 						if(GROUP[2]) colorField = GROUP[2]; //GROUP var for 'multi plot' is multi
 						this.colorByList[ colorField ].map(color => {
 							let coloredData = DATA.filter(d => d.color[ colorField ] === color);
 							let dotColor = this.compareGroupColors[cIndex];
+							/*
+							if(highlight){
+								dotColor = dotColor.substring(0, dotColor.length - 2);
+								dotColor += highlight === color ? '90' : '05';
+							}
+							*/
 							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
 						});
 
 					}else{
+						//single + group by
 
-						
 						cIndex = 0
 						this.colorByList[ this.renderConfig["color field"] ].map(color => {
-							if(GROUP === color){
-								let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
-								let dotColor = this.compareGroupColors[cIndex];
-								this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
-								this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
-								cIndex++;
-							}
+							let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
+							let dotColor = this.compareGroupColors[cIndex];
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							cIndex++;
 						})
 
 					}
@@ -669,7 +623,6 @@ export default Vue.component("research-scatter-plot", {
 						this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 						
 					}else{
-
 						let highlight = this.renderConfig["color highlight"];
 						
 						//let arr = [...this.colorByList[ this.renderConfig["color field"] ]];
@@ -694,14 +647,8 @@ export default Vue.component("research-scatter-plot", {
 							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
 						});
-
 					}
-
-					
 				}
-
-				
-
 			} else {
 				let dotColor = this.compareGroupColors[0];
 				this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, DATA);
@@ -813,8 +760,7 @@ export default Vue.component("research-scatter-plot", {
 		setHighlightField(e, highlight){
 			e.target.closest('.color-key').childNodes.forEach(node => {
 				node.classList.remove('selected');
-			})
-			
+			});
 			if(this.renderConfig["color highlight"]){
 				if(this.renderConfig["color highlight"] === highlight){
 					this.renderConfig["color highlight"] = null;
