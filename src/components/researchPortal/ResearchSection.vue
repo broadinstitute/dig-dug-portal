@@ -339,9 +339,8 @@ export default Vue.component("research-section", {
 			this.interSectionsFilters = interSectionsFilters;
 		},
 		filterSectionData(GROUP) {
-			let dataPoint = this.sectionConfig["data point"];
 			let groupValues = GROUP.split(", ");
-			let groupKeys = (!!dataPoint["cumulate data"] && this.sectionConfig["table format"]["group by"])? this.sectionConfig["table format"]["group by"];
+			let groupKeys = this.sectionConfig["table format"]["group by"];
 
 			let filteredData = [];
 
@@ -602,6 +601,8 @@ export default Vue.component("research-section", {
 						this.queryFile(paramsString, paramsType, params);
 						break;
 				}
+			} else {
+				this.loadingDataFlag = "down";
 			}
 		},
 
@@ -687,9 +688,6 @@ export default Vue.component("research-section", {
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
 				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
-				data.map(d=>{
-					d["queryKey"] = QUERY;
-				});
 			}
 
 			let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true") ? true : null;
@@ -698,6 +696,22 @@ export default Vue.component("research-section", {
 				true : null;
 
 			if (!!cumulateData) {
+
+				let queryKeyName = (!!dataPoint["query key name"])? dataPoint["query key name"] : "queryKey";
+
+				if (!this.sectionConfig["table format"] || (!!this.sectionConfig["table format"] && !this.sectionConfig["table format"]["group by"])) {
+					this.sectionConfig["table format"]["group by"] = [queryKeyName];
+				}
+
+				if (!!dataPoint["query key name"] && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["top rows"]) {
+					if (!this.sectionConfig["table format"]["top rows"].includes(queryKeyName)) {
+						this.sectionConfig["table format"]["top rows"].push(queryKeyName);
+					}
+				}
+
+				data.map(d => {
+					d[queryKeyName] = QUERY;
+				});
 
 				if (CONTENT.page == 1) {
 					this.sectionData = !!isOriginalDataEmpty ? data : this.sectionData.concat(data);
@@ -850,16 +864,29 @@ export default Vue.component("research-section", {
 					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
 				}
 
-				data.map(d => {
-					d["queryKey"] = QUERY;
-				});
-
 				let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true") ? true : null;
 
 				let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
 					true : null;
 
 				if (!!cumulateData) {
+
+					let queryKeyName = (!!dataPoint["query key name"]) ? dataPoint["query key name"] : "queryKey";
+
+					if (!this.sectionConfig["table format"] || (!!this.sectionConfig["table format"] && !this.sectionConfig["table format"]["group by"])) {
+						this.sectionConfig["table format"]["group by"] = [queryKeyName];
+					}
+
+					if (!!dataPoint["query key name"] && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["top rows"]) {
+						if(!this.sectionConfig["table format"]["top rows"].includes(queryKeyName)) {
+							this.sectionConfig["table format"]["top rows"].push(queryKeyName);
+						}
+					}
+
+					data.map(d => {
+						d[queryKeyName] = QUERY;
+					});
+
 					let paramsString = this.getParamString();
 
 					if (paramsString == "invalid") {
