@@ -26,7 +26,6 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
                         break;
 
                     case "search lower than":
-
                         meetFilters = typeof d[filter.field] == 'number' && d[filter.field] <= filterValue ? true : false;
                         break;
 

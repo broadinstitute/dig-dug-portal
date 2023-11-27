@@ -66,7 +66,6 @@
 								@keyup="getGenes($event)"
 								:id="'section_search_param_' + parameter.parameter"
 							/>
-{{ kpGenes }}
 							<div
 								class="custom-select custom-select-search"
 								:size="kpGenes.length >= 5 ? 5 : 'auto'"

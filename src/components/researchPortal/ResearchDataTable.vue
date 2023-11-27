@@ -274,6 +274,7 @@ export default Vue.component("research-data-table", {
 		"pkgDataSelected",
 		"phenotypeMap",
 		"multiSectionPage",
+		"starItems",
 		"sectionId",
 		"utils",
 		"region",
@@ -413,9 +414,8 @@ export default Vue.component("research-data-table", {
 			}
 		},
 		rawData() {
-			//let rawData = this.dataset;
 
-			let posField = !!this.tableFormat["data zoom"].position? this.tableFormat["data zoom"].position:null;
+			let posField = !!this.tableFormat["data zoom"]? this.tableFormat["data zoom"].position:null;
 			let startPos = !!this.viewingRegion? this.viewingRegion.start:null;
 			let endPos = !!this.viewingRegion ? this.viewingRegion.end:null;
 
@@ -655,26 +655,43 @@ export default Vue.component("research-data-table", {
 		},
 		addStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
-			this.$store.dispatch("pkgDataSelected", {
-				type: this.tableFormat["star column"],
-				id: value,
-				action: "add",
-			});
+			if (!!this.multiSectionPage) {
+				
+				let stard = [...new Set(this.starItems)]
+				stard.push(value);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.tableFormat["star column"],
+					id: value,
+					action: "add",
+				});
+			}
 		},
 		removeStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
-			this.$store.dispatch("pkgDataSelected", {
-				type: this.tableFormat["star column"],
-				id: value,
-				action: "remove",
-			});
+			if (!!this.multiSectionPage) {
+				let stard = [...new Set(this.starItems)].filter(s => s != value);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.tableFormat["star column"],
+					id: value,
+					action: "remove",
+				});
+			}
 		},
 		checkStared(WHERE, ITEM) {
 			if (!!ITEM) {
-				let selectedItems = this.pkgDataSelected
+				let selectedItems;
+				if(!!this.multiSectionPage) {
+					selectedItems = this.starItems;
+				} else {
+					selectedItems = this.pkgDataSelected
 					.filter((s) => s.type == this.tableFormat["star column"])
 					.map((s) => s.id);
-
+				}
+				
 				let value = ITEM[this.tableFormat["star column"]];
 
 				if (!!selectedItems.includes(value)) {
@@ -901,19 +918,14 @@ export default Vue.component("research-data-table", {
 					)
 					.concat(filteredWNull);
 
-					//console.log("sortedValues", sortedValues)
-
 				let returnData =
 					this.dataComparisonConfig == null
 						? sortedValues
 						: this.array2Object(sortedValues, this.dataset, key);
 
-				/*if(!!this.multiSectionPage) {
-					console.log("multi1")
-					this.$emit('clicked-sort', returnData);
-				} else {*/
+				
 					this.$store.dispatch("filteredData", returnData);
-				//}
+				
 			} else if (key == this.tableFormat["locus field"]) {
 				let sortKey = this.tableFormat["locus field"];
 				let filtered = this.dataset;
@@ -955,7 +967,6 @@ export default Vue.component("research-data-table", {
 
 				
 				if(!!this.multiSectionPage) {
-					//console.log("multi2")
 					this.$emit('clicked-sort', filtered);
 				} else {
 					this.$store.dispatch("filteredData", filtered);

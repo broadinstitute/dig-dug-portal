@@ -314,10 +314,12 @@ export default Vue.component("research-multi-sections-search", {
 			if (EVENT.target.value.length > 2) {
 				let searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/match/gene?q=" + EVENT.target.value;
 
-				var geneJson = await fetch(searchPoint).then((resp) => resp.json());
+				let geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
-				if (geneJson.error == null) {
+				if (geneJson.error == null && geneJson.detail == null) {
 					this.kpGenes = geneJson.data;
+				} else {
+					this.kpGenes = [];
 				}
 			} else {
 				this.kpGenes = [];

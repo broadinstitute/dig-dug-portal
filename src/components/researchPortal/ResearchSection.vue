@@ -42,10 +42,9 @@
 				<research-section-filters v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
 					:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
 					:dataComparisonConfig="null" @on-filtering="updateData"></research-section-filters>
-
-					{{ regionZoom + ": " + regionViewArea }}
 				<div
 					class="col-md-12 zoom-ui-wrapper"
+					v-if="!!tableFormat && !!tableFormat['data zoom']"
 				>
 					<span>Zoom plots</span>
 
@@ -182,10 +181,13 @@
 					:phenotypeMap="phenotypeMap" 
 					:sectionId="sectionID"
 					:multiSectionPage="true" 
+					:starItems="starItems"
 					:utils="utils" @clicked-sort="sortData"
 					:region="utils.keyParams.region"
 					:regionZoom="regionZoom"
-					:regionViewArea="regionViewArea">
+					:regionViewArea="regionViewArea"
+					@on-star="starColumn"
+					>
 				</research-data-table>
 			</div>
 		</div>
@@ -224,6 +226,7 @@ export default Vue.component("research-section", {
 			loadingDataFlag: "down",
 			regionZoom: 0,
 			regionViewArea: 0,
+			starItems: [],
 		};
 	},
 	modules: {
@@ -440,6 +443,9 @@ export default Vue.component("research-section", {
 		}
 	},
 	methods: {
+		starColumn(ARRAY) {
+			this.starItems = ARRAY;
+		},
 		resetAll() {
 			this.sectionData = null,
 				this.mergedData = null,
@@ -1067,6 +1073,8 @@ export default Vue.component("research-section", {
 				filters.map(filter => {
 					filterValues[filter.parameter] = this.utils.keyParams[filter.parameter]
 				})
+
+				console.log("filterValues", filterValues);
 
 				this.sectionData = this.utils.filterUtils.applyFilters(filters, this.sectionData, filterValues);
 			}
