@@ -3,7 +3,9 @@
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
 
-		<div class="multi-section" :class="'wrapper-' + sectionIndex" >
+	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
+
+
 		<div class="row">
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
@@ -14,7 +16,7 @@
 				<h4>{{ sectionConfig.header }}
 
 					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
-						v-for="parameter in sectionConfig['data point']['parameters']" :key="parameter"
+						v-for="parameter in dataPoint['parameters']" :key="parameter"
 						style="font-size:0.7em"
 						v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
 					<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
@@ -41,6 +43,95 @@
 					:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
 					:dataComparisonConfig="null" @on-filtering="updateData"></research-section-filters>
 
+					{{ regionZoom + ": " + regionViewArea }}
+				<div
+					class="col-md-12 zoom-ui-wrapper"
+				>
+					<span>Zoom plots</span>
+
+					<form class="zoom-radio-wrapper">
+						<span
+							class="zoom-radio-number"
+							@click="
+								regionZoom -=
+								regionZoom != 0 ? 10 : 0
+								"
+							><b-icon icon="zoom-out"></b-icon
+						></span>
+
+						<input
+							v-for="value in [
+								0, 10, 20, 30, 40, 50, 60, 70, 80, 90,
+							]"
+							type="radio"
+							name="regionZoom"
+							:value="value"
+							@click="regionZoom = value"
+							:class="regionZoom == value
+								? 'zoom-radio checked'
+								: 'zoom-radio'
+								"
+							:key="value"
+						/>
+
+						<span
+							class="zoom-radio-number"
+							@click="
+								regionZoom +=
+								regionZoom != 90 ? 10 : 0
+								"
+							><b-icon icon="zoom-in"></b-icon
+						></span>
+					</form>
+
+					<span>Move viewing area</span>
+					<form class="zoom-radio-wrapper">
+						<span
+							class="zoom-radio-number"
+							@click="
+								regionViewArea -=
+								regionViewArea != -100 &&
+									regionZoom != 0
+									? 20
+									: 0
+								"
+							><b-icon icon="arrow-left-circle"></b-icon
+						></span>
+						<input
+							v-for="value in [
+								-100, -80, -60, -40, -20, 0, 20, 40, 60,
+								80, 100,
+							]"
+							type="radio"
+							name="regionViewArea"
+							:value="value"
+							@click="
+								regionZoom != 0
+									? (regionViewArea = value)
+									: ''
+								"
+							:class="regionViewArea == value
+								? 'zoom-radio checked'
+								: value == 0
+									? 'zoom-radio center'
+									: 'zoom-radio'
+								"
+							:key="value"
+						/>
+						<span
+							class="zoom-radio-number"
+							@click="
+								regionViewArea +=
+								regionViewArea != 100 &&
+									regionZoom != 0
+									? 20
+									: 0
+								"
+							><b-icon icon="arrow-right-circle"></b-icon
+						></span>
+					</form>
+				</div>
+				
 				<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
 					<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
 						<div v-for="tab, tabIndex in multiVisualizers" :id="'tabUi' + sectionID + tabIndex"
@@ -64,7 +155,9 @@
 							:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
 							:plotLegend="getSectionPlotLegend(sectionID + plotIndex)" :sectionId="sectionID + plotIndex"
 							:utils="utils" :dataComparisonConfig="dataComparisonConfig"
-							:searchParameters="groupSearchParameters">
+							:searchParameters="groupSearchParameters"
+							:regionZoom="regionZoom"
+							:regionViewArea="regionViewArea">
 						</research-section-visualizers>
 					</div>
 				</div>
@@ -73,16 +166,26 @@
 					:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 					:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
 					:plotLegend="getSectionPlotLegend(sectionID)" :sectionId="sectionID" :utils="utils"
-					:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters">
+					:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
+					:regionZoom="regionZoom"
+					:regionViewArea="regionViewArea">
 				</research-section-visualizers>
 				<research-data-table v-if="!!tableFormat" :pageID="sectionIndex"
 					:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
-					:tableLegend="sectionTableLegend" :dataComparisonConfig="dataComparisonConfig
-						" :searchParameters="groupSearchParameters
-		" :pkgData="null" :pkgDataSelected="null" :phenotypeMap="phenotypeMap" :sectionId="sectionID"
-					:multiSectionPage="true" :utils="utils" @clicked-sort="sortData">
+					:tableLegend="sectionTableLegend" 
+					:dataComparisonConfig="dataComparisonConfig" 
+					:searchParameters="groupSearchParameters" 
+					:pkgData="null" 
+					:pkgDataSelected="null" 
+					:phenotypeMap="phenotypeMap" 
+					:sectionId="sectionID"
+					:multiSectionPage="true" 
+					:utils="utils" @clicked-sort="sortData"
+					:region="utils.keyParams.region"
+					:regionZoom="regionZoom"
+					:regionViewArea="regionViewArea">
 				</research-data-table>
 			</div>
 		</div>
@@ -118,7 +221,9 @@ export default Vue.component("research-section", {
 			interSectionsFilters: [],
 			groups: null,
 			searched: [],
-			loadingDataFlag: "down"
+			loadingDataFlag: "down",
+			regionZoom: 0,
+			regionViewArea: 0,
 		};
 	},
 	modules: {
@@ -138,6 +243,9 @@ export default Vue.component("research-section", {
 	computed: {
 		sectionID() {
 			return this.sectionConfig["section id"];
+		},
+		dataPoint() {
+			return this.sectionConfig["data point"];
 		},
 		dataComparisonConfig() {
 			let groupsLength = (!!this.groups) ? this.groups.length : 0;
@@ -238,6 +346,38 @@ export default Vue.component("research-section", {
 				document.getElementById(this.sectionID + "_tableLegend").innerHTML : null;
 
 			return legend;
+		},
+		viewingRegion() {
+			if (this.utils.keyParams.region == null) {
+				return null;
+			} else {
+				let returnObj = {};
+
+				returnObj["chr"] = parseInt(this.utils.keyParams.region.split(":")[0], 10);
+
+				let regionArr = this.utils.keyParams.region.split(":")[1].split("-");
+				let chr = this.utils.keyParams.region.split(":")[0];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+					returnObj["chr"] = chr;
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["chr"] = chr;
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
+
+				return returnObj;
+			}
 		},
 	},
 	watch: {
@@ -455,8 +595,7 @@ export default Vue.component("research-section", {
 			return ifNumber;
 		},
 		removeData(KEY) {
-
-			console.log(KEY);
+			console.log("key",KEY);
 			let groupKeys = this.sectionConfig["table format"]["group by"];
 
 			let newSectionData = [];
@@ -504,8 +643,8 @@ export default Vue.component("research-section", {
 		captureData() {
 			let title = [this.sectionConfig.header];
 
-			if (!!this.sectionConfig['data point']['parameters']) {
-				this.sectionConfig['data point']['parameters'].map(p => {
+			if (!!this.dataPoint['parameters']) {
+				this.dataPoint['parameters'].map(p => {
 					title.push(this.utils.keyParams[p])
 				})
 			}
@@ -516,7 +655,7 @@ export default Vue.component("research-section", {
 		},
 
 		getParamString() {
-			let dataPoint = this.sectionConfig["data point"];
+			
 
 			let queryParams = {}; // collect search parameters
 			let queryParamsString = []; // search parameters into one string
@@ -525,8 +664,8 @@ export default Vue.component("research-section", {
 			/// check if all required search parameters are there. If not set queryParamsSet null.
 			//1. collect all parameters and put them in queryParams
 
-			if (!!dataPoint.parameters) {
-				dataPoint.parameters.map(p => {
+			if (!!this.dataPoint.parameters) {
+				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
 						queryParams[p] = this.utils.keyParams[p].split(",");
 					} else {
@@ -546,12 +685,12 @@ export default Vue.component("research-section", {
 
 			//2. build parameters sets from queryParams and put them in queryParamsString
 
-			if (!!queryParamsSet && !!dataPoint.parameters) {
-				let paramsLength = queryParams[dataPoint.parameters[0]].length;
+			if (!!queryParamsSet && !!this.dataPoint.parameters) {
+				let paramsLength = queryParams[this.dataPoint.parameters[0]].length;
 
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
-					dataPoint.parameters.map(p => {
+					this.dataPoint.parameters.map(p => {
 						if(!queryParams[p][i]) { queryParams[p][i]  = queryParams[p][i-1] }
 
 						pramsString += queryParams[p][i] + ",";
@@ -569,7 +708,7 @@ export default Vue.component("research-section", {
 			if (queryParamsString.length > 0) {
 				return queryParamsString[0];
 			} else {
-				if(!!dataPoint.parameters) {
+				if(!!this.dataPoint.parameters) {
 					return "invalid";
 				} else {
 					return "";
@@ -609,8 +748,8 @@ export default Vue.component("research-section", {
 		async queryBioindex(QUERY) {
 
 			this.searched.push(QUERY);
-			let dataPoint = this.sectionConfig["data point"];
-			let dataUrl = dataPoint.url + "query/" + dataPoint.index + "?q=" + QUERY;
+			
+			let dataUrl = this.dataPoint.url + "query/" + this.dataPoint.index + "?q=" + QUERY;
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
@@ -624,8 +763,8 @@ export default Vue.component("research-section", {
 		},
 
 		async queryBiContinue(TOKEN, QUERY) {
-			let dataPoint = this.sectionConfig["data point"];
-			let dataUrl = dataPoint.url + "cont?token=" + TOKEN;
+			
+			let dataUrl = this.dataPoint.url + "cont?token=" + TOKEN;
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
@@ -640,14 +779,13 @@ export default Vue.component("research-section", {
 
 		async queryApi(QUERY, TYPE, PARAMS) {
 
-			console.log(QUERY, TYPE, PARAMS);
 
 			if(QUERY != "") {
 				this.searched.push(QUERY);
 			}
 
-			let dataPoint = this.sectionConfig["data point"];
-			let dataUrl = dataPoint.url;
+			
+			let dataUrl = this.dataPoint.url;
 			
 			if(!!PARAMS && TYPE == "parameters") {
 				let paramsArr = QUERY.split(",");
@@ -673,14 +811,14 @@ export default Vue.component("research-section", {
 		},
 
 		async queryFile(FILE, TYPE, PARAMS) {
-			let dataPoint = this.sectionConfig["data point"];
+			
 			let dataUrl = "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + FILE;
 		},
 
 		processLoadedBI(CONTENT, QUERY) {
 
 			let data = CONTENT.data;
-			let dataPoint = this.sectionConfig["data point"];
+			
 
 			// if loaded data is processed
 			let tableFormat = this.sectionConfig["table format"];
@@ -690,20 +828,20 @@ export default Vue.component("research-section", {
 				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
 			}
 
-			let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true") ? true : null;
+			let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
 
 			let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
 				true : null;
 
 			if (!!cumulateData) {
 
-				let queryKeyName = (!!dataPoint["query key name"])? dataPoint["query key name"] : "queryKey";
+				let queryKeyName = (!!this.dataPoint["query key name"])? this.dataPoint["query key name"] : "queryKey";
 
 				if (!this.sectionConfig["table format"] || (!!this.sectionConfig["table format"] && !this.sectionConfig["table format"]["group by"])) {
 					this.sectionConfig["table format"]["group by"] = [queryKeyName];
 				}
 
-				if (!!dataPoint["query key name"] && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["top rows"]) {
+				if (!!this.dataPoint["query key name"] && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["top rows"]) {
 					if (!this.sectionConfig["table format"]["top rows"].includes(queryKeyName)) {
 						this.sectionConfig["table format"]["top rows"].push(queryKeyName);
 					}
@@ -807,14 +945,14 @@ export default Vue.component("research-section", {
 				this.remoteSectionDecription = description;
 			}
 
-			let dataPoint = this.sectionConfig["data point"];
+			
 			let data = null;
 
 			// often data is wrapped by multiple layers of wrappers
-			let dataWrapper = dataPoint["data wrapper"];
+			let dataWrapper = this.dataPoint["data wrapper"];
 
 			// process data by data type
-			switch (dataPoint["data type"]) {
+			switch (this.dataPoint["data type"]) {
 				case "bioindex":
 					data = CONTENT.data;
 
@@ -864,20 +1002,20 @@ export default Vue.component("research-section", {
 					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
 				}
 
-				let cumulateData = (!!dataPoint["cumulate data"] && dataPoint["cumulate data"] == "true") ? true : null;
+				let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
 
 				let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
 					true : null;
 
 				if (!!cumulateData) {
 
-					let queryKeyName = (!!dataPoint["query key name"]) ? dataPoint["query key name"] : "queryKey";
+					let queryKeyName = (!!this.dataPoint["query key name"]) ? this.dataPoint["query key name"] : "queryKey";
 
 					if (!this.sectionConfig["table format"] || (!!this.sectionConfig["table format"] && !this.sectionConfig["table format"]["group by"])) {
 						this.sectionConfig["table format"]["group by"] = [queryKeyName];
 					}
 
-					if (!!dataPoint["query key name"] && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["top rows"]) {
+					if (!!this.dataPoint["query key name"] && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["top rows"]) {
 						if(!this.sectionConfig["table format"]["top rows"].includes(queryKeyName)) {
 							this.sectionConfig["table format"]["top rows"].push(queryKeyName);
 						}
@@ -955,12 +1093,13 @@ export default Vue.component("research-section", {
 					if (!groups.includes(group)) {
 						groups.push(group);
 						this.groups = (!!this.groups) ? this.groups : [];
-						this.groups.push({ "label": group, "params": QUERY });
+
+						let queryParams = (this.dataPoint.type == 'file')? 'file' : this.dataPoint.parameters
+
+						this.groups.push({ "label": group, "params": QUERY, "queryParams": queryParams });
 					}
 				})
 			}
-
-			console.log("this.sectionData ", this.sectionData);
 
 			this.originalData = this.sectionData;
 

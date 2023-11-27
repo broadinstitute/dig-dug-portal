@@ -71,8 +71,8 @@
 			:region="utils.keyParams.region"
 			:plotMargin="plotMargin"
 			:compareGroupColors="colors.moderate"
-			:regionZoom="0"
-			:regionViewArea="null"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
 			:pkgData="null"
 			:pkgDataSelected="null"
 			:isSectionPage="true"
@@ -87,8 +87,8 @@
 			:plotConfig="plotConfig"
 			:plotType="plotConfig['type']"
 			:plotMargin="plotMargin"
-			:regionZoom="0"
-			:regionViewArea="null"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-genes-track>
@@ -143,7 +143,8 @@ import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 export default Vue.component("research-section-visualizers", {
-	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","sectionId","utils","dataComparisonConfig","searchParameters"],
+	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,

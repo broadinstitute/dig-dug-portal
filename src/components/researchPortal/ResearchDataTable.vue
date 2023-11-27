@@ -276,6 +276,9 @@ export default Vue.component("research-data-table", {
 		"multiSectionPage",
 		"sectionId",
 		"utils",
+		"region",
+		"regionZoom",
+		"regionViewArea"
 	],
 	data() {
 		return {
@@ -377,12 +380,55 @@ export default Vue.component("research-data-table", {
 				}
 			}
 		},
+		viewingRegion() {
+			if (this.region == null) {
+				return null;
+			} else {
+				let returnObj = {};
+
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
+
+				let regionArr = this.region.split(":")[1].split("-");
+				let chr = this.region.split(":")[0];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+					returnObj["chr"] = chr;
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["chr"] = chr;
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
+
+				return returnObj;
+			}
+		},
 		rawData() {
-			let rawData = this.dataset;
+			//let rawData = this.dataset;
+
+			let posField = !!this.tableFormat["data zoom"].position? this.tableFormat["data zoom"].position:null;
+			let startPos = !!this.viewingRegion? this.viewingRegion.start:null;
+			let endPos = !!this.viewingRegion ? this.viewingRegion.end:null;
 
 			let formattedData = [];
 
 			if (this.dataComparisonConfig == null) {
+
+				let rawData = [...new Set(this.dataset)];
+
+				if (!!this.tableFormat["data zoom"]) {
+					rawData.filter(vValue => vValue[posField] < startPos || vValue[posField] > endPos);
+				}
+
 				rawData.map((d) => {
 					let tempObj = {};
 					
@@ -411,6 +457,21 @@ export default Vue.component("research-data-table", {
 					formattedData.push(tempObj);
 				});
 			} else {
+
+				let rawData = {...this.dataset};
+
+				if (!!this.tableFormat["data zoom"]) {
+
+					for (const [vKey, vValue] of Object.entries(rawData)) {
+						if (
+							vValue[posField] < startPos ||
+							vValue[posField] > endPos
+						) {
+							delete rawData[vKey];
+						}
+					}
+				}
+
 				for (const [key, value] of Object.entries(rawData)) {
 					let tempObj = {};
 

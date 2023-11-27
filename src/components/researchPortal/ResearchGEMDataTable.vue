@@ -414,8 +414,8 @@ export default Vue.component("research-gem-data-table", {
 
 		rawData() {
 			let newTableFormat = Object.assign({}, this.tableFormat);
-			var updatedData = {};
-			var rawData = {};
+			let updatedData = {};
+			let rawData = {};
 
 			//If the data queried is not compared, convert it from array to object
 			if (this.dataComparisonConfig == null) {
