@@ -81,6 +81,7 @@ new Vue({
     },
     data() {
         return {
+            starItems: [],
             pageID: null,
             regionZoom: 0,
             regionViewArea: 0,
@@ -1187,6 +1188,9 @@ new Vue({
         postAlertError,
         closeAlert,
         /// multi-sections use
+        starColumn(ARRAY) {
+            this.starItems = ARRAY;
+        },
         isInTabGroups(SECTION) {
             let sectionInGroup = false;
             this.sectionConfigs['tab groups'].map(group => {

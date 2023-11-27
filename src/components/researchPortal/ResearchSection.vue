@@ -208,7 +208,8 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-section", {
-	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse", "sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils"],
+	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse", 
+	"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils","starItems"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -231,7 +232,7 @@ export default Vue.component("research-section", {
 			loadingDataFlag: "down",
 			regionZoom: 0,
 			regionViewArea: 0,
-			starItems: [],
+			
 		};
 	},
 	modules: {
@@ -449,7 +450,7 @@ export default Vue.component("research-section", {
 	},
 	methods: {
 		starColumn(ARRAY) {
-			this.starItems = ARRAY;
+			this.$emit('on-star', ARRAY);
 		},
 		resetAll() {
 			this.sectionData = null,

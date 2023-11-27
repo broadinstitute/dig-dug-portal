@@ -610,7 +610,9 @@
 													:plotLegend="$parent.multiPlotLegends"
 													:tableLegend="$parent.multiTableLegends"
 													:utils="$parent.utilsBox"
-													:key="index">
+													:key="index"
+													:starItems="$parent.starItems"
+													@on-star="$parent.starColumn">
 												</research-section>
 										</div>
 										</template>
@@ -631,7 +633,10 @@
 										:plotLegend="$parent.plotLegend"
 										:tableLegend="$parent.tableLegend"
 										:utils="$parent.utilsBox"
-										:key="index">
+										:key="index"
+										:starItems="$parent.starItems"
+										@on-star="$parent.starColumn"
+										>
 									</research-section>	
 								</template>
 							</template>
@@ -650,7 +655,9 @@
 									:plotLegend="$parent.plotLegend"
 									:tableLegend="$parent.tableLegend"
 									:utils="$parent.utilsBox"
-									:key="index">
+									:key="index"
+									:starItems="$parent.starItems"
+									@on-star="$parent.starColumn">
 								</research-section>	
 							</template>
 							
