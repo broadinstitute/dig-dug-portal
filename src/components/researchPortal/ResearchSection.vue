@@ -156,7 +156,9 @@
 							:utils="utils" :dataComparisonConfig="dataComparisonConfig"
 							:searchParameters="groupSearchParameters"
 							:regionZoom="regionZoom"
-							:regionViewArea="regionViewArea">
+							:regionViewArea="regionViewArea"
+							:starItems="starItems"
+							@on-star="starColumn">
 						</research-section-visualizers>
 					</div>
 				</div>
@@ -167,7 +169,9 @@
 					:plotLegend="getSectionPlotLegend(sectionID)" :sectionId="sectionID" :utils="utils"
 					:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
 					:regionZoom="regionZoom"
-					:regionViewArea="regionViewArea">
+					:regionViewArea="regionViewArea"
+					:starItems="starItems"
+					@on-star="starColumn">
 				</research-section-visualizers>
 				<research-data-table v-if="!!tableFormat" :pageID="sectionIndex"
 					:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
@@ -187,6 +191,7 @@
 					:regionZoom="regionZoom"
 					:regionViewArea="regionViewArea"
 					@on-star="starColumn"
+					@on-filtering="updateData"
 					>
 				</research-data-table>
 			</div>

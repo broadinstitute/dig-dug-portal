@@ -153,7 +153,8 @@ export default Vue.component("research-region-plot", {
 		"pkgDataSelected",
 		"isSectionPage",
 		"sectionId",
-		"utils"
+		"utils",
+		"starItems"
 	],
 	data() {
 		return {
@@ -196,7 +197,7 @@ export default Vue.component("research-region-plot", {
 	},
 	computed: {
 		staredVariants() {
-			if (!!this.renderConfig["star key"]) {
+			if (!!this.renderConfig["star key"] && !this.isSectionPage) {
 				let stared = "";
 				this.pkgDataSelected
 					.filter((s) => s.type == this.renderConfig["star key"])
@@ -551,6 +552,9 @@ export default Vue.component("research-region-plot", {
 		staredVariants(CONTENT) {
 			this.renderPlots();
 		},
+		starItems(CONTENT){
+			this.renderPlots();
+		}
 	},
 	methods: {
 
@@ -558,9 +562,15 @@ export default Vue.component("research-region-plot", {
 			this.renderPlots();
 		},
 		checkStared(ITEM) {
-			let selectedItems = this.pkgDataSelected
-				.filter((s) => s.type == this.renderConfig["star key"])
-				.map((s) => s.id);
+
+			let selectedItems;
+			if (!!this.isSectionPage) {
+				selectedItems = this.starItems;
+			} else {
+				selectedItems = this.pkgDataSelected
+					.filter((s) => s.type == this.tableFormat["star key"])
+					.map((s) => s.id);
+			}
 
 			if (!!selectedItems.includes(ITEM)) {
 				return true;
@@ -569,18 +579,31 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		addStarItem(ITEM) {
-			this.$store.dispatch("pkgDataSelected", {
-				type: this.renderConfig["star key"],
-				id: ITEM,
-				action: "add",
-			});
+			console.log("ITEM", ITEM)
+			if (!!this.isSectionPage) {
+				let stard = [...new Set(this.starItems)]
+				stard.push(ITEM);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.renderConfig["star key"],
+					id: ITEM,
+					action: "add",
+				});
+			}
 		},
 		removeStarItem(ITEM) {
-			this.$store.dispatch("pkgDataSelected", {
-				type: this.renderConfig["star key"],
-				id: ITEM,
-				action: "remove",
-			});
+			console.log("ITEM", ITEM);
+			if (!!this.isSectionPage) {
+				let stard = [...new Set(this.starItems)].filter(s => s != ITEM);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.renderConfig["star key"],
+					id: ITEM,
+					action: "remove",
+				});
+			}
 		},
 		resetLdReference(GROUP, VARIANT) {
 			this.showHidePanel("#fixedInfoBox");

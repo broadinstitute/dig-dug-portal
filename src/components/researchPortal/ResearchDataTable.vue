@@ -519,8 +519,6 @@ export default Vue.component("research-data-table", {
 			if (!!this.perPageNumber && this.perPageNumber != null) {
 				let formattedData = this.rawData;
 
-				//let filtered = this.dataset;
-
 				let paged = [];
 				let perPage =
 					Number(this.perPageNumber) != 0

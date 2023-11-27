@@ -78,6 +78,8 @@
 			:isSectionPage="true"
 			:sectionId="sectionId"
 			:utils="utils"
+			:starItems="starItems"
+			@on-star="starColumn"
 		></research-region-plot>
 		<!-- genes track -->
 		<research-genes-track
@@ -144,7 +146,7 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
-		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea"],
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,
@@ -183,7 +185,9 @@ export default Vue.component("research-section-visualizers", {
 	watch: {
 	},
 	methods: {
-		
+		starColumn(ARRAY) {
+			this.$emit('on-star', ARRAY);
+		},
 	},
 });
 
