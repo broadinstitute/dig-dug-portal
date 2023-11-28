@@ -656,7 +656,12 @@ export default Vue.component("research-data-table", {
 			if (!!this.multiSectionPage) {
 				
 				let stard = [...new Set(this.starItems)]
-				stard.push(value);
+				let tempObj = {
+					type: this.tableFormat["star column"],
+					id: value,
+					columns: ITEM
+				}
+				stard.push(tempObj);
 				this.$emit('on-star', stard);
 			} else {
 				this.$store.dispatch("pkgDataSelected", {
@@ -669,7 +674,7 @@ export default Vue.component("research-data-table", {
 		removeStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
 			if (!!this.multiSectionPage) {
-				let stard = [...new Set(this.starItems)].filter(s => s != value);
+				let stard = [...new Set(this.starItems)].filter(s => s.id != value);
 				this.$emit('on-star', stard);
 			} else {
 				this.$store.dispatch("pkgDataSelected", {
@@ -682,8 +687,11 @@ export default Vue.component("research-data-table", {
 		checkStared(WHERE, ITEM) {
 			if (!!ITEM) {
 				let selectedItems;
+
 				if(!!this.multiSectionPage) {
-					selectedItems = this.starItems;
+					selectedItems = this.starItems
+					.filter((s) => s.type == this.tableFormat["star column"])
+					.map((s) => s.id);
 				} else {
 					selectedItems = this.pkgDataSelected
 					.filter((s) => s.type == this.tableFormat["star column"])

@@ -100,10 +100,17 @@
 			<div class="col-md-9 asso-plots-wrapper">
 				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
-					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
+					
+						<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
 						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
+					
+					<!-- /// x position line test
+						<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
+						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
+						@mousemove="renderPlots($event)"
+						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>-->
 					<!--<span
 						v-if="sharedPlotXpos != null"
 						:style="
@@ -230,9 +237,9 @@ export default Vue.component("research-region-plot", {
 
 				let plotDataLocal = this.plotData;
 
-				var plotsKeys = [];
+				let plotsKeys = [];
 				if (this.dataComparisonConfig != null) {
-					var field =
+					let field =
 						this.dataComparisonConfig["fields to compare"][0];
 					// get list of data groups
 					for (const [pKey, pValue] of Object.entries(
@@ -263,8 +270,8 @@ export default Vue.component("research-region-plot", {
 				this.ldPos = {};
 
 				//feed assoData + set initial reference variant
-				var yAxField = this.renderConfig["y axis field"];
-				var populationsType =
+				let yAxField = this.renderConfig["y axis field"];
+				let populationsType =
 					this.renderConfig["ld server"]["populations type"];
 				
 				plotsKeys.map((group) => {
@@ -561,11 +568,28 @@ export default Vue.component("research-region-plot", {
 		onResize(e) {
 			this.renderPlots();
 		},
+		getColumns(ID) {
+			let item;
+			if (this.dataComparisonConfig != null) {
+				for (const [key, value] of Object.entries(
+					this.plotData
+				)) {
+					if(value[this.tableFormat["star key"]] == ID) {
+						item = value;
+					}
+				}
+			} else {
+				item = this.plotData.filter(p=>p[this.tableFormat["star key"]] == ID);
+			}
+			return item;
+		},
 		checkStared(ITEM) {
 
 			let selectedItems;
 			if (!!this.isSectionPage) {
-				selectedItems = this.starItems;
+				selectedItems = this.starItems
+					.filter((s) => s.type == this.tableFormat["star key"])
+					.map((s) => s.id);;
 			} else {
 				selectedItems = this.pkgDataSelected
 					.filter((s) => s.type == this.tableFormat["star key"])
@@ -579,11 +603,15 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		addStarItem(ITEM) {
-			console.log("ITEM", ITEM)
+			
 			if (!!this.isSectionPage) {
 				let stard = [...new Set(this.starItems)]
-				stard.push(ITEM);
-				this.$emit('on-star', stard);
+				let tempObj = {
+					type: this.tableFormat["star key"],
+					id: ITEM,
+					columns: this.getColumns(ITEM)
+				}
+				stard.push(tempObj);
 			} else {
 				this.$store.dispatch("pkgDataSelected", {
 					type: this.renderConfig["star key"],
@@ -593,9 +621,8 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		removeStarItem(ITEM) {
-			console.log("ITEM", ITEM);
 			if (!!this.isSectionPage) {
-				let stard = [...new Set(this.starItems)].filter(s => s != ITEM);
+				let stard = [...new Set(this.starItems)].filter(s => s.id != ITEM);
 				this.$emit('on-star', stard);
 			} else {
 				this.$store.dispatch("pkgDataSelected", {
@@ -648,9 +675,9 @@ export default Vue.component("research-region-plot", {
 			});
 		},
 		getDotsOnPosition(TYPE, GROUP, X, Y) {
-			var posData =
+			let posData =
 				TYPE == "asso" ? this.assoPos[GROUP] : this.ldPos[GROUP];
-			var dotsList = [];
+			let dotsList = [];
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
@@ -665,13 +692,13 @@ export default Vue.component("research-region-plot", {
 			return dotsList;
 		},
 		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let y = Math.floor(e.clientY - rect.top);
 			let rawX = e.clientX;
 
-			var dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
+			let dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
 			dotsOnPosition = [...new Set(dotsOnPosition)];
 
 			let infoBoxId =
@@ -761,7 +788,7 @@ export default Vue.component("research-region-plot", {
 			this.callForRecombData();
 		},
 		async callForRecombData() {
-			var signalURL =
+			let signalURL =
 				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
 				this.searchingRegion.chr +
 				"' and position gt " +
@@ -769,7 +796,7 @@ export default Vue.component("research-region-plot", {
 				" and position lt " +
 				this.searchingRegion.end;
 
-			var signalJson = await fetch(signalURL).then((resp) => resp.json());
+			let signalJson = await fetch(signalURL).then((resp) => resp.json());
 			this.recombData = {};
 			if (signalJson.error == null) {
 				this.recombData["position"] = signalJson.data.position;
@@ -786,9 +813,9 @@ export default Vue.component("research-region-plot", {
 				plotWrapper.classList.remove("hidden");
 			});
 
-			var plotID = null;
+			let plotID = null;
 
-			for (var i = 0; i < this.plotsList.length; i++) {
+			for (let i = 0; i < this.plotsList.length; i++) {
 				if (
 					this.plotsList[i] != "Combined" &&
 					this.ldData[this.plotsList[i]].data == null
@@ -813,6 +840,8 @@ export default Vue.component("research-region-plot", {
 					this.searchingRegion.end +
 					"&limit=100000";
 
+					console.log("ldURL", ldURL);
+
 				let ldJson = await fetch(ldURL).then((resp) => resp.json());
 
 				if (ldJson.error == null) {
@@ -826,7 +855,7 @@ export default Vue.component("research-region-plot", {
 					this.callForLDData();
 				}
 			} else {
-				for (var i = 0; i < this.plotsList.length; i++) {
+				for (let i = 0; i < this.plotsList.length; i++) {
 					if (this.plotsList[i] != "Combined") {
 						let plotID = this.plotsList[i];
 
@@ -854,7 +883,7 @@ export default Vue.component("research-region-plot", {
 			}
 			this.$forceUpdate();
 		},
-		renderPlots() {
+		renderPlots(event) {
 			let regionStart = this.searchingRegion.start;
 			let regionEnd = this.searchingRegion.end;
 			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
@@ -910,6 +939,16 @@ export default Vue.component("research-region-plot", {
 				ctx = c.getContext("2d");
 
 				ctx.clearRect(0, 0, assoCanvasWidth, canvasHeight);
+
+				/* look into this part to render x position line across plots
+				let e = event;
+				let rect = e.target.getBoundingClientRect();
+				let x = Math.floor(e.clientX - rect.left);
+				let y = Math.floor(e.clientY - rect.top);
+				let rawX = e.clientX;
+
+				console.log("x",x);
+				*/
 
 				this.renderAxis(
 					ctx,
@@ -1009,8 +1048,8 @@ export default Vue.component("research-region-plot", {
 
 			if (TYPE == "asso") {
 				this.assoPos[GROUP] = {};
-				var xField = this.renderConfig["x axis field"];
-				var yField = this.renderConfig["y axis field"];
+				let xField = this.renderConfig["x axis field"];
+				let yField = this.renderConfig["y axis field"];
 
 				if (GROUP != "Combined") {
 					for (const [key, value] of Object.entries(
@@ -1189,7 +1228,7 @@ export default Vue.component("research-region-plot", {
 							this.plotMargin.topMargin + HEIGHT / 2
 						);
 					} else {
-						var yField = this.renderConfig["y axis field"];
+						let yField = this.renderConfig["y axis field"];
 
 						for (const [key, value] of Object.entries(
 							this.ldData[GROUP].data
@@ -1258,7 +1297,7 @@ export default Vue.component("research-region-plot", {
 
 				if (GROUP == "Combined") {
 					let linesObj = {};
-					var yField = this.renderConfig["y axis field"];
+					let yField = this.renderConfig["y axis field"];
 
 					this.plotsList.map((pGroup, pIndex) => {
 						if (pGroup != "Combined") {
@@ -1462,9 +1501,9 @@ export default Vue.component("research-region-plot", {
 			CTX.restore();
 		},
 		renderRecombLine(CTX, PWIDTH, PHEIGHT, END, START) {
-			var DATA = this.recombData;
-			var xPixel = PWIDTH / (END - START);
-			var yPixel = PHEIGHT / 100;
+			let DATA = this.recombData;
+			let xPixel = PWIDTH / (END - START);
+			let yPixel = PHEIGHT / 100;
 
 			CTX.beginPath();
 			CTX.lineWidth = 1;
