@@ -100,12 +100,12 @@
 			<div class="col-md-9 asso-plots-wrapper">
 				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
-					
-						<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
+
+					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
 						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
-					
+
 					<!-- /// x position line test
 						<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
@@ -125,8 +125,8 @@
 			<div :id="'ldPlotsWrapper' + item.replaceAll(' ', '_') + sectionId"
 				class="col-md-3 ld-plots-wrapper reference-area">
 				<h6 v-html="item != 'default'
-						? item + ' <small>*Showing only with LD</small>'
-						: ' <small>*Showing only with LD</small>'
+					? item + ' <small>*Showing only with LD</small>'
+					: ' <small>*Showing only with LD</small>'
 					" :class="'text color-' + itemIndex"></h6>
 				<canvas :id="'ld_plot_' + item.replaceAll(' ', '_') + sectionId" class="ld-plot" width="" height=""
 					@resize="onResize" @click="checkPosition($event, item, 'LD', 'click')"
@@ -273,7 +273,7 @@ export default Vue.component("research-region-plot", {
 				let yAxField = this.renderConfig["y axis field"];
 				let populationsType =
 					this.renderConfig["ld server"]["populations type"];
-				
+
 				plotsKeys.map((group) => {
 					this.assoData[group] = {
 						yAxHigh: null,
@@ -559,7 +559,7 @@ export default Vue.component("research-region-plot", {
 		staredVariants(CONTENT) {
 			this.renderPlots();
 		},
-		starItems(CONTENT){
+		starItems(CONTENT) {
 			this.renderPlots();
 		}
 	},
@@ -574,12 +574,12 @@ export default Vue.component("research-region-plot", {
 				for (const [key, value] of Object.entries(
 					this.plotData
 				)) {
-					if(value[this.tableFormat["star key"]] == ID) {
+					if (value[this.renderConfig["star key"]] == ID) {
 						item = value;
 					}
 				}
 			} else {
-				item = this.plotData.filter(p=>p[this.tableFormat["star key"]] == ID);
+				item = this.plotData.filter(p => p[this.renderConfig["star key"]] == ID);
 			}
 			return item;
 		},
@@ -588,11 +588,11 @@ export default Vue.component("research-region-plot", {
 			let selectedItems;
 			if (!!this.isSectionPage) {
 				selectedItems = this.starItems
-					.filter((s) => s.type == this.tableFormat["star key"])
+					.filter((s) => s.type == this.renderConfig["star key"])
 					.map((s) => s.id);;
 			} else {
 				selectedItems = this.pkgDataSelected
-					.filter((s) => s.type == this.tableFormat["star key"])
+					.filter((s) => s.type == this.renderConfig["star key"])
 					.map((s) => s.id);
 			}
 
@@ -603,15 +603,15 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		addStarItem(ITEM) {
-			
 			if (!!this.isSectionPage) {
 				let stard = [...new Set(this.starItems)]
 				let tempObj = {
-					type: this.tableFormat["star key"],
+					type: this.renderConfig["star key"],
 					id: ITEM,
 					columns: this.getColumns(ITEM)
 				}
 				stard.push(tempObj);
+				this.$emit('on-star', stard);
 			} else {
 				this.$store.dispatch("pkgDataSelected", {
 					type: this.renderConfig["star key"],
@@ -840,8 +840,6 @@ export default Vue.component("research-region-plot", {
 					this.searchingRegion.end +
 					"&limit=100000";
 
-					console.log("ldURL", ldURL);
-
 				let ldJson = await fetch(ldURL).then((resp) => resp.json());
 
 				if (ldJson.error == null) {
@@ -855,7 +853,7 @@ export default Vue.component("research-region-plot", {
 					this.callForLDData();
 				}
 			} else {
-				for (let i = 0; i < this.plotsList.length; i++) {
+				for (var i = 0; i < this.plotsList.length; i++) {
 					if (this.plotsList[i] != "Combined") {
 						let plotID = this.plotsList[i];
 
