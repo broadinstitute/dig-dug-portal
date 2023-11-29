@@ -35,6 +35,18 @@ let connectDots = function (CTX, X1, Y1, X2, Y2, COLOR) {
     CTX.stroke();
 }
 
+let renderDashedLine = function (CTX, X1, Y1, X2, Y2, WIDTH, COLOR, DASH) {
+
+    CTX.beginPath();
+    CTX.lineWidth = !!WIDTH ? WIDTH : 2;
+    CTX.strokeStyle = !!COLOR ? COLOR : "#FFAA00";
+    let dash = !!DASH ? DASH : [20, 10];
+    CTX.setLineDash(dash);
+    CTX.moveTo(X1, Y1);
+    CTX.lineTo(X2, Y2);
+    CTX.stroke();
+}
+
 const renderLine = function (
     CTX,
     WIDTH,
@@ -660,10 +672,10 @@ const renderBestFitLine = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN
     let xStep = plotWidth / (XMAX - XMIN);
     let yStep = plotHeight / (YMAX - YMIN);
 
-    const startX =  MARGIN.left + (xStep * (sX - XMIN));
+    const startX = MARGIN.left + (xStep * (sX - XMIN));
     const startY = MARGIN.top + (plotHeight - (sY - YMIN) * yStep);
-    const endX =   MARGIN.left + (xStep * (eX - XMIN));
-    const endY =  MARGIN.top + (plotHeight - (eY - YMIN) * yStep);
+    const endX = MARGIN.left + (xStep * (eX - XMIN));
+    const endY = MARGIN.top + (plotHeight - (eY - YMIN) * yStep);
 
     //check if color is dimmed
     const dimmed = COLOR.length > 7 ? Number(COLOR.slice(-2)) < 20 ? true : false : false;
@@ -676,7 +688,7 @@ const renderBestFitLine = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN
     const dx = endX - startX;
     const dy = endY - startY;
     // Calculate unit vector
-    const length = Math.sqrt(dx*dx + dy*dy);
+    const length = Math.sqrt(dx * dx + dy * dy);
     const udx = dx / length;
     const udy = dy / length;
     // Calculate new start position
@@ -758,6 +770,7 @@ export default {
     renderPie,
     renderGuideLine,
     renderLine,
+    renderDashedLine,
     renderStar,
     renderDots,
     renderBestFitLine,

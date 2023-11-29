@@ -1049,7 +1049,28 @@ export default Vue.component("research-region-plot", {
 				let xField = this.renderConfig["x axis field"];
 				let yField = this.renderConfig["y axis field"];
 
+				/// first render position lines of the star variants
+				let yPos1 = this.plotMargin.topMargin - (this.plotMargin.bump * 3);
+				let yPos2 = this.plotMargin.topMargin + HEIGHT + (this.plotMargin.bump * 2);
+				for (const [key, value] of Object.entries(
+					this.assoData[GROUP].data
+				)) {
+					if (value[xField] >= xMin && value[xField] <= xMax) {
+						let xPos =
+							xStart + (value[xField] - xMin) * xPosByPixel;
+
+						if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+							this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
+
+							this.renderDot(CTX, xPos, yPos2 - (this.plotMargin.bump/2), "#FFAA0055", 5);
+						}
+					}
+				}
+
 				if (GROUP != "Combined") {
+
+					// render dots
+
 					for (const [key, value] of Object.entries(
 						this.assoData[GROUP].data
 					)) {
@@ -1066,11 +1087,15 @@ export default Vue.component("research-region-plot", {
 								key
 							);
 
+							
+
 							let dotColor = this.getDotColor(
 								this.ldData[GROUP].data[key]
 							);
 							if (key == this.ldData[GROUP].refVariant) {
 								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+
+									//this.utils.plotUtils.renderDashedLine(CTX, xPos, this.plotMargin.topMargin, xPos, this.plotMargin.topMargin + HEIGHT, "#FFFF00", [10,10])
 									this.utils.plotUtils.renderStar(
 										CTX,
 										xPos,
@@ -1091,6 +1116,7 @@ export default Vue.component("research-region-plot", {
 								}
 							} else {
 								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+									//this.utils.plotUtils.renderDashedLine(CTX, xPos, this.plotMargin.topMargin, xPos, this.plotMargin.topMargin + HEIGHT, "#FFFF00", [10, 10])
 									this.utils.plotUtils.renderStar(
 										CTX,
 										xPos,
@@ -1464,11 +1490,12 @@ export default Vue.component("research-region-plot", {
 				}
 			}
 		},
-		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
+		renderDot(CTX, XPOS, YPOS, DOT_COLOR, WIDTH) {
 			CTX.fillStyle = DOT_COLOR;
 			CTX.lineWidth = 0;
 			CTX.beginPath();
-			CTX.arc(XPOS, YPOS, 9, 0, 2 * Math.PI);
+			let width = !!WIDTH? WIDTH: 9;
+			CTX.arc(XPOS, YPOS, width, 0, 2 * Math.PI);
 			CTX.fill();
 		},
 		renderDiamond(CTX, XPOS, YPOS, DOT_COLOR) {
