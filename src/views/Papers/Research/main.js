@@ -161,6 +161,28 @@ new Vue({
                     "#D5A768",
                     "#d4d4d4",
                 ],
+                viridis: [
+                    '#450c54', 
+                    '#481668', 
+                    '#482677', 
+                    '#453681', 
+                    '#3e4788', 
+                    '#39558c', 
+                    '#31648d', 
+                    '#2e708e', 
+                    '#277d8e', 
+                    '#218a8d', 
+                    '#21968b', 
+                    '#20a286', 
+                    '#28af7f', 
+                    '#3dbc75', 
+                    '#56c667', 
+                    '#75d056', 
+                    '#94d841', 
+                    '#b9de28', 
+                    '#dce318', 
+                    '#fde724'
+                ]
             },
 
         }
@@ -171,8 +193,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
-
-
     },
 
     render(createElement, context) {
@@ -216,7 +236,6 @@ new Vue({
             if (contents === null || contents[0]["body"] == false) {
                 return null;
             } else {
-
                 if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
                     && !!this.sectionConfigs["is multi section"] == true) {
                     let description = document.createElement('div');
@@ -245,6 +264,7 @@ new Vue({
             return this.$store.state.bioPortal.phenotypeMap;
         },
         multiSectionsSearchParameters() {
+            
             if (this.phenotypesInSession.length > 0) {
                 let parameters = [];
                 let newParameters = [];
@@ -252,6 +272,8 @@ new Vue({
                 if (!!this.sectionConfigs['search parameters']) {
                     parameters = this.sectionConfigs['search parameters'];
                 }
+
+                console.log('section configs', this.sectionConfigs);
 
                 this.sectionConfigs.sections.map(section => {
                     if (!!section["search parameters"]) {
@@ -265,7 +287,6 @@ new Vue({
                     parameters.map(p => {
                         if (p.values == 'kp phenotypes') {
                             let values = [];
-
 
                             this.phenotypesInSession.map(pis => {
                                 let tempObj = { "label": pis.description, "value": pis.name };

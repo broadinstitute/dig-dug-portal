@@ -49,7 +49,7 @@
 								v-for="anno, annoIndex in colorByList[fieldpair[2]]"
 								@click="setHighlightField($event, anno)"
 							>
-								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
+								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors.moderate[annoIndex]">&nbsp;</span>
 								<span>{{ anno }}</span>
 							</div>
 						</div>
@@ -126,7 +126,7 @@
 								@click="setHighlightField($event, anno)"
 								style="cursor:pointer;"
 							>
-								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
+								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors.moderate[annoIndex]">&nbsp;</span>
 								<span>{{ anno }}</span>
 							</div>
 						</div>
@@ -191,7 +191,7 @@
 		<template v-if="renderData.length > 0 && !!renderConfig && !!groupsList">
 			<div class="colors-list">
 				<div v-for="anno, annoIndex in colorByList[ colorByField ]" class="anno-bubble-wrapper">
-					<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
+					<span class="anno-bubble" :style="'background-color:'+ compareGroupColors.moderate[annoIndex]">&nbsp;</span>
 					<span>{{ anno }}</span>
 				</div>
 			</div>
@@ -591,7 +591,7 @@ export default Vue.component("research-scatter-plot", {
 						//let highlight = this.renderConfig["color highlight"];
 						this.colorByList[ colorField ].map(color => {
 							let coloredData = DATA.filter(d => d.color[ colorField ] === color);
-							let dotColor = this.compareGroupColors[cIndex];
+							let dotColor = this.compareGroupColors.moderate[cIndex];
 							/*
 							if(highlight){
 								dotColor = dotColor.substring(0, dotColor.length - 2);
@@ -609,7 +609,7 @@ export default Vue.component("research-scatter-plot", {
 						cIndex = 0
 						this.colorByList[ this.renderConfig["color field"] ].map(color => {
 							let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
-							let dotColor = this.compareGroupColors[cIndex];
+							let dotColor = this.compareGroupColors.moderate[cIndex];
 							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
@@ -662,7 +662,7 @@ export default Vue.component("research-scatter-plot", {
 							//so we can color them together
 							const coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
 							//default, get dot color for this group from preset color list
-							let dotColor = this.compareGroupColors[cIndex];
+							let dotColor = this.compareGroupColors.moderate[cIndex];
 							//if this value group was selected by user, change color opacities
 							//eg #ffffff50 > hi=#ffffff90, lo=#ffffff05
 							if(highlight){
@@ -676,7 +676,7 @@ export default Vue.component("research-scatter-plot", {
 					}
 				}
 			} else {
-				let dotColor = this.compareGroupColors[0];
+				let dotColor = this.compareGroupColors.moderate[0];
 				this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, DATA);
 			}
 
@@ -787,11 +787,7 @@ export default Vue.component("research-scatter-plot", {
 			this.renderPlot();
 		},
 		colorGradient(){
-			//TODO: move colors array to different location
-			//TMP
-			//viridis gradient colors
-			const viridisColors = ['#450c54', '#481668', '#482677', '#453681', '#3e4788', '#39558c', '#31648d', '#2e708e', '#277d8e', '#218a8d', '#21968b', '#20a286', '#28af7f', '#3dbc75', '#56c667', '#75d056', '#94d841', '#b9de28', '#dce318', '#fde724'];
-			const gradientColors = viridisColors;
+			const gradientColors = this.compareGroupColors.viridis;
 			let gradientCSS = 'linear-gradient(0deg, ';
 			gradientColors.forEach((color, i) => {
 				gradientCSS += color;
@@ -804,7 +800,7 @@ export default Vue.component("research-scatter-plot", {
 			}
 		},
 		colorFromGradientByValue(value, min, max){
-			const viridisColors = ['#450c54', '#481668', '#482677', '#453681', '#3e4788', '#39558c', '#31648d', '#2e708e', '#277d8e', '#218a8d', '#21968b', '#20a286', '#28af7f', '#3dbc75', '#56c667', '#75d056', '#94d841', '#b9de28', '#dce318', '#fde724'];
+			const viridisColors = this.compareGroupColors.viridis;
 			const range = max - min;
 			const position = value - min;
 			const percentile = position / range * 100;

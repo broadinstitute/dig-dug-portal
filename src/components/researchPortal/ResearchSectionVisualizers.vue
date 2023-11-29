@@ -100,7 +100,7 @@
 			:searchParameters="searchParameters"
 			:dataComparisonConfig="dataComparisonConfig"
 			:plotMargin="plotMargin"
-			:compareGroupColors="colors.moderate"
+			:compareGroupColors="colors"
 			:isSectionPage="true"
 			:sectionId="sectionId"
 			:utils="utils"
