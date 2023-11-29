@@ -43,7 +43,8 @@ export default Vue.component("research-genes-track", {
 		"regionZoom",
 		"regionViewArea",
 		"utils",
-		"sectionId"
+		"sectionId",
+		"starItems"
 	],
 	data() {
 		return {
@@ -132,6 +133,13 @@ export default Vue.component("research-genes-track", {
 			deep: true,
 			immediate: true,
 		},
+		starItems(STARS){
+			if (!this.genesData) {
+				this.renderTrack(this.localGenesData);
+			} else {
+				this.renderTrack(this.genesData);
+			}
+		}
 	},
 	methods: {
 		//...uiUtils,
@@ -165,7 +173,7 @@ export default Vue.component("research-genes-track", {
 						(this.plotMargin.leftMargin +
 							this.plotMargin.rightMargin);
 
-				let plotHeight = eachGeneTrackHeight * genesArray.length;
+				//let plotHeight = eachGeneTrackHeight * genesArray.length;
 
 				let xMin = Number(this.viewingRegion.start),
 					xMax = Number(this.viewingRegion.end);
@@ -327,6 +335,15 @@ export default Vue.component("research-genes-track", {
 						});
 					}
 				});
+
+				let yPos1 = this.plotMargin.topMargin - (this.plotMargin.bump * 3);
+				let yPos2 = this.plotMargin.topMargin + (GENES.length * eachGeneTrackHeight);
+
+				this.starItems.map(star =>{
+					let xPos = xStart + (star.columns[this.plotConfig["x axis field"]] - xMin) * xPosByPixel;
+
+					this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
+				})
 			}
 		},
 		async getGenesInRegion(region) {

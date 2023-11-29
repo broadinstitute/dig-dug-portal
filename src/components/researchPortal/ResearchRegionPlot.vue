@@ -579,7 +579,7 @@ export default Vue.component("research-region-plot", {
 					}
 				}
 			} else {
-				item = this.plotData.filter(p => p[this.renderConfig["star key"]] == ID);
+				item = this.plotData.filter(p => p[this.renderConfig["star key"]] == ID)[0];
 			}
 			return item;
 		},
@@ -1062,7 +1062,7 @@ export default Vue.component("research-region-plot", {
 						if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 							this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
 
-							this.renderDot(CTX, xPos, yPos2 - (this.plotMargin.bump/2), "#FFAA0055", 5);
+							this.renderDot(CTX, xPos, yPos2, "#FFAA0055", 5);
 						}
 					}
 				}

@@ -651,6 +651,21 @@ export default Vue.component("research-data-table", {
 		addRemoveColumn(EVENT) {
 			this.$forceUpdate();
 		},
+		getColumns(ID) {
+			let item;
+			if (this.dataComparisonConfig != null) {
+				for (const [key, value] of Object.entries(
+					this.dataset
+				)) {
+					if (value[this.tableFormat["star column"]] == ID) {
+						item = value;
+					}
+				}
+			} else {
+				item = this.dataset.filter(p => p[this.tableFormat["star column"]] == ID)[0];
+			}
+			return item;
+		},
 		addStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
 			if (!!this.multiSectionPage) {
@@ -659,7 +674,7 @@ export default Vue.component("research-data-table", {
 				let tempObj = {
 					type: this.tableFormat["star column"],
 					id: value,
-					columns: ITEM
+					columns: this.getColumns(value)
 				}
 				stard.push(tempObj);
 				this.$emit('on-star', stard);

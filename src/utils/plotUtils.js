@@ -18,11 +18,12 @@ let colors = ["#007bff75",
     "#d4d4d475"]
 
 
-let renderDot = function (CTX, XPOS, YPOS, DOT_COLOR) {
+let renderDot = function (CTX, XPOS, YPOS, DOT_COLOR, WIDTH) {
     CTX.fillStyle = DOT_COLOR;
     CTX.lineWidth = 0;
     CTX.beginPath();
-    CTX.arc(XPOS, YPOS, 8, 0, 2 * Math.PI);
+    let width = !!WIDTH ? WIDTH : 8;
+    CTX.arc(XPOS, YPOS, width, 0, 2 * Math.PI);
     CTX.fill();
 }
 
@@ -772,6 +773,7 @@ export default {
     renderLine,
     renderDashedLine,
     renderStar,
+    renderDot,
     renderDots,
     renderBestFitLine,
     getDotsPosData,

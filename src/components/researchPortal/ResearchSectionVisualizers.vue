@@ -93,6 +93,7 @@
 			:regionViewArea="regionViewArea"
 			:utils="utils"
 			:sectionId="sectionId"
+			:starItems="starItems"
 		></research-genes-track>
 		<!-- scatter plot -->
 		<research-scatter-plot
