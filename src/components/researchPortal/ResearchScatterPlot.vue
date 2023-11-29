@@ -468,22 +468,18 @@ export default Vue.component("research-scatter-plot", {
 
 			console.log('alex data mapped (used for visuals)', massagedData);
 
-			//TODO: create gratient style legends for 'color by' fields
-			//should be settable in JSON config
-			if(colorsBy){
-				let cb = Object.keys(colorsBy);
-				cb.forEach(colorBy => {
-					if(colorsBy[colorBy].length > 10){
-						console.log(`color field '${colorBy}' has ${colorsBy[colorBy].length} unique options`)
-						if(typeof colorsBy[colorBy][0] === 'number'){
-							const numbersOnly = colorsBy[colorBy].filter(value => typeof value === 'number');
-							numbersOnly.sort( (a, b) => a - b );
-							colorsBy[colorBy] = numbersOnly;
-							console.log(`	it is numerical; make gradient`);
-						}
-					}
-				})
-			}
+			//prep gradient type 'color by' fields 
+			this.renderConfig['color by'].forEach(colorby => {
+				if(colorby.type==='gradient'){
+					//sort values
+					const numbersOnly = colorsBy[colorby.field].filter(value => typeof value === 'number');
+					numbersOnly.sort( (a, b) => a - b );
+					colorsBy[colorby.field] = numbersOnly;
+					//save minmax
+					colorby.minmax = {min: numbersOnly[0], max: numbersOnly[numbersOnly.length-1]};
+					console.log(`sorted gradient for ${colorby.field}`);
+				}
+			})
 
 			this.groupsList = groups.length > 0? groups.sort(): null;
 			//this.colorsList = colors.length > 0? colors.sort() : null;
@@ -637,9 +633,8 @@ export default Vue.component("research-scatter-plot", {
 								//value, min_value, max_value
 								dotColor = this.colorFromGradientByValue(
 									color, 
-									this.colorByList[ this.renderConfig["color field"] ][0], 
-									this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1]
-								);
+									this.gradientMinMax.min,
+									this.gradientMinMax.max);
 							}
 							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 						});
@@ -760,8 +755,9 @@ export default Vue.component("research-scatter-plot", {
 			//check if selected color field should be gradient type
 			if(e.target.options[e.target.selectedIndex].dataset.keyType === 'gradient'){
 				this.colorByGradient = this.renderConfig["color field gradient"] = this.renderConfig["color field"];
-				this.gradientMinMax.max = this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1];
-				this.gradientMinMax.min = this.colorByList[ this.renderConfig["color field"] ][0];
+				const cb = this.renderConfig['color by'].find(({field}) => field === this.colorByGradient);
+				this.gradientMinMax.max = cb.minmax.max;
+				this.gradientMinMax.min = cb.minmax.min;
 				this.gradientMinMax.currMax = this.gradientMinMax.max;
 				this.gradientMinMax.currMin = this.gradientMinMax.min;
 				this.gradientMinMax.activeEl = null;
