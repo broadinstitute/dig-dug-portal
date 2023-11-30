@@ -679,7 +679,7 @@ export default Vue.component("research-section", {
 			if (!!this.dataPoint.parameters) {
 				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
-						queryParams[p] = this.utils.keyParams[p].split(",");
+						queryParams[p] = this.utils.keyParams[p].split(","); /// work on this line
 					} else {
 						queryParamsSet = null;
 					}
@@ -1080,7 +1080,7 @@ export default Vue.component("research-section", {
 					filterValues[filter.parameter] = this.utils.keyParams[filter.parameter]
 				})
 
-				console.log("filterValues", filterValues);
+				//console.log("filterValues", filterValues);
 
 				this.sectionData = this.utils.filterUtils.applyFilters(filters, this.sectionData, filterValues);
 			}

@@ -238,7 +238,13 @@ export default Vue.component("research-multi-sections-search", {
 				let paramValue = document.getElementById("search_param_" + s.parameter).value;
 				
 				if(!!this.utils.keyParams[s.parameter]) {
-					paramValue = (!this.utils.keyParams[s.parameter].includes(paramValue)) ? this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];
+					/*paramValue = (!this.utils.keyParams[s.parameter].includes(paramValue)) ? 
+						this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];*/
+					paramValue = (s["value number"] == "multi")? 
+						(!this.utils.keyParams[s.parameter].includes(paramValue)) ?
+						this.utils.keyParams[s.parameter] + "," + paramValue 
+						: this.utils.keyParams[s.parameter] 
+						: paramValue;
 				}
 				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 			})

@@ -336,14 +336,16 @@ export default Vue.component("research-genes-track", {
 					}
 				});
 
-				let yPos1 = this.plotMargin.topMargin - (this.plotMargin.bump * 3);
-				let yPos2 = this.plotMargin.topMargin + (GENES.length * eachGeneTrackHeight);
+				if(!!this.starItems) {
+					let yPos1 = this.plotMargin.topMargin - (this.plotMargin.bump * 3);
+					let yPos2 = this.plotMargin.topMargin + (GENES.length * eachGeneTrackHeight);
 
-				this.starItems.map(star =>{
-					let xPos = xStart + (star.columns[this.plotConfig["x axis field"]] - xMin) * xPosByPixel;
+					this.starItems.map(star => {
+						let xPos = xStart + (star.columns[this.plotConfig["x axis field"]] - xMin) * xPosByPixel;
 
-					this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
-				})
+						this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
+					})
+				}
 			}
 		},
 		async getGenesInRegion(region) {

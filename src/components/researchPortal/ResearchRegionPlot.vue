@@ -1050,7 +1050,8 @@ export default Vue.component("research-region-plot", {
 				let yField = this.renderConfig["y axis field"];
 
 				/// first render position lines of the star variants
-				if (!!this.renderConfig["star key"]) {
+				
+				if (!!this.renderConfig["star key"] && !!!!this.isSectionPage) {
 					let yPos1 = this.plotMargin.topMargin - (this.plotMargin.bump * 3);
 					let yPos2 = this.plotMargin.topMargin + HEIGHT + (this.plotMargin.bump * 2);
 
@@ -1060,17 +1061,6 @@ export default Vue.component("research-region-plot", {
 						this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
 						this.renderDot(CTX, xPos, yPos2, "#FFAA0055", 5);
 					})
-
-					/*for (const [key, value] of Object.entries(
-						this.assoData[GROUP].data
-					)) {
-						if (value[xField] >= xMin && value[xField] <= xMax) {
-							let xPos = xStart + (value[xField] - xMin) * xPosByPixel;
-							this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
-
-							this.renderDot(CTX, xPos, yPos2, "#FFAA0055", 5);
-						}
-					}*/
 				}
 
 				if (GROUP != "Combined") {
@@ -1101,7 +1091,6 @@ export default Vue.component("research-region-plot", {
 							if (key == this.ldData[GROUP].refVariant) {
 								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 
-									//this.utils.plotUtils.renderDashedLine(CTX, xPos, this.plotMargin.topMargin, xPos, this.plotMargin.topMargin + HEIGHT, "#FFFF00", [10,10])
 									this.utils.plotUtils.renderStar(
 										CTX,
 										xPos,
@@ -1122,7 +1111,6 @@ export default Vue.component("research-region-plot", {
 								}
 							} else {
 								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
-									//this.utils.plotUtils.renderDashedLine(CTX, xPos, this.plotMargin.topMargin, xPos, this.plotMargin.topMargin + HEIGHT, "#FFFF00", [10, 10])
 									this.utils.plotUtils.renderStar(
 										CTX,
 										xPos,

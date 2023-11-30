@@ -608,7 +608,7 @@ export default Vue.component("research-data-table", {
 				let vIndex = 0;
 				parameter.map(p=>{
 					document.getElementById("search_param_" + p).value = values[vIndex];
-					this.$root.$refs.multiSectionSearch.updateSearch(p, targetSections);
+					this.$root.$refs.multiSectionSearch.updateSearch(p, targetSections,);
 					vIndex++;
 				})
 
