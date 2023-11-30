@@ -572,7 +572,6 @@ export default Vue.component("research-data-table", {
 	},
 	watch: {
 		dataset(DATA) {
-			//console.log("this.searchParameters", this.searchParameters);
 			if (this.dataComparisonConfig != null) {
 				this.compareGroups = [];
 				let loopNum =
@@ -595,14 +594,21 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	methods: {
-		//...Formatters,
 		setParameter(VALUE,KEY,SECTION){
-			let parameter = this.tableFormat['column formatting'][KEY]['parameter'];
-			let targetSections = SECTION == "all" || !SECTION ? this.tableFormat['column formatting'][KEY]['target sections']:[SECTION];
+
+			let targetSections = SECTION == "all" || !SECTION ? this.tableFormat['column formatting'][KEY]['target sections'] : [SECTION];
+			let parameter = [];
+
+			targetSections.map(section => {
+				this.tableFormat['column formatting'][KEY]['target sections'].map(tgSection => {
+					if(tgSection.section == section) {
+						parameter = parameter.concat(tgSection['parameter']);
+					}
+				})
+				
+			})
 
 			if(typeof parameter === "object") {
-				console.log("here",VALUE, KEY, parameter, targetSections);
-
 				let values = VALUE.split(",");
 
 				let vIndex = 0;
@@ -616,7 +622,6 @@ export default Vue.component("research-data-table", {
 				document.getElementById("search_param_" + parameter).value = VALUE;
 				this.$root.$refs.multiSectionSearch.updateSearch(parameter, targetSections);
 			}
-			
 		},
 		ifSetParameterColumn(KEY){
 			if(!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]

@@ -65,24 +65,6 @@
 		<div class="col-md-12 region-plots-wrapper" :id="'plotsWrapper' + item.replaceAll(' ', '_')"
 			v-for="(item, itemIndex) in plotsList">
 			<div class="col-md-9 region-plot-default-legend">
-				<!--<span
-					v-for="(g, gIndex) in plotsList"
-					v-if="item == 'Combined' && g != 'Combined'"
-					class="group-bubble"
-					v-html="g"
-					:style="
-						'background-color:' + compareGroupColors[gIndex] + ';'
-					"
-				></span>
-				<button
-					type="button"
-					v-if="item == 'Combined'"
-					class="group-bubble reference"
-					style="background-color: #ffffff; border: solid 1px #666666"
-					@click="showHideSplitPlots()"
-				>
-					Show/hide Individual plots
-				</button>-->
 				<div v-if="item != 'Combined'">
 					<span class="plot-legend-dot" style="background-color: #824099cc"></span>
 					<span>Reference variant</span>
@@ -105,20 +87,6 @@
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
 						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
-
-					<!-- /// x position line test
-						<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
-						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
-						@mousemove="renderPlots($event)"
-						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>-->
-					<!--<span
-						v-if="sharedPlotXpos != null"
-						:style="
-							'position:absolute;width: 1px; height:100%;top:0;left: ' +
-							sharedPlotXpos +
-							'px;border-left: solid 1px #000;'
-						"
-					></span>-->
 					<div :id="'assoInfoBox' + item.replaceAll(' ', '_') + sectionId" class="asso-info-box hidden"></div>
 				</div>
 			</div>

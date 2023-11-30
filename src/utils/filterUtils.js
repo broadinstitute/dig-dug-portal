@@ -7,10 +7,9 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
 
         FILTERS.map(filter => {
 
-            let filterValue = (filter.value == 'search parameter') ?
-                PARAMS[filter.parameter] : filter.value;
+            let filterValue = !!PARAMS[filter.parameter] ? PARAMS[filter.parameter] : filter.value;
 
-            if (!!d[filter.field] && d[filter.field] != undefined && meetFilters == true) {
+            if (!!d[filter.field] && d[filter.field] != undefined && meetFilters == true && !!filterValue) {
                 let filterVals;
                 switch (filter.type) {
                     case 'search':

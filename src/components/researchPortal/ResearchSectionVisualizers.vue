@@ -68,7 +68,7 @@
 			:renderConfig="plotConfig"
 			:searchParameters="searchParameters"
 			:dataComparisonConfig="dataComparisonConfig"
-			:region="utils.keyParams.region"
+			:region="region"
 			:plotMargin="plotMargin"
 			:compareGroupColors="colors.moderate"
 			:regionZoom="regionZoom"
@@ -84,7 +84,7 @@
 		<!-- genes track -->
 		<research-genes-track
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!plotConfig['genes track']"
-			:region="utils.keyParams.region"
+			:region="region"
 			:genesData="null"
 			:plotConfig="plotConfig"
 			:plotType="plotConfig['type']"
@@ -110,7 +110,7 @@
 		></research-scatter-plot>
 		<!-- Annotations plot-->
 		<!--<research-multi-annotations-plot
-			:region="utils.keyParams.region"
+			:region="region"
 			:phenotype="utils.keyParams.phenotype"
 			:ancestry=""
 			:renderConfig="plotConfig"
@@ -147,7 +147,7 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
-		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems"],
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,

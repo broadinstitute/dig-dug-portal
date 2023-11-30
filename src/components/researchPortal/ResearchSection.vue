@@ -157,6 +157,7 @@
 							:searchParameters="groupSearchParameters"
 							:regionZoom="regionZoom"
 							:regionViewArea="regionViewArea"
+							:region="getRegion()"
 							:starItems="starItems"
 							@on-star="starColumn">
 						</research-section-visualizers>
@@ -170,6 +171,7 @@
 					:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
 					:regionZoom="regionZoom"
 					:regionViewArea="regionViewArea"
+					:region="getRegion()"
 					:starItems="starItems"
 					@on-star="starColumn">
 				</research-section-visualizers>
@@ -187,7 +189,7 @@
 					:multiSectionPage="true" 
 					:starItems="starItems"
 					:utils="utils" @clicked-sort="sortData"
-					:region="utils.keyParams.region"
+					:region="getRegion()"
 					:regionZoom="regionZoom"
 					:regionViewArea="regionViewArea"
 					@on-star="starColumn"
@@ -357,15 +359,15 @@ export default Vue.component("research-section", {
 			return legend;
 		},
 		viewingRegion() {
-			if (this.utils.keyParams.region == null) {
+			if (this.getRegion() == null) {
 				return null;
 			} else {
 				let returnObj = {};
 
-				returnObj["chr"] = parseInt(this.utils.keyParams.region.split(":")[0], 10);
+				returnObj["chr"] = parseInt(this.getRegion().split(":")[0], 10);
 
-				let regionArr = this.utils.keyParams.region.split(":")[1].split("-");
-				let chr = this.utils.keyParams.region.split(":")[0];
+				let regionArr = this.getRegion().split(":")[1].split("-");
+				let chr = this.getRegion().split(":")[0];
 				let start = parseInt(regionArr[0], 10);
 				let end = parseInt(regionArr[1], 10);
 				let distance = end - start;
@@ -451,6 +453,10 @@ export default Vue.component("research-section", {
 	methods: {
 		starColumn(ARRAY) {
 			this.$emit('on-star', ARRAY);
+		},
+		getRegion() {
+			let region = !!this.dataPoint['region']? this.utils.keyParams[this.dataPoint['region']]: this.utils.keyParams['region'];
+			return region;
 		},
 		resetAll() {
 			this.sectionData = null,
@@ -768,8 +774,12 @@ export default Vue.component("research-section", {
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
 				this.processLoadedBI(contentJson, QUERY);
 			} else {
-				// fetch failed
-				this.sectionData = null;
+				// fetch failed 
+				if(!!this.dataPoint["cumulate data"]) {
+					this.sectionData = this.sectionData
+				} else {
+					this.sectionData = null;
+				}
 				this.loadingDataFlag = "down"
 			}
 		},
@@ -784,7 +794,11 @@ export default Vue.component("research-section", {
 				this.processLoadedBI(contentJson, QUERY);
 			} else {
 				// fetch failed
-				this.sectionData = null;
+				if (!!this.dataPoint["cumulate data"]) {
+					this.sectionData = this.sectionData
+				} else {
+					this.sectionData = null;
+				}
 				this.loadingDataFlag = "down"
 			}
 		},
@@ -817,7 +831,11 @@ export default Vue.component("research-section", {
 				this.processLoadedApi(contentJson,QUERY, TYPE, PARAMS);
 			} else {
 				// fetch failed
-				this.sectionData = null;
+				if (!!this.dataPoint["cumulate data"]) {
+					this.sectionData = this.sectionData
+				} else {
+					this.sectionData = null;
+				}
 				this.loadingDataFlag = "down"
 			}
 		},
@@ -863,6 +881,8 @@ export default Vue.component("research-section", {
 					d[queryKeyName] = QUERY;
 				});
 
+				data = this.checkPreFilters(data);
+
 				if (CONTENT.page == 1) {
 					this.sectionData = !!isOriginalDataEmpty ? data : this.sectionData.concat(data);
 				} else {
@@ -883,6 +903,7 @@ export default Vue.component("research-section", {
 					}
 				}
 			} else {
+				data = this.checkPreFilters(data)
 				if (CONTENT.page == 1) {
 					this.sectionData = data;
 				} else {
@@ -1037,21 +1058,23 @@ export default Vue.component("research-section", {
 						d[queryKeyName] = QUERY;
 					});
 
+					data = this.checkPreFilters(data);
+
 					let paramsString = this.getParamString();
 
 					if (paramsString == "invalid") {
-
 						this.sectionData = !!isOriginalDataEmpty ? data : this.sectionData.concat(data);
 						this.loadingDataFlag = "down";
 						this.completeDataLoad(QUERY);
 
 					} else {
-						this.sectionData = (!this.sectionData)? data: this.sectionData.concat(data);
+						
+						this.sectionData = (!this.sectionData)? data : this.sectionData.concat(data);
 						this.originalData = this.sectionData;
 						this.queryApi(paramsString, TYPE, PARAMS)
 					}
 				} else {
-					this.sectionData = data;
+					this.sectionData = this.checkPreFilters(data);
 					this.loadingDataFlag = "down";
 					this.completeDataLoad(QUERY);
 				}
@@ -1069,21 +1092,24 @@ export default Vue.component("research-section", {
 			
 		},
 
-		completeDataLoad(QUERY) {
-
-			//Apply pre-filters
-			if (this.sectionData != null && !!this.sectionConfig["pre filters"]) {
+		checkPreFilters(DATA) {
+			//Apply pre filters as data gets loaded;
+			let returnData = DATA;
+			if (!!this.sectionConfig["pre filters"]) {
 				let filters = this.sectionConfig["pre filters"];
 				let filterValues = {}
 
 				filters.map(filter => {
-					filterValues[filter.parameter] = this.utils.keyParams[filter.parameter]
+					filterValues[filter.parameter] = this.utils.keyParams[filter.parameter];
 				})
 
-				//console.log("filterValues", filterValues);
-
-				this.sectionData = this.utils.filterUtils.applyFilters(filters, this.sectionData, filterValues);
+				returnData = this.utils.filterUtils.applyFilters(filters, DATA, filterValues);
 			}
+
+			return returnData;
+		},
+
+		completeDataLoad(QUERY) {
 
 			if (this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
 				let sortBy = this.sectionConfig["table format"]["initial sort by"]
