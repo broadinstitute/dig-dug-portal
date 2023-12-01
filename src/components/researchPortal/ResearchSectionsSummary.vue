@@ -24,7 +24,7 @@
 				<research-data-table 
 					v-if="!!primaryData"
 					:pageID="sectionIndex"
-					:dataset="sectionData"
+					:dataset="primaryData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="10"
 					:tableLegend="null" 
@@ -98,7 +98,7 @@ export default Vue.component("research-sections-summary", {
 		},
 		primaryData() {
 			let primaryData = this.sectionsData.filter(data=> data.id == this.sectionsConfig.sections["primary section"]);
-			return !!primaryData[0] ? primaryData[0] : null;
+			return !!primaryData[0] ? primaryData[0].data : null;
 		}
 	},
 	watch: {
