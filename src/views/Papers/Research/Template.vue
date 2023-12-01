@@ -598,6 +598,7 @@
 												:class="(tabIndex == 0)?'':'hidden-content'"
 												>
 												<research-section
+													v-if="!config['is summary section']"
 													:sectionIndex="'section-' + index"
 													:uId="$parent.uid"
 													:sectionConfig="config"
@@ -612,37 +613,28 @@
 													:utils="$parent.utilsBox"
 													:key="index"
 													:starItems="$parent.starItems"
-													@on-star="$parent.starColumn">
+													@on-star="$parent.starColumn"
+													@on-sectionData="$parent.onSectionsData">
 												</research-section>
+												<research-sections-summary
+													v-if="!!config['is summary section']"
+													:sectionIndex="'section-' + index"
+													:uId="$parent.uid"
+													:key="index"
+													:sectionsConfig="config"
+													:sectionsData="$parent.sectionsData"
+													:utils="$parent.utilsBox"
+													:starItems="$parent.starItems"
+													@on-star="$parent.starColumn">
+												</research-sections-summary>
 										</div>
 										</template>
 									</div>
 								</template>
-								<template v-for="config, index in $parent.sectionConfigs.sections">
-									<research-section
-										v-if="$parent.isInTabGroups(config['section id']) == false"
-										:sectionIndex="'section-' + index"
-										:uId="$parent.uid"
-										:sectionConfig="config"
-										:description="!!$parent.sectionDescriptions ?
-											$parent.sectionDescriptions[config['section id']] : ''"
-										:phenotypeMap="$parent.phenotypeMap"
-										:phenotypesInUse="$parent.phenotypesInSession"
-										:colors="$parent.colors"
-										:plotMargin="$parent.plotMargin"
-										:plotLegend="$parent.plotLegend"
-										:tableLegend="$parent.tableLegend"
-										:utils="$parent.utilsBox"
-										:key="index"
-										:starItems="$parent.starItems"
-										@on-star="$parent.starColumn"
-										>
-									</research-section>	
-								</template>
 							</template>
-							<template v-else>
+							<template v-for="config, index in $parent.sectionConfigs.sections">
 								<research-section
-									v-for="config, index in $parent.sectionConfigs.sections"
+									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
 									:sectionConfig="config"
@@ -657,8 +649,21 @@
 									:utils="$parent.utilsBox"
 									:key="index"
 									:starItems="$parent.starItems"
-									@on-star="$parent.starColumn">
+									@on-star="$parent.starColumn"
+									@on-sectionData="$parent.onSectionsData">
 								</research-section>	
+								<research-sections-summary
+									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
+									:sectionIndex="'section-' + index"
+									:uId="$parent.uid"
+									:key="index"
+									:sectionsConfig="config"
+									:sectionsData="$parent.sectionsData"
+									:utils="$parent.utilsBox"
+									:starItems="$parent.starItems"
+									@on-star="$parent.starColumn"
+									>
+								</research-sections-summary>
 							</template>
 							
 	            		</div>

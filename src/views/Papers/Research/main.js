@@ -34,6 +34,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotat
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
+import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -77,11 +78,13 @@ new Vue({
         kpGEMPkg,
         Documentation,
         ResearchSection,
+        ResearchSectionsSummary,
         ResearchMultiSectionsSearch
     },
     data() {
         return {
             starItems: [],
+            sectionsData: [],
             pageID: null,
             regionZoom: 0,
             regionViewArea: 0,
@@ -1191,15 +1194,32 @@ new Vue({
         starColumn(ARRAY) {
             this.starItems = ARRAY;
         },
+        onSectionsData(SECTION) {
+            console.log("on sections called");
+
+            let sectionExist = null;
+            this.sectionsData.map(section => {
+                if (section.id == SECTION.id) {
+                    section.data = SECTION.data;
+                    sectionExist = true;
+                }
+            })
+
+            if (!sectionExist) {
+                this.sectionsData.push(SECTION);
+            }
+        },
         isInTabGroups(SECTION) {
             let sectionInGroup = false;
-            this.sectionConfigs['tab groups'].map(group => {
-                group.map(tab => {
-                    if (tab.section == SECTION) {
-                        sectionInGroup = true;
-                    }
+            if (!!this.sectionConfigs['tab groups']) {
+                this.sectionConfigs['tab groups'].map(group => {
+                    group.map(tab => {
+                        if (tab.section == SECTION) {
+                            sectionInGroup = true;
+                        }
+                    })
                 })
-            })
+            }
 
             return sectionInGroup;
         },
