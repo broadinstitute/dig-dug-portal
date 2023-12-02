@@ -22,9 +22,9 @@
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				{{ sectionsConfig }}
 				<research-data-table 
-					v-if="!!primaryData"
+					v-if="!!sectionData"
 					:pageID="sectionIndex"
-					:dataset="primaryData"
+					:dataset="sectionData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="10"
 					:tableLegend="null" 
@@ -96,22 +96,75 @@ export default Vue.component("research-sections-summary", {
 		sectionID() {
 			return this.sectionsConfig["section id"];
 		},
-		primaryData() {
-			let primaryData = this.sectionsData.filter(data=> data.id == this.sectionsConfig.sections["primary section"]);
-			return !!primaryData[0] ? primaryData[0].data : null;
+		
+
+		wholeDataCounts() {
+			let rowsTotalNum = 0;
+			let sections = [this.sectionsConfig.sections["primary section"]];
+			let subSections = this.sectionsConfig.sections["sub sections"];
+
+			subSections.map(sub=>{
+				sections.push(sub.section);
+			})
+			this.sectionsData.map(data => {
+				if(!!sections.includes(data.id)){
+					rowsTotalNum += data.data.length;
+				}
+			})
+			return rowsTotalNum > 0? rowsTotalNum : null;
 		}
 	},
 	watch: {
-		primaryData(DATA) {
-			console.log("this.sectionsData",this.sectionsData);
-			let primaryData = this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]);
-			this.sectionData = !!primaryData[0] ? primaryData[0].data : null;
-			this.tableFormat = !!primaryData[0] ? primaryData[0].config['table format'] : null;
+		/*{ "section id": "testSummary", "header": "test Summary Section", "is summary section": "true", 
+			"sections": { "primary section": "associations", 
+			"sub sections": [ { "section": "credibleVariants", 
+			"actions": [ { 
+				"action": "filter", 
+				"filter field": "Variant ID", 
+				"target field": "Variant ID", 
+				"type": "search" } ] } ] } }*/
+		wholeDataCounts(NUM) {
+			console.log("counting",NUM);
+			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
+			let primaryData = primarySection[0].data;
+			let subSections = this.sectionsConfig.sections["sub sections"];
+
+			subSections.map(section => {
+				let targetData = primaryData;
+				let filterData = this.sectionsData.filter(data => data.id == section.section)[0].data;
+				section.actions.map(action=>{
+					switch(action.action) {
+						case "filter":
+							primaryData = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
+							break;
+					}
+				})
+			})
+			this.sectionData = primaryData;
+			this.tableFormat = !!primarySection[0] ? primarySection[0].config['table format'] : null;
 		}
 	},
 	methods: {
+		applyFilter(targetData,filterData,targetField,filterField,TYPE){
+			let returnData = [];
+			switch (TYPE) {
+				case "search":
+					
+					let filterFieldArr = [...new Set(filterData.map(d=>d[filterField]))];
+					console.log("filterFieldArr", filterFieldArr, targetData[0]);
+
+					targetData.map(d=>{
+						//console.log('d["targetField"]', d);
+						if(!!filterFieldArr.includes(d[targetField])) {
+							returnData.push(d);
+						}
+					})
+					break;
+			}
+
+			return returnData;
+		},
 		starColumn(ARRAY) {
-			console.log("star called");
 			this.$emit('on-star', ARRAY);
 		},
 		getData() {

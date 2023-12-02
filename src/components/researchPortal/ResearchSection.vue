@@ -402,7 +402,9 @@ export default Vue.component("research-section", {
 				this.mergedData = this.getMergedData();
 			}
 
-			this.$emit('on-sectionData', {id: this.sectionID, config: this.sectionConfig, data: DATA });
+			if (this.loadingDataFlag == "down") {
+				this.$emit('on-sectionData', {id: this.sectionID, config: this.sectionConfig, data: DATA });
+			}
 		},
 		originalData(DATA) {
 			if (this.loadingDataFlag == "down") {
