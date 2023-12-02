@@ -126,39 +126,50 @@ export default Vue.component("research-sections-summary", {
 		wholeDataCounts(NUM) {
 			console.log("counting",NUM);
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
-			this.tableFormat = !!primarySection[0] ? primarySection[0].config['table format'] : null;
+			this.tableFormat = !!primarySection[0] ? JSON.parse(JSON.stringify(primarySection[0].config['table format'])): null;
 			let primaryData = primarySection[0].data;
 			let subSections = this.sectionsConfig.sections["sub sections"];
 
+			let targetData = [...new Set(primaryData)];
+
 			subSections.map(section => {
-				let targetData = primaryData;
+				
 				let filterData = this.sectionsData.filter(data => data.id == section.section)[0].data;
 
 				let actions = [{ "action": "filter","filter field": "Variant ID","target field": "Variant ID","type": "search"},
-								{ "action": "add top columns", "columns":[{"column":"PPA","if multiple values":"pick greater"}] }];
+								{ "action": "add top columns", "columns":[{"column":"PPA","key field":"Variant ID","if multiple values":"pick greater"}] }];
 
 				actions.map(action=>{
 					switch(action.action) {
 						case "filter":
-							primaryData = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
+							targetData = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
 							break;
 						case "add top columns":
 							action.columns.map(column =>{
-								primaryData = this.addTopColumns(targetData, filterData, column.column, action["if multiple values"]);
+								targetData = this.addTopColumns(targetData, filterData, column["key field"],column.column, action["if multiple values"]);
 							})
 							
 							break;
 					}
 				})
 			})
-			this.sectionData = primaryData;
+			this.sectionData = targetData;
 			
 		}
 	},
 	methods: {
-		addTopColumns(TG_DATA,FTL_DATA,COLUMN, IF_MULTIPLE) {
+		addTopColumns(TG_DATA,FTL_DATA,KEY_FIELD, COLUMN, IF_MULTIPLE) {
+			
+			let filterDataObj = {};
+			FTL_DATA.map(FD => {
+				filterDataObj[FD[KEY_FIELD]] = FD;
+			})
+
+			TG_DATA.map(TD=>{
+				TD[COLUMN] = filterDataObj[TD[KEY_FIELD]][COLUMN];
+			})
+
 			if(!!this.tableFormat){
-				console.log(this.tableFormat);
 				this.tableFormat["top rows"].push(COLUMN);
 			}
 			
