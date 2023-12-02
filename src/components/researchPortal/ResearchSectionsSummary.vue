@@ -126,25 +126,44 @@ export default Vue.component("research-sections-summary", {
 		wholeDataCounts(NUM) {
 			console.log("counting",NUM);
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
+			this.tableFormat = !!primarySection[0] ? primarySection[0].config['table format'] : null;
 			let primaryData = primarySection[0].data;
 			let subSections = this.sectionsConfig.sections["sub sections"];
 
 			subSections.map(section => {
 				let targetData = primaryData;
 				let filterData = this.sectionsData.filter(data => data.id == section.section)[0].data;
-				section.actions.map(action=>{
+
+				let actions = [{ "action": "filter","filter field": "Variant ID","target field": "Variant ID","type": "search"},
+								{ "action": "add top columns", "columns":[{"column":"PPA","if multiple values":"pick greater"}] }];
+
+				actions.map(action=>{
 					switch(action.action) {
 						case "filter":
 							primaryData = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
+							break;
+						case "add top columns":
+							action.columns.map(column =>{
+								primaryData = this.addTopColumns(targetData, filterData, column.column, action["if multiple values"]);
+							})
+							
 							break;
 					}
 				})
 			})
 			this.sectionData = primaryData;
-			this.tableFormat = !!primarySection[0] ? primarySection[0].config['table format'] : null;
+			
 		}
 	},
 	methods: {
+		addTopColumns(TG_DATA,FTL_DATA,COLUMN, IF_MULTIPLE) {
+			if(!!this.tableFormat){
+				console.log(this.tableFormat);
+				this.tableFormat["top rows"].push(COLUMN);
+			}
+			
+			return TG_DATA;
+		},
 		applyFilter(targetData,filterData,targetField,filterField,TYPE){
 			let returnData = [];
 			switch (TYPE) {
