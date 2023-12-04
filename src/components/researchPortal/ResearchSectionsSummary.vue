@@ -137,7 +137,8 @@ export default Vue.component("research-sections-summary", {
 				let filterData = this.sectionsData.filter(data => data.id == section.section)[0].data;
 
 				let actions = [{ "action": "filter","filter field": "Variant ID","target field": "Variant ID","type": "search"},
-								{ "action": "add top columns", "columns":[{"column":"PPA","key field":"Variant ID","if multiple values":"pick greater"}] }];
+								{ "action": "add top columns", "columns":[{"column":"PPA","key field":"Variant ID","if multiple values":"pick greater"}] },
+								{ "action": "add features", "features":["PPA","test"],"PPA": ["Credible Set ID","PPA"]}];
 
 				actions.map(action=>{
 					switch(action.action) {
@@ -145,10 +146,37 @@ export default Vue.component("research-sections-summary", {
 							targetData = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
 							break;
 						case "add top columns":
+
+							this.tableFormat["features"] = ["CSID","TEST"];
+							this.tableFormat["CSID"] = ["Variant ID", "PPA"];
+							this.tableFormat["TEST"] = ["P-Value"];
+
 							action.columns.map(column =>{
-								targetData = this.addTopColumns(targetData, filterData, column["key field"],column.column, action["if multiple values"]);
+								targetData = this.addField(targetData, filterData, column["key field"],column.column, action["if multiple values"]);
+								if (!!this.tableFormat) {
+									this.tableFormat["top rows"].push(column.column);
+								}
 							})
+
 							
+							break;
+						case "add features":
+
+						/*if(!!this.tableFormat) {
+							if(!!this.tableFormat.features) {
+
+							} else {
+								this.tableFormat["features"] = [];
+
+								action.features.map(feature =>{
+										this.tableFormat.features.push(feature);
+										this.tableFormat[feature] = action[feature];
+								})
+							}
+						}*/
+
+						console.log(this.tableFormat);
+
 							break;
 					}
 				})
@@ -158,21 +186,15 @@ export default Vue.component("research-sections-summary", {
 		}
 	},
 	methods: {
-		addTopColumns(TG_DATA,FTL_DATA,KEY_FIELD, COLUMN, IF_MULTIPLE) {
-			
+		addField(TG_DATA, FTL_DATA, KEY_FIELD, COLUMN, IF_MULTIPLE){
 			let filterDataObj = {};
 			FTL_DATA.map(FD => {
 				filterDataObj[FD[KEY_FIELD]] = FD;
 			})
 
-			TG_DATA.map(TD=>{
+			TG_DATA.map(TD => {
 				TD[COLUMN] = filterDataObj[TD[KEY_FIELD]][COLUMN];
 			})
-
-			if(!!this.tableFormat){
-				this.tableFormat["top rows"].push(COLUMN);
-			}
-			
 			return TG_DATA;
 		},
 		applyFilter(targetData,filterData,targetField,filterField,TYPE){
