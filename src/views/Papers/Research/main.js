@@ -90,6 +90,7 @@ new Vue({
             regionViewArea: 0,
             devID: null,
             devPW: null,
+            devCK: null,
             dataFiles: [],
             dataTableFormat: null,
             colors: {
@@ -175,8 +176,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
-
-
     },
 
     render(createElement, context) {
@@ -1282,6 +1281,7 @@ new Vue({
                 pageID: this.pageID,
                 devID: devID,
                 devPW: devPW,
+                devCK: this.devCK
             });
         },
         CSVToArray(strData, strDelimiter) {

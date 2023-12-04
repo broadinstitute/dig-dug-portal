@@ -77,10 +77,19 @@
 											class="btn btn-primary"
 											@click="$parent.fetchDevPage()"
 										>
-											Load page
+											Load page 
 										</button>
 									</div>
 								</div>
+							</div>
+							<div class="row">
+								<label class="col">
+									<input 
+										type="checkbox" 
+										v-model="$parent.devCK"
+									>
+									Remember me for 2 weeks.
+								</label>
 							</div>
 						</div>
 					</div>
