@@ -133,23 +133,21 @@ export default Vue.component("research-sections-summary", {
 			let targetData = [...new Set(primaryData)];
 
 			subSections.map(section => {
+
+				console.log("section", section)
 				
 				let filterData = this.sectionsData.filter(data => data.id == section.section)[0].data;
 
-				let actions = [{ "action": "filter","filter field": "Variant ID","target field": "Variant ID","type": "search"},
+				/*let actions = [{ "action": "filter","filter field": "Variant ID","target field": "Variant ID","type": "search"},
 								{ "action": "add top columns", "columns":[{"column":"PPA","key field":"Variant ID","if multiple values":"pick greater"}] },
-								{ "action": "add features", "features":["PPA","test"],"PPA": ["Credible Set ID","PPA"]}];
-
-				actions.map(action=>{
+								{ "action": "add features", "features":["CSID"], "key field": "Variant ID", "CSID": ["Credible Set ID","PPA"], "if multiple values": "replace" }];
+*/
+				section.actions.map(action=>{
 					switch(action.action) {
 						case "filter":
 							targetData = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
 							break;
 						case "add top columns":
-
-							this.tableFormat["features"] = ["CSID","TEST"];
-							this.tableFormat["CSID"] = ["Variant ID", "PPA"];
-							this.tableFormat["TEST"] = ["P-Value"];
 
 							action.columns.map(column =>{
 								targetData = this.addField(targetData, filterData, column["key field"],column.column, action["if multiple values"]);
@@ -161,19 +159,20 @@ export default Vue.component("research-sections-summary", {
 							
 							break;
 						case "add features":
+							this.tableFormat["features"] = action.features;
+							//this.tableFormat["CSID"] = ["Credible Set ID", "PPA"];
+							//this.tableFormat["TEST"] = ["P-Value"];
 
-						/*if(!!this.tableFormat) {
-							if(!!this.tableFormat.features) {
+							action.features.map(feature => {
+								this.tableFormat[feature] = action[feature];
+							});
 
-							} else {
-								this.tableFormat["features"] = [];
-
-								action.features.map(feature =>{
-										this.tableFormat.features.push(feature);
-										this.tableFormat[feature] = action[feature];
+							action.features.map(feature => {
+								action[feature].map(f =>{
+									targetData = this.addField(targetData, filterData, action["key field"], f, action["if multiple values"]);
 								})
-							}
-						}*/
+								
+							})
 
 						console.log(this.tableFormat);
 

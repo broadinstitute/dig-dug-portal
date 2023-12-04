@@ -233,7 +233,7 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		updateSearch(KEY,TARGET_SECTIONS) {
 
-			
+
 console.log("updateSearch called", KEY, TARGET_SECTIONS);
 			let paramsObj = {}
 
@@ -254,13 +254,11 @@ console.log("updateSearch called", KEY, TARGET_SECTIONS);
 				let paramValue = document.getElementById("search_param_" + KEY).value;
 
 				if (!!this.utils.keyParams[KEY]) {
-					paramValue = this.utils.keyParams[KEY] + "," + paramValue;
+					paramValue = paramValue;
 				}
 				paramsObj[KEY] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 
 			}
-			
-
 			
 			this.utils.keyParams.set(paramsObj);
 
@@ -331,7 +329,7 @@ console.log("updateSearch called", KEY, TARGET_SECTIONS);
 
 		},
 		async getGenes(EVENT) {
-			if (EVENT.target.value.length > 2) {
+			if (EVENT.target.value.length > 2 && !EVENT.target.value.includes(",")) {
 				let searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/match/gene?q=" + EVENT.target.value;
 
 				let geneJson = await fetch(searchPoint).then((resp) => resp.json());

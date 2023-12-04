@@ -328,7 +328,7 @@ export default Vue.component("research-in-section-search", {
 			
 		},
 		async getGenes(EVENT) {
-			if (EVENT.target.value.length > 2) {
+			if (EVENT.target.value.length > 2 && !EVENT.target.value.includes(",")) {
 				let searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/match/gene?q=" + EVENT.target.value;
 
 				let geneJson = await fetch(searchPoint).then((resp) => resp.json());
