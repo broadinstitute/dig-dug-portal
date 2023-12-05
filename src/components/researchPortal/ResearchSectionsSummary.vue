@@ -115,14 +115,6 @@ export default Vue.component("research-sections-summary", {
 		}
 	},
 	watch: {
-		/*{ "section id": "testSummary", "header": "test Summary Section", "is summary section": "true", 
-			"sections": { "primary section": "associations", 
-			"sub sections": [ { "section": "credibleVariants", 
-			"actions": [ { 
-				"action": "filter", 
-				"filter field": "Variant ID", 
-				"target field": "Variant ID", 
-				"type": "search" } ] } ] } }*/
 		wholeDataCounts(NUM) {
 			console.log("counting",NUM);
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
@@ -140,8 +132,8 @@ export default Vue.component("research-sections-summary", {
 
 				/*let actions = [{ "action": "filter","filter field": "Variant ID","target field": "Variant ID","type": "search"},
 								{ "action": "add top columns", "columns":[{"column":"PPA","key field":"Variant ID","if multiple values":"pick greater"}] },
-								{ "action": "add features", "features":["CSID"], "key field": "Variant ID", "CSID": ["Credible Set ID","PPA"], "if multiple values": "replace" }];
-*/
+								{ "action": "add features", "feature":"CSID", "key field": "Variant ID", "columns": ["Credible Set ID","PPA"], "if multiple values": "add" }];*/
+
 				section.actions.map(action=>{
 					switch(action.action) {
 						case "filter":
@@ -159,22 +151,16 @@ export default Vue.component("research-sections-summary", {
 							
 							break;
 						case "add features":
-							this.tableFormat["features"] = action.features;
-							//this.tableFormat["CSID"] = ["Credible Set ID", "PPA"];
-							//this.tableFormat["TEST"] = ["P-Value"];
 
-							action.features.map(feature => {
-								this.tableFormat[feature] = action[feature];
-							});
+							this.tableFormat["features"] = !this.tableFormat["features"]?[]: this.tableFormat["features"];
+							
+							this.tableFormat["features"].push(action.feature);
 
-							action.features.map(feature => {
-								action[feature].map(f =>{
-									targetData = this.addField(targetData, filterData, action["key field"], f, action["if multiple values"]);
-								})
-								
-							})
+							this.tableFormat[action.feature] = action.columns;
+							targetData = this.addFeatureField(targetData, filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
+							
 
-						console.log(this.tableFormat);
+							console.log("targetData", targetData);
 
 							break;
 					}
@@ -185,6 +171,32 @@ export default Vue.component("research-sections-summary", {
 		}
 	},
 	methods: {
+		addFeatureField(TG_DATA, FTL_DATA, KEY_FIELD, FEATURE, COLUMNS, IF_MULTIPLE) {
+			let filterDataObj = {};
+
+			let fdIndex = 0;
+			FTL_DATA.map(FD => {
+				filterDataObj[FD[KEY_FIELD]] = !filterDataObj[FD[KEY_FIELD]]? []: filterDataObj[FD[KEY_FIELD]];
+				filterDataObj[FD[KEY_FIELD]].push(fdIndex);
+				fdIndex ++;
+			})
+
+			console.log("filterDataObj", filterDataObj);
+
+			TG_DATA.map(TD => {
+				TD[FEATURE] = [];
+				filterDataObj[TD[KEY_FIELD]].map(num =>{
+					let tempObj = {};
+
+					COLUMNS.map(column=>{
+						tempObj[column] = FTL_DATA[num][column];
+					})
+
+					TD[FEATURE].push(tempObj);
+				});
+			})
+			return TG_DATA;
+		},
 		addField(TG_DATA, FTL_DATA, KEY_FIELD, COLUMN, IF_MULTIPLE){
 			let filterDataObj = {};
 			FTL_DATA.map(FD => {
