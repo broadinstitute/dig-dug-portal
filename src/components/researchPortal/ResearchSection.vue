@@ -460,7 +460,8 @@ export default Vue.component("research-section", {
 			this.$emit('on-star', ARRAY);
 		},
 		getRegion() {
-			let region = !!this.dataPoint['region']? this.utils.keyParams[this.dataPoint['region']]: this.utils.keyParams['region'];
+			let region = !!this.dataPoint['region']? this.utils.keyParams[this.dataPoint['region']]: this.utils.keyParams['region']
+			region = !!region? region.split(",").pop():null;
 			return region;
 		},
 		resetAll() {

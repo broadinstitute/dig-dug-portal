@@ -1194,7 +1194,6 @@ new Vue({
             this.starItems = ARRAY;
         },
         onSectionsData(SECTION) {
-            console.log("on sections called");
 
             let sectionExist = null;
             this.sectionsData.map(section => {

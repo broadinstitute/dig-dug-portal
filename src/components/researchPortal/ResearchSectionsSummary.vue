@@ -20,7 +20,6 @@
 
 		<div class="row card-body" :id="'section_' + sectionID">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
-				{{ sectionsConfig }}
 				<research-data-table 
 					v-if="!!sectionData"
 					:pageID="sectionIndex"
@@ -108,7 +107,7 @@ export default Vue.component("research-sections-summary", {
 			})
 			this.sectionsData.map(data => {
 				if(!!sections.includes(data.id)){
-					rowsTotalNum += data.data.length;
+					rowsTotalNum += (!!data.data)?data.data.length:0;
 				}
 			})
 			return rowsTotalNum > 0? rowsTotalNum : null;
@@ -116,57 +115,62 @@ export default Vue.component("research-sections-summary", {
 	},
 	watch: {
 		wholeDataCounts(NUM) {
-			console.log("counting",NUM);
+			//console.log("counting",NUM);
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
 			this.tableFormat = !!primarySection[0] ? JSON.parse(JSON.stringify(primarySection[0].config['table format'])): null;
-			let primaryData = primarySection[0].data;
+			let primaryData = !!primarySection[0]? primarySection[0].data:null;
 			let subSections = this.sectionsConfig.sections["sub sections"];
 
 			let targetData = [...new Set(primaryData)];
 
-			subSections.map(section => {
+			if(!!primaryData) {
 
-				console.log("section", section)
 				
-				let filterData = this.sectionsData.filter(data => data.id == section.section)[0].data;
+				subSections.map(section => {
 
-				/*let actions = [{ "action": "filter","filter field": "Variant ID","target field": "Variant ID","type": "search"},
-								{ "action": "add top columns", "columns":[{"column":"PPA","key field":"Variant ID","if multiple values":"pick greater"}] },
-								{ "action": "add features", "feature":"CSID", "key field": "Variant ID", "columns": ["Credible Set ID","PPA"], "if multiple values": "add" }];*/
+					//console.log("section", section)
 
-				section.actions.map(action=>{
-					switch(action.action) {
-						case "filter":
-							targetData = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
-							break;
-						case "add top columns":
+					let filterSection = this.sectionsData.filter(data => data.id == section.section)[0]
+					
+					let filterData = !!filterSection? filterSection.data: null;
 
-							action.columns.map(column =>{
-								targetData = this.addField(targetData, filterData, column["key field"],column.column, action["if multiple values"]);
-								if (!!this.tableFormat) {
-									this.tableFormat["top rows"].push(column.column);
-								}
-							})
+					/*let actions = [{ "action": "filter","filter field": "Variant ID","target field": "Variant ID","type": "search"},
+									{ "action": "add top columns", "columns":[{"column":"PPA","key field":"Variant ID","if multiple values":"pick greater"}] },
+									{ "action": "add features", "feature":"CSID", "key field": "Variant ID", "columns": ["Credible Set ID","PPA"], "if multiple values": "add" }];*/
 
-							
-							break;
-						case "add features":
+					if(!!filterData) {
+						section.actions.map(action => {
+							switch (action.action) {
+								case "filter":
+									targetData = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
+									break;
+								case "add top columns":
 
-							this.tableFormat["features"] = !this.tableFormat["features"]?[]: this.tableFormat["features"];
-							
-							this.tableFormat["features"].push(action.feature);
+									action.columns.map(column => {
+										targetData = this.addField(targetData, filterData, column["key field"], column.column, column["if multiple values"]);
+										if (!!this.tableFormat) {
+											this.tableFormat["top rows"].push(column.column);
+										}
+									})
 
-							this.tableFormat[action.feature] = action.columns;
-							targetData = this.addFeatureField(targetData, filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
-							
 
-							console.log("targetData", targetData);
+									break;
+								case "add features":
 
-							break;
+									this.tableFormat["features"] = !this.tableFormat["features"] ? [] : this.tableFormat["features"];
+
+									this.tableFormat["features"].push(action.feature);
+
+									this.tableFormat[action.feature] = action.columns;
+									targetData = this.addFeatureField(targetData, filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
+
+									break;
+							}
+						})
 					}
 				})
-			})
-			this.sectionData = targetData;
+				this.sectionData = targetData;
+			}
 			
 		}
 	},
@@ -181,7 +185,7 @@ export default Vue.component("research-sections-summary", {
 				fdIndex ++;
 			})
 
-			console.log("filterDataObj", filterDataObj);
+			//console.log("filterDataObj", filterDataObj);
 
 			TG_DATA.map(TD => {
 				TD[FEATURE] = [];
@@ -192,19 +196,94 @@ export default Vue.component("research-sections-summary", {
 						tempObj[column] = FTL_DATA[num][column];
 					})
 
-					TD[FEATURE].push(tempObj);
+					switch(IF_MULTIPLE) //add, replace, pick greater, pick lower
+					{
+						case "add":
+							TD[FEATURE].push(tempObj);
+							break;
+						case "replace":
+							TD[FEATURE]=[tempObj];
+							break;
+						case "pick greater":
+							break;
+						case "pick lower":
+							break;
+					}
+					
 				});
 			})
 			return TG_DATA;
 		},
 		addField(TG_DATA, FTL_DATA, KEY_FIELD, COLUMN, IF_MULTIPLE){
 			let filterDataObj = {};
+			let targetData = [...new Set(TG_DATA)];
+			let fdIndex = 0;
 			FTL_DATA.map(FD => {
-				filterDataObj[FD[KEY_FIELD]] = FD;
+				filterDataObj[FD[KEY_FIELD]] = !filterDataObj[FD[KEY_FIELD]] ? [] : filterDataObj[FD[KEY_FIELD]];
+				filterDataObj[FD[KEY_FIELD]].push(fdIndex);
+				fdIndex++;
 			})
 
+			console.log(KEY_FIELD, COLUMN, IF_MULTIPLE);
+
 			TG_DATA.map(TD => {
-				TD[COLUMN] = filterDataObj[TD[KEY_FIELD]][COLUMN];
+
+				filterDataObj[TD[KEY_FIELD]].map(num => {
+
+					let colValue = FTL_DATA[num][COLUMN];
+
+					switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
+					{
+						case "add":
+							if (!TD[COLUMN]) { TD[COLUMN] = [] };
+							TD[COLUMN].push(colValue);
+							break;
+						case "replace":
+							TD[COLUMN] = colValue;
+							break;
+						case "pick greater":
+							colValue = !TD[COLUMN] ? colValue :
+								TD[COLUMN] >= colValue ? TD[COLUMN] : colValue;
+
+							console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
+							TD[COLUMN] = colValue;
+							break;
+						case "pick lower":
+							colValue = !TD[COLUMN] ? colValue :
+								TD[COLUMN] <= colValue ? TD[COLUMN] : colValue;
+
+							console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
+							TD[COLUMN] = colValue;
+							break;
+					}
+
+					/*switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
+					{
+						case "add":
+							if (!TD[COLUMN]) { TD[COLUMN] = [] };
+							TD[COLUMN].push(filterDataObj[TD[KEY_FIELD]][COLUMN]);
+							break;
+						case "replace":
+							TD[COLUMN] = filterDataObj[TD[KEY_FIELD]][COLUMN];
+							break;
+						case "pick greater":
+							let colValue = !TD[COLUMN] ? filterDataObj[TD[KEY_FIELD]][COLUMN] :
+								TD[COLUMN] >= filterDataObj[TD[KEY_FIELD]][COLUMN] ?
+									TD[COLUMN] : filterDataObj[TD[KEY_FIELD]][COLUMN];
+							console.log("TD[COLUMN]: ", TD[COLUMN], "filterDataObj[TD[KEY_FIELD]][COLUMN]: ", filterDataObj[TD[KEY_FIELD]][COLUMN], "colValue: ", colValue)
+							TD[COLUMN] = colValue;
+							break;
+						case "pick lower":
+							TD[COLUMN] = !TD[COLUMN] ? filterDataObj[TD[KEY_FIELD]][COLUMN] :
+								TD[COLUMN] <= filterDataObj[TD[KEY_FIELD]][COLUMN] ? TD[COLUMN] :
+									filterDataObj[TD[KEY_FIELD]][COLUMN];
+							break;
+					}*/
+
+				})
+				
+				
+				
 			})
 			return TG_DATA;
 		},
@@ -214,7 +293,7 @@ export default Vue.component("research-sections-summary", {
 				case "search":
 					
 					let filterFieldArr = [...new Set(filterData.map(d=>d[filterField]))];
-					console.log("filterFieldArr", filterFieldArr, targetData[0]);
+					//console.log("filterFieldArr", filterFieldArr, targetData[0]);
 
 					targetData.map(d=>{
 						//console.log('d["targetField"]', d);
@@ -231,7 +310,7 @@ export default Vue.component("research-sections-summary", {
 			this.$emit('on-star', ARRAY);
 		},
 		getData() {
-			console.log("data getting updated");
+			//console.log("data getting updated");
 		},
 		sortData(KEY) {
 			if (!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {

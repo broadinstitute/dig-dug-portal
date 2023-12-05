@@ -234,30 +234,33 @@ export default Vue.component("research-multi-sections-search", {
 		updateSearch(KEY,TARGET_SECTIONS) {
 
 
-console.log("updateSearch called", KEY, TARGET_SECTIONS);
+			console.log("updateSearch called", KEY, TARGET_SECTIONS);
 			let paramsObj = {}
 
 			if(!KEY) {
 				this.searchParameters.map(s => {
 					let paramValue = document.getElementById("search_param_" + s.parameter).value;
 
-					if (!!this.utils.keyParams[s.parameter]) {
-						paramValue = (s["value number"] == "multi") ?
-							(!this.utils.keyParams[s.parameter].includes(paramValue)) ?
-								this.utils.keyParams[s.parameter] + "," + paramValue
-								: this.utils.keyParams[s.parameter]
-							: paramValue;
-					}
+					console.log("case 1",paramValue,':', s.parameter ,this.utils.keyParams[s.parameter]);
+
+						paramValue = (!!this.utils.keyParams[s.parameter]) ?
+							this.utils.keyParams[s.parameter] + "," + paramValue
+							: paramValue
+					//}
 					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 				})
 			} else {
+				
+
 				let paramValue = document.getElementById("search_param_" + KEY).value;
 
-				if (!!this.utils.keyParams[KEY]) {
-					paramValue = paramValue;
-				}
+				console.log("case 2", ':', KEY, paramValue);
+				
+				paramValue = (!!this.utils.keyParams[KEY]) ?
+					this.utils.keyParams[KEY] + "," + paramValue
+					: paramValue
+				
 				paramsObj[KEY] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-
 			}
 			
 			this.utils.keyParams.set(paramsObj);

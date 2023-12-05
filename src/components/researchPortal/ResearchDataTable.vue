@@ -608,6 +608,8 @@ export default Vue.component("research-data-table", {
 				
 			})
 
+			console.log("section component",VALUE,":" ,KEY,":" ,SECTION);
+
 			if(typeof parameter === "object") {
 				let values = VALUE.split(",");
 

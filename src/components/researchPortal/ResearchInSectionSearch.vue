@@ -272,7 +272,7 @@ export default Vue.component("research-in-section-search", {
 				console.log(s.parameter, paramValue)
 
 				if (!!this.utils.keyParams[s.parameter]) {
-					paramValue = (!this.utils.keyParams[s.parameter].includes(paramValue)) ? this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];
+					paramValue = (!!this.utils.keyParams[s.parameter]) ? this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];
 				}
 				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 			})
