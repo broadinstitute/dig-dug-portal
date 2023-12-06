@@ -251,6 +251,7 @@ export default Vue.component("research-scatter-plot", {
 			colorByField:null,
 			colorByGradient:null,
 			gradientMinMax:{},
+			dataCache:null,
 			posData:{},
 			isDotPanelClick: false,
 		};
@@ -305,7 +306,6 @@ export default Vue.component("research-scatter-plot", {
 					this.plotData;
 			let massagedData = [];
 			let groups = [];
-			let colors = [];
 			let multi = [];
 			let colorsBy = {};
 
@@ -336,7 +336,7 @@ export default Vue.component("research-scatter-plot", {
 			}
 
 			//color groupings
-			//each "color by" field should be an array of objects
+			//the "color by" param should be an array of objects
 				//field: field name
 				//type: type of color key [default, grandient]
 				//color: color group style [default, viridis]	
@@ -345,28 +345,27 @@ export default Vue.component("research-scatter-plot", {
 			//a string || an array of strings || a mixed array of strings and objects
 			//but we must convert to array of objects like we want
 			if(typeof this.renderConfig["color by"] === 'string'){
-				//color by is a string with a single field name
+				//if 'color by' is a single string
+				//make it an array with an object
 				this.renderConfig["color by"] = [
 					{ 
 						field: this.renderConfig["color by"], 
-						type: 'keys' 
+						type: 'keys' //default
 					} 
 				]
 			}else if (Array.isArray(this.renderConfig["color by"])){
-				//color by is an array
+				//if 'color by' is an array
 				for(var i=0; i<this.renderConfig["color by"].length; i++){
+					//check if an element is a string
 					if(typeof this.renderConfig["color by"][i] === 'string'){
+						//make it an object
 						this.renderConfig["color by"][i] = { 
 							field: this.renderConfig["color by"][i], 
-							type: 'keys' 
+							type: 'keys' //default
 						} 
 					}
 				}
 			}
-
-			/*if(this.renderConfig["color by"].constructor !== Array){
-				this.renderConfig["color by"] = [this.renderConfig["color by"]];
-			}*/
 			
 			//create an object of objects for each field requested in "color by"
 			//to be filled with arrays of all possible values for each field
@@ -475,20 +474,28 @@ export default Vue.component("research-scatter-plot", {
 					const numbersOnly = colorsBy[colorby.field].filter(value => typeof value === 'number');
 					numbersOnly.sort( (a, b) => a - b );
 					colorsBy[colorby.field] = numbersOnly;
-					//save minmax
+					//get minmax
 					colorby.minmax = {min: numbersOnly[0], max: numbersOnly[numbersOnly.length-1]};
 					console.log(`sorted gradient for ${colorby.field}`);
+					//cache minmax values for consistency when filtering 
+					if(!this.dataCache?.["color by"]){
+						this.dataCache = {...this.dataCache, ["color by"]:{
+							[colorby.field]: { minmax: colorby.minmax }
+						}}
+						console.log(`caching minmax for ${colorby.field}`, this.dataCache);
+					}else{
+						colorby.minmax = this.dataCache["color by"][colorby.field].minmax;
+						console.log(`restoring cached minmax for ${colorby.field}`);
+					}
 				}
 			})
 
 			this.groupsList = groups.length > 0? groups.sort(): null;
-			//this.colorsList = colors.length > 0? colors.sort() : null;
 			this.multiList = multi.length > 0 ? multi : null;
 			this.colorByList = Object.keys(colorsBy).length > 0 ? colorsBy : null;
 
 			console.log('alex groups list', this.groupsList);
 			console.log('alex colorsby list', this.colorByList );
-			//console.log('alex colors list', this.colorsList);
 			console.log('alex multi', this.multiList);
 
 			console.log('\n- - - - - - - -\n\n')
