@@ -123,7 +123,7 @@ export default Vue.component("research-m-bitmap-plot", {
 		plotsList() {
 			let rawData = this.plotData;
 			let compareGroups = [];
-			console.log("this.dataComparisonConfig",this.dataComparisonConfig);
+			//console.log("this.dataComparisonConfig",this.dataComparisonConfig);
 
 			if (!!rawData) {
 				if (this.dataComparisonConfig != null) {

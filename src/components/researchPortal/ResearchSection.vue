@@ -32,6 +32,7 @@
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 
 				<research-in-section-search v-if="!!sectionConfig['search parameters']"
+					:class="!!sectionConfig['search parameters'].display && sectionConfig['search parameters'].display == 'false' ? 'hidden-search' : ''"
 					:searchParameters="sectionConfig['search parameters']" :phenotypesInUse="phenotypesInUse"
 					:section="sectionConfig" :utils="utils">
 				</research-in-section-search>

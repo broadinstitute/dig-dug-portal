@@ -640,10 +640,10 @@ export default Vue.component("research-section-filters", {
 		buildOptions(field,TYPE) {
 			if (this.dataComparisonConfig == null || (!!TYPE && TYPE == "chkbox")) {
 				let data = (!!TYPE && TYPE == "chkbox") ? this.unfilteredDataset : this.dataset;
-				let options = data
+				let options = (!!data)? data
 					.map((v) => v[field])
 					.filter((v, i, arr) => arr.indexOf(v) == i) //unique
-					.filter((v, i, arr) => v != ""); //remove blank
+					.filter((v, i, arr) => v != ""):[]; //remove blank
 				return options.sort();
 			} else {
 				let options = [];
@@ -1408,7 +1408,7 @@ export default Vue.component("research-section-filters", {
 					
 					for (const [fKey, filter] of Object.entries(this.filtersIndex)) {
 						if(filter.type == 'checkbox') {
-							filtered = filtered.filter(row => !filter.search.includes(row[filter.field].toString()));
+							filtered = filtered.filter(row => !!row[filter.field] && !filter.search.includes(row[filter.field].toString()));
 						}
 					}
 				} else {

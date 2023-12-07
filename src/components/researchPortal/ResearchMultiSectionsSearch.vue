@@ -1,5 +1,5 @@
 <template>
-	<div class="multi-page-search-wrapper" :class="searchVisible == false ? 'hidden-search' : ''">
+	<div class="multi-page-search-wrapper" :class="searchVisible == false || displyingSearchNum == 0 ? 'hidden-search' : ''">
 		<div class="filtering-ui-wrapper search-criteria multi-page-search" id="searchCriteria"
 			v-if="searchParameters != null">
 			<h4 class="card-title">Build search criteria</h4>
@@ -159,6 +159,18 @@ export default Vue.component("research-multi-sections-search", {
 
 			return tableTop;
 		},
+		displyingSearchNum() {
+			let totalSearchNum = this.searchParameters.length;
+
+			this.searchParameters.map(s=>{
+				console.log("s",s)
+				if(s.display && s.display == "false") {
+					totalSearchNum --;
+				}
+			})
+
+			return totalSearchNum;
+		}
 	},
 	watch: {
 	},
@@ -241,12 +253,10 @@ export default Vue.component("research-multi-sections-search", {
 				this.searchParameters.map(s => {
 					let paramValue = document.getElementById("search_param_" + s.parameter).value;
 
-					console.log("case 1",paramValue,':', s.parameter ,this.utils.keyParams[s.parameter]);
-
-						paramValue = (!!this.utils.keyParams[s.parameter]) ?
+						/*paramValue = (!!this.utils.keyParams[s.parameter]) ?
 							this.utils.keyParams[s.parameter] + "," + paramValue
-							: paramValue
-					//}
+							: paramValue*/
+					
 					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 				})
 			} else {
@@ -254,11 +264,9 @@ export default Vue.component("research-multi-sections-search", {
 
 				let paramValue = document.getElementById("search_param_" + KEY).value;
 
-				console.log("case 2", ':', KEY, paramValue);
-				
-				paramValue = (!!this.utils.keyParams[KEY]) ?
+				/*paramValue = (!!this.utils.keyParams[KEY]) ?
 					this.utils.keyParams[KEY] + "," + paramValue
-					: paramValue
+					: paramValue*/
 				
 				paramsObj[KEY] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 			}
