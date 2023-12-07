@@ -224,7 +224,7 @@ export default Vue.component("research-sections-summary", {
 				fdIndex++;
 			})
 
-			console.log(KEY_FIELD, COLUMN, IF_MULTIPLE);
+			//console.log(KEY_FIELD, COLUMN, IF_MULTIPLE);
 
 			TG_DATA.map(TD => {
 
@@ -245,14 +245,14 @@ export default Vue.component("research-sections-summary", {
 							colValue = !TD[COLUMN] ? colValue :
 								TD[COLUMN] >= colValue ? TD[COLUMN] : colValue;
 
-							console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
+							//console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
 							TD[COLUMN] = colValue;
 							break;
 						case "pick lower":
 							colValue = !TD[COLUMN] ? colValue :
 								TD[COLUMN] <= colValue ? TD[COLUMN] : colValue;
 
-							console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
+							//console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
 							TD[COLUMN] = colValue;
 							break;
 					}
@@ -289,22 +289,77 @@ export default Vue.component("research-sections-summary", {
 		},
 		applyFilter(targetData,filterData,targetField,filterField,TYPE){
 			let returnData = [];
+			let filterFieldArr;
 			switch (TYPE) {
 				case "search":
 					
-					let filterFieldArr = [...new Set(filterData.map(d=>d[filterField]))];
+					filterFieldArr = [...new Set(filterData.map(d=>d[filterField]))];
 					//console.log("filterFieldArr", filterFieldArr, targetData[0]);
 
 					targetData.map(d=>{
 						//console.log('d["targetField"]', d);
 						if(!!filterFieldArr.includes(d[targetField])) {
+							if(!d[filterField]) {
+								d[filterField] = d[targetField];
+							}
 							returnData.push(d);
 						}
 					})
 					break;
+
+				case "search and":
+
+					filterFieldArr = [...new Set(filterData.map(d => d[filterField]))];
+					//console.log("filterFieldArr", filterFieldArr);
+
+					targetData.map(d => {
+						filterFieldArr.map(ff =>{
+							let ffSplit = ff.split(",");
+							if(d[targetField] >= ffSplit[0] && d[targetField] <= ffSplit[1]) {
+								if (!d[filterField]) {
+									d[filterField] = ff;
+								}
+								returnData.push(d);
+							}
+						})
+					})
+					
+					break;
 			}
 
+			//console.log("returnData", returnData);
 			return returnData;
+		},
+		//work on this
+		jsonToTsv(jsonObject) {
+			// Extract keys and values
+			const keys = Object.keys(jsonObject[0]);
+			const values = Object.values(jsonObject);
+
+			// Create header row
+			let tsvString = `${keys.join("\t")}\n`;
+
+			// Convert each value to string and join with tabs
+			values.forEach((value) => {
+				// Check for nested objects and arrays
+				if (typeof value === "object") {
+					tsvString += `${JSON.stringify(value)}\n`;
+				} else if (Array.isArray(value)) {
+					tsvString += `${value.join("\t")}\n`;
+				} else {
+					tsvString += `${value}\n`;
+				}
+			});
+
+			return tsvString;
+		},
+		captureData() {
+			let title = [this.sectionsConfig.header];
+			//let tsvData = this.jsonToTsv(this.sectionData);
+
+			//console.log("tsvData:", tsvData);
+
+			this.$store.dispatch("capturedData", { action: 'add', title: title, data: this.sectionData });
 		},
 		starColumn(ARRAY) {
 			this.$emit('on-star', ARRAY);
