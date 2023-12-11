@@ -163,7 +163,7 @@ export default Vue.component("research-multi-sections-search", {
 			let totalSearchNum = this.searchParameters.length;
 
 			this.searchParameters.map(s=>{
-				console.log("s",s)
+				//console.log("s",s)
 				if(s.display && s.display == "false") {
 					totalSearchNum --;
 				}
@@ -246,7 +246,7 @@ export default Vue.component("research-multi-sections-search", {
 		updateSearch(KEY,TARGET_SECTIONS) {
 
 
-			console.log("updateSearch called", KEY, TARGET_SECTIONS);
+			//console.log("updateSearch called", KEY, TARGET_SECTIONS);
 			let paramsObj = {}
 
 			if(!KEY) {

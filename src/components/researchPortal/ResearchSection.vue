@@ -462,7 +462,49 @@ export default Vue.component("research-section", {
 		},
 		getRegion() {
 			let region = !!this.dataPoint['region']? this.utils.keyParams[this.dataPoint['region']]: this.utils.keyParams['region']
-			region = !!region? region.split(",").pop():null;
+			let targetPlotConfig = !!this.visualizer? !!this.visualizer["genes track"]?
+				this.visualizer["genes track"] : this.visualizer : null;
+
+				console.log("targetPlotConfig", targetPlotConfig);
+			
+			if(!!region) {
+				region = region.split(",").pop();
+			} else if(targetPlotConfig != null && targetPlotConfig["input type"] == "from data" ){
+
+				let chrField =
+					targetPlotConfig["region fields"]
+						.chromosome;
+				let posField =
+					targetPlotConfig["region fields"].position;
+				let chr = null;
+				let posStart = null;
+				let posEnd = null;
+
+				this.sectionData.map((c) => {
+					chr = c[chrField];
+					posStart =
+						posStart == null
+							? c[posField]
+							: c[posField] < posStart
+								? c[posField]
+								: posStart;
+					posEnd =
+						posEnd == null
+							? c[posField]
+							: c[posField] > posEnd
+								? c[posField]
+								: posEnd;
+				});
+
+				region = chr + ":" + posStart + "-" + posEnd;
+				
+
+			} else {
+				region = null;
+			}
+
+			console.log("region", region);
+
 			return region;
 		},
 		resetAll() {
@@ -620,7 +662,7 @@ export default Vue.component("research-section", {
 			return ifNumber;
 		},
 		removeData(KEY) {
-			console.log("key",KEY);
+			//console.log("key",KEY);
 			let groupKeys = this.sectionConfig["table format"]["group by"];
 
 			let newSectionData = [];
@@ -692,7 +734,9 @@ export default Vue.component("research-section", {
 			if (!!this.dataPoint.parameters) {
 				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
-						queryParams[p] = this.utils.keyParams[p].split(","); /// work on this line
+						queryParams[p] = this.utils.keyParams[p].toString().split(","); ///  work on this line
+
+						console.log("queryParams[p]", queryParams[p]);
 					} else {
 						queryParamsSet = null;
 					}
@@ -716,6 +760,7 @@ export default Vue.component("research-section", {
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
 					this.dataPoint.parameters.map(p => {
+						// Don't forget to resolve this.
 						if(!queryParams[p][i]) { queryParams[p][i]  = queryParams[p][i-1] }
 
 						pramsString += queryParams[p][i] + ",";
@@ -1094,7 +1139,7 @@ export default Vue.component("research-section", {
 
 		processLoadedFile(CONTENT) {
 
-			console.log(CONTENT)
+			//console.log(CONTENT)
 
 			
 		},

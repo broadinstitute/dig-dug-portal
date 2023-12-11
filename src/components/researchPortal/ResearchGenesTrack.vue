@@ -123,7 +123,7 @@ export default Vue.component("research-genes-track", {
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				
+				console.log("n",n);
 				if(!!this.genesData){
 					this.renderTrack(this.genesData);
 				} else {

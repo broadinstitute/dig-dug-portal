@@ -756,6 +756,7 @@ export default Vue.component("research-region-plot", {
 			this.callForRecombData();
 		},
 		async callForRecombData() {
+			console.log("this.searchingRegion", this.searchingRegion);
 			let signalURL =
 				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
 				this.searchingRegion.chr +
