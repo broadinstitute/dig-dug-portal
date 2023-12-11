@@ -1,5 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
+		
 		<div class="col-md-12 phewas-plot-wrapper">
 			<div
 				class="col-md-12"
@@ -114,18 +115,17 @@ export default Vue.component("research-phewas-plot", {
 			trigger: 0,
 			hoverItems: {},
 			showCanvas: true,
-			renderData: null,
 		};
 	},
 	modules: {
 	},
 	components: {},
 	created: function () {
-		//this.renderPheWas();
+		this.renderPheWas();
 	},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		//this.renderPheWas();
+		this.renderPheWas();
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -140,7 +140,7 @@ export default Vue.component("research-phewas-plot", {
 				return "kpPhenotypeMap";
 			}
 		},
-		/*renderData() {
+		renderData() {
 			this.showCanvas = true;
 			let content = {};
 			content["data"] = [];
@@ -180,14 +180,17 @@ export default Vue.component("research-phewas-plot", {
 				this.showCanvas = false;
 				return null;
 			}
-		},*/
+		},
 	},
 	watch: {
 		renderData(content) {
-			//this.renderPheWas();
+			this.renderPheWas();
 		},
 
-		phenotypesData(DATA) {
+		/*phenotypesData(DATA) {
+
+			console.log("DATA",DATA);
+
 			this.showCanvas = true;
 			let content = {};
 			content["data"] = [];
@@ -229,7 +232,7 @@ export default Vue.component("research-phewas-plot", {
 			}
 
 			if(!!this.renderData) {this.renderPheWas()};
-		}
+		}*/
 	},
 	methods: {
 		//...uiUtils,
@@ -301,8 +304,6 @@ export default Vue.component("research-phewas-plot", {
 
 			let customPlotMargin = !!this.renderConfig["plot margin"]? this.renderConfig["plot margin"]:null;
 
-			console.log("customPlotMargin", customPlotMargin);
-
 			let plotMargin = !!customPlotMargin?{
 						left: customPlotMargin.left,
 						right: customPlotMargin.right,
@@ -317,8 +318,6 @@ export default Vue.component("research-phewas-plot", {
 						bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
 						bump: 10,
 					};
-
-			console.log("plotMargin", plotMargin);	
 
 			let y = Math.ceil(e.clientY - rect.top);
 			let x = Math.ceil(e.clientX - rect.left);
