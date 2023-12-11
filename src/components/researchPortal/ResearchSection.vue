@@ -465,7 +465,7 @@ export default Vue.component("research-section", {
 			let targetPlotConfig = !!this.visualizer? !!this.visualizer["genes track"]?
 				this.visualizer["genes track"] : this.visualizer : null;
 
-				console.log("targetPlotConfig", targetPlotConfig);
+				//console.log("targetPlotConfig", targetPlotConfig);
 			
 			if(!!region) {
 				region = region.split(",").pop();
@@ -503,7 +503,7 @@ export default Vue.component("research-section", {
 				region = null;
 			}
 
-			console.log("region", region);
+			//console.log("region", region);
 
 			return region;
 		},

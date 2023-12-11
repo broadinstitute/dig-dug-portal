@@ -113,18 +113,19 @@ export default Vue.component("research-phewas-plot", {
 			spaceBy: 7,
 			trigger: 0,
 			hoverItems: {},
-			showCanvas: true
+			showCanvas: true,
+			renderData: null,
 		};
 	},
 	modules: {
 	},
 	components: {},
 	created: function () {
-		this.renderPheWas();
+		//this.renderPheWas();
 	},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		this.renderPheWas();
+		//this.renderPheWas();
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -139,7 +140,7 @@ export default Vue.component("research-phewas-plot", {
 				return "kpPhenotypeMap";
 			}
 		},
-		renderData() {
+		/*renderData() {
 			this.showCanvas = true;
 			let content = {};
 			content["data"] = [];
@@ -179,12 +180,56 @@ export default Vue.component("research-phewas-plot", {
 				this.showCanvas = false;
 				return null;
 			}
-		},
+		},*/
 	},
 	watch: {
 		renderData(content) {
-			this.renderPheWas();
+			//this.renderPheWas();
 		},
+
+		phenotypesData(DATA) {
+			this.showCanvas = true;
+			let content = {};
+			content["data"] = [];
+
+			
+			let phenotypesData = cloneDeep(this.phenotypesData);
+
+			phenotypesData.map((d) => {
+				let pValue =
+					typeof d[this.renderConfig["y axis field"]] == "string"
+						? Number(d[this.renderConfig["y axis field"]])
+						: d[this.renderConfig["y axis field"]];
+				d["rawPValue"] = pValue;
+
+				if (this.renderConfig["convert y -log10"] == "true") {
+					d[this.renderConfig["y axis field"] + "-log10"] =
+						-Math.log10(pValue);
+				}
+
+				if (
+					this.phenotypeMapConfig == "kpPhenotypeMap" &&
+					!!this.phenotypeMap[d[this.renderConfig["render by"]]]
+				) {
+					content["data"].push(d);
+				} else if (this.phenotypeMapConfig == null) {
+					content["data"].push(d);
+				}
+			});
+		
+			if (!!this.filter) {
+				content.data = content.data.filter(this.filter);
+			}
+
+			if (!!content.data && content.data.length > 0) {
+				this.renderData = content;
+			} else {
+				this.showCanvas = false;
+				this.renderData = null;
+			}
+
+			if(!!this.renderData) {this.renderPheWas()};
+		}
 	},
 	methods: {
 		//...uiUtils,
@@ -198,6 +243,7 @@ export default Vue.component("research-phewas-plot", {
 			window.location.href = "#associations-table";
 		},
 		groupData(DATA) {
+			
 			let phenotypeGroups = [];
 			let phenotypeGroupsObj = {};
 
@@ -254,6 +300,9 @@ export default Vue.component("research-phewas-plot", {
 			let rawY = e.clientY - rect.top;
 
 			let customPlotMargin = !!this.renderConfig["plot margin"]? this.renderConfig["plot margin"]:null;
+
+			console.log("customPlotMargin", customPlotMargin);
+
 			let plotMargin = !!customPlotMargin?{
 						left: customPlotMargin.left,
 						right: customPlotMargin.right,
@@ -269,7 +318,7 @@ export default Vue.component("research-phewas-plot", {
 						bump: 10,
 					};
 
-					
+			console.log("plotMargin", plotMargin);	
 
 			let y = Math.ceil(e.clientY - rect.top);
 			let x = Math.ceil(e.clientX - rect.left);
