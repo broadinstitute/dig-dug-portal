@@ -498,6 +498,8 @@ export default Vue.component("research-region-plot", {
 			} else {
 				let returnObj = {};
 
+				//console.log("this.region",this.region);
+
 				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 
 				let regionArr = this.region.split(":")[1].split("-");
@@ -753,10 +755,13 @@ export default Vue.component("research-region-plot", {
 			this.utils.uiUtils.removeOnMouseOut(BOXID.replaceAll(" ", "_"), 1000);
 		},
 		setUpWrappers() {
-			this.callForRecombData();
+			if(!!this.searchingRegion) {
+				this.callForRecombData();
+			}
 		},
 		async callForRecombData() {
-			console.log("this.searchingRegion", this.searchingRegion);
+			//console.log("this.searchingRegion", this.searchingRegion);
+
 			let signalURL =
 				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
 				this.searchingRegion.chr +
@@ -764,6 +769,8 @@ export default Vue.component("research-region-plot", {
 				this.searchingRegion.start +
 				" and position lt " +
 				this.searchingRegion.end;
+
+				//console.log("signalURL", signalURL)
 
 			let signalJson = await fetch(signalURL).then((resp) => resp.json());
 			this.recombData = {};

@@ -25,10 +25,13 @@
 			</div>
 		</div>
 
-		<div v-if="!!groups"><span v-for="key in groups" @click="removeData(key)"
-				class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
+		
 
 		<div class="row card-body" :id="'section_' + sectionID">
+			
+			<div v-if="!!groups"><span v-for="key in groups" @click="removeData(key)"
+					class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
+
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 
 				<research-in-section-search v-if="!!sectionConfig['search parameters']"
@@ -158,7 +161,7 @@
 							:searchParameters="groupSearchParameters"
 							:regionZoom="regionZoom"
 							:regionViewArea="regionViewArea"
-							:region="getRegion()"
+							:region="regionParam"
 							:starItems="starItems"
 							@on-star="starColumn">
 						</research-section-visualizers>
@@ -172,7 +175,7 @@
 					:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
 					:regionZoom="regionZoom"
 					:regionViewArea="regionViewArea"
-					:region="getRegion()"
+					:region="regionParam"
 					:starItems="starItems"
 					@on-star="starColumn">
 				</research-section-visualizers>
@@ -191,7 +194,7 @@
 					:starItems="starItems"
 					:utils="utils" 
 					@clicked-sort="sortData"
-					:region="getRegion()"
+					:region="regionParam"
 					:regionZoom="regionZoom"
 					:regionViewArea="regionViewArea"
 					@on-star="starColumn"
@@ -234,9 +237,9 @@ export default Vue.component("research-section", {
 			groups: null,
 			searched: [],
 			loadingDataFlag: "down",
+			regionParam:null,
 			regionZoom: 0,
 			regionViewArea: 0,
-			
 		};
 	},
 	modules: {
@@ -361,15 +364,15 @@ export default Vue.component("research-section", {
 			return legend;
 		},
 		viewingRegion() {
-			if (this.getRegion() == null) {
+			if (this.regionParam == null) {
 				return null;
 			} else {
 				let returnObj = {};
 
-				returnObj["chr"] = parseInt(this.getRegion().split(":")[0], 10);
+				returnObj["chr"] = parseInt(this.regionParam.split(":")[0], 10);
 
-				let regionArr = this.getRegion().split(":")[1].split("-");
-				let chr = this.getRegion().split(":")[0];
+				let regionArr = this.regionParam.split(":")[1].split("-");
+				let chr = this.regionParam.split(":")[0];
 				let start = parseInt(regionArr[0], 10);
 				let end = parseInt(regionArr[1], 10);
 				let distance = end - start;
@@ -394,6 +397,12 @@ export default Vue.component("research-section", {
 		},
 	},
 	watch: {
+		regionZoom(ZOOM){
+			console.log("Zoom",ZOOM)
+		},
+		regionViewArea(AREA){
+			console.log("AREA", AREA)
+		},
 		sectionData(DATA) {
 			if (!this.tableFormat && !this.remoteTableFormat) {
 				let topRows = Object.keys(this.sectionData[0]);
@@ -406,6 +415,7 @@ export default Vue.component("research-section", {
 			if (this.loadingDataFlag == "down") {
 				this.$emit('on-sectionData', {id: this.sectionID, config: this.sectionConfig, data: DATA });
 			}
+			this.getRegion();
 		},
 		originalData(DATA) {
 			if (this.loadingDataFlag == "down") {
@@ -461,15 +471,15 @@ export default Vue.component("research-section", {
 			this.$emit('on-star', ARRAY);
 		},
 		getRegion() {
-			let region = !!this.dataPoint['region']? this.utils.keyParams[this.dataPoint['region']]: this.utils.keyParams['region']
+			let region = !!this.dataPoint['region']? this.utils.keyParams[this.dataPoint['region']]: this.utils.keyParams['region'];
 			let targetPlotConfig = !!this.visualizer? !!this.visualizer["genes track"]?
 				this.visualizer["genes track"] : this.visualizer : null;
-
-				//console.log("targetPlotConfig", targetPlotConfig);
 			
 			if(!!region) {
 				region = region.split(",").pop();
-			} else if(targetPlotConfig != null && targetPlotConfig["input type"] == "from data" ){
+			}
+			
+			if(targetPlotConfig != null && targetPlotConfig["input type"] == "from data" ){
 
 				let chrField =
 					targetPlotConfig["region fields"]
@@ -497,15 +507,10 @@ export default Vue.component("research-section", {
 				});
 
 				region = chr + ":" + posStart + "-" + posEnd;
-				
 
-			} else {
-				region = null;
 			}
 
-			//console.log("region", region);
-
-			return region;
+			this.regionParam = region;
 		},
 		resetAll() {
 			this.sectionData = null,

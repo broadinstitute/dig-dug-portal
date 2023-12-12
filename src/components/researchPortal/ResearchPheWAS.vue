@@ -336,8 +336,8 @@ export default Vue.component("research-phewas-plot", {
 				this.hoverItems = {};
 
 				if (
-					x >= plotMargin.left &&
-					x <= rect.width - plotMargin.right
+					x >= plotMargin.left  - rect.left &&
+					x <= rect.width - plotMargin.right + rect.left
 				) {
 					for (const [yKey, yValue] of Object.entries(
 						this.pheWasPosData
@@ -485,13 +485,6 @@ export default Vue.component("research-phewas-plot", {
 				maxY = Math.ceil(maxY);
 
 				ctx.stroke();
-				/*let plotMargin = {
-					left: this.plotMargin.leftMargin,
-					right: this.plotMargin.leftMargin * 1.5,
-					top: this.plotMargin.bottomMargin * 3.5,
-					bottom: this.plotMargin.bottomMargin * 2.5,
-					bump: 10,
-				};*/
 
 				let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
 				let plotMargin = !!customPlotMargin ? {

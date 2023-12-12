@@ -7,7 +7,7 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
 
         FILTERS.map(filter => {
 
-            let filterValue = !!PARAMS[filter.parameter] ? PARAMS[filter.parameter] : filter.value;
+            let filterValue = !!PARAMS && !!PARAMS[filter.parameter] ? PARAMS[filter.parameter] : filter.value;
 
             if (!!d[filter.field] && d[filter.field] != undefined && meetFilters == true && !!filterValue) {
                 let filterVals;

@@ -63,7 +63,7 @@
 		></research-m-qq-plot>
 		<!-- region_plot -->
 		<research-region-plot
-			v-if="!!plotConfig && plotConfig['type'] == 'region plot'"
+			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!region"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
 			:searchParameters="searchParameters"
@@ -83,7 +83,7 @@
 		></research-region-plot>
 		<!-- genes track -->
 		<research-genes-track
-			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!plotConfig['genes track']"
+			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!plotConfig['genes track'] && !!region"
 			:region="region"
 			:genesData="null"
 			:plotConfig="plotConfig"
