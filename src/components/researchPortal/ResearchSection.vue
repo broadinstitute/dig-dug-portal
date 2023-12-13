@@ -28,7 +28,7 @@
 		
 
 		<div class="row card-body" :id="'section_' + sectionID">
-			
+
 			<div v-if="!!groups"><span v-for="key in groups" @click="removeData(key)"
 					class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
 
@@ -50,14 +50,14 @@
 					class="col-md-12 zoom-ui-wrapper"
 					v-if="!!tableFormat && !!tableFormat['data zoom']"
 				>
-					<span>Zoom plots</span>
+					<span>Zoom</span>
 
 					<form class="zoom-radio-wrapper">
 						<span
 							class="zoom-radio-number"
-							@click="
+							@click="setZoom('regionZoom',
 								regionZoom -=
-								regionZoom != 0 ? 10 : 0
+								regionZoom != 0 ? 10 : 0)
 								"
 							><b-icon icon="zoom-out"></b-icon
 						></span>
@@ -69,7 +69,7 @@
 							type="radio"
 							name="regionZoom"
 							:value="value"
-							@click="regionZoom = value"
+							@click="setZoom('regionZoom', value)"
 							:class="regionZoom == value
 								? 'zoom-radio checked'
 								: 'zoom-radio'
@@ -79,9 +79,9 @@
 
 						<span
 							class="zoom-radio-number"
-							@click="
+							@click="setZoom('regionZoom',
 								regionZoom +=
-								regionZoom != 90 ? 10 : 0
+								regionZoom != 90 ? 10 : 0)
 								"
 							><b-icon icon="zoom-in"></b-icon
 						></span>
@@ -91,12 +91,12 @@
 					<form class="zoom-radio-wrapper">
 						<span
 							class="zoom-radio-number"
-							@click="
+							@click="setZoom('regionViewArea',
 								regionViewArea -=
 								regionViewArea != -100 &&
 									regionZoom != 0
 									? 20
-									: 0
+									: 0)
 								"
 							><b-icon icon="arrow-left-circle"></b-icon
 						></span>
@@ -108,10 +108,10 @@
 							type="radio"
 							name="regionViewArea"
 							:value="value"
-							@click="
+							@click="setZoom('regionViewArea',
 								regionZoom != 0
-									? (regionViewArea = value)
-									: ''
+									? value
+									: '')
 								"
 							:class="regionViewArea == value
 								? 'zoom-radio checked'
@@ -123,12 +123,12 @@
 						/>
 						<span
 							class="zoom-radio-number"
-							@click="
+							@click="setZoom('regionViewArea',
 								regionViewArea +=
 								regionViewArea != 100 &&
 									regionZoom != 0
 									? 20
-									: 0
+									: 0)
 								"
 							><b-icon icon="arrow-right-circle"></b-icon
 						></span>
@@ -216,7 +216,8 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse", 
-	"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils","starItems"],
+	"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils","starItems", "regionZoom",
+		"regionViewArea"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -238,8 +239,8 @@ export default Vue.component("research-section", {
 			searched: [],
 			loadingDataFlag: "down",
 			regionParam:null,
-			regionZoom: 0,
-			regionViewArea: 0,
+			//regionZoom: 0,
+			//regionViewArea: 0,
 		};
 	},
 	modules: {
@@ -397,12 +398,12 @@ export default Vue.component("research-section", {
 		},
 	},
 	watch: {
-		regionZoom(ZOOM){
+		/*regionZoom(ZOOM){
 			console.log("Zoom",ZOOM)
 		},
 		regionViewArea(AREA){
 			console.log("AREA", AREA)
-		},
+		},*/
 		sectionData(DATA) {
 			if (!this.tableFormat && !this.remoteTableFormat) {
 				let topRows = Object.keys(this.sectionData[0]);
@@ -467,6 +468,9 @@ export default Vue.component("research-section", {
 		}*/
 	},
 	methods: {
+		setZoom(PROP,VALUE){
+			this.$emit('on-zoom', { property: PROP, value: VALUE });
+		},
 		starColumn(ARRAY) {
 			this.$emit('on-star', ARRAY);
 		},
@@ -741,7 +745,7 @@ export default Vue.component("research-section", {
 					if (!!this.utils.keyParams[p]) {
 						queryParams[p] = this.utils.keyParams[p].toString().split(","); ///  work on this line
 
-						console.log("queryParams[p]", queryParams[p]);
+						//console.log("queryParams[p]", queryParams[p]);
 					} else {
 						queryParamsSet = null;
 					}

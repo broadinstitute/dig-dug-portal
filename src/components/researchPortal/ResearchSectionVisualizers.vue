@@ -95,6 +95,21 @@
 			:sectionId="sectionId"
 			:starItems="starItems"
 		></research-genes-track>
+		<!-- general track -->
+		<research-region-track
+			v-if="!!plotConfig && plotConfig['type'] == 'region track' && !!region"
+			:sectionId="sectionId"
+			:plotConfig="plotConfig"
+			:plotData="plotData"
+			:dataComparisonConfig="dataComparisonConfig"
+			:region="region"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
+			:colors="colors"
+			:utils="utils"
+			:plotMargin="plotMargin"
+			:starItems="starItems"
+		></research-region-track>
 		<!-- scatter plot -->
 		<research-scatter-plot
 			v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
@@ -144,6 +159,7 @@ import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAnnotationsPlot.vue";
 import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
@@ -159,7 +175,8 @@ export default Vue.component("research-section-visualizers", {
 		//ResearchMPlot,
 		ResearchVolcanoPlot,
 		ResearchHeatmap,
-		ResearchPheWAS
+		ResearchPheWAS,
+		ResearchRegionTrack
     },
 	data() {
 		return {

@@ -38,9 +38,9 @@
 					:utils="utils" 
 					@clicked-sort="sortData"
 					@on-star="starColumn"
-					:region="null"
-					:regionZoom="null"
-					:regionViewArea="null"
+					:region="regionParam"
+					:regionZoom="regionZoom"
+					:regionViewArea="regionViewArea"
 					>
 				</research-data-table>
 			</div>
@@ -57,7 +57,8 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("research-sections-summary", {
-	props: ["sectionIndex","uId", "sectionsConfig", "sectionsData","utils","starItems"],
+	props: ["sectionIndex","uId", "sectionsConfig", "sectionsData","utils","starItems", "regionZoom",
+		"regionViewArea"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -78,8 +79,7 @@ export default Vue.component("research-sections-summary", {
 			groups: null,
 			searched: [],
 			loadingDataFlag: "down",
-			regionZoom: 0,
-			regionViewArea: 0,
+			regionParam: null,
 			
 		};
 	},

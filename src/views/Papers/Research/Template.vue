@@ -622,8 +622,11 @@
 													:utils="$parent.utilsBox"
 													:key="index"
 													:starItems="$parent.starItems"
+													:regionZoom="$parent.regionZoom"
+													:regionViewArea="$parent.regionViewArea"
 													@on-star="$parent.starColumn"
-													@on-sectionData="$parent.onSectionsData">
+													@on-sectionData="$parent.onSectionsData"
+													@on-zoom="$parent.setZoom">
 												</research-section>
 												<research-sections-summary
 													v-if="!!config['is summary section']"
@@ -634,7 +637,10 @@
 													:sectionsData="$parent.sectionsData"
 													:utils="$parent.utilsBox"
 													:starItems="$parent.starItems"
-													@on-star="$parent.starColumn">
+													:regionZoom="$parent.regionZoom"
+													:regionViewArea="$parent.regionViewArea"
+													@on-star="$parent.starColumn"
+													@on-zoom="$parent.setZoom">
 												</research-sections-summary>
 										</div>
 										</template>
@@ -658,8 +664,11 @@
 									:utils="$parent.utilsBox"
 									:key="index"
 									:starItems="$parent.starItems"
+									:regionZoom="$parent.regionZoom"
+									:regionViewArea="$parent.regionViewArea"
 									@on-star="$parent.starColumn"
-									@on-sectionData="$parent.onSectionsData">
+									@on-sectionData="$parent.onSectionsData"
+									@on-zoom="$parent.setZoom">
 								</research-section>	
 								<research-sections-summary
 									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
@@ -670,7 +679,10 @@
 									:sectionsData="$parent.sectionsData"
 									:utils="$parent.utilsBox"
 									:starItems="$parent.starItems"
+									:regionZoom="$parent.regionZoom"
+									:regionViewArea="$parent.regionViewArea"
 									@on-star="$parent.starColumn"
+									@on-zoom="$parent.setZoom"
 									>
 								</research-sections-summary>
 							</template>

@@ -1190,6 +1190,9 @@ new Vue({
         postAlertError,
         closeAlert,
         /// multi-sections use
+        setZoom(SETTING) {
+            this[SETTING.property] = SETTING.value;
+        },
         starColumn(ARRAY) {
             this.starItems = ARRAY;
         },
