@@ -54,21 +54,21 @@ export async function request(path, query_params) {
 
 /* Perform a BioIndex query.
  */
-export async function query(index, q, opts = {}) {
-    let { limit, onResolve, onError, onLoad, limitWhile } = opts;
-    let req = request(`/api/bio/query/${index}`, { q, limit });
+export async function query(index, q, opts = {}, query_private=false) {
+    let { limit, onResolve, onError, onLoad, limitWhile} = opts;
+    let req = request(`/api/bio/query/${index}`, { q, limit }, query_private);
 
-    return await processRequest(req, onResolve, onError, onLoad, limitWhile);
+    return await processRequest(req, onResolve, onError, onLoad, limitWhile, query_private);
 }
 
 /* Perform a BioIndex match.
  */
-export async function match(index, q, opts = {}) {
+export async function match(index, q, opts = {},query_private=false) {
     let { limit, onLoad, onResolve, onError } = opts;
-    let req = request(`/api/bio/match/${index}`, { q, limit });
+    let req = request(`/api/bio/match/${index}`, { q, limit }, query_private);
 
     // perform the fetch, make sure it succeeds
-    return await processRequest(req, onResolve, onError, onLoad);
+    return await processRequest(req, onResolve, onError, onLoad, query_private);
 }
 
 /* Alters the json to filter results and stop continuing.
