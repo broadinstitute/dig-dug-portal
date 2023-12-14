@@ -1,5 +1,30 @@
 <template>
     <div>
+        <div id="region_track_wrapper" class="region-track-wrapper">
+            <!--
+<template v-if="!!groupsList">
+                <template v-for="group in groupsList">
+                    <h4>{{ group }}</h4>
+                    <canvas v-if="!!plotConfig" :id="'track_' + sectionId + group" class="region-track"
+                    width="" height="">
+                    </canvas>
+                </template>
+            </template>
+
+            <template v-else>
+                <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
+                    width="" height="">
+                </canvas>
+            </template> 
+
+            -->
+        
+            <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
+                @mouseleave="hidePanel" @mousemove="checkPosition($event)" @resize="onResize"
+                width="" height="">
+            </canvas>
+            
+        </div>
         <!--
  <div :id="'clicked_dot_value_' + sectionId" class="clicked-dot-value hidden">
             <div :id="'clicked_dot_value_content_' + sectionId" class="clicked-dot-value-content"></div>
@@ -23,23 +48,7 @@
         -->
         
         
-        <div id="region_track_wrapper" class="region-track-wrapper">
-            <template v-if="!!groupsList">
-                <template v-for="group in groupsList">
-                    <h4>{{ group }}</h4>
-                    <canvas v-if="!!plotConfig" :id="'track_' + sectionId + group" class="region-track"
-                    width="" height="">
-                    </canvas>
-                </template>
-            </template>
-            
-    
-            <template v-else>
-                <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
-                    width="" height="">
-                </canvas>
-            </template> 
-        </div>
+        
     </div>
 </template>
 
@@ -77,10 +86,10 @@ export default Vue.component("research-region-track", {
     components: {},
     mounted: function () {
         this.renderPlot();
-       // window.addEventListener("resize", this.onResize);
+        window.addEventListener("resize", this.onResize);
     },
     beforeDestroy() {
-       // window.removeEventListener("resize", this.onResize);
+        window.removeEventListener("resize", this.onResize);
     },
     computed: {
         renderData() {
@@ -273,7 +282,7 @@ export default Vue.component("research-region-track", {
                     bump: 10,
                 };
 
-            let tracks = Object.keys(this.renderData);
+            let tracks = Object.keys(this.renderData).sort();
             let perTrack = this.plotConfig["track height"]*2;
             let canvasWidth = document.querySelector("#region_track_wrapper").clientWidth * 2;
             let canvasHeight = (perTrack * tracks.length)+ plotMargin.top + plotMargin.bottom;
@@ -314,12 +323,11 @@ export default Vue.component("research-region-track", {
 
             tracks.map(track=>{
                 let trackTop = plotMargin.top + (perTrack * trackIndex);
-
                 ctx.fillStyle = "#000000";
                 ctx.textAlign = "start";
                 ctx.textBaseline = "middle";
                 ctx.font = "24px Arial";
-                ctx.fillText(track, plotMargin.bump, trackTop + 24);
+                ctx.fillText(track, 2, trackTop + 12);
 
                 if (trackIndex % 2 == 0) {
                     ctx.fillStyle = "#00000010";
@@ -339,10 +347,9 @@ export default Vue.component("research-region-track", {
 
                 regionKeys.map(block=>{
                     let blockRegion = regionData[block][this.plotConfig["x axis field"]].split("-");
-                    console.log("blockRegion", blockRegion);
+
                     let blockStart= blockRegion[0];
                     let blockEnd = blockRegion[1];
-                    
 
                     if (blockStart <= regionEnd && blockEnd >= regionStart) {
                         let xPosStart =
@@ -365,55 +372,29 @@ export default Vue.component("research-region-track", {
 
                         //let xPosWidth = xPosEnd - xPosStart;
                         let xPosWidth =
-                            xPosEnd - xPosStart < 1
-                                ? 1
+                            xPosEnd - xPosStart < 2
+                                ? 2
                                 : xPosEnd - xPosStart;
 
-                        if (
-                            selectedBiosamples.indexOf(
-                                atPath[0] +
-                                " / " +
-                                atPath[1] +
-                                " / " +
-                                bKey
-                            ) > -1
-                        ) {
-                            ctx.fillStyle = "#FF000066";
-                        } else {
-                            ctx.fillStyle = this.getColorIndex(
-                                atPath[0]
-                            );
-                        }
+                        ctx.fillStyle = "#00000066";
 
                         ctx.fillRect(
                             xPosStart,
-                            renderHeight,
+                            trackTop,
                             xPosWidth,
-                            perBiosample - 1
+                            perTrack
                         );
-                        /*let xPosBtn =
-                            xPosStart + "_" + (xPosStart + xPosWidth);*/
+                    if(!this.posData[Math.round(trackTop/2)]) {
+                       this.posData[Math.round(trackTop / 2)]= []; 
+                    }
 
-                        let xPosBtn =
-                            Math.round(xPosStart / 2) +
-                            "_" +
-                            Math.round((xPosStart + xPosWidth) / 2);
-
-                        this.biosamplesPosData[yPosBtn].regions[
-                            xPosBtn
-                        ] = {
-                            start: blockStart,
-                            end: blockEnd,
-                            dataset: p.dataset,
-                            method: p.method,
-                            source: p.source,
-                            state: p.state,
-                        };
+                    this.posData[Math.round(trackTop / 2)].push({start: Math.round(xPosStart/2),end: Math.round((xPosStart+xPosWidth) / 2),data: regionData[block] });
                     }
                 })
                 trackIndex++;
             })
 
+            console.log(this.posData);
         },
         renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, plotMargin) {
             CTX.beginPath();
@@ -477,12 +458,109 @@ export default Vue.component("research-region-track", {
                 );
             }
         },
-       /* hidePanel(element) {
-            this.utils.uiUtils.hideElement(element);
+        checkPosition(e,action) {
+
+            let rect = e.target.getBoundingClientRect();
+            let x = Math.floor(e.clientX - rect.left);
+            let y = Math.floor(e.clientY - rect.top);
+
+            let trackRows = Object.keys(this.posData);
+
+            let blockData = [];
+
+            trackRows.map(row =>{
+                let rowTop = Number(row);
+                let rowBottom = rowTop + Math.round(this.plotConfig["track height"]);
+
+                if(y >= rowTop && y <= rowBottom) {
+                    this.posData[row].map(block=>{
+                        if(x >=block.start && x <= block.end) {
+                            blockData.push(block.data);
+                        }
+                    })
+                }
+            })
+
+            console.log(blockData);
+
+            /*
+            let wrapper = document.getElementById("clicked_dot_value_" + this.sectionId);
+            let canvas = document.getElementById("manhattanPlot_" + this.sectionId + ID);
+            wrapper.classList.remove("hidden");
+            let e = event;
+            
+            wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+
+            let clickedDotValue = "";
+
+            let numOfValues = 0;
+
+            for (let h = -5; h <= 5; h++) {
+                for (let v = -5; v <= 5; v++) {
+                    if (this.dotPosData[ID][x + h] != undefined) {
+                        if (this.dotPosData[ID][x + h][y + v] != undefined) {
+                            if (numOfValues < 6) {
+                                let dotObject =
+                                    this.dotPosData[ID][x + h][y + v];
+                                clickedDotValue +=
+                                    '<span class="gene-on-clicked-dot-mplot"><b>' +
+                                    dotObject[this.plotConfig["render by"]] +
+                                    "</b></span>";
+
+                                if (!!this.plotConfig["hover content"]) {
+                                    let hoverContent =
+                                        this.plotConfig["hover content"];
+
+                                    hoverContent.map((h) => {
+                                        clickedDotValue +=
+                                            '<span class="content-on-clicked-dot">' +
+                                            h +
+                                            ": " +
+                                            dotObject[h] +
+                                            "</span>";
+                                    });
+                                }
+                            }
+
+                            numOfValues += 1;
+                        }
+                    }
+                }
+            }
+
+            if (numOfValues > 5) {
+                clickedDotValue +=
+                    '<span class="gene-on-clicked-dot-mplot" style="color: #36c;"><b>Viewing 5 of ' +
+                    numOfValues +
+                    " items. Click to view full list.<b><span>";
+            }
+
+            let contentWrapper = document.getElementById(
+                "clicked_dot_value_content_" + this.sectionId
+            );
+
+            if (clickedDotValue != "") {
+                contentWrapper.innerHTML = clickedDotValue;
+
+                document
+                    .getElementById("manhattanPlot_" + this.sectionId + ID)
+                    .classList.add("hover");
+            } else {
+                wrapper.classList.add("hidden");
+                document
+                    .getElementById("manhattanPlot_" + this.sectionId + ID)
+                    .classList.remove("hover");
+            }*/
         },
         onResize(e) {
-            this.renderPlot(this.renderData);
+            this.renderPlot();
         },
+        hidePanel(element) {
+            this.utils.uiUtils.hideElement(element);
+        },
+       /* 
+        
         getFullList(event, ID) {
             let wrapper = document.getElementById("dot_value_full_list_" + this.sectionId);
             wrapper.classList.remove("hidden");
