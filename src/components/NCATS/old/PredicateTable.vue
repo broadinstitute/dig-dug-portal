@@ -108,7 +108,7 @@ export default Vue.component("TranslatorPredicateTable", {
     },
     data() {
         return {
-            id: this.geneSymbol + this.fields + this.title,
+            id: this.geneSymbol + this.field + this.title,
             currentPage: 1,
             perPage: 10,
             rawGeneInfo: [],
@@ -125,25 +125,28 @@ export default Vue.component("TranslatorPredicateTable", {
             );
         },
         fields() {
-            return Array.from(
-                new Set(
-                    this.geneInfo.reduce(
-                        (acc, item) => acc.concat(...Object.keys(item)),
-                        []
+            return (
+                Array.from(
+                    new Set(
+                        this.geneInfo.reduce(
+                            (acc, item) => acc.concat(...Object.keys(item)),
+                            []
+                        )
                     )
                 )
-            )
-                .sort((a, b) => {
-                    const sortMap = { id: 0, source: 1 };
-                    if (a === "id") {
-                        return -1;
-                    } else if (b === "id") {
-                        return 1;
-                    }
-                })
-                .filter(
-                    (el) => !["evidence", "gocategory", "category"].includes(el)
-                );
+                    .sort((a, b) => {
+                        const sortMap = { id: 0, source: 1 };
+                        if (a === "id") {
+                            return -1;
+                        } else if (b === "id") {
+                            return 1;
+                        }
+                    })
+                    .filter(
+                        (el) =>
+                            !["evidence", "gocategory", "category"].includes(el)
+                    ) || []
+            );
         },
         tableFields() {
             return this.fields.map((key) => ({
