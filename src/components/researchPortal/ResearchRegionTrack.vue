@@ -18,17 +18,17 @@
             </template> 
 
             -->
-        
+            <div :id="'block_data_' + sectionId" class="block-data hidden">
+                <div :id="'block_data_content_' + sectionId" class="block-data-content"></div>
+            </div>
             <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
-                @mouseleave="hidePanel" @mousemove="checkPosition($event)" @resize="onResize"
+                @mouseleave="hidePanel" @mousemove="checkPosition($event,'hover')" @resize="onResize"
                 width="" height="">
             </canvas>
             
         </div>
         <!--
- <div :id="'clicked_dot_value_' + sectionId" class="clicked-dot-value hidden">
-            <div :id="'clicked_dot_value_content_' + sectionId" class="clicked-dot-value-content"></div>
-        </div>
+ 
         <div :id="'dot_value_full_list_' + sectionId" class="dot-value-full-list hidden">
             <div class="clicked-dot-value-close" @click="hidePanel('dot_value_full_list_' + sectionId)">
                 <b-icon icon="x-circle-fill"></b-icon>
@@ -296,7 +296,7 @@ export default Vue.component("research-region-track", {
             c.setAttribute("height", canvasHeight);
             c.setAttribute(
                 "style",
-                "background-color: #ffffff; border: solid 1px #000;"+
+                "background-color: #ffffff;"+
                 "width: " +
 						canvasWidth / 2 +
                 "px;height:" +
@@ -464,6 +464,14 @@ export default Vue.component("research-region-track", {
             let x = Math.floor(e.clientX - rect.left);
             let y = Math.floor(e.clientY - rect.top);
 
+            let wrapper = document.getElementById("block_data_" + this.sectionId);
+            let contentWrapper = document.getElementById("block_data_content_" + this.sectionId);
+            let canvas = document.getElementById("track_" + this.sectionId);
+            wrapper.classList.remove("hidden");
+
+            wrapper.style.top = y + canvas.offsetTop + 25 + "px";
+            wrapper.style.left = x + canvas.offsetLeft + "px";
+
             let trackRows = Object.keys(this.posData);
 
             let blockData = [];
@@ -481,7 +489,42 @@ export default Vue.component("research-region-track", {
                 }
             })
 
-            console.log(blockData);
+            //console.log(blockData);
+            if (blockData.length > 0) {
+                let hoverContent = ""
+
+                let blockIndex = 0;
+                blockData.map(b =>{
+                    if(action == "hover" && blockIndex < 5) {
+                        hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
+                        this.plotConfig["hover content"].map(h => {
+                            hoverContent += "<strong>" + h + "</strong>: <span>" + b[h] + "</span><br />";
+                        })
+                        hoverContent += "<br />";
+                    } else if (action == "click"){
+                        hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
+                        this.plotConfig["hover content"].map(h => {
+                            hoverContent += "<strong>" + h + "</strong>: <span>" + b[h] + "</span><br />";
+                        })
+                        hoverContent += "<br />";
+                    }
+
+                    blockIndex++;
+                })
+
+                if (action == "hover" && blockData.length > 5) {
+                   hoverContent +=
+                    '<strong style="color: #36c;">Viewing 5 of ' +
+                        blockData.length +
+                        " items. Click to view full list.</strong>";
+                }
+
+                document.getElementById("track_" + this.sectionId).classList.add("hover");
+                contentWrapper.innerHTML = hoverContent;
+            } else {
+                wrapper.classList.add("hidden");
+                document.getElementById("track_" + this.sectionId).classList.remove("hover");
+            }
 
             /*
             let wrapper = document.getElementById("clicked_dot_value_" + this.sectionId);
@@ -969,20 +1012,20 @@ $(function () { });
     display: block !important;
 }
 
-.clicked-dot-value {
+.block-data {
     position: absolute;
     background-color: #fff;
     border: solid 1px #aaa;
     box-shadow: 0 0 5px #00000075;
     font-size: 12px;
-    max-width: 300px;
+    max-width: 400px;
     border-radius: 5px;
     z-index: 10;
     width: auto;
     padding: 8px 20px 8px 10px !important;
 }
 
-.clicked-dot-value-close {
+.block-data-close {
     position: absolute;
     top: 0;
     right: 3px;
@@ -990,7 +1033,7 @@ $(function () { });
     color: #69f;
 }
 
-.clicked-dot-value-close:hover {
+.block-data-close:hover {
     color: #36c;
 }
 
