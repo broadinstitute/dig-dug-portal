@@ -1,16 +1,19 @@
 <template>
     <b-row no-gutters>
         <b-card-body :title="title">
-            <criterion-list-group class="eglt-table-wrapper">
+            <div class="eglt-table-wrapper">
                 <div class="filtering-ui-wrapper container-fluid">
                     <div class="row filtering-ui-content">
                         <div class="col filter-col-md">
                             <div class="label">Search</div>
-                            <input class="col filter-col-md form-control" v-model="filterString"/>
+                            <input
+                                class="col filter-col-md form-control"
+                                v-model="filterString"
+                            />
                         </div>
                     </div>
                 </div>
-            </criterion-list-group>
+            </div>
             <div class="text-right mt-2 mb-2">
                 <data-download
                     :data="geneInfo"
@@ -178,7 +181,7 @@ export default Vue.component("TranslatorPredicateTable", {
     },
     async created() {
         this.context = await fetch(
-            "https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld"
+            "https://raw.githubusercontent.com/biolink/biolink-model/master/project/jsonld/biolink_model.context.jsonld"
         )
             .then((response) => response.json())
             .then((json) => json["@context"]);
