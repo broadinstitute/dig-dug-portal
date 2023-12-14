@@ -802,7 +802,11 @@ export default Vue.component("research-section", {
 			let queryType = this.sectionConfig["data point"]["type"];
 			let paramsType = this.sectionConfig["data point"]["parameters type"]
 			let params = this.sectionConfig["data point"]["parameters"]
-
+			// if data isn't getting cumulated, remove older search params other than the last one
+			if(!this.dataPoint["cumulate data"] && this.searched.length > 1) { 
+				let lastSearched = this.searched[this.searched.length-1]
+				this.searched = [lastSearched];
+			}
 			let paramsString = this.getParamString();
 
 			if (paramsString != "invalid") {

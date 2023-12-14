@@ -92,6 +92,38 @@ export default Vue.component("research-region-track", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
+        viewingRegion() {
+            if (this.region == null) {
+                return null;
+            } else {
+                let returnObj = {};
+
+                returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
+
+                let regionArr = this.region.split(":")[1].split("-");
+                let chr = this.region.split(":")[0];
+                let start = parseInt(regionArr[0], 10);
+                let end = parseInt(regionArr[1], 10);
+                let distance = end - start;
+                if (this.regionZoom > 0) {
+                    let zoomNum = Math.round(
+                        distance * (this.regionZoom / 200)
+                    );
+                    let viewPointShift = Math.round(
+                        zoomNum * (this.regionViewArea / 100)
+                    );
+                    returnObj["chr"] = chr;
+                    returnObj["start"] = start + zoomNum + viewPointShift;
+                    returnObj["end"] = end - zoomNum + viewPointShift;
+                } else if (this.regionZoom == 0) {
+                    returnObj["chr"] = chr;
+                    returnObj["start"] = start;
+                    returnObj["end"] = end;
+                }
+
+                return returnObj;
+            }
+        },
         renderData() {
             
             //console.log("this.plotData", this.plotData);
@@ -112,158 +144,19 @@ export default Vue.component("research-region-track", {
 
             return massagedData;
 
-            /*let rawData = this.plotData;
-            let compareGroups = [];
-            let massagedData = {};
-            let plotsList = [...this.plotsList];
-
-            plotsList.map((c) => {
-                let tempObj = { sorted: {}, unsorted: [] };
-                massagedData[c] = tempObj;
-            });
-
-            for (const chr in this.chromosomeLength) {
-                for (const [key, value] of Object.entries(massagedData)) {
-                    value.sorted[chr] = [];
-                }
-            }
-
-            if (this.dataComparisonConfig != null) {
-                for (const [key, value] of Object.entries(rawData)) {
-                    plotsList.map((c) => {
-                        let region = value[this.plotConfig["x axis field"]];
-
-                        if (
-                            region != undefined &&
-                            region != "" &&
-                            region != null
-                        ) {
-                            let tempObj = {};
-                            tempObj[this.plotConfig["render by"]] =
-                                value[this.plotConfig["render by"]];
-
-                            if (!!this.plotConfig["hover content"]) {
-                                let hoverContent =
-                                    this.plotConfig["hover content"];
-
-                                hoverContent.map((h) => {
-                                    let ifInCompare =
-                                        this.dataComparisonConfig[
-                                            "fields to compare"
-                                        ].indexOf(h);
-                                    tempObj[h] =
-                                        ifInCompare < 0
-                                            ? value[h]
-                                            : value[h][c];
-                                });
-                            }
-
-                            let locationArr =
-                                value[this.plotConfig["x axis field"]].split(
-                                    ":"
-                                );
-
-                            let chr = locationArr[0].trim();
-
-                            let regionArr = locationArr[1].split("-");
-
-                            tempObj["locus"] =
-                                regionArr.length > 1
-                                    ? (Number(regionArr[0].trim()) +
-                                        Number(regionArr[1].trim())) /
-                                    2
-                                    : Number(regionArr[0].trim());
-
-                            tempObj[this.plotConfig["y axis field"]] =
-                                value[this.plotConfig["y axis field"]][c];
-
-                            massagedData[c].sorted[chr].push(tempObj);
-                            massagedData[c].unsorted.push(tempObj);
-                        }
-                    });
-                }
-            } else {
-                rawData.map((r) => {
-                    let region = r[this.plotConfig["x axis field"]];
-
-                    if (region != undefined && region != "" && region != null) {
-                        let tempObj = {};
-                        tempObj[this.plotConfig["render by"]] =
-                            r[this.plotConfig["render by"]];
-
-                        if (!!this.plotConfig["hover content"]) {
-                            let hoverContent =
-                                this.plotConfig["hover content"];
-
-                            hoverContent.map((h) => {
-                                tempObj[h] = r[h];
-                            });
-                        }
-
-                        let locationArr =
-                            r[this.plotConfig["x axis field"]].split(":");
-
-                        let chr = locationArr[0].trim();
-
-                        let regionArr = locationArr[1].split("-");
-
-                        tempObj["locus"] =
-                            regionArr.length > 1
-                                ? (Number(regionArr[0].trim()) +
-                                    Number(regionArr[1].trim())) /
-                                2
-                                : Number(regionArr[0].trim());
-
-                        tempObj[this.plotConfig["y axis field"]] =
-                            r[this.plotConfig["y axis field"]];
-
-                        massagedData["default"].sorted[chr].push(tempObj);
-                        massagedData["default"].unsorted.push(tempObj);
-                    }
-                });
-            }
-
-            return massagedData;*/
         },
-        /*plotsList() {
-            let rawData = this.plotData;
-            let compareGroups = [];
-            //console.log("this.dataComparisonConfig",this.dataComparisonConfig);
-
-            if (!!rawData) {
-                if (this.dataComparisonConfig != null) {
-                    let compareKey =
-                        this.dataComparisonConfig["fields to compare"][0];
-
-                    for (const [key, value] of Object.entries(rawData)) {
-                        Object.keys(value[compareKey]).map((k) => {
-                            if (compareGroups.indexOf(k) < 0) {
-                                compareGroups.push(k);
-                            }
-                        });
-                    }
-                } else {
-                    compareGroups = ["default"];
-                }
-                return compareGroups;
-            } else {
-                return null;
-            }
-        },
-        */
     },
     watch: {
-        /*renderData(CONTENT) {
-            //when data gets updated, hold it for little until vue.js renders <canvas> for the each datasets
-            setTimeout(function () {
-                window.dispatchEvent(new Event("resize"));
-            }, 100);
-        },*/
+        viewingRegion(REGION){
+            this.renderPlot();
+        },
+        plotData(DATA) {
+            this.renderPlot();
+        }
     },
     methods: {
         renderPlot() {
-            console.log("this.renderData", this.renderData);
-            console.log("this.plotConfig", this.plotConfig);
+            this.posData = {};
             let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
 
 
@@ -310,14 +203,15 @@ export default Vue.component("research-region-track", {
             let trackIndex = 0;
             let plotHeight = perTrack * tracks.length;
             let plotWidth = canvasWidth - (plotMargin.left + plotMargin.right);
-            let regionArr = this.region.split(":");
-            let region = regionArr[1].split("-");
+            //let regionArr = this.region.split(":");
+            //let region = regionArr[1].split("-");
+            let region = this.viewingRegion;
 
             this.renderAxis(ctx,
                 plotWidth,
                 plotHeight,
-                Number(region[1]),
-                Number(region[0]),
+                Number(region.end),
+                Number(region.start),
                 plotMargin.top,
                 plotMargin);
 
@@ -341,9 +235,9 @@ export default Vue.component("research-region-track", {
 
                 let regionData = this.renderData[track]
                 let regionKeys = Object.keys(regionData)
-                let regionStart = region[0];
-                let regionEnd = region[1];
-                let xPerPixel = plotWidth / (regionEnd - regionStart);
+                //let regionStart = region[0];
+                //let regionEnd = region[1];
+                let xPerPixel = plotWidth / (region.end - region.start);
 
                 regionKeys.map(block=>{
                     let blockRegion = regionData[block][this.plotConfig["x axis field"]].split("-");
@@ -351,9 +245,9 @@ export default Vue.component("research-region-track", {
                     let blockStart= blockRegion[0];
                     let blockEnd = blockRegion[1];
 
-                    if (blockStart <= regionEnd && blockEnd >= regionStart) {
+                    if (blockStart <= region.end && blockEnd >= region.start) {
                         let xPosStart =
-                            (blockStart - regionStart) * xPerPixel +
+                            (blockStart - region.start) * xPerPixel +
                         plotMargin.left;
 
                         xPosStart =
@@ -361,7 +255,7 @@ export default Vue.component("research-region-track", {
                                 ? plotMargin.left
                                 : xPosStart;
                         let xPosEnd =
-                            (blockEnd - regionStart) * xPerPixel +
+                            (blockEnd - region.start) * xPerPixel +
                             plotMargin.left;
 
                         xPosEnd =
