@@ -101,7 +101,7 @@ export default Vue.component("UniprotReferencesTable", {
     },
     async created() {
         this.context = await fetch(
-            "https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld"
+            "https://raw.githubusercontent.com/biolink/biolink-model/master/project/jsonld/biolink_model.context.jsonld"
         )
             .then((response) => response.json())
             .then((json) => json["@context"]);
