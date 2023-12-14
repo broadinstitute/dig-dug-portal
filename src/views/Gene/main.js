@@ -173,7 +173,13 @@ new Vue({
                 ],
                 thresholds: [Math.log(3), Math.log(30)],
                 'label in black': 'greater than',
-                height: '500'
+                height: '600',
+                "plot margin": {
+                    "left": 150,
+                    "right": 150,
+                    "top": 250,
+                    "bottom": 300
+                }
             },
             commonVariantRenderConfig: {
                 type: 'phewas plot',
@@ -187,7 +193,13 @@ new Vue({
                 'beta field': 'null',
                 'hover content': ['pValue'],
                 thresholds: ['2.5e-6'],
-                height: '500',
+                height: '600',
+                "plot margin": {
+                    "left": 150,
+                    "right": 150,
+                    "top": 250,
+                    "bottom": 300
+                }
             },
             rareVariantRenderConfig: {
                 type: 'phewas plot',
@@ -201,7 +213,13 @@ new Vue({
                 'beta field': 'beta',
                 'hover content': ['pValue', 'beta'],
                 thresholds: ['2.5e-6', '0.05'],
-                height: '500',
+                height: '600',
+                "plot margin": {
+                    "left": 150,
+                    "right": 150,
+                    "top": 250,
+                    "bottom": 300
+                }
             },
         };
     },
@@ -741,16 +759,16 @@ new Vue({
                 refComponent.renderPheWas();
             }, 500);
         },
-        filterPhenotype(newFilters){
+        filterPhenotype(newFilters) {
             this.phenotypeFilterList = newFilters;
             console.log(JSON.stringify(this.phenotypeFilterList));
         },
-        clearCriterion(criterion){
-            if (criterion === "transcript"){
+        clearCriterion(criterion) {
+            if (criterion === "transcript") {
                 this.$store.state.selectedTranscript = "";
                 return;
             }
-            if (criterion === "ancestry"){
+            if (criterion === "ancestry") {
                 this.$store.state.selectedAncestry = "";
                 return;
             }

@@ -288,8 +288,8 @@ export default Vue.component("research-phewas-plot", {
 				this.hoverItems = {};
 
 				if (
-					x >= plotMargin.left &&
-					x <= rect.width - plotMargin.right
+					x >= (plotMargin.left/2) &&
+					x <= rect.width - (plotMargin.right/2)
 				) {
 					for (const [yKey, yValue] of Object.entries(
 						this.pheWasPosData
