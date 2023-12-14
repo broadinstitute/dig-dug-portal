@@ -62,7 +62,7 @@
 			:sectionId="sectionId"
 		></research-m-qq-plot>
 		<!-- region_plot -->
-		<research-region-plot
+		<multi-region-plot
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!region"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
@@ -80,7 +80,7 @@
 			:utils="utils"
 			:starItems="starItems"
 			@on-star="starColumn"
-		></research-region-plot>
+		></multi-region-plot>
 		<!-- genes track -->
 		<research-genes-track
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!plotConfig['genes track'] && !!region"
@@ -150,7 +150,7 @@ import $ from "jquery";
 
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
 import ResearchMQQPlot from "@/components/researchPortal/ResearchMQQPlot.vue";
-import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
+import ResearchRegionPlot from "@/components/researchPortal/multiSectionComponents/MultiRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 //import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";

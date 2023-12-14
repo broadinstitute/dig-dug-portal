@@ -1,5 +1,5 @@
 <template>
-    <div class="mbm-plot-content">
+    <div>
         <!--
  <div :id="'clicked_dot_value_' + sectionId" class="clicked-dot-value hidden">
             <div :id="'clicked_dot_value_content_' + sectionId" class="clicked-dot-value-content"></div>
@@ -21,23 +21,25 @@
         </div>
         <div v-if="!!plotConfig.label" class="mbm-plot-label" v-html="plotConfig.label"></div>
         -->
-        <div id="region_track_wrapper" class="col-md-9 region-track-wrapper">
+        
+        
+        <div id="region_track_wrapper" class="region-track-wrapper">
             <template v-if="!!groupsList">
-                <div v-for="group in groupsList" :key="group">
+                <template v-for="group in groupsList">
                     <h4>{{ group }}</h4>
                     <canvas v-if="!!plotConfig" :id="'track_' + sectionId + group" class="region-track"
                     width="" height="">
                     </canvas>
-                </div>
+                </template>
             </template>
+            
+    
             <template v-else>
-                <div>
-                    <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
-                        width="" height="">
-                    </canvas>
-                </div>
-            </template>
-        </div>       
+                <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
+                    width="" height="">
+                </canvas>
+            </template> 
+        </div>
     </div>
 </template>
 
@@ -85,19 +87,17 @@ export default Vue.component("research-region-track", {
             
             //console.log("this.plotData", this.plotData);
 
-            let massagedData = {"keys":{},"data":{}};
+            let massagedData = {};
 
             /// insert zoom filter here
 
             this.plotData.map(row=>{
 
-                if(!massagedData.keys[row[this.plotConfig["y axis field"]]]){
-                    massagedData.keys[row[this.plotConfig["y axis field"]]] = [];
-                    massagedData.data[row[this.plotConfig["y axis field"]]] = {};
+                if(!massagedData[row[this.plotConfig["y axis field"]]]){
+                    massagedData[row[this.plotConfig["y axis field"]]] = {};
                 };
 
-                massagedData.keys[row[this.plotConfig["y axis field"]]].push(row[this.plotConfig["render by"]]);
-                massagedData.data[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]] = row;
+                massagedData[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]] = row;
 
             })
 
@@ -255,13 +255,28 @@ export default Vue.component("research-region-track", {
         renderPlot() {
             console.log("this.renderData", this.renderData);
             console.log("this.plotConfig", this.plotConfig);
+            let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
 
-            let canvasWidth = document.querySelector("#region_track_wrapper").clientWidth;
 
-            let trackNumber = Object.keys(this.renderData.keys).length;
-            let canvasHeight = this.plotConfig["track height"] * trackNumber;
+            let plotMargin = !!customPlotMargin ? {
+                left: customPlotMargin.left,
+                right: customPlotMargin.right,
+                top: customPlotMargin.top,
+                bottom: customPlotMargin.bottom,
+                bump: 10,
+            } :
+                {
+                    left: this.plotMargin.leftMargin*2,
+                    right: this.plotMargin.rightMargin * 2,
+                    top: this.plotMargin.topMargin * 2,
+                    bottom: this.plotMargin.bottomMargin * 2,
+                    bump: 10,
+                };
 
-            //console.log(canvasRenderWidth, " : ", trackNumber," : ", canvasRenderHeight)
+            let tracks = Object.keys(this.renderData);
+            let perTrack = this.plotConfig["track height"]*2;
+            let canvasWidth = document.querySelector("#region_track_wrapper").clientWidth * 2;
+            let canvasHeight = (perTrack * tracks.length)+ plotMargin.top + plotMargin.bottom;
 
             let c, ctx;
 
@@ -272,11 +287,196 @@ export default Vue.component("research-region-track", {
             c.setAttribute("height", canvasHeight);
             c.setAttribute(
                 "style",
-                "border: solid 1px #000"
+                "background-color: #ffffff; border: solid 1px #000;"+
+                "width: " +
+						canvasWidth / 2 +
+                "px;height:" +
+                canvasHeight / 2 +
+                "px;"
             );
-            
+
             ctx = c.getContext("2d");
-        }
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            let trackIndex = 0;
+            let plotHeight = perTrack * tracks.length;
+            let plotWidth = canvasWidth - (plotMargin.left + plotMargin.right);
+            let regionArr = this.region.split(":");
+            let region = regionArr[1].split("-");
+
+            this.renderAxis(ctx,
+                plotWidth,
+                plotHeight,
+                Number(region[1]),
+                Number(region[0]),
+                plotMargin.top,
+                plotMargin);
+
+            tracks.map(track=>{
+                let trackTop = plotMargin.top + (perTrack * trackIndex);
+
+                ctx.fillStyle = "#000000";
+                ctx.textAlign = "start";
+                ctx.textBaseline = "middle";
+                ctx.font = "24px Arial";
+                ctx.fillText(track, plotMargin.bump, trackTop + 24);
+
+                if (trackIndex % 2 == 0) {
+                    ctx.fillStyle = "#00000010";
+                    ctx.fillRect(
+                        plotMargin.left,
+                        trackTop,
+                        plotWidth,
+                        perTrack
+                    );
+                }
+
+                let regionData = this.renderData[track]
+                let regionKeys = Object.keys(regionData)
+                let regionStart = region[0];
+                let regionEnd = region[1];
+                let xPerPixel = plotWidth / (regionEnd - regionStart);
+
+                regionKeys.map(block=>{
+                    let blockRegion = regionData[block][this.plotConfig["x axis field"]].split("-");
+                    console.log("blockRegion", blockRegion);
+                    let blockStart= blockRegion[0];
+                    let blockEnd = blockRegion[1];
+                    
+
+                    if (blockStart <= regionEnd && blockEnd >= regionStart) {
+                        let xPosStart =
+                            (blockStart - regionStart) * xPerPixel +
+                        plotMargin.left;
+
+                        xPosStart =
+                            xPosStart <= plotMargin.left
+                                ? plotMargin.left
+                                : xPosStart;
+                        let xPosEnd =
+                            (blockEnd - regionStart) * xPerPixel +
+                            plotMargin.left;
+
+                        xPosEnd =
+                            xPosEnd >
+                                plotMargin.left + plotWidth
+                                ? plotMargin.left + plotWidth
+                                : xPosEnd;
+
+                        //let xPosWidth = xPosEnd - xPosStart;
+                        let xPosWidth =
+                            xPosEnd - xPosStart < 1
+                                ? 1
+                                : xPosEnd - xPosStart;
+
+                        if (
+                            selectedBiosamples.indexOf(
+                                atPath[0] +
+                                " / " +
+                                atPath[1] +
+                                " / " +
+                                bKey
+                            ) > -1
+                        ) {
+                            ctx.fillStyle = "#FF000066";
+                        } else {
+                            ctx.fillStyle = this.getColorIndex(
+                                atPath[0]
+                            );
+                        }
+
+                        ctx.fillRect(
+                            xPosStart,
+                            renderHeight,
+                            xPosWidth,
+                            perBiosample - 1
+                        );
+                        /*let xPosBtn =
+                            xPosStart + "_" + (xPosStart + xPosWidth);*/
+
+                        let xPosBtn =
+                            Math.round(xPosStart / 2) +
+                            "_" +
+                            Math.round((xPosStart + xPosWidth) / 2);
+
+                        this.biosamplesPosData[yPosBtn].regions[
+                            xPosBtn
+                        ] = {
+                            start: blockStart,
+                            end: blockEnd,
+                            dataset: p.dataset,
+                            method: p.method,
+                            source: p.source,
+                            state: p.state,
+                        };
+                    }
+                })
+                trackIndex++;
+            })
+
+        },
+        renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, plotMargin) {
+            CTX.beginPath();
+            CTX.lineWidth = 1;
+            CTX.strokeStyle = "#000000";
+            CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+            // render y axis
+            CTX.moveTo(plotMargin.left - plotMargin.bump, yPos);
+            CTX.lineTo(plotMargin.left - plotMargin.bump, yPos + HEIGHT + plotMargin.bump);
+            CTX.stroke();
+
+            // render recombination Rate y axis
+            let recomXpos = Math.round(
+                plotMargin.left + WIDTH + plotMargin.bump
+            );
+
+            CTX.moveTo(recomXpos, yPos);
+            CTX.lineTo(recomXpos, yPos + HEIGHT + plotMargin.bump);
+            CTX.stroke();
+
+            //render x axis
+            CTX.moveTo(plotMargin.left - plotMargin.bump, yPos + HEIGHT + plotMargin.bump);
+            CTX.lineTo(recomXpos, yPos + HEIGHT + plotMargin.bump);
+            CTX.stroke();
+
+            // X ticks
+
+            let xStep = Math.ceil((xMax - xMin) / 5);
+            let xTickDistance = WIDTH / 5;
+
+            for (let i = 0; i < 6; i++) {
+                let tickXPos = plotMargin.left + i * xTickDistance;
+                let adjTickXPos = Math.floor(tickXPos);
+                CTX.moveTo(adjTickXPos, yPos + HEIGHT + plotMargin.bump);
+                CTX.lineTo(adjTickXPos, yPos + HEIGHT + plotMargin.bump * 2);
+                CTX.stroke();
+
+                CTX.textAlign = "center";
+                //let positionLabel = i < 5 ? xMin + i * xStep : xMax;
+                CTX.font = "24px Arial";
+                CTX.fillStyle = "#000000";
+
+                let xMaxMinGap = xMax - xMin;
+                let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+                let positionLabel = this.utils.Formatters.decimalFormatter(
+                    xMin + i * xStep,
+                    xDecimal
+                );
+
+                positionLabel =
+                    positionLabel >= 100000
+                        ? Math.round(positionLabel * 0.001) + "k"
+                        : positionLabel;
+
+                CTX.fillText(
+                    positionLabel,
+                    adjTickXPos,
+                    yPos + HEIGHT + 36 + plotMargin.bump
+                );
+            }
+        },
        /* hidePanel(element) {
             this.utils.uiUtils.hideElement(element);
         },
@@ -679,6 +879,9 @@ $(function () { });
 </script>
 
 <style>
+.region-track-wrapper {
+    padding: 0 !important;
+}
 .region-track.hover {
     cursor: pointer;
 }

@@ -6,7 +6,7 @@
 	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
 
 
-		<div class="row">
+		<div class="row section-header">
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
 					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
@@ -25,11 +25,10 @@
 			</div>
 		</div>
 
-		
+		<div class="row" :id="'section_' + sectionID">
 
-		<div class="row card-body" :id="'section_' + sectionID">
-
-			<div v-if="!!groups"><span v-for="key in groups" @click="removeData(key)"
+			<div class="col-md-12" v-if="!!groups">
+				<span v-for="key in groups" @click="removeData(key)"
 					class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
 
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
@@ -46,9 +45,9 @@
 				<research-section-filters v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
 					:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
 					:dataComparisonConfig="null" @on-filtering="updateData"></research-section-filters>
+					
 				<div
-					class="col-md-12 zoom-ui-wrapper"
-					v-if="!!tableFormat && !!tableFormat['data zoom']"
+					class="zoom-ui-wrapper" v-if="!!tableFormat && !!tableFormat['data zoom']"
 				>
 					<span>Zoom</span>
 
