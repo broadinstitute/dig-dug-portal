@@ -6,8 +6,8 @@
         >
             <option
                 v-for="group in visibleDiseaseGroups"
-                :value="group.name"
                 :key="group.name"
+                :value="group.name"
             >
                 {{ group.description }}
             </option>
@@ -27,7 +27,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default Vue.component("disease-group-select", {
+export default Vue.component("DiseaseGroupSelect", {
     props: ["diseaseGroups"],
 
     data() {
@@ -35,9 +35,8 @@ export default Vue.component("disease-group-select", {
             diseaseGroup:
                 this.$store.getters["bioPortal/diseaseGroup"].portalGroup ||
                 null,
-          selectedPortal: "",
+            selectedPortal: "",
         };
-
     },
 
     computed: {
