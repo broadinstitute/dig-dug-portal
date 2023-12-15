@@ -90,8 +90,9 @@
 					<div :id="'assoInfoBox' + item.replaceAll(' ', '_') + sectionId" class="asso-info-box hidden"></div>
 				</div>
 			</div>
+	<span class="ld-plots-opener" @click="utils.uiUtils.showHideElement('ldPlotsWrapper' + item.replaceAll(' ', '_') + sectionId)">View P-Value / LD plot(s)</span>
 			<div :id="'ldPlotsWrapper' + item.replaceAll(' ', '_') + sectionId"
-				class="row ld-plots-wrapper reference-area">
+				class="row ld-plots-wrapper hidden">
 				<h6 v-html="item != 'default'
 					? item + ' <small>*Showing only with LD</small>'
 					: ' <small>*Showing only with LD</small>'
@@ -862,13 +863,9 @@ export default Vue.component("multi-region-plot", {
 			let regionEnd = this.searchingRegion.end;
 			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
 			let assoCanvasWidth =
-				document.querySelector("#rp_region_plot").clientWidth *
-				2 -
-				60; //30 <- left & right padding of wrapper *2
-			let ldCanvasWidth =
-				document.querySelector("#rp_region_plot").clientWidth *
-				2 -
-				60; //30 <- left & right padding of wrapper *2
+				document.querySelector("#rp_region_plot").clientWidth * 2;
+				
+			let ldCanvasWidth = 700;
 
 			let canvasHeight = !!this.renderConfig.height
 				? this.renderConfig.height * 2 +
@@ -1747,11 +1744,31 @@ $(function () { });
 	padding: 0 !important;
 }
 
+.ld-plots-opener {
+	background-color: #00000080;
+	color: #ffffff;
+	font-size: 12px;
+	font-weight: bold;
+	padding: 1px 15px;
+	border-radius: 7px;
+}
+
+.ld-plots-opener:hover {
+	cursor: pointer;
+}
+
 .asso-plots-wrapper,
 .ld-plots-wrapper {
-	display: inline-block;
+	display: block;
 	height: auto !important;
 	padding-bottom: 0 !important;
+}
+
+.ld-plots-wrapper {
+	background-color: #00000009;
+    border: solid 1px #00000019;
+    border-radius: 7px;
+    padding: 15px;
 }
 
 .asso-info-box,
@@ -1814,6 +1831,7 @@ $(function () { });
 
 /* remove later if unused */
 .region-plot-default-legend {
+	display: block;
 	text-align: center;
 }
 
