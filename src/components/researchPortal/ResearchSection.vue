@@ -10,8 +10,8 @@
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
 					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
-				<button class="btn btn-sm show-evidence-btn show-hide-section"
-					@click="utils.uiUtils.showHideElement('section_' + sectionID)" title="Show / hide section"><b-icon
+				<button class="btn btn-sm show-evidence-btn show-hide-section" :class="(!!sectionHidden) ? '' : 'red-background'"
+					@click="utils.uiUtils.showHideElement('section_' + sectionID); sectionHidden=(!!sectionHidden)?false:true" title="Show / hide section"><b-icon
 						icon="eye"></b-icon></button>
 				<h4>{{ sectionConfig.header }}
 
@@ -238,8 +238,7 @@ export default Vue.component("research-section", {
 			searched: [],
 			loadingDataFlag: "down",
 			regionParam:null,
-			//regionZoom: 0,
-			//regionViewArea: 0,
+			sectionHidden: false,
 		};
 	},
 	modules: {
@@ -1240,6 +1239,11 @@ button.capture-data {
 
 button.capture-data {
 	right: 55px;
+}
+
+button.red-background {
+	background-color: #ff5555 !important;
+	border: solid 1px #aa5555 !important;
 }
 
 .no-search-value {

@@ -82,7 +82,7 @@
 			@on-star="starColumn"
 		></multi-region-plot>
 		<!-- genes track -->
-		<research-genes-track
+		<multi-genes-track
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!plotConfig['genes track'] && !!region"
 			:region="region"
 			:genesData="null"
@@ -94,7 +94,7 @@
 			:utils="utils"
 			:sectionId="sectionId"
 			:starItems="starItems"
-		></research-genes-track>
+		></multi-genes-track>
 		<!-- general track -->
 		<research-region-track
 			v-if="!!plotConfig && plotConfig['type'] == 'region track' && !!region"
@@ -152,7 +152,7 @@ import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap
 import ResearchMQQPlot from "@/components/researchPortal/ResearchMQQPlot.vue";
 import ResearchRegionPlot from "@/components/researchPortal/multiSectionComponents/MultiRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
-import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
+import ResearchGenesTrack from "@/components/researchPortal/multiSectionComponents/MultiGenesTrack.vue";
 //import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
@@ -212,4 +212,7 @@ export default Vue.component("research-section-visualizers", {
 $(function () {});
 </script>
 <style>
+canvas {
+	border: solid 1px #fff;
+}
 </style>
