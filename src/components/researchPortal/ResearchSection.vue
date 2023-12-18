@@ -770,7 +770,11 @@ export default Vue.component("research-section", {
 						// Don't forget to resolve this.
 						if(!queryParams[p][i]) { queryParams[p][i]  = queryParams[p][i-1] }
 
-						pramsString += queryParams[p][i] + ",";
+						if(queryParams[p][i] !="" && queryParams[p][i] != "*") {
+							pramsString += queryParams[p][i].trim() + ",";
+						} else if(queryParams[p][i] == "*"){
+							pramsString +=  ""; ///wild key
+						}
 					})
 					queryParamsString.push(pramsString.slice(0, -1));
 				}
@@ -780,6 +784,7 @@ export default Vue.component("research-section", {
 				queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
 			}
 
+			console.log("queryParamsString", queryParamsString)
 			//5. Check if return the first item in the queryParamsString
 
 			if (queryParamsString.length > 0) {
