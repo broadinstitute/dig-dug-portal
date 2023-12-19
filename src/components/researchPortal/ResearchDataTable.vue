@@ -178,7 +178,8 @@
 								:key="tdKey"
 								:class="getColumnId(tdKey)"
 							>
-							<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> {{ tdValue }}
+							<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
+								{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
 								<span class="btns-wrapper">
 									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
 										v-html="section.label" @click="setParameter(tdValue, tdKey, section.section)" ></button>
@@ -206,7 +207,8 @@
 								:key="sKey"
 							>
 
-								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> {{ sValue }}
+								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
+									{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
 									<span class="btns-wrapper">
 										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
 											v-html="section.label" @click="setParameter(sValue, tdKey, section.section)" ></button>
@@ -636,6 +638,14 @@ export default Vue.component("research-data-table", {
 			 } else {
 				return null;
 			 }
+		},
+		getParameterColumnLabel(KEY){
+			if (!!this.ifSetParameterColumn(KEY)) {
+				let label = (!!this.tableFormat['column formatting'][KEY].label)? this.tableFormat['column formatting'][KEY].label : null;
+				return label;
+			} else {
+				return null;
+			}
 		},
 		getParameterTargets(KEY) {
 			return this.tableFormat['column formatting'][KEY]['target sections'];
