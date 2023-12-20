@@ -81,20 +81,7 @@
 			:starItems="starItems"
 			@on-star="starColumn"
 		></multi-region-plot>
-		<!-- genes track -->
-		<multi-genes-track
-			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!plotConfig['genes track'] && !!region"
-			:region="region"
-			:genesData="null"
-			:plotConfig="plotConfig"
-			:plotType="plotConfig['type']"
-			:plotMargin="plotMargin"
-			:regionZoom="regionZoom"
-			:regionViewArea="regionViewArea"
-			:utils="utils"
-			:sectionId="sectionId"
-			:starItems="starItems"
-		></multi-genes-track>
+		
 		<!-- general track -->
 		<research-region-track
 			v-if="!!plotConfig && plotConfig['type'] == 'region track' && !!region"
@@ -110,6 +97,20 @@
 			:plotMargin="plotMargin"
 			:starItems="starItems"
 		></research-region-track>
+		<!-- genes track -->
+		<multi-genes-track
+			v-if="!!plotConfig && (plotConfig['type'] == 'region plot' || plotConfig['type'] == 'region track') && !!plotConfig['genes track'] && !!region"
+			:region="region"
+			:genesData="null"
+			:plotConfig="plotConfig"
+			:plotType="plotConfig['type']"
+			:plotMargin="plotMargin"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
+			:utils="utils"
+			:sectionId="sectionId"
+			:starItems="starItems"
+		></multi-genes-track>
 		<!-- scatter plot -->
 		<research-scatter-plot
 			v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"

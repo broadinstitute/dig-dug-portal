@@ -72,6 +72,26 @@ export default Vue.component("research-genes-track", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		adjPlotMargin() {
+			let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+			} :
+				{
+					left: this.plotMargin.leftMargin,
+					right: this.plotMargin.rightMargin,
+					top: this.plotMargin.topMargin,
+					bottom: this.plotMargin.bottomMargin,
+					bump: this.plotMargin.bump,
+				};
+
+			return plotMargin;
+		},
 		searchingRegion() {
 			let returnObj = {};
 			let regionArr = this.region.split(":")[1].split("-");
@@ -160,26 +180,26 @@ export default Vue.component("research-genes-track", {
 
 				canvasRenderWidth = !!this.plotConfig.width
 					? this.plotConfig.width * 2 +
-					  this.plotMargin.leftMargin +
-					  this.plotMargin.rightMargin
+					  this.adjPlotMargin.left +
+					  this.adjPlotMargin.right
 					: document.getElementById("genesTrackWrapper" + this.sectionId).clientWidth *
 							2 -
 					  60; // -30 for padding
 
 				let plotWidth =
 					this.plotType == "region plot"
-						? canvasRenderWidth - this.plotMargin.leftMargin * 2
+						? canvasRenderWidth - this.adjPlotMargin.left * 2
 						: canvasRenderWidth -
-						(this.plotMargin.leftMargin +
-							this.plotMargin.rightMargin);
+						(this.adjPlotMargin.left +
+							this.adjPlotMargin.right);
 
 				//let plotHeight = eachGeneTrackHeight * genesArray.length;
 
 				let xMin = Number(this.viewingRegion.start),
 					xMax = Number(this.viewingRegion.end);
 
-				let xStart = this.plotMargin.leftMargin;
-				let yStart = this.plotMargin.topMargin;
+				let xStart = this.adjPlotMargin.left;
+				let yStart = this.adjPlotMargin.top;
 				let xPosByPixel = plotWidth / (xMax - xMin);
 
 				let takenGeneRegions = [];
@@ -218,10 +238,10 @@ export default Vue.component("research-genes-track", {
 
 
 				canvasRenderHeight =
-					this.plotMargin.topMargin +
-					eachGeneTrackHeight * (geneIndex+1)//genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
+					this.adjPlotMargin.top +
+					eachGeneTrackHeight * (geneIndex+1)//genesArray.length; // no this.adjPlotMargin.bottom is needed here since there is no plot label needed
 
-				let bump = this.plotMargin.bump;
+				let bump = this.adjPlotMargin.bump;
 
 				
 
@@ -280,7 +300,7 @@ export default Vue.component("research-genes-track", {
 
 						takenGeneRegions.push({ start: xStartPos - 100, end: xEndPos + 100 });
 
-						let yPos = this.plotMargin.topMargin + geneIndex * eachGeneTrackHeight;
+						let yPos = this.adjPlotMargin.top + geneIndex * eachGeneTrackHeight;
 
 						var left = "\u{2190}";
 						var right = "\u{2192}";
@@ -337,8 +357,8 @@ export default Vue.component("research-genes-track", {
 				});
 
 				if(!!this.starItems) {
-					let yPos1 = this.plotMargin.topMargin - (this.plotMargin.bump * 3);
-					let yPos2 = this.plotMargin.topMargin + (GENES.length * eachGeneTrackHeight);
+					let yPos1 = this.adjPlotMargin.top - (this.adjPlotMargin.bump * 3);
+					let yPos2 = this.adjPlotMargin.top + (GENES.length * eachGeneTrackHeight);
 
 					this.starItems.map(star => {
 						let xPos = xStart + (star.columns[this.plotConfig["x axis field"]] - xMin) * xPosByPixel;

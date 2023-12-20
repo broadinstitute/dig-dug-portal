@@ -25,7 +25,6 @@
                 @mouseleave="hidePanel" @mousemove="checkPosition($event,'hover')" @resize="onResize"
                 width="" height="">
             </canvas>
-            
         </div>
         <!--
  
@@ -92,6 +91,29 @@ export default Vue.component("research-region-track", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
+        adjPlotMargin() {
+
+            let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
+
+            let plotMargin = !!customPlotMargin ? {
+                left: customPlotMargin.left,
+                right: customPlotMargin.right,
+                top: customPlotMargin.top,
+                bottom: customPlotMargin.bottom,
+                bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+            } :
+                {
+                    left: this.plotMargin.leftMargin,
+                    right: this.plotMargin.rightMargin,
+                    top: this.plotMargin.topMargin,
+                    bottom: this.plotMargin.bottomMargin,
+                    bump: this.plotMargin.bump,
+                };
+
+            console.log("multi genes track", plotMargin);
+
+            return plotMargin;
+        },
         viewingRegion() {
             if (this.region == null) {
                 return null;
@@ -152,33 +174,19 @@ export default Vue.component("research-region-track", {
         },
         plotData(DATA) {
             this.renderPlot();
+        },
+        starItems(STARS) {
+            this.renderPlot();
         }
     },
     methods: {
         renderPlot() {
             this.posData = {};
-            let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
-
-
-            let plotMargin = !!customPlotMargin ? {
-                left: customPlotMargin.left,
-                right: customPlotMargin.right,
-                top: customPlotMargin.top,
-                bottom: customPlotMargin.bottom,
-                bump: 10,
-            } :
-                {
-                    left: this.plotMargin.leftMargin*2,
-                    right: this.plotMargin.rightMargin * 2,
-                    top: this.plotMargin.topMargin * 2,
-                    bottom: this.plotMargin.bottomMargin * 2,
-                    bump: 10,
-                };
 
             let tracks = Object.keys(this.renderData).sort();
             let perTrack = this.plotConfig["track height"]*2;
             let canvasWidth = document.querySelector("#region_track_wrapper").clientWidth * 2;
-            let canvasHeight = (perTrack * tracks.length)+ plotMargin.top + plotMargin.bottom;
+            let canvasHeight = (perTrack * tracks.length)+ this.adjPlotMargin.top + this.adjPlotMargin.bottom;
 
             let c, ctx;
 
@@ -202,21 +210,23 @@ export default Vue.component("research-region-track", {
 
             let trackIndex = 0;
             let plotHeight = perTrack * tracks.length;
-            let plotWidth = canvasWidth - (plotMargin.left + plotMargin.right);
+            let plotWidth = canvasWidth - (this.adjPlotMargin.left + this.adjPlotMargin.right);
+            let region = this.viewingRegion;
+            let xPerPixel = plotWidth / (region.end - region.start);
             //let regionArr = this.region.split(":");
             //let region = regionArr[1].split("-");
-            let region = this.viewingRegion;
+            
 
             this.renderAxis(ctx,
                 plotWidth,
                 plotHeight,
                 Number(region.end),
                 Number(region.start),
-                plotMargin.top,
-                plotMargin);
+                this.adjPlotMargin.top,
+                this.adjPlotMargin);
 
             tracks.map(track=>{
-                let trackTop = plotMargin.top + (perTrack * trackIndex);
+                let trackTop = this.adjPlotMargin.top + (perTrack * trackIndex);
                 ctx.fillStyle = "#000000";
                 ctx.textAlign = "start";
                 ctx.textBaseline = "middle";
@@ -226,7 +236,7 @@ export default Vue.component("research-region-track", {
                 if (trackIndex % 2 == 0) {
                     ctx.fillStyle = "#00000010";
                     ctx.fillRect(
-                        plotMargin.left,
+                        this.adjPlotMargin.left,
                         trackTop,
                         plotWidth,
                         perTrack
@@ -237,10 +247,10 @@ export default Vue.component("research-region-track", {
                 let regionKeys = Object.keys(regionData)
                 //let regionStart = region[0];
                 //let regionEnd = region[1];
-                let xPerPixel = plotWidth / (region.end - region.start);
+                
 
                 regionKeys.map(block=>{
-                    let blockRegion = regionData[block][this.plotConfig["x axis field"]].split("-");
+                    let blockRegion = regionData[block][this.plotConfig["render by"]].split("-");
 
                     let blockStart= blockRegion[0];
                     let blockEnd = blockRegion[1];
@@ -248,20 +258,20 @@ export default Vue.component("research-region-track", {
                     if (blockStart <= region.end && blockEnd >= region.start) {
                         let xPosStart =
                             (blockStart - region.start) * xPerPixel +
-                        plotMargin.left;
+                        this.adjPlotMargin.left;
 
                         xPosStart =
-                            xPosStart <= plotMargin.left
-                                ? plotMargin.left
+                            xPosStart <= this.adjPlotMargin.left
+                                ? this.adjPlotMargin.left
                                 : xPosStart;
                         let xPosEnd =
                             (blockEnd - region.start) * xPerPixel +
-                            plotMargin.left;
+                            this.adjPlotMargin.left;
 
                         xPosEnd =
                             xPosEnd >
-                                plotMargin.left + plotWidth
-                                ? plotMargin.left + plotWidth
+                                this.adjPlotMargin.left + plotWidth
+                                ? this.adjPlotMargin.left + plotWidth
                                 : xPosEnd;
 
                         //let xPosWidth = xPosEnd - xPosStart;
@@ -288,7 +298,17 @@ export default Vue.component("research-region-track", {
                 trackIndex++;
             })
 
-            console.log(this.posData);
+            let xStart = this.adjPlotMargin.left;
+            if (!!this.starItems) {
+                let yPos1 = this.adjPlotMargin.top - this.adjPlotMargin.bump;
+                let yPos2 = this.adjPlotMargin.top + plotHeight + (this.adjPlotMargin.bump*3);
+
+                this.starItems.map(star => {
+                    let xPos = xStart + (star.columns[this.plotConfig["x axis field"]] - region.start) * xPerPixel;
+
+                    this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
+                })
+            }
         },
         renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, plotMargin) {
             CTX.beginPath();
@@ -297,22 +317,22 @@ export default Vue.component("research-region-track", {
             CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
             // render y axis
-            CTX.moveTo(plotMargin.left - plotMargin.bump, yPos);
-            CTX.lineTo(plotMargin.left - plotMargin.bump, yPos + HEIGHT + plotMargin.bump);
+            CTX.moveTo(this.adjPlotMargin.left - this.adjPlotMargin.bump, yPos);
+            CTX.lineTo(this.adjPlotMargin.left - this.adjPlotMargin.bump, yPos + HEIGHT + this.adjPlotMargin.bump);
             CTX.stroke();
 
             // render recombination Rate y axis
             let recomXpos = Math.round(
-                plotMargin.left + WIDTH + plotMargin.bump
+                this.adjPlotMargin.left + WIDTH + this.adjPlotMargin.bump
             );
 
             CTX.moveTo(recomXpos, yPos);
-            CTX.lineTo(recomXpos, yPos + HEIGHT + plotMargin.bump);
+            CTX.lineTo(recomXpos, yPos + HEIGHT + this.adjPlotMargin.bump);
             CTX.stroke();
 
             //render x axis
-            CTX.moveTo(plotMargin.left - plotMargin.bump, yPos + HEIGHT + plotMargin.bump);
-            CTX.lineTo(recomXpos, yPos + HEIGHT + plotMargin.bump);
+            CTX.moveTo(this.adjPlotMargin.left - this.adjPlotMargin.bump, yPos + HEIGHT + this.adjPlotMargin.bump);
+            CTX.lineTo(recomXpos, yPos + HEIGHT + this.adjPlotMargin.bump);
             CTX.stroke();
 
             // X ticks
@@ -321,10 +341,10 @@ export default Vue.component("research-region-track", {
             let xTickDistance = WIDTH / 5;
 
             for (let i = 0; i < 6; i++) {
-                let tickXPos = plotMargin.left + i * xTickDistance;
+                let tickXPos = this.adjPlotMargin.left + i * xTickDistance;
                 let adjTickXPos = Math.floor(tickXPos);
-                CTX.moveTo(adjTickXPos, yPos + HEIGHT + plotMargin.bump);
-                CTX.lineTo(adjTickXPos, yPos + HEIGHT + plotMargin.bump * 2);
+                CTX.moveTo(adjTickXPos, yPos + HEIGHT + this.adjPlotMargin.bump);
+                CTX.lineTo(adjTickXPos, yPos + HEIGHT + this.adjPlotMargin.bump * 2);
                 CTX.stroke();
 
                 CTX.textAlign = "center";
@@ -348,7 +368,7 @@ export default Vue.component("research-region-track", {
                 CTX.fillText(
                     positionLabel,
                     adjTickXPos,
-                    yPos + HEIGHT + 36 + plotMargin.bump
+                    yPos + HEIGHT + 36 + this.adjPlotMargin.bump
                 );
             }
         },

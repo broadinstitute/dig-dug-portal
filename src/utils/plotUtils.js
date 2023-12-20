@@ -46,6 +46,8 @@ let renderDashedLine = function (CTX, X1, Y1, X2, Y2, WIDTH, COLOR, DASH) {
     CTX.moveTo(X1, Y1);
     CTX.lineTo(X2, Y2);
     CTX.stroke();
+    // reset
+    CTX.setLineDash([]);
 }
 
 const renderLine = function (

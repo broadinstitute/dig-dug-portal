@@ -168,6 +168,28 @@ export default Vue.component("multi-region-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+			} :
+				{
+					left: this.plotMargin.leftMargin,
+					right: this.plotMargin.rightMargin,
+					top: this.plotMargin.topMargin,
+					bottom: this.plotMargin.bottomMargin,
+					bump: this.plotMargin.bump,
+				};
+
+			console.log("region plot", plotMargin);
+			return plotMargin;
+		},
 		staredVariants() {
 			if (!!this.renderConfig["star key"] && !this.isSectionPage) {
 				let stared = "";
@@ -865,24 +887,24 @@ export default Vue.component("multi-region-plot", {
 
 			let canvasHeight = !!this.renderConfig.height
 				? this.renderConfig.height * 2 +
-				this.plotMargin.topMargin +
-				this.plotMargin.bottomMargin
+				this.adjPlotMargin.top +
+				this.adjPlotMargin.bottom
 				: 600 +
-				this.plotMargin.topMargin +
-				this.plotMargin.bottomMargin;
+				this.adjPlotMargin.top +
+				this.adjPlotMargin.bottom;
 
 			let assoPlotWidth =
-				assoCanvasWidth - this.plotMargin.leftMargin * 2;
+				assoCanvasWidth - this.adjPlotMargin.left * 2;
 			let ldPlotWidth =
 				ldCanvasWidth -
-				this.plotMargin.leftMargin -
-				this.plotMargin.rightMargin;
+				this.adjPlotMargin.left -
+				this.adjPlotMargin.right;
 
 			let plotHeight = !!this.renderConfig.height
 				? this.renderConfig.height * 2
 				: 600;
 
-			let bump = this.plotMargin.bump;
+			let bump = this.adjPlotMargin.bump;
 
 			this.plotsList.map((p) => {
 				// first asso plot
@@ -1006,8 +1028,8 @@ export default Vue.component("multi-region-plot", {
 			TYPE,
 			GROUP
 		) {
-			let xStart = this.plotMargin.leftMargin;
-			let yStart = this.plotMargin.topMargin + HEIGHT;
+			let xStart = this.adjPlotMargin.left;
+			let yStart = this.adjPlotMargin.top + HEIGHT;
 			let xPosByPixel = WIDTH / (xMax - xMin);
 			let yPosByPixel = HEIGHT / (yMax - yMin);
 
@@ -1019,8 +1041,8 @@ export default Vue.component("multi-region-plot", {
 				/// first render position lines of the star variants
 				
 				if (!!this.renderConfig["star key"] && !!!!this.isSectionPage) {
-					let yPos1 = this.plotMargin.topMargin - (this.plotMargin.bump * 3);
-					let yPos2 = this.plotMargin.topMargin + HEIGHT + (this.plotMargin.bump * 2);
+					let yPos1 = this.adjPlotMargin.top - (this.adjPlotMargin.bump * 3);
+					let yPos2 = this.adjPlotMargin.top + HEIGHT + (this.adjPlotMargin.bump * 2);
 
 					this.starItems.map(star => {
 						let xPos = xStart + (star.columns[this.renderConfig["x axis field"]] - xMin) * xPosByPixel;
@@ -1209,8 +1231,8 @@ export default Vue.component("multi-region-plot", {
 						CTX.fillText(
 							"No LD data loaded against " +
 							this.ldData[GROUP].refVariant,
-							this.plotMargin.leftMargin + WIDTH / 2,
-							this.plotMargin.topMargin + HEIGHT / 2
+							this.adjPlotMargin.left + WIDTH / 2,
+							this.adjPlotMargin.top + HEIGHT / 2
 						);
 					} else {
 						let yField = this.renderConfig["y axis field"];
@@ -1504,12 +1526,12 @@ export default Vue.component("multi-region-plot", {
 					let y2PosPixel = DATA.recomb_rate[xPosIndex + 1] * yPixel;
 
 					CTX.moveTo(
-						this.plotMargin.leftMargin + x1PosPixel,
-						this.plotMargin.topMargin + PHEIGHT - y1PosPixel
+						this.adjPlotMargin.left + x1PosPixel,
+						this.adjPlotMargin.top + PHEIGHT - y1PosPixel
 					);
 					CTX.lineTo(
-						this.plotMargin.leftMargin + x2PosPixel,
-						this.plotMargin.topMargin + PHEIGHT - y2PosPixel
+						this.adjPlotMargin.left + x2PosPixel,
+						this.adjPlotMargin.top + PHEIGHT - y2PosPixel
 					);
 					CTX.stroke();
 				});
@@ -1543,39 +1565,39 @@ export default Vue.component("multi-region-plot", {
 
 			// render y axis
 			CTX.moveTo(
-				this.plotMargin.leftMargin - bump,
-				this.plotMargin.topMargin
+				this.adjPlotMargin.left - bump,
+				this.adjPlotMargin.top
 			);
 			CTX.lineTo(
-				this.plotMargin.leftMargin - bump,
-				HEIGHT + this.plotMargin.topMargin + bump
+				this.adjPlotMargin.left - bump,
+				HEIGHT + this.adjPlotMargin.top + bump
 			);
 			CTX.stroke();
 
 			// render recombination Rate y axis
 			let recomXpos = Math.round(
-				this.plotMargin.leftMargin + WIDTH + bump
+				this.adjPlotMargin.left + WIDTH + bump
 			);
 
 			if (TYPE == "asso") {
-				CTX.moveTo(recomXpos, this.plotMargin.topMargin);
+				CTX.moveTo(recomXpos, this.adjPlotMargin.top);
 				CTX.lineTo(
 					recomXpos,
-					HEIGHT + this.plotMargin.topMargin + bump
+					HEIGHT + this.adjPlotMargin.top + bump
 				);
 				CTX.stroke();
 			}
 
 			//render x axis
 			CTX.moveTo(
-				this.plotMargin.leftMargin - bump,
-				HEIGHT + this.plotMargin.topMargin + bump
+				this.adjPlotMargin.left - bump,
+				HEIGHT + this.adjPlotMargin.top + bump
 			);
 			CTX.lineTo(
 				TYPE == "asso"
-					? WIDTH + this.plotMargin.leftMargin + bump
-					: WIDTH + this.plotMargin.leftMargin,
-				HEIGHT + this.plotMargin.topMargin + bump
+					? WIDTH + this.adjPlotMargin.left + bump
+					: WIDTH + this.adjPlotMargin.left,
+				HEIGHT + this.adjPlotMargin.top + bump
 			);
 			CTX.stroke();
 
@@ -1583,10 +1605,10 @@ export default Vue.component("multi-region-plot", {
 			let yStep = (yMax - yMin) / 5;
 			let yTickDistance = HEIGHT / 5;
 			for (let i = 0; i < 6; i++) {
-				let tickYPos = this.plotMargin.topMargin + i * yTickDistance;
+				let tickYPos = this.adjPlotMargin.top + i * yTickDistance;
 				let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
-				CTX.moveTo(this.plotMargin.leftMargin - bump * 2, adjTickYPos);
-				CTX.lineTo(this.plotMargin.leftMargin - bump, adjTickYPos);
+				CTX.moveTo(this.adjPlotMargin.left - bump * 2, adjTickYPos);
+				CTX.lineTo(this.adjPlotMargin.left - bump, adjTickYPos);
 				CTX.stroke();
 
 				CTX.textAlign = "right";
@@ -1600,8 +1622,8 @@ export default Vue.component("multi-region-plot", {
 
 				CTX.fillText(
 					tickValue,
-					this.plotMargin.leftMargin - bump * 3,
-					this.plotMargin.topMargin +
+					this.adjPlotMargin.left - bump * 3,
+					this.adjPlotMargin.top +
 					HEIGHT +
 					bump -
 					i * yTickDistance
@@ -1615,7 +1637,7 @@ export default Vue.component("multi-region-plot", {
 				let recombYMin = 0;
 				for (let i = 0; i < 6; i++) {
 					let tickYPos =
-						this.plotMargin.topMargin + i * yTickDistance;
+						this.adjPlotMargin.top + i * yTickDistance;
 					let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
 					CTX.moveTo(recomXpos, adjTickYPos);
 					CTX.lineTo(recomXpos + bump, adjTickYPos);
@@ -1625,8 +1647,8 @@ export default Vue.component("multi-region-plot", {
 
 					CTX.fillText(
 						recombYMin + i * yStep,
-						this.plotMargin.leftMargin + WIDTH + bump * 3,
-						this.plotMargin.topMargin +
+						this.adjPlotMargin.left + WIDTH + bump * 3,
+						this.adjPlotMargin.top +
 						HEIGHT +
 						5 -
 						i * yTickDistance
@@ -1639,15 +1661,15 @@ export default Vue.component("multi-region-plot", {
 			let xTickDistance = WIDTH / 5;
 
 			for (let i = 0; i < 6; i++) {
-				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
+				let tickXPos = this.adjPlotMargin.left + i * xTickDistance;
 				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
 				CTX.moveTo(
 					adjTickXPos,
-					this.plotMargin.topMargin + HEIGHT + bump
+					this.adjPlotMargin.top + HEIGHT + bump
 				);
 				CTX.lineTo(
 					adjTickXPos,
-					this.plotMargin.topMargin + HEIGHT + bump * 2
+					this.adjPlotMargin.top + HEIGHT + bump * 2
 				);
 				CTX.stroke();
 
@@ -1666,7 +1688,7 @@ export default Vue.component("multi-region-plot", {
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
-					this.plotMargin.topMargin + HEIGHT + bump * 4
+					this.adjPlotMargin.top + HEIGHT + bump * 4
 				);
 			}
 
@@ -1675,7 +1697,7 @@ export default Vue.component("multi-region-plot", {
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
 				this.renderConfig["y axis label"],
-				-(this.plotMargin.topMargin + HEIGHT / 2),
+				-(this.adjPlotMargin.top + HEIGHT / 2),
 				bump + 24
 			);
 
@@ -1683,8 +1705,8 @@ export default Vue.component("multi-region-plot", {
 			if (TYPE == "asso") {
 				CTX.fillText(
 					"Recombination Rate (cM/Mb)",
-					-(this.plotMargin.topMargin + HEIGHT / 2),
-					this.plotMargin.leftMargin * 2 + WIDTH - (bump + 24)
+					-(this.adjPlotMargin.top + HEIGHT / 2),
+					this.adjPlotMargin.left * 2 + WIDTH - (bump + 24)
 				);
 			}
 
@@ -1692,9 +1714,9 @@ export default Vue.component("multi-region-plot", {
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 			CTX.fillText(
 				TYPE == "LD" ? "LD(r2)" : this.renderConfig["x axis label"],
-				WIDTH / 2 + this.plotMargin.leftMargin,
-				this.plotMargin.topMargin +
-				this.plotMargin.bottomMargin +
+				WIDTH / 2 + this.adjPlotMargin.left,
+				this.adjPlotMargin.top +
+				this.adjPlotMargin.bottom +
 				HEIGHT -
 				24
 			);
@@ -1704,12 +1726,12 @@ export default Vue.component("multi-region-plot", {
 				let xBGDistance = WIDTH / 5;
 
 				for (let i = 0; i < 5; i++) {
-					let bgXPos = this.plotMargin.leftMargin + i * xBGDistance;
+					let bgXPos = this.adjPlotMargin.left + i * xBGDistance;
 					let adBGXPos = Math.floor(bgXPos);
 					CTX.fillStyle = this.ldColor[i];
 					CTX.fillRect(
 						adBGXPos,
-						this.plotMargin.topMargin,
+						this.adjPlotMargin.top,
 						xBGDistance - 1,
 						HEIGHT
 					);
