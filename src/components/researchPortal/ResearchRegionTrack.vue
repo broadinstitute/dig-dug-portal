@@ -78,6 +78,7 @@ export default Vue.component("research-region-track", {
         return {
             posData: {},
             groupsList: null,
+            colorGroups:[],
         };
     },
     modules: {
@@ -109,8 +110,6 @@ export default Vue.component("research-region-track", {
                     bottom: this.plotMargin.bottomMargin,
                     bump: this.plotMargin.bump,
                 };
-
-            console.log("multi genes track", plotMargin);
 
             return plotMargin;
         },
@@ -151,8 +150,7 @@ export default Vue.component("research-region-track", {
             //console.log("this.plotData", this.plotData);
 
             let massagedData = {};
-
-            /// insert zoom filter here
+            let colorGroups =[];
 
             this.plotData.map(row=>{
 
@@ -160,9 +158,19 @@ export default Vue.component("research-region-track", {
                     massagedData[row[this.plotConfig["y axis field"]]] = {};
                 };
 
+                if(!!this.plotConfig["color by"] && !colorGroups.includes(row[this.plotConfig["color by"]])) {
+                    colorGroups.push(row[this.plotConfig["color by"]]);
+                }
+
                 massagedData[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]] = row;
 
             })
+
+
+            this.colorGroups = colorGroups.sort();
+
+
+            console.log("this.colorGroups", this.colorGroups)
 
             return massagedData;
 
@@ -280,7 +288,9 @@ export default Vue.component("research-region-track", {
                                 ? 2
                                 : xPosEnd - xPosStart;
 
-                        ctx.fillStyle = "#00000066";
+                        let colorIndex = !!this.plotConfig["color by"] ? this.colorGroups.indexOf(regionData[block][this.plotConfig["color by"]]):null;
+
+                        ctx.fillStyle = !!colorIndex ? this.colors.extraBold[colorIndex]:"#00000066";
 
                         ctx.fillRect(
                             xPosStart,

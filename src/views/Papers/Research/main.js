@@ -94,7 +94,7 @@ new Vue({
             dataFiles: [],
             dataTableFormat: null,
             colors: {
-                moderate: [
+                mild: [
                     "#007bff25",
                     "#04884525",
                     "#8490C825",
