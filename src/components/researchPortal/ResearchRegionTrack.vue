@@ -169,9 +169,6 @@ export default Vue.component("research-region-track", {
 
             this.colorGroups = colorGroups.sort();
 
-
-            console.log("this.colorGroups", this.colorGroups)
-
             return massagedData;
 
         },
@@ -290,7 +287,7 @@ export default Vue.component("research-region-track", {
 
                         let colorIndex = !!this.plotConfig["color by"] ? this.colorGroups.indexOf(regionData[block][this.plotConfig["color by"]]):null;
 
-                        ctx.fillStyle = !!colorIndex ? this.colors.extraBold[colorIndex]:"#00000066";
+                        ctx.fillStyle = !!colorIndex || colorIndex === 0 ? this.colors.bold[colorIndex]:"#00000066";
 
                         ctx.fillRect(
                             xPosStart,
