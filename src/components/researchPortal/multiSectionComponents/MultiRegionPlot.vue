@@ -703,13 +703,13 @@ export default Vue.component("multi-region-plot", {
 			let wrapper = document.querySelector(infoBoxId);
 			let canvas = document.querySelector(canvasId);
 
-			wrapper.style.top = y + canvas.offsetTop + "px";
+			/*wrapper.style.top = y + canvas.offsetTop + "px";
 			wrapper.style.left =
 				x + canvas.offsetLeft + 150 > canvas.width
 					? x + canvas.offsetLeft + -215 + "px"
 					: x + canvas.offsetLeft + 15 + "px";
 			wrapper.style.width =
-				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";
+				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";*/
 
 			if (dotsOnPosition.length > 0) {
 				if (EVENT_TYPE == "move") {
@@ -760,8 +760,14 @@ export default Vue.component("multi-region-plot", {
 							});
 						}
 					});
+
 					wrapper.classList.remove("hidden");
 					wrapper.innerHTML = infoContent;
+
+					wrapper.style.top = y + canvas.offsetTop + 25 + "px";
+					let xPosRatio = x / canvas.offsetWidth;
+					wrapper.style.left = x - (wrapper.offsetWidth * xPosRatio) + canvas.offsetLeft + "px";
+
 				} else if (EVENT_TYPE == "click") {
 					this.dotsClicked = dotsOnPosition;
 					this.showHidePanel("#fixedInfoBox");

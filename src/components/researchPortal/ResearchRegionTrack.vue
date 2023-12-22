@@ -18,11 +18,21 @@
             </template> 
 
             -->
+            
             <div :id="'block_data_' + sectionId" class="block-data hidden">
+                <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
+                    <b-icon icon="x-circle-fill"></b-icon>
+                </div>
                 <div :id="'block_data_content_' + sectionId" class="block-data-content"></div>
             </div>
+            <div>
+                <span v-for="color,index in colorGroups" :key="color" class="color-groups">
+                    <span class="box" :style="'background-color:' + colors.bold[index]"></span><span class="label" v-html="color"></span>
+                </span>
+            </div>
+            {{ infoBoxFrozen }}
             <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
-                @mouseleave="hidePanel" @mousemove="checkPosition($event,'hover')" @resize="onResize"
+                @mouseleave="hidePanel('block_data_' + sectionId)" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
                 width="" height="">
             </canvas>
         </div>
@@ -79,6 +89,7 @@ export default Vue.component("research-region-track", {
             posData: {},
             groupsList: null,
             colorGroups:[],
+            infoBoxFrozen: false,
         };
     },
     modules: {
@@ -381,539 +392,102 @@ export default Vue.component("research-region-track", {
         },
         checkPosition(e,action) {
 
-            let rect = e.target.getBoundingClientRect();
-            let x = Math.floor(e.clientX - rect.left);
-            let y = Math.floor(e.clientY - rect.top);
+            if(this.infoBoxFrozen == false) {
+                let rect = e.target.getBoundingClientRect();
+                let x = Math.floor(e.clientX - rect.left);
+                let y = Math.floor(e.clientY - rect.top);
 
-            let wrapper = document.getElementById("block_data_" + this.sectionId);
-            let contentWrapper = document.getElementById("block_data_content_" + this.sectionId);
-            let canvas = document.getElementById("track_" + this.sectionId);
-            wrapper.classList.remove("hidden");
+                let wrapper = document.getElementById("block_data_" + this.sectionId);
+                let contentWrapper = document.getElementById("block_data_content_" + this.sectionId);
+                let canvas = document.getElementById("track_" + this.sectionId);
 
-            wrapper.style.top = y + canvas.offsetTop + 25 + "px";
-            wrapper.style.left = x + canvas.offsetLeft + "px";
-
-            let trackRows = Object.keys(this.posData);
-
-            let blockData = [];
-
-            trackRows.map(row =>{
-                let rowTop = Number(row);
-                let rowBottom = rowTop + Math.round(this.plotConfig["track height"]);
-
-                if(y >= rowTop && y <= rowBottom) {
-                    this.posData[row].map(block=>{
-                        if(x >=block.start && x <= block.end) {
-                            blockData.push(block.data);
-                        }
-                    })
+                if (action == "click") {
+                    wrapper.setAttribute("style","");
                 }
-            })
+                
+                let trackRows = Object.keys(this.posData);
 
-            //console.log(blockData);
-            if (blockData.length > 0) {
-                let hoverContent = ""
+                let blockData = [];
 
-                let blockIndex = 0;
-                blockData.map(b =>{
-                    if(action == "hover" && blockIndex < 5) {
-                        hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
-                        this.plotConfig["hover content"].map(h => {
-                            hoverContent += "<strong>" + h + "</strong>: <span>" + b[h] + "</span><br />";
+                trackRows.map(row => {
+                    let rowTop = Number(row);
+                    let rowBottom = rowTop + Math.round(this.plotConfig["track height"]);
+
+                    if (y >= rowTop && y <= rowBottom) {
+                        this.posData[row].map(block => {
+                            if (x >= block.start && x <= block.end) {
+                                blockData.push(block.data);
+                            }
                         })
-                        hoverContent += "<br />";
-                    } else if (action == "click"){
-                        hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
-                        this.plotConfig["hover content"].map(h => {
-                            hoverContent += "<strong>" + h + "</strong>: <span>" + b[h] + "</span><br />";
-                        })
-                        hoverContent += "<br />";
                     }
-
-                    blockIndex++;
                 })
 
-                if (action == "hover" && blockData.length > 5) {
-                   hoverContent +=
-                    '<strong style="color: #36c;">Viewing 5 of ' +
-                        blockData.length +
-                        " items. Click to view full list.</strong>";
-                }
+                //console.log(blockData);
+                if (blockData.length > 0) {
+                    if (action == "click") {
+                        this.infoBoxFrozen = true;
+                        document.getElementById("block_data_" + this.sectionId).classList.add("fixed-info-box");
+                    }
 
-                document.getElementById("track_" + this.sectionId).classList.add("hover");
-                contentWrapper.innerHTML = hoverContent;
-            } else {
-                wrapper.classList.add("hidden");
-                document.getElementById("track_" + this.sectionId).classList.remove("hover");
-            }
+                    let hoverContent = ""
 
-            /*
-            let wrapper = document.getElementById("clicked_dot_value_" + this.sectionId);
-            let canvas = document.getElementById("manhattanPlot_" + this.sectionId + ID);
-            wrapper.classList.remove("hidden");
-            let e = event;
-            
-            wrapper.style.top = y + canvas.offsetTop + "px";
-            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
-
-            let clickedDotValue = "";
-
-            let numOfValues = 0;
-
-            for (let h = -5; h <= 5; h++) {
-                for (let v = -5; v <= 5; v++) {
-                    if (this.dotPosData[ID][x + h] != undefined) {
-                        if (this.dotPosData[ID][x + h][y + v] != undefined) {
-                            if (numOfValues < 6) {
-                                let dotObject =
-                                    this.dotPosData[ID][x + h][y + v];
-                                clickedDotValue +=
-                                    '<span class="gene-on-clicked-dot-mplot"><b>' +
-                                    dotObject[this.plotConfig["render by"]] +
-                                    "</b></span>";
-
-                                if (!!this.plotConfig["hover content"]) {
-                                    let hoverContent =
-                                        this.plotConfig["hover content"];
-
-                                    hoverContent.map((h) => {
-                                        clickedDotValue +=
-                                            '<span class="content-on-clicked-dot">' +
-                                            h +
-                                            ": " +
-                                            dotObject[h] +
-                                            "</span>";
-                                    });
-                                }
-                            }
-
-                            numOfValues += 1;
+                    let blockIndex = 0;
+                    blockData.map(b => {
+                        if (action == "hover" && blockIndex < 5) {
+                            hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
+                            this.plotConfig["hover content"].map(h => {
+                                hoverContent += "<strong>" + h + "</strong>: <span>" + b[h] + "</span><br />";
+                            })
+                            hoverContent += "<br />";
+                        } else if (action == "click") {
+                            hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
+                            this.plotConfig["hover content"].map(h => {
+                                hoverContent += "<strong>" + h + "</strong>: <span>" + b[h] + "</span><br />";
+                            })
+                            hoverContent += "<br />";
                         }
+
+                        blockIndex++;
+                    })
+
+                    if (action == "hover" && blockData.length > 5) {
+                        hoverContent +=
+                            '<strong style="color: #36c;">Viewing 5 of ' +
+                            blockData.length +
+                            " items. Click to view full list.</strong>";
+                    }
+
+                    contentWrapper.innerHTML = hoverContent;
+
+                    if (action == "hover") {
+                        wrapper.classList.remove("hidden");
+                        wrapper.style.top = y + canvas.offsetTop + 25 + "px";
+                        let xPosRatio = x / canvas.offsetWidth;
+                        wrapper.style.left = x - (wrapper.offsetWidth * xPosRatio) + canvas.offsetLeft + "px";
+                        document.getElementById("block_data_" + this.sectionId).classList.remove("fixed-info-box");
+                    }
+
+                    if(action="hover") {
+                        document.getElementById("track_" + this.sectionId).classList.add("hover");
+                    }
+                    
+                } else {
+                    if (action = "hover" && this.infoBoxFrozen == false) {
+                        wrapper.classList.add("hidden");
+                        document.getElementById("track_" + this.sectionId).classList.remove("hover");
                     }
                 }
             }
-
-            if (numOfValues > 5) {
-                clickedDotValue +=
-                    '<span class="gene-on-clicked-dot-mplot" style="color: #36c;"><b>Viewing 5 of ' +
-                    numOfValues +
-                    " items. Click to view full list.<b><span>";
-            }
-
-            let contentWrapper = document.getElementById(
-                "clicked_dot_value_content_" + this.sectionId
-            );
-
-            if (clickedDotValue != "") {
-                contentWrapper.innerHTML = clickedDotValue;
-
-                document
-                    .getElementById("manhattanPlot_" + this.sectionId + ID)
-                    .classList.add("hover");
-            } else {
-                wrapper.classList.add("hidden");
-                document
-                    .getElementById("manhattanPlot_" + this.sectionId + ID)
-                    .classList.remove("hover");
-            }*/
         },
         onResize(e) {
             this.renderPlot();
         },
         hidePanel(element) {
-            this.utils.uiUtils.hideElement(element);
-        },
-       /* 
-        
-        getFullList(event, ID) {
-            let wrapper = document.getElementById("dot_value_full_list_" + this.sectionId);
-            wrapper.classList.remove("hidden");
-            let e = event;
-            let rect = e.target.getBoundingClientRect();
-            let x = Math.floor(e.clientX - rect.left);
-            let y = Math.floor(e.clientY - rect.top);
-
-            let clickedDotValue = "";
-
-            for (let h = -5; h <= 5; h++) {
-                for (let v = -5; v <= 5; v++) {
-                    if (this.dotPosData[ID][x + h] != undefined) {
-                        if (this.dotPosData[ID][x + h][y + v] != undefined) {
-                            let dotObject = this.dotPosData[ID][x + h][y + v];
-                            clickedDotValue +=
-                                '<span class="gene-on-clicked-dot-mplot"><b>' +
-                                dotObject[this.plotConfig["render by"]] +
-                                "</b></span>";
-
-                            if (!!this.plotConfig["hover content"]) {
-                                let hoverContent =
-                                    this.plotConfig["hover content"];
-
-                                hoverContent.map((h) => {
-                                    clickedDotValue +=
-                                        '<span class="content-on-clicked-dot">' +
-                                        h +
-                                        ": " +
-                                        dotObject[h] +
-                                        "</span>";
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            let contentWrapper = document.getElementById(
-                "dot_value_full_list_content_" + this.sectionId
-            );
-
-            if (clickedDotValue != "") {
-                contentWrapper.innerHTML = clickedDotValue;
-                document
-                    .getElementById("manhattanPlot_" + this.sectionId + ID)
-                    .classList.add("hover");
-                document
-                    .getElementById("clicked_dot_value_" + this.sectionId)
-                    .classList.add("hidden");
-            } else {
-                wrapper.classList.add("hidden");
-                document
-                    .getElementById("manhattanPlot_" + this.sectionId + ID)
-                    .classList.remove("hover");
+            if(this.infoBoxFrozen == false) {
+                this.utils.uiUtils.hideElement(element);
             }
         },
-        checkPosition(event, ID) {
-
-            let wrapper = document.getElementById("clicked_dot_value_" + this.sectionId);
-            let canvas = document.getElementById("manhattanPlot_" + this.sectionId + ID);
-            wrapper.classList.remove("hidden");
-            let e = event;
-            let rect = e.target.getBoundingClientRect();
-            let x = Math.floor(e.clientX - rect.left);
-            let y = Math.floor(e.clientY - rect.top);
-            wrapper.style.top = y + canvas.offsetTop + "px";
-            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
-
-            let clickedDotValue = "";
-
-            let numOfValues = 0;
-
-            for (let h = -5; h <= 5; h++) {
-                for (let v = -5; v <= 5; v++) {
-                    if (this.dotPosData[ID][x + h] != undefined) {
-                        if (this.dotPosData[ID][x + h][y + v] != undefined) {
-                            if (numOfValues < 6) {
-                                let dotObject =
-                                    this.dotPosData[ID][x + h][y + v];
-                                clickedDotValue +=
-                                    '<span class="gene-on-clicked-dot-mplot"><b>' +
-                                    dotObject[this.plotConfig["render by"]] +
-                                    "</b></span>";
-
-                                if (!!this.plotConfig["hover content"]) {
-                                    let hoverContent =
-                                        this.plotConfig["hover content"];
-
-                                    hoverContent.map((h) => {
-                                        clickedDotValue +=
-                                            '<span class="content-on-clicked-dot">' +
-                                            h +
-                                            ": " +
-                                            dotObject[h] +
-                                            "</span>";
-                                    });
-                                }
-                            }
-
-                            numOfValues += 1;
-                        }
-                    }
-                }
-            }
-
-            if (numOfValues > 5) {
-                clickedDotValue +=
-                    '<span class="gene-on-clicked-dot-mplot" style="color: #36c;"><b>Viewing 5 of ' +
-                    numOfValues +
-                    " items. Click to view full list.<b><span>";
-            }
-
-            let contentWrapper = document.getElementById(
-                "clicked_dot_value_content_" + this.sectionId
-            );
-
-            if (clickedDotValue != "") {
-                contentWrapper.innerHTML = clickedDotValue;
-
-                document
-                    .getElementById("manhattanPlot_" + this.sectionId + ID)
-                    .classList.add("hover");
-            } else {
-                wrapper.classList.add("hidden");
-                document
-                    .getElementById("manhattanPlot_" + this.sectionId + ID)
-                    .classList.remove("hover");
-            }
-        },
-        renderPlot(DATA) {
-
-            this.dotPosData = {};
-
-            let wrapper = document.getElementById("clicked_dot_value_" + this.sectionId);
-            wrapper.classList.add("hidden");
-
-            let canvasRenderWidth = !!this.plotConfig.width
-                ? this.plotConfig.width * 2 +
-                this.leftMargin +
-                this.rightMargin
-                : (window.innerWidth - 115) * 2;
-
-            let canvasRenderHeight = !!this.plotConfig.height
-                ? this.plotConfig.height * 2 +
-                this.topMargin +
-                this.bottomMargin
-                : 800;
-
-            let xBump = canvasRenderWidth * 0.02;
-            let yBump = canvasRenderHeight * 0.02;
-            let bump = 10;
-
-            let plotWidth =
-                canvasRenderWidth -
-                (this.leftMargin + this.rightMargin + xBump);
-            let plotHeight =
-                canvasRenderHeight -
-                (this.topMargin + yBump + this.bottomMargin);
-
-            for (const [dKey, dValue] of Object.entries(DATA)) {
-                let c = document.getElementById("manhattanPlot_" + this.sectionId + dKey);
-                if (!!c) {
-                    c.setAttribute("width", canvasRenderWidth);
-                    c.setAttribute("height", canvasRenderHeight);
-                    c.setAttribute(
-                        "style",
-                        "width:" +
-                        canvasRenderWidth / 2 +
-                        "px;height:" +
-                        canvasRenderHeight / 2 +
-                        "px;"
-                    );
-                    let ctx = c.getContext("2d");
-
-                    ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
-
-                    ctx.beginPath();
-                    ctx.lineWidth = 1;
-                    ctx.strokeStyle = "#000000";
-                    ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
-
-                    // render y axis
-                    ctx.moveTo(this.leftMargin - bump, this.topMargin);
-                    ctx.lineTo(
-                        this.leftMargin - bump,
-                        plotHeight + this.topMargin + yBump + bump
-                    );
-
-                    //render x axis
-                    ctx.moveTo(
-                        this.leftMargin - bump,
-                        plotHeight + this.topMargin + yBump + bump
-                    );
-                    ctx.lineTo(
-                        plotWidth + this.leftMargin + bump,
-                        plotHeight + this.topMargin + yBump + bump
-                    );
-
-                    // render y ticker
-
-                    let yMin = null;
-                    let yMax = null;
-
-                    dValue.unsorted.map((d) => {
-                        //yAxisData.push(d[this.plotConfig["y axis field"]]);
-
-                        let yValue = d[this.plotConfig["y axis field"]];
-
-                        if (yMin == null) {
-                            yMin = yValue;
-                        }
-                        if (yMax == null) {
-                            yMax = yValue;
-                        }
-
-                        if (yValue < yMin) {
-                            yMin = yValue;
-                        }
-                        if (yValue > yMax) {
-                            yMax = yValue;
-                        }
-                    });
-
-                    let yStep = (yMax - yMin) / 4;
-
-                    //let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
-
-                    let yTickDistance = plotHeight / 4;
-
-                    for (let i = 0; i < 5; i++) {
-                        let tickYPos = this.topMargin + i * yTickDistance;
-                        let adjTickYPos = Math.floor(tickYPos);
-                        ctx.moveTo(this.leftMargin - bump * 2, adjTickYPos);
-                        ctx.lineTo(this.leftMargin - bump, adjTickYPos);
-                        ctx.stroke();
-
-                        ctx.font = "24px Arial";
-                        ctx.textAlign = "right";
-                        ctx.fillStyle = "#000000";
-
-                        let yTickText = this.utils.Formatters.floatFormatter(
-                            yMin + i * yStep
-                        );
-
-                        yTickText = yTickText == "-" ? 0 : yTickText;
-
-                        ctx.fillText(
-                            yTickText,
-                            this.leftMargin - bump * 3,
-                            this.topMargin + plotHeight + 10 - i * yTickDistance
-                        );
-                    }
-
-                    ctx.stroke();
-
-                    //Render y axis label
-                    ctx.font = "28px Arial";
-                    ctx.textAlign = "center";
-                    ctx.fillStyle = "#000000";
-                    ctx.rotate(-(Math.PI * 2) / 4);
-                    ctx.fillText(
-                        this.plotConfig["y axis label"],
-                        -(this.topMargin + plotHeight / 2),
-                        this.leftMargin - this.leftMargin / 2 - 28
-                    );
-
-                    let dnaLength = 0;
-
-                    //get list of chrs with variants
-                    let chrs = Object.keys(dValue.sorted).filter(
-                        (key) => dValue.sorted[key].length > 0
-                    );
-
-                    // compare length of chromosomes in the data to the defalt
-
-                    chrs.map((chr) => {
-                        let chrLength = 0;
-                        dValue.sorted[chr].map((v) => {
-                            chrLength =
-                                v.locus > chrLength ? v.locus : chrLength;
-                        });
-
-                        this.chromosomeLength[chr] =
-                            chrLength > this.chromosomeLength[chr]
-                                ? chrLength
-                                : this.chromosomeLength[chr];
-                    });
-
-                    chrs.map((chr) => {
-                        dnaLength += this.chromosomeLength[chr];
-                    });
-
-                    let chrByPixel = plotWidth / dnaLength;
-
-                    let xStart = this.leftMargin;
-                    ctx.textAlign = "center";
-                    ctx.rotate((Math.PI * 2) / 4);
-
-                    chrs.map((chr) => {
-                        let chrLength = this.chromosomeLength[chr] * chrByPixel;
-                        xStart += chrLength;
-                        let chrPos = xStart - chrLength / 2;
-
-                        ctx.fillText(
-                            chr,
-                            chrPos,
-                            this.topMargin + plotHeight + yBump + 28 + bump
-                        );
-                    });
-
-                    //Render x axis label
-
-                    ctx.fillText(
-                        this.plotConfig["x axis label"],
-                        plotWidth / 2 + this.leftMargin,
-                        this.topMargin + plotHeight + yBump + 88
-                    );
-
-                    //Render Dots
-
-                    xStart = 0;
-                    let exChr = "";
-                    let chrNum = 1;
-
-                    chrs.map((chr) => {
-                        dValue.sorted[chr].map((g) => {
-                            let xPos =
-                                (xStart + g.locus) * chrByPixel +
-                                this.leftMargin;
-
-                            let yPosByPixel = plotHeight / (yMax - yMin);
-
-                            let yPos =
-                                this.topMargin +
-                                plotHeight -
-                                (g[this.plotConfig["y axis field"]] - yMin) *
-                                yPosByPixel;
-
-                            let dotColor =
-                                this.chromosomeColors[
-                                chrNum % this.chromosomeColors.length
-                                ];
-
-                            ctx.fillStyle = dotColor + "75";
-
-                            ctx.lineWidth = 0;
-                            ctx.beginPath();
-                            ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
-                            ctx.fill();
-
-                            let xLoc = Math.round(
-                                xPos.toString().split(".")[0] / 2
-                            );
-                            let yLoc = Math.round(
-                                yPos.toString().split(".")[0] / 2
-                            );
-
-                            let hoverContent;
-
-                            if (!!this.plotConfig["hover content"]) {
-                                hoverContent =
-                                    this.plotConfig["hover content"];
-                            }
-
-                            if (!this.dotPosData[dKey]) {
-                                this.dotPosData[dKey] = {};
-                            }
-
-                            if (!this.dotPosData[dKey][xLoc]) {
-                                this.dotPosData[dKey][xLoc] = {};
-                            }
-                            this.dotPosData[dKey][xLoc][yLoc] = {};
-                            this.dotPosData[dKey][xLoc][yLoc][
-                                this.plotConfig["render by"]
-                            ] = g[this.plotConfig["render by"]];
-                            if (!!this.plotConfig["hover content"]) {
-                                hoverContent.map((h) => {
-                                    this.dotPosData[dKey][xLoc][yLoc][h] = g[h];
-                                });
-                            }
-                        });
-
-                        xStart += this.chromosomeLength[chr];
-
-                        chrNum++;
-                    });
-                }
-            }
-        },*/
+       
     },
 });
 
@@ -921,6 +495,39 @@ $(function () { });
 </script>
 
 <style>
+.fixed-info-box-close {
+	position: absolute;
+	top: 0;
+	right: 3px;
+	font-size: 14px;
+	color: #69f;
+}
+
+.fixed-info-box-close:hover {
+	color: #36c;
+}
+
+
+.fixed-info-box-content {
+	width: 100%;
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
+	font-size: 14px !important;
+}
+.color-groups {
+    font-size: 13px;
+}
+
+.color-groups .box {
+    width: 12px;
+    height: 12px;
+    margin-right: 3px;
+    margin-left: 7px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
 .region-track-wrapper {
     padding: 0 !important;
 }
@@ -946,6 +553,26 @@ $(function () { });
     padding: 8px 20px 8px 10px !important;
 }
 
+.block-data.fixed-info-box {
+	position: fixed;
+	width: 400px;
+	height: 300px;
+	left: calc(50% - 200px);
+	top: calc(50% - 150px);
+	padding: 20px 0px 3px 15px;
+	border-radius: 5px;
+	border: solid 1px #ddd;
+	background-color: #fff;
+	z-index: 100;
+}
+
+.block-data.fixed-info-box .block-data-content {
+    height: 280px;
+    overflow: auto;
+    width: 389px;
+}
+
+/*
 .block-data-close {
     position: absolute;
     top: 0;
@@ -957,6 +584,7 @@ $(function () { });
 .block-data-close:hover {
     color: #36c;
 }
+
 
 .dot-value-full-list {
     position: fixed;
@@ -977,5 +605,6 @@ $(function () { });
     overflow-x: hidden;
     overflow-y: auto;
     font-size: 14px;
-}
+}*/
+
 </style>
