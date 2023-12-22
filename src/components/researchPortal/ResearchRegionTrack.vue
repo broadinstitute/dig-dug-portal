@@ -1,23 +1,6 @@
 <template>
     <div>
         <div id="region_track_wrapper" class="region-track-wrapper">
-            <!--
-<template v-if="!!groupsList">
-                <template v-for="group in groupsList">
-                    <h4>{{ group }}</h4>
-                    <canvas v-if="!!plotConfig" :id="'track_' + sectionId + group" class="region-track"
-                    width="" height="">
-                    </canvas>
-                </template>
-            </template>
-
-            <template v-else>
-                <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
-                    width="" height="">
-                </canvas>
-            </template> 
-
-            -->
             
             <div :id="'block_data_' + sectionId" class="block-data hidden">
                 <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
@@ -30,43 +13,18 @@
                     <span class="box" :style="'background-color:' + colors.bold[index]"></span><span class="label" v-html="color"></span>
                 </span>
             </div>
-            {{ infoBoxFrozen }}
             <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
                 @mouseleave="hidePanel('block_data_' + sectionId)" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
                 width="" height="">
             </canvas>
         </div>
-        <!--
- 
-        <div :id="'dot_value_full_list_' + sectionId" class="dot-value-full-list hidden">
-            <div class="clicked-dot-value-close" @click="hidePanel('dot_value_full_list_' + sectionId)">
-                <b-icon icon="x-circle-fill"></b-icon>
-            </div>
-            <div :id="'dot_value_full_list_content_' + sectionId" class="dot-value-full-list-content"></div>
-        </div>
-        <div v-if="!!plotConfig.legend" class="mbm-plot-legend" v-html="plotConfig.legend"></div>
-        <div v-for="item in plotsList" :key="item">
-            <h4 v-if="item != 'default'">{{ item }}</h4>
-
-            <canvas v-if="!!plotConfig" :id="'track_' + sectionId + item" class="manhattan-plot"
-                @mouseleave="hidePanel" @mousemove="checkPosition($event, item)" @resize="onResize"
-                @click="getFullList($event, item)" width="" height="">
-            </canvas>
-        </div>
-        <div v-if="!!plotConfig.label" class="mbm-plot-label" v-html="plotConfig.label"></div>
-        -->
-        
-        
-        
     </div>
 </template>
 
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -571,40 +529,5 @@ $(function () { });
     overflow: auto;
     width: 389px;
 }
-
-/*
-.block-data-close {
-    position: absolute;
-    top: 0;
-    right: 3px;
-    font-size: 14px;
-    color: #69f;
-}
-
-.block-data-close:hover {
-    color: #36c;
-}
-
-
-.dot-value-full-list {
-    position: fixed;
-    width: 400px;
-    height: 300px;
-    left: calc(50% - 200px);
-    top: calc(50% - 150px);
-    padding: 20px 0px 3px 15px;
-    border-radius: 5px;
-    border: solid 1px #ddd;
-    background-color: #fff;
-    z-index: 100;
-}
-
-.dot-value-full-list-content {
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-    font-size: 14px;
-}*/
 
 </style>
