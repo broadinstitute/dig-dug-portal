@@ -9,8 +9,8 @@
                 <div :id="'block_data_content_' + sectionId" class="block-data-content"></div>
             </div>
             <div>
-                <span v-for="color,index in colorGroups" :key="color" class="color-groups">
-                    <span class="box" :style="'background-color:' + colors.bold[index]"></span><span class="label" v-html="color"></span>
+                <span v-for="cKey,index in colorGroups" :key="cKey" class="color-groups" @mouseover="renderPlot(cKey)" @mouseleave="renderPlot()">
+                    <span class="box" :style="'background-color:' + colors.bold[index % 16]"></span><span class="label" v-html="cKey"></span>
                 </span>
             </div>
             <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
@@ -115,8 +115,6 @@ export default Vue.component("research-region-track", {
             }
         },
         renderData() {
-            
-            //console.log("this.plotData", this.plotData);
 
             let massagedData = {};
             let colorGroups =[];
@@ -131,8 +129,10 @@ export default Vue.component("research-region-track", {
                     colorGroups.push(row[this.plotConfig["color by"]]);
                 }
 
-                massagedData[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]] = row;
-
+                if(!massagedData[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]]) {
+                    massagedData[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]] = [];
+                }
+                massagedData[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]].push(row);
             })
 
 
@@ -154,7 +154,8 @@ export default Vue.component("research-region-track", {
         }
     },
     methods: {
-        renderPlot() {
+        renderPlot(cKey) {
+            
             this.posData = {};
 
             let tracks = Object.keys(this.renderData).sort();
@@ -219,57 +220,71 @@ export default Vue.component("research-region-track", {
 
                 let regionData = this.renderData[track]
                 let regionKeys = Object.keys(regionData)
-                //let regionStart = region[0];
-                //let regionEnd = region[1];
-                
 
-                regionKeys.map(block=>{
-                    let blockRegion = regionData[block][this.plotConfig["render by"]].split("-");
+                regionKeys.map(blocks=>{
 
-                    let blockStart= blockRegion[0];
-                    let blockEnd = blockRegion[1];
+                    regionData[blocks].map((block,bIndex) =>{
 
-                    if (blockStart <= region.end && blockEnd >= region.start) {
-                        let xPosStart =
-                            (blockStart - region.start) * xPerPixel +
-                        this.adjPlotMargin.left;
+                        let blockRegion = block[this.plotConfig["render by"]].split("-");
 
-                        xPosStart =
-                            xPosStart <= this.adjPlotMargin.left
-                                ? this.adjPlotMargin.left
-                                : xPosStart;
-                        let xPosEnd =
-                            (blockEnd - region.start) * xPerPixel +
-                            this.adjPlotMargin.left;
+                        let blockStart = blockRegion[0];
+                        let blockEnd = blockRegion[1];
 
-                        xPosEnd =
-                            xPosEnd >
-                                this.adjPlotMargin.left + plotWidth
-                                ? this.adjPlotMargin.left + plotWidth
-                                : xPosEnd;
+                        if (blockStart <= region.end && blockEnd >= region.start) {
+                            let xPosStart =
+                                (blockStart - region.start) * xPerPixel +
+                                this.adjPlotMargin.left;
 
-                        //let xPosWidth = xPosEnd - xPosStart;
-                        let xPosWidth =
-                            xPosEnd - xPosStart < 2
-                                ? 2
-                                : xPosEnd - xPosStart;
+                            xPosStart =
+                                xPosStart <= this.adjPlotMargin.left
+                                    ? this.adjPlotMargin.left
+                                    : xPosStart;
+                            let xPosEnd =
+                                (blockEnd - region.start) * xPerPixel +
+                                this.adjPlotMargin.left;
 
-                        let colorIndex = !!this.plotConfig["color by"] ? this.colorGroups.indexOf(regionData[block][this.plotConfig["color by"]]):null;
+                            xPosEnd =
+                                xPosEnd >
+                                    this.adjPlotMargin.left + plotWidth
+                                    ? this.adjPlotMargin.left + plotWidth
+                                    : xPosEnd;
 
-                        ctx.fillStyle = !!colorIndex || colorIndex === 0 ? this.colors.bold[colorIndex]:"#00000066";
+                            //let xPosWidth = xPosEnd - xPosStart;
+                            let xPosWidth =
+                                xPosEnd - xPosStart < 2
+                                    ? 2
+                                    : xPosEnd - xPosStart;
 
-                        ctx.fillRect(
-                            xPosStart,
-                            trackTop,
-                            xPosWidth,
-                            perTrack
-                        );
-                    if(!this.posData[Math.round(trackTop/2)]) {
-                       this.posData[Math.round(trackTop / 2)]= []; 
-                    }
+                            let colorIndex = !!this.plotConfig["color by"] ? (this.colorGroups.indexOf(block[this.plotConfig["color by"]]) % 16) : null;
+                            let highlightKey = (!!cKey && block[this.plotConfig["color by"]] == cKey) ? true : null;
 
-                    this.posData[Math.round(trackTop / 2)].push({start: Math.round(xPosStart/2),end: Math.round((xPosStart+xPosWidth) / 2),data: regionData[block] });
-                    }
+                            if (!!highlightKey) {
+                                ctx.fillStyle = "#FF0000"
+                                ctx.fillRect(
+                                    xPosStart - 2,
+                                    trackTop - 2,
+                                    xPosWidth + 4,
+                                    perTrack + 4
+                                );
+                            }
+
+                            ctx.fillStyle = !!colorIndex || colorIndex === 0 ? this.colors.bold[colorIndex] : "#00000066";
+
+                            ctx.fillRect(
+                                xPosStart,
+                                trackTop,
+                                xPosWidth,
+                                perTrack
+                            );
+
+                            if (!this.posData[Math.round(trackTop / 2)]) {
+                                this.posData[Math.round(trackTop / 2)] = [];
+                            }
+
+                            this.posData[Math.round(trackTop / 2)].push({ start: Math.round(xPosStart / 2), end: Math.round((xPosStart + xPosWidth) / 2), data: block });
+                        }
+                    })
+                    
                 })
                 trackIndex++;
             })
@@ -380,7 +395,6 @@ export default Vue.component("research-region-track", {
                     }
                 })
 
-                //console.log(blockData);
                 if (blockData.length > 0) {
                     if (action == "click") {
                         this.infoBoxFrozen = true;
@@ -475,6 +489,10 @@ $(function () { });
 }
 .color-groups {
     font-size: 13px;
+}
+
+.color-groups:hover {
+    cursor: pointer;
 }
 
 .color-groups .box {
