@@ -182,7 +182,7 @@
 								{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
 								<span class="btns-wrapper">
 									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-										v-html="section.label" @click="setParameter(tdValue, tdKey, section.section)" ></button>
+										v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
 								</span>
 								
 							</span>
@@ -211,7 +211,7 @@
 									{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
 									<span class="btns-wrapper">
 										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-											v-html="section.label" @click="setParameter(sValue, tdKey, section.section)" ></button>
+											v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
 									</span>
 								</span>
 								<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
@@ -600,36 +600,25 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	methods: {
-		setParameter(VALUE,KEY,SECTION){
+		setParameter(VALUE,KEY,SECTION,PARAMETERS){
 
-			let targetSections = SECTION == "all" || !SECTION ? this.tableFormat['column formatting'][KEY]['target sections'] : [SECTION];
-			let parameter = [];
+			console.log("section component", VALUE, ":", KEY, ":", SECTION, ":", PARAMETERS);
 
-			targetSections.map(section => {
-				this.tableFormat['column formatting'][KEY]['target sections'].map(tgSection => {
-					if(tgSection.section == section) {
-						parameter = parameter.concat(tgSection['parameter']);
-					}
-				})
-				
-			})
+			let targetSections = SECTION == "all" ? "":[SECTION];
 
-			//console.log("section component",VALUE,":" ,KEY,":" ,SECTION);
-
-			if(typeof parameter === "object") {
+			if (typeof PARAMETERS === "object") {
 				let values = VALUE.split(",");
 
-				let vIndex = 0;
-				parameter.map(p=>{
-					document.getElementById("search_param_" + p).value = values[vIndex];
+				PARAMETERS.map((p, pIndex) => {
+					document.getElementById("search_param_" + p).value = values[pIndex];
 					this.$root.$refs.multiSectionSearch.updateSearch(p, targetSections);
-					vIndex++;
 				})
 
 			} else {
-				document.getElementById("search_param_" + parameter).value = VALUE;
-				this.$root.$refs.multiSectionSearch.updateSearch(parameter, targetSections);
+				document.getElementById("search_param_" + PARAMETERS).value = VALUE;
+				this.$root.$refs.multiSectionSearch.updateSearch(PARAMETERS, targetSections);
 			}
+			
 		},
 		ifSetParameterColumn(KEY){
 			if(!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
