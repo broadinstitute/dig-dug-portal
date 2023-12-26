@@ -597,6 +597,9 @@
 												'tabContent' + tab.section,'tabContentGroup' + groupIndex)">
 											{{ tab.label }}
 										</div>
+										<button class="btn btn-sm show-evidence-btn show-hide-section" :targetId="'tabUiGroup' + groupIndex"
+											@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex)" title="Show / hide section"><b-icon
+												icon="eye"></b-icon></button>
 									</div>
 									<div :id="'tabContentGroup'+groupIndex">
 										<template v-for="tab, tabIndex in group">
@@ -916,6 +919,11 @@ html {
 .tab-ui-wrapper .tab-ui-tab.active {
 	border-bottom: solid 1px #fff;
 	background-color: #fff;
+}
+
+.tab-ui-wrapper.hidden-svg {
+	visibility: hidden !important;
+	height: 1px !important;
 }
 
 .tab-content-wrapper.hidden-content {
