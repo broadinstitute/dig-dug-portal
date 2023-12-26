@@ -624,6 +624,7 @@
 													:starItems="$parent.starItems"
 													:regionZoom="$parent.regionZoom"
 													:regionViewArea="$parent.regionViewArea"
+													:isInTab="true"
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
 													@on-zoom="$parent.setZoom">
@@ -639,6 +640,7 @@
 													:starItems="$parent.starItems"
 													:regionZoom="$parent.regionZoom"
 													:regionViewArea="$parent.regionViewArea"
+													:isInTab="true"
 													@on-star="$parent.starColumn"
 													@on-zoom="$parent.setZoom">
 												</research-sections-summary>
@@ -891,7 +893,7 @@ html {
 
 .tab-ui-wrapper {
 	border-bottom: solid 1px #ddd;
-    margin: 25px 0;
+    margin: 5px 0 10px 0;
     padding: 0 25px;
 }
 
@@ -914,5 +916,10 @@ html {
 .tab-ui-wrapper .tab-ui-tab.active {
 	border-bottom: solid 1px #fff;
 	background-color: #fff;
+}
+
+.tab-content-wrapper.hidden-content {
+	visibility: hidden !important;
+	height: 1px !important;
 }
 </style>

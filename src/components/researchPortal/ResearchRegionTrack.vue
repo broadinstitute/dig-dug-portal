@@ -261,10 +261,10 @@ export default Vue.component("research-region-track", {
                             if (!!highlightKey) {
                                 ctx.fillStyle = "#FF0000"
                                 ctx.fillRect(
-                                    xPosStart - 3,
-                                    trackTop - 3,
-                                    xPosWidth + 6,
-                                    perTrack + 6
+                                    xPosStart - 2,
+                                    trackTop - 2,
+                                    xPosWidth + 4,
+                                    perTrack + 4
                                 );
                             }
 

@@ -6,7 +6,7 @@
 	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
 
 
-		<div class="row section-header">
+		<div class="row section-header" v-if="!isInTab">
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
 					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
@@ -15,6 +15,21 @@
 						icon="eye"></b-icon></button>
 				<h4>{{ sectionConfig.header }}
 
+					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
+						v-for="parameter in dataPoint['parameters']" :key="parameter"
+						style="font-size:0.7em"
+						v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
+					<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
+						:id="'flag_' + sectionID">Loading data...</small>
+				</h4>
+			</div>
+		</div>
+
+		<div class="row section-header" v-if="!!isInTab">
+			<div class="col-md-12">
+				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
+					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+				<h4>
 					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
 						v-for="parameter in dataPoint['parameters']" :key="parameter"
 						style="font-size:0.7em"
@@ -216,7 +231,7 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse", 
 	"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils","starItems", "regionZoom",
-		"regionViewArea"],
+		"regionViewArea","isInTab"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -1230,7 +1245,7 @@ $(function () { });
 </script>
 <style>
 .multi-section {
-	border-bottom: solid 1px #ddd;
+	/*border-bottom: solid 1px #ddd;*/
 	position: relative;
 }
 

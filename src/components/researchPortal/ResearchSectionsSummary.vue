@@ -6,7 +6,7 @@
 	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
 
 
-		<div class="row">
+		<div class="row" v-if="!isInTab">
 			<div class="col-md-12">
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
 					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
@@ -58,7 +58,7 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 
 export default Vue.component("research-sections-summary", {
 	props: ["sectionIndex","uId", "sectionsConfig", "sectionsData","utils","starItems", "regionZoom",
-		"regionViewArea"],
+		"regionViewArea","isInTab"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
@@ -421,7 +421,7 @@ $(function () { });
 </script>
 <style>
 .multi-section {
-	border-bottom: solid 1px #ddd;
+	/*border-bottom: solid 1px #ddd;*/
 	position: relative;
 }
 
