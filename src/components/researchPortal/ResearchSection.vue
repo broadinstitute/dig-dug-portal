@@ -799,7 +799,7 @@ export default Vue.component("research-section", {
 				queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
 			}
 
-			console.log("queryParamsString", queryParamsString)
+			//console.log("queryParamsString", queryParamsString)
 			//5. Check if return the first item in the queryParamsString
 
 			if (queryParamsString.length > 0) {

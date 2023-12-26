@@ -138,7 +138,7 @@ export default Vue.component("research-sections-summary", {
 									{ "action": "add top columns", "columns":[{"column":"PPA","key field":"Variant ID","if multiple values":"pick greater"}] },
 									{ "action": "add features", "feature":"CSID", "key field": "Variant ID", "columns": ["Credible Set ID","PPA"], "if multiple values": "add" }];*/
 
-					if(!!filterData) {
+					if(!!filterData && filterData.length > 0) {
 						section.actions.map(action => {
 							switch (action.action) {
 								case "filter":
@@ -168,6 +168,8 @@ export default Vue.component("research-sections-summary", {
 							}
 						})
 					}
+
+					console.log(this.sectionID, this.tableFormat);
 				})
 				this.sectionData = targetData;
 			}
@@ -189,28 +191,31 @@ export default Vue.component("research-sections-summary", {
 
 			TG_DATA.map(TD => {
 				TD[FEATURE] = [];
-				filterDataObj[TD[KEY_FIELD]].map(num =>{
-					let tempObj = {};
+				if(!!filterDataObj[TD[KEY_FIELD]]) {
+					filterDataObj[TD[KEY_FIELD]].map(num => {
+						let tempObj = {};
 
-					COLUMNS.map(column=>{
-						tempObj[column] = FTL_DATA[num][column];
-					})
+						COLUMNS.map(column => {
+							tempObj[column] = FTL_DATA[num][column];
+						})
 
-					switch(IF_MULTIPLE) //add, replace, pick greater, pick lower
-					{
-						case "add":
-							TD[FEATURE].push(tempObj);
-							break;
-						case "replace":
-							TD[FEATURE]=[tempObj];
-							break;
-						case "pick greater":
-							break;
-						case "pick lower":
-							break;
-					}
-					
-				});
+						switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
+						{
+							case "add":
+								TD[FEATURE].push(tempObj);
+								break;
+							case "replace":
+								TD[FEATURE] = [tempObj];
+								break;
+							case "pick greater":
+								break;
+							case "pick lower":
+								break;
+						}
+
+					});
+				}
+				
 			})
 			return TG_DATA;
 		},
@@ -226,63 +231,65 @@ export default Vue.component("research-sections-summary", {
 
 			//console.log(KEY_FIELD, COLUMN, IF_MULTIPLE);
 
+			console.log(this.sectionID);
+
 			TG_DATA.map(TD => {
 
-				filterDataObj[TD[KEY_FIELD]].map(num => {
+				if(!!filterDataObj[TD[KEY_FIELD]]) {
+					filterDataObj[TD[KEY_FIELD]].map(num => {
 
-					let colValue = FTL_DATA[num][COLUMN];
+						let colValue = FTL_DATA[num][COLUMN];
 
-					switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
-					{
-						case "add":
-							if (!TD[COLUMN]) { TD[COLUMN] = [] };
-							TD[COLUMN].push(colValue);
-							break;
-						case "replace":
-							TD[COLUMN] = colValue;
-							break;
-						case "pick greater":
-							colValue = !TD[COLUMN] ? colValue :
-								TD[COLUMN] >= colValue ? TD[COLUMN] : colValue;
+						switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
+						{
+							case "add":
+								if (!TD[COLUMN]) { TD[COLUMN] = [] };
+								TD[COLUMN].push(colValue);
+								break;
+							case "replace":
+								TD[COLUMN] = colValue;
+								break;
+							case "pick greater":
+								colValue = !TD[COLUMN] ? colValue :
+									TD[COLUMN] >= colValue ? TD[COLUMN] : colValue;
 
-							//console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
-							TD[COLUMN] = colValue;
-							break;
-						case "pick lower":
-							colValue = !TD[COLUMN] ? colValue :
-								TD[COLUMN] <= colValue ? TD[COLUMN] : colValue;
+								//console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
+								TD[COLUMN] = colValue;
+								break;
+							case "pick lower":
+								colValue = !TD[COLUMN] ? colValue :
+									TD[COLUMN] <= colValue ? TD[COLUMN] : colValue;
 
-							//console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
-							TD[COLUMN] = colValue;
-							break;
-					}
+								//console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
+								TD[COLUMN] = colValue;
+								break;
+						}
 
-					/*switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
-					{
-						case "add":
-							if (!TD[COLUMN]) { TD[COLUMN] = [] };
-							TD[COLUMN].push(filterDataObj[TD[KEY_FIELD]][COLUMN]);
-							break;
-						case "replace":
-							TD[COLUMN] = filterDataObj[TD[KEY_FIELD]][COLUMN];
-							break;
-						case "pick greater":
-							let colValue = !TD[COLUMN] ? filterDataObj[TD[KEY_FIELD]][COLUMN] :
-								TD[COLUMN] >= filterDataObj[TD[KEY_FIELD]][COLUMN] ?
-									TD[COLUMN] : filterDataObj[TD[KEY_FIELD]][COLUMN];
-							console.log("TD[COLUMN]: ", TD[COLUMN], "filterDataObj[TD[KEY_FIELD]][COLUMN]: ", filterDataObj[TD[KEY_FIELD]][COLUMN], "colValue: ", colValue)
-							TD[COLUMN] = colValue;
-							break;
-						case "pick lower":
-							TD[COLUMN] = !TD[COLUMN] ? filterDataObj[TD[KEY_FIELD]][COLUMN] :
-								TD[COLUMN] <= filterDataObj[TD[KEY_FIELD]][COLUMN] ? TD[COLUMN] :
-									filterDataObj[TD[KEY_FIELD]][COLUMN];
-							break;
-					}*/
+						/*switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
+						{
+							case "add":
+								if (!TD[COLUMN]) { TD[COLUMN] = [] };
+								TD[COLUMN].push(filterDataObj[TD[KEY_FIELD]][COLUMN]);
+								break;
+							case "replace":
+								TD[COLUMN] = filterDataObj[TD[KEY_FIELD]][COLUMN];
+								break;
+							case "pick greater":
+								let colValue = !TD[COLUMN] ? filterDataObj[TD[KEY_FIELD]][COLUMN] :
+									TD[COLUMN] >= filterDataObj[TD[KEY_FIELD]][COLUMN] ?
+										TD[COLUMN] : filterDataObj[TD[KEY_FIELD]][COLUMN];
+								console.log("TD[COLUMN]: ", TD[COLUMN], "filterDataObj[TD[KEY_FIELD]][COLUMN]: ", filterDataObj[TD[KEY_FIELD]][COLUMN], "colValue: ", colValue)
+								TD[COLUMN] = colValue;
+								break;
+							case "pick lower":
+								TD[COLUMN] = !TD[COLUMN] ? filterDataObj[TD[KEY_FIELD]][COLUMN] :
+									TD[COLUMN] <= filterDataObj[TD[KEY_FIELD]][COLUMN] ? TD[COLUMN] :
+										filterDataObj[TD[KEY_FIELD]][COLUMN];
+								break;
+						}*/
 
-				})
-				
-				
+					})
+				}
 				
 			})
 			return TG_DATA;
