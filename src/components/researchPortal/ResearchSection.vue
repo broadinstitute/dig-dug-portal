@@ -11,7 +11,7 @@
 				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
 					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
 				<button class="btn btn-sm show-evidence-btn show-hide-section" :class="(sectionHidden != true) ? '' : 'red-background'"
-					@click="utils.uiUtils.showHideElement('section_' + sectionID); sectionHidden=(sectionHidden == true)?false:true" title="Show / hide section"><b-icon
+					@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden=(sectionHidden == true)?false:true" title="Show / hide section"><b-icon
 						icon="eye"></b-icon></button>
 				<h4>{{ sectionConfig.header }}
 
@@ -1232,6 +1232,11 @@ $(function () { });
 .multi-section {
 	border-bottom: solid 1px #ddd;
 	position: relative;
+}
+
+.row.hidden-svg {
+	visibility: hidden;
+    height: 25px;
 }
 
 button.show-hide-section,
