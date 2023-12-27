@@ -231,20 +231,26 @@ export default Vue.component("research-sections-summary", {
 
 			//console.log(KEY_FIELD, COLUMN, IF_MULTIPLE);
 
-			console.log(this.sectionID);
+			//console.log(this.sectionID);
 
 			TG_DATA.map(TD => {
 
 				if(!!filterDataObj[TD[KEY_FIELD]]) {
 					filterDataObj[TD[KEY_FIELD]].map(num => {
 
-						let colValue = FTL_DATA[num][COLUMN];
+						let colValue = !!FTL_DATA[num][COLUMN]? FTL_DATA[num][COLUMN]: "";
+
 
 						switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
 						{
 							case "add":
-								if (!TD[COLUMN]) { TD[COLUMN] = [] };
-								TD[COLUMN].push(colValue);
+								/*if (!TD[COLUMN]) { TD[COLUMN] = [] };
+								TD[COLUMN].push(colValue);*/
+								if (!TD[COLUMN]) { TD[COLUMN] = colValue }
+								else {
+									TD[COLUMN] = TD[COLUMN]+", "+ colValue;
+								};
+								
 								break;
 							case "replace":
 								TD[COLUMN] = colValue;
@@ -264,29 +270,6 @@ export default Vue.component("research-sections-summary", {
 								TD[COLUMN] = colValue;
 								break;
 						}
-
-						/*switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
-						{
-							case "add":
-								if (!TD[COLUMN]) { TD[COLUMN] = [] };
-								TD[COLUMN].push(filterDataObj[TD[KEY_FIELD]][COLUMN]);
-								break;
-							case "replace":
-								TD[COLUMN] = filterDataObj[TD[KEY_FIELD]][COLUMN];
-								break;
-							case "pick greater":
-								let colValue = !TD[COLUMN] ? filterDataObj[TD[KEY_FIELD]][COLUMN] :
-									TD[COLUMN] >= filterDataObj[TD[KEY_FIELD]][COLUMN] ?
-										TD[COLUMN] : filterDataObj[TD[KEY_FIELD]][COLUMN];
-								console.log("TD[COLUMN]: ", TD[COLUMN], "filterDataObj[TD[KEY_FIELD]][COLUMN]: ", filterDataObj[TD[KEY_FIELD]][COLUMN], "colValue: ", colValue)
-								TD[COLUMN] = colValue;
-								break;
-							case "pick lower":
-								TD[COLUMN] = !TD[COLUMN] ? filterDataObj[TD[KEY_FIELD]][COLUMN] :
-									TD[COLUMN] <= filterDataObj[TD[KEY_FIELD]][COLUMN] ? TD[COLUMN] :
-										filterDataObj[TD[KEY_FIELD]][COLUMN];
-								break;
-						}*/
 
 					})
 				}
