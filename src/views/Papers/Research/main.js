@@ -1214,7 +1214,7 @@ new Vue({
             let sectionInGroup = false;
             if (!!this.sectionConfigs['tab groups']) {
                 this.sectionConfigs['tab groups'].map(group => {
-                    group.map(tab => {
+                    group.sections.map(tab => {
                         if (tab.section == SECTION) {
                             sectionInGroup = true;
                         }

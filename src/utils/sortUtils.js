@@ -31,12 +31,18 @@ let sortEGLTableData = function (data, key, isNumeric, isAscending) {
     } else {
         let withNumbers = [];
         let withStrings = [];
+        let withNoValue = [];
 
         data.map(d => {
-            if (typeof d[key] == "number" || d[key] === 0) {
-                withNumbers.push(d);
-            } else if (typeof d[key] == "string") {
-                withStrings.push(d);
+            if (!d[key]) {
+                withNoValue.push(d)
+            } else {
+                console.log("d[key]: ", d[key], typeof d[key])
+                if (typeof d[key] == "number" || d[key] === 0) {
+                    withNumbers.push(d);
+                } else if (typeof d[key] == "string") {
+                    withStrings.push(d);
+                }
             }
         })
 
@@ -44,11 +50,10 @@ let sortEGLTableData = function (data, key, isNumeric, isAscending) {
         let wStringsSorted = sortArrOfObjects(withStrings, key, 'alphabetical', direction)
 
         if (direction == "asc") {
-            return wNumbersSorted.concat(wStringsSorted);
+            return wNumbersSorted.concat(wStringsSorted).concat(withNoValue);
         } else {
-            return wStringsSorted.concat(wNumbersSorted);
+            return wStringsSorted.concat(wNumbersSorted).concat(withNoValue);
         }
-
     }
 
 }

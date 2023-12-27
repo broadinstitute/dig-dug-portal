@@ -590,19 +590,24 @@
 								>
 							</research-multi-sections-search>
 							<template v-if="!!$parent.sectionConfigs['tab groups']">
-								<template v-for="group, groupIndex in $parent.sectionConfigs['tab groups']">
+								<div v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" style="position:relative">
+									
+									<button class="btn btn-sm show-evidence-btn show-hide-section" :targetId="'tabUiGroup' + groupIndex"
+										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
+										$parent.utilsBox.uiUtils.showHideSvg('tabContentGroup' + groupIndex);
+										$parent.utilsBox.uiUtils.showHideElement('groupLabel' + + groupIndex);" title="Show / hide section">
+										<span :id="'groupLabel'+ + groupIndex" class="hidden">{{ "Show "+group.label+"  " }}</span><b-icon
+											icon="eye"></b-icon></button>
 									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
-										<div v-for="tab, tabIndex in group" :id="'tabUi'+tab.section" class="tab-ui-tab" :class="tabIndex == 0?'active':''"
+										<div v-for="tab, tabIndex in group.sections" :id="'tabUi'+tab.section" class="tab-ui-tab" :class="tabIndex == 0?'active':''"
 											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
 												'tabContent' + tab.section,'tabContentGroup' + groupIndex)">
 											{{ tab.label }}
 										</div>
-										<button class="btn btn-sm show-evidence-btn show-hide-section" :targetId="'tabUiGroup' + groupIndex"
-											@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex)" title="Show / hide section"><b-icon
-												icon="eye"></b-icon></button>
+										
 									</div>
-									<div :id="'tabContentGroup'+groupIndex">
-										<template v-for="tab, tabIndex in group">
+									<div :id="'tabContentGroup'+groupIndex" class="tab-content-group">
+										<template v-for="tab, tabIndex in group.sections">
 											<div v-for="config, index in $parent.sectionConfigs.sections" 
 												v-if="config['section id'] == tab.section"
 												:id="'tabContent' + tab.section"
@@ -650,8 +655,9 @@
 										</div>
 										</template>
 									</div>
-								</template>
+								</div>
 							</template>
+							
 							<template v-for="config, index in $parent.sectionConfigs.sections">
 								<research-section
 									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
@@ -895,6 +901,7 @@ html {
 }
 
 .tab-ui-wrapper {
+	position: relative;
 	border-bottom: solid 1px #ddd;
     margin: 5px 0 10px 0;
     padding: 0 25px;
@@ -923,7 +930,14 @@ html {
 
 .tab-ui-wrapper.hidden-svg {
 	visibility: hidden !important;
+	height: 10px !important;
+	overflow:hidden;
+}
+
+.tab-content-group.hidden-svg {
+	visibility: hidden !important;
 	height: 1px !important;
+	overflow:hidden;
 }
 
 .tab-content-wrapper.hidden-content {

@@ -375,6 +375,9 @@ export default Vue.component("research-sections-summary", {
 			//console.log("data getting updated");
 		},
 		sortData(KEY) {
+			console.log("KEY",KEY);
+			console.log("this.tableFormat", this.tableFormat);
+			console.log("this.sectionData", this.sectionData);
 			if (!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {
 				this.sectionData = this.utils.sortUtils.sortLocusField(this.sectionData, KEY.key, KEY.direction);
 			} else {
