@@ -115,46 +115,49 @@ export default Vue.component("research-sections-summary", {
 	},
 	watch: {
 		wholeDataCounts(NUM) {
-			//console.log("counting",NUM);
+			
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
 			this.tableFormat = !!primarySection[0] ? JSON.parse(JSON.stringify(primarySection[0].config['table format'])): null;
 			let primaryData = !!primarySection[0]? primarySection[0].data:null;
 			let subSections = this.sectionsConfig.sections["sub sections"];
 
-			let targetData = [...new Set(primaryData)];
+			let targetData = JSON.parse(JSON.stringify(primaryData));//Deep cloning is required.
+			let filteredData = [];
 
 			if(!!primaryData) {
 
 				
-				subSections.map(section => {
-
-					//console.log("section", section)
+				subSections.map((section,sIndex) => {
 
 					let filterSection = this.sectionsData.filter(data => data.id == section.section)[0]
 					
-					let filterData = !!filterSection? filterSection.data: null;
+					let filterData = !!filterSection? [...new Set(filterSection.data)]: null;
 
-					/*let actions = [{ "action": "filter","filter field": "Variant ID","target field": "Variant ID","type": "search"},
-									{ "action": "add top columns", "columns":[{"column":"PPA","key field":"Variant ID","if multiple values":"pick greater"}] },
-									{ "action": "add features", "feature":"CSID", "key field": "Variant ID", "columns": ["Credible Set ID","PPA"], "if multiple values": "add" }];*/
 
 					if(!!filterData && filterData.length > 0) {
 						section.actions.map(action => {
 							switch (action.action) {
 								case "filter":
-									targetData = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
+									// filters data by each sub section data but, doesn't remove filtered out rows.
+									filteredData[sIndex] = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
 									break;
+							}
+						})
+
+						section.actions.map(action => {
+							switch (action.action) {
+
 								case "add top columns":
 
 									action.columns.map(column => {
-										targetData = this.addField(targetData, filterData, column["key field"], column.column, column["if multiple values"]);
+										filteredData[sIndex] = this.addField(filteredData[sIndex], filterData, column["key field"], column.column, column["if multiple values"]);
 										if (!!this.tableFormat) {
 											this.tableFormat["top rows"].push(column.column);
 										}
 									})
 
-
 									break;
+
 								case "add features":
 
 									this.tableFormat["features"] = !this.tableFormat["features"] ? [] : this.tableFormat["features"];
@@ -162,18 +165,38 @@ export default Vue.component("research-sections-summary", {
 									this.tableFormat["features"].push(action.feature);
 
 									this.tableFormat[action.feature] = action.columns;
-									targetData = this.addFeatureField(targetData, filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
+									filteredData[sIndex] = this.addFeatureField(filteredData[sIndex], filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
 
 									break;
 							}
 						})
 					}
-
-					console.log(this.sectionID, this.tableFormat);
 				})
-				this.sectionData = targetData;
+
+				let collapsedData = [];
+
+				targetData.map(row => {
+					let meetFilter = false;
+
+					subSections.map((section, sIndex) => {
+						section.actions.map(action => {
+							switch (action.action) {
+								case "add top columns":
+									action.columns.map(column => {
+										if(row[column.column]) { meetFilter = true}
+									})
+									break;
+							}
+						})
+
+						if(meetFilter == true) {
+							collapsedData.push(row);
+						}
+					})
+				})
+				
+				this.sectionData = collapsedData;
 			}
-			
 		}
 	},
 	methods: {
@@ -186,8 +209,6 @@ export default Vue.component("research-sections-summary", {
 				filterDataObj[FD[KEY_FIELD]].push(fdIndex);
 				fdIndex ++;
 			})
-
-			//console.log("filterDataObj", filterDataObj);
 
 			TG_DATA.map(TD => {
 				TD[FEATURE] = [];
@@ -221,59 +242,54 @@ export default Vue.component("research-sections-summary", {
 		},
 		addField(TG_DATA, FTL_DATA, KEY_FIELD, COLUMN, IF_MULTIPLE){
 			let filterDataObj = {};
-			let targetData = [...new Set(TG_DATA)];
-			let fdIndex = 0;
-			FTL_DATA.map(FD => {
+			
+			FTL_DATA.map((FD,fdIndex) => {
 				filterDataObj[FD[KEY_FIELD]] = !filterDataObj[FD[KEY_FIELD]] ? [] : filterDataObj[FD[KEY_FIELD]];
 				filterDataObj[FD[KEY_FIELD]].push(fdIndex);
-				fdIndex++;
 			})
-
-			//console.log(KEY_FIELD, COLUMN, IF_MULTIPLE);
-
-			//console.log(this.sectionID);
 
 			TG_DATA.map(TD => {
 
 				if(!!filterDataObj[TD[KEY_FIELD]]) {
-					filterDataObj[TD[KEY_FIELD]].map(num => {
+					filterDataObj[TD[KEY_FIELD]].map(fdIndex => {
 
-						let colValue = !!FTL_DATA[num][COLUMN]? FTL_DATA[num][COLUMN]: "";
+						let colValue = !!FTL_DATA[fdIndex][COLUMN]? FTL_DATA[fdIndex][COLUMN]: null;
 
+						if(!!colValue) {
+							switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
+							{
+								case "add":
+									if(!TD[COLUMN]) { TD[COLUMN] = [] };
+									TD[COLUMN].push(colValue);
 
-						switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
-						{
-							case "add":
-								/*if (!TD[COLUMN]) { TD[COLUMN] = [] };
-								TD[COLUMN].push(colValue);*/
-								if (!TD[COLUMN]) { TD[COLUMN] = colValue }
-								else {
-									TD[COLUMN] = TD[COLUMN]+", "+ colValue;
-								};
-								
-								break;
-							case "replace":
-								TD[COLUMN] = colValue;
-								break;
-							case "pick greater":
-								colValue = !TD[COLUMN] ? colValue :
-									TD[COLUMN] >= colValue ? TD[COLUMN] : colValue;
+									break;
+								case "replace":
+									TD[COLUMN] = colValue;
+									break;
+								case "pick greater":
+									colValue = !TD[COLUMN] ? colValue :
+										TD[COLUMN] >= colValue ? TD[COLUMN] : colValue;
 
-								//console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
-								TD[COLUMN] = colValue;
-								break;
-							case "pick lower":
-								colValue = !TD[COLUMN] ? colValue :
-									TD[COLUMN] <= colValue ? TD[COLUMN] : colValue;
+									TD[COLUMN] = colValue;
+									break;
+								case "pick lower":
+									colValue = !TD[COLUMN] ? colValue :
+										TD[COLUMN] <= colValue ? TD[COLUMN] : colValue;
 
-								//console.log("TD[COLUMN]: ", TD[COLUMN], "FTL_DATA[num][COLUMN]: ", FTL_DATA[num][COLUMN], "colValue: ", colValue)
-								TD[COLUMN] = colValue;
-								break;
+									TD[COLUMN] = colValue;
+									break;
+							}
 						}
-
+						
 					})
 				}
 				
+			})
+
+			TG_DATA.map(TD => {
+				if (!!TD[COLUMN] && typeof TD[COLUMN] == "object") {
+					TD[COLUMN] = [...new Set(TD[COLUMN])].sort().toString();
+				}
 			})
 			return TG_DATA;
 		},
@@ -284,10 +300,8 @@ export default Vue.component("research-sections-summary", {
 				case "search":
 					
 					filterFieldArr = [...new Set(filterData.map(d=>d[filterField]))];
-					//console.log("filterFieldArr", filterFieldArr, targetData[0]);
 
 					targetData.map(d=>{
-						//console.log('d["targetField"]', d);
 						if(!!filterFieldArr.includes(d[targetField])) {
 							if(!d[filterField]) {
 								d[filterField] = d[targetField];
@@ -300,7 +314,6 @@ export default Vue.component("research-sections-summary", {
 				case "search and":
 
 					filterFieldArr = [...new Set(filterData.map(d => d[filterField]))];
-					//console.log("filterFieldArr", filterFieldArr);
 
 					targetData.map(d => {
 						filterFieldArr.map(ff =>{
@@ -317,7 +330,6 @@ export default Vue.component("research-sections-summary", {
 					break;
 			}
 
-			//console.log("returnData", returnData);
 			return returnData;
 		},
 		//work on this

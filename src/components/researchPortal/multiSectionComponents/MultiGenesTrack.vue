@@ -84,7 +84,7 @@ export default Vue.component("multi-genes-track", {
 					bump: this.plotMargin.bump,
 				};
 
-				console.log("multi genes track", plotMargin);
+				//console.log("multi genes track", plotMargin);
 
 			return plotMargin;
 		},
