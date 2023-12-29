@@ -187,7 +187,7 @@ export default Vue.component("multi-region-plot", {
 					bump: this.plotMargin.bump,
 				};
 
-			console.log("region plot", plotMargin);
+			//console.log("region plot", plotMargin);
 			return plotMargin;
 		},
 		staredVariants() {

@@ -380,7 +380,33 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 case "link":
                     if (!!cellValue && cellValue != "") {
 
-                        linkString =
+                        let linksArr = [];
+
+                        let cellVals = cellValue.split(",");
+
+                        cellVals.map(v => {
+                            let link = "<a href='" + columnKeyObj["link to"] + v;
+
+                            link +=
+                                !!columnKeyObj["link type"] &&
+                                    columnKeyObj["link type"] == "button"
+                                    ? "' class='btn btn-sm btn-outline-secondary link-button"
+                                    : "";
+
+                            linkLabel = columnKeyObj["link label"]
+                                ? columnKeyObj["link label"]
+                                : v;
+
+                            link +=
+                                linkToNewTab == "true"
+                                    ? "' target='_blank'>" + linkLabel + "</a>"
+                                    : "'>" + linkLabel + "</a>";
+                            linksArr.push(link);
+                        })
+
+                        linkString = linksArr.join();
+
+                        /*linkString =
                             "<a href='" + columnKeyObj["link to"] + cellValue;
 
                         linkString +=
@@ -396,7 +422,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         linkString +=
                             linkToNewTab == "true"
                                 ? "' target='_blank'>" + linkLabel + "</a>"
-                                : "'>" + linkLabel + "</a>";
+                                : "'>" + linkLabel + "</a>";*/
                     }
 
                     cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
