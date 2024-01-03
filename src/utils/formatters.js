@@ -378,25 +378,54 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     break;
 
                 case "link":
-                    linkString =
-                        "<a href='" + columnKeyObj["link to"] + cellValue;
+                    if (!!cellValue && cellValue != "") {
 
-                    linkString +=
-                        !!columnKeyObj["link type"] &&
-                            columnKeyObj["link type"] == "button"
-                            ? "' class='btn btn-sm btn-outline-secondary link-button"
-                            : "";
+                        let linksArr = [];
 
-                    linkLabel = columnKeyObj["link label"]
-                        ? columnKeyObj["link label"]
-                        : cellValue;
+                        let cellVals = cellValue.split(",");
 
-                    linkString +=
-                        linkToNewTab == "true"
-                            ? "' target='_blank'>" + linkLabel + "</a>"
-                            : "'>" + linkLabel + "</a>";
+                        cellVals.map(v => {
+                            let link = "<a href='" + columnKeyObj["link to"] + v;
 
-                    cellValue = linkString;
+                            link +=
+                                !!columnKeyObj["link type"] &&
+                                    columnKeyObj["link type"] == "button"
+                                    ? "' class='btn btn-sm btn-outline-secondary link-button"
+                                    : "";
+
+                            linkLabel = columnKeyObj["link label"]
+                                ? columnKeyObj["link label"]
+                                : v;
+
+                            link +=
+                                linkToNewTab == "true"
+                                    ? "' target='_blank'>" + linkLabel + "</a>"
+                                    : "'>" + linkLabel + "</a>";
+                            linksArr.push(link);
+                        })
+
+                        linkString = linksArr.join();
+
+                        /*linkString =
+                            "<a href='" + columnKeyObj["link to"] + cellValue;
+
+                        linkString +=
+                            !!columnKeyObj["link type"] &&
+                                columnKeyObj["link type"] == "button"
+                                ? "' class='btn btn-sm btn-outline-secondary link-button"
+                                : "";
+
+                        linkLabel = columnKeyObj["link label"]
+                            ? columnKeyObj["link label"]
+                            : cellValue;
+
+                        linkString +=
+                            linkToNewTab == "true"
+                                ? "' target='_blank'>" + linkLabel + "</a>"
+                                : "'>" + linkLabel + "</a>";*/
+                    }
+
+                    cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
                     break;
 
                 case "render background percent":

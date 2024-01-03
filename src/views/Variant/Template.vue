@@ -255,15 +255,8 @@
 										"
 										>Re-render PheWAS plot</b-button
 									>
-
 									<research-phewas-plot
-										v-if="
-											($store.state.phewas.data.length >
-												0 &&
-												!$store.state.ancestry) ||
-											$store.state.ancestryPhewas.data
-												.length > 0
-										"
+										v-if="$parent.pheWasData.length > 0"
 										canvasId=""
 										:phenotypesData="$parent.pheWasData"
 										:phenotypeMap="
@@ -312,7 +305,7 @@
 												'right': 150,
 												'top': 250,
 												'bottom': 300
-											}
+	       									 }
 										}"
 										:pkgData="null"
 										:pkgDataSelected="null"

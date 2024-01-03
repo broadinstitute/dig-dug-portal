@@ -39,6 +39,7 @@ let showHideSvg = function (ELEMENT) {
         }
     }
 };
+
 let showSvg = function (ELEMENT) {
     let element = checkExist(ELEMENT);
     if (!!element) {
@@ -59,6 +60,18 @@ let showHideElement = function (ELEMENT, SEARCHBOX) {
             showElement(ELEMENT, SEARCHBOX);
         } else {
             hideElement(ELEMENT);
+        }
+    }
+};
+
+let addRemoveClass = function (ELEMENT, CLASS) {
+    let element = checkExist(ELEMENT);
+
+    if (!!element) {
+        if (element.classList.contains(CLASS)) {
+            element.classList.remove(CLASS);
+        } else {
+            element.classList.add(CLASS);
         }
     }
 };
@@ -456,7 +469,9 @@ let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPP
         tabsChildren = tabsWrapper.getElementsByClassName("tab-ui-tab");
     for (let i = 0; i < tabsChildren.length; i++) {
         let tab = tabsChildren[i];
-        tab.setAttribute("class", "tab-ui-tab");
+        let classes = tab.getAttribute("class");
+
+        (classes.includes("loading")) ? tab.setAttribute("class", "tab-ui-tab loading") : tab.setAttribute("class", "tab-ui-tab");
     }
 
     document.getElementById(TARGETTAB).setAttribute("class", "tab-ui-tab active");
@@ -473,9 +488,22 @@ let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPP
     (!!IF_PLOT) ? document.getElementById(TARGETCONTENT).setAttribute("class", "plot-tab-content-wrapper") :
         document.getElementById(TARGETCONTENT).setAttribute("class", "tab-content-wrapper");
 
+
+
+}
+
+let showHidePanel = function (PANEL) {
+    console.log(PANEL);
+    let wrapper = document.querySelector(PANEL);
+    if (wrapper.classList.contains("hidden")) {
+        wrapper.classList.remove("hidden");
+    } else {
+        wrapper.classList.add("hidden");
+    }
 }
 
 export default {
+    addRemoveClass,
     popOutElement,
     hideElement,
     showElement,
@@ -498,5 +526,6 @@ export default {
     biDomain,
     getUrl,
     checkIfNumeric,
-    setTabActive
+    setTabActive,
+    showHidePanel
 };

@@ -18,11 +18,12 @@ let colors = ["#007bff75",
     "#d4d4d475"]
 
 
-let renderDot = function (CTX, XPOS, YPOS, DOT_COLOR) {
+let renderDot = function (CTX, XPOS, YPOS, DOT_COLOR, WIDTH) {
     CTX.fillStyle = DOT_COLOR;
     CTX.lineWidth = 0;
     CTX.beginPath();
-    CTX.arc(XPOS, YPOS, 8, 0, 2 * Math.PI);
+    let width = !!WIDTH ? WIDTH : 8;
+    CTX.arc(XPOS, YPOS, width, 0, 2 * Math.PI);
     CTX.fill();
 }
 
@@ -33,6 +34,20 @@ let connectDots = function (CTX, X1, Y1, X2, Y2, COLOR) {
     CTX.moveTo(X1, Y1);
     CTX.lineTo(X2, Y2);
     CTX.stroke();
+}
+
+let renderDashedLine = function (CTX, X1, Y1, X2, Y2, WIDTH, COLOR, DASH) {
+
+    CTX.beginPath();
+    CTX.lineWidth = !!WIDTH ? WIDTH : 2;
+    CTX.strokeStyle = !!COLOR ? COLOR : "#FFAA00";
+    let dash = !!DASH ? DASH : [20, 10];
+    CTX.setLineDash(dash);
+    CTX.moveTo(X1, Y1);
+    CTX.lineTo(X2, Y2);
+    CTX.stroke();
+    // reset
+    CTX.setLineDash([]);
 }
 
 const renderLine = function (
@@ -456,11 +471,11 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                     let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
                     CTX.moveTo(
                         adjTickXPos,
-                        HEIGHT - MARGIN.bottom
+                        HEIGHT - MARGIN.bottom + MARGIN.bump
                     );
                     CTX.lineTo(
                         adjTickXPos,
-                        HEIGHT - MARGIN.bottom + MARGIN.bump
+                        (HEIGHT - MARGIN.bottom) + (MARGIN.bump * 2)
                     );
                     CTX.stroke();
 
@@ -474,9 +489,20 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                     CTX.fillText(
                         positionLabel,
                         adjTickXPos,
-                        HEIGHT - MARGIN.bottom + (MARGIN.bump * 4)
+                        HEIGHT - MARGIN.bottom + (MARGIN.bump * 5)
                     );
                 }
+            }
+
+            if (LABEL != null) {
+                let labelXPos = WIDTH / 2;
+                let labelYPos = HEIGHT - (MARGIN.bump * 2);
+                CTX.font = "24px Arial";
+                CTX.fillStyle = "#000000";
+                CTX.save();
+                CTX.textAlign = "center";
+                CTX.fillText(LABEL, labelXPos, labelYPos);
+                CTX.restore();
             }
             break;
         case "y":
@@ -603,6 +629,141 @@ const renderStar = function (CTX, CX, CY, SPIKES, OR, IR, SCOLOR, FCOLOR) {
 }
 
 
+const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA) {
+
+    let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
+    let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
+    let xStep = plotWidth / (XMAX - XMIN);
+    let yStep = plotHeight / (YMAX - YMIN);
+
+    DATA.map(d => {
+        let xVal = d.xValue ? d.xValue : d.x;
+        let yVal = d.yValue ? d.yValue : d.y;
+        let xPos = MARGIN.left + (xStep * (xVal - XMIN));
+        let yPos = MARGIN.top + (plotHeight - (yVal - YMIN) * yStep)
+        renderDot(CTX, xPos, yPos, COLOR);
+    })
+}
+
+const renderBestFitLine = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA) {
+    //x,y must have same amount of data points
+    //x,y cannot contain missing values
+
+    //calculate best fit line
+    const sum = [0, 0, 0, 0];
+    let len = DATA.length;
+
+    for (let n = 0; n < len; n++) {
+        sum[0] += DATA[n].xValue;                   //x
+        sum[1] += DATA[n].yValue;                   //y
+        sum[2] += DATA[n].xValue * DATA[n].xValue;  //x^2
+        sum[3] += DATA[n].xValue * DATA[n].yValue;  //x*y
+    }
+
+    const meanX = sum[0] / len;
+    const meanY = sum[1] / len;
+    const slope = (sum[3] - (sum[0] * meanY)) / (sum[2] - (sum[0] * meanX));
+    const intcp = meanY - (slope * meanX);
+    const sX = XMIN;
+    const sY = slope * sX + intcp;
+    const eX = XMAX;
+    const eY = slope * eX + intcp
+
+    //calculate line start/end coordinates based on plot dimentions
+    let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
+    let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
+    let xStep = plotWidth / (XMAX - XMIN);
+    let yStep = plotHeight / (YMAX - YMIN);
+
+    const startX = MARGIN.left + (xStep * (sX - XMIN));
+    const startY = MARGIN.top + (plotHeight - (sY - YMIN) * yStep);
+    const endX = MARGIN.left + (xStep * (eX - XMIN));
+    const endY = MARGIN.top + (plotHeight - (eY - YMIN) * yStep);
+
+    //check if color is dimmed
+    const dimmed = COLOR.length > 7 ? Number(COLOR.slice(-2)) < 20 ? true : false : false;
+
+    //we're going to draw a black line, with colored dots at the ends
+    //but since dot colors have transparency, the line overlaps the dots
+    //we need to calculate the direction of the line
+    //so we can shorten it without affecting its position
+    // Calculate vector from start to end
+    const dx = endX - startX;
+    const dy = endY - startY;
+    // Calculate unit vector
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const udx = dx / length;
+    const udy = dy / length;
+    // Calculate new start position
+    const amountToSubtract = 8;
+    const newStartX = startX + udx * amountToSubtract;
+    const newStartY = startY + udy * amountToSubtract;
+
+    //draw the line
+    CTX.strokeStyle = dimmed ? '#00000005' : '#000000';
+    CTX.lineWidth = 2;
+    CTX.beginPath();
+    CTX.moveTo(newStartX, newStartY);
+    CTX.lineTo(endX, endY);
+    CTX.stroke();
+
+    //draw dot at the start
+    CTX.beginPath();
+    CTX.arc(startX, startY, 10, 0, 2 * Math.PI);
+    CTX.fillStyle = COLOR; //COLOR.substring(0, COLOR.length-2);
+    CTX.fill();
+    CTX.stroke();
+}
+
+const getDotsPosData = function (WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, DATA) {
+
+    let posData = {}
+    let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
+    let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
+    let xStep = plotWidth / (XMAX - XMIN);
+    let yStep = plotHeight / (YMAX - YMIN);
+
+    DATA.map(d => {
+        let xVal = d.xValue;
+        let yVal = d.yValue;
+
+        let xPos = MARGIN.left + (xStep * (xVal - XMIN));
+        let yPos = MARGIN.top + (plotHeight - (yVal - YMIN) * yStep)
+
+        if (!posData[Math.round(yPos / 2)]) {
+            posData[Math.round(yPos / 2)] = {};
+        }
+        if (!posData[Math.round(yPos / 2)][Math.round(xPos / 2)]) {
+            posData[Math.round(yPos / 2)][Math.round(xPos / 2)] =
+                [];
+        }
+        posData[Math.round(yPos / 2)][Math.round(xPos / 2)].push(
+            { "key": d.key, "hover": d.hover }
+        );
+    })
+
+    return posData;
+
+}
+
+const getDotsInPos = function (X, Y, DATA) {
+
+    let dotsList = [];
+
+    for (let h = -5; h <= 5; h++) {
+        for (let v = -5; v <= 5; v++) {
+            if (DATA[Y + h] != undefined) {
+                if (DATA[Y + h][X + v] != undefined) {
+                    dotsList = dotsList.concat(DATA[Y + h][X + v]);
+                }
+            }
+        }
+    }
+
+    return dotsList;
+}
+
+
 
 export default {
     renderAxis,
@@ -612,5 +773,11 @@ export default {
     renderPie,
     renderGuideLine,
     renderLine,
-    renderStar
+    renderDashedLine,
+    renderStar,
+    renderDot,
+    renderDots,
+    renderBestFitLine,
+    getDotsPosData,
+    getDotsInPos
 };

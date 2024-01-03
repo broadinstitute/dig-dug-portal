@@ -104,6 +104,7 @@ export default Vue.component("research-m-bitmap-plot", {
 			bottomMargin: 100,
 			dotPosData: {},
 			compareGroups: null,
+			groupsList:null,
 		};
 	},
 	modules: {
@@ -122,6 +123,8 @@ export default Vue.component("research-m-bitmap-plot", {
 		plotsList() {
 			let rawData = this.plotData;
 			let compareGroups = [];
+			//console.log("this.dataComparisonConfig",this.dataComparisonConfig);
+
 			if (!!rawData) {
 				if (this.dataComparisonConfig != null) {
 					let compareKey =
@@ -403,6 +406,7 @@ export default Vue.component("research-m-bitmap-plot", {
 			}
 		},
 		renderPlot(DATA) {
+
 			this.dotPosData = {};
 
 			let wrapper = document.getElementById("clicked_dot_value_" + this.sectionId);
