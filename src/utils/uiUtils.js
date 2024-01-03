@@ -39,6 +39,7 @@ let showHideSvg = function (ELEMENT) {
         }
     }
 };
+
 let showSvg = function (ELEMENT) {
     let element = checkExist(ELEMENT);
     if (!!element) {
@@ -59,6 +60,18 @@ let showHideElement = function (ELEMENT, SEARCHBOX) {
             showElement(ELEMENT, SEARCHBOX);
         } else {
             hideElement(ELEMENT);
+        }
+    }
+};
+
+let addRemoveClass = function (ELEMENT, CLASS) {
+    let element = checkExist(ELEMENT);
+
+    if (!!element) {
+        if (element.classList.contains(CLASS)) {
+            element.classList.remove(CLASS);
+        } else {
+            element.classList.add(CLASS);
         }
     }
 };
@@ -456,8 +469,13 @@ let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPP
         tabsChildren = tabsWrapper.getElementsByClassName("tab-ui-tab");
     for (let i = 0; i < tabsChildren.length; i++) {
         let tab = tabsChildren[i];
-        tab.setAttribute("class", "tab-ui-tab");
+        let classes = tab.getAttribute("class");
+
+        (classes.includes("loading")) ? tab.setAttribute("class", "tab-ui-tab loading") : tab.setAttribute("class", "tab-ui-tab");
     }
+
+    console.log("TARGETTAB", document.getElementById(TARGETTAB))
+    //document.getElementById(TARGETTAB).classList.remove('loading'); // in case data loading happened in the tab-content
 
     document.getElementById(TARGETTAB).setAttribute("class", "tab-ui-tab active");
 
@@ -473,6 +491,8 @@ let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPP
     (!!IF_PLOT) ? document.getElementById(TARGETCONTENT).setAttribute("class", "plot-tab-content-wrapper") :
         document.getElementById(TARGETCONTENT).setAttribute("class", "tab-content-wrapper");
 
+
+
 }
 
 let showHidePanel = function (PANEL) {
@@ -486,6 +506,7 @@ let showHidePanel = function (PANEL) {
 }
 
 export default {
+    addRemoveClass,
     popOutElement,
     hideElement,
     showElement,

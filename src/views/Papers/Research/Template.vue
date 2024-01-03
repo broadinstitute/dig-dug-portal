@@ -592,17 +592,18 @@
 							<template v-if="!!$parent.sectionConfigs['tab groups']">
 								<div v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" style="position:relative">
 									
-									<button class="btn btn-sm show-evidence-btn show-hide-section" :targetId="'tabUiGroup' + groupIndex"
+									<button class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
 										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
 										$parent.utilsBox.uiUtils.showHideSvg('tabContentGroup' + groupIndex);
-										$parent.utilsBox.uiUtils.showHideElement('groupLabel' + + groupIndex);" title="Show / hide section">
-										<span :id="'groupLabel'+ + groupIndex" class="hidden">{{ "Show "+group.label+"  " }}</span><b-icon
-											icon="eye"></b-icon></button>
+										$parent.utilsBox.uiUtils.addRemoveClass('tabsOpener' + groupIndex,'closed');" title="Show / hide section">
+										<span :id="'groupLabel'+ + groupIndex">{{ "Show/hide "+group.label+"  " }}</span><b-icon
+											icon="eye-slash-fill"></b-icon></button>
 									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
 										<div v-for="tab, tabIndex in group.sections" :id="'tabUi'+tab.section" class="tab-ui-tab" :class="tabIndex == 0?'active':''"
 											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
-												'tabContent' + tab.section,'tabContentGroup' + groupIndex)">
-											{{ tab.label }}
+												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
+											{{ tab.label }} <span class="flag"><b-icon
+												icon="cloud-download-fill"></b-icon></span>
 										</div>
 										
 									</div>
@@ -768,6 +769,17 @@ html {
 .card.hidden {
 	display: none !important;
 }
+
+.show-tabs-btn {
+ font-size: 14px !important;
+ color: #55AAEE;
+}
+
+.show-tabs-btn.closed {
+ font-size: 14px !important;
+ color: #ee5555;
+}
+
 .no-data-warning {
 	background-color: #ffaaaa;
 	position: fixed;
@@ -928,10 +940,20 @@ html {
 	background-color: #fff;
 }
 
+.tab-ui-wrapper .tab-ui-tab > .flag {
+ 	display: none;
+}
+
+.tab-ui-wrapper .tab-ui-tab.loading > .flag {
+ 	display: inline-block;
+	color:#05bd02;
+}
+
 .tab-ui-wrapper.hidden-svg {
 	visibility: hidden !important;
 	height: 10px !important;
 	overflow:hidden;
+	margin-bottom: 20px;
 }
 
 .tab-content-group.hidden-svg {

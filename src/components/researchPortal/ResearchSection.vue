@@ -411,12 +411,6 @@ export default Vue.component("research-section", {
 		},
 	},
 	watch: {
-		/*regionZoom(ZOOM){
-			console.log("Zoom",ZOOM)
-		},
-		regionViewArea(AREA){
-			console.log("AREA", AREA)
-		},*/
 		sectionData(DATA) {
 			if (!this.tableFormat && !this.remoteTableFormat) {
 				let topRows = Object.keys(this.sectionData[0]);
@@ -433,52 +427,9 @@ export default Vue.component("research-section", {
 		},
 		originalData(DATA) {
 			if (this.loadingDataFlag == "down") {
-				/// filter data by interSectionsFilters
-				/*if (this.sectionData != null && this.interSectionsFilters.length > 0) {
-					this.interSectionsFilters.map(filter => {
-
-						let FilterKey = filter["filter by"]["filter field"],
-							TargetKey = filter["filter by"]["target field"],
-							TYPE = filter["filter by"]["type"],
-							FilterData = filter["data"],
-							TargetData = DATA;
-						this.sectionData = this.utils.filterUtils.filterMulti2Multi(FilterKey, TargetKey, TYPE, FilterData, TargetData);
-					});
-				}*/
-
-				/// fire interSectionsFilters
-
-				// interSections data filtering part
-				/*if (!!DATA && DATA.length > 0 && !!this.tableFormat && !!this.tableFormat["sections filters"]) {
-					let sections = this.tableFormat["sections filters"]["target sections"];
-
-					sections.map(section => {
-						this.$root.$refs[section.section].filterAcrossSections(this.sectionID, DATA, section, null);
-					})
-				} else if ((!DATA || (!!DATA && DATA.length == 0)) && !!this.tableFormat && !!this.tableFormat["sections filters"]) {
-					let sections = this.tableFormat["sections filters"]["target sections"];
-
-					sections.map(section => {
-						this.$root.$refs[section.section].filterAcrossSections(this.sectionID, null, section, "reset");
-					})
-				}*/
+				
 			}
 		},
-		/*interSectionsFilters(FILTERS) {
-			if (this.loadingDataFlag == "down") {
-				if (this.originalData != null && this.interSectionsFilters.length > 0) {
-					this.interSectionsFilters.map(filter => {
-
-						let FilterKey = filter["filter by"]["filter field"],
-							TargetKey = filter["filter by"]["target field"],
-							TYPE = filter["filter by"]["type"],
-							FilterData = filter["data"],
-							TargetData = this.originalData;
-						this.sectionData = this.utils.filterUtils.filterMulti2Multi(FilterKey, TargetKey, TYPE, FilterData, TargetData);
-					});
-				}
-			}
-		}*/
 	},
 	methods: {
 		setZoom(PROP,VALUE){
@@ -537,6 +488,7 @@ export default Vue.component("research-section", {
 				this.groups = null,
 				this.searched = [],
 				this.loadingDataFlag = "down"
+				document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 		},
 		/*filterAcrossSections(FROM, FILTER_DATA, FILTER, RESET) {
 			let interSectionsFilters = [...new Set(this.interSectionsFilters)];
@@ -829,6 +781,7 @@ export default Vue.component("research-section", {
 			let paramsString = this.getParamString();
 
 			if (paramsString != "invalid") {
+				document.getElementById('tabUi' + this.sectionID).classList.add("loading");
 				switch (queryType) {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
@@ -843,6 +796,7 @@ export default Vue.component("research-section", {
 				}
 			} else {
 				this.loadingDataFlag = "down";
+				document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 			}
 		},
 
@@ -863,7 +817,8 @@ export default Vue.component("research-section", {
 				} else {
 					this.sectionData = null;
 				}
-				this.loadingDataFlag = "down"
+				this.loadingDataFlag = "down";
+				
 			}
 		},
 
@@ -882,7 +837,8 @@ export default Vue.component("research-section", {
 				} else {
 					this.sectionData = null;
 				}
-				this.loadingDataFlag = "down"
+				this.loadingDataFlag = "down";
+				
 			}
 		},
 
@@ -919,7 +875,8 @@ export default Vue.component("research-section", {
 				} else {
 					this.sectionData = null;
 				}
-				this.loadingDataFlag = "down"
+				this.loadingDataFlag = "down";
+				
 			}
 		},
 
@@ -979,6 +936,7 @@ export default Vue.component("research-section", {
 
 					if (paramsString == "invalid") {
 						this.loadingDataFlag = "down"
+						
 						this.completeDataLoad(QUERY);
 					} else {
 						this.originalData = this.sectionData;
@@ -997,6 +955,7 @@ export default Vue.component("research-section", {
 					this.queryBiContinue(CONTENT.continuation, QUERY);
 				} else {
 					this.loadingDataFlag = "down"
+					
 					this.completeDataLoad(QUERY);
 				}
 			}
@@ -1148,6 +1107,7 @@ export default Vue.component("research-section", {
 					if (paramsString == "invalid") {
 						this.sectionData = !!isOriginalDataEmpty ? data : this.sectionData.concat(data);
 						this.loadingDataFlag = "down";
+						
 						this.completeDataLoad(QUERY);
 
 					} else {
@@ -1159,6 +1119,7 @@ export default Vue.component("research-section", {
 				} else {
 					this.sectionData = this.checkPreFilters(data);
 					this.loadingDataFlag = "down";
+					
 					this.completeDataLoad(QUERY);
 				}
 
@@ -1234,7 +1195,7 @@ export default Vue.component("research-section", {
 				);
 
 				this.loadingDataFlag = "down"
-
+				
 			}
 		}
 
