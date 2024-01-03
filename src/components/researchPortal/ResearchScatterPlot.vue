@@ -109,6 +109,7 @@
 								:value="option.field"
 								:selected="renderConfig['color by'] === index"
 								:data-key-type="option.type"
+								:data-key-color-scale="option.color_scale"
 							>
 								{{ option.field }}
 							</option>
@@ -250,6 +251,7 @@ export default Vue.component("research-scatter-plot", {
 			colorByList:null,
 			colorByField:null,
 			colorByGradient:null,
+			colorbyGradientColorScale:null,
 			gradientMinMax:{},
 			dataCache:null,
 			posData:{},
@@ -340,7 +342,7 @@ export default Vue.component("research-scatter-plot", {
 				//field: field name
 				//type: type of color key [default, grandient]
 				//color: color group style [default, viridis]	
-				//eg: [ {field:"field to color by", type: "gradient", color: "viridis"} ]
+				//eg: [ {field:"field to color by", type: "gradient", color_scale: "viridis"} ]
 			//for backwards compatibility and ease of use it allows users to input:
 			//a string || an array of strings || a mixed array of strings and objects
 			//but we must convert to array of objects like we want
@@ -383,7 +385,7 @@ export default Vue.component("research-scatter-plot", {
 			this.renderConfig["target plot"] = null;
 
 			console.log('alex render config', this.renderConfig);
-
+			//console.log('alex raw data', rawData);
 
 			//map data for rendering
 			rawData.map((r) => {
@@ -448,6 +450,7 @@ export default Vue.component("research-scatter-plot", {
 					})
 				}
 
+				tempObj["key"] = r[this.renderConfig["render by"]];
 				tempObj["hover"] = {};
 
 				if (!!this.renderConfig["group by"]) {
@@ -478,7 +481,7 @@ export default Vue.component("research-scatter-plot", {
 					colorby.minmax = {min: numbersOnly[0], max: numbersOnly[numbersOnly.length-1]};
 					console.log(`sorted gradient for ${colorby.field}`);
 					//cache minmax values for consistency when filtering 
-					if(!this.dataCache?.["color by"]){
+					if(!this.dataCache?.["color by"]?.[colorby.field]){
 						this.dataCache = {...this.dataCache, ["color by"]:{
 							[colorby.field]: { minmax: colorby.minmax }
 						}}
@@ -763,6 +766,8 @@ export default Vue.component("research-scatter-plot", {
 			if(e.target.options[e.target.selectedIndex].dataset.keyType === 'gradient'){
 				this.colorByGradient = this.renderConfig["color field gradient"] = this.renderConfig["color field"];
 				const cb = this.renderConfig['color by'].find(({field}) => field === this.colorByGradient);
+				//set gradient color scale, "viridis" is default if nothing is set
+				this.colorbyGradientColorScale = e.target.options[e.target.selectedIndex].dataset.keyColorScale || 'viridis';
 				this.gradientMinMax.max = cb.minmax.max;
 				this.gradientMinMax.min = cb.minmax.min;
 				this.gradientMinMax.currMax = this.gradientMinMax.max;
@@ -790,7 +795,7 @@ export default Vue.component("research-scatter-plot", {
 			this.renderPlot();
 		},
 		colorGradient(){
-			const gradientColors = this.compareGroupColors.viridis;
+			const gradientColors = this.compareGroupColors[this.colorbyGradientColorScale];
 			let gradientCSS = 'linear-gradient(0deg, ';
 			gradientColors.forEach((color, i) => {
 				gradientCSS += color;
@@ -803,13 +808,13 @@ export default Vue.component("research-scatter-plot", {
 			}
 		},
 		colorFromGradientByValue(value, min, max){
-			const viridisColors = this.compareGroupColors.viridis;
+			const gradientColors = this.compareGroupColors[this.colorbyGradientColorScale];
 			const range = max - min;
 			const position = value - min;
 			const percentile = position / range * 100;
-			const index = Math.floor(percentile / 100 * (viridisColors.length - 1));
-			//console.log([value, min, max], [range, position, percentile], [index, viridisColors[index]])
-			return viridisColors[index];
+			const index = Math.floor(percentile / 100 * (gradientColors.length - 1));
+			//console.log([value, min, max], [range, position, percentile], [index, gradientColors[index]])
+			return gradientColors[index];
 		},
 		gradientHandleDown(e){
 			//this event handler is set on the parent element containing the color gradient handles
@@ -875,7 +880,6 @@ export default Vue.component("research-scatter-plot", {
 			this.renderPlot()
 		},
 		checkPosition(e, GROUP, EVENT_TYPE) {
-
 			let data = (!!GROUP) ? this.posData[GROUP] : this.posData;
 			let wrapper = document.querySelector('#scatter_dot_value' + this.sectionId);
 			//let canvas = document.querySelector('#scatterPlot' + this.sectionId + GROUP);
@@ -888,7 +892,6 @@ export default Vue.component("research-scatter-plot", {
 			let posData = this.utils.plotUtils.getDotsInPos(x, y, data)
 
 			if (posData.length > 0) {
-				//console.log("dot", posData.length);
 				let posContent = posData.length > 5 && EVENT_TYPE == 'move' && !this.isDotPanelClick ? 
 					'<strong>There are more items to disply. <br />Click to view the full list.</strong><br /><br />' : "";
 
@@ -907,7 +910,6 @@ export default Vue.component("research-scatter-plot", {
 						}
 					} else if(EVENT_TYPE == 'click'){
 						posContent += "<strong>" + d.key + "</strong><br />";
-						console.log('alex dot', d.key, d.hover);
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
 							if(typeof hValue === Number){
