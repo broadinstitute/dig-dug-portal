@@ -488,7 +488,9 @@ export default Vue.component("research-section", {
 				this.groups = null,
 				this.searched = [],
 				this.loadingDataFlag = "down"
-				document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
+				if(document.getElementById('tabUi' + this.sectionID)) {
+					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
+				}
 		},
 		/*filterAcrossSections(FROM, FILTER_DATA, FILTER, RESET) {
 			let interSectionsFilters = [...new Set(this.interSectionsFilters)];
@@ -781,7 +783,9 @@ export default Vue.component("research-section", {
 			let paramsString = this.getParamString();
 
 			if (paramsString != "invalid") {
-				document.getElementById('tabUi' + this.sectionID).classList.add("loading");
+				if (document.getElementById('tabUi' + this.sectionID)) {
+					document.getElementById('tabUi' + this.sectionID).classList.add("loading");
+				}
 				switch (queryType) {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
@@ -796,7 +800,9 @@ export default Vue.component("research-section", {
 				}
 			} else {
 				this.loadingDataFlag = "down";
-				document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
+				if (document.getElementById('tabUi' + this.sectionID)) {
+					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
+				}
 			}
 		},
 

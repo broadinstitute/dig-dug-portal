@@ -382,7 +382,8 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
 
                         let linksArr = [];
 
-                        let cellVals = cellValue.split(",");
+                        let cellVals = (typeof cellValue == "string") ? cellValue.split(",") :
+                            (typeof cellValue == "object" && !!cellValue.isArray()) ? cellValue : [cellValue];
 
                         cellVals.map(v => {
                             let link = "<a href='" + columnKeyObj["link to"] + v;
