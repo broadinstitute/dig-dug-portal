@@ -88,7 +88,7 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
-            }
+            };
             return utils;
         },
         /// for disease systems
@@ -148,7 +148,7 @@ new Vue({
         },
 
         chromPos() {
-            let variant = this.$store.state.variant;
+            let variant = this.$store.state.pageVariant;
 
             if (variant) {
                 let chrom = variant.varId.split(":")[0];
@@ -258,9 +258,11 @@ new Vue({
             let pos = this.chromPos;
 
             if (pos) {
-                window.location.href = `./region.html?chr=${pos.chromosome
-                    }&start=${pos.position - expanded}&end=${pos.position + expanded
-                    }&variant=${this.$store.state.variant.varId}`;
+                window.location.href = `./region.html?chr=${
+                    pos.chromosome
+                }&start=${pos.position - expanded}&end=${
+                    pos.position + expanded
+                }&variant=${this.$store.state.pageVariant.varId}`;
             }
         },
         clearBadSearch() {
