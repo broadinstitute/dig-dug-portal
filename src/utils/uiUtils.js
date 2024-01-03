@@ -474,9 +474,6 @@ let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPP
         (classes.includes("loading")) ? tab.setAttribute("class", "tab-ui-tab loading") : tab.setAttribute("class", "tab-ui-tab");
     }
 
-    console.log("TARGETTAB", document.getElementById(TARGETTAB))
-    //document.getElementById(TARGETTAB).classList.remove('loading'); // in case data loading happened in the tab-content
-
     document.getElementById(TARGETTAB).setAttribute("class", "tab-ui-tab active");
 
     let contentsWrapper = document.getElementById(CONTENTWRAPPERID),
