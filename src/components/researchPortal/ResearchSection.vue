@@ -795,7 +795,8 @@ export default Vue.component("research-section", {
 						this.queryApi(paramsString, paramsType, params);
 						break;
 					case "file":
-						this.queryFile(this.dataPoint["file"]);
+						let parameter = this.dataPoint["parameter"]
+						this.queryFile(parameter);
 						break;
 				}
 			} else {
@@ -886,15 +887,20 @@ export default Vue.component("research-section", {
 			}
 		},
 
-		async queryFile(FILE) {
-			
-			let dataUrl = "https://hugeampkpncms.org/servedata/dataset?dataset="
-			dataUrl += (FILE.includes("http") || FILE.includes("https"))? FILE : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + FILE;
-			console.log("dataUrl", dataUrl);
-			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
-			if (contentJson.error == null) {
-				this.processLoadedApi(contentJson, FILE, null, null)
+		async queryFile(PARAM) {
+
+			let file = !!this.utils.keyParams[PARAM]? this.utils.keyParams[PARAM]:
+						!!this.dataPoint["initial load"]? this.dataPoint["initial load"] :null;
+			if(!!file) {
+				let dataUrl = "https://hugeampkpncms.org/servedata/dataset?dataset="
+				dataUrl += (file.includes("http") || file.includes("https")) ? file : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + file;
+				console.log("dataUrl", dataUrl);
+				let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+				if (contentJson.error == null) {
+					this.processLoadedApi(contentJson, file, null, null)
+				}
 			}
+			
 		},
 
 		processLoadedBI(CONTENT, QUERY) {
