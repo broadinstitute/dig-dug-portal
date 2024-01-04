@@ -1212,8 +1212,9 @@ $(function () { });
 </script>
 <style>
 .multi-section {
-	/*border-bottom: solid 1px #ddd;*/
+	border-bottom: solid 1px #ddd;
 	position: relative;
+	padding: 20px 0;
 }
 
 .row.hidden-svg {
