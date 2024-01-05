@@ -8,7 +8,7 @@
 
 		<div class="row section-header" v-if="!isInTab">
 			<div class="col-md-12">
-				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
+				<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
 					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
 				<button class="btn btn-sm show-evidence-btn show-hide-section" :class="(sectionHidden != true) ? '' : 'red-background'"
 					@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden=(sectionHidden == true)?false:true" title="Show / hide section"><b-icon
@@ -27,7 +27,7 @@
 
 		<div class="row section-header" v-if="!!isInTab">
 			<div class="col-md-12">
-				<button class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
+				<button  v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
 					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
 				<h4>
 					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
@@ -62,7 +62,7 @@
 					:dataComparisonConfig="null" @on-filtering="updateData"></research-section-filters>
 					
 				<div
-					class="zoom-ui-wrapper" v-if="!!tableFormat && !!tableFormat['data zoom']"
+					class="zoom-ui-wrapper" v-if="!!tableFormat && !!tableFormat['data zoom'] && !!sectionData && sectionData.length > 0"
 				>
 					<span>Zoom</span>
 
@@ -772,9 +772,9 @@ export default Vue.component("research-section", {
 		},
 
 		queryData() {
-			let queryType = this.sectionConfig["data point"]["type"];
-			let paramsType = this.sectionConfig["data point"]["parameters type"]
-			let params = this.sectionConfig["data point"]["parameters"]
+			let queryType = this.dataPoint["type"];
+			let paramsType = this.dataPoint["parameters type"]
+			let params = this.dataPoint["parameters"]
 			// if data isn't getting cumulated, remove older search params other than the last one
 			if(!this.dataPoint["cumulate data"] && this.searched.length > 1) { 
 				let lastSearched = this.searched[this.searched.length-1]
@@ -795,7 +795,8 @@ export default Vue.component("research-section", {
 						this.queryApi(paramsString, paramsType, params);
 						break;
 					case "file":
-						this.queryFile(paramsString, paramsType, params);
+						let parameter = this.dataPoint["parameter"]
+						this.queryFile(parameter);
 						break;
 				}
 			} else {
@@ -886,9 +887,20 @@ export default Vue.component("research-section", {
 			}
 		},
 
-		async queryFile(FILE, TYPE, PARAMS) {
+		async queryFile(PARAM) {
+
+			let file = !!this.utils.keyParams[PARAM]? this.utils.keyParams[PARAM]:
+						!!this.dataPoint["initial load"]? this.dataPoint["initial load"] :null;
+			if(!!file) {
+				let dataUrl = "https://hugeampkpncms.org/servedata/dataset?dataset="
+				dataUrl += (file.includes("http") || file.includes("https")) ? file : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + file;
+				console.log("dataUrl", dataUrl);
+				let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+				if (contentJson.error == null) {
+					this.processLoadedApi(contentJson, file, null, null)
+				}
+			}
 			
-			let dataUrl = "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + FILE;
 		},
 
 		processLoadedBI(CONTENT, QUERY) {
@@ -1064,10 +1076,10 @@ export default Vue.component("research-section", {
 							dataEntity = dataEntity[w];
 						})
 
-						data = this.utils.dataConvert.csv2Json(dataEntity); // conver csv data to json format
+						data = this.utils.dataConvert.csv2Json(dataEntity); // convert csv data to json format
 
 					} else {
-						data = this.utils.dataConvert.csv2Json(CONTENT); // conver csv data to json format
+						data = this.utils.dataConvert.csv2Json(CONTENT); // convert csv data to json format
 					}
 
 					break;
