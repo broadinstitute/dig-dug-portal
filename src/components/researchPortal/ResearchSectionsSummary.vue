@@ -17,7 +17,7 @@
 				</h4>
 			</div>
 		</div>
-
+		{{ sectionsConfig.sections["sub sections"] }}
 		<div class="row card-body" :id="'section_' + sectionID">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				<research-data-table 
@@ -174,26 +174,57 @@ export default Vue.component("research-sections-summary", {
 				})
 
 				let collapsedData = [];
+				let filterLogic = this.sectionsConfig.sections["inter sections filter logic"];
+				console.log("filterLogic", filterLogic);
 
-				targetData.map(row => {
-					let meetFilter = false;
 
-					subSections.map((section, sIndex) => {
-						section.actions.map(action => {
-							switch (action.action) {
-								case "add top columns":
-									action.columns.map(column => {
-										if(row[column.column]) { meetFilter = true}
-									})
-									break;
+				if(filterLogic == 'and') {
+					targetData.map(row => {
+						let meetFilter = true;
+
+						subSections.map((section, sIndex) => {
+							if (!!filteredData[sIndex] && filteredData[sIndex].length > 0) {
+								section.actions.map(action => {
+									switch (action.action) {
+										case "add top columns":
+											action.columns.map(column => {
+												if (!row[column.column] || row[column.column] == "") { meetFilter = false }
+											})
+											break;
+									}
+								})
 							}
 						})
+						if (meetFilter == true) {
+								collapsedData.push(row);
+							}
 
-						if(meetFilter == true) {
+					});
+				}
+
+				/*targetData.map(row => {
+					
+					let meetFilter = filterLogic == "and"? true: false;
+
+					subSections.map((section, sIndex) => {
+						if(!!filteredData[sIndex] && filteredData[sIndex].length > 0) {
+							section.actions.map(action => {
+								switch (action.action) {
+									case "add top columns":
+										action.columns.map(column => {
+											if (filterLogic == "or" && row[column.column]) { meetFilter = true }
+											else if (filterLogic == "and" && !row[column.column]) { meetFilter = false }
+										})
+										break;
+								}
+							})
+						}
+						
+						if (meetFilter == true) {
 							collapsedData.push(row);
 						}
 					})
-				})
+				})*/
 				
 				this.sectionData = collapsedData;
 			}
@@ -294,6 +325,7 @@ export default Vue.component("research-sections-summary", {
 			return TG_DATA;
 		},
 		applyFilter(targetData,filterData,targetField,filterField,TYPE){
+
 			let returnData = [];
 			let filterFieldArr;
 			switch (TYPE) {
