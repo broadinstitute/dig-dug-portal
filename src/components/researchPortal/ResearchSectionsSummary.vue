@@ -17,7 +17,14 @@
 				</h4>
 			</div>
 		</div>
-		{{ sectionsConfig.sections["sub sections"] }}
+		<div>
+			<div v-for="(section,sIndex) in sectionsConfig.sections['sub sections']" class="summary-filter-wrapper">
+				<input type="checkbox" :id="'filter_'+ sectionID+'_'+section.section" class="summary-filter-chkbox" :value="section.section"
+				@change="buildSummary()" checked/>
+				<label :for="section.section">{{ section.label}}</label>
+			</div>
+		</div>
+		
 		<div class="row card-body" :id="'section_' + sectionID">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				<research-data-table 
@@ -115,26 +122,31 @@ export default Vue.component("research-sections-summary", {
 	},
 	watch: {
 		wholeDataCounts(NUM) {
-			
+			this.buildSummary();
+		}
+	},
+	methods: {
+		buildSummary() {
+
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
-			this.tableFormat = !!primarySection[0] ? JSON.parse(JSON.stringify(primarySection[0].config['table format'])): null;
-			let primaryData = !!primarySection[0]? primarySection[0].data:null;
+			this.tableFormat = !!primarySection[0] ? JSON.parse(JSON.stringify(primarySection[0].config['table format'])) : null;
+			let primaryData = !!primarySection[0] ? primarySection[0].data : null;
 			let subSections = this.sectionsConfig.sections["sub sections"];
 
 			let targetData = JSON.parse(JSON.stringify(primaryData));//Deep cloning is required.
 			let filteredData = [];
 
-			if(!!primaryData) {
+			if (!!primaryData) {
 
-				
-				subSections.map((section,sIndex) => {
+
+				subSections.map((section, sIndex) => {
 
 					let filterSection = this.sectionsData.filter(data => data.id == section.section)[0]
-					
-					let filterData = !!filterSection? [...new Set(filterSection.data)]: null;
+
+					let filterData = !!filterSection ? [...new Set(filterSection.data)] : null;
 
 
-					if(!!filterData && filterData.length > 0) {
+					if (!!filterData && filterData.length > 0) {
 						section.actions.map(action => {
 							switch (action.action) {
 								case "filter":
@@ -175,15 +187,15 @@ export default Vue.component("research-sections-summary", {
 
 				let collapsedData = [];
 				let filterLogic = this.sectionsConfig.sections["inter sections filter logic"];
-				console.log("filterLogic", filterLogic);
 
 
-				if(filterLogic == 'and') {
+				if (filterLogic == 'and') {
 					targetData.map(row => {
 						let meetFilter = true;
 
 						subSections.map((section, sIndex) => {
-							if (!!filteredData[sIndex] && filteredData[sIndex].length > 0) {
+							let ifSectionChecked = document.getElementById('filter_' + this.sectionID + '_' + section.section).checked
+							if (!!filteredData[sIndex] && filteredData[sIndex].length > 0 && ifSectionChecked) {
 								section.actions.map(action => {
 									switch (action.action) {
 										case "add top columns":
@@ -196,8 +208,8 @@ export default Vue.component("research-sections-summary", {
 							}
 						})
 						if (meetFilter == true) {
-								collapsedData.push(row);
-							}
+							collapsedData.push(row);
+						}
 
 					});
 				}
@@ -225,12 +237,10 @@ export default Vue.component("research-sections-summary", {
 						}
 					})
 				})*/
-				
+
 				this.sectionData = collapsedData;
 			}
-		}
-	},
-	methods: {
+		},
 		addFeatureField(TG_DATA, FTL_DATA, KEY_FIELD, FEATURE, COLUMNS, IF_MULTIPLE) {
 			let filterDataObj = {};
 
@@ -457,6 +467,15 @@ export default Vue.component("research-sections-summary", {
 $(function () { });
 </script>
 <style>
+.summary-filter-wrapper {
+	display: inline-block;
+}
+
+.summary-filter-chkbox {
+	margin-right: 5px; 
+	margin-left: 10px;
+}
+
 .multi-section {
 	/*border-bottom: solid 1px #ddd;*/
 	position: relative;
