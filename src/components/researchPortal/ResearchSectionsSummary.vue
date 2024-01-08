@@ -1,8 +1,4 @@
 <template>
-	<!--<div class="multi-section" :class="'wrapper-' + sectionIndex"
-		:style="!!sectionData || sectionsConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
-
-
 	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
 
 
@@ -17,8 +13,11 @@
 				</h4>
 			</div>
 		</div>
+		
 		<div>
-			<div v-for="(section,sIndex) in sectionsConfig.sections['sub sections']" class="summary-filter-wrapper">
+			<h5><strong>Update Summary</strong></h5>
+			<div v-for="(section,sIndex) in sectionsConfig.sections['sub sections']" class="summary-filter-wrapper" 
+			:class="isSectionData(section.section) == true ?'':'hidden'">
 				<input type="checkbox" :id="'filter_'+ sectionID+'_'+section.section" class="summary-filter-chkbox" :value="section.section"
 				@change="buildSummary()" checked/>
 				<label :for="section.section">{{ section.label}}</label>
@@ -126,6 +125,12 @@ export default Vue.component("research-sections-summary", {
 		}
 	},
 	methods: {
+		isSectionData(SECTION) {
+			let filterSection = this.sectionsData.filter(data => data.id == SECTION)[0]
+
+			let filterData = !!filterSection ? [...new Set(filterSection.data)] : null;
+			if (!!filterData && filterData.length > 0) { return true } else { return false };
+		},
 		buildSummary() {
 
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
@@ -144,6 +149,7 @@ export default Vue.component("research-sections-summary", {
 					let filterSection = this.sectionsData.filter(data => data.id == section.section)[0]
 
 					let filterData = !!filterSection ? [...new Set(filterSection.data)] : null;
+					let ifSectionChecked = document.getElementById('filter_' + this.sectionID + '_' + section.section).checked
 
 
 					if (!!filterData && filterData.length > 0) {
@@ -160,25 +166,26 @@ export default Vue.component("research-sections-summary", {
 							switch (action.action) {
 
 								case "add top columns":
-
+									if (!!filteredData[sIndex] && filteredData[sIndex].length > 0 && ifSectionChecked) {
 									action.columns.map(column => {
 										filteredData[sIndex] = this.addField(filteredData[sIndex], filterData, column["key field"], column.column, column["if multiple values"]);
 										if (!!this.tableFormat) {
 											this.tableFormat["top rows"].push(column.column);
 										}
 									})
+								}
 
 									break;
 
 								case "add features":
-
+									if (!!filteredData[sIndex] && filteredData[sIndex].length > 0 && ifSectionChecked) {
 									this.tableFormat["features"] = !this.tableFormat["features"] ? [] : this.tableFormat["features"];
 
 									this.tableFormat["features"].push(action.feature);
 
 									this.tableFormat[action.feature] = action.columns;
 									filteredData[sIndex] = this.addFeatureField(filteredData[sIndex], filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
-
+									}
 									break;
 							}
 						})
@@ -189,30 +196,30 @@ export default Vue.component("research-sections-summary", {
 				let filterLogic = this.sectionsConfig.sections["inter sections filter logic"];
 
 
-				if (filterLogic == 'and') {
-					targetData.map(row => {
-						let meetFilter = true;
+				
+				targetData.map(row => {
+					let meetFilter = true;
 
-						subSections.map((section, sIndex) => {
-							let ifSectionChecked = document.getElementById('filter_' + this.sectionID + '_' + section.section).checked
-							if (!!filteredData[sIndex] && filteredData[sIndex].length > 0 && ifSectionChecked) {
-								section.actions.map(action => {
-									switch (action.action) {
-										case "add top columns":
-											action.columns.map(column => {
-												if (!row[column.column] || row[column.column] == "") { meetFilter = false }
-											})
-											break;
-									}
-								})
-							}
-						})
-						if (meetFilter == true) {
-							collapsedData.push(row);
+					subSections.map((section, sIndex) => {
+						let ifSectionChecked = document.getElementById('filter_' + this.sectionID + '_' + section.section).checked
+						if (!!filteredData[sIndex] && filteredData[sIndex].length > 0 && ifSectionChecked) {
+							section.actions.map(action => {
+								switch (action.action) {
+									case "add top columns":
+										action.columns.map(column => {
+											if (!row[column.column] || row[column.column] == "") { meetFilter = false }
+										})
+										break;
+								}
+							})
 						}
+					})
+					if (meetFilter == true) {
+						collapsedData.push(row);
+					}
 
-					});
-				}
+				});
+				
 
 				/*targetData.map(row => {
 					
@@ -469,6 +476,10 @@ $(function () { });
 <style>
 .summary-filter-wrapper {
 	display: inline-block;
+}
+
+.summary-filter-wrapper.hidden {
+	display: none;
 }
 
 .summary-filter-chkbox {
