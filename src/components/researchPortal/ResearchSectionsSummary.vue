@@ -473,6 +473,7 @@ $(function () { });
 <style>
 .summary-filter-wrapper {
 	display: inline-block;
+	margin-right: 15px;
 }
 
 .summary-filter-wrapper.hidden {
@@ -480,7 +481,7 @@ $(function () { });
 }
 
 .summary-filter-chkbox {
-	margin-right: 15px;
+	margin-right: 5px;
 }
 
 .multi-section {
