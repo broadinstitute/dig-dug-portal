@@ -141,7 +141,45 @@ export default Vue.component("research-sections-summary", {
 			let targetData = JSON.parse(JSON.stringify(primaryData));//Deep cloning is required.
 			let filteredData = [];
 
+			/*
+			"actions": [
+			  {
+				"action": "filter",
+				"filter field": "Filter Region",
+				"target field": "Position",
+				"type": "search and"
+			  },
+			  {
+				"action": "add top columns",
+				"columns": [
+				  {
+					"column": "Annotation / Region",
+					"key field": "Position",
+					"if multiple values": "add"
+				  }
+				]
+			  },
+			  {
+				"action": "add features",
+				"feature": "AnnoRegion",
+				"key field": "Position",
+				"columns": [
+				  "Tissue",
+				  "Annotation",
+				  "Biosample",
+				  "Region",
+				  "Method",
+				  "State",
+				  "Source",
+				  "Dataset"
+				],
+				"if multiple values": "add"
+			  }
+			]
+			*/
 			if (!!primaryData) {
+
+
 
 
 				subSections.map((section, sIndex) => {
@@ -193,9 +231,7 @@ export default Vue.component("research-sections-summary", {
 				})
 
 				let collapsedData = [];
-				let filterLogic = this.sectionsConfig.sections["inter sections filter logic"];
-
-
+				//let filterLogic = this.sectionsConfig.sections["inter sections filter logic"];
 				
 				targetData.map(row => {
 					let meetFilter = true;
@@ -219,53 +255,53 @@ export default Vue.component("research-sections-summary", {
 					}
 
 				});
-				
-
-				/*targetData.map(row => {
-					
-					let meetFilter = filterLogic == "and"? true: false;
-
-					subSections.map((section, sIndex) => {
-						if(!!filteredData[sIndex] && filteredData[sIndex].length > 0) {
-							section.actions.map(action => {
-								switch (action.action) {
-									case "add top columns":
-										action.columns.map(column => {
-											if (filterLogic == "or" && row[column.column]) { meetFilter = true }
-											else if (filterLogic == "and" && !row[column.column]) { meetFilter = false }
-										})
-										break;
-								}
-							})
-						}
-						
-						if (meetFilter == true) {
-							collapsedData.push(row);
-						}
-					})
-				})*/
 
 				this.sectionData = collapsedData;
 			}
 		},
-		addFeatureField(TG_DATA, FTL_DATA, KEY_FIELD, FEATURE, COLUMNS, IF_MULTIPLE) {
+		addFeatureField(targetData, filterData, KEY_FIELD, FEATURE, COLUMNS, IF_MULTIPLE) {
 			let filterDataObj = {};
 
-			let fdIndex = 0;
-			FTL_DATA.map(FD => {
-				filterDataObj[FD[KEY_FIELD]] = !filterDataObj[FD[KEY_FIELD]]? []: filterDataObj[FD[KEY_FIELD]];
+			filterData.map((FD, fdIndex) => {
+				if (!filterDataObj[FD[KEY_FIELD]]) {
+					filterDataObj[FD[KEY_FIELD]] = [];
+				}
 				filterDataObj[FD[KEY_FIELD]].push(fdIndex);
-				fdIndex ++;
 			})
 
-			TG_DATA.map(TD => {
+			targetData.map(TD => {
 				TD[FEATURE] = [];
-				if(!!filterDataObj[TD[KEY_FIELD]]) {
+
+				TD[KEY_FIELD].map(tdKey => {
+					filterDataObj[tdKey].map(fdIndex => {
+						let tempObj = {};
+
+						COLUMNS.map(column => {
+							tempObj[column] = filterData[fdIndex][column];
+						});
+
+						switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
+						{
+							case "add":
+								TD[FEATURE].push(tempObj);
+								break;
+							case "replace":
+								TD[FEATURE] = [tempObj];
+								break;
+							case "pick greater":
+								break;
+							case "pick lower":
+								break;
+						}
+					})
+				})
+
+				/*if(!!filterDataObj[TD[KEY_FIELD]]) {
 					filterDataObj[TD[KEY_FIELD]].map(num => {
 						let tempObj = {};
 
 						COLUMNS.map(column => {
-							tempObj[column] = FTL_DATA[num][column];
+							tempObj[column] = filterData[num][column];
 						})
 
 						switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
@@ -283,31 +319,38 @@ export default Vue.component("research-sections-summary", {
 						}
 
 					});
-				}
+				}*/
 				
 			})
-			return TG_DATA;
+
+			return targetData;
 		},
-		addField(TG_DATA, FTL_DATA, KEY_FIELD, COLUMN, IF_MULTIPLE){
+		addField(targetData, filterData, KEY_FIELD, COLUMN, IF_MULTIPLE){
+
+			//this.addField(filteredData[sIndex], filterData, column["key field"], column.column, column["if multiple values"]);
+
+
 			let filterDataObj = {};
 			
-			FTL_DATA.map((FD,fdIndex) => {
-				filterDataObj[FD[KEY_FIELD]] = !filterDataObj[FD[KEY_FIELD]] ? [] : filterDataObj[FD[KEY_FIELD]];
+			filterData.map((FD,fdIndex) => {
+				if(!filterDataObj[FD[KEY_FIELD]]) {
+					filterDataObj[FD[KEY_FIELD]] = [];
+				}
 				filterDataObj[FD[KEY_FIELD]].push(fdIndex);
 			})
 
-			TG_DATA.map(TD => {
 
-				if(!!filterDataObj[TD[KEY_FIELD]]) {
-					filterDataObj[TD[KEY_FIELD]].map(fdIndex => {
+			targetData.map(TD => {
 
-						let colValue = !!FTL_DATA[fdIndex][COLUMN]? FTL_DATA[fdIndex][COLUMN]: null;
-
-						if(!!colValue) {
+				TD[KEY_FIELD].map(tdKey =>{
+					filterDataObj[tdKey].map(fdIndex => {
+						let colValue = !!filterData[fdIndex][COLUMN] ? filterData[fdIndex][COLUMN] : null;
+						
+						if (!!colValue) {
 							switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
 							{
 								case "add":
-									if(!TD[COLUMN]) { TD[COLUMN] = [] };
+									if (!TD[COLUMN]) { TD[COLUMN] = [] };
 									TD[COLUMN].push(colValue);
 
 									break;
@@ -328,20 +371,22 @@ export default Vue.component("research-sections-summary", {
 									break;
 							}
 						}
-						
 					})
-				}
+				})
 				
 			})
 
-			TG_DATA.map(TD => {
+			targetData.map(TD => {
 				if (!!TD[COLUMN] && typeof TD[COLUMN] == "object") {
-					TD[COLUMN] = [...new Set(TD[COLUMN])].sort().toString();
+					TD[COLUMN] = [...new Set(TD[COLUMN])].sort().join(", ");
 				}
 			})
-			return TG_DATA;
+
+			return targetData;
 		},
 		applyFilter(targetData,filterData,targetField,filterField,TYPE){
+
+console.log(targetField, filterField, TYPE);
 
 			let returnData = [];
 			let filterFieldArr;
@@ -353,8 +398,15 @@ export default Vue.component("research-sections-summary", {
 					targetData.map(d=>{
 						if(!!filterFieldArr.includes(d[targetField])) {
 							if(!d[filterField]) {
-								d[filterField] = d[targetField];
+								d[filterField] = [];
 							}
+							d[filterField].push(d[targetField]);
+							//returnData.push(d);
+						}
+					})
+
+					targetData.map(d => {
+						if (!!d[filterField]) {
 							returnData.push(d);
 						}
 					})
@@ -362,18 +414,25 @@ export default Vue.component("research-sections-summary", {
 
 				case "search and":
 
-					filterFieldArr = [...new Set(filterData.map(d => d[filterField]))];
+					filterFieldArr = filterData.map(d => d[filterField]);
 
 					targetData.map(d => {
 						filterFieldArr.map(ff =>{
 							let ffSplit = ff.split(",");
 							if(d[targetField] >= ffSplit[0] && d[targetField] <= ffSplit[1]) {
 								if (!d[filterField]) {
-									d[filterField] = ff;
+									d[filterField] = [];
 								}
-								returnData.push(d);
+								d[filterField].push(ff);
+								//returnData.push(d);
 							}
 						})
+					})
+
+					targetData.map(d => {
+						if(!!d[filterField]) {
+							returnData.push(d);
+						}
 					})
 					
 					break;
@@ -408,8 +467,6 @@ export default Vue.component("research-sections-summary", {
 			let title = [this.sectionsConfig.header];
 			//let tsvData = this.jsonToTsv(this.sectionData);
 
-			//console.log("tsvData:", tsvData);
-
 			this.$store.dispatch("capturedData", { action: 'add', title: title, data: this.sectionData });
 		},
 		starColumn(ARRAY) {
@@ -419,9 +476,6 @@ export default Vue.component("research-sections-summary", {
 			//console.log("data getting updated");
 		},
 		sortData(KEY) {
-			console.log("KEY",KEY);
-			console.log("this.tableFormat", this.tableFormat);
-			console.log("this.sectionData", this.sectionData);
 			if (!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {
 				this.sectionData = this.utils.sortUtils.sortLocusField(this.sectionData, KEY.key, KEY.direction);
 			} else {
