@@ -1,5 +1,5 @@
 <template>
-	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
+	<div :id="'wrapper_' + sectionIndex" class="multi-section" :class="'wrapper-' + sectionIndex" >
 
 
 		<div class="row" v-if="!isInTab">
@@ -11,19 +11,21 @@
 						icon="eye"></b-icon></button>
 				<h4>{{ sectionsConfig.header }}
 				</h4>
+				<h4 class="wait">Wait
+					</h4>
 			</div>
 		</div>
 		
 		<div>
-			<h5><strong>Update Summary</strong></h5>
+			
 			<div v-for="(section,sIndex) in sectionsConfig.sections['sub sections']" class="summary-filter-wrapper" 
 			:class="isSectionData(section.section) == true ?'':'hidden'">
-				<input type="checkbox" :id="'filter_'+ sectionID+'_'+section.section" class="summary-filter-chkbox" :value="section.section"
-				@change="buildSummary()" checked/>
+				<input type="checkbox" :id="'filter_'+ sectionID+'_'+section.section" class="summary-filter-chkbox" :value="section.section"/>
 				<label :for="section.section">{{ section.label}}</label>
 			</div>
 		</div>
-		
+		<h5 class="btn btn-primary" @click="buildSummary()"><strong>Update Summary</strong></h5>
+
 		<div class="row card-body" :id="'section_' + sectionID">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				<research-data-table 
@@ -121,7 +123,7 @@ export default Vue.component("research-sections-summary", {
 	},
 	watch: {
 		wholeDataCounts(NUM) {
-			this.buildSummary();
+			//this.buildSummary();
 		}
 	},
 	methods: {
@@ -132,7 +134,8 @@ export default Vue.component("research-sections-summary", {
 			if (!!filterData && filterData.length > 0) { return true } else { return false };
 		},
 		buildSummary() {
-
+			document.getElementById('wrapper_' + this.sectionIndex).classList.add('wait');
+			
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
 			this.tableFormat = !!primarySection[0] ? JSON.parse(JSON.stringify(primarySection[0].config['table format'])) : null;
 			let primaryData = !!primarySection[0] ? primarySection[0].data : null;
@@ -141,46 +144,7 @@ export default Vue.component("research-sections-summary", {
 			let targetData = JSON.parse(JSON.stringify(primaryData));//Deep cloning is required.
 			let filteredData = [];
 
-			/*
-			"actions": [
-			  {
-				"action": "filter",
-				"filter field": "Filter Region",
-				"target field": "Position",
-				"type": "search and"
-			  },
-			  {
-				"action": "add top columns",
-				"columns": [
-				  {
-					"column": "Annotation / Region",
-					"key field": "Position",
-					"if multiple values": "add"
-				  }
-				]
-			  },
-			  {
-				"action": "add features",
-				"feature": "AnnoRegion",
-				"key field": "Position",
-				"columns": [
-				  "Tissue",
-				  "Annotation",
-				  "Biosample",
-				  "Region",
-				  "Method",
-				  "State",
-				  "Source",
-				  "Dataset"
-				],
-				"if multiple values": "add"
-			  }
-			]
-			*/
 			if (!!primaryData) {
-
-
-
 
 				subSections.map((section, sIndex) => {
 
@@ -195,7 +159,10 @@ export default Vue.component("research-sections-summary", {
 							switch (action.action) {
 								case "filter":
 									// filters data by each sub section data but, doesn't remove filtered out rows.
-									filteredData[sIndex] = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
+									if(!!ifSectionChecked) {
+										filteredData[sIndex] = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
+
+									}
 									break;
 							}
 						})
@@ -257,6 +224,7 @@ export default Vue.component("research-sections-summary", {
 				});
 
 				this.sectionData = collapsedData;
+				document.getElementById('wrapper_' + this.sectionIndex).classList.remove('wait');
 			}
 		},
 		addFeatureField(targetData, filterData, KEY_FIELD, FEATURE, COLUMNS, IF_MULTIPLE) {
@@ -295,31 +263,6 @@ export default Vue.component("research-sections-summary", {
 						}
 					})
 				})
-
-				/*if(!!filterDataObj[TD[KEY_FIELD]]) {
-					filterDataObj[TD[KEY_FIELD]].map(num => {
-						let tempObj = {};
-
-						COLUMNS.map(column => {
-							tempObj[column] = filterData[num][column];
-						})
-
-						switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
-						{
-							case "add":
-								TD[FEATURE].push(tempObj);
-								break;
-							case "replace":
-								TD[FEATURE] = [tempObj];
-								break;
-							case "pick greater":
-								break;
-							case "pick lower":
-								break;
-						}
-
-					});
-				}*/
 				
 			})
 
@@ -528,6 +471,13 @@ console.log(targetField, filterField, TYPE);
 $(function () { });
 </script>
 <style>
+.multi-section .wait {
+	display: none;
+}
+
+.multi-section.wait .wait {
+	display:block
+}
 .summary-filter-wrapper {
 	display: inline-block;
 }
