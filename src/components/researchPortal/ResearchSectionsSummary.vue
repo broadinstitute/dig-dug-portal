@@ -11,8 +11,6 @@
 						icon="eye"></b-icon></button>
 				<h4>{{ sectionsConfig.header }}
 				</h4>
-				<h4 class="wait">Wait
-					</h4>
 			</div>
 		</div>
 		
@@ -88,7 +86,7 @@ export default Vue.component("research-sections-summary", {
 			searched: [],
 			loadingDataFlag: "down",
 			regionParam: null,
-			
+			summarizing: null,
 		};
 	},
 	modules: {
@@ -134,7 +132,8 @@ export default Vue.component("research-sections-summary", {
 			if (!!filterData && filterData.length > 0) { return true } else { return false };
 		},
 		buildSummary() {
-			document.getElementById('wrapper_' + this.sectionIndex).classList.add('wait');
+			//document.getElementById('wrapper_' + this.sectionIndex).classList.add('wait');
+			this.summarizing = true;
 			
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
 			this.tableFormat = !!primarySection[0] ? JSON.parse(JSON.stringify(primarySection[0].config['table format'])) : null;
@@ -224,7 +223,8 @@ export default Vue.component("research-sections-summary", {
 				});
 
 				this.sectionData = collapsedData;
-				document.getElementById('wrapper_' + this.sectionIndex).classList.remove('wait');
+				//document.getElementById('wrapper_' + this.sectionIndex).classList.remove('wait');
+				this.summarizing = null;
 			}
 		},
 		addFeatureField(targetData, filterData, KEY_FIELD, FEATURE, COLUMNS, IF_MULTIPLE) {
@@ -471,13 +471,6 @@ console.log(targetField, filterField, TYPE);
 $(function () { });
 </script>
 <style>
-.multi-section .wait {
-	display: none;
-}
-
-.multi-section.wait .wait {
-	display:block
-}
 .summary-filter-wrapper {
 	display: inline-block;
 }
@@ -487,8 +480,7 @@ $(function () { });
 }
 
 .summary-filter-chkbox {
-	margin-right: 5px; 
-	margin-left: 10px;
+	margin-right: 15px;
 }
 
 .multi-section {
