@@ -218,102 +218,17 @@ export default Vue.component("research-region-dots-track", {
                         let width = 9;
                         ctx.arc(xPos, yPos, width, 0, 2 * Math.PI);
                         ctx.fill();
-                    }
-                    
-                })
-            })
-/*
-            tracks.map(track=>{
-                let trackTop = this.adjPlotMargin.top + (perTrack * trackIndex);
-                ctx.fillStyle = "#000000";
-                ctx.textAlign = "start";
-                ctx.textBaseline = "middle";
-                ctx.font = "24px Arial";
-                ctx.fillText(track, 2, trackTop + 12);
 
-                if (trackIndex % 2 == 0) {
-                    ctx.fillStyle = "#00000010";
-                    ctx.fillRect(
-                        this.adjPlotMargin.left,
-                        trackTop,
-                        plotWidth,
-                        perTrack
-                    );
-                }
 
-                let regionData = this.renderData[track]
-                let regionKeys = Object.keys(regionData)
-
-                regionKeys.map(blocks=>{
-
-                    regionData[blocks].map((block,bIndex) =>{
-
-                        let blockRegion = block[this.plotConfig["render by"]].split("-");
-
-                        let blockStart = blockRegion[0];
-                        let blockEnd = blockRegion[1];
-
-                        if (blockStart <= region.end && blockEnd >= region.start) {
-                            let xPosStart =
-                                (blockStart - region.start) * xPerPixel +
-                                this.adjPlotMargin.left;
-
-                            xPosStart =
-                                xPosStart <= this.adjPlotMargin.left
-                                    ? this.adjPlotMargin.left
-                                    : xPosStart;
-                            let xPosEnd =
-                                (blockEnd - region.start) * xPerPixel +
-                                this.adjPlotMargin.left;
-
-                            xPosEnd =
-                                xPosEnd >
-                                    this.adjPlotMargin.left + plotWidth
-                                    ? this.adjPlotMargin.left + plotWidth
-                                    : xPosEnd;
-
-                            //let xPosWidth = xPosEnd - xPosStart;
-                            let xPosWidth =
-                                xPosEnd - xPosStart < 2
-                                    ? 2
-                                    : xPosEnd - xPosStart;
-
-                            let colorIndex = !!this.plotConfig["color by"] ? (this.colorGroups.indexOf(block[this.plotConfig["color by"]]) % 16) : null;
-                            let highlightKey = (!!cKey && block[this.plotConfig["color by"]] == cKey) ? true : null;
-
-                            if (!!highlightKey) {
-                                ctx.fillStyle = "#FF0000"
-                                ctx.fillRect(
-                                    xPosStart - 2,
-                                    trackTop - 2,
-                                    xPosWidth + 4,
-                                    perTrack + 4
-                                );
-                            }
-
-                            ctx.fillStyle = !!colorIndex || colorIndex === 0 ? this.colors.bold[colorIndex] : "#00000066";
-
-                            ctx.fillRect(
-                                xPosStart,
-                                trackTop,
-                                xPosWidth,
-                                perTrack
-                            );
-
-                            if (!this.posData[Math.round(trackTop / 2)]) {
-                                this.posData[Math.round(trackTop / 2)] = [];
-                            }
-
-                            this.posData[Math.round(trackTop / 2)].push({ start: Math.round(xPosStart / 2), end: Math.round((xPosStart + xPosWidth) / 2), data: block });
+                        if (!this.posData[Math.round(yPos / 2)]) {
+                            this.posData[Math.round(yPos / 2)] = [];
                         }
-                    })
-                    
-                })
-                trackIndex++;
-            })
-            */
 
-            //let xStart = this.adjPlotMargin.left;
+                        this.posData[Math.round(yPos / 2)].push({ x: Math.round(xPos / 2), data: value });
+                    }
+                })
+            })
+
             if (!!this.starItems) {
                 let yPos1 = this.adjPlotMargin.top - this.adjPlotMargin.bump;
                 let yPos2 = this.adjPlotMargin.top + plotHeight + (this.adjPlotMargin.bump*3);
@@ -442,12 +357,12 @@ export default Vue.component("research-region-dots-track", {
                 let blockData = [];
 
                 trackRows.map(row => {
-                    let rowTop = Number(row);
-                    let rowBottom = rowTop + Math.round(this.plotConfig["track height"]);
+                    let rowTop = Number(row)-5;
+                    let rowBottom = Number(row) + 5;
 
                     if (y >= rowTop && y <= rowBottom) {
                         this.posData[row].map(block => {
-                            if (x >= block.start && x <= block.end) {
+                            if (x >= block.x - 5 && x <= block.x + 5) {
                                 blockData.push(block.data);
                             }
                         })

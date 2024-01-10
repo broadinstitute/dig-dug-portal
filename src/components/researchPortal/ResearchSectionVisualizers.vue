@@ -114,7 +114,7 @@
 		></research-region-dots-track>
 		<!-- genes track -->
 		<multi-genes-track
-			v-if="!!plotConfig && (plotConfig['type'] == 'region plot' || plotConfig['type'] == 'region track') && !!plotConfig['genes track'] && !!region"
+			v-if="!!plotConfig && (plotConfig['type'] == 'region plot' || plotConfig['type'] == 'region track' || plotConfig['type'] == 'region dots track') && !!plotConfig['genes track'] && !!region"
 			:region="region"
 			:genesData="null"
 			:plotConfig="plotConfig"

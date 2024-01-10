@@ -166,7 +166,7 @@
 						:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionID + plotIndex : ''"
 						class="plot-tab-content-wrapper"
 						:class="(multiVisualizersType == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
-						<h6 v-html="plotConfig.label"></h6>
+						<h6 v-html="plotConfig.label" v-if="multiVisualizersType != 'tabs'"></h6>
 						<research-section-visualizers :plotConfig="plotConfig"
 							:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 							:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
@@ -1227,6 +1227,10 @@ $(function () { });
 	border-bottom: solid 1px #ddd;
 	position: relative;
 	padding: 20px 0;
+}
+
+.plot-tab-content-wrapper.hidden-content {
+	height: 1px;
 }
 
 .row.hidden-svg {
