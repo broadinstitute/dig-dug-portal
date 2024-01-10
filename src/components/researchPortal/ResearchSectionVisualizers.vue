@@ -97,6 +97,21 @@
 			:plotMargin="plotMargin"
 			:starItems="starItems"
 		></research-region-track>
+		<!-- general dots track -->
+		<research-region-dots-track
+			v-if="!!plotConfig && plotConfig['type'] == 'region dots track' && !!region"
+			:sectionId="sectionId"
+			:plotConfig="plotConfig"
+			:plotData="plotData"
+			:dataComparisonConfig="dataComparisonConfig"
+			:region="region"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
+			:colors="colors"
+			:utils="utils"
+			:plotMargin="plotMargin"
+			:starItems="starItems"
+		></research-region-dots-track>
 		<!-- genes track -->
 		<multi-genes-track
 			v-if="!!plotConfig && (plotConfig['type'] == 'region plot' || plotConfig['type'] == 'region track') && !!plotConfig['genes track'] && !!region"
@@ -124,24 +139,7 @@
 			:sectionId="sectionId"
 			:utils="utils"
 		></research-scatter-plot>
-		<!-- Annotations plot-->
-		<!--<research-multi-annotations-plot
-			:region="region"
-			:phenotype="utils.keyParams.phenotype"
-			:ancestry=""
-			:renderConfig="plotConfig"
-			:plotMargin="plotMargin"
-			:compareGroupColors="colors.moderate"
-			:dataComparison=""
-			:plotData="plotData"
-			:pkgData="null"
-			:pkgDataSelected=""
-			:regionZoom=""
-			:regionViewArea=""
-			:searchParameters=""
-			:searchParametersArr=""
-			:utils=""
-			></research-multi-annotations-plot>-->
+		
 	</div>
 </template>
 
@@ -161,6 +159,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAn
 import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
+import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
@@ -177,7 +176,8 @@ export default Vue.component("research-section-visualizers", {
 		ResearchVolcanoPlot,
 		ResearchHeatmap,
 		ResearchPheWAS,
-		ResearchRegionTrack
+		ResearchRegionTrack,
+		ResearchRegionDotsTrack
     },
 	data() {
 		return {
