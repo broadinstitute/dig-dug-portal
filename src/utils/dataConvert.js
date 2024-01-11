@@ -214,7 +214,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
             dKeys.map((dKey) => {
                 if (
                     typeof tempObj[dKey] == "object" &&
-                    tempObj[dKey].length > 0
+                    (Array.isArray(tempObj[dKey]) == true && tempObj[dKey].length > 0)
                 ) {
                     let tempArr = [];
 
