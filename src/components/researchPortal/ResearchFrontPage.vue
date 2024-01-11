@@ -1,5 +1,5 @@
 <template>
-	<div class="container-fluid mdkp-body flex-body">
+	<div class="container-fluid mdkp-body flex-body front-page">
         <div class="fp-top" 
             :style="{ background: `linear-gradient( ${this.sectionConfigs['content']['color_secondary']} 0%, ${this.sectionConfigs['content']['color_primary']} 100% )`}">
             <div class="fp-intro-section">
@@ -101,7 +101,7 @@ export default Vue.component("research-front-page", {
     display:flex;
     flex-direction: column;
 }*/
-.mdkp-body{
+.mdkp-body.front-page {
     padding-top: 0;
     padding-left: 0;
     padding-right: 0;
