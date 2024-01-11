@@ -1,3 +1,4 @@
+
 <template>
 	<div id="app">
 		<!-- KP Header -->
@@ -97,9 +98,17 @@
 			</div>
 		</div>
 
+		<research-front-page 
+			v-if="$parent.researchPage !== null && $parent.sectionConfigs['is front page']"
+			:sectionConfigs="$parent.sectionConfigs"
+			:pageDescription="$parent.pageDescription"
+			:utilsBox="$parent.utilsBox">
+		</research-front-page>
+		
+
 		<div
-			class="container-fluid mdkp-body"
-			v-if="$parent.researchPage != null"
+			class="container-fluid mdkp-body flex-body"
+			v-if="$parent.researchPage !== null && !$parent.sectionConfigs['is front page']"
 		>
 			<div class="card mdkp-card dataset-page-header">
 				<div class="row card-body">
@@ -136,7 +145,7 @@
 								</tr>
 							</thead>
 							<tbody>
-	<tr v-for="data  in $store.state.capturedData">
+								<tr v-for="data  in $store.state.capturedData">
 		
 								<td v-html="data.title"></td>
 								<td>
@@ -699,7 +708,7 @@
 								</research-sections-summary>
 							</template>
 							
-	            		</div>
+						</div>
 					</div>
 				</div>
 
@@ -765,6 +774,20 @@
 @import url("/css/tooltipDocumentation.css");
 html {
 	font-size: 14px !important;
+}
+html, body, #app {
+    min-height: 100vh;
+    position: relative;
+}
+#app {
+    display:flex;
+	flex-direction: column;
+}
+.flex-body{
+    flex: 1 1 auto;
+    display:flex;
+    flex-direction: column;
+	padding-bottom: 40px;
 }
 .card.hidden {
 	display: none !important;
