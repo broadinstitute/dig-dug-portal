@@ -218,12 +218,14 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     let tempArr = [];
 
                     tempObj[dKey].map((fd) => {
-                        let tempFDObj = applyConvert(
-                            fd,
-                            CONVERT,
-                            PHENOTYPE_MAP
-                        );
-                        tempArr.push(tempFDObj);
+                        if (typeof fd == "object" && Array.isArray(fd) == false) {
+                            let tempFDObj = applyConvert(
+                                fd,
+                                CONVERT,
+                                PHENOTYPE_MAP
+                            );
+                            tempArr.push(tempFDObj);
+                        }
                     });
 
                     newTempObj[dKey] = tempArr;
