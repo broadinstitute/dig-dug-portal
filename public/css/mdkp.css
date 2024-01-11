@@ -2220,7 +2220,7 @@ span.volcano-score-2 {
 }
 
 .kp-tabs-contents {
-    margin: auto;
+    /*margin: auto;*/
     background-color: #fff;
     padding: 1.25em;
     border-radius: 5px;
