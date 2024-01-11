@@ -1,5 +1,4 @@
 <template>
-    <div>
         <div class="container-fluid paper-footer-wrapper">
             <a href="https://kp4cd.org/" style="color: #fff !important">
                 Part of
@@ -19,7 +18,6 @@
                 >
             </a>
         </div>
-    </div>
 </template>
 
 <script>
@@ -41,5 +39,7 @@ export default Vue.component("research-page-footer", {
     padding-bottom: 10px;
     text-align: center;
     font-size: 12px;
+    position: absolute;
+    bottom: 0;
 }
 </style>

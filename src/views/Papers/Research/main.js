@@ -20,6 +20,7 @@ import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.v
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
 import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
+import ResearchFrontPage from "@/components/researchPortal/ResearchFrontPage.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchGEMDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
@@ -62,6 +63,7 @@ new Vue({
         ResearchPageFooter,
         ResearchPageDescription,
         ResearchPageFilters,
+        ResearchFrontPage,
         ResearchDataTable,
         ResearchAnnotationsPlot,
         ResearchGEMDataTable,
@@ -422,6 +424,8 @@ new Vue({
         },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
+
+            console.log('frontContents', contents);
 
             if (contents.length === 0) {
                 return {};
