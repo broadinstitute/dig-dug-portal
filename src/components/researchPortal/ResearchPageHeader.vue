@@ -13,7 +13,7 @@
 				class="menu"
 			>
 				<a :href="menu.link">{{ menu.label }}</a>
-				<ul v-if="!!menu.subMenu">
+				<ul v-if="!!menu.subMenu" class="sub-menu-wrapper">
 					<li
 						v-for="subMenu in menu.subMenu"
 						:key="subMenu.label"
@@ -33,13 +33,40 @@ import Vue from "vue";
 export default Vue.component("research-page-header", {
 	props: ["researchMenu", "headerLogo"],
 	components: {},
-
 	data() {
 		return {};
 	},
 	created() {},
+	mounted() {},
+	watch: {
+		researchMenu(newResearchMenu) {
+			if (newResearchMenu && newResearchMenu.length > 0) {
+				this.$nextTick(() => {
+					this.checkSubmenus();
+				});
+			}
+		}
+	},
+	methods: {
+		checkSubmenus(){
+			//adjust submenu positions on hover so they dont extend off the page
+			const menus = document.querySelectorAll('.menu');
+			menus.forEach(menu => {
+				const subMenu = menu.querySelector('.sub-menu-wrapper');
+				if(!subMenu) return;
+				menu.addEventListener('mouseover', e => {
+					const leftPos = subMenu.getBoundingClientRect().left;
+					const width = subMenu.offsetWidth;
+					const rightBound = leftPos + width;
+					if(rightBound>window.innerWidth){
+						const offset = -(rightBound - window.innerWidth) +"px";
+						subMenu.style.marginLeft = offset;
+					}
+				})
+			});
+		}
+	},
 	computed: {},
-	watch: {},
 });
 </script>
 
@@ -72,6 +99,7 @@ export default Vue.component("research-page-header", {
 
 .research-header-menu-wrapper ul li.menu a:hover {
 	color: #cdf !important;
+	text-decoration: none;
 }
 
 .research-header-menu-wrapper ul li.menu > ul {
@@ -109,6 +137,11 @@ export default Vue.component("research-page-header", {
 	color: #ffffff !important;
 	font-size: 14px;
 	font-weight: 400;
+}
+
+/* hide header container if no content*/
+.research-header-menu-wrapper:empty{
+    display: none;
 }
 
 .research-portal-header {
