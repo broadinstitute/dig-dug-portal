@@ -31,12 +31,18 @@ let sortEGLTableData = function (data, key, isNumeric, isAscending) {
     } else {
         let withNumbers = [];
         let withStrings = [];
+        let withNoValue = [];
 
         data.map(d => {
-            if (typeof d[key] == "number" || d[key] === 0) {
-                withNumbers.push(d);
-            } else if (typeof d[key] == "string") {
-                withStrings.push(d);
+            if (!d[key]) {
+                withNoValue.push(d)
+            } else {
+                // console.log("d[key]: ", d[key], typeof d[key])
+                if (typeof d[key] == "number" || d[key] === 0) {
+                    withNumbers.push(d);
+                } else if (typeof d[key] == "string") {
+                    withStrings.push(d);
+                }
             }
         })
 
@@ -44,13 +50,52 @@ let sortEGLTableData = function (data, key, isNumeric, isAscending) {
         let wStringsSorted = sortArrOfObjects(withStrings, key, 'alphabetical', direction)
 
         if (direction == "asc") {
-            return wNumbersSorted.concat(wStringsSorted);
+            return wNumbersSorted.concat(wStringsSorted).concat(withNoValue);
         } else {
-            return wStringsSorted.concat(wNumbersSorted);
+            return wStringsSorted.concat(wNumbersSorted).concat(withNoValue);
         }
-
     }
 
+}
+
+const sortLocusField = (data, key, isAscending) => {
+    let direction = (isAscending) ? "asc" : "desc";
+
+    data.map(function (g) {
+        let locusArr = g[key].split(":");
+        let chrNum = locusArr[0].trim();
+        let bpNum;
+        if (!!locusArr[1]) {
+            bpNum =
+                locusArr[1].includes("-") == true
+                    ? (Number(locusArr[1].split("-")[0].trim()) +
+                        Number(
+                            locusArr[1].split("-")[1].trim()
+                        )) /
+                    2
+                    : Number(locusArr[1]);
+        } else {
+            bpNum = 0;
+        }
+
+        g["chr"] =
+            chrNum != "X" && chrNum != "Y"
+                ? Number(chrNum)
+                : chrNum == "X"
+                    ? 23
+                    : 24;
+
+        g["bp"] = bpNum;
+    });
+
+    sortEGLTableData(data, "bp", true, direction);
+    sortEGLTableData(
+        data,
+        "chr",
+        true,
+        direction
+    );
+    return data;
 }
 
 const uniqBy = (arr, predicate) => {
@@ -80,12 +125,15 @@ const sortArrOfObjects = (DATA, PRPT, TYPE, DIRECTION) => {
             DATA.sort((a, b) => (a[PRPT] < b[PRPT]) ? 1 : ((b[PRPT] < a[PRPT]) ? -1 : 0));
     }
 
+
+
     return sorted;
 }
 
 export default {
     sort,
     sortEGLTableData,
+    sortLocusField,
     uniqBy,
     sortArrOfObjects,
 }

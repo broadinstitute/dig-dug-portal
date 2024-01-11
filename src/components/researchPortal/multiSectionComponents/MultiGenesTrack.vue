@@ -1,24 +1,17 @@
 <template>
 	<div class="mbm-plot-content row">
-		<div class="col-md-12 genes-plot-wrapper">
-			<div class="">
-				<div
-					:id="'genesTrackWrapper' + sectionId"
-					:class="
-						plotType == 'region plot' ? 'col-md-9' : 'col-md-12'
-					"
-				>
-					<canvas
-						:id="'genesTrack'+sectionId"
-						@resize="onResize"
-						width=""
-						height=""
-					></canvas>
-				</div>
-				<div
-					id="genesPEGWrapper"
-					:class="plotType == 'region plot' ? 'col-md-3' : ''"
-				></div>
+		<div class="col-md-12">
+			<!-- place info modal here-->
+			<div
+				:id="'genesTrackWrapper' + sectionId"
+				class="genes-plot-wrapper"
+			>
+				<canvas
+					:id="'genesTrack'+sectionId"
+					@resize="onResize"
+					width=""
+					height=""
+				></canvas>
 			</div>
 		</div>
 	</div>
@@ -33,7 +26,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-genes-track", {
+export default Vue.component("multi-genes-track", {
 	props: [
 		"region",
 		"genesData",
@@ -73,6 +66,7 @@ export default Vue.component("research-genes-track", {
 	},
 	computed: {
 		adjPlotMargin() {
+			
 			let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
 
 			let plotMargin = !!customPlotMargin ? {
@@ -89,6 +83,8 @@ export default Vue.component("research-genes-track", {
 					bottom: this.plotMargin.bottomMargin,
 					bump: this.plotMargin.bump,
 				};
+
+				//console.log("multi genes track", plotMargin);
 
 			return plotMargin;
 		},
@@ -182,9 +178,7 @@ export default Vue.component("research-genes-track", {
 					? this.plotConfig.width * 2 +
 					  this.adjPlotMargin.left +
 					  this.adjPlotMargin.right
-					: document.getElementById("genesTrackWrapper" + this.sectionId).clientWidth *
-							2 -
-					  60; // -30 for padding
+					: document.getElementById("genesTrackWrapper" + this.sectionId).clientWidth *2;
 
 				let plotWidth =
 					this.plotType == "region plot"
@@ -411,6 +405,7 @@ $(function () {});
 <style>
 .genes-plot-wrapper {
 	padding: 0 !important;
+	width: 100% !important;
 }
 </style>
 

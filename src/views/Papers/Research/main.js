@@ -35,6 +35,7 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotat
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
+import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -79,19 +80,23 @@ new Vue({
         kpGEMPkg,
         Documentation,
         ResearchSection,
+        ResearchSectionsSummary,
         ResearchMultiSectionsSearch
     },
     data() {
         return {
+            starItems: [],
+            sectionsData: [],
             pageID: null,
             regionZoom: 0,
             regionViewArea: 0,
             devID: null,
             devPW: null,
+            devCK: null,
             dataFiles: [],
             dataTableFormat: null,
             colors: {
-                moderate: [
+                mild: [
                     "#007bff25",
                     "#04884525",
                     "#8490C825",
@@ -173,8 +178,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
-
-
     },
 
     render(createElement, context) {
@@ -1191,15 +1194,37 @@ new Vue({
         postAlertError,
         closeAlert,
         /// multi-sections use
+        setZoom(SETTING) {
+            this[SETTING.property] = SETTING.value;
+        },
+        starColumn(ARRAY) {
+            this.starItems = ARRAY;
+        },
+        onSectionsData(SECTION) {
+
+            let sectionExist = null;
+            this.sectionsData.map(section => {
+                if (section.id == SECTION.id) {
+                    section.data = SECTION.data;
+                    sectionExist = true;
+                }
+            })
+
+            if (!sectionExist) {
+                this.sectionsData.push(SECTION);
+            }
+        },
         isInTabGroups(SECTION) {
             let sectionInGroup = false;
-            this.sectionConfigs['tab groups'].map(group => {
-                group.map(tab => {
-                    if (tab.section == SECTION) {
-                        sectionInGroup = true;
-                    }
+            if (!!this.sectionConfigs['tab groups']) {
+                this.sectionConfigs['tab groups'].map(group => {
+                    group.sections.map(tab => {
+                        if (tab.section == SECTION) {
+                            sectionInGroup = true;
+                        }
+                    })
                 })
-            })
+            }
 
             return sectionInGroup;
         },
@@ -1262,6 +1287,7 @@ new Vue({
                 pageID: this.pageID,
                 devID: devID,
                 devPW: devPW,
+                devCK: this.devCK
             });
         },
         CSVToArray(strData, strDelimiter) {
@@ -1452,20 +1478,21 @@ new Vue({
                             break;
 
                         case "split":
+
                             let newFields = c["field name"];
                             let newFieldValues = [];
                             let string2Split = DATA[c["field to split"]];
                             let loopIndex = 1;
                             c["split by"].map(s => {
 
-                                let splittedValue = string2Split.split(s)
+                                let [key, ...rest] = string2Split.split(s);
+                                string2Split = rest.join(s)
 
                                 if (loopIndex < c["split by"].length) {
-                                    newFieldValues.push(splittedValue[0])
-                                    string2Split = splittedValue[1]
+                                    newFieldValues.push(key)
                                 } else if (loopIndex = c["split by"].length) {
-                                    newFieldValues.push(splittedValue[0])
-                                    newFieldValues.push(splittedValue[1])
+                                    newFieldValues.push(key)
+                                    newFieldValues.push(rest.join(s))
                                 }
                                 loopIndex++;
                             })
