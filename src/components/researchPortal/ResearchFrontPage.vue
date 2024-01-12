@@ -1,0 +1,194 @@
+<template>
+	<div class="container-fluid mdkp-body flex-body front-page">
+        <div class="fp-top" 
+            :style="{ background: `linear-gradient( ${this.sectionConfigs['content']['color_secondary']} 0%, ${this.sectionConfigs['content']['color_primary']} 100% )`}">
+            <div class="fp-intro-section">
+                <div class="fp-intro-logo">
+                    <img style="width:400px;" 
+                        :src="this.sectionConfigs['content']['logo_large']"/>
+                </div>
+                <div class="fp-intro-divider"></div>
+                <div class="fp-intro-blurb">
+                    <div class="fp-intro-blurb-text">{{ this.sectionConfigs["content"]["tagline"] }}</div>
+                </div>
+            </div>
+            <div v-if="this.sectionConfigs['content']['search_enabled']"
+                class="row fp-search-section">
+                <div class="fp-search">
+                    <input
+                        class="form-control byor-single-search"
+                        type="text"
+                        id="byor_research_search"
+                        v-model="this.researchSearchParam"
+                        placeholder="Search gene, variant, region or phenotype"
+                        @keyup.enter="this.onSearch"
+                    />
+                    <!--
+                    <research-single-search
+                        :single-search-config="null"
+                        :phenotypes="phenotypesInSession"
+                        :utils="utilsBox"
+                    ></research-single-search>
+                    -->
+                </div>
+                <div class="fp-search-examples">
+                    <!--
+                    <documentation
+                        name="home.example"
+                        v-if="diseaseGroup"
+                        :group="diseaseGroup.name"
+                    ></documentation>
+                    -->
+                </div>
+            </div>
+        </div>
+        <div class="fp-bottom">
+            <div class="fp-bottom-container">
+                <research-page-description
+                    :content="this.pageDescription"
+                    :utils="this.utilsBox"
+                ></research-page-description>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+import Vue from "vue";
+
+export default Vue.component("research-front-page", {
+	props: ["sectionConfigs","pageDescription", "utilsBox"],
+    
+	components: {},
+
+	data() {
+		return {
+			researchSearchParam: null,
+		};
+	},
+	created() {},
+	computed: {},
+	watch: {
+        researchSearchParam(PARAM) {
+            console.log("typing", PARAM)
+        }
+    },
+    methods: {
+        onSearch(){
+            let searchKey = this.researchSearchParam.replace(/,/g, "").trim();
+            console.log("searching", searchKey)
+        }
+    },
+});
+</script>
+
+<style>
+/*
+.research-header-menu-wrapper {
+    background: none;
+}
+.research-header-menu-wrapper ul {
+    text-align: right;
+}
+*/
+/*
+.paper-footer-wrapper {
+    background-color: #2e3e6e;
+}*/
+/*
+.fp-container{
+    flex: 1 1 auto;
+    display:flex;
+    flex-direction: column;
+}*/
+.mdkp-body.front-page {
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+.fp-top{
+    flex: 0 1 auto;
+    padding:0 0 50px;
+}
+.fp-nav-section {
+    padding: 5px; 
+    display: flex; 
+    flex-direction: row; 
+    align-items: center; 
+    flex-wrap: nowrap; 
+    justify-content: space-between
+}
+.fp-nav-logo{
+    width: 200px; 
+    height: 50px; 
+    display: flex; 
+    align-items: center;
+    margin: 0 0 0 7px;
+}
+.fp-intro-section{
+    display: flex; 
+    width: 100%; 
+    min-height:100px; 
+    height:150px; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 50px 0;
+}
+.fp-intro-logo{
+    min-width: calc(50% - 20.5px); 
+    display:flex; 
+    justify-content: flex-end;
+}
+.fp-intro-divider{
+    width: 1px;
+    min-height: 100%;
+    background: white;
+    margin: 0 20px;
+}
+.fp-intro-blurb{
+    min-width: calc(50% - 20.5px);
+}
+.fp-intro-blurb-text{
+    width:350px; 
+    color:white; 
+    font-size: 22px; 
+    line-height: 24px;
+}
+.fp-search-section{
+    display:flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+}
+.fp-search{
+    width: 50%;
+    margin: 10px 0;
+}
+.fp-search-examples,
+.fp-search-examples a {
+    color: white !important;
+}
+
+
+.fp-bottom{
+    flex: 1 1 auto;
+    background:white; 
+    padding:50px 50px;
+    display: flex; 
+    flex-direction: row; 
+    justify-content: space-between;
+}
+.fp-bottom-container{
+    max-width: 980px;
+    margin: 0 auto;
+}
+.fp-col{
+    max-width:50%; 
+    width:50%
+}
+.fp-title{
+    font-family:'Oswald'; 
+    font-size: 30px; 
+    margin-top:5px;
+}
+</style>

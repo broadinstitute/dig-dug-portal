@@ -1,11 +1,14 @@
 <template>
 	<div class="research-data-table-features-wrapper">
+		<!--{{ featuresFormat['features'] }}<br />
+		{{ featuresData }}-->
 		<div
 			v-for="(value, index) in featuresFormat['features']"
 			:key="index"
 			class="research-data-table-features"
 			:v-if="!!featuresData && !!featuresFormat['features']"
 		>
+		
 			<table class="table table-sm feature-table">
 				<tr>
 					<th
