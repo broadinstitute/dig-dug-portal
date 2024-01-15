@@ -340,11 +340,11 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
+//import uiUtils from "@/utils/uiUtils";
+//import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
-import keyParams from "@/utils/keyParams";
+//import Formatters from "@/utils/formatters.js";
+//import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -361,7 +361,8 @@ export default Vue.component("research-annotations-plot", {
 		"pkgDataSelected",
 		"regionZoom",
 		"regionViewArea",
-	],
+		"utils"
+	],//
 	data() {
 		return {
 			annoData: {},
@@ -376,9 +377,9 @@ export default Vue.component("research-annotations-plot", {
 		};
 	},
 	modules: {
-		uiUtils,
-		Formatters,
-		keyParams,
+		//uiUtils,
+		//Formatters,
+		//keyParams,
 	},
 	components: {},
 	mounted: function () {
@@ -405,7 +406,7 @@ export default Vue.component("research-annotations-plot", {
 			returnObj["start"] = regionArr[1].split("-")[0];
 			returnObj["end"] = regionArr[1].split("-")[1];
 
-			uiUtils.showElement("annotationsPlotWrapper");
+			this.utils.uiUtils.showElement("annotationsPlotWrapper");
 
 			//this.getAnnotations(returnObj);
 
@@ -445,7 +446,7 @@ export default Vue.component("research-annotations-plot", {
 		},
 		searchingPhenotype() {
 			if (this.phenotype != null) {
-				uiUtils.showElement("annotationsPlotWrapper");
+				this.utils.uiUtils.showElement("annotationsPlotWrapper");
 				//this.getAnnotations(this.searchingRegion);
 
 				let returnPhenotype = !!this.renderConfig["phenotype match"]
@@ -454,12 +455,12 @@ export default Vue.component("research-annotations-plot", {
 
 				return returnPhenotype;
 			} else if (this.phenotype == null) {
-				if (!!keyParams[this.renderConfig["phenotype parameter"]]) {
-					uiUtils.showElement("annotationsPlotWrapper");
+				if (!!this.utils.keyParams[this.renderConfig["phenotype parameter"]]) {
+					this.utils.uiUtils.showElement("annotationsPlotWrapper");
 					//this.getAnnotations(this.searchingRegion);
 
 					let phenotype =
-						keyParams[this.renderConfig["phenotype parameter"]];
+						this.utils.keyParams[this.renderConfig["phenotype parameter"]];
 
 					let returnPhenotype = !!this.renderConfig["phenotype match"]
 						? this.renderConfig["phenotype match"][phenotype]
@@ -496,7 +497,7 @@ export default Vue.component("research-annotations-plot", {
 		},
 	},
 	methods: {
-		...uiUtils,
+		//...uiUtils,
 		resetAll() {
 			this.annoData = {};
 			this.GEData = {};
@@ -636,16 +637,16 @@ export default Vue.component("research-annotations-plot", {
 			});
 		},
 		onMouseOut(BOXID) {
-			uiUtils.removeOnMouseOut(BOXID, 1000);
+			this.utils.uiUtils.removeOnMouseOut(BOXID, 1000);
 		},
 		onResize(e) {
-			uiUtils.showElement("annotationsPlotWrapper");
+			this.utils.uiUtils.showElement("annotationsPlotWrapper");
 			this.renderByAnnotations();
 			this.renderGE();
 			//this.renderTissuesTracks();
 		},
 		showHideAnnoPlots() {
-			uiUtils.showHideElement("annotationsPlotWrapper");
+			this.utils.uiUtils.showHideElement("annotationsPlotWrapper");
 		},
 		getGEContent(PKEY, TISSUE) {
 			let content = "";
@@ -661,9 +662,9 @@ export default Vue.component("research-annotations-plot", {
 								"<strong>" +
 								a.id +
 								"</strong> (" +
-								Formatters.pValueFormatter(data.pValue) +
+								this.utils.Formatters.pValueFormatter(data.pValue) +
 								" / " +
-								Formatters.pValueFormatter(data.fold) +
+								this.utils.Formatters.pValueFormatter(data.fold) +
 								")<br />";
 						}
 					}
@@ -1349,11 +1350,11 @@ export default Vue.component("research-annotations-plot", {
 			//console.log("calling GE");
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
-					? uiUtils.biDomain() + "/api/bio"
+					? this.utils.uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["annotations server"];
 
 			let phenotype = this.searchingPhenotype;
-			console.log("phenotype", phenotype);
+			//console.log("phenotype", phenotype);
 
 			let GEIndex = !!this.renderConfig["global enrichment index"]
 				? this.renderConfig["global enrichment index"]
@@ -1467,17 +1468,17 @@ export default Vue.component("research-annotations-plot", {
 						if (pPerTissue == null) {
 							GEByTissue[phenotype][g.tissue][
 								g.annotation
-							].pValue = Formatters.pValueFormatter(g.pValue);
+							].pValue = this.utils.Formatters.pValueFormatter(g.pValue);
 							GEByTissue[phenotype][g.tissue][g.annotation].fold =
-								Formatters.pValueFormatter(
+								this.utils.Formatters.pValueFormatter(
 									g.SNPs / g.expectedSNPs
 								);
 						} else if (g.pValue < pPerTissue) {
 							GEByTissue[phenotype][g.tissue][
 								g.annotation
-							].pValue = Formatters.pValueFormatter(g.pValue);
+							].pValue = this.utils.Formatters.pValueFormatter(g.pValue);
 							GEByTissue[phenotype][g.tissue][g.annotation].fold =
-								Formatters.pValueFormatter(
+								this.utils.Formatters.pValueFormatter(
 									g.SNPs / g.expectedSNPs
 								);
 						}
@@ -1489,17 +1490,17 @@ export default Vue.component("research-annotations-plot", {
 						if (pPerTissue == null) {
 							GEByTissue[phenotype][g.tissue][
 								g.annotation
-							].pValue = Formatters.pValueFormatter(g.pValue);
+							].pValue = this.utils.Formatters.pValueFormatter(g.pValue);
 							GEByTissue[phenotype][g.tissue][g.annotation].fold =
-								Formatters.pValueFormatter(
+								this.utils.Formatters.pValueFormatter(
 									g.SNPs / g.expectedSNPs
 								);
 						} else if (g.pValue < pPerTissue) {
 							GEByTissue[phenotype][g.tissue][
 								g.annotation
-							].pValue = Formatters.pValueFormatter(g.pValue);
+							].pValue = this.utils.Formatters.pValueFormatter(g.pValue);
 							GEByTissue[phenotype][g.tissue][g.annotation].fold =
-								Formatters.pValueFormatter(
+								this.utils.Formatters.pValueFormatter(
 									g.SNPs / g.expectedSNPs
 								);
 						}
@@ -1525,7 +1526,7 @@ export default Vue.component("research-annotations-plot", {
 
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
-						? uiUtils.biDomain() + "/api/bio"
+						? this.utils.uiUtils.biDomain() + "/api/bio"
 						: this.renderConfig["annotations server"];
 
 				let annoIndex = !!this.renderConfig["annotations index"]
@@ -1597,7 +1598,7 @@ export default Vue.component("research-annotations-plot", {
 		async loadContinue(CONTENT) {
 			let annoServer =
 				this.renderConfig["annotations server"] == "KP BioIndex"
-					? uiUtils.biDomain() + "/api/bio"
+					? this.utils.uiUtils.biDomain() + "/api/bio"
 					: this.renderConfig["annotations server"];
 
 			let contURL = annoServer + "/cont?token=" + CONTENT.continuation;
@@ -2006,7 +2007,7 @@ export default Vue.component("research-annotations-plot", {
 				let yMaxMinGap = YMAX - YMIN;
 				let yDecimal = yMaxMinGap <= 1 ? 2 : yMaxMinGap <= 50 ? 1 : 0;
 
-				let yValue = Formatters.decimalFormatter(
+				let yValue = this.utils.Formatters.decimalFormatter(
 					YMIN + i * yStep,
 					yDecimal
 				);
@@ -2076,7 +2077,7 @@ export default Vue.component("research-annotations-plot", {
 				let xMaxMinGap = XMAX - XMIN;
 				let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
 
-				let xValue = Formatters.decimalFormatter(
+				let xValue = this.utils.Formatters.decimalFormatter(
 					XMIN + i * xStep,
 					xDecimal
 				);

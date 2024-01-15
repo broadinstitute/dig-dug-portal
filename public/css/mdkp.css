@@ -24,6 +24,18 @@ a:hover {
 }
 
 /* front page */
+.front-top-banner-agingkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/agingkp_front_bg.png),
+        linear-gradient(#75bee9, #20c4f4);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-kidneykp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/kidneykp_front_bg.png),
+        linear-gradient(#96cbca, #619faf);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner-autoimmunekp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/autoimmunekp_front_bg.png),
         linear-gradient(#71cddd, #009bc8);
@@ -212,6 +224,14 @@ a:hover {
     float: left;
 }
 
+.front-logo-tagline-agingkp {
+    transform: translate(0%, 70%);
+}
+
+.front-logo-tagline-kidneykp {
+    transform: translate(0%, 75%);
+}
+
 .front-logo-tagline-autoimmunekp {
     transform: translate(0%, 25%);
 }
@@ -335,6 +355,14 @@ a:hover {
     width: 500px;
 }
 
+.agingkp-logo {
+    height: 50px;
+}
+
+.kidneykp-logo {
+    height: 50px;
+}
+
 .autoimmunekp-logo {
     height: 50px;
 }
@@ -410,6 +438,18 @@ a:hover {
 
 .mdkp-footer .registered-mark {
     display: contents;
+}
+
+.agingkp-header,
+.agingkp-footer {
+    background-color: #75bee9;
+    height: 50px;
+}
+
+.kidneykp-header,
+.kidneykp-footer {
+    background-color: #96cbca;
+    height: 50px;
 }
 
 .autoimmunekp-header,
@@ -607,6 +647,8 @@ a:hover {
     font-weight: 300;
 }
 
+.agingkp-footer,
+.kidneykp-footer,
 .autoimmunekp-footer,
 .ocularkp-footer,
 .reproductivekp-footer,
@@ -632,6 +674,8 @@ a:hover {
     font-size: 14px;
 }
 
+.agingkp-body,
+.kidneykp-body,
 .autoimmunekp-body,
 .ocularkp-body,
 .reproductivekp-body,
@@ -656,6 +700,8 @@ a:hover {
     padding-bottom: 10px;
 }
 
+.agingkp-card,
+.kidneykp-card,
 .autoimmunekp-card,
 .ocularkp-card,
 .reproductivekp-card,
@@ -1485,6 +1531,10 @@ div.filtering-ui-content div.col {
     padding: 5px 7px;
 }
 
+div.filtering-ui-content div.col.hidden-search {
+    display: none !important;
+}
+
 div.filtering-ui-content div.col .label {
     font-weight: 600;
 }
@@ -2149,12 +2199,17 @@ span.volcano-score-2 {
     margin-right: 10px;
 }
 
-.svg-wrapper {
+.svg-wrapper,
+.tab-content-wrapper,
+.plot-tab-content-wrapper {
     visibility: visible;
     height: auto;
 }
 
-.svg-wrapper.hidden-svg {
+.svg-wrapper.hidden-svg,
+.tab-content-wrapper.hidden-content,
+.plot-tab-content-wrapper.hidden-content,
+.tab-content-wrapper.hidden-content .plot-tab-content-wrapper {
     visibility: hidden;
     height: 25px;
 }
@@ -2192,7 +2247,7 @@ span.volcano-score-2 {
 }
 
 .kp-tabs-contents {
-    margin: auto;
+    /*margin: auto;*/
     background-color: #fff;
     padding: 1.25em;
     border-radius: 5px;

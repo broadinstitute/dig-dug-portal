@@ -13,15 +13,11 @@ import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
-import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
 import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
-import Formatters from "@/utils/formatters";
 import VariantSearch from "@/components/VariantSearch";
-import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -46,6 +42,14 @@ import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
 import Counter from "@/utils/idCounter";
 import regionUtils from "@/utils/regionUtils";
+
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
 
 import Alert, {
     postAlert,
@@ -98,6 +102,8 @@ new Vue({
         return {
             counter: 0,
             genePageSearchCriterion: [],
+            phenotypeFilterList: [],
+            activeTab: "hugeScorePheWASPlot",
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
@@ -125,10 +131,112 @@ new Vue({
                 },
             },
             noTranscriptDataPortal: ["sleep", "lung", "ndkp", "autoimmune"],
+            plotColors: [
+                '#007bff',
+                '#048845',
+                '#8490C8',
+                '#BF61A5',
+                '#EE3124',
+                '#FCD700',
+                '#5555FF',
+                '#7aaa1c',
+                '#9F78AC',
+                '#F88084',
+                '#F5A4C7',
+                '#CEE6C1',
+                '#cccc00',
+                '#6FC7B6',
+                '#D5A768',
+                '#d4d4d4'
+            ],
+            phewasPlotMargin: {
+                leftMargin: 150,
+                rightMargin: 40,
+                topMargin: 20,
+                bottomMargin: 100,
+                bump: 11
+            },
+            hugeScoreRenderConfig: {
+                type: 'phewas plot',
+                'render by': 'phenotype',
+                'group by': 'group',
+                'phenotype map': 'kp phenotype map',
+                'y axis field': 'renderScore',
+                'convert y -log10': 'false',
+                'y axis label': 'Log(HuGE score)',
+                'x axis label': '',
+                'beta field': 'null',
+                'hover content': [
+                    'bf_common',
+                    'bf_rare',
+                    'huge',
+                ],
+                thresholds: [Math.log(3), Math.log(30)],
+                'label in black': 'greater than',
+                height: '600',
+                "plot margin": {
+                    "left": 150,
+                    "right": 150,
+                    "top": 250,
+                    "bottom": 300
+                }
+            },
+            commonVariantRenderConfig: {
+                type: 'phewas plot',
+                'render by': 'phenotype',
+                'group by': 'phenotype group',
+                'phenotype map': 'kp phenotype map',
+                'y axis field': 'pValue',
+                'convert y -log10': 'true',
+                'y axis label': '-Log10(p-value)',
+                'x axis label': 'beta',
+                'beta field': 'null',
+                'hover content': ['pValue'],
+                thresholds: ['2.5e-6'],
+                height: '600',
+                "plot margin": {
+                    "left": 150,
+                    "right": 150,
+                    "top": 250,
+                    "bottom": 300
+                }
+            },
+            rareVariantRenderConfig: {
+                type: 'phewas plot',
+                'group by': 'phenotype group',
+                'render by': 'phenotype',
+                'phenotype map': 'kp phenotype map',
+                'y axis field': 'pValue',
+                'convert y -log10': 'true',
+                'y axis label': '-Log10(p-value)',
+                'x axis label': 'beta',
+                'beta field': 'beta',
+                'hover content': ['pValue', 'beta'],
+                thresholds: ['2.5e-6', '0.05'],
+                height: '600',
+                "plot margin": {
+                    "left": 150,
+                    "right": 150,
+                    "top": 250,
+                    "bottom": 300
+                }
+            },
         };
     },
 
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
         /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -266,16 +374,16 @@ new Vue({
                     data[i].huge >= 350
                         ? "Compelling"
                         : data[i].huge >= 100
-                        ? "Extreme"
-                        : data[i].huge >= 30
-                        ? "Very Strong"
-                        : data[i].huge >= 10
-                        ? "Strong"
-                        : data[i].huge >= 3
-                        ? "Moderate"
-                        : data[i].huge > 1
-                        ? "Anecdotal"
-                        : "No Evidence";
+                            ? "Extreme"
+                            : data[i].huge >= 30
+                                ? "Very Strong"
+                                : data[i].huge >= 10
+                                    ? "Strong"
+                                    : data[i].huge >= 3
+                                        ? "Moderate"
+                                        : data[i].huge > 1
+                                            ? "Anecdotal"
+                                            : "No Evidence";
 
                 score["range"] = range;
                 score["renderScore"] = Math.log(data[i].huge);
@@ -540,9 +648,6 @@ new Vue({
                 });
             }
         },
-        "$store.state.commonVariantsLength"(NUM) {
-            this.onAncestrySet();
-        },
         "$store.state.geneName"(NAME) {
             this.$store.dispatch("getHugeScoresData");
         },
@@ -601,40 +706,6 @@ new Vue({
             uiUtils.hideElement("invalidGeneWarning");
         },
 
-        onAncestrySet() {
-            let ancestry = this.$store.state.selectedAncestry;
-
-            let sectionWrapper = document.getElementById("common_variants");
-            let bubbleCollection = sectionWrapper.querySelectorAll(
-                ".filter-pill-collection"
-            );
-            let bubbleWrapper = document.getElementById("ancestry_set");
-
-            bubbleWrapper.innerHTML = "";
-
-            let ancestryBubble = document.getElementById("ancestry_bubble");
-            if (ancestryBubble) {
-                ancestryBubble.remove();
-            }
-
-            let bubble = document.createElement("span");
-            bubble.setAttribute(
-                "class",
-                "badge btn search-bubble 3 badge-secondary badge-pill"
-            );
-            bubble.setAttribute("id", "ancestry_bubble");
-            bubble.textContent =
-                "Ancestry = " + this.ancestryFormatter(ancestry);
-
-            if (!!ancestry && ancestry != undefined) {
-                if (bubbleCollection.length > 0) {
-                    bubbleCollection[0].append(bubble);
-                } else {
-                    bubbleWrapper.innerHTML = " Selected Filters:	 ";
-                    bubbleWrapper.append(bubble);
-                }
-            }
-        },
         pushCriterionPhenotype(phenotypeName) {
             this.genePageSearchCriterion.push({
                 field: "phenotype",
@@ -673,9 +744,8 @@ new Vue({
             let r = this.region;
 
             if (r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${r.chromosome
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
 
@@ -683,11 +753,26 @@ new Vue({
             return topAssocData[0];
         },
         renderPhewas(REF) {
+            this.activeTab = REF;
             let refComponent = this.$children[0].$refs[REF];
             setTimeout(function () {
                 refComponent.renderPheWas();
             }, 500);
         },
+        filterPhenotype(newFilters) {
+            this.phenotypeFilterList = newFilters;
+            console.log(JSON.stringify(this.phenotypeFilterList));
+        },
+        clearCriterion(criterion) {
+            if (criterion === "transcript") {
+                this.$store.state.selectedTranscript = "";
+                return;
+            }
+            if (criterion === "ancestry") {
+                this.$store.state.selectedAncestry = "";
+                return;
+            }
+        }
     },
 
     render(createElement, context) {

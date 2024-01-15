@@ -1,8 +1,6 @@
 import Vue from "vue";
 import * as d3 from "d3";
 
-import sortUtils from "@/utils/sortUtils";
-
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -29,7 +27,6 @@ import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import ExpandRegion from "@/components/ExpandRegion.vue";
 
-import keyParams from "@/utils/keyParams";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -42,9 +39,15 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ClumpedVariantsTable from "@/components/ClumpedVariantsTable";
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
-import Formatters from "@/utils/formatters";
 import filterHelpers from "@/utils/filterHelpers";
+
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
 
 import Alert, {
@@ -276,6 +279,18 @@ new Vue({
     },
 
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
         /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {

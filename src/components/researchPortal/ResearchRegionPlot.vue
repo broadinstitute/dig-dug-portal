@@ -3,238 +3,105 @@
 		<div v-if="plotsList.length > 1" class="show-hide-plots col-md-12">
 			<strong>Show/hide region plots</strong>
 			<template v-for="(item, itemIndex) in plotsList">
-				<span
-					:key="item"
-					v-if="item != 'Combined'"
-					class="group-bubble"
-					v-html="item"
-					:style="
-						'background-color:' +
-						compareGroupColors[itemIndex] +
-						';'
-					"
-					@click="
-						showHideElement(
-							'plotsWrapper' + item.replaceAll(' ', '_')
-						)
-					"
-				></span>
-				<span
-					type="button"
-					v-if="item == 'Combined'"
-					class="group-bubble reference"
+				<span :key="item" v-if="item != 'Combined'" class="group-bubble" v-html="item" :style="'background-color:' +
+					compareGroupColors[itemIndex] +
+					';'
+					" @click="
+		utils.uiUtils.showHideElement(
+			'plotsWrapper' + item.replaceAll(' ', '_')
+		)
+		"></span>
+				<span type="button" v-if="item == 'Combined'" class="group-bubble reference"
 					style="background-color: #ffffff; border: solid 1px #666666"
-					@click="showHideElement('plotsWrapperCombined')"
-				>
+					@click="utils.uiUtils.showHideElement('plotsWrapperCombined')">
 					Combined
 				</span>
 			</template>
 		</div>
 		<div id="fixedInfoBox" class="fixed-info-box hidden">
-			<div
-				class="fixed-info-box-close"
-				@click="showHidePanel('#fixedInfoBox')"
-			>
+			<div class="fixed-info-box-close" @click="showHidePanel('#fixedInfoBox')">
 				<b-icon icon="x-circle-fill"></b-icon>
 			</div>
 			<div class="fixed-info-box-content">
 				<div v-for="(d, dIndex) in dotsClicked">
 					<div>
 						<strong v-html="d"></strong>
-						<b-icon
-							v-if="
-								!!renderConfig['star key'] &&
-								checkStared(d) == true
-							"
-							icon="star-fill"
-							style="
+						<b-icon v-if="!!renderConfig['star key'] &&
+							checkStared(d) == true
+							" icon="star-fill" style="
 								color: #ffcc00;
 								cursor: pointer;
 								margin-left: 4px;
-							"
-							@click="removeStarItem(d)"
-						></b-icon>
-						<b-icon
-							v-if="
-								!!renderConfig['star key'] &&
-								checkStared(d) == false
-							"
-							icon="star"
-							style="
+							" @click="removeStarItem(d)"></b-icon>
+						<b-icon v-if="!!renderConfig['star key'] &&
+							checkStared(d) == false
+							" icon="star" style="
 								color: #ffcc00;
 								cursor: pointer;
 								margin-left: 4px;
-							"
-							@click="addStarItem(d)"
-						></b-icon>
+							" @click="addStarItem(d)"></b-icon>
 					</div>
 					<div>
 						<strong v-html="'Set this LD reference for: '"></strong>
 						<template v-for="(i, iIndex) in plotsList">
-							<strong
-								v-if="i != 'Combined' && !!assoData[i].data[d]"
-								v-html="i"
-								class="group-bubble"
-								:style="
-									'background-color:' +
-									compareGroupColors[iIndex] +
-									';'
-								"
-								@click="resetLdReference(i, d)"
-							></strong>
-							<strong
-								v-if="i == 'Combined'"
-								v-html="'All'"
-								class="group-bubble"
-								style="background-color: #dddddd"
-								@click="resetLdReference('All', d)"
-							></strong>
+							<strong v-if="i != 'Combined' && !!assoData[i].data[d]" v-html="i" class="group-bubble" :style="'background-color:' +
+								compareGroupColors[iIndex] +
+								';'
+								" @click="resetLdReference(i, d)"></strong>
+							<strong v-if="i == 'Combined'" v-html="'All'" class="group-bubble"
+								style="background-color: #dddddd" @click="resetLdReference('All', d)"></strong>
 						</template>
 					</div>
-					<div
-						v-if="g != 'Combined' && !!assoData[g].data[d]"
-						v-for="(g, gIndex) in plotsList"
-					>
-						<div
-							v-for="(h, hIndex) in renderConfig['hover content']"
-						>
-							<span
-								v-html="
-									h + '(' + g + '):' + assoData[g].data[d][h]
-								"
-							></span>
+					<div v-if="g != 'Combined' && !!assoData[g].data[d]" v-for="(g, gIndex) in plotsList">
+						<div v-for="(h, hIndex) in renderConfig['hover content']">
+							<span v-html="h + '(' + g + '):' + assoData[g].data[d][h]
+								"></span>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div
-			v-if="!!renderConfig.legend"
-			class="mbm-plot-legend col-md-12"
-			v-html="renderConfig.legend"
-		></div>
-		<div
-			class="col-md-12 region-plots-wrapper"
-			:id="'plotsWrapper' + item.replaceAll(' ', '_')"
-			v-for="(item, itemIndex) in plotsList"
-		>
+		<div v-if="!!renderConfig.legend" class="mbm-plot-legend col-md-12" v-html="renderConfig.legend"></div>
+		<div class="col-md-12 region-plots-wrapper" :id="'plotsWrapper' + item.replaceAll(' ', '_')"
+			v-for="(item, itemIndex) in plotsList">
 			<div class="col-md-9 region-plot-default-legend">
-				<!--<span
-					v-for="(g, gIndex) in plotsList"
-					v-if="item == 'Combined' && g != 'Combined'"
-					class="group-bubble"
-					v-html="g"
-					:style="
-						'background-color:' + compareGroupColors[gIndex] + ';'
-					"
-				></span>
-				<button
-					type="button"
-					v-if="item == 'Combined'"
-					class="group-bubble reference"
-					style="background-color: #ffffff; border: solid 1px #666666"
-					@click="showHideSplitPlots()"
-				>
-					Show/hide Individual plots
-				</button>-->
 				<div v-if="item != 'Combined'">
-					<span
-						class="plot-legend-dot"
-						style="background-color: #824099cc"
-					></span>
+					<span class="plot-legend-dot" style="background-color: #824099cc"></span>
 					<span>Reference variant</span>
-					<span
-						class="plot-legend-dot"
-						style="background-color: #d0363360"
-					></span
-					><span>1 > r2 >= 0.8</span>
-					<span
-						class="plot-legend-dot"
-						style="background-color: #ee982d50"
-					></span
-					><span>0.8 > r2 >= 0.6</span>
-					<span
-						class="plot-legend-dot"
-						style="background-color: #4db05240"
-					></span
-					><span>0.6 > r2 >= 0.4</span>
-					<span
-						class="plot-legend-dot"
-						style="background-color: #32afd530"
-					></span
-					><span>0.4 > r2 >= 0.2</span>
-					<span
-						class="plot-legend-dot"
-						style="background-color: #2074b620"
-					></span
-					><span>0.2 > r2 > 0</span>
+					<span class="plot-legend-dot" style="background-color: #d0363360"></span><span>1 > r2 >= 0.8</span>
+					<span class="plot-legend-dot" style="background-color: #ee982d50"></span><span>0.8 > r2 >= 0.6</span>
+					<span class="plot-legend-dot" style="background-color: #4db05240"></span><span>0.6 > r2 >= 0.4</span>
+					<span class="plot-legend-dot" style="background-color: #32afd530"></span><span>0.4 > r2 >= 0.2</span>
+					<span class="plot-legend-dot" style="background-color: #2074b620"></span><span>0.2 > r2 > 0</span>
 
-					<span
-						class="plot-legend-dot"
-						style="background-color: #33333320"
-					></span>
+					<span class="plot-legend-dot" style="background-color: #33333320"></span>
 					<span>No data</span>
 				</div>
 			</div>
 
 			<div class="col-md-9 asso-plots-wrapper">
-				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_')">
-					<h6
-						v-if="item != 'default'"
-						v-html="item"
-						:class="'text color-' + itemIndex"
-					></h6>
-					<canvas
-						:id="'asso_plot_' + item.replaceAll(' ', '_')"
-						class="asso-plot"
-						width=""
-						height=""
-						@resize="onResize"
-						@click="checkPosition($event, item, 'asso', 'click')"
+				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId">
+					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
+
+					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
+						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
-						@mouseout="onMouseOut('assoInfoBox' + item)"
-					></canvas>
-					<!--<span
-						v-if="sharedPlotXpos != null"
-						:style="
-							'position:absolute;width: 1px; height:100%;top:0;left: ' +
-							sharedPlotXpos +
-							'px;border-left: solid 1px #000;'
-						"
-					></span>-->
-					<div
-						:id="'assoInfoBox' + item.replaceAll(' ', '_')"
-						class="asso-info-box hidden"
-					></div>
+						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
+					<div :id="'assoInfoBox' + item.replaceAll(' ', '_') + sectionId" class="asso-info-box hidden"></div>
 				</div>
 			</div>
-			<div
-				:id="'ldPlotsWrapper' + item.replaceAll(' ', '_')"
-				class="col-md-3 ld-plots-wrapper reference-area"
-			>
-				<h6
-					v-html="
-						item != 'default'
-							? item + ' <small>*Showing only with LD</small>'
-							: ' <small>*Showing only with LD</small>'
-					"
-					:class="'text color-' + itemIndex"
-				></h6>
-				<canvas
-					:id="'ld_plot_' + item.replaceAll(' ', '_')"
-					class="ld-plot"
-					width=""
-					height=""
-					@resize="onResize"
-					@click="checkPosition($event, item, 'LD', 'click')"
+			<div :id="'ldPlotsWrapper' + item.replaceAll(' ', '_') + sectionId"
+				class="col-md-3 ld-plots-wrapper reference-area">
+				<h6 v-html="item != 'default'
+					? item + ' <small>*Showing only with LD</small>'
+					: ' <small>*Showing only with LD</small>'
+					" :class="'text color-' + itemIndex"></h6>
+				<canvas :id="'ld_plot_' + item.replaceAll(' ', '_') + sectionId" class="ld-plot" width="" height=""
+					@resize="onResize" @click="checkPosition($event, item, 'LD', 'click')"
 					@mousemove="checkPosition($event, item, 'LD', 'move')"
-					@mouseout="onMouseOut('ldInfoBox' + item)"
-				></canvas>
+					@mouseout="onMouseOut('ldInfoBox' + item + sectionId)"></canvas>
 
-				<div
-					:id="'ldInfoBox' + item.replaceAll(' ', '_')"
-					class="ld-info-box hidden"
-				></div>
+				<div :id="'ldInfoBox' + item.replaceAll(' ', '_') + sectionId" class="ld-info-box hidden"></div>
 			</div>
 		</div>
 	</div>
@@ -243,10 +110,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils.js";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -262,6 +126,10 @@ export default Vue.component("research-region-plot", {
 		"regionViewArea",
 		"pkgData",
 		"pkgDataSelected",
+		"isSectionPage",
+		"sectionId",
+		"utils",
+		"starItems"
 	],
 	data() {
 		return {
@@ -290,11 +158,10 @@ export default Vue.component("research-region-plot", {
 			ldPos: {},
 			dotsClicked: [],
 			refProperties: { region: null, refVariants: {}, groups: [] },
+			fixedRefVariants: {},
 		};
 	},
 	modules: {
-		...uiUtils,
-		Formatters,
 	},
 	components: {},
 	mounted: function () {
@@ -304,8 +171,30 @@ export default Vue.component("research-region-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		adjPlotMargin() {
+			
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump? customPlotMargin.bump :10,
+			} :
+				{
+					left: this.plotMargin.leftMargin,
+					right: this.plotMargin.rightMargin,
+					top: this.plotMargin.topMargin,
+					bottom: this.plotMargin.bottomMargin,
+					bump: this.plotMargin.bump,
+				};
+
+				console.log("region plot", plotMargin);
+				return plotMargin;
+		},
 		staredVariants() {
-			if (!!this.renderConfig["star key"]) {
+			if (!!this.renderConfig["star key"] && !this.isSectionPage) {
 				let stared = "";
 				this.pkgDataSelected
 					.filter((s) => s.type == this.renderConfig["star key"])
@@ -335,13 +224,16 @@ export default Vue.component("research-region-plot", {
 			}
 
 			if (this.plotData != null) {
-				var plotsKeys = [];
+
+				let plotDataLocal = this.plotData;
+
+				let plotsKeys = [];
 				if (this.dataComparisonConfig != null) {
-					var field =
+					let field =
 						this.dataComparisonConfig["fields to compare"][0];
 					// get list of data groups
 					for (const [pKey, pValue] of Object.entries(
-						this.plotData
+						plotDataLocal
 					)) {
 						for (const [key, value] of Object.entries(
 							pValue[field]
@@ -368,8 +260,8 @@ export default Vue.component("research-region-plot", {
 				this.ldPos = {};
 
 				//feed assoData + set initial reference variant
-				var yAxField = this.renderConfig["y axis field"];
-				var populationsType =
+				let yAxField = this.renderConfig["y axis field"];
+				let populationsType =
 					this.renderConfig["ld server"]["populations type"];
 
 				plotsKeys.map((group) => {
@@ -381,7 +273,7 @@ export default Vue.component("research-region-plot", {
 
 					if (!!this.ldData[group]) {
 						let refVariant = this.refProperties.refVariants[group];
-						if (!this.plotData[refVariant]) {
+						if (!plotDataLocal[refVariant]) {
 							this.ldData[group] = {
 								refVariant: null,
 								population: [],
@@ -405,7 +297,7 @@ export default Vue.component("research-region-plot", {
 
 					if (group != "default") {
 						for (const [dKey, dValue] of Object.entries(
-							this.plotData
+							plotDataLocal
 						)) {
 							if (group != "Combined") {
 								let yAxValue = dValue[yAxField][group];
@@ -416,14 +308,14 @@ export default Vue.component("research-region-plot", {
 									if (populationsType == "fixed") {
 										this.ldData[group].population =
 											this.renderConfig["ld server"][
-												"fixed population"
+											"fixed population"
 											];
 									} else if (populationsType == "dynamic") {
 										let population =
 											dValue[
-												this.renderConfig["ld server"][
-													"populations field"
-												]
+											this.renderConfig["ld server"][
+											"populations field"
+											]
 											][group];
 
 										this.ldData[group].population.push(
@@ -440,13 +332,13 @@ export default Vue.component("research-region-plot", {
 											this.assoData[group].yAxHigh == null
 												? dKey
 												: yAxValue >
-												  this.assoData[group].yAxHigh
-												? dKey
-												: this.ldData[group].refVariant;
+													this.assoData[group].yAxHigh
+													? dKey
+													: this.ldData[group].refVariant;
 									} else {
 										this.ldData[group].refVariant =
 											this.refProperties.refVariants[
-												group
+											group
 											];
 									}
 
@@ -455,17 +347,17 @@ export default Vue.component("research-region-plot", {
 										this.assoData[group].yAxHigh == null
 											? Math.ceil(yAxValue)
 											: yAxValue >
-											  this.assoData[group].yAxHigh
-											? Math.ceil(yAxValue)
-											: this.assoData[group].yAxHigh;
+												this.assoData[group].yAxHigh
+												? Math.ceil(yAxValue)
+												: this.assoData[group].yAxHigh;
 
 									this.assoData[group].yAxLow =
 										this.assoData[group].yAxLow == null
 											? Math.floor(yAxValue)
 											: yAxValue <
-											  this.assoData[group].yAxLow
-											? Math.floor(yAxValue)
-											: this.assoData[group].yAxLow;
+												this.assoData[group].yAxLow
+												? Math.floor(yAxValue)
+												: this.assoData[group].yAxLow;
 									// add data to asso data
 									this.assoData[group].data[dKey] = {};
 
@@ -493,7 +385,10 @@ export default Vue.component("research-region-plot", {
 							}
 						}
 					} else if (group == "default") {
-						this.plotData.map((dValue) => {
+
+						let refVariant = null;
+
+						plotDataLocal.map((dValue) => {
 							let yAxValue = dValue[yAxField];
 
 							if (!!yAxValue) {
@@ -502,14 +397,14 @@ export default Vue.component("research-region-plot", {
 								if (populationsType == "fixed") {
 									this.ldData[group].population =
 										this.renderConfig["ld server"][
-											"fixed population"
+										"fixed population"
 										];
 								} else if (populationsType == "dynamic") {
 									let population =
 										dValue[
-											this.renderConfig["ld server"][
-												"populations field"
-											]
+										this.renderConfig["ld server"][
+										"populations field"
+										]
 										];
 
 									this.ldData[group].population.push(
@@ -521,35 +416,35 @@ export default Vue.component("research-region-plot", {
 									dValue[this.renderConfig["render by"]];
 
 								// set initial refVarint
-								if (!this.ldData[group].refVariant) {
-									this.ldData[group].refVariant =
-										this.assoData[group].yAxHigh == null
+								//if (!this.fixedRefVariants[group]) {
+								refVariant =
+									this.assoData[group].yAxHigh == null
+										? dKey
+										: yAxValue >
+											this.assoData[group].yAxHigh
 											? dKey
-											: yAxValue >
-											  this.assoData[group].yAxHigh
-											? dKey
-											: this.ldData[group].refVariant;
-								}
+											: refVariant;
+								//}
 
 								// set high / low values of the group
 								this.assoData[group].yAxHigh =
 									this.assoData[group].yAxHigh == null
 										? Math.ceil(yAxValue)
 										: yAxValue >
-										  this.assoData[group].yAxHigh
-										? yAxValue
-										: Math.ceil(
+											this.assoData[group].yAxHigh
+											? yAxValue
+											: Math.ceil(
 												this.assoData[group].yAxHigh
-										  );
+											);
 
 								this.assoData[group].yAxLow =
 									this.assoData[group].yAxLow == null
 										? Math.floor(yAxValue)
 										: yAxValue < this.assoData[group].yAxLow
-										? yAxValue
-										: Math.floor(
+											? yAxValue
+											: Math.floor(
 												this.assoData[group].yAxLow
-										  );
+											);
 								// add data to asso data
 								this.assoData[group].data[dKey] = {};
 
@@ -572,6 +467,12 @@ export default Vue.component("research-region-plot", {
 								}
 							}
 						});
+
+						if (!!this.fixedRefVariants[group] && !!this.assoData[group].data[this.fixedRefVariants[group]]) {
+							this.ldData[group].refVariant = this.fixedRefVariants[group]
+						} else {
+							this.ldData[group].refVariant = refVariant;
+						}
 					}
 
 					// set LD population
@@ -582,8 +483,8 @@ export default Vue.component("research-region-plot", {
 						uniqPopulations.length > 1
 							? "ALL"
 							: this.renderConfig["ld server"].populations[
-									uniqPopulations[0]
-							  ];
+							uniqPopulations[0]
+							];
 				});
 
 				if (plotsKeys.includes("Combined") == true) {
@@ -595,15 +496,15 @@ export default Vue.component("research-region-plot", {
 							this.assoData.Combined.yAxHigh == null
 								? Math.ceil(yAxHighValue)
 								: yAxHighValue > this.assoData.Combined.yAxHigh
-								? Math.ceil(yAxHighValue)
-								: this.assoData.Combined.yAxHigh;
+									? Math.ceil(yAxHighValue)
+									: this.assoData.Combined.yAxHigh;
 
 						this.assoData.Combined.yAxLow =
 							this.assoData.Combined.yAxLow == null
 								? Math.floor(yAxLowValue)
 								: yAxLowValue < this.assoData.Combined.yAxLow
-								? Math.floor(yAxLowValue)
-								: this.assoData.Combined.yAxLow;
+									? Math.floor(yAxLowValue)
+									: this.assoData.Combined.yAxLow;
 					});
 				}
 
@@ -618,6 +519,8 @@ export default Vue.component("research-region-plot", {
 				return null;
 			} else {
 				let returnObj = {};
+
+				//console.log("this.region",this.region);
 
 				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 
@@ -648,18 +551,42 @@ export default Vue.component("research-region-plot", {
 		staredVariants(CONTENT) {
 			this.renderPlots();
 		},
+		starItems(CONTENT) {
+			this.renderPlots();
+		}
 	},
 	methods: {
-		...uiUtils,
-		showHideElement: uiUtils.showHideElement,
 
 		onResize(e) {
 			this.renderPlots();
 		},
+		getColumns(ID) {
+			let item;
+			if (this.dataComparisonConfig != null) {
+				for (const [key, value] of Object.entries(
+					this.plotData
+				)) {
+					if (value[this.renderConfig["star key"]] == ID) {
+						item = value;
+					}
+				}
+			} else {
+				item = this.plotData.filter(p => p[this.renderConfig["star key"]] == ID)[0];
+			}
+			return item;
+		},
 		checkStared(ITEM) {
-			let selectedItems = this.pkgDataSelected
-				.filter((s) => s.type == this.renderConfig["star key"])
-				.map((s) => s.id);
+
+			let selectedItems;
+			if (!!this.isSectionPage) {
+				selectedItems = this.starItems
+					.filter((s) => s.type == this.renderConfig["star key"])
+					.map((s) => s.id);;
+			} else {
+				selectedItems = this.pkgDataSelected
+					.filter((s) => s.type == this.renderConfig["star key"])
+					.map((s) => s.id);
+			}
 
 			if (!!selectedItems.includes(ITEM)) {
 				return true;
@@ -668,29 +595,47 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		addStarItem(ITEM) {
-			this.$store.dispatch("pkgDataSelected", {
-				type: this.renderConfig["star key"],
-				id: ITEM,
-				action: "add",
-			});
+			if (!!this.isSectionPage) {
+				let stard = [...new Set(this.starItems)]
+				let tempObj = {
+					type: this.renderConfig["star key"],
+					id: ITEM,
+					columns: this.getColumns(ITEM)
+				}
+				stard.push(tempObj);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.renderConfig["star key"],
+					id: ITEM,
+					action: "add",
+				});
+			}
 		},
 		removeStarItem(ITEM) {
-			this.$store.dispatch("pkgDataSelected", {
-				type: this.renderConfig["star key"],
-				id: ITEM,
-				action: "remove",
-			});
+			if (!!this.isSectionPage) {
+				let stard = [...new Set(this.starItems)].filter(s => s.id != ITEM);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.renderConfig["star key"],
+					id: ITEM,
+					action: "remove",
+				});
+			}
 		},
 		resetLdReference(GROUP, VARIANT) {
 			this.showHidePanel("#fixedInfoBox");
 			if (GROUP != "All") {
 				this.ldData[GROUP].refVariant = VARIANT;
+				this.fixedRefVariants[GROUP] = VARIANT;
 				this.ldData[GROUP].data = null;
 				this.refProperties.refVariants[GROUP] = VARIANT;
 			} else if (GROUP == "All") {
 				this.plotsList.map((p) => {
 					if (p != "combined") {
 						this.ldData[p].refVariant = VARIANT;
+						this.fixedRefVariants[p] = VARIANT;
 						this.ldData[p].data = null;
 						this.refProperties.refVariants[p] = VARIANT;
 					}
@@ -722,9 +667,9 @@ export default Vue.component("research-region-plot", {
 			});
 		},
 		getDotsOnPosition(TYPE, GROUP, X, Y) {
-			var posData =
+			let posData =
 				TYPE == "asso" ? this.assoPos[GROUP] : this.ldPos[GROUP];
-			var dotsList = [];
+			let dotsList = [];
 
 			for (let h = -5; h <= 5; h++) {
 				for (let v = -5; v <= 5; v++) {
@@ -739,24 +684,24 @@ export default Vue.component("research-region-plot", {
 			return dotsList;
 		},
 		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
-			var e = event;
-			var rect = e.target.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
+			let e = event;
+			let rect = e.target.getBoundingClientRect();
+			let x = Math.floor(e.clientX - rect.left);
+			let y = Math.floor(e.clientY - rect.top);
 			let rawX = e.clientX;
 
-			var dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
+			let dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
 			dotsOnPosition = [...new Set(dotsOnPosition)];
 
 			let infoBoxId =
 				TYPE == "asso"
-					? "#assoInfoBox" + GROUP.replaceAll(" ", "_")
-					: "#ldInfoBox" + GROUP.replaceAll(" ", "_");
+					? "#assoInfoBox" + GROUP.replaceAll(" ", "_") + this.sectionId
+					: "#ldInfoBox" + GROUP.replaceAll(" ", "_") + this.sectionId;
 
 			let canvasId =
 				TYPE == "asso"
-					? "#asso_plot_" + GROUP.replaceAll(" ", "_")
-					: "#ld_plot_" + GROUP.replaceAll(" ", "_");
+					? "#asso_plot_" + GROUP.replaceAll(" ", "_") + this.sectionId
+					: "#ld_plot_" + GROUP.replaceAll(" ", "_") + this.sectionId;
 
 			let wrapper = document.querySelector(infoBoxId);
 			let canvas = document.querySelector(canvasId);
@@ -774,8 +719,8 @@ export default Vue.component("research-region-plot", {
 					let infoContent =
 						dotsOnPosition.length > 5
 							? "<span class='info-box-direction'>Viewing 5 of " +
-							  dotsOnPosition.length +
-							  " variants. Click to view full list or to change LD reference variant.</span><br />"
+							dotsOnPosition.length +
+							" variants. Click to view full list or to change LD reference variant.</span><br />"
 							: "<span class='info-box-direction'>Click to change LD reference variant.</span><br />";
 
 					dotsOnPosition.map((d, dIndex) => {
@@ -829,13 +774,17 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 		onMouseOut(BOXID) {
-			uiUtils.removeOnMouseOut(BOXID.replaceAll(" ", "_"), 1000);
+			this.utils.uiUtils.removeOnMouseOut(BOXID.replaceAll(" ", "_"), 1000);
 		},
 		setUpWrappers() {
-			this.callForRecombData();
+			if(!!this.searchingRegion) {
+				this.callForRecombData();
+			}
 		},
 		async callForRecombData() {
-			var signalURL =
+			//console.log("this.searchingRegion", this.searchingRegion);
+
+			let signalURL =
 				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
 				this.searchingRegion.chr +
 				"' and position gt " +
@@ -843,7 +792,9 @@ export default Vue.component("research-region-plot", {
 				" and position lt " +
 				this.searchingRegion.end;
 
-			var signalJson = await fetch(signalURL).then((resp) => resp.json());
+				//console.log("signalURL", signalURL)
+
+			let signalJson = await fetch(signalURL).then((resp) => resp.json());
 			this.recombData = {};
 			if (signalJson.error == null) {
 				this.recombData["position"] = signalJson.data.position;
@@ -860,9 +811,9 @@ export default Vue.component("research-region-plot", {
 				plotWrapper.classList.remove("hidden");
 			});
 
-			var plotID = null;
+			let plotID = null;
 
-			for (var i = 0; i < this.plotsList.length; i++) {
+			for (let i = 0; i < this.plotsList.length; i++) {
 				if (
 					this.plotsList[i] != "Combined" &&
 					this.ldData[this.plotsList[i]].data == null
@@ -873,6 +824,7 @@ export default Vue.component("research-region-plot", {
 			}
 
 			if (plotID != null) {
+
 				let ldURL =
 					"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
 					this.ldData[plotID].population +
@@ -916,68 +868,83 @@ export default Vue.component("research-region-plot", {
 					}
 				}
 
-				this.$store.dispatch("filteredData", this.plotData);
+				if (!!this.isSectionPage) {
+
+				} else {
+					this.$store.dispatch("filteredData", this.plotData);
+				}
+
 
 				this.renderPlots();
 			}
 			this.$forceUpdate();
 		},
-		renderPlots() {
+		renderPlots(event) {
 			let regionStart = this.searchingRegion.start;
 			let regionEnd = this.searchingRegion.end;
 			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
 			let assoCanvasWidth =
 				document.querySelector("#rp_region_plot").clientWidth *
-					0.75 *
-					2 -
+				0.75 *
+				2 -
 				60; //30 <- left & right padding of wrapper *2
 			let ldCanvasWidth =
 				document.querySelector("#rp_region_plot").clientWidth *
-					0.25 *
-					2 -
+				0.25 *
+				2 -
 				60; //30 <- left & right padding of wrapper *2
 
 			let canvasHeight = !!this.renderConfig.height
 				? this.renderConfig.height * 2 +
-				  this.plotMargin.topMargin +
-				  this.plotMargin.bottomMargin
+				this.adjPlotMargin.top +
+				this.adjPlotMargin.bottom
 				: 600 +
-				  this.plotMargin.topMargin +
-				  this.plotMargin.bottomMargin;
+				this.adjPlotMargin.top +
+				this.adjPlotMargin.bottom;
 
 			let assoPlotWidth =
-				assoCanvasWidth - this.plotMargin.leftMargin * 2;
+				assoCanvasWidth - this.adjPlotMargin.left * 2;
 			let ldPlotWidth =
 				ldCanvasWidth -
-				this.plotMargin.leftMargin -
-				this.plotMargin.rightMargin;
+				this.adjPlotMargin.left -
+				this.adjPlotMargin.right;
 
 			let plotHeight = !!this.renderConfig.height
 				? this.renderConfig.height * 2
 				: 600;
 
-			let bump = this.plotMargin.bump;
+			let bump = this.adjPlotMargin.bump;
 
 			this.plotsList.map((p) => {
 				// first asso plot
 				let c, ctx;
 
 				c = document.getElementById(
-					"asso_plot_" + p.replaceAll(" ", "_")
+					"asso_plot_" + p.replaceAll(" ", "_") + this.sectionId
 				);
 				c.setAttribute("width", assoCanvasWidth);
 				c.setAttribute("height", canvasHeight);
 				c.setAttribute(
 					"style",
 					"width:" +
-						assoCanvasWidth / 2 +
-						"px;height:" +
-						canvasHeight / 2 +
-						"px;"
+					assoCanvasWidth / 2 +
+					"px;height:" +
+					canvasHeight / 2 +
+					"px;"
 				);
 				ctx = c.getContext("2d");
 
 				ctx.clearRect(0, 0, assoCanvasWidth, canvasHeight);
+
+				/* look into this part to render x position line across plots
+				let e = event;
+				let rect = e.target.getBoundingClientRect();
+				let x = Math.floor(e.clientX - rect.left);
+				let y = Math.floor(e.clientY - rect.top);
+				let rawX = e.clientX;
+
+				console.log("x",x);
+				*/
 
 				this.renderAxis(
 					ctx,
@@ -1015,17 +982,17 @@ export default Vue.component("research-region-plot", {
 
 				// second LD plot
 				c = document.getElementById(
-					"ld_plot_" + p.replaceAll(" ", "_")
+					"ld_plot_" + p.replaceAll(" ", "_") + this.sectionId
 				);
 				c.setAttribute("width", ldCanvasWidth);
 				c.setAttribute("height", canvasHeight);
 				c.setAttribute(
 					"style",
 					"width:" +
-						ldCanvasWidth / 2 +
-						"px;height:" +
-						canvasHeight / 2 +
-						"px;"
+					ldCanvasWidth / 2 +
+					"px;height:" +
+					canvasHeight / 2 +
+					"px;"
 				);
 				ctx = c.getContext("2d");
 
@@ -1070,17 +1037,35 @@ export default Vue.component("research-region-plot", {
 			TYPE,
 			GROUP
 		) {
-			let xStart = this.plotMargin.leftMargin;
-			let yStart = this.plotMargin.topMargin + HEIGHT;
+			let xStart = this.adjPlotMargin.left;
+			let yStart = this.adjPlotMargin.top + HEIGHT;
 			let xPosByPixel = WIDTH / (xMax - xMin);
 			let yPosByPixel = HEIGHT / (yMax - yMin);
 
 			if (TYPE == "asso") {
 				this.assoPos[GROUP] = {};
-				var xField = this.renderConfig["x axis field"];
-				var yField = this.renderConfig["y axis field"];
+				let xField = this.renderConfig["x axis field"];
+				let yField = this.renderConfig["y axis field"];
+
+				/// first render position lines of the star variants
+				
+				if (!!this.renderConfig["star key"] && !!!!this.isSectionPage) {
+					let yPos1 = this.adjPlotMargin.top - (this.adjPlotMargin.bump * 3);
+					let yPos2 = this.adjPlotMargin.top + HEIGHT + (this.adjPlotMargin.bump * 2);
+
+					this.starItems.map(star => {
+						let xPos = xStart + (star.columns[this.renderConfig["x axis field"]] - xMin) * xPosByPixel;
+
+						this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
+
+						this.renderDot(CTX, xPos, yPos2, "#FFAA0055", 5);
+					})
+				}
 
 				if (GROUP != "Combined") {
+
+					// render dots
+
 					for (const [key, value] of Object.entries(
 						this.assoData[GROUP].data
 					)) {
@@ -1097,12 +1082,15 @@ export default Vue.component("research-region-plot", {
 								key
 							);
 
+							
+
 							let dotColor = this.getDotColor(
 								this.ldData[GROUP].data[key]
 							);
 							if (key == this.ldData[GROUP].refVariant) {
-								if (this.checkStared(key) == true) {
-									plotUtils.renderStar(
+								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+
+									this.utils.plotUtils.renderStar(
 										CTX,
 										xPos,
 										yPos,
@@ -1121,8 +1109,8 @@ export default Vue.component("research-region-plot", {
 									);
 								}
 							} else {
-								if (this.checkStared(key) == true) {
-									plotUtils.renderStar(
+								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+									this.utils.plotUtils.renderStar(
 										CTX,
 										xPos,
 										yPos,
@@ -1186,8 +1174,8 @@ export default Vue.component("research-region-plot", {
 									let dotColor =
 										this.compareGroupColors[pIndex];
 									if (key == this.ldData[pGroup].refVariant) {
-										if (this.checkStared(key) == true) {
-											plotUtils.renderStar(
+										if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+											this.utils.plotUtils.renderStar(
 												CTX,
 												xPos,
 												yPos,
@@ -1206,8 +1194,8 @@ export default Vue.component("research-region-plot", {
 											);
 										}
 									} else {
-										if (this.checkStared(key) == true) {
-											plotUtils.renderStar(
+										if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+											this.utils.plotUtils.renderStar(
 												CTX,
 												xPos,
 												yPos,
@@ -1252,12 +1240,12 @@ export default Vue.component("research-region-plot", {
 						CTX.fillStyle = "#000000";
 						CTX.fillText(
 							"No LD data loaded against " +
-								this.ldData[GROUP].refVariant,
-							this.plotMargin.leftMargin + WIDTH / 2,
-							this.plotMargin.topMargin + HEIGHT / 2
+							this.ldData[GROUP].refVariant,
+							this.adjPlotMargin.left + WIDTH / 2,
+							this.adjPlotMargin.top + HEIGHT / 2
 						);
 					} else {
-						var yField = this.renderConfig["y axis field"];
+						let yField = this.renderConfig["y axis field"];
 
 						for (const [key, value] of Object.entries(
 							this.ldData[GROUP].data
@@ -1268,7 +1256,7 @@ export default Vue.component("research-region-plot", {
 									yStart -
 									(this.assoData[GROUP].data[key][yField] -
 										yMin) *
-										yPosByPixel;
+									yPosByPixel;
 
 								this.feedPosData(
 									this.ldPos[GROUP],
@@ -1279,8 +1267,8 @@ export default Vue.component("research-region-plot", {
 
 								let dotColor = this.getDotColor(value);
 								if (key == this.ldData[GROUP].refVariant) {
-									if (this.checkStared(key) == true) {
-										plotUtils.renderStar(
+									if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+										this.utils.plotUtils.renderStar(
 											CTX,
 											xPos,
 											yPos,
@@ -1299,8 +1287,8 @@ export default Vue.component("research-region-plot", {
 										);
 									}
 								} else {
-									if (this.checkStared(key) == true) {
-										plotUtils.renderStar(
+									if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+										this.utils.plotUtils.renderStar(
 											CTX,
 											xPos,
 											yPos,
@@ -1326,7 +1314,7 @@ export default Vue.component("research-region-plot", {
 
 				if (GROUP == "Combined") {
 					let linesObj = {};
-					var yField = this.renderConfig["y axis field"];
+					let yField = this.renderConfig["y axis field"];
 
 					this.plotsList.map((pGroup, pIndex) => {
 						if (pGroup != "Combined") {
@@ -1347,7 +1335,7 @@ export default Vue.component("research-region-plot", {
 											tempObj.xValue.push(value);
 											tempObj.yValue.push(
 												this.assoData[pGroup].data[key][
-													yField
+												yField
 												]
 											);
 											linesObj[key] = tempObj;
@@ -1355,7 +1343,7 @@ export default Vue.component("research-region-plot", {
 											linesObj[key].xValue.push(value);
 											linesObj[key].yValue.push(
 												this.assoData[pGroup].data[key][
-													yField
+												yField
 												]
 											);
 										}
@@ -1366,7 +1354,7 @@ export default Vue.component("research-region-plot", {
 												yField
 											] -
 												yMin) *
-												yPosByPixel;
+											yPosByPixel;
 
 										this.feedPosData(
 											this.ldPos[GROUP],
@@ -1379,8 +1367,8 @@ export default Vue.component("research-region-plot", {
 											key ==
 											this.ldData[pGroup].refVariant
 										) {
-											if (this.checkStared(key) == true) {
-												plotUtils.renderStar(
+											if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+												this.utils.plotUtils.renderStar(
 													CTX,
 													xPos,
 													yPos,
@@ -1399,8 +1387,8 @@ export default Vue.component("research-region-plot", {
 												);
 											}
 										} else {
-											if (this.checkStared(key) == true) {
-												plotUtils.renderStar(
+											if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+												this.utils.plotUtils.renderStar(
 													CTX,
 													xPos,
 													yPos,
@@ -1495,11 +1483,12 @@ export default Vue.component("research-region-plot", {
 				}
 			}
 		},
-		renderDot(CTX, XPOS, YPOS, DOT_COLOR) {
+		renderDot(CTX, XPOS, YPOS, DOT_COLOR, WIDTH) {
 			CTX.fillStyle = DOT_COLOR;
 			CTX.lineWidth = 0;
 			CTX.beginPath();
-			CTX.arc(XPOS, YPOS, 9, 0, 2 * Math.PI);
+			let width = !!WIDTH? WIDTH: 9;
+			CTX.arc(XPOS, YPOS, width, 0, 2 * Math.PI);
 			CTX.fill();
 		},
 		renderDiamond(CTX, XPOS, YPOS, DOT_COLOR) {
@@ -1530,31 +1519,34 @@ export default Vue.component("research-region-plot", {
 			CTX.restore();
 		},
 		renderRecombLine(CTX, PWIDTH, PHEIGHT, END, START) {
-			var DATA = this.recombData;
-			var xPixel = PWIDTH / (END - START);
-			var yPixel = PHEIGHT / 100;
+			let DATA = this.recombData;
+			let xPixel = PWIDTH / (END - START);
+			let yPixel = PHEIGHT / 100;
 
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#007BFF";
 
-			DATA.position.map((xPos, xPosIndex) => {
-				let x1PosPixel = (xPos - START) * xPixel;
-				let y1PosPixel = DATA.recomb_rate[xPosIndex] * yPixel;
-				let x2PosPixel =
-					(DATA.position[xPosIndex + 1] - START) * xPixel;
-				let y2PosPixel = DATA.recomb_rate[xPosIndex + 1] * yPixel;
+			if (!!DATA && !!DATA.position) {
+				DATA.position.map((xPos, xPosIndex) => {
+					let x1PosPixel = (xPos - START) * xPixel;
+					let y1PosPixel = DATA.recomb_rate[xPosIndex] * yPixel;
+					let x2PosPixel =
+						(DATA.position[xPosIndex + 1] - START) * xPixel;
+					let y2PosPixel = DATA.recomb_rate[xPosIndex + 1] * yPixel;
 
-				CTX.moveTo(
-					this.plotMargin.leftMargin + x1PosPixel,
-					this.plotMargin.topMargin + PHEIGHT - y1PosPixel
-				);
-				CTX.lineTo(
-					this.plotMargin.leftMargin + x2PosPixel,
-					this.plotMargin.topMargin + PHEIGHT - y2PosPixel
-				);
-				CTX.stroke();
-			});
+					CTX.moveTo(
+						this.adjPlotMargin.left + x1PosPixel,
+						this.adjPlotMargin.top + PHEIGHT - y1PosPixel
+					);
+					CTX.lineTo(
+						this.adjPlotMargin.left + x2PosPixel,
+						this.adjPlotMargin.top + PHEIGHT - y2PosPixel
+					);
+					CTX.stroke();
+				});
+			}
+
 		},
 		renderAxis(
 			CTX,
@@ -1583,39 +1575,39 @@ export default Vue.component("research-region-plot", {
 
 			// render y axis
 			CTX.moveTo(
-				this.plotMargin.leftMargin - bump,
-				this.plotMargin.topMargin
+				this.adjPlotMargin.left - bump,
+				this.adjPlotMargin.top
 			);
 			CTX.lineTo(
-				this.plotMargin.leftMargin - bump,
-				HEIGHT + this.plotMargin.topMargin + bump
+				this.adjPlotMargin.left - bump,
+				HEIGHT + this.adjPlotMargin.top + bump
 			);
 			CTX.stroke();
 
 			// render recombination Rate y axis
 			let recomXpos = Math.round(
-				this.plotMargin.leftMargin + WIDTH + bump
+				this.adjPlotMargin.left + WIDTH + bump
 			);
 
 			if (TYPE == "asso") {
-				CTX.moveTo(recomXpos, this.plotMargin.topMargin);
+				CTX.moveTo(recomXpos, this.adjPlotMargin.top);
 				CTX.lineTo(
 					recomXpos,
-					HEIGHT + this.plotMargin.topMargin + bump
+					HEIGHT + this.adjPlotMargin.top + bump
 				);
 				CTX.stroke();
 			}
 
 			//render x axis
 			CTX.moveTo(
-				this.plotMargin.leftMargin - bump,
-				HEIGHT + this.plotMargin.topMargin + bump
+				this.adjPlotMargin.left - bump,
+				HEIGHT + this.adjPlotMargin.top + bump
 			);
 			CTX.lineTo(
 				TYPE == "asso"
-					? WIDTH + this.plotMargin.leftMargin + bump
-					: WIDTH + this.plotMargin.leftMargin,
-				HEIGHT + this.plotMargin.topMargin + bump
+					? WIDTH + this.adjPlotMargin.left + bump
+					: WIDTH + this.adjPlotMargin.left,
+				HEIGHT + this.adjPlotMargin.top + bump
 			);
 			CTX.stroke();
 
@@ -1623,15 +1615,15 @@ export default Vue.component("research-region-plot", {
 			let yStep = (yMax - yMin) / 5;
 			let yTickDistance = HEIGHT / 5;
 			for (let i = 0; i < 6; i++) {
-				let tickYPos = this.plotMargin.topMargin + i * yTickDistance;
+				let tickYPos = this.adjPlotMargin.top + i * yTickDistance;
 				let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
-				CTX.moveTo(this.plotMargin.leftMargin - bump * 2, adjTickYPos);
-				CTX.lineTo(this.plotMargin.leftMargin - bump, adjTickYPos);
+				CTX.moveTo(this.adjPlotMargin.left - bump * 2, adjTickYPos);
+				CTX.lineTo(this.adjPlotMargin.left - bump, adjTickYPos);
 				CTX.stroke();
 
 				CTX.textAlign = "right";
 
-				let tickValue = Formatters.decimalFormatter(
+				let tickValue = this.utils.Formatters.decimalFormatter(
 					yMin + i * yStep,
 					yDecimal
 				);
@@ -1640,11 +1632,11 @@ export default Vue.component("research-region-plot", {
 
 				CTX.fillText(
 					tickValue,
-					this.plotMargin.leftMargin - bump * 3,
-					this.plotMargin.topMargin +
-						HEIGHT +
-						bump -
-						i * yTickDistance
+					this.adjPlotMargin.left - bump * 3,
+					this.adjPlotMargin.top +
+					HEIGHT +
+					bump -
+					i * yTickDistance
 				);
 			}
 
@@ -1655,7 +1647,7 @@ export default Vue.component("research-region-plot", {
 				let recombYMin = 0;
 				for (let i = 0; i < 6; i++) {
 					let tickYPos =
-						this.plotMargin.topMargin + i * yTickDistance;
+						this.adjPlotMargin.top + i * yTickDistance;
 					let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
 					CTX.moveTo(recomXpos, adjTickYPos);
 					CTX.lineTo(recomXpos + bump, adjTickYPos);
@@ -1665,11 +1657,11 @@ export default Vue.component("research-region-plot", {
 
 					CTX.fillText(
 						recombYMin + i * yStep,
-						this.plotMargin.leftMargin + WIDTH + bump * 3,
-						this.plotMargin.topMargin +
-							HEIGHT +
-							5 -
-							i * yTickDistance
+						this.adjPlotMargin.left + WIDTH + bump * 3,
+						this.adjPlotMargin.top +
+						HEIGHT +
+						5 -
+						i * yTickDistance
 					);
 				}
 			}
@@ -1679,21 +1671,21 @@ export default Vue.component("research-region-plot", {
 			let xTickDistance = WIDTH / 5;
 
 			for (let i = 0; i < 6; i++) {
-				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
+				let tickXPos = this.adjPlotMargin.left + i * xTickDistance;
 				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
 				CTX.moveTo(
 					adjTickXPos,
-					this.plotMargin.topMargin + HEIGHT + bump
+					this.adjPlotMargin.top + HEIGHT + bump
 				);
 				CTX.lineTo(
 					adjTickXPos,
-					this.plotMargin.topMargin + HEIGHT + bump * 2
+					this.adjPlotMargin.top + HEIGHT + bump * 2
 				);
 				CTX.stroke();
 
 				CTX.textAlign = "center";
 
-				let positionLabel = Formatters.decimalFormatter(
+				let positionLabel = this.utils.Formatters.decimalFormatter(
 					xMin + i * xStep,
 					xDecimal
 				);
@@ -1706,7 +1698,7 @@ export default Vue.component("research-region-plot", {
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
-					this.plotMargin.topMargin + HEIGHT + bump * 4
+					this.adjPlotMargin.top + HEIGHT + bump * 4
 				);
 			}
 
@@ -1715,7 +1707,7 @@ export default Vue.component("research-region-plot", {
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
 				this.renderConfig["y axis label"],
-				-(this.plotMargin.topMargin + HEIGHT / 2),
+				-(this.adjPlotMargin.top + HEIGHT / 2),
 				bump + 24
 			);
 
@@ -1723,8 +1715,8 @@ export default Vue.component("research-region-plot", {
 			if (TYPE == "asso") {
 				CTX.fillText(
 					"Recombination Rate (cM/Mb)",
-					-(this.plotMargin.topMargin + HEIGHT / 2),
-					this.plotMargin.leftMargin * 2 + WIDTH - (bump + 24)
+					-(this.adjPlotMargin.top + HEIGHT / 2),
+					this.adjPlotMargin.left * 2 + WIDTH - (bump + 24)
 				);
 			}
 
@@ -1732,11 +1724,11 @@ export default Vue.component("research-region-plot", {
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 			CTX.fillText(
 				TYPE == "LD" ? "LD(r2)" : this.renderConfig["x axis label"],
-				WIDTH / 2 + this.plotMargin.leftMargin,
-				this.plotMargin.topMargin +
-					this.plotMargin.bottomMargin +
-					HEIGHT -
-					24
+				WIDTH / 2 + this.adjPlotMargin.left,
+				this.adjPlotMargin.top +
+				this.adjPlotMargin.bottom +
+				HEIGHT -
+				24
 			);
 
 			//render LD plots background
@@ -1744,12 +1736,12 @@ export default Vue.component("research-region-plot", {
 				let xBGDistance = WIDTH / 5;
 
 				for (let i = 0; i < 5; i++) {
-					let bgXPos = this.plotMargin.leftMargin + i * xBGDistance;
+					let bgXPos = this.adjPlotMargin.left + i * xBGDistance;
 					let adBGXPos = Math.floor(bgXPos);
 					CTX.fillStyle = this.ldColor[i];
 					CTX.fillRect(
 						adBGXPos,
-						this.plotMargin.topMargin,
+						this.adjPlotMargin.top,
 						xBGDistance - 1,
 						HEIGHT
 					);
@@ -1759,7 +1751,7 @@ export default Vue.component("research-region-plot", {
 	},
 });
 
-$(function () {});
+$(function () { });
 </script>
 
 <style>
@@ -1767,6 +1759,7 @@ $(function () {});
 	text-align: left;
 	padding-bottom: 25px;
 }
+
 .show-hide-plots span {
 	display: inline-block;
 }
@@ -1778,12 +1771,14 @@ $(function () {});
 .region-plots-wrapper {
 	padding: 0 !important;
 }
+
 .asso-plots-wrapper,
 .ld-plots-wrapper {
 	display: inline-block;
 	height: auto !important;
 	padding-bottom: 0 !important;
 }
+
 .asso-info-box,
 .ld-info-box {
 	position: absolute;
@@ -1795,6 +1790,7 @@ $(function () {});
 	z-index: 10;
 	font-size: 14px;
 }
+
 .info-box-direction {
 	color: #36c;
 	font-weight: bold;
@@ -1840,24 +1836,29 @@ $(function () {});
 	padding: 0px 8px;
 	border-radius: 8px;
 }
+
 /* remove later if unused */
 .region-plot-default-legend {
 	text-align: center;
 }
+
 .region-plot-default-legend span {
 	font-size: 12px;
 	display: inline-block;
 	margin-right: 5px;
 }
+
 .plot-legend-dot {
 	width: 12px;
 	height: 12px;
 	border-radius: 0px;
 }
+
 .asso-plot.hover,
 .ld-plot.hover {
 	cursor: pointer;
 }
+
 .gene-on-clicked-dot-mplot,
 .content-on-clicked-dot {
 	display: block !important;

@@ -240,7 +240,13 @@
                                         'beta field': 'beta',
                                         'hover content': ['pValue', 'beta'],
                                         thresholds: ['5e-8'],
-                                        height: '500',
+                                        height: '600',
+                                        'plot margin': {
+                                            'left': 150,
+                                            'right': 150,
+                                            'top': 250,
+                                            'bottom': 300
+                                        }
                                     }"
                                     :pkg-data="null"
                                     :pkg-data-selected="null"
@@ -249,6 +255,7 @@
                                         'add phenotype',
                                         'open phenotype page',
                                     ]"
+                                    :utils="$parent.utilsBox"
                                 ></research-phewas-plot>
                             </div>
                             <div

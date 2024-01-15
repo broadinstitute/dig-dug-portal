@@ -50,7 +50,7 @@
                     </a>
                 </template>
                 <template #cell(dbSNP)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">
+                    <a :href="`/variant.html?variant=${r.item.dbSNP}`">
                         {{ dbSNPFormatter(r.item) }}
                     </a>
                 </template>

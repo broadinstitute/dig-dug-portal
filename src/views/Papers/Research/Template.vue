@@ -1,3 +1,4 @@
+
 <template>
 	<div id="app">
 		<!-- KP Header -->
@@ -77,10 +78,19 @@
 											class="btn btn-primary"
 											@click="$parent.fetchDevPage()"
 										>
-											Load page
+											Load page 
 										</button>
 									</div>
 								</div>
+							</div>
+							<div class="row">
+								<label class="col">
+									<input 
+										type="checkbox" 
+										v-model="$parent.devCK"
+									>
+									Remember me for 2 weeks.
+								</label>
 							</div>
 						</div>
 					</div>
@@ -88,13 +98,21 @@
 			</div>
 		</div>
 
+		<research-front-page 
+			v-if="$parent.researchPage !== null && $parent.sectionConfigs['is front page']"
+			:sectionConfigs="$parent.sectionConfigs"
+			:pageDescription="$parent.pageDescription"
+			:utilsBox="$parent.utilsBox">
+		</research-front-page>
+		
+
 		<div
-			class="container-fluid mdkp-body"
-			v-if="$parent.researchPage != null"
+			class="container-fluid mdkp-body flex-body"
+			v-if="$parent.researchPage !== null && !$parent.sectionConfigs['is front page']"
 		>
 			<div class="card mdkp-card dataset-page-header">
 				<div class="row card-body">
-					<div class="col-md-12">
+					<div class="col-md-8">
 						<h3 v-html="$parent.pageTitle"></h3>
 						<div
 							v-if="
@@ -106,6 +124,47 @@
 							id="rpSubHeader"
 							class="rp-sub-header"
 						></div>
+						
+					</div>
+					<div class="col-md-4 text-right" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
+						<button class="btn btn-sm btn-primary" @click="$parent.utilsBox.uiUtils.showHideElement('captured_data_panel')" title="Show / hide captured data list"><b-icon
+													icon="images"
+												></b-icon></button>
+					</div>
+				</div>
+			</div>
+
+			<div id="captured_data_panel" class="card mdkp-card hidden">
+				<div class="row card-body">
+					<div class="col-md-12">
+						<h4>Captured data</h4>
+						<table class="table table-sm research-data-table">
+							<thead>
+								<tr>
+									<th>Section / Parameters</th><th>Save section data in CSV</th><th>Save section data in JSON</th><th>Remove section data</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="data  in $store.state.capturedData">
+		
+								<td v-html="data.title"></td>
+								<td>
+									<button class="btn btn-sm btn-primary save-remove-section-data" @click="$parent.saveCapturedData('csv', data.title)">Save CSV</button>
+									</td>
+									<td>
+										<button class="btn btn-sm btn-primary save-remove-section-data" @click="$parent.saveCapturedData('json', data.title)">Save JSON</button>
+										</td>
+									<td>
+									<button class="btn btn-sm btn-warning" @click="$store.dispatch('capturedData', {action:'remove',title:data.title})">Remove</button>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+						
+						<div class="col-md-12 text-center">
+							<button class="btn btn-primary" @click="$parent.utilsBox.uiUtils.saveJson($store.state.capturedData, $parent.pageTitle+' sections data')">Save all (JSON)</button>
+						</div>
+						
 					</div>
 				</div>
 			</div>
@@ -115,6 +174,7 @@
 					<div class="col-md-12">
 						<research-page-description
 							:content="$parent.pageDescription"
+							:utils="$parent.utilsBox"
 						></research-page-description>
 					</div>
 				</div>
@@ -193,6 +253,7 @@
 									:unfilteredDataset="
 										$store.state.unfilteredData
 									"
+									:utils="$parent.utilsBox"
 								></research-page-filters>
 							</div>
 						</template>
@@ -308,6 +369,8 @@
 								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-m-plot>
 							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-bitmap-plot
@@ -322,6 +385,8 @@
 									$parent.dataComparisonConfig
 								"
 								:compareGroupColors="$parent.colors.moderate"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-m-bitmap-plot>
 							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-qq-plot
@@ -336,6 +401,8 @@
 									$parent.dataComparisonConfig
 								"
 								:compareGroupColors="$parent.colors.moderate"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-m-qq-plot>
 							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
@@ -358,6 +425,8 @@
 								:regionViewArea="$parent.regionViewArea"
 								:pkgData="$store.state.pkgData"
 								:pkgDataSelected="$store.state.pkgDataSelected"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-region-plot>
 							<!--v-if="$parent.plotType == 'score_plot'"-->
 							<research-score-plot
@@ -374,6 +443,8 @@
 								:searchParameters="
 									$store.state.searchParameters
 								"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-score-plot>
 
 							<research-genes-track
@@ -391,6 +462,8 @@
 								:plotMargin="$parent.plotMargin"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-genes-track>
 							<!--v-if="$parent.plotType == 'volcano_plot'"-->
 							<research-volcano-plot
@@ -400,6 +473,8 @@
 								"
 								:plotData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-volcano-plot>
 							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-heatmap
@@ -409,6 +484,8 @@
 								"
 								:heatmapData="$store.state.filteredData"
 								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
+								sectionId=""
 							></research-heatmap>
 							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-phewas-plot
@@ -425,6 +502,8 @@
 								:renderConfig="$parent.plotConfig"
 								:pkgData="null"
 								:pkgDataSelected="null"
+								:utils="$parent.utilsBox"
+								canvasId=""
 							></research-phewas-plot>
 							<!--v-if="
 									$parent.plotType == 'custom_pkg' &&
@@ -446,6 +525,8 @@
 								:colors="$parent.colors"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
+								
 							></kp-gem-pkg>
 						</div>
 						<div
@@ -476,6 +557,7 @@
 								:phenotypeMap="
 									$store.state.bioPortal.phenotypeMap
 								"
+								:utils="$parent.utilsBox"
 							>
 							</research-data-table>
 							<research-gem-data-table
@@ -500,8 +582,132 @@
 								:region="$store.state.searchingRegion"
 								:regionZoom="$parent.regionZoom"
 								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
 							>
 							</research-gem-data-table>
+						</div>
+						<!-- multi section test-->
+						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
+
+							<research-multi-sections-search 
+							v-if="!!$parent.multiSectionsSearchParameters"
+								:searchParameters="$parent.multiSectionsSearchParameters"
+								:phenotypesInUse="$parent.phenotypesInSession"
+								:sections="$parent.sectionConfigs.sections"
+								:utils="$parent.utilsBox"
+								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
+								>
+							</research-multi-sections-search>
+							<template v-if="!!$parent.sectionConfigs['tab groups']">
+								<div v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" style="position:relative">
+									
+									<button class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
+										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
+										$parent.utilsBox.uiUtils.showHideSvg('tabContentGroup' + groupIndex);
+										$parent.utilsBox.uiUtils.addRemoveClass('tabsOpener' + groupIndex,'closed');" title="Show / hide section">
+										<span :id="'groupLabel'+ + groupIndex">{{ "Show/hide "+group.label+"  " }}</span><b-icon
+											icon="eye-slash-fill"></b-icon></button>
+									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
+										<div v-for="tab, tabIndex in group.sections" :id="'tabUi'+tab.section" class="tab-ui-tab" :class="tabIndex == 0?'active':''"
+											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
+												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
+											{{ tab.label }} <span class="flag"><b-icon
+												icon="cloud-download-fill"></b-icon></span>
+										</div>
+										
+									</div>
+									<div :id="'tabContentGroup'+groupIndex" class="tab-content-group">
+										<template v-for="tab, tabIndex in group.sections">
+											<div v-for="config, index in $parent.sectionConfigs.sections" 
+												v-if="config['section id'] == tab.section"
+												:id="'tabContent' + tab.section"
+												class="tab-content-wrapper"
+												:class="(tabIndex == 0)?'':'hidden-content'"
+												>
+												<research-section
+													v-if="!config['is summary section']"
+													:sectionIndex="'section-' + index"
+													:uId="$parent.uid"
+													:sectionConfig="config"
+													:description="!!$parent.sectionDescriptions? 
+														$parent.sectionDescriptions[config['section id']]:''"
+													:phenotypeMap="$parent.phenotypeMap"
+													:phenotypesInUse="$parent.phenotypesInSession"
+													:colors="$parent.colors"
+													:plotMargin="$parent.plotMargin"
+													:plotLegend="$parent.multiPlotLegends"
+													:tableLegend="$parent.multiTableLegends"
+													:utils="$parent.utilsBox"
+													:key="index"
+													:starItems="$parent.starItems"
+													:regionZoom="$parent.regionZoom"
+													:regionViewArea="$parent.regionViewArea"
+													:isInTab="true"
+													@on-star="$parent.starColumn"
+													@on-sectionData="$parent.onSectionsData"
+													@on-zoom="$parent.setZoom">
+												</research-section>
+												<research-sections-summary
+													v-if="!!config['is summary section']"
+													:sectionIndex="'section-' + index"
+													:uId="$parent.uid"
+													:key="index"
+													:sectionsConfig="config"
+													:sectionsData="$parent.sectionsData"
+													:utils="$parent.utilsBox"
+													:starItems="$parent.starItems"
+													:regionZoom="$parent.regionZoom"
+													:regionViewArea="$parent.regionViewArea"
+													:isInTab="true"
+													@on-star="$parent.starColumn"
+													@on-zoom="$parent.setZoom">
+												</research-sections-summary>
+										</div>
+										</template>
+									</div>
+								</div>
+							</template>
+							
+							<template v-for="config, index in $parent.sectionConfigs.sections">
+								<research-section
+									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
+									:sectionIndex="'section-' + index"
+									:uId="$parent.uid"
+									:sectionConfig="config"
+									:description="!!$parent.sectionDescriptions ?
+										$parent.sectionDescriptions[config['section id']] : ''"
+									:phenotypeMap="$parent.phenotypeMap"
+									:phenotypesInUse="$parent.phenotypesInSession"
+									:colors="$parent.colors"
+									:plotMargin="$parent.plotMargin"
+									:plotLegend="$parent.plotLegend"
+									:tableLegend="$parent.tableLegend"
+									:utils="$parent.utilsBox"
+									:key="index"
+									:starItems="$parent.starItems"
+									:regionZoom="$parent.regionZoom"
+									:regionViewArea="$parent.regionViewArea"
+									@on-star="$parent.starColumn"
+									@on-sectionData="$parent.onSectionsData"
+									@on-zoom="$parent.setZoom">
+								</research-section>	
+								<research-sections-summary
+									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
+									:sectionIndex="'section-' + index"
+									:uId="$parent.uid"
+									:key="index"
+									:sectionsConfig="config"
+									:sectionsData="$parent.sectionsData"
+									:utils="$parent.utilsBox"
+									:starItems="$parent.starItems"
+									:regionZoom="$parent.regionZoom"
+									:regionViewArea="$parent.regionViewArea"
+									@on-star="$parent.starColumn"
+									@on-zoom="$parent.setZoom"
+									>
+								</research-sections-summary>
+							</template>
+							
 						</div>
 					</div>
 				</div>
@@ -547,6 +753,9 @@
 			No data is available for the last search. Please try a new search.
 		</div>
 
+		<div id="plotLegend" v-html="$parent.plotLegend" style="display:none;"></div>
+		<div id="tableLegend" v-html="$parent.tableLegend" style="display:none;"></div>
+
 		<!-- Research portal Footer-->
 		<research-page-footer
 			v-if="$parent.displayOnKP == null"
@@ -566,6 +775,34 @@
 html {
 	font-size: 14px !important;
 }
+html, body, #app {
+    min-height: 100vh;
+    position: relative;
+}
+#app {
+    display:flex;
+	flex-direction: column;
+}
+.flex-body{
+    flex: 1 1 auto;
+    display:flex;
+    flex-direction: column;
+	padding-bottom: 40px;
+}
+.card.hidden {
+	display: none !important;
+}
+
+.show-tabs-btn {
+ font-size: 14px !important;
+ color: #55AAEE;
+}
+
+.show-tabs-btn.closed {
+ font-size: 14px !important;
+ color: #ee5555;
+}
+
 .no-data-warning {
 	background-color: #ffaaaa;
 	position: fixed;
@@ -578,8 +815,10 @@ html {
 	border-radius: 5px;
 	color: #ffffff;
 }
-#alert_pop_up {
+
+.alert-pop-up {
 	position: fixed;
+	z-index: 200;
 	width: 400px;
 	top: 50%;
 	left: calc(50% - 200px);
@@ -590,6 +829,20 @@ html {
 	font-size: 1.15em;
 	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
+
+.section-alert-pop-up {
+	position: fixed;
+	z-index: 200;
+	width: 400px;
+	right: 15px;
+	background-color: #ffefef;
+	padding: 15px 30px;
+	border: solid 1px #ff8888;
+	border-radius: 5px;
+	font-size: 1.15em;
+	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
 .zoom-ui-wrapper {
 	font-size: 13px;
 	font-weight: 700;
@@ -678,7 +931,62 @@ html {
 	margin-right: 20px;
 }
 
-.research-data-table td.multi-value-td span {
+.research-data-table td.multi-value-td > span {
 	height: 27px !important;
+}
+
+.tab-ui-wrapper {
+	position: relative;
+	border-bottom: solid 1px #ddd;
+    margin: 5px 0 10px 0;
+    padding: 0 25px;
+}
+
+.tab-ui-wrapper .tab-ui-tab {
+	padding: 10px 15px;
+    border: solid 1px #ddd;
+    display: inline-block;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    margin-right: 5px;
+    background-color: #eee;
+    margin-bottom: -1px;
+	color: #0069d9;
+}
+
+.tab-ui-wrapper .tab-ui-tab:hover {
+	cursor: pointer;
+}
+
+.tab-ui-wrapper .tab-ui-tab.active {
+	border-bottom: solid 1px #fff;
+	background-color: #fff;
+}
+
+.tab-ui-wrapper .tab-ui-tab > .flag {
+ 	display: none;
+}
+
+.tab-ui-wrapper .tab-ui-tab.loading > .flag {
+ 	display: inline-block;
+	color:#05bd02;
+}
+
+.tab-ui-wrapper.hidden-svg {
+	visibility: hidden !important;
+	height: 10px !important;
+	overflow:hidden;
+	margin-bottom: 20px;
+}
+
+.tab-content-group.hidden-svg {
+	visibility: hidden !important;
+	height: 1px !important;
+	overflow:hidden;
+}
+
+.tab-content-wrapper.hidden-content {
+	visibility: hidden !important;
+	height: 1px !important;
 }
 </style>

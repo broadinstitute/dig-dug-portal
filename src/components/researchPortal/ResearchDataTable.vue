@@ -1,7 +1,6 @@
 <template>
-	<div class="research-data-table-wrapper">
+	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
 		<div v-html="tableLegend" class="data-table-legend"></div>
-
 		<div
 			v-if="
 				!!searchParameters &&
@@ -32,7 +31,7 @@
 			v-html="'Total rows: ' + this.rows"
 			class="table-total-rows"
 		></div>
-		<div class="table-ui-wrapper">
+		<div v-if="!!dataset" class="table-ui-wrapper">
 			<label
 				>Rows per page:
 				<select v-model="perPageNumber" class="number-per-page">
@@ -46,28 +45,27 @@
 				</select>
 			</label>
 			<div
-				v-if="dataComparisonConfig == null"
 				class="convert-2-csv btn-sm"
-				@click="convertJson2Csv(filteredData, pageID + '_filtered')"
+				@click="convertJson2Csv(filteredData, pageID + sectionId+ '_filtered')"
 			>
 				Save as CSV
 			</div>
 			<div
 				class="convert-2-csv btn-sm"
-				@click="saveJson(filteredData, pageID + '_filtered')"
+				@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
 			>
 				Save as JSON
 			</div>
 			<div
 				class="convert-2-csv btn-sm"
-				@click="showHidePanel('#showHideColumnsBox')"
+				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
 			>
 				show/hide columns
 			</div>
-			<div v-if="!!tableFormat" id="showHideColumnsBox" class="hidden">
+			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="hidden">
 				<div
 					class="show-hide-columns-box-close"
-					@click="showHidePanel('#showHideColumnsBox')"
+					@click="showHidePanel('#showHideColumnsBox'+sectionId)"
 				>
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
@@ -121,7 +119,7 @@
 						<th
 							v-if="getIfChecked(value) == true"
 							:key="index"
-							@click="applySorting(value)"
+							@click="!!multiSectionPage?callFilter(value):applySorting(value)"
 							class="byor-tooltip"
 							:class="
 								'sortable-th ' +
@@ -176,15 +174,24 @@
 						"
 					>
 						<td
-							v-if="ifDataObject(tdValue) == false"
-							:key="tdKey"
-							v-html="formatValue(tdValue, tdKey)"
-							:class="getColumnId(tdKey)"
-						></td>
+								v-if="ifDataObject(tdValue) == false"
+								:key="tdKey"
+								:class="getColumnId(tdKey)"
+							>
+							<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
+								{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
+								<span class="btns-wrapper">
+									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
+										v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
+								</span>
+								
+							</span>
+							
+							<span v-else v-html="formatValue(tdValue, tdKey)"></span>
+						</td>
 						<td
 							v-if="
-								ifDataObject(tdValue) == true &&
-								getIfChecked(tdKey) == true
+								ifDataObject(tdValue) == true
 							"
 							:key="tdKey"
 							class="multi-value-td"
@@ -197,15 +204,23 @@
 									' reference bg-color-' +
 									getColorIndex(sKey)
 								"
-								v-html="formatValue(sValue, tdKey)"
 								:key="sKey"
-							></span>
+							>
+
+								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
+									{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
+									<span class="btns-wrapper">
+										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
+											v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
+									</span>
+								</span>
+								<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
 						</td>
 					</template>
 					<td v-if="tableFormat['features'] != undefined">
 						<span
 							href="javascript:;"
-							@click="showHideFeature('feature_' + index)"
+							@click="showHideFeature('feature_' + sectionId + index)"
 							class="show-evidence-btn btn"
 							>View</span
 						>
@@ -213,13 +228,14 @@
 				</tr>
 				<tr
 					v-if="!!tableFormat['features']"
-					:id="'feature_' + index"
+					:id="'feature_' + sectionId + index"
 					:class="'hidden'"
 				>
 					<td :colspan="topRowNumber" class="features-td">
 						<research-data-table-features
 							:featuresData="value.features"
 							:featuresFormat="tableFormat"
+							:utils="utils"
 						></research-data-table-features>
 					</td>
 				</tr>
@@ -227,7 +243,7 @@
 		</table>
 		<b-container
 			v-if="
-				!!perPageNumber && perPageNumber != null && perPageNumber != 0
+				!!dataset && !!perPageNumber && perPageNumber != null && perPageNumber != 0
 			"
 			class="egl-table-page-ui-wrapper"
 		>
@@ -247,10 +263,6 @@ import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 
-import Formatters from "@/utils/formatters";
-import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
-
 export default Vue.component("research-data-table", {
 	props: [
 		"pageID",
@@ -263,6 +275,13 @@ export default Vue.component("research-data-table", {
 		"pkgData",
 		"pkgDataSelected",
 		"phenotypeMap",
+		"multiSectionPage",
+		"starItems",
+		"sectionId",
+		"utils",
+		"region",
+		"regionZoom",
+		"regionViewArea"
 	],
 	data() {
 		return {
@@ -284,7 +303,12 @@ export default Vue.component("research-data-table", {
 	updated() {},
 	computed: {
 		filteredData() {
-			return this.$store.state.filteredData;
+			if(!!this.multiSectionPage){
+				return this.dataset;
+			} else {
+				return this.$store.state.filteredData;
+			}
+			
 		},
 		dataScores() {
 			if (
@@ -359,15 +383,61 @@ export default Vue.component("research-data-table", {
 				}
 			}
 		},
+		viewingRegion() {
+			if (this.region == null) {
+				return null;
+			} else {
+				let returnObj = {};
+
+				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
+
+				let regionArr = this.region.split(":")[1].split("-");
+				let chr = this.region.split(":")[0];
+				let start = parseInt(regionArr[0], 10);
+				let end = parseInt(regionArr[1], 10);
+				let distance = end - start;
+				if (this.regionZoom > 0) {
+					let zoomNum = Math.round(
+						distance * (this.regionZoom / 200)
+					);
+					let viewPointShift = Math.round(
+						zoomNum * (this.regionViewArea / 100)
+					);
+					returnObj["chr"] = chr;
+					returnObj["start"] = start + zoomNum + viewPointShift;
+					returnObj["end"] = end - zoomNum + viewPointShift;
+				} else if (this.regionZoom == 0) {
+					returnObj["chr"] = chr;
+					returnObj["start"] = start;
+					returnObj["end"] = end;
+				}
+
+				return returnObj;
+			}
+		},
 		rawData() {
-			let rawData = this.dataset;
+
+			let posField = !!this.tableFormat["data zoom"]? this.tableFormat["data zoom"].position:null;
+			let startPos = !!this.viewingRegion? this.viewingRegion.start:null;
+			let endPos = !!this.viewingRegion ? this.viewingRegion.end:null;
+
+			//console.log("posField", posField, "startPos", startPos, "endPos", endPos );
+
+			//console.log("this.dataset", this.dataset);
 
 			let formattedData = [];
 
 			if (this.dataComparisonConfig == null) {
+
+				let rawData = [...new Set(this.dataset)];
+
+				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
+					rawData = rawData.filter(vValue => vValue[posField] >= startPos && vValue[posField] <= endPos);
+				}
+
 				rawData.map((d) => {
 					let tempObj = {};
-
+					
 					this.tableFormat["top rows"].map((t) => {
 						tempObj[t] = d[t];
 					});
@@ -393,6 +463,21 @@ export default Vue.component("research-data-table", {
 					formattedData.push(tempObj);
 				});
 			} else {
+
+				let rawData = {...this.dataset};
+
+				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
+
+					for (const [vKey, vValue] of Object.entries(rawData)) {
+						if (
+							vValue[posField] >= startPos &&
+							vValue[posField] <= endPos
+						) {
+							delete rawData[vKey];
+						}
+					}
+				}
+
 				for (const [key, value] of Object.entries(rawData)) {
 					let tempObj = {};
 
@@ -439,8 +524,6 @@ export default Vue.component("research-data-table", {
 		pagedData() {
 			if (!!this.perPageNumber && this.perPageNumber != null) {
 				let formattedData = this.rawData;
-
-				//let filtered = this.dataset;
 
 				let paged = [];
 				let perPage =
@@ -517,7 +600,45 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	methods: {
-		...Formatters,
+		setParameter(VALUE,KEY,SECTION,PARAMETERS){
+
+			console.log("section component", VALUE, ":", KEY, ":", SECTION, ":", PARAMETERS);
+
+			let targetSections = SECTION == "all" ? "":[SECTION];
+
+			if (typeof PARAMETERS === "object") {
+				let values = VALUE.split(",");
+
+				PARAMETERS.map((p, pIndex) => {
+					document.getElementById("search_param_" + p).value = values[pIndex];
+					this.$root.$refs.multiSectionSearch.updateSearch(p, targetSections);
+				})
+
+			} else {
+				document.getElementById("search_param_" + PARAMETERS).value = VALUE;
+				this.$root.$refs.multiSectionSearch.updateSearch(PARAMETERS, targetSections);
+			}
+			
+		},
+		ifSetParameterColumn(KEY){
+			if(!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+			 && !!this.tableFormat['column formatting'][KEY]['type'].includes('set parameter')) {
+				return true;
+			 } else {
+				return null;
+			 }
+		},
+		getParameterColumnLabel(KEY){
+			if (!!this.ifSetParameterColumn(KEY)) {
+				let label = (!!this.tableFormat['column formatting'][KEY].label)? this.tableFormat['column formatting'][KEY].label : null;
+				return label;
+			} else {
+				return null;
+			}
+		},
+		getParameterTargets(KEY) {
+			return this.tableFormat['column formatting'][KEY]['target sections'];
+		},
 		showHidePanel(PANEL) {
 			let wrapper = document.querySelector(PANEL);
 			if (wrapper.classList.contains("hidden")) {
@@ -540,28 +661,68 @@ export default Vue.component("research-data-table", {
 		addRemoveColumn(EVENT) {
 			this.$forceUpdate();
 		},
+		getColumns(ID) {
+			let item;
+			if (this.dataComparisonConfig != null) {
+				for (const [key, value] of Object.entries(
+					this.dataset
+				)) {
+					if (value[this.tableFormat["star column"]] == ID) {
+						item = value;
+					}
+				}
+			} else {
+				item = this.dataset.filter(p => p[this.tableFormat["star column"]] == ID)[0];
+			}
+			return item;
+		},
 		addStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
-			this.$store.dispatch("pkgDataSelected", {
-				type: this.tableFormat["star column"],
-				id: value,
-				action: "add",
-			});
+			if (!!this.multiSectionPage) {
+				
+				let stard = [...new Set(this.starItems)]
+				let tempObj = {
+					type: this.tableFormat["star column"],
+					id: value,
+					columns: this.getColumns(value)
+				}
+				stard.push(tempObj);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.tableFormat["star column"],
+					id: value,
+					action: "add",
+				});
+			}
 		},
 		removeStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
-			this.$store.dispatch("pkgDataSelected", {
-				type: this.tableFormat["star column"],
-				id: value,
-				action: "remove",
-			});
+			if (!!this.multiSectionPage) {
+				let stard = [...new Set(this.starItems)].filter(s => s.id != value);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.tableFormat["star column"],
+					id: value,
+					action: "remove",
+				});
+			}
 		},
 		checkStared(WHERE, ITEM) {
 			if (!!ITEM) {
-				let selectedItems = this.pkgDataSelected
+				let selectedItems;
+
+				if(!!this.multiSectionPage) {
+					selectedItems = this.starItems
 					.filter((s) => s.type == this.tableFormat["star column"])
 					.map((s) => s.id);
-
+				} else {
+					selectedItems = this.pkgDataSelected
+					.filter((s) => s.type == this.tableFormat["star column"])
+					.map((s) => s.id);
+				}
+				
 				let value = ITEM[this.tableFormat["star column"]];
 
 				if (!!selectedItems.includes(value)) {
@@ -605,13 +766,13 @@ export default Vue.component("research-data-table", {
 			}
 		},
 		showHideFeature(ELEMENT) {
-			uiUtils.showHideElement(ELEMENT);
+			this.utils.uiUtils.showHideElement(ELEMENT);
 		},
 		convertJson2Csv(DATA, FILENAME) {
-			uiUtils.convertJson2Csv(DATA, FILENAME);
+			this.utils.uiUtils.saveByorCsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
-			uiUtils.saveJson(DATA, FILENAME);
+			this.utils.uiUtils.saveJson(DATA, FILENAME);
 		},
 		formatValue(tdValue, tdKey) {
 			let content;
@@ -621,13 +782,14 @@ export default Vue.component("research-data-table", {
 				!!this.tableFormat["column formatting"] &&
 				!!this.tableFormat["column formatting"][tdKey]
 			) {
+				
 				let types = this.tableFormat["column formatting"][tdKey].type;
 
 				if (
 					!!types.includes("render background percent") ||
 					!!types.includes("render background percent negative")
 				) {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.tableFormat,
@@ -635,7 +797,7 @@ export default Vue.component("research-data-table", {
 						this.dataScores
 					);
 				} else if (!!types.includes("kp phenotype link")) {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.tableFormat,
@@ -643,7 +805,7 @@ export default Vue.component("research-data-table", {
 						null
 					);
 				} else {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.tableFormat,
@@ -741,9 +903,20 @@ export default Vue.component("research-data-table", {
 
 			return ifNumber;
 		},
+		callFilter(key){
+			let sortDirection = this.sortDirection == "asc" ? false : true;
+			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
+
+			this.$emit('clicked-sort', {"key":key,"direction": sortDirection});
+		},
 		applySorting(key) {
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
+
+			/*let filtered =
+				this.dataComparisonConfig == null
+					? this.dataset
+					: this.object2Array(this.dataset, key, sortDirection);*/
 
 			if (key != this.tableFormat["locus field"]) {
 				let filtered =
@@ -764,10 +937,10 @@ export default Vue.component("research-data-table", {
 				});
 
 				let isNumeric = this.checkIfNumeric(filtered, key);
-				console.log("isNumeric",isNumeric)
+				//console.log("isNumeric",isNumeric)
 
 				//sort the data with values, then merge the data WO values to the sorted.
-				let sortedValues = sortUtils
+				let sortedValues = this.utils.sortUtils
 					.sortEGLTableData(
 						filteredWValues,
 						key,
@@ -781,7 +954,9 @@ export default Vue.component("research-data-table", {
 						? sortedValues
 						: this.array2Object(sortedValues, this.dataset, key);
 
-				this.$store.dispatch("filteredData", returnData);
+				
+					this.$store.dispatch("filteredData", returnData);
+				
 			} else if (key == this.tableFormat["locus field"]) {
 				let sortKey = this.tableFormat["locus field"];
 				let filtered = this.dataset;
@@ -813,14 +988,20 @@ export default Vue.component("research-data-table", {
 					g["bp"] = bpNum;
 				});
 
-				sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
-				sortUtils.sortEGLTableData(
+				this.utils.sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
+				this.utils.sortUtils.sortEGLTableData(
 					filtered,
 					"chr",
 					true,
 					sortDirection
 				);
-				this.$store.dispatch("filteredData", filtered);
+
+				
+				if(!!this.multiSectionPage) {
+					this.$emit('clicked-sort', filtered);
+				} else {
+					this.$store.dispatch("filteredData", filtered);
+				}
 			}
 		},
 	},
@@ -839,7 +1020,7 @@ export default Vue.component("research-data-table", {
 .show-hide-columns-box-close:hover {
 	color: #36c;
 }
-#showHideColumnsBox {
+/*#showHideColumnsBox {
 	position: fixed;
 	background-color: #fff;
 	border: solid 1px #ddd;
@@ -863,6 +1044,32 @@ export default Vue.component("research-data-table", {
 
 #showHideColumnsBox th,
 #showHideColumnsBox td {
+	border: none;
+}*/
+[id*="showHideColumnsBox"] {
+	position: fixed;
+	background-color: #fff;
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	z-index: 11;
+	font-size: 14px;
+	width: 400px;
+	height: 50%;
+	text-align: left;
+	top: 25%;
+	left: calc(50% - 200px);
+	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
+	padding: 20px;
+}
+
+[id*="showHideColumnsBox"] .table-wrapper {
+	overflow: auto !important;
+	padding: 0;
+	height: calc(100% - 35px);
+}
+
+[id*="showHideColumnsBox"] th,
+[id*="showHideColumnsBox"] td {
 	border: none;
 }
 .group-item-bubble {
@@ -922,7 +1129,7 @@ table.research-data-table {
 	padding: 0 !important;
 }
 
-.research-data-table td.multi-value-td span {
+.research-data-table td.multi-value-td > span {
 	display: block;
 	padding: 0.3rem;
 	border-bottom: solid 1px #fff;
@@ -983,4 +1190,47 @@ table.research-data-table {
 	cursor: pointer;
 	background-color: #eee;
 }
+
+.set-parameter-options, .reference .set-parameter-options  {
+	position: relative;
+    background-color: #dddddd;
+    padding: 1px 7px;
+    border: solid 1px #cccccc;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.set-parameter-options:hover, .reference .set-parameter-options:hover  {
+    background-color: #333333;
+    border: solid 1px #000000;
+	color: #ffffff;
+}
+
+.set-parameter-options .btns-wrapper, .reference .set-parameter-options .btns-wrapper {
+	display: none !important;
+    position: absolute;
+    background-color: #ffffff;
+    padding: 5px 5px 2px 5px;
+    top: 25%;
+    left: 50%;
+    text-align: left;
+    width: auto;
+    z-index: 100;
+    border: solid 1px #dddddd;
+    box-shadow: 5px 5px 5px #00000050;
+}
+
+.set-parameter-options:hover .btns-wrapper, .reference .set-parameter-options:hover .btns-wrapper {
+ display: block !important;
+}
+
+.set-parameter-options .show-evidence-btn.set-search-btn, .reference .set-parameter-options .show-evidence-btn.set-search-btn {
+    font-size: 13px !important;
+    padding: 3px 7px !important;
+    display: inline !important;
+    margin-bottom: 3px;
+	text-align: left;
+	white-space: nowrap;
+}
+
 </style>

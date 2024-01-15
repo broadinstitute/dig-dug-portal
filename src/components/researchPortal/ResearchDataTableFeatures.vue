@@ -1,11 +1,14 @@
 <template>
 	<div class="research-data-table-features-wrapper">
+		<!--{{ featuresFormat['features'] }}<br />
+		{{ featuresData }}-->
 		<div
 			v-for="(value, index) in featuresFormat['features']"
 			:key="index"
 			class="research-data-table-features"
 			:v-if="!!featuresData && !!featuresFormat['features']"
 		>
+		
 			<table class="table table-sm feature-table">
 				<tr>
 					<th
@@ -58,10 +61,9 @@
 
 <script>
 import Vue from "vue";
-import Formatters from "@/utils/formatters";
 
 export default Vue.component("research-data-table-features", {
-	props: ["featuresData", "featuresFormat", "phenotypeMap"],
+	props: ["featuresData", "featuresFormat", "phenotypeMap","utils"],
 	data() {
 		return {};
 	},
@@ -127,7 +129,7 @@ export default Vue.component("research-data-table-features", {
 	},
 	watch: {},
 	methods: {
-		...Formatters,
+		//...Formatters,
 		formatValue(tdValue, tdKey) {
 			let content;
 
@@ -143,7 +145,7 @@ export default Vue.component("research-data-table-features", {
 					!!types.includes("render background percent") ||
 					!!types.includes("render background percent negative")
 				) {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.featuresFormat,
@@ -151,7 +153,7 @@ export default Vue.component("research-data-table-features", {
 						this.dataScores
 					);
 				} else if (!!types.includes("kp phenotype link")) {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.featuresFormat,
@@ -159,7 +161,7 @@ export default Vue.component("research-data-table-features", {
 						null
 					);
 				} else {
-					content = Formatters.BYORColumnFormatter(
+					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
 						this.featuresFormat,

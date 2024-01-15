@@ -1,5 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
+		
 		<div class="col-md-12 phewas-plot-wrapper">
 			<div
 				class="col-md-12"
@@ -14,7 +15,7 @@
 						:id="canvasId + 'info_box_close'"
 						class="fixed-info-box-close"
 						@click="
-							removeOnMouseOut(canvasId + 'pheWasInfoBox', 100)
+							utils.uiUtils.removeOnMouseOut(canvasId + 'pheWasInfoBox', 100)
 						"
 					>
 						<b-icon icon="x-circle-fill"></b-icon>
@@ -31,7 +32,7 @@
 						<template
 							v-if="
 								options != null &&
-								isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
+								utils.uiUtils.isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
 									true
 							"
 						>
@@ -58,7 +59,7 @@
 						<span
 							v-if="
 								options != null &&
-								isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
+								utils.uiUtils.isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
 									false
 							"
 							>Click for options</span
@@ -66,15 +67,15 @@
 					</span>
 				</div>
 
-				<canvas
+				<canvas :hidden="!showCanvas"
 					:id="canvasId + 'pheWasPlot'"
 					width=""
 					height=""
 					@mousemove="checkPosition($event, 'hover')"
 					@click="checkPosition($event, 'click')"
 					@mouseout="
-						!isIdFixed('#' + canvasId + 'pheWasInfoBox')
-							? removeOnMouseOut(canvasId + 'pheWasInfoBox', 1000)
+						!utils.uiUtils.isIdFixed('#' + canvasId + 'pheWasInfoBox')
+							? utils.uiUtils.removeOnMouseOut(canvasId + 'pheWasInfoBox', 1000)
 							: ''
 					"
 				></canvas>
@@ -87,12 +88,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "lodash";
-import uiUtils from "@/utils/uiUtils";
-import plotUtils from "@/utils/plotUtils";
-import dataConvert from "@/utils/dataConvert";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import Formatters from "@/utils/formatters.js";
-import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -108,6 +104,8 @@ export default Vue.component("research-phewas-plot", {
 		"plotMargin",
 		"filter",
 		"options",
+		"sectionId",
+		"utils"
 	],
 	data() {
 		return {
@@ -116,14 +114,10 @@ export default Vue.component("research-phewas-plot", {
 			spaceBy: 7,
 			trigger: 0,
 			hoverItems: {},
+			showCanvas: true,
 		};
 	},
 	modules: {
-		uiUtils,
-		plotUtils,
-		Formatters,
-		keyParams,
-		dataConvert,
 	},
 	components: {},
 	created: function () {
@@ -147,11 +141,13 @@ export default Vue.component("research-phewas-plot", {
 			}
 		},
 		renderData() {
+			this.showCanvas = true;
 			let content = {};
 			content["data"] = [];
 
 			if (!!this.phenotypesData) {
 				let phenotypesData = cloneDeep(this.phenotypesData);
+
 				phenotypesData.map((d) => {
 					let pValue =
 						typeof d[this.renderConfig["y axis field"]] == "string"
@@ -178,10 +174,10 @@ export default Vue.component("research-phewas-plot", {
 				content.data = content.data.filter(this.filter);
 			}
 
-			//return phenotypeGroupsObj;
 			if (!!content.data && content.data.length > 0) {
 				return content;
 			} else {
+				this.showCanvas = false;
 				return null;
 			}
 		},
@@ -190,19 +186,67 @@ export default Vue.component("research-phewas-plot", {
 		renderData(content) {
 			this.renderPheWas();
 		},
+
+		/*phenotypesData(DATA) {
+
+			console.log("DATA",DATA);
+
+			this.showCanvas = true;
+			let content = {};
+			content["data"] = [];
+
+			
+			let phenotypesData = cloneDeep(this.phenotypesData);
+
+			phenotypesData.map((d) => {
+				let pValue =
+					typeof d[this.renderConfig["y axis field"]] == "string"
+						? Number(d[this.renderConfig["y axis field"]])
+						: d[this.renderConfig["y axis field"]];
+				d["rawPValue"] = pValue;
+
+				if (this.renderConfig["convert y -log10"] == "true") {
+					d[this.renderConfig["y axis field"] + "-log10"] =
+						-Math.log10(pValue);
+				}
+
+				if (
+					this.phenotypeMapConfig == "kpPhenotypeMap" &&
+					!!this.phenotypeMap[d[this.renderConfig["render by"]]]
+				) {
+					content["data"].push(d);
+				} else if (this.phenotypeMapConfig == null) {
+					content["data"].push(d);
+				}
+			});
+		
+			if (!!this.filter) {
+				content.data = content.data.filter(this.filter);
+			}
+
+			if (!!content.data && content.data.length > 0) {
+				this.renderData = content;
+			} else {
+				this.showCanvas = false;
+				this.renderData = null;
+			}
+
+			if(!!this.renderData) {this.renderPheWas()};
+		}*/
 	},
 	methods: {
-		...uiUtils,
-		isIdFixed: uiUtils.isIdFixed,
-		removeOnMouseOut: uiUtils.removeOnMouseOut,
+		//...uiUtils,
+		//isIdFixed: uiUtils.isIdFixed,
+		//removeOnMouseOut: uiUtils.removeOnMouseOut,
 		openPage(PAGE, PARAMETER) {
-			uiUtils.openPage(PAGE, PARAMETER);
+			this.utils.uiUtils.openPage(PAGE, PARAMETER);
 		},
 		addPhenotype(PHENOTYPE) {
 			this.$parent.$parent.pushCriterionPhenotype(PHENOTYPE);
 			window.location.href = "#associations-table";
 		},
 		groupData(DATA) {
+			
 			let phenotypeGroups = [];
 			let phenotypeGroupsObj = {};
 
@@ -258,13 +302,22 @@ export default Vue.component("research-phewas-plot", {
 			let rawX = e.clientX - rect.left;
 			let rawY = e.clientY - rect.top;
 
-			let plotMargin = {
-				left: this.plotMargin.leftMargin / 2,
-				right: (this.plotMargin.leftMargin / 2) * 1.5,
-				top: (this.plotMargin.bottomMargin / 2) * 3.5,
-				bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
-				bump: 5,
-			};
+			let customPlotMargin = !!this.renderConfig["plot margin"]? this.renderConfig["plot margin"]:null;
+
+			let plotMargin = !!customPlotMargin?{
+						left: customPlotMargin.left,
+						right: customPlotMargin.right,
+						top: customPlotMargin.top,
+						bottom: customPlotMargin.bottom,
+						bump: 10,
+					}:
+					{
+						left: this.plotMargin.leftMargin / 2,
+						right: (this.plotMargin.leftMargin / 2) * 1.5,
+						top: (this.plotMargin.bottomMargin / 2) * 3.5,
+						bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
+						bump: 10,
+					};
 
 			let y = Math.ceil(e.clientY - rect.top);
 			let x = Math.ceil(e.clientX - rect.left);
@@ -283,8 +336,8 @@ export default Vue.component("research-phewas-plot", {
 				this.hoverItems = {};
 
 				if (
-					x >= plotMargin.left &&
-					x <= rect.width - plotMargin.right
+					x >= (plotMargin.left / 2) &&
+					x <= rect.width - (plotMargin.right / 2)
 				) {
 					for (const [yKey, yValue] of Object.entries(
 						this.pheWasPosData
@@ -314,8 +367,6 @@ export default Vue.component("research-phewas-plot", {
 						}
 					}
 				}
-
-				//console.log("this.hoverItems", this.hoverItems);
 
 				if (TYPE == "hover") {
 					if (infoContent == "") {
@@ -398,6 +449,7 @@ export default Vue.component("research-phewas-plot", {
 				this.pheWasPosData = {};
 
 				let renderData = this.groupData(this.renderData);
+
 				let groups = {};
 				let totalNum = 0;
 
@@ -414,7 +466,7 @@ export default Vue.component("research-phewas-plot", {
 										this.renderConfig["y axis field"] +
 											"-log10"
 								  ]
-								: p[this.renderConfig["y axis field"]];
+								: Number(p[this.renderConfig["y axis field"]]);
 						minY =
 							minY == null
 								? yValue
@@ -429,21 +481,28 @@ export default Vue.component("research-phewas-plot", {
 								: maxY;
 					});
 				}
-
-				//console.log("minY", minY, "maxY", maxY);
 				minY = Math.floor(minY);
 				maxY = Math.ceil(maxY);
 
 				ctx.stroke();
-				let plotMargin = {
-					left: this.plotMargin.leftMargin,
-					right: this.plotMargin.leftMargin * 1.5,
-					top: this.plotMargin.bottomMargin * 3.5,
-					bottom: this.plotMargin.bottomMargin * 2.5,
-					bump: 10,
-				};
 
-				plotUtils.renderAxisWBump(
+				let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+				let plotMargin = !!customPlotMargin ? {
+					left: customPlotMargin.left,
+					right: customPlotMargin.right,
+					top: customPlotMargin.top,
+					bottom: customPlotMargin.bottom,
+					bump: 10,
+				} :
+					{
+						left: this.plotMargin.leftMargin / 2,
+						right: (this.plotMargin.leftMargin / 2) * 1.5,
+						top: (this.plotMargin.bottomMargin / 2) * 3.5,
+						bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
+						bump: 10,
+					};
+
+				this.utils.plotUtils.renderAxisWBump(
 					ctx,
 					canvasWidth,
 					canvasHeight,
@@ -455,7 +514,7 @@ export default Vue.component("research-phewas-plot", {
 					this.renderConfig["y axis label"]
 				);
 
-				plotUtils.renderAxisWBump(
+				this.utils.plotUtils.renderAxisWBump(
 					ctx,
 					canvasWidth,
 					canvasHeight,
@@ -549,7 +608,7 @@ export default Vue.component("research-phewas-plot", {
 										p[this.renderConfig["render by"]]
 									])
 							) {
-								//console.log("render");
+
 								let xPos = plotMargin.left + xStep * dotIndex;
 
 								let yValue =

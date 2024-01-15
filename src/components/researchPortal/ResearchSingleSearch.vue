@@ -55,13 +55,10 @@
 
 <script>
 import Vue from "vue";
-
-import uiUtils from "@/utils/uiUtils";
-import regionUtils from "@/utils/regionUtils";
 import { match } from "@/utils/bioIndexUtils";
 
 export default Vue.component("research-single-search", {
-	props: ["singleSearchConfig", "phenotypes"],
+	props: ["singleSearchConfig", "phenotypes","utils"],
 	modules: {},
 
 	data() {
@@ -109,10 +106,9 @@ export default Vue.component("research-single-search", {
 		},
 	},
 	methods: {
-		...uiUtils,
 
 		onSearch() {
-			let searchKey = this.singleSearchParam.replace(/,/g, "");
+			let searchKey = this.singleSearchParam.replace(/,/g, "").trim();
 			if (
 				!!this.singleSearchParam.includes("rs") ||
 				!!this.singleSearchParam.includes(":")
@@ -143,7 +139,7 @@ export default Vue.component("research-single-search", {
 			}
 		},
 		async searchGene(KEY) {
-			let geneSymbol = await regionUtils.geneSymbol(KEY);
+			let geneSymbol = await this.utils.regionUtils.geneSymbol(KEY);
 
 			if (geneSymbol) {
 				let genePageUrl = "/gene.html?gene=" + geneSymbol;
@@ -153,7 +149,7 @@ export default Vue.component("research-single-search", {
 		},
 
 		async searchRegion(KEY) {
-			let region = await regionUtils.parseRegion(KEY, true, 50000);
+			let region = await this.utils.regionUtils.parseRegion(KEY, true, 50000);
 
 			if (region) {
 				let regionPageUrl =

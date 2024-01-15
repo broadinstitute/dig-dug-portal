@@ -20,6 +20,7 @@ import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.v
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
 import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
+import ResearchFrontPage from "@/components/researchPortal/ResearchFrontPage.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchGEMDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
@@ -33,11 +34,20 @@ import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
+import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
+import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
+import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
-import sessionUtils from "@/utils/sessionUtils";
-import $ from "jquery";
 import keyParams from "@/utils/keyParams";
+import sessionUtils from "@/utils/sessionUtils";
+import filterUtils from "@/utils/filterUtils";
+import $ from "jquery";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -54,6 +64,7 @@ new Vue({
         ResearchPageFooter,
         ResearchPageDescription,
         ResearchPageFilters,
+        ResearchFrontPage,
         ResearchDataTable,
         ResearchAnnotationsPlot,
         ResearchGEMDataTable,
@@ -68,18 +79,24 @@ new Vue({
         ResearchPheWAS,
         kpGEMPkg,
         Documentation,
+        ResearchSection,
+        ResearchSectionsSummary,
+        ResearchMultiSectionsSearch
     },
     data() {
         return {
+            starItems: [],
+            sectionsData: [],
             pageID: null,
             regionZoom: 0,
             regionViewArea: 0,
             devID: null,
             devPW: null,
+            devCK: null,
             dataFiles: [],
             dataTableFormat: null,
             colors: {
-                moderate: [
+                mild: [
                     "#007bff25",
                     "#04884525",
                     "#8490C825",
@@ -161,8 +178,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
-
-
     },
 
     render(createElement, context) {
@@ -175,570 +190,111 @@ new Vue({
     beforeDestroy() {
 
     },
-    /*
-        oldMethods: {
-            ...uiUtils,
-            ...sessionUtils,
-            postAlert,
-            postAlertNotice,
-            postAlertError,
-            closeAlert,
-            getSubHeader() {
-                if (!!this.apiParameters && !!this.apiParameters["parameters in sub header"]) {
-                    const queryString = window.location.search;
-                    const urlParams = new URLSearchParams(queryString);
-                    let subHeaderContent = "<span class='rp-sub-header-label'>Search parameters</span><div>";
-    
-                    this.apiParameters["parameters in sub header"].map(p => {
-                        let paramVlue = urlParams.get(p)
-                        subHeaderContent += '<span class="rp-sub-header-search-param-label">' + p + '</span>: <span class="rp-sub-header-search-param">' + paramVlue + '</span>';
-                    })
-                    subHeaderContent += "</div>";
-    
-                    document.getElementById("rpSubHeader").innerHTML = subHeaderContent;
-                }
-            },
-            addcss(css) {
-                var head = document.getElementsByTagName('head')[0];
-                var s = document.createElement('style');
-                s.setAttribute('type', 'text/css');
-                if (s.styleSheet) {   // IE
-                    s.styleSheet.cssText = css;
-                } else {                // the world
-                    s.appendChild(document.createTextNode(css));
-                }
-                head.appendChild(s);
-            },
-            fetchDevPage() {
-                let devID = this.devID;
-                let devPW = this.devPW;
-    
-    
-                this.$store.dispatch("hugeampkpncms/getResearchDevPage", { 'pageID': keyParams.pageid, 'devID': devID, 'devPW': devPW });
-            },
-            CSVToArray(strData, strDelimiter) {
-                // Check to see if the delimiter is defined. If not,
-                // then default to comma.
-                strDelimiter = (strDelimiter || ",");
-    
-                // Create a regular expression to parse the CSV values.
-                var objPattern = new RegExp(
-                    (
-                        // Delimiters.
-                        "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-    
-                        // Quoted fields.
-                        "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-    
-                        // Standard fields.
-                        "([^\"\\" + strDelimiter + "\\r\\n]*))"
-                    ),
-                    "gi"
-                );
-    
-                // Create an array to hold our data. Give the array
-                // a default empty first row.
-                var arrData = [[]];
-    
-                // Create an array to hold our individual pattern
-                // matching groups.
-                var arrMatches = null;
-    
-    
-                // Keep looping over the regular expression matches
-                // until we can no longer find a match.
-                while (arrMatches = objPattern.exec(strData)) {
-    
-                    // Get the delimiter that was found.
-                    var strMatchedDelimiter = arrMatches[1];
-    
-                    // Check to see if the given delimiter has a length
-                    // (is not the start of string) and if it matches
-                    // field delimiter. If id does not, then we know
-                    // that this delimiter is a row delimiter.
-                    if (
-                        strMatchedDelimiter.length &&
-                        strMatchedDelimiter !== strDelimiter
-                    ) {
-    
-                        // Since we have reached a new row of data,
-                        // add an empty row to our data array.
-                        arrData.push([]);
-    
-                    }
-    
-                    var strMatchedValue;
-    
-                    // Now that we have our delimiter out of the way,
-                    // let's check to see which kind of value we
-                    // captured (quoted or unquoted).
-                    if (arrMatches[2]) {
-    
-                        // We found a quoted value. When we capture
-                        // this value, unescape any double quotes.
-                        strMatchedValue = arrMatches[2].replace(
-                            new RegExp("\"\"", "g"),
-                            "\""
-                        );
-    
-                    } else {
-                        // We found a non-quoted value.
-                        strMatchedValue = arrMatches[3];
-    
-                    }
-    
-    
-                    // Now that we have our value string, let's add
-                    // it to the data array.
-                    arrData[arrData.length - 1].push(strMatchedValue);
-                }
-    
-                // Return the parsed data.
-                return (arrData);
-            },
-    
-            csv2Json(DATA) {
-    
-                let rawData2 = (this.dataType == 'direct_csv') ? DATA : JSON.parse(DATA);
-    
-                let csvArr = this.CSVToArray(rawData2, ",");
-    
-    
-                let jsonHeader = csvArr[0]
-                csvArr.shift();
-    
-                let jsonData = []
-    
-                csvArr.map(i => {
-                    if (i.length > 1) {
-                        let tempObj = {};
-    
-                        for (let h = 0; h < i.length; h++) {
-    
-                            tempObj[jsonHeader[h]] = (this.testNumber(i[h]) == true) ? Number(i[h]) : this.breakLines(i[h]);
-                        }
-                        jsonData.push(tempObj);
-                    }
-                });
-    
-    
-                return jsonData;
-            },
-    
-            convertData(CONVERT, DATA) {
-                let convertedData = [];
-                let joinValues = function (FIELDS, jBy, fData) {
-    
-                    let fieldValue = "";
-                    let fieldsLength = FIELDS.length;
-    
-                    for (let i = 0; i < fieldsLength; i++) {
-                        if (i < fieldsLength - 1) {
-                            fieldValue += fData[FIELDS[i]] + jBy;
-                        } else {
-                            fieldValue += fData[FIELDS[i]];
-                        }
-    
-                    }
-                    return fieldValue;
-                }
-    
-                let joinMultiValues = function (FIELDS, jBy, fData) {
-    
-                    let fieldValue = "";
-                    let fieldsLength = FIELDS.length;
-    
-                    for (let i = 0; i < fieldsLength; i++) {
-                        if (i < fieldsLength - 1) {
-                            fieldValue += fData[FIELDS[i]] + jBy[i];
-                        } else {
-                            fieldValue += fData[FIELDS[i]];
-                        }
-    
-                    }
-                    return fieldValue;
-                }
-    
-                let scoreColumns = function (FIELDS, scoreBy, fData) {
-    
-                    let fieldValue = 0;
-                    let fieldsLength = FIELDS.length;
-    
-                    FIELDS.map(fName => {
-                        let scoreType = scoreBy[fName].type;
-                        switch (scoreType) {
-                            case "boolean":
-                                let value2Score = scoreBy[fName]["value to score"][fData[fName]];
-                                fieldValue += value2Score;
-                                break;
-                        }
-                    });
-    
-                    return fieldValue / fieldsLength;
-                }
-    
-                let formatLocus = function (CHR, START, END, fData) {
-                    let locus = fData[CHR] + ':';
-                    locus += Math.ceil((fData[START] + fData[END]) / 2);
-                    return locus;
-                }
-    
-                let array2String = function (CONTENT, SEPARATOR) {
-                    let string = "";
-                    CONTENT.map(c => {
-                        string += c + SEPARATOR;
-                    })
-    
-                    return string.slice(0, -1)
-                }
-    
-                let applyConvert = function (DATA, CONVERT, PHENOTYPE_MAP) {
-    
-                    console.log(CONVERT)
-                    let tempObj = {};
-                    CONVERT.map(c => {
-    
-                        let cType = c.type;
-    
-    
-                        switch (cType) {
-    
-                            case "join":
-                                tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], DATA);
-                                break;
-    
-                            case "join multi":
-                                tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], DATA);
-                                break;
-    
-                            case "split":
-                                console.log(c)
-                                //tempObj[c["field name"]] = joinMultiValues(c["fields to join"], c["join by"], DATA);
-                                let newFields = c["field name"];
-                                let newFieldValues = [];
-                                let string2Split = DATA;
-                                let loopIndex = 1;
-                                c["split by"].map(s => {
-    
-                                    let splittedValue = string2Split.split(s)
-    
-                                    if (loopIndex < c["split by"].length) {
-                                        newFieldValues.push(splittedValue[0])
-                                        splittedValue = splittedValue[1]
-                                    } else if (loopIndex = c["split by"].length) {
-                                        newFieldValues.push(splittedValue[0])
-                                        newFieldValues.push(splittedValue[1])
-                                    }
-                                    loopIndex++;
-                                })
-    
-                                loopIndex = 0;
-    
-                                newFields.map(f => {
-                                    tempObj[f] = newFieldValues[loopIndex];
-                                    loopIndex++;
-                                })
-    
-                                break;
-    
-                            case "get locus":
-                                tempObj[c["field name"]] = formatLocus(c["chromosome"], c["start"], c["end"], DATA);
-                                break;
-    
-                            case "calculate":
-    
-                                let calType = c["calculation type"];
-    
-                                switch (calType) {
-                                    case "-log10":
-                                        tempObj[c["field name"]] = -Math.log10(DATA[c["raw field"]]);
-                                        break;
-                                }
-                                break;
-    
-                            case "js math":
-                                let calFunc = c["method"];
-                                tempObj[c["field name"]] = Math[calFunc](DATA[c["raw field"]]);
-    
-                                break;
-    
-                            case "raw":
-                                tempObj[c["field name"]] = DATA[c["raw field"]];
-                                break;
-    
-                            case "score columns":
-                                tempObj[c["field name"]] = scoreColumns(c["fields to score"], c["score by"], DATA);
-                                break;
-    
-                            case "array to string":
-                                tempObj[c["field name"]] = array2String(DATA[c["raw field"]], c["separate by"]);
-                                break;
-    
-                            case "replace characters":
-                                let replaceArr = c["replace"]
-                                let rawString = DATA[c["raw field"]];
-                                let newString = "";
-                                let sIndex = 0;
-    
-                                replaceArr.map(r => {
-    
-                                    newString = (sIndex == 0) ? rawString : newString;
-                                    console.log("newString", newString);
-                                    if (!!rawString) {
-                                        newString = newString.replaceAll(r.from, r.to);
-                                    }
-                                    sIndex++;
-                                })
-    
-                                tempObj[c["field name"]] = newString;
-                                break;
-    
-                            case "kp phenotype name":
-    
-                                let pID = DATA[c["raw field"]]
-    
-                                tempObj[c["field name"]] = (!!PHENOTYPE_MAP[pID] ? PHENOTYPE_MAP[pID].description : pID);
-                                break;
-                        }
-                    })
-    
-                    return tempObj;
-                }
-    
-                if (CONVERT != "no convert") {
-    
-                    let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-    
-                    DATA.map(d => {
-                        let tempObj = applyConvert(d, CONVERT, phenotypeMap);
-    
-    
-                        // Apply data convert to feature data level
-                        let dKeys = Object.keys(tempObj);
-    
-                        let newTempObj = {};
-    
-                        dKeys.map(dKey => {
-    
-                            if (typeof tempObj[dKey] == 'object' && tempObj[dKey].length > 0) {
-                                let tempArr = []
-    
-                                tempObj[dKey].map(fd => {
-                                    let tempFDObj = applyConvert(fd, CONVERT, phenotypeMap);
-                                    tempArr.push(tempFDObj);
-                                })
-    
-                                newTempObj[dKey] = tempArr;
-                            } else {
-                                newTempObj[dKey] = tempObj[dKey];
-                            }
-    
-                        })
-    
-                        convertedData.push(newTempObj);
-                    });
-    
-                } else {
-                    convertedData = DATA;
-                }
-    
-                return convertedData;
-            },
-    
-            testNumber(STR) {
-                let reg = /^-?[\d.]+(?:e-?\d+)?$/;
-                return reg.test(STR);
-            },
-    
-            breakLines(STR) {
-                if (!!STR) {
-                    let cleanText = STR.replaceAll("\n", "<br>");
-                    return cleanText;
-                }
-            },
-            queryAPI() {
-    
-                if (this.apiParameters.query.type == "array") {
-                    let parametersArr = this.apiParameters.query.format;
-                    let parametersArrLength = parametersArr.length
-    
-                    let paramTrueCount = 0;
-                    parametersArr.map((param, index) => {
-    
-                        if (!!keyParams[param]) {
-                            paramTrueCount++;
-                        }
-                    });
-    
-                    if (paramTrueCount == parametersArrLength) {
-                        this.$store.state.bioIndexContinue = [];
-                        let queryParams = "";
-                        parametersArr.map((param, index) => {
-    
-                            if (keyParams[param] != "noValue") {
-                                let paramValue = (typeof keyParams[param] === 'number') ? keyParams[param] : keyParams[param].trim();
-    
-                                queryParams += paramValue;
-                                if (index + 1 < parametersArr.length) {
-                                    queryParams += ",";
-                                }
-                            } else {
-                                if (queryParams[queryParams.length - 1] == ",") {
-    
-                                    let newQP = queryParams.slice(0, -1);
-    
-                                    queryParams = newQP
-                                }
-                            }
-                        });
-    
-                        let APIPoint = this.dataFiles[0];
-                        if (this.dataType == "bioindex" && !!this.isAPI) {
-    
-                            /// set BioIndex API point
-                            APIPoint +=
-                                "query/" +
-                                this.apiParameters.query.index +
-                                "?q=" +
-                                queryParams;
-                        } else if (this.dataType != "bioindex" && !!this.isAPI) {
-                            APIPoint += queryParams
-                        }
-    
-                        let fetchParam = { dataPoint: APIPoint, domain: "external" };
-    
-                        this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
-                    } else {
-                        uiUtils.hideElement("data-loading-indicator");
-                    }
-                }
-            },
-            checkDataComparison(newResearchData, previousData) {
-    
-                let dataComparison = this.$store.state.dataComparison;
-    
-    
-                if (this.dataComparisonConfig != null && newResearchData.length > 0) {
-    
-                    let comparingFields = this.dataComparisonConfig["fields to compare"];
-    
-                    let fieldGroupKeyValue = "";
-                    let keyParamIndex = 1;
-                    let groupKeysLength = this.dataComparisonConfig["fields group data key"].length;
-    
-                    this.dataComparisonConfig["fields group data key"].map(keyParam => {
-                        if (groupKeysLength == 1) {
-                            fieldGroupKeyValue = document.getElementById("search_param_" + keyParam).value;
-                        }
-                        if (groupKeysLength > 1) {
-                            if (keyParamIndex < groupKeysLength) {
-                                fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value + " ";
-                            } else {
-                                fieldGroupKeyValue += document.getElementById("search_param_" + keyParam).value;
-                            }
-                            keyParamIndex++
-                        }
-                    })
-    
-                    let processedData = {};
-    
-                    switch (dataComparison) {
-                        case "newSearch":
-    
-    
-    
-                            newResearchData.map(d => {
-                                let keyField = d[this.dataComparisonConfig["key field"]];
-                                let tempObj = {};
-                                for (const [key, value] of Object.entries(d)) {
-                                    if (comparingFields.includes(key) == true) {
-    
-                                        tempObj[key] = {};
-                                        tempObj[key][fieldGroupKeyValue] = value;
-                                    } else {
-                                        tempObj[key] = value;
-                                    }
-                                }
-                                processedData[keyField] = tempObj;
-                            })
-    
-    
-    
-                            break;
-    
-                        case "overlapping":
-    
-                            //let overlappingData = {};
-    
-    
-                            newResearchData.map(d => {
-                                let keyFieldID = d[this.dataComparisonConfig["key field"]];
-                                if (!!previousData[keyFieldID]) {
-                                    processedData[keyFieldID] = previousData[keyFieldID]
-                                    comparingFields.map(cf => {
-                                        processedData[keyFieldID][cf][fieldGroupKeyValue] = d[cf];
-                                    });
-                                }
-                            });
-    
-                            //return overlappingData;
-    
-                            break;
-                        case "all":
-                            //let allData = {};
-    
-                            newResearchData.map(d => {
-                                let keyFieldID = d[this.dataComparisonConfig["key field"]];
-                                if (!!previousData[keyFieldID]) {
-                                    processedData[keyFieldID] = previousData[keyFieldID]
-                                    comparingFields.map(cf => {
-                                        processedData[keyFieldID][cf][fieldGroupKeyValue] = d[cf];
-                                    });
-                                } else {
-    
-                                    let tempObj = {};
-                                    for (const [key, value] of Object.entries(d)) {
-                                        if (comparingFields.includes(key) == true) {
-    
-                                            tempObj[key] = {};
-                                            tempObj[key][fieldGroupKeyValue] = value;
-                                        } else {
-                                            tempObj[key] = value;
-                                        }
-                                    }
-                                    processedData[keyFieldID] = tempObj;
-                                }
-                            });
-    
-                            for (const [key, value] of Object.entries(previousData)) {
-                                if (!processedData[key]) {
-                                    processedData[key] = value;
-                                }
-                            }
-    
-                            break;
-    
-                    }
-    
-                    this.$store.dispatch("unfilteredData", processedData);
-                    this.$store.dispatch("filteredData", processedData);
-    
-                    return processedData;
-                } else {
-    
-                    this.$store.dispatch("unfilteredData", newResearchData);
-                    this.$store.dispatch("filteredData", newResearchData);
-    
-                    return newResearchData;
-                }
-    
-            },
-            showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
-                uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
-            },
-        },
-    */
     computed: {
+        //sections setting start
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+                filterUtils: filterUtils,
+            }
+            return utils;
+        },
+        sectionConfigs() {
+            let contents = this.researchPage;
+            if (
+                contents === null
+            ) {
+                return null;
+            } else {
+                return JSON.parse(contents[0]["field_data_table_format"]);
+            }
+        },
+        sectionDescriptions() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["body"] == false) {
+                return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let description = document.createElement('div');
+                    description.setAttribute("style", "visibility: hidden;height: 1px")
+                    description.innerHTML = contents[0]["body"];
+                    document.body.appendChild(description);
+
+                    let sectionDescriptions = {};
+
+                    this.sectionConfigs.sections.map(section => {
+                        let sDescription = (!!document.getElementById(section["section id"] + "_description")) ?
+                            document.getElementById(section["section id"] + "_description").innerHTML : '';
+                        if (!!sDescription) {
+                            sectionDescriptions[section["section id"]] = sDescription;
+                        }
+                    })
+                    description.parentNode.removeChild(description);
+
+                    return sectionDescriptions;
+                } else {
+                    return null
+                }
+            }
+        },
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        },
+        multiSectionsSearchParameters() {
+            if (this.phenotypesInSession.length > 0) {
+                let parameters = [];
+                let newParameters = [];
+
+                if (!!this.sectionConfigs['search parameters']) {
+                    parameters = this.sectionConfigs['search parameters'];
+                }
+
+                this.sectionConfigs.sections.map(section => {
+                    if (!!section["search parameters"]) {
+                        section["search parameters"].map(s => {
+                            parameters.push(s);
+                        })
+                    }
+                })
+
+                if (parameters.length > 0) {
+                    parameters.map(p => {
+                        if (p.values == 'kp phenotypes') {
+                            let values = [];
+
+
+                            this.phenotypesInSession.map(pis => {
+                                let tempObj = { "label": pis.description, "value": pis.name };
+                                values.push(tempObj);
+                            })
+                            p.values = values;
+
+                            newParameters.push(p);
+                        } else {
+                            newParameters.push(p);
+                        }
+                    })
+                } else {
+                    newParameters = null;
+                }
+
+                return newParameters;
+            } else {
+                return null;
+            }
+        },
+
+        /////sections setting end
+
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";
@@ -872,6 +428,8 @@ new Vue({
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
+            console.log('frontContents', contents);
+
             if (contents.length === 0) {
                 return {};
             }
@@ -910,8 +468,24 @@ new Vue({
 
             if (contents === null || contents[0]["body"] == false) {
                 return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let description = document.createElement('div');
+                    description.style.display = 'none';
+                    description.innerHTML = contents[0]["body"];
+                    document.body.appendChild(description);
+
+                    let pageDescription = !!document.getElementById("page_description") ?
+                        document.getElementById("page_description") : '';
+                    description.parentNode.removeChild(description);
+
+                    return pageDescription.innerHTML;
+                } else {
+                    return contents[0]["body"];
+                }
             }
-            return contents[0]["body"];
         },
         // pageID() {
         //     return keyParams.pageid.trim();
@@ -1111,6 +685,11 @@ new Vue({
                                 )
                                 : this.convertData("no convert", mergedData);
 
+                        if (this.dataTableFormat != null && !!this.dataTableFormat["pre filters"]) {
+                            let filters = this.dataTableFormat["pre filters"];
+                            processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                        }
+
                         return processedData;
                     } else if (
                         convertedData.continuation == null &&
@@ -1126,6 +705,11 @@ new Vue({
                                     returnData
                                 )
                                 : this.convertData("no convert", returnData);
+
+                        if (this.dataTableFormat != null && !!this.dataTableFormat["pre filters"]) {
+                            let filters = this.dataTableFormat["pre filters"];
+                            processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                        }
 
                         return processedData;
                     }
@@ -1154,6 +738,11 @@ new Vue({
                                 returnData
                             )
                             : this.convertData("no convert", returnData);
+
+                    if (this.dataTableFormat != null && !!this.dataTableFormat["pre filters"]) {
+                        let filters = this.dataTableFormat["pre filters"];
+                        processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                    }
 
                     return processedData;
                 }
@@ -1205,6 +794,70 @@ new Vue({
                 return null;
             }
             return contents[0]["field_data_table_legend"];
+        },
+        multiTableLegends() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_table_legend"] == false) {
+                return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let legends = document.createElement('div');
+                    //legends.style.display = 'none';
+                    legends.setAttribute("style", "visibility: hidden;height: 1px")
+                    legends.innerHTML = contents[0]["field_data_table_legend"];
+                    document.body.appendChild(legends);
+
+                    let sTableLegends = [];
+
+                    this.sectionConfigs.sections.map(section => {
+                        let sTableLegend = (!!document.getElementById(section["section id"] + "_tableLegend")) ?
+                            document.getElementById(section["section id"] + "_tableLegend").innerHTML : '';
+                        if (!!sTableLegend) {
+                            //sTableLegends[section["section id"]] = sTableLegend;
+                            sTableLegends.push({ "id": section["section id"], "content": sTableLegend });
+                        }
+                    })
+                    //legends.parentNode.removeChild(legends);
+                    return sTableLegends;
+                } else {
+                    return null
+                }
+            }
+        },
+        multiPlotLegends() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_visualizer_legend"] == false) {
+                return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let legends = document.createElement('div');
+                    //legends.style.display = 'none';
+                    legends.setAttribute("style", "visibility: hidden;height: 1px")
+                    legends.innerHTML = contents[0]["field_data_visualizer_legend"];
+                    document.body.appendChild(legends);
+
+                    let sPlotLegends = [];
+
+                    this.sectionConfigs.sections.map(section => {
+                        let sPlotLegend = (!!document.getElementById(section["section id"] + "_plotLegend")) ?
+                            document.getElementById(section["section id"] + "_plotLegend").innerHTML : '';
+                        if (!!sPlotLegend) {
+                            //sPlotLegends[section["section id"]] = sPlotLegend;
+                            sPlotLegends.push({ "id": section["section id"], "content": sPlotLegend })
+                        }
+                    })
+                    //legends.parentNode.removeChild(legends);
+                    return sPlotLegends;
+                } else {
+                    return null
+                }
+            }
         },
         searchingGenes() {
             let contents = this.$store.state.hugeampkpncms.genesInRegion;
@@ -1540,6 +1193,54 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        /// multi-sections use
+        setZoom(SETTING) {
+            this[SETTING.property] = SETTING.value;
+        },
+        starColumn(ARRAY) {
+            this.starItems = ARRAY;
+        },
+        onSectionsData(SECTION) {
+
+            let sectionExist = null;
+            this.sectionsData.map(section => {
+                if (section.id == SECTION.id) {
+                    section.data = SECTION.data;
+                    sectionExist = true;
+                }
+            })
+
+            if (!sectionExist) {
+                this.sectionsData.push(SECTION);
+            }
+        },
+        isInTabGroups(SECTION) {
+            let sectionInGroup = false;
+            if (!!this.sectionConfigs['tab groups']) {
+                this.sectionConfigs['tab groups'].map(group => {
+                    group.sections.map(tab => {
+                        if (tab.section == SECTION) {
+                            sectionInGroup = true;
+                        }
+                    })
+                })
+            }
+
+            return sectionInGroup;
+        },
+        saveCapturedData(TYPE, TITLE) {
+            let data = this.$store.state.capturedData.filter(d => d.title == TITLE);
+
+            switch (TYPE) {
+                case 'json':
+                    uiUtils.saveJson(data[0].data, TITLE)
+                    break;
+                case 'csv':
+                    uiUtils.saveByorCsv(data[0].data, TITLE)
+                    break;
+            }
+        },
+        ///
         getSubHeader() {
             if (
                 !!this.apiParameters &&
@@ -1586,6 +1287,7 @@ new Vue({
                 pageID: this.pageID,
                 devID: devID,
                 devPW: devPW,
+                devCK: this.devCK
             });
         },
         CSVToArray(strData, strDelimiter) {
@@ -1776,20 +1478,21 @@ new Vue({
                             break;
 
                         case "split":
+
                             let newFields = c["field name"];
                             let newFieldValues = [];
                             let string2Split = DATA[c["field to split"]];
                             let loopIndex = 1;
                             c["split by"].map(s => {
 
-                                let splittedValue = string2Split.split(s)
+                                let [key, ...rest] = string2Split.split(s);
+                                string2Split = rest.join(s)
 
                                 if (loopIndex < c["split by"].length) {
-                                    newFieldValues.push(splittedValue[0])
-                                    string2Split = splittedValue[1]
+                                    newFieldValues.push(key)
                                 } else if (loopIndex = c["split by"].length) {
-                                    newFieldValues.push(splittedValue[0])
-                                    newFieldValues.push(splittedValue[1])
+                                    newFieldValues.push(key)
+                                    newFieldValues.push(rest.join(s))
                                 }
                                 loopIndex++;
                             })

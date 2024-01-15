@@ -66,7 +66,12 @@
                 >
             </template>
         </b-table>
-        <div v-else>No data available for this query.</div>
+        <div v-else>
+            <b-alert show variant="warning" class="text-center">
+                <b-icon icon="exclamation-triangle"></b-icon> No data available
+                for this query.
+            </b-alert>
+        </div>
         <b-pagination
             v-model="currentPage"
             class="pagination-sm justify-content-center"
@@ -92,7 +97,7 @@ export default Vue.component("HugeScoresTable", {
     components: {
         DataDownload,
     },
-    props: ["gene", "hugeScores", "phenotypeMap"],
+    props: ["gene", "hugeScores", "phenotypeMap", "filter"],
     data() {
         return {
             perPage: 10,
@@ -168,6 +173,9 @@ export default Vue.component("HugeScoresTable", {
 
             // remove unknown phenotypes
             assocs = assocs.filter((a) => phenotypeMap[a.phenotype]);
+            if (this.filter) {
+                return assocs.filter(this.filter);
+            }
 
             return assocs;
         },
