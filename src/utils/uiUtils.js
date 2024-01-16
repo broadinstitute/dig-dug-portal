@@ -487,9 +487,15 @@ let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPP
 
     (!!IF_PLOT) ? document.getElementById(TARGETCONTENT).setAttribute("class", "plot-tab-content-wrapper") :
         document.getElementById(TARGETCONTENT).setAttribute("class", "tab-content-wrapper");
+}
 
-
-
+let openFixedSummarySection = function(UIWRAPPERID){
+    const tabsGroup = document.getElementById(UIWRAPPERID).closest('.tabgroup-fixed-bottom');
+    if(tabsGroup.classList.contains('open')){
+        tabsGroup.classList.remove('open');
+    }else{
+        tabsGroup.classList.add('open');
+    }
 }
 
 let showHidePanel = function (PANEL) {
@@ -527,5 +533,6 @@ export default {
     getUrl,
     checkIfNumeric,
     setTabActive,
+    openFixedSummarySection,
     showHidePanel
 };
