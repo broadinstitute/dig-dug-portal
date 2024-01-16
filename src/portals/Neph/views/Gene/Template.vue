@@ -33,7 +33,8 @@
                 <div class="card-body">
                     <h4 class="card-title">Variants in NephKP database</h4>
                     <documentation
-                        name="variantsearch.subheader" group="neph"
+                        name="variantsearch.subheader"
+                        group="neph"
                     ></documentation>
                     <variant-search
                         :gene="$store.state.geneName"
@@ -338,6 +339,23 @@
                                     $parent.externalResources[gene.source].title
                                 "
                                 >{{ gene.source.toUpperCase() }}</a
+                            >
+                        </div>
+
+                        <div
+                            class="gene-with-signal none"
+                            v-if="$parent.ensemblElement"
+                        >
+                            <a
+                                :href="
+                                    $parent.externalResources['opentargets']
+                                        .link + $parent.ensemblElement.name
+                                "
+                                target="_blank"
+                                title="Open Targets - Genetics"
+                                >{{
+                                    `Open Targets - Genetics`.toUpperCase()
+                                }}</a
                             >
                         </div>
                     </div>

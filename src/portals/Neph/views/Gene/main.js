@@ -101,6 +101,10 @@ new Vue({
                     title: "Universal Protein Resource",
                     link: "https://www.uniprot.org/uniprot/",
                 },
+                opentargets: {
+                    title: "Open Targets",
+                    link: "https://genetics.opentargets.org/Gene/",
+                },
             },
         };
     },
@@ -233,6 +237,12 @@ new Vue({
             } else {
                 return [];
             }
+        },
+        ensemblElement() {
+            return (
+                this.alternateNames.find((name) => name.source === "ensembl") ||
+                {}
+            );
         },
 
         dbReference() {
