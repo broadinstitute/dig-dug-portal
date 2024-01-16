@@ -1,5 +1,5 @@
 <template>
-	<div class="multi-page-search-wrapper">
+	<div class="multi-page-search-wrapper in-section-ui" :class="displyingSearchNum == 0 ? 'hidden-search' : ''">
 		<div
 			class="filtering-ui-wrapper search-criteria multi-page-search"
 			id="searchCriteria"
@@ -9,7 +9,6 @@
 			<div class="filtering-ui-content row">
 				<div
 					class="col"
-					:class="!!parameter.display && parameter.display == 'false'? 'hidden-search':''"
 					v-for="parameter,paramIndex in searchParameters"
 					:key="parameter.parameter"
 				>
@@ -21,7 +20,7 @@
 						v-if="parameter.type == 'list' &&
 							parameter.values.length <= 10
 							"
-						:id="'section_search_param' + parameter.parameter"
+						:id="'section_search_param_' + parameter.parameter"
 						class="custom-select custom-select-search"
 						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)"
 					>
@@ -34,7 +33,7 @@
 					</select>
 					<template v-if="parameter.type == 'list' && parameter.values.length > 10">
 						<input v-model="paramSearch[paramIndex]" class="form-control"
-							@keyup="getListOptions($event, parameter)" :id="'search_param_' + parameter.parameter" />
+							@keyup="getListOptions($event, parameter)" :id="'section_search_param_' + parameter.parameter" />
 
 						<div :id="'listOptions' + parameter.parameter" class="custom-select custom-select-search long-list"
 							:size="!!listOptions[parameter.parameter] && listOptions[parameter.parameter].length >= 5 ? 5 : 'auto'"
@@ -64,9 +63,8 @@
 								v-model="paramSearch[paramIndex]"
 								class="form-control"
 								@keyup="getGenes($event)"
-								:id="'section_search_param' + parameter.parameter"
+								:id="'section_search_param_' + parameter.parameter"
 							/>
-
 							<div
 								class="custom-select custom-select-search"
 								:size="kpGenes.length >= 5 ? 5 : 'auto'"
@@ -126,12 +124,17 @@
 							"
 						type="text"
 						class="form-control"
-						:id="'section_search_param' + parameter.parameter"
+						:id="'section_search_param_' + parameter.parameter"
 					/>
 				</div>
 				<div class="col">
 					<div @click="updateSearch()" class="btn btn-sm btn-primary">
 						Search
+					</div>
+				</div>
+				<div class="col">
+					<div @click="resetSearch()" class="btn btn-sm btn-warning ">
+						Reset
 					</div>
 				</div>
 			</div>
@@ -169,7 +172,7 @@ export default Vue.component("research-in-section-search", {
 		window.addEventListener("scroll", this.onScroll);
 		this.searchParameters.map(s => {
 			if (!!this.utils.keyParams[s.parameter]) {
-				document.getElementById("section_search_param" + s.parameter).value = this.utils.keyParams[s.parameter];
+				document.getElementById("section_search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
 		})
 	},
@@ -188,6 +191,18 @@ export default Vue.component("research-in-section-search", {
 
 			return tableTop;
 		},
+		displyingSearchNum() {
+			let totalSearchNum = this.searchParameters.length;
+
+			this.searchParameters.map(s => {
+				console.log("s", s)
+				if (s.display && s.display == "false") {
+					totalSearchNum--;
+				}
+			})
+
+			return totalSearchNum;
+		}
 	},
 	watch: {
 	},
@@ -210,18 +225,18 @@ export default Vue.component("research-in-section-search", {
 
 			let options = [];
 			if (event.target.value.length >= 2) {
-				let optionChrLength = 0;
+				//let optionChrLength = 0;
 				PARAM.values.map(option => {
 					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
 						options.push(option);
 
-						optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
+						//optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
 				})
 
-				if (options.length > 1) {
-					document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
-				}
+				//if (options.length > 1) {
+					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
+				//}
 				this.listOptions[PARAM.parameter] = options;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
@@ -261,38 +276,38 @@ export default Vue.component("research-in-section-search", {
 			}
 		},
 		updateSearch(KEY) {
-			if(!KEY){
-				let paramsObj = {}
-				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("section_search_param" + s.parameter).value;
-					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-				})
-				this.utils.keyParams.set(paramsObj);
-				//location.reload();
-				//this.sections.map(s => {
-					let s = this.section;
-					this.$root.$refs[s['section id']].getData();
-				//})
-			} else if(!!KEY) {
-				//console.log("point 1",KEY);
+			let paramsObj = {}
+			this.searchParameters.map(s => {
+				let paramValue = document.getElementById("section_search_param_" + s.parameter).value;
 
-				let paramsObj = {}
-				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("section_search_param" + s.parameter).value;
-					//console.log(s.parameter, paramValue);
-					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-				})
-				this.utils.keyParams.set(paramsObj);
-				
-				//this.sections.map(s => {
-					let s = this.section;
-					if(!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
-						console.log(s['section id']);
-						this.$root.$refs[s['section id']].getData();
-					}
-				//})
+				console.log(s.parameter, paramValue)
+
+				if (!!this.utils.keyParams[s.parameter]) {
+					//paramValue = (!!this.utils.keyParams[s.parameter]) ? this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];
+				}
+				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+			})
+			this.utils.keyParams.set(paramsObj);
+
+			let s = this.section;
+
+			if(!KEY){
+				this.$root.$refs[s['section id']].getData();
+			} else if(!!KEY) {
+				if(!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
+					this.$root.$refs[s['section id']].getData();
+				}
 			}
-			
+		},
+		resetSearch() {
+			let paramsObj = {}
+			this.searchParameters.map(s => {
+				paramsObj[s.parameter] = "";
+			})
+			this.utils.keyParams.set(paramsObj);
+
+			let s = this.section;
+			this.$root.$refs[s['section id']].resetAll();
 		},
 		async setGene(KEY, PARAMETER,INDEX,CONVERT_REGION, DEFALT_EXPAND) {
 			if(!!CONVERT_REGION) {
@@ -324,13 +339,15 @@ export default Vue.component("research-in-section-search", {
 			
 		},
 		async getGenes(EVENT) {
-			if (EVENT.target.value.length > 2) {
+			if (EVENT.target.value.length > 2 && !EVENT.target.value.includes(",")) {
 				let searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/match/gene?q=" + EVENT.target.value;
 
-				var geneJson = await fetch(searchPoint).then((resp) => resp.json());
+				let geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
-				if (geneJson.error == null) {
+				if (geneJson.error == null && geneJson.detail == null) {
 					this.kpGenes = geneJson.data;
+				} else {
+					this.kpGenes = [];
 				}
 			} else {
 				this.kpGenes = [];
@@ -430,6 +447,7 @@ div.custom-select-search {
 	font-size: 14px;
 	color: #666666 !important;
 	background-color: #ffffff;
+	white-space: nowrap;
 }
 
 .custom-select-a-option:hover {

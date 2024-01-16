@@ -1,5 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
+		
 		<div class="col-md-12 phewas-plot-wrapper">
 			<div
 				class="col-md-12"
@@ -66,7 +67,7 @@
 					</span>
 				</div>
 
-				<canvas
+				<canvas :hidden="!showCanvas"
 					:id="canvasId + 'pheWasPlot'"
 					width=""
 					height=""
@@ -113,6 +114,7 @@ export default Vue.component("research-phewas-plot", {
 			spaceBy: 7,
 			trigger: 0,
 			hoverItems: {},
+			showCanvas: true,
 		};
 	},
 	modules: {
@@ -139,6 +141,7 @@ export default Vue.component("research-phewas-plot", {
 			}
 		},
 		renderData() {
+			this.showCanvas = true;
 			let content = {};
 			content["data"] = [];
 
@@ -174,6 +177,7 @@ export default Vue.component("research-phewas-plot", {
 			if (!!content.data && content.data.length > 0) {
 				return content;
 			} else {
+				this.showCanvas = false;
 				return null;
 			}
 		},
@@ -182,6 +186,53 @@ export default Vue.component("research-phewas-plot", {
 		renderData(content) {
 			this.renderPheWas();
 		},
+
+		/*phenotypesData(DATA) {
+
+			console.log("DATA",DATA);
+
+			this.showCanvas = true;
+			let content = {};
+			content["data"] = [];
+
+			
+			let phenotypesData = cloneDeep(this.phenotypesData);
+
+			phenotypesData.map((d) => {
+				let pValue =
+					typeof d[this.renderConfig["y axis field"]] == "string"
+						? Number(d[this.renderConfig["y axis field"]])
+						: d[this.renderConfig["y axis field"]];
+				d["rawPValue"] = pValue;
+
+				if (this.renderConfig["convert y -log10"] == "true") {
+					d[this.renderConfig["y axis field"] + "-log10"] =
+						-Math.log10(pValue);
+				}
+
+				if (
+					this.phenotypeMapConfig == "kpPhenotypeMap" &&
+					!!this.phenotypeMap[d[this.renderConfig["render by"]]]
+				) {
+					content["data"].push(d);
+				} else if (this.phenotypeMapConfig == null) {
+					content["data"].push(d);
+				}
+			});
+		
+			if (!!this.filter) {
+				content.data = content.data.filter(this.filter);
+			}
+
+			if (!!content.data && content.data.length > 0) {
+				this.renderData = content;
+			} else {
+				this.showCanvas = false;
+				this.renderData = null;
+			}
+
+			if(!!this.renderData) {this.renderPheWas()};
+		}*/
 	},
 	methods: {
 		//...uiUtils,
@@ -195,6 +246,7 @@ export default Vue.component("research-phewas-plot", {
 			window.location.href = "#associations-table";
 		},
 		groupData(DATA) {
+			
 			let phenotypeGroups = [];
 			let phenotypeGroupsObj = {};
 
@@ -251,6 +303,7 @@ export default Vue.component("research-phewas-plot", {
 			let rawY = e.clientY - rect.top;
 
 			let customPlotMargin = !!this.renderConfig["plot margin"]? this.renderConfig["plot margin"]:null;
+
 			let plotMargin = !!customPlotMargin?{
 						left: customPlotMargin.left,
 						right: customPlotMargin.right,
@@ -265,8 +318,6 @@ export default Vue.component("research-phewas-plot", {
 						bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
 						bump: 10,
 					};
-
-					
 
 			let y = Math.ceil(e.clientY - rect.top);
 			let x = Math.ceil(e.clientX - rect.left);
@@ -285,8 +336,8 @@ export default Vue.component("research-phewas-plot", {
 				this.hoverItems = {};
 
 				if (
-					x >= plotMargin.left &&
-					x <= rect.width - plotMargin.right
+					x >= (plotMargin.left / 2) &&
+					x <= rect.width - (plotMargin.right / 2)
 				) {
 					for (const [yKey, yValue] of Object.entries(
 						this.pheWasPosData
@@ -434,13 +485,6 @@ export default Vue.component("research-phewas-plot", {
 				maxY = Math.ceil(maxY);
 
 				ctx.stroke();
-				/*let plotMargin = {
-					left: this.plotMargin.leftMargin,
-					right: this.plotMargin.leftMargin * 1.5,
-					top: this.plotMargin.bottomMargin * 3.5,
-					bottom: this.plotMargin.bottomMargin * 2.5,
-					bump: 10,
-				};*/
 
 				let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
 				let plotMargin = !!customPlotMargin ? {

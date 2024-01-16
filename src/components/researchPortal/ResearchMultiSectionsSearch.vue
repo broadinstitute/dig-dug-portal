@@ -1,5 +1,5 @@
 <template>
-	<div class="multi-page-search-wrapper" :class="searchVisible == false ? 'hidden-search' : ''">
+	<div class="multi-page-search-wrapper" :class="searchVisible == false || displyingSearchNum == 0 ? 'hidden-search' : ''">
 		<div class="filtering-ui-wrapper search-criteria multi-page-search" id="searchCriteria"
 			v-if="searchParameters != null">
 			<h4 class="card-title">Build search criteria</h4>
@@ -93,6 +93,11 @@
 						Search
 					</div>
 				</div>
+				<div class="col">
+					<div @click="resetSearch()" class="btn btn-sm btn-warning ">
+						Reset
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -123,9 +128,6 @@ export default Vue.component("research-multi-sections-search", {
 	},
 	created() {
 		this.$root.$refs.multiSectionSearch = this;
-
-
-
 	},
 	beforeUpdate() {
 
@@ -157,6 +159,18 @@ export default Vue.component("research-multi-sections-search", {
 
 			return tableTop;
 		},
+		displyingSearchNum() {
+			let totalSearchNum = this.searchParameters.length;
+
+			this.searchParameters.map(s=>{
+				//console.log("s",s)
+				if(s.display && s.display == "false") {
+					totalSearchNum --;
+				}
+			})
+
+			return totalSearchNum;
+		}
 	},
 	watch: {
 	},
@@ -179,18 +193,18 @@ export default Vue.component("research-multi-sections-search", {
 
 			let options = [];
 			if (event.target.value.length >= 2) {
-				let optionChrLength = 0;
+				//let optionChrLength = 0;
 				PARAM.values.map(option => {
 					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
 						options.push(option);
 
-						optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
+						//optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
 				})
 
-				if (options.length > 1) {
-					document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
-				}
+				//if (options.length > 1) {
+					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
+				//}
 				this.listOptions[PARAM.parameter] = options;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
@@ -229,37 +243,64 @@ export default Vue.component("research-multi-sections-search", {
 				this.searchingValues[PARAM] = newRegion;
 			}
 		},
-		updateSearch(KEY) {
-			if (!KEY) {
-				let paramsObj = {}
+		updateSearch(KEY,TARGET_SECTIONS) {
+
+
+			//console.log("updateSearch called", KEY, TARGET_SECTIONS);
+			let paramsObj = {}
+
+			if(!KEY) {
 				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("search_param_" + s.parameter).value;
+					let paramValue = document.getElementById("search_param_" + s.parameter).value;					
 					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 				})
-				this.utils.keyParams.set(paramsObj);
-				//location.reload();
+			} else {
+				
+
+				let paramValue = document.getElementById("search_param_" + KEY).value;
+				
+				paramsObj[KEY] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+			}
+			
+			this.utils.keyParams.set(paramsObj);
+
+			if (!KEY) {
 				this.sections.map(s => {
 					this.$root.$refs[s['section id']].getData();
 				})
 			} else if (!!KEY) {
-				//console.log("point 1",KEY);
 
-				let paramsObj = {}
-				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("search_param_" + s.parameter).value;
-					//console.log(s.parameter, paramValue);
-					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-				})
-				this.utils.keyParams.set(paramsObj);
-
-				this.sections.map(s => {
-					if (!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
-						console.log(s['section id']);
-						this.$root.$refs[s['section id']].getData();
-					}
-				})
+				if(!!TARGET_SECTIONS) {
+					TARGET_SECTIONS.map(s=>{
+						this.$root.$refs[s].getData();
+					})
+				} else {
+					this.sections.map(s => {
+						if (!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
+							this.$root.$refs[s['section id']].getData();
+						}
+					})
+				}
 			}
+		},
+		resetSearch() {
+			let paramsObj = {}
+			this.paramSearch = {
+				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
+				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
+			};
+			this.searchParameters.map(s => {
+				paramsObj[s.parameter] = "";
+				document.getElementById("search_param_" + s.parameter).value = "";
+			})
+			this.utils.keyParams.set(paramsObj);
 
+			this.sections.map(s => {
+				if (!!s["data point"] && !!s["data point"]["parameters"]) {
+					this.$root.$refs[s['section id']].resetAll();
+				}
+			})
+			
 		},
 		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION, DEFALT_EXPAND) {
 			if (!!CONVERT_REGION) {
@@ -290,13 +331,15 @@ export default Vue.component("research-multi-sections-search", {
 
 		},
 		async getGenes(EVENT) {
-			if (EVENT.target.value.length > 2) {
+			if (EVENT.target.value.length > 2 && !EVENT.target.value.includes(",")) {
 				let searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/match/gene?q=" + EVENT.target.value;
 
-				var geneJson = await fetch(searchPoint).then((resp) => resp.json());
+				let geneJson = await fetch(searchPoint).then((resp) => resp.json());
 
-				if (geneJson.error == null) {
+				if (geneJson.error == null && geneJson.detail == null) {
 					this.kpGenes = geneJson.data;
+				} else {
+					this.kpGenes = [];
 				}
 			} else {
 				this.kpGenes = [];
@@ -401,6 +444,7 @@ div.custom-select-search {
 	font-size: 14px;
 	color: #666666 !important;
 	background-color: #ffffff;
+	white-space: nowrap;
 }
 
 .custom-select-a-option:hover {

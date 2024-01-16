@@ -102,6 +102,8 @@ new Vue({
         return {
             counter: 0,
             genePageSearchCriterion: [],
+            phenotypeFilterList: [],
+            activeTab: "hugeScorePheWASPlot",
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
@@ -171,7 +173,13 @@ new Vue({
                 ],
                 thresholds: [Math.log(3), Math.log(30)],
                 'label in black': 'greater than',
-                height: '500'
+                height: '600',
+                "plot margin": {
+                    "left": 150,
+                    "right": 150,
+                    "top": 250,
+                    "bottom": 300
+                }
             },
             commonVariantRenderConfig: {
                 type: 'phewas plot',
@@ -185,7 +193,13 @@ new Vue({
                 'beta field': 'null',
                 'hover content': ['pValue'],
                 thresholds: ['2.5e-6'],
-                height: '500',
+                height: '600',
+                "plot margin": {
+                    "left": 150,
+                    "right": 150,
+                    "top": 250,
+                    "bottom": 300
+                }
             },
             rareVariantRenderConfig: {
                 type: 'phewas plot',
@@ -199,7 +213,13 @@ new Vue({
                 'beta field': 'beta',
                 'hover content': ['pValue', 'beta'],
                 thresholds: ['2.5e-6', '0.05'],
-                height: '500',
+                height: '600',
+                "plot margin": {
+                    "left": 150,
+                    "right": 150,
+                    "top": 250,
+                    "bottom": 300
+                }
             },
         };
     },
@@ -628,9 +648,6 @@ new Vue({
                 });
             }
         },
-        "$store.state.commonVariantsLength"(NUM) {
-            this.onAncestrySet();
-        },
         "$store.state.geneName"(NAME) {
             this.$store.dispatch("getHugeScoresData");
         },
@@ -689,40 +706,6 @@ new Vue({
             uiUtils.hideElement("invalidGeneWarning");
         },
 
-        onAncestrySet() {
-            let ancestry = this.$store.state.selectedAncestry;
-
-            let sectionWrapper = document.getElementById("common_variants");
-            let bubbleCollection = sectionWrapper.querySelectorAll(
-                ".filter-pill-collection"
-            );
-            let bubbleWrapper = document.getElementById("ancestry_set");
-
-            bubbleWrapper.innerHTML = "";
-
-            let ancestryBubble = document.getElementById("ancestry_bubble");
-            if (ancestryBubble) {
-                ancestryBubble.remove();
-            }
-
-            let bubble = document.createElement("span");
-            bubble.setAttribute(
-                "class",
-                "badge btn search-bubble 3 badge-secondary badge-pill"
-            );
-            bubble.setAttribute("id", "ancestry_bubble");
-            bubble.textContent =
-                "Ancestry = " + this.ancestryFormatter(ancestry);
-
-            if (!!ancestry && ancestry != undefined) {
-                if (bubbleCollection.length > 0) {
-                    bubbleCollection[0].append(bubble);
-                } else {
-                    bubbleWrapper.innerHTML = " Selected Filters:	 ";
-                    bubbleWrapper.append(bubble);
-                }
-            }
-        },
         pushCriterionPhenotype(phenotypeName) {
             this.genePageSearchCriterion.push({
                 field: "phenotype",
@@ -770,11 +753,26 @@ new Vue({
             return topAssocData[0];
         },
         renderPhewas(REF) {
+            this.activeTab = REF;
             let refComponent = this.$children[0].$refs[REF];
             setTimeout(function () {
                 refComponent.renderPheWas();
             }, 500);
         },
+        filterPhenotype(newFilters) {
+            this.phenotypeFilterList = newFilters;
+            console.log(JSON.stringify(this.phenotypeFilterList));
+        },
+        clearCriterion(criterion) {
+            if (criterion === "transcript") {
+                this.$store.state.selectedTranscript = "";
+                return;
+            }
+            if (criterion === "ancestry") {
+                this.$store.state.selectedAncestry = "";
+                return;
+            }
+        }
     },
 
     render(createElement, context) {

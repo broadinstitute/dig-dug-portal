@@ -1,16 +1,20 @@
 <template>
     <b-row no-gutters>
         <b-card-body :title="title">
-            <criterion-list-group class="eglt-table-wrapper">
+            <div class="eglt-table-wrapper">
                 <div class="filtering-ui-wrapper container-fluid">
                     <div class="row filtering-ui-content">
                         <div class="col filter-col-md">
                             <div class="label">Search</div>
-                            <input class="col filter-col-md form-control" v-model="filterString"/>
+                            <input
+                                v-model="filterString"
+                                class="col filter-col-md form-control"
+                                debounce="500"
+                            />
                         </div>
                     </div>
                 </div>
-            </criterion-list-group>
+            </div>
             <div class="text-right mt-2 mb-2">
                 <data-download
                     :data="geneInfo"
@@ -26,6 +30,7 @@
                 :current-page="currentPage"
                 :filter="filterString"
                 small
+                @filtered="onFiltered"
             >
                 <!-- Custom rendering for known special cases -->
                 <template #cell(id)="data">
@@ -73,7 +78,7 @@
 
             <b-pagination
                 v-model="currentPage"
-                :total-rows="geneInfo.length"
+                :total-rows="totalRows"
                 :per-page="perPage"
                 :aria-controls="id"
                 size="sm"
@@ -103,13 +108,14 @@ export default Vue.component("TranslatorPredicateTable", {
     },
     data() {
         return {
-            id: this.geneSymbol + this.fields + this.title,
+            id: this.geneSymbol + this.field + this.title,
             currentPage: 1,
             perPage: 10,
             rawGeneInfo: [],
             myFilter: (id) => true,
             context: null,
             filterString: "",
+            totalRows: 0,
         };
     },
     computed: {
@@ -119,25 +125,28 @@ export default Vue.component("TranslatorPredicateTable", {
             );
         },
         fields() {
-            return Array.from(
-                new Set(
-                    this.geneInfo.reduce(
-                        (acc, item) => acc.concat(...Object.keys(item)),
-                        []
+            return (
+                Array.from(
+                    new Set(
+                        this.geneInfo.reduce(
+                            (acc, item) => acc.concat(...Object.keys(item)),
+                            []
+                        )
                     )
                 )
-            )
-                .sort((a, b) => {
-                    const sortMap = { id: 0, source: 1 };
-                    if (a === "id") {
-                        return -1;
-                    } else if (b === "id") {
-                        return 1;
-                    }
-                })
-                .filter(
-                    (el) => !["evidence", "gocategory", "category"].includes(el)
-                );
+                    .sort((a, b) => {
+                        const sortMap = { id: 0, source: 1 };
+                        if (a === "id") {
+                            return -1;
+                        } else if (b === "id") {
+                            return 1;
+                        }
+                    })
+                    .filter(
+                        (el) =>
+                            !["evidence", "gocategory", "category"].includes(el)
+                    ) || []
+            );
         },
         tableFields() {
             return this.fields.map((key) => ({
@@ -178,7 +187,7 @@ export default Vue.component("TranslatorPredicateTable", {
     },
     async created() {
         this.context = await fetch(
-            "https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld"
+            "https://raw.githubusercontent.com/biolink/biolink-model/master/project/jsonld/biolink_model.context.jsonld"
         )
             .then((response) => response.json())
             .then((json) => json["@context"]);
@@ -246,6 +255,11 @@ export default Vue.component("TranslatorPredicateTable", {
             } else {
                 return cellValue;
             }
+        },
+        onFiltered(filteredItems) {
+            // Trigger pagination to update the number of buttons/pages due to filtering
+            this.totalRows = filteredItems.length;
+            this.currentPage = 1;
         },
     },
 });

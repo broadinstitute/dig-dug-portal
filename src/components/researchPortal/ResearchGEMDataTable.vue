@@ -414,8 +414,8 @@ export default Vue.component("research-gem-data-table", {
 
 		rawData() {
 			let newTableFormat = Object.assign({}, this.tableFormat);
-			var updatedData = {};
-			var rawData = {};
+			let updatedData = {};
+			let rawData = {};
 
 			//If the data queried is not compared, convert it from array to object
 			if (this.dataComparisonConfig == null) {
@@ -1446,6 +1446,7 @@ export default Vue.component("research-gem-data-table", {
 			immediate: true,
 		},
 		dataset(DATA) {
+			console.log("this.searchParameters", this.searchParameters);
 			if (!!this.dataComparisonConfig) {
 				this.compareGroups = [];
 				let loopNum =
@@ -1998,7 +1999,7 @@ table.research-data-table {
 	padding: 0 !important;
 }
 
-.research-data-table td.multi-value-td span {
+.research-data-table td.multi-value-td > span {
 	display: block;
 	padding: 0.3rem;
 	border-bottom: solid 1px #fff;

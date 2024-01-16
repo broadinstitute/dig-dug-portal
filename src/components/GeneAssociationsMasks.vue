@@ -1,5 +1,5 @@
 <template>
-    <div v-if="associations.length > 0" class="EGLT-table fiftytwo">
+    <div v-if="filteredAssociations.length > 0" class="EGLT-table fiftytwo">
         <b-container fluid>
             <div class="text-right mt-2 mb-2 border-0">
                 <data-download
@@ -94,7 +94,12 @@
             :per-page="perPage"
         ></b-pagination>
     </div>
-    <div v-else>No data available for this query.</div>
+    <div v-else>
+        <b-alert show variant="warning" class="text-center">
+            <b-icon icon="exclamation-triangle"></b-icon> No data available for
+            this query.
+        </b-alert>
+    </div>
 </template>
 
 <script>
@@ -127,7 +132,9 @@ export default Vue.component("GeneAssociationsMasks", {
         },
         //filter associations that only exist in the phenotypeMap
         filteredAssociations() {
-            let assocs = !this.filter ? this.associations : this.associations.filter(this.filter);
+            let assocs = !this.filter
+                ? this.associations
+                : this.associations.filter(this.filter);
             return (
                 assocs.filter((row) => {
                     return this.phenotypeMap[row.phenotype];

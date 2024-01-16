@@ -1,108 +1,105 @@
 <template>
 	<div class="mbm-plot-content row" id="rp_region_plot">
-		<div v-if="plotsList.length > 1" class="show-hide-plots col-md-12">
-			<strong>Show/hide region plots</strong>
-			<template v-for="(item, itemIndex) in plotsList">
-				<span :key="item" v-if="item != 'Combined'" class="group-bubble" v-html="item" :style="'background-color:' +
-					compareGroupColors[itemIndex] +
-					';'
-					" @click="
-		utils.uiUtils.showHideElement(
-			'plotsWrapper' + item.replaceAll(' ', '_')
-		)
-		"></span>
-				<span type="button" v-if="item == 'Combined'" class="group-bubble reference"
-					style="background-color: #ffffff; border: solid 1px #666666"
-					@click="utils.uiUtils.showHideElement('plotsWrapperCombined')">
-					Combined
-				</span>
-			</template>
-		</div>
-		<div id="fixedInfoBox" class="fixed-info-box hidden">
-			<div class="fixed-info-box-close" @click="showHidePanel('#fixedInfoBox')">
-				<b-icon icon="x-circle-fill"></b-icon>
+		<div class="col-md-12">
+			<div v-if="plotsList.length > 1" class="show-hide-plots">
+				<strong>Show/hide region plots</strong>
+				<template v-for="(item, itemIndex) in plotsList">
+					<span :key="item" v-if="item != 'Combined'" class="group-bubble" v-html="item" :style="'background-color:' +
+						compareGroupColors[itemIndex] +
+						';'
+						" @click="
+						utils.uiUtils.showHideElement(
+							'plotsWrapper' + item.replaceAll(' ', '_')
+						)
+						"></span>
+					<span type="button" v-if="item == 'Combined'" class="group-bubble reference"
+						style="background-color: #ffffff; border: solid 1px #666666"
+						@click="utils.uiUtils.showHideElement('plotsWrapperCombined')">
+						Combined
+					</span>
+				</template>
 			</div>
-			<div class="fixed-info-box-content">
-				<div v-for="(d, dIndex) in dotsClicked">
-					<div>
-						<strong v-html="d"></strong>
-						<b-icon v-if="!!renderConfig['star key'] &&
-							checkStared(d) == true
-							" icon="star-fill" style="
+			<div id="fixedInfoBox" class="fixed-info-box hidden">
+				<div class="fixed-info-box-close" @click="showHidePanel('#fixedInfoBox')">
+					<b-icon icon="x-circle-fill"></b-icon>
+				</div>
+				<div class="fixed-info-box-content">
+					<div v-for="(d, dIndex) in dotsClicked">
+						<div>
+							<strong v-html="d"></strong>
+							<b-icon v-if="!!renderConfig['star key'] &&
+								checkStared(d) == true
+								" icon="star-fill" style="
 								color: #ffcc00;
 								cursor: pointer;
 								margin-left: 4px;
 							" @click="removeStarItem(d)"></b-icon>
-						<b-icon v-if="!!renderConfig['star key'] &&
-							checkStared(d) == false
-							" icon="star" style="
+							<b-icon v-if="!!renderConfig['star key'] &&
+								checkStared(d) == false
+								" icon="star" style="
 								color: #ffcc00;
 								cursor: pointer;
 								margin-left: 4px;
 							" @click="addStarItem(d)"></b-icon>
-					</div>
-					<div>
-						<strong v-html="'Set this LD reference for: '"></strong>
-						<template v-for="(i, iIndex) in plotsList">
-							<strong v-if="i != 'Combined' && !!assoData[i].data[d]" v-html="i" class="group-bubble" :style="'background-color:' +
-								compareGroupColors[iIndex] +
-								';'
-								" @click="resetLdReference(i, d)"></strong>
-							<strong v-if="i == 'Combined'" v-html="'All'" class="group-bubble"
-								style="background-color: #dddddd" @click="resetLdReference('All', d)"></strong>
-						</template>
-					</div>
-					<div v-if="g != 'Combined' && !!assoData[g].data[d]" v-for="(g, gIndex) in plotsList">
-						<div v-for="(h, hIndex) in renderConfig['hover content']">
-							<span v-html="h + '(' + g + '):' + assoData[g].data[d][h]
-								"></span>
+						</div>
+						<div>
+							<strong v-html="'Set this LD reference for: '"></strong>
+							<template v-for="(i, iIndex) in plotsList">
+								<strong v-if="i != 'Combined' && !!assoData[i].data[d]" v-html="i" class="group-bubble" :style="'background-color:' +
+									compareGroupColors[iIndex] +
+									';'
+									" @click="resetLdReference(i, d)"></strong>
+								<strong v-if="i == 'Combined'" v-html="'All'" class="group-bubble"
+									style="background-color: #dddddd" @click="resetLdReference('All', d)"></strong>
+							</template>
+						</div>
+						<div v-if="g != 'Combined' && !!assoData[g].data[d]" v-for="(g, gIndex) in plotsList">
+							<div v-for="(h, hIndex) in renderConfig['hover content']">
+								<span v-html="h + '(' + g + '):' + assoData[g].data[d][h]
+									"></span>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-		<div v-if="!!renderConfig.legend" class="mbm-plot-legend col-md-12" v-html="renderConfig.legend"></div>
-		<div class="col-md-12 region-plots-wrapper" :id="'plotsWrapper' + item.replaceAll(' ', '_')"
-			v-for="(item, itemIndex) in plotsList">
-			<div class="col-md-9 region-plot-default-legend">
-				<div v-if="item != 'Combined'">
-					<span class="plot-legend-dot" style="background-color: #824099cc"></span>
-					<span>Reference variant</span>
-					<span class="plot-legend-dot" style="background-color: #d0363360"></span><span>1 > r2 >= 0.8</span>
-					<span class="plot-legend-dot" style="background-color: #ee982d50"></span><span>0.8 > r2 >= 0.6</span>
-					<span class="plot-legend-dot" style="background-color: #4db05240"></span><span>0.6 > r2 >= 0.4</span>
-					<span class="plot-legend-dot" style="background-color: #32afd530"></span><span>0.4 > r2 >= 0.2</span>
-					<span class="plot-legend-dot" style="background-color: #2074b620"></span><span>0.2 > r2 > 0</span>
+			<div v-if="!!renderConfig.legend" class="mbm-plot-legend" v-html="renderConfig.legend"></div>
+			<div class="region-plot-default-legend">
+				<span class="plot-legend-dot" style="background-color: #824099cc"></span>
+				<span>Reference variant</span>
+				<span class="plot-legend-dot" style="background-color: #d0363360"></span><span>1 > r2 >= 0.8</span>
+				<span class="plot-legend-dot" style="background-color: #ee982d50"></span><span>0.8 > r2 >= 0.6</span>
+				<span class="plot-legend-dot" style="background-color: #4db05240"></span><span>0.6 > r2 >= 0.4</span>
+				<span class="plot-legend-dot" style="background-color: #32afd530"></span><span>0.4 > r2 >= 0.2</span>
+				<span class="plot-legend-dot" style="background-color: #2074b620"></span><span>0.2 > r2 > 0</span>
 
-					<span class="plot-legend-dot" style="background-color: #33333320"></span>
-					<span>No data</span>
-				</div>
+				<span class="plot-legend-dot" style="background-color: #33333320"></span>
+				<span>No data</span>
 			</div>
-
-			<div class="col-md-9 asso-plots-wrapper">
-				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId">
+			<div class="ld-plots-opener" @click="utils.uiUtils.showHideElement('ldPlotsWrapper' + sectionId)">View P-Value / LD plot(s)</div>
+			<div :id="'ldPlotsWrapper' + sectionId" class="ld-plots-wrapper hidden">
+				<template v-for="(item, itemIndex) in plotsList">
+					<h6 v-html="item != 'default'
+						? item + ' <small>*Showing only with LD</small>'
+						: ' <small>*Showing only with LD</small>'
+						" :class="'text color-' + itemIndex"></h6>
+					<canvas :id="'ld_plot_' + item.replaceAll(' ', '_') + sectionId" class="ld-plot" width="" height=""
+						@resize="onResize" @click="checkPosition($event, item, 'LD', 'click')"
+						@mousemove="checkPosition($event, item, 'LD', 'move')"
+						@mouseout="onMouseOut('ldInfoBox' + item + sectionId)"></canvas>
+					<div :id="'ldInfoBox' + item.replaceAll(' ', '_') + sectionId" class="ld-info-box hidden"></div>	
+				</template>
+			</div>
+			<template v-for="(item, itemIndex) in plotsList">
+				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId" class="asso-plots-wrapper">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
-
 					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
 						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
 					<div :id="'assoInfoBox' + item.replaceAll(' ', '_') + sectionId" class="asso-info-box hidden"></div>
 				</div>
-			</div>
-			<div :id="'ldPlotsWrapper' + item.replaceAll(' ', '_') + sectionId"
-				class="col-md-3 ld-plots-wrapper reference-area">
-				<h6 v-html="item != 'default'
-					? item + ' <small>*Showing only with LD</small>'
-					: ' <small>*Showing only with LD</small>'
-					" :class="'text color-' + itemIndex"></h6>
-				<canvas :id="'ld_plot_' + item.replaceAll(' ', '_') + sectionId" class="ld-plot" width="" height=""
-					@resize="onResize" @click="checkPosition($event, item, 'LD', 'click')"
-					@mousemove="checkPosition($event, item, 'LD', 'move')"
-					@mouseout="onMouseOut('ldInfoBox' + item + sectionId)"></canvas>
-
-				<div :id="'ldInfoBox' + item.replaceAll(' ', '_') + sectionId" class="ld-info-box hidden"></div>
-			</div>
+			</template>
+			
 		</div>
 	</div>
 </template>
@@ -114,7 +111,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-region-plot", {
+export default Vue.component("multi-region-plot", {
 	props: [
 		"plotData",
 		"renderConfig",
@@ -172,7 +169,7 @@ export default Vue.component("research-region-plot", {
 	},
 	computed: {
 		adjPlotMargin() {
-			
+
 			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
 
 			let plotMargin = !!customPlotMargin ? {
@@ -180,7 +177,7 @@ export default Vue.component("research-region-plot", {
 				right: customPlotMargin.right,
 				top: customPlotMargin.top,
 				bottom: customPlotMargin.bottom,
-				bump: !!customPlotMargin.bump? customPlotMargin.bump :10,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
 			} :
 				{
 					left: this.plotMargin.leftMargin,
@@ -190,8 +187,8 @@ export default Vue.component("research-region-plot", {
 					bump: this.plotMargin.bump,
 				};
 
-				console.log("region plot", plotMargin);
-				return plotMargin;
+			//console.log("region plot", plotMargin);
+			return plotMargin;
 		},
 		staredVariants() {
 			if (!!this.renderConfig["star key"] && !this.isSectionPage) {
@@ -706,13 +703,13 @@ export default Vue.component("research-region-plot", {
 			let wrapper = document.querySelector(infoBoxId);
 			let canvas = document.querySelector(canvasId);
 
-			wrapper.style.top = y + canvas.offsetTop + "px";
+			/*wrapper.style.top = y + canvas.offsetTop + "px";
 			wrapper.style.left =
 				x + canvas.offsetLeft + 150 > canvas.width
 					? x + canvas.offsetLeft + -215 + "px"
 					: x + canvas.offsetLeft + 15 + "px";
 			wrapper.style.width =
-				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";
+				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";*/
 
 			if (dotsOnPosition.length > 0) {
 				if (EVENT_TYPE == "move") {
@@ -763,8 +760,14 @@ export default Vue.component("research-region-plot", {
 							});
 						}
 					});
+
 					wrapper.classList.remove("hidden");
 					wrapper.innerHTML = infoContent;
+
+					wrapper.style.top = y + canvas.offsetTop + 25 + "px";
+					let xPosRatio = x / canvas.offsetWidth;
+					wrapper.style.left = x - (wrapper.offsetWidth * xPosRatio) + canvas.offsetLeft + "px";
+
 				} else if (EVENT_TYPE == "click") {
 					this.dotsClicked = dotsOnPosition;
 					this.showHidePanel("#fixedInfoBox");
@@ -884,15 +887,9 @@ export default Vue.component("research-region-plot", {
 			let regionEnd = this.searchingRegion.end;
 			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
 			let assoCanvasWidth =
-				document.querySelector("#rp_region_plot").clientWidth *
-				0.75 *
-				2 -
-				60; //30 <- left & right padding of wrapper *2
-			let ldCanvasWidth =
-				document.querySelector("#rp_region_plot").clientWidth *
-				0.25 *
-				2 -
-				60; //30 <- left & right padding of wrapper *2
+				document.querySelector(".asso-plots-wrapper").clientWidth * 2;
+				
+			let ldCanvasWidth = 700;
 
 			let canvasHeight = !!this.renderConfig.height
 				? this.renderConfig.height * 2 +
@@ -1057,7 +1054,6 @@ export default Vue.component("research-region-plot", {
 						let xPos = xStart + (star.columns[this.renderConfig["x axis field"]] - xMin) * xPosByPixel;
 
 						this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
-
 						this.renderDot(CTX, xPos, yPos2, "#FFAA0055", 5);
 					})
 				}
@@ -1772,11 +1768,31 @@ $(function () { });
 	padding: 0 !important;
 }
 
+.ld-plots-opener {
+	color: #0069D9;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 7px;
+    margin-top: -20px;
+}
+
+.ld-plots-opener:hover {
+	cursor: pointer;
+}
+
 .asso-plots-wrapper,
 .ld-plots-wrapper {
-	display: inline-block;
 	height: auto !important;
 	padding-bottom: 0 !important;
+	width: 100%;
+}
+
+.ld-plots-wrapper {
+	margin-bottom: 15px;
+}
+
+.ld-plots-wrapper.hidden {
+	display: none;
 }
 
 .asso-info-box,
@@ -1839,6 +1855,7 @@ $(function () { });
 
 /* remove later if unused */
 .region-plot-default-legend {
+	display: block;
 	text-align: center;
 }
 
