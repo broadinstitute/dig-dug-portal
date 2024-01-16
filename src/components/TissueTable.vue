@@ -10,13 +10,18 @@
             :current-page="currentPage"
         >
         </b-table>
-        <b-pagination> </b-pagination>
+        <b-pagination
+            v-model="currentPage"
+            :total-rows="tissueData.length"
+            :per-page="perPage"
+        >
+        </b-pagination>
     </div>
 </template>
 
 <script>
-export default {
-    name: "TissueTable",
+import Vue from "vue";
+export default Vue.component("tissue-table", {
     props: {
         tissueData: {
             type: Array,
@@ -33,16 +38,12 @@ export default {
                     label: "Gene",
                 },
                 {
-                    key: "minTpm",
-                    label: "P-Value",
-                },
-                {
-                    key: "nSamples",
-                    label: "Samples",
+                    key: "meanTpm",
+                    label: "Mean TPM",
                 },
                 {
                     key: "evidence",
-                    label: "Gene Expression Evidence",
+                    label: "Evidence",
                 },
                 {
                     key: "links",
@@ -56,5 +57,5 @@ export default {
             return this.tissueData;
         },
     },
-};
+});
 </script>

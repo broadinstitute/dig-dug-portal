@@ -20,7 +20,10 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <tissue-table :tissue-data="$parent.tissueData" />
+                    <tissue-table
+                        v-if="$parent.tissueData.length > 0"
+                        :tissue-data="$parent.tissueData"
+                    ></tissue-table>
                 </div>
             </div>
         </div>

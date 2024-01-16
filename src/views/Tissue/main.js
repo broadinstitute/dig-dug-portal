@@ -38,6 +38,9 @@ new Vue({
         diseaseSystem() {
             return this.$store.getters["bioPortal/diseaseSystem"];
         },
+        tissueData() {
+            return this.$store.getters["tissueData"];
+        },
     },
     created() {
         // get the disease group and set of phenotypes available
