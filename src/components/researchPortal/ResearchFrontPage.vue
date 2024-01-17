@@ -1,18 +1,18 @@
 <template>
 	<div class="container-fluid mdkp-body flex-body">
         <div class="fp-top" 
-            :style="{ background: `linear-gradient( ${this.sectionConfigs['content']['color_secondary']} 0%, ${this.sectionConfigs['content']['color_primary']} 100% )`}">
+            :style="{ background: `linear-gradient( ${this.sectionConfigs['content']['color secondary']} 0%, ${this.sectionConfigs['content']['color primary']} 100% )`}">
             <div class="fp-intro-section">
                 <div class="fp-intro-logo">
                     <img style="width:400px;" 
-                        :src="this.sectionConfigs['content']['logo_large']"/>
+                        :src="this.sectionConfigs['content']['logo large']"/>
                 </div>
                 <div class="fp-intro-divider"></div>
                 <div class="fp-intro-blurb">
                     <div class="fp-intro-blurb-text">{{ this.sectionConfigs["content"]["tagline"] }}</div>
                 </div>
             </div>
-            <div v-if="this.sectionConfigs['content']['search_enabled']"
+            <div v-if="this.sectionConfigs['content']['search enabled']"
                 class="row fp-search-section">
                 <div class="fp-search">
                     <input
