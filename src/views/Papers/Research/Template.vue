@@ -614,9 +614,9 @@
 									</button>
 
 									<div v-if="group.type && group.type === 'fixed bottom'" class="fixed-group-toggle-wrapper">
+										<!-- ADD "had-updates" class to the button below -->
 										<button v-if="group.type && group.type === 'fixed bottom'" class="fixed-group-toggle"
-											@click="$parent.utilsBox.uiUtils.openFixedSummarySection('tabUiGroup' + groupIndex)"
-										>
+										@click="$parent.utilsBox.uiUtils.toggleFixedSummarySection('tabUiGroup' + groupIndex)">
 											<div class="gg-chevron-double-up"></div>
 											<span class="fixed-group-toggle-label">Open {{ group.label }} Section</span>
 										</button>
@@ -1038,23 +1038,36 @@ html, body, #app {
 .fixed-group-toggle {
     position: absolute;
     left: 5px;
-    top: 10px;
+    top: 11px;
     /*width: 200px;*/
     height: 35px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    border: 2px solid black;
+    border: 2px solid transparent;
     border-radius: 5px;
     background: white;
     z-index: 1;
 	transition: all .3s ease-out;
 	overflow: hidden;
+	/*animation: flashAnimation 3s ease-in 2;*/
 }
 .tabgroup-fixed-bottom.open .fixed-group-toggle {
     width: 40px;
     /*justify-content: center;*/
 	transition-duration: .3s;
+}
+.fixed-group-toggle.has-updates{
+	background: white;
+	animation: flashAnimation 5s ease-in infinite;
+}
+@keyframes flashAnimation {
+  10%, 90% {
+    background-color: white;
+  }
+  30%, 70% {
+    background-color: #05bd0270;
+  }
 }
 .gg-chevron-double-up {
     box-sizing: border-box;
@@ -1093,9 +1106,6 @@ html, body, #app {
 }
 .fixed-group-toggle-label {
     margin: 0 5px;
-	transition: all .3s ease-out;
-	transition-delay: .3s;
-	font-weight: bold;
 }
 
 .tabgroup-fixed-bottom .tab-ui-wrapper {
@@ -1106,18 +1116,18 @@ html, body, #app {
 	background: #ddefff;
 }
 .tabgroup-fixed-bottom .tab-ui-wrapper .tab-ui-tab {
-    border-top: 2px solid black;
-    border-left: 2px solid black;
-    border-right: 4px solid black;
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
     border-bottom: 0;
-    margin-bottom: -2px;
+    margin-bottom: -1px;
     background: white;
 	color: black;
     font-weight: bold;
 }
 .tabgroup-fixed-bottom .tab-content-group {
     padding-top: 35px;
-    border-top: 2px solid black;
+    border-top: 1px solid #ddd;
 	background: white;
 	padding-left: 20px;
 	padding-right: 20px;

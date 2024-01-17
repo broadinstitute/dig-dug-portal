@@ -489,12 +489,13 @@ let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPP
         document.getElementById(TARGETCONTENT).setAttribute("class", "tab-content-wrapper");
 }
 
-let openFixedSummarySection = function(UIWRAPPERID){
+let toggleFixedSummarySection = function(UIWRAPPERID){
     const tabsGroup = document.getElementById(UIWRAPPERID).closest('.tabgroup-fixed-bottom');
     if(tabsGroup.classList.contains('open')){
         tabsGroup.classList.remove('open');
     }else{
         tabsGroup.classList.add('open');
+        tabsGroup.querySelector('.fixed-group-toggle').classList.remove('has-updates');
     }
 }
 
@@ -533,6 +534,6 @@ export default {
     getUrl,
     checkIfNumeric,
     setTabActive,
-    openFixedSummarySection,
+    toggleFixedSummarySection,
     showHidePanel
 };
