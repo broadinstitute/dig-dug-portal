@@ -107,7 +107,8 @@
 		
 
 		<div
-			class="container-fluid mdkp-body flex-body"
+			class="container-fluid mdkp-body"
+			:class="!!$parent.sectionConfigs['is multi section']?'flex-body':''"
 			v-if="$parent.researchPage !== null && !$parent.sectionConfigs['is front page']"
 		>
 			<div class="card mdkp-card dataset-page-header">
@@ -616,11 +617,11 @@
 									<div v-if="group.type && group.type === 'fixed bottom'" class="fixed-group-toggle-wrapper">
 										<!-- ADD "had-updates" class to the button below -->
 										<button v-if="group.type && group.type === 'fixed bottom'" class="fixed-group-toggle"
+										id="fixed_group_toggle"
 										@click="$parent.utilsBox.uiUtils.toggleFixedSummarySection('tabUiGroup' + groupIndex)">
 											<div class="gg-chevron-double-up"></div>
 											<span class="fixed-group-toggle-label">Open {{ group.label }} Section</span>
 										</button>
-										
 									</div>
 
 									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
@@ -808,6 +809,15 @@ html, body, #app {
     flex-direction: column;
 	padding-bottom: 40px;
 }
+
+.mdkp-body {
+	padding-bottom: 50px;
+}
+
+.mdkp-body.flex-body {
+	overflow-x: hidden;
+}
+
 .card.hidden {
 	display: none !important;
 }
@@ -1130,13 +1140,18 @@ html, body, #app {
     border-top: 1px solid #ddd;
 	background: white;
 	padding-left: 20px;
-	padding-right: 20px;
+	padding-right: 0px;
 	height: 100%;
 }
 .tabgroup-fixed-bottom .tab-content-wrapper {
-    overflow-y: scroll;
+    overflow-y: auto;
     height: 100%;
 }
+
+.tabgroup-fixed-bottom .multi-section {
+	width: calc(100% - 15px);
+}
+
 .tabgroup-fixed-bottom table {
     background: white;
 }
