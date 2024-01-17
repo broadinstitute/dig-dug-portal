@@ -1096,6 +1096,7 @@ export default Vue.component("research-data-table", {
 
 .research-data-table-wrapper > .table-wrapper {
 	overflow-x:auto;
+	overflow-y: hidden;
 	width: 100%;
 }
 
