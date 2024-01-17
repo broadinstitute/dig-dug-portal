@@ -223,6 +223,10 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
     let dataKeys = Object.keys(DATA);
     let dataLength = dataKeys.length;
     let barWidth = (WIDTH - MARGIN.left - MARGIN.right - (SPACER * (dataLength + 1))) / dataLength;
+    let minBarWidth = ((WIDTH - MARGIN.left - MARGIN.right) / dataLength) - 2;
+
+    barWidth = (barWidth <= 4) ? minBarWidth : barWidth;
+
     //let valueBump = (MAX - MIN) / TICK_NUM;
     let max = Math.ceil(MAX);
     let min = Math.floor(MIN);

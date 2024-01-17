@@ -148,7 +148,8 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "raw":
-                    tempObj[c["field name"]] = d[c["raw field"]];
+                    let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
+                    tempObj[c["field name"]] = rawValue; //d[c["raw field"]];
                     d[c["field name"]] = tempObj[c["field name"]];
                     break;
 
@@ -213,7 +214,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
             dKeys.map((dKey) => {
                 if (
                     typeof tempObj[dKey] == "object" &&
-                    tempObj[dKey].length > 0
+                    (Array.isArray(tempObj[dKey]) == true && tempObj[dKey].length > 0)
                 ) {
                     let tempArr = [];
 
