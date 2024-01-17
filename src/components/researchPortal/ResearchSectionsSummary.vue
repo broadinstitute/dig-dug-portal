@@ -122,6 +122,11 @@ export default Vue.component("research-sections-summary", {
 	watch: {
 		wholeDataCounts(NUM) {
 			//this.buildSummary();
+			let element = document.getElementById("fixed_group_toggle");
+			console.log('element', element)
+			if(!!element) {
+				element.classList.add('has-updates');
+			}
 		}
 	},
 	methods: {

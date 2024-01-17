@@ -3,9 +3,9 @@
     position: relative;
     /*display: inline-block;
     border-bottom: 1px dotted black;*/
-  }
-  
-  .byor-tooltip .tooltiptext {
+}
+
+.byor-tooltip .tooltiptext {
     visibility: hidden;
     width: 120px;
     background-color: black;
@@ -17,16 +17,21 @@
     font-size: 13px;
     font-weight: 300;
     top: 80%;
-    left: 50%;
+    right: 0;
     z-index: 10;
     width: 200px;
-  }
-  
-  .byor-tooltip:hover .tooltiptext {
-    visibility: visible;
-  }
+}
 
-  /* */
+.byor-tooltip:first-child .tooltiptext {
+    left: 0 !important;
+    right: unset !important;
+}
+
+.byor-tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+/* */
 
 .help-content {
     display: inline-block;
@@ -57,7 +62,7 @@ span.help-content-caller {
     position: absolute;
     width: 100%;
     height: 100%;
-    color: rgba(47,86,135,.0) !important;
+    color: rgba(47, 86, 135, .0) !important;
     background: none !important;
 }
 
