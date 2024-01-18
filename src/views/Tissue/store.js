@@ -32,10 +32,20 @@ export default new Vuex.Store({
         getTissue(context) {
             context.dispatch("tissue/query", { q: context.state.tissueName });
         },
+        async getEvidence(context, { q }) {
+            let evidence = await context.dispatch("geneExpression/query", {
+                q,
+            });
+            return evidence;
+        },
     },
     getters: {
         tissueData(state) {
-            return state.tissue.data || [];
+            if (state.tissue.data) {
+                //return all data where meanTpm > 1
+                return state.tissue.data.filter((d) => d.meanTpm >= 1);
+            }
+            return [];
         },
     },
 });
