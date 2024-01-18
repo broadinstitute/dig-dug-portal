@@ -22,7 +22,11 @@
 				<label :for="section.section">{{ section.label}}</label>
 			</div>
 		</div>
+		<div>
 		<h5 class="btn btn-primary" @click="buildSummary()"><strong>Update Summary</strong></h5>
+			<!-- colorStyle can be: none = white, "black", "color" -->
+			<research-loading-spinner isLoading="yeah" colorStyle="color"></research-loading-spinner>
+		</div>
 
 		<div class="row card-body" :id="'section_' + sectionID">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
@@ -62,6 +66,7 @@ import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionF
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
+
 export default Vue.component("research-sections-summary", {
 	props: ["sectionIndex","uId", "sectionsConfig", "sectionsData","utils","starItems", "regionZoom",
 		"regionViewArea","isInTab"],
@@ -69,7 +74,7 @@ export default Vue.component("research-sections-summary", {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
 		ResearchDataTable,
-		ResearchInSectionSearch
+		ResearchInSectionSearch,
 	},
 	data() {
 		return {
