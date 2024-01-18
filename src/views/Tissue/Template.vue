@@ -23,6 +23,7 @@
                     <tissue-table
                         v-if="$parent.tissueData.length > 0"
                         :tissue-data="$parent.tissueData"
+                        :tissue="$parent.tissue"
                     ></tissue-table>
                 </div>
             </div>
