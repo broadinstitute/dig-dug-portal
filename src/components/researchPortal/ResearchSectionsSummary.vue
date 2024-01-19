@@ -24,14 +24,14 @@
 		</div>
 		<div>
 		<h5 class="btn btn-primary" @click="buildSummary()"><strong>Update Summary</strong></h5>
-			<!-- colorStyle can be: none = white, "black", "color" -->
-			<research-loading-spinner isLoading="yeah" colorStyle="color"></research-loading-spinner>
+			<!-- colorStyle can be: none = white, "black", "color" 
+			<research-loading-spinner isLoading="yeah" colorStyle="color"></research-loading-spinner>-->
 		</div>
 
 		<div class="row card-body" :id="'section_' + sectionID">
 			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
 				<research-data-table 
-					v-if="!!sectionData"
+					v-if="!!sectionData && summarizing == null"
 					:pageID="sectionIndex"
 					:dataset="sectionData"
 					:tableFormat="tableFormat"
@@ -176,6 +176,8 @@ export default Vue.component("research-sections-summary", {
 							}
 						})
 
+						console.log("filteredData", filteredData);
+
 						section.actions.map(action => {
 							switch (action.action) {
 
@@ -198,7 +200,7 @@ export default Vue.component("research-sections-summary", {
 									this.tableFormat["features"].push(action.feature);
 
 									this.tableFormat[action.feature] = action.columns;
-									filteredData[sIndex] = this.addFeatureField(filteredData[sIndex], filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
+									//filteredData[sIndex] = this.addFeatureField(filteredData[sIndex], filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
 									}
 									break;
 							}
@@ -207,7 +209,6 @@ export default Vue.component("research-sections-summary", {
 				})
 
 				let collapsedData = [];
-				//let filterLogic = this.sectionsConfig.sections["inter sections filter logic"];
 				
 				targetData.map(row => {
 					let meetFilter = true;
@@ -338,8 +339,6 @@ export default Vue.component("research-sections-summary", {
 			return targetData;
 		},
 		applyFilter(targetData,filterData,targetField,filterField,TYPE){
-
-console.log(targetField, filterField, TYPE);
 
 			let returnData = [];
 			let filterFieldArr;
