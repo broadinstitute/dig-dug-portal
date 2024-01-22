@@ -27,6 +27,20 @@
                     ></tissue-table>
                 </div>
             </div>
+
+            <div class="filtering-ui-wrapper container-fluid">
+                <div class="row filtering-ui-content">
+                    <div class="col filter-col-md filter-col-lg">Filters</div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <tissue-heritability-table
+                        :tissue="$parent.tissue"
+                    ></tissue-heritability-table>
+                </div>
+            </div>
         </div>
 
         <!-- Footer-->

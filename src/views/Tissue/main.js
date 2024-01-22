@@ -6,6 +6,10 @@ import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
 import keyParams from "@/utils/keyParams";
 import TissueTable from "@/components/TissueTable.vue";
+import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 new Vue({
     store,
     components: {
@@ -13,6 +17,10 @@ new Vue({
         PageFooter,
         Documentation,
         TissueTable,
+        TissueHeritabilityTable,
+        CriterionFunctionGroup,
+        FilterPValue,
+        FilterEnumeration,
     },
     data() {
         return {
