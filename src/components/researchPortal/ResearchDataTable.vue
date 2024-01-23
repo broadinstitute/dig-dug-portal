@@ -100,6 +100,7 @@
 				</div>
 			</div>
 		</div>
+		<div class="table-wrapper">
 		<table
 			:class="'table table-sm research-data-table ' + pageID"
 			cellpadding="0"
@@ -241,6 +242,7 @@
 				</tr>
 			</tbody>
 		</table>
+		</div>
 		<b-container
 			v-if="
 				!!dataset && !!perPageNumber && perPageNumber != null && perPageNumber != 0
@@ -1090,6 +1092,12 @@ export default Vue.component("research-data-table", {
 	margin-top: 25px;
 	font-size: 14px;
 	line-height: 18px;
+}
+
+.research-data-table-wrapper > .table-wrapper {
+	overflow-x:auto;
+	overflow-y: hidden;
+	width: 100%;
 }
 
 table.research-data-table {

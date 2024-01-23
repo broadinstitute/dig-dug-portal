@@ -34,8 +34,10 @@
 						v-for="parameter in dataPoint['parameters']" :key="parameter"
 						style="font-size:0.7em"
 						v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
-					<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
-						:id="'flag_' + sectionID">Loading data...</small>
+					
+					<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
+						:id="'flag_' + sectionID">Loading data...</small>-->
+						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
 				</h4>
 			</div>
 		</div>

@@ -394,6 +394,7 @@ export default Vue.component("research-genes-track", {
 		},
 		async getGenesData(GENES) {
 
+			// source in 1 is hg38
 			let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
 			let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 

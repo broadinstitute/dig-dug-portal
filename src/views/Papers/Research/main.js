@@ -37,6 +37,7 @@ import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
 import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
 import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
+import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingSpinner.vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -81,7 +82,8 @@ new Vue({
         Documentation,
         ResearchSection,
         ResearchSectionsSummary,
-        ResearchMultiSectionsSearch
+        ResearchMultiSectionsSearch,
+        ResearchLoadingSpinner
     },
     data() {
         return {
