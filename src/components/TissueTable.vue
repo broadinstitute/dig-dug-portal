@@ -58,10 +58,10 @@
                             :fields="evidenceFields"
                             :per-page="perPage"
                             :current-page="r.item.currentPage"
-                        >
+                            ><template #cell(collection)="e">{{
+                                e.item.collection.join(", ")
+                            }}</template>
                         </b-table>
-
-                        {{ r.item }}
                         <b-pagination
                             v-model="r.item.currentPage"
                             :total-rows="evidence[r.item.gene].length"
@@ -77,15 +77,18 @@
                             :fields="linksFields"
                             :per-page="perPage"
                             :current-page="currentPage"
-                            ><template #cell(region)="r">
-                                {{ r.item.chromosome }}:{{ r.item.start }}-{{
-                                    r.item.end
+                            ><template #cell(region)="l">
+                                {{ l.item.chromosome }}:{{ l.item.start }}-{{
+                                    l.item.end
                                 }}
                             </template>
-                            <template #cell(targetRegion)="r">
-                                {{ r.item.chromosome }}:{{
-                                    r.item.targetGeneStart
-                                }}-{{ r.item.targetGeneEnd }}
+                            <template #cell(targetRegion)="l">
+                                {{ l.item.chromosome }}:{{
+                                    l.item.targetGeneStart
+                                }}-{{ l.item.targetGeneEnd }}
+                            </template>
+                            <template #cell(assay)="l">
+                                {{ l.item.assay.join(", ") }}
                             </template>
                         </b-table>
                         <b-pagination
