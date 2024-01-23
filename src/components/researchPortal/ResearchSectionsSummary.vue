@@ -200,7 +200,7 @@ export default Vue.component("research-sections-summary", {
 									this.tableFormat["features"].push(action.feature);
 
 									this.tableFormat[action.feature] = action.columns;
-									//filteredData[sIndex] = this.addFeatureField(filteredData[sIndex], filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
+									filteredData[sIndex] = this.addFeatureField(filteredData[sIndex], filterData, action["key field"], action.feature, action.columns, action["if multiple values"]);
 									}
 									break;
 							}
