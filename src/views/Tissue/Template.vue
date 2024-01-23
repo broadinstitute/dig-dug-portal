@@ -12,7 +12,7 @@
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
                     <documentation
-                        name="variant.explore.subheader"
+                        name="tissue.explore.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
                 </div>

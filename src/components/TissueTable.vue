@@ -48,9 +48,7 @@
                 </b-button>
             </template>
             <template #row-details="r">
-                outside {{ r }}
                 <div v-if="r.item.showButton === 1" class="row">
-                    inside 1
                     <div v-if="evidence[r.item.gene]" class="col-12">
                         <h6>Evidence</h6>
                         <!-- show table with items from evidence if key is equal r.item.gene -->
@@ -59,15 +57,21 @@
                             :items="evidence[r.item.gene]"
                             :fields="evidenceFields"
                             :per-page="perPage"
-                            :current-page="currentPage"
+                            :current-page="r.item.currentPage"
                         >
                         </b-table>
+
+                        {{ r.item }}
+                        <b-pagination
+                            v-model="r.item.currentPage"
+                            :total-rows="evidence[r.item.gene].length"
+                            :per-page="perPage"
+                        ></b-pagination>
                     </div>
                 </div>
                 <div v-if="r.item.showButton === 2" class="row">
-                    inside 2
                     <div v-if="links[r.item.gene]" class="col-12">
-                        <h6>Links</h6>
+                        <h6>Gene Links</h6>
                         <b-table
                             :items="links[r.item.gene]"
                             :fields="linksFields"
@@ -84,6 +88,12 @@
                                 }}-{{ r.item.targetGeneEnd }}
                             </template>
                         </b-table>
+                        <b-pagination
+                            v-model="r.item.currentPage"
+                            :total-rows="links[r.item.gene].length"
+                            :per-page="perPage"
+                        >
+                        </b-pagination>
                     </div>
                 </div>
             </template>
@@ -100,7 +110,7 @@
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
-export default Vue.component("tissue-table", {
+export default Vue.component("TissueTable", {
     props: {
         tissueData: {
             type: Array,
@@ -217,44 +227,28 @@ export default Vue.component("tissue-table", {
     mounted() {
         if (this.tissueData) {
             this.tableData = this.tissueData.map((item) => {
-                return { ...item, showButton: 0 };
+                return { ...item, showButton: 0, currentPage: 1 };
             });
         }
-    },
-    computed: {
-        // tableData() {
-        //     //add key showButton to each item in tissueData
-        //     this.tissueData.forEach((item) => {
-        //         item.showButton = 0;
-        //     });
-        //     return this.tissueData;
-        // },
     },
     methods: {
         async showEvidence(gene) {
             if (gene) {
                 //check if evidence object already has key equal gene
-                if (this.evidence[gene]) {
-                    console.log("show evidence table");
-                } else {
+                if (!this.evidence[gene]) {
                     console.log("fetch evidence");
                     let data = await query("gene-expression", gene);
                     console.log(data);
-                    //add data to evidence with key equal gene
-
                     Vue.set(this.evidence, gene, data);
-                    console.log(this.evidence);
+                    // console.log(this.evidence);
                     //console.log(JSON.stringify(this.evidence[0], null, 2));
                 }
             }
-            console.log("show evidence", this.evidence);
         },
         async showLinks(gene) {
             if (gene) {
                 //check if evidence object already has key equal gene
-                if (this.links[gene]) {
-                    console.log("show links table");
-                } else {
+                if (!this.links[gene]) {
                     console.log("fetch links");
                     let data = await query(
                         "gene-links",
@@ -262,40 +256,35 @@ export default Vue.component("tissue-table", {
                     );
 
                     Vue.set(this.links, gene, data);
-                    console.log(this.links);
+                    //console.log(this.links);
                     //console.log(JSON.stringify(this.evidence[0], null, 2));
                 }
             }
             console.log("show links", gene);
         },
         toToggle(row, buttonClicked, isShowing) {
-            console.log("row", row);
-            console.log("buttonClicked", buttonClicked);
-            console.log("isShowing", isShowing);
             if (isShowing) {
                 if (buttonClicked === row.item.showButton) return true;
                 else {
                     if (buttonClicked === 1) {
-                        console.log("inside 1");
                         this.showEvidence(row.item.gene);
                         Vue.set(row.item, "showButton", 1);
                     } else if (buttonClicked === 2) {
-                        console.log("inside 2");
                         this.showLinks(row.item.gene);
                         Vue.set(row.item, "showButton", 2);
                     }
                 }
+                Vue.set(row.item, "currentPage", 1);
                 return false;
             } else {
                 if (buttonClicked === 1) {
-                    console.log("inside 1B");
                     this.showEvidence(row.item.gene);
                     Vue.set(row.item, "showButton", 1);
                 } else if (buttonClicked === 2) {
-                    console.log("inside 2B");
                     this.showLinks(row.item.gene);
                     Vue.set(row.item, "showButton", 2);
                 }
+                Vue.set(row.item, "currentPage", 1);
                 return true;
             }
         },

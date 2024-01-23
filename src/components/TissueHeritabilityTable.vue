@@ -10,7 +10,7 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
-            <!-- <template #cell(biosample)="r"
+            <template #cell(biosample)="r"
                 ><b-button
                     v-b-popover.hover="'View biosample'"
                     size="sm"
@@ -18,13 +18,13 @@
                     class=""
                     @click="r.toggleDetails()"
                 >
-                    View
+                    {{ r.detailsShowing ? "Hide" : "Show" }}
                 </b-button></template
             >
             <template #row-details="r">
                 <div class="row">
-                    <h4>Biosample</h4>
-                    <div v-if="r.item.biosample" class="col-12">
+                    <h6>Biosample</h6>
+                    <!-- <div v-if="r.item.biosample" class="col-12">
                         <h6>Biosample</h6>
                         <b-table
                             :items="r.item.biosample"
@@ -33,12 +33,13 @@
                             :current-page="currentPage"
                         >
                         </b-table>
-                    </div></div
-            ></template> -->
+                    </div> -->
+                </div></template
+            >
         </b-table>
         <b-pagination
             v-model="currentPage"
-            :total-rows="tableData[tissue].length || 0"
+            :total-rows="totalRows"
             :per-page="perPage"
         >
         </b-pagination>
@@ -90,10 +91,9 @@ export default Vue.component("TissueHeritabilityTable", {
         };
     },
     computed: {
-        // Computed properties go here
-    },
-    watch: {
-        // Watchers go here
+        totalRows() {
+            return this.tableData[this.tissue]?.length || 0;
+        },
     },
     mounted() {
         if (this.tissue) {
