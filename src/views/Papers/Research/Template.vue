@@ -107,7 +107,8 @@
 		
 
 		<div
-			class="container-fluid mdkp-body flex-body"
+			class="container-fluid mdkp-body"
+			:class="!!$parent.sectionConfigs['is multi section']?'flex-body':''"
 			v-if="$parent.researchPage !== null && !$parent.sectionConfigs['is front page']"
 		>
 			<div class="card mdkp-card dataset-page-header">
@@ -598,24 +599,43 @@
 								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
 								>
 							</research-multi-sections-search>
-							<template v-if="!!$parent.sectionConfigs['tab groups']">
-								<div v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" style="position:relative">
+							<template v-if="!!$parent.sectionConfigs['tab groups']"
+									  v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" >
+								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
+									style="position:relative"
+								>
 									
-									<button class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
+									<button v-if="!group.type"
+										class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
 										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
 										$parent.utilsBox.uiUtils.showHideSvg('tabContentGroup' + groupIndex);
 										$parent.utilsBox.uiUtils.addRemoveClass('tabsOpener' + groupIndex,'closed');" title="Show / hide section">
 										<span :id="'groupLabel'+ + groupIndex">{{ "Show/hide "+group.label+"  " }}</span><b-icon
-											icon="eye-slash-fill"></b-icon></button>
+											icon="eye-slash-fill"></b-icon>
+									</button>
+
+									<div v-if="group.type && group.type === 'fixed bottom'" class="fixed-group-toggle-wrapper">
+										<!-- ADD "had-updates" class to the button below -->
+										<button v-if="group.type && group.type === 'fixed bottom'" class="fixed-group-toggle"
+										id="fixed_group_toggle"
+										@click="$parent.utilsBox.uiUtils.toggleFixedSummarySection('tabUiGroup' + groupIndex)">
+											<div class="gg-chevron-double-up"></div>
+											<span class="fixed-group-toggle-label">Open {{ group.label }} Section</span>
+										</button>
+									</div>
+
 									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
-										<div v-for="tab, tabIndex in group.sections" :id="'tabUi'+tab.section" class="tab-ui-tab" :class="tabIndex == 0?'active':''"
+										<div v-for="tab, tabIndex in group.sections" 
+											:id="'tabUi'+tab.section" 
+											class="tab-ui-tab" 
+											:class="tabIndex == 0?'active':''"
 											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
 												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
 											{{ tab.label }} <span class="flag"><b-icon
 												icon="cloud-download-fill"></b-icon></span>
 										</div>
-										
 									</div>
+									
 									<div :id="'tabContentGroup'+groupIndex" class="tab-content-group">
 										<template v-for="tab, tabIndex in group.sections">
 											<div v-for="config, index in $parent.sectionConfigs.sections" 
@@ -789,6 +809,15 @@ html, body, #app {
     flex-direction: column;
 	padding-bottom: 40px;
 }
+
+.mdkp-body {
+	padding-bottom: 50px;
+}
+
+.mdkp-body.flex-body {
+	overflow-x: hidden;
+}
+
 .card.hidden {
 	display: none !important;
 }
@@ -988,5 +1017,150 @@ html, body, #app {
 .tab-content-wrapper.hidden-content {
 	visibility: hidden !important;
 	height: 1px !important;
+	overflow: hidden;
+}
+
+
+/* Summary Tab group, sticky */
+.tabgroup-fixed-bottom {
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    width: -webkit-fill-available;
+    height: 55px;
+    z-index: 60;
+	background: linear-gradient(180deg, transparent 0px, white 300px);
+    overflow: hidden;
+	transition: all .3s ease-out;
+	box-shadow: 0px 0px 10px 0px #00000050;
+}
+.fixed-group-toggle-wrapper {
+    width: 100%;
+    height: 80px;
+    background: #ddefff;
+    transition: all .3s ease-out;
+}
+.tabgroup-fixed-bottom.open .fixed-group-toggle-wrapper {
+    height: 50px;
+    margin: 0 0 -50px 0;
+	transition-delay: .3s;
+}
+.fixed-group-toggle {
+    position: absolute;
+    left: 5px;
+    top: 11px;
+    /*width: 200px;*/
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    background: white;
+    z-index: 1;
+	transition: all .3s ease-out;
+	overflow: hidden;
+	/*animation: flashAnimation 3s ease-in 2;*/
+}
+.tabgroup-fixed-bottom.open .fixed-group-toggle {
+    width: 40px;
+    /*justify-content: center;*/
+	transition-duration: .3s;
+}
+.fixed-group-toggle.has-updates{
+	background: white;
+	animation: flashAnimation 5s ease-in infinite;
+}
+@keyframes flashAnimation {
+  10%, 90% {
+    background-color: white;
+  }
+  30%, 70% {
+    background-color: #05bd0270;
+  }
+}
+.gg-chevron-double-up {
+    box-sizing: border-box;
+    position: relative;
+    display: block;
+    transform: scale(1.2);
+    width: 23px;
+    height: 23px;
+	min-width: 23px;
+	transition: all .3s ease-out;
+	transition-delay: .4s;
+}
+.tabgroup-fixed-bottom.open .gg-chevron-double-up {
+    transform: scale(1.2) rotate(180deg);
+}
+.gg-chevron-double-up::after,
+.gg-chevron-double-up::before {
+    content: "";
+    display: block;
+    box-sizing: border-box;
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid;
+    border-left: 2px solid;
+    transform: rotate(45deg);
+    left: 7px;
+    bottom: 3px
+}
+.gg-chevron-double-up::after {
+    bottom: 8px
+}
+.tabgroup-fixed-bottom.open .fixed-group-toggle-label {
+    opacity: 0;
+	white-space: nowrap;
+}
+.fixed-group-toggle-label {
+    margin: 0 5px;
+}
+
+.tabgroup-fixed-bottom .tab-ui-wrapper {
+    border-bottom: none;
+    margin: 0;
+    width: calc(100% + 50px);
+    padding: 10px 50px 0;
+	background: #ddefff;
+}
+.tabgroup-fixed-bottom .tab-ui-wrapper .tab-ui-tab {
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 0;
+    margin-bottom: -1px;
+    background: white;
+	color: black;
+    font-weight: bold;
+}
+.tabgroup-fixed-bottom .tab-content-group {
+    padding-top: 35px;
+    border-top: 1px solid #ddd;
+	background: white;
+	padding-left: 20px;
+	padding-right: 0px;
+	height: 100%;
+}
+.tabgroup-fixed-bottom .tab-content-wrapper {
+    overflow-y: auto;
+    height: 100%;
+}
+
+.tabgroup-fixed-bottom .multi-section {
+	width: calc(100% - 15px);
+}
+
+.tabgroup-fixed-bottom table {
+    background: white;
+}
+
+.tabgroup-fixed-bottom.open {
+    height: 70vh;
+	padding: 0 0 50px 0;
+}
+.tabgroup-fixed-bottom.open .tab-content-group {
+    padding-top: 20px;
 }
 </style>
