@@ -1,5 +1,6 @@
 <template>
 	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
+		{{ featureRowsNumber }}
 		<div v-html="tableLegend" class="data-table-legend"></div>
 		<div
 			v-if="
@@ -60,7 +61,7 @@
 				class="convert-2-csv btn-sm"
 				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
 			>
-				show/hide columns
+				{{ !!summarySection ? 'Set summary table' : 'Show/hide columns' }}
 			</div>
 			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="hidden">
 				<div
@@ -69,7 +70,7 @@
 				>
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
-				<h4 style="text-align: center">Show/hide columns</h4>
+				<h4 style="text-align: center">show/hide columns</h4>
 				<p></p>
 				<div class="table-wrapper">
 					<table class="table table-sm">
@@ -97,6 +98,25 @@
 							</tr>
 						</tbody>
 					</table>
+					<div v-if="!!summarySection">
+						<h4 style="text-align: center">Number of rows in evidence tables</h4>
+						<label
+							>Set rows:
+							<select v-model="featureRowsNumber" class="number-per-page">
+								<option value="10" selected>10</option>
+								<option value="15">15</option>
+								<option value="20">20</option>
+								<option value="25">25</option>
+								<option value="30">30</option>
+								<option value="35">35</option>
+								<option value="40">40</option>
+								<option value="45">45</option>
+								<option value="50">50</option>
+							</select>
+						</label>
+						<div style="color:red;">*Updating this value requires rebuilding of the summary table, which may take long time depends on 
+							the number of the evidence groups and their data rows.</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -234,9 +254,11 @@
 				>
 					<td :colspan="topRowNumber" class="features-td">
 						<research-data-table-features
+							:featureRowsNumber="featureRowsNumber"
 							:featuresData="value.features"
 							:featuresFormat="tableFormat"
 							:utils="utils"
+							:summarySection="summarySection"
 						></research-data-table-features>
 					</td>
 				</tr>
@@ -278,6 +300,7 @@ export default Vue.component("research-data-table", {
 		"pkgDataSelected",
 		"phenotypeMap",
 		"multiSectionPage",
+		"summarySection",
 		"starItems",
 		"sectionId",
 		"utils",
@@ -289,6 +312,7 @@ export default Vue.component("research-data-table", {
 		return {
 			currentPage: 1,
 			perPageNumber: null,
+			featureRowsNumber: 10,
 			compareGroups: [],
 			stared: false,
 		};
@@ -579,6 +603,9 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	watch: {
+		featureRowsNumber(NUMBER) {
+			this.$emit('on-feature-rows-change', NUMBER);
+		},
 		dataset(DATA) {
 			if (this.dataComparisonConfig != null) {
 				this.compareGroups = [];
@@ -604,7 +631,7 @@ export default Vue.component("research-data-table", {
 	methods: {
 		setParameter(VALUE,KEY,SECTION,PARAMETERS){
 
-			console.log("section component", VALUE, ":", KEY, ":", SECTION, ":", PARAMETERS);
+			//console.log("section component", VALUE, ":", KEY, ":", SECTION, ":", PARAMETERS);
 
 			let targetSections = SECTION == "all" ? "":[SECTION];
 

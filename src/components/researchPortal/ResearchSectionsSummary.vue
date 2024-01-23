@@ -44,10 +44,12 @@
 					:phenotypeMap="null" 
 					:sectionId="sectionsConfig['section id']"
 					:multiSectionPage="true" 
+					:summarySection="true"
 					:starItems="starItems"
 					:utils="utils" 
 					@clicked-sort="sortData"
 					@on-star="starColumn"
+					@on-feature-rows-change="setFeatureRows"
 					:region="regionParam"
 					:regionZoom="regionZoom"
 					:regionViewArea="regionViewArea"
@@ -92,6 +94,7 @@ export default Vue.component("research-sections-summary", {
 			loadingDataFlag: "down",
 			regionParam: null,
 			summarizing: null,
+			featureRowsNumber: 10,
 		};
 	},
 	modules: {
@@ -128,13 +131,17 @@ export default Vue.component("research-sections-summary", {
 		wholeDataCounts(NUM) {
 			//this.buildSummary();
 			let element = document.getElementById("fixed_group_toggle");
-			console.log('element', element)
+			//console.log('element', element)
 			if(!!element) {
 				element.classList.add('has-updates');
 			}
 		}
 	},
 	methods: {
+		setFeatureRows(NUMBER){
+			this.featureRowsNumber = NUMBER;
+			this.buildSummary();
+		},
 		isSectionData(SECTION) {
 			let filterSection = this.sectionsData.filter(data => data.id == SECTION)[0]
 
@@ -176,7 +183,7 @@ export default Vue.component("research-sections-summary", {
 							}
 						})
 
-						console.log("filteredData", filteredData);
+						//console.log("filteredData", filteredData);
 
 						section.actions.map(action => {
 							switch (action.action) {
@@ -251,7 +258,9 @@ export default Vue.component("research-sections-summary", {
 			targetData.map(TD => {
 				TD[FEATURE] = [];
 
+				let featureRows = 1;
 				TD[KEY_FIELD].map(tdKey => {
+
 					filterDataObj[tdKey].map(fdIndex => {
 						let tempObj = {};
 
@@ -262,7 +271,10 @@ export default Vue.component("research-sections-summary", {
 						switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
 						{
 							case "add":
-								TD[FEATURE].push(tempObj);
+								featureRows++
+								if(TD[FEATURE].length < this.featureRowsNumber) {
+									TD[FEATURE].push(tempObj);
+								}
 								break;
 							case "replace":
 								TD[FEATURE] = [tempObj];
@@ -273,8 +285,14 @@ export default Vue.component("research-sections-summary", {
 								break;
 						}
 					})
+					
 				})
-				
+
+				if(featureRows > this.featureRowsNumber) {
+					console.log("featureRows: ", featureRows)
+					TD[FEATURE].push({"featureRows": featureRows });
+					console.log(TD[FEATURE].length,TD[FEATURE])
+				}
 			})
 
 			return targetData;
