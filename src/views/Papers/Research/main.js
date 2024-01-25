@@ -47,6 +47,7 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
 import filterUtils from "@/utils/filterUtils";
+import regionUtils from "@/utils/regionUtils";
 import $ from "jquery";
 
 import Alert, {
@@ -204,6 +205,7 @@ new Vue({
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
                 filterUtils: filterUtils,
+                regionUtils: regionUtils,
             }
             return utils;
         },
