@@ -5,10 +5,56 @@
 			type="text"
 			id="byor_single_search"
 			v-model="singleSearchParam"
-			placeholder="Search gene, variant, region or phenotype"
+			:placeholder="!!singleSearchConfig && !!singleSearchConfig['search instruction']? singleSearchConfig['search instruction'] 
+			:'Search gene, variant, region or phenotype'"
 			@keyup.enter="onSearch"
 		/>
-		<div class="byor-single-search-results-wrapper">
+		<!-- BYOR front page templates -->
+		<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
+			<div
+				id="byor_single_search_results"
+				class="byor-single-search-results"
+				v-if="singleSearchResult.genes.length > 0 ||
+					singleSearchResult.phenotypes.length > 0
+					"
+			>
+				<div v-for="gene in singleSearchResult.genes" :key="gene">
+					{{ gene
+					}}<span class="search-word-group"
+						><a v-if="!!isParameterActive('kp genes').active"
+							class="search-gene-link"
+							@click="searchGene(gene)"
+							href="javascript:;"
+							>{{ "Search gene"
+							}}<span class="gene-link-tip"
+								>Alias names are converted to gene symbols</span
+							></a
+						>
+						<span v-if="!!isParameterActive('kp region').active">|</span>
+						<a v-if="!!isParameterActive('kp region').active" 
+							@click="searchRegion(gene)" href="javascript:;">{{
+							"Search region"
+						}}</a></span
+					>
+				</div>
+				<template v-if="!!isParameterActive('kp phenotypes').active">
+					<div
+						v-for="phenotype in singleSearchResult.phenotypes"
+						:value="phenotype.name"
+						:key="phenotype.name"
+					>
+						<a :href="isParameterActive('kp phenotypes').url + phenotype.name">{{
+							phenotype.description
+						}}</a
+						><span class="search-word-group">{{
+							phenotype.group
+						}}</span>
+					</div>
+				</template>
+			</div>
+		</div>
+		<!-- For KP front pages -->
+		<div class="byor-single-search-results-wrapper" v-if="!singleSearchConfig">
 			<div
 				id="byor_single_search_results"
 				class="byor-single-search-results"
@@ -50,6 +96,7 @@
 				</div>
 			</div>
 		</div>
+		<!--  -->
 	</div>
 </template>
 
@@ -68,6 +115,7 @@ export default Vue.component("research-single-search", {
 				genes: [],
 				phenotypes: [],
 				diseases: [],
+				custom:{}
 			},
 		};
 	},
@@ -138,11 +186,36 @@ export default Vue.component("research-single-search", {
 				location.href = "/variant.html?variant=" + searchKey;
 			}
 		},
+		isParameterActive(PARAM) {
+			let returnParam = {active: null, url:''};
+
+			if(!!this.singleSearchConfig) {
+				this.singleSearchConfig["search parameters"].map(param =>{
+					if(param.values == PARAM) {
+						returnParam.active = true;
+						returnParam.url = '/research.html?pageid='
+							+param['target page']['page id']+'&'+param['parameter']+'='
+					}
+				})
+			}
+
+			return returnParam;
+
+		},
 		async searchGene(KEY) {
+			
 			let geneSymbol = await this.utils.regionUtils.geneSymbol(KEY);
+			let isCustomGene = this.isParameterActive('kp genes');
 
 			if (geneSymbol) {
-				let genePageUrl = "/gene.html?gene=" + geneSymbol;
+				
+				let genePageUrl;
+
+				if (!isCustomGene.active) {
+					genePageUrl = "/gene.html?gene=" + geneSymbol;
+				} else if (!!isCustomGene.active) {
+					genePageUrl = isCustomGene.url + geneSymbol;
+				}
 
 				location.href = genePageUrl;
 			}
@@ -150,15 +223,27 @@ export default Vue.component("research-single-search", {
 
 		async searchRegion(KEY) {
 			let region = await this.utils.regionUtils.parseRegion(KEY, true, 50000);
+			let isCustomRegion = this.isParameterActive('kp region');
 
 			if (region) {
-				let regionPageUrl =
-					"/region.html?chr=" +
-					region.chr +
-					"&end=" +
-					region.end +
-					"&start=" +
-					region.start;
+				let regionPageUrl;
+
+				if(!isCustomRegion.active) {
+					regionPageUrl =
+						"/region.html?chr=" +
+						region.chr +
+						"&end=" +
+						region.end +
+						"&start=" +
+						region.start;
+				} else if(!!isCustomRegion.active) {
+					regionPageUrl = isCustomRegion.url +=
+						region.chr +
+						":" +
+						region.start +
+						"-" +
+						region.end;
+				}
 
 				location.href = regionPageUrl;
 			}

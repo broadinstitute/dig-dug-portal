@@ -102,7 +102,10 @@
 			v-if="$parent.researchPage !== null && $parent.sectionConfigs['is front page']"
 			:sectionConfigs="$parent.sectionConfigs"
 			:pageDescription="$parent.pageDescription"
-			:utilsBox="$parent.utilsBox">
+			:utilsBox="$parent.utilsBox"
+			:phenotypeMap="$parent.phenotypeMap"
+			:phenotypesInUse="$parent.phenotypesInSession"
+			>
 		</research-front-page>
 		
 
