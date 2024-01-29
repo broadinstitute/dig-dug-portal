@@ -250,13 +250,13 @@
                         class="btn-mini mr-2"
                         variant="outline-primary"
                         @click="
-                            toToggle(data.detailsShowing, 1)
+                            toToggle(data, 1, data.detailsShowing)
                                 ? data.toggleDetails()
                                 : ''
                         "
                     >
                         {{
-                            data.detailsShowing && showButton === 1
+                            data.detailsShowing && data.item.showButton === 1
                                 ? "Hide"
                                 : "Show"
                         }}
@@ -277,7 +277,7 @@
                         class="btn-mini showData"
                         @click="
                             //showVariantData(data.item.varid);
-                            toToggle(data.detailsShowing, 2)
+                            toToggle(data, 2, data.detailsShowing)
                                 ? data.toggleDetails()
                                 : ''
                         "
@@ -286,7 +286,8 @@
                             <span class="sr-only">Loading...</span></span
                         ><span v-else>
                             {{
-                                data.detailsShowing && showButton === 2
+                                data.detailsShowing &&
+                                data.item.showButton === 2
                                     ? "Hide"
                                     : "Show"
                             }}
@@ -297,102 +298,107 @@
 
                 <template #row-details="row">
                     <div class="details">
-                        <b-table
-                            v-if="showButton === 1"
-                            :items="row.item.hpdisplay"
-                            :fields="hprecordFields"
-                            :per-page="perPagephenotype"
-                            :tbody-tr-class="rowPickClass"
-                        >
-                            <template #cell(allelecount)="row">
-                                <div align="right">
-                                    {{ row.item.allelecount }}
-                                </div>
-                            </template>
-                            <template #cell(allelnumber)="row">
-                                <div align="right">
-                                    {{ row.item.allelnumber }}
-                                </div>
-                            </template>
-                            <template #cell(allelefrequency)="row">
-                                <div align="right">
-                                    {{ row.item.allelefrequency }}
-                                </div>
-                            </template>
-                            <template #cell(n_hom_var_case)="row">
-                                <div align="right">
-                                    {{ row.item.n_hom_var_case }}
-                                </div>
-                            </template>
-                        </b-table>
+                        {{ row.item.showButton }}
+                        <div v-if="row.item.showButton === 1" class="row">
+                            <b-table
+                                :items="row.item.hpdisplay"
+                                :fields="hprecordFields"
+                                :per-page="perPagephenotype"
+                                :tbody-tr-class="rowPickClass"
+                            >
+                                <template #cell(allelecount)="row">
+                                    <div align="right">
+                                        {{ row.item.allelecount }}
+                                    </div>
+                                </template>
+                                <template #cell(allelnumber)="row">
+                                    <div align="right">
+                                        {{ row.item.allelnumber }}
+                                    </div>
+                                </template>
+                                <template #cell(allelefrequency)="row">
+                                    <div align="right">
+                                        {{ row.item.allelefrequency }}
+                                    </div>
+                                </template>
+                                <template #cell(n_hom_var_case)="row">
+                                    <div align="right">
+                                        {{ row.item.n_hom_var_case }}
+                                    </div>
+                                </template>
+                            </b-table>
+                        </div>
 
-                        <b-table
-                            v-if="
-                                row.item.veprecords.length > 0 &&
-                                showButton === 2
-                            "
-                            :items="row.item.veprecords"
-                            :fields="subFields"
-                            :per-page="perPage"
-                            :tbody-tr-class="rowPickClass"
-                            ><template #cell(varID)="data">
-                                <a
-                                    :href="`/variant.html?variant=${data.item.varID}`"
-                                    >{{ data.item.varID }}</a
+                        <div v-if="row.item.showButton === 2" class="row">
+                            <b-table
+                                v-if="row.item.veprecords.length > 0"
+                                :items="row.item.veprecords"
+                                :fields="subFields"
+                                :per-page="perPage"
+                                :tbody-tr-class="rowPickClass"
+                                ><template #cell(varID)="data">
+                                    <a
+                                        :href="`/variant.html?variant=${data.item.varID}`"
+                                        >{{ data.item.varID }}</a
+                                    >
+                                </template>
+                                <template #head(Feature)="data">
+                                    <span class="external_source"
+                                        >Feature
+                                        <b-badge
+                                            pill
+                                            disabled
+                                            class="ml-1"
+                                            variant="secondary"
+                                            title="Link to external source."
+                                            >E</b-badge
+                                        ></span
+                                    >
+                                </template>
+                                <template #cell(Feature)="data">
+                                    <a
+                                        v-if="data.item.Feature"
+                                        :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.Feature}`"
+                                        target="_blank"
+                                        rel="noopener noreferrer nofollow"
+                                        >{{ data.item.Feature }}</a
+                                    >
+                                </template>
+                                <template #cell(position)="data">
+                                    {{
+                                        data.item.proteinStart !==
+                                        data.item.proteinEnd
+                                            ? `${data.item.proteinStart}-${data.item.proteinEnd}`
+                                            : data.item.proteinStart
+                                    }}
+                                </template>
+                                <template #cell(max_consequence)="data">
+                                    <div
+                                        class="border-color"
+                                        :class="data.item.IMPACT"
+                                    >
+                                        <span>{{
+                                            consequenceFormatter(
+                                                data.item.Consequence
+                                            )
+                                        }}</span>
+                                    </div></template
                                 >
-                            </template>
-                            <template #head(Feature)="data">
-                                <span class="external_source"
-                                    >Feature
-                                    <b-badge
-                                        pill
-                                        disabled
-                                        class="ml-1"
-                                        variant="secondary"
-                                        title="Link to external source."
-                                        >E</b-badge
-                                    ></span
+                                <template #cell(HGVSc)="data">
+                                    {{
+                                        format_hgvsc(data.item.HGVSc)
+                                    }}</template
                                 >
-                            </template>
-                            <template #cell(Feature)="data">
-                                <a
-                                    v-if="data.item.Feature"
-                                    :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.Feature}`"
-                                    target="_blank"
-                                    rel="noopener noreferrer nofollow"
-                                    >{{ data.item.Feature }}</a
-                                >
-                            </template>
-                            <template #cell(position)="data">
-                                {{
-                                    data.item.proteinStart !==
-                                    data.item.proteinEnd
-                                        ? `${data.item.proteinStart}-${data.item.proteinEnd}`
-                                        : data.item.proteinStart
-                                }}
-                            </template>
-                            <template #cell(max_consequence)="data">
-                                <div
-                                    class="border-color"
-                                    :class="data.item.IMPACT"
-                                >
-                                    <span>{{
-                                        consequenceFormatter(
-                                            data.item.Consequence
-                                        )
-                                    }}</span>
-                                </div></template
-                            >
-                            <template #cell(HGVSc)="data">
-                                {{ format_hgvsc(data.item.HGVSc) }}</template
-                            >
-                            <template #cell(HGVSp)="data">
-                                {{ format_hgvsp(data.item.HGVSp) }}
-                            </template>
-                            <template #cell(siftPrediction)="data">
-                                {{ siftFormatter(data.item.siftPrediction) }}
-                            </template>
-                        </b-table>
+                                <template #cell(HGVSp)="data">
+                                    {{ format_hgvsp(data.item.HGVSp) }}
+                                </template>
+                                <template #cell(siftPrediction)="data">
+                                    {{
+                                        siftFormatter(data.item.siftPrediction)
+                                    }}
+                                </template>
+                            </b-table>
+                        </div>
                     </div>
                 </template>
             </b-table>
@@ -478,7 +484,6 @@ export default Vue.component("VariantSearch", {
             perPage: 10,
             perPagephenotype: 23,
             currentPage: 1,
-            showButton: null,
             variants: [],
             consequences: {},
             currentSort: "allelecount",
@@ -675,6 +680,11 @@ export default Vue.component("VariantSearch", {
 
             if (this.variants && this.variants.length) {
                 this.variantData = [...this.variants]; //copy data
+
+                //add showButton property to each variant
+                this.variantData.map((variant) => {
+                    variant.showButton = 0;
+                });
 
                 for (let i = 0; i < this.variants.length; i++) {
                     //get data from HP record AllSamples
@@ -874,15 +884,33 @@ export default Vue.component("VariantSearch", {
             if (count === 0 || number === 0) return "0.00000";
             else return Number.parseFloat(count / number).toFixed(5);
         },
-        toToggle(isShowing, buttonClicked) {
+        toToggle(row, buttonClicked, isShowing) {
+            console.log(
+                "toToggle",
+                row.item.showButton,
+                buttonClicked,
+                isShowing
+            );
             if (isShowing) {
-                if (this.showButton === buttonClicked) return true;
+                if (buttonClicked === row.item.showButton) return true;
                 else {
-                    this.showButton = buttonClicked;
+                    Vue.set(row.item, "showButton", buttonClicked);
+                    console.log(
+                        "after set",
+                        row.item.showButton,
+                        buttonClicked,
+                        isShowing
+                    );
                     return false;
                 }
             } else {
-                this.showButton = buttonClicked;
+                Vue.set(row.item, "showButton", buttonClicked);
+                console.log(
+                    "after set",
+                    row.item.showButton,
+                    buttonClicked,
+                    isShowing
+                );
                 return true;
             }
         },
