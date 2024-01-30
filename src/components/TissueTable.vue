@@ -298,3 +298,8 @@ export default Vue.component("TissueTable", {
     },
 });
 </script>
+<style scoped>
+.b-popover {
+    background-color: #fff;
+}
+</style>

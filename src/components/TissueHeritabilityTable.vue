@@ -114,5 +114,7 @@ export default Vue.component("TissueHeritabilityTable", {
 </script>
 
 <style scoped>
-/* Component styles go here */
+.b-popover {
+    background-color: #fff;
+}
 </style>
