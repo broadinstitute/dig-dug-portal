@@ -1232,6 +1232,13 @@ new Vue({
 
             return sectionInGroup;
         },
+        isInEntity(SECTION) {
+            let entity = keyParams['entity'];
+            let pageEntities = this.sectionConfigs['entity'];
+            let sectionInEntity = !pageEntities || (!!pageEntities && !!entity && !!pageEntities[entity].includes(SECTION)) ? true : null;
+
+            return sectionInEntity;
+        },
         saveCapturedData(TYPE, TITLE) {
             let data = this.$store.state.capturedData.filter(d => d.title == TITLE);
 
