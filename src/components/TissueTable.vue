@@ -50,7 +50,7 @@
             <template #row-details="r">
                 <div v-if="r.item.showButton === 1" class="row">
                     <div v-if="evidence[r.item.gene]" class="col-12">
-                        <h6>Evidence</h6>
+                        <h6>Evidence ({{ evidenceSampleCounts[r.item.gene] }} samples)</h6>
                         <!-- show table with items from evidence if key is equal r.item.gene -->
 
                         <b-table
@@ -138,6 +138,10 @@ export default Vue.component("TissueTable", {
                     label: "Mean TPM",
                 },
                 {
+                    key: "nSamples",
+                    label: "# Samples"
+                },
+                {
                     key: "tstat",
                     label: "T-Stat",
                 },
@@ -151,6 +155,7 @@ export default Vue.component("TissueTable", {
                 },
             ],
             evidence: {},
+            evidenceSampleCounts: {},
             evidenceFields: [
                 {
                     key: "biosample",
@@ -241,10 +246,11 @@ export default Vue.component("TissueTable", {
                 if (!this.evidence[gene]) {
                     console.log("fetch evidence");
                     let data = await query("gene-expression", gene);
+                    data = data.filter(d => d.tissue === this.tissue);
                     console.log(data);
                     Vue.set(this.evidence, gene, data);
-                    // console.log(this.evidence);
-                    //console.log(JSON.stringify(this.evidence[0], null, 2));
+                    let evidenceSampleCount = data.reduce((a, b) => a + b.nSamples, 0);
+                    Vue.set(this.evidenceSampleCounts, gene, evidenceSampleCount);
                 }
             }
         },

@@ -10,6 +10,7 @@ import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
 new Vue({
     store,
     components: {
@@ -21,6 +22,7 @@ new Vue({
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
+        ResearchExpressionPlot
     },
     data() {
         return {
