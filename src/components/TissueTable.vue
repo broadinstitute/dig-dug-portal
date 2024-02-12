@@ -1,117 +1,125 @@
 <template>
-    <div id="tissues">
-        <b-table
-            hover
-            small
-            responsive="sm"
-            :items="tableData"
-            :fields="fields"
-            :per-page="perPage"
-            :current-page="currentPage"
-        >
-            <template #cell(evidence)="r">
-                <b-button
-                    v-b-popover.hover="'View evidence'"
-                    size="sm"
-                    variant="outline-primary"
-                    class=""
-                    @click="
-                        toToggle(r, 1, r.detailsShowing)
-                            ? r.toggleDetails()
-                            : ''
-                    "
-                >
-                    {{
-                        r.detailsShowing && r.item.showButton === 1
-                            ? "Hide"
-                            : "Show"
-                    }}
-                </b-button></template
+    <div>
+        <div id="plot">
+            <research-expression-plot
+                :raw-data="dataByGene">
+            </research-expression-plot>
+        </div>
+        <div id="tissues">
+            <b-table
+                hover
+                small
+                responsive="sm"
+                :items="tableData"
+                :fields="fields"
+                :per-page="perPage"
+                :current-page="currentPage"
             >
-            <template #cell(links)="r">
-                <b-button
-                    v-b-popover.hover="'View links'"
-                    size="sm"
-                    variant="outline-primary"
-                    class=""
-                    @click="
-                        toToggle(r, 2, r.detailsShowing)
-                            ? r.toggleDetails()
-                            : ''
-                    "
+                <template #cell(evidence)="r">
+                    <b-button
+                        v-b-popover.hover="'View evidence'"
+                        size="sm"
+                        variant="outline-primary"
+                        class=""
+                        @click="
+                            toToggle(r, 1, r.detailsShowing)
+                                ? r.toggleDetails()
+                                : ''
+                        "
+                    >
+                        {{
+                            r.detailsShowing && r.item.showButton === 1
+                                ? "Hide"
+                                : "Show"
+                        }}
+                    </b-button></template
                 >
-                    {{
-                        r.detailsShowing && r.item.showButton === 2
-                            ? "Hide"
-                            : "Show"
-                    }}
-                </b-button>
-            </template>
-            <template #row-details="r">
-                <div v-if="r.item.showButton === 1" class="row">
-                    <div v-if="evidence[r.item.gene]" class="col-12">
-                        <h6>Evidence</h6>
-                        <!-- show table with items from evidence if key is equal r.item.gene -->
+                <template #cell(links)="r">
+                    <b-button
+                        v-b-popover.hover="'View links'"
+                        size="sm"
+                        variant="outline-primary"
+                        class=""
+                        @click="
+                            toToggle(r, 2, r.detailsShowing)
+                                ? r.toggleDetails()
+                                : ''
+                        "
+                    >
+                        {{
+                            r.detailsShowing && r.item.showButton === 2
+                                ? "Hide"
+                                : "Show"
+                        }}
+                    </b-button>
+                </template>
+                <template #row-details="r">
+                    <div v-if="r.item.showButton === 1" class="row">
+                        <div v-if="evidence[r.item.gene]" class="col-12">
+                            <h6>Evidence</h6>
+                            <!-- show table with items from evidence if key is equal r.item.gene -->
 
-                        <b-table
-                            :items="evidence[r.item.gene]"
-                            :fields="evidenceFields"
-                            :per-page="perPage"
-                            :current-page="r.item.currentPage"
-                            ><template #cell(collection)="e">{{
-                                e.item.collection.join(", ")
-                            }}</template>
-                        </b-table>
-                        <b-pagination
-                            v-model="r.item.currentPage"
-                            :total-rows="evidence[r.item.gene].length"
-                            :per-page="perPage"
-                        ></b-pagination>
+                            <b-table
+                                :items="evidence[r.item.gene]"
+                                :fields="evidenceFields"
+                                :per-page="perPage"
+                                :current-page="r.item.currentPage"
+                                ><template #cell(collection)="e">{{
+                                    e.item.collection.join(", ")
+                                }}</template>
+                            </b-table>
+                            <b-pagination
+                                v-model="r.item.currentPage"
+                                :total-rows="evidence[r.item.gene].length"
+                                :per-page="perPage"
+                            ></b-pagination>
+                        </div>
                     </div>
-                </div>
-                <div v-if="r.item.showButton === 2" class="row">
-                    <div v-if="links[r.item.gene]" class="col-12">
-                        <h6>Gene Links</h6>
-                        <b-table
-                            :items="links[r.item.gene]"
-                            :fields="linksFields"
-                            :per-page="perPage"
-                            :current-page="currentPage"
-                            ><template #cell(region)="l">
-                                {{ l.item.chromosome }}:{{ l.item.start }}-{{
-                                    l.item.end
-                                }}
-                            </template>
-                            <template #cell(targetRegion)="l">
-                                {{ l.item.chromosome }}:{{
-                                    l.item.targetGeneStart
-                                }}-{{ l.item.targetGeneEnd }}
-                            </template>
-                            <template #cell(assay)="l">
-                                {{ l.item.assay.join(", ") }}
-                            </template>
-                        </b-table>
-                        <b-pagination
-                            v-model="r.item.currentPage"
-                            :total-rows="links[r.item.gene].length"
-                            :per-page="perPage"
-                        >
-                        </b-pagination>
+                    <div v-if="r.item.showButton === 2" class="row">
+                        <div v-if="links[r.item.gene]" class="col-12">
+                            <h6>Gene Links</h6>
+                            <b-table
+                                :items="links[r.item.gene]"
+                                :fields="linksFields"
+                                :per-page="perPage"
+                                :current-page="currentPage"
+                                ><template #cell(region)="l">
+                                    {{ l.item.chromosome }}:{{ l.item.start }}-{{
+                                        l.item.end
+                                    }}
+                                </template>
+                                <template #cell(targetRegion)="l">
+                                    {{ l.item.chromosome }}:{{
+                                        l.item.targetGeneStart
+                                    }}-{{ l.item.targetGeneEnd }}
+                                </template>
+                                <template #cell(assay)="l">
+                                    {{ l.item.assay.join(", ") }}
+                                </template>
+                            </b-table>
+                            <b-pagination
+                                v-model="r.item.currentPage"
+                                :total-rows="links[r.item.gene].length"
+                                :per-page="perPage"
+                            >
+                            </b-pagination>
+                        </div>
                     </div>
-                </div>
-            </template>
-        </b-table>
-        <b-pagination
-            v-model="currentPage"
-            :total-rows="tissueData.length"
-            :per-page="perPage"
-        >
-        </b-pagination>
+                </template>
+            </b-table>
+            <b-pagination
+                v-model="currentPage"
+                :total-rows="tissueData.length"
+                :per-page="perPage"
+            >
+            </b-pagination>
+        </div>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
+import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
 import { query } from "@/utils/bioIndexUtils";
 export default Vue.component("TissueTable", {
     props: {
@@ -229,7 +237,7 @@ export default Vue.component("TissueTable", {
                 },
             ],
             tableData: [],
-            dataByGene: []
+            dataByGene: [],
         };
     },
     mounted() {
@@ -247,6 +255,8 @@ export default Vue.component("TissueTable", {
                     let data = await query("gene-expression", gene);
                     data = data.filter(d => d.tissue === this.tissue);
                     Vue.set(this.evidence, gene, data);
+                } else {
+                    console.log(`We already have ${gene}`);
                 }
             }
         },
@@ -303,21 +313,21 @@ export default Vue.component("TissueTable", {
             let startIndex = (this.currentPage-1) * this.perPage;
             let endIndex = startIndex + this.perPage;
             let rows = this.tableData.slice(startIndex, endIndex).map(d => d.gene);
+            rows.forEach(currentGene => {
+                this.showEvidence(currentGene);
+            });
             return rows;
         },
     },
     watch: {
         currentGenes: function(){
-            //console.log(this.currentGenes);
-            let dataByGene = [];
-            this.currentGenes.forEach(currentGene => {
-                this.showEvidence(currentGene);
-                dataByGene = dataByGene.concat(this.evidence[currentGene]);
-            });
-            console.log(JSON.stringify(dataByGene));
-            this.dataByGene = dataByGene;
+            let currentGenesData = [];
+            this.currentGenes.forEach(gene => 
+                currentGenesData = currentGenesData.concat(this.evidence[gene])
+            );
+            this.dataByGene = currentGenesData;
         }
-    }
+    },
 });
 </script>
 <style scoped>
