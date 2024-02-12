@@ -557,6 +557,7 @@
                     <research-expression-plot
                         v-if="$parent.geneExpression.length > 0"
                         :raw-data="$parent.geneExpression"
+                        :plotByField="'tissue'"
                         @expression="
                             (raw) =>
                                 ($parent.geneExpressionTable = JSON.parse(raw))
