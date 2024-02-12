@@ -3,7 +3,8 @@
         <div id="plot">
             <research-expression-plot
                 :raw-data="dataByGene"
-                :plotByField="'gene'">
+                :plotByField="'gene'"
+                :hideTable="true">
             </research-expression-plot>
         </div>
         <div id="tissues">

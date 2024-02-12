@@ -39,7 +39,7 @@
 			<p>Loading...</p>
 		</div>
 		<b-table
-			v-if="tableData.length > 0"
+			v-if="tableData.length > 0 && !hideTable"
 			id="big-table"
 			hover
 			small
@@ -93,7 +93,7 @@ import uiUtils from "@/utils/uiUtils";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 export default Vue.component("ResearchExpressionPlot", {
-	props: ["rawData", "filter", "plotByField"],
+	props: ["rawData", "filter", "plotByField", "hideTable"],
 	data() {
 		return {
 			chart: null,
