@@ -302,6 +302,19 @@ export default Vue.component("TissueTable", {
             this.$set(item, "showButton", Number(value));
         },
     },
+    computed: {
+        currentGenes(){
+            let startIndex = (this.currentPage-1) * this.perPage;
+            let endIndex = startIndex + this.perPage;
+            let rows = this.tableData.slice(startIndex, endIndex).map(d => d.gene);
+            return rows;
+        },
+    },
+    watch: {
+        currentGenes: function(){
+            console.log(this.currentGenes);
+        }
+    }
 });
 </script>
 <style scoped>
