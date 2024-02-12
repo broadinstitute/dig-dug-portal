@@ -111,7 +111,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			perPage: 10,
 			tableConfig: {
 				"top rows": [
-					{ key: this.keyField, sortable: true },
+					{ key: "tissue", sortable: true }, // Table is only visible when keying by tissue anyway
 					{ key: "Min TPM", sortable: true, formatter: "tpmFormat" },
 					{ key: "Q1 TPM", sortable: true, formatter: "tpmFormat" },
 					{

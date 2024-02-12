@@ -239,7 +239,6 @@ export default Vue.component("TissueTable", {
                 },
             ],
             tableData: [],
-            dataByGene: [],
         };
     },
     mounted() {
@@ -257,8 +256,6 @@ export default Vue.component("TissueTable", {
                     let data = await query("gene-expression", gene);
                     data = data.filter(d => d.tissue === this.tissue);
                     Vue.set(this.evidence, gene, data);
-                } else {
-                    console.log(`We already have ${gene}`);
                 }
             }
         },
@@ -266,18 +263,14 @@ export default Vue.component("TissueTable", {
             if (gene) {
                 //check if evidence object already has key equal gene
                 if (!this.links[gene]) {
-                    console.log("fetch links");
                     let data = await query(
                         "gene-links",
                         this.tissue + "," + gene
                     );
 
                     Vue.set(this.links, gene, data);
-                    //console.log(this.links);
-                    //console.log(JSON.stringify(this.evidence[0], null, 2));
                 }
             }
-            console.log("show links", gene);
         },
         toToggle(row, buttonClicked, isShowing) {
             if (isShowing) {
@@ -306,7 +299,6 @@ export default Vue.component("TissueTable", {
             }
         },
         setShowButton(item, value) {
-            console.log("item", item);
             this.$set(item, "showButton", Number(value));
         },
     },
@@ -318,16 +310,15 @@ export default Vue.component("TissueTable", {
             rows.forEach(currentGene => {
                 this.showEvidence(currentGene);
             });
+            console.log(rows);
             return rows;
         },
-    },
-    watch: {
-        currentGenes: function(){
+        dataByGene(){
             let currentGenesData = [];
             this.currentGenes.forEach(gene => 
                 currentGenesData = currentGenesData.concat(this.evidence[gene])
             );
-            this.dataByGene = currentGenesData;
+            return currentGenesData;
         }
     },
 });
