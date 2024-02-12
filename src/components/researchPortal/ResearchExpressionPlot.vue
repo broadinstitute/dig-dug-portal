@@ -284,6 +284,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				for (let tpmVal of item.tpmForAllSamples) {
 					let flatEntry = {};
 					flatEntry["tissue"] = item["tissue"];
+					flatEntry["gene"] = item["gene"];
 					flatEntry["linear"] = tpmVal;
 					flatEntry["log"] = Math.log10(tpmVal + 1);
 					flatEntry["noise"] = Math.random();
@@ -308,7 +309,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			let margin = {
 					top: 10,
 					right: 30,
-					bottom: this.getBottomMargin(flatData, "tissue"),
+					bottom: this.getBottomMargin(flatData, this.keyField),
 					left: 40,
 				},
 				width = this.chartWidth - margin.left - margin.right,
@@ -339,7 +340,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			let x = d3
 				.scaleBand()
 				.range([0, width])
-				.domain(flatData.map((entry) => entry["tissue"]))
+				.domain(flatData.map((entry) => entry[this.keyField]))
 				.padding(0.05);
 
 			svg.append("g")
@@ -364,7 +365,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				.value((d) => d);
 			let sumstat = d3
 				.nest()
-				.key((d) => d["tissue"])
+				.key((d) => d[this.keyField])
 				.rollup((d) => {
 					let input = d.map((g) => g[tpmField]);
 					let bins = histogram(input);
@@ -395,7 +396,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
 				svg.selectAll("circle").remove();
 				svg.selectAll("indPoints")
-					.data(flatData.filter((entry) => entry["tissue"] == d.key))
+					.data(flatData.filter((entry) => entry[this.keyField] === d.key))
 					.enter()
 					.append("circle")
 					.attr("class", (g) => g.dataset)
@@ -414,12 +415,12 @@ export default Vue.component("ResearchExpressionPlot", {
 					.on("mouseleave", hideTooltip);
 			};
 			let redrawHoverDots = (g) => {
-				let hoverTissue = g.tissue;
+				let hoverItem = g[this.keyField];
 				let hoverDataset = g.dataset;
-				let hoverColor = `${colorMap[g.tissue]}`;
+				let hoverColor = `${colorMap[g[this.keyField]]}`;
 				svg.selectAll("indPoints")
 					.data(flatData.filter((entry) => 
-						entry.tissue == hoverTissue && entry.dataset == hoverDataset))
+						entry[this.keyField] == hoverItem && entry.dataset == hoverDataset))
 					.enter()
 					.append("circle")
 					.attr("class", (j) => j.dataset)
@@ -428,7 +429,7 @@ export default Vue.component("ResearchExpressionPlot", {
 							offset -
 							2 * dotBoxHalfWidth +
 							j.noise * dotBoxHalfWidth * 4;
-						return x(g.tissue) + dx;
+						return x(g[this.keyField]) + dx;
 					})
 					.attr("cy", (j) => y(j[tpmField]))
 					.attr("r", 2)
@@ -438,11 +439,11 @@ export default Vue.component("ResearchExpressionPlot", {
 					.on("mouseleave", hideTooltip);
 			};
 			let redrawNonHoverDots = (g) => {
-				let hoverTissue = g.tissue;
+				let hoverItem = g[this.keyField];
 				let hoverDataset = g.dataset;
 				svg.selectAll("indPoints")
 					.data(flatData.filter((entry) => 
-						entry.tissue == hoverTissue && entry.dataset != hoverDataset))
+						entry[this.keyField] === hoverItem && entry.dataset != hoverDataset))
 					.enter()
 					.append("circle")
 					.attr("class", (j) => j.dataset)
@@ -451,7 +452,7 @@ export default Vue.component("ResearchExpressionPlot", {
 							offset -
 							2 * dotBoxHalfWidth +
 							j.noise * dotBoxHalfWidth * 4;
-						return x(g.tissue) + dx;
+						return x(g[this.keyField]) + dx;
 					})
 					.attr("cy", (j) => y(j[tpmField]))
 					.attr("r", 2)
@@ -516,7 +517,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			let numberViolins = 0;
 			let sumstatBox = d3
 				.nest()
-				.key((d) => d["tissue"])
+				.key((d) => d[this.keyField])
 				.rollup((d) => {
 					numberViolins++;
 					let sortedData = d
@@ -615,8 +616,8 @@ export default Vue.component("ResearchExpressionPlot", {
 			let colorMap = {};
 			let colorIndex = 0;
 			this.processedData.forEach((entry) => {
-				if (!colorMap[entry["tissue"]]) {
-					colorMap[entry["tissue"]] = colors[colorIndex];
+				if (!colorMap[entry[this.keyField]]) {
+					colorMap[entry[this.keyField]] = colors[colorIndex];
 					colorIndex++;
 					if (colorIndex >= colors.length) {
 						colorIndex = 0;
