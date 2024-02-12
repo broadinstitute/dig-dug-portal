@@ -2,7 +2,8 @@
     <div>
         <div id="plot">
             <research-expression-plot
-                :raw-data="dataByGene">
+                :raw-data="dataByGene"
+                :plotByField="'gene'">
             </research-expression-plot>
         </div>
         <div id="tissues">
