@@ -5,7 +5,6 @@
 
 	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
 
-
 		<div class="row section-header" v-if="!isInTab">
 			<div class="col-md-12">
 				<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
@@ -196,7 +195,7 @@
 					:starItems="starItems"
 					@on-star="starColumn">
 				</research-section-visualizers>
-				<research-data-table v-if="!!tableFormat" :pageID="sectionIndex"
+				<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
 					:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
@@ -218,6 +217,28 @@
 					@on-filtering="updateData"
 					>
 				</research-data-table>
+				<research-info-cards v-if="!!tableFormat && !!tableFormat['rows as info cards']" :pageID="sectionIndex"
+						:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+						:tableFormat="tableFormat"
+						:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
+						:tableLegend="sectionTableLegend" 
+						:dataComparisonConfig="dataComparisonConfig" 
+						:searchParameters="groupSearchParameters" 
+						:pkgData="null" 
+						:pkgDataSelected="null" 
+						:phenotypeMap="phenotypeMap" 
+						:sectionId="sectionID"
+						:multiSectionPage="true" 
+						:starItems="starItems"
+						:utils="utils" 
+						@clicked-sort="sortData"
+						:region="regionParam"
+						:regionZoom="regionZoom"
+						:regionViewArea="regionViewArea"
+						@on-star="starColumn"
+						@on-filtering="updateData"
+						>
+					</research-info-cards>
 			</div>
 		</div>
 	</div>
@@ -230,6 +251,7 @@ import ResearchInSectionSearch from "@/components/researchPortal/ResearchInSecti
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue";
 
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse", 
@@ -239,6 +261,7 @@ export default Vue.component("research-section", {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,
 		ResearchDataTable,
+		ResearchInfoCards,
 		ResearchInSectionSearch
 	},
 	data() {
@@ -897,9 +920,10 @@ export default Vue.component("research-section", {
 			if(!!file) {
 				let dataUrl = "https://hugeampkpncms.org/servedata/dataset?dataset="
 				dataUrl += (file.includes("http") || file.includes("https")) ? file : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + file;
-				console.log("dataUrl", dataUrl);
+				//console.log("dataUrl", dataUrl);
 				let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 				if (contentJson.error == null) {
+					//console.log("contentJson", contentJson);
 					this.processLoadedApi(contentJson, file, null, null)
 				}
 			}
@@ -1056,6 +1080,7 @@ export default Vue.component("research-section", {
 
 				case "json":
 					if (!!dataWrapper) {
+						
 						let dataEntity = CONTENT;
 
 						dataWrapper.map(w => {
@@ -1090,11 +1115,15 @@ export default Vue.component("research-section", {
 
 			// if loaded data is processed
 			if (data.length > 0) {
+				if (typeof data == "string") {
+					data = JSON.parse(data)
+				}
 
 				let tableFormat = (!!this.remoteTableFormat) ? this.remoteTableFormat : this.sectionConfig["table format"];
 
 				if (!!tableFormat && !!tableFormat["data convert"]) {
 					let convertConfig = tableFormat["data convert"];
+					
 					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
 				}
 
@@ -1138,6 +1167,8 @@ export default Vue.component("research-section", {
 						this.queryApi(paramsString, TYPE, PARAMS)
 					}
 				} else {
+					//console.log(typeof data);
+					
 					this.sectionData = this.checkPreFilters(data);
 					this.loadingDataFlag = "down";
 					

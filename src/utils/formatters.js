@@ -429,6 +429,10 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
                     break;
 
+                case "as link":
+                    cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
+                    break;
+
                 case "render background percent":
                     fieldValue =
                         typeof VALUE != "number"
