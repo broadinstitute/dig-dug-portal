@@ -86,22 +86,21 @@
 		></b-pagination>
 	</div>
 </template>
-
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
-import sortUtils from "@/utils/sortUtils";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 export default Vue.component("ResearchExpressionPlot", {
-	props: ["rawData", "filter"],
+	props: ["rawData", "filter", "plotByField"],
 	data() {
 		return {
 			chart: null,
 			chartWidth: null,
 			logScale: true,
-			tissueList: [],
+			keyField: this.$props.plotByField,
+			keyFieldList: [],
 			processedData: [],
 			processedCollection: null,
 			flatBoth: null,
@@ -112,7 +111,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			perPage: 10,
 			tableConfig: {
 				"top rows": [
-					{ key: "tissue", sortable: true },
+					{ key: this.keyField, sortable: true },
 					{ key: "Min TPM", sortable: true, formatter: "tpmFormat" },
 					{ key: "Q1 TPM", sortable: true, formatter: "tpmFormat" },
 					{
@@ -170,30 +169,30 @@ export default Vue.component("ResearchExpressionPlot", {
 	},
 	computed: {
 		tableData() {
-			let allTissues = [];
+			let keyFieldVals = [];
 			this.processedData.forEach(item => {
-				if (!allTissues.includes(item.tissue)){
-					allTissues.push(item.tissue);
+				if (!keyFieldVals.includes(item[this.keyField])){
+					keyFieldVals.push(item[this.keyField]);
 				}
 			});
 			let dataRows = [];
-			allTissues.forEach(singleTissue => {
-				let tissueDatasets = this.processedData.filter(entry => entry.tissue == singleTissue);
-				let tpms = tissueDatasets.reduce((list, entry) => 
+			keyFieldVals.forEach(item => {
+				let filteredDatasets = this.processedData.filter(entry => entry[this.keyField] === item);
+				let tpms = filteredDatasets.reduce((list, entry) => 
 					list.concat(entry.tpmForAllSamples), []).sort(d3.ascending);
-				let tissueRow = {
-					"tissue": singleTissue,
+				let singleRow = {
 					"Min TPM": tpms[0],
 					"Q1 TPM": d3.quantile(tpms, 0.25),
 					"Median TPM": d3.quantile(tpms, 0.5),
 					"Q3 TPM": d3.quantile(tpms, 0.75),
 					"Max TPM": tpms[tpms.length - 1],
 					"Total samples": tpms.length,
-					"Datasets": tissueDatasets,
+					"Datasets": filteredDatasets,
 				}
-				dataRows.push(tissueRow);
+				singleRow[this.keyField] = item; // use keyField property as object key
+				dataRows.push(singleRow);
 			});
-			this.tissueList = allTissues;
+			this.keyFieldList = keyFieldVals;
 			return dataRows;
 		},
 		rows() {
@@ -271,10 +270,10 @@ export default Vue.component("ResearchExpressionPlot", {
 				entry["nSamples"] = parseInt(entry.nSamples);
 			});
 			processedData.sort((a, b) => {
-				if (a.tissue > b.tissue) {
+				if (a[this.keyField] > b[this.keyField]) {
 					return 1;
 				}
-				if (a.tissue < b.tissue) {
+				if (a[this.keyField] < b[this.keyField]) {
 					return -1;
 				}
 				return 0;
@@ -392,7 +391,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			let violinIndex = 0;
 			let mouseover = (d) => {
 				svg.selectAll(".violin").style("opacity", 1);
-				let violinNumber = this.tissueList.indexOf(d.key);
+				let violinNumber = this.keyFieldList.indexOf(d.key);
 				svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
 				svg.selectAll("circle").remove();
 				svg.selectAll("indPoints")
