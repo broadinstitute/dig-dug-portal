@@ -260,6 +260,7 @@ export default Vue.component("TissueTable", {
                     data = data.filter(d => d.tissue === this.tissue);
                     Vue.set(this.evidence, gene, data);
                 }
+            }
         },
         async showLinks(gene) {
             if (gene) {
