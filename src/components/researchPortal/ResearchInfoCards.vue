@@ -1083,14 +1083,6 @@ export default Vue.component("research-info-cards", {
 
 }
 
-.mdkp-body .kp-tabs-contents {
-    /* margin: auto; */
-    background: none !important;
-    padding: 1.25em;
-    border-radius: 5px;
-    border: none !important;
-}
-
 .egl-table-page-ui-wrapper ul {
 	background-color: #fff !important;
 }

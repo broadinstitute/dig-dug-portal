@@ -433,6 +433,10 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
                     break;
 
+                case "image":
+                    cellValue = "<img src='" + cellValue + "' />"
+                    break;
+
                 case "render background percent":
                     fieldValue =
                         typeof VALUE != "number"
