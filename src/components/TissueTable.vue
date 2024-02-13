@@ -239,6 +239,7 @@ export default Vue.component("TissueTable", {
                 },
             ],
             tableData: [],
+            currentGenes: []
         };
     },
     mounted() {
@@ -247,6 +248,7 @@ export default Vue.component("TissueTable", {
                 return { ...item, showButton: 0, currentPage: 1 };
             });
         }
+        this.populateCurrentGenes();
     },
     methods: {
         async showEvidence(gene) {
@@ -301,18 +303,21 @@ export default Vue.component("TissueTable", {
         setShowButton(item, value) {
             this.$set(item, "showButton", Number(value));
         },
-    },
-    computed: {
-        currentGenes(){
+        populateCurrentGenes(){
             let startIndex = (this.currentPage-1) * this.perPage;
             let endIndex = startIndex + this.perPage;
             let rows = this.tableData.slice(startIndex, endIndex).map(d => d.gene);
             rows.forEach(currentGene => {
                 this.showEvidence(currentGene);
             });
-            console.log(rows);
-            return rows;
+            this.currentGenes = rows;
+        }
+    },
+    computed: {
+        currentPageWatchable(){
+            return this.currentPage;
         },
+        
         dataByGene(){
             let currentGenesData = [];
             this.currentGenes.forEach(gene => 
@@ -321,6 +326,11 @@ export default Vue.component("TissueTable", {
             return currentGenesData;
         }
     },
+    watch: {
+        currentPageWatchable: function(){
+            this.populateCurrentGenes();
+        }
+    }
 });
 </script>
 <style scoped>
