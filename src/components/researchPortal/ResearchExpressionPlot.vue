@@ -178,7 +178,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			let dataRows = [];
 			keyFieldVals.forEach(item => {
 				let filteredDatasets = this.processedData.filter(entry => entry[this.keyField] === item);
-				let tpms = filteredDatasets.reduce((list, entry) => 
+				let tpms = filteredDatasets.reduce((list, entry) =>
 					list.concat(entry.tpmForAllSamples), []).sort(d3.ascending);
 				let singleRow = {
 					"Min TPM": tpms[0],
@@ -238,7 +238,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			let processedData = this.$props.rawData;
 			processedData = processedData.filter(
 				(distinctEntry) => {
-					return parseInt(distinctEntry["nSamples"]) >= this.minSamples
+					return distinctEntry && parseInt(distinctEntry["nSamples"]) >= this.minSamples
 				}
 			);
 			processedData.map((d) => {
@@ -257,10 +257,12 @@ export default Vue.component("ResearchExpressionPlot", {
 			}
 
 			processedData.forEach((entry) => {
-				let tpms = entry.tpmForAllSamples
-					.split(",")
-					.map((i) => !!Number.isNaN(parseFloat(i)) ? 0 : parseFloat(i));
-				entry["tpmForAllSamples"] = tpms;
+                if(typeof entry.tpmForAllSamples === 'string'){
+                    let tpms = entry.tpmForAllSamples
+                        .split(",")
+                        .map((i) => !!Number.isNaN(parseFloat(i)) ? 0 : parseFloat(i));
+                    entry["tpmForAllSamples"] = tpms;
+                }
 				entry["tissue"] = Formatters.tissueFormatter(entry["tissue"]);
 				entry["Min TPM"] = parseFloat(entry.minTpm);
 				entry["Q1 TPM"] = parseFloat(entry.firstQuTpm);
@@ -421,7 +423,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				let hoverDataset = g.dataset;
 				let hoverColor = `${colorMap[g[this.keyField]]}`;
 				svg.selectAll("indPoints")
-					.data(flatData.filter((entry) => 
+					.data(flatData.filter((entry) =>
 						entry[this.keyField] == hoverItem && entry.dataset == hoverDataset))
 					.enter()
 					.append("circle")
@@ -444,7 +446,7 @@ export default Vue.component("ResearchExpressionPlot", {
 				let hoverItem = g[this.keyField];
 				let hoverDataset = g.dataset;
 				svg.selectAll("indPoints")
-					.data(flatData.filter((entry) => 
+					.data(flatData.filter((entry) =>
 						entry[this.keyField] === hoverItem && entry.dataset != hoverDataset))
 					.enter()
 					.append("circle")
@@ -631,7 +633,7 @@ export default Vue.component("ResearchExpressionPlot", {
 		getBottomMargin(data, labelField) {
 			let longestLabel = data
 				.map((item) => item[labelField].length)
-				.reduce((prev, next) => (prev > next ? prev : next));
+				.reduce((prev, next) => (prev > next ? prev : next), 0);
 			let margin = longestLabel < 10 ? 65 : (65 * longestLabel) / 10;
 			return margin;
 		},
