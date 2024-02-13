@@ -260,7 +260,6 @@ export default Vue.component("TissueTable", {
                     data = data.filter(d => d.tissue === this.tissue);
                     Vue.set(this.evidence, gene, data);
                 }
-            }
         },
         async showLinks(gene) {
             if (gene) {
@@ -308,11 +307,12 @@ export default Vue.component("TissueTable", {
             let startIndex = (this.currentPage-1) * this.perPage;
             let endIndex = startIndex + this.perPage;
             let rows = this.tableData.slice(startIndex, endIndex).map(d => d.gene);
-            rows.forEach(currentGene => {
-                this.showEvidence(currentGene);
-            });
+            this.populateEvidence(rows);
             this.currentGenes = rows;
             console.log("Finished populating current genes.");
+        },
+        populateEvidence(genes){
+            genes.forEach(gene => this.showEvidence(gene));
         }
     },
     computed: {
