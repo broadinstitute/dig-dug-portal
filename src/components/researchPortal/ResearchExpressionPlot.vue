@@ -78,7 +78,7 @@
 				</b-table>
 			</template>
 		</b-table>
-		<b-pagination
+		<b-pagination v-if="!hideTable"
 			v-model="currentPage"
 			class="pagination-sm justify-content-center"
 			:total-rows="rows"
