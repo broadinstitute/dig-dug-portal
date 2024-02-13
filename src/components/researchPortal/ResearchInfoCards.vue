@@ -127,7 +127,10 @@
 					</div>
 					<div class="" v-html="formatValue(value[rowKey], rowKey)" :class="'row-value ' + rowKey"></div>
 				</div>
-				<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex" class="container-fluid">
+				<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex">
+					<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey)">{{ featureKey }}</a>
+				</div>
+				<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex" :id="sectionId+index+featureKey" class="container-fluid info-card-feature hidden" :class="featureKey">
 					<div v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]" :key="fRowIndex" class="">
 						<div class="feature" :class="'row-key ' + fRowKey">
 							{{ fRowKey }}
