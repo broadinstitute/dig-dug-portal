@@ -790,7 +790,8 @@ export default Vue.component("research-region-plot", {
 				"' and position gt " +
 				this.searchingRegion.start +
 				" and position lt " +
-				this.searchingRegion.end;
+				this.searchingRegion.end; +
+				" build=GRCH38"
 
 				//console.log("signalURL", signalURL)
 
