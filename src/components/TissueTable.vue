@@ -316,9 +316,6 @@ export default Vue.component("TissueTable", {
         }
     },
     computed: {
-        currentPageWatchable(){
-            return this.currentPage;
-        },
         dataByGene(){
             let currentGenesData = [];
             this.currentGenes.forEach(gene => 
@@ -329,7 +326,7 @@ export default Vue.component("TissueTable", {
         }
     },
     watch: {
-        currentPageWatchable: function(){
+        currentPage: function(){
             this.populateCurrentGenes();
         }
     }
