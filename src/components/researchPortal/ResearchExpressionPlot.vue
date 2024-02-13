@@ -93,7 +93,7 @@ import uiUtils from "@/utils/uiUtils";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 export default Vue.component("ResearchExpressionPlot", {
-	props: ["rawData", "filter", "plotByField", "hideTable"],
+	props: ["rawData", "filter", "plotByField", "hideTable", "skipSort"],
 	data() {
 		return {
 			chart: null,
@@ -235,12 +235,12 @@ export default Vue.component("ResearchExpressionPlot", {
 		},
 		processData() {
 			let processedCollection = [];
-			// Need a deep copy - the rawData is getting mutated.
-			let processedData = JSON.parse(JSON.stringify(this.$props.rawData));
+			let processedData = this.$props.rawData;
 			processedData = processedData.filter(
-				(entry) => parseInt(entry["nSamples"]) >= this.minSamples
+				(distinctEntry) => {
+					return parseInt(distinctEntry["nSamples"]) >= this.minSamples
+				}
 			);
-
 			processedData.map((d) => {
 				d.collection.map((c, cIndex) => {
 					d.collection[cIndex] = c.trim();
@@ -269,15 +269,17 @@ export default Vue.component("ResearchExpressionPlot", {
 				entry["Max TPM"] = parseFloat(entry.maxTpm);
 				entry["nSamples"] = parseInt(entry.nSamples);
 			});
-			processedData.sort((a, b) => {
-				if (a[this.keyField] > b[this.keyField]) {
-					return 1;
-				}
-				if (a[this.keyField] < b[this.keyField]) {
-					return -1;
-				}
-				return 0;
-			});
+			if (!this.$props.skipSort){
+				processedData.sort((a, b) => {
+					if (a[this.keyField] > b[this.keyField]) {
+						return 1;
+					}
+					if (a[this.keyField] < b[this.keyField]) {
+						return -1;
+					}
+					return 0;
+				});
+			}
 			let flatBoth = [];
 
 			for (let item of processedData) {

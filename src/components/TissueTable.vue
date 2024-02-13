@@ -4,7 +4,8 @@
             <research-expression-plot
                 :raw-data="dataByGene"
                 :plotByField="'gene'"
-                :hideTable="true">
+                :hideTable="true"
+                :skipSort="true">
             </research-expression-plot>
         </div>
         <div id="tissues">
@@ -311,18 +312,19 @@ export default Vue.component("TissueTable", {
                 this.showEvidence(currentGene);
             });
             this.currentGenes = rows;
+            console.log("Finished populating current genes.");
         }
     },
     computed: {
         currentPageWatchable(){
             return this.currentPage;
         },
-        
         dataByGene(){
             let currentGenesData = [];
             this.currentGenes.forEach(gene => 
                 currentGenesData = currentGenesData.concat(this.evidence[gene])
             );
+            console.log("Finished assembling data by gene.");
             return currentGenesData;
         }
     },
