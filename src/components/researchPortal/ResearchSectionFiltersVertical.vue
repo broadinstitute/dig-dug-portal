@@ -1611,6 +1611,8 @@ div.custom-select-search {
 
 .filtering-ui-wrapper.vertical {
 	text-align: left !important;
+	padding-left: 15px;
+	background-color: #ffffff !important;
 }
 
 .filtering-ui-wrapper.search-criteria {
