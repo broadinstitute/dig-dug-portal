@@ -1,5 +1,6 @@
 <template>
 	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
+		<div @click="hideFeatures()"><span class="btn btn-sm btn-primary">Back</span></div>
 		<div v-html="tableLegend" class="data-table-legend"></div>
 		<div
 			v-if="
@@ -16,121 +17,65 @@
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
 			></span>
 		</div>
-		<!--<research-summary-plot
-			v-if="
-				!!tableFormat['summary plot'] &&
-				tableFormat['summary plot']['plots'].includes('table')
-			"
-			v-bind:summaryPlot="tableFormat['summary plot']"
-			v-bind:rawData="dataset"
-			v-bind:isPlotByRow="false"
-		>
-		</research-summary-plot>
-		<div
-			v-if="!!dataset"
-			v-html="'Total rows: ' + this.rows"
-			class="table-total-rows"
-		></div>
-		<div v-if="!!dataset" class="table-ui-wrapper">
-			<label
-				>Rows per page:
-				<select v-model="perPageNumber" class="number-per-page">
-					<option value="10">10</option>
-					<option value="20">20</option>
-					<option value="40">40</option>
-					<option value="100">100</option>
-					<option value="0">
-						<span style="color: #f00">All</span>
-					</option>
-				</select>
-			</label>
-			<div
-				class="convert-2-csv btn-sm"
-				@click="convertJson2Csv(filteredData, pageID + sectionId+ '_filtered')"
-			>
-				Save as CSV
-			</div>
-			<div
-				class="convert-2-csv btn-sm"
-				@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
-			>
-				Save as JSON
-			</div>
-			<div
-				class="convert-2-csv btn-sm"
-				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
-			>
-				{{ !!summarySection ? 'Set summary table' : 'Show/hide columns' }}
-			</div>
-			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="hidden">
-				<div
-					class="show-hide-columns-box-close"
-					@click="showHidePanel('#showHideColumnsBox'+sectionId)"
-				>
-					<b-icon icon="x-circle-fill"></b-icon>
-				</div>
-				<h4 style="text-align: center">show/hide columns</h4>
-				<p></p>
-				<div class="table-wrapper">
-					<table class="table table-sm">
-						<thead>
-							<tr>
-								<th></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr
-								v-for="column in tableFormat['top rows']"
-								:key="column"
-							>
-								<td>
-									<input
-										type="checkbox"
-										name="visible_top_rows"
-										:id="getColumnId(column)"
-										:value="column"
-										checked
-										@click="addRemoveColumn($event)"
-									/>
-									{{ " " + column }}
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					<div v-if="!!summarySection">
-						<h4 style="text-align: center">Number of rows in evidence tables</h4>
-						<label
-							>Set rows:
-							<select v-model="featureRowsNumber" class="number-per-page">
-								<option value="10" selected>10</option>
-								<option value="15">15</option>
-								<option value="20">20</option>
-								<option value="25">25</option>
-								<option value="30">30</option>
-								<option value="35">35</option>
-								<option value="40">40</option>
-								<option value="45">45</option>
-								<option value="50">50</option>
-							</select>
-						</label>
-						<div style="color:red;">*Updating this value requires rebuilding of the summary table, which may take long time depends on 
-							the number of the evidence groups and their data rows.</div>
+
+		<div>
+			<template  v-for="(value, index) in pagedData">
+				<div :key="index" class="info-card" v-if="!!openCard">
+					<div v-for="(rowKey, rowIndex) in tableFormat['top rows']" :key="index + '-' + rowIndex" class="" 
+					:class="(!!minimumView
+						&& !!tableFormat['rows as info cards']['minimum view']
+						&& !tableFormat['rows as info cards']['minimum view'].includes(rowKey)
+						&& value[tableFormat['rows as info cards']['key']] != openCard) ?
+						'hidden' : ''">
+						<div class="" :class="'row-key ' + rowKey">
+							{{ rowKey }}
+						</div>
+						<div class="" v-html="formatValue(value[rowKey], rowKey)" 
+						:class="(!!minimumView
+							&& !!tableFormat['rows as info cards']['minimum view']
+							&& !tableFormat['rows as info cards']['minimum view'].includes(rowKey)
+							&& value[tableFormat['rows as info cards']['key']] != openCard) ?
+							'row-value hidden ' + rowKey : 'row-value ' + rowKey"></div>
 					</div>
+					<!--<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="index + '-feature-' + featureIndex">
+						<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey, value[tableFormat['rows as info cards']['key']])">{{ featureKey }}</a>
+					</div>
+					<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex" 
+						:id="sectionId + index + featureKey" class="container-fluid info-card-feature hidden" :class="featureKey">
+						<div v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]" :key="fRowIndex" class="">
+							<div class="feature" :class="'row-key ' + fRowKey">
+								{{ fRowKey }}
+							</div>
+							<div class="feature" v-html="formatValue(value[fRowKey], fRowKey)" :class="'row-value ' + fRowKey"></div>
+						</div>
+					</div>-->
 				</div>
-			</div>
-		</div>-->
-		<div class="">
+			</template>
+		</div>
+		
+		<div>
 			<div v-for="(value, index) in pagedData" :key="index" class="info-card">
-				<div v-for="(rowKey, rowIndex) in tableFormat['top rows']" :key="rowIndex" class="">
+				<div v-for="(rowKey, rowIndex) in tableFormat['top rows']" :key="index+'-'+rowIndex" class="" 
+				:class="(!!minimumView 
+					&& !!tableFormat['rows as info cards']['minimum view'] 
+					&& !tableFormat['rows as info cards']['minimum view'].includes(rowKey)
+					&& value[tableFormat['rows as info cards']['key']] != openCard)?
+					'hidden':''">
 					<div class="" :class="'row-key '+rowKey">
 						{{ rowKey }}
 					</div>
-					<div class="" v-html="formatValue(value[rowKey], rowKey)" :class="'row-value ' + rowKey"></div>
+					<div class="" v-html="formatValue(value[rowKey], rowKey)" 
+					:class="(!!minimumView
+						&& !!tableFormat['rows as info cards']['minimum view']
+						&& !tableFormat['rows as info cards']['minimum view'].includes(rowKey)
+						&& value[tableFormat['rows as info cards']['key']] != openCard) ?
+						'row-value hidden ' + rowKey : 'row-value ' + rowKey"></div>
 				</div>
-				<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex">
-					<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey)">{{ featureKey }}</a>
+				<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="index + '-feature-'+featureIndex">
+					<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey,value[tableFormat['rows as info cards']['key']])">{{ featureKey }}</a>
 				</div>
-				<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex" :id="sectionId+index+featureKey" class="container-fluid info-card-feature hidden" :class="featureKey">
+				<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex" 
+					:id="sectionId+index+featureKey" class="container-fluid info-card-feature hidden" :class="featureKey">
 					<div v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]" :key="fRowIndex" class="">
 						<div class="feature" :class="'row-key ' + fRowKey">
 							{{ fRowKey }}
@@ -138,160 +83,7 @@
 						<div class="feature" v-html="formatValue(value[fRowKey], fRowKey)" :class="'row-value ' + fRowKey"></div>
 					</div>
 				</div>
-				<!--
-<div v-for="(rowValue, rowKey, rowIndex) in value" :key="rowIndex" class="row">
-					
-					
-				</div>
-				-->
 			</div>
-
-			<!--
-<table
-			:class="'table table-sm research-data-table ' + pageID"
-			cellpadding="0"
-			cellspacing="0"
-			v-if="!!dataset && !!tableFormat"
-		>
-			<thead class="">
-				<tr>
-					<th v-if="!!tableFormat['star column']">
-						<b-icon
-							:icon="!!stared ? 'star-fill' : 'star'"
-							style="color: #ffcc00; cursor: pointer"
-							@click="showHideStared()"
-						></b-icon>
-					</th>
-					<template v-for="(value, index) in topRows">
-						<th
-							v-if="getIfChecked(value) == true"
-							:key="index"
-							@click="!!multiSectionPage?callFilter(value):applySorting(value)"
-							class="byor-tooltip"
-							:class="
-								'sortable-th ' +
-								value +
-								' ' +
-								getColumnId(value)
-							"
-						>
-							<span v-html="value"></span>
-							<span
-								v-if="
-									!!tableFormat['tool tips'] &&
-									!!tableFormat['tool tips'][value]
-								"
-								class="tooltiptext"
-								v-html="tableFormat['tool tips'][value]"
-							></span>
-						</th>
-					</template>
-					<th
-						class="th-evidence"
-						v-if="tableFormat['features'] != undefined"
-					>
-						Evidence
-					</th>
-				</tr>
-			</thead>
-
-			<tbody v-for="(value, index) in pagedData" :key="index" class="">
-				<tr>
-					<td v-if="!!tableFormat['star column']">
-						<span v-if="checkStared('1', value) == false"
-							><b-icon
-								icon="star"
-								style="color: #aaaaaa; cursor: pointer"
-								@click="addStar(value)"
-							></b-icon
-						></span>
-						<span v-if="checkStared('2', value) == true"
-							><b-icon
-								icon="star-fill"
-								style="color: #ffcc00; cursor: pointer"
-								@click="removeStar(value)"
-							></b-icon
-						></span>
-					</td>
-					<template
-						v-for="(tdValue, tdKey) in value"
-						v-if="
-							topRows.includes(tdKey) &&
-							getIfChecked(tdKey) == true
-						"
-					>
-						<td
-								v-if="ifDataObject(tdValue) == false"
-								:key="tdKey"
-								:class="getColumnId(tdKey)"
-							>
-							<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
-								{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
-								<span class="btns-wrapper">
-									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-										v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
-								</span>
-								
-							</span>
-							
-							<span v-else v-html="formatValue(tdValue, tdKey)"></span>
-						</td>
-						<td
-							v-if="
-								ifDataObject(tdValue) == true
-							"
-							:key="tdKey"
-							class="multi-value-td"
-							:class="getColumnId(tdKey)"
-						>
-							<span
-								v-for="(sValue, sKey, sIndex) in tdValue"
-								:class="
-									sKey +
-									' reference bg-color-' +
-									getColorIndex(sKey)
-								"
-								:key="sKey"
-							>
-
-								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
-									{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
-									<span class="btns-wrapper">
-										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-											v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
-									</span>
-								</span>
-								<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
-						</td>
-					</template>
-					<td v-if="tableFormat['features'] != undefined">
-						<span
-							href="javascript:;"
-							@click="showHideFeature('feature_' + sectionId + index)"
-							class="show-evidence-btn btn"
-							>View</span
-						>
-					</td>
-				</tr>
-				<tr
-					v-if="!!tableFormat['features']"
-					:id="'feature_' + sectionId + index"
-					:class="'hidden'"
-				>
-					<td :colspan="topRowNumber" class="features-td">
-						<research-data-table-features
-							:featureRowsNumber="featureRowsNumber"
-							:featuresData="value.features"
-							:featuresFormat="tableFormat"
-							:utils="utils"
-							:summarySection="summarySection"
-						></research-data-table-features>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-			-->
-		
 		</div>
 		<b-container
 			v-if="
@@ -343,6 +135,8 @@ export default Vue.component("research-info-cards", {
 			featureRowsNumber: 10,
 			compareGroups: [],
 			stared: false,
+			minimumView: null,
+			openCard: null,
 		};
 	},
 	modules: {},
@@ -826,8 +620,26 @@ export default Vue.component("research-info-cards", {
 				return false;
 			}
 		},
-		showHideFeature(ELEMENT) {
-			this.utils.uiUtils.showHideElement(ELEMENT);
+		hideFeatures() {
+			let featureContents = document.querySelectorAll("div.info-card-feature");
+
+			featureContents.forEach(fContent => {
+				let fId = fContent.getAttribute("id");
+				this.utils.uiUtils.hideElement(fId);
+			})
+			this.minimumView = null;
+			this.openCard = null;
+		},
+		showHideFeature(ELEMENT, KEY) {
+			let featureContents = document.querySelectorAll("div.info-card-feature");
+
+			featureContents.forEach(fContent =>{
+				let fId = fContent.getAttribute("id");
+				this.utils.uiUtils.hideElement(fId);
+			})
+			this.utils.uiUtils.showElement(ELEMENT);
+			this.minimumView = true;
+			this.openCard = KEY;
 		},
 		convertJson2Csv(DATA, FILENAME) {
 			this.utils.uiUtils.saveByorCsv(DATA, FILENAME);
