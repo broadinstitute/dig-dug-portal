@@ -48,7 +48,7 @@
 				<span v-for="key in groups" @click="removeData(key)"
 					class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
 
-					<div class="" v-if="!!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'left'" 
+					<div class="" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'left'" 
 						:style="'width: '+ sectionConfig['filters vertical']['width']+'px; margin-right: 15px'">
 	<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
 						:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
@@ -56,7 +56,7 @@
 					</div>
 
 			<div :class="(!sectionConfig['filters vertical'])?'col-md-12 wrapper-' + sectionIndex: 'wrapper-' + sectionIndex"
-				:style="(!!sectionConfig['filters vertical'])?'width: calc(100% - ' + (sectionConfig['filters vertical']['width']+15) + 'px);':''">
+				:style="(!!sectionConfig['filters vertical'])?(!openInfoCard)?'width: calc(100% - ' + (sectionConfig['filters vertical']['width']+15) + 'px);':'':''">
 
 				<research-in-section-search v-if="!!sectionConfig['search parameters']"
 					:class="!!sectionConfig['search parameters'].display && sectionConfig['search parameters'].display == 'false' ? 'hidden-search' : ''"
@@ -239,16 +239,19 @@
 						:multiSectionPage="true" 
 						:starItems="starItems"
 						:utils="utils" 
+						:thumbnailWidth="!!sectionConfig['filters vertical'] && !!sectionConfig['filters vertical']['width']? 
+										sectionConfig['filters vertical']['width']: 250"
 						@clicked-sort="sortData"
 						:region="regionParam"
 						:regionZoom="regionZoom"
 						:regionViewArea="regionViewArea"
 						@on-star="starColumn"
 						@on-filtering="updateData"
+						@on-openCard="setOpenInfoCard"
 						>
 					</research-info-cards>
 			</div>
-			<div class="" v-if="!!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'" 
+			<div class="" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'" 
 							:style="'width: ' + sectionConfig['filters vertical']['width'] + 'px;margin-left: 15px;'">
 	<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
 							:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
@@ -296,6 +299,7 @@ export default Vue.component("research-section", {
 			loadingDataFlag: "down",
 			regionParam:null,
 			sectionHidden: false,
+			openInfoCard: null
 		};
 	},
 	modules: {
@@ -631,6 +635,9 @@ export default Vue.component("research-section", {
 		},
 		updateData(data) {
 			this.sectionData = data;
+		},
+		setOpenInfoCard(STATUS) {
+			this.openInfoCard = STATUS;
 		},
 		sortData(KEY) {
 			if (!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {
