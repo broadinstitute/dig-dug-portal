@@ -245,6 +245,7 @@
 						:region="regionParam"
 						:regionZoom="regionZoom"
 						:regionViewArea="regionViewArea"
+						:openCardPreset="openInfoCard"
 						@on-star="starColumn"
 						@on-filtering="updateData"
 						@on-openCard="setOpenInfoCard"
@@ -310,8 +311,13 @@ export default Vue.component("research-section", {
 		if (!!this.sectionConfig["table format"] &&
 			(!this.sectionConfig["table format"]["type"] || this.sectionConfig["table format"]["type"] != "remote")) {
 			this.tableFormat = this.sectionConfig["table format"];
-		}
 
+			/* for info cards option, open card value */
+			let infoCardConfig = !!this.tableFormat['rows as info cards']? this.tableFormat['rows as info cards']:null;
+			if (!!infoCardConfig && !!infoCardConfig['key'] && !!this.utils.keyParams[infoCardConfig['key']]) {
+				this.openInfoCard = this.utils.keyParams[infoCardConfig['key']];
+			}
+		}
 	},
 	mounted() {
 		this.getData();
@@ -636,8 +642,18 @@ export default Vue.component("research-section", {
 		updateData(data) {
 			this.sectionData = data;
 		},
-		setOpenInfoCard(STATUS) {
-			this.openInfoCard = STATUS;
+		setOpenInfoCard(KEY) {
+			this.openInfoCard = KEY;
+
+			let infoCardConfig = this.tableFormat['rows as info cards'];
+
+			let keyName = infoCardConfig['key'];
+			let keyObj = {};
+			keyObj[keyName] = KEY;
+
+			console.log("keyObj",keyObj);
+
+			this.utils.keyParams.set(keyObj)
 		},
 		sortData(KEY) {
 			if (!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {

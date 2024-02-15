@@ -21,28 +21,17 @@
 			<template  v-for="(value, index) in rawData">
 				<div class="info-card">
 					<div v-for="(rowKey, rowIndex) in tableFormat['top rows']" :key="index + '-' + rowIndex" class="" 
-					:class="(!!minimumView
-						&& !!tableFormat['rows as info cards']['minimum view']
+					:class="(!!tableFormat['rows as info cards']['minimum view']
 						&& !!tableFormat['rows as info cards']['minimum view'].includes(rowKey)) ?
 						'' : 'hidden'">
 						<div class="" v-html="formatValue(value[rowKey], rowKey)" 
-						:class="(!!minimumView
-							&& !!tableFormat['rows as info cards']['minimum view']
+						:class="(!!tableFormat['rows as info cards']['minimum view']
 							&& !!tableFormat['rows as info cards']['minimum view'].includes(rowKey)) ?
 							'row-value ' + rowKey : 'row-value hidden ' + rowKey"></div>
 					</div>
 					<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="index + '-feature-' + featureIndex">
 						<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey, value[tableFormat['rows as info cards']['key']])">{{ featureKey }}</a>
 					</div>
-					<!--<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex" 
-						:id="sectionId + index + featureKey" class="container-fluid info-card-feature hidden" :class="featureKey">
-						<div v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]" :key="fRowIndex" class="">
-							<div class="feature" :class="'row-key ' + fRowKey">
-								{{ fRowKey }}
-							</div>
-							<div class="feature" v-html="formatValue(value[fRowKey], fRowKey)" :class="'row-value ' + fRowKey"></div>
-						</div>
-					</div>-->
 				</div>
 			</template>
 		</div>
@@ -91,7 +80,7 @@
 			</div>
 			</template>
 		</div>
-		<b-container
+		<!--<b-container
 			v-if="
 				!!dataset && !!perPageNumber && perPageNumber != null && perPageNumber != 0
 			"
@@ -104,7 +93,7 @@
 				:per-page="perPageNumber"
 				:phenotypeMap="phenotypeMap"
 			></b-pagination>
-		</b-container>
+		</b-container>-->
 	</div>
 </template>
 
@@ -133,7 +122,8 @@ export default Vue.component("research-info-cards", {
 		"region",
 		"regionZoom",
 		"regionViewArea",
-		"thumbnailWidth"
+		"thumbnailWidth",
+		'openCardPreset'
 	],
 	data() {
 		return {
@@ -154,8 +144,13 @@ export default Vue.component("research-info-cards", {
 	mounted() {
 		this.perPageNumber = this.initPerPageNumber;
 		//console.log(this.dataset);
+		
 	},
-	updated() {},
+	updated() {
+		if (!!this.openCardPreset) {
+			this.openCard = this.openCardPreset;
+		}
+	},
 	computed: {
 		filteredData() {
 			if(!!this.multiSectionPage){
@@ -270,112 +265,7 @@ export default Vue.component("research-info-cards", {
 				return returnObj;
 			}
 		},
-		/*rawData() {
-
-			let posField = !!this.tableFormat["data zoom"]? this.tableFormat["data zoom"].position:null;
-			let startPos = !!this.viewingRegion? this.viewingRegion.start:null;
-			let endPos = !!this.viewingRegion ? this.viewingRegion.end:null;
-
-			//console.log("posField", posField, "startPos", startPos, "endPos", endPos );
-
-			//console.log("this.dataset", this.dataset);
-
-			let formattedData = [];
-
-			if (this.dataComparisonConfig == null) {
-
-				let rawData = [...new Set(this.dataset)];
-
-				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
-					rawData = rawData.filter(vValue => vValue[posField] >= startPos && vValue[posField] <= endPos);
-				}
-
-				rawData.map((d) => {
-					let tempObj = {};
-					
-					this.tableFormat["top rows"].map((t) => {
-						tempObj[t] = d[t];
-					});
-
-					if (this.tableFormat["features"] != undefined) {
-						tempObj["features"] = {};
-
-						this.tableFormat["features"].map((f) => {
-							if (!!d[f]) {
-								tempObj["features"][f] = d[f];
-							} else {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
-									fTempObj[fItem] = d[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
-							}
-						});
-					}
-					formattedData.push(tempObj);
-				});
-			} else {
-
-				let rawData = {...this.dataset};
-
-				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
-
-					for (const [vKey, vValue] of Object.entries(rawData)) {
-						if (
-							vValue[posField] >= startPos &&
-							vValue[posField] <= endPos
-						) {
-							delete rawData[vKey];
-						}
-					}
-				}
-
-				for (const [key, value] of Object.entries(rawData)) {
-					let tempObj = {};
-
-					this.tableFormat["top rows"].map((t) => {
-						tempObj[t] = value[t];
-					});
-
-					if (this.tableFormat["features"] != undefined) {
-						tempObj["features"] = {};
-						this.tableFormat["features"].map((f) => {
-							if (!!value[f]) {
-								tempObj["features"][f] = value[f];
-							} else {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
-									fTempObj[fItem] = value[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
-							}
-						});
-					}
-					formattedData.push(tempObj);
-				}
-			}
-
-			if (this.stared == true) {
-				let tempData = [];
-
-				formattedData.map((r) => {
-					if (this.checkStared("3", r) == true) {
-						tempData.push(r);
-					}
-				});
-				formattedData = tempData;
-			} else {
-				formattedData = formattedData;
-			}
-
-			return formattedData;
-		},*/
+		
 		rawData() {
 			let rawData = [...new Set(this.dataset)];
 			return rawData;
@@ -648,7 +538,7 @@ export default Vue.component("research-info-cards", {
 			this.utils.uiUtils.showElement(ELEMENT);
 			this.minimumView = true;
 			this.openCard = KEY;
-			this.$emit('on-openCard', true);
+			this.$emit('on-openCard', KEY);
 		},
 		convertJson2Csv(DATA, FILENAME) {
 			this.utils.uiUtils.saveByorCsv(DATA, FILENAME);
