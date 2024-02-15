@@ -26,12 +26,12 @@
                     <span v-for="example in sectionConfigs['content']['search examples']" :key="example.value"
                     v-html="getExampleLink(example)">
                     </span>
-                </div>
+                </div> 
             </div>
         </div>
         <div class="fp-bottom">
             <div class="fp-bottom-container">
-                <research-page-description
+                <research-page-description v-if="this.pageDescription"
                     :content="this.pageDescription"
                     :utils="this.utilsBox"
                 ></research-page-description>
@@ -54,7 +54,13 @@ export default Vue.component("research-front-page", {
 			researchSearchParam: null,
 		};
 	},
-	created() {},
+	created() {
+    },
+    mounted() {
+        if(this.sectionConfigs['content']['favicon']){
+            this.changeFavicon(this.sectionConfigs['content']['favicon']);
+        }
+    },
 	computed: {},
 	watch: {
         researchSearchParam(PARAM) {
@@ -71,6 +77,16 @@ export default Vue.component("research-front-page", {
                 }
             })
             return exampleLink;
+        },
+        changeFavicon(url) {
+            let favicon = document.querySelector('link[rel="icon"]')
+            if (!favicon) {
+                favicon = document.createElement('link')
+                favicon.setAttribute('rel', 'icon')
+                favicon.setAttribute('type', 'image/png')
+                document.head.appendChild(favicon)
+            }
+            favicon.setAttribute('href', url)
         }
     },
 });
@@ -123,15 +139,19 @@ export default Vue.component("research-front-page", {
     display: flex; 
     width: 100%; 
     min-height:100px; 
-    height:150px; 
+    height: fit-content; 
     align-items: center; 
     justify-content: center; 
     margin: 50px 0;
 }
 .fp-intro-logo{
     min-width: calc(50% - 20.5px); 
+    max-height: 200px;
     display:flex; 
     justify-content: flex-end;
+}
+.fp-intro-logo img{
+    width:inherit;
 }
 .fp-intro-divider{
     width: 1px;
