@@ -1,12 +1,15 @@
 <template>
     <div>
         <div id="plot">
-            <research-expression-plot
+            <research-expression-plot v-if="dataByGene.length > 0"
                 :raw-data="dataByGene"
                 :plotByField="'gene'"
                 :hideTable="true"
                 :skipSort="true">
             </research-expression-plot>
+            <div v-else>
+                Loading expression plot...
+            </div>
         </div>
         <div id="tissues">
             <b-table
@@ -318,12 +321,13 @@ export default Vue.component("TissueTable", {
     },
     computed: {
         dataByGene(){
-            let currentGenesData = [];
-            this.currentGenes.forEach(gene => 
-                currentGenesData = currentGenesData.concat(this.evidence[gene])
-            );
-            console.log("Finished assembling data by gene.");
-            return currentGenesData;
+            for (let i = 0; i < this.currentGenes.length; i++){
+                let gene = this.currentGenes[i]
+                if (!this.evidence[gene] || this.evidence[gene] === undefined){
+                    return [];
+                }
+            }
+            return this.currentGenes.flatMap(gene => this.evidence[gene]);
         }
     },
     watch: {
