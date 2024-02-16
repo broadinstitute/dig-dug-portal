@@ -2,12 +2,16 @@
     <div>
         <div id="plot">
             <research-expression-plot
+                v-if="rawData.length > 0"
                 :raw-data="rawData"
                 :plotByField="'gene'"
                 :hideTable="true"
                 :skipSort="true"
                 ref="plotRef">
             </research-expression-plot>
+            <div v-else>
+                Loading expression plot...
+            </div>
         </div>
         <div id="tissues">
             <b-table
@@ -306,6 +310,7 @@ export default Vue.component("TissueTable", {
             this.$set(item, "showButton", Number(value));
         },
         async populateGeneData(){
+            this.rawData = [];
             let startIndex = (this.currentPage-1) * this.perPage;
             let endIndex = startIndex + this.perPage;
             let rows = this.tableData.slice(startIndex, endIndex).map(d => d.gene);

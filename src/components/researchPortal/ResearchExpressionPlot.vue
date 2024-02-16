@@ -104,7 +104,7 @@ export default Vue.component("ResearchExpressionPlot", {
 			processedData: [],
 			processedCollection: null,
 			flatBoth: null,
-			minSamples: 0,
+			minSamples: 1,
 			collection: "all",
 			colorMap: {},
 			currentPage: 1,
