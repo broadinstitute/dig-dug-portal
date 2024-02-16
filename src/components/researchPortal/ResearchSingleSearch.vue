@@ -194,7 +194,9 @@ export default Vue.component("research-single-search", {
 					if(param.values == PARAM) {
 						returnParam.active = true;
 						returnParam.url = '/research.html?pageid='
-							+param['target page']['page id']+'&'+param['parameter']+'='
+							+param['target page']['page id'];
+						returnParam.url += (!!param['target page']['entity'])? '&' + param['target page']['entity parameter'] + '='+param['target page']['entity']:"";
+						returnParam.url += '&'+param['parameter']+'=';
 					}
 				})
 			}
