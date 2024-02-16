@@ -1,15 +1,13 @@
 <template>
     <div>
         <div id="plot">
-            <research-expression-plot v-if="dataByGene.length > 0"
-                :raw-data="dataByGene"
+            <research-expression-plot
+                :raw-data="rawData"
                 :plotByField="'gene'"
                 :hideTable="true"
-                :skipSort="true">
+                :skipSort="true"
+                ref="plotRef">
             </research-expression-plot>
-            <div v-else>
-                Loading expression plot...
-            </div>
         </div>
         <div id="tissues">
             <b-table
@@ -142,6 +140,7 @@ export default Vue.component("TissueTable", {
         return {
             perPage: 10,
             currentPage: 1,
+            rawData: [],
             fields: [
                 {
                     key: "gene",
@@ -307,28 +306,30 @@ export default Vue.component("TissueTable", {
         setShowButton(item, value) {
             this.$set(item, "showButton", Number(value));
         },
-        populateCurrentGenes(){
+        async populateCurrentGenes(){
             let startIndex = (this.currentPage-1) * this.perPage;
             let endIndex = startIndex + this.perPage;
             let rows = this.tableData.slice(startIndex, endIndex).map(d => d.gene);
-            this.populateEvidence(rows);
+            await this.populateEvidence(rows);
             this.currentGenes = rows;
             console.log("Finished populating current genes.");
+            this.rawData = this.dataByGene();
         },
-        populateEvidence(genes){
-            genes.forEach(gene => this.showEvidence(gene));
-        }
-    },
-    computed: {
+        async populateEvidence(genes){
+            await Promise.all(genes.map(gene => this.showEvidence(gene)));
+        },
         dataByGene(){
+            console.log("Inside dataByGene");
+            // I think we can probably get rid of the for loop here?
             for (let i = 0; i < this.currentGenes.length; i++){
                 let gene = this.currentGenes[i]
                 if (!this.evidence[gene] || this.evidence[gene] === undefined){
+                    console.log("Gene " + gene + " has no evidence.");
                     return [];
                 }
             }
             return this.currentGenes.flatMap(gene => this.evidence[gene]);
-        }
+        },
     },
     watch: {
         currentPage: function(){
