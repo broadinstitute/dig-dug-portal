@@ -614,6 +614,9 @@
 								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
 								>
 							</research-multi-sections-search>
+							<div v-if="!!$parent.sectionConfigs['intersections filters']">
+								research-multi-sections-filter
+							</div>
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
 									  v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" >
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"

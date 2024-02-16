@@ -294,7 +294,6 @@ export default Vue.component("research-section", {
 			remoteFilters: null,
 			remoteVisualizer: null,
 			remoteSectionDecription: null,
-			//interSectionsFilters: [],
 			groups: null,
 			searched: [],
 			loadingDataFlag: "down",
@@ -536,7 +535,6 @@ export default Vue.component("research-section", {
 			this.sectionData = null,
 				this.mergedData = null,
 				this.originalData = null,
-				//this.interSectionsFilters = [],
 				this.groups = null,
 				this.searched = [],
 				this.loadingDataFlag = "down"
@@ -544,35 +542,6 @@ export default Vue.component("research-section", {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
 		},
-		/*filterAcrossSections(FROM, FILTER_DATA, FILTER, RESET) {
-			let interSectionsFilters = [...new Set(this.interSectionsFilters)];
-			this.interSectionsFilters = [];
-			if (RESET != "reset") {
-				FILTER["data"] = FILTER_DATA;
-				FILTER["from"] = FROM;
-
-				let isFilter = false;
-				if (interSectionsFilters.length > 0) {
-					interSectionsFilters.map(f => {
-						if (f.from == FROM) {
-							f = FILTER;
-							isFilter = true;
-						}
-					})
-				}
-
-				if (!isFilter) {
-					interSectionsFilters.push(FILTER);
-				}
-
-
-			} else if (RESET == 'reset') {
-				interSectionsFilters = interSectionsFilters.filter(f => f.from != FROM);
-				this.sectionData = this.originalData;
-			}
-
-			this.interSectionsFilters = interSectionsFilters;
-		},*/
 		filterSectionData(GROUP) {
 			let groupValues = GROUP.split(", ");
 			let groupKeys = this.sectionConfig["table format"]["group by"];
