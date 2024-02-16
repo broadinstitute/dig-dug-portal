@@ -23,80 +23,92 @@
 					: $parent.headerLogo
 			"
 		></research-page-header>
-
-		<!-- Body -->
-		<div
-			class="container-fluid mdkp-body"
-			v-if="$parent.researchMode == 'no_set'"
-		>
-			<div class="card mdkp-card dataset-page-header">
-				<div class="row card-body">
-					<div class="col-md-12">
-						<h3>
-							Sorry, this page is not published yet. Please come
-							back later.
-						</h3>
-					</div>
+	<div class="single-search-wrapper" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['single search']">
+		<research-single-search
+			:single-search-config="$parent.sectionConfigs['single search']"
+			:phenotypes="$parent.phenotypesInSession"
+			:utils="$parent.utilsBox"
+		></research-single-search>   
+		 <div v-if="!!$parent.sectionConfigs['single search']['search examples']" class="fp-search-examples">
+			<span v-html="'examples: '"></span>
+			<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"
+			v-html="$parent.getExampleLink(example)">
+			</span>
+		</div> 
+	</div>
+	<!-- Body -->
+	<div
+		class="container-fluid mdkp-body"
+		v-if="$parent.researchMode == 'no_set'"
+	>
+		<div class="card mdkp-card dataset-page-header">
+			<div class="row card-body">
+				<div class="col-md-12">
+					<h3>
+						Sorry, this page is not published yet. Please come
+						back later.
+					</h3>
 				</div>
 			</div>
 		</div>
+	</div>
 
-		<div
-			class="container-fluid mdkp-body"
-			v-if="$parent.researchMode == 'dev' && $parent.researchPage == null"
-		>
-			<div class="card mdkp-card dataset-page-header">
-				<div class="row card-body">
-					<div class="col-md-12">
-						<div class="filtering-ui-wrapper">
-							<div class="filtering-ui-content row">
-								<div class="col">
-									<div class="label">Reviewer ID</div>
-									<div>
-										<input
-											type="text"
-											class="form-control"
-											v-model="$parent.devID"
-										/>
-									</div>
-								</div>
-								<div class="col">
-									<div class="label">Reviewer P/W</div>
-									<div>
-										<input
-											type="password"
-											class="form-control"
-											v-model="$parent.devPW"
-										/>
-									</div>
-								</div>
-								<div class="col">
-									<div class="label">&nbsp;</div>
-									<div>
-										<button
-											type="button"
-											class="btn btn-primary"
-											@click="$parent.fetchDevPage()"
-										>
-											Load page 
-										</button>
-									</div>
+	<div
+		class="container-fluid mdkp-body"
+		v-if="$parent.researchMode == 'dev' && $parent.researchPage == null"
+	>
+		<div class="card mdkp-card dataset-page-header">
+			<div class="row card-body">
+				<div class="col-md-12">
+					<div class="filtering-ui-wrapper">
+						<div class="filtering-ui-content row">
+							<div class="col">
+								<div class="label">Reviewer ID</div>
+								<div>
+									<input
+										type="text"
+										class="form-control"
+										v-model="$parent.devID"
+									/>
 								</div>
 							</div>
-							<div class="row">
-								<label class="col">
-									<input 
-										type="checkbox" 
-										v-model="$parent.devCK"
+							<div class="col">
+								<div class="label">Reviewer P/W</div>
+								<div>
+									<input
+										type="password"
+										class="form-control"
+										v-model="$parent.devPW"
+									/>
+								</div>
+							</div>
+							<div class="col">
+								<div class="label">&nbsp;</div>
+								<div>
+									<button
+										type="button"
+										class="btn btn-primary"
+										@click="$parent.fetchDevPage()"
 									>
-									Remember me for 2 weeks.
-								</label>
+										Load page 
+									</button>
+								</div>
 							</div>
+						</div>
+						<div class="row">
+							<label class="col">
+								<input 
+									type="checkbox" 
+									v-model="$parent.devCK"
+								>
+								Remember me for 2 weeks.
+							</label>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+	</div>
 
 		<research-front-page 
 			v-if="$parent.researchPage !== null && $parent.sectionConfigs['is front page']"
@@ -820,6 +832,23 @@ html, body, #app {
 .mdkp-body.flex-body {
 	overflow-x: hidden;
 }
+
+/* single search */
+.single-search-wrapper {
+	padding: 15px;
+}
+
+.fp-search-examples,
+.fp-search-examples a {
+    color: white !important;
+    font-size: 1.15em;
+}
+
+.fp-search-examples span {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+/* */
 
 .card.hidden {
 	display: none !important;

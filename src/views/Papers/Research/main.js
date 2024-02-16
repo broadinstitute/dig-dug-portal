@@ -38,6 +38,7 @@ import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
 import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingSpinner.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -84,6 +85,7 @@ new Vue({
         ResearchSection,
         ResearchSectionsSummary,
         ResearchMultiSectionsSearch,
+        ResearchSingleSearch,
         ResearchLoadingSpinner
     },
     data() {
@@ -1197,6 +1199,18 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ///single search
+        getExampleLink(EXAMPLE) {
+            let exampleLink;
+            this.sectionConfigs['single search']['search parameters'].map(param => {
+                if (param.parameter == EXAMPLE.parameter) {
+                    exampleLink = "<a href='/research.html?pageid=" + param["target page"]["page id"];
+                    exampleLink += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
+                    exampleLink += "&" + param.parameter + "=" + EXAMPLE.value + "'>" + EXAMPLE.value + "</a>";
+                }
+            })
+            return exampleLink;
+        },
         /// multi-sections use
         setZoom(SETTING) {
             this[SETTING.property] = SETTING.value;
