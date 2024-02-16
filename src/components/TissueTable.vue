@@ -242,7 +242,6 @@ export default Vue.component("TissueTable", {
                 },
             ],
             tableData: [],
-            currentGenes: []
         };
     },
     mounted() {
@@ -251,7 +250,7 @@ export default Vue.component("TissueTable", {
                 return { ...item, showButton: 0, currentPage: 1 };
             });
         }
-        this.populateCurrentGenes();
+        this.populateGeneData();
     },
     methods: {
         async showEvidence(gene) {
@@ -306,34 +305,20 @@ export default Vue.component("TissueTable", {
         setShowButton(item, value) {
             this.$set(item, "showButton", Number(value));
         },
-        async populateCurrentGenes(){
+        async populateGeneData(){
             let startIndex = (this.currentPage-1) * this.perPage;
             let endIndex = startIndex + this.perPage;
             let rows = this.tableData.slice(startIndex, endIndex).map(d => d.gene);
             await this.populateEvidence(rows);
-            this.currentGenes = rows;
-            console.log("Finished populating current genes.");
-            this.rawData = this.dataByGene();
+            this.rawData = rows.flatMap(gene => this.evidence[gene]);
         },
         async populateEvidence(genes){
             await Promise.all(genes.map(gene => this.showEvidence(gene)));
         },
-        dataByGene(){
-            console.log("Inside dataByGene");
-            // I think we can probably get rid of the for loop here?
-            for (let i = 0; i < this.currentGenes.length; i++){
-                let gene = this.currentGenes[i]
-                if (!this.evidence[gene] || this.evidence[gene] === undefined){
-                    console.log("Gene " + gene + " has no evidence.");
-                    return [];
-                }
-            }
-            return this.currentGenes.flatMap(gene => this.evidence[gene]);
-        },
     },
     watch: {
         currentPage: function(){
-            this.populateCurrentGenes();
+            this.populateGeneData();
         }
     }
 });
