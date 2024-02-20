@@ -203,7 +203,7 @@
 					:starItems="starItems"
 					@on-star="starColumn">
 				</research-section-visualizers>
-				<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
+								<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
 					:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 					:tableFormat="tableFormat"
 					:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
@@ -252,7 +252,7 @@
 						>
 					</research-info-cards>
 			</div>
-			<div class="" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'" 
+			<div class="vertical-filter" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'" 
 							:style="'width: ' + sectionConfig['filters vertical']['width'] + 'px;margin-left: 15px;'">
 	<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
 							:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"

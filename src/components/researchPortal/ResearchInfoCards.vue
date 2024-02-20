@@ -1,6 +1,6 @@
 <template>
 	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
-		<div v-if="!!openCard" @click="hideFeatures()"><span class="btn btn-sm btn-primary">Back</span></div>
+		<div class="info-cards-back" v-if="!!openCard" @click="hideFeatures()"><span class="btn btn-sm btn-primary">Back</span></div>
 		<div v-html="tableLegend" class="data-table-legend"></div>
 		<div
 			v-if="
@@ -102,7 +102,7 @@ import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 
-export default Vue.component("research-info-cards", {
+export default Vue.component("research-info-cards", { 
 	props: [
 		"pageID",
 		"dataset",
