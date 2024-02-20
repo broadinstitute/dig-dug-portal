@@ -832,6 +832,15 @@ export default Vue.component("research-section", {
 						let parameter = this.dataPoint["parameter"]
 						this.queryFile(parameter);
 						break;
+					case "graphQl":
+						//let testString = 'query targetDetails{\n\n          target(q: { sym: "$parameter" }) {\n\n\t\t\t\t\t\t\t\t\t\tname\n\n\t\t\t\t\t\t\t\t\t\ttdl\n\n\t\t\t\t\t\t\t\t\t\tfam\n\n\t\t\t\t\t\t\t\t\t\tsym\n\n\t\t\t\t\t\t\t\t\t\tdescription\n\n\t\t\t\t\t\t\t\t\t\tnovelty\n\n\t\t\t\t\t\t\t\t\t}\n\n\t\t\t\t\t\t\t}'.replace("$parameter", paramsString);
+
+						let testString = this.dataPoint["query string"].replace("$parameter", paramsString)
+
+						let query = `${testString}`;
+
+						this.queryGraphQl(query,  this.dataPoint["url"],paramsString, paramsType, params)
+						break;
 				}
 			} else {
 				this.loadingDataFlag = "down";
@@ -839,6 +848,34 @@ export default Vue.component("research-section", {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
 			}
+		},
+
+		queryGraphQl(QUERY, URL, PARAM,TYPE, PARAMS) {
+
+			const graphqlQuery = QUERY;
+
+			async function fetchGraphQL(query) {
+				const response = await fetch(URL, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ query }),
+				});
+
+				if (!response.ok) {
+					throw new Error(`GraphQL request failed with status ${response.status}`);
+				}
+
+				return response.json();
+			}
+
+			fetchGraphQL(graphqlQuery)
+				.then(data => {
+					console.log('GraphQL response:', data);
+					this.processLoadedApi(data, PARAM, TYPE, PARAMS);
+				})
+				.catch(error => console.error('Error fetching GraphQL:', error));
 		},
 
 		async queryBioindex(QUERY) {
@@ -1094,6 +1131,10 @@ export default Vue.component("research-section", {
 						dataWrapper.map(w => {
 							dataEntity = dataEntity[w];
 						})
+
+						if(!Array.isArray(dataEntity)) {
+							dataEntity = [dataEntity];
+						}
 
 						data = dataEntity;
 
