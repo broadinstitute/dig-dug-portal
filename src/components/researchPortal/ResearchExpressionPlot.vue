@@ -34,56 +34,12 @@
 				</div>
 			</div>
 		</div>
-
 		<div id="multi-chart">
 			<p>Loading...</p>
 		</div>
-		<b-table
-			v-if="tableData.length > 0 && !hideTable"
-			id="big-table"
-			hover
-			small
-			responsive="sm"
-			:items="tableData"
-			:fields="tableConfig['top rows']"
-			:per-page="perPage"
-			:current-page="currentPage"
-		>
-			<template #cell(show_datasets)="row">
-				<b-button
-					class="btn view-features-btn btn-secondary mr-2"
-					size="sm"
-					@click="row.toggleDetails"
-				>
-					{{ row.detailsShowing ? "Hide" : "Show" }} Datasets
-				</b-button>
-			</template>
-			<template #row-details="row">
-				<b-table
-					class="dataset-subtable"
-					hover
-					small
-					responsive="sm"
-					:items="row.item['Datasets']"
-					:fields="tableConfig['Datasets']"
-				>
-					<template #cell(dataset)="data">
-						<a
-							:href="`https://cmdga.org/annotations/${data.value}/`"
-							target="_blank"
-						>
-							{{ data.value }}
-						</a>
-					</template>
-				</b-table>
-			</template>
-		</b-table>
-		<b-pagination v-if="!hideTable"
-			v-model="currentPage"
-			class="pagination-sm justify-content-center"
-			:total-rows="rows"
-			:per-page="perPage"
-		></b-pagination>
+		<research-expression-table
+			:tableData="tableData">
+		</research-expression-table>
 	</div>
 </template>
 <script>
@@ -92,8 +48,9 @@ import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
+import ResearchExpressionTable from "@/components/researchPortal/ResearchExpressionTable.vue"
 export default Vue.component("ResearchExpressionPlot", {
-	props: ["rawData", "filter", "plotByField", "hideTable", "skipSort"],
+	props: ["rawData", "filter", "plotByField", "skipSort"],
 	data() {
 		return {
 			chart: null,
@@ -107,64 +64,6 @@ export default Vue.component("ResearchExpressionPlot", {
 			minSamples: 1,
 			collection: "all",
 			colorMap: {},
-			currentPage: 1,
-			perPage: 10,
-			tableConfig: {
-				"top rows": [
-					{ key: "tissue", sortable: true }, // Table is only visible when keying by tissue anyway
-					{ key: "Min TPM", sortable: true, formatter: "tpmFormat" },
-					{ key: "Q1 TPM", sortable: true, formatter: "tpmFormat" },
-					{
-						key: "Median TPM",
-						sortable: true,
-						formatter: "tpmFormat",
-					},
-					{ key: "Q3 TPM", sortable: true, formatter: "tpmFormat" },
-					{ key: "Max TPM", sortable: true, formatter: "tpmFormat" },
-					{ key: "Total samples", sortable: true },
-					{ key: "show_datasets", sortable: false },
-				],
-				features: ["Datasets"],
-				Datasets: [
-					{
-						key: "biosample",
-						formatter: (value) => Formatters.tissueFormatter(value),
-					},
-					{
-						key: "collection",
-						formatter: (value) => value.toString(", "),
-					},
-					{
-						key: "dataset",
-					},
-					{
-						key: "Min TPM",
-						formatter: (value) =>
-							Formatters.floatFormatter(`${value}`),
-					},
-					{
-						key: "Q1 TPM",
-						formatter: (value) =>
-							Formatters.floatFormatter(`${value}`),
-					},
-					{
-						key: "Median TPM",
-						formatter: (value) =>
-							Formatters.floatFormatter(`${value}`),
-					},
-					{
-						key: "Q3 TPM",
-						formatter: (value) =>
-							Formatters.floatFormatter(`${value}`),
-					},
-					{
-						key: "Max TPM",
-						formatter: (value) =>
-							Formatters.floatFormatter(`${value}`),
-					},
-					{ key: "nSamples", label: "Samples" },
-				],
-			},
 		};
 	},
 	computed: {
@@ -194,9 +93,6 @@ export default Vue.component("ResearchExpressionPlot", {
 			});
 			this.keyFieldList = keyFieldVals;
 			return dataRows;
-		},
-		rows() {
-			return this.tableData.length;
 		},
 	},
 	watch: {
