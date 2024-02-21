@@ -101,14 +101,9 @@ export default Vue.component("ResearchExpressionPlot", {
 	watch: {
 		rawData() {
 			this.processData();
-			this.displayResults();
-		},
-		logScale() {
-			this.displayResults();
 		},
 		minSamples() {
 			this.processData();
-			this.displayResults();
 		},
 	},
 	mounted() {
