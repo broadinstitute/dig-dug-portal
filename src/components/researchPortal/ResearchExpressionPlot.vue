@@ -38,7 +38,6 @@
 			:flatBoth="flatBoth"
 			:colorMap="colorMap"
 			:keyField="keyField"
-			:logScale="logScale"
 		>
 		</research-gene-expression-plot>
 		<research-expression-table
@@ -99,12 +98,16 @@ export default Vue.component("ResearchExpressionPlot", {
 		},
 	},
 	watch: {
+		// Watch log/linear and reprocess the data?
 		rawData() {
 			this.processData();
 		},
 		minSamples() {
 			this.processData();
 		},
+		logScale(){
+			this.processData();
+		}
 	},
 	mounted() {
 		this.processData();
@@ -175,8 +178,7 @@ export default Vue.component("ResearchExpressionPlot", {
 					let flatEntry = {};
 					flatEntry["tissue"] = item["tissue"];
 					flatEntry["gene"] = item["gene"];
-					flatEntry["linear"] = tpmVal;
-					flatEntry["log"] = Math.log10(tpmVal + 1);
+					flatEntry["tpmVal"] = this.logScale ? Math.log10(tpmVal + 1) : tpmVal;
 					flatEntry["noise"] = Math.random();
 					flatEntry["biosample"] = Formatters.tissueFormatter(
 						item.biosample

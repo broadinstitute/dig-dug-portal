@@ -10,7 +10,7 @@
   import colors from "@/utils/colors";
   import Formatters from "@/utils/formatters";
   export default Vue.component("ResearchGeneExpressionPlot", {
-    props: ["flatBoth", "keyField", "colorMap", "logScale"],
+    props: ["flatBoth", "keyField", "colorMap"],
     data(){
       return {
         chart: null,
@@ -46,8 +46,7 @@
         }
         let keyFieldList = this.getKeyFieldList(flatData, keyField);
         let dotBoxHalfWidth = 6;
-
-        let tpmField = this.$props.logScale ? "log" : "linear";
+        let tpmField = "tpmVal";
         let margin = {
             top: 10,
             right: 30,
