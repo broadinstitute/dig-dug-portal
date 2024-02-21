@@ -438,7 +438,17 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     break;
 
                 case "value in class":
-                    cellValue = "<span class='" + cellValue + "'>" + cellValue + "</span>"
+                    if (typeof cellValue != "object") {
+                        cellValue = "<span class='" + cellValue + "'>" + cellValue + "</span>"
+                    } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                        let cellValueString = "";
+                        cellValue.map(value => {
+                            cellValueString += "<span class='" + value + "'>" + value + "</span>";
+                        })
+
+                        cellValue = cellValueString;
+                    }
+
                     break;
 
                 case "render background percent":
