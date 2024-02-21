@@ -833,7 +833,6 @@ export default Vue.component("research-section", {
 						this.queryFile(parameter);
 						break;
 					case "graphQl":
-						//let testString = 'query targetDetails{\n\n          target(q: { sym: "$parameter" }) {\n\n\t\t\t\t\t\t\t\t\t\tname\n\n\t\t\t\t\t\t\t\t\t\ttdl\n\n\t\t\t\t\t\t\t\t\t\tfam\n\n\t\t\t\t\t\t\t\t\t\tsym\n\n\t\t\t\t\t\t\t\t\t\tdescription\n\n\t\t\t\t\t\t\t\t\t\tnovelty\n\n\t\t\t\t\t\t\t\t\t}\n\n\t\t\t\t\t\t\t}'.replace("$parameter", paramsString);
 
 						let testString = this.dataPoint["query string"].replace("$parameter", paramsString)
 
