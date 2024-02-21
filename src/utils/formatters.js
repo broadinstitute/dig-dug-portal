@@ -255,108 +255,150 @@ function maskFormatter(mask) {
     return { description: mask, sort: 7 };
 }
 
-function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
-    if (
-        CONFIG["column formatting"] != undefined &&
-        CONFIG["column formatting"][KEY] != undefined
-    ) {
-        let columnKeyObj = CONFIG["column formatting"][KEY];
-        let formatTypes = columnKeyObj["type"];
-        let linkToNewTab = columnKeyObj["new tab"]
-            ? columnKeyObj["new tab"]
-            : null;
-        let cellValue = VALUE;
+function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab) {
 
-        formatTypes.map((type) => {
-            let linkString, linkLabel, fieldValue, weight, weightClasses;
-            switch (type) {
-                case "js math":
-                    let calFunc = columnKeyObj["method"];
+    let cellValue = VALUE;
+    formatTypes.map((type) => {
+        let linkString, linkLabel, fieldValue, weight, weightClasses;
+        switch (type) {
+            case "js math":
+                let calFunc = columnKeyObj["method"];
 
-                    cellValue = Math[calFunc](VALUE);
-                    break;
-                case "scientific notation":
-                    cellValue = pValueFormatter(VALUE);
+                cellValue = Math[calFunc](VALUE);
+                break;
+            case "scientific notation":
+                cellValue = pValueFormatter(VALUE);
 
-                    cellValue = cellValue == "-" ? 0 : cellValue;
-                    break;
+                cellValue = cellValue == "-" ? 0 : cellValue;
+                break;
 
-                case "fixed 2":
-                    cellValue =
-                        VALUE == "-"
-                            ? 0
-                            : Math.round(Number.parseFloat(VALUE) * 10) / 10;
-                    break;
+            case "fixed 2":
+                cellValue =
+                    VALUE == "-"
+                        ? 0
+                        : Math.round(Number.parseFloat(VALUE) * 10) / 10;
+                break;
 
-                case "fixed 3":
-                    cellValue =
-                        VALUE == "-"
-                            ? 0
-                            : Math.round(Number.parseFloat(VALUE) * 100) / 100;
-                    break;
+            case "fixed 3":
+                cellValue =
+                    VALUE == "-"
+                        ? 0
+                        : Math.round(Number.parseFloat(VALUE) * 100) / 100;
+                break;
 
-                case "fixed 4":
-                    cellValue =
-                        VALUE == "-"
-                            ? 0
-                            : Math.round(Number.parseFloat(VALUE) * 1000) /
-                            1000;
-                    break;
+            case "fixed 4":
+                cellValue =
+                    VALUE == "-"
+                        ? 0
+                        : Math.round(Number.parseFloat(VALUE) * 1000) /
+                        1000;
+                break;
 
-                case "fixed 5":
-                    cellValue =
-                        VALUE == "-"
-                            ? 0
-                            : Math.round(Number.parseFloat(VALUE) * 10000) /
-                            10000;
-                    break;
+            case "fixed 5":
+                cellValue =
+                    VALUE == "-"
+                        ? 0
+                        : Math.round(Number.parseFloat(VALUE) * 10000) /
+                        10000;
+                break;
 
-                case "fixed 6":
-                    cellValue =
-                        VALUE == "-"
-                            ? 0
-                            : Math.round(Number.parseFloat(VALUE) * 100000) /
-                            100000;
-                    break;
+            case "fixed 6":
+                cellValue =
+                    VALUE == "-"
+                        ? 0
+                        : Math.round(Number.parseFloat(VALUE) * 100000) /
+                        100000;
+                break;
 
-                case "fixed 7":
-                    cellValue =
-                        VALUE == "-"
-                            ? 0
-                            : Math.round(Number.parseFloat(VALUE) * 1000000) /
-                            1000000;
-                    break;
+            case "fixed 7":
+                cellValue =
+                    VALUE == "-"
+                        ? 0
+                        : Math.round(Number.parseFloat(VALUE) * 1000000) /
+                        1000000;
+                break;
 
-                case "fixed 8":
-                    cellValue =
-                        VALUE == "-"
-                            ? 0
-                            : Math.round(Number.parseFloat(VALUE) * 10000000) /
-                            10000000;
-                    break;
+            case "fixed 8":
+                cellValue =
+                    VALUE == "-"
+                        ? 0
+                        : Math.round(Number.parseFloat(VALUE) * 10000000) /
+                        10000000;
+                break;
 
-                case "fixed 9":
-                    cellValue =
-                        VALUE == "-"
-                            ? 0
-                            : Math.round(Number.parseFloat(VALUE) * 100000000) /
-                            100000000;
-                    break;
+            case "fixed 9":
+                cellValue =
+                    VALUE == "-"
+                        ? 0
+                        : Math.round(Number.parseFloat(VALUE) * 100000000) /
+                        100000000;
+                break;
 
-                case "fixed 10":
-                    cellValue =
-                        VALUE == "-"
-                            ? 0
-                            : Math.round(
-                                Number.parseFloat(VALUE) * 1000000000
-                            ) / 1000000000;
-                    break;
+            case "fixed 10":
+                cellValue =
+                    VALUE == "-"
+                        ? 0
+                        : Math.round(
+                            Number.parseFloat(VALUE) * 1000000000
+                        ) / 1000000000;
+                break;
 
-                case "kp phenotype link":
-                    let phenotypeName = PMAP[cellValue]
-                        ? PMAP[cellValue].description
-                        : cellValue;
-                    linkString =
+            case "kp phenotype link":
+                let phenotypeName = PMAP[cellValue]
+                    ? PMAP[cellValue].description
+                    : cellValue;
+                linkString =
+                    "<a href='" + columnKeyObj["link to"] + cellValue;
+
+                linkString +=
+                    !!columnKeyObj["link type"] &&
+                        columnKeyObj["link type"] == "button"
+                        ? "' class='btn btn-sm btn-outline-secondary link-button"
+                        : "";
+
+                linkLabel = columnKeyObj["link label"]
+                    ? columnKeyObj["link label"]
+                    : phenotypeName;
+
+                linkString +=
+                    linkToNewTab == "true"
+                        ? "' target='_blank'>" + linkLabel + "</a>"
+                        : "'>" + linkLabel + "</a>";
+
+                cellValue = linkString;
+                break;
+
+            case "link":
+                if (!!cellValue && cellValue != "") {
+
+                    let linksArr = [];
+
+                    let cellVals = (typeof cellValue == "string") ? cellValue.split(",") :
+                        (typeof cellValue == "object" && !!cellValue.isArray()) ? cellValue : [cellValue];
+
+                    cellVals.map(v => {
+                        let link = "<a href='" + columnKeyObj["link to"] + v;
+
+                        link +=
+                            !!columnKeyObj["link type"] &&
+                                columnKeyObj["link type"] == "button"
+                                ? "' class='btn btn-sm btn-outline-secondary link-button"
+                                : "";
+
+                        linkLabel = columnKeyObj["link label"]
+                            ? columnKeyObj["link label"]
+                            : v;
+
+                        link +=
+                            linkToNewTab == "true"
+                                ? "' target='_blank'>" + linkLabel + "</a>"
+                                : "'>" + linkLabel + "</a>";
+                        linksArr.push(link);
+                    })
+
+                    linkString = linksArr.join();
+
+                    /*linkString =
                         "<a href='" + columnKeyObj["link to"] + cellValue;
 
                     linkString +=
@@ -367,183 +409,174 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
 
                     linkLabel = columnKeyObj["link label"]
                         ? columnKeyObj["link label"]
-                        : phenotypeName;
+                        : cellValue;
 
                     linkString +=
                         linkToNewTab == "true"
                             ? "' target='_blank'>" + linkLabel + "</a>"
-                            : "'>" + linkLabel + "</a>";
+                            : "'>" + linkLabel + "</a>";*/
+                }
 
-                    cellValue = linkString;
-                    break;
+                cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
+                break;
 
-                case "link":
-                    if (!!cellValue && cellValue != "") {
+            case "as link":
+                if (typeof cellValue != "object") {
+                    cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
+                } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                    let cellValueString = "";
+                    cellValue.map(value => {
+                        cellValueString += "<a href='" + value + "'>" + value + "</a>";
+                    })
 
-                        let linksArr = [];
+                    cellValue = cellValueString;
+                }
 
-                        let cellVals = (typeof cellValue == "string") ? cellValue.split(",") :
-                            (typeof cellValue == "object" && !!cellValue.isArray()) ? cellValue : [cellValue];
+                break;
 
-                        cellVals.map(v => {
-                            let link = "<a href='" + columnKeyObj["link to"] + v;
+            case "image":
+                if (typeof cellValue != "object") {
+                    cellValue = "<img src='" + cellValue + "' />"
+                } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                    let cellValueString = "<div class='imgs_wrapper'>";
+                    cellValue.map(value => {
+                        cellValueString += "<img src='" + value + "' />";
+                    })
+                    cellValueString += "</div>"
 
-                            link +=
-                                !!columnKeyObj["link type"] &&
-                                    columnKeyObj["link type"] == "button"
-                                    ? "' class='btn btn-sm btn-outline-secondary link-button"
-                                    : "";
+                    cellValue = cellValueString;
+                }
 
-                            linkLabel = columnKeyObj["link label"]
-                                ? columnKeyObj["link label"]
-                                : v;
+                break;
 
-                            link +=
-                                linkToNewTab == "true"
-                                    ? "' target='_blank'>" + linkLabel + "</a>"
-                                    : "'>" + linkLabel + "</a>";
-                            linksArr.push(link);
-                        })
+            case "value in class":
+                if (typeof cellValue != "object") {
+                    cellValue = "<span class='" + cellValue + "'>" + cellValue + "</span>"
+                } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                    let cellValueString = "";
+                    cellValue.map(value => {
+                        cellValueString += "<span class='" + value + "'>" + value + "</span>";
+                    })
 
-                        linkString = linksArr.join();
+                    cellValue = cellValueString;
+                }
 
-                        /*linkString =
-                            "<a href='" + columnKeyObj["link to"] + cellValue;
+                break;
 
-                        linkString +=
-                            !!columnKeyObj["link type"] &&
-                                columnKeyObj["link type"] == "button"
-                                ? "' class='btn btn-sm btn-outline-secondary link-button"
-                                : "";
+            case "render background percent":
+                fieldValue =
+                    typeof VALUE != "number"
+                        ? columnKeyObj["percent if empty"]
+                        : VALUE;
 
-                        linkLabel = columnKeyObj["link label"]
-                            ? columnKeyObj["link label"]
-                            : cellValue;
+                weight = Math.floor(
+                    ((Number(fieldValue) - DATA_SCORES[KEY].low) /
+                        (DATA_SCORES[KEY].high - DATA_SCORES[KEY].low)) *
+                    100
+                );
 
-                        linkString +=
-                            linkToNewTab == "true"
-                                ? "' target='_blank'>" + linkLabel + "</a>"
-                                : "'>" + linkLabel + "</a>";*/
-                    }
+                weightClasses = "cell-weight-" + weight + " ";
 
-                    cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
-                    break;
+                weightClasses +=
+                    VALUE < 0 ? "weight-negative" : "weight-positive";
 
-                case "as link":
-                    if (typeof cellValue != "object") {
-                        cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
-                    } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
-                        let cellValueString = "";
-                        cellValue.map(value => {
-                            cellValueString += "<a href='" + value + "'>" + value + "</a>";
-                        })
+                cellValue =
+                    "<span class='" +
+                    weightClasses +
+                    "'>" +
+                    cellValue +
+                    "</span>";
+                break;
 
-                        cellValue = cellValueString;
-                    }
+            case "render background percent negative":
+                fieldValue =
+                    typeof VALUE != "number"
+                        ? columnKeyObj["percent if empty"]
+                        : VALUE;
 
-                    break;
-
-                case "image":
-                    if (typeof cellValue != "object") {
-                        cellValue = "<img src='" + cellValue + "' />"
-                    } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
-                        let cellValueString = "<div class='imgs_wrapper'>";
-                        cellValue.map(value => {
-                            cellValueString += "<img src='" + value + "' />";
-                        })
-                        cellValueString += "</div>"
-
-                        cellValue = cellValueString;
-                    }
-
-                    break;
-
-                case "value in class":
-                    if (typeof cellValue != "object") {
-                        cellValue = "<span class='" + cellValue + "'>" + cellValue + "</span>"
-                    } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
-                        let cellValueString = "";
-                        cellValue.map(value => {
-                            cellValueString += "<span class='" + value + "'>" + value + "</span>";
-                        })
-
-                        cellValue = cellValueString;
-                    }
-
-                    break;
-
-                case "render background percent":
-                    fieldValue =
-                        typeof VALUE != "number"
-                            ? columnKeyObj["percent if empty"]
-                            : VALUE;
-
-                    weight = Math.floor(
+                weight =
+                    100 -
+                    Math.floor(
                         ((Number(fieldValue) - DATA_SCORES[KEY].low) /
-                            (DATA_SCORES[KEY].high - DATA_SCORES[KEY].low)) *
+                            (DATA_SCORES[KEY].high -
+                                DATA_SCORES[KEY].low)) *
                         100
                     );
 
-                    weightClasses = "cell-weight-" + weight + " ";
+                weightClasses = "cell-weight-" + weight + " ";
 
-                    weightClasses +=
-                        VALUE < 0 ? "weight-negative" : "weight-positive";
+                weightClasses +=
+                    VALUE < 0 ? "weight-negative" : "weight-positive";
 
-                    cellValue =
-                        "<span class='" +
-                        weightClasses +
-                        "'>" +
-                        cellValue +
-                        "</span>";
-                    break;
+                cellValue =
+                    "<span class='" +
+                    weightClasses +
+                    "'>" +
+                    cellValue +
+                    "</span>";
+                break;
 
-                case "render background percent negative":
-                    fieldValue =
-                        typeof VALUE != "number"
-                            ? columnKeyObj["percent if empty"]
-                            : VALUE;
+            case "direction triangle":
+                cellValue =
+                    cellValue > 0
+                        ? '<span class="direction-positive">&#x25B2;</span>' +
+                        cellValue
+                        : '<span class="direction-negative">&#x25BC;</span>' +
+                        cellValue;
+                break;
 
-                    weight =
-                        100 -
-                        Math.floor(
-                            ((Number(fieldValue) - DATA_SCORES[KEY].low) /
-                                (DATA_SCORES[KEY].high -
-                                    DATA_SCORES[KEY].low)) *
-                            100
-                        );
+            case "direction triangle opposite":
+                cellValue =
+                    cellValue > 0
+                        ? '<span class="direction-positive">&#x25BC;</span>' +
+                        cellValue
+                        : '<span class="direction-negative">&#x25B2;</span>' +
+                        cellValue;
+                break;
+        }
+    });
+    return cellValue
+}
 
-                    weightClasses = "cell-weight-" + weight + " ";
+function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
+    if (
+        CONFIG["column formatting"] != undefined &&
+        CONFIG["column formatting"][KEY] != undefined
+    ) {
+        let columnKeyObj = CONFIG["column formatting"][KEY];
+        let formatTypes = columnKeyObj["type"];
+        let linkToNewTab = columnKeyObj["new tab"]
+            ? columnKeyObj["new tab"]
+            : null;
+        let cellValue;
 
-                    weightClasses +=
-                        VALUE < 0 ? "weight-negative" : "weight-positive";
+        if (typeof VALUE != "object") {
+            cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab);
+        } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
+            if (formatTypes.includes("object to mini-card")) {
+                let cellValueString = "";
+                VALUE.map(value => {
+                    cellValueString += "<div class='mini-card'> test";
+                    let valueKeys = Object.keys(value);
+                    valueKeys.map(vk => {
+                        let kValue = value[vk];
+                        cellValueString += formatCellValues(kValue, columnKeyObj, formatTypes, linkToNewTab);
+                    })
+                    cellValueString += "</div>";
+                })
+                cellValue = cellValueString;
+            } else {
+                let cellValueString = (!!formatTypes.includes("image")) ? "<div class='imgs_wrapper'>" : "";
+                VALUE.map(value => {
+                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab);
+                })
 
-                    cellValue =
-                        "<span class='" +
-                        weightClasses +
-                        "'>" +
-                        cellValue +
-                        "</span>";
-                    break;
+                cellValueString += (!!formatTypes.includes("image")) ? "</div>" : "";
 
-                case "direction triangle":
-                    cellValue =
-                        cellValue > 0
-                            ? '<span class="direction-positive">&#x25B2;</span>' +
-                            cellValue
-                            : '<span class="direction-negative">&#x25BC;</span>' +
-                            cellValue;
-                    break;
-
-                case "direction triangle opposite":
-                    cellValue =
-                        cellValue > 0
-                            ? '<span class="direction-positive">&#x25BC;</span>' +
-                            cellValue
-                            : '<span class="direction-negative">&#x25B2;</span>' +
-                            cellValue;
-                    break;
+                cellValue = cellValueString;
             }
-        });
+
+        }
 
         return cellValue;
     } else {
