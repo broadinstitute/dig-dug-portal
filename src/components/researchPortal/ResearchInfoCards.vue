@@ -17,65 +17,86 @@
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
 			></span>
 		</div>
+
 		<div class="thumbnails-wrapper" v-if="!!openCard" :style="'width:'+thumbnailWidth+'px; margin-right: 15px;'">
 			<template  v-for="(value, index) in rawData">
 
-				<div class="info-card">
-					<div v-for="(rowKey, rowIndex) in tableFormat['top rows']" 
-						:key="index + '-' + rowIndex" 
-						 class="" 
-						:class="(!!tableFormat['rows as info cards']['minimum view']
-						&& !!tableFormat['rows as info cards']['minimum view'].includes(rowKey)) ?
-						'' : 'hidden'">
-						<div class="" 
-							 v-html="formatValue(value[rowKey], rowKey)" 
-							:class="(!!tableFormat['rows as info cards']['minimum view'] 
-							&& !!tableFormat['rows as info cards']['minimum view'].includes(rowKey)) ?
-							'row-value ' + rowKey : 'row-value hidden ' + rowKey"></div>
-					</div>
-					<div v-for="(featureKey, featureIndex) in tableFormat['features']" 
-						 :key="index + '-feature-' + featureIndex">
-						<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey, value[tableFormat['rows as info cards']['key']])">{{ featureKey }}</a>
-					</div>
+				<div :class="['info-card', openCard && openCard == value[tableFormat['rows as info cards']['key']] ? 'selected' : '']"
+					@click="showHideFeature(sectionId + index + featureKey, value[tableFormat['rows as info cards']['key']])">
+
+						<div :class="['row-value', rowKey]" 
+							 v-for="(rowKey, rowIndex) in tableFormat['rows as info cards']['minimum view']" 
+							:key="index + '-' + rowIndex"
+							v-html="formatValue(value[rowKey], rowKey)">
+						</div>
+
 				</div>
 
 			</template>
 		</div>
-		<div v-if="!openCard" 
-			 class="details-wrapper">
+
+		<div class="details-wrapper">
 			
 			 <template  v-for="(value, index) in rawData">
-				<div class="info-card">
+				<div :class="['info-card', !openCard || openCard == value[tableFormat['rows as info cards']['key']] ? '' : 'hidden']">
+
 					<div class="info-card-header">
-						<div v-for="(rowKey, rowIndex) in tableFormat['logo row']" :key="index + '-' + rowIndex"
-								:class="'row-value ' + rowKey" v-html="formatValue(value[rowKey], rowKey)"></div>
-						<div class="inf-card-header-extra">
-							<div v-for="(rowKey, rowIndex) in tableFormat['title rows']" :key="index + '-' + rowIndex"
-								:class="rowKey" v-html="formatValue(value[rowKey], rowKey)"></div>
+
+						<div v-for="(rowKey, rowIndex) in tableFormat['logo row']" 
+							:key="index + '-' + rowIndex"
+							:class="'row-value ' + rowKey" 
+							v-html="formatValue(value[rowKey], rowKey)">
 						</div>
-					</div>
-					<div v-for="(rowKey, rowIndex) in tableFormat['top rows']" :key="index + '-' + rowIndex" class="">
-						<div :class="'row-key ' + rowKey">
-							{{ rowKey }}
-						</div>
-						<div :class="'row-value ' + rowKey" v-html="formatValue(value[rowKey], rowKey)"></div>
-					</div>
-					<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="index + '-feature-' + featureIndex">
-						<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey, value[tableFormat['rows as info cards']['key']])">{{ featureKey }}</a>
-					</div>
-					<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex" 
-						:id="sectionId + index + featureKey" class="container-fluid info-card-feature hidden" :class="featureKey">
-						<div v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]" :key="fRowIndex" class="">
-							<div class="feature" :class="'row-key ' + fRowKey">
-								{{ fRowKey }}
+
+						<div class="info-card-header-extra">
+							<div v-for="(rowKey, rowIndex) in tableFormat['title rows']" 
+								:key="index + '-' + rowIndex"
+								:class="rowKey" v-html="formatValue(value[rowKey], rowKey)">
 							</div>
-							<div class="feature" v-html="formatValue(value[fRowKey], fRowKey)" :class="'row-value ' + fRowKey"></div>
 						</div>
+
+					</div>
+
+					<div v-for="(rowKey, rowIndex) in tableFormat['top rows']" 
+						:key="index + '-' + rowIndex" 
+						class="info-card-row">
+
+						<div :class="'row-key ' + rowKey">{{ rowKey }}</div>
+						<div :class="'row-value ' + rowKey" v-html="formatValue(value[rowKey], rowKey)"></div>
+
+					</div>
+
+					<div v-for="(featureKey, featureIndex) in tableFormat['features']" 
+						:key="index + '-feature-' + featureIndex" 
+						:class="['info-card-more', openCard && openCard == value[tableFormat['rows as info cards']['key']] ? 'hidden' : '']">
+
+						<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey, value[tableFormat['rows as info cards']['key']])">
+							&plus; More
+						</a>
+					
+					</div>
+
+					<div v-for="(featureKey, featureIndex) in tableFormat['features']" 
+						:key="featureIndex" 
+						:id="sectionId + index + featureKey" 
+						class="" 
+						:class="[featureKey, openCard && openCard == value[tableFormat['rows as info cards']['key']] ? '' : 'hidden']">
+
+						<div v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]" 
+							:key="fRowIndex" 
+							class="info-card-row">
+
+							<div class="feature" :class="'row-key ' + fRowKey">{{ fRowKey }}</div>
+							<div class="feature" v-html="formatValue(value[fRowKey], fRowKey)" :class="'row-value ' + fRowKey"></div>
+						
+						</div>
+
 					</div>
 				</div>
 			</template>
 			
 		</div>
+		<!--
 		<div class="details-wrapper" 
 			:style="(!!openCard)?'width:calc(100% - ' + (thumbnailWidth + 20) + 'px)':''">
 			
@@ -100,6 +121,7 @@
 			</template>
 
 		</div>
+		-->
 		<!--<b-container
 			v-if="
 				!!dataset && !!perPageNumber && perPageNumber != null && perPageNumber != 0
