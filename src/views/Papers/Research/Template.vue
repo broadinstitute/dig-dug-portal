@@ -705,9 +705,9 @@
 								</div>
 							</template>
 							
-							<template v-for="config, index in $parent.sectionConfigs.sections">
+							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">
 								<research-section
-									v-if="$parent.isInTabGroups(config['section id']) == false && !!$parent.isInEntity(config['section id']) && !config['is summary section']"
+									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
 									:sectionConfig="config"
@@ -729,7 +729,7 @@
 									@on-zoom="$parent.setZoom">
 								</research-section>	
 								<research-sections-summary
-									v-if="$parent.isInTabGroups(config['section id']) == false && !!$parent.isInEntity(config['section id']) && !!config['is summary section']"
+									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
 									:key="index"

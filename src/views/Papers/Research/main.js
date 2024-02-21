@@ -1253,6 +1253,28 @@ new Vue({
 
             return sectionInEntity;
         },
+        getSections(SECTIONS) {
+            let entity = keyParams['entity'];
+            let pageEntity = (this.sectionConfigs['entity']) ? this.sectionConfigs['entity'][entity] : null;
+
+            let sections = [];
+
+            if (!!entity && !!pageEntity) {
+                pageEntity.map(e => {
+                    SECTIONS.map(s => {
+                        if (s["section id"] == e) {
+                            sections.push(s)
+                        }
+                    })
+                })
+            } else {
+                sections = SECTIONS;
+            }
+
+            console.log("sections", sections)
+
+            return sections;
+        },
         saveCapturedData(TYPE, TITLE) {
             let data = this.$store.state.capturedData.filter(d => d.title == TITLE);
 

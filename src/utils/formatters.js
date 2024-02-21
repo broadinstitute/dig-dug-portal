@@ -430,11 +430,32 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     break;
 
                 case "as link":
-                    cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
+                    if (typeof cellValue != "object") {
+                        cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
+                    } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                        let cellValueString = "";
+                        cellValue.map(value => {
+                            cellValueString += "<a href='" + value + "'>" + value + "</a>";
+                        })
+
+                        cellValue = cellValueString;
+                    }
+
                     break;
 
                 case "image":
-                    cellValue = "<img src='" + cellValue + "' />"
+                    if (typeof cellValue != "object") {
+                        cellValue = "<img src='" + cellValue + "' />"
+                    } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                        let cellValueString = "<div class='imgs_wrapper'>";
+                        cellValue.map(value => {
+                            cellValueString += "<img src='" + value + "' />";
+                        })
+                        cellValueString += "</div>"
+
+                        cellValue = cellValueString;
+                    }
+
                     break;
 
                 case "value in class":
