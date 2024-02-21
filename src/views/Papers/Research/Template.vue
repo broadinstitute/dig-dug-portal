@@ -119,14 +119,13 @@
 			:phenotypesInUse="$parent.phenotypesInSession"
 			>
 		</research-front-page>
-		
 
 		<div
 			class="container-fluid mdkp-body"
 			:class="!!$parent.sectionConfigs['is multi section']?'flex-body':''"
-			v-if="$parent.researchPage !== null && !$parent.sectionConfigs['is front page']"
+			v-if="$parent.researchPage !== null"
 		>
-			<div class="card mdkp-card dataset-page-header">
+			<div class="card mdkp-card dataset-page-header" v-if="!$parent.sectionConfigs['is front page']">
 				<div class="row card-body">
 					<div class="col-md-8">
 						<h3 v-html="$parent.pageTitle"></h3>
@@ -185,7 +184,7 @@
 				</div>
 			</div>
 
-			<div class="card mdkp-card" v-if="$parent.pageDescription != null">
+			<div class="card mdkp-card" v-if="$parent.pageDescription != null && !$parent.sectionConfigs['is front page']">
 				<div class="row card-body">
 					<div class="col-md-12">
 						<research-page-description
@@ -234,7 +233,7 @@
 			</div>
 			<!-- tabs content -->
 
-			<div class="kp-tabs-contents" id="rp_tabs_contents">
+			<div :class="(!$parent.sectionConfigs['is front page'])?'kp-tabs-contents':''" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
 					<div class="row">
 						<template
