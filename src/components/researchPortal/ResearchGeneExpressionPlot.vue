@@ -15,6 +15,7 @@
       return {
         chart: null,
         chartWidth: null,
+        keyFieldList: []
       };
     },
     mounted(){
@@ -44,6 +45,7 @@
         if (flatData.length === 0){
           return;
         }
+        this.populateKeyFieldList(flatData, keyField);
         let dotBoxHalfWidth = 6;
 
         let tpmField = this.$props.logScale ? "log" : "linear";
@@ -133,7 +135,7 @@
         let violinIndex = 0;
         let mouseover = (d) => {
           svg.selectAll(".violin").style("opacity", 1);
-          let violinNumber = keyFieldList.indexOf(d.key);
+          let violinNumber = this.keyFieldList.indexOf(d.key);
           svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
           svg.selectAll("circle").remove();
           svg.selectAll("indPoints")
@@ -360,6 +362,16 @@
         let margin = longestLabel < 10 ? 65 : (65 * longestLabel) / 10;
         return margin;
       },
+      populateKeyFieldList(data, field){
+        let duplicates = data.map(entry => entry[field]);
+        let uniques = [];
+        duplicates.forEach(dupe => {
+          if(!uniques.includes(dupe)){
+            uniques.push(dupe);
+          }
+        });
+        this.keyFieldList = uniques;
+      }
     },
   });
 </script>
