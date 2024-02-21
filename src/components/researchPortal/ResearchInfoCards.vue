@@ -18,7 +18,7 @@
 			></span>
 		</div>
 
-		<div class="thumbnails-wrapper" v-if="!!openCard" :style="'width:'+thumbnailWidth+'px; margin-right: 15px;'">
+		<div :class="['thumbnails-wrapper', openCard ? '' : 'hidden']" :style="'width:'+thumbnailWidth+'px; margin-right: 15px;'">
 			<template  v-for="(value, index) in rawData">
 
 				<div :class="['info-card', openCard && openCard == value[tableFormat['rows as info cards']['key']] ? 'selected' : '']"
