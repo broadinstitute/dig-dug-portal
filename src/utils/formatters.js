@@ -421,23 +421,23 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab) {
                 break;
 
             case "as link":
-                if (typeof cellValue != "object") {
-                    cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
-                } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                //if (typeof cellValue != "object") {
+                cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
+                /*} else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
                     let cellValueString = "";
                     cellValue.map(value => {
                         cellValueString += "<a href='" + value + "'>" + value + "</a>";
                     })
 
                     cellValue = cellValueString;
-                }
+                }*/
 
                 break;
 
             case "image":
-                if (typeof cellValue != "object") {
-                    cellValue = "<img src='" + cellValue + "' />"
-                } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                //if (typeof cellValue != "object") {
+                cellValue = '<img width="' + columnKeyObj["width"] + '" height="' + columnKeyObj["height"] + '" src="' + cellValue + '" />'
+                /*} else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
                     let cellValueString = "<div class='imgs_wrapper'>";
                     cellValue.map(value => {
                         cellValueString += "<img src='" + value + "' />";
@@ -445,12 +445,12 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab) {
                     cellValueString += "</div>"
 
                     cellValue = cellValueString;
-                }
+                }*/
 
                 break;
 
             case "video":
-                cellValue = '<video width="320" height="240" controls><source src="' + cellValue + '" type="video/mp4" >\
+                cellValue = '<video width="' + columnKeyObj["width"] + '" height="' + columnKeyObj["height"] + '" controls><source src="' + cellValue + '" type="video/mp4" >\
                             Your browser does not support the video tag.</video>'
                 break;
 
@@ -569,9 +569,9 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         let kValue = aValue[vk];
                         let kVColumnKeyObj = CONFIG["column formatting"][vk]
                         if (!!kVColumnKeyObj) {
-                            cellValueString += formatCellValues(kValue, kVColumnKeyObj, kVColumnKeyObj["type"], linkToNewTab);
+                            cellValueString += "<div class='row-key'>" + vk + "</div>" + formatCellValues(kValue, kVColumnKeyObj, kVColumnKeyObj["type"], linkToNewTab);
                         } else {
-                            cellValueString += "<span>" + kValue + "</span>"
+                            cellValueString += "<div class='row-key'>" + vk + "</div><div class='row-value'>" + kValue + "</div>"
                         }
 
                     })
