@@ -14,7 +14,7 @@
 					v-for="filter in this.filters"
 					:key="filter.field"
 				>
-					<div class="label" v-html="filter.label"></div>
+					<div class="label" v-if="filter.type != 'checkbox'" v-html="filter.label"></div>
 					<template v-if="filter.type == 'search'">
 						<input
 							v-if="
@@ -171,7 +171,7 @@
 					</template>
 					<template v-else-if="filter.type == 'checkbox'">
 						<div class="chkbox-combo">
-							<div class="title btn btn-sm btn-light form-control chk-box-btn">View options &#9660;</div>
+							<div class="title btn btn-sm btn-light form-control chk-box-btn">{{ filter.label }} <span>&#9660;</span></div>
 							<div class="options">
 								<span>
 									<input type="checkbox" class="chkbox"
@@ -185,7 +185,7 @@
 											)
 											"
 										checked
-									/><label>Check / Uncheck all</label>
+									/><label :for="'filter_' + sectionId + getColumnId(filter.field) + 'all'">Check / Uncheck all</label>
 								</span>
 								<span v-for="value, vIndex in buildOptions(filter.field,'chkbox')"
 									:key="value">
@@ -201,7 +201,7 @@
 											)
 											"
 										checked
-									/><label :for="value">{{ value }}</label>
+									/><label :for="'filter_' + sectionId + getColumnId(filter.field) + vIndex">{{ value }}</label>
 								</span>
 									
 								</div>
