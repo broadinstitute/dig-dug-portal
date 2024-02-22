@@ -140,33 +140,7 @@ export default Vue.component("ResearchExpressionFilter", {
 				}
 			}
 			this.$emit("plotDataReady", flatBoth);
-			this.$emit("tableDataReady", this.tableData(processedData));
-		},
-		tableData(processedData) {
-			let keyFieldVals = [];
-			processedData.forEach(item => {
-				if (!keyFieldVals.includes(item[this.keyField])){
-					keyFieldVals.push(item[this.keyField]);
-				}
-			});
-			let dataRows = [];
-			keyFieldVals.forEach(item => {
-				let filteredDatasets = processedData.filter(entry => entry[this.keyField] === item);
-				let tpms = filteredDatasets.reduce((list, entry) =>
-					list.concat(entry.tpmForAllSamples), []).sort(d3.ascending);
-				let singleRow = {
-					"Min TPM": tpms[0],
-					"Q1 TPM": d3.quantile(tpms, 0.25),
-					"Median TPM": d3.quantile(tpms, 0.5),
-					"Q3 TPM": d3.quantile(tpms, 0.75),
-					"Max TPM": tpms[tpms.length - 1],
-					"Total samples": tpms.length,
-					"Datasets": filteredDatasets,
-				}
-				singleRow[this.keyField] = item; // use keyField property as object key
-				dataRows.push(singleRow);
-			});
-			return dataRows;
+			this.$emit("tableDataReady", processedData);
 		},
 	},
 });

@@ -50,9 +50,10 @@
 </template>
 <script>
   import Vue from "vue";
+  import * as d3 from "d3";
   import Formatters from "@/utils/formatters";
   export default Vue.component("ResearchExpressionTable", {
-	  props: ["tableData"],
+	  props: ["filteredData"],
     data() {
       return {
         tableConfig: {
@@ -112,11 +113,48 @@
           ],
         },
         currentPage: 1,
-        perPage: 10
+        perPage: 10,
+        tableData: [],
+        keyField: "tissue"
       };
     },
     mounted(){
       console.log("THIS IS THE RESEARCH EXPRESSION TABLE.");
+      this.getTableData();
+    },
+    watch: {
+      filteredData(){
+        this.getTableData();
+      }
+    },
+    methods: {
+      getTableData() {
+        let processedData = this.$props.filteredData;
+        let keyFieldVals = [];
+        processedData.forEach(item => {
+          if (!keyFieldVals.includes(item[this.keyField])){
+            keyFieldVals.push(item[this.keyField]);
+          }
+        });
+        let dataRows = [];
+        keyFieldVals.forEach(item => {
+          let filteredDatasets = processedData.filter(entry => entry[this.keyField] === item);
+          let tpms = filteredDatasets.reduce((list, entry) =>
+            list.concat(entry.tpmForAllSamples), []).sort(d3.ascending);
+          let singleRow = {
+            "Min TPM": tpms[0],
+            "Q1 TPM": d3.quantile(tpms, 0.25),
+            "Median TPM": d3.quantile(tpms, 0.5),
+            "Q3 TPM": d3.quantile(tpms, 0.75),
+            "Max TPM": tpms[tpms.length - 1],
+            "Total samples": tpms.length,
+            "Datasets": filteredDatasets,
+          }
+          singleRow[this.keyField] = item; // use keyField property as object key
+          dataRows.push(singleRow);
+        });
+        this.tableData = dataRows;
+      },
     }
   });
 </script>

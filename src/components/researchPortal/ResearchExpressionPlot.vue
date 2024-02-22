@@ -10,7 +10,7 @@
       :plotData="plotData">
     </research-gene-expression-plot>
     <research-expression-table
-      :tableData="tableData">
+      :filteredData="tableData">
     </research-expression-table>
   </div>
 </template>
