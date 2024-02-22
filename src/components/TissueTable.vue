@@ -1,17 +1,20 @@
 <template>
     <div>
-        <div id="plot">
-            <research-expression-plot
-                v-if="rawData.length > 0"
+        <div id="plot" v-if="rawData.length > 0">
+            <research-expression-filter
                 :raw-data="rawData"
                 :plotByField="'gene'"
-                :hideTable="true"
                 :skipSort="true"
-                ref="plotRef">
-            </research-expression-plot>
-            <div v-else>
-                Loading expression plot...
-            </div>
+                ref="plotRef"
+                @dataFiltered="(filteredData) => getPlotData(filteredData)">
+            </research-expression-filter>
+            <research-gene-expression-plot
+                :flatBoth="plotData"
+                keyField="gene">
+            </research-gene-expression-plot>
+        </div>
+        <div v-else>
+            Loading expression plot...
         </div>
         <div id="tissues">
             <b-table
@@ -124,11 +127,11 @@
         </div>
     </div>
 </template>
-
 <script>
 import Vue from "vue";
-import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
 import { query } from "@/utils/bioIndexUtils";
+import ResearchExpressionFilter from "@/components/researchPortal/ResearchExpressionFilter.vue";
+import ResearchGeneExpressionPlot from "./researchPortal/ResearchGeneExpressionPlot.vue";
 export default Vue.component("TissueTable", {
     props: {
         tissueData: {
@@ -246,6 +249,7 @@ export default Vue.component("TissueTable", {
                 },
             ],
             tableData: [],
+            plotData: []
         };
     },
     mounted() {
@@ -320,6 +324,10 @@ export default Vue.component("TissueTable", {
         async populateEvidence(genes){
             await Promise.all(genes.map(gene => this.showEvidence(gene)));
         },
+        getPlotData(plotData){
+            console.log("We should have new data.");
+            this.plotData = plotData;
+        }
     },
     watch: {
         currentPage: function(){

@@ -10,7 +10,7 @@
   import colors from "@/utils/colors";
   import Formatters from "@/utils/formatters";
   export default Vue.component("ResearchGeneExpressionPlot", {
-    props: ["flatBoth", "keyField", "colorMap"],
+    props: ["flatBoth", "keyField"],
     data(){
       return {
         chart: null,
@@ -29,7 +29,7 @@
       colorMap(){
         this.displayResults();
       },
-      flatData(){
+      flatBoth(){
         this.displayResults();
       },
       keyField(){
