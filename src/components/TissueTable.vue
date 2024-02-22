@@ -2,7 +2,7 @@
     <div>
         <div id="plot" v-if="rawData.length > 0">
             <research-expression-filter
-                :raw-data="rawData"
+                :rawData="rawData"
                 :plotByField="'gene'"
                 :skipSort="true"
                 ref="plotRef"
@@ -130,7 +130,7 @@
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import ResearchExpressionFilter from "@/components/researchPortal/ResearchExpressionFilter.vue";
-import ResearchGeneExpressionPlot from "./researchPortal/ResearchGeneExpressionPlot.vue";
+import ResearchGeneExpressionPlot from "@/components/researchPortal/ResearchGeneExpressionPlot.vue";
 export default Vue.component("TissueTable", {
     props: {
         tissueData: {
