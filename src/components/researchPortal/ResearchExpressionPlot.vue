@@ -3,14 +3,13 @@
     <research-expression-filter
       :rawData="rawData"
       plotByField="tissue"
-      @plotDataReady="(data) => getPlotData(data)"
-      @tableDataReady="(data) => getTableData(data)">
+      @dataReady="(data) => getFilteredData(data)">
     </research-expression-filter>
     <research-gene-expression-plot
-      :plotData="plotData">
+      :plotData="filteredData">
     </research-gene-expression-plot>
     <research-expression-table
-      :filteredData="tableData">
+      :filteredData="filteredData">
     </research-expression-table>
   </div>
 </template>
@@ -23,17 +22,13 @@
     props: ["rawData"],
     data() {
       return {
-        plotData: [],
-        tableData: []
+        filteredData: []
       };
     },
     methods: {
-      getPlotData(data){
-        this.plotData = data;
+      getFilteredData(data){
+        this.filteredData = data;
       },
-      getTableData(data){
-        this.tableData = data;
-      }
     }
   });
 </script>

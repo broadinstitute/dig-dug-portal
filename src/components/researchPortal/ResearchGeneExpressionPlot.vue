@@ -7,6 +7,7 @@
   import Vue from "vue";
   import * as d3 from "d3";
   import colors from "@/utils/colors";
+  import Formatters from "@/utils/formatters";
   export default Vue.component("ResearchGeneExpressionPlot", {
     props: ["plotData"],
     data(){
@@ -30,7 +31,7 @@
     },
     methods: {
       displayResults() {
-        let flatData = this.$props.plotData;
+        let flatData = this.flatten(this.$props.plotData);
         if (flatData.length === 0){ return; }
         let keyFieldList = this.getKeyFieldList(flatData);
         let colorMap = this.mapColors(keyFieldList);
@@ -366,6 +367,23 @@
         });
         return colorMap;
       },
+      flatten(processedData){
+        let flatBoth = [];
+        for (let item of processedData) {
+          for (let tpmVal of item.tpmsToUse) {
+            let flatEntry = {};
+            flatEntry["keyField"] = item.keyField;
+            flatEntry["tpmVal"] = tpmVal;
+            flatEntry["noise"] = Math.random();
+            flatEntry["biosample"] = Formatters.tissueFormatter(
+              item.biosample
+            );
+            flatEntry["dataset"] = item.dataset;
+            flatBoth.push(flatEntry);
+          }
+        }
+        return flatBoth;
+      }
     },
   });
 </script>

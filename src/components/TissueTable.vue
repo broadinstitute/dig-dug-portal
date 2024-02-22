@@ -6,7 +6,7 @@
                 :plotByField="'gene'"
                 :skipSort="true"
                 ref="plotRef"
-                @plotDataReady="(filteredData) => getPlotData(filteredData)">
+                @dataReady="(filteredData) => getPlotData(filteredData)">
             </research-expression-filter>
             <research-gene-expression-plot
                 :plotData="plotData">

@@ -122,25 +122,13 @@ export default Vue.component("ResearchExpressionFilter", {
 					return 0;
 				});
 			}
-			let flatBoth = [];
-
-			for (let item of processedData) {
-				for (let tpmVal of item.tpmForAllSamples) {
-					let flatEntry = {};
-					flatEntry["tissue"] = item["tissue"];
-					flatEntry["gene"] = item["gene"];
-					flatEntry["keyField"] = item[this.keyField];
-					flatEntry["tpmVal"] = this.logScale ? Math.log10(tpmVal + 1) : tpmVal;
-					flatEntry["noise"] = Math.random();
-					flatEntry["biosample"] = Formatters.tissueFormatter(
-						item.biosample
-					);
-					flatEntry["dataset"] = item.dataset;
-					flatBoth.push(flatEntry);
-				}
+			for (let item of processedData){
+				item.keyField = item[this.keyField];
+				item.tpmsToUse = this.logScale ? 
+					item.tpmForAllSamples.map(tpm => Math.log10(tpm + 1)) : 
+					item.tpmForAllSamples;
 			}
-			this.$emit("plotDataReady", flatBoth);
-			this.$emit("tableDataReady", processedData);
+			this.$emit("dataReady", processedData);
 		},
 	},
 });
