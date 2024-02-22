@@ -570,7 +570,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                             <video src="${aValue["video"]}" poster="${aValue["screenshot"]}" autoplay loop muted playsinline>
                         </div>`;
                     cellValueString += `<div class="mini-card-info">
-                            <a class="mini-card-title" href="${aValue["link"]}">${aValue["title"]}<span>&nearr;</span></a>
+                            <a class="mini-card-title" href="${aValue["link"]}" target="_blank">${aValue["title"]}<span>&nearr;</span></a>
                             <div class="mini-card-description">${aValue["description"]}</div>
                         </div>`;
                     /*

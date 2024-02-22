@@ -1,6 +1,12 @@
 <template>
 	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
-		<div class="info-cards-back" v-if="!!openCard" @click="hideFeatures()"><span class="btn btn-sm btn-primary">Back</span></div>
+		<div :class="['info-page-nav', openCard ? 'open' : '']">
+			<div class="info-cards-back" @click="hideFeatures()"><span class="btn">&#x276E; Back</span></div>
+			<div class="info-cards-help">
+				<div class="info-cards-glossary"><span class="btn"><span class="btn-icon">?</span>Glossary</span></div>
+				<div class="info-cards-tour"><span class="btn"><span class="btn-icon">i</span>Tour</span></div>
+			</div>
+		</div>
 		<div v-html="tableLegend" class="data-table-legend"></div>
 		<div
 			v-if="
@@ -18,7 +24,7 @@
 			></span>
 		</div>
 
-		<div :class="['thumbnails-wrapper', openCard ? '' : 'hidden']" :style="'width:'+thumbnailWidth+'px; margin-right: 15px;'">
+		<div :class="['thumbnails-wrapper', openCard ? '' : 'hidden']">
 			<template  v-for="(value, index) in rawData">
 
 				<div :class="['info-card', openCard && openCard == value[tableFormat['rows as info cards']['key']] ? 'selected' : '']"
