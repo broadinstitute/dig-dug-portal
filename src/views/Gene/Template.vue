@@ -554,7 +554,7 @@
                         :content-fill="$parent.documentationMap"
                     >
                     </documentation>
-                    <research-expression-plot
+                    <research-expression-display
                         v-if="$parent.geneExpression.length > 0"
                         :raw-data="$parent.geneExpression"
                         @expression="
@@ -562,7 +562,7 @@
                                 ($parent.geneExpressionTable = JSON.parse(raw))
                         "
                     >
-                    </research-expression-plot>
+                    </research-expression-display>
                 </div>
             </div>
             <div class="card mdkp-card">

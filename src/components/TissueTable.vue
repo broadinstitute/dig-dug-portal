@@ -8,9 +8,9 @@
                 ref="plotRef"
                 @dataReady="(filteredData) => getPlotData(filteredData)">
             </research-expression-filter>
-            <research-gene-expression-plot
+            <research-expression-plot
                 :plotData="plotData">
-            </research-gene-expression-plot>
+            </research-expression-plot>
         </div>
         <div v-else>
             Loading expression plot...
@@ -130,7 +130,7 @@
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import ResearchExpressionFilter from "@/components/researchPortal/ResearchExpressionFilter.vue";
-import ResearchGeneExpressionPlot from "@/components/researchPortal/ResearchGeneExpressionPlot.vue";
+import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
 export default Vue.component("TissueTable", {
     props: {
         tissueData: {
