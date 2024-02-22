@@ -1161,13 +1161,16 @@ export default Vue.component("research-section", {
 					break;
 			}
 
+			
+
 			// if loaded data is processed
 			if (data.length > 0) {
 				if (typeof data == "string") {
 					data = JSON.parse(data)
 				}
-
+				
 				let tableFormat = (!!this.remoteTableFormat) ? this.remoteTableFormat : this.sectionConfig["table format"];
+				
 
 				if (!!tableFormat && !!tableFormat["data convert"]) {
 					let convertConfig = tableFormat["data convert"];
@@ -1180,6 +1183,7 @@ export default Vue.component("research-section", {
 				let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
 					true : null;
 
+				
 				if (!!cumulateData) {
 
 					let queryKeyName = (!!this.dataPoint["query key name"]) ? this.dataPoint["query key name"] : "queryKey";

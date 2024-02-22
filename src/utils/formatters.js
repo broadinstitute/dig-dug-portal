@@ -449,6 +449,11 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab) {
 
                 break;
 
+            case "video":
+                cellValue = '<video width="320" height="240" controls><source src="' + cellValue + '" type="video/mp4" >\
+                            Your browser does not support the video tag.</video>'
+                break;
+
             case "value in class":
                 if (typeof cellValue != "object") {
                     cellValue = "<span class='" + cellValue + "'>" + cellValue + "</span>"
@@ -554,13 +559,21 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab);
         } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
             if (formatTypes.includes("object to mini-card")) {
+
                 let cellValueString = "";
-                VALUE.map(value => {
-                    cellValueString += "<div class='mini-card'> test";
-                    let valueKeys = Object.keys(value);
+                VALUE.map(aValue => {
+                    cellValueString += "<div class='mini-card'>";
+                    let valueKeys = Object.keys(aValue);
+
                     valueKeys.map(vk => {
-                        let kValue = value[vk];
-                        cellValueString += formatCellValues(kValue, columnKeyObj, formatTypes, linkToNewTab);
+                        let kValue = aValue[vk];
+                        let kVColumnKeyObj = CONFIG["column formatting"][vk]
+                        if (!!kVColumnKeyObj) {
+                            cellValueString += formatCellValues(kValue, kVColumnKeyObj, kVColumnKeyObj["type"], linkToNewTab);
+                        } else {
+                            cellValueString += "<span>" + kValue + "</span>"
+                        }
+
                     })
                     cellValueString += "</div>";
                 })

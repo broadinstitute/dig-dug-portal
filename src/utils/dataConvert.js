@@ -148,9 +148,13 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "raw":
+
                     let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
-                    tempObj[c["field name"]] = rawValue; //d[c["raw field"]];
-                    d[c["field name"]] = tempObj[c["field name"]];
+                    if (!!rawValue) {
+                        tempObj[c["field name"]] = rawValue;
+                        d[c["field name"]] = tempObj[c["field name"]];
+                    }
+
                     break;
 
                 case "string to number":
@@ -211,15 +215,18 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
             let newTempObj = {};
 
+            // here is the problem
             dKeys.map((dKey) => {
                 if (
                     typeof tempObj[dKey] == "object" &&
                     (Array.isArray(tempObj[dKey]) == true && tempObj[dKey].length > 0)
                 ) {
+
                     let tempArr = [];
 
                     tempObj[dKey].map((fd) => {
                         if (typeof fd == "object" && Array.isArray(fd) == false) {
+
                             let tempFDObj = applyConvert(
                                 fd,
                                 CONVERT,
