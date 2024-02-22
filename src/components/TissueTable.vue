@@ -6,10 +6,10 @@
                 :plotByField="'gene'"
                 :skipSort="true"
                 ref="plotRef"
-                @dataFiltered="(filteredData) => getPlotData(filteredData)">
+                @plotDataReady="(filteredData) => getPlotData(filteredData)">
             </research-expression-filter>
             <research-gene-expression-plot
-                :flatBoth="plotData"
+                :plotData="plotData"
                 keyField="gene">
             </research-gene-expression-plot>
         </div>
@@ -325,7 +325,6 @@ export default Vue.component("TissueTable", {
             await Promise.all(genes.map(gene => this.showEvidence(gene)));
         },
         getPlotData(plotData){
-            console.log("We should have new data.");
             this.plotData = plotData;
         }
     },

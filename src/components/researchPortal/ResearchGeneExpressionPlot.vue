@@ -6,11 +6,9 @@
 <script>
   import Vue from "vue";
   import * as d3 from "d3";
-  import uiUtils from "@/utils/uiUtils";
   import colors from "@/utils/colors";
-  import Formatters from "@/utils/formatters";
   export default Vue.component("ResearchGeneExpressionPlot", {
-    props: ["flatBoth", "keyField"],
+    props: ["plotData", "keyField"],
     data(){
       return {
         chart: null,
@@ -26,10 +24,7 @@
       });
     },
     watch: {
-      colorMap(){
-        this.displayResults();
-      },
-      flatBoth(){
+      plotData(){
         this.displayResults();
       },
       keyField(){
@@ -38,7 +33,7 @@
     },
     methods: {
       displayResults() {
-        let flatData = this.$props.flatBoth;
+        let flatData = this.$props.plotData;
         let keyField = this.$props.keyField;
         if (flatData.length === 0){
           return;
@@ -159,8 +154,6 @@
           let hoverItem = g[keyField];
           let hoverDataset = g.dataset;
           let hoverColor = `${colorMap[g[keyField]]}`;
-          console.log(hoverColor);
-          //console.log(typeof hoverColor);
           svg.selectAll("indPoints")
             .data(flatData.filter((entry) =>
               entry[keyField] == hoverItem && entry.dataset == hoverDataset))

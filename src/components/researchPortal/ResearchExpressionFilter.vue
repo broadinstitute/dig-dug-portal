@@ -50,7 +50,6 @@ export default Vue.component("ResearchExpressionFilter", {
 			keyFieldList: [],
 			processedData: [],
 			processedCollection: null,
-			flatBoth: null,
 			minSamples: 1,
 			collection: "all",
 		};
@@ -93,7 +92,6 @@ export default Vue.component("ResearchExpressionFilter", {
 			this.processData();
 		},
 		logScale(){
-			console.log("scale changed");
 			this.processData();
 		}
 	},
@@ -176,8 +174,7 @@ export default Vue.component("ResearchExpressionFilter", {
 				}
 			}
 			this.processedData = processedData;
-			//this.flatBoth = flatBoth;
-			this.$emit("dataFiltered", flatBoth);
+			this.$emit("plotDataReady", flatBoth);
 		},
 	},
 });
