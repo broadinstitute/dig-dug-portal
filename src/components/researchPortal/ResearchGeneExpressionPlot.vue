@@ -8,7 +8,7 @@
   import * as d3 from "d3";
   import colors from "@/utils/colors";
   export default Vue.component("ResearchGeneExpressionPlot", {
-    props: ["plotData", "keyField"],
+    props: ["plotData"],
     data(){
       return {
         chart: null,
@@ -27,25 +27,19 @@
       plotData(){
         this.displayResults();
       },
-      keyField(){
-        this.displayResults();
-      }
     },
     methods: {
       displayResults() {
         let flatData = this.$props.plotData;
-        let keyField = this.$props.keyField;
-        if (flatData.length === 0){
-          return;
-        }
-        let keyFieldList = this.getKeyFieldList(flatData, keyField);
+        if (flatData.length === 0){ return; }
+        let keyFieldList = this.getKeyFieldList(flatData);
         let colorMap = this.mapColors(keyFieldList);
         let dotBoxHalfWidth = 6;
         let tpmField = "tpmVal";
         let margin = {
             top: 10,
             right: 30,
-            bottom: this.getBottomMargin(flatData, keyField),
+            bottom: this.getBottomMargin(flatData),
             left: 40,
           },
           width = this.chartWidth - margin.left - margin.right,
@@ -76,7 +70,7 @@
         let x = d3
           .scaleBand()
           .range([0, width])
-          .domain(flatData.map((entry) => entry[keyField]))
+          .domain(flatData.map((entry) => entry.keyField))
           .padding(0.05);
 
         svg.append("g")
@@ -101,7 +95,7 @@
           .value((d) => d);
         let sumstat = d3
           .nest()
-          .key((d) => d[keyField])
+          .key((d) => d.keyField)
           .rollup((d) => {
             let input = d.map((g) => g[tpmField]);
             let bins = histogram(input);
@@ -132,7 +126,7 @@
           svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
           svg.selectAll("circle").remove();
           svg.selectAll("indPoints")
-            .data(flatData.filter((entry) => entry[keyField] === d.key))
+            .data(flatData.filter((entry) => entry.keyField === d.key))
             .enter()
             .append("circle")
             .attr("class", (g) => g.dataset)
@@ -151,12 +145,12 @@
             .on("mouseleave", hideTooltip);
         };
         let redrawHoverDots = (g) => {
-          let hoverItem = g[keyField];
+          let hoverItem = g.keyField;
           let hoverDataset = g.dataset;
-          let hoverColor = `${colorMap[g[keyField]]}`;
+          let hoverColor = `${colorMap[g.keyField]}`;
           svg.selectAll("indPoints")
             .data(flatData.filter((entry) =>
-              entry[keyField] == hoverItem && entry.dataset == hoverDataset))
+              entry.keyField == hoverItem && entry.dataset == hoverDataset))
             .enter()
             .append("circle")
             .attr("class", (j) => j.dataset)
@@ -165,7 +159,7 @@
                 offset -
                 2 * dotBoxHalfWidth +
                 j.noise * dotBoxHalfWidth * 4;
-              return x(g[keyField]) + dx;
+              return x(g.keyField) + dx;
             })
             .attr("cy", (j) => y(j[tpmField]))
             .attr("r", 2)
@@ -175,11 +169,11 @@
             .on("mouseleave", hideTooltip);
         };
         let redrawNonHoverDots = (g) => {
-          let hoverItem = g[keyField];
+          let hoverItem = g.keyField;
           let hoverDataset = g.dataset;
           svg.selectAll("indPoints")
             .data(flatData.filter((entry) =>
-              entry[keyField] === hoverItem && entry.dataset != hoverDataset))
+              entry.keyField === hoverItem && entry.dataset != hoverDataset))
             .enter()
             .append("circle")
             .attr("class", (j) => j.dataset)
@@ -188,7 +182,7 @@
                 offset -
                 2 * dotBoxHalfWidth +
                 j.noise * dotBoxHalfWidth * 4;
-              return x(g[keyField]) + dx;
+              return x(g.keyField) + dx;
             })
             .attr("cy", (j) => y(j[tpmField]))
             .attr("r", 2)
@@ -253,7 +247,7 @@
         let numberViolins = 0;
         let sumstatBox = d3
           .nest()
-          .key((d) => d[keyField])
+          .key((d) => d.keyField)
           .rollup((d) => {
             numberViolins++;
             let sortedData = d
@@ -348,21 +342,19 @@
           .style("width", 50)
           .on("mouseover", mouseover);
       },
-      getBottomMargin(data, labelField) {
+      getBottomMargin(data) {
         let longestLabel = data
-          .map((item) => item[labelField].length)
+          .map((item) => item.keyField.length)
           .reduce((prev, next) => (prev > next ? prev : next), 0);
         let margin = longestLabel < 10 ? 65 : (65 * longestLabel) / 10;
         return margin;
       },
-      getKeyFieldList(data, field){
-        let duplicates = data.map(entry => entry[field]);
+      getKeyFieldList(data){
         let uniques = [];
-        duplicates.forEach(dupe => {
-          if(!uniques.includes(dupe)){
-            uniques.push(dupe);
-          }
-        });
+        data.forEach(datum => {
+          if(!uniques.includes(datum.keyField)){
+            uniques.push(datum.keyField);
+          }});
         return uniques;
       },
       mapColors(uniqueItems) {

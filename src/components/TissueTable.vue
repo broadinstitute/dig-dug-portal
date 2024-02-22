@@ -9,8 +9,7 @@
                 @plotDataReady="(filteredData) => getPlotData(filteredData)">
             </research-expression-filter>
             <research-gene-expression-plot
-                :plotData="plotData"
-                keyField="gene">
+                :plotData="plotData">
             </research-gene-expression-plot>
         </div>
         <div v-else>

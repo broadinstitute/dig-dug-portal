@@ -164,6 +164,7 @@ export default Vue.component("ResearchExpressionFilter", {
 					let flatEntry = {};
 					flatEntry["tissue"] = item["tissue"];
 					flatEntry["gene"] = item["gene"];
+					flatEntry["keyField"] = item[this.keyField];
 					flatEntry["tpmVal"] = this.logScale ? Math.log10(tpmVal + 1) : tpmVal;
 					flatEntry["noise"] = Math.random();
 					flatEntry["biosample"] = Formatters.tissueFormatter(
