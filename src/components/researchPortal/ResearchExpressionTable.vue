@@ -53,12 +53,18 @@
   import * as d3 from "d3";
   import Formatters from "@/utils/formatters";
   export default Vue.component("ResearchExpressionTable", {
-	  props: ["filteredData"],
+	  props: {
+      filteredData: Array,
+      plotByField: {
+        type: String,
+        default: "tissue"
+      }
+    },
     data() {
       return {
         tableConfig: {
           "top rows": [
-            { key: "tissue", sortable: true }, // Table is only visible when keying by tissue anyway
+            { key: `${this.$props.plotByField}`, sortable: true },
             { key: "Min TPM", sortable: true, formatter: "tpmFormat" },
             { key: "Q1 TPM", sortable: true, formatter: "tpmFormat" },
             {
@@ -115,11 +121,10 @@
         currentPage: 1,
         perPage: 10,
         tableData: [],
-        keyField: "tissue"
+        keyField: this.$props.plotByField
       };
     },
     mounted(){
-      console.log("THIS IS THE RESEARCH EXPRESSION TABLE.");
       this.getTableData();
     },
     watch: {
