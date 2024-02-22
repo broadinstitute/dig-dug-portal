@@ -79,7 +79,7 @@
 					<div v-for="(featureKey, featureIndex) in tableFormat['features']" 
 						:key="featureIndex" 
 						:id="sectionId + index + featureKey" 
-						class="" 
+						class="info-card-more-wrapper" 
 						:class="[featureKey, openCard && openCard == value[tableFormat['rows as info cards']['key']] ? '' : 'hidden']">
 
 						<div v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]" 
