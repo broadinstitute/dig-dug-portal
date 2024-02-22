@@ -38,13 +38,13 @@
     },
     methods: {
       displayResults() {
-        let colorMap = this.$props.colorMap;
         let flatData = this.$props.flatBoth;
         let keyField = this.$props.keyField;
         if (flatData.length === 0){
           return;
         }
         let keyFieldList = this.getKeyFieldList(flatData, keyField);
+        let colorMap = this.mapColors(keyFieldList);
         let dotBoxHalfWidth = 6;
         let tpmField = "tpmVal";
         let margin = {
@@ -159,6 +159,8 @@
           let hoverItem = g[keyField];
           let hoverDataset = g.dataset;
           let hoverColor = `${colorMap[g[keyField]]}`;
+          console.log(hoverColor);
+          //console.log(typeof hoverColor);
           svg.selectAll("indPoints")
             .data(flatData.filter((entry) =>
               entry[keyField] == hoverItem && entry.dataset == hoverDataset))
@@ -369,7 +371,16 @@
           }
         });
         return uniques;
-      }
+      },
+      mapColors(uniqueItems) {
+        let colorMap = {};
+        let colorIndex = 0;
+        uniqueItems.forEach((entry) => {
+          colorMap[entry] = colors[colorIndex];
+          colorIndex = colorIndex >= colors.length - 1 ? 0 : colorIndex + 1;  
+        });
+        return colorMap;
+      },
     },
   });
 </script>
