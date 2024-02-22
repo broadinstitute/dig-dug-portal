@@ -47,15 +47,12 @@ export default Vue.component("ResearchExpressionFilter", {
 		return {
 			logScale: true,
 			keyField: this.$props.plotByField,
-			keyFieldList: [],
-			processedData: [],
 			processedCollection: null,
 			minSamples: 1,
 			collection: "all",
 		};
 	},
 	watch: {
-		// Watch log/linear and reprocess the data?
 		rawData() {
 			this.processData();
 		},
@@ -142,7 +139,6 @@ export default Vue.component("ResearchExpressionFilter", {
 					flatBoth.push(flatEntry);
 				}
 			}
-			this.processedData = processedData;
 			this.$emit("plotDataReady", flatBoth);
 			this.$emit("tableDataReady", this.tableData(processedData));
 		},
@@ -170,7 +166,6 @@ export default Vue.component("ResearchExpressionFilter", {
 				singleRow[this.keyField] = item; // use keyField property as object key
 				dataRows.push(singleRow);
 			});
-			this.keyFieldList = keyFieldVals;
 			return dataRows;
 		},
 	},
