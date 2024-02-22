@@ -54,35 +54,6 @@ export default Vue.component("ResearchExpressionFilter", {
 			collection: "all",
 		};
 	},
-	computed: {
-		tableData() {
-			let keyFieldVals = [];
-			this.processedData.forEach(item => {
-				if (!keyFieldVals.includes(item[this.keyField])){
-					keyFieldVals.push(item[this.keyField]);
-				}
-			});
-			let dataRows = [];
-			keyFieldVals.forEach(item => {
-				let filteredDatasets = this.processedData.filter(entry => entry[this.keyField] === item);
-				let tpms = filteredDatasets.reduce((list, entry) =>
-					list.concat(entry.tpmForAllSamples), []).sort(d3.ascending);
-				let singleRow = {
-					"Min TPM": tpms[0],
-					"Q1 TPM": d3.quantile(tpms, 0.25),
-					"Median TPM": d3.quantile(tpms, 0.5),
-					"Q3 TPM": d3.quantile(tpms, 0.75),
-					"Max TPM": tpms[tpms.length - 1],
-					"Total samples": tpms.length,
-					"Datasets": filteredDatasets,
-				}
-				singleRow[this.keyField] = item; // use keyField property as object key
-				dataRows.push(singleRow);
-			});
-			this.keyFieldList = keyFieldVals;
-			return dataRows;
-		},
-	},
 	watch: {
 		// Watch log/linear and reprocess the data?
 		rawData() {
@@ -122,15 +93,12 @@ export default Vue.component("ResearchExpressionFilter", {
 					processedCollection.push(c.trim());
 				});
 			});
-
 			this.processedCollection = [...new Set(processedCollection)].sort();
-
 			if (this.collection != "all") {
 				processedData = processedData.filter(
 					(d) => !!d.collection.includes(this.collection)
 				);
 			}
-
 			processedData.forEach((entry) => {
                 if(typeof entry.tpmForAllSamples === 'string'){
                     let tpms = entry.tpmForAllSamples
@@ -176,6 +144,34 @@ export default Vue.component("ResearchExpressionFilter", {
 			}
 			this.processedData = processedData;
 			this.$emit("plotDataReady", flatBoth);
+			this.$emit("tableDataReady", this.tableData(processedData));
+		},
+		tableData(processedData) {
+			let keyFieldVals = [];
+			processedData.forEach(item => {
+				if (!keyFieldVals.includes(item[this.keyField])){
+					keyFieldVals.push(item[this.keyField]);
+				}
+			});
+			let dataRows = [];
+			keyFieldVals.forEach(item => {
+				let filteredDatasets = processedData.filter(entry => entry[this.keyField] === item);
+				let tpms = filteredDatasets.reduce((list, entry) =>
+					list.concat(entry.tpmForAllSamples), []).sort(d3.ascending);
+				let singleRow = {
+					"Min TPM": tpms[0],
+					"Q1 TPM": d3.quantile(tpms, 0.25),
+					"Median TPM": d3.quantile(tpms, 0.5),
+					"Q3 TPM": d3.quantile(tpms, 0.75),
+					"Max TPM": tpms[tpms.length - 1],
+					"Total samples": tpms.length,
+					"Datasets": filteredDatasets,
+				}
+				singleRow[this.keyField] = item; // use keyField property as object key
+				dataRows.push(singleRow);
+			});
+			this.keyFieldList = keyFieldVals;
+			return dataRows;
 		},
 	},
 });

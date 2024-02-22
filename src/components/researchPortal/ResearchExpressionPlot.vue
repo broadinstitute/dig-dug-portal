@@ -3,16 +3,21 @@
     <research-expression-filter
       :rawData="rawData"
       plotByField="tissue"
-      @plotDataReady="(filteredData) => getPlotData(filteredData)">
+      @plotDataReady="(data) => getPlotData(data)"
+      @tableDataReady="(data) => getTableData(data)">
     </research-expression-filter>
     <research-gene-expression-plot
       :plotData="plotData">
     </research-gene-expression-plot>
+    <research-expression-table
+      :tableData="tableData">
+    </research-expression-table>
   </div>
 </template>
 <script>
   import Vue from "vue";
   import ResearchExpressionFilter from "@/components/researchPortal/ResearchExpressionFilter.vue";
+  import ResearchExpressionTable from "@/components/researchPortal/ResearchExpressionTable.vue";
   import ResearchGeneExpressionPlot from "@/components/researchPortal/ResearchGeneExpressionPlot.vue";
   export default Vue.component("ResearchExpressionPlot", {
     props: ["rawData"],
