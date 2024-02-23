@@ -3,7 +3,7 @@
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
 
-	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
+	<div class="multi-section" :class="'wrapper-' + sectionIndex" v-if="(!!sectionConfig['display on data load'] && !!sectionData && sectionData.length > 0) || !sectionConfig['display on data load']">
 
 		<div class="row section-header" v-if="!isInTab">
 			<div class="col-md-12">
