@@ -1255,11 +1255,14 @@ new Vue({
         },
         getSections(SECTIONS) {
             let entity = keyParams['entity'];
+            let context = keyParams["context"];
+
             let pageEntity = (this.sectionConfigs['entity']) ? this.sectionConfigs['entity'][entity] : null;
+            let pageContext = (this.sectionConfigs['context']) ? this.sectionConfigs['context'][context] : null;
 
             let sections = [];
 
-            if (!!entity && !!pageEntity) {
+            if (!!entity && !!pageEntity && !context) {
                 pageEntity.map(e => {
                     SECTIONS.map(s => {
                         if (s["section id"] == e) {
@@ -1267,11 +1270,19 @@ new Vue({
                         }
                     })
                 })
+            } else if (!!entity && !!pageEntity && !!context && !!pageContext) {
+                pageContext.map(c => {
+                    if (!!pageEntity.includes(c)) {
+                        SECTIONS.map(s => {
+                            if (s["section id"] == c) {
+                                sections.push(s)
+                            }
+                        })
+                    }
+                })
             } else {
                 sections = SECTIONS;
             }
-
-            console.log("sections", sections)
 
             return sections;
         },
