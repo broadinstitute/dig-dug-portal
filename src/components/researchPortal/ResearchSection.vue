@@ -3,7 +3,9 @@
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
 
-	<div class="multi-section" :class="'wrapper-' + sectionIndex" v-if="(!!sectionConfig['display on data load'] && !!sectionData && sectionData.length > 0) || !sectionConfig['display on data load']">
+	<div class="multi-section" :class="'wrapper-' + sectionIndex" 
+		v-if="(!!sectionConfig['required parameters to display'] && !!meetRequirements() && !!sectionData && sectionData.length > 0) 
+			|| !sectionConfig['required parameters to display']">
 
 		<div class="row section-header" v-if="!isInTab">
 			<div class="col-md-12">
@@ -483,6 +485,18 @@ export default Vue.component("research-section", {
 		},
 	},
 	methods: {
+		meetRequirements(){
+			let required = this.sectionConfig['required parameters to display'];
+			let meetRequired = true;
+
+			required.map(r=>{
+				if(!this.utils.keyParams[r]){
+					meetRequired = null
+				}
+			})
+			
+			return meetRequired;
+		},
 		setZoom(PROP,VALUE){
 			this.$emit('on-zoom', { property: PROP, value: VALUE });
 		},
