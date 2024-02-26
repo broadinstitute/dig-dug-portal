@@ -49,12 +49,12 @@
             </template>
             <template #row-details="r">
                 <div v-if="r.item.showButton === 1" class="row">
-                    <div v-if="evidence[r.item.gene]" class="col-12">
+                    <div class="col-12">
                         <h6>Evidence</h6>
                         <!-- show table with items from evidence if key is equal r.item.gene -->
 
                         <b-table
-                            :items="evidence[r.item.gene]"
+                            :items="getEvidence(r.item.gene)"
                             :fields="evidenceFields"
                             :per-page="perPage"
                             :current-page="r.item.currentPage"
@@ -64,7 +64,7 @@
                         </b-table>
                         <b-pagination
                             v-model="r.item.currentPage"
-                            :total-rows="evidence[r.item.gene].length"
+                            :total-rows="getEvidence(r.item.gene).length"
                             :per-page="perPage"
                         ></b-pagination>
                     </div>
@@ -116,9 +116,9 @@ export default Vue.component("TissueTable", {
             type: String,
             required: true,
         },
-        geneEvidence: {
-            type: Object,
-            reuquired: true
+        filteredData: {
+            type: Array,
+            required: true
         }
     },
     data() {
@@ -278,6 +278,10 @@ export default Vue.component("TissueTable", {
         setShowButton(item, value) {
             this.$set(item, "showButton", Number(value));
         },
+        getEvidence(gene){
+            console.log(`Getting evidence for ${gene}`);
+            return this.$props.filteredData.filter(item => item.gene === gene);
+        }
     },
 
 });

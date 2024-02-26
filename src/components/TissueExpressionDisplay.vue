@@ -18,7 +18,7 @@
         <tissue-table
             :tissueData="tableData"
             :tissue="tissue"
-            :geneEvidence="evidence">
+            :filteredData="plotData">
         </tissue-table>
         <b-pagination
             v-model="currentPage"
