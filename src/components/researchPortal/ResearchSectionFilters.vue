@@ -169,6 +169,24 @@
 							</option>
 						</select>
 					</template>
+					<template v-else-if="filter.type == 'sort'">
+						<select
+							:id="'filter_' + sectionId + getColumnId(filter.id)"
+							@change="
+								callSort($event, filter.direction)
+								"
+							class="custom-select"
+						>
+							<option></option>
+							<option
+								v-for="value in filter.fields"
+								:key="value"
+								:value="value"
+							>
+								{{ value }}
+							</option>
+						</select>
+					</template>
 					<template v-else-if="filter.type == 'checkbox'">
 						<div class="chkbox-combo">
 							<div class="title btn btn-sm btn-light form-control chk-box-btn">View options &#9660;</div>
@@ -407,6 +425,9 @@ export default Vue.component("research-section-filters", {
 	watch: {},
 	methods: {
 		//...uiUtils,
+		callSort(e, sortDirection) {
+			this.$emit('clicked-sort', { "key": e.target.value, "direction": sortDirection });
+		},
 		buildSuggestions(EVENT, FIELD) {
 			let searchVal = EVENT.target.value;
 			let suggestions = [];

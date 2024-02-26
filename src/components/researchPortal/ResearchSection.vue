@@ -54,7 +54,7 @@
 						:style="'width: '+ sectionConfig['filters vertical']['width']+'px; margin-right: 15px'">
 	<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
 						:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
-						:dataComparisonConfig="null" @on-filtering="updateData"></research-section-filters-vertical>
+						:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
 					</div>
 
 			<div :class="(!sectionConfig['filters vertical'])?'col-md-12 wrapper-' + sectionIndex: 'wrapper-' + sectionIndex"
@@ -71,7 +71,7 @@
 
 				<research-section-filters v-if="!!filters && !sectionConfig['filters vertical']" :filters="filters" :filterWidth="sectionConfig['filter width']"
 					:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
-					:dataComparisonConfig="null" @on-filtering="updateData"></research-section-filters>
+					:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters>
 					
 				<div
 					class="zoom-ui-wrapper" v-if="!!tableFormat && !!tableFormat['data zoom'] && !!sectionData && sectionData.length > 0"
@@ -258,7 +258,7 @@
 							:style="'width: ' + sectionConfig['filters vertical']['width'] + 'px;margin-left: 15px;'">
 	<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
 							:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
-							:dataComparisonConfig="null" @on-filtering="updateData"></research-section-filters-vertical>
+							:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
 						</div>
 		</div>
 	</div>
@@ -494,7 +494,7 @@ export default Vue.component("research-section", {
 					meetRequired = null
 				}
 			})
-			
+
 			return meetRequired;
 		},
 		setZoom(PROP,VALUE){
@@ -639,6 +639,7 @@ export default Vue.component("research-section", {
 			this.utils.keyParams.set(keyObj)
 		},
 		sortData(KEY) {
+			console.log("2", KEY);
 			if (!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {
 				this.sectionData = this.utils.sortUtils.sortLocusField(this.sectionData, KEY.key, KEY.direction);
 			} else {
@@ -847,7 +848,7 @@ export default Vue.component("research-section", {
 						this.queryFile(parameter);
 						break;
 					case "graphQl":
-
+						// first added for CFDE project, to query data from IDG(pharos)
 						let testString = this.dataPoint["query string"].replace("$parameter", paramsString)
 
 						let query = `${testString}`;
