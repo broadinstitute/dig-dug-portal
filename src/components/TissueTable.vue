@@ -101,12 +101,6 @@
                 </div>
             </template>
         </b-table>
-        <!-- <b-pagination
-            v-model="currentPage"
-            :total-rows="tissueData.length"
-            :per-page="perPage"
-        >
-        </b-pagination> -->
     </div>
 </template>
 <script>
@@ -122,6 +116,10 @@ export default Vue.component("TissueTable", {
             type: String,
             required: true,
         },
+        geneEvidence: {
+            type: Object,
+            reuquired: true
+        }
     },
     data() {
         return {
@@ -154,7 +152,7 @@ export default Vue.component("TissueTable", {
                     label: "Gene Links",
                 },
             ],
-            evidence: {},
+            evidence: this.$props.geneEvidence,
             evidenceFields: [
                 {
                     key: "biosample",
@@ -238,7 +236,6 @@ export default Vue.component("TissueTable", {
                 return { ...item, showButton: 0, currentPage: 1 };
             });
         }
-        this.populateGeneData();
     },
     methods: {
         async showEvidence(gene) {
@@ -248,6 +245,8 @@ export default Vue.component("TissueTable", {
                     let data = await query("gene-expression", gene);
                     data = data.filter(d => d.tissue === this.tissue);
                     Vue.set(this.evidence, gene, data);
+                } else {
+                    console.log(`We already have${gene}`)
                 }
             }
         },
@@ -308,11 +307,7 @@ export default Vue.component("TissueTable", {
             this.plotData = plotData;
         }
     },
-    watch: {
-        currentPage: function(){
-            this.populateGeneData();
-        }
-    }
+
 });
 </script>
 <style scoped>

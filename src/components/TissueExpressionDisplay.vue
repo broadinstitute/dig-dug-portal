@@ -17,7 +17,8 @@
         </div>
         <tissue-table
             :tissueData="tableData"
-            :tissue="tissue">
+            :tissue="tissue"
+            :geneEvidence="evidence">
         </tissue-table>
         <b-pagination
             v-model="currentPage"
@@ -50,106 +51,7 @@ export default Vue.component("TissueExpressionDisplay", {
             perPage: 10,
             currentPage: 1,
             rawData: [],
-            fields: [
-                {
-                    key: "gene",
-                    label: "Gene",
-                },
-                {
-                    key: "meanTpm",
-                    label: "Mean TPM",
-                },
-                {
-                    key: "nSamples",
-                    label: "# Samples"
-                },
-                {
-                    key: "tstat",
-                    label: "T-Stat",
-                },
-                {
-                    key: "evidence",
-                    label: "Evidence",
-                },
-                {
-                    key: "links",
-                    label: "Gene Links",
-                },
-            ],
             evidence: {},
-            evidenceFields: [
-                {
-                    key: "biosample",
-                    label: "Biosample",
-                },
-                {
-                    key: "collection",
-                    label: "Collection",
-                },
-                {
-                    key: "dataset",
-                    label: "Dataset",
-                },
-                {
-                    key: "minTpm",
-                    label: "Min. TPM",
-                },
-                {
-                    key: "firstQuTpm",
-                    label: "Q1 TMP",
-                },
-                {
-                    key: "medianTpm",
-                    label: "Median TPM",
-                },
-                {
-                    key: "thirdQuTpm",
-                    label: "Q3 TPM",
-                },
-                {
-                    key: "maxTpm",
-                    label: "Max. TPM",
-                },
-                {
-                    key: "nSamples",
-                    label: "Samples",
-                },
-            ],
-            links: {},
-            linksFields: [
-                {
-                    key: "targetGene",
-                    label: "Target Gene",
-                },
-                {
-                    key: "region",
-                    label: "Region",
-                },
-                {
-                    key: "targetRegion",
-                    label: "Target Region",
-                },
-                {
-                    key: "method",
-                    label: "Method",
-                },
-                {
-                    key: "source",
-                    label: "Source",
-                },
-                {
-                    key: "dataset",
-                    label: "Dataset",
-                },
-                {
-                    key: "assay",
-                    label: "Assay",
-                },
-                {
-                    key: "biosample",
-                    label: "Biosample",
-                },
-            ],
             plotData: [],
             tableData: []
         };
