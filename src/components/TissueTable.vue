@@ -238,18 +238,6 @@ export default Vue.component("TissueTable", {
         }
     },
     methods: {
-        async showEvidence(gene) {
-            if (gene) {
-                //check if evidence object already has key equal gene
-                if (!this.evidence[gene]) {
-                    let data = await query("gene-expression", gene);
-                    data = data.filter(d => d.tissue === this.tissue);
-                    Vue.set(this.evidence, gene, data);
-                } else {
-                    console.log(`We already have${gene}`)
-                }
-            }
-        },
         async showLinks(gene) {
             if (gene) {
                 //check if evidence object already has key equal gene
@@ -268,7 +256,6 @@ export default Vue.component("TissueTable", {
                 if (buttonClicked === row.item.showButton) return true;
                 else {
                     if (buttonClicked === 1) {
-                        this.showEvidence(row.item.gene);
                         Vue.set(row.item, "showButton", 1);
                     } else if (buttonClicked === 2) {
                         this.showLinks(row.item.gene);
@@ -279,7 +266,6 @@ export default Vue.component("TissueTable", {
                 return false;
             } else {
                 if (buttonClicked === 1) {
-                    this.showEvidence(row.item.gene);
                     Vue.set(row.item, "showButton", 1);
                 } else if (buttonClicked === 2) {
                     this.showLinks(row.item.gene);
@@ -292,20 +278,6 @@ export default Vue.component("TissueTable", {
         setShowButton(item, value) {
             this.$set(item, "showButton", Number(value));
         },
-        async populateGeneData(){
-            this.rawData = [];
-            let startIndex = (this.currentPage-1) * this.perPage;
-            let endIndex = startIndex + this.perPage;
-            let rows = this.tableData.slice(startIndex, endIndex).map(d => d.gene);
-            await this.populateEvidence(rows);
-            this.rawData = rows.flatMap(gene => this.evidence[gene]);
-        },
-        async populateEvidence(genes){
-            await Promise.all(genes.map(gene => this.showEvidence(gene)));
-        },
-        getPlotData(plotData){
-            this.plotData = plotData;
-        }
     },
 
 });
