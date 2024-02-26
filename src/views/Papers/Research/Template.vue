@@ -613,9 +613,6 @@
 								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
 								>
 							</research-multi-sections-search>
-							<div v-if="!!$parent.sectionConfigs['intersections filters']">
-								research-multi-sections-filter
-							</div>
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
 									  v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" >
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
@@ -704,8 +701,11 @@
 									</div>
 								</div>
 							</template>
-							
-							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">
+							<div v-if="!!$parent.sectionConfigs['context']">
+								<span v-for="value, key,index in $parent.sectionConfigs['context']" class="btn btn-sm btn-primary" 
+									@click="$parent.setContext(key,value)">{{ key }}</span>
+							</div>
+							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">	
 								<research-section
 									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
 									:sectionIndex="'section-' + index"

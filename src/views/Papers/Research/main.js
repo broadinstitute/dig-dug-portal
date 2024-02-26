@@ -1253,6 +1253,11 @@ new Vue({
 
             return sectionInEntity;
         },
+        setContext(KEY, SECTIONS) {
+            keyParams.set({ "context": KEY });
+            location.reload();
+            //this.$forceUpdate();
+        },
         getSections(SECTIONS) {
             let entity = keyParams['entity'];
             let context = keyParams["context"];
