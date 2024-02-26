@@ -22,7 +22,7 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import HugeScoresTable from "@/components/HugeScoresTable.vue";
-import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
+import ResearchExpressionDisplay from "@/components/researchPortal/ResearchExpressionDisplay.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
 
@@ -85,7 +85,7 @@ new Vue({
         LocusZoom,
         LocusZoomPhewasPanel,
         ResearchPheWAS,
-        ResearchExpressionPlot,
+        ResearchExpressionDisplay,
         ResearchDataTable,
         SearchHeaderWrapper,
         ResultsDashboard,

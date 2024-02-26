@@ -4,7 +4,7 @@
             hover
             small
             responsive="sm"
-            :items="tableData"
+            :items="tissueData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -49,12 +49,12 @@
             </template>
             <template #row-details="r">
                 <div v-if="r.item.showButton === 1" class="row">
-                    <div v-if="evidence[r.item.gene]" class="col-12">
+                    <div class="col-12">
                         <h6>Evidence</h6>
                         <!-- show table with items from evidence if key is equal r.item.gene -->
 
                         <b-table
-                            :items="evidence[r.item.gene]"
+                            :items="getEvidence(r.item.gene)"
                             :fields="evidenceFields"
                             :per-page="perPage"
                             :current-page="r.item.currentPage"
@@ -64,7 +64,7 @@
                         </b-table>
                         <b-pagination
                             v-model="r.item.currentPage"
-                            :total-rows="evidence[r.item.gene].length"
+                            :total-rows="getEvidence(r.item.gene).length"
                             :per-page="perPage"
                         ></b-pagination>
                     </div>
@@ -101,15 +101,8 @@
                 </div>
             </template>
         </b-table>
-        <b-pagination
-            v-model="currentPage"
-            :total-rows="tissueData.length"
-            :per-page="perPage"
-        >
-        </b-pagination>
     </div>
 </template>
-
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
@@ -123,11 +116,16 @@ export default Vue.component("TissueTable", {
             type: String,
             required: true,
         },
+        filteredData: {
+            type: Array,
+            required: true
+        }
     },
     data() {
         return {
             perPage: 10,
             currentPage: 1,
+            rawData: [],
             fields: [
                 {
                     key: "gene",
@@ -136,6 +134,10 @@ export default Vue.component("TissueTable", {
                 {
                     key: "meanTpm",
                     label: "Mean TPM",
+                },
+                {
+                    key: "nSamples",
+                    label: "# Samples"
                 },
                 {
                     key: "tstat",
@@ -150,7 +152,7 @@ export default Vue.component("TissueTable", {
                     label: "Gene Links",
                 },
             ],
-            evidence: {},
+            evidence: this.$props.geneEvidence,
             evidenceFields: [
                 {
                     key: "biosample",
@@ -225,6 +227,7 @@ export default Vue.component("TissueTable", {
                 },
             ],
             tableData: [],
+            plotData: []
         };
     },
     mounted() {
@@ -235,42 +238,24 @@ export default Vue.component("TissueTable", {
         }
     },
     methods: {
-        async showEvidence(gene) {
-            if (gene) {
-                //check if evidence object already has key equal gene
-                if (!this.evidence[gene]) {
-                    console.log("fetch evidence");
-                    let data = await query("gene-expression", gene);
-                    console.log(data);
-                    Vue.set(this.evidence, gene, data);
-                    // console.log(this.evidence);
-                    //console.log(JSON.stringify(this.evidence[0], null, 2));
-                }
-            }
-        },
         async showLinks(gene) {
             if (gene) {
                 //check if evidence object already has key equal gene
                 if (!this.links[gene]) {
-                    console.log("fetch links");
                     let data = await query(
                         "gene-links",
                         this.tissue + "," + gene
                     );
 
                     Vue.set(this.links, gene, data);
-                    //console.log(this.links);
-                    //console.log(JSON.stringify(this.evidence[0], null, 2));
                 }
             }
-            console.log("show links", gene);
         },
         toToggle(row, buttonClicked, isShowing) {
             if (isShowing) {
                 if (buttonClicked === row.item.showButton) return true;
                 else {
                     if (buttonClicked === 1) {
-                        this.showEvidence(row.item.gene);
                         Vue.set(row.item, "showButton", 1);
                     } else if (buttonClicked === 2) {
                         this.showLinks(row.item.gene);
@@ -281,7 +266,6 @@ export default Vue.component("TissueTable", {
                 return false;
             } else {
                 if (buttonClicked === 1) {
-                    this.showEvidence(row.item.gene);
                     Vue.set(row.item, "showButton", 1);
                 } else if (buttonClicked === 2) {
                     this.showLinks(row.item.gene);
@@ -292,10 +276,14 @@ export default Vue.component("TissueTable", {
             }
         },
         setShowButton(item, value) {
-            console.log("item", item);
             this.$set(item, "showButton", Number(value));
         },
+        getEvidence(gene){
+            console.log(`Getting evidence for ${gene}`);
+            return this.$props.filteredData.filter(item => item.gene === gene);
+        }
     },
+
 });
 </script>
 <style scoped>

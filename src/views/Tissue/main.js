@@ -7,6 +7,7 @@ import Documentation from "@/components/Documentation.vue";
 import keyParams from "@/utils/keyParams";
 import TissueTable from "@/components/TissueTable.vue";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
+import TissueExpressionDisplay from "@/components/TissueExpressionDisplay.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -18,6 +19,7 @@ new Vue({
         Documentation,
         TissueTable,
         TissueHeritabilityTable,
+        TissueExpressionDisplay,
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
