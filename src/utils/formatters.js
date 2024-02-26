@@ -456,11 +456,12 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab) {
 
             case "value in class":
                 if (typeof cellValue != "object") {
-                    cellValue = "<span class='" + cellValue + "'>" + cellValue + "</span>"
+                    const colorize = formatTypes.includes('colorize');
+                    cellValue = `<span class="${cellValue} ${colorize?'do-color':''}">${cellValue}</span>`
                 } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
                     let cellValueString = "";
                     cellValue.map(value => {
-                        cellValueString += "<span class='" + value + "'>" + value + "</span>";
+                        cellValueString += `<span class="${value} ${colorize?'do-color':''}">${value}</span>`;
                     })
 
                     cellValue = cellValueString;
@@ -556,8 +557,10 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
         let cellValue;
 
         if (typeof VALUE != "object") {
+            //console.log('...not object')
             cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab);
         } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
+            //console.log('...is array')
             if (formatTypes.includes("object to mini-card")) {
 
                 let cellValueString = "";
@@ -589,6 +592,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 })
                 cellValue = cellValueString;
             } else {
+                //console.log('...something else')
                 let cellValueString = (!!formatTypes.includes("image")) ? "<div class='imgs_wrapper'>" : "";
                 VALUE.map(value => {
                     cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab);

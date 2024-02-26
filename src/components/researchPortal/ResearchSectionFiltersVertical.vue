@@ -206,8 +206,9 @@
 									/><label :for="'filter_' + sectionId + getColumnId(filter.field) + 'all'">Check / Uncheck all</label>
 								</span>
 								<span v-for="value, vIndex in buildOptions(filter.field,'chkbox')"
-									:key="value">
-									<input type="checkbox" class="chkbox" :class="'filter-' + sectionId + getColumnId(filter.field)"
+									:key="value"
+									:class="filter.field.toLowerCase()==='omics'?[value, 'do-color']:''">
+									<input type="checkbox" class="chkbox" :class="['filter-' + sectionId + getColumnId(filter.field)]"
 										:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
 										:value="value"
 										@change="
