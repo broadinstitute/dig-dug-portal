@@ -27,11 +27,11 @@
                 
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <tissue-table
+                        <tissue-expression-display
                             v-if="$parent.tissueData.length > 0"
                             :tissue-data="$parent.tissueData"
                             :tissue="$parent.tissue"
-                        ></tissue-table>
+                        ></tissue-expression-display>
                     </div>
                 </div>
 

@@ -40,7 +40,7 @@
 				</b-table>
 			</template>
 		</b-table>
-		<b-pagination
+		<b-pagination v-if="plotByField === 'tissue'"
 			v-model="currentPage"
 			class="pagination-sm justify-content-center"
 			:total-rows="tableData.length"
