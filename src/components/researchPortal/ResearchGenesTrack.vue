@@ -393,9 +393,20 @@ export default Vue.component("research-genes-track", {
 			}
 		},
 		async getGenesData(GENES) {
+			
 
-			// source in 1 is hg38
-			let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 1 and gene_name in " + GENES;
+			// source in 1 is hg38 3 is hg19
+			//let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 1 and gene_name in " + GENES;
+
+			let fetchUrl;
+			if (!!this.plotConfig["genome reference"] && this.plotConfig["genome reference"] == "GRCh38") {
+				fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 1 and gene_name in " + GENES;
+			} else if (!this.plotConfig["genome reference"] ||
+				(!!this.plotConfig["genome reference"] &&
+					(this.plotConfig["genome reference"] == "GRCh37" || this.plotConfig["genome reference"] == "hg19"))) {
+				fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
+			}
+
 			let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
 			if (genesData.error == null) {
