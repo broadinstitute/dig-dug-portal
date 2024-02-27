@@ -368,10 +368,20 @@ export default Vue.component("multi-genes-track", {
 		},
 		async getGenesInRegion(region) {
 
-			let fetchUrl = "https://bioindex.hugeamp.org/api/bio/query/genes?q=" + region;
+			let fetchUrl;
+			let searchPoint = this.plotConfig["genes track"]["search point"];
+
+			if (!!searchPoint) {
+				fetchUrl = searchPoint + "/api/bio/query/genes?q=" + region;
+			} else {
+				fetchUrl = this.utils.uiUtils.biDomain() + "/api/bio/query/genes?q=" + region;
+			}
+
 			let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
 			if (genes.error == null) {
+
+				
 				let genesInRegion = JSON.parse(genes);
 				let codingGenes = "";
 
@@ -383,7 +393,7 @@ export default Vue.component("multi-genes-track", {
 					});
 
 					codingGenes = codingGenes.slice(0, -1);
-
+					console.log(this.plotConfig["type"], codingGenes)
 					if (codingGenes.length > 1) {
 						this.getGenesData(codingGenes);
 					}
@@ -391,32 +401,23 @@ export default Vue.component("multi-genes-track", {
 			}
 		},
 		async getGenesData(GENES) {
-
-			//console.log(this.plotConfig["genome reference"]);
-			/*let fetchUrl;
+			
+			let fetchUrl;
 			if (!!this.plotConfig["genome reference"] && this.plotConfig["genome reference"] == "GRCh38") {
 				fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 1 and gene_name in " + GENES;
 			} else if (!this.plotConfig["genome reference"] ||
 				(!!this.plotConfig["genome reference"] && 
 				(this.plotConfig["genome reference"] == "GRCh37" || this.plotConfig["genome reference"] == "hg19"))) {
 				fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
-			}*/
+			}
 
-			let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
-
-			console.log("fetchUrl", fetchUrl)
-			
 			let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
 			if (genesData.error == null) {
 
-				
-
 				this.localGenesData = JSON.parse(genesData).data;
 
 				this.renderTrack(this.localGenesData);
-
-				console.log(this.localGenesData)
 			}
 		},
 	},
