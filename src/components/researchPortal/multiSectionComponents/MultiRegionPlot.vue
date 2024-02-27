@@ -837,7 +837,7 @@ export default Vue.component("multi-region-plot", {
 			if (plotID != null) {
 
 				let ldURL =
-					"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
+					"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh38/references/1000G/populations/" +
 					this.ldData[plotID].population +
 					"/variants?correlation=rsquare&variant=" +
 					this.ldData[plotID].refVariant +
