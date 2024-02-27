@@ -200,7 +200,7 @@ export default Vue.component("multi-genes-track", {
 				let takenGeneRegions = [];
 				let geneIndex = 0;
 				genesArray.map((gene) => {
-					console.log("here", xMin,":",gene.start,xMax,":", gene.end)
+					//console.log("here", xMin,":",gene.start,xMax,":", gene.end)
 					if (gene.start <= xMax && gene.end >= xMin) {
 						
 						let xStartPos =
@@ -223,7 +223,7 @@ export default Vue.component("multi-genes-track", {
 							}
 						})
 
-						console.log("renderRegionTaken", renderRegionTaken)
+						//console.log("renderRegionTaken", renderRegionTaken)
 
 						if (takenGeneRegions.length != 0 && renderRegionTaken == true) {
 							takenGeneRegions = [];
@@ -402,14 +402,21 @@ export default Vue.component("multi-genes-track", {
 				fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
 			}*/
 
-			let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 1 and gene_name in " + GENES;
+			let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
+
+			console.log("fetchUrl", fetchUrl)
+			
 			let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
 			if (genesData.error == null) {
 
+				
+
 				this.localGenesData = JSON.parse(genesData).data;
 
 				this.renderTrack(this.localGenesData);
+
+				console.log(this.localGenesData)
 			}
 		},
 	},
