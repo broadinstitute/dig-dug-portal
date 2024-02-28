@@ -853,6 +853,8 @@ export default Vue.component("research-section", {
 
 						let query = `${testString}`;
 
+						//console.log("query",query)
+
 						this.queryGraphQl(query,  this.dataPoint["url"],paramsString, paramsType, params)
 						break;
 				}
@@ -886,7 +888,7 @@ export default Vue.component("research-section", {
 
 			fetchGraphQL(graphqlQuery)
 				.then(data => {
-					console.log('GraphQL response:', data);
+					//console.log('GraphQL response:', data);
 					this.processLoadedApi(data, PARAM, TYPE, PARAMS);
 				})
 				.catch(error => console.error('Error fetching GraphQL:', error));
@@ -955,10 +957,16 @@ export default Vue.component("research-section", {
 
 			} else if(!!PARAMS && TYPE == "array") {
 				dataUrl += QUERY;
+			} else if(!!PARAMS && TYPE == "replace") {
+
+				PARAMS.map((param,pIndex)=>{
+					dataUrl = dataUrl.replace("$"+param,QUERY.split(",")[pIndex]);
+				})	
 			}
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
 			if (contentJson.error == null) {
+				console.log(dataUrl, contentJson)
 				this.processLoadedApi(contentJson,QUERY, TYPE, PARAMS);
 			} else {
 				// fetch failed

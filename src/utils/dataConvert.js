@@ -205,7 +205,60 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
         return tempObj;
     }
 
+    let flatten = (obj, path = '') => {
+        if (!(obj instanceof Object)) return { [path.replace(/\.$/g, '')]: obj };
+
+        return Object.keys(obj).reduce((output, key) => {
+            return obj instanceof Array ?
+                { ...output, ...flatten(obj[key], path + '[' + key + '].') } :
+                { ...output, ...flatten(obj[key], path + key + '.') };
+        }, {});
+    }
+
     if (CONVERT != "no convert") {
+        let data2Rows = CONVERT.filter(c => c.type == "data to rows");
+
+        if (data2Rows.length > 0) {
+            let convertList = [{ "includes": ["kegg", "id"], "field name": "Id" },
+            { "includes": ["kegg", "name"], "field name": "Name" }]
+
+            let rowsData = [];
+            data2Rows.map(f => {
+                DATA.map(d => {
+                    let row = d[f["raw field"]];
+
+                    if (!!row) {
+                        console.log("flatten", flatten(row));
+                        let flattenRow = flatten(row);
+                        let flattenKeys = Object.keys(flattenRow);
+
+                        flattenKeys.map(key => {
+                            let tempObj = {}
+                            convertList.map(cL => {
+                                let addRow = true
+                                cL["includes"].map(term => {
+                                    if (!key.includes(term)) {
+                                        addRow = null;
+                                    }
+                                })
+                                if (!!addRow) {
+                                    tempObj[cL["field name"]] = flattenRow[key]
+                                }
+                            })
+                            if (Object.keys(tempObj).length > 0) {
+                                rowsData.push(tempObj);
+                            }
+                        })
+
+                    }
+                })
+            })
+            console.log("rowsData", rowsData);
+            DATA = rowsData;
+        }
+
+
+
         DATA.map(d => {
 
             let tempObj = applyConvert(d, CONVERT, PHENOTYPE_MAP);
