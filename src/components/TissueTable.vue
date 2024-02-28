@@ -112,7 +112,7 @@
                                 </a>
                             </template>
                             <template #cell(assay)="l">
-                                {{ l.item.assay.join(", ") }}
+                                {{ !l.item.assay? "" : l.item.assay.join(", ") }}
                             </template>
                         </b-table>
                         <b-pagination
