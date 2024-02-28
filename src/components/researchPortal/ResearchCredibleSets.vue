@@ -970,6 +970,7 @@ export default Vue.component("research-credible-sets-plot", {
 				let CSJson = await fetch(CSURL).then((resp) => resp.json());
 
 				if (CSJson.error == null) {
+					
 					if (!this.CSData[phenotype]) {
 						this.CSData[phenotype] = {};
 					}
