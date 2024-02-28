@@ -9,6 +9,11 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <template #cell(gene)="r">
+                <a :href="`/gene.html?gene=${r.item.gene}`" target="_blank">
+                    {{ r.item.gene }}
+                </a>
+            </template>
             <template #cell(evidence)="r">
                 <b-button
                     v-b-popover.hover="'View evidence'"
@@ -26,8 +31,8 @@
                             ? "Hide"
                             : "Show"
                     }}
-                </b-button></template
-            >
+                </b-button>
+            </template>
             <template #cell(links)="r">
                 <b-button
                     v-b-popover.hover="'View links'"
@@ -50,7 +55,7 @@
             <template #row-details="r">
                 <div v-if="r.item.showButton === 1" class="row">
                     <div class="col-12">
-                        <h6>Evidence</h6>
+                        <h5 class="table-heading">Evidence</h5>
                         <!-- show table with items from evidence if key is equal r.item.gene -->
 
                         <b-table
@@ -71,21 +76,40 @@
                 </div>
                 <div v-if="r.item.showButton === 2" class="row">
                     <div v-if="links[r.item.gene]" class="col-12">
-                        <h6>Gene Links</h6>
+                        <h5 class="table-heading">Gene Links</h5>
                         <b-table
                             :items="links[r.item.gene]"
                             :fields="linksFields"
                             :per-page="perPage"
-                            :current-page="currentPage"
-                            ><template #cell(region)="l">
-                                {{ l.item.chromosome }}:{{ l.item.start }}-{{
-                                    l.item.end
-                                }}
+                            :current-page="r.item.currentPage"
+                        >
+                            <template #cell(targetGene)="l">
+                                <a :href="`/gene.html?gene=${l.item.targetGene}`"
+                                    target="_blank"
+                                >
+                                    {{ l.item.targetGene }}
+                                </a>
+                            </template>
+                            <template #cell(region)="l">
+                                <a :href="`/region.html?chr=${l.item.chromosome}
+                                    &end=${l.item.end}&start=${l.item.start}`"
+                                    target="_blank"
+                                >
+                                    {{ l.item.chromosome }}:{{ l.item.start }}-{{
+                                        l.item.end
+                                    }}
+                                </a>
                             </template>
                             <template #cell(targetRegion)="l">
-                                {{ l.item.chromosome }}:{{
-                                    l.item.targetGeneStart
-                                }}-{{ l.item.targetGeneEnd }}
+                                <a :href="`/region.html?chr=${l.item.chromosome}
+                                    &end=${l.item.targetGeneEnd}
+                                    &start=${l.item.targetGeneStart}`"
+                                    target="_blank"
+                                >
+                                    {{ l.item.chromosome }}:{{
+                                        l.item.targetGeneStart
+                                    }}-{{ l.item.targetGeneEnd }}
+                                </a>
                             </template>
                             <template #cell(assay)="l">
                                 {{ l.item.assay.join(", ") }}
@@ -289,5 +313,8 @@ export default Vue.component("TissueTable", {
 <style scoped>
 .b-popover {
     background-color: #fff;
+}
+.table-heading {
+    font-weight: bold;
 }
 </style>
