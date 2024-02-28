@@ -77,15 +77,27 @@
                             :fields="linksFields"
                             :per-page="perPage"
                             :current-page="currentPage"
-                            ><template #cell(region)="l">
-                                {{ l.item.chromosome }}:{{ l.item.start }}-{{
-                                    l.item.end
-                                }}
+                        >
+                            <template #cell(region)="l">
+                                <a :href="`/region.html?chr=${l.item.chromosome}
+                                    &end=${l.item.end}&start=${l.item.start}`"
+                                    target="_blank"
+                                >
+                                    {{ l.item.chromosome }}:{{ l.item.start }}-{{
+                                        l.item.end
+                                    }}
+                                </a>
                             </template>
                             <template #cell(targetRegion)="l">
-                                {{ l.item.chromosome }}:{{
-                                    l.item.targetGeneStart
-                                }}-{{ l.item.targetGeneEnd }}
+                                <a :href="`/region.html?chr=${l.item.chromosome}
+                                    &end=${l.item.targetGeneEnd}
+                                    &start=${l.item.targetGeneStart}`"
+                                    target="_blank"
+                                >
+                                    {{ l.item.chromosome }}:{{
+                                        l.item.targetGeneStart
+                                    }}-{{ l.item.targetGeneEnd }}
+                                </a>
                             </template>
                             <template #cell(assay)="l">
                                 {{ l.item.assay.join(", ") }}
