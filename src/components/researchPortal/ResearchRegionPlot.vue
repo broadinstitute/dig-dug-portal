@@ -783,16 +783,28 @@ export default Vue.component("research-region-plot", {
 		},
 		async callForRecombData() {
 			//console.log("this.searchingRegion", this.searchingRegion);
+			
 
-			let signalURL =
-				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
-				this.searchingRegion.chr +
-				"' and position gt " +
-				this.searchingRegion.start +
-				" and position lt " +
-				this.searchingRegion.end;
+			let signalURL;
 
-				//console.log("signalURL", signalURL)
+			if (!!this.renderConfig["genome reference"] && this.renderConfig["genome reference"] == "GRCh38") {
+				signalURL = "https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?build=GRCh38&filter=chromosome eq '" +
+					this.searchingRegion.chr +
+					"' and position gt " +
+					this.searchingRegion.start +
+					" and position lt " +
+					this.searchingRegion.end;
+			} else if (!this.renderConfig["genome reference"] ||
+				(!!this.renderConfig["genome reference"] && this.renderConfig["genome reference"] == "GRCh37")) {
+				signalURL = "https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
+					this.searchingRegion.chr +
+					"' and position gt " +
+					this.searchingRegion.start +
+					" and position lt " +
+					this.searchingRegion.end;
+			}
+
+			console.log("signalURL", signalURL)
 
 			let signalJson = await fetch(signalURL).then((resp) => resp.json());
 			this.recombData = {};

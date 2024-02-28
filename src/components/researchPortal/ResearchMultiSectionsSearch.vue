@@ -61,7 +61,8 @@
 												parameter.parameter,
 												paramIndex,
 												true,
-												parameter['expand region by']
+												parameter['expand region by'],
+												parameter['search point']
 											)
 											: setGene(
 												gene,
@@ -302,10 +303,16 @@ export default Vue.component("research-multi-sections-search", {
 			})
 			
 		},
-		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION, DEFALT_EXPAND) {
+		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION, DEFALT_EXPAND,SEARCH_POINT) {
+			
 			if (!!CONVERT_REGION) {
-				let searchPoint =
-					this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+				let searchPoint;
+				if(!!SEARCH_POINT) {
+					searchPoint = SEARCH_POINT + "/api/bio/query/gene?q=" + KEY;
+				} else {
+					searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+				}
+				
 
 				let regionExpand = !!DEFALT_EXPAND? DEFALT_EXPAND/2 : 0;
 
