@@ -81,7 +81,7 @@
                             :items="links[r.item.gene]"
                             :fields="linksFields"
                             :per-page="perPage"
-                            :current-page="currentPage"
+                            :current-page="r.item.currentPage"
                         >
                             <template #cell(targetGene)="l">
                                 <a :href="`/gene.html?gene=${l.item.targetGene}`"
