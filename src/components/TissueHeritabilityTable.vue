@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h3>Gobal Enrichment</h3>
+        <h3>Global Enrichments</h3>
         <b-table
             hover
             small
