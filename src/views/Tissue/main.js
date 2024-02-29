@@ -53,7 +53,7 @@ new Vue({
         },
         documentationMap() {
             return {
-                tissue: this.tissue,
+                tissue: this.tissue ? this.tissue.toUpperCase() : "",
             };
         },
     },
