@@ -1,6 +1,8 @@
 <template>
     <div>
-        <h3>Global Enrichments</h3>
+        <h4>
+            {{ `Global enrichments for ${tissue.toUpperCase()}` }}
+        </h4>
         <b-table
             hover
             small
