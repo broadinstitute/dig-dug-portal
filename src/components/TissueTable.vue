@@ -324,4 +324,7 @@ export default Vue.component("TissueTable", {
     margin-right: 15px;
     background-color: #dfdfdf;
 }
+.b-popover {
+    background-color: #fff;
+}
 </style>
