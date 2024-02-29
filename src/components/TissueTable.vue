@@ -111,9 +111,17 @@
                                     }}-{{ l.item.targetGeneEnd }}
                                 </a>
                             </template>
+                            <template #cell(dataset)="l">
+                                <a
+                                    :href="`https://cmdga.org/annotations/${l.item.dataset}/`"
+                                    target="_blank"
+                                >
+                                    {{ data.value }}
+                                </a>
+                            </template>
                             <template #cell(assay)="l">
                                 {{
-                                    !l.item.assay ? "" : l.item.assay.join(", ")
+                                    l.item.assay ? l.item.assay.join(", ") : ""
                                 }}
                             </template>
                         </b-table>
