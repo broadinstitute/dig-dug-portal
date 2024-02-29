@@ -1,7 +1,6 @@
 <template>
     <div id="tissues">
         <b-table
-            hover
             small
             responsive="sm"
             :items="tissueData"
@@ -55,7 +54,6 @@
             <template #row-details="r">
                 <div v-if="r.item.showButton === 1" class="row">
                     <div class="col-12">
-                        <h5 class="table-heading">Evidence</h5>
                         <!-- show table with items from evidence if key is equal r.item.gene -->
 
                         <b-table
@@ -76,7 +74,6 @@
                 </div>
                 <div v-if="r.item.showButton === 2" class="row">
                     <div v-if="links[r.item.gene]" class="col-12">
-                        <h5 class="table-heading">Gene Links</h5>
                         <b-table
                             :items="links[r.item.gene]"
                             :fields="linksFields"
@@ -313,7 +310,6 @@ export default Vue.component("TissueTable", {
             this.$set(item, "showButton", Number(value));
         },
         getEvidence(gene) {
-            console.log(`Getting evidence for ${gene}`);
             return this.$props.filteredData.filter(
                 (item) => item.gene === gene
             );
@@ -322,10 +318,10 @@ export default Vue.component("TissueTable", {
 });
 </script>
 <style scoped>
-.b-popover {
-    background-color: #fff;
-}
-.table-heading {
-    font-weight: bold;
+.row {
+    font-size: smaller;
+    margin-left: 15px;
+    margin-right: 15px;
+    background-color: #dfdfdf;
 }
 </style>
