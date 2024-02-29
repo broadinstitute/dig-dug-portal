@@ -266,7 +266,7 @@
 		</div>
 		<b-container
 			v-if="
-				!!dataset && !!perPageNumber && perPageNumber != null && perPageNumber != 0 && pagedData.length >= perPageNumber
+				!!dataset && !!perPageNumber && perPageNumber != null && perPageNumber != 0
 			"
 			class="egl-table-page-ui-wrapper"
 		>

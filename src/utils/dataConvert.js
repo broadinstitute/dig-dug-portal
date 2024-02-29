@@ -219,41 +219,45 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
         let data2Rows = CONVERT.filter(c => c.type == "data to rows");
 
         if (data2Rows.length > 0) {
-            let convertList = [{ "includes": ["kegg", "id"], "field name": "Id" },
-            { "includes": ["kegg", "name"], "field name": "Name" }]
+
+
 
             let rowsData = [];
             data2Rows.map(f => {
                 DATA.map(d => {
                     let row = d[f["raw field"]];
+                    let orgList = f["group by"];
 
                     if (!!row) {
-                        console.log("flatten", flatten(row));
+                        let rowData = {};
+                        orgList.map(field => {
+                            rowData[field] = []
+                        })
+                        // first, flatten data, then get the list of flatten keys
                         let flattenRow = flatten(row);
                         let flattenKeys = Object.keys(flattenRow);
 
                         flattenKeys.map(key => {
-                            let tempObj = {}
-                            convertList.map(cL => {
-                                let addRow = true
-                                cL["includes"].map(term => {
-                                    if (!key.includes(term)) {
-                                        addRow = null;
-                                    }
-                                })
-                                if (!!addRow) {
-                                    tempObj[cL["field name"]] = flattenRow[key]
+                            orgList.map(field => {
+                                if (!!key.includes(field)) {
+                                    rowData[field].push(flattenRow[key])
                                 }
                             })
-                            if (Object.keys(tempObj).length > 0) {
-                                rowsData.push(tempObj);
-                            }
                         })
 
+                        let rowsLength = rowData[orgList[0]].length;
+
+                        for (let i = 0; i < rowsLength; i++) {
+                            let tempObj = {};
+                            orgList.map(field => {
+                                tempObj[field] = rowData[field][i];
+                            })
+                            console.log("tempObj", tempObj)
+                            rowsData.push(tempObj);
+                        }
                     }
                 })
             })
-            console.log("rowsData", rowsData);
             DATA = rowsData;
         }
 
