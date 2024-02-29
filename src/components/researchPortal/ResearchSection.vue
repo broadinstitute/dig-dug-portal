@@ -489,11 +489,43 @@ export default Vue.component("research-section", {
 			let required = this.sectionConfig['required parameters to display'];
 			let meetRequired = true;
 
-			required.map(r=>{
+			/*required.map(r=>{
 				if(!this.utils.keyParams[r]){
 					meetRequired = null
 				}
+			})*/
+
+			required.map(R => {
+				for (const [rKey, rValue] of Object.entries(R)) {
+					
+					let rValues = rValue.split(",");
+
+					rValues.map(V=>{
+						if (!this.utils.keyParams[V]) {
+							meetRequired = null
+						}
+					})
+				}
 			})
+
+			/*
+			let testRequired = true;
+
+					required.map(R => {
+						for (const [rKey, rValue] of Object.entries(R)) {
+							let rKeyParam = keyParams[rKey];
+							let rValues = rValue.split(",");
+
+							if (!rKeyParam || (!!rKeyParam && !rValues.includes(rKeyParam))) {
+								testRequired = false;
+							}
+						}
+					})
+
+					if (!!testRequired) {
+						sections.push(S);
+					}
+					*/
 
 			return meetRequired;
 		},
@@ -634,12 +666,10 @@ export default Vue.component("research-section", {
 			let keyObj = {};
 			keyObj[keyName] = KEY;
 
-			console.log("keyObj",keyObj);
-
 			this.utils.keyParams.set(keyObj)
 		},
 		sortData(KEY) {
-			console.log("2", KEY);
+			
 			if (!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {
 				this.sectionData = this.utils.sortUtils.sortLocusField(this.sectionData, KEY.key, KEY.direction);
 			} else {
@@ -687,7 +717,7 @@ export default Vue.component("research-section", {
 			return ifNumber;
 		},
 		removeData(KEY) {
-			//console.log("key",KEY);
+			
 			let groupKeys = this.sectionConfig["table format"]["group by"];
 
 			let newSectionData = [];
@@ -966,7 +996,7 @@ export default Vue.component("research-section", {
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
 			if (contentJson.error == null) {
-				console.log(dataUrl, contentJson)
+				
 				this.processLoadedApi(contentJson,QUERY, TYPE, PARAMS);
 			} else {
 				// fetch failed

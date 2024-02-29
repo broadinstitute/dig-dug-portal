@@ -172,6 +172,19 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     d[c["field name"]] = tempObj[c["field name"]];
                     break;
 
+                case "string to array":
+                    let sArray = d[c["raw field"]].split(c["separate by"]);
+
+                    let takeIndex = (c["take index"] === 0 || !!c["take index"]) ? sArray[c["take index"]] : null;
+
+                    if (takeIndex) {
+                        tempObj[c["field name"]] = sArray[c["take index"]]
+                    } else {
+                        tempObj[c["field name"]] = sArray
+                    }
+                    d[c["field name"]] = tempObj[c["field name"]];
+                    break;
+
                 case "replace characters":
                     let replaceArr = c["replace"]
                     let rawString = d[c["raw field"]];
@@ -220,8 +233,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
         if (data2Rows.length > 0) {
 
-
-
             let rowsData = [];
             data2Rows.map(f => {
                 DATA.map(d => {
@@ -230,34 +241,41 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                     if (!!row) {
                         let rowData = {};
-                        orgList.map(field => {
-                            rowData[field] = []
+                        orgList.map((field, fIndex) => {
+                            rowData[field] = [];
+                            rowData["_key" + fIndex] = []
                         })
                         // first, flatten data, then get the list of flatten keys
                         let flattenRow = flatten(row);
                         let flattenKeys = Object.keys(flattenRow);
 
                         flattenKeys.map(key => {
-                            orgList.map(field => {
+                            orgList.map((field, fIndex) => {
                                 if (!!key.includes(field)) {
-                                    rowData[field].push(flattenRow[key])
+                                    rowData[field].push(flattenRow[key]);
+                                    rowData["_key" + fIndex].push(key)
                                 }
                             })
                         })
+
+
 
                         let rowsLength = rowData[orgList[0]].length;
 
                         for (let i = 0; i < rowsLength; i++) {
                             let tempObj = {};
-                            orgList.map(field => {
+                            orgList.map((field, fIndex) => {
                                 tempObj[field] = rowData[field][i];
+                                tempObj["_key" + fIndex] = rowData["_key" + fIndex][i];
                             })
-                            console.log("tempObj", tempObj)
+
                             rowsData.push(tempObj);
                         }
                     }
                 })
             })
+            console.log("rowsData", rowsData);
+
             DATA = rowsData;
         }
 

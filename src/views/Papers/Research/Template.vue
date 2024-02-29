@@ -601,7 +601,7 @@
 							>
 							</research-gem-data-table>
 						</div>
-						<!-- multi section test-->
+						<!-- multi section -->
 						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
 
 							<research-multi-sections-search 
@@ -613,8 +613,14 @@
 								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
 								>
 							</research-multi-sections-search>
+							<!-- Set context -->
+							<div v-if="!!$parent.sectionConfigs['context']">
+									<span v-for="value, key, index in $parent.sectionConfigs['context']" class="btn btn-sm btn-primary" 
+										@click="$parent.setContext(key, value)">{{ key }}</span>
+								</div>
+								<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
-									  v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" >
+									  v-for="group, groupIndex in $parent.getTabGroups($parent.sectionConfigs['tab groups'])" >
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
 									style="position:relative"
 								>
@@ -701,10 +707,7 @@
 									</div>
 								</div>
 							</template>
-							<div v-if="!!$parent.sectionConfigs['context']">
-								<span v-for="value, key,index in $parent.sectionConfigs['context']" class="btn btn-sm btn-primary" 
-									@click="$parent.setContext(key,value)">{{ key }}</span>
-							</div>
+							
 							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">	
 								<research-section
 									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"

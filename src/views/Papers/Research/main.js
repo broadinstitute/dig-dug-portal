@@ -1258,35 +1258,107 @@ new Vue({
             location.reload();
             //this.$forceUpdate();
         },
-        getSections(SECTIONS) {
-            let entity = keyParams['entity'];
-            let context = keyParams["context"];
+        getTabGroups(TAB_GROUPS) {
 
-            let pageEntity = (this.sectionConfigs['entity']) ? this.sectionConfigs['entity'][entity] : null;
+            let groups = [];
+
+            TAB_GROUPS.map(G => {
+                if (!!G["required parameters to display"]) {
+                    let required = G["required parameters to display"];
+
+                    let testRequired = true;
+
+                    required.map(R => {
+                        for (const [rKey, rValue] of Object.entries(R)) {
+                            let rKeyParam = keyParams[rKey];
+                            let rValues = rValue.split(",");
+
+                            if (!rKeyParam || (!!rKeyParam && !rValues.includes(rKeyParam))) {
+                                testRequired = false;
+                            }
+                        }
+                    })
+
+                    if (!!testRequired) {
+                        groups.push(G);
+                    }
+                } else {
+                    groups.push(G);
+                }
+            })
+
+            let context = keyParams["context"];
             let pageContext = (this.sectionConfigs['context']) ? this.sectionConfigs['context'][context] : null;
+
+            if (!!context) {
+
+                let gInOrder = [];
+
+                if (!!context && !!pageContext) {
+                    pageContext.map(c => {
+
+                        groups.map(g => {
+                            if (g["group id"] == c) {
+                                gInOrder.push(g)
+                            }
+                        })
+
+                    })
+                }
+                groups = gInOrder
+            }
+
+            return groups;
+        },
+        getSections(SECTIONS) {
 
             let sections = [];
 
-            if (!!entity && !!pageEntity && !context) {
-                pageEntity.map(e => {
-                    SECTIONS.map(s => {
-                        if (s["section id"] == e) {
-                            sections.push(s)
+            SECTIONS.map(S => {
+                if (!!S["required parameters to display"]) {
+
+                    let required = S["required parameters to display"];
+
+                    let testRequired = true;
+
+                    required.map(R => {
+                        for (const [rKey, rValue] of Object.entries(R)) {
+                            let rKeyParam = keyParams[rKey];
+                            let rValues = rValue.split(",");
+
+                            if (!rKeyParam || (!!rKeyParam && !rValues.includes(rKeyParam))) {
+                                testRequired = false;
+                            }
                         }
                     })
-                })
-            } else if (!!entity && !!pageEntity && !!context && !!pageContext) {
-                pageContext.map(c => {
-                    if (!!pageEntity.includes(c)) {
-                        SECTIONS.map(s => {
+
+                    if (!!testRequired) {
+                        sections.push(S);
+                    }
+                } else {
+                    sections.push(S);
+                }
+            })
+
+            let context = keyParams["context"];
+            let pageContext = (this.sectionConfigs['context']) ? this.sectionConfigs['context'][context] : null;
+
+            if (!!context) {
+
+                let sInOrder = [];
+
+                if (!!context && !!pageContext) {
+                    pageContext.map(c => {
+
+                        sections.map(s => {
                             if (s["section id"] == c) {
-                                sections.push(s)
+                                sInOrder.push(s)
                             }
                         })
-                    }
-                })
-            } else {
-                sections = SECTIONS;
+
+                    })
+                }
+                sections = sInOrder
             }
 
             return sections;
