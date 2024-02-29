@@ -24,7 +24,7 @@
                         ></documentation>
                     </div>
                 </div>
-                
+
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <tissue-expression-display
@@ -35,13 +35,14 @@
                     </div>
                 </div>
 
-                <div class="filtering-ui-wrapper container-fluid">
+                <!-- Add filters here when data is ready -->
+                <!-- <div class="filtering-ui-wrapper container-fluid">
                     <div class="row filtering-ui-content">
                         <div class="col filter-col-md filter-col-lg">
                             Filters
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="card mdkp-card">
                     <div class="card-body">

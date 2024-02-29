@@ -1,24 +1,30 @@
 <template>
     <div>
+        <h4>
+            {{ `Gene expression for ${tissue.toUpperCase()}` }}
+        </h4>
+        <documentation
+            name="tissue.gene-expression.subheader"
+            :content-fill="$parent.documentationMap"
+        ></documentation>
         <div id="plot" v-if="rawData.length > 0">
             <research-expression-filter
                 :rawData="rawData"
                 :plotByField="'gene'"
                 :skipSort="true"
                 ref="plotRef"
-                @dataReady="(filteredData) => getPlotData(filteredData)">
+                @dataReady="(filteredData) => getPlotData(filteredData)"
+            >
             </research-expression-filter>
-            <research-expression-plot
-                :plotData="plotData">
+            <research-expression-plot :plotData="plotData">
             </research-expression-plot>
         </div>
-        <div v-else>
-            Loading expression plot...
-        </div>
+        <div v-else>Loading expression plot...</div>
         <tissue-table
             :tissueData="tableData"
             :tissue="tissue"
-            :filteredData="plotData">
+            :filteredData="plotData"
+        >
         </tissue-table>
         <b-pagination
             v-model="currentPage"
@@ -53,7 +59,7 @@ export default Vue.component("TissueExpressionDisplay", {
             rawData: [],
             evidence: {},
             plotData: [],
-            tableData: []
+            tableData: [],
         };
     },
     mounted() {
@@ -65,32 +71,32 @@ export default Vue.component("TissueExpressionDisplay", {
                 //check if evidence object already has key equal gene
                 if (!this.evidence[gene]) {
                     let data = await query("gene-expression", gene);
-                    data = data.filter(d => d.tissue === this.tissue);
+                    data = data.filter((d) => d.tissue === this.tissue);
                     Vue.set(this.evidence, gene, data);
                 }
             }
         },
-        async populateGeneData(){
+        async populateGeneData() {
             this.rawData = [];
-            let startIndex = (this.currentPage-1) * this.perPage;
+            let startIndex = (this.currentPage - 1) * this.perPage;
             let endIndex = startIndex + this.perPage;
             this.tableData = this.tissueData.slice(startIndex, endIndex);
-            let rows = this.tableData.map(d => d.gene);
+            let rows = this.tableData.map((d) => d.gene);
             await this.populateEvidence(rows);
-            this.rawData = rows.flatMap(gene => this.evidence[gene]);
+            this.rawData = rows.flatMap((gene) => this.evidence[gene]);
         },
-        async populateEvidence(genes){
-            await Promise.all(genes.map(gene => this.showEvidence(gene)));
+        async populateEvidence(genes) {
+            await Promise.all(genes.map((gene) => this.showEvidence(gene)));
         },
-        getPlotData(plotData){
+        getPlotData(plotData) {
             this.plotData = plotData;
-        }
+        },
     },
     watch: {
-        currentPage: function(){
+        currentPage: function () {
             this.populateGeneData();
-        }
-    }
+        },
+    },
 });
 </script>
 <style scoped>

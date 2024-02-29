@@ -1,7 +1,6 @@
 <template>
     <div id="tissues">
         <b-table
-            hover
             small
             responsive="sm"
             :items="tissueData"
@@ -9,6 +8,11 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <template #cell(gene)="r">
+                <a :href="`/gene.html?gene=${r.item.gene}`" target="_blank">
+                    {{ r.item.gene }}
+                </a>
+            </template>
             <template #cell(evidence)="r">
                 <b-button
                     v-b-popover.hover="'View evidence'"
@@ -26,8 +30,8 @@
                             ? "Hide"
                             : "Show"
                     }}
-                </b-button></template
-            >
+                </b-button>
+            </template>
             <template #cell(links)="r">
                 <b-button
                     v-b-popover.hover="'View links'"
@@ -50,7 +54,6 @@
             <template #row-details="r">
                 <div v-if="r.item.showButton === 1" class="row">
                     <div class="col-12">
-                        <h6>Evidence</h6>
                         <!-- show table with items from evidence if key is equal r.item.gene -->
 
                         <b-table
@@ -71,24 +74,52 @@
                 </div>
                 <div v-if="r.item.showButton === 2" class="row">
                     <div v-if="links[r.item.gene]" class="col-12">
-                        <h6>Gene Links</h6>
                         <b-table
                             :items="links[r.item.gene]"
                             :fields="linksFields"
                             :per-page="perPage"
-                            :current-page="currentPage"
-                            ><template #cell(region)="l">
-                                {{ l.item.chromosome }}:{{ l.item.start }}-{{
-                                    l.item.end
-                                }}
+                            :current-page="r.item.currentPage"
+                        >
+                            <template #cell(targetGene)="l">
+                                <a
+                                    :href="`/gene.html?gene=${l.item.targetGene}`"
+                                    target="_blank"
+                                >
+                                    {{ l.item.targetGene }}
+                                </a>
+                            </template>
+                            <template #cell(region)="l">
+                                <a
+                                    :href="`/region.html?chr=${l.item.chromosome}&end=${l.item.end}&start=${l.item.start}`"
+                                    target="_blank"
+                                >
+                                    {{ l.item.chromosome }}:{{
+                                        l.item.start
+                                    }}-{{ l.item.end }}
+                                </a>
                             </template>
                             <template #cell(targetRegion)="l">
-                                {{ l.item.chromosome }}:{{
-                                    l.item.targetGeneStart
-                                }}-{{ l.item.targetGeneEnd }}
+                                <a
+                                    :href="`/region.html?chr=${l.item.chromosome}&end=${l.item.targetGeneEnd}&start=${l.item.targetGeneStart}`"
+                                    target="_blank"
+                                >
+                                    {{ l.item.chromosome }}:{{
+                                        l.item.targetGeneStart
+                                    }}-{{ l.item.targetGeneEnd }}
+                                </a>
+                            </template>
+                            <template #cell(dataset)="l">
+                                <a
+                                    :href="`https://cmdga.org/annotations/${l.item.dataset}/`"
+                                    target="_blank"
+                                >
+                                    {{ l.item.dataset }}
+                                </a>
                             </template>
                             <template #cell(assay)="l">
-                                {{ l.item.assay.join(", ") }}
+                                {{
+                                    l.item.assay ? l.item.assay.join(", ") : ""
+                                }}
                             </template>
                         </b-table>
                         <b-pagination
@@ -118,8 +149,8 @@ export default Vue.component("TissueTable", {
         },
         filteredData: {
             type: Array,
-            required: true
-        }
+            required: true,
+        },
     },
     data() {
         return {
@@ -137,7 +168,7 @@ export default Vue.component("TissueTable", {
                 },
                 {
                     key: "nSamples",
-                    label: "# Samples"
+                    label: "# Samples",
                 },
                 {
                     key: "tstat",
@@ -227,7 +258,7 @@ export default Vue.component("TissueTable", {
                 },
             ],
             tableData: [],
-            plotData: []
+            plotData: [],
         };
     },
     mounted() {
@@ -278,15 +309,21 @@ export default Vue.component("TissueTable", {
         setShowButton(item, value) {
             this.$set(item, "showButton", Number(value));
         },
-        getEvidence(gene){
-            console.log(`Getting evidence for ${gene}`);
-            return this.$props.filteredData.filter(item => item.gene === gene);
-        }
+        getEvidence(gene) {
+            return this.$props.filteredData.filter(
+                (item) => item.gene === gene
+            );
+        },
     },
-
 });
 </script>
 <style scoped>
+.row {
+    font-size: smaller;
+    margin-left: 15px;
+    margin-right: 15px;
+    background-color: #dfdfdf;
+}
 .b-popover {
     background-color: #fff;
 }
