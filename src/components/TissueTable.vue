@@ -84,26 +84,26 @@
                             :current-page="r.item.currentPage"
                         >
                             <template #cell(targetGene)="l">
-                                <a :href="`/gene.html?gene=${l.item.targetGene}`"
+                                <a
+                                    :href="`/gene.html?gene=${l.item.targetGene}`"
                                     target="_blank"
                                 >
                                     {{ l.item.targetGene }}
                                 </a>
                             </template>
                             <template #cell(region)="l">
-                                <a :href="`/region.html?chr=${l.item.chromosome}
-                                    &end=${l.item.end}&start=${l.item.start}`"
+                                <a
+                                    :href="`/region.html?chr=${l.item.chromosome}&end=${l.item.end}&start=${l.item.start}`"
                                     target="_blank"
                                 >
-                                    {{ l.item.chromosome }}:{{ l.item.start }}-{{
-                                        l.item.end
-                                    }}
+                                    {{ l.item.chromosome }}:{{
+                                        l.item.start
+                                    }}-{{ l.item.end }}
                                 </a>
                             </template>
                             <template #cell(targetRegion)="l">
-                                <a :href="`/region.html?chr=${l.item.chromosome}
-                                    &end=${l.item.targetGeneEnd}
-                                    &start=${l.item.targetGeneStart}`"
+                                <a
+                                    :href="`/region.html?chr=${l.item.chromosome}&end=${l.item.targetGeneEnd}&start=${l.item.targetGeneStart}`"
                                     target="_blank"
                                 >
                                     {{ l.item.chromosome }}:{{
@@ -112,7 +112,9 @@
                                 </a>
                             </template>
                             <template #cell(assay)="l">
-                                {{ !l.item.assay? "" : l.item.assay.join(", ") }}
+                                {{
+                                    !l.item.assay ? "" : l.item.assay.join(", ")
+                                }}
                             </template>
                         </b-table>
                         <b-pagination
@@ -142,8 +144,8 @@ export default Vue.component("TissueTable", {
         },
         filteredData: {
             type: Array,
-            required: true
-        }
+            required: true,
+        },
     },
     data() {
         return {
@@ -161,7 +163,7 @@ export default Vue.component("TissueTable", {
                 },
                 {
                     key: "nSamples",
-                    label: "# Samples"
+                    label: "# Samples",
                 },
                 {
                     key: "tstat",
@@ -251,7 +253,7 @@ export default Vue.component("TissueTable", {
                 },
             ],
             tableData: [],
-            plotData: []
+            plotData: [],
         };
     },
     mounted() {
@@ -302,12 +304,13 @@ export default Vue.component("TissueTable", {
         setShowButton(item, value) {
             this.$set(item, "showButton", Number(value));
         },
-        getEvidence(gene){
+        getEvidence(gene) {
             console.log(`Getting evidence for ${gene}`);
-            return this.$props.filteredData.filter(item => item.gene === gene);
-        }
+            return this.$props.filteredData.filter(
+                (item) => item.gene === gene
+            );
+        },
     },
-
 });
 </script>
 <style scoped>
