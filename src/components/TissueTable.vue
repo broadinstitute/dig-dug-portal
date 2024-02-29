@@ -328,4 +328,9 @@ export default Vue.component("TissueTable", {
 .table-heading {
     font-weight: bold;
 }
+.row {
+    font-size: smaller;
+    margin-left: 15px;
+    margin-right: 15px;
+}
 </style>
