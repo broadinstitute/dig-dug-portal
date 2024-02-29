@@ -1260,55 +1260,61 @@ new Vue({
         },
         getTabGroups(TAB_GROUPS) {
 
-            let groups = [];
 
-            TAB_GROUPS.map(G => {
-                if (!!G["required parameters to display"]) {
-                    let required = G["required parameters to display"];
+            if (TAB_GROUPS) {
+                let groups = [];
 
-                    let testRequired = true;
+                TAB_GROUPS.map(G => {
+                    if (!!G["required parameters to display"]) {
+                        let required = G["required parameters to display"];
 
-                    required.map(R => {
-                        for (const [rKey, rValue] of Object.entries(R)) {
-                            let rKeyParam = keyParams[rKey];
-                            let rValues = rValue.split(",");
+                        let testRequired = true;
 
-                            if (!rKeyParam || (!!rKeyParam && !rValues.includes(rKeyParam))) {
-                                testRequired = false;
-                            }
-                        }
-                    })
+                        required.map(R => {
+                            for (const [rKey, rValue] of Object.entries(R)) {
+                                let rKeyParam = keyParams[rKey];
+                                let rValues = rValue.split(",");
 
-                    if (!!testRequired) {
-                        groups.push(G);
-                    }
-                } else {
-                    groups.push(G);
-                }
-            })
-
-            let context = keyParams["context"];
-            let pageContext = (this.sectionConfigs['context']) ? this.sectionConfigs['context'][context] : null;
-
-            if (!!context) {
-
-                let gInOrder = [];
-
-                if (!!context && !!pageContext) {
-                    pageContext.map(c => {
-
-                        groups.map(g => {
-                            if (g["group id"] == c) {
-                                gInOrder.push(g)
+                                if (!rKeyParam || (!!rKeyParam && !rValues.includes(rKeyParam))) {
+                                    testRequired = false;
+                                }
                             }
                         })
 
-                    })
+                        if (!!testRequired) {
+                            groups.push(G);
+                        }
+                    } else {
+                        groups.push(G);
+                    }
+                })
+
+                let context = keyParams["context"];
+                let pageContext = (this.sectionConfigs['context']) ? this.sectionConfigs['context'][context] : null;
+
+                if (!!context) {
+
+                    let gInOrder = [];
+
+                    if (!!context && !!pageContext) {
+                        pageContext.map(c => {
+
+                            groups.map(g => {
+                                if (g["group id"] == c) {
+                                    gInOrder.push(g)
+                                }
+                            })
+
+                        })
+                    }
+                    groups = gInOrder
                 }
-                groups = gInOrder
+
+                return groups;
+            } else {
+                return null;
             }
 
-            return groups;
         },
         getSections(SECTIONS) {
 

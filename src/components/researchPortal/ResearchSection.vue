@@ -2,232 +2,215 @@
 	<!--<div class="multi-section" :class="'wrapper-' + sectionIndex"
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
-
-	<div class="multi-section" :class="'wrapper-' + sectionIndex" 
-		v-if="(!!sectionConfig['required parameters to display'] && !!meetRequirements() && !!sectionData && sectionData.length > 0) 
-			|| !sectionConfig['required parameters to display']">
-
-		<div class="row section-header" v-if="!isInTab">
-			<div class="col-md-12">
-				<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
-					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
-				<button class="btn btn-sm show-evidence-btn show-hide-section" :class="(sectionHidden != true) ? '' : 'red-background'"
-					@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden=(sectionHidden == true)?false:true" title="Show / hide section"><b-icon
-						icon="eye"></b-icon></button>
-				<h4>{{ sectionConfig.header }}
-
-					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
-						v-for="parameter in dataPoint['parameters']" :key="parameter"
-						style="font-size:0.7em"
-						v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
-					<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
-						:id="'flag_' + sectionID">Loading data...</small>-->
-						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
-				</h4>
-			</div>
+	<div>
+		<div v-if="dataPoint.type == 'component'">
+			<research-section-components
+				:component="dataPoint.name">
+			</research-section-components>
 		</div>
+		<div class="multi-section" :class="'wrapper-' + sectionIndex" 
+			v-if="(!!sectionConfig['required parameters to display'] && !!meetRequirements() && !!sectionData && sectionData.length > 0) 
+				|| !sectionConfig['required parameters to display']">
 
-		<div class="row section-header" v-if="!!isInTab">
-			<div class="col-md-12">
-				<button  v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
-					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
-				<h4>
-					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
-						v-for="parameter in dataPoint['parameters']" :key="parameter"
-						style="font-size:0.7em"
-						v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
-					
-					<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
-						:id="'flag_' + sectionID">Loading data...</small>-->
-						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
-				</h4>
-			</div>
-		</div>
+			<div class="row section-header" v-if="!isInTab">
+				<div class="col-md-12">
+					<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
+						title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+					<button class="btn btn-sm show-evidence-btn show-hide-section" :class="(sectionHidden != true) ? '' : 'red-background'"
+						@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden=(sectionHidden == true)?false:true" title="Show / hide section"><b-icon
+							icon="eye"></b-icon></button>
+					<h4>{{ sectionConfig.header }}
 
-		<div class="row" :id="'section_' + sectionID">
-
-			<div class="col-md-12" v-if="!!groups">
-				<span v-for="key in groups" @click="removeData(key)"
-					class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
-
-					<div class="" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'left'" 
-						:style="'width: '+ sectionConfig['filters vertical']['width']+'px; margin-right: 15px'">
-	<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
-						:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
-						:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
-					</div>
-
-			<div :class="(!sectionConfig['filters vertical'])?'col-md-12 wrapper-' + sectionIndex: 'wrapper-' + sectionIndex"
-				:style="(!!sectionConfig['filters vertical'])?(!openInfoCard)?'width: calc(100% - ' + (sectionConfig['filters vertical']['width']+15) + 'px);':'':''">
-
-				<research-in-section-search v-if="!!sectionConfig['search parameters']"
-					:class="!!sectionConfig['search parameters'].display && sectionConfig['search parameters'].display == 'false' ? 'hidden-search' : ''"
-					:searchParameters="sectionConfig['search parameters']" :phenotypesInUse="phenotypesInUse"
-					:section="sectionConfig" :utils="utils">
-				</research-in-section-search>
-
-				<research-page-description v-if="!!sectionDescription" :content="sectionDescription"
-					:utils="utils"></research-page-description>
-
-				<research-section-filters v-if="!!filters && !sectionConfig['filters vertical']" :filters="filters" :filterWidth="sectionConfig['filter width']"
-					:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
-					:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters>
-					
-				<div
-					class="zoom-ui-wrapper" v-if="!!tableFormat && !!tableFormat['data zoom'] && !!sectionData && sectionData.length > 0"
-				>
-					<span>Zoom</span>
-
-					<form class="zoom-radio-wrapper">
-						<span
-							class="zoom-radio-number"
-							@click="setZoom('regionZoom',
-								regionZoom -=
-								regionZoom != 0 ? 10 : 0)
-								"
-							><b-icon icon="zoom-out"></b-icon
-						></span>
-
-						<input
-							v-for="value in [
-								0, 10, 20, 30, 40, 50, 60, 70, 80, 90,
-							]"
-							type="radio"
-							name="regionZoom"
-							:value="value"
-							@click="setZoom('regionZoom', value)"
-							:class="regionZoom == value
-								? 'zoom-radio checked'
-								: 'zoom-radio'
-								"
-							:key="value"
-						/>
-
-						<span
-							class="zoom-radio-number"
-							@click="setZoom('regionZoom',
-								regionZoom +=
-								regionZoom != 90 ? 10 : 0)
-								"
-							><b-icon icon="zoom-in"></b-icon
-						></span>
-					</form>
-
-					<span>Move viewing area</span>
-					<form class="zoom-radio-wrapper">
-						<span
-							class="zoom-radio-number"
-							@click="setZoom('regionViewArea',
-								regionViewArea -=
-								regionViewArea != -100 &&
-									regionZoom != 0
-									? 20
-									: 0)
-								"
-							><b-icon icon="arrow-left-circle"></b-icon
-						></span>
-						<input
-							v-for="value in [
-								-100, -80, -60, -40, -20, 0, 20, 40, 60,
-								80, 100,
-							]"
-							type="radio"
-							name="regionViewArea"
-							:value="value"
-							@click="setZoom('regionViewArea',
-								regionZoom != 0
-									? value
-									: '')
-								"
-							:class="regionViewArea == value
-								? 'zoom-radio checked'
-								: value == 0
-									? 'zoom-radio center'
-									: 'zoom-radio'
-								"
-							:key="value"
-						/>
-						<span
-							class="zoom-radio-number"
-							@click="setZoom('regionViewArea',
-								regionViewArea +=
-								regionViewArea != 100 &&
-									regionZoom != 0
-									? 20
-									: 0)
-								"
-							><b-icon icon="arrow-right-circle"></b-icon
-						></span>
-					</form>
+						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
+							v-for="parameter in dataPoint['parameters']" :key="parameter"
+							style="font-size:0.7em"
+							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
+						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
+							:id="'flag_' + sectionID">Loading data...</small>-->
+							<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
+					</h4>
 				</div>
-				
-				<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
-					<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
-						<div v-for="tab, tabIndex in multiVisualizers" :id="'tabUi' + sectionID + tabIndex"
-							class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
-								'tabUiGroup' + sectionID,
-								'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
-							{{ tab.label }}
+			</div>
+
+			<div class="row section-header" v-if="!!isInTab">
+				<div class="col-md-12">
+					<button  v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
+						title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+					<h4>
+						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
+							v-for="parameter in dataPoint['parameters']" :key="parameter"
+							style="font-size:0.7em"
+							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
+						
+						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
+							:id="'flag_' + sectionID">Loading data...</small>-->
+							<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
+					</h4>
+				</div>
+			</div>
+
+			<div class="row" :id="'section_' + sectionID">
+
+				<div class="col-md-12" v-if="!!groups">
+					<span v-for="key in groups" @click="removeData(key)"
+						class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
+
+						<div class="" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'left'" 
+							:style="'width: '+ sectionConfig['filters vertical']['width']+'px; margin-right: 15px'">
+		<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
+							:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
+							:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
+						</div>
+
+				<div :class="(!sectionConfig['filters vertical'])?'col-md-12 wrapper-' + sectionIndex: 'wrapper-' + sectionIndex"
+					:style="(!!sectionConfig['filters vertical'])?(!openInfoCard)?'width: calc(100% - ' + (sectionConfig['filters vertical']['width']+15) + 'px);':'':''">
+
+					<research-in-section-search v-if="!!sectionConfig['search parameters']"
+						:class="!!sectionConfig['search parameters'].display && sectionConfig['search parameters'].display == 'false' ? 'hidden-search' : ''"
+						:searchParameters="sectionConfig['search parameters']" :phenotypesInUse="phenotypesInUse"
+						:section="sectionConfig" :utils="utils">
+					</research-in-section-search>
+
+					<research-page-description v-if="!!sectionDescription" :content="sectionDescription"
+						:utils="utils"></research-page-description>
+
+					<research-section-filters v-if="!!filters && !sectionConfig['filters vertical']" :filters="filters" :filterWidth="sectionConfig['filter width']"
+						:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
+						:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters>
+						
+					<div
+						class="zoom-ui-wrapper" v-if="!!tableFormat && !!tableFormat['data zoom'] && !!sectionData && sectionData.length > 0"
+					>
+						<span>Zoom</span>
+
+						<form class="zoom-radio-wrapper">
+							<span
+								class="zoom-radio-number"
+								@click="setZoom('regionZoom',
+									regionZoom -=
+									regionZoom != 0 ? 10 : 0)
+									"
+								><b-icon icon="zoom-out"></b-icon
+							></span>
+
+							<input
+								v-for="value in [
+									0, 10, 20, 30, 40, 50, 60, 70, 80, 90,
+								]"
+								type="radio"
+								name="regionZoom"
+								:value="value"
+								@click="setZoom('regionZoom', value)"
+								:class="regionZoom == value
+									? 'zoom-radio checked'
+									: 'zoom-radio'
+									"
+								:key="value"
+							/>
+
+							<span
+								class="zoom-radio-number"
+								@click="setZoom('regionZoom',
+									regionZoom +=
+									regionZoom != 90 ? 10 : 0)
+									"
+								><b-icon icon="zoom-in"></b-icon
+							></span>
+						</form>
+
+						<span>Move viewing area</span>
+						<form class="zoom-radio-wrapper">
+							<span
+								class="zoom-radio-number"
+								@click="setZoom('regionViewArea',
+									regionViewArea -=
+									regionViewArea != -100 &&
+										regionZoom != 0
+										? 20
+										: 0)
+									"
+								><b-icon icon="arrow-left-circle"></b-icon
+							></span>
+							<input
+								v-for="value in [
+									-100, -80, -60, -40, -20, 0, 20, 40, 60,
+									80, 100,
+								]"
+								type="radio"
+								name="regionViewArea"
+								:value="value"
+								@click="setZoom('regionViewArea',
+									regionZoom != 0
+										? value
+										: '')
+									"
+								:class="regionViewArea == value
+									? 'zoom-radio checked'
+									: value == 0
+										? 'zoom-radio center'
+										: 'zoom-radio'
+									"
+								:key="value"
+							/>
+							<span
+								class="zoom-radio-number"
+								@click="setZoom('regionViewArea',
+									regionViewArea +=
+									regionViewArea != 100 &&
+										regionZoom != 0
+										? 20
+										: 0)
+									"
+								><b-icon icon="arrow-right-circle"></b-icon
+							></span>
+						</form>
+					</div>
+					
+					<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
+						<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
+							<div v-for="tab, tabIndex in multiVisualizers" :id="'tabUi' + sectionID + tabIndex"
+								class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
+									'tabUiGroup' + sectionID,
+									'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
+								{{ tab.label }}
+							</div>
+						</div>
+					</template>
+					<div v-if="!!multiVisualizers && !!sectionData"
+						:id="multiVisualizersType == 'tabs' ? 'tabContentGroup' + sectionID : ''">
+
+						<div v-for="plotConfig, plotIndex in multiVisualizers"
+							:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionID + plotIndex : ''"
+							class="plot-tab-content-wrapper"
+							:class="(multiVisualizersType == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
+							<h6 v-html="plotConfig.label" v-if="multiVisualizersType != 'tabs'"></h6>
+							<research-section-visualizers :plotConfig="plotConfig"
+								:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+								:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
+								:plotLegend="getSectionPlotLegend(sectionID + plotIndex)" :sectionId="sectionID + plotIndex"
+								:utils="utils" :dataComparisonConfig="dataComparisonConfig"
+								:searchParameters="groupSearchParameters"
+								:regionZoom="regionZoom"
+								:regionViewArea="regionViewArea"
+								:region="regionParam"
+								:starItems="starItems"
+								@on-star="starColumn">
+							</research-section-visualizers>
 						</div>
 					</div>
-				</template>
-				<div v-if="!!multiVisualizers && !!sectionData"
-					:id="multiVisualizersType == 'tabs' ? 'tabContentGroup' + sectionID : ''">
-
-					<div v-for="plotConfig, plotIndex in multiVisualizers"
-						:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionID + plotIndex : ''"
-						class="plot-tab-content-wrapper"
-						:class="(multiVisualizersType == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
-						<h6 v-html="plotConfig.label" v-if="multiVisualizersType != 'tabs'"></h6>
-						<research-section-visualizers :plotConfig="plotConfig"
-							:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-							:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
-							:plotLegend="getSectionPlotLegend(sectionID + plotIndex)" :sectionId="sectionID + plotIndex"
-							:utils="utils" :dataComparisonConfig="dataComparisonConfig"
-							:searchParameters="groupSearchParameters"
-							:regionZoom="regionZoom"
-							:regionViewArea="regionViewArea"
-							:region="regionParam"
-							:starItems="starItems"
-							@on-star="starColumn">
-						</research-section-visualizers>
-					</div>
-				</div>
-				<research-section-visualizers v-if="!multiVisualizers && !!visualizer && !!sectionData"
-					:plotConfig="visualizer"
-					:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-					:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
-					:plotLegend="getSectionPlotLegend(sectionID)" :sectionId="sectionID" :utils="utils"
-					:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
-					:regionZoom="regionZoom"
-					:regionViewArea="regionViewArea"
-					:region="regionParam"
-					:starItems="starItems"
-					@on-star="starColumn">
-				</research-section-visualizers>
-								<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
-					:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-					:tableFormat="tableFormat"
-					:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
-					:tableLegend="sectionTableLegend" 
-					:dataComparisonConfig="dataComparisonConfig" 
-					:searchParameters="groupSearchParameters" 
-					:pkgData="null" 
-					:pkgDataSelected="null" 
-					:phenotypeMap="phenotypeMap" 
-					:sectionId="sectionID"
-					:multiSectionPage="true" 
-					:starItems="starItems"
-					:utils="utils" 
-					@clicked-sort="sortData"
-					:region="regionParam"
-					:regionZoom="regionZoom"
-					:regionViewArea="regionViewArea"
-					@on-star="starColumn"
-					@on-filtering="updateData"
-					>
-				</research-data-table>
-				<research-info-cards v-if="!!tableFormat && !!tableFormat['rows as info cards']" :pageID="sectionIndex"
+					<research-section-visualizers v-if="!multiVisualizers && !!visualizer && !!sectionData"
+						:plotConfig="visualizer"
+						:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+						:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
+						:plotLegend="getSectionPlotLegend(sectionID)" :sectionId="sectionID" :utils="utils"
+						:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
+						:regionZoom="regionZoom"
+						:regionViewArea="regionViewArea"
+						:region="regionParam"
+						:starItems="starItems"
+						@on-star="starColumn">
+					</research-section-visualizers>
+									<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
 						:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 						:tableFormat="tableFormat"
 						:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
@@ -241,25 +224,48 @@
 						:multiSectionPage="true" 
 						:starItems="starItems"
 						:utils="utils" 
-						:thumbnailWidth="!!sectionConfig['filters vertical'] && !!sectionConfig['filters vertical']['width']? 
-										sectionConfig['filters vertical']['width']: 250"
 						@clicked-sort="sortData"
 						:region="regionParam"
 						:regionZoom="regionZoom"
 						:regionViewArea="regionViewArea"
-						:openCardPreset="openInfoCard"
 						@on-star="starColumn"
 						@on-filtering="updateData"
-						@on-openCard="setOpenInfoCard"
 						>
-					</research-info-cards>
+					</research-data-table>
+					<research-info-cards v-if="!!tableFormat && !!tableFormat['rows as info cards']" :pageID="sectionIndex"
+							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+							:tableFormat="tableFormat"
+							:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
+							:tableLegend="sectionTableLegend" 
+							:dataComparisonConfig="dataComparisonConfig" 
+							:searchParameters="groupSearchParameters" 
+							:pkgData="null" 
+							:pkgDataSelected="null" 
+							:phenotypeMap="phenotypeMap" 
+							:sectionId="sectionID"
+							:multiSectionPage="true" 
+							:starItems="starItems"
+							:utils="utils" 
+							:thumbnailWidth="!!sectionConfig['filters vertical'] && !!sectionConfig['filters vertical']['width']? 
+											sectionConfig['filters vertical']['width']: 250"
+							@clicked-sort="sortData"
+							:region="regionParam"
+							:regionZoom="regionZoom"
+							:regionViewArea="regionViewArea"
+							:openCardPreset="openInfoCard"
+							@on-star="starColumn"
+							@on-filtering="updateData"
+							@on-openCard="setOpenInfoCard"
+							>
+						</research-info-cards>
+				</div>
+				<div class="vertical-filter" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'" 
+								:style="'width: ' + sectionConfig['filters vertical']['width'] + 'px;margin-left: 15px;'">
+		<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
+								:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
+								:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
+							</div>
 			</div>
-			<div class="vertical-filter" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'" 
-							:style="'width: ' + sectionConfig['filters vertical']['width'] + 'px;margin-left: 15px;'">
-	<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
-							:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
-							:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
-						</div>
 		</div>
 	</div>
 </template>
@@ -271,6 +277,7 @@ import ResearchInSectionSearch from "@/components/researchPortal/ResearchInSecti
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
 import ResearchSectionFiltersVertical from "@/components/researchPortal/ResearchSectionFiltersVertical.vue";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
+import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue";
 
@@ -282,6 +289,7 @@ export default Vue.component("research-section", {
 		ResearchSectionFilters,
 		ResearchSectionFiltersVertical,
 		ResearchSectionVisualizers,
+		ResearchSectionComponents,
 		ResearchDataTable,
 		ResearchInfoCards,
 		ResearchInSectionSearch
@@ -886,6 +894,9 @@ export default Vue.component("research-section", {
 						//console.log("query",query)
 
 						this.queryGraphQl(query,  this.dataPoint["url"],paramsString, paramsType, params)
+						break;
+					case "component":
+						this.loadingDataFlag = "down";
 						break;
 				}
 			} else {

@@ -707,7 +707,6 @@
 									</div>
 								</div>
 							</template>
-							
 							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">	
 								<research-section
 									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
