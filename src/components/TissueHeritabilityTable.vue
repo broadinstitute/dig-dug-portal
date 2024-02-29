@@ -3,6 +3,10 @@
         <h4>
             {{ `Global enrichments for ${tissue.toUpperCase()}` }}
         </h4>
+        <documentation
+            name="tissue.global-enrichment.subheader"
+            :content-fill="$parent.documentationMap"
+        ></documentation>
         <b-table
             hover
             small

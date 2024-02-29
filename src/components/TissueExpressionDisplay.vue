@@ -3,6 +3,10 @@
         <h4>
             {{ `Gene expressions for ${tissue.toUpperCase()}` }}
         </h4>
+        <documentation
+            name="tissue.gene-expression.subheader"
+            :content-fill="$parent.documentationMap"
+        ></documentation>
         <div id="plot" v-if="rawData.length > 0">
             <research-expression-filter
                 :rawData="rawData"
