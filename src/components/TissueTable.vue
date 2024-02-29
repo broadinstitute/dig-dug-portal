@@ -116,7 +116,7 @@
                                     :href="`https://cmdga.org/annotations/${l.item.dataset}/`"
                                     target="_blank"
                                 >
-                                    {{ data.value }}
+                                    {{ l.item.dataset }}
                                 </a>
                             </template>
                             <template #cell(assay)="l">
