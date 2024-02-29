@@ -1,7 +1,7 @@
 <template>
     <div>
         <h4>
-            {{ `Gene expressions for ${tissue.toUpperCase()}` }}
+            {{ `Gene expression for ${tissue.toUpperCase()}` }}
         </h4>
         <documentation
             name="tissue.gene-expression.subheader"

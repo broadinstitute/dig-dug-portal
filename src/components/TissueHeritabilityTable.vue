@@ -1,7 +1,7 @@
 <template>
     <div>
         <h4>
-            {{ `Global enrichments for ${tissue.toUpperCase()}` }}
+            {{ `Global enrichment for ${tissue.toUpperCase()}` }}
         </h4>
         <documentation
             name="tissue.global-enrichment.subheader"
