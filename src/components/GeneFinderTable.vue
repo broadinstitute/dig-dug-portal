@@ -268,6 +268,7 @@ export default Vue.component("GeneFinderTable", {
                 a.phenotypes.forEach((phenotype) => {
                     groups.push({
                         phenotype,
+                        gene: a.gene,
                         pValue: a[`${phenotype}:pValue`],
                         chromosome: a.chromosome,
                         position: Math.floor((a.start + a.end) / 2),
