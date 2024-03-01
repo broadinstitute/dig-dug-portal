@@ -272,16 +272,9 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            Top common variant gene-level associations for
+                            Top gene-level associations for
                             {{ $store.state.phenotype.description }}
-                            with P-Value &le; 0.05 (Ancestry:
-                            {{
-                                $store.state.ancestry == ""
-                                    ? "All"
-                                    : $parent.ancestryFormatter(
-                                          $store.state.ancestry
-                                      )
-                            }})
+                            with P-Value &le; 0.05
 
                             <tooltip-documentation
                                 name="phenotype.genes.tooltip"
@@ -309,7 +302,9 @@
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <b-tabs>
-                                    <b-tab title="Common variant associations">
+                                    <b-tab :title="`Common variant associations (Ancestry: 
+                                        ${$store.state.ancestry === '' ? 'All' 
+                                            : $parent.ancestryFormatter($store.state.ancestry)})`">
                                         <gene-finder-table
                                             :phenotypes="[$store.state.phenotype.name]"
                                             :phenotype-map="
@@ -322,7 +317,7 @@
                                         >
                                         </gene-finder-table>
                                     </b-tab>
-                                    <b-tab title="Testing testing testing">
+                                    <b-tab title="Rare variant associations (all ancestries)">
                                         <gene-finder-table
                                             :phenotypes="[$store.state.phenotype.name]"
                                             :phenotype-map="
