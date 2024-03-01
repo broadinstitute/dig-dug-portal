@@ -308,16 +308,34 @@
                             </filter-pvalue-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
-                                <gene-finder-table
-                                    :phenotypes="[$store.state.phenotype.name]"
-                                    :phenotype-map="
-                                        $store.state.bioPortal.phenotypeMap
-                                    "
-                                    :associations="$store.state.genes.data"
-                                    :rows-per-page="10"
-                                    :filter="filter"
-                                    :show-plot="true"
-                                ></gene-finder-table>
+                                <b-tabs>
+                                    <b-tab title="Common variant associations">
+                                        <gene-finder-table
+                                            :phenotypes="[$store.state.phenotype.name]"
+                                            :phenotype-map="
+                                                $store.state.bioPortal.phenotypeMap
+                                            "
+                                            :associations="$store.state.genes.data"
+                                            :rows-per-page="10"
+                                            :filter="filter"
+                                            :show-plot="true"
+                                        >
+                                        </gene-finder-table>
+                                    </b-tab>
+                                    <b-tab title="Testing testing testing">
+                                        <gene-finder-table
+                                            :phenotypes="[$store.state.phenotype.name]"
+                                            :phenotype-map="
+                                                $store.state.bioPortal.phenotypeMap
+                                            "
+                                            :associations="$store.state.genes52k.data"
+                                            :rows-per-page="10"
+                                            :filter="filter"
+                                            :show-plot="true"
+                                        >
+                                        </gene-finder-table>
+                                    </b-tab>
+                                </b-tabs>
                             </template>
                         </criterion-function-group>
                     </div>

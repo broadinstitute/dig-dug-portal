@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="manhattan" style="width: 100%; height: 300px"></div>
+        <div :id="`manhattan_${uniqueId}`" style="width: 100%; height: 300px"></div>
     </div>
 </template>
 
@@ -17,6 +17,7 @@ export default Vue.component("ManhattanPlot", {
     data() {
         return {
             chart: null,
+            uniqueId: Math.floor(Math.random() * 10e9)
         };
     },
 
@@ -101,7 +102,7 @@ export default Vue.component("ManhattanPlot", {
 
             // attach to the dom
             this.chart = c3.generate({
-                bindto: "#manhattan",
+                bindto: `#manhattan_${this.uniqueId}`,
                 size: {
                     height: 300,
                 },
