@@ -25,7 +25,6 @@ export default Vue.component("ManhattanPlot", {
     computed: {
         columns() {
             // This is getting computed many, many times. Can we reduce the number of calls?
-            console.log(JSON.stringify(this.phenotypes));
             if (this.singlePhenotype){
                 return this.columnsByGene();
             }
@@ -58,8 +57,6 @@ export default Vue.component("ManhattanPlot", {
                     if (r.phenotype == p) {
                         x.push(chromosomeStart[r.chromosome] + r.position);
                         y.push(-Math.log10(r.pValue));
-                    } else {
-                        console.log("Non-matching phenotype!!!");
                     }
                 });
 
@@ -141,7 +138,6 @@ export default Vue.component("ManhattanPlot", {
                     type: "scatter",
                     order: null,
                     color: function (color, d) {
-                        //console.log(JSON.stringify(d));
                         if (
                             !component.phenotypes ||
                             !component.colorByPhenotype ||
@@ -149,7 +145,6 @@ export default Vue.component("ManhattanPlot", {
                         ) {
                             return positionColors.find((c) => d.x < c[0])[1];
                         }
-
                         // phenotype index will determine the color
                         let i = component.phenotypes.indexOf(d.id);
 
@@ -324,7 +319,7 @@ for (let i in chromosomes) {
     opacity: 0.65 !important;
     fill: currentColor;
 }
-</script > <style > div.manhattan-tooltip table {
+div.manhattan-tooltip table {
     background-color: white;
     font-size: small;
     border: 1px solid darkgray;
