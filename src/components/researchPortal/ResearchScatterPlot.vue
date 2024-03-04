@@ -947,22 +947,16 @@ export default Vue.component("research-scatter-plot", {
 						
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
-								if(typeof hValue === Number){
-								posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
-							}else{
-								posContent += hValue + "</span><br />";
-							}
+
+							posContent += this.utils.Formatters.getHoverValue(hValue) + "</span><br />";
+							
 						}
 					} else if(EVENT_TYPE == 'click'){
 						posContent += "<strong>" + d.key + "</strong><br />";
 						//console.log('alex dot', d.key, d.hover);
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
-							if(typeof hValue === Number){
-								posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
-							}else{
-								posContent += hValue + "</span><br />";
-							}
+							posContent += this.utils.Formatters.getHoverValue(hValue) + "</span><br />";
 							
 						}
 					}
@@ -1144,8 +1138,11 @@ $(function () { });
 }
 
 .scatter-dot-value-content {
-	height: 450px;
+	height: auto;
+	max-height: 450px;
     overflow: auto;
+	padding-right: 15px;
+	padding-bottom: 15px;
 }
 
 .fixed-info-box-close {
