@@ -17,7 +17,8 @@ export default Vue.component("ManhattanPlot", {
     data() {
         return {
             chart: null,
-            uniqueId: Math.floor(Math.random() * 10e9)
+            uniqueId: Math.floor(Math.random() * 10e9),
+            singlePhenotype: this.phenotypes.length === 1
         };
     },
 
@@ -25,7 +26,7 @@ export default Vue.component("ManhattanPlot", {
         columns() {
             // This is getting computed many, many times. Can we reduce the number of calls?
             console.log(JSON.stringify(this.phenotypes));
-            if (this.phenotypes.length === 1){
+            if (this.singlePhenotype){
                 return this.columnsByGene();
             }
             let n = (this.associations || []).length;
@@ -95,7 +96,7 @@ export default Vue.component("ManhattanPlot", {
     watch: {
         columns(data) {
             let columns = data;
-            let xs = this.phenotypes.length !== 1 ? this.columnKeys : this.geneKeys;
+            let xs = this.singlePhenotype ? this.geneKeys : this.columnKeys;
 
             this.build_chart(xs, columns);
         },
@@ -143,7 +144,8 @@ export default Vue.component("ManhattanPlot", {
                         //console.log(JSON.stringify(d));
                         if (
                             !component.phenotypes ||
-                            !component.colorByPhenotype
+                            !component.colorByPhenotype ||
+                            component.singlePhenotype
                         ) {
                             return positionColors.find((c) => d.x < c[0])[1];
                         }
