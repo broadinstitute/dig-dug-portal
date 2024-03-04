@@ -23,6 +23,11 @@ export default Vue.component("ManhattanPlot", {
 
     computed: {
         columns() {
+            // This is getting computed many, many times. Can we reduce the number of calls?
+            console.log(JSON.stringify(this.phenotypes));
+            if (this.phenotypes.length === 1){
+                return this.columnsByGene();
+            }
             let n = (this.associations || []).length;
 
             // if no phenotypes, then just 2 columns for generic pValue
@@ -52,6 +57,8 @@ export default Vue.component("ManhattanPlot", {
                     if (r.phenotype == p) {
                         x.push(chromosomeStart[r.chromosome] + r.position);
                         y.push(-Math.log10(r.pValue));
+                    } else {
+                        console.log("Non-matching phenotype!!!");
                     }
                 });
 
@@ -76,12 +83,19 @@ export default Vue.component("ManhattanPlot", {
 
             return xs;
         },
+        geneKeys(){
+            let xs = {};
+            this.associations.forEach(r => {
+                xs[r.gene] = `${r.gene}_x`;
+            });
+            return xs;
+        }
     },
 
     watch: {
         columns(data) {
             let columns = data;
-            let xs = this.columnKeys;
+            let xs = this.phenotypes.length !== 1 ? this.columnKeys : this.geneKeys;
 
             this.build_chart(xs, columns);
         },
@@ -92,6 +106,16 @@ export default Vue.component("ManhattanPlot", {
     },
 
     methods: {
+        columnsByGene(){
+            let columns = [];
+            this.associations.forEach(r => {
+                let x = [`${r.gene}_x`, chromosomeStart[r.chromosome] + r.position];
+                let y = [r.gene, -Math.log10(r.pValue)];
+                columns.push(x);
+                columns.push(y);
+            });
+            return columns;
+        },
         build_chart(xs, columns) {
             let component = this;
             let names = {};
@@ -116,6 +140,7 @@ export default Vue.component("ManhattanPlot", {
                     type: "scatter",
                     order: null,
                     color: function (color, d) {
+                        //console.log(JSON.stringify(d));
                         if (
                             !component.phenotypes ||
                             !component.colorByPhenotype
