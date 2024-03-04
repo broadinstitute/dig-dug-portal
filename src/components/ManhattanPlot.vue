@@ -38,7 +38,7 @@ export default Vue.component("ManhattanPlot", {
                 return { pValue: "pValue_x" };
             }
             let xs = {};
-            let allKeys = this.singlePhenotype ? this.associations.map(r => r.gene) : this.phenotypeMap;
+            let allKeys = this.singlePhenotype ? this.associations.map(r => r.gene) : this.phenotypes;
             allKeys.forEach((p) => {
                 xs[p] = `${p}_x`;
             });
