@@ -9,7 +9,7 @@
 			</research-section-components>
 		</div>
 		<div class="multi-section" :class="'wrapper-' + sectionIndex" 
-			v-if="(!!sectionConfig['required parameters to display'] && !!meetRequirements() && !!sectionData && sectionData.length > 0) 
+			v-if="(!!sectionConfig['required parameters to display'] && !!meetRequirements()) 
 				|| !sectionConfig['required parameters to display']">
 
 			<div class="row section-header" v-if="!isInTab">
