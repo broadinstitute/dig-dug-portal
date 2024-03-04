@@ -26,51 +26,18 @@ export default Vue.component("ManhattanPlot", {
         columns() {
             // This is getting computed many, many times. Can we reduce the number of calls?
             if (this.singlePhenotype){
-                return this.columnsByGene();
+               return this.columnsSinglePhenotype();
             }
-            let n = (this.associations || []).length;
-
-            // if no phenotypes, then just 2 columns for generic pValue
             if (!this.phenotypes) {
-                let x = new Array(n + 1);
-                let y = new Array(n + 1);
-
-                x[0] = "pValue_x";
-                y[0] = "pValue";
-
-                this.associations.forEach((r, i) => {
-                    x[i + 1] = chromosomeStart[r.chromosome] + r.position;
-                    y[i + 1] = -Math.log10(r.pValue);
-                });
-
-                return [x, y];
+                return this.columnsNoPhenotype();
             }
-
-            let columns = [];
-
-            // each phenotype gets two columns of data (x and y)
-            this.phenotypes.forEach((p, i) => {
-                let x = [`${p}_x`];
-                let y = [p];
-
-                this.associations.forEach((r) => {
-                    if (r.phenotype == p) {
-                        x.push(chromosomeStart[r.chromosome] + r.position);
-                        y.push(-Math.log10(r.pValue));
-                    }
-                });
-
-                columns.push(x);
-                columns.push(y);
-            });
-
-            return columns;
+            return columnsMultiPhenotype();
         },
         columnKeys() {
-            let xs = {};
             if (!this.phenotypes) {
                 return { pValue: "pValue_x" };
             }
+            let xs = {};
             let allKeys = this.singlePhenotype ? this.associations.map(r => r.gene) : this.phenotypeMap;
             allKeys.forEach((p) => {
                 xs[p] = `${p}_x`;
@@ -90,16 +57,6 @@ export default Vue.component("ManhattanPlot", {
     },
 
     methods: {
-        columnsByGene(){
-            let columns = [];
-            this.associations.forEach(r => {
-                let x = [`${r.gene}_x`, chromosomeStart[r.chromosome] + r.position];
-                let y = [r.gene, -Math.log10(r.pValue)];
-                columns.push(x);
-                columns.push(y);
-            });
-            return columns;
-        },
         build_chart(xs, columns) {
             let component = this;
             let names = {};
@@ -210,6 +167,49 @@ export default Vue.component("ManhattanPlot", {
                 },
             });
         },
+        columnsSinglePhenotype(){
+            // If only one phenotype, show the data by gene.
+            let columns = [];
+            this.associations.forEach(r => {
+                let x = [`${r.gene}_x`, chromosomeStart[r.chromosome] + r.position];
+                let y = [r.gene, -Math.log10(r.pValue)];
+                columns.push(x);
+                columns.push(y);
+            });
+            return columns;
+        },
+        columnsNoPhenotype(){
+            // Use generic "p-value" label if no phenotypes are present.
+            let n = (this.associations || []).length;
+            let x = new Array(n + 1);
+            let y = new Array(n + 1);
+
+            x[0] = "pValue_x";
+            y[0] = "pValue";
+
+            this.associations.forEach((r, i) => {
+                x[i + 1] = chromosomeStart[r.chromosome] + r.position;
+                y[i + 1] = -Math.log10(r.pValue);
+            });
+            return [x, y];
+        },
+        columnsMultiPhenotype(){
+            let columns = [];
+            // if multiple phenotypes, each phenotype gets two columns of data (x and y)
+            this.phenotypes.forEach((p, i) => {
+                let x = [`${p}_x`];
+                let y = [p];
+                this.associations.forEach((r) => {
+                    if (r.phenotype == p) {
+                        x.push(chromosomeStart[r.chromosome] + r.position);
+                        y.push(-Math.log10(r.pValue));
+                    }
+                });
+                columns.push(x);
+                columns.push(y);
+            });
+            return columns;
+        }
     },
 });
 
