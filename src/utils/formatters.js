@@ -255,6 +255,17 @@ function maskFormatter(mask) {
     return { description: mask, sort: 7 };
 }
 
+function getHoverValue(VALUE) {
+    let formatted;
+
+    if (typeof VALUE == 'number' && !isNaN(VALUE)) {
+        formatted = pValueFormatter(VALUE);
+    } else {
+        formatted = VALUE;
+    }
+    return formatted;
+}
+
 function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
     if (
         CONFIG["column formatting"] != undefined &&
@@ -532,4 +543,5 @@ export default {
     pValueCss,
     decimalFormatter,
     BYORColumnFormatter,
+    getHoverValue,
 };
