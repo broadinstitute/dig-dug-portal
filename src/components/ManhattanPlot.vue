@@ -68,34 +68,20 @@ export default Vue.component("ManhattanPlot", {
         },
         columnKeys() {
             let xs = {};
-            let phenotypeMap = this.phenotypeMap;
-
-            // if there's a list of phenotypes, each phenotype gets a color
             if (!this.phenotypes) {
                 return { pValue: "pValue_x" };
             }
-
-            this.phenotypes.forEach((p) => {
+            let allKeys = this.singlePhenotype ? this.associations.map(r => r.gene) : this.phenotypeMap;
+            allKeys.forEach((p) => {
                 xs[p] = `${p}_x`;
             });
-
             return xs;
         },
-        geneKeys(){
-            let xs = {};
-            this.associations.forEach(r => {
-                xs[r.gene] = `${r.gene}_x`;
-            });
-            return xs;
-        }
     },
 
     watch: {
         columns(data) {
-            let columns = data;
-            let xs = this.singlePhenotype ? this.geneKeys : this.columnKeys;
-
-            this.build_chart(xs, columns);
+            this.build_chart(this.columnKeys, data);
         },
     },
 
