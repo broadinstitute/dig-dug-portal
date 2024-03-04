@@ -305,7 +305,7 @@ export default Vue.component("research-m-bitmap-plot", {
 										'<span class="content-on-clicked-dot">' +
 										h +
 										": " +
-										dotObject[h] +
+										 this.utils.Formatters.getHoverValue(dotObject[h]) +
 										"</span>";
 								});
 							}
@@ -331,6 +331,16 @@ export default Vue.component("research-m-bitmap-plot", {
 					.getElementById("manhattanPlot_" + this.sectionId + ID)
 					.classList.remove("hover");
 			}
+		},
+		getHoverValue(VALUE) {
+			let formatted;
+
+			if (typeof VALUE == 'number' && !isNaN(VALUE)) {
+				formatted = this.utils.Formatters.pValueFormatter(VALUE);
+			} else {
+				formatted = VALUE;
+			}
+			return formatted;
 		},
 		checkPosition(event, ID) {
 
@@ -369,7 +379,7 @@ export default Vue.component("research-m-bitmap-plot", {
 											'<span class="content-on-clicked-dot">' +
 											h +
 											": " +
-											dotObject[h] +
+											this.utils.Formatters.getHoverValue(dotObject[h]) +
 											"</span>";
 									});
 								}

@@ -613,8 +613,7 @@
 										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
 										$parent.utilsBox.uiUtils.showHideSvg('tabContentGroup' + groupIndex);
 										$parent.utilsBox.uiUtils.addRemoveClass('tabsOpener' + groupIndex,'closed');" title="Show / hide section">
-										<span :id="'groupLabel'+ + groupIndex">{{ "Show/hide "+group.label+"  " }}</span><b-icon
-											icon="eye-slash-fill"></b-icon>
+										<span :id="'groupLabel'+ + groupIndex">{{ "Show / hide section" }}</span>
 									</button>
 
 									<div v-if="group.type && group.type === 'fixed bottom'" class="fixed-group-toggle-wrapper">
@@ -635,7 +634,7 @@
 											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
 												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
 											{{ tab.label }} <span class="flag"><b-icon
-												icon="cloud-download-fill"></b-icon></span>
+												icon="circle-fill"></b-icon></span>
 										</div>
 									</div>
 									
@@ -676,6 +675,8 @@
 													:uId="$parent.uid"
 													:key="index"
 													:sectionsConfig="config"
+													:description="!!$parent.sectionDescriptions ?
+														$parent.sectionDescriptions[config['section id']] : ''"
 													:sectionsData="$parent.sectionsData"
 													:utils="$parent.utilsBox"
 													:starItems="$parent.starItems"
@@ -720,6 +721,8 @@
 									:uId="$parent.uid"
 									:key="index"
 									:sectionsConfig="config"
+									:description="!!$parent.sectionDescriptions ?
+										$parent.sectionDescriptions[config['section id']] : ''"
 									:sectionsData="$parent.sectionsData"
 									:utils="$parent.utilsBox"
 									:starItems="$parent.starItems"
@@ -1002,6 +1005,7 @@ html, body, #app {
 .tab-ui-wrapper .tab-ui-tab.loading > .flag {
  	display: inline-block;
 	color:#05bd02;
+	font-size: 0.7em;
 }
 
 .tab-ui-wrapper.hidden-svg {

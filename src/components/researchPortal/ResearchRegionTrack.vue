@@ -408,13 +408,13 @@ export default Vue.component("research-region-track", {
                         if (action == "hover" && blockIndex < 5) {
                             hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
                             this.plotConfig["hover content"].map(h => {
-                                hoverContent += "<strong>" + h + "</strong>: <span>" + b[h] + "</span><br />";
+                                hoverContent += "<strong>" + h + "</strong>: <span>" + this.utils.Formatters.getHoverValue(b[h]) + "</span><br />";
                             })
                             hoverContent += "<br />";
                         } else if (action == "click") {
                             hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
                             this.plotConfig["hover content"].map(h => {
-                                hoverContent += "<strong>" + h + "</strong>: <span>" + b[h] + "</span><br />";
+                                hoverContent += "<strong>" + h + "</strong>: <span>" + this.utils.Formatters.getHoverValue(b[h]) + "</span><br />";
                             })
                             hoverContent += "<br />";
                         }
