@@ -276,9 +276,8 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
         let linkToNewTab = columnKeyObj["new tab"]
             ? columnKeyObj["new tab"]
             : null;
-
-
         let cellValue = VALUE;
+
         formatTypes.map((type) => {
             let linkString, linkLabel, fieldValue, weight, weightClasses;
             switch (type) {
@@ -421,17 +420,17 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
 
                         /*linkString =
                             "<a href='" + columnKeyObj["link to"] + cellValue;
-    
+
                         linkString +=
                             !!columnKeyObj["link type"] &&
                                 columnKeyObj["link type"] == "button"
                                 ? "' class='btn btn-sm btn-outline-secondary link-button"
                                 : "";
-    
+
                         linkLabel = columnKeyObj["link label"]
                             ? columnKeyObj["link label"]
                             : cellValue;
-    
+
                         linkString +=
                             linkToNewTab == "true"
                                 ? "' target='_blank'>" + linkLabel + "</a>"
@@ -439,55 +438,6 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     }
 
                     cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
-                    break;
-
-                case "as link":
-                    //if (typeof cellValue != "object") {
-                    cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
-                    /*} else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
-                        let cellValueString = "";
-                        cellValue.map(value => {
-                            cellValueString += "<a href='" + value + "'>" + value + "</a>";
-                        })
-    
-                        cellValue = cellValueString;
-                    }*/
-
-                    break;
-
-                case "image":
-                    //if (typeof cellValue != "object") {
-                    cellValue = '<img width="' + columnKeyObj["width"] + '" height="' + columnKeyObj["height"] + '" src="' + cellValue + '" />'
-                    /*} else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
-                        let cellValueString = "<div class='imgs_wrapper'>";
-                        cellValue.map(value => {
-                            cellValueString += "<img src='" + value + "' />";
-                        })
-                        cellValueString += "</div>"
-    
-                        cellValue = cellValueString;
-                    }*/
-
-                    break;
-
-                case "video":
-                    cellValue = '<video width="' + columnKeyObj["width"] + '" height="' + columnKeyObj["height"] + '" controls><source src="' + cellValue + '" type="video/mp4" >\
-                            Your browser does not support the video tag.</video>'
-                    break;
-
-                case "value in class":
-                    if (typeof cellValue != "object") {
-                        const colorize = formatTypes.includes('colorize');
-                        cellValue = `<span class="${cellValue} ${colorize ? 'do-color' : ''}">${cellValue}</span>`
-                    } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
-                        let cellValueString = "";
-                        cellValue.map(value => {
-                            cellValueString += `<span class="${value} ${colorize ? 'do-color' : ''}">${value}</span>`;
-                        })
-
-                        cellValue = cellValueString;
-                    }
-
                     break;
 
                 case "render background percent":
@@ -562,99 +512,36 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     break;
             }
         });
-        return cellValue
+
+        return cellValue;
+    } else {
+        return VALUE;
     }
+}
 
-    function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
-        if (
-            CONFIG["column formatting"] != undefined &&
-            CONFIG["column formatting"][KEY] != undefined
-        ) {
-            let columnKeyObj = CONFIG["column formatting"][KEY];
-            let formatTypes = columnKeyObj["type"];
-            let linkToNewTab = columnKeyObj["new tab"]
-                ? columnKeyObj["new tab"]
-                : null;
-            let cellValue;
-
-            if (typeof VALUE != "object") {
-                //console.log('...not object')
-                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab);
-            } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
-                //console.log('...is array')
-                if (formatTypes.includes("object to mini-card")) {
-
-                    let cellValueString = "";
-
-                    VALUE.map(aValue => {
-                        cellValueString += "<div class='mini-card'>";
-                        let valueKeys = Object.keys(aValue);
-                        console.log(aValue["title"]);
-                        cellValueString += `<div class="mini-card-video">
-                            <video src="${aValue["video"]}" poster="${aValue["screenshot"]}" autoplay loop muted playsinline>
-                        </div>`;
-                        cellValueString += `<div class="mini-card-info">
-                            <a class="mini-card-title" href="${aValue["link"]}" target="_blank">${aValue["title"]}<span>&nearr;</span></a>
-                            <div class="mini-card-description">${aValue["description"]}</div>
-                        </div>`;
-                        /*
-                        valueKeys.map(vk => {
-                            let kValue = aValue[vk];
-                            let kVColumnKeyObj = CONFIG["column formatting"][vk]
-                            if (!!kVColumnKeyObj) {
-                                cellValueString += "<div class='row-key'>" + vk + "</div>" + formatCellValues(kValue, kVColumnKeyObj, kVColumnKeyObj["type"], linkToNewTab);
-                            } else {
-                                cellValueString += "<div class='row-key'>" + vk + "</div><div class='row-value'>" + kValue + "</div>"
-                            }
-    
-                        })
-                        */
-                        cellValueString += "</div>";
-                    })
-                    cellValue = cellValueString;
-                } else {
-                    //console.log('...something else')
-                    let cellValueString = (!!formatTypes.includes("image")) ? "<div class='imgs_wrapper'>" : "";
-                    VALUE.map(value => {
-                        cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab);
-                    })
-
-                    cellValueString += (!!formatTypes.includes("image")) ? "</div>" : "";
-
-                    cellValue = cellValueString;
-                }
-
-            }
-
-            return cellValue;
-        } else {
-            return VALUE;
-        }
-    }
-
-    export default {
-        alleleFormatter,
-        ancestryFormatter,
-        dataTypeFormatter,
-        annotationFormatter,
-        bioTypeFormatter,
-        capitalizedFormatter,
-        consequenceFormatter,
-        consequenceMeaning,
-        dbSNPFormatter,
-        floatFormatter,
-        intFormatter,
-        locusFormatter,
-        igvLocusFormatter,
-        maskFormatter,
-        phenotypeFormatter,
-        snakeFormatter,
-        tissueFormatter,
-        methodFormatter,
-        pValueFormatter,
-        effectFormatter,
-        pValueCss,
-        decimalFormatter,
-        BYORColumnFormatter,
-        getHoverValue,
-    };
+export default {
+    alleleFormatter,
+    ancestryFormatter,
+    dataTypeFormatter,
+    annotationFormatter,
+    bioTypeFormatter,
+    capitalizedFormatter,
+    consequenceFormatter,
+    consequenceMeaning,
+    dbSNPFormatter,
+    floatFormatter,
+    intFormatter,
+    locusFormatter,
+    igvLocusFormatter,
+    maskFormatter,
+    phenotypeFormatter,
+    snakeFormatter,
+    tissueFormatter,
+    methodFormatter,
+    pValueFormatter,
+    effectFormatter,
+    pValueCss,
+    decimalFormatter,
+    BYORColumnFormatter,
+    getHoverValue,
+};
