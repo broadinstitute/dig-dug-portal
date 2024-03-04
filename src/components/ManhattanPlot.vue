@@ -31,7 +31,7 @@ export default Vue.component("ManhattanPlot", {
             if (!this.phenotypes) {
                 return this.columnsNoPhenotype();
             }
-            return columnsMultiPhenotype();
+            return this.columnsMultiPhenotype();
         },
         columnKeys() {
             if (!this.phenotypes) {
