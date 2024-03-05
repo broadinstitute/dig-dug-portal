@@ -1,5 +1,6 @@
 <template>
 	<div class="byor-single-search-wrapper">
+		<h3>search: </h3>
 		<input
 			class="form-control byor-single-search"
 			type="text"
@@ -50,6 +51,23 @@
 							phenotype.group
 						}}</span>
 					</div>
+				</template>
+
+				<template v-for="param in singleSearchConfig['search parameters']">
+					<template v-if="!param.values || (!!param.values && param.values != 'kp genes' && param.values != 'kp phenotypes') ">
+						<template v-if="!!isParameterActive(param['parameter']).active">
+							<div
+								v-for="item in singleSearchResult[param['parameter']]"
+								:value="item.value"
+								:key="item.value"
+							>
+								<a :href="isParameterActive(param['parameter']).url + item.value">{{
+									item.label
+								}}</a
+								>
+							</div>
+						</template>
+					</template>
 				</template>
 			</div>
 		</div>
@@ -117,9 +135,23 @@ export default Vue.component("research-single-search", {
 				diseases: [],
 				custom:{}
 			},
+			customList:{}
 		};
 	},
-	created() {},
+	created() {
+
+		this.singleSearchConfig["search parameters"].map(S=>{
+			if(!!S["data point"]){
+				let listPoint = S["data point"];
+				this.getList(	
+						S["parameter"],
+						listPoint["url"],
+						listPoint["data type"],
+						listPoint["data wrapper"]
+				)
+			}
+		})
+	},
 	mounted() {},
 	computed: {},
 	watch: {
@@ -197,12 +229,59 @@ export default Vue.component("research-single-search", {
 							+param['target page']['page id'];
 						returnParam.url += (!!param['target page']['entity'])? '&' + param['target page']['entity parameter'] + '='+param['target page']['entity']:"";
 						returnParam.url += '&'+param['parameter']+'=';
+					} else {
+						if(param.parameter == PARAM) {
+							returnParam.active = true;
+							returnParam.url = '/research.html?pageid='
+								+ param['target page']['page id'];
+							returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
+							returnParam.url += '&' + param['parameter'] + '=';
+						}
 					}
 				})
 			}
 
 			return returnParam;
 
+		},
+		async getList( PARAM,URL,TYPE,WRAPPER) {
+			if(!!URL) {
+				
+				let paramList = await fetch(URL).then((resp) => resp.json());
+				let list;
+
+				console.log("got here",paramList);
+
+				if (paramList.error == null) {
+
+					if (typeof paramList == "string") {
+						paramList = (TYPE == "json") ? JSON.parse(paramList) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(paramList) : paramList;
+					}
+					if (!!WRAPPER) {
+
+						let dataEntity = paramList;
+
+						WRAPPER.map(w => {
+							dataEntity = dataEntity[w];
+						})
+
+
+						if (typeof dataEntity == "string") {
+							dataEntity = (TYPE == "json") ? JSON.parse(dataEntity) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(dataEntity) : dataEntity;
+						}
+
+						list = dataEntity;
+
+					} else {
+						list = paramList
+					}
+					this.customList[PARAM] = list;
+
+				} else {
+					console.log("there is an error");
+				}
+			}
+			
 		},
 		async searchGene(KEY) {
 			
