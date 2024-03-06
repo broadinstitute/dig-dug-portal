@@ -31,9 +31,9 @@
         </div>
         <div class="fp-bottom">
             <div class="fp-bottom-container">
-                <research-page-description v-if="pageDescription"
-                    :content="pageDescription"
-                    :utils="utilsBox"
+                <research-page-description v-if="this.pageDescription"
+                    :content="this.pageDescription"
+                    :utils="this.utilsBox"
                 ></research-page-description>
             </div>
         </div>
@@ -43,12 +43,11 @@
 <script>
 import Vue from "vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
-import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 
 export default Vue.component("research-front-page", {
 	props: ["sectionConfigs","pageDescription", "utilsBox","phenotypeMap","phenotypesInUse"],
     
-	components: { ResearchPageDescription },
+	components: {},
 
 	data() {
 		return {
@@ -116,10 +115,10 @@ export default Vue.component("research-front-page", {
     padding-top: 0;
     padding-left: 0;
     padding-right: 0;
-}
+    }
 .fp-top{
     flex: 0 1 auto;
-    padding:0 0 50px;
+    padding:0 0 20px;
 }
 .fp-nav-section {
     padding: 5px; 
@@ -202,6 +201,10 @@ export default Vue.component("research-front-page", {
 .fp-bottom-container{
     max-width: 980px;
     margin: 0 auto;
+}
+.fp-bottom:has(.fp-bottom-container:empty) {
+    padding: 0;
+    display:none;
 }
 .fp-col{
     max-width:50%; 
