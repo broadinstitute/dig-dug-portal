@@ -275,7 +275,7 @@ export default Vue.component("TissueTable", {
                 if (!this.links[gene]) {
                     let data = await query(
                         "gene-links",
-                        this.tissue + "," + gene
+                        this.tissue.replace(" ", "_") + "," + gene
                     );
 
                     Vue.set(this.links, gene, data);
