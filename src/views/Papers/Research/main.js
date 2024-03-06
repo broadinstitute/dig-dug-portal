@@ -434,7 +434,7 @@ new Vue({
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
-            console.log('frontContents', contents);
+            //console.log('frontContents', contents);
 
             if (contents.length === 0) {
                 return {};
@@ -476,9 +476,9 @@ new Vue({
                 return null;
             } else {
 
-                if(!!this.sectionConfigs["is front page"]){
+                if (!!this.sectionConfigs["is front page"]) {
                     return contents[0]["body"];
-                }else if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                } else if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
                     && !!this.sectionConfigs["is multi section"] == true) {
                     let description = document.createElement('div');
                     description.style.display = 'none';

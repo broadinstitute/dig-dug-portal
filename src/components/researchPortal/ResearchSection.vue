@@ -812,8 +812,6 @@ export default Vue.component("research-section", {
 				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
 						queryParams[p] = this.utils.keyParams[p].toString().split(","); ///  work on this line
-
-						//console.log("queryParams[p]", queryParams[p]);
 					} else {
 						queryParamsSet = null;
 					}
@@ -854,7 +852,6 @@ export default Vue.component("research-section", {
 				queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
 			}
 
-			//console.log("queryParamsString", queryParamsString)
 			//5. Check if return the first item in the queryParamsString
 
 			if (queryParamsString.length > 0) {
@@ -868,13 +865,11 @@ export default Vue.component("research-section", {
 			}
 		},
 		getData(FROM) {
-			console.log("getData", FROM);
 			this.loadingDataFlag = "up";
 			this.queryData(FROM);
 		},
 
 		queryData(FROM) {
-			console.log("queryData", FROM);
 			let queryType = this.dataPoint["type"];
 			let paramsType = this.dataPoint["parameters type"]
 			let params = this.dataPoint["parameters"]
@@ -924,8 +919,6 @@ export default Vue.component("research-section", {
 
 						let query = `${urlString}`;
 
-						//console.log("query",query)
-
 						this.queryGraphQl(query,  this.dataPoint["url"],paramsString, paramsType, params)
 						break;
 					case "component":
@@ -962,7 +955,6 @@ export default Vue.component("research-section", {
 
 			fetchGraphQL(graphqlQuery)
 				.then(data => {
-					//console.log('GraphQL response:', data);
 					this.processLoadedApi(data, PARAM, TYPE, PARAMS);
 				})
 				.catch(error => console.error('Error fetching GraphQL:', error));
@@ -1073,10 +1065,9 @@ export default Vue.component("research-section", {
 			if(!!file) {
 				let dataUrl = "https://hugeampkpncms.org/servedata/dataset?dataset="
 				dataUrl += (file.includes("http") || file.includes("https")) ? file : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + file;
-				//console.log("dataUrl", dataUrl);
+				
 				let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 				if (contentJson.error == null) {
-					//console.log("contentJson", contentJson);
 					this.processLoadedApi(contentJson, file, null, null)
 				}
 			}
@@ -1367,7 +1358,6 @@ export default Vue.component("research-section", {
 						this.queryApi(paramsString, TYPE, PARAMS)
 					}
 				} else {
-					//console.log(typeof data);
 					
 					this.sectionData = this.checkPreFilters(data);
 					this.loadingDataFlag = "down";

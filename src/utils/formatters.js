@@ -579,7 +579,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 VALUE.map(aValue => {
                     cellValueString += "<div class='mini-card'>";
                     let valueKeys = Object.keys(aValue);
-                    console.log(aValue["title"]);
+                    //console.log(aValue["title"]);
                     cellValueString += `<div class="mini-card-video">
                             <video src="${aValue["video"]}" poster="${aValue["screenshot"]}" autoplay loop muted playsinline>
                         </div>`;

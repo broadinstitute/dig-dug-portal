@@ -274,7 +274,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     }
                 })
             })
-            console.log("rowsData", rowsData);
+            //console.log("rowsData", rowsData);
 
             DATA = rowsData;
         }

@@ -12,12 +12,11 @@
 		/>
 		<!-- BYOR front page templates -->
 		<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
+
 			<div
 				id="byor_single_search_results"
 				class="byor-single-search-results"
-				v-if="singleSearchResult.genes.length > 0 ||
-					singleSearchResult.phenotypes.length > 0
-					"
+				v-if="anyResults() > 0"
 			>
 				<div v-for="gene in singleSearchResult.genes" :key="gene">
 					{{ gene
@@ -55,6 +54,7 @@
 
 				<template v-for="param in singleSearchConfig['search parameters']">
 					<template v-if="!param.values || (!!param.values && param.values != 'kp genes' && param.values != 'kp phenotypes') ">
+						
 						<template v-if="!!isParameterActive(param['parameter']).active">
 							<div
 								v-for="item in singleSearchResult[param['parameter']]"
@@ -132,8 +132,7 @@ export default Vue.component("research-single-search", {
 			singleSearchResult: {
 				genes: [],
 				phenotypes: [],
-				diseases: [],
-				custom:{}
+				diseases: []
 			},
 			customList:{}
 		};
@@ -215,7 +214,16 @@ export default Vue.component("research-single-search", {
 		},
 	},
 	methods: {
+		anyResults() {
+			let parameters = Object.keys(this.singleSearchResult) 
 
+			let totalResults = 0;
+			parameters.map(p=>{
+				totalResults += this.singleSearchResult[p].length;
+			})
+
+			return totalResults;
+		},
 		onSearch() {
 			let searchKey = this.singleSearchParam.replace(/,/g, "").trim();
 			if (

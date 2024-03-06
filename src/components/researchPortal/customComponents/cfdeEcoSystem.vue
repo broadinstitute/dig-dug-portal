@@ -486,7 +486,7 @@ $(function () {
     padding: 20px;
 }
 .col-md-12 {
-    padding: 0;
+    /*padding: 0;*/
 }
 .blurb {
     display: flex;

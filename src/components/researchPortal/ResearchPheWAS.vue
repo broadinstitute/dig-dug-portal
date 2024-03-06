@@ -419,6 +419,29 @@ export default Vue.component("research-phewas-plot", {
 			}
 		},
 		renderPheWas() {
+
+			//console.log(this.renderData);
+			if(!!this.renderConfig["thresholds"] && this.renderConfig["thresholds"] == "calculate") {
+
+				let threshholds = [];
+				this.renderConfig["thresholds calculate"].map(expression =>{
+					let calcString = "";
+
+					expression.map(e => {
+						let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : 
+							(typeof e === 'number') ? e : 
+							(typeof e === 'string') ? (e == "data length")? this.renderData.data.length:null:null;
+
+						calcString += eValue;
+					});
+					//console.log("calcString", calcString)
+					let threshold = eval(calcString);
+					//console.log("threshold", threshold)
+					threshholds.push(threshold);
+				})
+				this.renderConfig["thresholds"] = threshholds;
+			}
+
 			let wrapper = document.querySelector(
 				"#" + this.canvasId + "pheWasPlotWrapper"
 			);
@@ -585,7 +608,7 @@ export default Vue.component("research-phewas-plot", {
 
 				let dotIndex = 0;
 
-				console.log("totalNum", totalNum);
+				//console.log("totalNum", totalNum);
 
 				if (totalNum > 1) {
 					for (const [key, value] of Object.entries(renderData)) {

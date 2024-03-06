@@ -1,6 +1,7 @@
 <template>
 	<div>
-		<cfde-eco-system v-if="component='cfdeEcoSystem'"></cfde-eco-system>
+		<component :is="currentComponent"></component>
+		<!-- <cfde-eco-system v-if="component='cfdeEcoSystem'"></cfde-eco-system> -->
 	</div>
 </template>
 
@@ -17,11 +18,18 @@ export default Vue.component("research-section-components", {
 	},
 	data() {
 		return {
+			currentComponent: null,
 		};
 	},
 	modules: {
 	},
 	mounted: function () {
+
+		switch(this.component) {
+			case 'cfdeEcoSystem':
+				this.currentComponent = cfdeEcoSystem;
+				break;
+		}
 	},
 	computed: {
 		
