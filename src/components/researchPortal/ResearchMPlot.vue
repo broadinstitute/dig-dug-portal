@@ -32,7 +32,7 @@
 		</div>
 		<div class="y-axis-label">{{ renderConfig["y axis label"] }}</div>
 		<div id="egl_m_plot_y"></div>
-		<div class="egl-m-plot" id="egl_m_plot"></div>
+		<div class="egl-m-plot" :id="`${plotId}_egl_m_plot`"></div>
 		<div class="x-axis-label">{{ renderConfig["x axis label"] }}</div>
 	</div>
 </template>
@@ -48,7 +48,9 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("research-m-plot", {
 	props: ["plotData", "renderConfig","utils"],
 	data() {
-		return {};
+		return {
+			plotId: Math.floor(Math.random() * 10e9)
+		};
 	},
 	mounted: function () {
 		this.renderPlot();
@@ -66,7 +68,7 @@ export default Vue.component("research-m-plot", {
 				let grouped =
 					document.getElementById("groupByLocusCheck").checked;
 
-				document.getElementById("egl_m_plot").innerHTML = "";
+				document.getElementById(`${this.plotId}_egl_m_plot`).innerHTML = "";
 				let chromosomeLength = {
 					//chromosome name, length
 					1: 248956422,
@@ -110,7 +112,7 @@ export default Vue.component("research-m-plot", {
 					dnaLength += chromosomeLength[chr];
 				}
 
-				let plotWrapper = document.getElementById("egl_m_plot");
+				let plotWrapper = document.getElementById(`${this.plotId}_egl_m_plot`);
 
 				for (const chr in chromosomeLength) {
 					let chrLength = (chromosomeLength[chr] / dnaLength) * 100;
@@ -125,7 +127,7 @@ export default Vue.component("research-m-plot", {
 						'" class="chr_dots_wrapper"></div>\
                 <div class="chr_number" onclick="expandChr(\'' +
 						chr +
-						"');\">" +
+						"', '" + this.plotId + "');\">" +
 						chr +
 						"</div>\
             </div>";
@@ -450,7 +452,8 @@ export default Vue.component("research-m-plot", {
 $(function () {
 	let customScript = document.createElement("script");
 	customScript.text =
-		"let expandChr = function(CHR) {\
+		"let expandChr = function(CHR, PLOTID) {\
+						console.log(PLOTID);\
             let wrapper = 'chr_wrapper_'+CHR;\
             let element = document.getElementById(wrapper);\
             \
