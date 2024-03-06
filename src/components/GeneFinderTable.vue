@@ -8,6 +8,10 @@
                 :color-by-phenotype="true"
                 style="margin-bottom: 10px"
             ></manhattan-plot>
+            <research-m-plot
+                :plotData="formatAssocData(tableData)"
+                :renderConfig="assocPlotConfig"
+            ></research-m-plot>
             <center style="margin-bottom: 30px">
                 <b v-show="!!showChiSquared">
                     Combined P-Value(Χ²) across
@@ -132,6 +136,17 @@ export default Vue.component("GeneFinderTable", {
                     label: "Gene",
                 },
             ],
+            assocPlotConfig: {
+                "type": "manhattan plot",
+                "x axis field": "position",
+                "y axis field": "minusLogP",
+                "render by": "gene",
+                "x axis label": "Position",
+                "y axis label": "-log10(p-value)",
+                "height": 300,
+                "link to": "/region.html",
+                "hover content": ["pValue"]
+            }
         };
     },
 
@@ -283,7 +298,13 @@ export default Vue.component("GeneFinderTable", {
         intFormatter: Formatters.intFormatter,
         floatFormatter: Formatters.floatFormatter,
         pValueFormatter: Formatters.pValueFormatter,
-
+        formatAssocData(assocData){
+            assocData.forEach(entry => {
+                entry.position = `${entry.chromosome} : ${entry.start} - ${entry.end}`;
+                entry.minusLogP = -Math.log10(entry.pValue);
+            });
+            return assocData;
+        },
         phenotypePValueColumn(phenotype) {
             return `cell(${phenotype}:pValue)`;
         },

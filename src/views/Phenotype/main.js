@@ -16,7 +16,6 @@ import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
 import PathwayTable from "@/components/PathwayTable.vue";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import Documentation from "@/components/Documentation.vue";
@@ -85,17 +84,6 @@ new Vue({
         return {
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
-            assocPlotConfig: {
-                "type": "manhattan plot",
-                "x axis field": "position",
-                "y axis field": "minusLogP",
-                "render by": "gene",
-                "x axis label": "Position",
-                "y axis label": "-log10(p-value)",
-                "height": 300,
-                "link to": "/region.html",
-                "hover content": ["pValue"]
-            }
         };
     },
     methods: {
@@ -124,13 +112,6 @@ new Vue({
 
             return isInPhenotype == searchKeys.length ? true : null;
         },
-        formatAssocData(assocData){
-            assocData.forEach(entry => {
-                entry.position = `${entry.chromosome} : ${entry.start} - ${entry.end}`;
-                entry.minusLogP = -Math.log10(entry.pValue);
-            });
-            return assocData;
-        }
     },
 
     computed: {

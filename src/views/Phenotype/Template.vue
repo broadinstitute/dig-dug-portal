@@ -318,10 +318,6 @@
                                     :filter="filter"
                                     :show-plot="true"
                                 ></gene-finder-table>
-                                <research-m-plot
-                                    :plotData="$parent.formatAssocData($store.state.genes.data)"
-                                    :renderConfig="$parent.assocPlotConfig"
-                                ></research-m-plot>
                             </template>
                         </criterion-function-group>
                     </div>
