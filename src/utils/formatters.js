@@ -454,6 +454,21 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                             Your browser does not support the video tag.</video>'
                 break;
 
+            case "list":
+                if (typeof cellValue != "object") {
+                    cellValue = `<div class="list-item">${cellValue}</div>`
+                }else if (typeof cellValue === "object" && Array.isArray(cellValue)) {
+                    let cellValueString = "<ul>";
+                    cellValue.map(value => {
+                        cellValueString += `<li>${value}</li>`;
+                    })
+                    cellValueString += "</ul>";
+
+                    cellValue = cellValueString;
+                }
+
+                break;
+
             case "value in class":
                 if (typeof cellValue != "object") {
                     const colorize = formatTypes.includes('colorize');
@@ -613,7 +628,11 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
 
                 cellValue = cellValueString;
             }
-
+        }else {
+            if (formatTypes.includes("custom-extra")) {
+                console.log('extra', VALUE);
+                cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
+            }
         }
 
         return cellValue;
