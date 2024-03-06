@@ -476,7 +476,9 @@ new Vue({
                 return null;
             } else {
 
-                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                if(!!this.sectionConfigs["is front page"]){
+                    return contents[0]["body"];
+                }else if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
                     && !!this.sectionConfigs["is multi section"] == true) {
                     let description = document.createElement('div');
                     description.style.display = 'none';

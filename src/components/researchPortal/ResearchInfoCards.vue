@@ -41,7 +41,7 @@
 			</template>
 		</div>
 
-		<div class="details-wrapper">
+		<div :class="['details-wrapper', openCard ? 'feature' : '']">
 			
 			 <template  v-for="(value, index) in rawData">
 				<div :class="['info-card', !openCard || openCard == value[tableFormat['rows as info cards']['key']] ? '' : 'hidden']">
