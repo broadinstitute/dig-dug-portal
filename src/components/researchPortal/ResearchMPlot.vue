@@ -9,7 +9,7 @@
 					type="checkbox"
 					id="groupByLocusCheck"
 					class="form-control"
-					@click="renderPlot()"
+					@click="renderPlot(plotId)"
 				/>
 				Render by region
 			</div>
@@ -17,7 +17,7 @@
 				Count region by:
 				<select
 					id="mergeByNumber"
-					@change="renderPlot()"
+					@change="renderPlot(plotId)"
 					class="form-control"
 				>
 					<option value="1">1</option>
@@ -53,22 +53,22 @@ export default Vue.component("research-m-plot", {
 		};
 	},
 	mounted: function () {
-		this.renderPlot();
+		this.renderPlot(this.plotId);
 	},
 	computed: {},
 	watch: {
 		plotData() {
-			this.renderPlot();
+			this.renderPlot(this.plotId);
 		},
 	},
 	methods: {
 		//...uiUtils,
-		renderPlot() {
+		renderPlot(uniqueId) {
 			if (this.plotData != null && this.renderConfig != null) {
 				let grouped =
 					document.getElementById("groupByLocusCheck").checked;
 
-				document.getElementById(`${this.plotId}_egl_m_plot`).innerHTML = "";
+				document.getElementById(`${uniqueId}_egl_m_plot`).innerHTML = "";
 				let chromosomeLength = {
 					//chromosome name, length
 					1: 248956422,
@@ -112,7 +112,7 @@ export default Vue.component("research-m-plot", {
 					dnaLength += chromosomeLength[chr];
 				}
 
-				let plotWrapper = document.getElementById(`${this.plotId}_egl_m_plot`);
+				let plotWrapper = document.getElementById(`${uniqueId}_egl_m_plot`);
 
 				for (const chr in chromosomeLength) {
 					let chrLength = (chromosomeLength[chr] / dnaLength) * 100;
@@ -127,7 +127,7 @@ export default Vue.component("research-m-plot", {
 						'" class="chr_dots_wrapper"></div>\
                 <div class="chr_number" onclick="expandChr(\'' +
 						chr +
-						"', '" + this.plotId + "');\">" +
+						"', '" + uniqueId + "');\">" +
 						chr +
 						"</div>\
             </div>";
@@ -171,7 +171,7 @@ export default Vue.component("research-m-plot", {
 						"</span></div>";
 				}
 
-				document.getElementById(this.plotId + "_egl_m_plot_y_axis").innerHTML =
+				document.getElementById(`${uniqueId}_egl_m_plot_y_axis`).innerHTML =
 					yAxisContent;
 
 				if (grouped == false) {
