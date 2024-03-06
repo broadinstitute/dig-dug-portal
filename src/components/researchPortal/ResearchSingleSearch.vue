@@ -60,9 +60,9 @@
 								v-for="item in singleSearchResult[param['parameter']]"
 								:value="item.value"
 								:key="item.value"
-							>
-								<a :href="isParameterActive(param['parameter']).url + item.value">{{
-									item.label
+							>{{ item.label }}
+								<a :href="isParameterActive(param['parameter']).url + item.value" class="search-word-group">{{
+									'Search '+param['parameter']
 								}}</a
 								>
 							</div>
@@ -179,9 +179,38 @@ export default Vue.component("research-single-search", {
 				});
 
 				this.singleSearchResult.phenotypes = searchPhenotypes;
+
+				/// for custom parameters
+				let searchFields = Object.keys(this.customList);
+
+				searchFields.map(P => {
+					let searchItems = [];
+					this.customList[P].map(item=>{
+						let isInList = 0;
+						paramWords.map((w) => {
+							if (
+								!!item.label
+									.toLowerCase()
+									.includes(w.toLowerCase())
+							) {
+								isInList++;
+							}
+						});
+
+						if (isInList == paramWords.length) {
+							searchItems.push(item);
+						}
+					})
+					this.singleSearchResult[P] = searchItems;
+				})
 			} else {
 				this.singleSearchResult.genes = [];
 				this.singleSearchResult.phenotypes = [];
+				let searchFields = Object.keys(this.customList);
+
+				searchFields.map(P => {
+					this.singleSearchResult[P] = [];
+				})
 			}
 		},
 	},
@@ -249,8 +278,6 @@ export default Vue.component("research-single-search", {
 				
 				let paramList = await fetch(URL).then((resp) => resp.json());
 				let list;
-
-				console.log("got here",paramList);
 
 				if (paramList.error == null) {
 

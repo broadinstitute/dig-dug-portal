@@ -309,7 +309,8 @@ export default Vue.component("research-section", {
 			loadingDataFlag: "down",
 			regionParam:null,
 			sectionHidden: false,
-			openInfoCard: null
+			openInfoCard: null,
+			customList:{},
 		};
 	},
 	modules: {
@@ -327,9 +328,22 @@ export default Vue.component("research-section", {
 				this.openInfoCard = this.utils.keyParams[infoCardConfig['key']];
 			}
 		}
+
+		if(!!this.sectionConfig["data point"] && !!this.sectionConfig["data point"]["parameters point"]) {
+			let listPoint = this.sectionConfig["data point"]["parameters point"];
+			this.getList(
+				listPoint["parameter"],
+				listPoint["url"],
+				listPoint["data type"],
+				listPoint["data wrapper"]
+			)
+		}
 	},
 	mounted() {
-		this.getData();
+		if(!!this.sectionConfig["data point"] && !this.sectionConfig["data point"]["parameters point"]) {
+			this.getData();
+		}
+		
 	},
 	computed: {
 		sectionID() {
@@ -853,12 +867,14 @@ export default Vue.component("research-section", {
 				}
 			}
 		},
-		getData() {
+		getData(FROM) {
+			console.log("getData", FROM);
 			this.loadingDataFlag = "up";
-			this.queryData();
+			this.queryData(FROM);
 		},
 
-		queryData() {
+		queryData(FROM) {
+			console.log("queryData", FROM);
 			let queryType = this.dataPoint["type"];
 			let paramsType = this.dataPoint["parameters type"]
 			let params = this.dataPoint["parameters"]
@@ -887,9 +903,26 @@ export default Vue.component("research-section", {
 						break;
 					case "graphQl":
 						// first added for CFDE project, to query data from IDG(pharos)
-						let testString = this.dataPoint["query string"].replace("$parameter", paramsString)
+						let urlString;
 
-						let query = `${testString}`;
+						if (paramsType == "array") {
+							urlString = this.dataPoint["query string"].replace("$parameter", paramsString)
+						} else if (paramsType == "replace to field") {
+
+							urlString = this.dataPoint["query string"]
+
+							params.map((param, pIndex) => {
+								let paramList = this.customList[param]
+								let replaceFrom = this.dataPoint["replace from"];
+								let replaceTo = this.dataPoint["replace to"];
+
+								let paramValue = paramList.filter(item => item[replaceFrom] == paramsString.split(",")[pIndex])[0][replaceTo];
+
+								urlString = urlString.replace("$" + param, paramValue);
+							})
+						}
+
+						let query = `${urlString}`;
 
 						//console.log("query",query)
 
@@ -1003,7 +1036,19 @@ export default Vue.component("research-section", {
 				PARAMS.map((param,pIndex)=>{
 					dataUrl = dataUrl.replace("$"+param,QUERY.split(",")[pIndex]);
 				})	
+			}  else if (!!PARAMS && TYPE == "replace to field") {
+
+				PARAMS.map((param, pIndex) => {
+					let paramList = this.customList[param]
+					let replaceFrom = this.dataPoint["replace from"];
+					let replaceTo = this.dataPoint["replace to"];
+
+					let paramValue = paramList.filter(item => item[replaceFrom] == QUERY.split(",")[pIndex])[0][replaceTo];
+
+					dataUrl = dataUrl.replace("$" + param, paramValue);
+				})
 			}
+
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
 			if (contentJson.error == null) {
@@ -1036,6 +1081,45 @@ export default Vue.component("research-section", {
 				}
 			}
 			
+		},
+		async getList(PARAM, URL, TYPE, WRAPPER) {
+			if (!!URL) {
+
+				let paramList = await fetch(URL).then((resp) => resp.json());
+				let list;
+
+				if (paramList.error == null) {
+
+					if (typeof paramList == "string") {
+						paramList = (TYPE == "json") ? JSON.parse(paramList) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(paramList) : paramList;
+					}
+					if (!!WRAPPER) {
+
+						let dataEntity = paramList;
+
+						WRAPPER.map(w => {
+							dataEntity = dataEntity[w];
+						})
+
+
+						if (typeof dataEntity == "string") {
+							dataEntity = (TYPE == "json") ? JSON.parse(dataEntity) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(dataEntity) : dataEntity;
+						}
+
+						list = dataEntity;
+
+					} else {
+						list = paramList
+					}
+					this.customList[PARAM] = list;
+
+					this.getData('custom');
+
+				} else {
+					console.log("there is an error");
+				}
+			}
+
 		},
 
 		processLoadedBI(CONTENT, QUERY) {
