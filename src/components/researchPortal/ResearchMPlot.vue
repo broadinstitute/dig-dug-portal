@@ -31,7 +31,7 @@
 			</div>
 		</div>
 		<div class="y-axis-label">{{ renderConfig["y axis label"] }}</div>
-		<div class="egl_m_plot_y" id="egl_m_plot_y"></div>
+		<div class="egl_m_plot_y" :id="`${plotId}_egl_m_plot_y_axis`"></div>
 		<div class="egl-m-plot" :id="`${plotId}_egl_m_plot`"></div>
 		<div class="x-axis-label">{{ renderConfig["x axis label"] }}</div>
 	</div>
@@ -171,7 +171,7 @@ export default Vue.component("research-m-plot", {
 						"</span></div>";
 				}
 
-				document.getElementById("egl_m_plot_y").innerHTML =
+				document.getElementById(this.plotId + "_egl_m_plot_y_axis").innerHTML =
 					yAxisContent;
 
 				if (grouped == false) {
