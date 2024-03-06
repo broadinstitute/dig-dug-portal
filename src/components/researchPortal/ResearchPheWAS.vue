@@ -585,6 +585,8 @@ export default Vue.component("research-phewas-plot", {
 
 				let dotIndex = 0;
 
+				console.log("totalNum", totalNum);
+
 				if (totalNum > 1) {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
@@ -639,7 +641,7 @@ export default Vue.component("research-phewas-plot", {
 												]
 										  ]["description"];
 
-								if (this.renderConfig["beta field"] != "null") {
+								if (this.renderConfig["beta field"] != "null" && !!this.renderConfig["beta field"]) {
 									this.renderTriangle(
 										ctx,
 										xPos,

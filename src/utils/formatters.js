@@ -255,7 +255,7 @@ function maskFormatter(mask) {
     return { description: mask, sort: 7 };
 }
 
-function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab) {
+function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES) {
 
     let cellValue = VALUE;
     formatTypes.map((type) => {
@@ -569,7 +569,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
 
         if (typeof VALUE != "object") {
             //console.log('...not object')
-            cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab);
+            cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
         } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
             //console.log('...is array')
             if (formatTypes.includes("object to mini-card")) {
@@ -606,7 +606,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 //console.log('...something else')
                 let cellValueString = (!!formatTypes.includes("image")) ? "<div class='imgs_wrapper'>" : "";
                 VALUE.map(value => {
-                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab);
+                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
                 })
 
                 cellValueString += (!!formatTypes.includes("image")) ? "</div>" : "";
