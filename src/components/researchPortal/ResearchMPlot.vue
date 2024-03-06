@@ -453,7 +453,6 @@ $(function () {
 	let customScript = document.createElement("script");
 	customScript.text =
 		"let expandChr = function(CHR, PLOTID) {\
-						console.log(PLOTID);\
             let wrapper = PLOTID+'_chr_wrapper_'+CHR;\
             let element = document.getElementById(wrapper);\
             \

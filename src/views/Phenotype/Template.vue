@@ -315,6 +315,18 @@
                                             :show-plot="true"
                                         ></gene-finder-table>
                                     </b-tab>
+                                    <b-tab title="Rare variant (all ancestries)">
+                                        <gene-finder-table
+                                            :phenotypes="[$store.state.phenotype.name]"
+                                            :phenotype-map="
+                                                $store.state.bioPortal.phenotypeMap
+                                            "
+                                            :associations="$store.state.genes52k.data"
+                                            :rows-per-page="10"
+                                            :filter="filter"
+                                            :show-plot="true"
+                                        ></gene-finder-table>
+                                    </b-tab>
                                 </b-tabs>
                             </template>
                         </criterion-function-group>
