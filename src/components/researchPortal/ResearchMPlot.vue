@@ -31,7 +31,7 @@
 			</div>
 		</div>
 		<div class="y-axis-label">{{ renderConfig["y axis label"] }}</div>
-		<div id="egl_m_plot_y"></div>
+		<div class="egl_m_plot_y" id="egl_m_plot_y"></div>
 		<div class="egl-m-plot" :id="`${plotId}_egl_m_plot`"></div>
 		<div class="x-axis-label">{{ renderConfig["x axis label"] }}</div>
 	</div>
