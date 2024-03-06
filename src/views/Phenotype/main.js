@@ -88,10 +88,11 @@ new Vue({
             assocPlotConfig: {
                 "type": "manhattan plot",
                 "x axis field": "position",
-                "y axis field": "pValue",
+                "y axis field": "minusLogP",
                 "render by": "gene",
                 "x axis label": "Position",
-                "y axis label": "p-value"
+                "y axis label": "-log10(p-value)",
+                "height": 300
             }
         };
     },
@@ -124,6 +125,7 @@ new Vue({
         formatAssocData(assocData){
             assocData.forEach(entry => {
                 entry.position = `${entry.chromosome} : ${entry.start} - ${entry.end}`;
+                entry.minusLogP = -Math.log10(entry.pValue);
             });
             return assocData;
         }
