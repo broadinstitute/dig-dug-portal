@@ -631,6 +631,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             return VALUE;
         }
     }
+}
 
     export default {
         alleleFormatter,
