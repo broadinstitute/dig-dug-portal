@@ -56,6 +56,7 @@ export default Vue.component("research-m-plot", {
 	computed: {},
 	watch: {
 		plotData() {
+			console.log(JSON.stringify(this.plotData));
 			this.renderPlot();
 		},
 	},

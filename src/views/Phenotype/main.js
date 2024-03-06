@@ -17,6 +17,7 @@ import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
 import PathwayTable from "@/components/PathwayTable.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
+import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -67,6 +68,7 @@ new Vue({
         FilterEnumeration,
         FilterEffectDirection,
         SearchHeaderWrapper,
+        ResearchMPlot
     },
 
     created() {
@@ -83,6 +85,14 @@ new Vue({
         return {
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
+            assocPlotConfig: {
+                "type": "manhattan plot",
+                "x axis field": "position",
+                "y axis field": "pValue",
+                "render by": "gene",
+                "x axis label": "Position",
+                "y axis label": "p-value"
+            }
         };
     },
     methods: {
@@ -111,6 +121,12 @@ new Vue({
 
             return isInPhenotype == searchKeys.length ? true : null;
         },
+        formatAssocData(assocData){
+            assocData.forEach(entry => {
+                entry.position = `${entry.chromosome} : ${entry.start} - ${entry.end}`;
+            });
+            return assocData;
+        }
     },
 
     computed: {
@@ -159,11 +175,9 @@ new Vue({
 
             return contents[0];
         },
-
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
-
         manhattanPlot() {
             let phenotype = this.$store.state.phenotype;
             let ancestry = this.$store.state.ancestry;
@@ -176,7 +190,6 @@ new Vue({
                 }
             }
         },
-
         qqPlot() {
             let phenotype = this.$store.state.phenotype;
             let ancestry = this.$store.state.ancestry;
