@@ -370,22 +370,6 @@ new Vue({
                 score["group"] = phenotypeEntity
                     ? phenotypeEntity.group
                     : "No group info";
-                let range =
-                    data[i].huge >= 350
-                        ? "Compelling"
-                        : data[i].huge >= 100
-                            ? "Extreme"
-                            : data[i].huge >= 30
-                                ? "Very Strong"
-                                : data[i].huge >= 10
-                                    ? "Strong"
-                                    : data[i].huge >= 3
-                                        ? "Moderate"
-                                        : data[i].huge > 1
-                                            ? "Anecdotal"
-                                            : "No Evidence";
-
-                score["range"] = range;
                 score["renderScore"] = Math.log(data[i].huge);
 
                 // skip associations not part of the disease group

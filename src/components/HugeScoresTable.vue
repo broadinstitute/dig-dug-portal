@@ -214,18 +214,18 @@ export default Vue.component("HugeScoresTable", {
         getRange(x){
             return x
                 ? x >= 350
-                    ? "compelling"
+                    ? "Compelling"
                     : x >= 100
-                    ? "extreme"
+                    ? "Extreme"
                     : x >= 30
-                    ? "very-strong"
+                    ? "Very strong"
                     : x >= 10
-                    ? "strong"
+                    ? "Strong"
                     : x >= 3
-                    ? "moderate"
+                    ? "Moderate"
                     : x > 1
-                    ? "anecdotal"
-                    : "no-evidence"
+                    ? "Anecdotal"
+                    : "No evidence"
                 : "";  
         }
     },
