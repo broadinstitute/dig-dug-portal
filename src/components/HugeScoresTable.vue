@@ -25,7 +25,7 @@
             &lt;=1</span
         >
         <b-table
-            v-if="gene && rows > 0"
+            v-if="keyFieldValue && rows > 0"
             hover
             small
             responsive="sm"
@@ -48,7 +48,7 @@
                         <div>
                             <a
                                 v-if="phenotypeMap"
-                                :href="`/region.html?phenotype=${r.item.phenotype}&chr=${gene.chromosome}&start=${gene.start}&end=${gene.end}`"
+                                :href="`/region.html?phenotype=${r.item.phenotype}&chr=${r.item.chromosome}&start=${r.item.start}&end=${r.item.end}`"
                                 >Open region page with selected phenotype</a
                             >
                         </div>
@@ -61,7 +61,7 @@
                     target="_blank"
                     class="btn view-features-btn btn-secondary"
                     style="color: #ffffff !important"
-                    :href="`/hugecalculator.html?gene=${gene.name}&phenotype=${r.item.phenotype}&prior=0.3696`"
+                    :href="`/hugecalculator.html?gene=${r.item.gene}&phenotype=${r.item.phenotype}&prior=0.3696`"
                     >Open</a
                 >
             </template>
@@ -97,15 +97,35 @@ export default Vue.component("HugeScoresTable", {
     components: {
         DataDownload,
     },
-    props: ["gene", "hugeScores", "phenotypeMap", "filter"],
+    props: {
+        keyField: {
+            type: String,
+            default: "gene"
+        },
+        keyFieldValue: {
+            type: String,
+            required: true
+        },
+        hugeScores: {
+            type: Array,
+            required: true
+        },
+        phenotypeMap: {
+            type: Object,
+            required: true
+        },
+        filter : {
+            required: false
+        }
+    },
     data() {
         return {
             perPage: 10,
             currentPage: 1,
             fields: [
                 {
-                    key: "phenotype",
-                    label: "Phenotype",
+                    key: `${this.$props.keyField === 'gene' ? 'phenotype' : 'gene'}`,
+                    label: `${this.$props.keyField === 'gene' ? 'Phenotype' : 'Gene'}`,
                 },
                 {
                     key: "group",

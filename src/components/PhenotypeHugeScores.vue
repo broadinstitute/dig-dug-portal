@@ -1,16 +1,26 @@
 <template>
-  <research-m-plot
-    :plotData="formatData(tableData)"
-    :renderConfig="plotConfig"
+  <div>
+    <research-m-plot
+      :plotData="formatData(tableData)"
+      :renderConfig="plotConfig"
+      >
+    </research-m-plot>
+    <huge-scores-table
+      keyField="phenotype"
+      :keyFieldValue="phenotype"
+      :huge-scores="tableData"
+      :phenotypeMap="phenotypeMap"
+      :filter="filter"
     >
-
-  </research-m-plot>
+    </huge-scores-table>
+  </div>
 </template>
 <script>
   import Vue from "vue";
   import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
+  import HugeScoresTable from "@/components/HugeScoresTable.vue";
   export default Vue.component("PhenotypeHugeScores", {
-    props: ["scores", "filter"],
+    props: ["scores", "filter", "phenotypeMap", "phenotype"],
     data() {
         return {
           plotConfig: {
