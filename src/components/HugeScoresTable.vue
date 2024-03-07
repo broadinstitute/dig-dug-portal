@@ -183,20 +183,22 @@ export default Vue.component("HugeScoresTable", {
         },
 
         tableData() {
-            //console.log("this.hugeScores", this.hugeScores);
             let assocs = this.hugeScores;
             let phenotypeMap = this.phenotypeMap;
 
             if (!phenotypeMap) {
                 return [];
             }
-
+            assocs.forEach(item => {
+                if (!item.range){
+                    item.range = this.getRange(item.huge);
+                }
+            });
             // remove unknown phenotypes
             assocs = assocs.filter((a) => phenotypeMap[a.phenotype]);
             if (this.filter) {
                 return assocs.filter(this.filter);
             }
-
             return assocs;
         },
     },
@@ -209,6 +211,23 @@ export default Vue.component("HugeScoresTable", {
     methods: {
         phenotypeFormatter: Formatters.phenotypeFormatter,
         floatFormatter: Formatters.floatFormatter,
+        getRange(x){
+            return x
+                ? x >= 350
+                    ? "compelling"
+                    : x >= 100
+                    ? "extreme"
+                    : x >= 30
+                    ? "very-strong"
+                    : x >= 10
+                    ? "strong"
+                    : x >= 3
+                    ? "moderate"
+                    : x > 1
+                    ? "anecdotal"
+                    : "no-evidence"
+                : "";  
+        }
     },
 });
 </script>
