@@ -7,17 +7,17 @@
 			<div class="bunch-ui">
 				<input
 					type="checkbox"
-					id="groupByLocusCheck"
+					:id="`${plotId}_groupByLocusCheck`"
 					class="form-control"
-					@click="renderPlot()"
+					@click="renderPlot(plotId)"
 				/>
 				Render by region
 			</div>
 			<div class="bunch-ui">
 				Count region by:
 				<select
-					id="mergeByNumber"
-					@change="renderPlot()"
+					:id="`${plotId}_mergeByNumber`"
+					@change="renderPlot(plotId)"
 					class="form-control"
 				>
 					<option value="1">1</option>
@@ -31,8 +31,8 @@
 			</div>
 		</div>
 		<div class="y-axis-label">{{ renderConfig["y axis label"] }}</div>
-		<div id="egl_m_plot_y"></div>
-		<div class="egl-m-plot" id="egl_m_plot"></div>
+		<div class="egl_m_plot_y" :id="`${plotId}_egl_m_plot_y_axis`"></div>
+		<div class="egl-m-plot" :id="`${plotId}_egl_m_plot`"></div>
 		<div class="x-axis-label">{{ renderConfig["x axis label"] }}</div>
 	</div>
 </template>
@@ -48,25 +48,27 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("research-m-plot", {
 	props: ["plotData", "renderConfig","utils"],
 	data() {
-		return {};
+		return {
+			plotId: Math.floor(Math.random() * 10e9)
+		};
 	},
 	mounted: function () {
-		this.renderPlot();
+		this.renderPlot(this.plotId);
 	},
 	computed: {},
 	watch: {
 		plotData() {
-			this.renderPlot();
+			this.renderPlot(this.plotId);
 		},
 	},
 	methods: {
 		//...uiUtils,
-		renderPlot() {
+		renderPlot(uniqueId) {
 			if (this.plotData != null && this.renderConfig != null) {
 				let grouped =
-					document.getElementById("groupByLocusCheck").checked;
+					document.getElementById(`${uniqueId}_groupByLocusCheck`).checked;
 
-				document.getElementById("egl_m_plot").innerHTML = "";
+				document.getElementById(`${uniqueId}_egl_m_plot`).innerHTML = "";
 				let chromosomeLength = {
 					//chromosome name, length
 					1: 248956422,
@@ -110,22 +112,22 @@ export default Vue.component("research-m-plot", {
 					dnaLength += chromosomeLength[chr];
 				}
 
-				let plotWrapper = document.getElementById("egl_m_plot");
+				let plotWrapper = document.getElementById(`${uniqueId}_egl_m_plot`);
 
 				for (const chr in chromosomeLength) {
 					let chrLength = (chromosomeLength[chr] / dnaLength) * 100;
 					let chrWrapper =
-						'<div id="chr_wrapper_' +
+						'<div id="' + uniqueId + '_chr_wrapper_' +
 						chr +
 						'" class="chr_wrapper" style="width:' +
 						chrLength +
 						'%">\
-                <div id="chr_dots_' +
+                <div id="' + uniqueId + '_chr_dots_' +
 						chr +
 						'" class="chr_dots_wrapper"></div>\
                 <div class="chr_number" onclick="expandChr(\'' +
 						chr +
-						"');\">" +
+						"', '" + uniqueId + "');\">" +
 						chr +
 						"</div>\
             </div>";
@@ -169,7 +171,7 @@ export default Vue.component("research-m-plot", {
 						"</span></div>";
 				}
 
-				document.getElementById("egl_m_plot_y").innerHTML =
+				document.getElementById(`${uniqueId}_egl_m_plot_y_axis`).innerHTML =
 					yAxisContent;
 
 				if (grouped == false) {
@@ -239,7 +241,7 @@ export default Vue.component("research-m-plot", {
 							let linkTo =
 								linkToValue != undefined
 									? (document.getElementById(
-											"chr_dots_" + chrNum
+											uniqueId + "_chr_dots_" + chrNum
 									  ).innerHTML +=
 											'<a href="' +
 											linkToValue +
@@ -260,7 +262,7 @@ export default Vue.component("research-m-plot", {
 											dotContent +
 											"</a>")
 									: (document.getElementById(
-											"chr_dots_" + chrNum
+											uniqueId + "_chr_dots_" + chrNum
 									  ).innerHTML +=
 											'<a href="javascript:;" class="dot" style="left:calc(' +
 											bpHLoc +
@@ -277,7 +279,7 @@ export default Vue.component("research-m-plot", {
 				} else if (grouped == true) {
 					let groupByChr = {};
 					let groupNum =
-						document.getElementById("mergeByNumber").value;
+						document.getElementById(`${uniqueId}_mergeByNumber`).value;
 
 					for (const chr in chromosomeLength) {
 						groupByChr[chr] = {};
@@ -415,7 +417,7 @@ export default Vue.component("research-m-plot", {
 								let numOfGenes = chrGroup[bpNum].length;
 
 								document.getElementById(
-									"chr_dots_" + chr
+									uniqueId + "_chr_dots_" + chr
 								).innerHTML +=
 									'<a  href="/region.html?chr=' +
 									chr +
@@ -450,8 +452,8 @@ export default Vue.component("research-m-plot", {
 $(function () {
 	let customScript = document.createElement("script");
 	customScript.text =
-		"let expandChr = function(CHR) {\
-            let wrapper = 'chr_wrapper_'+CHR;\
+		"let expandChr = function(CHR, PLOTID) {\
+            let wrapper = PLOTID+'_chr_wrapper_'+CHR;\
             let element = document.getElementById(wrapper);\
             \
             if (element.classList.contains('expanded-chr') == false) {\

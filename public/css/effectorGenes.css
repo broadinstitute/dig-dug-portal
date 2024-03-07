@@ -1001,7 +1001,7 @@ span.weight-blue {
     font-size: 12px;
 }
 
-#egl_m_plot_y {
+.egl_m_plot_y {
     width: 50px;
     height: calc(100% - 30px);
     border-right: solid 1px #000;
@@ -1010,13 +1010,13 @@ span.weight-blue {
     position: relative;
 }
 
-#egl_m_plot_y .tick {
+.egl_m_plot_y .tick {
     text-align: right;
     height: 25%;
     position: relative;
 }
 
-#egl_m_plot_y .tick span.tick-num {
+.egl_m_plot_y .tick span.tick-num {
     display: block;
     position: absolute;
     top: -12px;
