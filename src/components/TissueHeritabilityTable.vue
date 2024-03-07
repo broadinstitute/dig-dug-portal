@@ -105,7 +105,7 @@ export default Vue.component("TissueHeritabilityTable", {
         if (this.tissue) {
             query(
                 "partitioned-heritability-tissue",
-                this.tissue + "," + this.ancestry,
+                this.tissue.replace("_", " ") + "," + this.ancestry,
                 { limit: 1000 }
             ).then((data) => {
                 console.log("retrieved data ", data);
