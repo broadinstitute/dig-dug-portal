@@ -16,6 +16,7 @@ export default new Vuex.Store({
         annotations: bioIndex("global-enrichment"),
         genes: bioIndex("gene-finder"),
         genes52k: bioIndex("gene-finder-52k"),
+        hugePhenotype: bioIndex("huge-phenotype"),
         ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
         geneticCorrelation: bioIndex("genetic-correlation"),
         pathwayAssoc: bioIndex("pathway-associations")
@@ -83,6 +84,7 @@ export default new Vuex.Store({
             context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
             context.dispatch("genes52k/query", gene52kQuery);
+            context.dispatch("hugePhenotype/query", query);
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
             context.dispatch("pathwayAssoc/query", ancestryOptionalQuery);
             context.state.manhattanPlotAvailable = true;
