@@ -419,7 +419,7 @@ export default Vue.component("research-volcano-plot", {
 
 				ctx.lineWidth = 0;
 				ctx.beginPath();
-				ctx.arc(xPos, yPos, 6, 0, 2 * Math.PI);
+				ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 				ctx.fill();
 
 				if (
@@ -432,7 +432,7 @@ export default Vue.component("research-volcano-plot", {
 					ctx.fillText(
 						d[this.renderConfig["render by"]],
 						xPos,
-						yPos - 8
+						yPos - 16
 					);
 				}
 			});
