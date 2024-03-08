@@ -110,7 +110,7 @@ export default Vue.component("HugeScoresTable", {
             fields: [
                 {
                     key: `${this.$props.leadTableField}`,
-                    label: `${this.$props.leadTableField}`,
+                    label: `${this.capitalizedFormatter(this.$props.leadTableField)}`,
                 },
                 {
                     key: "group",
@@ -196,6 +196,7 @@ export default Vue.component("HugeScoresTable", {
     methods: {
         phenotypeFormatter: Formatters.phenotypeFormatter,
         floatFormatter: Formatters.floatFormatter,
+        capitalizedFormatter: Formatters.capitalizedFormatter,
         getRange(x){
             return x
                 ? x >= 350
