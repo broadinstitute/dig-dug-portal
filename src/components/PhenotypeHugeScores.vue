@@ -6,9 +6,9 @@
       >
     </research-m-plot>
     <huge-scores-table
-      keyField="phenotype"
-      :keyFieldValue="phenotype"
-      :huge-scores="tableData"
+      leadTableField="gene"
+      :pageKey="phenotype"
+      :hugeScores="tableData"
       :phenotypeMap="phenotypeMap"
       :filter="filter"
     >

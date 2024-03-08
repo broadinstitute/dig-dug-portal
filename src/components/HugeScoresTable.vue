@@ -25,12 +25,12 @@
             &lt;=1</span
         >
         <b-table
-            v-if="keyFieldValue && rows > 0"
+            v-if="pageKey && rows > 0"
             hover
             small
             responsive="sm"
             :items="tableData"
-            :fields="fields"
+            :fields="leadTableField !== 'phenotype' ? fields.filter(f => f.key !== 'group') : fields"
             :per-page="perPage"
             :current-page="currentPage"
         >
@@ -55,6 +55,11 @@
                     </div>
                 </a>
                 &nbsp;
+            </template>
+            <template #cell(gene)="r">
+                <a :href="`/gene.html?gene=${r.item.gene}`" target="_blank">
+                    {{ r.item.gene }}
+                </a>
             </template>
             <template #cell(link)="r">
                 <a
@@ -97,35 +102,15 @@ export default Vue.component("HugeScoresTable", {
     components: {
         DataDownload,
     },
-    props: {
-        keyField: {
-            type: String,
-            default: "gene"
-        },
-        keyFieldValue: {
-            type: String,
-            required: true
-        },
-        hugeScores: {
-            type: Array,
-            required: true
-        },
-        phenotypeMap: {
-            type: Object,
-            required: true
-        },
-        filter : {
-            required: false
-        }
-    },
+    props: ["leadTableField", "pageKey", "hugeScores", "phenotypeMap", "filter"],
     data() {
         return {
             perPage: 10,
             currentPage: 1,
             fields: [
                 {
-                    key: `${this.$props.keyField === 'gene' ? 'phenotype' : 'gene'}`,
-                    label: `${this.$props.keyField === 'gene' ? 'Phenotype' : 'Gene'}`,
+                    key: `${this.$props.leadTableField}`,
+                    label: `${this.$props.leadTableField}`,
                 },
                 {
                     key: "group",
