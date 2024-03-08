@@ -177,7 +177,11 @@ export default Vue.component("research-single-search", {
 					}
 				});
 
-				this.singleSearchResult.phenotypes = searchPhenotypes;
+				let shorterFirst = searchPhenotypes.sort((a, b) => a.name.length - b.name.length);
+
+				//console.log("shortFirst", shorterFirst);
+
+				this.singleSearchResult.phenotypes = shorterFirst;
 
 				/// for custom parameters
 				let searchFields = Object.keys(this.customList);

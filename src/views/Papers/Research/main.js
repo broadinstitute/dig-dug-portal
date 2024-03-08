@@ -242,8 +242,6 @@ new Vue({
 
                         let context = !!keyParams["context"] ? "_" + keyParams["context"] : "";
 
-                        console.log(section["section id"] + "_description" + context)
-
                         let sDescription = (!!document.getElementById(section["section id"] + "_description" + context)) ?
                             document.getElementById(section["section id"] + "_description" + context).innerHTML : '';
                         if (!!sDescription) {
@@ -348,9 +346,15 @@ new Vue({
                         pr.parameter == "phenotype" &&
                         pr.values == "kp phenotypes"
                     ) {
-                        let values = this.phenotypesInSession
+                        console.log("this.phenotypesInSession", this.phenotypesInSession)
+
+                        let shorterFirst = this.phenotypesInSession.sort((a, b) => a.description.length - b.description.length);
+
+                        //this.listOptions[PARAM.parameter] = shorterFirst;
+
+                        let values = shorterFirst
                             .map((p) => p.name)
-                            .sort();
+                        //.sort();
                         pr.values = values;
                     }
                 });
@@ -439,8 +443,6 @@ new Vue({
         },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
-
-            //console.log('frontContents', contents);
 
             if (contents.length === 0) {
                 return {};
@@ -740,9 +742,6 @@ new Vue({
                                 ? (!!convertedData.data) ? convertedData.data : convertedData
                                 : convertedData;
                     }
-
-                    //console.log("typeof convertedData", typeof convertedData);
-                    //console.log("returnData", returnData);
 
                     let processedData =
                         this.dataTableFormat != null &&
@@ -1769,7 +1768,7 @@ new Vue({
 
                             replaceArr.map((r) => {
                                 newString = sIndex == 0 ? rawString : newString;
-                                //console.log("newString", newString);
+
                                 if (newString) {
                                     newString = newString.replaceAll(
                                         r.from,
@@ -1796,7 +1795,7 @@ new Vue({
             };
 
             if (CONVERT != "no convert") {
-                //console.log(this.$store.state.bioPortal.phenotypeMap);
+
                 let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
                 DATA.map((d) => {
