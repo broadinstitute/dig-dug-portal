@@ -92,6 +92,7 @@ new Vue({
         return {
             starItems: [],
             sectionsData: [],
+            sectionDescriptions: null,
             pageID: null,
             regionZoom: 0,
             regionViewArea: 0,
@@ -221,7 +222,7 @@ new Vue({
                 return JSON.parse(contents[0]["field_data_table_format"]);
             }
         },
-        sectionDescriptions() {
+        initialDescriptions() {
             let contents = this.researchPage;
 
             if (contents === null || contents[0]["body"] == false) {
@@ -1239,8 +1240,6 @@ new Vue({
 
                         let context = !!keyParams["context"] ? "_" + keyParams["context"] : "";
 
-                        console.log(section["section id"] + "_description" + context)
-
                         let sDescription = (!!document.getElementById(section["section id"] + "_description" + context)) ?
                             document.getElementById(section["section id"] + "_description" + context).innerHTML : '';
                         if (!!sDescription) {
@@ -1249,9 +1248,9 @@ new Vue({
                     })
                     description.parentNode.removeChild(description);
 
-                    return sectionDescriptions;
+                    this.sectionDescriptions = sectionDescriptions;
                 } else {
-                    return null
+                    this.sectionDescriptions = null
                 }
             }
         },
@@ -1297,8 +1296,10 @@ new Vue({
             return sectionInEntity;
         },
         setContext(KEY, SECTIONS) {
-            keyParams.set({ "context": KEY });
-            location.reload();
+            let keyId = KEY.toLowerCase().replace(" ", "_");
+            keyParams.set({ "context": keyId });
+            this.updateSectionDescriptions();
+            //location.reload();
             //this.$forceUpdate();
         },
         getTabGroups(TAB_GROUPS) {

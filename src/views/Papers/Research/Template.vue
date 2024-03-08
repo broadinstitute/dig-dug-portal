@@ -669,7 +669,8 @@
 													:uId="$parent.uid"
 													:sectionConfig="config"
 													:description="!!$parent.sectionDescriptions? 
-														$parent.sectionDescriptions[config['section id']]:''"
+														$parent.sectionDescriptions[config['section id']]
+															: $parent.initialDescriptions[config['section id']]"
 													:phenotypeMap="$parent.phenotypeMap"
 													:phenotypesInUse="$parent.phenotypesInSession"
 													:colors="$parent.colors"
@@ -693,7 +694,8 @@
 													:key="index"
 													:sectionsConfig="config"
 													:description="!!$parent.sectionDescriptions ?
-														$parent.sectionDescriptions[config['section id']] : ''"
+														$parent.sectionDescriptions[config['section id']]
+														: $parent.initialDescriptions[config['section id']]"
 													:sectionsData="$parent.sectionsData"
 													:utils="$parent.utilsBox"
 													:starItems="$parent.starItems"
@@ -715,7 +717,8 @@
 									:uId="$parent.uid"
 									:sectionConfig="config"
 									:description="!!$parent.sectionDescriptions ?
-										$parent.sectionDescriptions[config['section id']] : ''"
+										$parent.sectionDescriptions[config['section id']]
+										: $parent.initialDescriptions[config['section id']]"
 									:phenotypeMap="$parent.phenotypeMap"
 									:phenotypesInUse="$parent.phenotypesInSession"
 									:colors="$parent.colors"
@@ -738,7 +741,8 @@
 									:key="index"
 									:sectionsConfig="config"
 									:description="!!$parent.sectionDescriptions ?
-										$parent.sectionDescriptions[config['section id']] : ''"
+										$parent.sectionDescriptions[config['section id']]
+										: $parent.initialDescriptions[config['section id']]"
 									:sectionsData="$parent.sectionsData"
 									:utils="$parent.utilsBox"
 									:starItems="$parent.starItems"
