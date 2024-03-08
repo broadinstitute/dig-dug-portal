@@ -238,8 +238,13 @@ new Vue({
                     let sectionDescriptions = {};
 
                     this.sectionConfigs.sections.map(section => {
-                        let sDescription = (!!document.getElementById(section["section id"] + "_description")) ?
-                            document.getElementById(section["section id"] + "_description").innerHTML : '';
+
+                        let context = !!keyParams["context"] ? "_" + keyParams["context"] : "";
+
+                        console.log(section["section id"] + "_description" + context)
+
+                        let sDescription = (!!document.getElementById(section["section id"] + "_description" + context)) ?
+                            document.getElementById(section["section id"] + "_description" + context).innerHTML : '';
                         if (!!sDescription) {
                             sectionDescriptions[section["section id"]] = sDescription;
                         }
@@ -1214,6 +1219,42 @@ new Vue({
             return exampleLink;
         },
         /// multi-sections use
+        updateSectionDescriptions() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["body"] == false) {
+                return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let description = document.createElement('div');
+                    description.setAttribute("style", "visibility: hidden;height: 1px")
+                    description.innerHTML = contents[0]["body"];
+                    document.body.appendChild(description);
+
+                    let sectionDescriptions = {};
+
+                    this.sectionConfigs.sections.map(section => {
+
+                        let context = !!keyParams["context"] ? "_" + keyParams["context"] : "";
+
+                        console.log(section["section id"] + "_description" + context)
+
+                        let sDescription = (!!document.getElementById(section["section id"] + "_description" + context)) ?
+                            document.getElementById(section["section id"] + "_description" + context).innerHTML : '';
+                        if (!!sDescription) {
+                            sectionDescriptions[section["section id"]] = sDescription;
+                        }
+                    })
+                    description.parentNode.removeChild(description);
+
+                    return sectionDescriptions;
+                } else {
+                    return null
+                }
+            }
+        },
         setZoom(SETTING) {
             this[SETTING.property] = SETTING.value;
         },
@@ -1324,7 +1365,6 @@ new Vue({
 
             SECTIONS.map(S => {
                 if (!!S["required parameters to display"]) {
-
                     let required = S["required parameters to display"];
 
                     let testRequired = true;
@@ -1348,24 +1388,47 @@ new Vue({
                 }
             })
 
+            /// check entities setting
+
+            let entity = keyParams["entity"];
+            let pageEntity = (this.sectionConfigs['entity']) ? this.sectionConfigs['entity'][entity] : null;
+
+            if (!!entity && !!pageEntity) {
+                let sInOrder = [];
+
+                pageEntity.map(e => {
+
+                    sections.map(s => {
+                        if (s["section id"] == e) {
+                            sInOrder.push(s)
+                        }
+                    })
+                })
+
+                sections = sInOrder
+            }
+
+
+            /// check context setting
+
             let context = keyParams["context"];
             let pageContext = (this.sectionConfigs['context']) ? this.sectionConfigs['context'][context] : null;
 
-            if (!!context) {
+            if (!!context && !!pageContext) {
 
                 let sInOrder = [];
 
-                if (!!context && !!pageContext) {
-                    pageContext.map(c => {
 
-                        sections.map(s => {
-                            if (s["section id"] == c) {
-                                sInOrder.push(s)
-                            }
-                        })
+                pageContext.map(c => {
 
+                    sections.map(s => {
+                        if (s["section id"] == c) {
+                            sInOrder.push(s)
+                        }
                     })
-                }
+
+                })
+
                 sections = sInOrder
             }
 
