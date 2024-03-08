@@ -972,13 +972,14 @@ span.weight-blue {
     height: 20px;
     width: 60px;
     display: inline-block;
-    vertical-align: text-bottom;
+    vertical-align: bottom;
     padding: 0 3px;
 }
 
 .egl-m-plot-content {
     height: 100%;
     position: relative;
+    margin-top: 30px;
 }
 
 .y-axis-label {
