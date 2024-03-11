@@ -226,7 +226,7 @@ new Vue({
             let contents = this.researchPage;
 
             if (contents === null || contents[0]["body"] == false) {
-                return null;
+                return {};
             } else {
 
                 if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
@@ -252,7 +252,7 @@ new Vue({
 
                     return sectionDescriptions;
                 } else {
-                    return null
+                    return {}
                 }
             }
         },
@@ -349,8 +349,6 @@ new Vue({
                         console.log("this.phenotypesInSession", this.phenotypesInSession)
 
                         let shorterFirst = this.phenotypesInSession.sort((a, b) => a.description.length - b.description.length);
-
-                        //this.listOptions[PARAM.parameter] = shorterFirst;
 
                         let values = shorterFirst
                             .map((p) => p.name)
