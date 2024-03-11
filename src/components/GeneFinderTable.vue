@@ -1,13 +1,10 @@
 <template>
     <div>
         <div v-show="showPlot">
-            <manhattan-plot
-                :associations="combinedAssociations"
-                :phenotypes="phenotypes"
-                :phenotype-map="phenotypeMap"
-                :color-by-phenotype="true"
-                style="margin-bottom: 10px"
-            ></manhattan-plot>
+            <research-m-plot
+                :plotData="formatAssocData(tableData)"
+                :renderConfig="assocPlotConfig"
+            ></research-m-plot>
             <center style="margin-bottom: 30px">
                 <b v-show="!!showChiSquared">
                     Combined P-Value(Χ²) across
@@ -20,7 +17,6 @@
                 </b>
             </center>
         </div>
-
         <div v-if="tableData.length > 0">
             <div class="text-right mb-2">
                 <data-download
@@ -132,14 +128,21 @@ export default Vue.component("GeneFinderTable", {
                     label: "Gene",
                 },
             ],
+            assocPlotConfig: {
+                "type": "manhattan plot",
+                "x axis field": "position",
+                "y axis field": "minusLogP",
+                "render by": "gene",
+                "x axis label": "Position",
+                "y axis label": "-log10(p-value)",
+                "height": 300,
+                "link to": "/region.html",
+                "hover content": ["p"]
+            }
         };
     },
 
     computed: {
-        rows() {
-            return this.tableData.length;
-        },
-
         tableData() {
             if (this.filter) {
                 return this.associations.filter(this.filter);
@@ -192,8 +195,6 @@ export default Vue.component("GeneFinderTable", {
             let data = [];
             let groups = {};
             let associations = this.tableData;
-
-            //console.log("this.tableData.length", this.tableData);
 
             for (let i in associations) {
                 let r = associations[i];
@@ -260,30 +261,20 @@ export default Vue.component("GeneFinderTable", {
 
             return content;
         },
-
-        combinedAssociations() {
-            let groups = [];
-
-            this.groupedAssociations.forEach((a) => {
-                a.phenotypes.forEach((phenotype) => {
-                    groups.push({
-                        phenotype,
-                        pValue: a[`${phenotype}:pValue`],
-                        chromosome: a.chromosome,
-                        position: Math.floor((a.start + a.end) / 2),
-                    });
-                });
-            });
-
-            return groups;
-        },
     },
 
     methods: {
         intFormatter: Formatters.intFormatter,
         floatFormatter: Formatters.floatFormatter,
         pValueFormatter: Formatters.pValueFormatter,
-
+        formatAssocData(assocData){
+            assocData.forEach(entry => {
+                entry.position = `${entry.chromosome} : ${entry.start} - ${entry.end}`;
+                entry.minusLogP = -Math.log10(entry.pValue);
+                entry.p = this.pValueFormatter(entry.pValue);
+            });
+            return assocData;
+        },
         phenotypePValueColumn(phenotype) {
             return `cell(${phenotype}:pValue)`;
         },

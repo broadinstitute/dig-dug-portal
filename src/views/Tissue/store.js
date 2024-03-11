@@ -30,7 +30,9 @@ export default new Vuex.Store({
     },
     actions: {
         getTissue(context) {
-            context.dispatch("tissue/query", { q: context.state.tissueName });
+            context.dispatch("tissue/query", {
+                q: context.state.tissueName.replace(" ", "_"),
+            });
         },
         async getEvidence(context, { q }) {
             let evidence = await context.dispatch("geneExpression/query", {

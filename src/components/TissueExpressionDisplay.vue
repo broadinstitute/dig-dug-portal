@@ -1,7 +1,9 @@
 <template>
     <div>
         <h4>
-            {{ `Gene expression for ${tissue.toUpperCase()}` }}
+            {{
+                `Gene expression for ${tissue.toUpperCase().replace("_", " ")}`
+            }}
         </h4>
         <documentation
             name="tissue.gene-expression.subheader"
@@ -71,7 +73,9 @@ export default Vue.component("TissueExpressionDisplay", {
                 //check if evidence object already has key equal gene
                 if (!this.evidence[gene]) {
                     let data = await query("gene-expression", gene);
-                    data = data.filter((d) => d.tissue === this.tissue);
+                    data = data.filter(
+                        (d) => d.tissue === this.tissue.replace(" ", "_")
+                    );
                     Vue.set(this.evidence, gene, data);
                 }
             }

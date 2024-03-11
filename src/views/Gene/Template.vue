@@ -387,9 +387,10 @@
                                     </unauthorized-message>
                                     <huge-scores-table
                                         v-if="$parent.hugeScores.length > 0"
-                                        :gene="$store.state.gene.data[0]"
-                                        :huge-scores="$parent.hugeScores"
-                                        :phenotype-map="
+                                        :pageKey="$store.state.gene.data[0]"
+                                        leadTableField="phenotype"
+                                        :hugeScores="$parent.hugeScores"
+                                        :phenotypeMap="
                                             $store.state.bioPortal.phenotypeMap
                                         "
                                         :filter="filter"
