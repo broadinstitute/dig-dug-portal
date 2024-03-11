@@ -1,6 +1,10 @@
 <template>
 	<div>
-		<component :is="currentComponent"></component>
+		<component :is="currentComponent"
+			:phenotypesInUse="phenotypesInUse"
+			:utilsBox="utilsBox"
+			:sectionConfigs="sectionConfigs">
+		</component>
 		<!-- <cfde-eco-system v-if="component='cfdeEcoSystem'"></cfde-eco-system> -->
 	</div>
 </template>
@@ -12,7 +16,7 @@ import $ from "jquery";
 import cfdeEcoSystem from "@/components/researchPortal/customComponents/cfdeEcoSystem.vue";
 
 export default Vue.component("research-section-components", {
-	props: ["component"],
+	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
 	components: {
 		cfdeEcoSystem
 	},

@@ -5,7 +5,10 @@
 	<div>
 		<div v-if="dataPoint.type == 'component'">
 			<research-section-components
-				:component="dataPoint.name">
+				:component="dataPoint.name"
+				:phenotypesInUse="phenotypesInUse"
+				:utilsBox="utils"
+				:sectionConfigs="sectionConfig">
 			</research-section-components>
 		</div>
 		<div class="multi-section" :class="'wrapper-' + sectionIndex" 
