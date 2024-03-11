@@ -372,12 +372,12 @@ export default Vue.component("research-section-filters", {
 					} else if (pType == "list" && !!ifValuesFromKP) {
 						let label;
 
-						console.log("0", this.filesListLabels);
+						/*console.log("0", this.filesListLabels);
 						console.log(
 							"1",
 							this.filesListLabels[this.utils.keyParams[param].trim()]
 						);
-						console.log("2", this.filesListLabels[param]);
+						console.log("2", this.filesListLabels[param]);*/
 
 						if (!!this.filesListLabels[this.utils.keyParams[param].trim()]) {
 							label =
@@ -707,7 +707,7 @@ export default Vue.component("research-section-filters", {
 
 		getRange(FIELD) {
 
-			console.log(FIELD);
+			//console.log(FIELD);
 			let data = this.unfilteredDataset;
 				
 			if(!this.sliderRange) { this.sliderRange = {} };
@@ -1441,7 +1441,7 @@ export default Vue.component("research-section-filters", {
 
 					for (const [fKey, filter] of Object.entries(this.filtersIndex)) {
 						if (filter.type == 'checkbox') {
-							console.log("filter", filter)
+							//console.log("filter", filter)
 							//console.log("filter.search", filter.search)
 							//filtered = filtered.filter(row => !!row[filter.field] && !filter.search.includes(row[filter.field].toString()));
 							let chkboxFiltered = [];
