@@ -31,6 +31,7 @@
 						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
 							:id="'flag_' + sectionID">Loading data...</small>-->
 							<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
+							<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
 					</h4>
 				</div>
 			</div>
@@ -48,6 +49,7 @@
 						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
 							:id="'flag_' + sectionID">Loading data...</small>-->
 							<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
+							<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
 					</h4>
 				</div>
 			</div>
@@ -300,6 +302,7 @@ export default Vue.component("research-section", {
 	data() {
 		return {
 			sectionData: null,
+			noLoadedData: null,
 			mergedData: null,
 			originalData: null,
 			tableFormat: null,
@@ -608,7 +611,8 @@ export default Vue.component("research-section", {
 				this.originalData = null,
 				this.groups = null,
 				this.searched = [],
-				this.loadingDataFlag = "down"
+				this.loadingDataFlag = "down";
+				this.noLoadedData = null;
 				if(document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
@@ -869,6 +873,7 @@ export default Vue.component("research-section", {
 		},
 		getData(FROM) {
 			this.loadingDataFlag = "up";
+			this.noLoadedData = null;
 			this.queryData(FROM);
 		},
 
@@ -930,6 +935,7 @@ export default Vue.component("research-section", {
 				}
 			} else {
 				this.loadingDataFlag = "down";
+				this.noLoadedData = "Query parameter missiong or invalid";
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
@@ -981,7 +987,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				
+				this.noLoadedData = "Nodata is returned. Please check query parameters.";
 			}
 		},
 
@@ -1001,7 +1007,6 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				
 			}
 		},
 
@@ -1057,7 +1062,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				
+				this.noLoadedData = "Nodata is returned. Please check query parameters.";
 			}
 		},
 
@@ -1372,6 +1377,7 @@ export default Vue.component("research-section", {
 			} else {
 				this.loadingDataFlag = "down";
 				this.sectionData = null;
+				this.noLoadedData = "Nodata is returned. Please check query parameters.";
 			}
 		},
 
@@ -1436,7 +1442,8 @@ export default Vue.component("research-section", {
 					this.sectionID
 				);
 
-				this.loadingDataFlag = "down"
+				this.loadingDataFlag = "down";
+				this.noLoadedData = "Nodata is returned. Please check query parameters.";
 				
 			}
 		}
