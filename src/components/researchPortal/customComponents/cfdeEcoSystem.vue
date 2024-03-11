@@ -126,7 +126,16 @@
 					<div class="section-subtitle">CFDE programs</div>
 					<div class="placeholder">
 						<div class="mini-card-video">
-                        	<video src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs_480.mp4" poster="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs.jpg" autoplay loop muted playsinline />
+                        	<video 
+								@ended="minVidEnd($event)" 
+								@mouseover="minVidHover($event)"
+								@mouseout="minVidHoverOut($event)"
+								data-loop-max="1"
+								data-loop-count="0"
+								src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs_480.mp4" 
+								poster="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs.jpg" 
+								autoplay muted playsinline 
+							/>
                         </div>
 					</div>
 				</div>
@@ -319,6 +328,8 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
 		outHandler(e){
             if(this.freezeSelection){
                 document.querySelectorAll(`[data-group]`).forEach(item => item.classList.remove('on', 'on2', 'on3'));
+				const targetElement = document.querySelector(`[data-value="${this.currPov}"]`);
+				if (targetElement) targetElement.dispatchEvent(new Event('mouseover'));
             }else{
                 document.querySelectorAll(`[data-group]`).forEach(item => item.classList.remove('on', 'on2', 'on3', 'onA', 'on2A', 'on3A'));
                 document.querySelectorAll('.leader-line').forEach(item => item.remove());
@@ -398,7 +409,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
         },
 		hoverHandler2(e){
             console.log('this.currHoverGroup', this.currHoverGroup);
-            if(this.currHoverGroup) return;	
+            //if(this.currHoverGroup) return;	
             const group = e.target.dataset.group;
             let val = e.target.dataset.value;
 			console.log('continuing', group, val);
@@ -407,14 +418,17 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
             if(group==='povs') {
 				document.querySelector('.dccs').classList.add('active');
 				document.querySelector('.line2note').classList.add('hidden');
+				if(this.freezeSelection) document.querySelectorAll('.leader-line').forEach(item => item.remove());
 			}
+			
             //highlight dccs
             for (const [key, value] of Object.entries(this.parsedData)) {
                 const el = document.querySelector(`[data-value="${key}"]`);
                 if(value[group][val]===1){
                     //el.classList.add('on');
                     if (group==='povs'){
-                        if(!this.freezeSelection){
+						console.log(group, val, this.currPov)
+                        //if(this.freezeSelection){
                             el.classList.add('onA');
                             const l = new LeaderLine(
                                 document.querySelector(`[data-value="${key}"]`),
@@ -422,7 +436,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
                                 {startSocket: 'top', endSocket: 'bottom', startPlug: 'behind', startPlugColor: '#34679a', endPlug: 'behind', endSocketGravity: 100, 
                                 path: 'fluid', gradient: {startColor: '#ff7f5090', endColor:'#ff7f5090'}, dash: {len: 2, gap: 1, animation: true},  size: 1}
                             );
-                        }
+						//}
                     }else{
                         el.classList.add('on');
                     }
@@ -432,7 +446,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
                 if(value[group][val]===2){
                     //el.classList.add('on2');
                     if (group==='povs'){
-                        if(!this.freezeSelection){
+                        //if(!this.freezeSelection){
                             el.classList.add('on2A');
                             const l = new LeaderLine(
                                 document.querySelector(`[data-value="${key}"]`),
@@ -440,7 +454,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
                                 {startSocket: 'top', endSocket: 'bottom', startPlug: 'behind', startPlugColor: '#34679a', endPlug: 'behind', endSocketGravity: 80, 
                                 path: 'fluid', gradient: {startColor: '#ff7f5090', endColor:'#ff7f5090'}, dash: {len: 4, gap: 2, animation: true},  size: 2}
                             );
-                        }
+                        //}
                     }else{
                         el.classList.add('on2');
                     }
@@ -448,7 +462,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
                 if(value[group][val]===3){
                     //el.classList.add('on3');
                     if (group==='povs'){
-                        if(!this.freezeSelection){
+                        //if(!this.freezeSelection){
                             el.classList.add('on3A');
                             const l = new LeaderLine(
                                 document.querySelector(`[data-value="${key}"]`),
@@ -456,7 +470,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
                                 {startSocket: 'top', endSocket: 'bottom', startPlug: 'behind', startPlugColor: '#34679a', endPlug: 'behind', endSocketGravity: 60, 
                                 path: 'fluid', gradient: {startColor: '#ff7f5090', endColor:'#ff7f5090'}, dash: {len: 6, gap: 3, animation: true},  size: 3}
                             );
-                        }
+                        //}
                     }else{
                         el.classList.add('on3');
                     }
@@ -467,13 +481,14 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
             const group = e.target.dataset.group;
             const val = e.target.dataset.value;
             if(!e.target.classList.contains('selected')){
+				document.querySelectorAll('[data-group="povs"]').forEach(el => {el.classList.remove('selected')});
                 e.target.classList.add('selected');
                 document.querySelector('.line2').classList.add('open');
                 document.querySelector('.dccs').classList.add('active');
                 this.currPov = val;
                 this.freezeSelection = true;
             }else{
-                e.target.classList.remove('selected');
+				e.target.classList.remove('selected');
                 document.querySelector('.line2').classList.remove('open');
                 document.querySelector('.dccs').classList.remove('active');
                 this.currPov = null;
@@ -493,6 +508,25 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
 			.catch(error => {
 				console.error('Error loading CSV:', error);
 			});
+		},
+
+		minVidEnd(e){
+			e.target.dataset.loopCount++;
+			if(e.target.dataset.loopCount < e.target.dataset.loopMax){
+				e.target.play();
+			}else{
+				e.target.classList.add('paused');
+			}
+		},
+		minVidHover(e){
+			if(e.target.classList.contains('paused')){
+				e.target.play();
+			}
+		},
+		minVidHoverOut(e){
+			if(e.target.classList.contains('paused')){
+				e.target.pause();
+			}
 		}
 	}
 });
