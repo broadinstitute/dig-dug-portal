@@ -1,6 +1,5 @@
 <template>
 	<div class="byor-single-search-wrapper">
-		<h3>search: </h3>
 		<input
 			class="form-control byor-single-search"
 			type="text"
