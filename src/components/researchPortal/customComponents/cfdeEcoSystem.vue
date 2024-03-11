@@ -126,7 +126,16 @@
 					<div class="section-subtitle">CFDE programs</div>
 					<div class="placeholder">
 						<div class="mini-card-video">
-                        	<video src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs_480.mp4" poster="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs.jpg" autoplay loop muted playsinline />
+                        	<video 
+								@ended="minVidEnd($event)" 
+								@mouseover="minVidHover($event)"
+								@mouseout="minVidHoverOut($event)"
+								data-loop-max="1"
+								data-loop-count="0"
+								src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs_480.mp4" 
+								poster="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs.jpg" 
+								autoplay muted playsinline 
+							/>
                         </div>
 					</div>
 				</div>
@@ -499,6 +508,25 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
 			.catch(error => {
 				console.error('Error loading CSV:', error);
 			});
+		},
+
+		minVidEnd(e){
+			e.target.dataset.loopCount++;
+			if(e.target.dataset.loopCount < e.target.dataset.loopMax){
+				e.target.play();
+			}else{
+				e.target.classList.add('paused');
+			}
+		},
+		minVidHover(e){
+			if(e.target.classList.contains('paused')){
+				e.target.play();
+			}
+		},
+		minVidHoverOut(e){
+			if(e.target.classList.contains('paused')){
+				e.target.pause();
+			}
 		}
 	}
 });
