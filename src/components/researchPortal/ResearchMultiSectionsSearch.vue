@@ -198,15 +198,14 @@ export default Vue.component("research-multi-sections-search", {
 				PARAM.values.map(option => {
 					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
 						options.push(option);
-
-						//optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
 				})
 
-				//if (options.length > 1) {
-					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
-				//}
-				this.listOptions[PARAM.parameter] = options;
+				let shorterFirst = options.sort((a, b) => a.label.length - b.label.length);
+
+				console.log("shortFirst", shorterFirst);
+
+				this.listOptions[PARAM.parameter] = shorterFirst;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
 			}
@@ -278,7 +277,10 @@ export default Vue.component("research-multi-sections-search", {
 				} else {
 					this.sections.map(s => {
 						if (!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
+							console.log("s['section id']",s['section id'])
+							if (!!document.getElementById("section_" + s['section id'])) {
 							this.$root.$refs[s['section id']].getData();
+							}
 						}
 					})
 				}
@@ -298,10 +300,14 @@ export default Vue.component("research-multi-sections-search", {
 
 			this.sections.map(s => {
 				if (!!s["data point"] && !!s["data point"]["parameters"]) {
-					this.$root.$refs[s['section id']].resetAll();
+					if(!!document.getElementById("section_"+ s['section id'])) {
+
+						this.$root.$refs[s['section id']].resetAll();
+
+					}
+					
 				}
 			})
-			
 		},
 		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION, DEFALT_EXPAND,SEARCH_POINT) {
 			

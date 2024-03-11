@@ -11,12 +11,11 @@
 		/>
 		<!-- BYOR front page templates -->
 		<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
+
 			<div
 				id="byor_single_search_results"
 				class="byor-single-search-results"
-				v-if="singleSearchResult.genes.length > 0 ||
-					singleSearchResult.phenotypes.length > 0
-					"
+				v-if="anyResults() > 0"
 			>
 				<div v-for="gene in singleSearchResult.genes" :key="gene">
 					{{ gene
@@ -50,6 +49,24 @@
 							phenotype.group
 						}}</span>
 					</div>
+				</template>
+
+				<template v-for="param in singleSearchConfig['search parameters']">
+					<template v-if="!param.values || (!!param.values && param.values != 'kp genes' && param.values != 'kp phenotypes') ">
+						
+						<template v-if="!!isParameterActive(param['parameter']).active">
+							<div
+								v-for="item in singleSearchResult[param['parameter']]"
+								:value="item.value"
+								:key="item.value"
+							>{{ item.label }}
+								<a :href="isParameterActive(param['parameter']).url + item.value" class="search-word-group">{{
+									'Search '+param['parameter']
+								}}</a
+								>
+							</div>
+						</template>
+					</template>
 				</template>
 			</div>
 		</div>
@@ -114,12 +131,25 @@ export default Vue.component("research-single-search", {
 			singleSearchResult: {
 				genes: [],
 				phenotypes: [],
-				diseases: [],
-				custom:{}
+				diseases: []
 			},
+			customList:{}
 		};
 	},
-	created() {},
+	created() {
+
+		this.singleSearchConfig["search parameters"].map(S=>{
+			if(!!S["data point"]){
+				let listPoint = S["data point"];
+				this.getList(	
+						S["parameter"],
+						listPoint["url"],
+						listPoint["data type"],
+						listPoint["data wrapper"]
+				)
+			}
+		})
+	},
 	mounted() {},
 	computed: {},
 	watch: {
@@ -146,15 +176,57 @@ export default Vue.component("research-single-search", {
 					}
 				});
 
-				this.singleSearchResult.phenotypes = searchPhenotypes;
+				let shorterFirst = searchPhenotypes.sort((a, b) => a.name.length - b.name.length);
+
+				//console.log("shortFirst", shorterFirst);
+
+				this.singleSearchResult.phenotypes = shorterFirst;
+
+				/// for custom parameters
+				let searchFields = Object.keys(this.customList);
+
+				searchFields.map(P => {
+					let searchItems = [];
+					this.customList[P].map(item=>{
+						let isInList = 0;
+						paramWords.map((w) => {
+							if (
+								!!item.label
+									.toLowerCase()
+									.includes(w.toLowerCase())
+							) {
+								isInList++;
+							}
+						});
+
+						if (isInList == paramWords.length) {
+							searchItems.push(item);
+						}
+					})
+					this.singleSearchResult[P] = searchItems;
+				})
 			} else {
 				this.singleSearchResult.genes = [];
 				this.singleSearchResult.phenotypes = [];
+				let searchFields = Object.keys(this.customList);
+
+				searchFields.map(P => {
+					this.singleSearchResult[P] = [];
+				})
 			}
 		},
 	},
 	methods: {
+		anyResults() {
+			let parameters = Object.keys(this.singleSearchResult) 
 
+			let totalResults = 0;
+			parameters.map(p=>{
+				totalResults += this.singleSearchResult[p].length;
+			})
+
+			return totalResults;
+		},
 		onSearch() {
 			let searchKey = this.singleSearchParam.replace(/,/g, "").trim();
 			if (
@@ -194,13 +266,60 @@ export default Vue.component("research-single-search", {
 					if(param.values == PARAM) {
 						returnParam.active = true;
 						returnParam.url = '/research.html?pageid='
-							+param['target page']['page id']+'&'+param['parameter']+'='
+							+param['target page']['page id'];
+						returnParam.url += (!!param['target page']['entity'])? '&' + param['target page']['entity parameter'] + '='+param['target page']['entity']:"";
+						returnParam.url += '&'+param['parameter']+'=';
+					} else {
+						if(param.parameter == PARAM) {
+							returnParam.active = true;
+							returnParam.url = '/research.html?pageid='
+								+ param['target page']['page id'];
+							returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
+							returnParam.url += '&' + param['parameter'] + '=';
+						}
 					}
 				})
 			}
 
 			return returnParam;
 
+		},
+		async getList( PARAM,URL,TYPE,WRAPPER) {
+			if(!!URL) {
+				
+				let paramList = await fetch(URL).then((resp) => resp.json());
+				let list;
+
+				if (paramList.error == null) {
+
+					if (typeof paramList == "string") {
+						paramList = (TYPE == "json") ? JSON.parse(paramList) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(paramList) : paramList;
+					}
+					if (!!WRAPPER) {
+
+						let dataEntity = paramList;
+
+						WRAPPER.map(w => {
+							dataEntity = dataEntity[w];
+						})
+
+
+						if (typeof dataEntity == "string") {
+							dataEntity = (TYPE == "json") ? JSON.parse(dataEntity) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(dataEntity) : dataEntity;
+						}
+
+						list = dataEntity;
+
+					} else {
+						list = paramList
+					}
+					this.customList[PARAM] = list;
+
+				} else {
+					console.log("there is an error");
+				}
+			}
+			
 		},
 		async searchGene(KEY) {
 			

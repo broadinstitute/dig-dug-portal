@@ -92,7 +92,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-phewas-plot", {
+export default Vue.component("research-bar-plot", {
 	props: [
 		"canvasId",
 		"phenotypeMap",
@@ -571,7 +571,6 @@ export default Vue.component("research-phewas-plot", {
 					(yMax - yMin);
 
 				/// render guide line
-				//
 
 				this.renderConfig["thresholds"].map((t) => {
 					ctx.beginPath();
@@ -610,6 +609,9 @@ export default Vue.component("research-phewas-plot", {
 
 				//console.log("totalNum", totalNum);
 
+				let barWidth = ((canvasWidth - (plotMargin.left + plotMargin.right))/totalNum) - 10;
+				barWidth = barWidth <= 4 ? 4 : barWidth;
+
 				if (totalNum > 1) {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
@@ -625,6 +627,7 @@ export default Vue.component("research-phewas-plot", {
 							xStep * value.length -
 							24;
 
+						let yPos0 = canvasHeight - plotMargin.bottom - (-minY) * yStep;
 						value.map((p) => {
 							if (
 								this.phenotypeMapConfig == null ||
@@ -664,26 +667,15 @@ export default Vue.component("research-phewas-plot", {
 												]
 										  ]["description"];
 
-								if (this.renderConfig["beta field"] != "null" && !!this.renderConfig["beta field"]) {
-									this.renderTriangle(
-										ctx,
-										xPos,
-										yPos,
-										fillColor,
-										strokeColor,
-										Math.sign(
-											p[this.renderConfig["beta field"]]
-										)
-									);
-								} else {
-									this.renderDot(
-										ctx,
-										xPos,
-										yPos,
-										fillColor,
-										strokeColor
-									);
-								}
+								
+								ctx.fillStyle = fillColor;
+								ctx.lineWidth = 1;
+								ctx.strokeStyle = strokeColor;
+
+								ctx.fillRect(xPos, yPos, barWidth, yPos0-yPos);
+								
+
+								
 
 								///organize data by position
 								let yRangeStart = Math.round(yPos / 2) - 5;
@@ -721,42 +713,22 @@ export default Vue.component("research-phewas-plot", {
 									labelXpos < maxWidthPerGroup
 								) {
 									ctx.font = "22px Arial";
-									if (
-										!!this.renderConfig["label in black"] &&
-										this.renderConfig["label in black"] ==
-											"greater than"
-									) {
-										ctx.fillStyle =
-											p.rawPValue >=
-											Number(
-												this.renderConfig[
-													"thresholds"
-												][0]
-											)
-												? "#000000"
-												: "#00000050";
-									} else {
-										ctx.fillStyle =
-											p.rawPValue <=
-											Number(
-												this.renderConfig[
-													"thresholds"
-												][0]
-											)
-												? "#000000"
-												: "#00000050";
-									}
+
+									ctx.fillStyle = "#000000"
+
+									let labelYPos = yPos < yPos0? yPos : yPos0;
 
 									ctx.save();
-									ctx.translate(labelXpos + 10, yPos - 24);
+									ctx.translate(labelXpos + (barWidth / 2) + 10, labelYPos - 24);
 									ctx.rotate((90 * -Math.PI) / 180);
 									ctx.textAlign = "start";
 									ctx.fillText(pName, 0, 0);
 									ctx.restore();
 
+
 									ctx.lineWidth = 1;
-									ctx.moveTo(xPos, yPos);
-									ctx.lineTo(labelXpos, yPos - 20);
+									ctx.moveTo((xPos + (barWidth/2)), labelYPos - 5);
+									ctx.lineTo(labelXpos + (barWidth / 2), labelYPos - 20);
 									ctx.strokeStyle = "#00000080";
 									ctx.stroke();
 								}
@@ -786,7 +758,7 @@ export default Vue.component("research-phewas-plot", {
 										p[this.renderConfig["render by"]]
 									])
 							) {
-								if (this.renderConfig["beta field"] != "null") {
+								/*if (this.renderConfig["beta field"] != "null") {
 									this.renderTriangle(
 										ctx,
 										xPos,
@@ -805,7 +777,15 @@ export default Vue.component("research-phewas-plot", {
 										fillColor,
 										strokeColor
 									);
-								}
+								}*/
+								let barWidth = 10;
+								ctx.fillStyle = fillColor;
+								ctx.lineWidth = 1;
+								ctx.strokeStyle = strokeColor;
+
+								ctx.fillRect(xPos - (barWidth / 2), yPos - plotMargin.bottom - yPos, barWidth, yPos
+								);
+								ctx.stroke();
 
 								let pName =
 									this.phenotypeMapConfig == null

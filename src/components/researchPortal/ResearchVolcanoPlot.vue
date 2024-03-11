@@ -157,6 +157,35 @@ export default Vue.component("research-volcano-plot", {
 			);
 		},
 		renderPlot(REDDOTS) {
+			
+// Dynamically add thresholds
+			let calculateCondition = function(EXP,LENGTH) {
+				let calcString = "";
+
+				EXP.map(e => {
+					let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e :
+						(typeof e === 'number') ? e :
+							(typeof e === 'string') ? (e == "data length") ? LENGTH : e : null;
+
+					calcString += eValue;
+				});
+
+				console.log("calcString",calcString);
+
+				let threshold = eval(calcString);
+				return threshold;
+			}
+
+			let conditions = [["x condition","lower than"], ["x condition", "greater than"],
+								["y condition", "lower than"], ["y condition", "greater than"]]
+
+			conditions.map(condition =>{
+				if(this.renderConfig[condition[0]][condition[1]] && this.renderConfig[condition[0]][condition[1]] == "calculate") {
+					let expression = this.renderConfig[condition[0]]["condition calculate"][condition[1]];
+					this.renderConfig[condition[0]][condition[1]] = calculateCondition(expression, this.renderData.length)
+				}
+			})			
+
 			let xAxisData = [];
 			let yAxisData = [];
 
@@ -419,7 +448,7 @@ export default Vue.component("research-volcano-plot", {
 
 				ctx.lineWidth = 0;
 				ctx.beginPath();
-				ctx.arc(xPos, yPos, 6, 0, 2 * Math.PI);
+				ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 				ctx.fill();
 
 				if (
@@ -432,7 +461,7 @@ export default Vue.component("research-volcano-plot", {
 					ctx.fillText(
 						d[this.renderConfig["render by"]],
 						xPos,
-						yPos - 8
+						yPos - 16
 					);
 				}
 			});

@@ -166,6 +166,7 @@ export default Vue.component("TranslatorPredicateTable", {
                 },
                 { arrayFormat: "comma" }
             );
+
             fetch(`${myGeneAPI}/query?${qs}`, {
                 contentType: "application/json",
             })
@@ -199,6 +200,8 @@ export default Vue.component("TranslatorPredicateTable", {
             },
             { arrayFormat: "comma" }
         );
+        
+
         await fetch(`${myGeneAPI}/query?${qs}`, {
             contentType: "application/json",
         })

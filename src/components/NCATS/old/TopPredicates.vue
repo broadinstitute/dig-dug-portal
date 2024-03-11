@@ -34,10 +34,14 @@ export default Vue.component("translator-predicate-table", {
         }
     },
     async created() {
+        console.log("here 1")
         let qs = queryString.stringify({
             q: this.geneSymbol,
             fields: this.fields,
         }, { arrayFormat: 'comma' });
+
+        console.log(`${myGeneAPI}/query?${qs}`);
+
         await fetch(`${myGeneAPI}/query?${qs}`, { contentType: "application/json" })
             .then(async resp => {
                 if (resp.status === 200) {
