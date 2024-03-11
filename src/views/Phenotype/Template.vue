@@ -301,6 +301,14 @@
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <b-tabs>
+                                    <b-tab title="HuGE Scores">
+                                        <phenotype-huge-scores
+                                            :scores="$store.state.hugePhenotype.data"
+                                            :filter="filter"
+                                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                            :phenotype="$store.state.phenotype.name">
+                                        </phenotype-huge-scores>
+                                    </b-tab>
                                     <b-tab :title='`Common variant 
                                         (Ancestry: ${!$store.state.ancestry ? "All"
                                         : $parent.ancestryFormatter($store.state.ancestry)})`'>

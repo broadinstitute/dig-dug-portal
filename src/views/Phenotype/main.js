@@ -17,6 +17,7 @@ import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
 import PathwayTable from "@/components/PathwayTable.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
+import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue";
 import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -67,7 +68,8 @@ new Vue({
         FilterEnumeration,
         FilterEffectDirection,
         SearchHeaderWrapper,
-        ResearchMPlot
+        ResearchMPlot,
+        PhenotypeHugeScores
     },
 
     created() {
