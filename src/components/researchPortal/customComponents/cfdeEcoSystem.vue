@@ -226,7 +226,7 @@ export default Vue.component("cfde-eco-system", {
 			currPov: null,
 			currHoverGroup: null,
 			freezeSelection: false,
-			entitiesDATA: `DCC,a_Species,a_Disease,a_BodySite,a_Organ,a_Tissue,a_Region,a_Gene,a_Variant,a_Transcript,a_Protein,a_Pathway,a_Metabolite,a_Ligand,b_Epigenomics,b_Genomics,b_Transcriptomics,b_Proteomics,b_Metabolomics,c_experimental-biologist,c_geneticist,c_drug-developer,c_computational-biologist,d_logo,r_experimental-biologist,r_geneticist,r_drug-developer,r_computational-biologist
+			entitiesDATA: `DCC,a_Species,a_Disease,a_BodySite,a_Organ,a_Tissue,a_Region,a_Gene,a_Variant,a_Transcript,a_Protein,a_Pathway,a_Metabolite,a_Ligand,b_Epigenomics,b_Genomics,b_Transcriptomics,b_Proteomics,b_Metabolomics,c_experimental-biology,c_genetics,c_drug-development,c_computational-biology,d_logo,r_experimental-biology,r_genetics,r_drug-development,r_computational-biology
 4DN,,,,,,1,,,,,,,,1,1,,,,3,2,2,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/4DN.png,"Provides data on the 3D organization of the nucleus, crucial for understanding cellular mechanisms experimentally.","While focused on nuclear organization, it offers insights into genomic architecture that can have implications for genetic research.","Provides insights into the 3D organization of the nucleus, relevant for understanding disease mechanisms at a genomic level for drug targeting.","Facilitates understanding of the 3D genome organization, providing critical data for computational modeling of genomic interactions and dynamics."
 GTEx,,,,,1,1,1,1,1,,,,,,1,1,,,1,3,2,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/GTEx.png,"Primarily a genomics database, its relevance is more for genetic analysis than direct experimental biology.","Provides extensive gene expression data across tissues, crucial for understanding genetic variations and their phenotypic impacts.",Gene expression data across tissues can inform drug target selection and understand drug effects in different biological contexts.,"Offers a comprehensive dataset of gene expression across human tissues, invaluable for computational genetic studies and disease modeling."
 ExRNA,,1,,,,,,,1,,,,,,,1,,,1,2,2,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/exRNA.png,"Offers extracellular RNA data, useful for hypothesis generation but less so for direct experimental methodologies.","Offers data on extracellular RNAs, which can be used in genetic studies related to gene regulation and non-coding RNA functions.","Offers data on extracellular RNAs, which can be relevant for drug development in terms of biomarkers or therapeutic targets.","Offers data on extracellular RNAs, supporting computational studies on non-coding RNA functions and gene regulation."
@@ -247,7 +247,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
 			this.parsedData = this.parseEntities();
 			console.log(this.parsedData);
 			setTimeout(function () {
-				const targetElement = document.querySelector('[data-value="geneticist"]');
+				const targetElement = document.querySelector('[data-value="genetics"]');
 				console.log(targetElement);
 				if (targetElement) {
 					targetElement.dispatchEvent(new Event('mouseover'));
