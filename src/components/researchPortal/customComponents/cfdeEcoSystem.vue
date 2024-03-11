@@ -664,7 +664,7 @@ $(function () {
 	justify-content: center;
 	pointer-events: none;
 	text-transform: uppercase;
-	font-size: 10px;
+	font-size: 11px;
 	font-weight: bold;
 	letter-spacing: 1px;
 }
@@ -767,7 +767,8 @@ $(function () {
 	height: 20px;
 	
 	text-transform: uppercase;
-	font-size: 10px;
+	font-size: 11px;
+	padding: 0 5px;
 	letter-spacing: 1px;
 	font-weight: 600;
 
@@ -821,7 +822,7 @@ $(function () {
 	cursor: default;
 
 	text-transform: uppercase;
-	font-size: 10px;
+	font-size: 11px;
 	font-weight: bold;
 	letter-spacing: 1px;
 }
