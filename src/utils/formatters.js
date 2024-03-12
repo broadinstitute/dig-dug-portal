@@ -57,7 +57,7 @@ function snakeFormatter(s) {
 
 function toSnakeFormatter(s){
     if (s){
-        return s.trim().toLowerCase().replace(' ', '_');
+        return s.trim().toLowerCase().replaceAll(' ', '_');
     }
 }
 
