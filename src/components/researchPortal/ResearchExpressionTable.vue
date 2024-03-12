@@ -11,6 +11,12 @@
 			:per-page="perPage"
 			:current-page="currentPage"
 		>
+      <template #cell(tissue)="row">
+        <a :href="`/tissue.html?tissue=${toSnakeFormatter(row.item.tissue)}`" 
+            target="_blank">
+            {{ tissueFormatter(row.item.tissue) }}
+        </a>
+      </template>
 			<template #cell(show_datasets)="row">
 				<b-button
 					class="btn view-features-btn btn-secondary mr-2"
@@ -133,6 +139,8 @@
       }
     },
     methods: {
+      toSnakeFormatter: Formatters.toSnakeFormatter,
+      tissueFormatter: Formatters.tissueFormatter,
       getTableData() {
         let processedData = this.$props.filteredData;
         let keyFieldVals = [];

@@ -1,7 +1,7 @@
 <template>
     <div>
         <h4>
-            {{ `Global enrichment for ${tissue.toUpperCase()}` }}
+            {{ `Global enrichment for ${tissueFormatter(tissue)}` }}
         </h4>
         <documentation
             name="tissue.global-enrichment.subheader"
@@ -16,6 +16,14 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <template #cell(phenotype)="r">
+                <a v-if="phenotypeMap[r.item.phenotype]"
+                    :href="`/phenotype.html?phenotype=${r.item.phenotype}`"
+                    target="_blank">
+                    {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
+                </a>
+                <span v-else>{{ r.item.phenotype }}</span>
+            </template>
             <template #cell(biosample)="r"
                 ><b-button
                     v-b-popover.hover="'View biosample'"
@@ -55,12 +63,16 @@
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
+import Formatters from "@/utils/formatters";
 export default Vue.component("TissueHeritabilityTable", {
     props: {
         tissue: {
             type: String,
             required: true,
         },
+        phenotypeMap: {
+            type: Object
+        }
     },
     data() {
         return {
@@ -105,7 +117,7 @@ export default Vue.component("TissueHeritabilityTable", {
         if (this.tissue) {
             query(
                 "partitioned-heritability-tissue",
-                this.tissue.replace("_", " ") + "," + this.ancestry,
+                this.tissue.replaceAll("_", " ") + "," + this.ancestry,
                 { limit: 1000 }
             ).then((data) => {
                 console.log("retrieved data ", data);
@@ -114,7 +126,8 @@ export default Vue.component("TissueHeritabilityTable", {
         }
     },
     methods: {
-        // Methods go here
+        tissueFormatter: Formatters.tissueFormatter,
+        phenotypeFormatter: Formatters.phenotypeFormatter
     },
 });
 </script>

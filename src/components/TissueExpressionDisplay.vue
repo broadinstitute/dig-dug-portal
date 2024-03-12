@@ -2,7 +2,7 @@
     <div>
         <h4>
             {{
-                `Gene expression for ${tissue.toUpperCase().replace("_", " ")}`
+                `Gene expression for ${tissueFormatter(tissue)}`
             }}
         </h4>
         <documentation
@@ -39,9 +39,9 @@
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
+import Formatters from "@/utils/formatters";
 import ResearchExpressionFilter from "@/components/researchPortal/ResearchExpressionFilter.vue";
 import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
-import ResearchExpressionTable from "@/components/researchPortal/ResearchExpressionTable.vue";
 import TissueTable from "./TissueTable.vue";
 export default Vue.component("TissueExpressionDisplay", {
     props: {
@@ -68,6 +68,7 @@ export default Vue.component("TissueExpressionDisplay", {
         this.populateGeneData();
     },
     methods: {
+        tissueFormatter: Formatters.tissueFormatter,
         async showEvidence(gene) {
             if (gene) {
                 //check if evidence object already has key equal gene
