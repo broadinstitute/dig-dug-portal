@@ -1,6 +1,5 @@
 <template>
 	<div class="mbm-plot-content row">
-		{{ 'box plot' }}
 		<div class="col-md-12 box-plot-wrapper">
 			<div
 				class="col-md-12"
@@ -9,7 +8,7 @@
 			>
 				<div
 					:id="canvasId + 'boxInfoBox'"
-					class="phe-was-info-box hidden"
+					class="boxplot-info-box hidden"
 				>
 					<div
 						:id="canvasId + 'info_box_close'"
@@ -339,18 +338,18 @@ export default Vue.component("research-box-plot", {
 					x >= (plotMargin.left / 2) &&
 					x <= rect.width - (plotMargin.right / 2)
 				) {
-					for (const [yKey, yValue] of Object.entries(
+					for (const [xKey, xValue] of Object.entries(
 						this.boxPosData
 					)) {
-						let yLoc = yKey.split("-");
+						let xLoc = xKey.split("-");
 
-						if (y >= yLoc[0] && y <= yLoc[1]) {
-							yValue.map((xPos) => {
-								if (x >= xPos.start && x <= xPos.end) {
-									this.hoverItems[xPos.name] = xPos;
+						if (x >= xLoc[0] && x <= xLoc[1]) {
+							xValue.map((yPos) => {
+								if (y >= yPos.start && y <= yPos.end) {
+									this.hoverItems[yPos.name] = yPos;
 									infoContent +=
 										"<strong>" +
-										xPos.name +
+										yPos.name +
 										"</strong><br />";
 
 									this.renderConfig["hover content"].map(
@@ -358,7 +357,7 @@ export default Vue.component("research-box-plot", {
 											infoContent +=
 												h +
 												":" +
-												xPos.data[h] +
+												yPos.data[h] +
 												"<br />";
 										}
 									);
@@ -384,7 +383,7 @@ export default Vue.component("research-box-plot", {
 							false
 						) {
 							//infoBoxContent.innerHTML = infoContent;
-							infoBox.setAttribute("class", "phe-was-info-box");
+							infoBox.setAttribute("class", "boxplot-info-box");
 							infoBoxClose.setAttribute("class", "hidden");
 							if (x < rect.width - 300) {
 								infoBox.style.left = rawX + 25 + "px";
@@ -401,11 +400,11 @@ export default Vue.component("research-box-plot", {
 				if (TYPE == "click") {
 					infoBoxClose.setAttribute("class", "fixed-info-box-close");
 					if (infoContent == "") {
-						//infoBoxContent.innerHTML = "";
+						
 						infoBox.setAttribute("class", "hidden");
 					} else {
-						//infoBoxContent.innerHTML = infoContent;
-						infoBox.setAttribute("class", "phe-was-info-box fixed");
+						
+						infoBox.setAttribute("class", "boxplot-info-box fixed");
 						if (x < rect.width - 300) {
 							infoBox.style.left = rawX + 25 + "px";
 							infoBox.style.top = rawY + this.spaceBy + "px";
@@ -420,7 +419,6 @@ export default Vue.component("research-box-plot", {
 		},
 		renderBoxPlot() {
 
-			//console.log(this.renderData);
 			if(!!this.renderConfig["thresholds"] && this.renderConfig["thresholds"] == "calculate") {
 
 				let threshholds = [];
@@ -434,9 +432,8 @@ export default Vue.component("research-box-plot", {
 
 						calcString += eValue;
 					});
-					//console.log("calcString", calcString)
+					
 					let threshold = eval(calcString);
-					//console.log("threshold", threshold)
 					threshholds.push(threshold);
 				})
 				this.renderConfig["thresholds"] = threshholds;
@@ -483,24 +480,18 @@ export default Vue.component("research-box-plot", {
 					groups[key] = value.length;
 					totalNum += value.length;
 					value.map((p) => {
-						let yValue =
-							this.renderConfig["convert y -log10"] == "true"
-								? p[
-										this.renderConfig["y axis field"] +
-											"-log10"
-								  ]
-								: Number(p[this.renderConfig["y axis field"]]);
+						let yValue = p;
 						minY =
 							minY == null
-								? yValue
-								: yValue < minY
-								? yValue
+								? yValue[this.renderConfig["y axis field"].min]
+								: yValue[this.renderConfig["y axis field"].min] < minY
+								? yValue[this.renderConfig["y axis field"].min]
 								: minY;
 						maxY =
 							maxY == null
-								? yValue
-								: yValue > maxY
-								? yValue
+								? yValue[this.renderConfig["y axis field"].max]
+								: yValue[this.renderConfig["y axis field"].max] > maxY
+								? yValue[this.renderConfig["y axis field"].max]
 								: maxY;
 					});
 				}
@@ -572,7 +563,7 @@ export default Vue.component("research-box-plot", {
 
 				/// render guide line
 
-				this.renderConfig["thresholds"].map((t) => {
+				/*this.renderConfig["thresholds"].map((t) => {
 					ctx.beginPath();
 					let tValue =
 						this.renderConfig["convert y -log10"] == "true"
@@ -600,6 +591,7 @@ export default Vue.component("research-box-plot", {
 					ctx.stroke();
 					ctx.closePath();
 				});
+				*/
 
 				ctx.setLineDash([]); // Set annoying line dash back to normal
 
@@ -609,8 +601,8 @@ export default Vue.component("research-box-plot", {
 
 				//console.log("totalNum", totalNum);
 
-				let barWidth = ((canvasWidth - (plotMargin.left + plotMargin.right))/totalNum) - 10;
-				barWidth = barWidth <= 4 ? 4 : barWidth;
+				let boxWidth = ((canvasWidth - (plotMargin.left + plotMargin.right))/totalNum) - 40;
+				boxWidth = boxWidth <= 8 ? 8 : boxWidth;
 
 				if (totalNum > 1) {
 					for (const [key, value] of Object.entries(renderData)) {
@@ -639,7 +631,7 @@ export default Vue.component("research-box-plot", {
 
 								let xPos = plotMargin.left + xStep * dotIndex;
 
-								let yValue =
+								/*let yValue =
 									this.renderConfig["convert y -log10"] ==
 									"true"
 										? p[
@@ -647,63 +639,104 @@ export default Vue.component("research-box-plot", {
 													"y axis field"
 												] + "-log10"
 										  ]
-										: p[this.renderConfig["y axis field"]];
+										: p[this.renderConfig["y axis field"]];*/
 
-								let yFromMinY = -minY + yValue;
+								let yValue = {
+									min:p[this.renderConfig["y axis field"].min],
+									max: p[this.renderConfig["y axis field"].max],
+									median: p[this.renderConfig["y axis field"].median],
+									q1: p[this.renderConfig["y axis field"].q1],
+									q3: p[this.renderConfig["y axis field"].q3]
+								}
 
-								let yPos =
-									canvasHeight -
-									plotMargin.bottom -
-									yFromMinY * yStep;
+								let centerY0, centerY1, medianY, q1Y, q3Y;
+
+								centerY0 = canvasHeight - plotMargin.bottom - yValue.min * yStep;
+								centerY1 = canvasHeight - plotMargin.bottom - yValue.max * yStep;
+								medianY = canvasHeight - plotMargin.bottom - yValue.median * yStep;
+								q1Y = canvasHeight - plotMargin.bottom - yValue.q1 * yStep;
+								q3Y = canvasHeight - plotMargin.bottom - yValue.q3 * yStep;
+
+								/// render center line
+								ctx.strokeStyle = fillColor;
+								ctx.lineWidth = 1;
+
+								ctx.beginPath();c
+								ctx.moveTo(
+									xPos + boxWidth/2,
+									centerY0
+								);
+								ctx.lineTo(
+									xPos + boxWidth / 2,
+									centerY1
+								);
+								ctx.stroke();
+
+								/// render box by q1 and q3
+								ctx.strokeStyle = fillColor;
+								ctx.lineWidth = 2;
+								ctx.fillStyle = "#ffffff";
+								ctx.fillRect(xPos, q1Y, boxWidth, q3Y - q1Y);
+
+								ctx.beginPath(); 
+								ctx.rect(xPos, q1Y, boxWidth, q3Y-q1Y);
+								ctx.stroke();
+
+								/// render median line
+								ctx.strokeStyle = fillColor;
+								ctx.lineWidth = 3;
+
+								ctx.beginPath();
+								ctx.moveTo(
+									xPos,
+									medianY
+								);
+								ctx.lineTo(
+									xPos + boxWidth,
+									medianY
+								);
+								ctx.stroke();
 
 								let pName =
 									this.phenotypeMapConfig == null
 										? p[this.renderConfig["render by"]]
 										: this.phenotypeMap[
-												p[
-													this.renderConfig[
-														"render by"
-													]
-												]
-										  ]["description"];
-
-								
-								ctx.fillStyle = fillColor;
-								ctx.lineWidth = 1;
-								ctx.strokeStyle = strokeColor;
-
-								ctx.fillRect(xPos, yPos, barWidth, yPos0-yPos);
-								
-
-								
+										p[
+										this.renderConfig[
+										"render by"
+										]
+										]
+										]["description"];
 
 								///organize data by position
-								let yRangeStart = Math.round(yPos / 2) - 5;
-								let yRangeEnd = Math.round(yPos / 2) + 5;
-								let yRange = yRangeStart + "-" + yRangeEnd;
+								let xRangeStart = Math.round(xPos / 2);//Math.round(q3Y / 2);
+								let xRangeEnd = Math.round((xPos + boxWidth) / 2);//Math.round(q1Y / 2);
+								let xRange = xRangeStart + "-" + xRangeEnd;
+								let yRangeStart = Math.round(q3Y / 2);
+								let yRangeEnd = Math.round(q1Y / 2);
+								//let yRange = yRangeStart + "-" + yRangeEnd;
 								let tempObj = {};
 								this.renderConfig["hover content"].map((c) => {
 									tempObj[c] = p[c];
 								});
-								let xRange = {
-									start: Math.round(xPos / 2) - 5,
-									end: Math.round(xPos / 2) + 5,
+								let yRange = {
+									start: yRangeStart,
+									end: yRangeEnd,
 									data: tempObj,
 									name: pName,
 									id: p[this.renderConfig["render by"]],
 								};
 
-								if (!this.boxPosData[yRange]) {
-									this.boxPosData[yRange] = [];
+								if (!this.boxPosData[xRange]) {
+									this.boxPosData[xRange] = [];
 								}
-								this.boxPosData[yRange].push(xRange);
+								this.boxPosData[xRange].push(yRange);
 
 								///add labels if p-value above 2.5e-6
 								if (labelIndex == 0) {
 									labelOrigin = xPos;
 								}
 
-								//if (labelIndex == 0 || p.pValue <= 2.5e-6) {
 								let labelXpos = labelOrigin + 24 * labelIndex;
 
 								labelXpos = xPos > labelXpos ? xPos : labelXpos;
@@ -716,10 +749,10 @@ export default Vue.component("research-box-plot", {
 
 									ctx.fillStyle = "#000000"
 
-									let labelYPos = yPos < yPos0? yPos : yPos0;
+									let labelYPos = yPos0;
 
 									ctx.save();
-									ctx.translate(labelXpos + (barWidth / 2) + 10, labelYPos - 24);
+									ctx.translate(labelXpos + (boxWidth / 2) + 10, centerY1 - 24);
 									ctx.rotate((90 * -Math.PI) / 180);
 									ctx.textAlign = "start";
 									ctx.fillText(pName, 0, 0);
@@ -727,19 +760,20 @@ export default Vue.component("research-box-plot", {
 
 
 									ctx.lineWidth = 1;
-									ctx.moveTo((xPos + (barWidth/2)), labelYPos - 5);
-									ctx.lineTo(labelXpos + (barWidth / 2), labelYPos - 20);
+									ctx.moveTo((xPos + (boxWidth/2)), centerY1 - 5);
+									ctx.lineTo(labelXpos + (boxWidth / 2), centerY1 - 20);
 									ctx.strokeStyle = "#00000080";
 									ctx.stroke();
 								}
 
 								labelIndex++;
-								//}
 								dotIndex++;
 							}
 						});
 						keyIndex++;
 					}
+
+					console.log(this.boxPosData)
 				} else {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
@@ -778,12 +812,12 @@ export default Vue.component("research-box-plot", {
 										strokeColor
 									);
 								}*/
-								let barWidth = 10;
+								let boxWidth = 10;
 								ctx.fillStyle = fillColor;
 								ctx.lineWidth = 1;
 								ctx.strokeStyle = strokeColor;
 
-								ctx.fillRect(xPos - (barWidth / 2), yPos - plotMargin.bottom - yPos, barWidth, yPos
+								ctx.fillRect(xPos - (boxWidth / 2), yPos - plotMargin.bottom - yPos, boxWidth, yPos
 								);
 								ctx.stroke();
 
@@ -970,7 +1004,7 @@ $(function () {});
 	font-size: 14px;
 	color: #69f;
 }
-.phe-was-info-box {
+.boxplot-info-box {
 	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;
