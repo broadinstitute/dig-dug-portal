@@ -630,7 +630,6 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             }
         }else {
             if (formatTypes.includes("custom-extra")) {
-                console.log('extra', VALUE);
                 cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
             }
         }

@@ -187,6 +187,29 @@
 							</option>
 						</select>
 					</template>
+					<template v-else-if="filter.type == 'sort-radio'">
+						<div class="custom-select-radios">
+							<div
+								v-for="value in filter.fields"
+								:key="value"
+								class="custom-select-radio"
+							>
+								<input
+									type="radio"
+									:id="'filter_' + sectionId + getColumnId(filter.id) + '_' + value"
+									:value="value"
+									@change="callSort($event, filter.direction)"
+									class="custom-radio"
+									name="filter"
+								>
+								<label
+									:for="'filter_' + sectionId + getColumnId(filter.id) + '_' + value"
+								>
+									{{ value }}
+								</label>
+							</div>
+						</div>
+					</template>
 					<template v-else-if="filter.type == 'checkbox'">
 						<div class="chkbox-combo">
 							<div class="title btn btn-sm btn-light form-control chk-box-btn">{{ filter.label }} <span>&#9660;</span></div>
@@ -1800,5 +1823,54 @@ div.custom-select-search {
 }
 
 
-
+.custom-select-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+}
+.custom-select-radio {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-radius: 5px;
+    padding: 0 10px;
+    background: white;
+    white-space: nowrap;
+    height: 22px;
+	cursor: pointer !important;
+}
+.custom-select-radio:hover {
+    outline: 0.5px solid #aaaaaa;
+}
+.custom-select-radio input[type="radio"] {
+    display: inline-block;
+    margin: 0 5px 0 0;
+    appearance: none;
+    background: #34679a;
+    border-radius: 50%;
+    width: 10px !important;
+    height: 10px !important;
+    aspect-ratio: 1;
+    position: relative;
+}
+.custom-select-radio input[type="radio"]:after {
+    content: '';
+    background: white;
+    width: calc(100% - 5px);
+    height: calc(100% - 5px);
+    display: block;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.custom-select-radio input[type="radio"]:checked:after {
+    background: #34679a;
+}
+.custom-select-radio label {
+    margin: 0 !important;
+	cursor: pointer;
+}
 </style>
