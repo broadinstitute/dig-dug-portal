@@ -1294,7 +1294,7 @@ new Vue({
         },
         setContext(KEY, SECTIONS) {
             if (KEY == 'remove') {
-
+                keyParams.set({ "context": '' });
             } else {
                 let keyId = KEY.toLowerCase().replace(" ", "_");
                 keyParams.set({ "context": keyId });
