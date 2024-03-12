@@ -16,6 +16,11 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <template #cell(phenotype)="r">
+                <a :href="`/phenotype.html?phenotype=${r.item.phenotype}`">
+                    {{ r.item.phenotype }}
+                </a>
+            </template>
             <template #cell(biosample)="r"
                 ><b-button
                     v-b-popover.hover="'View biosample'"
