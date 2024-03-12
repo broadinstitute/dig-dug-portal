@@ -48,6 +48,7 @@
                     <div class="card-body">
                         <tissue-heritability-table
                             :tissue="$parent.tissue"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         ></tissue-heritability-table>
                     </div>
                 </div>
