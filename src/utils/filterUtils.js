@@ -14,7 +14,15 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
                 switch (filter.type) {
                     case 'search':
 
-                        meetFilters = !!d[filter.field].toLowerCase().includes(filterValue.toLowerCase()) ? true : false;
+                        if (!!d[filter.field] && typeof d[filter.field] == 'string') {
+                            meetFilters = !!d[filter.field].toLowerCase().includes(filterValue.toLowerCase()) ? true : false;
+                        } else if (!!d[filter.field] && typeof d[filter.field] == 'object' && !!Array.isArray(d[filter.field])) {
+
+                            let valuesInColumn = [...new Set(d[filter.field].map(c => c.toLowerCase()))];
+
+                            meetFilters = !!valuesInColumn.includes(filterValue.toLowerCase()) ? true : false;
+
+                        }
 
                         break;
 
