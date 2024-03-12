@@ -57,9 +57,9 @@
                     </b-th>
                 </template>
                 <template #cell(geneName)="r">
-                    <a :href="`/gene.html?gene=${r.item.gene}`">{{
-                        r.item.gene
-                    }}</a>
+                    <a :href="`/gene.html?gene=${r.item.gene}`" target="_blank">
+                        {{ r.item.gene }}
+                    </a>
                 </template>
                 <template
                     v-for="p in phenotypes"
