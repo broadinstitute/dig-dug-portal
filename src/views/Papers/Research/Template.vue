@@ -617,6 +617,8 @@
 							<div v-if="!!$parent.sectionConfigs['context']">
 									<span v-for="value, key, index in $parent.sectionConfigs['context']" class="btn btn-sm btn-primary" 
 										@click="$parent.setContext(key, value)">{{ key }}</span>
+									<span class="btn btn-sm btn-warning" 
+										@click="$parent.setContext('remove', null)">Remove context</span>
 								</div>
 								<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"

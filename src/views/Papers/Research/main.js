@@ -1293,11 +1293,14 @@ new Vue({
             return sectionInEntity;
         },
         setContext(KEY, SECTIONS) {
-            let keyId = KEY.toLowerCase().replace(" ", "_");
-            keyParams.set({ "context": keyId });
+            if (KEY == 'remove') {
+
+            } else {
+                let keyId = KEY.toLowerCase().replace(" ", "_");
+                keyParams.set({ "context": keyId });
+            }
+
             this.updateSectionDescriptions();
-            //location.reload();
-            //this.$forceUpdate();
         },
         getTabGroups(TAB_GROUPS) {
 

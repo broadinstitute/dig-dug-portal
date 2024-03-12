@@ -17,7 +17,7 @@
 				class="byor-single-search-results"
 				v-if="anyResults() > 0"
 			>
-				<div v-for="gene in singleSearchResult.genes" :key="gene">
+				<div v-for="gene in singleSearchResult.genes" :key="gene" class="single-search-option">
 					{{ gene
 					}}<span class="search-word-group"
 						><a v-if="!!isParameterActive('kp genes').active"
@@ -41,6 +41,7 @@
 						v-for="phenotype in singleSearchResult.phenotypes"
 						:value="phenotype.name"
 						:key="phenotype.name"
+						 class="single-search-option"
 					>
 						<a :href="isParameterActive('kp phenotypes').url + phenotype.name">{{
 							phenotype.description
@@ -59,6 +60,7 @@
 								v-for="item in singleSearchResult[param['parameter']]"
 								:value="item.value"
 								:key="item.value"
+								 class="single-search-option"
 							>{{ item.label }}
 								<a :href="isParameterActive(param['parameter']).url + item.value" class="search-word-group">{{
 									'Search '+param['parameter']
@@ -80,7 +82,7 @@
 					singleSearchResult.phenotypes.length > 0
 				"
 			>
-				<div v-for="gene in singleSearchResult.genes" :key="gene">
+				<div v-for="gene in singleSearchResult.genes" :key="gene" class="single-search-option">
 					{{ gene
 					}}<span class="search-word-group"
 						><a
@@ -103,6 +105,7 @@
 					v-for="phenotype in singleSearchResult.phenotypes"
 					:value="phenotype.name"
 					:key="phenotype.name"
+					 class="single-search-option"
 				>
 					<a :href="'/phenotype.html?phenotype=' + phenotype.name">{{
 						phenotype.description
@@ -404,6 +407,11 @@ export default Vue.component("research-single-search", {
 	overflow-y: scroll;
 	max-height: 500px;
 	text-align: left;
+}
+
+.single-search-option:hover {
+	border-bottom: solid 2px #dddddd;
+	margin-bottom: -2px;
 }
 
 .search-word-group {
