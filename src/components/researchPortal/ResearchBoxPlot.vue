@@ -1,26 +1,26 @@
 <template>
 	<div class="mbm-plot-content row">
-		
-		<div class="col-md-12 bar-plot-wrapper">
+		{{ 'box plot' }}
+		<div class="col-md-12 box-plot-wrapper">
 			<div
 				class="col-md-12"
-				:id="canvasId + 'barPlotWrapper'"
+				:id="canvasId + 'boxPlotWrapper'"
 				style="display: inline-block"
 			>
 				<div
-					:id="canvasId + 'barInfoBox'"
-					class="boxplot-info-box hidden"
+					:id="canvasId + 'boxInfoBox'"
+					class="phe-was-info-box hidden"
 				>
 					<div
 						:id="canvasId + 'info_box_close'"
 						class="fixed-info-box-close"
 						@click="
-							utils.uiUtils.removeOnMouseOut(canvasId + 'barInfoBox', 100)
+							utils.uiUtils.removeOnMouseOut(canvasId + 'boxInfoBox', 100)
 						"
 					>
 						<b-icon icon="x-circle-fill"></b-icon>
 					</div>
-					<span :id="canvasId + 'barInfoBoxContent'"></span>
+					<span :id="canvasId + 'boxInfoBoxContent'"></span>
 
 					<span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
 						<strong>{{ ptKey }}</strong
@@ -32,7 +32,7 @@
 						<template
 							v-if="
 								options != null &&
-								utils.uiUtils.isIdFixed('#' + canvasId + 'barInfoBox') ==
+								utils.uiUtils.isIdFixed('#' + canvasId + 'boxInfoBox') ==
 									true
 							"
 						>
@@ -59,7 +59,7 @@
 						<span
 							v-if="
 								options != null &&
-								utils.uiUtils.isIdFixed('#' + canvasId + 'barInfoBox') ==
+								utils.uiUtils.isIdFixed('#' + canvasId + 'boxInfoBox') ==
 									false
 							"
 							>Click for options</span
@@ -68,14 +68,14 @@
 				</div>
 
 				<canvas :hidden="!showCanvas"
-					:id="canvasId + 'barPlot'"
+					:id="canvasId + 'boxPlot'"
 					width=""
 					height=""
 					@mousemove="checkPosition($event, 'hover')"
 					@click="checkPosition($event, 'click')"
 					@mouseout="
-						!utils.uiUtils.isIdFixed('#' + canvasId + 'barInfoBox')
-							? utils.uiUtils.removeOnMouseOut(canvasId + 'barInfoBox', 1000)
+						!utils.uiUtils.isIdFixed('#' + canvasId + 'boxInfoBox')
+							? utils.uiUtils.removeOnMouseOut(canvasId + 'boxInfoBox', 1000)
 							: ''
 					"
 				></canvas>
@@ -92,7 +92,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-bar-plot", {
+export default Vue.component("research-box-plot", {
 	props: [
 		"canvasId",
 		"phenotypeMap",
@@ -109,8 +109,8 @@ export default Vue.component("research-bar-plot", {
 	],
 	data() {
 		return {
-			barData: null,
-			barPosData: {},
+			boxData: null,
+			boxPosData: {},
 			spaceBy: 7,
 			trigger: 0,
 			hoverItems: {},
@@ -121,11 +121,11 @@ export default Vue.component("research-bar-plot", {
 	},
 	components: {},
 	created: function () {
-		this.renderBarPlot();
+		this.renderBoxPlot();
 	},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		this.renderBarPlot();
+		this.renderBoxPlot();
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -184,8 +184,55 @@ export default Vue.component("research-bar-plot", {
 	},
 	watch: {
 		renderData(content) {
-			this.renderBarPlot();
+			this.renderBoxPlot();
 		},
+
+		/*phenotypesData(DATA) {
+
+			console.log("DATA",DATA);
+
+			this.showCanvas = true;
+			let content = {};
+			content["data"] = [];
+
+			
+			let phenotypesData = cloneDeep(this.phenotypesData);
+
+			phenotypesData.map((d) => {
+				let pValue =
+					typeof d[this.renderConfig["y axis field"]] == "string"
+						? Number(d[this.renderConfig["y axis field"]])
+						: d[this.renderConfig["y axis field"]];
+				d["rawPValue"] = pValue;
+
+				if (this.renderConfig["convert y -log10"] == "true") {
+					d[this.renderConfig["y axis field"] + "-log10"] =
+						-Math.log10(pValue);
+				}
+
+				if (
+					this.phenotypeMapConfig == "kpPhenotypeMap" &&
+					!!this.phenotypeMap[d[this.renderConfig["render by"]]]
+				) {
+					content["data"].push(d);
+				} else if (this.phenotypeMapConfig == null) {
+					content["data"].push(d);
+				}
+			});
+		
+			if (!!this.filter) {
+				content.data = content.data.filter(this.filter);
+			}
+
+			if (!!content.data && content.data.length > 0) {
+				this.renderData = content;
+			} else {
+				this.showCanvas = false;
+				this.renderData = null;
+			}
+
+			if(!!this.renderData) {this.renderBoxPlot()};
+		}*/
 	},
 	methods: {
 		//...uiUtils,
@@ -246,7 +293,7 @@ export default Vue.component("research-bar-plot", {
 			return phenotypeGroupsObj;
 		},
 		onResize() {
-			this.renderBarPlot();
+			this.renderBoxPlot();
 		},
 		checkPosition(event, TYPE) {
 			let e = event;
@@ -276,10 +323,10 @@ export default Vue.component("research-bar-plot", {
 			let x = Math.ceil(e.clientX - rect.left);
 
 			const infoBox = document.querySelector(
-				"#" + this.canvasId + "barInfoBox"
+				"#" + this.canvasId + "boxInfoBox"
 			);
 			const infoBoxContent = document.querySelector(
-				"#" + this.canvasId + "barInfoBoxContent"
+				"#" + this.canvasId + "boxInfoBoxContent"
 			);
 			const infoBoxClose = document.querySelector(
 				"#" + this.canvasId + "info_box_close"
@@ -293,14 +340,14 @@ export default Vue.component("research-bar-plot", {
 					x <= rect.width - (plotMargin.right / 2)
 				) {
 					for (const [yKey, yValue] of Object.entries(
-						this.barPosData
+						this.boxPosData
 					)) {
 						let yLoc = yKey.split("-");
+
 						if (y >= yLoc[0] && y <= yLoc[1]) {
 							yValue.map((xPos) => {
 								if (x >= xPos.start && x <= xPos.end) {
 									this.hoverItems[xPos.name] = xPos;
-
 									infoContent +=
 										"<strong>" +
 										xPos.name +
@@ -321,14 +368,13 @@ export default Vue.component("research-bar-plot", {
 					}
 				}
 
-				
-
 				if (TYPE == "hover") {
 					if (infoContent == "") {
 						if (
 							infoBox.getAttribute("class").includes("fixed") ==
 							false
 						) {
+							//infoBoxContent.innerHTML = "";
 							infoBox.setAttribute("class", "hidden");
 							infoBoxClose.setAttribute("class", "hidden");
 						}
@@ -338,7 +384,7 @@ export default Vue.component("research-bar-plot", {
 							false
 						) {
 							//infoBoxContent.innerHTML = infoContent;
-							infoBox.setAttribute("class", "boxplot-info-box");
+							infoBox.setAttribute("class", "phe-was-info-box");
 							infoBoxClose.setAttribute("class", "hidden");
 							if (x < rect.width - 300) {
 								infoBox.style.left = rawX + 25 + "px";
@@ -359,7 +405,7 @@ export default Vue.component("research-bar-plot", {
 						infoBox.setAttribute("class", "hidden");
 					} else {
 						//infoBoxContent.innerHTML = infoContent;
-						infoBox.setAttribute("class", "boxplot-info-box fixed");
+						infoBox.setAttribute("class", "phe-was-info-box fixed");
 						if (x < rect.width - 300) {
 							infoBox.style.left = rawX + 25 + "px";
 							infoBox.style.top = rawY + this.spaceBy + "px";
@@ -372,8 +418,9 @@ export default Vue.component("research-bar-plot", {
 				}
 			}
 		},
-		renderBarPlot() {
+		renderBoxPlot() {
 
+			//console.log(this.renderData);
 			if(!!this.renderConfig["thresholds"] && this.renderConfig["thresholds"] == "calculate") {
 
 				let threshholds = [];
@@ -387,17 +434,19 @@ export default Vue.component("research-bar-plot", {
 
 						calcString += eValue;
 					});
+					//console.log("calcString", calcString)
 					let threshold = eval(calcString);
+					//console.log("threshold", threshold)
 					threshholds.push(threshold);
 				})
 				this.renderConfig["thresholds"] = threshholds;
 			}
 
 			let wrapper = document.querySelector(
-				"#" + this.canvasId + "barPlotWrapper"
+				"#" + this.canvasId + "boxPlotWrapper"
 			);
 			let canvas = document.querySelector(
-				"#" + this.canvasId + "barPlot"
+				"#" + this.canvasId + "boxPlot"
 			);
 
 			if (!!canvas && !!wrapper) {
@@ -405,7 +454,7 @@ export default Vue.component("research-bar-plot", {
 				let canvasHeight = Number(this.renderConfig["height"]) * 2;
 
 				let c, ctx;
-				c = document.querySelector("#" + this.canvasId + "barPlot");
+				c = document.querySelector("#" + this.canvasId + "boxPlot");
 				c.setAttribute("width", canvasWidth);
 				c.setAttribute("height", canvasHeight);
 				c.setAttribute(
@@ -420,7 +469,7 @@ export default Vue.component("research-bar-plot", {
 
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-				this.barPosData = {};
+				this.boxPosData = {};
 
 				let renderData = this.groupData(this.renderData);
 
@@ -558,6 +607,8 @@ export default Vue.component("research-bar-plot", {
 
 				let dotIndex = 0;
 
+				//console.log("totalNum", totalNum);
+
 				let barWidth = ((canvasWidth - (plotMargin.left + plotMargin.right))/totalNum) - 10;
 				barWidth = barWidth <= 4 ? 4 : barWidth;
 
@@ -576,7 +627,7 @@ export default Vue.component("research-bar-plot", {
 							xStep * value.length -
 							24;
 
-						let yPos0 = canvasHeight - plotMargin.bottom - (-minY * yStep);
+						let yPos0 = canvasHeight - plotMargin.bottom - (-minY) * yStep;
 						value.map((p) => {
 							if (
 								this.phenotypeMapConfig == null ||
@@ -622,26 +673,30 @@ export default Vue.component("research-bar-plot", {
 								ctx.strokeStyle = strokeColor;
 
 								ctx.fillRect(xPos, yPos, barWidth, yPos0-yPos);
+								
 
-								let yRangeStart = (yPos >= yPos0) ? Math.round(yPos0)/2 : Math.round(yPos)/2;
-								let yRangeEnd = (yPos >= yPos0) ? Math.round(yPos)/2 : Math.round(yPos0)/2;
+								
+
+								///organize data by position
+								let yRangeStart = Math.round(yPos / 2) - 5;
+								let yRangeEnd = Math.round(yPos / 2) + 5;
 								let yRange = yRangeStart + "-" + yRangeEnd;
 								let tempObj = {};
 								this.renderConfig["hover content"].map((c) => {
 									tempObj[c] = p[c];
 								});
 								let xRange = {
-									start: Math.round(xPos)/2,
-									end: Math.round(xPos + barWidth)/2,
+									start: Math.round(xPos / 2) - 5,
+									end: Math.round(xPos / 2) + 5,
 									data: tempObj,
 									name: pName,
 									id: p[this.renderConfig["render by"]],
 								};
 
-								if (!this.barPosData[yRange]) {
-									this.barPosData[yRange] = [];
+								if (!this.boxPosData[yRange]) {
+									this.boxPosData[yRange] = [];
 								}
-								this.barPosData[yRange].push(xRange);
+								this.boxPosData[yRange].push(xRange);
 
 								///add labels if p-value above 2.5e-6
 								if (labelIndex == 0) {
@@ -696,8 +751,6 @@ export default Vue.component("research-bar-plot", {
 
 							let yPos = canvasHeight / 2;
 
-							let yPos0 = canvasHeight - plotMargin.bottom - (-minY * yStep);
-
 							if (
 								this.phenotypeMapConfig == null ||
 								(this.phenotypeMapConfig == "kpPhenotypeMap" &&
@@ -705,15 +758,33 @@ export default Vue.component("research-bar-plot", {
 										p[this.renderConfig["render by"]]
 									])
 							) {
-								
-								let barWidth = ((canvasWidth - (plotMargin.left + plotMargin.right)) / totalNum) - 10;
-								barWidth = barWidth <= 4 ? 4 : barWidth;
-
+								/*if (this.renderConfig["beta field"] != "null") {
+									this.renderTriangle(
+										ctx,
+										xPos,
+										yPos,
+										fillColor,
+										strokeColor,
+										Math.sign(
+											p[this.renderConfig["beta field"]]
+										)
+									);
+								} else {
+									this.renderDot(
+										ctx,
+										xPos,
+										yPos,
+										fillColor,
+										strokeColor
+									);
+								}*/
+								let barWidth = 10;
 								ctx.fillStyle = fillColor;
 								ctx.lineWidth = 1;
 								ctx.strokeStyle = strokeColor;
 
-								ctx.fillRect(xPos, yPos, barWidth, yPos0 - yPos);
+								ctx.fillRect(xPos - (barWidth / 2), yPos - plotMargin.bottom - yPos, barWidth, yPos
+								);
 								ctx.stroke();
 
 								let pName =
@@ -728,24 +799,24 @@ export default Vue.component("research-bar-plot", {
 										  ]["description"];
 
 								///organize data by position
-								let yRangeStart = (yPos >= yPos0)? Math.round(yPos0): Math.round(yPos);
-								let yRangeEnd = (yPos >= yPos0) ? Math.round(yPos) : Math.round(yPos0);
+								let yRangeStart = Math.round(yPos) - 5;
+								let yRangeEnd = Math.round(yPos) + 5;
 								let yRange = yRangeStart + "-" + yRangeEnd;
 								let tempObj = {};
 								this.renderConfig["hover content"].map((c) => {
 									tempObj[c] = p[c];
 								});
 								let xRange = {
-									start: Math.round(xPos),
-									end: Math.round(xPos) + barWidth,
+									start: Math.round(xPos) - 5,
+									end: Math.round(xPos) + 5,
 									data: tempObj,
 									name: pName,
 								};
 
-								if (!this.barPosData[yRange]) {
-									this.barPosData[yRange] = [];
+								if (!this.boxPosData[yRange]) {
+									this.boxPosData[yRange] = [];
 								}
-								this.barPosData[yRange].push(xRange);
+								this.boxPosData[yRange].push(xRange);
 
 								ctx.font = "26px Arial";
 								ctx.fillStyle = "#000000";
@@ -899,7 +970,7 @@ $(function () {});
 	font-size: 14px;
 	color: #69f;
 }
-.boxplot-info-box {
+.phe-was-info-box {
 	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;

@@ -215,7 +215,7 @@
 						:starItems="starItems"
 						@on-star="starColumn">
 					</research-section-visualizers>
-									<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
+					<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
 						:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 						:tableFormat="tableFormat"
 						:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
@@ -742,6 +742,8 @@ export default Vue.component("research-section", {
 					}
 				}
 			});
+
+			console.log(KEY,"ifNumber", ifNumber)
 
 			return ifNumber;
 		},
@@ -1407,6 +1409,7 @@ export default Vue.component("research-section", {
 				let sortBy = this.sectionConfig["table format"]["initial sort by"]
 				let isNumeric = this.checkIfNumeric(this.sectionData, sortBy.field);
 				/* implement sort direction */
+				console.log(sortBy.field,"isNumeric", isNumeric);
 				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, isNumeric, true);
 			}
 
