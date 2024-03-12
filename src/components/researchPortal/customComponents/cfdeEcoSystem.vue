@@ -965,8 +965,7 @@ $(function () {
     font-size: 22px;
 	margin:0;
 }
-.b a,
-.section a {
+.b a {
     color: black !important;
 	background: white;
     text-decoration: none;
