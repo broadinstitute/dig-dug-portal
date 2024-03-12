@@ -1301,7 +1301,6 @@ new Vue({
         },
         getTabGroups(TAB_GROUPS) {
 
-
             if (TAB_GROUPS) {
                 let groups = [];
 
@@ -1331,21 +1330,30 @@ new Vue({
                 })
 
                 let context = keyParams["context"];
-                let pageContext = (this.sectionConfigs['context']) ? this.sectionConfigs['context'][context] : null;
+                let pageContext;
+
+                if (!!this.sectionConfigs['context']) {
+                    let contextItmes = Object.keys(this.sectionConfigs['context']);
+
+                    contextItmes.map(c => {
+                        if (c.toLowerCase().replace(" ", "_") == context) {
+                            pageContext = this.sectionConfigs['context'][c];
+                        }
+                    })
+                }
+
+                console.log()
 
                 if (!!context) {
-
                     let gInOrder = [];
 
                     if (!!context && !!pageContext) {
                         pageContext.map(c => {
-
                             groups.map(g => {
                                 if (g["group id"] == c) {
                                     gInOrder.push(g)
                                 }
                             })
-
                         })
                     }
                     groups = gInOrder
