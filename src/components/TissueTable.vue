@@ -189,7 +189,6 @@ export default Vue.component("TissueTable", {
                     label: "Gene Links",
                 },
             ],
-            evidence: this.$props.geneEvidence,
             evidenceFields: [
                 {
                     key: "biosample",
