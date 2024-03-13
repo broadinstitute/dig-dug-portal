@@ -26,10 +26,16 @@ export default Vue.component("research-page-description", {
 	},
 	computed: {
 		pageContent(content) {
-			let formattedContent = this.content
-				.replace(/&lt;plot&gt;/g, "<div class='plot'>")
-				.replace(/&lt;plot-end&gt;/g, "</div>");
-			return formattedContent;
+			console.log("content", content)
+			if(!!content && content != "") {
+				let formattedContent = this.content
+					.replace(/&lt;plot&gt;/g, "<div class='plot'>")
+					.replace(/&lt;plot-end&gt;/g, "</div>");
+				return formattedContent;
+			} else {
+				return '';
+			}
+			
 		},
 	},
 	methods: {
