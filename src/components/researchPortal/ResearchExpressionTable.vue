@@ -13,7 +13,7 @@
 		>
       <template #cell(tissue)="row">
         <a :href="`/tissue.html?tissue=${toSnakeFormatter(row.item.tissue)}`" 
-            target="_blank">
+          >
             {{ tissueFormatter(row.item.tissue) }}
         </a>
       </template>

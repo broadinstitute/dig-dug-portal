@@ -57,14 +57,12 @@
                 &nbsp;
             </template>
             <template #cell(gene)="r">
-                <a :href="`/gene.html?gene=${r.item.gene}`" target="_blank">
+                <a :href="`/gene.html?gene=${r.item.gene}`">
                     {{ r.item.gene }}
                 </a>
             </template>
             <template #cell(link)="r">
-                <a
-                    target="_blank"
-                    class="btn view-features-btn btn-secondary"
+                <a class="btn view-features-btn btn-secondary"
                     style="color: #ffffff !important"
                     :href="`/hugecalculator.html?gene=${r.item.gene}&phenotype=${r.item.phenotype}&prior=0.3696`"
                     >Open</a
