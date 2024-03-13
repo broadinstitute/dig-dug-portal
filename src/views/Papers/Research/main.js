@@ -231,6 +231,7 @@ new Vue({
 
                 if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
                     && !!this.sectionConfigs["is multi section"] == true) {
+
                     let description = document.createElement('div');
                     description.setAttribute("style", "visibility: hidden;height: 1px")
                     description.innerHTML = contents[0]["body"];
@@ -242,11 +243,19 @@ new Vue({
 
                         let context = !!keyParams["context"] ? "_" + keyParams["context"] : "";
 
-                        let sDescription = (!!document.getElementById(section["section id"] + "_description" + context)) ?
-                            document.getElementById(section["section id"] + "_description" + context).innerHTML : '';
-                        if (!!sDescription) {
-                            sectionDescriptions[section["section id"]] = sDescription;
+                        let defaultDescription = document.getElementById(section["section id"] + "_description");
+                        let contextDescription = document.getElementById(section["section id"] + "_description" + context);
+
+                        let sDescription = '';
+
+                        if (!!contextDescription) {
+                            sDescription = contextDescription.innerHTML;
+                        } else if (!!defaultDescription) {
+                            sDescription = defaultDescription.innerHTML;
                         }
+
+                        sectionDescriptions[section["section id"]] = sDescription;
+
                     })
                     description.parentNode.removeChild(description);
 
@@ -1237,11 +1246,19 @@ new Vue({
 
                         let context = !!keyParams["context"] ? "_" + keyParams["context"] : "";
 
-                        let sDescription = (!!document.getElementById(section["section id"] + "_description" + context)) ?
-                            document.getElementById(section["section id"] + "_description" + context).innerHTML : '';
-                        if (!!sDescription) {
-                            sectionDescriptions[section["section id"]] = sDescription;
+                        let defaultDescription = document.getElementById(section["section id"] + "_description");
+                        let contextDescription = document.getElementById(section["section id"] + "_description" + context);
+
+                        let sDescription = '';
+
+                        if (!!contextDescription) {
+                            sDescription = contextDescription.innerHTML;
+                        } else if (!!defaultDescription) {
+                            sDescription = defaultDescription.innerHTML;
                         }
+
+                        sectionDescriptions[section["section id"]] = sDescription;
+
                     })
                     description.parentNode.removeChild(description);
 

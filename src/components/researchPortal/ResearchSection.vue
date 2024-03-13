@@ -937,7 +937,7 @@ export default Vue.component("research-section", {
 				}
 			} else {
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "Query parameter missiong or invalid";
+				this.noLoadedData = "Query parameter missing or invalid";
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
@@ -989,7 +989,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "Nodata is returned. Please check query parameters.";
+				this.noLoadedData = "No data returned. Please check query parameters.";
 			}
 		},
 
