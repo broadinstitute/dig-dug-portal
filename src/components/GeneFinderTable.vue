@@ -57,7 +57,7 @@
                     </b-th>
                 </template>
                 <template #cell(geneName)="r">
-                    <a :href="`/gene.html?gene=${r.item.gene}`" target="_blank">
+                    <a :href="`/gene.html?gene=${r.item.gene}`">
                         {{ r.item.gene }}
                     </a>
                 </template>

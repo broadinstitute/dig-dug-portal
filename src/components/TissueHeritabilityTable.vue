@@ -19,7 +19,7 @@
             <template #cell(phenotype)="r">
                 <a v-if="phenotypeMap[r.item.phenotype]"
                     :href="`/phenotype.html?phenotype=${r.item.phenotype}`"
-                    target="_blank">
+                    >
                     {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
                 </a>
                 <span v-else>{{ r.item.phenotype }}</span>

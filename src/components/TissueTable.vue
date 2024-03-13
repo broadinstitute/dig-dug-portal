@@ -9,7 +9,7 @@
             :current-page="currentPage"
         >
             <template #cell(gene)="r">
-                <a :href="`/gene.html?gene=${r.item.gene}`" target="_blank">
+                <a :href="`/gene.html?gene=${r.item.gene}`">
                     {{ r.item.gene }}
                 </a>
             </template>
@@ -83,7 +83,6 @@
                             <template #cell(targetGene)="l">
                                 <a
                                     :href="`/gene.html?gene=${l.item.targetGene}`"
-                                    target="_blank"
                                 >
                                     {{ l.item.targetGene }}
                                 </a>
@@ -91,7 +90,6 @@
                             <template #cell(region)="l">
                                 <a
                                     :href="`/region.html?chr=${l.item.chromosome}&end=${l.item.end}&start=${l.item.start}`"
-                                    target="_blank"
                                 >
                                     {{ l.item.chromosome }}:{{
                                         l.item.start
@@ -101,7 +99,6 @@
                             <template #cell(targetRegion)="l">
                                 <a
                                     :href="`/region.html?chr=${l.item.chromosome}&end=${l.item.targetGeneEnd}&start=${l.item.targetGeneStart}`"
-                                    target="_blank"
                                 >
                                     {{ l.item.chromosome }}:{{
                                         l.item.targetGeneStart
