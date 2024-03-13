@@ -989,7 +989,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "Nodata is returned. Please check query parameters.";
+				this.noLoadedData = "No data returned. Please check query parameters.";
 			}
 		},
 
