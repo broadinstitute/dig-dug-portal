@@ -61,9 +61,18 @@
                             :fields="evidenceFields"
                             :per-page="perPage"
                             :current-page="r.item.currentPage"
-                            ><template #cell(collection)="e">{{
-                                e.item.collection.join(", ")
-                            }}</template>
+                        >
+                            <template #cell(collection)="e">
+                                {{ e.item.collection.join(", ") }}
+                            </template>
+                            <template #cell(dataset)="e">
+                                <a
+                                    :href="`https://cmdga.org/annotations/${e.item.dataset}/`"
+                                    target="_blank"
+                                >
+                                    {{ e.item.dataset }}
+                                </a>
+                            </template>
                         </b-table>
                         <b-pagination
                             v-model="r.item.currentPage"
@@ -180,7 +189,6 @@ export default Vue.component("TissueTable", {
                     label: "Gene Links",
                 },
             ],
-            evidence: this.$props.geneEvidence,
             evidenceFields: [
                 {
                     key: "biosample",
