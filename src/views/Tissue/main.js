@@ -54,7 +54,7 @@ new Vue({
         documentationMap() {
             return {
                 tissue: this.tissue
-                    ? this.tissue.toUpperCase().replace("_", " ")
+                    ? this.tissue.toUpperCase().replaceAll("_", " ")
                     : "",
             };
         },

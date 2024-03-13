@@ -55,6 +55,12 @@ function snakeFormatter(s) {
     }
 }
 
+function toSnakeFormatter(s){
+    if (s){
+        return s.trim().toLowerCase().replaceAll(' ', '_');
+    }
+}
+
 function annotationFormatter(s) {
     return snakeFormatter(s);
 }
@@ -657,6 +663,7 @@ export default {
     maskFormatter,
     phenotypeFormatter,
     snakeFormatter,
+    toSnakeFormatter,
     tissueFormatter,
     methodFormatter,
     pValueFormatter,
