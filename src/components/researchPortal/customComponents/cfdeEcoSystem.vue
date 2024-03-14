@@ -114,8 +114,9 @@
 			<div class="section section-search-kc">
 				<div class="map-title2 v2">
 					<span>search KC</span>
-					<div class="search-context">Set <span class="search-context-label">genetics</span> context?<button @click="setContext()">yes</button></div></div>
-				
+					<div class="search-context notset">Set <span class="search-context-label">genetics</span> context?<button @click="setContext()">yes</button></div>
+					<div class="search-context set">with <span class="search-context-label">genetics</span> context</div>
+				</div>
 				<research-single-search
 					:single-search-config="sectionConfigs['content']"
 					:phenotypes="phenotypesInUse"
@@ -521,7 +522,17 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
                 e.target.classList.add('selected');
                 document.querySelector('.line2').classList.add('open');
                 document.querySelector('.dccs').classList.add('active');
-				document.querySelector('.search-context-label').innerHTML = val;
+				document.querySelectorAll('.search-context-label').forEach(el => el.innerHTML = val);
+				console.log('CONTEXT', this.utilsBox.userUtils.getContext(), val);
+				const userContext = this.utilsBox.userUtils.getContext() ? this.utilsBox.userUtils.getContext().replace('_', '-') : null;
+				if(!userContext || (userContext !== val)){
+					document.querySelector('.search-context.set').style.display = 'none';
+					document.querySelector('.search-context.notset').style.display = 'block';
+				}else{
+					document.querySelector('.search-context.set').style.display = 'block';
+					document.querySelector('.search-context.notset').style.display = 'none';
+				}
+				
 				if(val==='computational-biology'){
 					document.querySelector('.section-search-drc').style.display = 'flex';
 					document.querySelector('.section-search-kc').style.display = 'none';
@@ -536,7 +547,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
 				e.target.classList.remove('selected');
                 document.querySelector('.line2').classList.remove('open');
                 document.querySelector('.dccs').classList.remove('active');
-				document.querySelector('.search-context-label').innerHTML = 'none';
+				document.querySelectorAll('.search-context-label').forEach(el => el.innerHTML = 'none');
 				if(val==='computational-biology'){
 					document.querySelector('.section-search-drc').style.display = 'none';
 					document.querySelector('.section-search-kc').style.display = 'flex';
@@ -549,11 +560,12 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
         },
 
 		setContext(e){
-			console.log('!!!', this.currPov);
 			if(this.currPov && this.currPov!=='computational-biology'){
 				const valUnderscored = this.currPov.toLowerCase().replace("-", "_")
 				this.utilsBox.userUtils.saveContext(valUnderscored);
 				this.utilsBox.keyParams.set({ "context": valUnderscored });
+				document.querySelector('.search-context.set').style.display = 'block';
+				document.querySelector('.search-context.notset').style.display = 'none';
 			}
 		},
 
@@ -1275,6 +1287,9 @@ $(function () {
     justify-content: center;
     color: #7c7c7c;
     padding: 10px 20px;
+}
+.search-context.notset{
+	display:none;
 }
 .search-context-label{
 	color:#ff6600;
