@@ -1336,7 +1336,9 @@ new Vue({
                 this.utilsBox.userUtils.saveContext(keyId);
             }
 
-            this.updateSectionDescriptions();
+            location.reload();
+
+            //this.updateSectionDescriptions();
         },
         getTabGroups(TAB_GROUPS) {
 
@@ -1457,7 +1459,17 @@ new Vue({
             /// check context setting
 
             let context = keyParams["context"];
-            let pageContext = (this.sectionConfigs['context']) ? this.sectionConfigs['context'][context] : null;
+            let pageContext;
+
+            if (!!this.sectionConfigs['context']) {
+                let contextItmes = Object.keys(this.sectionConfigs['context']);
+
+                contextItmes.map(c => {
+                    if (c.toLowerCase().replace(" ", "_") == context) {
+                        pageContext = this.sectionConfigs['context'][c];
+                    }
+                })
+            }
 
             if (!!context && !!pageContext) {
 
