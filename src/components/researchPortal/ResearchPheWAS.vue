@@ -546,7 +546,7 @@ export default Vue.component("research-phewas-plot", {
 					null,
 					null,
 					null,
-					null
+					this.renderConfig["x axis label"]
 				);
 
 				this.renderTicksByGroup(
