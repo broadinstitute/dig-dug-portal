@@ -202,7 +202,7 @@ new Vue({
         if (!!context) {
             let keyId = context.toLowerCase().replace(" ", "_");
             keyParams.set({ "context": keyId });
-            this.context = context;
+            this.context = keyId;
         }
     },
 
@@ -1331,9 +1331,9 @@ new Vue({
                 let keyId = KEY.toLowerCase().replace(" ", "_");
                 keyParams.set({ "context": keyId });
 
-                this.context = KEY;
+                this.context = keyId;
 
-                this.utilsBox.userUtils.saveContext(KEY);
+                this.utilsBox.userUtils.saveContext(keyId);
             }
 
             this.updateSectionDescriptions();
