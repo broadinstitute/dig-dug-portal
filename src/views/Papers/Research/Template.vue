@@ -616,6 +616,7 @@
 							<!-- Set context -->
 							<div v-if="!!$parent.sectionConfigs['context']" class="context-btns-wrapper">
 								<span v-for="value, key, index in $parent.sectionConfigs['context']" class="context-btn btn btn-sm btn-primary" 
+								:class="!!$parent.context && key == $parent.context?' active':''"
 									@click="$parent.setContext(key, value)">{{ key }}</span>
 								<span class="context-btn-default btn btn-sm btn-warning" 
 									@click="$parent.setContext('remove', null)">Remove context</span>

@@ -102,6 +102,7 @@ new Vue({
             devCK: null,
             dataFiles: [],
             dataTableFormat: null,
+            context: null,
             colors: {
                 mild: [
                     "#007bff25",
@@ -185,6 +186,24 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
+
+        /*this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");*/
+        this.pageID = keyParams.pageid || window.location.pathname.substring(3);
+        if (this.pageID) {
+            this.$store.dispatch("hugeampkpncms/getResearchMode", {
+                pageID: this.pageID,
+            });
+        }
+
+        let context = this.utilsBox.userUtils.getContext();
+
+        if (!!context) {
+            let keyId = context.toLowerCase().replace(" ", "_");
+            keyParams.set({ "context": keyId });
+            this.context = context;
+        }
     },
 
     render(createElement, context) {
@@ -1196,26 +1215,7 @@ new Vue({
         },
     },
 
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.pageID = keyParams.pageid || window.location.pathname.substring(3);
-        if (this.pageID) {
-            this.$store.dispatch("hugeampkpncms/getResearchMode", {
-                pageID: this.pageID,
-            });
-        }
 
-        let context = this.utilsBox.userUtils.getContext();
-
-        if (!!context) {
-            console.log("context", context)
-
-            let keyId = context.toLowerCase().replace(" ", "_");
-            keyParams.set({ "context": keyId });
-        }
-    },
 
     methods: {
         ...uiUtils,
@@ -1324,10 +1324,14 @@ new Vue({
             if (KEY == 'remove') {
                 keyParams.set({ "context": '' });
 
+                this.context = null;
+
                 this.utilsBox.userUtils.clearContext();
             } else {
                 let keyId = KEY.toLowerCase().replace(" ", "_");
                 keyParams.set({ "context": keyId });
+
+                this.context = KEY;
 
                 this.utilsBox.userUtils.saveContext(KEY);
             }
