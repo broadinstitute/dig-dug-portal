@@ -1303,6 +1303,25 @@ $(function () {
     margin: 0 0 0 10px;
 }
 
+.search-extras {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7c7c7c;
+    padding: 10px 20px;
+}
+.search-context-label{
+	color:#ff6600;
+}
+.search-context button {
+    border: 0.5px solid #ddd;
+    background: #ff6600;
+	color:white;
+    border-radius: 5px;
+    padding: 2px 10px;
+    margin: 0 0 0 10px;
+}
+
 .hideable{
 	opacity:0;
 	transition: 0.2s all linear;
