@@ -1209,7 +1209,12 @@ new Vue({
 
         let context = this.utilsBox.userUtils.getContext();
 
-        console.log("context", context)
+        if (!!context) {
+            console.log("context", context)
+
+            let keyId = context.toLowerCase().replace(" ", "_");
+            keyParams.set({ "context": keyId });
+        }
     },
 
     methods: {
@@ -1326,8 +1331,6 @@ new Vue({
 
                 this.utilsBox.userUtils.saveContext(KEY);
             }
-
-
 
             this.updateSectionDescriptions();
         },
