@@ -537,7 +537,7 @@ export default Vue.component("research-box-plot", {
 					null,
 					null,
 					null,
-					null
+					this.renderConfig["x axis label"]
 				);
 
 				this.renderTicksByGroup(
