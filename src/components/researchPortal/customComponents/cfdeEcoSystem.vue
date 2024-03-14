@@ -44,7 +44,7 @@
 							<div class="img">
 								<img :src="`https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/${key}.svg`">
 							</div>
-							<span>{{ key }}</span>
+							<span>{{ key.replace('-', ' ') }}</span>
 						</div>
 					</div>
 					<div class="line2">
