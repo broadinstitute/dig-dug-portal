@@ -49,6 +49,7 @@ import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
 import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
+import userUtils from "@/utils/userUtils.js";
 import $ from "jquery";
 
 import Alert, {
@@ -209,6 +210,7 @@ new Vue({
                 plotUtils: plotUtils,
                 filterUtils: filterUtils,
                 regionUtils: regionUtils,
+                userUtils: userUtils,
             }
             return utils;
         },
@@ -1204,6 +1206,10 @@ new Vue({
                 pageID: this.pageID,
             });
         }
+
+        let context = this.utilsBox.userUtils.getContext();
+
+        console.log("context", context)
     },
 
     methods: {
@@ -1316,6 +1322,10 @@ new Vue({
                 let keyId = KEY.toLowerCase().replace(" ", "_");
                 keyParams.set({ "context": keyId });
             }
+
+            let contextKey = KEY == 'remove' ? '' : KEY;
+
+            this.utilsBox.userUtils.setContext(contextKey);
 
             this.updateSectionDescriptions();
         },
