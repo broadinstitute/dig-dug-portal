@@ -2,7 +2,7 @@
 	<!--<div class="multi-section" :class="'wrapper-' + sectionIndex"
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
-	<div>
+	<div class="multi-section-card">
 		<div v-if="dataPoint.type == 'component'">
 			<research-section-components
 				:component="dataPoint.name"
@@ -1064,7 +1064,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "Nodata is returned. Please check query parameters.";
+				this.noLoadedData = "No data returned. Please check query parameters.";
 			}
 		},
 

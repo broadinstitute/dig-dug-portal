@@ -61,10 +61,25 @@ function removePhenotype(phenotype) {
     }
 }
 
+function saveContext(context) {
+    localStorage.setItem("_context", JSON.stringify(context));
+}
+
+function getContext() {
+    return JSON.parse(localStorage.getItem("_context"));
+}
+
+function clearContext() {
+    localStorage.removeItem("_context");
+}
+
 export default {
     savePhenotypes,
     getPhenotypes,
     clearPhenotypes,
     addPhenotype,
-    removePhenotype
+    removePhenotype,
+    saveContext,
+    getContext,
+    clearContext,
 };

@@ -44,7 +44,7 @@
 							<div class="img">
 								<img :src="`https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/${key}.svg`">
 							</div>
-							<span>{{ key }}</span>
+							<span>{{ key.replace('-', ' ') }}</span>
 						</div>
 					</div>
 					<div class="line2">
@@ -63,14 +63,18 @@
 					</div>
 					<div class="dccs">
 						<div class="map-label hideable"><div>Common Fund Programs</div></div>
-						<div v-for="(value, key) in this.parsedData"
-							class="dcc"
-							data-group="dccs"
-							:data-value="key"
-							@mouseover="hoverHandler($event)"
-							@mouseout="outHandler($event)">
-							<img :src="value['logo']">
-						</div>
+						<template v-for="(value, key, index) in this.parsedData">
+							<div 
+								class="dcc"
+								data-group="dccs"
+								:data-value="key"
+								@mouseover="hoverHandler($event)"
+								@mouseout="outHandler($event)"
+							>
+								<img :src="value['logo']">
+							</div>
+							<div class="dcc-separator"></div>
+						</template>
 					</div>
 					<div class="omics">
 						<div class="map-label hideable"><div>Omics Data</div></div>
@@ -98,16 +102,28 @@
 			</div>
 		
 		
-			<div class="section">
-				<div class="map-title2 v2"><span>search KC</span><div class="search-context">Set <span class="search-context-label">genetics</span> context?<button>yes</button></div></div>
-				
+			<div class="section section-search-drc">
+				<div class="section-title"><div class="drc-logo"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/DRC_logo.png"></div>CFDE WORKBENCH</div>
+				<div class="section-wrap">
+					<div class="section-col">
+						<div class="section-subtitle">Visit our sister resource to query, access, and compute Common Fund datasets.</div>
+						<a href="https://data.cfde.cloud/">Visit CFDE WORKBENCH</a>
+					</div>
+				</div>
+			</div>
+			<div class="section section-search-kc">
+				<div class="map-title2 v2">
+					<span>search KC</span>
+					<div class="search-context notset">Set <span class="search-context-label">genetics</span> context?<button @click="setContext()">yes</button></div>
+					<div class="search-context set">with <span class="search-context-label">genetics</span> context</div>
+				</div>
 				<research-single-search
 					:single-search-config="sectionConfigs['content']"
 					:phenotypes="phenotypesInUse"
 					:utils="utilsBox"
 				></research-single-search> 
 				<div class="search-extras">
-					<div class="search-try"><span>Try</span><span>PCSK9</span><span>Cardiovasular Disease</span></div>
+					<div class="search-try"><span>Try</span><a href="/research.html?entity=gene&gene=BDH2&pageid=kc_entity&tissue=blood">BDH2</a><a href="/research.html?disease=MONDO%3A0004985&entity=disease&pageid=kc_entity&tissue=blood">Bipolar disorder</a></div>
 				</div>
 				<!--<div class="search-icon"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/geneticist.svg"></div>-->
 			</div>
@@ -155,7 +171,7 @@
 		</div>
 
 		<div id="kc-section-c" class="section">
-			<div class="section-title">CFDE Workbench</div>
+			<div class="section-title"><div class="drc-logo"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/DRC_logo.png"></div>CFDE WORKBENCH</div>
 			<div class="section-wrap">
 				<div class="section-col">
 					<div class="section-subtitle">Visit our sister resource to query, access, and compute Common Fund datasets.</div>
@@ -236,7 +252,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("cfde-eco-system", {
-	props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
+	props: ["sectionConfigs", "phenotypesInUse", "utilsBox", "keyParams"],
 	data() {
 		return {
 			parsedData: null,
@@ -244,18 +260,18 @@ export default Vue.component("cfde-eco-system", {
 			currHoverGroup: null,
 			freezeSelection: false,
 			entitiesDATA: `DCC,a_Species,a_Disease,a_BodySite,a_Organ,a_Tissue,a_Region,a_Gene,a_Variant,a_Transcript,a_Protein,a_Pathway,a_Metabolite,a_Ligand,b_Epigenomics,b_Genomics,b_Transcriptomics,b_Proteomics,b_Metabolomics,c_experimental-biology,c_genetics,c_drug-development,c_computational-biology,d_logo,r_experimental-biology,r_genetics,r_drug-development,r_computational-biology
-4DN,,,,,,1,,,,,,,,1,1,,,,3,2,2,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/4DN.png,"Provides data on the 3D organization of the nucleus, crucial for understanding cellular mechanisms experimentally.","While focused on nuclear organization, it offers insights into genomic architecture that can have implications for genetic research.","Provides insights into the 3D organization of the nucleus, relevant for understanding disease mechanisms at a genomic level for drug targeting.","Facilitates understanding of the 3D genome organization, providing critical data for computational modeling of genomic interactions and dynamics."
-GTEx,,,,,1,1,1,1,1,,,,,,1,1,,,1,3,2,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/GTEx.png,"Primarily a genomics database, its relevance is more for genetic analysis than direct experimental biology.","Provides extensive gene expression data across tissues, crucial for understanding genetic variations and their phenotypic impacts.",Gene expression data across tissues can inform drug target selection and understand drug effects in different biological contexts.,"Offers a comprehensive dataset of gene expression across human tissues, invaluable for computational genetic studies and disease modeling."
-ExRNA,,1,,,,,,,1,,,,,,,1,,,1,2,2,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/exRNA.png,"Offers extracellular RNA data, useful for hypothesis generation but less so for direct experimental methodologies.","Offers data on extracellular RNAs, which can be used in genetic studies related to gene regulation and non-coding RNA functions.","Offers data on extracellular RNAs, which can be relevant for drug development in terms of biomarkers or therapeutic targets.","Offers data on extracellular RNAs, supporting computational studies on non-coding RNA functions and gene regulation."
-HuBMAP,,,,,1,,,,,,,,,,1,1,1,,3,2,2,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/HuBMAP.png,"Directly supports experimental biology by mapping the human body at a molecular level, offering valuable data for in vitro and in vivo studies.","Maps the human body at a molecular level, providing data that can be valuable for understanding genetic expression patterns in tissues.","By mapping the human body at a molecular level, it offers valuable data for identifying disease mechanisms and potential drug targets.","Maps the human body at a molecular level, offering rich datasets for computational studies in tissue-specific gene expression and organ systems."
-IDG,,1,,,1,,1,,,1,,,1,,1,,1,,1,2,3,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/IDG.png,"Focused on drugable genome elements, more relevant for drug discovery and computational biology than direct experimental work.","Provides data on the druggable genome, useful for geneticists interested in genetic factors that influence drug responses.","Directly supports drug discovery by illuminating the druggable genome, providing crucial data on potential drug targets.","Provides information on druggable genome elements, useful for computational drug target identification and validation."
-LINCS,,,,,,,1,,,,,,,,,1,1,,3,1,3,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/LINCS.gif,Offers a large-scale database of cellular signatures that can guide experimental studies on cellular responses to various perturbations.,"Focuses on cellular responses to perturbations, more relevant to cellular biology but indirectly useful for understanding genetic influence on cell behavior.","Offers cellular response data to various perturbations, essential for understanding drug effects and mechanisms of action at a cellular level.","Provides extensive cellular signature datasets ideal for computational analysis, modeling, and simulation in systems biology."
-GlyGen,,1,,,1,1,1,,,1,,,,,,,1,,2,1,1,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/Glycoscience.png,"Offers glycoscience data relevant for experimental studies on carbohydrate biology, although more niche.","Provides glycoscience data, which has genetic components but is more niche in its direct application to genetic research.","Provides glycoscience data, which can be relevant for drug development but in more niche areas like carbohydrate-targeted therapies.","Offers glycoscience data, useful for computational studies on carbohydrate biology, albeit more niche in scope."
-Metabolomics Workbench,,1,,,,,1,,,1,1,1,,,,,,1,2,1,1,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/Metabolomics.png,Provides metabolomics data that can be used for hypothesis testing in experimental metabolism studies.,"Metabolomics data is more indirectly related to genetic research, useful for understanding the phenotypic outcomes of genetic variations.",Offers metabolomics data that can support drug efficacy and toxicity studies but is more indirectly related to the initial stages of drug development.,"Provides metabolomics data, supporting computational analysis for understanding metabolic pathways and their alterations in diseases."
-MoTrPAC,1,,,,1,1,1,,,1,1,1,,,1,,1,1,2,1,1,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/MoTrPAC.png,"While focused on physical activity's molecular transducers, it offers data that can be valuable for experimental studies on metabolism and physiology.","Focuses on the molecular transducers of physical activity, which can be linked to genetics but is more focused on physiological outcomes.","While it focuses on physical activity's molecular transducers, its direct relevance to drug development, outside of exercise mimetics, is limited.","Focuses on the molecular transducers of physical activity, providing data that can support computational physiological and metabolic studies."
-Kids First,,1,1,,1,1,1,1,,,1,,,,1,,,,1,3,1,1,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/Kids%20First.png,Pediatric genomic data is more specific to geneticists and less directly applicable to broad experimental biology.,"Offers genomic data focused on pediatric diseases, directly supporting genetic research into hereditary diseases and genetic disorders.","While providing valuable pediatric disease genomic data, its direct application to drug development is more indirect, focusing on genetic research.","While it offers pediatric genomic data, its direct application to computational biology is more specific to genetic analysis than broader computational modeling."
-SPARC,,,1,1,1,,,,,,1,,,,,,,,2,1,2,1,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/SPARC.svg,"Offers data on peripheral nervous system's role in organ function, relevant for experimental studies but with a specific focus.","Aimed at understanding the peripheral nervous system, its relevance to genetics is indirect and more focused on physiological research.","Provides insights into the peripheral nervous system's role in diseases, potentially guiding drug development for conditions like chronic pain.","Provides data on the peripheral nervous system, more applicable to specific computational studies in neuroscience and less to broad computational biology."
-SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/SenNet.png,"Focuses on cellular senescence, offering niche data that might not broadly apply to general experimental biology.","Focuses on cellular senescence, which has genetic components but is not directly focused on genetic research or genetic variation analysis.","Focuses on cellular senescence, providing niche data that might inform drug development targeting aging or senescence-associated diseases.","Focuses on cellular senescence, providing niche data that may support specific computational aging studies but not a wide range of computational biology applications."`
+4DN,,,,,,1,,,,,,,,1,1,,,,3,2,2,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/4DN.png,"The data provided by the 4D Nucleome (4DN) project on the spatial and temporal organization of the nucleus may suggest hypotheses about gene regulation, cellular function, development, and disease. ",The data provided by the 4D Nucleome (4DN) project on the spatial and temporal organization of the nucleus may aid in interpreting the impact of genetic variation on gene regulation. ,The data provided by the 4D Nucleome (4DN) project on the spatial and temporal organization of the nucleus in the context of disease may suggest hypotheses about disease mechanisms and potential drug targets.,"Facilitates understanding of the 3D genome organization, providing critical data for computational modeling of genomic interactions and dynamics."
+GTEx,,,,,1,1,1,1,1,,,,,,1,1,,,1,3,2,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/GTEx.png,The gene expression levels in numerous tissue and cell types provided by the Genotype-Tissue Expression (GTEx) project can suggest the tissues in which a gene product is most likely to be functionally important.,Identification by the Genotype-Tissue Expression (GTEx) project of genetic variants that affect gene expression and mRNA splicing can aid in the interpretation of genetic association signals.,"Tissue specificity of gene expression, provided by the Genotype-Tissue Expression (GTEx) project, is an important consideration in drug development.","Offers a comprehensive dataset of gene expression across human tissues, invaluable for computational genetic studies and disease modeling."
+ExRNA,,1,,,,,,,1,,,,,,,1,,,1,2,2,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/exRNA.png,"The Extracellular RNA Research Portal (exRNA) provides data on RNAs that are secreted from the cell, which is important for understanding mechanisms of intercellular communication.","The Extracellular RNA Research Portal (exRNA) provides data on RNAs that are secreted from the cell and have potential regulatory roles, which can aid in interpretation of genetic association signals.","The Extracellular RNA Research Portal (exRNA) provides data on intercellular communication mediated by extracellular RNAs, which has potential roles in disease and could provide drug development targets.","Offers data on extracellular RNAs, supporting computational studies on non-coding RNA functions and gene regulation."
+HuBMAP,,,,,1,,,,,,,,,,1,1,1,,3,2,2,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/HuBMAP.png,Data offered by the Human Biomolecular Atlas Program provide a foundation for the study of many aspects of molecular and cellular biology and physiology.,The multi-omic data offered by the Human Biomolecular Atlas Program are a valuable resource for the interpretation of genetic association signals.,The multi-omic data offered by the Human Biomolecular Atlas Program are a valuable resource for identifying disease mechanisms and developing therapeutics.,"Maps the human body at a molecular level, offering rich datasets for computational studies in tissue-specific gene expression and organ systems."
+IDG,,1,,,1,,1,,,1,,,1,,1,,1,,1,2,3,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/IDG.png,"The Illuminating the Druggable Genome program (IDG) compiles knowledge about human proteins from a wide range of resources and classifies proteins according to their level of characterization, which can suggest avenues for further experimentation.","The Illuminating the Druggable Genome program (IDG) compiles knowledge about human proteins from a wide range of resources, which can be useful in forming hypotheses about which gene at a genetically associated locus affects disease risk.","The Illuminating the Druggable Genome program (IDG) provides information on proteins in the three most commonly drug-targeted protein families--G-protein coupled receptors, ion channels, and protein kinases--with the aim of facilitating drug target discovery.","Provides information on druggable genome elements, useful for computational drug target identification and validation."
+LINCS,,,,,,,1,,,,,,,,,1,1,,3,1,3,3,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/LINCS.gif,"The Library of Integrated Network-Based Cellular Signatures (LINCS) provides data on transcriptional responses to various conditions and perturbing agents, which can suggest hypotheses about the biological roles of gene products.","The Library of Integrated Network-Based Cellular Signatures (LINCS) provides data on transcriptional responses to various conditions and perturbing agents, which can aid in interpretation of genetic association signals.","The Library of Integrated Network-Based Cellular Signatures (LINCS) provides data on transcriptional responses to various conditions and perturbing agents, which can support drug efficacy and toxicity studies.","Provides extensive cellular signature datasets ideal for computational analysis, modeling, and simulation in systems biology."
+GlyGen,,1,,,1,1,1,,,1,,,,,,,1,,2,1,1,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/Glycoscience.png,"GlyGen provides data on protein glycosylation, which affects protein structure and function and may provide insights into biological pathways.","GlyGen provides data on protein glycosylation, which affects protein structure and function and may be affected by genetic variation.","GlyGen provides data on protein glycosylation, which affects protein structure and function and may have roles in disease that could offer potential therapeutic targets.","Offers glycoscience data, useful for computational studies on carbohydrate biology, albeit more niche in scope."
+Metabolomics Workbench,,1,,,,,1,,,1,1,1,,,,,,1,2,1,1,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/Metabolomics.png,"Metabolomics Workbench provides data on metabolite concentrations in specific tissues and physiological states, which can aid in forming hypotheses about biological pathways.","Metabolomics Workbench provides data on metabolite concentrations in specific tissues and physiological states, which may be useful in understanding the phenotypic outcomes of genetic variations.","Metabolomics Workbench provides data on metabolite concentrations in specific tissues and physiological states, which can support drug efficacy and toxicity studies.","Provides metabolomics data, supporting computational analysis for understanding metabolic pathways and their alterations in diseases."
+MoTrPAC,1,,,,1,1,1,,,1,1,1,,,1,,1,1,2,1,1,2,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/MoTrPAC.png,"The Molecular Transducers of Physical Activity Consortium (MoTrPAC) provides multi-omic data on exercise response, which may provide insights into the biological pathways involved in physical activity.","The Molecular Transducers of Physical Activity Consortium (MoTrPAC) provides multi-omic data on exercise response, which may facilitate the interpretation of genetic association signals linked to physical activity, aging, and musculoskeletal conditions.","The Molecular Transducers of Physical Activity Consortium (MoTrPAC) provides multi-omic data on exercise response, which may suggest hypotheses about potential drug targets for musculoskeletal and aging-related conditions.","Focuses on the molecular transducers of physical activity, providing data that can support computational physiological and metabolic studies."
+Kids First,,1,1,,1,1,1,1,,,1,,,,1,,,,1,3,1,1,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/Kids%20First.png,"Kids First provides data on genetic variants that impact protein sequences and are associated with pediatric disease, which could suggest hypotheses about proteins with roles in disease.",The genetic data provided by Kids First directly support genetic research into hereditary disorders and cancer in children.,"Kids First provides data on genetic variants that impact protein sequences and are associated with pediatric disease, which could suggest hypotheses about potential drug targets.","While it offers pediatric genomic data, its direct application to computational biology is more specific to genetic analysis than broader computational modeling."
+SPARC,,,1,1,1,,,,,,1,,,,,,,,2,1,2,1,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/SPARC.svg,Data on the anatomy and physiology of the autonomic nervous system offered by the SPARC program provide a basis for study of the nervous system and organ function.,"Data on the anatomy and physiology of the autonomic nervous system offered by the SPARC program, while valuable for physiology, are not directly relevant to genetics.",Data on the anatomy and physiology of the autonomic nervous system offered by the SPARC program can potentially guide development of drugs or other therapies for nervous system conditions.,"Provides data on the peripheral nervous system, more applicable to specific computational studies in neuroscience and less to broad computational biology."
+SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/files/users/user32/dcc_logos/SenNet.png,Data offered by the Cellular Senescence Network provide a foundation for the study of many aspects of senescent cells.,The multi-omic data offered by the Cellular Senescence Network are a valuable resource for the interpretation of genetic association signals.,The multi-omic data offered by the Cellular Senescence Network are a valuable resource for identifying disease mechanisms and developing therapeutics.,"Focuses on cellular senescence, providing niche data that may support specific computational aging studies but not a wide range of computational biology applications."`
 		};
 	},
 	mounted() {
@@ -264,7 +280,10 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
 			this.parsedData = this.parseEntities();
 			console.log(this.parsedData);
 			setTimeout(function () {
-				const targetElement = document.querySelector('[data-value="genetics"]');
+				const params = new URLSearchParams(document.location.search);
+				const ctxtParam = params.get('context');
+				const ctxt = ctxtParam ? ctxtParam.replace('_', '-') : 'genetics';
+				const targetElement = document.querySelector(`[data-value="${ctxt}"]`);
 				console.log(targetElement);
 				if (targetElement) {
 					targetElement.dispatchEvent(new Event('mouseover'));
@@ -503,18 +522,52 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
                 e.target.classList.add('selected');
                 document.querySelector('.line2').classList.add('open');
                 document.querySelector('.dccs').classList.add('active');
-				document.querySelector('.search-context-label').innerHTML = val;
+				document.querySelectorAll('.search-context-label').forEach(el => el.innerHTML = val);
+				console.log('CONTEXT', this.utilsBox.userUtils.getContext(), val);
+				const userContext = this.utilsBox.userUtils.getContext() ? this.utilsBox.userUtils.getContext().replace('_', '-') : null;
+				if(!userContext || (userContext !== val)){
+					document.querySelector('.search-context.set').style.display = 'none';
+					document.querySelector('.search-context.notset').style.display = 'block';
+				}else{
+					document.querySelector('.search-context.set').style.display = 'block';
+					document.querySelector('.search-context.notset').style.display = 'none';
+				}
+				
+				if(val==='computational-biology'){
+					document.querySelector('.section-search-drc').style.display = 'flex';
+					document.querySelector('.section-search-kc').style.display = 'none';
+				}else{
+					document.querySelector('.section-search-drc').style.display = 'none';
+					document.querySelector('.section-search-kc').style.display = 'flex';
+				}
                 this.currPov = val;
                 this.freezeSelection = true;
+				
             }else{
 				e.target.classList.remove('selected');
                 document.querySelector('.line2').classList.remove('open');
                 document.querySelector('.dccs').classList.remove('active');
-				document.querySelector('.search-context-label').innerHTML = 'none';
+				document.querySelectorAll('.search-context-label').forEach(el => el.innerHTML = 'none');
+				if(val==='computational-biology'){
+					document.querySelector('.section-search-drc').style.display = 'none';
+					document.querySelector('.section-search-kc').style.display = 'flex';
+				}
                 this.currPov = null;
                 this.freezeSelection = false;
+				this.utilsBox.userUtils.clearContext();
+				this.utilsBox.keyParams.set({ "context": '' });
             }
         },
+
+		setContext(e){
+			if(this.currPov && this.currPov!=='computational-biology'){
+				const valUnderscored = this.currPov.toLowerCase().replace("-", "_")
+				this.utilsBox.userUtils.saveContext(valUnderscored);
+				this.utilsBox.keyParams.set({ "context": valUnderscored });
+				document.querySelector('.search-context.set').style.display = 'block';
+				document.querySelector('.search-context.notset').style.display = 'none';
+			}
+		},
 
 
 		async loadCSV(url) {
@@ -638,7 +691,7 @@ $(function () {
 }
 .map-title2 {
     color: #7c7c7c;
-    width: 770px;
+    width: 100%;
     margin: 0 0 10px 0;
 	text-align: center;
 }
@@ -697,7 +750,7 @@ $(function () {
 	display: flex;
 	flex-direction: column;
 	gap: 0px;
-	width: 770px;
+	width: 830px;
 	margin: 0 auto;
 	padding: 0px 0 0px 0;
 }
@@ -778,6 +831,8 @@ $(function () {
 .dccs{
 	margin: 0 0 15px -25% !important;
     width: 150% !important;
+	gap: 0;
+    align-items: center;
 	/*margin: 0 0 15px 0;
     width: 100%;*/
 }
@@ -807,6 +862,15 @@ $(function () {
 	margin: 0 10px;
 	pointer-events: none;
 	mix-blend-mode: darken;
+}
+.dcc-separator {
+    background: #ccc;
+    width: 0.5px;
+    height: 50px;
+    margin: 0 5px;
+}
+.dcc-separator:last-child {
+    display: none;
 }
 .dcc.onA, .dcc.on2A, .dcc.on3A{
 	border-top: solid 1px transparent;
@@ -1120,13 +1184,17 @@ $(function () {
     min-height: 200px;
     width: 100%;
     margin: 0 auto;
-	padding: 30px calc((100% - 770px) / 2);
+	padding: 30px calc((100% - 830px) / 2);
 	display: flex;
     flex-direction: column;
 }
 .section-title {
     font-size: 20px;
     letter-spacing: .2px;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
 }
 .section-subtitle {
     text-transform: uppercase;
@@ -1190,6 +1258,10 @@ $(function () {
 	display:none;
 }
 
+.section-search-drc{
+	display:none;
+}
+
 .search-try {
     font-size: 14px;
     display: flex;
@@ -1202,8 +1274,33 @@ $(function () {
     cursor: pointer;
 }
 .search-try span:first-child {
-    color: #ff6600;
+	color: #7c7c7c;
     cursor: default;
+}
+.search-try a {
+    color: #ff6600 !important;
+}
+
+.search-extras {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7c7c7c;
+    padding: 10px 20px;
+}
+.search-context.notset{
+	display:none;
+}
+.search-context-label{
+	color:#ff6600;
+}
+.search-context button {
+    border: 0.5px solid #ddd;
+    background: #ff6600;
+	color:white;
+    border-radius: 5px;
+    padding: 0px 5px;
+    margin: 0 0 0 10px;
 }
 
 .search-extras {
@@ -1241,6 +1338,47 @@ $(function () {
 .mini-card-video video {
     width: -webkit-fill-available;
     display: block;
+}
+
+.drc-logo {
+    height: 50px;
+    aspect-ratio: 1;
+    padding: 5px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0px 1px 3px 1px rgba(15, 31, 46, 0.15);
+	display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.drc-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.section.section-search-drc {
+    text-align: center;
+}
+.section-search-drc a {
+    border: 0.5px solid #ddd;
+    background: #ff6600;
+    color: white;
+    border-radius: 5px;
+    padding: 3px 10px;
+    margin: 0 0 0 10px;
+    width: fit-content;
+    align-self: center;
+	color: white !important;
+    text-transform: none;
+}
+.section-search-drc .section-title {
+    justify-content: center;
+	color: #336699;
+    font-size: 30px;
+}
+.section-search-drc ul {
+    list-style: none;
 }
 </style> 
 
