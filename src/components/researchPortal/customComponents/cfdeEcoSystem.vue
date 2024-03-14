@@ -279,7 +279,10 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
 			this.parsedData = this.parseEntities();
 			console.log(this.parsedData);
 			setTimeout(function () {
-				const targetElement = document.querySelector('[data-value="genetics"]');
+				const params = new URLSearchParams(document.location.search);
+				const ctxtParam = params.get('context');
+				const ctxt = ctxtParam ? ctxtParam.replace('_', '-') : 'genetics';
+				const targetElement = document.querySelector(`[data-value="${ctxt}"]`);
 				console.log(targetElement);
 				if (targetElement) {
 					targetElement.dispatchEvent(new Event('mouseover'));
