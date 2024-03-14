@@ -1318,14 +1318,16 @@ new Vue({
         setContext(KEY, SECTIONS) {
             if (KEY == 'remove') {
                 keyParams.set({ "context": '' });
+
+                this.utilsBox.userUtils.clearContext();
             } else {
                 let keyId = KEY.toLowerCase().replace(" ", "_");
                 keyParams.set({ "context": keyId });
+
+                this.utilsBox.userUtils.saveContext(KEY);
             }
 
-            let contextKey = KEY == 'remove' ? '' : KEY;
 
-            this.utilsBox.userUtils.setContext(contextKey);
 
             this.updateSectionDescriptions();
         },

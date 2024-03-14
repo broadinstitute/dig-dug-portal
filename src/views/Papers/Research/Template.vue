@@ -614,12 +614,12 @@
 								>
 							</research-multi-sections-search>
 							<!-- Set context -->
-							<div v-if="!!$parent.sectionConfigs['context']">
-									<span v-for="value, key, index in $parent.sectionConfigs['context']" class="context-btn btn btn-sm btn-primary" 
-										@click="$parent.setContext(key, value)">{{ key }}</span>
-									<span class="context-btn-default btn btn-sm btn-warning" 
-										@click="$parent.setContext('remove', null)">Remove context</span>
-								</div>
+							<div v-if="!!$parent.sectionConfigs['context']" class="context-btns-wrapper">
+								<span v-for="value, key, index in $parent.sectionConfigs['context']" class="context-btn btn btn-sm btn-primary" 
+									@click="$parent.setContext(key, value)">{{ key }}</span>
+								<span class="context-btn-default btn btn-sm btn-warning" 
+									@click="$parent.setContext('remove', null)">Remove context</span>
+							</div>
 								<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
 									  v-for="group, groupIndex in $parent.getTabGroups($parent.sectionConfigs['tab groups'])" >
