@@ -63,14 +63,18 @@
 					</div>
 					<div class="dccs">
 						<div class="map-label hideable"><div>Common Fund Programs</div></div>
-						<div v-for="(value, key) in this.parsedData"
-							class="dcc"
-							data-group="dccs"
-							:data-value="key"
-							@mouseover="hoverHandler($event)"
-							@mouseout="outHandler($event)">
-							<img :src="value['logo']">
-						</div>
+						<template v-for="(value, key, index) in this.parsedData">
+							<div 
+								class="dcc"
+								data-group="dccs"
+								:data-value="key"
+								@mouseover="hoverHandler($event)"
+								@mouseout="outHandler($event)"
+							>
+								<img :src="value['logo']">
+							</div>
+							<div class="dcc-separator"></div>
+						</template>
 					</div>
 					<div class="omics">
 						<div class="map-label hideable"><div>Omics Data</div></div>
@@ -98,7 +102,20 @@
 			</div>
 		
 		
-			<div class="section">
+			<div class="section section-search-drc">
+				<div class="section-title"><div class="drc-logo"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/DRC_logo.png"></div>CFDE WORKBENCH</div>
+				<div class="section-wrap">
+					<div class="section-col">
+						<div class="section-subtitle">Visit our sister resource to query, access, and compute Common Fund datasets.</div>
+						<ul>
+							<li>Search across all Common Fund metadata and processed data.</li>
+							<li>Use cloud tools to interrogate data sets from various Common Fund programs.</li>
+						</ul>
+						<a href="https://data.cfde.cloud/">Visit CFDE WORKBENCH</a>
+					</div>
+				</div>
+			</div>
+			<div class="section section-search-kc">
 				<div class="map-title2 v2"><span>search KC</span><div class="search-context">Set <span class="search-context-label">genetics</span> context?<button>yes</button></div></div>
 				
 				<research-single-search
@@ -107,7 +124,7 @@
 					:utils="utilsBox"
 				></research-single-search> 
 				<div class="search-extras">
-					<div class="search-try"><span>Try</span><span>PCSK9</span><span>Cardiovasular Disease</span></div>
+					<div class="search-try"><span>Try</span><a href="/research.html?entity=gene&gene=BDH2&pageid=kc_entity&tissue=blood">BDH2</a><a href="/research.html?disease=MONDO%3A0004985&entity=disease&pageid=kc_entity&tissue=blood">Bipolar disorder</a></div>
 				</div>
 				<!--<div class="search-icon"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/geneticist.svg"></div>-->
 			</div>
@@ -155,7 +172,7 @@
 		</div>
 
 		<div id="kc-section-c" class="section">
-			<div class="section-title">CFDE Workbench</div>
+			<div class="section-title"><div class="drc-logo"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/DRC_logo.png"></div>CFDE WORKBENCH</div>
 			<div class="section-wrap">
 				<div class="section-col">
 					<div class="section-subtitle">Visit our sister resource to query, access, and compute Common Fund datasets.</div>
@@ -504,6 +521,13 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
                 document.querySelector('.line2').classList.add('open');
                 document.querySelector('.dccs').classList.add('active');
 				document.querySelector('.search-context-label').innerHTML = val;
+				if(val==='computational-biology'){
+					document.querySelector('.section-search-drc').style.display = 'flex';
+					document.querySelector('.section-search-kc').style.display = 'none';
+				}else{
+					document.querySelector('.section-search-drc').style.display = 'none';
+					document.querySelector('.section-search-kc').style.display = 'flex';
+				}
                 this.currPov = val;
                 this.freezeSelection = true;
             }else{
@@ -511,6 +535,10 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,1,1,1,1,https://hugeampkpncms.org/sites/default/
                 document.querySelector('.line2').classList.remove('open');
                 document.querySelector('.dccs').classList.remove('active');
 				document.querySelector('.search-context-label').innerHTML = 'none';
+				if(val==='computational-biology'){
+					document.querySelector('.section-search-drc').style.display = 'none';
+					document.querySelector('.section-search-kc').style.display = 'flex';
+				}
                 this.currPov = null;
                 this.freezeSelection = false;
             }
@@ -638,7 +666,7 @@ $(function () {
 }
 .map-title2 {
     color: #7c7c7c;
-    width: 770px;
+    width: 100%;
     margin: 0 0 10px 0;
 	text-align: center;
 }
@@ -697,7 +725,7 @@ $(function () {
 	display: flex;
 	flex-direction: column;
 	gap: 0px;
-	width: 770px;
+	width: 830px;
 	margin: 0 auto;
 	padding: 0px 0 0px 0;
 }
@@ -778,6 +806,8 @@ $(function () {
 .dccs{
 	margin: 0 0 15px -25% !important;
     width: 150% !important;
+	gap: 0;
+    align-items: center;
 	/*margin: 0 0 15px 0;
     width: 100%;*/
 }
@@ -807,6 +837,15 @@ $(function () {
 	margin: 0 10px;
 	pointer-events: none;
 	mix-blend-mode: darken;
+}
+.dcc-separator {
+    background: #ccc;
+    width: 0.5px;
+    height: 50px;
+    margin: 0 5px;
+}
+.dcc-separator:last-child {
+    display: none;
 }
 .dcc.onA, .dcc.on2A, .dcc.on3A{
 	border-top: solid 1px transparent;
@@ -1120,13 +1159,17 @@ $(function () {
     min-height: 200px;
     width: 100%;
     margin: 0 auto;
-	padding: 30px calc((100% - 770px) / 2);
+	padding: 30px calc((100% - 830px) / 2);
 	display: flex;
     flex-direction: column;
 }
 .section-title {
     font-size: 20px;
     letter-spacing: .2px;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
 }
 .section-subtitle {
     text-transform: uppercase;
@@ -1190,6 +1233,10 @@ $(function () {
 	display:none;
 }
 
+.section-search-drc{
+	display:none;
+}
+
 .search-try {
     font-size: 14px;
     display: flex;
@@ -1202,8 +1249,11 @@ $(function () {
     cursor: pointer;
 }
 .search-try span:first-child {
-    color: #ff6600;
+	color: #7c7c7c;
     cursor: default;
+}
+.search-try a {
+    color: #ff6600 !important;
 }
 
 .search-extras {
@@ -1221,7 +1271,7 @@ $(function () {
     background: #ff6600;
 	color:white;
     border-radius: 5px;
-    padding: 2px 10px;
+    padding: 0px 5px;
     margin: 0 0 0 10px;
 }
 
@@ -1241,6 +1291,47 @@ $(function () {
 .mini-card-video video {
     width: -webkit-fill-available;
     display: block;
+}
+
+.drc-logo {
+    height: 50px;
+    aspect-ratio: 1;
+    padding: 5px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0px 1px 3px 1px rgba(15, 31, 46, 0.15);
+	display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.drc-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.section.section-search-drc {
+    text-align: center;
+}
+.section-search-drc a {
+    border: 0.5px solid #ddd;
+    background: #ff6600;
+    color: white;
+    border-radius: 5px;
+    padding: 3px 10px;
+    margin: 0 0 0 10px;
+    width: fit-content;
+    align-self: center;
+	color: white !important;
+    text-transform: none;
+}
+.section-search-drc .section-title {
+    justify-content: center;
+	color: #336699;
+    font-size: 30px;
+}
+.section-search-drc ul {
+    list-style: none;
 }
 </style> 
 
