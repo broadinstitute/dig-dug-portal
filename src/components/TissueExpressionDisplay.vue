@@ -26,6 +26,7 @@
             :tissueData="tableData"
             :tissue="tissue"
             :filteredData="plotData"
+            @sortByField="field => sortBy(field)"
         >
         </tissue-table>
         <b-pagination
@@ -96,6 +97,9 @@ export default Vue.component("TissueExpressionDisplay", {
         getPlotData(plotData) {
             this.plotData = plotData;
         },
+        sortBy(field){
+            console.log(`Sorting by ${field}`);
+        }
     },
     watch: {
         currentPage: function () {

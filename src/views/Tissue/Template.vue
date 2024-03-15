@@ -29,7 +29,7 @@
                     <div class="card-body">
                         <tissue-expression-display
                             v-if="$parent.tissueData.length > 0"
-                            :tissue-data="$parent.tissueData.sort((a, b) => b.meanTpm - a.meanTpm)"
+                            :tissue-data="$parent.tissueData"
                             :tissue="$parent.tissue"
                         ></tissue-expression-display>
                     </div>

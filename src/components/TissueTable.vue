@@ -8,6 +8,15 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <template #head(gene)="r">
+                <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
+            </template>
+            <template #head(meanTpm)="r">
+                <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
+            </template>
+            <template #head(nSamples)="r">
+                <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
+            </template>
             <template #cell(gene)="r">
                 <a :href="`/gene.html?gene=${r.item.gene}`">
                     {{ r.item.gene }}
@@ -174,7 +183,7 @@ export default Vue.component("TissueTable", {
                 },
                 {
                     key: "nSamples",
-                    label: "# Samples",
+                    label: "Total sample count",
                 },
                 {
                     key: "tstat",
@@ -319,6 +328,9 @@ export default Vue.component("TissueTable", {
                 (item) => item.gene === gene
             );
         },
+        sortEmit(sortBy){
+            this.$emit('sortByField', sortBy);
+        }
     },
 });
 </script>
