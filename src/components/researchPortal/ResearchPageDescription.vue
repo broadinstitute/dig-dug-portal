@@ -26,7 +26,7 @@ export default Vue.component("research-page-description", {
 	},
 	computed: {
 		pageContent(content) {
-			console.log("content", content)
+			
 			if(!!content && content != "") {
 				let formattedContent = this.content
 					.replace(/&lt;plot&gt;/g, "<div class='plot'>")
@@ -138,7 +138,7 @@ export default Vue.component("research-page-description", {
 			X_LBL_ANGLE,
 			Y_LBL_ANGLE
 		) {
-			//console.log("color", COLOR);
+			
 			let margin = this.plotMargin;
 			let spacer = 20;
 			let valueHiLow = { high: null, low: null };

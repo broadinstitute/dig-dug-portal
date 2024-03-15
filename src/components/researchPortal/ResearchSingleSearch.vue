@@ -140,18 +140,20 @@ export default Vue.component("research-single-search", {
 		};
 	},
 	created() {
-
-		this.singleSearchConfig["search parameters"].map(S=>{
-			if(!!S["data point"]){
-				let listPoint = S["data point"];
-				this.getList(	
+		if(!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
+			this.singleSearchConfig["search parameters"].map(S => {
+				if (!!S["data point"]) {
+					let listPoint = S["data point"];
+					this.getList(
 						S["parameter"],
 						listPoint["url"],
 						listPoint["data type"],
 						listPoint["data wrapper"]
-				)
-			}
-		})
+					)
+				}
+			})
+		}
+		
 	},
 	mounted() {},
 	computed: {},

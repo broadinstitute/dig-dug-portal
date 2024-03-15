@@ -49,6 +49,7 @@ import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
 import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
+import userUtils from "@/utils/userUtils.js";
 import $ from "jquery";
 
 import Alert, {
@@ -101,6 +102,7 @@ new Vue({
             devCK: null,
             dataFiles: [],
             dataTableFormat: null,
+            context: null,
             colors: {
                 mild: [
                     "#007bff25",
@@ -184,6 +186,24 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
+
+        /*this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");*/
+        this.pageID = keyParams.pageid || window.location.pathname.substring(3);
+        if (this.pageID) {
+            this.$store.dispatch("hugeampkpncms/getResearchMode", {
+                pageID: this.pageID,
+            });
+        }
+
+        let context = this.utilsBox.userUtils.getContext();
+
+        if (!!context) {
+            let keyId = context.toLowerCase().replace(" ", "_");
+            keyParams.set({ "context": keyId });
+            this.context = keyId;
+        }
     },
 
     render(createElement, context) {
@@ -209,6 +229,7 @@ new Vue({
                 plotUtils: plotUtils,
                 filterUtils: filterUtils,
                 regionUtils: regionUtils,
+                userUtils: userUtils,
             }
             return utils;
         },
@@ -1194,17 +1215,7 @@ new Vue({
         },
     },
 
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.pageID = keyParams.pageid || window.location.pathname.substring(3);
-        if (this.pageID) {
-            this.$store.dispatch("hugeampkpncms/getResearchMode", {
-                pageID: this.pageID,
-            });
-        }
-    },
+
 
     methods: {
         ...uiUtils,
@@ -1312,12 +1323,22 @@ new Vue({
         setContext(KEY, SECTIONS) {
             if (KEY == 'remove') {
                 keyParams.set({ "context": '' });
+
+                this.context = null;
+
+                this.utilsBox.userUtils.clearContext();
             } else {
                 let keyId = KEY.toLowerCase().replace(" ", "_");
                 keyParams.set({ "context": keyId });
+
+                this.context = keyId;
+
+                this.utilsBox.userUtils.saveContext(keyId);
             }
 
-            this.updateSectionDescriptions();
+            location.reload();
+
+            //this.updateSectionDescriptions();
         },
         getTabGroups(TAB_GROUPS) {
 
@@ -1438,7 +1459,17 @@ new Vue({
             /// check context setting
 
             let context = keyParams["context"];
-            let pageContext = (this.sectionConfigs['context']) ? this.sectionConfigs['context'][context] : null;
+            let pageContext;
+
+            if (!!this.sectionConfigs['context']) {
+                let contextItmes = Object.keys(this.sectionConfigs['context']);
+
+                contextItmes.map(c => {
+                    if (c.toLowerCase().replace(" ", "_") == context) {
+                        pageContext = this.sectionConfigs['context'][c];
+                    }
+                })
+            }
 
             if (!!context && !!pageContext) {
 

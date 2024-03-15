@@ -182,6 +182,7 @@ export default Vue.component("research-info-cards", {
 			stared: false,
 			minimumView: null,
 			openCard: null,
+			minVidsReady: false
 		};
 	},
 	modules: {},
@@ -198,6 +199,27 @@ export default Vue.component("research-info-cards", {
 		if (!!this.openCardPreset) {
 			this.openCard = this.openCardPreset;
 		}
+		//alex remove this after making min-video into component
+		this.$nextTick(() => {
+			if(!this.minVidsReady){
+				this.minVidsReady = true;
+				document.querySelectorAll('.mini-card-video video').forEach(vid => {
+					vid.addEventListener('ended', e => {
+						e.target.classList.add('paused');
+					});
+					vid.addEventListener('mouseover', e => {
+						if(e.target.classList.contains('paused')){
+							e.target.play();
+						}
+					});
+					vid.addEventListener('mouseout', e => {
+						if(e.target.classList.contains('paused')){
+							e.target.pause();
+						}
+					});
+				})
+			}
+		});
 	},
 	computed: {
 		filteredData() {
