@@ -10,12 +10,41 @@
         >
             <template #head(gene)="r">
                 <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
+                    <span class="sortIcon sortUp" 
+                        :class="{active: activeSort.field === r.field.key 
+                            && activeSort.ascending}">
+                        &#9650;
+                    </span>
+                    <span class="sortIcon sortDown"
+                        :class="{active: activeSort.field === r.field.key 
+                            && !activeSort.ascending}"
+                    >&#9660;</span>
             </template>
             <template #head(meanTpm)="r">
                 <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
+                    <span class="sortIcon sortUp"
+                        :class="{active: activeSort.field === r.field.key 
+                            && activeSort.ascending}">
+                        &#9650;
+                    </span>
+                    <span class="sortIcon sortDown"
+                        :class="{active: activeSort.field === r.field.key 
+                            && !activeSort.ascending}">
+                        &#9660;
+                    </span>
             </template>
             <template #head(nSamples)="r">
                 <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
+                    <span class="sortIcon sortUp"
+                        :class="{active: activeSort.field === r.field.key 
+                            && activeSort.ascending}">
+                        &#9650;
+                    </span>
+                    <span class="sortIcon sortDown"
+                        :class="{active: activeSort.field === r.field.key 
+                            && !activeSort.ascending}">
+                        &#9660;
+                    </span>
             </template>
             <template #cell(gene)="r">
                 <a :href="`/gene.html?gene=${r.item.gene}`">
@@ -152,6 +181,7 @@
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
+import { active } from "d3";
 export default Vue.component("TissueTable", {
     props: {
         tissueTableData: {
@@ -203,6 +233,10 @@ export default Vue.component("TissueTable", {
                 meanTpm: false,
                 nSamples: false,
                 tStat: false
+            },
+            activeSort: {
+                field: "",
+                ascending: false
             },
             evidenceFields: [
                 {
@@ -335,8 +369,12 @@ export default Vue.component("TissueTable", {
             );
         },
         sortEmit(field){
-            this.$emit('sortByField', field, this.sortAscending[field]);
-            this.sortAscending[field] = !this.sortAscending[field];
+            let direction = this.sortAscending[field];
+            this.$emit('sortByField', field, direction);
+            // Clear previous active sort styling
+            this.activeSort.field = field;
+            this.activeSort.ascending = direction;
+            this.sortAscending[field] = !direction;
         }
     },
 });
@@ -350,5 +388,11 @@ export default Vue.component("TissueTable", {
 }
 .b-popover {
     background-color: #fff;
+}
+.sortIcon {
+    color: darkgray;
+}
+.active {
+    color: blue;
 }
 </style>
