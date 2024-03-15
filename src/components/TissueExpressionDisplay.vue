@@ -26,7 +26,7 @@
             :tissueTableData="tableData"
             :tissue="tissue"
             :filteredData="plotData"
-            @sortByField="field => sortBy(field)"
+            @sortByField="(field, ascending) => sortBy(field, ascending)"
         >
         </tissue-table>
         <b-pagination
@@ -99,15 +99,10 @@ export default Vue.component("TissueExpressionDisplay", {
         getPlotData(plotData) {
             this.plotData = plotData;
         },
-        sortBy(field){
+        sortBy(field, ascending){
             this.sortedData.sort((a,b) => {
-                if (a[field] < b[field]){
-                    return 1;
-                }
-                if (a[field] > b[field]){
-                    return -1;
-                }
-                return 0;
+                let sortVal = a[field] < b[field] ? -1 : a[field] > b[field] ? 1 : 0;
+                return !ascending ? -sortVal : sortVal;
             });
             this.currentPage = 1;
             this.populateGeneData();

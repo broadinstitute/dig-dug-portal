@@ -198,6 +198,12 @@ export default Vue.component("TissueTable", {
                     label: "Gene Links",
                 },
             ],
+            sortAscending: {
+                gene: true,
+                meanTpm: false,
+                nSamples: false,
+                tStat: false
+            },
             evidenceFields: [
                 {
                     key: "biosample",
@@ -328,8 +334,9 @@ export default Vue.component("TissueTable", {
                 (item) => item.gene === gene
             );
         },
-        sortEmit(sortBy){
-            this.$emit('sortByField', sortBy);
+        sortEmit(field){
+            this.$emit('sortByField', field, this.sortAscending[field]);
+            this.sortAscending[field] = !this.sortAscending[field];
         }
     },
 });
