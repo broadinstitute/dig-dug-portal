@@ -574,7 +574,7 @@ export default Vue.component("research-phewas-plot", {
 				//
 
 				this.renderConfig["thresholds"].map((t) => {
-					console.log("thold", t);
+					
 					ctx.beginPath();
 					let tValue =
 						this.renderConfig["convert y -log10"] == "true"
