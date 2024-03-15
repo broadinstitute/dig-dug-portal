@@ -31,7 +31,7 @@
         </tissue-table>
         <b-pagination
             v-model="currentPage"
-            :total-rows="tissueData.length"
+            :total-rows="sortedData.length"
             :per-page="perPage"
         >
         </b-pagination>
@@ -59,10 +59,12 @@ export default Vue.component("TissueExpressionDisplay", {
         return {
             perPage: 10,
             currentPage: 1,
+            sortedData: this.$props.tissueData,
             rawData: [],
             evidence: {},
             plotData: [],
             tableData: [],
+            sortKey: ""
         };
     },
     mounted() {
@@ -86,7 +88,7 @@ export default Vue.component("TissueExpressionDisplay", {
             this.rawData = [];
             let startIndex = (this.currentPage - 1) * this.perPage;
             let endIndex = startIndex + this.perPage;
-            this.tableData = this.tissueData.slice(startIndex, endIndex);
+            this.tableData = this.sortedData.slice(startIndex, endIndex);
             let rows = this.tableData.map((d) => d.gene);
             await this.populateEvidence(rows);
             this.rawData = rows.flatMap((gene) => this.evidence[gene]);
@@ -98,7 +100,17 @@ export default Vue.component("TissueExpressionDisplay", {
             this.plotData = plotData;
         },
         sortBy(field){
-            console.log(`Sorting by ${field}`);
+            this.sortedData.sort((a,b) => {
+                if (a[field] < b[field]){
+                    return 1;
+                }
+                if (a[field] > b[field]){
+                    return -1;
+                }
+                return 0;
+            });
+            this.currentPage = 1;
+            this.populateGeneData();
         }
     },
     watch: {
