@@ -201,14 +201,17 @@ export default Vue.component("TissueTable", {
                 {
                     key: "gene",
                     label: "Gene",
+                    thClass: "gene"
                 },
                 {
                     key: "meanTpm",
                     label: "Mean TPM",
+                    thClass: "meanTpm"
                 },
                 {
                     key: "nSamples",
                     label: "Total sample count",
+                    thClass: "nSamples"
                 },
                 {
                     key: "tstat",
@@ -369,7 +372,14 @@ export default Vue.component("TissueTable", {
             // Clear previous active sort styling
             this.activeSort.field = field;
             this.activeSort.ascending = direction;
+            this.updateAriaSort(field, direction);
             this.sortAscending[field] = !direction;
+        },
+        updateAriaSort(field, direction){
+            document.querySelectorAll("#tissues th")
+                .forEach( e => e.ariaSort = "none" );
+            document.querySelectorAll(`#tissues th.${field}`)
+                .forEach( e => e.ariaSort = direction ? "ascending" : "descending");
         }
     },
 });
