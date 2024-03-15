@@ -144,7 +144,7 @@
 		</div>
 
 		<div id="kc-section-a" class="section">
-			<div class="section-title">Scientifically valid, integrated knowledge</div>
+			<div class="section-title">See curated summaries of knowledge from CFDE programs</div>
 			<div class="section-wrap">
 				<div class="section-col">
 					<div class="section-subtitle">Genes</div>
@@ -179,7 +179,7 @@
 				</div>
 				<div class="section-col">
 					<div class="section-subtitle">Partnerships</div>
-					<div class="placeholder">Partnerships</div>
+					<div class="placeholder">(coming soon)</div>
 				</div>
 			</div>
 		</div>
@@ -194,6 +194,16 @@
 						<li>Cloud tools to interrogate data sets from various Common Fund programs.</li>
 						<li>Training and outreach to highlight Common Fund data and how to use it effectively.</li>
 					</ul>
+				</div>
+			</div>
+		</div>
+
+		<div id="kc-section-d" class="section">
+			<div class="section-title">Funding</div>
+			<div class="section-wrap">
+				<div class="section-col">
+					<div class="section-subtitle"></div>	
+					<div class="logo"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/NIH_logo.png"></div>
 				</div>
 			</div>
 		</div>
@@ -1420,9 +1430,19 @@ $(function () {
     z-index: 100;
     font-size: 12px;
 	width:300px;
+	box-shadow: 0 0 5px 0 #00000050;
 }
 .context-info{
 	display:none;
+}
+
+#kc-section-d .logo {
+    width: 100px;
+}
+#kc-section-d .logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 </style> 
 
