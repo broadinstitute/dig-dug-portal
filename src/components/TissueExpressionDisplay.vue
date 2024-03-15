@@ -23,14 +23,15 @@
         </div>
         <div v-else>Loading expression plot...</div>
         <tissue-table
-            :tissueData="tableData"
+            :tissueTableData="tableData"
             :tissue="tissue"
             :filteredData="plotData"
+            @sortByField="(field, ascending) => sortBy(field, ascending)"
         >
         </tissue-table>
         <b-pagination
             v-model="currentPage"
-            :total-rows="tissueData.length"
+            :total-rows="sortedData.length"
             :per-page="perPage"
         >
         </b-pagination>
@@ -58,10 +59,12 @@ export default Vue.component("TissueExpressionDisplay", {
         return {
             perPage: 10,
             currentPage: 1,
+            sortedData: this.$props.tissueData,
             rawData: [],
             evidence: {},
             plotData: [],
             tableData: [],
+            sortKey: ""
         };
     },
     mounted() {
@@ -85,7 +88,7 @@ export default Vue.component("TissueExpressionDisplay", {
             this.rawData = [];
             let startIndex = (this.currentPage - 1) * this.perPage;
             let endIndex = startIndex + this.perPage;
-            this.tableData = this.tissueData.slice(startIndex, endIndex);
+            this.tableData = this.sortedData.slice(startIndex, endIndex);
             let rows = this.tableData.map((d) => d.gene);
             await this.populateEvidence(rows);
             this.rawData = rows.flatMap((gene) => this.evidence[gene]);
@@ -96,6 +99,14 @@ export default Vue.component("TissueExpressionDisplay", {
         getPlotData(plotData) {
             this.plotData = plotData;
         },
+        sortBy(field, ascending){
+            this.sortedData.sort((a,b) => {
+                let sortVal = a[field] < b[field] ? -1 : a[field] > b[field] ? 1 : 0;
+                return !ascending ? -sortVal : sortVal;
+            });
+            this.currentPage = 1;
+            this.populateGeneData();
+        }
     },
     watch: {
         currentPage: function () {
