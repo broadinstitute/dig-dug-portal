@@ -434,9 +434,9 @@ export default Vue.component("research-phewas-plot", {
 
 						calcString += eValue;
 					});
-					//console.log("calcString", calcString)
+					
 					let threshold = eval(calcString);
-					//console.log("threshold", threshold)
+					
 					threshholds.push(threshold);
 				})
 				this.renderConfig["thresholds"] = threshholds;
@@ -574,6 +574,7 @@ export default Vue.component("research-phewas-plot", {
 				//
 
 				this.renderConfig["thresholds"].map((t) => {
+					console.log("thold", t);
 					ctx.beginPath();
 					let tValue =
 						this.renderConfig["convert y -log10"] == "true"

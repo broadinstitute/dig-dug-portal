@@ -773,7 +773,7 @@ export default Vue.component("research-box-plot", {
 						keyIndex++;
 					}
 
-					console.log(this.boxPosData)
+					//console.log(this.boxPosData)
 				} else {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
