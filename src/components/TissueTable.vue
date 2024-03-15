@@ -10,41 +10,36 @@
         >
             <template #head(gene)="r">
                 <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
-                    <span class="sortIcon sortUp" 
-                        :class="{active: activeSort.field === r.field.key 
-                            && activeSort.ascending}">
+                <span :class="{active: activeSort.field === r.field.key}">
+                    <span class="sortIcon" :class="{activeIcon: activeSort.ascending}">
                         &#9650;
                     </span>
-                    <span class="sortIcon sortDown"
-                        :class="{active: activeSort.field === r.field.key 
-                            && !activeSort.ascending}"
-                    >&#9660;</span>
+                    <span class="sortIcon" :class="{activeIcon: !activeSort.ascending}">
+                        &#9660;
+                    </span>
+                </span>
             </template>
             <template #head(meanTpm)="r">
                 <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
-                    <span class="sortIcon sortUp"
-                        :class="{active: activeSort.field === r.field.key 
-                            && activeSort.ascending}">
+                <span :class="{active: activeSort.field === r.field.key}">
+                    <span class="sortIcon" :class="{activeIcon: activeSort.ascending}">
                         &#9650;
                     </span>
-                    <span class="sortIcon sortDown"
-                        :class="{active: activeSort.field === r.field.key 
-                            && !activeSort.ascending}">
+                    <span class="sortIcon" :class="{activeIcon: !activeSort.ascending}">
                         &#9660;
                     </span>
+                </span>
             </template>
             <template #head(nSamples)="r">
                 <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
-                    <span class="sortIcon sortUp"
-                        :class="{active: activeSort.field === r.field.key 
-                            && activeSort.ascending}">
+                <span :class="{active: activeSort.field === r.field.key}">
+                    <span class="sortIcon" :class="{activeIcon: activeSort.ascending}">
                         &#9650;
                     </span>
-                    <span class="sortIcon sortDown"
-                        :class="{active: activeSort.field === r.field.key 
-                            && !activeSort.ascending}">
+                    <span class="sortIcon" :class="{activeIcon: !activeSort.ascending}">
                         &#9660;
                     </span>
+                </span>
             </template>
             <template #cell(gene)="r">
                 <a :href="`/gene.html?gene=${r.item.gene}`">
@@ -392,7 +387,7 @@ export default Vue.component("TissueTable", {
 .sortIcon {
     color: darkgray;
 }
-.active {
-    color: blue;
+.active .activeIcon {
+    color: #007bff;
 }
 </style>
