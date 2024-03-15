@@ -703,7 +703,8 @@ export default Vue.component("research-section", {
 				this.sectionData = this.utils.sortUtils.sortLocusField(this.sectionData, KEY.key, KEY.direction);
 			} else {
 				let isNumeric = this.checkIfNumeric(this.sectionData, KEY.key);
-				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, KEY.key, isNumeric, KEY.direction==='asc'?true:false);
+				//this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, KEY.key, isNumeric, KEY.direction==='asc'?true:false);
+				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, KEY.key, isNumeric, KEY.direction);
 			}
 		},
 		checkIfNumeric(DATA, KEY) {
@@ -989,7 +990,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "No data returned. Please check query parameters.";
+				this.noLoadedData = "No data is returned. Please check query parameters.";
 			}
 		},
 
@@ -1064,7 +1065,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "No data returned. Please check query parameters.";
+				this.noLoadedData = "No data is returned. Please check query parameters.";
 			}
 		},
 
@@ -1379,7 +1380,7 @@ export default Vue.component("research-section", {
 			} else {
 				this.loadingDataFlag = "down";
 				this.sectionData = null;
-				this.noLoadedData = "Nodata is returned. Please check query parameters.";
+				this.noLoadedData = "No data is returned. Please check query parameters.";
 			}
 		},
 
@@ -1446,7 +1447,7 @@ export default Vue.component("research-section", {
 				);
 
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "Nodata is returned. Please check query parameters.";
+				this.noLoadedData = "No data is returned. Please check query parameters.";
 				
 			}
 		}
