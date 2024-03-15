@@ -10,36 +10,12 @@
         >
             <template #head(gene)="r">
                 <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
-                <span :class="{active: activeSort.field === r.field.key}">
-                    <span class="sortIcon" :class="{activeIcon: activeSort.ascending}">
-                        &#9650;
-                    </span>
-                    <span class="sortIcon" :class="{activeIcon: !activeSort.ascending}">
-                        &#9660;
-                    </span>
-                </span>
             </template>
             <template #head(meanTpm)="r">
                 <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
-                <span :class="{active: activeSort.field === r.field.key}">
-                    <span class="sortIcon" :class="{activeIcon: activeSort.ascending}">
-                        &#9650;
-                    </span>
-                    <span class="sortIcon" :class="{activeIcon: !activeSort.ascending}">
-                        &#9660;
-                    </span>
-                </span>
             </template>
             <template #head(nSamples)="r">
                 <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
-                <span :class="{active: activeSort.field === r.field.key}">
-                    <span class="sortIcon" :class="{activeIcon: activeSort.ascending}">
-                        &#9650;
-                    </span>
-                    <span class="sortIcon" :class="{activeIcon: !activeSort.ascending}">
-                        &#9660;
-                    </span>
-                </span>
             </template>
             <template #cell(gene)="r">
                 <a :href="`/gene.html?gene=${r.item.gene}`">
@@ -201,17 +177,17 @@ export default Vue.component("TissueTable", {
                 {
                     key: "gene",
                     label: "Gene",
-                    thClass: "gene"
+                    thClass: "gene sortable"
                 },
                 {
                     key: "meanTpm",
                     label: "Mean TPM",
-                    thClass: "meanTpm"
+                    thClass: "meanTpm sortable"
                 },
                 {
                     key: "nSamples",
                     label: "Total sample count",
-                    thClass: "nSamples"
+                    thClass: "nSamples sortable"
                 },
                 {
                     key: "tstat",
@@ -231,10 +207,6 @@ export default Vue.component("TissueTable", {
                 meanTpm: false,
                 nSamples: false,
                 tStat: false
-            },
-            activeSort: {
-                field: "",
-                ascending: false
             },
             evidenceFields: [
                 {
@@ -319,6 +291,7 @@ export default Vue.component("TissueTable", {
                 return { ...item, showButton: 0, currentPage: 1 };
             });
         }
+        this.updateAriaSort("placeholder", true);
     },
     methods: {
         async showLinks(gene) {
@@ -370,14 +343,12 @@ export default Vue.component("TissueTable", {
             let direction = this.sortAscending[field];
             this.$emit('sortByField', field, direction);
             // Clear previous active sort styling
-            this.activeSort.field = field;
-            this.activeSort.ascending = direction;
             this.updateAriaSort(field, direction);
             this.sortAscending[field] = !direction;
         },
         updateAriaSort(field, direction){
-            document.querySelectorAll("#tissues th")
-                .forEach( e => e.ariaSort = "none" );
+            document.querySelectorAll("#tissues th.sortable")
+                .forEach( e => e.ariaSort = "none");
             document.querySelectorAll(`#tissues th.${field}`)
                 .forEach( e => e.ariaSort = direction ? "ascending" : "descending");
         }
