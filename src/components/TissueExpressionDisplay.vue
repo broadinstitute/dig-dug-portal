@@ -23,7 +23,7 @@
         </div>
         <div v-else>Loading expression plot...</div>
         <tissue-table
-            :tissueData="tableData"
+            :tissueTableData="tableData"
             :tissue="tissue"
             :filteredData="plotData"
             @sortByField="field => sortBy(field)"

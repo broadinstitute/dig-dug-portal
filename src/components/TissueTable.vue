@@ -3,7 +3,7 @@
         <b-table
             small
             responsive="sm"
-            :items="tissueData"
+            :items="tissueTableData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -154,7 +154,7 @@ import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 export default Vue.component("TissueTable", {
     props: {
-        tissueData: {
+        tissueTableData: {
             type: Array,
             required: true,
         },
@@ -276,8 +276,8 @@ export default Vue.component("TissueTable", {
         };
     },
     mounted() {
-        if (this.tissueData) {
-            this.tableData = this.tissueData.map((item) => {
+        if (this.tissueTableData) {
+            this.tableData = this.tissueTableData.map((item) => {
                 return { ...item, showButton: 0, currentPage: 1 };
             });
         }
