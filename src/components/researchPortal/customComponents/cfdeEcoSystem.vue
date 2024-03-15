@@ -25,6 +25,7 @@
 				<div class="blurbA"></div>
 			</div>
 			<div class="overlay-window context-info">
+				<div class="overlay-window-close" data-info-el="context-info" @click="hideInfoContent($event)">&#10005;</div>
 				We defined four research contexts and then used a combination of Large Language Models (LLM) and manual curation to weight the relevance of the knowledge produced by each CFDE program to each context (for details, <a href="javascript;;">see here</a>). <br>Setting a research context will change the ordering of DCCs on each of the KC pages and also modify the text describing and contextualizing the results shown. <br>You can change or remove a research context on any page.
 			</div>
 			<div class="map-bg">
@@ -35,8 +36,7 @@
 					<span>SET RESEARCH CONTEXT
 						<span class="btn-icon" 
 							data-info-el="context-info"
-							@mouseover="showInfoContent($event)"
-							@mouseout="hideInfoContent($event)"
+							@click="showInfoContent($event)"
 						>
 						?
 						</span>
@@ -633,8 +633,10 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,3,2,2,1,https://hugeampkpncms.org/sites/default/
 			infoEl.style.display = 'block';
 		},
 		hideInfoContent(e){
-			console.log('out')
-			document.querySelectorAll(`.overlay-window`).forEach(el => el.style.display='none');
+			const infoEl = document.querySelector(`.${e.target.dataset.infoEl}`);
+			infoEl.style.top = (e.clientY-90)+'px';
+			infoEl.style.left = (e.clientX+10)+'px';
+			infoEl.style.display = 'none';
 		}
 	}
 });
@@ -774,7 +776,7 @@ $(function () {
     justify-content: center;
     font-size: 9px;
 	color: black !important;
-	cursor: default;
+	cursor: pointer;
 }
 .map-pov-message{
 	font-size: 12px;
@@ -1434,6 +1436,15 @@ $(function () {
 }
 .context-info{
 	display:none;
+}
+.overlay-window-close {
+    position: absolute;
+    right: 10px;
+    top: 12px;
+    width: 10px;
+    height: 10px;
+    line-height: 10px;
+    cursor: pointer;
 }
 
 #kc-section-d .logo {
