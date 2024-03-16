@@ -26,7 +26,7 @@
 			</div>
 			<div class="overlay-window context-info">
 				<div class="overlay-window-close" data-info-el="context-info" @click="hideInfoContent($event)">&#10005;</div>
-				We defined four research contexts and then used a combination of Large Language Models (LLM) and manual curation to weight the relevance of the knowledge produced by each CFDE program to each context (for details, <a href="javascript;;">see here</a>). <br>Setting a research context will change the ordering of DCCs on each of the KC pages and also modify the text describing and contextualizing the results shown. <br>You can change or remove a research context on any page.
+				We defined four research contexts and then used a combination of Large Language Models (LLM) and manual curation to weight the relevance of the knowledge produced by each CFDE program to each context (for details, <a href="/research.html?pageID=KC_research_contexts">see here</a>). <br>Setting a research context will change the ordering of DCCs on each of the KC pages and also modify the text describing and contextualizing the results shown. <br>You can change or remove a research context on any page.
 			</div>
 			<div class="map-bg">
 				<div class="map-title boxed" style="display:none"><span>> </span>Explore the diagram with your mouse to see connections between research programs, their omics data types and biological entities, with relevance to different research contexts.
@@ -121,7 +121,7 @@
 				<div class="section-wrap">
 					<div class="section-col">
 						<div class="section-subtitle">Visit our sister resource to query, access, and compute Common Fund datasets.</div>
-						<a href="https://data.cfde.cloud/">Visit CFDE WORKBENCH</a>
+						<a href="https://data.cfde.cloud/" target="_blank">Visit CFDE WORKBENCH</a>
 					</div>
 				</div>
 			</div>
@@ -194,6 +194,17 @@
 						<li>Cloud tools to interrogate data sets from various Common Fund programs.</li>
 						<li>Training and outreach to highlight Common Fund data and how to use it effectively.</li>
 					</ul>
+					<a href="https://data.cfde.cloud/" target="_blank">Visit CFDE WORKBENCH</a>
+				</div>
+			</div>
+		</div>
+
+		<div id="kc-section-d" class="section">
+			<div class="section-title">Funding</div>
+			<div class="section-wrap">
+				<div class="section-col">
+					<div class="section-subtitle"></div>	
+					<div class="logo"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/NIH_logo.png"></div>
 				</div>
 			</div>
 		</div>
@@ -1403,7 +1414,8 @@ $(function () {
 .section.section-search-drc {
     text-align: center;
 }
-.section-search-drc a {
+.section-search-drc a,
+#kc-section-c a {
     border: 0.5px solid #ddd;
     background: #ff6600;
     color: white;
