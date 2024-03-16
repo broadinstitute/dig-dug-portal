@@ -26,7 +26,7 @@
 			</div>
 			<div class="overlay-window context-info">
 				<div class="overlay-window-close" data-info-el="context-info" @click="hideInfoContent($event)">&#10005;</div>
-				We defined four research contexts and then used a combination of Large Language Models (LLM) and manual curation to weight the relevance of the knowledge produced by each CFDE program to each context (for details, <a href="/research.html?pageID=KC_research_contexts">see here</a>). <br>Setting a research context will change the ordering of DCCs on each of the KC pages and also modify the text describing and contextualizing the results shown. <br>You can change or remove a research context on any page.
+				We defined <a href="/research.html?pageid=KC_research_contexts">four research contexts</a> and then used a combination of Large Language Models (LLM) and manual curation to weight the relevance of the knowledge produced by each CFDE program to each context (for details, <a href="/research.html?pageid=kc_documentation">see here</a>). <br>&nbsp;&nbsp;Setting a research context will change the ordering of DCCs on each of the KC pages and also modify the text describing and contextualizing the results shown. <br>&nbsp;&nbsp;You can change or remove a research context on any page.
 			</div>
 			<div class="map-bg">
 				<div class="map-title boxed" style="display:none"><span>> </span>Explore the diagram with your mouse to see connections between research programs, their omics data types and biological entities, with relevance to different research contexts.

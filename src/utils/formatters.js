@@ -55,8 +55,8 @@ function snakeFormatter(s) {
     }
 }
 
-function toSnakeFormatter(s){
-    if (s){
+function toSnakeFormatter(s) {
+    if (s) {
         return s.trim().toLowerCase().replaceAll(' ', '_');
     }
 }
@@ -403,67 +403,37 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                     })
 
                     linkString = linksArr.join();
-
-                    /*linkString =
-                        "<a href='" + columnKeyObj["link to"] + cellValue;
-
-                    linkString +=
-                        !!columnKeyObj["link type"] &&
-                            columnKeyObj["link type"] == "button"
-                            ? "' class='btn btn-sm btn-outline-secondary link-button"
-                            : "";
-
-                    linkLabel = columnKeyObj["link label"]
-                        ? columnKeyObj["link label"]
-                        : cellValue;
-
-                    linkString +=
-                        linkToNewTab == "true"
-                            ? "' target='_blank'>" + linkLabel + "</a>"
-                            : "'>" + linkLabel + "</a>";*/
                 }
 
                 cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
                 break;
 
             case "as link":
-                //if (typeof cellValue != "object") {
-                cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
-                /*} else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
-                    let cellValueString = "";
-                    cellValue.map(value => {
-                        cellValueString += "<a href='" + value + "'>" + value + "</a>";
-                    })
 
-                    cellValue = cellValueString;
-                }*/
+                cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
+
 
                 break;
 
             case "image":
-                //if (typeof cellValue != "object") {
-                cellValue = '<img width="' + columnKeyObj["width"] + '" height="' + columnKeyObj["height"] + '" src="' + cellValue + '" />'
-                /*} else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
-                    let cellValueString = "<div class='imgs_wrapper'>";
-                    cellValue.map(value => {
-                        cellValueString += "<img src='" + value + "' />";
-                    })
-                    cellValueString += "</div>"
 
-                    cellValue = cellValueString;
-                }*/
+                if (!!cellValue && cellValue != "") {
+                    cellValue = '<img width="' + columnKeyObj["width"] + '" height="' + columnKeyObj["height"] + '" src="' + cellValue + '" />'
+                }
 
                 break;
 
             case "video":
-                cellValue = '<video width="' + columnKeyObj["width"] + '" height="' + columnKeyObj["height"] + '" controls><source src="' + cellValue + '" type="video/mp4" >\
+                if (!!cellValue && cellValue != "") {
+                    cellValue = '<video width="' + columnKeyObj["width"] + '" height="' + columnKeyObj["height"] + '" controls><source src="' + cellValue + '" type="video/mp4" >\
                             Your browser does not support the video tag.</video>'
+                }
                 break;
 
             case "list":
                 if (typeof cellValue != "object") {
                     cellValue = `<div class="list-item">${cellValue}</div>`
-                }else if (typeof cellValue === "object" && Array.isArray(cellValue)) {
+                } else if (typeof cellValue === "object" && Array.isArray(cellValue)) {
                     let cellValueString = "<ul>";
                     cellValue.map(value => {
                         cellValueString += `<li>${value}</li>`;
@@ -608,33 +578,22 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                             <a class="mini-card-title" href="${aValue["link"]}" target="_blank">${aValue["title"]}<span>&nearr;</span></a>
                             <div class="mini-card-description">${aValue["description"]}</div>
                         </div>`;
-                    /*
-                    valueKeys.map(vk => {
-                        let kValue = aValue[vk];
-                        let kVColumnKeyObj = CONFIG["column formatting"][vk]
-                        if (!!kVColumnKeyObj) {
-                            cellValueString += "<div class='row-key'>" + vk + "</div>" + formatCellValues(kValue, kVColumnKeyObj, kVColumnKeyObj["type"], linkToNewTab);
-                        } else {
-                            cellValueString += "<div class='row-key'>" + vk + "</div><div class='row-value'>" + kValue + "</div>"
-                        }
 
-                    })
-                    */
                     cellValueString += "</div>";
                 })
                 cellValue = cellValueString;
             } else {
                 //console.log('...something else')
-                let cellValueString = (!!formatTypes.includes("image")) ? "<div class='imgs_wrapper'>" : "";
+                let cellValueString = (!!formatTypes.includes("image") && VALUE != "") ? "<div class='imgs_wrapper'>" : "";
                 VALUE.map(value => {
                     cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
                 })
 
-                cellValueString += (!!formatTypes.includes("image")) ? "</div>" : "";
+                cellValueString += (!!formatTypes.includes("image") && VALUE != "") ? "</div>" : "";
 
                 cellValue = cellValueString;
             }
-        }else {
+        } else {
             if (formatTypes.includes("custom-extra")) {
                 cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
             }

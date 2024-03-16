@@ -841,6 +841,7 @@ export default Vue.component("research-data-table", {
 						null
 					);
 				}
+				
 			} else {
 				content = tdValue;
 			}

@@ -228,23 +228,27 @@
 										checked
 									/><label :for="'filter_' + sectionId + getColumnId(filter.field) + 'all'">Check / Uncheck all</label>
 								</span>
-								<span v-for="value, vIndex in buildOptions(filter.field,'chkbox')"
-									:key="value"
-									:class="filter.field.toLowerCase()==='omics'?[value, 'do-color']:''">
-									<input type="checkbox" class="chkbox" :class="['filter-' + sectionId + getColumnId(filter.field)]"
-										:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
-										:value="value"
-										@change="
-											filterDataChkbox(
-												$event,
-												filter.field,
-												filter.type,
-												vIndex
-											)
-											"
-										checked
-									/><label :for="'filter_' + sectionId + getColumnId(filter.field) + vIndex">{{ value }}</label>
-								</span>
+								<template v-for="value, vIndex in buildOptions(filter.field, 'chkbox')">
+									<span 
+									v-if="!!value"
+										:key="value"
+										:class="filter.field.toLowerCase() === 'omics' ? [value, 'do-color'] : ''">
+										<input type="checkbox" class="chkbox" :class="['filter-' + sectionId + getColumnId(filter.field)]"
+											:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
+											:value="value"
+											@change="
+												filterDataChkbox(
+													$event,
+													filter.field,
+													filter.type,
+													vIndex
+												)
+												"
+											checked
+										/><label :for="'filter_' + sectionId + getColumnId(filter.field) + vIndex">{{ value }}</label>
+									</span>
+								</template>
+								
 									
 								</div>
 							</div>

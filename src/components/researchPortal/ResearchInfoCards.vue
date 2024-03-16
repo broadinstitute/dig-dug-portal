@@ -63,14 +63,17 @@
 
 					</div>
 
-					<div v-for="(rowKey, rowIndex) in tableFormat['top rows']" 
-						:key="index + '-' + rowIndex" 
-						class="info-card-row">
+					<template  v-for="(rowKey, rowIndex) in tableFormat['top rows']">
+						<div
+							:key="index + '-' + rowIndex" 
+							class="info-card-row"
+							v-if="!!value[rowKey]">
 
-						<div :class="'row-key ' + rowKey">{{ rowKey }}</div>
-						<div :class="'row-value ' + rowKey" v-html="formatValue(value[rowKey], rowKey)"></div>
+							<div :class="'row-key ' + rowKey">{{ rowKey }}</div>
+							<div :class="'row-value ' + rowKey" v-html="formatValue(value[rowKey], rowKey)"></div>
 
-					</div>
+						</div>
+					</template>
 
 					<div v-for="(featureKey, featureIndex) in tableFormat['features']" 
 						:key="index + '-feature-' + featureIndex" 
@@ -88,7 +91,8 @@
 						class="info-card-more-wrapper" 
 						:class="[featureKey, openCard && openCard == value[tableFormat['rows as info cards']['key']] ? '' : 'hidden']">
 
-						<div v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]" 
+						<template v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]">
+						<div v-if="!!value[fRowKey]"
 							:key="fRowIndex" 
 							class="info-card-row">
 
@@ -96,6 +100,7 @@
 							<div class="feature" v-html="formatValue(value[fRowKey], fRowKey)" :class="'row-value ' + fRowKey"></div>
 						
 						</div>
+						</template>
 
 					</div>
 				</div>
