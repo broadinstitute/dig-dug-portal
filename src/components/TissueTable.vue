@@ -3,11 +3,20 @@
         <b-table
             small
             responsive="sm"
-            :items="tissueData"
+            :items="tissueTableData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <template #head(gene)="r">
+                <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
+            </template>
+            <template #head(meanTpm)="r">
+                <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
+            </template>
+            <template #head(nSamples)="r">
+                <a @click="sortEmit(r.field.key)">{{ r.label }}</a>
+            </template>
             <template #cell(gene)="r">
                 <a :href="`/gene.html?gene=${r.item.gene}`">
                     {{ r.item.gene }}
@@ -143,9 +152,10 @@
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
+import { active } from "d3";
 export default Vue.component("TissueTable", {
     props: {
-        tissueData: {
+        tissueTableData: {
             type: Array,
             required: true,
         },
@@ -167,14 +177,17 @@ export default Vue.component("TissueTable", {
                 {
                     key: "gene",
                     label: "Gene",
+                    thClass: "gene sortable"
                 },
                 {
                     key: "meanTpm",
                     label: "Mean TPM",
+                    thClass: "meanTpm sortable"
                 },
                 {
                     key: "nSamples",
-                    label: "# Samples",
+                    label: "Total sample count",
+                    thClass: "nSamples sortable"
                 },
                 {
                     key: "tstat",
@@ -189,6 +202,12 @@ export default Vue.component("TissueTable", {
                     label: "Gene Links",
                 },
             ],
+            sortAscending: {
+                gene: true,
+                meanTpm: false,
+                nSamples: false,
+                tStat: false
+            },
             evidenceFields: [
                 {
                     key: "biosample",
@@ -267,11 +286,12 @@ export default Vue.component("TissueTable", {
         };
     },
     mounted() {
-        if (this.tissueData) {
-            this.tableData = this.tissueData.map((item) => {
+        if (this.tissueTableData) {
+            this.tableData = this.tissueTableData.map((item) => {
                 return { ...item, showButton: 0, currentPage: 1 };
             });
         }
+        this.updateAriaSort("placeholder", true);
     },
     methods: {
         async showLinks(gene) {
@@ -319,6 +339,19 @@ export default Vue.component("TissueTable", {
                 (item) => item.gene === gene
             );
         },
+        sortEmit(field){
+            let direction = this.sortAscending[field];
+            this.$emit('sortByField', field, direction);
+            // Clear previous active sort styling
+            this.updateAriaSort(field, direction);
+            this.sortAscending[field] = !direction;
+        },
+        updateAriaSort(field, direction){
+            document.querySelectorAll("#tissues th.sortable")
+                .forEach( e => e.ariaSort = "none");
+            document.querySelectorAll(`#tissues th.${field}`)
+                .forEach( e => e.ariaSort = direction ? "ascending" : "descending");
+        }
     },
 });
 </script>
@@ -331,5 +364,11 @@ export default Vue.component("TissueTable", {
 }
 .b-popover {
     background-color: #fff;
+}
+.sortIcon {
+    color: darkgray;
+}
+.active .activeIcon {
+    color: #007bff;
 }
 </style>
