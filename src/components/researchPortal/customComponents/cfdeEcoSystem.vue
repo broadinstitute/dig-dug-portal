@@ -148,11 +148,37 @@
 			<div class="section-wrap">
 				<div class="section-col">
 					<div class="section-subtitle">Genes</div>
-					<div class="placeholder">Genes</div>
+					<div class="placeholder">
+						<div class="mini-card-video">
+							<video 
+								@ended="minVidEnd($event)" 
+								@mouseover="minVidHover($event)"
+								@mouseout="minVidHoverOut($event)"
+								data-loop-max="1"
+								data-loop-count="0"
+								src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/KC_gene_page_480.mp4" 
+								poster="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/KC_gene_page.jpg" 
+								autoplay muted playsinline 
+							/>
+                        </div>
+					</div>
 				</div>
 				<div class="section-col">
 					<div class="section-subtitle">Diseases</div>
-					<div class="placeholder">Diseases</div>
+					<div class="placeholder">
+						<div class="mini-card-video">
+                        	<video 
+								@ended="minVidEnd($event)" 
+								@mouseover="minVidHover($event)"
+								@mouseout="minVidHoverOut($event)"
+								data-loop-max="1"
+								data-loop-count="0"
+								src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/KC_disease_page_480.mp4" 
+								poster="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/KC_disease_page.jpg" 
+								autoplay muted playsinline 
+							/>
+                        </div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -164,16 +190,18 @@
 					<div class="section-subtitle">CFDE programs</div>
 					<div class="placeholder">
 						<div class="mini-card-video">
-                        	<video 
-								@ended="minVidEnd($event)" 
-								@mouseover="minVidHover($event)"
-								@mouseout="minVidHoverOut($event)"
-								data-loop-max="1"
-								data-loop-count="0"
-								src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs_480.mp4" 
-								poster="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs.jpg" 
-								autoplay muted playsinline 
-							/>
+							<a href="/research.html?pageid=kc_dccs">
+								<video 
+									@ended="minVidEnd($event)" 
+									@mouseover="minVidHover($event)"
+									@mouseout="minVidHoverOut($event)"
+									data-loop-max="1"
+									data-loop-count="0"
+									src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs_480.mp4" 
+									poster="https://hugeampkpncms.org/sites/default/files/users/user32/kc_tools/Landing_DCCs.jpg" 
+									autoplay muted playsinline 
+								/>
+							</a>
                         </div>
 					</div>
 				</div>
@@ -195,16 +223,6 @@
 						<li>Training and outreach to highlight Common Fund data and how to use it effectively.</li>
 					</ul>
 					<a href="https://data.cfde.cloud/" target="_blank">Visit CFDE WORKBENCH</a>
-				</div>
-			</div>
-		</div>
-
-		<div id="kc-section-d" class="section">
-			<div class="section-title">Funding</div>
-			<div class="section-wrap">
-				<div class="section-col">
-					<div class="section-subtitle"></div>	
-					<div class="logo"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/NIH_logo.png"></div>
 				</div>
 			</div>
 		</div>
@@ -1274,8 +1292,9 @@ $(function () {
 	justify-content: center;
 	text-transform: uppercase;
     font-size: 14px;
-	cursor: pointer;
+	cursor: default;
 	color: #ccc;
+	border: solid 1px #ddd;
 }
 .partnerships{
 	display:flex;
