@@ -60,12 +60,12 @@
 					<span v-for="key in groups" @click="removeData(key)"
 						class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
 
-						<div class="" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'left'" 
-							:style="'width: '+ sectionConfig['filters vertical']['width']+'px; margin-right: 15px'">
-		<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
-							:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
-							:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
-						</div>
+				<div class="" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'left'" 
+					:style="'width: '+ sectionConfig['filters vertical']['width']+'px; margin-right: 15px'">
+					<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
+					:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
+					:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
+				</div>
 
 				<div :class="(!sectionConfig['filters vertical'])?'col-md-12 wrapper-' + sectionIndex: 'wrapper-' + sectionIndex"
 					:style="(!!sectionConfig['filters vertical'])?(!openInfoCard)?'width: calc(100% - ' + (sectionConfig['filters vertical']['width']+15) + 'px);':'':''">
@@ -390,7 +390,7 @@ export default Vue.component("research-section", {
 			}
 		},
 		sectionDescription() {
-			if (!!this.sectionData) {
+			//if (!!this.sectionData) {
 				if (!!this.description) {
 					return this.description;
 				} else if (!!this.remoteSectionDecription) {
@@ -398,9 +398,9 @@ export default Vue.component("research-section", {
 				} else {
 					return null;
 				}
-			} else {
-				return null
-			}
+			//} else {
+				//return null
+			//}
 		},
 		filters() {
 			if (!!this.sectionData) {
