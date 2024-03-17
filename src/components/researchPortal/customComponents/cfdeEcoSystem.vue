@@ -1294,6 +1294,7 @@ $(function () {
     font-size: 14px;
 	cursor: default;
 	color: #ccc;
+	border: solid 1px #ddd;
 }
 .partnerships{
 	display:flex;
