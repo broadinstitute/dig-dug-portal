@@ -116,7 +116,7 @@ export default Vue.component("TissueHeritabilityTable", {
     mounted() {
         if (this.tissue) {
             query(
-                "partitioned-heritability-tissue",
+                "partitioned-heritability-top-tissue",
                 this.tissue.replaceAll("_", " ") + "," + this.ancestry,
                 { limit: 1000 }
             ).then((data) => {
