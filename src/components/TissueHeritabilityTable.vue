@@ -25,7 +25,6 @@
             :content-fill="$parent.documentationMap"
         ></documentation>
         <b-table
-            hover
             small
             responsive="sm"
             :items="tableData[`${tissue},${ancestry}`]"
@@ -200,7 +199,10 @@ export default Vue.component("TissueHeritabilityTable", {
 </script>
 
 <style scoped>
-.b-popover {
-    background-color: #fff;
-}
+    .row table {
+        font-size: smaller;
+        margin-left: 15px;
+        margin-right: 15px;
+        background-color: #dfdfdf;
+    }
 </style>
