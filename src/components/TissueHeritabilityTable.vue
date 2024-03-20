@@ -127,6 +127,8 @@ export default Vue.component("TissueHeritabilityTable", {
                 {
                     key: "biosample",
                     label: "Biosample",
+                    formatter: (value) => !value ? `All biosamples (${this.tissue})` : value.replaceAll('_', ' '),
+                    tdClass: (value) => !value ? "all_biosamples" : ""
                 },
                 {
                     key: "enrichment",
