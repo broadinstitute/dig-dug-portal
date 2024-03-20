@@ -43,58 +43,18 @@
             </template>
             <template #cell(biosample)="r"
                 ><b-button
-                    v-b-popover.hover="'View biosample'"
+                    v-b-popover.hover="'View biosamples'"
                     size="sm"
                     variant="outline-primary"
                     class=""
-                    @click="
-                        toToggle(r, 1, r.detailsShowing)
-                            ? r.toggleDetails()
-                            : ''
-                    "
+                    @click="showDetails(r)"
                 >
-                    {{ r.detailsShowing && r.item.showButton === 1 
-                        ? "Hide" 
-                        : "Show" 
-                    }}
+                    {{ r.detailsShowing ? "Hide" : "Show" }}
                 </b-button></template
             >
-            <template #cell(tissue)="r">
-                <b-button
-                    v-b-popover.hover="'View evidence'"
-                    size="sm"
-                    variant="outline-primary"
-                    class=""
-                    @click="
-                        toToggle(r, 2, r.detailsShowing)
-                            ? r.toggleDetails()
-                            : ''
-                    "
-                >
-                    {{
-                        r.detailsShowing && r.item.showButton === 2
-                            ? "Hide"
-                            : "Show"
-                    }}
-                </b-button>
-            </template>
             <template #row-details="r">
-                <div v-if="r.item.showButton === 1" class="row">
-                    <h6>Biosample</h6>
-                    <!-- <div v-if="r.item.biosample" class="col-12">
-                        <h6>Biosample</h6>
-                        <b-table
-                            :items="r.item.biosample"
-                            :fields="biosampleFields"
-                            :per-page="perPage"
-                            :current-page="currentPage"
-                        >
-                        </b-table>
-                    </div> -->
-                </div>
-                <div v-else-if="r.item.showButton === 2" class="row">
-                    <div class="col-12" 
-                    >
+                <div class="row">
+                    <div class="col-12">
                         <b-table
                             :items="getSubTableData(r.item)"
                             :fields="subTableFields"
@@ -102,7 +62,6 @@
                             :current-page="r.item.currentPage"
                         >
                         </b-table>
-
                     </div>
                 </div>
             </template>
@@ -162,38 +121,10 @@ export default Vue.component("TissueHeritabilityTable", {
                 },
                 {
                     key: "biosample",
-                    label: "Biosample",
+                    label: "Biosamples",
                 },
-                {
-                    key: "tissue",
-                    label: "Evidence"
-                }
             ],
             subTableFields: [
-            {
-                    key: "phenotype",
-                    label: "Phenotype",
-                },
-                {
-                    key: "annotation",
-                    label: "Annotation",
-                },
-                {
-                    key: "ancestry",
-                    label: "Ancestry",
-                },
-                {
-                    key: "pValue",
-                    label: "P-value",
-                },
-                {
-                    key: "expectedSNPs",
-                    label: "Expected SNPs",
-                },
-                {
-                    key: "SNPs",
-                    label: "SNPs",
-                },
                 {
                     key: "biosample",
                     label: "Biosample",
@@ -248,29 +179,9 @@ export default Vue.component("TissueHeritabilityTable", {
                 
             }
         },
-        toToggle(row, buttonClicked, isShowing) {
-            if (isShowing) {
-                if (buttonClicked === row.item.showButton) return true;
-                else {
-                    if (buttonClicked === 1) {
-                        Vue.set(row.item, "showButton", 1);
-                    } else if (buttonClicked === 2) {
-                        this.queryPartitionedHeritability(row.item);
-                        Vue.set(row.item, "showButton", 2);
-                    }
-                }
-                Vue.set(row.item, "currentPage", 1);
-                return false;
-            } else {
-                if (buttonClicked === 1) {
-                    Vue.set(row.item, "showButton", 1);
-                } else if (buttonClicked === 2) {
-                    this.queryPartitionedHeritability(row.item);
-                    Vue.set(row.item, "showButton", 2);
-                }
-                Vue.set(row.item, "currentPage", 1);
-                return true;
-            }
+        showDetails(row){
+            row.toggleDetails();
+            this.queryPartitionedHeritability(row.item);
         },
         getSubTableData(item){
             let query = `${item.phenotype},${this.ancestry},${item.annotation},${this.tissue.replaceAll("_", " ")}`;
