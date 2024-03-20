@@ -1,8 +1,17 @@
 <template>
     <div>
         <h4>
-            {{ `Global enrichment for ${tissueFormatter(tissue)}` }}
+            {{ `Global enrichment for ${tissueFormatter(tissue)}
+             (Ancestry: ${ancestryFormatter(ancestry)})` }}
         </h4>
+        <div class="label">Ancestry</div>
+            <ancestry-selectpicker
+                :ancestries="
+                    $store.state.bioPortal.datasets.map(
+                        (dataset) => dataset.ancestry
+                    )
+                "
+            ></ancestry-selectpicker>
         <documentation
             name="tissue.global-enrichment.subheader"
             :content-fill="$parent.documentationMap"
@@ -11,7 +20,7 @@
             hover
             small
             responsive="sm"
-            :items="tableData[tissue]"
+            :items="tableData[`${tissue},${ancestry}`]"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -64,6 +73,7 @@
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
 export default Vue.component("TissueHeritabilityTable", {
     props: {
         tissue: {
@@ -105,30 +115,41 @@ export default Vue.component("TissueHeritabilityTable", {
                 },
             ],
             tableData: {},
-            ancestry: "Mixed",
+            tableAncestryData: [],
+            ancestry: "Mixed"
         };
     },
     computed: {
         totalRows() {
-            return this.tableData[this.tissue]?.length || 0;
+            return this.tableAncestryData?.length || 0;
         },
     },
     mounted() {
-        if (this.tissue) {
-            query(
-                "partitioned-heritability-top-tissue",
-                this.tissue.replaceAll("_", " ") + "," + this.ancestry,
-                { limit: 1000 }
-            ).then((data) => {
-                console.log("retrieved data ", data);
-                Vue.set(this.tableData, this.tissue, data);
-            });
-        }
+        this.queryHeritability();
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
-        phenotypeFormatter: Formatters.phenotypeFormatter
+        phenotypeFormatter: Formatters.phenotypeFormatter,
+        ancestryFormatter: Formatters.ancestryFormatter,
+        queryHeritability(){
+            if (this.tissue) {
+                query(
+                    "partitioned-heritability-top-tissue",
+                    this.tissue.replaceAll("_", " ") + "," + this.ancestry,
+                    { limit: 1000 }
+                ).then((data) => {
+                    // Do we need to do this every time?
+                    Vue.set(this.tableData, `${this.tissue},${this.ancestry}`, data);
+                });
+            }
+        }
     },
+    watch: {
+        "$store.state.selectedAncestry"(ancestry){
+            this.ancestry = ancestry;
+            this.queryHeritability();
+        }
+    }
 });
 </script>
 
