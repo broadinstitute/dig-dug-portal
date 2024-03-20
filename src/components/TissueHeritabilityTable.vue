@@ -27,7 +27,7 @@
         <b-table
             small
             responsive="sm"
-            :items="tableData[`${tissue},${ancestry}`]"
+            :items="tableData[`${tissue.replaceAll('_', ' ')},${ancestry}`]"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -127,7 +127,9 @@ export default Vue.component("TissueHeritabilityTable", {
                 {
                     key: "biosample",
                     label: "Biosample",
-                    formatter: (value) => !value ? `All biosamples (${this.tissue})` : value.replaceAll('_', ' '),
+                    formatter: (value) => !value 
+                        ? `All biosamples (${this.tissue.replaceAll('_', ' ')})` 
+                        : value.replaceAll('_', ' '),
                     tdClass: (value) => !value ? "all_biosamples" : ""
                 },
                 {
@@ -147,9 +149,6 @@ export default Vue.component("TissueHeritabilityTable", {
     },
     mounted() {
         this.queryHeritability();
-        let ancestries = this.$store.state.bioPortal.datasets
-            .map(dataset => dataset.ancestry);
-        console.log(ancestries);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -169,7 +168,6 @@ export default Vue.component("TissueHeritabilityTable", {
         },
         async queryPartitionedHeritability(item){
             let queryString = `${item.phenotype},${this.ancestry},${item.annotation},${this.tissue.replaceAll("_", " ")}`;
-            console.log(queryString);
             if (!this.subTableData[queryString]){
                 let data = await query(
                     "partitioned-heritability-tissue",
@@ -186,8 +184,6 @@ export default Vue.component("TissueHeritabilityTable", {
         },
         getSubTableData(item){
             let query = `${item.phenotype},${this.ancestry},${item.annotation},${this.tissue.replaceAll("_", " ")}`;
-            console.log(query);
-            console.log(this.subTableData[query]);
             return this.subTableData[query];
         }
     },
