@@ -1,15 +1,17 @@
 <template>
     <div>
         <h4>
-            {{ `Global enrichment for ${tissueFormatter(tissue)}
-             (Ancestry: ${ancestryFormatter(ancestry)})` }}
+            Global enrichment for {{ tissueFormatter(tissue) }}
+             (Ancestry: {{ ancestry === "Mixed" 
+                ? "Mixed meta-analysis" 
+                : ancestryFormatter(ancestry) }})
         </h4>
         <div class="label">Ancestry</div>
             <ancestry-selectpicker
+                :defaultMixed="true"
                 :ancestries="
-                    $store.state.bioPortal.datasets.map(
-                        (dataset) => dataset.ancestry
-                    )
+                    $store.state.bioPortal.datasets
+                        .map((dataset) => dataset.ancestry)
                 "
             ></ancestry-selectpicker>
         <documentation
@@ -115,17 +117,19 @@ export default Vue.component("TissueHeritabilityTable", {
                 },
             ],
             tableData: {},
-            tableAncestryData: [],
             ancestry: "Mixed"
         };
     },
     computed: {
         totalRows() {
-            return this.tableAncestryData?.length || 0;
+            return this.tableData[`${this.tissue},${this.ancestry}`]?.length || 0;
         },
     },
     mounted() {
         this.queryHeritability();
+        let ancestries = this.$store.state.bioPortal.datasets
+            .map(dataset => dataset.ancestry);
+        console.log(ancestries);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -146,7 +150,7 @@ export default Vue.component("TissueHeritabilityTable", {
     },
     watch: {
         "$store.state.selectedAncestry"(ancestry){
-            this.ancestry = ancestry;
+            this.ancestry = ancestry === "" ? "Mixed" : ancestry;
             this.queryHeritability();
         }
     }
