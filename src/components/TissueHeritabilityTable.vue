@@ -97,26 +97,27 @@ export default Vue.component("TissueHeritabilityTable", {
                 {
                     key: "phenotype",
                     label: "Phenotype",
+                    sortable: true,
                 },
                 {
                     key: "annotation",
                     label: "Annotation",
-                },
-                {
-                    key: "ancestry",
-                    label: "Ancestry",
+                    sortable: true,
                 },
                 {
                     key: "pValue",
                     label: "P-value",
+                    sortable: true,
                 },
                 {
                     key: "expectedSNPs",
                     label: "Expected SNPs",
+                    sortable: true,
                 },
                 {
                     key: "SNPs",
                     label: "SNPs",
+                    sortable: true,
                 },
                 {
                     key: "biosample",
