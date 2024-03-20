@@ -6,14 +6,20 @@
                 ? "Mixed meta-analysis" 
                 : ancestryFormatter(ancestry) }})
         </h4>
-        <div class="label">Ancestry</div>
-            <ancestry-selectpicker
-                :defaultMixed="true"
-                :ancestries="
-                    $store.state.bioPortal.datasets
-                        .map((dataset) => dataset.ancestry)
-                "
-            ></ancestry-selectpicker>
+        <div class="filtering-ui-wrapper container-fluid">
+            <div class="row filtering-ui-content">
+                <div class="col filter-col-md">
+                    <div class="label">Ancestry</div>
+                    <ancestry-selectpicker
+                        :defaultMixed="true"
+                        :ancestries="
+                            $store.state.bioPortal.datasets
+                                .map((dataset) => dataset.ancestry)
+                        "
+                    ></ancestry-selectpicker>
+                </div>
+            </div>
+        </div>
         <documentation
             name="tissue.global-enrichment.subheader"
             :content-fill="$parent.documentationMap"
