@@ -142,14 +142,13 @@ export default Vue.component("TissueHeritabilityTable", {
         phenotypeFormatter: Formatters.phenotypeFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         queryHeritability(){
-            if (this.tissue) {
+            let queryString = `${this.tissue.replaceAll("_", " ")},${this.ancestry}`;
+            if (this.tissue && !this.tableData[queryString]) {
                 query(
-                    "partitioned-heritability-top-tissue",
-                    this.tissue.replaceAll("_", " ") + "," + this.ancestry,
+                    "partitioned-heritability-top-tissue", queryString,
                     { limit: 1000 }
                 ).then((data) => {
-                    // Do we need to do this every time?
-                    Vue.set(this.tableData, `${this.tissue},${this.ancestry}`, data);
+                    Vue.set(this.tableData, queryString, data);
                 });
             }
         }
