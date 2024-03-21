@@ -197,13 +197,7 @@ new Vue({
             });
         }
 
-        let context = this.utilsBox.userUtils.getContext();
 
-        if (!!context) {
-            let keyId = context.toLowerCase().replace(" ", "_");
-            keyParams.set({ "context": keyId });
-            this.context = keyId;
-        }
     },
 
     render(createElement, context) {
@@ -211,6 +205,7 @@ new Vue({
     },
 
     mounted() {
+
 
     },
     beforeDestroy() {
@@ -956,6 +951,21 @@ new Vue({
     },
 
     watch: {
+        sectionConfigs(CONFIGS) {
+            let context;
+
+            if (!!CONFIGS['context']) {
+                context = this.utilsBox.userUtils.getContext();
+            }
+
+            if (!!context) {
+                let keyId = context.toLowerCase().replace(" ", "_");
+                keyParams.set({ "context": keyId });
+                this.context = keyId;
+            } else {
+                this.context = null;
+            }
+        },
         filteredData(DATA) {
             this.getSubHeader();
         },

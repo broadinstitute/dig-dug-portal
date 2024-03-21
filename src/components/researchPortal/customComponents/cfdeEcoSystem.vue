@@ -24,6 +24,7 @@
 				-->
 				<div class="blurbA"></div>
 			</div>
+			<!-- move anything above this point out of the component -->
 			<div class="overlay-window context-info">
 				<div class="overlay-window-close" data-info-el="context-info" @click="hideInfoContent($event)">&#10005;</div>
 				We defined <a href="/research.html?pageid=KC_research_contexts">four research contexts</a> and then used a combination of Large Language Models (LLM) and manual curation to weight the relevance of the knowledge produced by each CFDE program to each context (for details, <a href="/research.html?pageid=kc_documentation">see here</a>). <br>&nbsp;&nbsp;Setting a research context will change the ordering of DCCs on each of the KC pages and also modify the text describing and contextualizing the results shown. <br>&nbsp;&nbsp;You can change or remove a research context on any page.
@@ -142,7 +143,7 @@
 				<!--<div class="search-icon"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/geneticist.svg"></div>-->
 			</div>
 		</div>
-
+<!-- Move everything bellow this point out of the component -->
 		<div id="kc-section-a" class="section">
 			<div class="section-title">See curated summaries of knowledge from CFDE programs</div>
 			<div class="section-wrap">

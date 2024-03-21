@@ -1319,6 +1319,11 @@ export default Vue.component("research-section", {
 				if (typeof data == "string") {
 					data = JSON.parse(data)
 				}
+
+				//console.log("typeof data", typeof data[0]);
+
+				//console.log("data", data[0]);
+				//data = JSON.parse(data[0])
 				
 				let tableFormat = (!!this.remoteTableFormat) ? this.remoteTableFormat : this.sectionConfig["table format"];
 				
