@@ -688,10 +688,10 @@ $(function () {
 .multi-section.wrapper-section-0:has(.col-md-12.wrapper-section-0:empty){
 	display: none;
 }
-#byor_single_search {
+/*#byor_single_search {
     border: 2px solid #ff6600;
     padding: 20px;
-}
+}*/
 .col-md-12:has(.kc-wrap) {
     padding: 0;
 }
