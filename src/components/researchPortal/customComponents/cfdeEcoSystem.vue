@@ -227,7 +227,7 @@
 			</div>
 		</div>
 
-		<div id="kc-section-d" class="section">
+		<!--<div id="kc-section-d" class="section">
 			<div class="section-title">Funding</div>
 			<div class="section-wrap">
 				<div class="section-col">
@@ -235,7 +235,7 @@
 					<div class="logo"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/NIH_logo.png"></div>
 				</div>
 			</div>
-		</div>
+		</div>-->
 			
 		<!--
 		<div class="section" style="background: #f7f6f6;">

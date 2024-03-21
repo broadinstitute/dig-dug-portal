@@ -563,53 +563,21 @@ export default Vue.component("research-box-plot", {
 
 				/// render guide line
 
-				/*this.renderConfig["thresholds"].map((t) => {
-					ctx.beginPath();
-					let tValue =
-						this.renderConfig["convert y -log10"] == "true"
-							? -Math.log10(Number(t))
-							: Number(t);
-
-					let yFromMinYGuide = -minY + tValue;
-
-					let guidelineYpos =
-						canvasHeight -
-						plotMargin.bottom -
-						yFromMinYGuide * yStep;
-
-					ctx.setLineDash([20, 10]);
-					ctx.moveTo(
-						plotMargin.left - plotMargin.bump,
-						guidelineYpos
-					);
-					ctx.lineTo(
-						canvasWidth + plotMargin.bump - plotMargin.right,
-						guidelineYpos
-					);
-					ctx.strokeStyle = "#FFAA00";
-					ctx.lineWidth = 2;
-					ctx.stroke();
-					ctx.closePath();
-				});
-				*/
-
 				ctx.setLineDash([]); // Set annoying line dash back to normal
 
 				let groupsArr = Object.keys(groups).sort();
 
 				let dotIndex = 0;
 
-				//console.log("totalNum", totalNum);
-
 				let boxWidth = ((canvasWidth - (plotMargin.left + plotMargin.right))/totalNum) - 40;
-				boxWidth = boxWidth <= 8 ? 8 : boxWidth;
+				boxWidth = boxWidth <= 20 ? 20 : boxWidth >= 80 ? 80 : boxWidth;
 
-				if (totalNum > 1) {
+				if (totalNum > 0) {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
 							groupsArr.indexOf(key) % this.colors.length;
 						let fillColor = this.colors[keyIndex];
-						let strokeColor = "#00000075"; //this.colors[keyIndex];
+						let strokeColor = "#00000075"; 
 
 						let labelIndex = 0;
 						let labelOrigin = 0;
@@ -629,17 +597,7 @@ export default Vue.component("research-box-plot", {
 									])
 							) {
 
-								let xPos = plotMargin.left + xStep * dotIndex;
-
-								/*let yValue =
-									this.renderConfig["convert y -log10"] ==
-									"true"
-										? p[
-												this.renderConfig[
-													"y axis field"
-												] + "-log10"
-										  ]
-										: p[this.renderConfig["y axis field"]];*/
+								let xPos = plotMargin.left + xStep * (dotIndex + .5);
 
 								let yValue = {
 									min:p[this.renderConfig["y axis field"].min],
@@ -773,102 +731,7 @@ export default Vue.component("research-box-plot", {
 						keyIndex++;
 					}
 
-					//console.log(this.boxPosData)
-				} else {
-					for (const [key, value] of Object.entries(renderData)) {
-						let keyIndex =
-							groupsArr.indexOf(key) % this.colors.length;
-						let fillColor = this.colors[keyIndex];
-						let strokeColor = "#00000075"; //this.colors[keyIndex];
-						value.map((p) => {
-							let xPos = canvasWidth / 2;
-
-							let yPos = canvasHeight / 2;
-
-							if (
-								this.phenotypeMapConfig == null ||
-								(this.phenotypeMapConfig == "kpPhenotypeMap" &&
-									!!this.phenotypeMap[
-										p[this.renderConfig["render by"]]
-									])
-							) {
-								/*if (this.renderConfig["beta field"] != "null") {
-									this.renderTriangle(
-										ctx,
-										xPos,
-										yPos,
-										fillColor,
-										strokeColor,
-										Math.sign(
-											p[this.renderConfig["beta field"]]
-										)
-									);
-								} else {
-									this.renderDot(
-										ctx,
-										xPos,
-										yPos,
-										fillColor,
-										strokeColor
-									);
-								}*/
-								let boxWidth = 10;
-								ctx.fillStyle = fillColor;
-								ctx.lineWidth = 1;
-								ctx.strokeStyle = strokeColor;
-
-								ctx.fillRect(xPos - (boxWidth / 2), yPos - plotMargin.bottom - yPos, boxWidth, yPos
-								);
-								ctx.stroke();
-
-								let pName =
-									this.phenotypeMapConfig == null
-										? p[this.renderConfig["render by"]]
-										: this.phenotypeMap[
-												p[
-													this.renderConfig[
-														"render by"
-													]
-												]
-										  ]["description"];
-
-								///organize data by position
-								let yRangeStart = Math.round(yPos) - 5;
-								let yRangeEnd = Math.round(yPos) + 5;
-								let yRange = yRangeStart + "-" + yRangeEnd;
-								let tempObj = {};
-								this.renderConfig["hover content"].map((c) => {
-									tempObj[c] = p[c];
-								});
-								let xRange = {
-									start: Math.round(xPos) - 5,
-									end: Math.round(xPos) + 5,
-									data: tempObj,
-									name: pName,
-								};
-
-								if (!this.boxPosData[yRange]) {
-									this.boxPosData[yRange] = [];
-								}
-								this.boxPosData[yRange].push(xRange);
-
-								ctx.font = "26px Arial";
-								ctx.fillStyle = "#000000";
-								ctx.textAlign = "start";
-								ctx.fillText(pName, xPos + 15, yPos);
-								let infoIndex = 1;
-								this.renderConfig["hover content"].map((h) => {
-									ctx.fillText(
-										h + ": " + p[h],
-										xPos + 15,
-										yPos + infoIndex * 20
-									);
-									infoIndex++;
-								});
-							}
-						});
-					}
-				}
+				} 
 			}
 		},
 
