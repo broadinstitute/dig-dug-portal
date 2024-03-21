@@ -455,8 +455,8 @@ export default Vue.component("research-bar-plot", {
 								: maxY;
 					});
 				}
-				minY = Math.floor(minY);
-				maxY = Math.ceil(maxY);
+				minY = (minY > 0)? 0 : Math.floor(minY);
+				maxY = (maxY < 0)? 0 : Math.ceil(maxY);
 
 				ctx.stroke();
 
@@ -559,9 +559,9 @@ export default Vue.component("research-bar-plot", {
 				let dotIndex = 0;
 
 				let barWidth = ((canvasWidth - (plotMargin.left + plotMargin.right))/totalNum) - 10;
-				barWidth = barWidth <= 4 ? 4 : barWidth;
+				barWidth = barWidth <= 4 ? 4 : barWidth >= 80? 80 : barWidth;
 
-				if (totalNum > 1) {
+				if (totalNum >0) {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
 							groupsArr.indexOf(key) % this.colors.length;
@@ -586,7 +586,7 @@ export default Vue.component("research-bar-plot", {
 									])
 							) {
 
-								let xPos = plotMargin.left + xStep * dotIndex;
+								let xPos = plotMargin.left + xStep * (dotIndex + .5);
 
 								let yValue =
 									this.renderConfig["convert y -log10"] ==
@@ -685,85 +685,7 @@ export default Vue.component("research-bar-plot", {
 						});
 						keyIndex++;
 					}
-				} else {
-					for (const [key, value] of Object.entries(renderData)) {
-						let keyIndex =
-							groupsArr.indexOf(key) % this.colors.length;
-						let fillColor = this.colors[keyIndex];
-						let strokeColor = "#00000075"; //this.colors[keyIndex];
-						value.map((p) => {
-							let xPos = canvasWidth / 2;
-
-							let yPos = canvasHeight / 2;
-
-							let yPos0 = canvasHeight - plotMargin.bottom - (-minY * yStep);
-
-							if (
-								this.phenotypeMapConfig == null ||
-								(this.phenotypeMapConfig == "kpPhenotypeMap" &&
-									!!this.phenotypeMap[
-										p[this.renderConfig["render by"]]
-									])
-							) {
-								
-								let barWidth = ((canvasWidth - (plotMargin.left + plotMargin.right)) / totalNum) - 10;
-								barWidth = barWidth <= 4 ? 4 : barWidth;
-
-								ctx.fillStyle = fillColor;
-								ctx.lineWidth = 1;
-								ctx.strokeStyle = strokeColor;
-
-								ctx.fillRect(xPos, yPos, barWidth, yPos0 - yPos);
-								ctx.stroke();
-
-								let pName =
-									this.phenotypeMapConfig == null
-										? p[this.renderConfig["render by"]]
-										: this.phenotypeMap[
-												p[
-													this.renderConfig[
-														"render by"
-													]
-												]
-										  ]["description"];
-
-								///organize data by position
-								let yRangeStart = (yPos >= yPos0)? Math.round(yPos0): Math.round(yPos);
-								let yRangeEnd = (yPos >= yPos0) ? Math.round(yPos) : Math.round(yPos0);
-								let yRange = yRangeStart + "-" + yRangeEnd;
-								let tempObj = {};
-								this.renderConfig["hover content"].map((c) => {
-									tempObj[c] = p[c];
-								});
-								let xRange = {
-									start: Math.round(xPos),
-									end: Math.round(xPos) + barWidth,
-									data: tempObj,
-									name: pName,
-								};
-
-								if (!this.barPosData[yRange]) {
-									this.barPosData[yRange] = [];
-								}
-								this.barPosData[yRange].push(xRange);
-
-								ctx.font = "26px Arial";
-								ctx.fillStyle = "#000000";
-								ctx.textAlign = "start";
-								ctx.fillText(pName, xPos + 15, yPos);
-								let infoIndex = 1;
-								this.renderConfig["hover content"].map((h) => {
-									ctx.fillText(
-										h + ": " + p[h],
-										xPos + 15,
-										yPos + infoIndex * 20
-									);
-									infoIndex++;
-								});
-							}
-						});
-					}
-				}
+				} 
 			}
 		},
 
