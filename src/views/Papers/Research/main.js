@@ -371,7 +371,7 @@ new Vue({
                         pr.parameter == "phenotype" &&
                         pr.values == "kp phenotypes"
                     ) {
-                        console.log("this.phenotypesInSession", this.phenotypesInSession)
+                        //console.log("this.phenotypesInSession", this.phenotypesInSession)
 
                         let shorterFirst = this.phenotypesInSession.sort((a, b) => a.description.length - b.description.length);
 
@@ -1385,7 +1385,7 @@ new Vue({
                 let context = keyParams["context"];
                 let pageContext;
 
-                if (!!this.sectionConfigs['context']) {
+                if (!!this.sectionConfigs['context'] && this.sectionConfigs['context']['contexts']) {
                     let contextItmes = Object.keys(this.sectionConfigs['context']['contexts']);
 
                     contextItmes.map(c => {
@@ -1471,7 +1471,7 @@ new Vue({
             let context = keyParams["context"];
             let pageContext;
 
-            if (!!this.sectionConfigs['context']) {
+            if (!!this.sectionConfigs['context'] && this.sectionConfigs['context']['contexts']) {
                 let contextItmes = Object.keys(this.sectionConfigs['context']['contexts']);
 
                 contextItmes.map(c => {
