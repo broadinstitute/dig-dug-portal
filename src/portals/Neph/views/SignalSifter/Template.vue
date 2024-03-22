@@ -14,7 +14,7 @@
             </div> -->
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h1 class="card-title">Signal Sifter</h1>
+                    <h1 class="card-title">Variant Finder</h1>
 
                     <!-- <documentation
                         style="margin-bottom: 30px"
