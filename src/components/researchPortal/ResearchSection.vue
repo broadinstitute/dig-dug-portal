@@ -744,8 +744,6 @@ export default Vue.component("research-section", {
 				}
 			});
 
-			console.log(KEY,"ifNumber", ifNumber)
-
 			return ifNumber;
 		},
 		removeData(KEY) {
@@ -1319,11 +1317,6 @@ export default Vue.component("research-section", {
 				if (typeof data == "string") {
 					data = JSON.parse(data)
 				}
-
-				//console.log("typeof data", typeof data[0]);
-
-				//console.log("data", data[0]);
-				//data = JSON.parse(data[0])
 				
 				let tableFormat = (!!this.remoteTableFormat) ? this.remoteTableFormat : this.sectionConfig["table format"];
 				
@@ -1415,7 +1408,7 @@ export default Vue.component("research-section", {
 				let sortBy = this.sectionConfig["table format"]["initial sort by"]
 				let isNumeric = this.checkIfNumeric(this.sectionData, sortBy.field);
 				/* implement sort direction */
-				console.log(sortBy.field,"isNumeric", isNumeric);
+				
 				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, isNumeric, true);
 			}
 
