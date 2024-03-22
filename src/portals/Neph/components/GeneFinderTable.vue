@@ -188,7 +188,7 @@ export default Vue.component("gene-finder-table", {
     				    tdClass: 'text-right',
                     },
                     {
-                        key: `${p}:A1FREQ`,
+                        key: `${p}:af`,
                         label: "A1 Frequency",
                         thClass: 'text-right',
     				    tdClass: 'text-right',
@@ -208,14 +208,14 @@ export default Vue.component("gene-finder-table", {
 
             for (let i in associations) {
                 let r = associations[i];
-                let dataIndex = groups[r.Gene];
+                let dataIndex = groups[r.gene];
 
-                if (!(r.Gene in groups)) {
+                if (!(r.gene in groups)) {
                     dataIndex = data.length;
-                    groups[r.Gene] = dataIndex;
+                    groups[r.gene] = dataIndex;
                     data.push({
                         phenotypes: [],
-                        gene: r.Gene,
+                        gene: r.gene,
                         chromosome: r.chromosome,
                         position: r.position,
                         minP: 1.0
@@ -235,7 +235,7 @@ export default Vue.component("gene-finder-table", {
                     data[dataIndex][`${r.phenotype}:mask`] = r.mask;
                     data[dataIndex][`${r.phenotype}:passingVariants`] = r.passingVariants;
                     data[dataIndex][`${r.phenotype}:singleVariants`] = r.singleVariants;
-                    data[dataIndex][`${r.phenotype}:A1FREQ`] = r.A1FREQ;
+                    data[dataIndex][`${r.phenotype}:af`] = r.af;
                     data[dataIndex][`${r.phenotype}:sample_ID`] = r.sample_ID;
                 }
             }
