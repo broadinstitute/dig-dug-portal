@@ -332,13 +332,13 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,3,2,2,1,https://hugeampkpncms.org/sites/default/
 		
 		this.loadScript('https://cdn.jsdelivr.net/npm/leader-line@1.0.7/leader-line.min.js', ()=>{
 			this.parsedData = this.parseEntities();
-			console.log(this.parsedData);
+			//console.log(this.parsedData);
 			setTimeout(function () {
 				const params = new URLSearchParams(document.location.search);
 				const ctxtParam = params.get('context');
 				const ctxt = ctxtParam ? ctxtParam.replace('_', '-') : 'genetics';
 				const targetElement = document.querySelector(`[data-value="${ctxt}"]`);
-				console.log(targetElement);
+				//console.log(targetElement);
 				if (targetElement) {
 					targetElement.dispatchEvent(new Event('mouseover'));
 					targetElement.dispatchEvent(new Event('click'));
@@ -491,13 +491,13 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,3,2,2,1,https://hugeampkpncms.org/sites/default/
             }
         },
 		hoverHandler2(e){
-            console.log('this.currHoverGroup', this.currHoverGroup);
+            //console.log('this.currHoverGroup', this.currHoverGroup);
             //if(this.currHoverGroup) return;	
             const group = e.target.dataset.group;
             let val = e.target.dataset.value;
-			console.log('continuing', group, val);
+			//console.log('continuing', group, val);
             this.currHoverGroup = group;
-            console.log('---this.currHoverGroup', this.currHoverGroup);
+            //console.log('---this.currHoverGroup', this.currHoverGroup);
             if(group==='povs') {
 				document.querySelector('.dccs').classList.add('active');
 				document.querySelector('.line2note').classList.add('hidden');
@@ -513,7 +513,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,3,2,2,1,https://hugeampkpncms.org/sites/default/
                 if(value[group][val]===1){
                     //el.classList.add('on');
                     if (group==='povs'){
-						console.log(group, val, this.currPov)
+						//console.log(group, val, this.currPov)
                         //if(this.freezeSelection){
                             el.classList.add('onA');
                             const l = new LeaderLine(
@@ -577,8 +577,11 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,3,2,2,1,https://hugeampkpncms.org/sites/default/
                 document.querySelector('.line2').classList.add('open');
                 document.querySelector('.dccs').classList.add('active');
 				document.querySelectorAll('.search-context-label').forEach(el => el.innerHTML = val);
-				console.log('CONTEXT', this.utilsBox.userUtils.getContext(), val);
-				const userContext = this.utilsBox.userUtils.getContext() ? this.utilsBox.userUtils.getContext().replace('_', '-') : null;
+				//console.log('CONTEXT', this.utilsBox.userUtils.getContext('_context_cfde'), val);
+				const userContext = this.utilsBox.userUtils.getContext('_context_cfde') ? this.utilsBox.userUtils.getContext('_context_cfde').replace('_', '-') : null;
+				
+				console.log('userContext', userContext);
+
 				if(!userContext || (userContext !== val)){
 					document.querySelector('.search-context.set').style.display = 'none';
 					document.querySelector('.search-context.notset').style.display = 'block';
@@ -608,7 +611,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,3,2,2,1,https://hugeampkpncms.org/sites/default/
 				}
                 this.currPov = null;
                 this.freezeSelection = false;
-				this.utilsBox.userUtils.clearContext();
+				this.utilsBox.userUtils.clearContext('_context_cfde');
 				this.utilsBox.keyParams.set({ "context": '' });
             }
         },
@@ -616,7 +619,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,3,2,2,1,https://hugeampkpncms.org/sites/default/
 		setContext(e){
 			if(this.currPov && this.currPov!=='computational-biology'){
 				const valUnderscored = this.currPov.toLowerCase().replace("-", "_")
-				this.utilsBox.userUtils.saveContext(valUnderscored);
+				this.utilsBox.userUtils.saveContext('_context_cfde',valUnderscored);
 				this.utilsBox.keyParams.set({ "context": valUnderscored });
 				document.querySelector('.search-context.set').style.display = 'block';
 				document.querySelector('.search-context.notset').style.display = 'none';
@@ -630,7 +633,7 @@ SenNet,1,,,1,1,,1,,,,,,,,1,1,1,,3,2,2,1,https://hugeampkpncms.org/sites/default/
 				if (!response.ok) {
 					throw new Error('Network response was not ok');
 				}
-				console.log(response.text());
+				//console.log(response.text());
 			})
 			.catch(error => {
 				console.error('Error loading CSV:', error);
