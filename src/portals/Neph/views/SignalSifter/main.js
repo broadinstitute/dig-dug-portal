@@ -155,7 +155,7 @@ new Vue({
 
         clumpedAssociations() {
             let n = this.$store.state.phenotypes.length;
-            let varIDs = {};
+            let varIds = {};
             
             //let count = 0;
             let consequences = {};
@@ -164,12 +164,12 @@ new Vue({
                 //console.log(p);
                 p.associations.forEach(r => {
                     if (p.filter(r)) {
-                        if (r.varID in varIDs) {
-                            varIDs[r.varID].push(r);
+                        if (r.varId in varIds) {
+                            varIds[r.varId].push(r);
                         } else {
-                            varIDs[r.varID] = [r];
+                            varIds[r.varId] = [r];
                         }
-                        consequences[r.max_consequence]=1;
+                        consequences[r.consequence]=1;
                         if (r.inheritance){
                             for (let x in r.inheritance){
                                 let ind = r.inheritance[x];
@@ -189,9 +189,9 @@ new Vue({
             //let flattened = [].concat.apply([], varIDed);
             //console.log(flattened);
             //return flattened;
-            let varIDed = Object.values(varIDs).filter(rs => rs.length == n);
-            let flattened = [].concat.apply([], varIDed);
-
+            let varIded = Object.values(varIds).filter(rs => rs.length == n);
+            let flattened = [].concat.apply([], varIded);
+            //console.log("clumpedAssociations done.");
             return flattened;
         }
     },
@@ -202,6 +202,8 @@ new Vue({
         },
         phenotypes: {
             handler(newData, oldData) {
+                //console.log("watch pehnotypes.");
+            
                 if (!isEqual(newData, oldData)) {
                     this.setPhenotypeParams(newData);
                 }
