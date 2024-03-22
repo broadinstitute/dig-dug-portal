@@ -370,7 +370,7 @@ export default Vue.component("variant-phenotype-table", {
             //console.log(user);
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0]+":"+varinfo[1];
-            this.variant = await query("variant-phenotype",searchquery,{},true);
+            this.variant = await query("gene-variants",searchquery,{},true);
             this.samples = await query("variant-sample", this.variantId, {}, true)
             //console.log("samples:"+JSON.stringify(this.samples));
 
@@ -385,10 +385,10 @@ export default Vue.component("variant-phenotype-table", {
                     //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
                     //hp.HP = hp.HP.replace("-","")
                     //console.log(hp.HP);
-                    let hpindex = hp.HP;
+                    let hpindex = hp.phenotype;
                     hpindex = hpindex.replace("-", "");
                     //console.log(hpindex);
-                    hpdisplay[j].hp = hp.HP;
+                    hpdisplay[j].hp = hp.phenotype;
                     hpdisplay[j].hpoterms =
                         Formatters.snakeFormatter(
                             //this.HPOTerms[hp.HP]
@@ -398,16 +398,16 @@ export default Vue.component("variant-phenotype-table", {
                         hpdisplay[j].hp = hpdisplay[j].hp.replace("HP", "HP-")
                     }
                     
-                    hpdisplay[j].allelecount =2 * parseInt(hp.TWO_ALT_GENO_CTS) +parseInt(hp.HET_REF_ALT_CTS);
-                    hpdisplay[j].allelnumber =2 *(parseInt(hp.HOM_REF_CT) +parseInt(hp.HET_REF_ALT_CTS) +parseInt(hp.TWO_ALT_GENO_CTS));
+                    hpdisplay[j].allelecount =2 * parseInt(hp.twoAlterGenoCount) +parseInt(hp.herterozygousAltCount);
+                    hpdisplay[j].allelnumber =2 *(parseInt(hp.homozygousCount) +parseInt(hp.herterozygousAltCount) +parseInt(hp.twoAlterGenoCount));
                     hpdisplay[j].allelefrequency =
                         this.formatAlleleFrequency(
                             hpdisplay[j].allelecount,
                             hpdisplay[j].allelnumber
                         );
 
-                    hpdisplay[j].TWO_ALT_GENO_CTS =
-                        hp.TWO_ALT_GENO_CTS;
+                    hpdisplay[j].twoAlterGenoCount =
+                        hp.twoAlterGenoCount;
 
                     hpdisplay[j].samples=[];
                     let n=0;
