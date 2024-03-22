@@ -911,7 +911,6 @@ new Vue({
         },
         dataFilesLabels() {
 
-
             let content = null;
 
             if (!!this.researchPage && !!this.$store.state.bioPortal.phenotypes && this.$store.state.bioPortal.phenotypes.length > 0) {
@@ -955,7 +954,8 @@ new Vue({
             let context;
 
             if (!!CONFIGS['context']) {
-                context = this.utilsBox.userUtils.getContext();
+                let group = "_context_" + CONFIGS['context']['group'];
+                context = this.utilsBox.userUtils.getContext(group);
             }
 
             if (!!context) {
@@ -1331,19 +1331,21 @@ new Vue({
             return sectionInEntity;
         },
         setContext(KEY, SECTIONS) {
+            let group = "_context_" + this.sectionConfigs['context']['group'];
+
             if (KEY == 'remove') {
                 keyParams.set({ "context": '' });
 
                 this.context = null;
 
-                this.utilsBox.userUtils.clearContext();
+                this.utilsBox.userUtils.clearContext(group);
             } else {
                 let keyId = KEY.toLowerCase().replace(" ", "_");
                 keyParams.set({ "context": keyId });
 
                 this.context = keyId;
 
-                this.utilsBox.userUtils.saveContext(keyId);
+                this.utilsBox.userUtils.saveContext(group, keyId);
             }
 
             location.reload();
@@ -1384,16 +1386,14 @@ new Vue({
                 let pageContext;
 
                 if (!!this.sectionConfigs['context']) {
-                    let contextItmes = Object.keys(this.sectionConfigs['context']);
+                    let contextItmes = Object.keys(this.sectionConfigs['context']['contexts']);
 
                     contextItmes.map(c => {
                         if (c.toLowerCase().replace(" ", "_") == context) {
-                            pageContext = this.sectionConfigs['context'][c];
+                            pageContext = this.sectionConfigs['context']['contexts'][c];
                         }
                     })
                 }
-
-                console.log()
 
                 if (!!context) {
                     let gInOrder = [];
@@ -1472,14 +1472,16 @@ new Vue({
             let pageContext;
 
             if (!!this.sectionConfigs['context']) {
-                let contextItmes = Object.keys(this.sectionConfigs['context']);
+                let contextItmes = Object.keys(this.sectionConfigs['context']['contexts']);
 
                 contextItmes.map(c => {
                     if (c.toLowerCase().replace(" ", "_") == context) {
-                        pageContext = this.sectionConfigs['context'][c];
+                        pageContext = this.sectionConfigs['context']['contexts'][c];
                     }
                 })
             }
+
+
 
             if (!!context && !!pageContext) {
 
