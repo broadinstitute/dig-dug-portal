@@ -130,16 +130,16 @@
                     v-for="p in phenotypes"
                     >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
                 >
-                <template #cell(varID)="clumpedAssociations">
+                <template #cell(varId)="clumpedAssociations">
 								<a
-									:href="`/variant.html?variant=${clumpedAssociations.item.varID}`"
-									>{{ clumpedAssociations.item.varID }}</a
+									:href="`/variant.html?variant=${clumpedAssociations.item.varId}`"
+									>{{ clumpedAssociations.item.varId }}</a
 								>
 							</template>
-                <template #cell(Gene)="clumpedAssociations">
+                <template #cell(gene)="clumpedAssociations">
 								<a
-									:href="`/gene.html?gene=${clumpedAssociations.item.Gene}`"
-									>{{ clumpedAssociations.item.Gene }}</a
+									:href="`/gene.html?gene=${clumpedAssociations.item.gene}`"
+									>{{ clumpedAssociations.item.gene }}</a
 								>
 							</template>
             </b-table>
@@ -210,12 +210,12 @@ export default Vue.component("clumped-associations-table", {
 			},
             baseFields: [
                 {
-					key: "varID",
+					key: "varId",
 					label: "Variant",
                     sortable: true,
 				},
 				{
-					key: "max_consequence",
+					key: "consequence",
 					label: "Consequence",
 					tdClass: "border-color",
 				},
@@ -225,16 +225,16 @@ export default Vue.component("clumped-associations-table", {
                     label: "Inheritance",
 				},
 				{
-					key: "Gene",
+					key: "gene",
 					label: "Gene",
                     sortable: true,
 				},
 				{
-					key: "HGVSc",
+					key: "hgvsc",
 					label: "HGVSc",
 				},
 				{
-					key: "HGVSp",
+					key: "hgvsp",
 					label: "HGVSp",
 				},
             ],
@@ -282,28 +282,29 @@ export default Vue.component("clumped-associations-table", {
         },
         clumpedAssociations() {
             let data = [];
-            let varIDs = {};
+            let varIds = {};
             let associations = this.tableData;
+            //console.log("clumpedAssociations:"+this.tableData.length);
             //let inheritances = {};
 
             for (let i in associations) {
                 let r = associations[i];
-                let dataIndex = varIDs[r.varID];
+                let dataIndex = varIds[r.varId];
 
-                if (!(r.varID in varIDs)) {
+                if (!(r.varId in varIds)) {
                     dataIndex = data.length;
-                    varIDs[r.varID] = dataIndex;
+                    varIds[r.varId] = dataIndex;
                     let inheritanceText = '';
                     if ('inheritance' in r){
                         inheritanceText = r.inheritance.toString();
                     }
                     data.push({
                         //chromosome: r.chromosome,
-                        varID: r.varID,
-                        max_consequence: r.max_consequence,
-                        Gene: r.Gene,
-                        HGVSc: r.HGVSc,
-                        HGVSp: r.HGVSp,
+                        varId: r.varId,
+                        consequence: r.consequence,
+                        gene: r.gene,
+                        hgvs: r.hgvsc,
+                        hgvsp: r.hgvsp,
                         inheritance: inheritanceText,
                         //clumpStart: r.clumpStart,
                         //clumpEnd: r.clumpEnd,
@@ -415,7 +416,7 @@ export default Vue.component("clumped-associations-table", {
 			//console.log(dataRows.length);
             if (this.filters["consequence"].length > 0) {
 				dataRows = dataRows.filter((item) =>
-					this.filters["consequence"].includes(item.max_consequence)
+					this.filters["consequence"].includes(item.consequence)
 				);
 			}
             if (this.filters["inheritance"].length > 0) {
