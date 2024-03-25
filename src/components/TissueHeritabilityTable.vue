@@ -33,12 +33,11 @@
             :current-page="currentPage"
         >
             <template #cell(phenotype)="r">
-                <a v-if="phenotypeMap[r.item.phenotype]"
+                <a
                     :href="`/phenotype.html?phenotype=${r.item.phenotype}`"
                     >
                     {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
                 </a>
-                <span v-else>{{ r.item.phenotype }}</span>
             </template>
             <template #cell(biosample)="r"
                 ><b-button
@@ -160,7 +159,9 @@ export default Vue.component("TissueHeritabilityTable", {
                     queryString,
                     { limit: 1000 }
                 ).then((data) => {
-                    Vue.set(this.tableData, queryString, data);
+                    Vue.set(this.tableData, queryString, data.filter(
+                        d => !!this.phenotypeMap[d.phenotype]
+                    ));
                 });
             }
         },
