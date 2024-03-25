@@ -112,6 +112,7 @@ export default Vue.component("TissueHeritabilityTable", {
                 {
                     key: "enrichment",
                     label: "Enrichment",
+                    formatter: Formatters.pValueFormatter,
                     sortable: true,
                 },
                 {
@@ -126,11 +127,14 @@ export default Vue.component("TissueHeritabilityTable", {
                     formatter: (value) => !value 
                         ? `All biosamples (${this.tissue.replaceAll('_', ' ')})` 
                         : value.replaceAll('_', ' '),
-                    tdClass: (value) => !value ? "all_biosamples" : ""
+                    tdClass: (value) => !value ? "all_biosamples" : "",
+                    sortable: true
                 },
                 {
                     key: "enrichment",
-                    label: "Enrichment"
+                    label: "Enrichment",
+                    formatter: Formatters.pValueFormatter,
+                    sortable: true
                 }
             ],
             tableData: {},

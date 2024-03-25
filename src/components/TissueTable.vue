@@ -70,7 +70,7 @@
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
-import { active } from "d3";
+import Formatters from "@/utils/formatters";
 export default Vue.component("TissueTable", {
     props: {
         tissueTableData: {
@@ -101,6 +101,7 @@ export default Vue.component("TissueTable", {
                     key: "meanTpm",
                     label: "Mean TPM",
                     thClass: "meanTpm sortable",
+                    formatter: Formatters.pValueFormatter
                 },
                 {
                     key: "nSamples",
