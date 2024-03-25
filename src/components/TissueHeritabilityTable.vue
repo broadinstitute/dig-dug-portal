@@ -1,10 +1,12 @@
 <template>
     <div>
         <h4>
-            Global enrichment for {{ tissueFormatter(tissue) }}
-             (Ancestry: {{ ancestry === "Mixed" 
-                ? "Mixed meta-analysis" 
-                : ancestryFormatter(ancestry) }})
+            Global enrichment for {{ tissueFormatter(tissue) }} (Ancestry:
+            {{
+                ancestry === "Mixed"
+                    ? "Mixed meta-analysis"
+                    : ancestryFormatter(ancestry)
+            }})
         </h4>
         <div class="filtering-ui-wrapper container-fluid">
             <div class="row filtering-ui-content">
@@ -13,8 +15,9 @@
                     <ancestry-selectpicker
                         :defaultMixed="true"
                         :ancestries="
-                            $store.state.bioPortal.datasets
-                                .map((dataset) => dataset.ancestry)
+                            $store.state.bioPortal.datasets.map(
+                                (dataset) => dataset.ancestry
+                            )
                         "
                     ></ancestry-selectpicker>
                 </div>
@@ -33,9 +36,7 @@
             :current-page="currentPage"
         >
             <template #cell(phenotype)="r">
-                <a
-                    :href="`/phenotype.html?phenotype=${r.item.phenotype}`"
-                    >
+                <a :href="`/phenotype.html?phenotype=${r.item.phenotype}`">
                     {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
                 </a>
             </template>
@@ -85,8 +86,8 @@ export default Vue.component("TissueHeritabilityTable", {
             required: true,
         },
         phenotypeMap: {
-            type: Object
-        }
+            type: Object,
+        },
     },
     data() {
         return {
@@ -124,27 +125,39 @@ export default Vue.component("TissueHeritabilityTable", {
                 {
                     key: "biosample",
                     label: "Biosample",
-                    formatter: (value) => !value 
-                        ? `All biosamples (${this.tissue.replaceAll('_', ' ')})` 
-                        : value.replaceAll('_', ' '),
-                    tdClass: (value) => !value ? "all_biosamples" : "",
-                    sortable: true
+                    formatter: (value) =>
+                        !value
+                            ? `All biosamples (${this.tissue.replaceAll(
+                                  "_",
+                                  " "
+                              )})`
+                            : value.replaceAll("_", " "),
+                    tdClass: (value) => (!value ? "all_biosamples" : ""),
+                    sortable: true,
+                },
+                {
+                    key: "pValue",
+                    label: "P-value",
+                    formatter: Formatters.pValueFormatter,
+                    sortable: true,
                 },
                 {
                     key: "enrichment",
                     label: "Enrichment",
                     formatter: Formatters.pValueFormatter,
-                    sortable: true
-                }
+                    sortable: true,
+                },
             ],
             tableData: {},
             subTableData: {},
-            ancestry: "Mixed"
+            ancestry: "Mixed",
         };
     },
     computed: {
         totalRows() {
-            return this.tableData[`${this.tissue},${this.ancestry}`]?.length || 0;
+            return (
+                this.tableData[`${this.tissue},${this.ancestry}`]?.length || 0
+            );
         },
     },
     mounted() {
@@ -155,55 +168,60 @@ export default Vue.component("TissueHeritabilityTable", {
         phenotypeFormatter: Formatters.phenotypeFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
-        queryHeritability(){
-            let queryString = `${this.tissue.replaceAll("_", " ")},${this.ancestry}`;
+        queryHeritability() {
+            let queryString = `${this.tissue.replaceAll("_", " ")},${
+                this.ancestry
+            }`;
             if (this.tissue && !this.tableData[queryString]) {
-                query(
-                    "partitioned-heritability-top-tissue", 
-                    queryString,
-                    { limit: 1000 }
-                ).then((data) => {
-                    Vue.set(this.tableData, queryString, data.filter(
-                        d => !!this.phenotypeMap[d.phenotype]
-                    ));
+                query("partitioned-heritability-top-tissue", queryString, {
+                    limit: 1000,
+                }).then((data) => {
+                    Vue.set(
+                        this.tableData,
+                        queryString,
+                        data.filter((d) => !!this.phenotypeMap[d.phenotype])
+                    );
                 });
             }
         },
-        async queryPartitionedHeritability(item){
-            let queryString = `${item.phenotype},${this.ancestry},${item.annotation},${this.tissue.replaceAll("_", " ")}`;
-            if (!this.subTableData[queryString]){
+        async queryPartitionedHeritability(item) {
+            let queryString = `${item.phenotype},${this.ancestry},${
+                item.annotation
+            },${this.tissue.replaceAll("_", " ")}`;
+            if (!this.subTableData[queryString]) {
                 let data = await query(
                     "partitioned-heritability-tissue",
                     queryString,
-                    { limit: 1000}
+                    { limit: 1000 }
                 );
                 Vue.set(this.subTableData, queryString, data);
-                
             }
         },
-        showDetails(row){
+        showDetails(row) {
             row.toggleDetails();
             this.queryPartitionedHeritability(row.item);
         },
-        getSubTableData(item){
-            let query = `${item.phenotype},${this.ancestry},${item.annotation},${this.tissue.replaceAll("_", " ")}`;
+        getSubTableData(item) {
+            let query = `${item.phenotype},${this.ancestry},${
+                item.annotation
+            },${this.tissue.replaceAll("_", " ")}`;
             return this.subTableData[query];
-        }
+        },
     },
     watch: {
-        "$store.state.selectedAncestry"(ancestry){
+        "$store.state.selectedAncestry"(ancestry) {
             this.ancestry = ancestry === "" ? "Mixed" : ancestry;
             this.queryHeritability();
-        }
-    }
+        },
+    },
 });
 </script>
 
 <style scoped>
-    .row table {
-        font-size: smaller;
-        margin-left: 15px;
-        margin-right: 15px;
-        background-color: #dfdfdf;
-    }
+.row table {
+    font-size: smaller;
+    margin-left: 15px;
+    margin-right: 15px;
+    background-color: #dfdfdf;
+}
 </style>
