@@ -2320,3 +2320,6 @@ span.spacer-5 {
 .warning {
     color: #ff0000;
 }
+.all_biosamples {
+    font-weight: bold;
+}

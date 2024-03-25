@@ -2,7 +2,9 @@
     <select class="form-control"
         v-model="$store.state.selectedAncestry"
         ref="ancestrySelect">
-        <option value="" selected>All ancestries</option>
+        <option value="" selected>
+            {{ defaultMixed ? "Mixed (meta-analysis)" : "All ancestries" }}
+        </option>
         <option v-for="ancestry in ancestryOptions" :value="ancestry">{{ ancestryFormatter(ancestry) }}</option>
     </select>
 </template>
@@ -21,7 +23,7 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("ancestry-selectpicker", {
-    props: ["ancestries", "clearOnSelected"],
+    props: ["ancestries", "clearOnSelected", "defaultMixed"],
 
     data() {
         return {
