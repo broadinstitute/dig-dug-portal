@@ -107,16 +107,12 @@ export default Vue.component("TissueHeritabilityTable", {
                 {
                     key: "pValue",
                     label: "P-value",
+                    formatter: Formatters.pValueFormatter,
                     sortable: true,
                 },
                 {
-                    key: "expectedSNPs",
-                    label: "Expected SNPs",
-                    sortable: true,
-                },
-                {
-                    key: "SNPs",
-                    label: "SNPs",
+                    key: "enrichment",
+                    label: "Enrichment",
                     sortable: true,
                 },
                 {
@@ -155,6 +151,7 @@ export default Vue.component("TissueHeritabilityTable", {
         tissueFormatter: Formatters.tissueFormatter,
         phenotypeFormatter: Formatters.phenotypeFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
         queryHeritability(){
             let queryString = `${this.tissue.replaceAll("_", " ")},${this.ancestry}`;
             if (this.tissue && !this.tableData[queryString]) {
