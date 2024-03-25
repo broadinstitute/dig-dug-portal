@@ -95,21 +95,17 @@ export default Vue.component("TissueTable", {
                 {
                     key: "gene",
                     label: "Gene",
-                    thClass: "gene sortable"
+                    thClass: "gene sortable",
                 },
                 {
                     key: "meanTpm",
                     label: "Mean TPM",
-                    thClass: "meanTpm sortable"
+                    thClass: "meanTpm sortable",
                 },
                 {
                     key: "nSamples",
                     label: "Total sample count",
-                    thClass: "nSamples sortable"
-                },
-                {
-                    key: "tstat",
-                    label: "T-Stat",
+                    thClass: "nSamples sortable",
                 },
                 {
                     key: "evidence",
@@ -120,7 +116,7 @@ export default Vue.component("TissueTable", {
                 gene: true,
                 meanTpm: false,
                 nSamples: false,
-                tStat: false
+                tStat: false,
             },
             evidenceFields: [
                 {
@@ -221,7 +217,7 @@ export default Vue.component("TissueTable", {
                 }
             }
         },
-        showDetails(row){
+        showDetails(row) {
             row.toggleDetails();
             Vue.set(row.item, "currentPage", 1);
         },
@@ -230,19 +226,23 @@ export default Vue.component("TissueTable", {
                 (item) => item.gene === gene
             );
         },
-        sortEmit(field){
+        sortEmit(field) {
             let direction = this.sortAscending[field];
-            this.$emit('sortByField', field, direction);
+            this.$emit("sortByField", field, direction);
             // Clear previous active sort styling
             this.updateAriaSort(field, direction);
             this.sortAscending[field] = !direction;
         },
-        updateAriaSort(field, direction){
-            document.querySelectorAll("#tissues th.sortable")
-                .forEach( e => e.ariaSort = "none");
-            document.querySelectorAll(`#tissues th.${field}`)
-                .forEach( e => e.ariaSort = direction ? "ascending" : "descending");
-        }
+        updateAriaSort(field, direction) {
+            document
+                .querySelectorAll("#tissues th.sortable")
+                .forEach((e) => (e.ariaSort = "none"));
+            document
+                .querySelectorAll(`#tissues th.${field}`)
+                .forEach(
+                    (e) => (e.ariaSort = direction ? "ascending" : "descending")
+                );
+        },
     },
 });
 </script>
