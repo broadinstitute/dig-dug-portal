@@ -123,6 +123,8 @@ export default Vue.component("TissueTable", {
                 {
                     key: "biosample",
                     label: "Biosample",
+                    formatter: Formatters.tissueFormatter,
+                    sortable: true
                 },
                 {
                     key: "collection",
@@ -131,65 +133,42 @@ export default Vue.component("TissueTable", {
                 {
                     key: "dataset",
                     label: "Dataset",
+                    sortable: true
                 },
                 {
                     key: "minTpm",
                     label: "Min. TPM",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true
                 },
                 {
                     key: "firstQuTpm",
                     label: "Q1 TMP",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true
                 },
                 {
                     key: "medianTpm",
                     label: "Median TPM",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true
                 },
                 {
                     key: "thirdQuTpm",
                     label: "Q3 TPM",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true
                 },
                 {
                     key: "maxTpm",
                     label: "Max. TPM",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true
                 },
                 {
                     key: "nSamples",
                     label: "Samples",
-                },
-            ],
-            links: {},
-            linksFields: [
-                {
-                    key: "targetGene",
-                    label: "Target Gene",
-                },
-                {
-                    key: "region",
-                    label: "Region",
-                },
-                {
-                    key: "targetRegion",
-                    label: "Target Region",
-                },
-                {
-                    key: "method",
-                    label: "Method",
-                },
-                {
-                    key: "source",
-                    label: "Source",
-                },
-                {
-                    key: "dataset",
-                    label: "Dataset",
-                },
-                {
-                    key: "assay",
-                    label: "Assay",
-                },
-                {
-                    key: "biosample",
-                    label: "Biosample",
+                    sortable: true
                 },
             ],
             tableData: [],
@@ -205,19 +184,6 @@ export default Vue.component("TissueTable", {
         this.updateAriaSort("placeholder", true);
     },
     methods: {
-        async showLinks(gene) {
-            if (gene) {
-                //check if evidence object already has key equal gene
-                if (!this.links[gene]) {
-                    let data = await query(
-                        "gene-links",
-                        this.tissue.replace(" ", "_") + "," + gene
-                    );
-
-                    Vue.set(this.links, gene, data);
-                }
-            }
-        },
         showDetails(row) {
             row.toggleDetails();
             Vue.set(row.item, "currentPage", 1);
