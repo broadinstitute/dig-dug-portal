@@ -59,3 +59,22 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<style>
+.row .pagination.b-pagination {
+    border: none !important;
+    margin-bottom: 10px !important;
+}
+
+.row li.page-item .page-link  {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    padding: 5px;
+    margin: 0 1px;
+}
+
+tr.b-table-details > td {
+    padding: 0 !important;
+}
+</style>

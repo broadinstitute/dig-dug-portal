@@ -9,7 +9,7 @@
             name="tissue.gene-expression.subheader"
             :content-fill="$parent.documentationMap"
         ></documentation>
-        <div id="plot" v-if="rawData.length > 0">
+        <div id="plot" v-if="rawData.length > 0" class="expression-plot-wrapper">
             <research-expression-filter
                 :rawData="rawData"
                 :plotByField="'gene'"
@@ -22,6 +22,7 @@
             </research-expression-plot>
         </div>
         <div v-else>Loading expression plot...</div>
+
         <tissue-table
             :tissueTableData="tableData"
             :tissue="tissue"
