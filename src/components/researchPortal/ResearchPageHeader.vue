@@ -8,7 +8,7 @@
 		></div>
 		<ul v-if="!!this.researchMenu">
 			<li
-				v-for="menu in this.researchMenu"
+				v-for="menu in (this.researchMenu.length ? this.researchMenu : this.researchMenu.menu)"
 				:key="menu.label"
 				class="menu"
 			>
