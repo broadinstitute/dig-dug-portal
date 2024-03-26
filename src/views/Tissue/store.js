@@ -20,6 +20,7 @@ export default new Vuex.Store({
     state: {
         tissueName: keyParams.tissue || "",
         geneExpressionTissue: [],
+        selectedAncestry: ""
     },
 
     mutations: {

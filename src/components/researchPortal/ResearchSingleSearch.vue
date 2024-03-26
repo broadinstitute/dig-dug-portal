@@ -102,6 +102,19 @@
 				</div>
 
 				<div
+						v-for="tissue in singleSearchResult.tissues"
+						:value="tissue.value"
+						:key="tissue.value"
+						 class="single-search-option"
+					>
+					<a :href="'/tissue.html?tissue=' + tissue.value">{{
+						tissue.label
+					}}</a><span class="search-word-group">{{
+						'Search tissue'
+					}}</span>
+				</div>
+
+				<div
 					v-for="phenotype in singleSearchResult.phenotypes"
 					:value="phenotype.name"
 					:key="phenotype.name"
@@ -134,6 +147,7 @@ export default Vue.component("research-single-search", {
 			singleSearchResult: {
 				genes: [],
 				phenotypes: [],
+				tissues: [],
 				diseases: []
 			},
 			customList:{}
@@ -152,8 +166,9 @@ export default Vue.component("research-single-search", {
 					)
 				}
 			})
+		} else {
+			this.getList('tissues', 'https://hugeampkpncms.org/rest/directcsv?id=kp_tissues_list', 'json', [0,'field_data_points']);
 		}
-		
 	},
 	mounted() {},
 	computed: {},
@@ -182,8 +197,6 @@ export default Vue.component("research-single-search", {
 				});
 
 				let shorterFirst = searchPhenotypes.sort((a, b) => a.name.length - b.name.length);
-
-				//console.log("shortFirst", shorterFirst);
 
 				this.singleSearchResult.phenotypes = shorterFirst;
 

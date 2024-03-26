@@ -28,40 +28,13 @@
                     size="sm"
                     variant="outline-primary"
                     class=""
-                    @click="
-                        toToggle(r, 1, r.detailsShowing)
-                            ? r.toggleDetails()
-                            : ''
-                    "
+                    @click="showDetails(r)"
                 >
-                    {{
-                        r.detailsShowing && r.item.showButton === 1
-                            ? "Hide"
-                            : "Show"
-                    }}
-                </b-button>
-            </template>
-            <template #cell(links)="r">
-                <b-button
-                    v-b-popover.hover="'View links'"
-                    size="sm"
-                    variant="outline-primary"
-                    class=""
-                    @click="
-                        toToggle(r, 2, r.detailsShowing)
-                            ? r.toggleDetails()
-                            : ''
-                    "
-                >
-                    {{
-                        r.detailsShowing && r.item.showButton === 2
-                            ? "Hide"
-                            : "Show"
-                    }}
+                    {{ r.detailsShowing ? "Hide" : "Show" }}
                 </b-button>
             </template>
             <template #row-details="r">
-                <div v-if="r.item.showButton === 1" class="row">
+                <div class="row">
                     <div class="col-12">
                         <!-- show table with items from evidence if key is equal r.item.gene -->
 
@@ -90,61 +63,6 @@
                         ></b-pagination>
                     </div>
                 </div>
-                <div v-if="r.item.showButton === 2" class="row">
-                    <div v-if="links[r.item.gene]" class="col-12">
-                        <b-table
-                            :items="links[r.item.gene]"
-                            :fields="linksFields"
-                            :per-page="perPage"
-                            :current-page="r.item.currentPage"
-                        >
-                            <template #cell(targetGene)="l">
-                                <a
-                                    :href="`/gene.html?gene=${l.item.targetGene}`"
-                                >
-                                    {{ l.item.targetGene }}
-                                </a>
-                            </template>
-                            <template #cell(region)="l">
-                                <a
-                                    :href="`/region.html?chr=${l.item.chromosome}&end=${l.item.end}&start=${l.item.start}`"
-                                >
-                                    {{ l.item.chromosome }}:{{
-                                        l.item.start
-                                    }}-{{ l.item.end }}
-                                </a>
-                            </template>
-                            <template #cell(targetRegion)="l">
-                                <a
-                                    :href="`/region.html?chr=${l.item.chromosome}&end=${l.item.targetGeneEnd}&start=${l.item.targetGeneStart}`"
-                                >
-                                    {{ l.item.chromosome }}:{{
-                                        l.item.targetGeneStart
-                                    }}-{{ l.item.targetGeneEnd }}
-                                </a>
-                            </template>
-                            <template #cell(dataset)="l">
-                                <a
-                                    :href="`https://cmdga.org/annotations/${l.item.dataset}/`"
-                                    target="_blank"
-                                >
-                                    {{ l.item.dataset }}
-                                </a>
-                            </template>
-                            <template #cell(assay)="l">
-                                {{
-                                    l.item.assay ? l.item.assay.join(", ") : ""
-                                }}
-                            </template>
-                        </b-table>
-                        <b-pagination
-                            v-model="r.item.currentPage"
-                            :total-rows="links[r.item.gene].length"
-                            :per-page="perPage"
-                        >
-                        </b-pagination>
-                    </div>
-                </div>
             </template>
         </b-table>
     </div>
@@ -152,7 +70,7 @@
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
-import { active } from "d3";
+import Formatters from "@/utils/formatters";
 export default Vue.component("TissueTable", {
     props: {
         tissueTableData: {
@@ -177,36 +95,29 @@ export default Vue.component("TissueTable", {
                 {
                     key: "gene",
                     label: "Gene",
-                    thClass: "gene sortable"
+                    thClass: "gene sortable",
                 },
                 {
                     key: "meanTpm",
                     label: "Mean TPM",
-                    thClass: "meanTpm sortable"
+                    thClass: "meanTpm sortable",
+                    formatter: Formatters.pValueFormatter
                 },
                 {
                     key: "nSamples",
                     label: "Total sample count",
-                    thClass: "nSamples sortable"
-                },
-                {
-                    key: "tstat",
-                    label: "T-Stat",
+                    thClass: "nSamples sortable",
                 },
                 {
                     key: "evidence",
                     label: "Evidence",
-                },
-                {
-                    key: "links",
-                    label: "Gene Links",
                 },
             ],
             sortAscending: {
                 gene: true,
                 meanTpm: false,
                 nSamples: false,
-                tStat: false
+                tStat: false,
             },
             evidenceFields: [
                 {
@@ -307,51 +218,32 @@ export default Vue.component("TissueTable", {
                 }
             }
         },
-        toToggle(row, buttonClicked, isShowing) {
-            if (isShowing) {
-                if (buttonClicked === row.item.showButton) return true;
-                else {
-                    if (buttonClicked === 1) {
-                        Vue.set(row.item, "showButton", 1);
-                    } else if (buttonClicked === 2) {
-                        this.showLinks(row.item.gene);
-                        Vue.set(row.item, "showButton", 2);
-                    }
-                }
-                Vue.set(row.item, "currentPage", 1);
-                return false;
-            } else {
-                if (buttonClicked === 1) {
-                    Vue.set(row.item, "showButton", 1);
-                } else if (buttonClicked === 2) {
-                    this.showLinks(row.item.gene);
-                    Vue.set(row.item, "showButton", 2);
-                }
-                Vue.set(row.item, "currentPage", 1);
-                return true;
-            }
-        },
-        setShowButton(item, value) {
-            this.$set(item, "showButton", Number(value));
+        showDetails(row) {
+            row.toggleDetails();
+            Vue.set(row.item, "currentPage", 1);
         },
         getEvidence(gene) {
             return this.$props.filteredData.filter(
                 (item) => item.gene === gene
             );
         },
-        sortEmit(field){
+        sortEmit(field) {
             let direction = this.sortAscending[field];
-            this.$emit('sortByField', field, direction);
+            this.$emit("sortByField", field, direction);
             // Clear previous active sort styling
             this.updateAriaSort(field, direction);
             this.sortAscending[field] = !direction;
         },
-        updateAriaSort(field, direction){
-            document.querySelectorAll("#tissues th.sortable")
-                .forEach( e => e.ariaSort = "none");
-            document.querySelectorAll(`#tissues th.${field}`)
-                .forEach( e => e.ariaSort = direction ? "ascending" : "descending");
-        }
+        updateAriaSort(field, direction) {
+            document
+                .querySelectorAll("#tissues th.sortable")
+                .forEach((e) => (e.ariaSort = "none"));
+            document
+                .querySelectorAll(`#tissues th.${field}`)
+                .forEach(
+                    (e) => (e.ariaSort = direction ? "ascending" : "descending")
+                );
+        },
     },
 });
 </script>

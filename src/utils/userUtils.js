@@ -61,16 +61,19 @@ function removePhenotype(phenotype) {
     }
 }
 
-function saveContext(context) {
-    localStorage.setItem("_context", JSON.stringify(context));
+function saveContext(GROUP, context) {
+    console.log(GROUP, context)
+    localStorage.setItem(GROUP, JSON.stringify(context));
 }
 
-function getContext() {
-    return JSON.parse(localStorage.getItem("_context"));
+function getContext(GROUP) {
+    console.log(GROUP)
+    return JSON.parse(localStorage.getItem(GROUP));
 }
 
-function clearContext() {
-    localStorage.removeItem("_context");
+function clearContext(GROUP) {
+    console.log(GROUP)
+    localStorage.removeItem(GROUP);
 }
 
 export default {
