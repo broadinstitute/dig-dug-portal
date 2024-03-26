@@ -101,7 +101,7 @@ export default Vue.component("TissueTable", {
                     key: "meanTpm",
                     label: "Mean TPM",
                     thClass: "meanTpm sortable",
-                    formatter: Formatters.pValueFormatter
+                    formatter: Formatters.tpmFormatter
                 },
                 {
                     key: "nSamples",
