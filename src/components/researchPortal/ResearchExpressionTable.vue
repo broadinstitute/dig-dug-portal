@@ -71,57 +71,25 @@
         tableConfig: {
           "top rows": [
             { key: `${this.$props.plotByField}`, sortable: true },
-            { key: "Min TPM", sortable: true, formatter: "tpmFormat" },
-            { key: "Q1 TPM", sortable: true, formatter: "tpmFormat" },
-            {
-              key: "Median TPM",
-              sortable: true,
-              formatter: "tpmFormat",
-            },
-            { key: "Q3 TPM", sortable: true, formatter: "tpmFormat" },
-            { key: "Max TPM", sortable: true, formatter: "tpmFormat" },
+            { key: "Min TPM", sortable: true, formatter: Formatters.tpmFormatter },
+            { key: "Q1 TPM", sortable: true, formatter: Formatters.tpmFormatter },
+            { key: "Median TPM", sortable: true, formatter: Formatters.tpmFormatter,},
+            { key: "Q3 TPM", sortable: true, formatter: Formatters.tpmFormatter },
+            { key: "Max TPM", sortable: true, formatter: Formatters.tpmFormatter },
             { key: "Total samples", sortable: true },
             { key: "show_datasets", sortable: false },
           ],
           features: ["Datasets"],
           Datasets: [
-            {
-              key: "biosample",
-              formatter: (value) => Formatters.tissueFormatter(value),
-            },
-            {
-              key: "collection",
-              formatter: (value) => value.toString(", "),
-            },
-            {
-              key: "dataset",
-            },
-            {
-              key: "Min TPM",
-              formatter: (value) =>
-                Formatters.floatFormatter(`${value}`),
-            },
-            {
-              key: "Q1 TPM",
-              formatter: (value) =>
-                Formatters.floatFormatter(`${value}`),
-            },
-            {
-              key: "Median TPM",
-              formatter: (value) =>
-                Formatters.floatFormatter(`${value}`),
-            },
-            {
-              key: "Q3 TPM",
-              formatter: (value) =>
-                Formatters.floatFormatter(`${value}`),
-            },
-            {
-              key: "Max TPM",
-              formatter: (value) =>
-                Formatters.floatFormatter(`${value}`),
-            },
-            { key: "nSamples", label: "Samples" },
+            { key: "biosample", formatter: Formatters.tissueFormatter, sortable: true },
+            { key: "collection", formatter: (value) => value.toString(", ") },
+            { key: "dataset", sortable: true},
+            { key: "Min TPM", formatter: Formatters.tpmFormatter, sortable: true },
+            { key: "Q1 TPM", formatter: Formatters.tpmFormatter, sortable: true },
+            { key: "Median TPM", formatter: Formatters.tpmFormatter, sortable: true },
+            { key: "Q3 TPM", formatter: Formatters.tpmFormatter, sortable: true },
+            { key: "Max TPM", formatter: Formatters.tpmFormatter, sortable: true },
+            { key: "nSamples", label: "Samples", sortable: true },
           ],
         },
         currentPage: 1,
