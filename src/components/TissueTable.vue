@@ -251,8 +251,12 @@ export default Vue.component("TissueTable", {
 .row {
     font-size: smaller;
     margin-left: 15px;
-    margin-right: 15px;
-    background-color: #dfdfdf;
+    margin-right: 0;
+    background-color: #efefef;
+}
+
+.row .col-12 {
+    padding: 0 0 0 5px !important;
 }
 .b-popover {
     background-color: #fff;
@@ -263,4 +267,5 @@ export default Vue.component("TissueTable", {
 .active .activeIcon {
     color: #007bff;
 }
+
 </style>
