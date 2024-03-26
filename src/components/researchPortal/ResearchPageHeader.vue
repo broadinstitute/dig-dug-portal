@@ -37,7 +37,12 @@ export default Vue.component("research-page-header", {
 		return {};
 	},
 	created() {},
-	mounted() {},
+	mounted() {
+		if(this.researchMenu && !this.researchMenu.length){
+			if(this.researchMenu["favicon"]) this.injectFavicon(this.researchMenu["favicon"]);
+			if(this.researchMenu["google font"]) this.injectFont(this.researchMenu["google font"]);
+		}
+	},
 	watch: {
 		researchMenu(newResearchMenu) {
 			if (newResearchMenu && newResearchMenu.length > 0) {
@@ -64,6 +69,22 @@ export default Vue.component("research-page-header", {
 					}
 				})
 			});
+		},
+        injectFavicon(faviconUrl) {
+            let favicon = document.querySelector('link[rel="icon"]')
+            if (!favicon) {
+                favicon = document.createElement('link')
+                favicon.setAttribute('rel', 'icon')
+                favicon.setAttribute('type', 'image/png')
+                document.head.appendChild(favicon)
+            }
+            favicon.setAttribute('href', faviconUrl)
+        },
+		injectFont(fontUrl){
+			const styleTag = document.createElement('style');
+			styleTag.textContent = `@import url('${fontUrl}');`;
+			document.head.appendChild(styleTag);
+			//console.log(styleTag.textContent);
 		}
 	},
 	computed: {},
