@@ -29,10 +29,11 @@
 			<template #row-details="row">
 				<b-table
 					class="dataset-subtable"
-					hover
 					small
 					responsive="sm"
 					:items="row.item['Datasets']"
+          :current-page="row.item.currentPage"
+          :per-page="perPage"
 					:fields="tableConfig['Datasets']"
 				>
 					<template #cell(dataset)="data">
@@ -44,6 +45,11 @@
 						</a>
 					</template>
 				</b-table>
+        <b-pagination
+          v-model="row.item.currentPage"
+          :total-rows="row.item['Datasets'].length"
+          :per-page="perPage">
+        </b-pagination>
 			</template>
 		</b-table>
 		<b-pagination v-if="plotByField === 'tissue'"
