@@ -110,7 +110,7 @@
 					<a :href="'/tissue.html?tissue=' + tissue.value">{{
 						tissue.label
 					}}</a><span class="search-word-group">{{
-						'Search tissue'
+						'Tissue'
 					}}</span>
 				</div>
 
@@ -136,6 +136,7 @@
 <script>
 import Vue from "vue";
 import { match } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 export default Vue.component("research-single-search", {
 	props: ["singleSearchConfig", "phenotypes","utils"],
@@ -167,7 +168,7 @@ export default Vue.component("research-single-search", {
 				}
 			})
 		} else {
-			this.getList('tissues', 'https://hugeampkpncms.org/rest/directcsv?id=kp_tissues_list', 'json', [0,'field_data_points']);
+			this.getTissues();
 		}
 	},
 	mounted() {},
@@ -235,6 +236,29 @@ export default Vue.component("research-single-search", {
 		},
 	},
 	methods: {
+		async getTissues() {
+			let tissues = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/gene-expression-tissue/1`)
+				.then(resp => resp.json())
+				.then(json => {
+					if (json.count == 0) {
+						return null;
+					}
+
+					return json.keys;
+				});
+
+				//return tissues;
+				if(!!tissues) {
+					let tissuesList = [];
+					tissues.map(tissue =>{
+						let labelString = tissue[0].charAt(0).toUpperCase() + tissue[0].slice(1);
+						let tempObj = {label: labelString.replace("_"," "),value: tissue[0]};
+
+						tissuesList.push(tempObj)
+					});
+					this.customList["tissues"] = tissuesList;
+				}
+		},
 		anyResults() {
 			let parameters = Object.keys(this.singleSearchResult) 
 
