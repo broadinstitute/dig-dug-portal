@@ -1,5 +1,12 @@
 <template>
 	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
+		<div :class="['info-page-nav', openCard ? 'open' : '']">
+			<div class="info-cards-back" @click="hideFeatures()" v-if="!!tableFormat['rows as info cards']['minimum view']"><span class="btn">&#x276E; Back</span></div>
+			<div class="info-cards-help">
+				<div class="info-cards-glossary" v-if="!!tableFormat['glossary']"><span class="btn"><span class="btn-icon">?</span>Glossary</span></div>
+				<div class="info-cards-tour" v-if="!!tableFormat['tour']"><span class="btn"><span class="btn-icon">i</span>Tour</span></div>
+			</div>
+		</div>
 		<div v-html="tableLegend" class="data-table-legend"></div>
 		<div
 			v-if="
@@ -16,255 +23,117 @@
 				:class="'group-item-bubble reference bg-color-' + itemIndex"
 			></span>
 		</div>
-		<research-summary-plot
-			v-if="
-				!!tableFormat['summary plot'] &&
-				tableFormat['summary plot']['plots'].includes('table')
-			"
-			v-bind:summaryPlot="tableFormat['summary plot']"
-			v-bind:rawData="dataset"
-			v-bind:isPlotByRow="false"
-		>
-		</research-summary-plot>
-		<div
-			v-if="!!dataset"
-			v-html="'Total rows: ' + this.rows"
-			class="table-total-rows"
-		></div>
-		<div v-if="!!dataset" class="table-ui-wrapper">
-			<label
-				>Rows per page:
-				<select v-model="perPageNumber" class="number-per-page">
-					<option value="10">10</option>
-					<option value="20">20</option>
-					<option value="40">40</option>
-					<option value="100">100</option>
-					<option value="0">
-						<span style="color: #f00">All</span>
-					</option>
-				</select>
-			</label>
-			<div
-				class="convert-2-csv btn-sm"
-				@click="convertJson2Csv(filteredData, pageID + sectionId+ '_filtered')"
-			>
-				Save as CSV
-			</div>
-			<div
-				class="convert-2-csv btn-sm"
-				@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
-			>
-				Save as JSON
-			</div>
-			<div
-				class="convert-2-csv btn-sm"
-				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
-			>
-				{{ !!summarySection ? 'Set summary table' : 'Show/hide columns' }}
-			</div>
-			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="hidden">
-				<div
-					class="show-hide-columns-box-close"
-					@click="showHidePanel('#showHideColumnsBox'+sectionId)"
-				>
-					<b-icon icon="x-circle-fill"></b-icon>
+
+		<div :class="['thumbnails-wrapper', openCard ? '' : 'hidden']" v-if="!!tableFormat['rows as info cards']['minimum view']">
+			<template  v-for="(value, index) in rawData">
+
+				<div :class="['info-card', openCard && openCard == value[tableFormat['rows as info cards']['key']] ? 'selected' : '']"
+					@click="showHideFeature(sectionId + index + featureKey, value[tableFormat['rows as info cards']['key']])">
+
+						<div :class="['row-value', rowKey]" 
+							 v-for="(rowKey, rowIndex) in tableFormat['rows as info cards']['minimum view']" 
+							:key="index + '-' + rowIndex"
+							v-html="formatValue(value[rowKey], rowKey)">
+						</div>
+
 				</div>
-				<h4 style="text-align: center">show/hide columns</h4>
-				<p></p>
-				<div class="table-wrapper">
-					<table class="table table-sm">
-						<thead>
-							<tr>
-								<th></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr
-								v-for="column in tableFormat['top rows']"
-								:key="column"
-							>
-								<td>
-									<input
-										type="checkbox"
-										name="visible_top_rows"
-										:id="getColumnId(column)"
-										:value="column"
-										checked
-										@click="addRemoveColumn($event)"
-									/>
-									{{ " " + column }}
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					<div v-if="!!summarySection">
-						<h4 style="text-align: center">Number of rows in evidence tables</h4>
-						<label
-							>Set rows:
-							<select v-model="featureRowsNumber" class="number-per-page">
-								<option value="10" selected>10</option>
-								<option value="15">15</option>
-								<option value="20">20</option>
-								<option value="25">25</option>
-								<option value="30">30</option>
-								<option value="35">35</option>
-								<option value="40">40</option>
-								<option value="45">45</option>
-								<option value="50">50</option>
-							</select>
-						</label>
-						<div style="color:red;">*Updating this value requires rebuilding of the summary table, which may take long time depends on 
-							the number of the evidence groups and their data rows.</div>
+
+			</template>
+		</div>
+
+		<div :class="['details-wrapper', openCard ? 'feature' : '']">
+			
+			 <template  v-for="(value, index) in rawData">
+				<div :class="['info-card', !openCard || openCard == value[tableFormat['rows as info cards']['key']] ? '' : 'hidden']">
+
+					<div class="info-card-header">
+
+						<div v-for="(rowKey, rowIndex) in tableFormat['logo row']" 
+							:key="index + '-' + rowIndex"
+							:class="'row-value ' + rowKey" 
+							v-html="formatValue(value[rowKey], rowKey)">
+						</div>
+
+						<div class="info-card-header-extra">
+							<div v-for="(rowKey, rowIndex) in tableFormat['title rows']" 
+								:key="index + '-' + rowIndex"
+								:class="rowKey" v-html="formatValue(value[rowKey], rowKey)">
+							</div>
+						</div>
+
+					</div>
+
+					<template  v-for="(rowKey, rowIndex) in tableFormat['top rows']">
+						<div
+							:key="index + '-' + rowIndex" 
+							class="info-card-row"
+							v-if="!!value[rowKey]">
+
+							<div :class="'row-key ' + rowKey">{{ rowKey }}</div>
+							<div :class="'row-value ' + rowKey" v-html="formatValue(value[rowKey], rowKey)"></div>
+
+						</div>
+					</template>
+
+					<div v-for="(featureKey, featureIndex) in tableFormat['features']" 
+						:key="index + '-feature-' + featureIndex" 
+						:class="['info-card-more', openCard && openCard == value[tableFormat['rows as info cards']['key']] ? 'hidden' : '']">
+
+						<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey, value[tableFormat['rows as info cards']['key']])">
+							&plus; More
+						</a>
+					
+					</div>
+
+					<div v-for="(featureKey, featureIndex) in tableFormat['features']" 
+						:key="featureIndex" 
+						:id="sectionId + index + featureKey" 
+						class="info-card-more-wrapper" 
+						:class="[featureKey, openCard && openCard == value[tableFormat['rows as info cards']['key']] ? '' : 'hidden']">
+
+						<template v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]">
+						<div v-if="!!value[fRowKey]"
+							:key="fRowIndex" 
+							class="info-card-row">
+
+							<div class="feature" :class="'row-key ' + fRowKey">{{ fRowKey }}</div>
+							<div class="feature" v-html="formatValue(value[fRowKey], fRowKey)" :class="'row-value ' + fRowKey"></div>
+						
+						</div>
+						</template>
+
+					</div>
+				</div>
+			</template>
+			
+		</div>
+		<!--
+		<div class="details-wrapper" 
+			:style="(!!openCard)?'width:calc(100% - ' + (thumbnailWidth + 20) + 'px)':''">
+			
+			<template  v-for="(value, index) in rawData">
+			<div :key="index" class="info-card" v-if="!!openCard && openCard == value[tableFormat['rows as info cards']['key']]">
+				<div v-for="(rowKey, rowIndex) in tableFormat['top rows']" :key="index+'-'+rowIndex" class="" >
+					<div class="" :class="'row-key '+rowKey">
+						{{ rowKey }}
+					</div>
+					<div :class="'row-value ' + rowKey" v-html="formatValue(value[rowKey], rowKey)"></div>
+				</div>
+				<div v-for="(featureKey, featureIndex) in tableFormat['features']" :key="featureIndex" 
+					:id="sectionId+index+featureKey" class="container-fluid info-card-feature" :class="featureKey">
+					<div v-for="(fRowKey, fRowIndex) in tableFormat[featureKey]" :key="fRowIndex" class="">
+						<div :class="'row-key ' + fRowKey">
+							{{ fRowKey }}
+						</div>
+						<div v-html="formatValue(value[fRowKey], fRowKey)" :class="'row-value ' + fRowKey"></div>
 					</div>
 				</div>
 			</div>
-		</div>
-		<div class="table-wrapper">
-		<table
-			:class="'table table-sm research-data-table ' + pageID"
-			cellpadding="0"
-			cellspacing="0"
-			v-if="!!dataset && !!tableFormat"
-		>
-			<thead class="">
-				<tr>
-					<th v-if="!!tableFormat['star column']">
-						<b-icon
-							:icon="!!stared ? 'star-fill' : 'star'"
-							style="color: #ffcc00; cursor: pointer"
-							@click="showHideStared()"
-						></b-icon>
-					</th>
-					<template v-for="(value, index) in topRows">
-						<th
-							v-if="getIfChecked(value) == true"
-							:key="index"
-							@click="!!multiSectionPage?callFilter(value):applySorting(value)"
-							class="byor-tooltip"
-							:class="
-								'sortable-th ' +
-								value +
-								' ' +
-								getColumnId(value)
-							"
-						>
-							<span v-html="value"></span>
-							<span
-								v-if="
-									!!tableFormat['tool tips'] &&
-									!!tableFormat['tool tips'][value]
-								"
-								class="tooltiptext"
-								v-html="tableFormat['tool tips'][value]"
-							></span>
-						</th>
-					</template>
-					<th
-						class="th-evidence"
-						v-if="tableFormat['features'] != undefined"
-					>
-						Evidence
-					</th>
-				</tr>
-			</thead>
+			</template>
 
-			<tbody v-for="(value, index) in pagedData" :key="index" class="">
-				<tr>
-					<td v-if="!!tableFormat['star column']">
-						<span v-if="checkStared('1', value) == false"
-							><b-icon
-								icon="star"
-								style="color: #aaaaaa; cursor: pointer"
-								@click="addStar(value)"
-							></b-icon
-						></span>
-						<span v-if="checkStared('2', value) == true"
-							><b-icon
-								icon="star-fill"
-								style="color: #ffcc00; cursor: pointer"
-								@click="removeStar(value)"
-							></b-icon
-						></span>
-					</td>
-					<template
-						v-for="(tdValue, tdKey) in value"
-						v-if="
-							topRows.includes(tdKey) &&
-							getIfChecked(tdKey) == true
-						"
-					>
-						<td
-								v-if="ifDataObject(tdValue) == false"
-								:key="tdKey"
-								:class="getColumnId(tdKey)"
-							>
-							<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
-								{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
-								<span class="btns-wrapper">
-									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-										v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
-								</span>
-								
-							</span>
-							
-							<span v-else v-html="formatValue(tdValue, tdKey)"></span>
-						</td>
-						<td
-							v-if="
-								ifDataObject(tdValue) == true
-							"
-							:key="tdKey"
-							class="multi-value-td"
-							:class="getColumnId(tdKey)"
-						>
-							<span
-								v-for="(sValue, sKey, sIndex) in tdValue"
-								:class="
-									sKey +
-									' reference bg-color-' +
-									getColorIndex(sKey)
-								"
-								:key="sKey"
-							>
-
-								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
-									{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
-									<span class="btns-wrapper">
-										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-											v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
-									</span>
-								</span>
-								<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
-						</td>
-					</template>
-					<td v-if="tableFormat['features'] != undefined">
-						<span
-							href="javascript:;"
-							@click="showHideFeature('feature_' + sectionId + index)"
-							class="show-evidence-btn btn"
-							>View</span
-						>
-					</td>
-				</tr>
-				<tr
-					v-if="!!tableFormat['features']"
-					:id="'feature_' + sectionId + index"
-					:class="'hidden'"
-				>
-					<td :colspan="topRowNumber" class="features-td">
-						<research-data-table-features
-							:featureRowsNumber="featureRowsNumber"
-							:featuresData="value.features"
-							:featuresFormat="tableFormat"
-							:utils="utils"
-							:summarySection="summarySection"
-						></research-data-table-features>
-					</td>
-				</tr>
-			</tbody>
-		</table>
 		</div>
-		<b-container
+		-->
+		<!--<b-container
 			v-if="
 				!!dataset && !!perPageNumber && perPageNumber != null && perPageNumber != 0
 			"
@@ -277,7 +146,7 @@
 				:per-page="perPageNumber"
 				:phenotypeMap="phenotypeMap"
 			></b-pagination>
-		</b-container>
+		</b-container>-->
 	</div>
 </template>
 
@@ -286,7 +155,7 @@ import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 
-export default Vue.component("research-data-table", {
+export default Vue.component("research-info-cards", { 
 	props: [
 		"pageID",
 		"dataset",
@@ -305,7 +174,9 @@ export default Vue.component("research-data-table", {
 		"utils",
 		"region",
 		"regionZoom",
-		"regionViewArea"
+		"regionViewArea",
+		"thumbnailWidth",
+		'openCardPreset'
 	],
 	data() {
 		return {
@@ -314,6 +185,9 @@ export default Vue.component("research-data-table", {
 			featureRowsNumber: 10,
 			compareGroups: [],
 			stared: false,
+			minimumView: null,
+			openCard: null,
+			minVidsReady: false
 		};
 	},
 	modules: {},
@@ -324,8 +198,34 @@ export default Vue.component("research-data-table", {
 	mounted() {
 		this.perPageNumber = this.initPerPageNumber;
 		//console.log(this.dataset);
+		
 	},
-	updated() {},
+	updated() {
+		if (!!this.openCardPreset) {
+			this.openCard = this.openCardPreset;
+		}
+		//alex remove this after making min-video into component
+		this.$nextTick(() => {
+			if(!this.minVidsReady){
+				this.minVidsReady = true;
+				document.querySelectorAll('.mini-card-video video').forEach(vid => {
+					vid.addEventListener('ended', e => {
+						e.target.classList.add('paused');
+					});
+					vid.addEventListener('mouseover', e => {
+						if(e.target.classList.contains('paused')){
+							e.target.play();
+						}
+					});
+					vid.addEventListener('mouseout', e => {
+						if(e.target.classList.contains('paused')){
+							e.target.pause();
+						}
+					});
+				})
+			}
+		});
+	},
 	computed: {
 		filteredData() {
 			if(!!this.multiSectionPage){
@@ -440,111 +340,10 @@ export default Vue.component("research-data-table", {
 				return returnObj;
 			}
 		},
+		
 		rawData() {
-
-			let posField = !!this.tableFormat["data zoom"]? this.tableFormat["data zoom"].position:null;
-			let startPos = !!this.viewingRegion? this.viewingRegion.start:null;
-			let endPos = !!this.viewingRegion ? this.viewingRegion.end:null;
-
-			//console.log("posField", posField, "startPos", startPos, "endPos", endPos );
-
-			//console.log("this.dataset", this.dataset);
-
-			let formattedData = [];
-
-			if (this.dataComparisonConfig == null) {
-
-				let rawData = [...new Set(this.dataset)];
-
-				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
-					rawData = rawData.filter(vValue => vValue[posField] >= startPos && vValue[posField] <= endPos);
-				}
-
-				rawData.map((d) => {
-					let tempObj = {};
-					
-					this.tableFormat["top rows"].map((t) => {
-						tempObj[t] = d[t];
-					});
-
-					if (this.tableFormat["features"] != undefined) {
-						tempObj["features"] = {};
-
-						this.tableFormat["features"].map((f) => {
-							if (!!d[f]) {
-								tempObj["features"][f] = d[f];
-							} else {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
-									fTempObj[fItem] = d[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
-							}
-						});
-					}
-					formattedData.push(tempObj);
-				});
-			} else {
-
-				let rawData = {...this.dataset};
-
-				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
-
-					for (const [vKey, vValue] of Object.entries(rawData)) {
-						if (
-							vValue[posField] >= startPos &&
-							vValue[posField] <= endPos
-						) {
-							delete rawData[vKey];
-						}
-					}
-				}
-
-				for (const [key, value] of Object.entries(rawData)) {
-					let tempObj = {};
-
-					this.tableFormat["top rows"].map((t) => {
-						tempObj[t] = value[t];
-					});
-
-					if (this.tableFormat["features"] != undefined) {
-						tempObj["features"] = {};
-						this.tableFormat["features"].map((f) => {
-							if (!!value[f]) {
-								tempObj["features"][f] = value[f];
-							} else {
-								tempObj["features"][f] = [];
-
-								let fTempObj = {};
-								this.tableFormat[f].map((fItem) => {
-									fTempObj[fItem] = value[fItem];
-								});
-
-								tempObj["features"][f].push(fTempObj);
-							}
-						});
-					}
-					formattedData.push(tempObj);
-				}
-			}
-
-			if (this.stared == true) {
-				let tempData = [];
-
-				formattedData.map((r) => {
-					if (this.checkStared("3", r) == true) {
-						tempData.push(r);
-					}
-				});
-				formattedData = tempData;
-			} else {
-				formattedData = formattedData;
-			}
-
-			return formattedData;
+			let rawData = [...new Set(this.dataset)];
+			return rawData;
 		},
 		pagedData() {
 			if (!!this.perPageNumber && this.perPageNumber != null) {
@@ -793,8 +592,28 @@ export default Vue.component("research-data-table", {
 				return false;
 			}
 		},
-		showHideFeature(ELEMENT) {
-			this.utils.uiUtils.showHideElement(ELEMENT);
+		hideFeatures() {
+			let featureContents = document.querySelectorAll("div.info-card-feature");
+
+			featureContents.forEach(fContent => {
+				let fId = fContent.getAttribute("id");
+				this.utils.uiUtils.hideElement(fId);
+			})
+			this.minimumView = null;
+			this.openCard = null;
+			this.$emit('on-openCard', null);
+		},
+		showHideFeature(ELEMENT, KEY) {
+			let featureContents = document.querySelectorAll("div.info-card-feature");
+
+			featureContents.forEach(fContent =>{
+				let fId = fContent.getAttribute("id");
+				this.utils.uiUtils.hideElement(fId);
+			})
+			this.utils.uiUtils.showElement(ELEMENT);
+			this.minimumView = true;
+			this.openCard = KEY;
+			this.$emit('on-openCard', KEY);
 		},
 		convertJson2Csv(DATA, FILENAME) {
 			this.utils.uiUtils.saveByorCsv(DATA, FILENAME);
@@ -841,7 +660,6 @@ export default Vue.component("research-data-table", {
 						null
 					);
 				}
-				
 			} else {
 				content = tdValue;
 			}
@@ -1038,6 +856,34 @@ export default Vue.component("research-data-table", {
 </script>
 
 <style>
+/* info cards styling */
+.thumbnails-wrapper {
+	display: inline-block;
+	vertical-align: top;
+}
+.details-wrapper {
+	display: inline-block;
+	vertical-align: top;
+}
+.info-card {
+ background-color: #fff;
+ padding: 1.25em;
+ border-radius: 5px;
+ margin: 10px 0;
+}
+
+.row-key {
+	font-weight: bold;
+}
+
+.row-value {
+
+}
+
+.egl-table-page-ui-wrapper ul {
+	background-color: #fff !important;
+}
+/* end */
 .show-hide-columns-box-close {
 	position: absolute;
 	top: 5px;

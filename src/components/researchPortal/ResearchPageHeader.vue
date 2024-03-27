@@ -8,7 +8,7 @@
 		></div>
 		<ul v-if="!!this.researchMenu">
 			<li
-				v-for="menu in this.researchMenu"
+				v-for="menu in (this.researchMenu.length ? this.researchMenu : this.researchMenu.menu)"
 				:key="menu.label"
 				class="menu"
 			>
@@ -37,14 +37,20 @@ export default Vue.component("research-page-header", {
 		return {};
 	},
 	created() {},
-	mounted() {},
+	mounted() {
+	},
 	watch: {
 		researchMenu(newResearchMenu) {
-			if (newResearchMenu && newResearchMenu.length > 0) {
-				this.$nextTick(() => {
-					this.checkSubmenus();
-				});
+			if (newResearchMenu) {
+				if((newResearchMenu.length && newResearchMenu.length > 0) ||
+				(!newResearchMenu.length && newResearchMenu.menu.length && newResearchMenu.menu.length > 0)){
+					this.$nextTick(() => {
+						this.checkSubmenus();
+					});
+				}
+				this.tryInjectActions();
 			}
+			
 		}
 	},
 	methods: {
@@ -64,6 +70,32 @@ export default Vue.component("research-page-header", {
 					}
 				})
 			});
+		},
+		tryInjectActions(){
+			if(this.researchMenu && !this.researchMenu.length){
+				console.log(this.researchMenu);
+				if(this.researchMenu["favicon"]) this.injectFavicon(this.researchMenu["favicon"]);
+				if(this.researchMenu["google font"]) this.injectFont(this.researchMenu["google font"]);
+			}
+		},
+        injectFavicon(faviconUrl) {
+            let favicon = document.querySelector('link[rel="icon"]')
+            if (!favicon) {
+                favicon = document.createElement('link')
+                favicon.setAttribute('rel', 'icon')
+                favicon.setAttribute('type', 'image/png')
+                document.head.appendChild(favicon)
+            }
+            favicon.setAttribute('href', faviconUrl)
+        },
+		injectFont(fontUrl){
+			const linkTag = document.createElement('link');
+			linkTag.rel = 'stylesheet';
+			linkTag.href = fontUrl;
+			document.head.appendChild(linkTag);
+			linkTag.onload = () => {
+				//console.log(linkTag.textContent);
+			};
 		}
 	},
 	computed: {},

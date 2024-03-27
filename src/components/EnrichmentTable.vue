@@ -34,6 +34,11 @@
                         }}</span>
                     </b-th>
                 </template>
+                <template #cell(tissue)="r">
+                    <a :href="`/tissue.html?tissue=${toSnakeFormatter(r.item.tissue)}`">
+                        {{ tissueFormatter(r.item.tissue) }}
+                    </a>
+                </template>
             </b-table>
             <b-pagination
                 v-model="currentPage"
@@ -204,5 +209,9 @@ export default Vue.component("EnrichmentTable", {
             return dataRows;
         },
     },
+    methods: {
+        tissueFormatter: Formatters.tissueFormatter,
+        toSnakeFormatter: Formatters.toSnakeFormatter
+    }
 });
 </script>

@@ -51,6 +51,13 @@ new Vue({
         tissueData() {
             return this.$store.getters["tissueData"];
         },
+        documentationMap() {
+            return {
+                tissue: this.tissue
+                    ? this.tissue.toUpperCase().replaceAll("_", " ")
+                    : "",
+            };
+        },
     },
     created() {
         // get the disease group and set of phenotypes available

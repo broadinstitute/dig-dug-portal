@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<div
-			class="filtering-ui-wrapper"
+			class="filtering-ui-wrapper vertical"
 			v-if="
 				(!!this.dataset && !!this.filters && this.filters.length > 0) ||
 				(!!this.dataFiles && this.dataFiles.length > 1)
@@ -14,7 +14,7 @@
 					v-for="filter in this.filters"
 					:key="filter.field"
 				>
-					<div class="label" v-html="filter.label"></div>
+					<div class="label" v-if="filter.type != 'checkbox'" v-html="filter.label"></div>
 					<template v-if="filter.type == 'search'">
 						<input
 							v-if="
@@ -187,9 +187,32 @@
 							</option>
 						</select>
 					</template>
+					<template v-else-if="filter.type == 'sort-radio'">
+						<div class="custom-select-radios">
+							<div
+								v-for="value in filter.fields"
+								:key="value"
+								class="custom-select-radio"
+							>
+								<input
+									type="radio"
+									:id="'filter_' + sectionId + getColumnId(filter.id) + '_' + value"
+									:value="value"
+									@change="callSort($event, filter.direction)"
+									class="custom-radio"
+									name="filter"
+								>
+								<label
+									:for="'filter_' + sectionId + getColumnId(filter.id) + '_' + value"
+								>
+									{{ value }}
+								</label>
+							</div>
+						</div>
+					</template>
 					<template v-else-if="filter.type == 'checkbox'">
 						<div class="chkbox-combo">
-							<div class="title btn btn-sm btn-light form-control chk-box-btn">View options &#9660;</div>
+							<div class="title btn btn-sm btn-light form-control chk-box-btn">{{ filter.label }} <span>&#9660;</span></div>
 							<div class="options">
 								<span>
 									<input type="checkbox" class="chkbox"
@@ -203,24 +226,29 @@
 											)
 											"
 										checked
-									/><label>Check / Uncheck all</label>
+									/><label :for="'filter_' + sectionId + getColumnId(filter.field) + 'all'">Check / Uncheck all</label>
 								</span>
-								<span v-for="value, vIndex in buildOptions(filter.field,'chkbox')"
-									:key="value">
-									<input type="checkbox" class="chkbox" :class="'filter-' + sectionId + getColumnId(filter.field)"
-										:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
-										:value="value"
-										@change="
-											filterDataChkbox(
-												$event,
-												filter.field,
-												filter.type,
-												vIndex
-											)
-											"
-										checked
-									/><label :for="value">{{ value }}</label>
-								</span>
+								<template v-for="value, vIndex in buildOptions(filter.field, 'chkbox')">
+									<span 
+									v-if="!!value"
+										:key="value"
+										:class="filter.field.toLowerCase() === 'omics' ? [value, 'do-color'] : ''">
+										<input type="checkbox" class="chkbox" :class="['filter-' + sectionId + getColumnId(filter.field)]"
+											:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
+											:value="value"
+											@change="
+												filterDataChkbox(
+													$event,
+													filter.field,
+													filter.type,
+													vIndex
+												)
+												"
+											checked
+										/><label :for="'filter_' + sectionId + getColumnId(filter.field) + vIndex">{{ value }}</label>
+									</span>
+								</template>
+								
 									
 								</div>
 							</div>
@@ -267,7 +295,7 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("research-section-filters", {
+export default Vue.component("research-section-filters-vertical", {
 	props: [
 		"apiParameters",
 		"dataComparisonConfig",
@@ -372,12 +400,12 @@ export default Vue.component("research-section-filters", {
 					} else if (pType == "list" && !!ifValuesFromKP) {
 						let label;
 
-						/*console.log("0", this.filesListLabels);
+						console.log("0", this.filesListLabels);
 						console.log(
 							"1",
 							this.filesListLabels[this.utils.keyParams[param].trim()]
 						);
-						console.log("2", this.filesListLabels[param]);*/
+						console.log("2", this.filesListLabels[param]);
 
 						if (!!this.filesListLabels[this.utils.keyParams[param].trim()]) {
 							label =
@@ -664,17 +692,17 @@ export default Vue.component("research-section-filters", {
 
 				let options = [];
 
-				if (!!data) {
+				if(!!data) {
 					data.map((v) => {
-						let values = (typeof v[field] === "object" && v[field] !== null && !!Array.isArray(v[field])) ? v[field] : [v[field]];
+						let values = (typeof v[field] === "object" && v[field] !== null && !!Array.isArray(v[field]))? v[field] : [v[field]];
 
-						values.map(i => {
+						values.map(i =>{
 							options.push(i)
 						})
 					});
 
 					options = options.filter((v, i, arr) => arr.indexOf(v) == i) //unique
-						.filter((v, i, arr) => v != ""); //remove blank*/
+									.filter((v, i, arr) => v != ""); //remove blank*/
 				}
 
 				return options.sort();
@@ -707,7 +735,7 @@ export default Vue.component("research-section-filters", {
 
 		getRange(FIELD) {
 
-			//console.log(FIELD);
+			console.log(FIELD);
 			let data = this.unfilteredDataset;
 				
 			if(!this.sliderRange) { this.sliderRange = {} };
@@ -1438,26 +1466,26 @@ export default Vue.component("research-section-filters", {
 
 			if (!!filteredLength && filteredLength > 0) {
 				if (comparingFields == null) {
-
+					
 					for (const [fKey, filter] of Object.entries(this.filtersIndex)) {
-						if (filter.type == 'checkbox') {
-							//console.log("filter", filter)
+						if(filter.type == 'checkbox') {
+							console.log("filter", filter)
 							//console.log("filter.search", filter.search)
 							//filtered = filtered.filter(row => !!row[filter.field] && !filter.search.includes(row[filter.field].toString()));
 							let chkboxFiltered = [];
 
-							filtered.map(row => {
-								if (!!row[filter.field] && typeof row[filter.field] != "object" && !filter.search.includes(row[filter.field].toString())) {
+							filtered.map(row =>{
+								if(!!row[filter.field] && typeof row[filter.field] != "object" && !filter.search.includes(row[filter.field].toString())) {
 									chkboxFiltered.push(row);
-								} else if (!!row[filter.field] && typeof row[filter.field] == "object" && !!Array.isArray(row[filter.field])) {
+								} else if(!!row[filter.field] && typeof row[filter.field] == "object" && !!Array.isArray(row[filter.field])) {
 									let isRowTrue = null;
-									row[filter.field].map(fV => {
-										if (!filter.search.includes(fV.toString())) {
+									row[filter.field].map(fV=>{
+										if(!filter.search.includes(fV.toString())) {
 											isRowTrue = true;
 										}
 									})
 
-									if (!!isRowTrue) {
+									if(!!isRowTrue) {
 										chkboxFiltered.push(row);
 									}
 								}
@@ -1664,6 +1692,12 @@ div.custom-select-search {
 	background-color: #ff0000;
 }
 
+.filtering-ui-wrapper.vertical {
+	text-align: left !important;
+	padding-left: 15px;
+	background-color: #ffffff !important;
+}
+
 .filtering-ui-wrapper.search-criteria {
 	/*position: absolute;
 	z-index: 200;
@@ -1793,5 +1827,54 @@ div.custom-select-search {
 }
 
 
-
+.custom-select-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+}
+.custom-select-radio {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-radius: 5px;
+    padding: 0 10px;
+    background: white;
+    white-space: nowrap;
+    height: 22px;
+	cursor: pointer !important;
+}
+.custom-select-radio:hover {
+    outline: 0.5px solid #aaaaaa;
+}
+.custom-select-radio input[type="radio"] {
+    display: inline-block;
+    margin: 0 5px 0 0;
+    appearance: none;
+    background: #34679a;
+    border-radius: 50%;
+    width: 10px !important;
+    height: 10px !important;
+    aspect-ratio: 1;
+    position: relative;
+}
+.custom-select-radio input[type="radio"]:after {
+    content: '';
+    background: white;
+    width: calc(100% - 5px);
+    height: calc(100% - 5px);
+    display: block;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.custom-select-radio input[type="radio"]:checked:after {
+    background: #34679a;
+}
+.custom-select-radio label {
+    margin: 0 !important;
+	cursor: pointer;
+}
 </style>

@@ -24,7 +24,7 @@
                         ></documentation>
                     </div>
                 </div>
-                
+
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <tissue-expression-display
@@ -35,18 +35,20 @@
                     </div>
                 </div>
 
-                <div class="filtering-ui-wrapper container-fluid">
+                <!-- Add filters here when data is ready -->
+                <!-- <div class="filtering-ui-wrapper container-fluid">
                     <div class="row filtering-ui-content">
                         <div class="col filter-col-md filter-col-lg">
                             Filters
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <tissue-heritability-table
                             :tissue="$parent.tissue"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         ></tissue-heritability-table>
                     </div>
                 </div>
@@ -57,3 +59,22 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<style>
+.row .pagination.b-pagination {
+    border: none !important;
+    margin-bottom: 10px !important;
+}
+
+.row li.page-item .page-link  {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    padding: 5px;
+    margin: 0 1px;
+}
+
+tr.b-table-details > td {
+    padding: 0 !important;
+}
+</style>

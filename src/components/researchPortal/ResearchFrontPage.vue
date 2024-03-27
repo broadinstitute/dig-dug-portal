@@ -26,12 +26,12 @@
                     <span v-for="example in sectionConfigs['content']['search examples']" :key="example.value"
                     v-html="getExampleLink(example)">
                     </span>
-                </div>
+                </div> 
             </div>
         </div>
         <div class="fp-bottom">
             <div class="fp-bottom-container">
-                <research-page-description
+                <research-page-description v-if="this.pageDescription"
                     :content="this.pageDescription"
                     :utils="this.utilsBox"
                 ></research-page-description>
@@ -53,8 +53,11 @@ export default Vue.component("research-front-page", {
 		return {
 			researchSearchParam: null,
 		};
-	},
-	created() {},
+	}, 
+	created() {
+    },
+    mounted() {
+    },
 	computed: {},
 	watch: {
         researchSearchParam(PARAM) {
@@ -99,10 +102,10 @@ export default Vue.component("research-front-page", {
     padding-top: 0;
     padding-left: 0;
     padding-right: 0;
-}
+    }
 .fp-top{
     flex: 0 1 auto;
-    padding:0 0 50px;
+    padding:0 0 20px;
 }
 .fp-nav-section {
     padding: 5px; 
@@ -123,15 +126,19 @@ export default Vue.component("research-front-page", {
     display: flex; 
     width: 100%; 
     min-height:100px; 
-    height:150px; 
+    height: fit-content; 
     align-items: center; 
     justify-content: center; 
     margin: 50px 0;
 }
 .fp-intro-logo{
     min-width: calc(50% - 20.5px); 
+    max-height: 200px;
     display:flex; 
     justify-content: flex-end;
+}
+.fp-intro-logo img{
+    width:inherit;
 }
 .fp-intro-divider{
     width: 1px;
@@ -181,6 +188,10 @@ export default Vue.component("research-front-page", {
 .fp-bottom-container{
     max-width: 980px;
     margin: 0 auto;
+}
+.fp-bottom:has(.fp-bottom-container:empty) {
+    padding: 0;
+    display:none;
 }
 .fp-col{
     max-width:50%; 

@@ -1,26 +1,26 @@
 <template>
 	<div class="mbm-plot-content row">
 		
-		<div class="col-md-12 phewas-plot-wrapper">
+		<div class="col-md-12 bar-plot-wrapper">
 			<div
 				class="col-md-12"
-				:id="canvasId + 'pheWasPlotWrapper'"
+				:id="canvasId + 'barPlotWrapper'"
 				style="display: inline-block"
 			>
 				<div
-					:id="canvasId + 'pheWasInfoBox'"
-					class="phe-was-info-box hidden"
+					:id="canvasId + 'barInfoBox'"
+					class="boxplot-info-box hidden"
 				>
 					<div
 						:id="canvasId + 'info_box_close'"
 						class="fixed-info-box-close"
 						@click="
-							utils.uiUtils.removeOnMouseOut(canvasId + 'pheWasInfoBox', 100)
+							utils.uiUtils.removeOnMouseOut(canvasId + 'barInfoBox', 100)
 						"
 					>
 						<b-icon icon="x-circle-fill"></b-icon>
 					</div>
-					<span :id="canvasId + 'pheWasInfoBoxContent'"></span>
+					<span :id="canvasId + 'barInfoBoxContent'"></span>
 
 					<span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
 						<strong>{{ ptKey }}</strong
@@ -32,7 +32,7 @@
 						<template
 							v-if="
 								options != null &&
-								utils.uiUtils.isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
+								utils.uiUtils.isIdFixed('#' + canvasId + 'barInfoBox') ==
 									true
 							"
 						>
@@ -59,7 +59,7 @@
 						<span
 							v-if="
 								options != null &&
-								utils.uiUtils.isIdFixed('#' + canvasId + 'pheWasInfoBox') ==
+								utils.uiUtils.isIdFixed('#' + canvasId + 'barInfoBox') ==
 									false
 							"
 							>Click for options</span
@@ -68,14 +68,14 @@
 				</div>
 
 				<canvas :hidden="!showCanvas"
-					:id="canvasId + 'pheWasPlot'"
+					:id="canvasId + 'barPlot'"
 					width=""
 					height=""
 					@mousemove="checkPosition($event, 'hover')"
 					@click="checkPosition($event, 'click')"
 					@mouseout="
-						!utils.uiUtils.isIdFixed('#' + canvasId + 'pheWasInfoBox')
-							? utils.uiUtils.removeOnMouseOut(canvasId + 'pheWasInfoBox', 1000)
+						!utils.uiUtils.isIdFixed('#' + canvasId + 'barInfoBox')
+							? utils.uiUtils.removeOnMouseOut(canvasId + 'barInfoBox', 1000)
 							: ''
 					"
 				></canvas>
@@ -92,7 +92,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-phewas-plot", {
+export default Vue.component("research-bar-plot", {
 	props: [
 		"canvasId",
 		"phenotypeMap",
@@ -109,8 +109,8 @@ export default Vue.component("research-phewas-plot", {
 	],
 	data() {
 		return {
-			pheWasData: null,
-			pheWasPosData: {},
+			barData: null,
+			barPosData: {},
 			spaceBy: 7,
 			trigger: 0,
 			hoverItems: {},
@@ -121,11 +121,11 @@ export default Vue.component("research-phewas-plot", {
 	},
 	components: {},
 	created: function () {
-		this.renderPheWas();
+		this.renderBarPlot();
 	},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		this.renderPheWas();
+		this.renderBarPlot();
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -184,55 +184,8 @@ export default Vue.component("research-phewas-plot", {
 	},
 	watch: {
 		renderData(content) {
-			this.renderPheWas();
+			this.renderBarPlot();
 		},
-
-		/*phenotypesData(DATA) {
-
-			console.log("DATA",DATA);
-
-			this.showCanvas = true;
-			let content = {};
-			content["data"] = [];
-
-			
-			let phenotypesData = cloneDeep(this.phenotypesData);
-
-			phenotypesData.map((d) => {
-				let pValue =
-					typeof d[this.renderConfig["y axis field"]] == "string"
-						? Number(d[this.renderConfig["y axis field"]])
-						: d[this.renderConfig["y axis field"]];
-				d["rawPValue"] = pValue;
-
-				if (this.renderConfig["convert y -log10"] == "true") {
-					d[this.renderConfig["y axis field"] + "-log10"] =
-						-Math.log10(pValue);
-				}
-
-				if (
-					this.phenotypeMapConfig == "kpPhenotypeMap" &&
-					!!this.phenotypeMap[d[this.renderConfig["render by"]]]
-				) {
-					content["data"].push(d);
-				} else if (this.phenotypeMapConfig == null) {
-					content["data"].push(d);
-				}
-			});
-		
-			if (!!this.filter) {
-				content.data = content.data.filter(this.filter);
-			}
-
-			if (!!content.data && content.data.length > 0) {
-				this.renderData = content;
-			} else {
-				this.showCanvas = false;
-				this.renderData = null;
-			}
-
-			if(!!this.renderData) {this.renderPheWas()};
-		}*/
 	},
 	methods: {
 		//...uiUtils,
@@ -293,7 +246,7 @@ export default Vue.component("research-phewas-plot", {
 			return phenotypeGroupsObj;
 		},
 		onResize() {
-			this.renderPheWas();
+			this.renderBarPlot();
 		},
 		checkPosition(event, TYPE) {
 			let e = event;
@@ -323,10 +276,10 @@ export default Vue.component("research-phewas-plot", {
 			let x = Math.ceil(e.clientX - rect.left);
 
 			const infoBox = document.querySelector(
-				"#" + this.canvasId + "pheWasInfoBox"
+				"#" + this.canvasId + "barInfoBox"
 			);
 			const infoBoxContent = document.querySelector(
-				"#" + this.canvasId + "pheWasInfoBoxContent"
+				"#" + this.canvasId + "barInfoBoxContent"
 			);
 			const infoBoxClose = document.querySelector(
 				"#" + this.canvasId + "info_box_close"
@@ -340,14 +293,14 @@ export default Vue.component("research-phewas-plot", {
 					x <= rect.width - (plotMargin.right / 2)
 				) {
 					for (const [yKey, yValue] of Object.entries(
-						this.pheWasPosData
+						this.barPosData
 					)) {
 						let yLoc = yKey.split("-");
-
 						if (y >= yLoc[0] && y <= yLoc[1]) {
 							yValue.map((xPos) => {
 								if (x >= xPos.start && x <= xPos.end) {
 									this.hoverItems[xPos.name] = xPos;
+
 									infoContent +=
 										"<strong>" +
 										xPos.name +
@@ -368,13 +321,14 @@ export default Vue.component("research-phewas-plot", {
 					}
 				}
 
+				
+
 				if (TYPE == "hover") {
 					if (infoContent == "") {
 						if (
 							infoBox.getAttribute("class").includes("fixed") ==
 							false
 						) {
-							//infoBoxContent.innerHTML = "";
 							infoBox.setAttribute("class", "hidden");
 							infoBoxClose.setAttribute("class", "hidden");
 						}
@@ -384,7 +338,7 @@ export default Vue.component("research-phewas-plot", {
 							false
 						) {
 							//infoBoxContent.innerHTML = infoContent;
-							infoBox.setAttribute("class", "phe-was-info-box");
+							infoBox.setAttribute("class", "boxplot-info-box");
 							infoBoxClose.setAttribute("class", "hidden");
 							if (x < rect.width - 300) {
 								infoBox.style.left = rawX + 25 + "px";
@@ -405,7 +359,7 @@ export default Vue.component("research-phewas-plot", {
 						infoBox.setAttribute("class", "hidden");
 					} else {
 						//infoBoxContent.innerHTML = infoContent;
-						infoBox.setAttribute("class", "phe-was-info-box fixed");
+						infoBox.setAttribute("class", "boxplot-info-box fixed");
 						if (x < rect.width - 300) {
 							infoBox.style.left = rawX + 25 + "px";
 							infoBox.style.top = rawY + this.spaceBy + "px";
@@ -418,9 +372,8 @@ export default Vue.component("research-phewas-plot", {
 				}
 			}
 		},
-		renderPheWas() {
+		renderBarPlot() {
 
-			//console.log(this.renderData);
 			if(!!this.renderConfig["thresholds"] && this.renderConfig["thresholds"] == "calculate") {
 
 				let threshholds = [];
@@ -434,19 +387,17 @@ export default Vue.component("research-phewas-plot", {
 
 						calcString += eValue;
 					});
-					
 					let threshold = eval(calcString);
-					
 					threshholds.push(threshold);
 				})
 				this.renderConfig["thresholds"] = threshholds;
 			}
 
 			let wrapper = document.querySelector(
-				"#" + this.canvasId + "pheWasPlotWrapper"
+				"#" + this.canvasId + "barPlotWrapper"
 			);
 			let canvas = document.querySelector(
-				"#" + this.canvasId + "pheWasPlot"
+				"#" + this.canvasId + "barPlot"
 			);
 
 			if (!!canvas && !!wrapper) {
@@ -454,7 +405,7 @@ export default Vue.component("research-phewas-plot", {
 				let canvasHeight = Number(this.renderConfig["height"]) * 2;
 
 				let c, ctx;
-				c = document.querySelector("#" + this.canvasId + "pheWasPlot");
+				c = document.querySelector("#" + this.canvasId + "barPlot");
 				c.setAttribute("width", canvasWidth);
 				c.setAttribute("height", canvasHeight);
 				c.setAttribute(
@@ -469,7 +420,7 @@ export default Vue.component("research-phewas-plot", {
 
 				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-				this.pheWasPosData = {};
+				this.barPosData = {};
 
 				let renderData = this.groupData(this.renderData);
 
@@ -504,8 +455,8 @@ export default Vue.component("research-phewas-plot", {
 								: maxY;
 					});
 				}
-				minY = Math.floor(minY);
-				maxY = Math.ceil(maxY);
+				minY = (minY > 0)? 0 : Math.floor(minY);
+				maxY = (maxY < 0)? 0 : Math.ceil(maxY);
 
 				ctx.stroke();
 
@@ -571,10 +522,8 @@ export default Vue.component("research-phewas-plot", {
 					(yMax - yMin);
 
 				/// render guide line
-				//
 
 				this.renderConfig["thresholds"].map((t) => {
-					
 					ctx.beginPath();
 					let tValue =
 						this.renderConfig["convert y -log10"] == "true"
@@ -609,9 +558,10 @@ export default Vue.component("research-phewas-plot", {
 
 				let dotIndex = 0;
 
-				//console.log("totalNum", totalNum);
+				let barWidth = ((canvasWidth - (plotMargin.left + plotMargin.right))/totalNum) - 10;
+				barWidth = barWidth <= 4 ? 4 : barWidth >= 80? 80 : barWidth;
 
-				if (totalNum > 1) {
+				if (totalNum >0) {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
 							groupsArr.indexOf(key) % this.colors.length;
@@ -626,6 +576,7 @@ export default Vue.component("research-phewas-plot", {
 							xStep * value.length -
 							24;
 
+						let yPos0 = canvasHeight - plotMargin.bottom - (-minY * yStep);
 						value.map((p) => {
 							if (
 								this.phenotypeMapConfig == null ||
@@ -635,7 +586,7 @@ export default Vue.component("research-phewas-plot", {
 									])
 							) {
 
-								let xPos = plotMargin.left + xStep * dotIndex;
+								let xPos = plotMargin.left + xStep * (dotIndex + .5);
 
 								let yValue =
 									this.renderConfig["convert y -log10"] ==
@@ -665,47 +616,32 @@ export default Vue.component("research-phewas-plot", {
 												]
 										  ]["description"];
 
-								if (this.renderConfig["beta field"] != "null" && !!this.renderConfig["beta field"]) {
-									this.renderTriangle(
-										ctx,
-										xPos,
-										yPos,
-										fillColor,
-										strokeColor,
-										Math.sign(
-											p[this.renderConfig["beta field"]]
-										)
-									);
-								} else {
-									this.renderDot(
-										ctx,
-										xPos,
-										yPos,
-										fillColor,
-										strokeColor
-									);
-								}
+								
+								ctx.fillStyle = fillColor;
+								ctx.lineWidth = 1;
+								ctx.strokeStyle = strokeColor;
 
-								///organize data by position
-								let yRangeStart = Math.round(yPos / 2) - 5;
-								let yRangeEnd = Math.round(yPos / 2) + 5;
+								ctx.fillRect(xPos, yPos, barWidth, yPos0-yPos);
+
+								let yRangeStart = (yPos >= yPos0) ? Math.round(yPos0)/2 : Math.round(yPos)/2;
+								let yRangeEnd = (yPos >= yPos0) ? Math.round(yPos)/2 : Math.round(yPos0)/2;
 								let yRange = yRangeStart + "-" + yRangeEnd;
 								let tempObj = {};
 								this.renderConfig["hover content"].map((c) => {
 									tempObj[c] = p[c];
 								});
 								let xRange = {
-									start: Math.round(xPos / 2) - 5,
-									end: Math.round(xPos / 2) + 5,
+									start: Math.round(xPos)/2,
+									end: Math.round(xPos + barWidth)/2,
 									data: tempObj,
 									name: pName,
 									id: p[this.renderConfig["render by"]],
 								};
 
-								if (!this.pheWasPosData[yRange]) {
-									this.pheWasPosData[yRange] = [];
+								if (!this.barPosData[yRange]) {
+									this.barPosData[yRange] = [];
 								}
-								this.pheWasPosData[yRange].push(xRange);
+								this.barPosData[yRange].push(xRange);
 
 								///add labels if p-value above 2.5e-6
 								if (labelIndex == 0) {
@@ -722,42 +658,22 @@ export default Vue.component("research-phewas-plot", {
 									labelXpos < maxWidthPerGroup
 								) {
 									ctx.font = "22px Arial";
-									if (
-										!!this.renderConfig["label in black"] &&
-										this.renderConfig["label in black"] ==
-											"greater than"
-									) {
-										ctx.fillStyle =
-											p.rawPValue >=
-											Number(
-												this.renderConfig[
-													"thresholds"
-												][0]
-											)
-												? "#000000"
-												: "#00000050";
-									} else {
-										ctx.fillStyle =
-											p.rawPValue <=
-											Number(
-												this.renderConfig[
-													"thresholds"
-												][0]
-											)
-												? "#000000"
-												: "#00000050";
-									}
+
+									ctx.fillStyle = "#000000"
+
+									let labelYPos = yPos < yPos0? yPos : yPos0;
 
 									ctx.save();
-									ctx.translate(labelXpos + 10, yPos - 24);
+									ctx.translate(labelXpos + (barWidth / 2) + 10, labelYPos - 24);
 									ctx.rotate((90 * -Math.PI) / 180);
 									ctx.textAlign = "start";
 									ctx.fillText(pName, 0, 0);
 									ctx.restore();
 
+
 									ctx.lineWidth = 1;
-									ctx.moveTo(xPos, yPos);
-									ctx.lineTo(labelXpos, yPos - 20);
+									ctx.moveTo((xPos + (barWidth/2)), labelYPos - 5);
+									ctx.lineTo(labelXpos + (barWidth / 2), labelYPos - 20);
 									ctx.strokeStyle = "#00000080";
 									ctx.stroke();
 								}
@@ -769,93 +685,7 @@ export default Vue.component("research-phewas-plot", {
 						});
 						keyIndex++;
 					}
-				} else {
-					for (const [key, value] of Object.entries(renderData)) {
-						let keyIndex =
-							groupsArr.indexOf(key) % this.colors.length;
-						let fillColor = this.colors[keyIndex];
-						let strokeColor = "#00000075"; //this.colors[keyIndex];
-						value.map((p) => {
-							let xPos = canvasWidth / 2;
-
-							let yPos = canvasHeight / 2;
-
-							if (
-								this.phenotypeMapConfig == null ||
-								(this.phenotypeMapConfig == "kpPhenotypeMap" &&
-									!!this.phenotypeMap[
-										p[this.renderConfig["render by"]]
-									])
-							) {
-								if (this.renderConfig["beta field"] != "null") {
-									this.renderTriangle(
-										ctx,
-										xPos,
-										yPos,
-										fillColor,
-										strokeColor,
-										Math.sign(
-											p[this.renderConfig["beta field"]]
-										)
-									);
-								} else {
-									this.renderDot(
-										ctx,
-										xPos,
-										yPos,
-										fillColor,
-										strokeColor
-									);
-								}
-
-								let pName =
-									this.phenotypeMapConfig == null
-										? p[this.renderConfig["render by"]]
-										: this.phenotypeMap[
-												p[
-													this.renderConfig[
-														"render by"
-													]
-												]
-										  ]["description"];
-
-								///organize data by position
-								let yRangeStart = Math.round(yPos) - 5;
-								let yRangeEnd = Math.round(yPos) + 5;
-								let yRange = yRangeStart + "-" + yRangeEnd;
-								let tempObj = {};
-								this.renderConfig["hover content"].map((c) => {
-									tempObj[c] = p[c];
-								});
-								let xRange = {
-									start: Math.round(xPos) - 5,
-									end: Math.round(xPos) + 5,
-									data: tempObj,
-									name: pName,
-								};
-
-								if (!this.pheWasPosData[yRange]) {
-									this.pheWasPosData[yRange] = [];
-								}
-								this.pheWasPosData[yRange].push(xRange);
-
-								ctx.font = "26px Arial";
-								ctx.fillStyle = "#000000";
-								ctx.textAlign = "start";
-								ctx.fillText(pName, xPos + 15, yPos);
-								let infoIndex = 1;
-								this.renderConfig["hover content"].map((h) => {
-									ctx.fillText(
-										h + ": " + p[h],
-										xPos + 15,
-										yPos + infoIndex * 20
-									);
-									infoIndex++;
-								});
-							}
-						});
-					}
-				}
+				} 
 			}
 		},
 
@@ -991,7 +821,7 @@ $(function () {});
 	font-size: 14px;
 	color: #69f;
 }
-.phe-was-info-box {
+.boxplot-info-box {
 	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;

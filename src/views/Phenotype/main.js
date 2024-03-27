@@ -16,7 +16,8 @@ import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
 import PathwayTable from "@/components/PathwayTable.vue";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
+import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
+import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue";
 import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -67,6 +68,8 @@ new Vue({
         FilterEnumeration,
         FilterEffectDirection,
         SearchHeaderWrapper,
+        ResearchMPlot,
+        PhenotypeHugeScores
     },
 
     created() {
@@ -159,11 +162,9 @@ new Vue({
 
             return contents[0];
         },
-
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
-
         manhattanPlot() {
             let phenotype = this.$store.state.phenotype;
             let ancestry = this.$store.state.ancestry;
@@ -176,7 +177,6 @@ new Vue({
                 }
             }
         },
-
         qqPlot() {
             let phenotype = this.$store.state.phenotype;
             let ancestry = this.$store.state.ancestry;

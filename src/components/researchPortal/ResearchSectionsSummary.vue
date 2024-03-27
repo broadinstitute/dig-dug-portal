@@ -13,9 +13,11 @@
 				</h4>
 			</div>
 		</div>
+
+		<research-page-description v-if="!!description" :content="description"
+						:utils="utils"></research-page-description>
 		
 		<div>
-			
 			<div v-for="(section,sIndex) in sectionsConfig.sections['sub sections']" class="summary-filter-wrapper" 
 			:class="isSectionData(section.section) == true ?'':'hidden'">
 				<input type="checkbox" :id="'filter_'+ sectionID+'_'+section.section" class="summary-filter-chkbox" :value="section.section"/>
@@ -70,7 +72,7 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 
 
 export default Vue.component("research-sections-summary", {
-	props: ["sectionIndex","uId", "sectionsConfig", "sectionsData","utils","starItems", "regionZoom",
+	props: ["sectionIndex","uId", "description","sectionsConfig", "sectionsData","utils","starItems", "regionZoom",
 		"regionViewArea","isInTab"],
 	components: {
 		ResearchSectionFilters,
