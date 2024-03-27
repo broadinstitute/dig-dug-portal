@@ -139,7 +139,7 @@ export default Vue.component("TissueTable", {
                     key: "diseaseTermName",
                     label: "Disease",
                     sortable: true,
-                    formatter: Formatters.tissueFormatter
+                    formatter: (value) => !value ? "Not available" : Formatters.tissueFormatter(value)
                 },
                 {
                     key: "minTpm",
