@@ -270,7 +270,7 @@
                 </div>
 
                 <div class="card mdkp-card">
-                    <div class="card-body">
+                    <div class="card-body geneLevelAssoc">
                         <h4 class="card-title">
                             Top gene-level associations for
                             {{ $store.state.phenotype.description }}
