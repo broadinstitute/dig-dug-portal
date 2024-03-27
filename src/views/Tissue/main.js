@@ -16,7 +16,6 @@ new Vue({
         PageHeader,
         PageFooter,
         Documentation,
-        TissueTable,
         TissueHeritabilityTable,
         TissueExpressionDisplay,
         CriterionFunctionGroup,
