@@ -274,7 +274,6 @@
                         <h4 class="card-title">
                             Top gene-level associations for
                             {{ $store.state.phenotype.description }}
-                            with P-Value &le; 0.05
                             <tooltip-documentation
                                 name="phenotype.genes.tooltip"
                                 :content-fill="$parent.documentationMap"
@@ -303,33 +302,60 @@
                                 <b-tabs>
                                     <b-tab title="HuGE Scores">
                                         <phenotype-huge-scores
-                                            :scores="$store.state.hugePhenotype.data"
+                                            :scores="
+                                                $store.state.hugePhenotype.data
+                                            "
                                             :filter="filter"
-                                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                                            :phenotype="$store.state.phenotype.name">
+                                            :phenotypeMap="
+                                                $store.state.bioPortal
+                                                    .phenotypeMap
+                                            "
+                                            :phenotype="
+                                                $store.state.phenotype.name
+                                            "
+                                        >
                                         </phenotype-huge-scores>
                                     </b-tab>
-                                    <b-tab :title='`Common variant 
-                                        (Ancestry: ${!$store.state.ancestry ? "All"
-                                        : $parent.ancestryFormatter($store.state.ancestry)})`'>
+                                    <b-tab
+                                        :title="`Common variant
+                                        (Ancestry: ${
+                                            !$store.state.ancestry
+                                                ? 'All'
+                                                : $parent.ancestryFormatter(
+                                                      $store.state.ancestry
+                                                  )
+                                        })`"
+                                    >
                                         <gene-finder-table
-                                            :phenotypes="[$store.state.phenotype.name]"
+                                            :phenotypes="[
+                                                $store.state.phenotype.name,
+                                            ]"
                                             :phenotype-map="
-                                                $store.state.bioPortal.phenotypeMap
+                                                $store.state.bioPortal
+                                                    .phenotypeMap
                                             "
-                                            :associations="$store.state.genes.data"
+                                            :associations="
+                                                $store.state.genes.data
+                                            "
                                             :rows-per-page="10"
                                             :filter="filter"
                                             :show-plot="true"
                                         ></gene-finder-table>
                                     </b-tab>
-                                    <b-tab title="Rare variant (all ancestries)">
+                                    <b-tab
+                                        title="Rare variant (all ancestries)"
+                                    >
                                         <gene-finder-table
-                                            :phenotypes="[$store.state.phenotype.name]"
+                                            :phenotypes="[
+                                                $store.state.phenotype.name,
+                                            ]"
                                             :phenotype-map="
-                                                $store.state.bioPortal.phenotypeMap
+                                                $store.state.bioPortal
+                                                    .phenotypeMap
                                             "
-                                            :associations="$store.state.genes52k.data"
+                                            :associations="
+                                                $store.state.genes52k.data
+                                            "
                                             :rows-per-page="10"
                                             :filter="filter"
                                             :show-plot="true"
