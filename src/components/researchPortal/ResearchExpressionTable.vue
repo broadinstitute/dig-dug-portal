@@ -90,6 +90,7 @@
             { key: "biosample", formatter: Formatters.tissueFormatter, sortable: true },
             { key: "collection", formatter: (value) => value.toString(", ") },
             { key: "dataset", sortable: true},
+            { key: "diseaseTermName", label: "Disease", sortable: true},
             { key: "Min TPM", formatter: Formatters.tpmFormatter, sortable: true },
             { key: "Q1 TPM", formatter: Formatters.tpmFormatter, sortable: true },
             { key: "Median TPM", formatter: Formatters.tpmFormatter, sortable: true },

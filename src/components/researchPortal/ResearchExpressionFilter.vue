@@ -50,6 +50,8 @@ export default Vue.component("ResearchExpressionFilter", {
 			processedCollection: null,
 			minSamples: 1,
 			collection: "all",
+			diseases: null,
+			disease: ""
 		};
 	},
 	watch: {
@@ -90,6 +92,11 @@ export default Vue.component("ResearchExpressionFilter", {
 					processedCollection.push(c.trim());
 				});
 			});
+			let diseases = processedData.filter(d => !!d.diseaseTermId).map(d => {
+				return { id: d.diseaseTermId, name: d.diseaseTermName };
+			});
+			let diseaseSet = [...new Set(diseases)].sort();
+			console.log(JSON.stringify(diseaseSet));
 			this.processedCollection = [...new Set(processedCollection)].sort();
 			if (this.collection != "all") {
 				processedData = processedData.filter(
