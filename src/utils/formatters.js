@@ -153,6 +153,12 @@ function floatFormatter(value) {
     return Number.parseFloat(value).toFixed(2);
 }
 
+function tpmFormatter(value){
+    return Number.isNaN(Number.parseFloat(value)) 
+        ? "-" 
+        : Number.parseFloat(value).toFixed(3);
+}
+
 function pValueFormatter(value) {
     if (!value) {
         return "-";
@@ -616,6 +622,7 @@ export default {
     consequenceMeaning,
     dbSNPFormatter,
     floatFormatter,
+    tpmFormatter,
     intFormatter,
     locusFormatter,
     igvLocusFormatter,
