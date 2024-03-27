@@ -185,8 +185,7 @@
 								>
 									<div class="single-search-wrapper">
 										<h4 style="color: #fff">
-											Search gene, variant, region or
-											phenotype
+											Search gene, variant, region, phenotype or tissue
 										</h4>
 										<research-single-search
 											:single-search-config="null"
