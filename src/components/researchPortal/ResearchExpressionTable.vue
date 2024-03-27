@@ -25,7 +25,7 @@
       </template>
 			<template #cell(show_datasets)="row">
 				<b-button
-					class="btn view-features-btn btn-secondary mr-2"
+          variant="outline-primary"
 					size="sm"
 					@click="row.toggleDetails"
 				>
