@@ -38,6 +38,7 @@
 						class="form-control"
 						v-model="disease"
 						@change="applyFilter()"
+						:disabled="!diseases.length"
 					>
 						<option value="" selected>All</option>
 						<template v-for="diseaseName in diseases">
@@ -65,7 +66,7 @@ export default Vue.component("ResearchExpressionFilter", {
 			processedCollection: null,
 			minSamples: 1,
 			collection: "all",
-			diseases: null,
+			diseases: [],
 			disease: ""
 		};
 	},
@@ -110,7 +111,13 @@ export default Vue.component("ResearchExpressionFilter", {
 				);
 			}
 			let diseases = processedData.filter(d => !!d.diseaseTermName).map(d => d.diseaseTermName);
+			if (!diseases.includes(this.disease)){
+				this.disease = "";
+			}
 			this.diseases = [...new Set(diseases)].sort();
+			if (this.disease){
+				processedData = processedData.filter(d => d.diseaseTermName === this.disease);
+			}
 			processedData.forEach((entry) => {
                 if(typeof entry.tpmForAllSamples === 'string'){
                     let tpms = entry.tpmForAllSamples
