@@ -88,6 +88,7 @@ export default new Vuex.Store({
                 limit: 1000,
             };
             let hugePhenotypeQuery = { ...query, limit: 1000 };
+            let pathwayAssocQuery = { ...ancestryOptionalQuery, limit: 100 };
 
             if (
                 context.state.ancestry == "" ||
@@ -105,7 +106,7 @@ export default new Vuex.Store({
             context.dispatch("genes52k/query", gene52kQuery);
             context.dispatch("hugePhenotype/query", hugePhenotypeQuery);
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
-            context.dispatch("pathwayAssoc/query", ancestryOptionalQuery);
+            context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
             context.state.manhattanPlotAvailable = true;
         },
         phenotypesInSession(context, PHENOTYPES) {
