@@ -167,11 +167,54 @@ export default Vue.component("multi-genes-track", {
 			}
 			
 		},
+
+		sortGenesByRegion(GENES) {
+			let tracks = [];
+			let gIndex = 0;
+			GENES.map(g => {
+				tracks[gIndex] = [];
+				gIndex ++;
+			})
+
+			GENES.map(g => {
+				if(tracks[0].length == 0) {
+					tracks[0].push(g);
+				} else {
+					let gTaken = false;
+					tracks.map(t => {
+						if(t.length > 0 && gTaken == false) {
+
+							let lastGene = t[t.length - 1];
+							if (lastGene.end <= (g.start - 50)) {
+								t.push(g)
+								gTaken = true;
+							}
+						}
+					})
+				}
+			})
+
+			let sortedTracks = []
+
+			console.log("tracks", tracks);
+
+			tracks.map(t => {
+				sortedTracks = sortedTracks.concat(t);
+			});
+
+			return sortedTracks;
+		},
+
 		renderTrack(GENES) {
 
-
 			if (!!document.getElementById("genesTrackWrapper"+this.sectionId)) {
-				let genesArray = GENES;
+				let genesArray = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc');
+
+				genesArray = this.sortGenesByRegion(genesArray);
+
+				console.log("genesArray", genesArray);
+
+
 				let canvasRenderWidth, canvasRenderHeight;
 				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
 
@@ -393,7 +436,7 @@ export default Vue.component("multi-genes-track", {
 					});
 
 					codingGenes = codingGenes.slice(0, -1);
-					console.log(this.plotConfig["type"], codingGenes)
+					
 					if (codingGenes.length > 1) {
 						this.getGenesData(codingGenes);
 					}
