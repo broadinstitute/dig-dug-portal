@@ -218,10 +218,20 @@ export default Vue.component("TissueHeritabilityTable", {
 </script>
 
 <style scoped>
-.row table {
+tr.b-table-details > td {
+    padding: 0 !important;
+}
+.row {
     font-size: smaller;
     margin-left: 15px;
-    margin-right: 15px;
-    background-color: #dfdfdf;
+    margin-right: 0;
+    background-color: #efefef;
+}
+.row .col-12 {
+    padding: 0 0 0 5px !important;
+}
+
+.row .col-12 table.b-table {
+    margin-bottom: 0 !important;
 }
 </style>

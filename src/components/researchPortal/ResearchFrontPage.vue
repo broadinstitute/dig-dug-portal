@@ -53,13 +53,10 @@ export default Vue.component("research-front-page", {
 		return {
 			researchSearchParam: null,
 		};
-	},
+	}, 
 	created() {
     },
     mounted() {
-        if(this.sectionConfigs['content']['favicon']){
-            this.changeFavicon(this.sectionConfigs['content']['favicon']);
-        }
     },
 	computed: {},
 	watch: {
@@ -77,16 +74,6 @@ export default Vue.component("research-front-page", {
                 }
             })
             return exampleLink;
-        },
-        changeFavicon(url) {
-            let favicon = document.querySelector('link[rel="icon"]')
-            if (!favicon) {
-                favicon = document.createElement('link')
-                favicon.setAttribute('rel', 'icon')
-                favicon.setAttribute('type', 'image/png')
-                document.head.appendChild(favicon)
-            }
-            favicon.setAttribute('href', url)
         }
     },
 });
