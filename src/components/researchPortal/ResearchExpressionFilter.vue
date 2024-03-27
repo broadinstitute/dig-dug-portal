@@ -32,6 +32,21 @@
 						</template>
 					</select>
 				</div>
+				<div class="col filter-col-md">
+					<div class="label">Disease</div>
+					<select
+						class="form-control"
+						v-model="disease"
+						@change="applyFilter()"
+					>
+						<option value="" selected>All</option>
+						<template v-for="diseaseName in diseases">
+							<option :value="diseaseName" :key="diseaseName">
+								{{ tissueFormatter(diseaseName) }}
+							</option>
+						</template>
+					</select>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -70,13 +85,9 @@ export default Vue.component("ResearchExpressionFilter", {
 	},
 	methods: {
 		...uiUtils,
-
+		tissueFormatter: Formatters.tissueFormatter,
 		applyFilter() {
 			this.processData();
-		},
-
-		tpmFormat(value) {
-			return Formatters.floatFormatter(`${value}`);
 		},
 		processData() {
 			let processedCollection = [];
@@ -92,17 +103,14 @@ export default Vue.component("ResearchExpressionFilter", {
 					processedCollection.push(c.trim());
 				});
 			});
-			let diseases = processedData.filter(d => !!d.diseaseTermId).map(d => {
-				return { id: d.diseaseTermId, name: d.diseaseTermName };
-			});
-			let diseaseSet = [...new Set(diseases)].sort();
-			console.log(JSON.stringify(diseaseSet));
 			this.processedCollection = [...new Set(processedCollection)].sort();
 			if (this.collection != "all") {
 				processedData = processedData.filter(
 					(d) => !!d.collection.includes(this.collection)
 				);
 			}
+			let diseases = processedData.filter(d => !!d.diseaseTermName).map(d => d.diseaseTermName);
+			this.diseases = [...new Set(diseases)].sort();
 			processedData.forEach((entry) => {
                 if(typeof entry.tpmForAllSamples === 'string'){
                     let tpms = entry.tpmForAllSamples
