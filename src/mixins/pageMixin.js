@@ -11,7 +11,7 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
 export const pageMixin = {
@@ -26,6 +26,12 @@ export const pageMixin = {
 
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
-        }
-    }
+        },
+    },
+    watch: {
+        diseaseGroup(group) {
+            console.log("pageMixin watch diseaseGroup", group);
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+    },
 };
