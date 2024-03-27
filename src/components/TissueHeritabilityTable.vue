@@ -113,7 +113,7 @@ export default Vue.component("TissueHeritabilityTable", {
                 {
                     key: "enrichment",
                     label: "Enrichment",
-                    formatter: Formatters.pValueFormatter,
+                    formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
                 {
@@ -144,7 +144,7 @@ export default Vue.component("TissueHeritabilityTable", {
                 {
                     key: "enrichment",
                     label: "Enrichment",
-                    formatter: Formatters.pValueFormatter,
+                    formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
             ],
@@ -167,7 +167,6 @@ export default Vue.component("TissueHeritabilityTable", {
         tissueFormatter: Formatters.tissueFormatter,
         phenotypeFormatter: Formatters.phenotypeFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
-        pValueFormatter: Formatters.pValueFormatter,
         queryHeritability() {
             let queryString = `${this.tissue.replaceAll("_", " ")},${
                 this.ancestry
